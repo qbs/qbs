@@ -21,43 +21,6 @@ function localizedResourcesFolderPath(product, key) {
     return FileInfo.joinPaths(product.moduleProperty("bundle", "unlocalizedResourcesFolderPath"), key + product.moduleProperty("bundle", "localizedResourcesFolderSuffix"));
 }
 
-function frameworkSymlinkCreateCommands(bundlePath, targetName, frameworkVersion) {
-    var cmd, commands = [];
-
-    cmd = new JavaScriptCommand();
-    cmd.description = "creating framework " + targetName;
-    cmd.highlight = "codegen";
-    cmd.sourceCode = function() { };
-    commands.push(cmd);
-
-    cmd = new Command("ln", ["-sfn", frameworkVersion, "Current"]);
-    cmd.workingDirectory = FileInfo.joinPaths(bundlePath, "Versions");
-    cmd.silent = true;
-    commands.push(cmd);
-
-    cmd = new Command("ln", ["-sfn", "Versions/Current/Headers", "Headers"]);
-    cmd.workingDirectory = bundlePath;
-    cmd.silent = true;
-    commands.push(cmd);
-
-    cmd = new Command("ln", ["-sfn", "Versions/Current/PrivateHeaders", "PrivateHeaders"]);
-    cmd.workingDirectory = bundlePath;
-    cmd.silent = true;
-    commands.push(cmd);
-
-    cmd = new Command("ln", ["-sfn", "Versions/Current/Resources", "Resources"]);
-    cmd.workingDirectory = bundlePath;
-    cmd.silent = true;
-    commands.push(cmd);
-
-    cmd = new Command("ln", ["-sf", FileInfo.joinPaths("Versions", "Current", targetName), targetName]);
-    cmd.workingDirectory = bundlePath;
-    cmd.silent = true;
-    commands.push(cmd);
-
-    return commands;
-}
-
 function infoPlistContents(infoPlistFilePath) {
     if (infoPlistFilePath === undefined)
         return undefined;

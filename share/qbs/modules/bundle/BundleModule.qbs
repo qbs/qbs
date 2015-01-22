@@ -391,36 +391,147 @@ Module {
     Rule {
         condition: qbs.targetOS.contains("darwin")
         multiplex: true
-        inputs: ["infoplist", "pkginfo",
+        inputs: ["infoplist", "pkginfo", "hpp",
                  "icns", "resourcerules", "ipa",
                  "compiled_nib", "compiled_storyboard", "compiled_assetcatalog"]
-        auxiliaryInputs: ["hpp"]
 
-        outputFileTags: ["bundle"]
+        outputFileTags: ["bundle",
+            "bundle.symlink.headers", "bundle.symlink.private-headers",
+            "bundle.symlink.resources", "bundle.symlink.executable",
+            "bundle.symlink.version", "bundle.hpp", "bundle.resource"]
         outputArtifacts: {
-            var artifacts = [];
+            var i, artifacts = [];
             if (ModUtils.moduleProperty(product, "isBundle")) {
                 artifacts.push({
                     filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName")),
                     fileTags: ["bundle"]
                 });
+
+                var packageType = ModUtils.moduleProperty(product, "packageType");
+                if (packageType === "FMWK") {
+                    var publicHeaders = ModUtils.moduleProperties(product, "publicHeaders");
+                    if (publicHeaders && publicHeaders.length) {
+                        artifacts.push({
+                            filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName"), "Headers"),
+                            fileTags: ["bundle.symlink.headers"]
+                        });
+                    }
+
+                    var privateHeaders = ModUtils.moduleProperties(product, "privateHeaders");
+                    if (privateHeaders && privateHeaders.length) {
+                        artifacts.push({
+                            filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName"), "PrivateHeaders"),
+                            fileTags: ["bundle.symlink.private-headers"]
+                        });
+                    }
+
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName"), "Resources"),
+                        fileTags: ["bundle.symlink.resources"]
+                    });
+
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName"), product.targetName),
+                        fileTags: ["bundle.symlink.executable"]
+                    });
+
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName"), "Versions", "Current"),
+                        fileTags: ["bundle.symlink.version"]
+                    });
+                }
+
+                var headerTypes = ["public", "private"];
+                for (var h in headerTypes) {
+                    var sources = ModUtils.moduleProperties(product, headerTypes[h] + "Headers");
+                    var destination = FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, headerTypes[h] + "HeadersFolderPath"));
+                    for (i in sources) {
+                        artifacts.push({
+                            filePath: FileInfo.joinPaths(destination, FileInfo.fileName(sources[i])),
+                            fileTags: ["bundle.hpp"]
+                        });
+                    }
+                }
+
+                sources = ModUtils.moduleProperties(product, "resources");
+                for (i in sources) {
+                    destination = BundleTools.destinationDirectoryForResource(product, {baseDir: FileInfo.path(sources[i]), fileName: FileInfo.fileName(sources[i])});
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(destination, FileInfo.fileName(sources[i])),
+                        fileTags: ["bundle.resource"]
+                    });
+                }
             }
             return artifacts;
         }
 
         prepare: {
-            var commands = [];
-
-            // This command is intentionally empty
-            var cmd = new JavaScriptCommand();
-            cmd.silent = true;
-            commands.push(cmd);
-
+            var i, cmd, commands = [];
             var packageType = ModUtils.moduleProperty(product, "packageType");
-            if (packageType === "FMWK") {
-                commands = commands.concat(BundleTools.frameworkSymlinkCreateCommands(output.filePath,
-                                                                                      product.targetName,
-                                                                                      ModUtils.moduleProperty(product, "frameworkVersion")));
+
+            var bundleType = "bundle";
+            if (packageType === "APPL")
+                bundleType = "application";
+            if (packageType === "FMWK")
+                bundleType = "framework";
+
+            var bundles = outputs.bundle;
+            for (i in bundles) {
+                cmd = new Command("mkdir", ["-p", bundles[i].filePath]);
+                cmd.description = "creating " + bundleType + " " + product.targetName;
+                commands.push(cmd);
+
+                cmd = new Command("touch", ["-c", bundles[i].filePath]);
+                cmd.silent = true;
+                commands.push(cmd);
+            }
+
+            // Product is unbundled
+            if (commands.length === 0) {
+                cmd = new JavaScriptComment();
+                cmd.silent = true;
+                cmd.sourceCode = function () { };
+                commands.push(cmd);
+            }
+
+            var symlinks = outputs["bundle.symlink.version"];
+            for (i in symlinks) {
+                cmd = new Command("ln", ["-sfn", ModUtils.moduleProperty(product, "frameworkVersion"),
+                                  symlinks[i].filePath]);
+                cmd.silent = true;
+                commands.push(cmd);
+            }
+
+            var publicHeaders = outputs["bundle.symlink.headers"];
+            for (i in publicHeaders) {
+                cmd = new Command("ln", ["-sfn", "Versions/Current/Headers",
+                                         publicHeaders[i].filePath]);
+                cmd.silent = true;
+                commands.push(cmd);
+            }
+
+            var privateHeaders = outputs["bundle.symlink.private-headers"];
+            for (i in privateHeaders) {
+                cmd = new Command("ln", ["-sfn", "Versions/Current/PrivateHeaders",
+                                         privateHeaders[i].filePath]);
+                cmd.silent = true;
+                commands.push(cmd);
+            }
+
+            var resources = outputs["bundle.symlink.resources"];
+            for (i in resources) {
+                cmd = new Command("ln", ["-sfn", "Versions/Current/Resources",
+                                         resources[i].filePath]);
+                cmd.silent = true;
+                commands.push(cmd);
+            }
+
+            var executables = outputs["bundle.symlink.executable"];
+            for (i in executables) {
+                cmd = new Command("ln", ["-sf", FileInfo.joinPaths("Versions", "Current", product.targetName),
+                                         executables[i].filePath]);
+                cmd.silent = true;
+                commands.push(cmd);
             }
 
             cmd = new JavaScriptCommand();
@@ -465,10 +576,12 @@ Module {
             if (cmd.sources && cmd.sources.length)
                 commands.push(cmd);
 
-            if (outputs.bundle && product.type.contains("application") && product.moduleProperty("qbs", "hostOS").contains("darwin")) {
-                cmd = new Command("lsregister", ["-f", outputs.bundle[0].filePath]);
-                cmd.description = "register " + ModUtils.moduleProperty(product, "bundleName");
-                commands.push(cmd);
+            if (product.type.contains("application") && product.moduleProperty("qbs", "hostOS").contains("darwin")) {
+                for (i in bundles) {
+                    cmd = new Command("lsregister", ["-f", bundles[i].filePath]);
+                    cmd.description = "register " + ModUtils.moduleProperty(product, "bundleName");
+                    commands.push(cmd);
+                }
             }
 
             return commands;

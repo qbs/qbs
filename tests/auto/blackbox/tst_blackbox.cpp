@@ -1989,6 +1989,12 @@ void TestBlackbox::testFrameworkStructure()
     QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Headers"));
     QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/PrivateHeaders"));
     QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Resources"));
+
+    params.arguments = QStringList() << "project.includeHeaders:false";
+    QCOMPARE(runQbs(params), 0);
+
+    QVERIFY(!directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Headers"));
+    QVERIFY(!directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/PrivateHeaders"));
 }
 
 static bool haveWiX()
