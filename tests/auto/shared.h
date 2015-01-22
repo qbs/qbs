@@ -55,6 +55,12 @@ inline bool regularFileExists(const QString &filePath)
     return fi.exists() && fi.isFile();
 }
 
+inline bool directoryExists(const QString &dirPath)
+{
+    const QFileInfo fi(dirPath);
+    return fi.exists() && fi.isDir();
+}
+
 inline QString uniqueProductName(const QString &productName, const QString &_profileName)
 {
     const QString p = _profileName.isEmpty() ? profileName() : _profileName;

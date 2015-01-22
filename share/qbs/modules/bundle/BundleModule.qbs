@@ -427,7 +427,7 @@ Module {
             cmd.description = "copying public headers";
             cmd.highlight = "filegen";
             cmd.sources = ModUtils.moduleProperties(product, "publicHeaders");
-            cmd.destination = ModUtils.moduleProperty(product, "publicHeadersFolderPath");
+            cmd.destination = FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "publicHeadersFolderPath"));
             cmd.sourceCode = function() {
                 var i;
                 for (var i in sources) {
@@ -441,7 +441,7 @@ Module {
             cmd.description = "copying private headers";
             cmd.highlight = "filegen";
             cmd.sources = ModUtils.moduleProperties(product, "privateHeaders");
-            cmd.destination = ModUtils.moduleProperty(product, "privateHeadersFolderPath");
+            cmd.destination = FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "privateHeadersFolderPath"));
             cmd.sourceCode = function() {
                 var i;
                 for (var i in sources) {

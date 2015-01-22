@@ -17,6 +17,11 @@ function frameworkSymlinkCreateCommands(bundlePath, targetName, frameworkVersion
     cmd.silent = true;
     commands.push(cmd);
 
+    cmd = new Command("ln", ["-sfn", "Versions/Current/PrivateHeaders", "PrivateHeaders"]);
+    cmd.workingDirectory = bundlePath;
+    cmd.silent = true;
+    commands.push(cmd);
+
     cmd = new Command("ln", ["-sfn", "Versions/Current/Resources", "Resources"]);
     cmd.workingDirectory = bundlePath;
     cmd.silent = true;

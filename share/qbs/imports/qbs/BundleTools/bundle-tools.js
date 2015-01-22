@@ -11,7 +11,7 @@ function destinationDirectoryForResource(product, input) {
         if (subPath && subPath !== '.')
             path = FileInfo.joinPaths(path, subPath);
     } else {
-        path = FileInfo.joinPaths(path, product.moduleProperty("bundle", "unlocalizedResourcesFolderPath"), input.baseDir);
+        path = FileInfo.joinPaths(path, product.moduleProperty("bundle", "unlocalizedResourcesFolderPath"));
     }
     return path;
 }
@@ -36,6 +36,11 @@ function frameworkSymlinkCreateCommands(bundlePath, targetName, frameworkVersion
     commands.push(cmd);
 
     cmd = new Command("ln", ["-sfn", "Versions/Current/Headers", "Headers"]);
+    cmd.workingDirectory = bundlePath;
+    cmd.silent = true;
+    commands.push(cmd);
+
+    cmd = new Command("ln", ["-sfn", "Versions/Current/PrivateHeaders", "PrivateHeaders"]);
     cmd.workingDirectory = bundlePath;
     cmd.silent = true;
     commands.push(cmd);

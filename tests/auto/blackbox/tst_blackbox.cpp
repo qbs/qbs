@@ -55,12 +55,6 @@ using qbs::Internal::removeDirectoryWithContents;
 using qbs::Profile;
 using qbs::Settings;
 
-static bool directoryExists(const QString &dirPath)
-{
-    const QFileInfo fi(dirPath);
-    return fi.exists() && fi.isDir();
-}
-
 static QString initQbsExecutableFilePath()
 {
     QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/qbs");
@@ -1925,6 +1919,28 @@ void TestBlackbox::testEmbedInfoPlist()
     params.arguments = QStringList(QLatin1String("bundle.embedInfoPlist:false"));
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
+}
+
+void TestBlackbox::testFrameworkStructure()
+{
+    if (!HostOsInfo::isOsxHost())
+        QSKIP("only applies on OS X");
+
+    QDir::setCurrent(testDataDir + QLatin1String("/frameworkStructure"));
+
+    QbsRunParameters params;
+    QCOMPARE(runQbs(params), 0);
+
+    QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/Widget"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/Headers/Widget.h"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/PrivateHeaders/WidgetPrivate.h"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/Resources/BaseResource"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/Resources/en.lproj/EnglishResource"));
+    QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/Current"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Widget"));
+    QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Headers"));
+    QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/PrivateHeaders"));
+    QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Resources"));
 }
 
 static bool haveWiX()

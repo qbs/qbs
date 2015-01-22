@@ -157,6 +157,7 @@ private slots:
     void testAssembly();
     void testNsis();
     void testEmbedInfoPlist();
+    void testFrameworkStructure();
     void testWiX();
     void testNodeJs();
     void testTypeScript();
