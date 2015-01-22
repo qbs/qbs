@@ -1,5 +1,6 @@
 var BundleTools = loadExtension("qbs.BundleTools");
 var File = loadExtension("qbs.File");
+var PathTools = loadExtension("qbs.PathTools");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
 function linkerFlags(product, inputs) {
@@ -11,7 +12,7 @@ function linkerFlags(product, inputs) {
     var weakFrameworks = ModUtils.moduleProperties(product, 'weakFrameworks');
     var rpaths = (product.moduleProperty("cpp", "useRPaths") !== false)
             ? ModUtils.moduleProperties(product, 'rpaths') : undefined;
-    var args = [], i, suffix;
+    var args = [], i;
 
     if (rpaths && rpaths.length)
         args.push('-Wl,-rpath,' + rpaths.join(",-rpath,"));
@@ -43,17 +44,18 @@ function linkerFlags(product, inputs) {
         }
     }
 
-    suffix = ".framework";
     for (i in frameworks) {
-        if (frameworks[i].slice(-suffix.length) === suffix)
-            args.push(frameworks[i] + "/" + FileInfo.fileName(frameworks[i]).slice(0, -suffix.length));
+        frameworkExecutablePath = PathTools.frameworkExecutablePath(frameworks[i]);
+        if (File.exists(frameworkExecutablePath))
+            args.push(frameworkExecutablePath);
         else
             args = args.concat(['-framework', frameworks[i]]);
     }
 
     for (i in weakFrameworks) {
-        if (weakFrameworks[i].slice(-suffix.length) === suffix)
-            args = args.concat(['-weak_library', weakFrameworks[i] + "/" + FileInfo.fileName(weakFrameworks[i]).slice(0, -suffix.length)]);
+        frameworkExecutablePath = PathTools.frameworkExecutablePath(weakFrameworks[i]);
+        if (File.exists(frameworkExecutablePath))
+            args = args.concat(['-weak_library', frameworkExecutablePath]);
         else
             args = args.concat(['-weak_framework', weakFrameworks[i]]);
     }

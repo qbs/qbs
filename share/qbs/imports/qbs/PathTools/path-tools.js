@@ -99,3 +99,13 @@ function isLibraryFileName(product, fileName, prefix, suffixes, isShared) {
     }
     return false;
 }
+
+function frameworkExecutablePath(frameworkPath) {
+    var suffix = ".framework";
+    var isAbsoluteFrameworkPath = frameworkPath.slice(-suffix.length) === suffix;
+    if (isAbsoluteFrameworkPath) {
+        var frameworkName = FileInfo.fileName(frameworkPath).slice(0, -suffix.length);
+        return FileInfo.joinPaths(frameworkPath, frameworkName);
+    }
+    return undefined;
+}
