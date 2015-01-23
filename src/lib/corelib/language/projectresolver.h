@@ -153,6 +153,7 @@ private:
     ProductContext *m_productContext;
     ModuleContext *m_moduleContext;
     ExportsContext *m_exportsContext;
+    bool m_disableCachedEvaluation;
     QMap<QString, ResolvedProductPtr> m_productsByName;
     QHash<QString, QList<ResolvedProductPtr> > m_productsByType;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;

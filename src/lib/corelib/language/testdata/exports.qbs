@@ -46,4 +46,8 @@ Project {
             dummy.cxxFlags: ["-bar"]
         }
     }
+    Application {
+        name: "myapp3"
+        Depends { name: "productWithInheritedExportItem" }
+    }
 }
