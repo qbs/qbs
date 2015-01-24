@@ -227,6 +227,11 @@ function additionalCompilerAndLinkerFlags(product) {
             args.push('-miphoneos-version-min=' + minimumiOSVersion);
     }
 
+    var requireAppExtensionSafeApi = ModUtils.moduleProperty(product, "requireAppExtensionSafeApi");
+    if (requireAppExtensionSafeApi !== undefined) {
+        args.push(requireAppExtensionSafeApi ? "-fapplication-extension" : "-fno-application-extension");
+    }
+
     return args
 }
 

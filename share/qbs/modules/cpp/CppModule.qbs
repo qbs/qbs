@@ -220,6 +220,12 @@ Module {
         description: "whether to enable Automatic Reference Counting (ARC) for Objective-C"
     }
 
+    property bool requireAppExtensionSafeApi
+    PropertyOptions {
+        name: "requireAppExtensionSafeApi"
+        description: "whether to require app-extension-safe APIs only"
+    }
+
     property bool allowUnresolvedSymbols: false
 
     FileTagger {

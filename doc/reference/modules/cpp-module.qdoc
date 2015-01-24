@@ -544,6 +544,17 @@
     Whether to enable Automatic Reference Counting (ARC) for Objective-C and Objective-C++ source
     code. If \c{undefined}, uses the compiler default (probably \c{false}).
 
+    \section2 requireAppExtensionSafeApi
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Whether to enforce the use of only app-extension-safe APIs on OS X and iOS. This is necessary
+    for building Application Extensions in OS X Yosemite and iOS 8 and above. If \c{undefined}, uses
+    the compiler and linker defaults (probably \c{false}).
+
 
     \section1 Properties Specific to iOS
 
