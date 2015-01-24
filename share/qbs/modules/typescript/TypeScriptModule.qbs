@@ -13,7 +13,7 @@ Module {
     property string version: {
         var p = new Process();
         p.exec(compilerPath, ["--version"]);
-        var match = p.readStdOut().match(/^Version ([0-9]+(\.[0-9]+){1,3})\n$/);
+        var match = p.readStdOut().match(/.*\bVersion ([0-9]+(\.[0-9]+){1,3})\n$/);
         if (match !== null)
             return match[1];
     }
