@@ -59,7 +59,7 @@ Module {
     property string frameworkVersion: {
         if (packageType === "FMWK") {
             var n = parseInt(product.version, 10);
-            return isNaN(n) ? 'A' : n;
+            return isNaN(n) ? 'A' : String(n);
         }
     }
 
