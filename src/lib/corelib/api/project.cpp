@@ -985,6 +985,7 @@ QList<InstallableFile> Project::installableFilesForProduct(const ProductData &pr
         foreach (const SourceArtifactConstPtr &artifact, group->allFiles()) {
             InstallableFile f;
             const QString &targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
+                    internalProduct->sourceDirectory,
                     artifact->absoluteFilePath, artifact->properties, mutableOptions,
                     &f.d->targetDirectory);
             if (targetFilePath.isEmpty())
@@ -1003,6 +1004,7 @@ QList<InstallableFile> Project::installableFilesForProduct(const ProductData &pr
                 continue;
             InstallableFile f;
             const QString &targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
+                    internalProduct->sourceDirectory,
                     artifact->filePath(), artifact->properties, mutableOptions,
                     &f.d->targetDirectory);
             if (targetFilePath.isEmpty())

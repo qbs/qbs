@@ -1416,6 +1416,18 @@ void TestBlackbox::installable()
     QCOMPARE(installList.readAll().count('\n'), 2);
 }
 
+void TestBlackbox::installTree()
+{
+    QDir::setCurrent(testDataDir + "/install-tree");
+    QbsRunParameters params;
+    params.command = "install";
+    QCOMPARE(runQbs(params), 0);
+    const QString installRoot = relativeBuildDir() + "/install-root/";
+    QVERIFY(QFile::exists(installRoot + "content/foo.txt"));
+    QVERIFY(QFile::exists(installRoot + "content/subdir1/bar.txt"));
+    QVERIFY(QFile::exists(installRoot + "content/subdir2/baz.txt"));
+}
+
 void TestBlackbox::java()
 {
     Settings settings((QString()));

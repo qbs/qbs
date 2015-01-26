@@ -262,6 +262,17 @@
     \note Artifacts for which this property is enabled automatically receive the file tag
           "installable". This is useful for writing packaging-related rules.
 
+    \section1 installSourceBase
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li see below
+    \endtable
+
+    Specifies the base directory of the local files that are going to be installed. The
+    source base directory is omitted from the target directory path specified in \c{installDir}.
+    The default value of this property is the directory of the current file to be installed,
+    relative to the product's source directory.
 
     \section1 installDir
 

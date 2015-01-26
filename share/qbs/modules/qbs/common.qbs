@@ -51,6 +51,7 @@ Module {
     }
 
     property bool install: false
+    property string installSourceBase
     readonly property string installRoot: undefined
     property string installDir
     property string installPrefix: ""

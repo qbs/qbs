@@ -49,7 +49,7 @@ public:
             const InstallOptions &options, ProgressObserver *observer, const Logger &logger);
     void install();
 
-    static QString targetFilePath(const TopLevelProject *project,
+    static QString targetFilePath(const TopLevelProject *project, const QString &productSourceDir,
             const QString &sourceFilePath, const PropertyMapConstPtr &properties,
             InstallOptions &options, QString *targetDirectory = 0);
     static void initInstallRoot(const TopLevelProject *project, InstallOptions &options);

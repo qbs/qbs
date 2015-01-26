@@ -97,6 +97,7 @@ void ProductInstaller::install()
 }
 
 QString ProductInstaller::targetFilePath(const TopLevelProject *project,
+        const QString &productSourceDir,
         const QString &sourceFilePath, const PropertyMapConstPtr &properties,
         InstallOptions &options, QString *targetDirectory)
 {
@@ -106,13 +107,32 @@ QString ProductInstaller::targetFilePath(const TopLevelProject *project,
             = properties->qbsPropertyValue(QLatin1String("installDir")).toString();
     const QString installPrefix
             = properties->qbsPropertyValue(QLatin1String("installPrefix")).toString();
+    const QString installSourceBase
+            = properties->qbsPropertyValue(QLatin1String("installSourceBase")).toString();
     initInstallRoot(project, options);
     QString targetDir = options.installRoot();
     targetDir.append(QLatin1Char('/')).append(installPrefix)
             .append(QLatin1Char('/')).append(relativeInstallDir);
     targetDir = QDir::cleanPath(targetDir);
-    const QString targetFilePath = QDir::cleanPath(targetDir + QLatin1Char('/')
-                                                   + FileInfo::fileName(sourceFilePath));
+
+    QString targetFilePath;
+    if (installSourceBase.isEmpty()) {
+        // This has the same effect as if installSourceBase would equal the directory of the file.
+        targetFilePath = FileInfo::fileName(sourceFilePath);
+    } else {
+        const QString localAbsBasePath = QDir::cleanPath(productSourceDir + QLatin1Char('/')
+                                                         + installSourceBase);
+        targetFilePath = sourceFilePath;
+        if (!targetFilePath.startsWith(localAbsBasePath)) {
+            throw ErrorInfo(Tr::tr("Cannot install '%1', because it doesn't start with the"
+                                   " value of qbs.installSourceBase '%2'.").arg(sourceFilePath,
+                                                                                installSourceBase));
+        }
+
+        targetFilePath.remove(0, localAbsBasePath.length() + 1);
+    }
+
+    targetFilePath.prepend(targetDir + QLatin1Char('/'));
     if (targetDirectory)
         *targetDirectory = targetDir;
     return targetFilePath;
@@ -152,7 +172,8 @@ void ProductInstaller::copyFile(const Artifact *artifact)
                     .arg(m_products.first()->project->topLevelProject()->id()));
     }
     QString targetDir;
-    const QString targetFilePath = this->targetFilePath(m_project.data(), artifact->filePath(),
+    const QString targetFilePath = this->targetFilePath(m_project.data(),
+            artifact->product->sourceDirectory, artifact->filePath(),
             artifact->properties, m_options, &targetDir);
     const QString nativeFilePath = QDir::toNativeSeparators(artifact->filePath());
     const QString nativeTargetDir = QDir::toNativeSeparators(targetDir);
