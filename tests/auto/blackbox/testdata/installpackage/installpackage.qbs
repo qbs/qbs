@@ -33,7 +33,7 @@ Project {
         }
     }
 
-    BinaryPackage {
+    InstallPackage {
         archiver.type: "tar"
         builtByDefault: true
         name: "tar-package"
