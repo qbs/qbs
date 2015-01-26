@@ -142,7 +142,8 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
 
         // Cache the variant value. We must not cache the QScriptValue here, because it's a
         // reference and the user might change the actual object.
-        qbsEngine->addToPropertyCache(moduleName, propertyName, oneValue, properties, value);
+        if (qbsEngine->isPropertyCacheEnabled())
+            qbsEngine->addToPropertyCache(moduleName, propertyName, oneValue, properties, value);
     }
     return engine->toScriptValue(value);
 }
