@@ -246,11 +246,20 @@ void TestBlackbox::tar()
 {
     if (HostOsInfo::hostOs() == HostOsInfo::HostOsWindows)
         QSKIP("Beware of the msys tar");
+    if (HostOsInfo::hostOs() == HostOsInfo::HostOsOsx) {
+        // work around absurd tar behavior on OS X
+        qputenv("COPY_EXTENDED_ATTRIBUTES_DISABLE", "true");
+        qputenv("COPYFILE_DISABLE", "true");
+    }
     QDir::setCurrent(testDataDir + "/archiver");
     QString binary = findArchiver("tar");
     if (binary.isEmpty())
         QSKIP("tar not found");
     QCOMPARE(runQbs(QbsRunParameters(QStringList() << "archiver.type:tar")), 0);
+    if (HostOsInfo::hostOs() == HostOsInfo::HostOsOsx) {
+        qunsetenv("COPY_EXTENDED_ATTRIBUTES_DISABLE");
+        qunsetenv("COPYFILE_DISABLE");
+    }
     const QString outputFile = relativeProductBuildDir("archivable") + "/archivable.tar.gz";
     QVERIFY2(regularFileExists(outputFile), qPrintable(outputFile));
     QProcess listContents;
