@@ -7,5 +7,6 @@ DummyBase {
     property stringList cxxFlags
     property string someString
     property string productName: product.name
+    property string upperCaseProductName: productName.toUpperCase()
     property string zort: "zort in dummy"
 }

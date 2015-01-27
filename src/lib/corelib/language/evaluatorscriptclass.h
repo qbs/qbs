@@ -36,6 +36,7 @@
 #include <logging/logger.h>
 
 #include <QScriptClass>
+#include <QStack>
 
 QT_BEGIN_NAMESPACE
 class QScriptContext;
@@ -93,6 +94,7 @@ private:
     QScriptValue m_getEnvBuiltin;
     QScriptValue m_getHostOSBuiltin;
     QScriptValue m_canonicalArchitectureBuiltin;
+    QStack<JSSourceValue *> m_sourceValueStack;
 };
 
 } // namespace Internal

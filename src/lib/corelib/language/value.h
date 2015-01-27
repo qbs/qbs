@@ -109,6 +109,7 @@ public:
 
     bool sourceUsesBase() const { return m_flags.testFlag(SourceUsesBase); }
     bool sourceUsesOuter() const { return m_flags.testFlag(SourceUsesOuter); }
+    void setSourceUsesProductFlag() { m_flags |= SourceUsesProduct; }
     bool sourceUsesProduct() const { return m_flags.testFlag(SourceUsesProduct); }
     bool hasFunctionForm() const { return m_flags.testFlag(HasFunctionForm); }
     void setHasFunctionForm(bool b);

@@ -50,6 +50,29 @@
 namespace qbs {
 namespace Internal {
 
+template <class T>
+class ScopedPopper
+{
+    QStack<T> *m_stack;
+    bool m_mustPop;
+public:
+    ScopedPopper(QStack<T> *s)
+        : m_stack(s), m_mustPop(false)
+    {
+    }
+
+    ~ScopedPopper()
+    {
+        if (m_mustPop)
+            m_stack->pop();
+    }
+
+    void mustPop()
+    {
+        m_mustPop = true;
+    }
+};
+
 class SVConverter : ValueHandler
 {
     EvaluatorScriptClass *const scriptClass;
@@ -58,6 +81,7 @@ class SVConverter : ValueHandler
     const QScriptValue *object;
     const ValuePtr &valuePtr;
     const Item * const itemOfProperty;
+    QStack<JSSourceValue *> * const sourceValueStack;
     char pushedScopesCount;
 
 public:
@@ -66,13 +90,14 @@ public:
     QScriptValue *result;
 
     SVConverter(EvaluatorScriptClass *esc, const QScriptValue *obj, const ValuePtr &v,
-                const Item *_itemOfProperty)
+                const Item *_itemOfProperty, QStack<JSSourceValue *> *sourceValueStack)
         : scriptClass(esc)
         , engine(static_cast<ScriptEngine *>(esc->engine()))
         , scriptContext(esc->engine()->currentContext())
         , object(obj)
         , valuePtr(v)
         , itemOfProperty(_itemOfProperty)
+        , sourceValueStack(sourceValueStack)
         , pushedScopesCount(0)
     {
     }
@@ -122,6 +147,15 @@ private:
 
     void handle(JSSourceValue *value)
     {
+        ScopedPopper<JSSourceValue *> popper(sourceValueStack);
+        if (value->sourceUsesProduct()) {
+            foreach (JSSourceValue *a, *sourceValueStack)
+                a->setSourceUsesProductFlag();
+        } else {
+            sourceValueStack->push(value);
+            popper.mustPop();
+        }
+
         const Item *conditionScopeItem = 0;
         QScriptValue conditionScope;
         QScriptValue conditionFileScope;
@@ -196,7 +230,8 @@ private:
         if (value->sourceUsesBase()) {
             QScriptValue baseValue;
             if (value->baseValue()) {
-                SVConverter converter(scriptClass, object, value->baseValue(), itemOfProperty);
+                SVConverter converter(scriptClass, object, value->baseValue(), itemOfProperty,
+                                      sourceValueStack);
                 converter.propertyName = propertyName;
                 converter.data = data;
                 converter.result = &baseValue;
@@ -405,7 +440,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
         }
     }
 
-    SVConverter converter(this, &object, value, itemOfProperty);
+    SVConverter converter(this, &object, value, itemOfProperty, &m_sourceValueStack);
     converter.propertyName = &name;
     converter.data = data;
     converter.result = &result;

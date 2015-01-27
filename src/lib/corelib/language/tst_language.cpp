@@ -456,12 +456,16 @@ void TestLanguage::exports()
         QCOMPARE(propertyValue.toStringList(), QStringList() << "ABC");
         QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
                                                 "productName").toString(), QString("myapp2"));
+        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
+                "upperCaseProductName").toString(), QString("MYAPP2"));
 
         // Check whether we're returning incorrect cached values.
         product = products.value("myapp3");
         QVERIFY(product);
         QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
                                                 "productName").toString(), QString("myapp3"));
+        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
+                "upperCaseProductName").toString(), QString("MYAPP3"));
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
