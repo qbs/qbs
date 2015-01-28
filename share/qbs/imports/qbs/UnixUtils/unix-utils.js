@@ -15,10 +15,11 @@ function soname(product, outputFileName) {
         return isNaN(n) ? defaultValue : n;
     }
 
-    if (product.version) {
-        var major = majorVersion(product.version);
+    var version = product.moduleProperty("cpp", "internalVersion");
+    if (version) {
+        var major = majorVersion(version);
         if (major) {
-            return outputFileName.substr(0, outputFileName.length - product.version.length)
+            return outputFileName.substr(0, outputFileName.length - version.length)
                     + major;
         }
     }
