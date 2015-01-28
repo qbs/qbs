@@ -1,4 +1,5 @@
 import qbs
+import qbs.DarwinTools
 
 Product {
     name: "autotest-runner"
@@ -19,6 +20,14 @@ Product {
         prepare: {
             var cmd = new Command(input.filePath);
             cmd.description = "Running test " + input.fileName;
+            if (product.moduleProperty("qbs", "hostOS").contains("darwin") &&
+                product.moduleProperty("qbs", "targetOS").contains("darwin")) {
+                cmd.environment = [];
+                var env = DarwinTools.standardDyldEnvironment(product);
+                for (var i in env) {
+                    cmd.environment.push(i + "=" + env[i]);
+                }
+            }
             return cmd;
         }
     }
