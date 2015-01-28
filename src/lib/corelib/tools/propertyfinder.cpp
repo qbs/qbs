@@ -77,7 +77,7 @@ void PropertyFinder::findModuleValues(const QVariantMap &properties, bool search
     // These are the non-matching modules.
     for (QVariantMap::ConstIterator it = moduleProperties.constBegin();
          it != moduleProperties.constEnd(); ++it) {
-        findModuleValues(it->toMap(), true);
+        findModuleValues(it->toMap(), searchRecursively);
     }
 }
 
