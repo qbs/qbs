@@ -166,6 +166,11 @@ var EnvironmentVariable = (function () {
     EnvironmentVariable.prototype.set = function () {
         putEnv(this.name, this.value);
     };
+
+    EnvironmentVariable.prototype.unset = function () {
+        unsetEnv(this.name);
+    };
+
     return EnvironmentVariable;
 })();
 
