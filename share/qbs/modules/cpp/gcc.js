@@ -228,7 +228,7 @@ function additionalCompilerAndLinkerFlags(product) {
     }
 
     var requireAppExtensionSafeApi = ModUtils.moduleProperty(product, "requireAppExtensionSafeApi");
-    if (requireAppExtensionSafeApi !== undefined) {
+    if (requireAppExtensionSafeApi !== undefined && product.moduleProperty("qbs", "targetOS").contains("darwin")) {
         args.push(requireAppExtensionSafeApi ? "-fapplication-extension" : "-fno-application-extension");
     }
 
