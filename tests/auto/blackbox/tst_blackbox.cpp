@@ -533,6 +533,23 @@ void TestBlackbox::resolve_project_dry_run()
     QVERIFY2(!QFile::exists(buildGraphPath), qPrintable(buildGraphPath));
 }
 
+void TestBlackbox::symlinkRemoval()
+{
+    if (HostOsInfo::isWindowsHost())
+        SKIP_TEST("No symlink support on Windows");
+    QDir::setCurrent(testDataDir + "/symlink-removal");
+    QVERIFY(QDir::current().mkdir("dir1"));
+    QVERIFY(QDir::current().mkdir("dir2"));
+    QVERIFY(QFile::link("dir2", "dir1/broken-link"));
+    QVERIFY(QFile::link(QFileInfo("dir2").absoluteFilePath(), "dir1/valid-link-to-dir"));
+    QVERIFY(QFile::link(QFileInfo("symlink-removal.qbs").absoluteFilePath(),
+                        "dir1/valid-link-to-file"));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!QFile::exists("dir1"));
+    QVERIFY(QFile::exists("dir2"));
+    QVERIFY(QFile::exists("symlink-removal.qbs"));
+}
+
 void TestBlackbox::typeChange()
 {
     QDir::setCurrent(testDataDir + "/type-change");

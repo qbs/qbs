@@ -146,6 +146,7 @@ private slots:
     void resolve_project();
     void resolve_project_dry_run_data();
     void resolve_project_dry_run();
+    void symlinkRemoval();
     void typeChange();
     void usingsAsSoleInputsNonMultiplexed();
     void clean();
