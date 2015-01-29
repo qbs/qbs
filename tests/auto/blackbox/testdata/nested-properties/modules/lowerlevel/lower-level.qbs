@@ -12,7 +12,6 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.sourceCode = function() { };
             var prop = product.moduleProperty("lowerlevel", "prop");
-            var listProp = product.moduleProperties("lowerlevel", "listProp");
             cmd.description = "lowerlevel.prop is '" + prop + "'.";
             return [cmd];
         }

@@ -895,7 +895,6 @@ void TestApi::exportSimple()
 void TestApi::exportWithRecursiveDepends()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("export-with-recursive-depends/project.qbs");
-    QEXPECT_FAIL("", "QBS-706", Abort);
     VERIFY_NO_ERROR(errorInfo);
 }
 

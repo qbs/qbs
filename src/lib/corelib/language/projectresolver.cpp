@@ -50,6 +50,7 @@
 
 #include <QFileInfo>
 #include <QDir>
+#include <QQueue>
 #include <QSet>
 
 #include <algorithm>
@@ -380,9 +381,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     foreach (Item *child, subItems)
         callItemFunction(mapping, child, projectContext);
 
-    foreach (const Item::Module &module, item->modules())
-        resolveModule(module.name, module.item, projectContext);
-
+    resolveModules(item, projectContext);
     product->fileTags += productContext.additionalFileTags;
 
     foreach (const ResolvedTransformerPtr &transformer, product->transformers)
@@ -397,12 +396,33 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         m_progressObserver->incrementProgressValue();
 }
 
+void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectContext)
+{
+    // Breadth first search needed here, because the product might set properties on the cpp module,
+    // whose children must be evaluated in that context then.
+    QQueue<Item::Module> modules;
+    foreach (const Item::Module &m, item->modules())
+        modules.enqueue(m);
+    QSet<QStringList> seen;
+    while (!modules.isEmpty()) {
+        const Item::Module m = modules.takeFirst();
+        if (seen.contains(m.name))
+            continue;
+        seen.insert(m.name);
+        resolveModule(m.name, m.item, projectContext);
+        foreach (const Item::Module &childModule, m.item->modules())
+            modules.enqueue(childModule);
+    }
+}
+
 void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
                                     ProjectContext *projectContext)
 {
     checkCancelation();
     if (!m_evaluator->boolValue(item, QLatin1String("present")))
         return;
+
+    ModuleContext * const oldModuleContext = m_moduleContext;
     ModuleContext moduleContext;
     moduleContext.module = ResolvedModule::create();
     m_moduleContext = &moduleContext;
@@ -433,7 +453,7 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
     foreach (Item *child, item->children())
         callItemFunction(mapping, child, projectContext);
 
-    m_moduleContext = 0;
+    m_moduleContext = oldModuleContext;
 }
 
 SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductConstPtr &rproduct,
@@ -1107,11 +1127,17 @@ void ProjectResolver::evaluateModuleValues(Item *item, QVariantMap *modulesMap,
         bool lookupPrototype) const
 {
     checkCancelation();
+    QSet<QStringList> seenModuleNames;
+
     for (Item::Modules::const_iterator it = item->modules().constBegin();
          it != item->modules().constEnd(); ++it)
     {
-        QVariantMap depmods;
         const Item::Module &module = *it;
+        if (seenModuleNames.contains(module.name))
+            continue;
+        seenModuleNames << module.name;
+
+        QVariantMap depmods;
         evaluateModuleValues(module.item, &depmods, lookupPrototype);
         QVariantMap dep = evaluateProperties(module.item, lookupPrototype);
         dep.insert(QLatin1String("modules"), depmods);

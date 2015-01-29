@@ -559,6 +559,29 @@ enum EnvType
     BuildEnv, RunEnv
 };
 
+static bool findModuleMapRecursively_impl(const QVariantMap &cfg, const QString &moduleName,
+        QVariantMap *result)
+{
+    for (QVariantMap::const_iterator it = cfg.constBegin(); it != cfg.constEnd(); ++it) {
+        if (it.key() == moduleName) {
+            *result = it.value().toMap();
+            return true;
+        }
+        if (findModuleMapRecursively_impl(it.value().toMap().value("modules").toMap(), moduleName,
+                                          result)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static QVariantMap findModuleMapRecursively(const QVariantMap &cfg, const QString &moduleName)
+{
+    QVariantMap result;
+    findModuleMapRecursively_impl(cfg, moduleName, &result);
+    return result;
+}
+
 static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType envType,
                                                  const QList<ResolvedModuleConstPtr> &modules,
                                                  const PropertyMapConstPtr &productConfiguration,
@@ -640,7 +663,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
         }
 
         // expose the module's properties
-        QVariantMap moduleCfg = productModules.value(module->name).toMap();
+        QVariantMap moduleCfg = findModuleMapRecursively(productModules, module->name);
         for (QVariantMap::const_iterator it = moduleCfg.constBegin(); it != moduleCfg.constEnd(); ++it)
             scope.setProperty(it.key(), engine->toScriptValue(it.value()));
 
@@ -652,7 +675,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
             QString envTypeStr = (envType == BuildEnv
                                   ? QLatin1String("build") : QLatin1String("run"));
             throw ErrorInfo(Tr::tr("Error while setting up %1 environment: %2")
-                            .arg(envTypeStr, scriptValue.toString()));
+                            .arg(envTypeStr, scriptValue.toString()), setupScript->location);
         }
     }
 

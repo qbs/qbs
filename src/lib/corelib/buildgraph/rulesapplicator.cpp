@@ -49,6 +49,7 @@
 #include <tools/qbsassert.h>
 
 #include <QDir>
+#include <QQueue>
 #include <QScriptValueIterator>
 
 namespace qbs {
@@ -427,21 +428,49 @@ public:
             return;
 
         outputArtifact->properties = outputArtifact->properties->clone();
-        QVariantMap artifactModulesCfg = outputArtifact->properties->value()
-                .value(QLatin1String("modules")).toMap();
+        QVariantMap artifactCfg = outputArtifact->properties->value();
         foreach (const NameValuePair &nvp, m_propertyValues) {
-            const QStringList &nameParts = nvp.first;
-            const QVariant &value = nvp.second;
-            if (!artifactModulesCfg.contains(nameParts.first())) {
+            const QStringList valuePath = findValuePath(artifactCfg, nvp.first);
+            if (valuePath.isEmpty()) {
                 throw ErrorInfo(Tr::tr("Cannot set module property %1 on artifact %2.")
-                                .arg(nameParts.join(QLatin1String(".")),
+                                .arg(nvp.first.join(QLatin1String(".")),
                                      outputArtifact->filePath()));
             }
-            setConfigProperty(artifactModulesCfg, nameParts, value);
+            setConfigProperty(artifactCfg, valuePath, nvp.second);
         }
-        QVariantMap outputArtifactConfig = outputArtifact->properties->value();
-        outputArtifactConfig.insert(QLatin1String("modules"), artifactModulesCfg);
-        outputArtifact->properties->setValue(outputArtifactConfig);
+        outputArtifact->properties->setValue(artifactCfg);
+    }
+
+    QStringList findValuePath(const QVariantMap &cfg, const QStringList &nameParts)
+    {
+        QStringList tmp = nameParts;
+        const QString propertyName = tmp.takeLast();
+        const QString moduleName = tmp.join(QLatin1Char('.'));
+        const QStringList modulePath = findModulePath(cfg, moduleName);
+        if (modulePath.isEmpty())
+            return modulePath;
+        return QStringList(modulePath) << propertyName;
+    }
+
+    QStringList findModulePath(const QVariantMap &cfg, const QString &moduleName)
+    {
+        typedef QPair<QVariantMap, QStringList> MapAndPath;
+        QQueue<MapAndPath> q;
+        q.enqueue(MapAndPath(cfg.value(QLatin1String("modules")).toMap(),
+                             QStringList(QLatin1String("modules"))));
+        do {
+            const MapAndPath current = q.takeFirst();
+            const QVariantMap &mod = current.first;
+            for (QVariantMap::const_iterator it = mod.constBegin(); it != mod.constEnd(); ++it) {
+                const QVariantMap m = it.value().toMap();
+                const QStringList currentPath = QStringList(current.second) << it.key();
+                if (it.key() == moduleName)
+                    return currentPath;
+                q.enqueue(MapAndPath(m.value(QLatin1String("modules")).toMap(),
+                                     QStringList(currentPath) << QLatin1String("modules")));
+            }
+        } while (!q.isEmpty());
+        return QStringList();
     }
 };
 
