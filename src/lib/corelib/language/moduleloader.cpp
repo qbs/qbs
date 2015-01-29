@@ -434,7 +434,6 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     setScopeForDescendants(item, productContext.scope);
     resolveDependencies(&dependsContext, item);
     checkItemCondition(item);
-    createAdditionalModuleInstancesInProduct(&productContext);
 
     foreach (Item *child, item->children()) {
         if (child->typeName() == QLatin1String("Group"))
@@ -516,28 +515,6 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
     item->setScope(projectContext->scope);
     handleProject(projectContext->result, loadedItem, projectContext->buildDirectory,
                   QSet<QString>(referencedFilePaths) << subProjectFilePath);
-}
-
-void ModuleLoader::createAdditionalModuleInstancesInProduct(ProductContext *productContext)
-{
-    Item::Modules modulesToCheck;
-    QSet<QStringList> modulesInProduct;
-    foreach (const Item::Module &module, productContext->item->modules()) {
-        modulesInProduct += module.name;
-        modulesToCheck += module.item->prototype()->modules();
-    }
-    while (!modulesToCheck.isEmpty()) {
-        Item::Module module = modulesToCheck.takeFirst();
-        if (modulesInProduct.contains(module.name))
-            continue;
-        modulesInProduct += module.name;
-        modulesToCheck += module.item->prototype()->modules();
-        Item *instance = Item::create(m_pool);
-        instantiateModule(productContext, productContext->item, instance, module.item->prototype(),
-                          module.name);
-        module.item = instance;
-        productContext->item->modules().append(module);
-    }
 }
 
 void ModuleLoader::handleGroup(ProductContext *productContext, Item *item)
@@ -1036,11 +1013,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
             }
             QBS_CHECK(obj == depinst);
         }
-        depinst->setPrototype(m.item);
-        depinst->setFile(m.item->file());
-        depinst->setLocation(m.item->location());
-        depinst->setTypeName(m.item->typeName());
-        depinst->setScope(moduleInstance);
+        instantiateModule(productContext, moduleInstance, depinst, m.item, m.name);
         m.item = depinst;
         moduleInstance->modules() += m;
     }

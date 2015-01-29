@@ -165,7 +165,6 @@ private:
     void initProductProperties(const ProjectContext *project, Item *item);
     void handleSubProject(ProjectContext *projectContext, Item *item,
             const QSet<QString> &referencedFilePaths);
-    void createAdditionalModuleInstancesInProduct(ProductContext *productContext);
     void handleGroup(ProductContext *productContext, Item *group);
     void deferExportItem(ProductContext *productContext, Item *item);
     void mergeExportItems(ProductContext *productContext);

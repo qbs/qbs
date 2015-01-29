@@ -873,10 +873,10 @@ void TestLanguage::moduleProperties_data()
     QTest::newRow("init") << QString() << QStringList();
     QTest::newRow("merge_lists")
             << "defines"
-            << (QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
+            << (QStringList() << "THE_PRODUCT" << "QT_GUI" << "QT_CORE" << "QT_NETWORK");
     QTest::newRow("merge_lists_and_values")
             << "defines"
-            << (QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
+            << (QStringList() << "THE_PRODUCT" << "QT_GUI" << "QT_CORE" << "QT_NETWORK");
     QTest::newRow("merge_lists_with_duplicates")
             << "cxxFlags"
             << (QStringList() << "-foo" << "BAR" << "-foo" << "BAZ");

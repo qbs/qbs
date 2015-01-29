@@ -104,6 +104,7 @@ private:
     void resolveProject(Item *item, ProjectContext *projectContext);
     void resolveSubProject(Item *item, ProjectContext *projectContext);
     void resolveProduct(Item *item, ProjectContext *projectContext);
+    void resolveModules(const Item *item, ProjectContext *projectContext);
     void resolveModule(const QStringList &moduleName, Item *item, ProjectContext *projectContext);
     void resolveGroup(Item *item, ProjectContext *projectContext);
     void resolveRule(Item *item, ProjectContext *projectContext);

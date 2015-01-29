@@ -673,9 +673,7 @@ void TestBlackbox::exportSimple()
 void TestBlackbox::exportWithRecursiveDepends()
 {
     QDir::setCurrent(testDataDir + "/exportWithRecursiveDepends");
-    QEXPECT_FAIL("", "QBS-706", Abort);
     QbsRunParameters params;
-    params.expectFailure = true; // Remove when test no longer fails.
     QCOMPARE(runQbs(params), 0);
 }
 
@@ -1908,7 +1906,6 @@ void TestBlackbox::nestedProperties()
 {
     QDir::setCurrent(testDataDir + "/nested-properties");
     QCOMPARE(runQbs(), 0);
-    QEXPECT_FAIL(0, "QBS-726", Abort);
     QVERIFY2(m_qbsStdout.contains("value in higherlevel"), m_qbsStdout.constData());
 }
 

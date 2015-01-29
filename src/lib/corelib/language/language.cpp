@@ -548,6 +548,29 @@ enum EnvType
     BuildEnv, RunEnv
 };
 
+static bool findModuleMapRecursively_impl(const QVariantMap &cfg, const QString &moduleName,
+        QVariantMap *result)
+{
+    for (QVariantMap::const_iterator it = cfg.constBegin(); it != cfg.constEnd(); ++it) {
+        if (it.key() == moduleName) {
+            *result = it.value().toMap();
+            return true;
+        }
+        if (findModuleMapRecursively_impl(it.value().toMap().value("modules").toMap(), moduleName,
+                                          result)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static QVariantMap findModuleMapRecursively(const QVariantMap &cfg, const QString &moduleName)
+{
+    QVariantMap result;
+    findModuleMapRecursively_impl(cfg, moduleName, &result);
+    return result;
+}
+
 static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType envType,
                                                  const QList<ResolvedModuleConstPtr> &modules,
                                                  const PropertyMapConstPtr &productConfiguration,
@@ -627,7 +650,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
         }
 
         // expose the module's properties
-        QVariantMap moduleCfg = productModules.value(module->name).toMap();
+        QVariantMap moduleCfg = findModuleMapRecursively(productModules, module->name);
         for (QVariantMap::const_iterator it = moduleCfg.constBegin(); it != moduleCfg.constEnd(); ++it)
             scope.setProperty(it.key(), engine->toScriptValue(it.value()));
 
