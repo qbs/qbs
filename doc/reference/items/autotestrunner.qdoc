@@ -77,6 +77,11 @@
         \li Default
         \li Description
     \row
+        \li arguments
+        \li stringList
+        \li empty
+        \li The list of arguments to invoke the autotest with.
+    \row
         \li environment
         \li stringList
         \li set internally

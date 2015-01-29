@@ -5,6 +5,7 @@ Product {
     name: "autotest-runner"
     type: ["autotest-result"]
     builtByDefault: false
+    property stringList arguments: []
     property stringList environment: ModUtils.flattenEnvironmentDictionary(
                                          qbs.commonRunEnvironment,
                                          qbs.pathListSeparator)
@@ -21,7 +22,7 @@ Product {
             alwaysUpdated: false
         }
         prepare: {
-            var cmd = new Command(input.filePath);
+            var cmd = new Command(input.filePath, product.arguments);
             cmd.description = "Running test " + input.fileName;
             cmd.environment = product.environment;
             return cmd;
