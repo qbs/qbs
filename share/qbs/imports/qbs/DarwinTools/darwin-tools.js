@@ -1,31 +1,5 @@
 var FileInfo = loadExtension("qbs.FileInfo");
 
-function standardDyldEnvironment(config) {
-    var installRoot = config.moduleProperty("qbs", "installRoot");
-    var installPrefix = config.moduleProperty("qbs", "installPrefix");
-    var pathListSeparator = config.moduleProperty("qbs", "pathListSeparator");
-    var sysroot = config.moduleProperty("qbs", "sysroot");
-
-    var env = {
-        "DYLD_FRAMEWORK_PATH": [
-            FileInfo.joinPaths(installRoot, installPrefix, "Library", "Frameworks"),
-            FileInfo.joinPaths(installRoot, installPrefix, "lib"),
-            FileInfo.joinPaths(installRoot, installPrefix)
-        ].join(pathListSeparator),
-        "DYLD_LIBRARY_PATH": [
-            FileInfo.joinPaths(installRoot, installPrefix, "lib"),
-            FileInfo.joinPaths(installRoot, installPrefix, "Library", "Frameworks"),
-            FileInfo.joinPaths(installRoot, installPrefix)
-        ].join(pathListSeparator)
-    };
-
-    if (sysroot) {
-        env["DYLD_ROOT_PATH"] = [sysroot];
-    }
-
-    return env;
-}
-
 /**
   * Returns the most appropriate Apple platform name given a targetOS list.
   * Possible platform names include macosx, iphoneos, and iphonesimulator.

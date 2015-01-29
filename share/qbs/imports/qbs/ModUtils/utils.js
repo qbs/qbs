@@ -138,6 +138,22 @@ function concatAll() {
     return result;
 }
 
+/**
+  * Flattens an environment dictionary (string keys to arrays or strings)
+  * into a string list containing items like \c key=value1:value2:value3
+  */
+function flattenEnvironmentDictionary(dict, pathListSeparator) {
+    var list = [];
+    for (var i in dict) {
+        var value = dict[i];
+        if (typeof value === Array) {
+            value = value.join(pathListSeparator);
+        }
+        list.push(i + "=" + value);
+    }
+    return list;
+}
+
 var EnvironmentVariable = (function () {
     function EnvironmentVariable(name, separator, convertPathSeparators) {
         if (!name)

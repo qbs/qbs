@@ -1,10 +1,13 @@
 import qbs
-import qbs.DarwinTools
+import qbs.ModUtils
 
 Product {
     name: "autotest-runner"
     type: ["autotest-result"]
     builtByDefault: false
+    property stringList environment: ModUtils.flattenEnvironmentDictionary(
+                                         qbs.commonRunEnvironment,
+                                         qbs.pathListSeparator)
     property bool limitToSubProject: true
     Depends {
         productTypes: "autotest"
@@ -20,14 +23,7 @@ Product {
         prepare: {
             var cmd = new Command(input.filePath);
             cmd.description = "Running test " + input.fileName;
-            if (product.moduleProperty("qbs", "hostOS").contains("darwin") &&
-                product.moduleProperty("qbs", "targetOS").contains("darwin")) {
-                cmd.environment = [];
-                var env = DarwinTools.standardDyldEnvironment(product);
-                for (var i in env) {
-                    cmd.environment.push(i + "=" + env[i]);
-                }
-            }
+            cmd.environment = product.environment;
             return cmd;
         }
     }

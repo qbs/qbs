@@ -101,4 +101,28 @@ Module {
 
         validator.validate();
     }
+
+    // private properties
+    property var commonRunEnvironment: {
+        var env = {};
+        if (hostOS.contains("darwin") && targetOS.contains("darwin")) {
+            env["DYLD_FRAMEWORK_PATH"] = [
+                FileInfo.joinPaths(installRoot, installPrefix, "Library", "Frameworks"),
+                FileInfo.joinPaths(installRoot, installPrefix, "lib"),
+                FileInfo.joinPaths(installRoot, installPrefix)
+            ].join(pathListSeparator);
+
+            env["DYLD_LIBRARY_PATH"] = [
+                FileInfo.joinPaths(installRoot, installPrefix, "lib"),
+                FileInfo.joinPaths(installRoot, installPrefix, "Library", "Frameworks"),
+                FileInfo.joinPaths(installRoot, installPrefix)
+            ].join(pathListSeparator);
+
+            if (sysroot) {
+                env["DYLD_ROOT_PATH"] = [sysroot];
+            }
+        }
+
+        return env;
+    }
 }

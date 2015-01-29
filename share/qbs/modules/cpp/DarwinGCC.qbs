@@ -36,24 +36,14 @@ UnixGCC {
     }
 
     setupRunEnvironment: {
+        var env = qbs.commonRunEnvironment;
+        env["DYLD_ROOT_PATH"] = sysroot;
         var env;
 
-        env = new ModUtils.EnvironmentVariable("DYLD_FRAMEWORK_PATH", qbs.pathListSeparator);
-        env.append(FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, "Library", "Frameworks"));
-        env.append(FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, "lib"));
-        env.append(FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix));
-        env.set();
-
-        env = new ModUtils.EnvironmentVariable("DYLD_LIBRARY_PATH", qbs.pathListSeparator);
-        env.append(FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, "lib"));
-        env.append(FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, "Library", "Frameworks"));
-        env.append(FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix));
-        env.set();
-
-        if (qbs.sysroot) {
-            env = new ModUtils.EnvironmentVariable("DYLD_ROOT_PATH", qbs.pathListSeparator);
-            env.append(qbs.sysroot);
-            env.set();
+        for (var i in env) {
+            var v = new ModUtils.EnvironmentVariable(i, qbs.pathListSeparator);
+            v.value = env[i];
+            v.set();
         }
     }
 
