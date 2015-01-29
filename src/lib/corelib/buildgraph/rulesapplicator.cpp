@@ -446,7 +446,7 @@ public:
     {
         QStringList tmp = nameParts;
         const QString propertyName = tmp.takeLast();
-        const QString moduleName = tmp.join(QLatin1Char('.'));
+        const QString moduleName = tmp.join(QLatin1String("."));
         const QStringList modulePath = findModulePath(cfg, moduleName);
         if (modulePath.isEmpty())
             return modulePath;
