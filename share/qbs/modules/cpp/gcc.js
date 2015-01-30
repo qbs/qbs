@@ -1,6 +1,8 @@
-var BundleTools = loadExtension("qbs.BundleTools");
 var File = loadExtension("qbs.File");
+var FileInfo = loadExtension("qbs.FileInfo");
+var ModUtils = loadExtension("qbs.ModUtils");
 var PathTools = loadExtension("qbs.PathTools");
+var UnixUtils = loadExtension("qbs.UnixUtils");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
 function linkerFlags(product, inputs) {

@@ -1,3 +1,5 @@
+var FileInfo = loadExtension("qbs.FileInfo");
+
 function applicationFileName(product) {
     return product.moduleProperty("cpp", "executablePrefix")
          + product.targetName

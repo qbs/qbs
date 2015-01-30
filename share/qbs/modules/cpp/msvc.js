@@ -1,3 +1,7 @@
+var FileInfo = loadExtension("qbs.FileInfo");
+var ModUtils = loadExtension("qbs.ModUtils");
+var WindowsUtils = loadExtension("qbs.WindowsUtils");
+
 function prepareCompiler(project, product, inputs, outputs, input, output) {
     var i;
     var optimization = ModUtils.moduleProperty(input, "optimization")

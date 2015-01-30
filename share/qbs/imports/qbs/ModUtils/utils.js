@@ -1,3 +1,5 @@
+var FileInfo = loadExtension("qbs.FileInfo");
+
 /**
   * Given a list of file tags, returns the file tag (one of [c, cpp, objc, objcpp])
   * corresponding to the C-family language the file should be compiled as.
