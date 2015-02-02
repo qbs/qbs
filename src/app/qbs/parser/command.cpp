@@ -250,6 +250,7 @@ QList<CommandLineOption::Type> CleanCommand::supportedOptions() const
     options.removeOne(CommandLineOption::ChangedFilesOptionType);
     options.removeOne(CommandLineOption::JobsOptionType);
     options.removeOne(CommandLineOption::BuildNonDefaultOptionType);
+    options.removeOne(CommandLineOption::ShowCommandLinesOptionType);
     return options << CommandLineOption::AllArtifactsOptionType;
 }
 
