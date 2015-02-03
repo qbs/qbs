@@ -7,6 +7,7 @@ import "utils.js" as JavaUtils
 Module {
     property stringList additionalClassPaths
     property stringList additionalCompilerFlags
+    property stringList additionalJarFlags
     property stringList bootClassPaths
     property string compilerFilePath: FileInfo.joinPaths(jdkPath, compilerName)
     property string compilerName: "javac"
@@ -128,6 +129,10 @@ Module {
             }
 
             args.unshift(flags);
+
+            var otherFlags = ModUtils.moduleProperty(product, "additionalJarFlags");
+            if (otherFlags)
+                args = args.concat(otherFlags);
 
             for (i in inputs["java.class"])
                 args.push(FileInfo.relativePath(ModUtils.moduleProperty(product, "classFilesDir"),

@@ -57,6 +57,11 @@
         \li undefined
         \li Use this to supply compiler flags not covered by any of the properties in this module.
     \row
+        \li additionalJarFlags
+        \li stringList
+        \li undefined
+        \li Use this to supply archiver flags not covered by any of the properties in this module.
+    \row
         \li bootClassPaths
         \li stringList
         \li undefined
