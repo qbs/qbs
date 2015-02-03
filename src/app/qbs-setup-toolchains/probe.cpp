@@ -162,7 +162,6 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
     profile.setValue(QLatin1String("cpp.compilerName"), cfi.fileName());
     profile.setValue(QLatin1String("qbs.toolchain"), toolchainTypes);
     profile.setValue(QLatin1String("qbs.architecture"), canonicalArchitecture(architecture));
-    profile.setValue(QLatin1String("qbs.endianness"), defaultEndianness(architecture));
     setCompilerVersion(compilerFilePath, toolchainTypes, profile);
     setupCompilerPathByLanguage(profile, toolchainTypes, toolchainInstallPath, toolchainPrefix);
 }

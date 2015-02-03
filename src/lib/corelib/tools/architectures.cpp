@@ -88,27 +88,4 @@ QString canonicalArchitecture(const QString &architecture)
 
 }
 
-QString defaultEndianness(const QString &architecture)
-{
-    const QString canonicalArch = canonicalArchitecture(architecture);
-
-    QStringList little = QStringList()
-            << QLatin1String("x86")
-            << QLatin1String("x86_64")
-            << QLatin1String("arm")
-            << QLatin1String("arm64");
-
-    if (little.contains(canonicalArch))
-        return QLatin1String("little");
-
-    QStringList big = QStringList()
-            << QLatin1String("ppc")
-            << QLatin1String("ppc64");
-
-    if (big.contains(canonicalArch))
-        return QLatin1String("big");
-
-    return QString();
-}
-
 } // namespace qbs

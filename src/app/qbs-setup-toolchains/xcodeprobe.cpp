@@ -139,7 +139,7 @@ void XcodeProbe::setArch(Profile *profile, const QString &pathToGcc, const QStri
         profile->setValue(QLatin1String("cpp.platformCommonCompilerFlags"), extraFlags);
         profile->setValue(QLatin1String("cpp.platformLinkerFlags"), extraFlags);
     }
-    // setting architecture and endianness only here, bercause the same compiler
+    // setting architecture only here, bercause the same compiler
     // can support several ones
     QStringList flags(extraFlags);
     flags << QLatin1String("-dumpmachine");
@@ -160,7 +160,6 @@ void XcodeProbe::setArch(Profile *profile, const QString &pathToGcc, const QStri
                         "        arch: %4").arg(profile->name(), pathToGcc, compilerTriplet,
                                             architecture);
 
-    profile->setValue(QLatin1String("qbs.endianness"), defaultEndianness(architecture));
     profile->setValue(QLatin1String("qbs.architecture"), canonicalArchitecture(architecture));
 }
 

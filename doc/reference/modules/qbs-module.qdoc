@@ -218,17 +218,6 @@
     Currently used values are: \c{"x86"}, \c{"x86_64"} and \c{"arm"}.
 
 
-    \section1 endianness
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Allowed Values:}  \li \c{"big"}, \c{"little"}, \c{"mixed"}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    Specifies the endianness of the target platform's processor architecture.
-
-
     \section1 toolchain
 
     \table

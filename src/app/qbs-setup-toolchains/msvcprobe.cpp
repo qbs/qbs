@@ -72,7 +72,6 @@ static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile>
     p.setValue(QLatin1String("cpp.toolchainInstallPath"), installPath);
     p.setValue(QLatin1String("qbs.toolchain"), QStringList(QLatin1String("msvc")));
     p.setValue(QLatin1String("qbs.architecture"), canonicalArchitecture(architecture));
-    p.setValue(QLatin1String("qbs.endianness"), defaultEndianness(architecture));
     if (msvc.version.toInt() >= 2013) {
         const QStringList flags(QLatin1String("/FS"));
         p.setValue(QLatin1String("cpp.platformCFlags"), flags);

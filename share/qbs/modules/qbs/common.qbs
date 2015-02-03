@@ -38,18 +38,6 @@ Module {
     property string profile
     property stringList toolchain
     property string architecture
-
-    property string endianness: {
-        if (["x86", "x86_64"].contains(architecture))
-            return "little";
-    }
-
-    PropertyOptions {
-        name: "endianness"
-        allowedValues: ["big", "little", "mixed"]
-        description: "endianness of the target platform"
-    }
-
     property bool install: false
     property string installSourceBase
     readonly property string installRoot: undefined
@@ -93,12 +81,6 @@ Module {
             return architecture === canonicalArchitecture(architecture);
         }, "'" + architecture + "' is invalid. You must use the canonical name '" +
         canonicalArchitecture(architecture) + "'");
-
-        validator.addCustomValidator("endianness", endianness, function (value) {
-            if (value === undefined)
-                return true;
-            return ["big", "little", "mixed"].indexOf(value) !== -1;
-        }, "must be in [big, little, mixed]");
 
         validator.validate();
     }

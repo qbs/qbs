@@ -35,7 +35,6 @@
 namespace qbs {
 
 QBS_EXPORT QString canonicalArchitecture(const QString &architecture);
-QBS_EXPORT QString defaultEndianness(const QString &architecture);
 
 } // namespace qbs
 
