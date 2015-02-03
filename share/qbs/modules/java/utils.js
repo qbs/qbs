@@ -237,6 +237,10 @@ function helperOverrideArgs(product, tool) {
 }
 
 function outputArtifacts(product, inputs) {
+    // Handle the case where a product depends on Java but has no Java sources
+    if (!inputs["java.java"] || inputs["java.java"].length === 0)
+        return [];
+
     // We need to ensure that the output directory is created first, because the Java compiler
     // internally checks that it is present before performing any actions
     File.makePath(ModUtils.moduleProperty(product, "classFilesDir"));
@@ -253,5 +257,33 @@ function outputArtifacts(product, inputs) {
     } finally {
         if (process)
             process.close();
+    }
+}
+
+function manifestContents(filePath) {
+    if (filePath === undefined)
+        return undefined;
+
+    var contents, file;
+    try {
+        file = new TextFile(filePath);
+        contents = file.readAll();
+    } finally {
+        if (file) {
+            file.close();
+        }
+    }
+
+    if (contents) {
+        var dict = {};
+        var lines = contents.split(/[\r\n]/g);
+        for (var i in lines) {
+            var kv = lines[i].split(":");
+            if (kv.length !== 2)
+                return undefined;
+            dict[kv[0]] = kv[1];
+        }
+
+        return dict;
     }
 }

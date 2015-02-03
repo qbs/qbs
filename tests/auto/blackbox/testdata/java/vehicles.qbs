@@ -24,6 +24,11 @@ Project {
             "Car.java", "HelloWorld.java", "Jet.java", "NoPackage.java", "Ship.java",
             "Vehicle.java", "Vehicles.java"
         ]
+
+        Export {
+            Depends { name: "java" }
+            java.manifestClassPath: [product.targetName + ".jar"]
+        }
     }
 
     JavaJarFile {
@@ -33,6 +38,11 @@ Project {
         Group {
             fileTagsFilter: ["java.jar"]
             qbs.install: true
+        }
+
+        Export {
+            Depends { name: "java" }
+            java.manifestClassPath: [product.targetName + ".jar"]
         }
     }
 
@@ -50,6 +60,9 @@ Project {
         Export {
             Depends { name: "cpp" }
             cpp.systemIncludePaths: product.cppIncludePaths
+
+            Depends { name: "java" }
+            java.manifestClassPath: [product.targetName + ".jar"]
         }
 
         Group {

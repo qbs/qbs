@@ -33,6 +33,7 @@ import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Probes
 import qbs.Process
+import qbs.TextFile
 
 import "utils.js" as JavaUtils
 
@@ -73,6 +74,30 @@ Module {
     PropertyOptions {
         name: "runtimeVersion"
         description: "version of the Java runtime to generate compatible bytecode for"
+    }
+
+    property var manifest: {
+        return {
+            "Manifest-Version": "1.0",
+            "Class-Path": manifestClassPath ? manifestClassPath.join(" ") : undefined
+        };
+    }
+
+    PropertyOptions {
+        name: "manifest"
+        description: "properties to add to the manifest file when building a JAR"
+    }
+
+    property path manifestFile
+    PropertyOptions {
+        name: "manifestFile"
+        description: "manifest file to embed when building a JAR"
+    }
+
+    property stringList manifestClassPath
+    PropertyOptions {
+        name: "manifestClassPath"
+        description: "entries to add to the manifest's Class-Path when building a JAR"
     }
 
     property bool warningsAsErrors: false
@@ -189,12 +214,50 @@ Module {
         }
 
         prepare: {
-            var i;
+            var i, key;
             var flags = "cf";
             var args = [output.filePath];
 
-            var manifestFile = ModUtils.moduleProperty(product, "manifest");
-            if (manifestFile) {
+            var manifestFile = ModUtils.moduleProperty(product, "manifestFile");
+            var manifest = ModUtils.moduleProperty(product, "manifest");
+            var aggregateManifest = JavaUtils.manifestContents(manifestFile) || {};
+
+            // Add local key-value pairs (overrides equivalent keys specified in the file if
+            // one was given)
+            for (key in manifest) {
+                if (manifest.hasOwnProperty(key))
+                    aggregateManifest[key] = manifest[key];
+            }
+
+            for (key in aggregateManifest) {
+                if (aggregateManifest.hasOwnProperty(key) && aggregateManifest[key] === undefined)
+                    delete aggregateManifest[key];
+            }
+
+            // Use default manifest unless we actually have properties to set
+            var needsManifestFile = manifestFile !== undefined || aggregateManifest !== {"Manifest-Version": "1.0"};
+
+            manifestFile = FileInfo.joinPaths(product.buildDirectory, "manifest.mf");
+
+            var mf;
+            try {
+                mf = new TextFile(manifestFile, TextFile.WriteOnly);
+
+                // Ensure that manifest version comes first
+                mf.write("Manifest-Version: " + (aggregateManifest["Manifest-Version"] || "1.0") + "\n");
+                delete aggregateManifest["Manifest-Version"];
+
+                for (key in aggregateManifest)
+                    mf.write(key + ": " + aggregateManifest[key] + "\n");
+
+                mf.write("\n");
+            } finally {
+                if (mf) {
+                    mf.close();
+                }
+            }
+
+            if (needsManifestFile) {
                 flags += "m";
                 args.push(manifestFile);
             }

@@ -1547,6 +1547,15 @@ void TestBlackbox::installTree()
     QVERIFY(QFile::exists(installRoot + "content/subdir2/baz.txt"));
 }
 
+static QProcessEnvironment processEnvironmentWithCurrentDirectoryInLibraryPath()
+{
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert(HostOsInfo::libraryPathEnvironmentVariable(),
+               QStringList({env.value(HostOsInfo::libraryPathEnvironmentVariable()), "."})
+               .join(HostOsInfo::pathListSeparator()));
+    return env;
+}
+
 void TestBlackbox::java()
 {
     Settings settings((QString()));
@@ -1584,6 +1593,29 @@ void TestBlackbox::java()
     foreach (const QString &classFile, classFiles1) {
         QVERIFY2(!regularFileExists(classFile), qPrintable(classFile));
     }
+
+    // This tests various things: java.manifestClassPath, JNI, etc.
+    QDir::setCurrent(relativeBuildDir() + "/install-root");
+    QProcess process;
+    process.setProcessEnvironment(processEnvironmentWithCurrentDirectoryInLibraryPath());
+    process.start("java", QStringList() << "-jar" << "jar_file.jar");
+    QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
+    QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
+    QVERIFY2(process.exitCode() == 0, process.readAllStandardError().constData());
+    QByteArray stdout = process.readAllStandardOutput();
+    QVERIFY2(stdout.contains("Driving!"), stdout.constData());
+    QVERIFY2(stdout.contains("Flying!"), stdout.constData());
+    QVERIFY2(stdout.contains("Flying (this is a space ship)!"), stdout.constData());
+    QVERIFY2(stdout.contains("Sailing!"), stdout.constData());
+    QVERIFY2(stdout.contains("Native code performing complex internal combustion process (0x"),
+             stdout.constData());
+
+    process.start("unzip", QStringList() << "-p" << "jar_file.jar");
+    QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
+    QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
+    stdout = process.readAllStandardOutput();
+    QVERIFY2(stdout.contains("Class-Path: car_jar.jar random_stuff.jar"), stdout.constData());
+    QVERIFY2(stdout.contains("Main-Class: Vehicles"), stdout.constData());
 }
 
 void TestBlackbox::jsExtensionsFile()
