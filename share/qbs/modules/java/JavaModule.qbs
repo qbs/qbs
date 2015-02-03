@@ -42,6 +42,7 @@ Module {
     Rule {
         multiplex: true
         inputs: ["java.java"]
+        inputsFromDependencies: ["java.jar"]
         outputFileTags: ["java.class"] // Annotations can produce additional java source files. Ignored for now.
         outputArtifacts: {
             // Note: We'd have to duplicate some javac functionality to catch all outputs
@@ -59,15 +60,18 @@ Module {
             return oFilePaths;
         }
         prepare: {
+            var i;
             var outputDir = ModUtils.moduleProperty(product, "classFilesDir");
             var classPaths = [outputDir];
             var additionalClassPaths = ModUtils.moduleProperties(product, "additionalClassPaths");
             if (additionalClassPaths)
                 classPaths = classPaths.concat(additionalClassPaths);
+            for (i in inputs["java.jar"])
+                classPaths.push(inputs["java.jar"][i].filePath);
             var debugArg = product.moduleProperty("qbs", "buildVariant") === "debug"
                     ? "-g" : "-g:none";
             var args = [
-                    "-classpath", classPaths.join(';'),
+                    "-classpath", classPaths.join(product.moduleProperty("qbs", "pathListSeparator")),
                     "-s", product.buildDirectory,
                     debugArg, "-d", outputDir
                 ];
@@ -87,7 +91,7 @@ Module {
             var otherFlags = ModUtils.moduleProperty(product, "additionalCompilerFlags")
             if (otherFlags)
                 args = args.concat(otherFlags);
-            for (var i = 0; i < inputs["java.java"].length; ++i)
+            for (i = 0; i < inputs["java.java"].length; ++i)
                 args.push(inputs["java.java"][i].filePath);
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerFilePath"), args);
             cmd.description = "Compiling Java sources";

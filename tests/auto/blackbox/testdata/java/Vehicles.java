@@ -1,9 +1,11 @@
 import java.util.ArrayList;
+import glob.RandomStuff;
 
 class Vehicles
 {
     public static void main(String[] args)
     {
+        RandomStuff.bar();
         ArrayList<Vehicle> vehicles = new ArrayList<Vehicle>();
 
         for (int i = 0; i < 3; i++)
