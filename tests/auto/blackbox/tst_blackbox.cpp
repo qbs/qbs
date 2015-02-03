@@ -55,6 +55,24 @@ using qbs::Internal::removeDirectoryWithContents;
 using qbs::Profile;
 using qbs::Settings;
 
+class OsXTarHealer {
+public:
+    OsXTarHealer() {
+        if (HostOsInfo::hostOs() == HostOsInfo::HostOsOsx) {
+            // work around absurd tar behavior on OS X
+            qputenv("COPY_EXTENDED_ATTRIBUTES_DISABLE", "true");
+            qputenv("COPYFILE_DISABLE", "true");
+        }
+    }
+
+    ~OsXTarHealer() {
+        if (HostOsInfo::hostOs() == HostOsInfo::HostOsOsx) {
+            qunsetenv("COPY_EXTENDED_ATTRIBUTES_DISABLE");
+            qunsetenv("COPYFILE_DISABLE");
+        }
+    }
+};
+
 static QString initQbsExecutableFilePath()
 {
     QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/qbs");
@@ -246,20 +264,12 @@ void TestBlackbox::tar()
 {
     if (HostOsInfo::hostOs() == HostOsInfo::HostOsWindows)
         QSKIP("Beware of the msys tar");
-    if (HostOsInfo::hostOs() == HostOsInfo::HostOsOsx) {
-        // work around absurd tar behavior on OS X
-        qputenv("COPY_EXTENDED_ATTRIBUTES_DISABLE", "true");
-        qputenv("COPYFILE_DISABLE", "true");
-    }
+    OsXTarHealer tarHealer;
     QDir::setCurrent(testDataDir + "/archiver");
     QString binary = findArchiver("tar");
     if (binary.isEmpty())
         QSKIP("tar not found");
     QCOMPARE(runQbs(QbsRunParameters(QStringList() << "archiver.type:tar")), 0);
-    if (HostOsInfo::hostOs() == HostOsInfo::HostOsOsx) {
-        qunsetenv("COPY_EXTENDED_ATTRIBUTES_DISABLE");
-        qunsetenv("COPYFILE_DISABLE");
-    }
     const QString outputFile = relativeProductBuildDir("archivable") + "/archivable.tar.gz";
     QVERIFY2(regularFileExists(outputFile), qPrintable(outputFile));
     QProcess listContents;
@@ -1374,6 +1384,7 @@ void TestBlackbox::installPackage()
     QString binary = findArchiver("tar");
     if (binary.isEmpty())
         QSKIP("tar not found");
+    OsXTarHealer tarHealer;
     QDir::setCurrent(testDataDir + "/installpackage");
     QCOMPARE(runQbs(), 0);
     const QString tarFilePath = relativeProductBuildDir("tar-package") + "/tar-package.tar.gz";
