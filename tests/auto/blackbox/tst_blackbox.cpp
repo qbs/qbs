@@ -552,7 +552,7 @@ void TestBlackbox::separateDebugInfo()
     Profile buildProfile(profileName(), &settings);
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
     QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
-    if (targetOS.contains("darwin")) {
+    if (targetOS.contains("darwin") || (targetOS.isEmpty() && HostOsInfo::isOsxHost())) {
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.app.dSYM"));
         QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/foo1.framework.dSYM"));
