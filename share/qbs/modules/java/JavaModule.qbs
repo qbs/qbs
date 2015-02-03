@@ -126,8 +126,10 @@ Module {
             args.unshift(flags);
 
             for (i in inputs["java.class"])
-                args.push(inputs["java.class"][i].filePath);
+                args.push(FileInfo.relativePath(ModUtils.moduleProperty(product, "classFilesDir"),
+                                                inputs["java.class"][i].filePath));
             var cmd = new Command(ModUtils.moduleProperty(product, "jarFilePath"), args);
+            cmd.workingDirectory = ModUtils.moduleProperty(product, "classFilesDir");
             cmd.description = "building " + FileInfo.fileName(output.fileName);
             cmd.highlight = "linker";
             return cmd;
