@@ -433,6 +433,10 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         } else if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
             args.push("-Wl,-install_name," + UnixUtils.soname(product, primaryOutput.fileName));
             args.push("-Wl,-headerpad_max_install_names");
+
+            var internalVersion = product.moduleProperty("cpp", "internalVersion");
+            if (internalVersion)
+                args.push("-current_version", internalVersion);
         }
     }
 
