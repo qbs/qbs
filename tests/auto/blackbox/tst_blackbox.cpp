@@ -284,7 +284,11 @@ void TestBlackbox::tar()
 
 void TestBlackbox::android()
 {
-    QDir::setCurrent(testDataDir + "/android");
+    QFETCH(QString, projectDir);
+    QFETCH(QString, productName);
+    QFETCH(int, apkFileCount);
+
+    QDir::setCurrent(testDataDir + "/android/" + projectDir);
     Settings s((QString()));
     Profile p("qbs_autotests-android", &s);
     if (!p.exists() || !p.value("Android.sdk.ndkDir").isValid())
@@ -292,8 +296,30 @@ void TestBlackbox::android()
     QbsRunParameters params(QStringList("profile:" + p.name())
                             << "Android.ndk.platform:android-21");
     params.useProfile = false;
+    QEXPECT_FAIL("multiple libs", "QBS-731", Abort);
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(m_qbsStdout.contains("Creating com.sample.teapot.apk"));
+    QVERIFY(m_qbsStdout.contains("Creating " + productName.toLocal8Bit() + ".apk"));
+    const QString apkFilePath = relativeProductBuildDir(productName, p.name(), p.name())
+            + '/' + productName + ".apk";
+    QVERIFY2(regularFileExists(apkFilePath), qPrintable(apkFilePath));
+    const QString jarFilePath = findExecutable(QStringList("jar"));
+    QVERIFY(!jarFilePath.isEmpty());
+    QProcess jar;
+    jar.start(jarFilePath, QStringList() << "-tf" << apkFilePath);
+    QVERIFY2(jar.waitForStarted(), qPrintable(jar.errorString()));
+    QVERIFY2(jar.waitForFinished(), qPrintable(jar.errorString()));
+    QVERIFY2(jar.exitCode() == 0, qPrintable(jar.readAllStandardError().constData()));
+    QCOMPARE(jar.readAllStandardOutput().trimmed().split('\n').count(), apkFileCount);
+}
+
+void TestBlackbox::android_data()
+{
+    QTest::addColumn<QString>("projectDir");
+    QTest::addColumn<QString>("productName");
+    QTest::addColumn<int>("apkFileCount");
+    QTest::newRow("teapot") << "teapot" << "com.sample.teapot" << 23;
+    QTest::newRow("no native") << "no-native" << "com.example.android.basicmediadecoder" << 22;
+    QTest::newRow("multiple libs") << "multiple-libs-per-apk" << "twolibs" << 10;
 }
 
 void TestBlackbox::buildDirectories()
@@ -1435,7 +1461,8 @@ void TestBlackbox::java()
     if (p.value("java.jdkPath").toString().isEmpty())
         QSKIP("java.jdkPath not set");
     QDir::setCurrent(testDataDir + "/java");
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(QStringList("--show-command-lines")), 0);
+    qDebug("%s", m_qbsStdout.constData());
 
     const QStringList classFiles =
             QStringList() << "Car" << "Jet" << "Ship" << "Vehicle" << "Vehicles";

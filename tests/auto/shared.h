@@ -43,7 +43,11 @@
 #include <ctime>
 
 inline QString profileName() { return QLatin1String("qbs_autotests"); }
-inline QString relativeBuildDir() { return profileName() + QLatin1String("-debug"); }
+inline QString relativeBuildDir(const QString &pName = QString())
+{
+    const QString actualProfileName = pName.isEmpty() ? profileName() : pName;
+    return actualProfileName + QLatin1String("-debug");
+}
 
 inline QString relativeBuildGraphFilePath() {
     return relativeBuildDir() + QLatin1Char('/') + relativeBuildDir() + QLatin1String(".bg");
@@ -68,13 +72,14 @@ inline QString uniqueProductName(const QString &productName, const QString &_pro
 }
 
 inline QString relativeProductBuildDir(const QString &productName,
-                                       const QString &profileName = QString())
+                                       const QString &productProfileName = QString(),
+                                       const QString &topLevelProfileName = QString())
 {
-    const QString fullName = uniqueProductName(productName, profileName);
+    const QString fullName = uniqueProductName(productName, productProfileName);
     QString dirName = qbs::Internal::HostOsInfo::rfc1034Identifier(fullName);
     const QByteArray hash = QCryptographicHash::hash(fullName.toUtf8(), QCryptographicHash::Sha1);
     dirName.append('.').append(hash.toHex().left(8));
-    return relativeBuildDir() + '/' + dirName;
+    return relativeBuildDir(topLevelProfileName) + '/' + dirName;
 }
 
 inline QString relativeExecutableFilePath(const QString &productName)

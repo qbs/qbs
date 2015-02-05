@@ -94,6 +94,7 @@ public slots:
 
 private slots:
     void android();
+    void android_data();
     void buildDirectories();
     void changedFiles_data();
     void changedFiles();
