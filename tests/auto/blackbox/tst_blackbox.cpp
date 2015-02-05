@@ -296,7 +296,6 @@ void TestBlackbox::android()
     QbsRunParameters params(QStringList("profile:" + p.name())
                             << "Android.ndk.platform:android-21");
     params.useProfile = false;
-    QEXPECT_FAIL("multiple libs", "QBS-731", Abort);
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Creating " + productName.toLocal8Bit() + ".apk"));
     const QString apkFilePath = relativeProductBuildDir(productName, p.name(), p.name())

@@ -2,6 +2,7 @@ import qbs
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.TextFile
 
 import "utils.js" as NdkUtils
 
@@ -150,12 +151,7 @@ Module {
 
     Rule {
         inputs: ["dynamiclibrary"]
-        outputFileTags: {
-            var tags = ["android.nativelibrary"];
-            if (product.moduleProperty("qbs", "buildVariant") === "debug")
-                tags.push("android.gdbserver");
-            return tags;
-        }
+        outputFileTags: ["android.nativelibrary", "android.gdbserver-info", "android.stl-info"]
         outputArtifacts: {
             var destDir = FileInfo.joinPaths(project.buildDirectory, "lib",
                                              ModUtils.moduleProperty(product, "abi"));
@@ -165,18 +161,13 @@ Module {
             }];
             if (product.moduleProperty("qbs", "buildVariant") === "debug") {
                 artifacts.push({
-                        filePath: FileInfo.joinPaths(destDir,
-                                ModUtils.moduleProperty(product,"gdbserverFileName")),
-                        fileTags: ["android.gdbserver"]
+                        filePath: "android.gdbserver-info.txt",
+                        fileTags: ["android.gdbserver-info"]
                 });
             }
             var stlFilePath = ModUtils.moduleProperty(product, "sharedStlFilePath");
-            if (stlFilePath) {
-                artifacts.push({
-                        filePath: FileInfo.joinPaths(destDir, FileInfo.fileName(stlFilePath)),
-                        fileTags: ["android.deployedSharedLibrary"]
-                });
-            }
+            if (stlFilePath)
+                artifacts.push({filePath: "android.stl-info.txt", fileTags: ["android.stl-info"]});
             return artifacts;
         }
 
@@ -188,16 +179,29 @@ Module {
             copyCmd.sourceCode = function() {
                 File.copy(inputs["dynamiclibrary"][0].filePath,
                           outputs["android.nativelibrary"][0].filePath);
+                var destDir = FileInfo.path(outputs["android.nativelibrary"][0].filePath);
                 if (product.moduleProperty("qbs", "buildVariant") === "debug") {
                     var arch = ModUtils.moduleProperty(product, "abi");
                     arch = NdkUtils.abiNameToDirName(arch);
-                    var gdbSrcPath = FileInfo.joinPaths(ModUtils.moduleProperty(product, "ndkDir"),
+                    var srcPath = FileInfo.joinPaths(ModUtils.moduleProperty(product, "ndkDir"),
                             "prebuilt/android-" + arch, "gdbserver/gdbserver");
-                    File.copy(gdbSrcPath, outputs["android.gdbserver"][0].filePath);
+                    var targetPath = FileInfo.joinPaths(destDir, ModUtils.moduleProperty(product,
+                            "gdbserverFileName"));
+                    var infoFile = new TextFile(outputs["android.gdbserver-info"][0].filePath,
+                                                TextFile.WriteOnly);
+                    infoFile.writeLine(srcPath);
+                    infoFile.writeLine(targetPath);
+                    infoFile.close();
                 }
-                if (stlFilePath)
-                    File.copy(stlFilePath, outputs["android.deployedSharedLibrary"][0].filePath);
-
+                if (stlFilePath) {
+                    var srcPath = stlFilePath;
+                    var targetPath = FileInfo.joinPaths(destDir, FileInfo.fileName(srcPath));
+                    var infoFile = new TextFile(outputs["android.stl-info"][0].filePath,
+                                                TextFile.WriteOnly);
+                    infoFile.writeLine(srcPath);
+                    infoFile.writeLine(targetPath);
+                    infoFile.close();
+                }
             }
             var stripBinary = product.moduleProperty("cpp", "toolchainPathPrefix") + "strip";
             var stripArgs = ["--strip-unneeded", outputs["android.nativelibrary"][0].filePath];

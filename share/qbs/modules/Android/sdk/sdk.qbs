@@ -3,6 +3,7 @@ import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.TextFile
+import "utils.js" as SdkUtils
 
 Module {
     property path sdkDir
@@ -127,11 +128,43 @@ Module {
         }
     }
 
+    Rule {
+        multiplex: true
+        inputsFromDependencies: ["android.gdbserver-info", "android.stl-info"]
+        outputFileTags: ["android.gdbserver", "android.deployed-stl"]
+        outputArtifacts: {
+            var gdbServerArtifacts = SdkUtils.outputArtifactsFromInfoFiles(inputs,
+                    "android.gdbserver-info", "android.gdbserver");
+            var stlArtifacts = SdkUtils.outputArtifactsFromInfoFiles(inputs, "android.stl-info",
+                    "android.deployed-stl");
+            return gdbServerArtifacts.concat(stlArtifacts);
+        }
+        prepare: {
+            var gdbServerCmd = new JavaScriptCommand();
+            gdbServerCmd.description = "Pre-packaging gdbserver";
+            gdbServerCmd.sourceCode = function() {
+                var pathsSpecs = SdkUtils.sourceAndTargetFilePathsFromInfoFiles(inputs,
+                        "android.gdbserver-info");
+                for (i = 0; i < pathsSpecs.sourcePaths.length; ++i)
+                    File.copy(pathsSpecs.sourcePaths[i], pathsSpecs.targetPaths[i]);
+            };
+            var stlCmd = new JavaScriptCommand();
+            stlCmd.description = "Pre-packaging STL";
+            stlCmd.sourceCode = function() {
+                var pathsSpecs = SdkUtils.sourceAndTargetFilePathsFromInfoFiles(inputs,
+                        "android.stl-info");
+                for (i = 0; i < pathsSpecs.sourcePaths.length; ++i)
+                    File.copy(pathsSpecs.sourcePaths[i], pathsSpecs.targetPaths[i]);
+            };
+            return [gdbServerCmd, stlCmd];
+        }
+    }
+
     // TODO: ApkBuilderMain is deprecated. Do we have to provide our own tool directly
     //       accessing com.android.sdklib.build.ApkBuilder or is there a simpler way?
     Rule {
         multiplex: true
-        inputs: ["android.dex", "android.ap_"]
+        inputs: ["android.dex", "android.ap_", "android.gdbserver", "android.deployed-stl"]
         inputsFromDependencies: ["android.nativelibrary"]
         Artifact {
             filePath: product.name + ".apk.unaligned"
