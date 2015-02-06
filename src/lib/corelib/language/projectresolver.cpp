@@ -601,7 +601,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
 static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
         const PropertyDeclaration &decl)
 {
-    const QString args = decl.functionArgumentNames().join(QLatin1String(","));
+    const QString args = decl.functionArgumentNames().join(QLatin1Char(','));
     if (value->hasFunctionForm()) {
         // Insert the argument list.
         QString code = value->sourceCodeForEvaluation();

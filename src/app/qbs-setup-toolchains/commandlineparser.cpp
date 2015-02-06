@@ -128,5 +128,5 @@ void CommandLineParser::assignOptionArgument(const QString &option, QString &arg
 void CommandLineParser::complainAboutExtraArguments()
 {
     throwError(Tr::tr("Extraneous command-line arguments '%1'.")
-               .arg(m_commandLine.join(QLatin1String(" "))));
+               .arg(m_commandLine.join(QLatin1Char(' '))));
 }

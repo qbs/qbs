@@ -336,9 +336,9 @@ QString Rule::toString() const
     outputTagsSorted.sort();
     QStringList inputTagsSorted = inputs.toStringList();
     inputTagsSorted.sort();
-    return QLatin1Char('[') + outputTagsSorted.join(QLatin1String(","))
+    return QLatin1Char('[') + outputTagsSorted.join(QLatin1Char(','))
             + QLatin1String("][")
-            + inputTagsSorted.join(QLatin1String(",")) + QLatin1Char(']');
+            + inputTagsSorted.join(QLatin1Char(',')) + QLatin1Char(']');
 }
 
 bool Rule::acceptsAsInput(Artifact *artifact) const
@@ -1200,7 +1200,7 @@ QString keyFromElem(const ArtifactPropertiesPtr &ap)
 {
     QStringList lst = ap->fileTagsFilter().toStringList();
     lst.sort();
-    return lst.join(QLatin1String(","));
+    return lst.join(QLatin1Char(','));
 }
 
 bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
@@ -1273,7 +1273,7 @@ bool operator==(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2
 
 uint qHash(const RuleArtifact::Binding &b)
 {
-    return qHash(qMakePair(b.code, b.name.join(QLatin1String(","))));
+    return qHash(qMakePair(b.code, b.name.join(QLatin1Char(','))));
 }
 
 bool artifactPropertyListsAreEqual(const QList<ArtifactPropertiesPtr> &l1,

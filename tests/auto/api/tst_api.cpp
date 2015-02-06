@@ -82,8 +82,8 @@ public:
 
 private slots:
     void handleProcessResult(const qbs::ProcessResult &result) {
-        output += result.stdErr().join(QLatin1String("\n"));
-        output += result.stdOut().join(QLatin1String("\n"));
+        output += result.stdErr().join(QLatin1Char('\n'));
+        output += result.stdOut().join(QLatin1Char('\n'));
     }
 };
 
