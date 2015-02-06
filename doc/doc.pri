@@ -4,7 +4,11 @@ defineReplace(targetPath) {
 
 qt:greaterThan(QT_MAJOR_VERSION, 4) {
     QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc)
-    QDOC_MAINFILE = $$PWD/qbs.qdocconf
+    build_online_docs {
+        QDOC_MAINFILE = $$PWD/qbs-online.qdocconf
+    } else {
+        QDOC_MAINFILE = $$PWD/qbs.qdocconf
+    }
 } else {
     QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc3)
     QDOC_MAINFILE = $$PWD/qbs-qt4.qdocconf
