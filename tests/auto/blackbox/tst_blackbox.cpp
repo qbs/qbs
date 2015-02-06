@@ -433,6 +433,23 @@ void TestBlackbox::dependenciesProperty()
     QCOMPARE(product2_cpp.property("defines").toString(), QLatin1String("SMURF"));
 }
 
+void TestBlackbox::symlinkRemoval()
+{
+    if (HostOsInfo::isWindowsHost())
+        QSKIP("No symlink support on Windows.");
+    QDir::setCurrent(testDataDir + "/symlink-removal");
+    QVERIFY(QDir::current().mkdir("dir1"));
+    QVERIFY(QDir::current().mkdir("dir2"));
+    QVERIFY(QFile::link("dir2", "dir1/broken-link"));
+    QVERIFY(QFile::link(QFileInfo("dir2").absoluteFilePath(), "dir1/valid-link-to-dir"));
+    QVERIFY(QFile::link(QFileInfo("symlink-removal.qbs").absoluteFilePath(),
+                        "dir1/valid-link-to-file"));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!QFile::exists("dir1"));
+    QVERIFY(QFile::exists("dir2"));
+    QVERIFY(QFile::exists("symlink-removal.qbs"));
+}
+
 void TestBlackbox::usingsAsSoleInputsNonMultiplexed()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/usings-as-sole-inputs-non-multiplexed"));
@@ -1635,6 +1652,7 @@ void TestBlackbox::nestedProperties()
 {
     QDir::setCurrent(testDataDir + "/nested-properties");
     QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL(0, "QBS-736", Abort);
     QVERIFY2(m_qbsStdout.contains("value in higherlevel"), m_qbsStdout.constData());
 }
 

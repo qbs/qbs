@@ -127,6 +127,7 @@ private slots:
     void radAfterIncompleteBuild_data();
     void radAfterIncompleteBuild();
     void subProfileChangeTracking();
+    void symlinkRemoval();
     void usingsAsSoleInputsNonMultiplexed();
     void clean();
     void renameDependency();

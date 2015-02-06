@@ -102,6 +102,14 @@
     \endcode
     Reads and returns all data from the process' standard output channel.
 
+    \section2 setCodec
+    \code
+    setCodec(codec)
+    \endcode
+    Sets the text codec to \c codec. The codec is used for reading and writing from and to
+    the process, respectively. The supported codecs are the same as for \c QTextCodec, for example:
+    "UTF-8", "UTF-16", and "ISO 8859-1".
+
     \section2 setEnv
     \code
     setEnv(varName: string, varValue: string): string
