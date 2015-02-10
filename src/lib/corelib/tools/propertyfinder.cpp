@@ -32,6 +32,7 @@
 #include "qbsassert.h"
 
 #include <QQueue>
+#include <QStringList>
 
 namespace qbs {
 namespace Internal {
