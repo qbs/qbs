@@ -153,10 +153,9 @@ Module {
         inputs: ["dynamiclibrary"]
         outputFileTags: ["android.nativelibrary", "android.gdbserver-info", "android.stl-info"]
         outputArtifacts: {
-            var destDir = FileInfo.joinPaths(project.buildDirectory, "lib",
-                                             ModUtils.moduleProperty(product, "abi"));
             var artifacts = [{
-                    filePath: FileInfo.joinPaths(destDir, inputs["dynamiclibrary"][0].fileName),
+                    filePath: FileInfo.joinPaths("stripped-libs",
+                                                 inputs["dynamiclibrary"][0].fileName),
                     fileTags: ["android.nativelibrary"]
             }];
             if (product.moduleProperty("qbs", "buildVariant") === "debug") {
@@ -174,12 +173,12 @@ Module {
         prepare: {
             var stlFilePath = ModUtils.moduleProperty(product, "sharedStlFilePath");
             var copyCmd = new JavaScriptCommand();
-            copyCmd.description = "Copying native library and dependencies";
+            copyCmd.silent = true;
             copyCmd.stlFilePath = stlFilePath;
             copyCmd.sourceCode = function() {
                 File.copy(inputs["dynamiclibrary"][0].filePath,
                           outputs["android.nativelibrary"][0].filePath);
-                var destDir = FileInfo.path(outputs["android.nativelibrary"][0].filePath);
+                var destDir = FileInfo.joinPaths("lib", ModUtils.moduleProperty(product, "abi"));
                 if (product.moduleProperty("qbs", "buildVariant") === "debug") {
                     var arch = ModUtils.moduleProperty(product, "abi");
                     arch = NdkUtils.abiNameToDirName(arch);
@@ -208,7 +207,8 @@ Module {
             if (stlFilePath)
                 stripArgs.push(stlFilePath);
             var stripCmd = new Command(stripBinary, stripArgs);
-            stripCmd.description = "Stripping unneeded symbols";
+            stripCmd.description = "Stripping unneeded symbols from "
+                    + outputs["android.nativelibrary"][0].fileName;
             return [copyCmd, stripCmd];
         }
     }

@@ -285,8 +285,8 @@ void TestBlackbox::tar()
 void TestBlackbox::android()
 {
     QFETCH(QString, projectDir);
-    QFETCH(QString, productName);
-    QFETCH(int, apkFileCount);
+    QFETCH(QStringList, productNames);
+    QFETCH(QList<int>, apkFileCounts);
 
     QDir::setCurrent(testDataDir + "/android/" + projectDir);
     Settings s((QString()));
@@ -297,28 +297,36 @@ void TestBlackbox::android()
                             << "Android.ndk.platform:android-21");
     params.useProfile = false;
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(m_qbsStdout.contains("Creating " + productName.toLocal8Bit() + ".apk"));
-    const QString apkFilePath = relativeProductBuildDir(productName, p.name(), p.name())
-            + '/' + productName + ".apk";
-    QVERIFY2(regularFileExists(apkFilePath), qPrintable(apkFilePath));
-    const QString jarFilePath = findExecutable(QStringList("jar"));
-    QVERIFY(!jarFilePath.isEmpty());
-    QProcess jar;
-    jar.start(jarFilePath, QStringList() << "-tf" << apkFilePath);
-    QVERIFY2(jar.waitForStarted(), qPrintable(jar.errorString()));
-    QVERIFY2(jar.waitForFinished(), qPrintable(jar.errorString()));
-    QVERIFY2(jar.exitCode() == 0, qPrintable(jar.readAllStandardError().constData()));
-    QCOMPARE(jar.readAllStandardOutput().trimmed().split('\n').count(), apkFileCount);
+    for (int i = 0; i < productNames.count(); ++i) {
+        const QString productName = productNames.at(i);
+        QVERIFY(m_qbsStdout.contains("Creating " + productName.toLocal8Bit() + ".apk"));
+        const QString apkFilePath = relativeProductBuildDir(productName, p.name(), p.name())
+                + '/' + productName + ".apk";
+        QVERIFY2(regularFileExists(apkFilePath), qPrintable(apkFilePath));
+        const QString jarFilePath = findExecutable(QStringList("jar"));
+        QVERIFY(!jarFilePath.isEmpty());
+        QProcess jar;
+        jar.start(jarFilePath, QStringList() << "-tf" << apkFilePath);
+        QVERIFY2(jar.waitForStarted(), qPrintable(jar.errorString()));
+        QVERIFY2(jar.waitForFinished(), qPrintable(jar.errorString()));
+        QVERIFY2(jar.exitCode() == 0, qPrintable(jar.readAllStandardError().constData()));
+        QCOMPARE(jar.readAllStandardOutput().trimmed().split('\n').count(), apkFileCounts.at(i));
+    }
 }
 
 void TestBlackbox::android_data()
 {
     QTest::addColumn<QString>("projectDir");
-    QTest::addColumn<QString>("productName");
-    QTest::addColumn<int>("apkFileCount");
-    QTest::newRow("teapot") << "teapot" << "com.sample.teapot" << 23;
-    QTest::newRow("no native") << "no-native" << "com.example.android.basicmediadecoder" << 22;
-    QTest::newRow("multiple libs") << "multiple-libs-per-apk" << "twolibs" << 10;
+    QTest::addColumn<QStringList>("productNames");
+    QTest::addColumn<QList<int>>("apkFileCounts");
+    QTest::newRow("teapot") << "teapot" << QStringList("com.sample.teapot") << (QList<int>() << 23);
+    QTest::newRow("no native") << "no-native"
+            << QStringList("com.example.android.basicmediadecoder") << (QList<int>() << 22);
+    QTest::newRow("multiple libs") << "multiple-libs-per-apk" << QStringList("twolibs")
+                                   << (QList<int>() << 10);
+    QTest::newRow("multiple apks") << "multiple-apks-per-project"
+                                   << (QStringList() << "twolibs1" << "twolibs2")
+                                   << (QList<int>() << 15 << 10);
 }
 
 void TestBlackbox::buildDirectories()

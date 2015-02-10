@@ -130,33 +130,57 @@ Module {
 
     Rule {
         multiplex: true
-        inputsFromDependencies: ["android.gdbserver-info", "android.stl-info"]
-        outputFileTags: ["android.gdbserver", "android.deployed-stl"]
+        inputsFromDependencies: [
+            "android.gdbserver-info", "android.stl-info", "android.nativelibrary"
+        ]
+        outputFileTags: ["android.gdbserver", "android.stl", "android.nativelibrary-deployed"]
         outputArtifacts: {
+            var libArtifacts = [];
+            if (inputs["android.nativelibrary"]) {
+                for (var i = 0; i < inputs["android.nativelibrary"].length; ++i) {
+                    var inp = inputs["android.nativelibrary"][i];
+                    var destDir = FileInfo.joinPaths("lib",
+                                                     inp.moduleProperty("Android.ndk", "abi"));
+                    libArtifacts.push({
+                            filePath: FileInfo.joinPaths(destDir, inp.fileName),
+                            fileTags: ["android.nativelibrary-deployed"]
+                    });
+                }
+            }
             var gdbServerArtifacts = SdkUtils.outputArtifactsFromInfoFiles(inputs,
-                    "android.gdbserver-info", "android.gdbserver");
-            var stlArtifacts = SdkUtils.outputArtifactsFromInfoFiles(inputs, "android.stl-info",
-                    "android.deployed-stl");
-            return gdbServerArtifacts.concat(stlArtifacts);
+                    product, "android.gdbserver-info", "android.gdbserver");
+            var stlArtifacts = SdkUtils.outputArtifactsFromInfoFiles(inputs, product,
+                    "android.stl-info", "android.deployed-stl");
+            return libArtifacts.concat(gdbServerArtifacts).concat(stlArtifacts);
         }
         prepare: {
-            var gdbServerCmd = new JavaScriptCommand();
-            gdbServerCmd.description = "Pre-packaging gdbserver";
-            gdbServerCmd.sourceCode = function() {
-                var pathsSpecs = SdkUtils.sourceAndTargetFilePathsFromInfoFiles(inputs,
+            var cmd = new JavaScriptCommand();
+            cmd.description = "Pre-packaging native binaries";
+            cmd.sourceCode = function() {
+                if (inputs["android.nativelibrary"]) {
+                    for (var i = 0; i < inputs["android.nativelibrary"].length; ++i) {
+                        for (var j = 0; j < outputs["android.nativelibrary-deployed"].length; ++j) {
+                            var inp = inputs["android.nativelibrary"][i];
+                            var outp = outputs["android.nativelibrary-deployed"][j];
+                            var inpAbi = inp.moduleProperty("Android.ndk", "abi");
+                            var outpAbi = FileInfo.fileName(outp.baseDir);
+                            if (inp.fileName === outp.fileName && inpAbi === outpAbi) {
+                                File.copy(inp.filePath, outp.filePath);
+                                break;
+                            }
+                        }
+                    }
+                }
+                var pathsSpecs = SdkUtils.sourceAndTargetFilePathsFromInfoFiles(inputs, product,
                         "android.gdbserver-info");
                 for (i = 0; i < pathsSpecs.sourcePaths.length; ++i)
                     File.copy(pathsSpecs.sourcePaths[i], pathsSpecs.targetPaths[i]);
-            };
-            var stlCmd = new JavaScriptCommand();
-            stlCmd.description = "Pre-packaging STL";
-            stlCmd.sourceCode = function() {
-                var pathsSpecs = SdkUtils.sourceAndTargetFilePathsFromInfoFiles(inputs,
+                pathsSpecs = SdkUtils.sourceAndTargetFilePathsFromInfoFiles(inputs, product,
                         "android.stl-info");
                 for (i = 0; i < pathsSpecs.sourcePaths.length; ++i)
                     File.copy(pathsSpecs.sourcePaths[i], pathsSpecs.targetPaths[i]);
             };
-            return [gdbServerCmd, stlCmd];
+            return [cmd];
         }
     }
 
@@ -164,8 +188,10 @@ Module {
     //       accessing com.android.sdklib.build.ApkBuilder or is there a simpler way?
     Rule {
         multiplex: true
-        inputs: ["android.dex", "android.ap_", "android.gdbserver", "android.deployed-stl"]
-        inputsFromDependencies: ["android.nativelibrary"]
+        inputs: [
+            "android.dex", "android.ap_", "android.gdbserver", "android.stl",
+            "android.nativelibrary-deployed"
+        ]
         Artifact {
             filePath: product.name + ".apk.unaligned"
             fileTags: ["android.apk.unaligned"]
@@ -178,8 +204,8 @@ Module {
                         "-f", inputs["android.dex"][0].filePath];
             if (product.moduleProperty("qbs", "buildVariant") === "debug")
                 args.push("-d");
-            if (inputs["android.nativelibrary"])
-                args.push("-nf", FileInfo.joinPaths(project.buildDirectory, "lib"));
+            if (inputs["android.nativelibrary-deployed"])
+                args.push("-nf", FileInfo.joinPaths(product.buildDirectory, "lib"));
             var cmd = new Command(product.moduleProperty("java", "interpreterFilePath"), args);
             cmd.description = "Generating " + output.fileName;
             return [cmd];
