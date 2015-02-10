@@ -57,7 +57,6 @@ QVariant PropertyFinder::propertyValue(const QVariantMap &properties, const QStr
     m_values.clear();
     findScalarModuleValue(properties);
 
-    QBS_ASSERT(m_values.count() <= 1, return QVariant());
     return m_values.isEmpty() ? QVariant() : m_values.first();
 }
 

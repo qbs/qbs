@@ -330,6 +330,9 @@ void TestBlackbox::build_project_data()
     QTest::newRow("application without sources")
             << QString("appWithoutSources")
             << executableFilePath("appWithoutSources");
+    QTest::newRow("only default properties")
+            << QString("two-default-property-values")
+            << productBuildDir("two-default-property-values") + "/set";
     QTest::newRow("QBS-728")
             << QString("QBS-728")
             << QString();
