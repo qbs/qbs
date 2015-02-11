@@ -100,7 +100,7 @@ Module {
                 var debugValue = product.moduleProperty("qbs", "buildVariant") === "debug"
                         ? "true" : "false";
                 var ofile = new TextFile(output.filePath, TextFile.WriteOnly);
-                ofile.writeLine("package " + ModUtils.moduleProperty(product, "packageName") +  ";")
+                ofile.writeLine("package " + product.packageName +  ";")
                 ofile.writeLine("public final class BuildConfig {");
                 ofile.writeLine("    public final static boolean DEBUG = " + debugValue + ";");
                 ofile.writeLine("}");
