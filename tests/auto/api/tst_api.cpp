@@ -576,7 +576,7 @@ void TestApi::infiniteLoopBuilding()
     qbs::Project project = setupJob->project();
     const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
     QTimer::singleShot(1000, buildJob.data(), SLOT(cancel()));
-    QVERIFY(waitForFinished(buildJob.data(), 300000));
+    QVERIFY(waitForFinished(buildJob.data(), 600000));
 }
 
 void TestApi::infiniteLoopBuilding_data()
@@ -595,7 +595,7 @@ void TestApi::infiniteLoopResolving()
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
     QTimer::singleShot(1000, setupJob.data(), SLOT(cancel()));
-    QVERIFY(waitForFinished(setupJob.data(), 300000));
+    QVERIFY(waitForFinished(setupJob.data(), 600000));
     QVERIFY2(setupJob->error().toString().toLower().contains("cancel"),
              qPrintable(setupJob->error().toString()));
 }
