@@ -364,7 +364,8 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         if (cxxVersion) {
             var gccCxxVersionsMap = {
                 "c++98": "c++98",
-                "c++11": "c++0x" // Deprecated, but compatible with older gcc versions.
+                "c++11": "c++0x", // Deprecated, but compatible with older gcc versions.
+                "c++14": "c++1y"
             };
             args.push("-std=" + gccCxxVersionsMap[cxxVersion]);
         }
