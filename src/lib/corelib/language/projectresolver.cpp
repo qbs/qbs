@@ -1070,13 +1070,24 @@ void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
     }
 }
 
-QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototype) const
+struct ModuleInfo {
+    QString fullName;
+    QVariantMap propertyMap;
+    QStringList ownProperties;
+};
+
+static void gatherModuleValues(Item *item, QVariantMap *parentModulesMap,
+                               const QHash<Item *, ModuleInfo> &moduleInfo)
 {
-    QVariantMap modules;
-    evaluateModuleValues(item, &modules, lookupPrototype);
-    QVariantMap result;
-    result[QLatin1String("modules")] = modules;
-    return result;
+    foreach (const Item::Module &module, item->modules()) {
+        const ModuleInfo &mi = moduleInfo.value(module.item);
+        QVariantMap modulesMap;
+        gatherModuleValues(module.item, &modulesMap, moduleInfo);
+        QVariantMap propertyMap = mi.propertyMap;
+        propertyMap.insert(QLatin1String("modules"), modulesMap);
+        parentModulesMap->insert(mi.fullName, propertyMap);
+        parentModulesMap->insert(QLatin1Char('@') + mi.fullName, mi.ownProperties);
+    }
 }
 
 static QStringList ownPropertiesSet(Item *item)
@@ -1094,46 +1105,53 @@ static QStringList ownPropertiesSet(Item *item)
     return names;
 }
 
-void ProjectResolver::evaluateModuleValues(Item *item, QVariantMap *modulesMap,
-        bool lookupPrototype) const
+QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototype) const
 {
-    checkCancelation();
-    QSet<QStringList> seenModuleNames;
+    QHash<Item *, ModuleInfo> moduleInfo;
+    QHash<QString, EvalResult> globalResult;
 
-    for (Item::Modules::const_iterator it = item->modules().constBegin();
-         it != item->modules().constEnd(); ++it)
-    {
-        const Item::Module &module = *it;
-        if (seenModuleNames.contains(module.name))
-            continue;
-        seenModuleNames << module.name;
-
-        QVariantMap depmods;
-        evaluateModuleValues(module.item, &depmods, lookupPrototype);
-        QVariantMap dep = evaluateProperties(module.item, lookupPrototype);
-        dep.insert(QLatin1String("modules"), depmods);
+    // Optimization in evaluateProperties() requires breadth-first traversal.
+    QList<Item::Module> modulesQueue = item->modules();
+    while (!modulesQueue.isEmpty()) {
+        checkCancelation();
+        const Item::Module module = modulesQueue.takeFirst();
         const QString fullName = ModuleLoader::fullModuleName(module.name);
-        modulesMap->insert(fullName, dep);
-        modulesMap->insert(QLatin1Char('@') + fullName, ownPropertiesSet(module.item));
+        ModulePropertyEvalContext evalContext;
+        evalContext.globalResult = &globalResult;
+        evalContext.moduleName = fullName;
+        evalContext.ownProperties = ownPropertiesSet(module.item);
+        ModuleInfo mi;
+        mi.fullName = fullName;
+        mi.propertyMap = evaluateProperties(module.item, evalContext, lookupPrototype);
+        mi.ownProperties = evalContext.ownProperties;
+        moduleInfo.insert(module.item, mi);
+        modulesQueue << module.item->modules();
     }
-}
 
-QVariantMap ProjectResolver::evaluateProperties(Item *item, bool lookupPrototype) const
-{
-    const QVariantMap tmplt;
-    return evaluateProperties(item, item, tmplt, lookupPrototype);
+    QVariantMap modules;
+    gatherModuleValues(item, &modules, moduleInfo);
+    QVariantMap result;
+    result[QLatin1String("modules")] = modules;
+    return result;
 }
 
 QVariantMap ProjectResolver::evaluateProperties(Item *item,
-                                                Item *propertiesContainer,
-                                                const QVariantMap &tmplt,
-                                                bool lookupPrototype) const
+        const ModulePropertyEvalContext &evalContext, bool lookupPrototype) const
+{
+    const QVariantMap tmplt;
+    return evaluateProperties(item, item, evalContext, tmplt, lookupPrototype);
+}
+
+QVariantMap ProjectResolver::evaluateProperties(Item *item,
+        Item *propertiesContainer, const ModulePropertyEvalContext &evalContext,
+        const QVariantMap &tmplt, bool lookupPrototype) const
 {
     QVariantMap result = tmplt;
     for (QMap<QString, ValuePtr>::const_iterator it = propertiesContainer->properties().begin();
          it != propertiesContainer->properties().end(); ++it)
     {
         checkCancelation();
+        const QString fullKey = evalContext.moduleName + QLatin1Char('.') + it.key();
         switch (it.value()->type()) {
         case Value::ItemValueType:
         {
@@ -1155,6 +1173,22 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
                 || pd.flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
             {
                 break;
+            }
+
+            // Skip values that the PropertyFinder will never see due to them being shadowed
+            // by values in other, higher-precedence instances of the module.
+            const bool isPotentialGlobalEntry = evalContext.globalResult
+                    && pd.type() != PropertyDeclaration::StringList
+                    && pd.type() != PropertyDeclaration::PathList;
+            const bool isOwnProperty = std::binary_search(evalContext.ownProperties.constBegin(),
+                    evalContext.ownProperties.constEnd(), it.key());
+            if (isPotentialGlobalEntry) {
+                const QHash<QString, EvalResult>::ConstIterator it
+                        = evalContext.globalResult->find(fullKey);
+                if (it != evalContext.globalResult->constEnd()) {
+                    if (!isOwnProperty || it->strongPrecedence)
+                        break;
+                }
             }
 
             bool cacheDisabled = false;
@@ -1187,6 +1221,8 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
             else if (pd.type() == PropertyDeclaration::StringList)
                 v = v.toStringList();
             result[it.key()] = v;
+            if (isPotentialGlobalEntry)
+                evalContext.globalResult->insert(fullKey, EvalResult(v, isOwnProperty));
             break;
         }
         case Value::VariantValueType:
@@ -1195,6 +1231,8 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
                 break;
             VariantValuePtr vvp = it.value().staticCast<VariantValue>();
             result[it.key()] = vvp->value();
+            if (evalContext.globalResult)
+                evalContext.globalResult->insert(fullKey, EvalResult(vvp->value(), true));
             break;
         }
         case Value::BuiltinValueType:
@@ -1203,14 +1241,15 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
         }
     }
     return lookupPrototype && propertiesContainer->prototype()
-            ? evaluateProperties(item, propertiesContainer->prototype(), result, true)
+            ? evaluateProperties(item, propertiesContainer->prototype(), evalContext, result, true)
             : result;
 }
 
 QVariantMap ProjectResolver::createProductConfig() const
 {
     QVariantMap cfg = evaluateModuleValues(m_productContext->item);
-    cfg = evaluateProperties(m_productContext->item, m_productContext->item, cfg);
+    cfg = evaluateProperties(m_productContext->item, m_productContext->item,
+                             ModulePropertyEvalContext(), cfg);
     return cfg;
 }
 

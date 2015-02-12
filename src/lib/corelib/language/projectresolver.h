@@ -120,11 +120,25 @@ private:
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
     QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true) const;
-    void evaluateModuleValues(Item *item, QVariantMap *modulesMap,
-            bool lookupPrototype = true) const;
-    QVariantMap evaluateProperties(Item *item, bool lookupPrototype = true) const;
+
+    struct EvalResult {
+        EvalResult(const QVariant &v, bool s) : value(v), strongPrecedence(s) {}
+        EvalResult() : strongPrecedence(false) {}
+        QVariant value;
+        bool strongPrecedence;
+    };
+
+    struct ModulePropertyEvalContext {
+        ModulePropertyEvalContext() : globalResult(0) {}
+        QString moduleName;
+        QHash<QString, EvalResult> *globalResult;
+        QStringList ownProperties;
+    };
+    QVariantMap evaluateProperties(Item *item, const ModulePropertyEvalContext &evalContext,
+                                   bool lookupPrototype = true) const;
     QVariantMap evaluateProperties(Item *item, Item *propertiesContainer,
-            const QVariantMap &tmplt, bool lookupPrototype = true) const;
+            const ModulePropertyEvalContext &evalContext, const QVariantMap &tmplt,
+            bool lookupPrototype = true) const;
     QVariantMap createProductConfig() const;
     QString convertPathProperty(const QString &path, const QString &dirPath) const;
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
