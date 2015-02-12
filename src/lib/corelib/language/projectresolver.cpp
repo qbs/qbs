@@ -1123,6 +1123,21 @@ QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototy
     return result;
 }
 
+static QStringList ownPropertiesSet(Item *item)
+{
+    QStringList names;
+    do {
+        names += item->properties().keys();
+        item = item->prototype();
+    } while (item && item->isModuleInstance());
+
+    std::sort(names.begin(), names.end());
+    QStringList::iterator lastIt = std::unique(names.begin(), names.end());
+    if (lastIt != names.end())
+        names.erase(lastIt);
+    return names;
+}
+
 void ProjectResolver::evaluateModuleValues(Item *item, QVariantMap *modulesMap,
         bool lookupPrototype) const
 {
@@ -1141,7 +1156,9 @@ void ProjectResolver::evaluateModuleValues(Item *item, QVariantMap *modulesMap,
         evaluateModuleValues(module.item, &depmods, lookupPrototype);
         QVariantMap dep = evaluateProperties(module.item, lookupPrototype);
         dep.insert(QLatin1String("modules"), depmods);
-        modulesMap->insert(ModuleLoader::fullModuleName(module.name), dep);
+        const QString fullName = ModuleLoader::fullModuleName(module.name);
+        modulesMap->insert(fullName, dep);
+        modulesMap->insert(QLatin1Char('@') + fullName, ownPropertiesSet(module.item));
     }
 }
 

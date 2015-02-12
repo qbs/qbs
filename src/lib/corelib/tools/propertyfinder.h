@@ -48,7 +48,8 @@ public:
                          const QString &key);
 
 private:
-    void findModuleValues(const QVariantMap &properties, bool searchRecursively);
+    void findModuleValues(const QVariantMap &properties);
+    void findScalarModuleValue(const QVariantMap &properties);
     void addToList(const QVariant &value);
     static void mergeLists(QVariantList *values);
 

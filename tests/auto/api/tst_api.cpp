@@ -323,6 +323,9 @@ void TestApi::buildProject_data()
     QTest::newRow("productNameWithDots")
             << QString("productNameWithDots")
             << relativeExecutableFilePath("myapp");
+    QTest::newRow("only default properties")
+            << QString("two-default-property-values")
+            << relativeProductBuildDir("two-default-property-values") + "/set";
     QTest::newRow("QBS-728")
             << QString("QBS-728")
             << QString();
