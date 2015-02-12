@@ -89,6 +89,7 @@ public:
     CodeLocation location;
     QList<GroupData> groups;
     QVariantMap properties;
+    PropertyMap moduleProperties;
     QList<TargetArtifact> targetArtifacts;
     bool isEnabled;
     bool isRunnable;

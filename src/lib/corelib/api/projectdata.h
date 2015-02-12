@@ -182,6 +182,7 @@ public:
     QList<TargetArtifact> targetArtifacts() const;
     QList<GroupData> groups() const;
     QVariantMap properties() const;
+    PropertyMap moduleProperties() const;
     bool isEnabled() const;
     bool isRunnable() const;
 

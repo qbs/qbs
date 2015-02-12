@@ -454,6 +454,14 @@ QVariantMap ProductData::properties() const
 }
 
 /*!
+ * \brief The set of properties inherited from dependent products and modules.
+ */
+PropertyMap ProductData::moduleProperties() const
+{
+    return d->moduleProperties;
+}
+
+/*!
  * \brief Returns true if this Product is enabled in Qbs.
  * This method returns the \c condition property of the \c Product definition. If a product is
  * enabled, then it will be built in the current configuration.

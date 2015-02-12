@@ -689,6 +689,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->isEnabled = resolvedProduct->enabled;
         product.d->isRunnable = productIsRunnable(resolvedProduct);
         product.d->properties = resolvedProduct->productProperties;
+        product.d->moduleProperties.d->m_map = resolvedProduct->moduleProperties;
         foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups)
             product.d->groups << createGroupDataFromGroup(resolvedGroup);
         if (resolvedProduct->enabled) {
