@@ -1183,11 +1183,13 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
             const bool isOwnProperty = std::binary_search(evalContext.ownProperties.constBegin(),
                     evalContext.ownProperties.constEnd(), it.key());
             if (isPotentialGlobalEntry) {
-                const QHash<QString, EvalResult>::ConstIterator it
+                const QHash<QString, EvalResult>::ConstIterator globalIt
                         = evalContext.globalResult->find(fullKey);
-                if (it != evalContext.globalResult->constEnd()) {
-                    if (!isOwnProperty || it->strongPrecedence)
+                if (globalIt != evalContext.globalResult->constEnd()) {
+                    if (!isOwnProperty || globalIt->strongPrecedence) {
+                        result[it.key()] = globalIt->value;
                         break;
+                    }
                 }
             }
 
