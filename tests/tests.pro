@@ -1,2 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS = auto fuzzy-test
+SUBDIRS = auto fuzzy-test benchmarker

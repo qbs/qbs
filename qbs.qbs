@@ -30,6 +30,7 @@ Project {
         "src/src.qbs",
         "tests/auto/auto.qbs",
         "tests/fuzzy-test/fuzzy-test.qbs",
+        "tests/benchmarker/benchmarker.qbs",
     ]
 
     SubProject {
