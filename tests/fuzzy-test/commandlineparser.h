@@ -55,16 +55,19 @@ public:
 
     QString profile() const { return m_profile; }
     QString startCommit() const { return m_startCommit; }
+    int maxDurationInMinutes() const { return m_maxDuration; }
 
     QString usageString() const;
 
 private:
     void assignOptionArgument(const QString &option, QString &argument);
+    void parseDuration();
 
     QStringList m_commandLine;
     QString m_command;
     QString m_profile;
     QString m_startCommit;
+    int m_maxDuration;
 };
 
 #endif // Include guard.

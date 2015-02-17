@@ -55,7 +55,7 @@ class FuzzyTester
 public:
     FuzzyTester();
 
-    void runTest(const QString &profile, const QString &startCommit);
+    void runTest(const QString &profile, const QString &startCommit, int maxDurationInMinutes);
 
 private:
     void checkoutCommit(const QString &commit);

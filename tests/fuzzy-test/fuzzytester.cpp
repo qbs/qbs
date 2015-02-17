@@ -30,6 +30,7 @@
 #include "fuzzytester.h"
 
 #include <QDir>
+#include <QElapsedTimer>
 #include <QProcess>
 
 #include <algorithm>
@@ -40,7 +41,8 @@ FuzzyTester::FuzzyTester()
 {
 }
 
-void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
+void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
+                          int maxDurationInMinutes)
 {
     m_profile = profile;
 
@@ -61,12 +63,20 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
 
     quint64 run = 0;
     QStringList buildSequence(workingStartCommit);
+    QElapsedTimer timer;
+    const qint64 maxDurationInMillis = maxDurationInMinutes * 60 * 1000;
+    if (maxDurationInMillis != 0)
+        timer.start();
 
-    // This is in effect an infinite loop for all but the tiniest commit sets.
-    // That's not a problem -- if you want the application to finish early, just kill it.
-    while (std::next_permutation(allCommits.begin(), allCommits.end())) {
+    bool timerHasExpired = false;
+    while (std::next_permutation(allCommits.begin(), allCommits.end()) && !timerHasExpired) {
         qDebug("Testing permutation %llu...", ++run);
         foreach (const QString &currentCommit, allCommits) {
+           if (timer.isValid() && timer.hasExpired(maxDurationInMillis)) {
+               timerHasExpired = true;
+               break;
+           }
+
             buildSequence << currentCommit;
             checkoutCommit(currentCommit);
             qDebug("Testing incremental build #%d (%s)", buildSequence.count() - 1,
@@ -99,6 +109,11 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
             }
         }
     }
+
+    if (timerHasExpired)
+        qDebug("Maximum duration reached.");
+    else
+        qDebug("All possible permutations were tried.");
 }
 
 void FuzzyTester::checkoutCommit(const QString &commit)

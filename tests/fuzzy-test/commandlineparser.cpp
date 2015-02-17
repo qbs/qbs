@@ -31,8 +31,11 @@
 
 #include <QFileInfo>
 
+#include <cctype>
+
 static QString profileOption() { return "--profile"; }
 static QString startCommitOption() { return "--start-commit"; }
+static QString maxDurationoption() { return "--max-duration"; }
 
 CommandLineParser::CommandLineParser()
 {
@@ -42,6 +45,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
 {
     m_profile.clear();
     m_startCommit.clear();
+    m_maxDuration = 0;
     m_commandLine = commandLine;
     Q_ASSERT(!m_commandLine.isEmpty());
     m_command = m_commandLine.takeFirst();
@@ -51,6 +55,8 @@ void CommandLineParser::parse(const QStringList &commandLine)
             assignOptionArgument(arg, m_profile);
         else if (arg == startCommitOption())
             assignOptionArgument(arg, m_startCommit);
+        else if (arg == maxDurationoption())
+            parseDuration();
         else
             throw ParseException(QString::fromLocal8Bit("Unknown parameter '%1'").arg(arg));
     }
@@ -62,8 +68,9 @@ void CommandLineParser::parse(const QStringList &commandLine)
 
 QString CommandLineParser::usageString() const
 {
-    return QString::fromLocal8Bit("%1 %2 <profile> %3 <start commit>")
-            .arg(QFileInfo(m_command).fileName(), profileOption(), startCommitOption());
+    return QString::fromLocal8Bit("%1 %2 <profile> %3 <start commit> [%4 <duration>]")
+            .arg(QFileInfo(m_command).fileName(), profileOption(), startCommitOption(),
+                 maxDurationoption());
 }
 
 void CommandLineParser::assignOptionArgument(const QString &option, QString &argument)
@@ -74,5 +81,33 @@ void CommandLineParser::assignOptionArgument(const QString &option, QString &arg
     if (argument.isEmpty()) {
         throw ParseException(QString::fromLocal8Bit("Argument for option '%1' must not be empty.")
                              .arg(option));
+    }
+}
+
+void CommandLineParser::parseDuration()
+{
+    QString durationString;
+    QString choppedDurationString;
+    assignOptionArgument(maxDurationoption(), durationString);
+    choppedDurationString = durationString;
+    const char suffix = durationString.at(durationString.count() - 1).toLatin1();
+    const bool hasSuffix = !std::isdigit(suffix);
+    if (hasSuffix)
+        choppedDurationString.chop(1);
+    bool ok;
+    m_maxDuration = choppedDurationString.toInt(&ok);
+    if (!ok) {
+        throw ParseException(QString::fromLocal8Bit("Invalid duration argument '%1'.")
+                             .arg(durationString));
+    }
+    if (hasSuffix) {
+        switch (suffix) {
+        case 'm': break;
+        case 'd': m_maxDuration *= 24; // Fall-through.
+        case 'h': m_maxDuration *= 60; break;
+        default:
+            throw ParseException(QString::fromLocal8Bit("Invalid duration suffix '%1'.")
+                                 .arg(suffix));
+        }
     }
 }

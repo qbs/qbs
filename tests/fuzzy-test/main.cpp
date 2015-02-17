@@ -37,8 +37,8 @@
 #include <iostream>
 
 static bool parseCommandLine(const QStringList &commandLine, QString &profile,
-                             QString &startCommit);
-static bool runTest(const QString &profile, const QString &startCommit);
+                             QString &startCommi, int &maxDuration);
+static bool runTest(const QString &profile, const QString &startCommit, int maxDuration);
 
 int main(int argc, char *argv[])
 {
@@ -46,15 +46,17 @@ int main(int argc, char *argv[])
 
     QString profile;
     QString startCommit;
-    if (!parseCommandLine(app.arguments(), profile, startCommit))
+    int maxDuration;
+    if (!parseCommandLine(app.arguments(), profile, startCommit, maxDuration))
         return EXIT_FAILURE;
-    if (!runTest(profile, startCommit))
+    if (!runTest(profile, startCommit, maxDuration))
         return EXIT_FAILURE;
     std::cout << "Test finished successfully." << std::endl;
     return EXIT_SUCCESS;
 }
 
-bool parseCommandLine(const QStringList &commandLine, QString &profile, QString &startCommit)
+bool parseCommandLine(const QStringList &commandLine, QString &profile, QString &startCommit,
+                      int &maxDuration)
 {
     CommandLineParser cmdParser;
     try {
@@ -66,13 +68,14 @@ bool parseCommandLine(const QStringList &commandLine, QString &profile, QString 
     }
     profile = cmdParser.profile();
     startCommit = cmdParser.startCommit();
+    maxDuration = cmdParser.maxDurationInMinutes();
     return true;
 }
 
-bool runTest(const QString &profile, const QString &startCommit)
+bool runTest(const QString &profile, const QString &startCommit, int maxDuration)
 {
     try {
-        FuzzyTester().runTest(profile, startCommit);
+        FuzzyTester().runTest(profile, startCommit, maxDuration);
     } catch (const TestError &e) {
         std::cerr << qPrintable(e.errorMessage) << std::endl;
         return false;
