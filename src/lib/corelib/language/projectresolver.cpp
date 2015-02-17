@@ -510,9 +510,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
             return;
         ArtifactPropertiesPtr aprops = ArtifactProperties::create();
         aprops->setFileTagsFilter(FileTags::fromStringList(fileTagsFilter));
-        PropertyMapPtr cfg = PropertyMapInternal::create();
-        cfg->setValue(evaluateModuleValues(item));
-        aprops->setPropertyMapInternal(cfg);
+        aprops->setPropertyMapInternal(moduleProperties);
         m_productContext->product->artifactProperties += aprops;
         m_productContext->artifactPropertiesPerFilter.insert(fileTagsFilter,
                                 ProductContext::ArtifactPropertiesInfo(aprops, item->location()));
