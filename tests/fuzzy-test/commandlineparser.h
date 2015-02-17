@@ -56,11 +56,13 @@ public:
     QString profile() const { return m_profile; }
     QString startCommit() const { return m_startCommit; }
     int maxDurationInMinutes() const { return m_maxDuration; }
+    int jobCount() const { return m_jobCount; }
 
     QString usageString() const;
 
 private:
     void assignOptionArgument(const QString &option, QString &argument);
+    void assignOptionArgument(const QString &option, int &argument);
     void parseDuration();
 
     QStringList m_commandLine;
@@ -68,6 +70,7 @@ private:
     QString m_profile;
     QString m_startCommit;
     int m_maxDuration;
+    int m_jobCount;
 };
 
 #endif // Include guard.

@@ -42,9 +42,10 @@ FuzzyTester::FuzzyTester()
 }
 
 void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
-                          int maxDurationInMinutes)
+                          int maxDurationInMinutes, int jobCount)
 {
     m_profile = profile;
+    m_jobCount = jobCount;
 
     runGit(QStringList() << "rev-parse" << "HEAD", &m_headCommit);
     qDebug("HEAD is %s", qPrintable(m_headCommit));
@@ -167,7 +168,11 @@ bool FuzzyTester::runQbs(const QString &buildDir, const QString &command, QStrin
     if (errorOutput)
         errorOutput->clear();
     QProcess qbs;
-    qbs.start("qbs", QStringList(command) << "-qq" << "-d" << buildDir << ("profile:" + m_profile));
+    QStringList commandLine = QStringList(command) << "-qq" << "-d" << buildDir;
+    if (m_jobCount != 0)
+        commandLine << "--jobs" << QString::number(m_jobCount);
+    commandLine << ("profile:" + m_profile);
+    qbs.start("qbs", commandLine);
     if (!qbs.waitForStarted())
         throw TestError("Failed to start qbs. It is expected to be in the PATH.");
     if (!qbs.waitForFinished(-1) || qbs.exitCode() != 0) {

@@ -36,6 +36,7 @@
 static QString profileOption() { return "--profile"; }
 static QString startCommitOption() { return "--start-commit"; }
 static QString maxDurationoption() { return "--max-duration"; }
+static QString jobCountOption() { return "--jobs"; }
 
 CommandLineParser::CommandLineParser()
 {
@@ -46,6 +47,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
     m_profile.clear();
     m_startCommit.clear();
     m_maxDuration = 0;
+    m_jobCount = 0;
     m_commandLine = commandLine;
     Q_ASSERT(!m_commandLine.isEmpty());
     m_command = m_commandLine.takeFirst();
@@ -55,6 +57,8 @@ void CommandLineParser::parse(const QStringList &commandLine)
             assignOptionArgument(arg, m_profile);
         else if (arg == startCommitOption())
             assignOptionArgument(arg, m_startCommit);
+        else if (arg == jobCountOption())
+            assignOptionArgument(arg, m_jobCount);
         else if (arg == maxDurationoption())
             parseDuration();
         else
@@ -68,9 +72,10 @@ void CommandLineParser::parse(const QStringList &commandLine)
 
 QString CommandLineParser::usageString() const
 {
-    return QString::fromLocal8Bit("%1 %2 <profile> %3 <start commit> [%4 <duration>]")
+    return QString::fromLocal8Bit("%1 %2 <profile> %3 <start commit> [%4 <duration>] "
+                                  "[%5 <job count>]")
             .arg(QFileInfo(m_command).fileName(), profileOption(), startCommitOption(),
-                 maxDurationoption());
+                 maxDurationoption(), jobCountOption());
 }
 
 void CommandLineParser::assignOptionArgument(const QString &option, QString &argument)
@@ -81,6 +86,18 @@ void CommandLineParser::assignOptionArgument(const QString &option, QString &arg
     if (argument.isEmpty()) {
         throw ParseException(QString::fromLocal8Bit("Argument for option '%1' must not be empty.")
                              .arg(option));
+    }
+}
+
+void CommandLineParser::assignOptionArgument(const QString &option, int &argument)
+{
+    QString numberString;
+    assignOptionArgument(option, numberString);
+    bool ok;
+    argument = numberString.toInt(&ok);
+    if (!ok || argument <= 0) {
+        throw ParseException(QString::fromLocal8Bit("Invalid argument '%1' for option '%2'.")
+                             .arg(numberString, option));
     }
 }
 
@@ -96,7 +113,7 @@ void CommandLineParser::parseDuration()
         choppedDurationString.chop(1);
     bool ok;
     m_maxDuration = choppedDurationString.toInt(&ok);
-    if (!ok) {
+    if (!ok || m_maxDuration <= 0) {
         throw ParseException(QString::fromLocal8Bit("Invalid duration argument '%1'.")
                              .arg(durationString));
     }

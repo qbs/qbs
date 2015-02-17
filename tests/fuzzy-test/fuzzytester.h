@@ -55,7 +55,8 @@ class FuzzyTester
 public:
     FuzzyTester();
 
-    void runTest(const QString &profile, const QString &startCommit, int maxDurationInMinutes);
+    void runTest(const QString &profile, const QString &startCommit, int maxDurationInMinutes,
+                 int jobCount);
 
 private:
     void checkoutCommit(const QString &commit);
@@ -70,6 +71,7 @@ private:
     static QString defaultBuildDir();
 
     QString m_profile;
+    int m_jobCount;
     QString m_headCommit;
 };
 

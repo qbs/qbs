@@ -37,8 +37,9 @@
 #include <iostream>
 
 static bool parseCommandLine(const QStringList &commandLine, QString &profile,
-                             QString &startCommi, int &maxDuration);
-static bool runTest(const QString &profile, const QString &startCommit, int maxDuration);
+                             QString &startCommi, int &maxDuration, int &jobCount);
+static bool runTest(const QString &profile, const QString &startCommit, int maxDuration,
+                    int jobCount);
 
 int main(int argc, char *argv[])
 {
@@ -47,16 +48,17 @@ int main(int argc, char *argv[])
     QString profile;
     QString startCommit;
     int maxDuration;
-    if (!parseCommandLine(app.arguments(), profile, startCommit, maxDuration))
+    int jobCount;
+    if (!parseCommandLine(app.arguments(), profile, startCommit, maxDuration, jobCount))
         return EXIT_FAILURE;
-    if (!runTest(profile, startCommit, maxDuration))
+    if (!runTest(profile, startCommit, maxDuration, jobCount))
         return EXIT_FAILURE;
     std::cout << "Test finished successfully." << std::endl;
     return EXIT_SUCCESS;
 }
 
 bool parseCommandLine(const QStringList &commandLine, QString &profile, QString &startCommit,
-                      int &maxDuration)
+                      int &maxDuration, int &jobCount)
 {
     CommandLineParser cmdParser;
     try {
@@ -69,13 +71,14 @@ bool parseCommandLine(const QStringList &commandLine, QString &profile, QString 
     profile = cmdParser.profile();
     startCommit = cmdParser.startCommit();
     maxDuration = cmdParser.maxDurationInMinutes();
+    jobCount = cmdParser.jobCount();
     return true;
 }
 
-bool runTest(const QString &profile, const QString &startCommit, int maxDuration)
+bool runTest(const QString &profile, const QString &startCommit, int maxDuration, int jobCount)
 {
     try {
-        FuzzyTester().runTest(profile, startCommit, maxDuration);
+        FuzzyTester().runTest(profile, startCommit, maxDuration, jobCount);
     } catch (const TestError &e) {
         std::cerr << qPrintable(e.errorMessage) << std::endl;
         return false;
