@@ -202,44 +202,52 @@ void CommandLineFrontend::handleCommandDescriptionReport(const QString &highligh
 
 void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
 {
-    job->deleteLater();
-    if (!success) {
-        qbsError() << job->error().toString();
-        m_resolveJobs.removeOne(job);
-        m_buildJobs.removeOne(job);
-        if (m_resolveJobs.isEmpty() && m_buildJobs.isEmpty()) {
-            qApp->exit(EXIT_FAILURE);
-            return;
-        }
-        cancel();
-    } else if (SetupProjectJob * const setupJob = qobject_cast<SetupProjectJob *>(job)) {
-        m_resolveJobs.removeOne(job);
-        m_projects << setupJob->project();
-        if (m_observer && resolvingMultipleProjects())
-            m_observer->incrementProgressValue();
-        if (m_resolveJobs.isEmpty())
-            handleProjectsResolved();
-    } else if (qobject_cast<InstallJob *>(job)) {
-        if (m_parser.command() == RunCommandType)
-            qApp->exit(runTarget());
-        else
-            qApp->quit();
-    } else { // Build or clean.
-        m_buildJobs.removeOne(job);
-        if (m_buildJobs.isEmpty()) {
-            switch (m_parser.command()) {
-            case RunCommandType:
-            case InstallCommandType:
-                install();
-                break;
-            case BuildCommandType:
-            case CleanCommandType:
+    try {
+        job->deleteLater();
+        if (!success) {
+            qbsError() << job->error().toString();
+            m_resolveJobs.removeOne(job);
+            m_buildJobs.removeOne(job);
+            if (m_resolveJobs.isEmpty() && m_buildJobs.isEmpty()) {
+                qApp->exit(EXIT_FAILURE);
+                return;
+            }
+            cancel();
+        } else if (SetupProjectJob * const setupJob = qobject_cast<SetupProjectJob *>(job)) {
+            m_resolveJobs.removeOne(job);
+            m_projects << setupJob->project();
+            if (m_observer && resolvingMultipleProjects())
+                m_observer->incrementProgressValue();
+            if (m_resolveJobs.isEmpty())
+                handleProjectsResolved();
+        } else if (qobject_cast<InstallJob *>(job)) {
+            if (m_parser.command() == RunCommandType)
+                qApp->exit(runTarget());
+            else
                 qApp->quit();
-                break;
-            default:
-                Q_ASSERT_X(false, Q_FUNC_INFO, "Missing case in switch statement");
+        } else { // Build or clean.
+            m_buildJobs.removeOne(job);
+            if (m_buildJobs.isEmpty()) {
+                switch (m_parser.command()) {
+                case RunCommandType:
+                case InstallCommandType:
+                    install();
+                    break;
+                case GenerateCommandType:
+                    generate();
+                    // fall through
+                case BuildCommandType:
+                case CleanCommandType:
+                    qApp->quit();
+                    break;
+                default:
+                    Q_ASSERT_X(false, Q_FUNC_INFO, "Missing case in switch statement");
+                }
             }
         }
+    } catch (const ErrorInfo &error) {
+        qbsError() << error.toString();
+        qApp->exit(EXIT_FAILURE);
     }
 }
 
@@ -338,50 +346,42 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
 
 void CommandLineFrontend::handleProjectsResolved()
 {
-    try {
-        if (m_cancelStatus != CancelStatusNone)
-            throw ErrorInfo(Tr::tr("Execution canceled."));
-        switch (m_parser.command()) {
-        case GenerateCommandType:
-            generate();
-            qApp->quit();
-            break;
-        case ResolveCommandType:
-            qApp->quit();
-            break;
-        case CleanCommandType:
-            makeClean();
-            break;
-        case ShellCommandType:
-            qApp->exit(runShell());
-            break;
-        case StatusCommandType:
-            qApp->exit(printStatus(m_projects.first().projectData()));
-            break;
-        case BuildCommandType:
+    if (m_cancelStatus != CancelStatusNone)
+        throw ErrorInfo(Tr::tr("Execution canceled."));
+    switch (m_parser.command()) {
+    case ResolveCommandType:
+        qApp->quit();
+        break;
+    case CleanCommandType:
+        makeClean();
+        break;
+    case ShellCommandType:
+        qApp->exit(runShell());
+        break;
+    case StatusCommandType:
+        qApp->exit(printStatus(m_projects.first().projectData()));
+        break;
+    case BuildCommandType:
+    case GenerateCommandType:
+        build();
+        break;
+    case InstallCommandType:
+    case RunCommandType:
+        if (m_parser.buildBeforeInstalling())
             build();
-            break;
-        case InstallCommandType:
-        case RunCommandType:
-            if (m_parser.buildBeforeInstalling())
-                build();
-            else
-                install();
-            break;
-        case UpdateTimestampsCommandType:
-            updateTimestamps();
-            qApp->quit();
-            break;
-        case DumpNodesTreeCommandType:
-            dumpNodesTree();
-            qApp->quit();
-            break;
-        case HelpCommandType:
-            Q_ASSERT_X(false, Q_FUNC_INFO, "Impossible.");
-        }
-    } catch (const ErrorInfo &error) {
-        qbsError() << error.toString();
-        qApp->exit(EXIT_FAILURE);
+        else
+            install();
+        break;
+    case UpdateTimestampsCommandType:
+        updateTimestamps();
+        qApp->quit();
+        break;
+    case DumpNodesTreeCommandType:
+        dumpNodesTree();
+        qApp->quit();
+        break;
+    case HelpCommandType:
+        Q_ASSERT_X(false, Q_FUNC_INFO, "Impossible.");
     }
 }
 
@@ -493,22 +493,17 @@ void CommandLineFrontend::generate()
 
 int CommandLineFrontend::runTarget()
 {
-    try {
-        const ProductData productToRun = getTheOneRunnableProduct();
-        const QString executableFilePath = m_projects.first().targetExecutable(productToRun,
-                m_parser.installOptions());
-        if (executableFilePath.isEmpty()) {
-            throw ErrorInfo(Tr::tr("Cannot run: Product '%1' is not an application.")
-                        .arg(productToRun.name()));
-        }
-        RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
-                m_parser.installOptions(),
-                QProcessEnvironment::systemEnvironment(), m_settings);
-        return runEnvironment.runTarget(executableFilePath, m_parser.runArgs());
-    } catch (const ErrorInfo &error) {
-        qbsError() << error.toString();
-        return EXIT_FAILURE;
+    const ProductData productToRun = getTheOneRunnableProduct();
+    const QString executableFilePath = m_projects.first().targetExecutable(productToRun,
+            m_parser.installOptions());
+    if (executableFilePath.isEmpty()) {
+        throw ErrorInfo(Tr::tr("Cannot run: Product '%1' is not an application.")
+                    .arg(productToRun.name()));
     }
+    RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
+            m_parser.installOptions(),
+            QProcessEnvironment::systemEnvironment(), m_settings);
+    return runEnvironment.runTarget(executableFilePath, m_parser.runArgs());
 }
 
 void CommandLineFrontend::updateTimestamps()

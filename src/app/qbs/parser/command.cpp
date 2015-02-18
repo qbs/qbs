@@ -190,14 +190,14 @@ QList<CommandLineOption::Type> ResolveCommand::supportedOptions() const
 
 QString GenerateCommand::shortDescription() const
 {
-    return Tr::tr("Generate files for another build tool.");
+    return Tr::tr("Generate project files for another build tool.");
 }
 
 QString GenerateCommand::longDescription() const
 {
     QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
             .arg(representation());
-    description += Tr::tr("Generates project files to build the project using another build tool.");
+    description += Tr::tr("Generates files to build the project using another build tool.\n");
     return description += supportedOptionsDescription();
 }
 
@@ -210,6 +210,7 @@ QList<CommandLineOption::Type> GenerateCommand::supportedOptions() const
 {
     return QList<CommandLineOption::Type>()
             << CommandLineOption::FileOptionType
+            << CommandLineOption::BuildDirectoryOptionType
             << CommandLineOption::LogLevelOptionType
             << CommandLineOption::VerboseOptionType
             << CommandLineOption::QuietOptionType

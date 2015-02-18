@@ -78,8 +78,8 @@ public:
     bool checkForExistingBuildConfiguration(const QList<QVariantMap> &buildConfigs,
                                             const QString &buildVariant, const QString &profile);
     bool isSameProfile(const QString &profile1, const QString &profile2) const;
-
-    bool dryRun() const { return optionPool.dryRunOption()->enabled(); }
+    bool withNonDefaultProducts() const;
+    bool dryRun() const;
     QString settingsDir() const { return  optionPool.settingsDirOption()->settingsDir(); }
 
     QString propertyName(const QString &aCommandLineName) const;
@@ -168,7 +168,8 @@ GenerateOptions CommandLineParser::generateOptions() const
 
 InstallOptions CommandLineParser::installOptions() const
 {
-    Q_ASSERT(command() == InstallCommandType || command() == RunCommandType);
+    Q_ASSERT(command() == InstallCommandType || command() == RunCommandType
+             || command() == GenerateCommandType);
     InstallOptions options;
     options.setRemoveExistingInstallation(d->optionPool.removeFirstoption()->enabled());
     options.setInstallRoot(d->optionPool.installRootOption()->installRoot());
@@ -206,7 +207,7 @@ bool CommandLineParser::logTime() const
 
 bool CommandLineParser::withNonDefaultProducts() const
 {
-    return d->optionPool.buildNonDefaultOption()->enabled();
+    return d->withNonDefaultProducts();
 }
 
 bool CommandLineParser::buildBeforeInstalling() const
@@ -580,6 +581,20 @@ bool CommandLineParser::CommandLineParserPrivate::isSameProfile(const QString &p
     if (profile2.isEmpty())
         return profile1 == settings.defaultProfile();
     return false;
+}
+
+bool CommandLineParser::CommandLineParserPrivate::withNonDefaultProducts() const
+{
+    if (command->type() == GenerateCommandType)
+        return true;
+    return optionPool.buildNonDefaultOption()->enabled();
+}
+
+bool CommandLineParser::CommandLineParserPrivate::dryRun() const
+{
+     if (command->type() == GenerateCommandType)
+         return true;
+     return optionPool.dryRunOption()->enabled();
 }
 
 } // namespace qbs
