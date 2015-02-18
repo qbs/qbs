@@ -14,5 +14,6 @@ QbsApp {
     ]
 
     Depends { name: "bundle" }
+    bundle.isBundle: false
     bundle.infoPlistFile: "Info.plist"
 }
