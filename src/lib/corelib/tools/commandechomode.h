@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2015 Jake Petroules.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of the Qt Build Suite.
@@ -27,41 +27,29 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_PREFERENCES_H
-#define QBS_PREFERENCES_H
+
+#ifndef QBS_COMMANDECHOMODE_H
+#define QBS_COMMANDECHOMODE_H
 
 #include "qbs_export.h"
-
-#include "commandechomode.h"
-
+#include <QString>
 #include <QStringList>
-#include <QVariant>
 
 namespace qbs {
-class Settings;
 
-class QBS_EXPORT Preferences
-{
-public:
-    explicit Preferences(Settings *settings, const QString &profileName = QString());
-
-    bool useColoredOutput() const;
-    int jobs() const;
-    QString shell() const;
-    QString defaultBuildDirectory() const;
-    CommandEchoMode defaultEchoMode() const;
-    QStringList searchPaths(const QString &baseDir = QString()) const;
-    QStringList pluginPaths(const QString &baseDir = QString()) const;
-
-private:
-    QVariant getPreference(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QStringList pathList(const QString &key, const QString &defaultValue) const;
-
-    Settings *m_settings;
-    QString m_profile;
+enum CommandEchoMode {
+    CommandEchoModeSilent,
+    CommandEchoModeSummary,
+    CommandEchoModeCommandLine,
+    CommandEchoModeLast = CommandEchoModeCommandLine
 };
+
+QBS_EXPORT CommandEchoMode defaultCommandEchoMode();
+QBS_EXPORT QString commandEchoModeName(CommandEchoMode mode);
+QBS_EXPORT CommandEchoMode commandEchoModeFromName(const QString &name);
+QBS_EXPORT QStringList allCommandEchoModeStrings();
 
 } // namespace qbs
 
+#endif // QBS_COMMANDECHOMODE_H
 
-#endif // Header guard

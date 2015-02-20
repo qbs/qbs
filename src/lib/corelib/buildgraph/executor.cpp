@@ -670,7 +670,7 @@ void Executor::addExecutorJobs()
         job->setMainThreadScriptEngine(m_evalContext->engine());
         job->setObjectName(QString::fromLatin1("J%1").arg(i));
         job->setDryRun(m_buildOptions.dryRun());
-        job->setShowCommandLines(m_buildOptions.showCommandLines());
+        job->setEchoMode(m_buildOptions.echoMode());
         m_availableJobs.append(job);
         connect(job, SIGNAL(reportCommandDescription(QString,QString)),
                 this, SIGNAL(reportCommandDescription(QString,QString)), Qt::QueuedConnection);

@@ -40,7 +40,7 @@ class BuildOptionsPrivate : public QSharedData
 public:
     BuildOptionsPrivate()
         : maxJobCount(0), dryRun(false), keepGoing(false), forceTimestampCheck(false),
-          logElapsedTime(false), showCommandLines(false), install(true),
+          logElapsedTime(false), echoMode(defaultCommandEchoMode()), install(true),
           removeExistingInstallation(false)
     {
     }
@@ -53,7 +53,7 @@ public:
     bool keepGoing;
     bool forceTimestampCheck;
     bool logElapsedTime;
-    bool showCommandLines;
+    CommandEchoMode echoMode;
     bool install;
     bool removeExistingInstallation;
 };
@@ -256,20 +256,19 @@ void BuildOptions::setLogElapsedTime(bool log)
 }
 
 /*!
- * \brief Returns true iff command lines should be shown during the build.
- * The default is \c false.
+ * \brief The kind of output that is displayed when executing commands.
  */
-bool BuildOptions::showCommandLines() const
+CommandEchoMode BuildOptions::echoMode() const
 {
-    return d->showCommandLines;
+    return d->echoMode;
 }
 
 /*!
- * \brief Controls whether to show command lines during the build.
+ * \brief Controls the kind of output that is displayed when executing commands.
  */
-void BuildOptions::setShowCommandLines(bool b)
+void BuildOptions::setEchoMode(CommandEchoMode echoMode)
 {
-    d->showCommandLines = b;
+    d->echoMode = echoMode;
 }
 
 /*!
@@ -316,7 +315,7 @@ bool operator==(const BuildOptions &bo1, const BuildOptions &bo2)
             && bo1.dryRun() == bo2.dryRun()
             && bo1.keepGoing() == bo2.keepGoing()
             && bo1.logElapsedTime() == bo2.logElapsedTime()
-            && bo1.showCommandLines() == bo2.showCommandLines()
+            && bo1.echoMode() == bo2.echoMode()
             && bo1.maxJobCount() == bo2.maxJobCount()
             && bo1.install() == bo2.install()
             && bo1.removeExistingInstallation() == bo2.removeExistingInstallation();

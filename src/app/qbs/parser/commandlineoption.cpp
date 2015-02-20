@@ -41,10 +41,21 @@ CommandLineOption::~CommandLineOption()
 {
 }
 
+bool CommandLineOption::wasSet() const
+{
+    return m_wasSet;
+}
+
 void CommandLineOption::parse(CommandType command, const QString &representation, QStringList &input)
 {
     m_command = command;
+    m_wasSet = true;
     doParse(representation, input);
+}
+
+CommandLineOption::CommandLineOption()
+    : m_command(static_cast<CommandType>(-1)), m_wasSet(false)
+{
 }
 
 QString CommandLineOption::getArgument(const QString &representation, QStringList &input)
@@ -563,16 +574,47 @@ void SettingsDirOption::doParse(const QString &representation, QStringList &inpu
     m_settingsDir = input.takeFirst();
 }
 
-QString ShowCommandLinesOption::description(CommandType command) const
+CommandEchoModeOption::CommandEchoModeOption()
+    : m_echoMode(defaultCommandEchoMode())
 {
-    Q_UNUSED(command);
-    return Tr::tr("%1\n\tShow command lines instead of command descriptions.\n")
-            .arg(longRepresentation());
 }
 
-QString ShowCommandLinesOption::longRepresentation() const
+QString CommandEchoModeOption::description(CommandType command) const
 {
-    return QLatin1String("--show-command-lines");
+    Q_UNUSED(command);
+    return Tr::tr("%1 <mode>\n"
+                  "\tKind of output to show when executing commands.\n"
+                  "\tPossible values are '%2'.\n"
+                  "\tThe default is '%3'.\n")
+            .arg(longRepresentation(), allCommandEchoModeStrings().join(QLatin1String("', '")),
+                 commandEchoModeName(defaultCommandEchoMode()));
+}
+
+QString CommandEchoModeOption::longRepresentation() const
+{
+    return QLatin1String("--command-echo-mode");
+}
+
+CommandEchoMode CommandEchoModeOption::commandEchoMode() const
+{
+    return m_echoMode;
+}
+
+void CommandEchoModeOption::doParse(const QString &representation, QStringList &input)
+{
+    const QString mode = getArgument(representation, input);
+    if (mode.isEmpty()) {
+        throw ErrorInfo(Tr::tr("Invalid use of option '%1': No command echo mode given.\nUsage: %2")
+                    .arg(representation, description(command())));
+    }
+
+    if (!allCommandEchoModeStrings().contains(mode)) {
+        throw ErrorInfo(Tr::tr("Invalid use of option '%1': "
+                               "Invalid command echo mode '%2' given.\nUsage: %3")
+                        .arg(representation, mode, description(command())));
+    }
+
+    m_echoMode = commandEchoModeFromName(mode);
 }
 
 } // namespace qbs

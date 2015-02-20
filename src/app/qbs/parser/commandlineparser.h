@@ -57,10 +57,10 @@ public:
     QString commandDescription() const;
     QString projectFilePath() const;
     QString projectBuildDirectory() const;
-    BuildOptions buildOptions() const;
-    CleanOptions cleanOptions() const;
+    BuildOptions buildOptions(const QString &profile) const;
+    CleanOptions cleanOptions(const QString &profile) const;
     GenerateOptions generateOptions() const;
-    InstallOptions installOptions() const;
+    InstallOptions installOptions(const QString &profile) const;
     bool force() const;
     bool forceTimestampCheck() const;
     bool dryRun() const;

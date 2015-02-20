@@ -247,7 +247,7 @@ static QList<CommandLineOption::Type> buildOptions()
             << CommandLineOption::ChangedFilesOptionType
             << CommandLineOption::ForceTimestampCheckOptionType
             << CommandLineOption::BuildNonDefaultOptionType
-            << CommandLineOption::ShowCommandLinesOptionType
+            << CommandLineOption::CommandEchoModeOptionType
             << CommandLineOption::NoInstallOptionType
             << CommandLineOption::RemoveFirstOptionType;
 }
@@ -281,7 +281,7 @@ QList<CommandLineOption::Type> CleanCommand::supportedOptions() const
     options.removeOne(CommandLineOption::ChangedFilesOptionType);
     options.removeOne(CommandLineOption::JobsOptionType);
     options.removeOne(CommandLineOption::BuildNonDefaultOptionType);
-    options.removeOne(CommandLineOption::ShowCommandLinesOptionType);
+    options.removeOne(CommandLineOption::CommandEchoModeOptionType);
     return options << CommandLineOption::AllArtifactsOptionType;
 }
 

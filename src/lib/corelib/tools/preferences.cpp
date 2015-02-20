@@ -84,6 +84,14 @@ QString Preferences::defaultBuildDirectory() const
 }
 
 /*!
+ * \brief Returns the default echo mode used by Qbs if none is specified.
+ */
+CommandEchoMode Preferences::defaultEchoMode() const
+{
+    return commandEchoModeFromName(getPreference(QLatin1String("defaultEchoMode")).toString());
+}
+
+/*!
  * \brief Returns the list of paths where qbs looks for modules and imports.
  * In addition to user-supplied locations, they will also be looked up at \c{baseDir}/share/qbs.
  */

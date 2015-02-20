@@ -301,6 +301,8 @@ QbsLibrary {
             "buildoptions.cpp",
             "cleanoptions.cpp",
             "codelocation.cpp",
+            "commandechomode.cpp",
+            "commandechomode.h",
             "error.cpp",
             "executablefinder.cpp",
             "executablefinder.h",

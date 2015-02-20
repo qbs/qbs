@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2015 Jake Petroules.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of the Qt Build Suite.
@@ -27,41 +27,58 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_PREFERENCES_H
-#define QBS_PREFERENCES_H
-
-#include "qbs_export.h"
 
 #include "commandechomode.h"
 
-#include <QStringList>
-#include <QVariant>
+/*!
+ * \enum CommandEchoMode
+ * This enum type specifies the kind of output to display when executing commands.
+ * \value CommandEchoModeSilent Indicates that no output will be printed.
+ * \value CommandEchoModeSummary Indicates that descriptions will be printed.
+ * \value CommandEchoModeCommandLine Indidcates that full command line invocations will be printed.
+ */
 
 namespace qbs {
-class Settings;
 
-class QBS_EXPORT Preferences
+CommandEchoMode defaultCommandEchoMode()
 {
-public:
-    explicit Preferences(Settings *settings, const QString &profileName = QString());
+    return CommandEchoModeSummary;
+}
 
-    bool useColoredOutput() const;
-    int jobs() const;
-    QString shell() const;
-    QString defaultBuildDirectory() const;
-    CommandEchoMode defaultEchoMode() const;
-    QStringList searchPaths(const QString &baseDir = QString()) const;
-    QStringList pluginPaths(const QString &baseDir = QString()) const;
+QString commandEchoModeName(CommandEchoMode mode)
+{
+    switch (mode) {
+    case CommandEchoModeSilent:
+        return QLatin1String("silent");
+    case CommandEchoModeSummary:
+        return QLatin1String("summary");
+    case CommandEchoModeCommandLine:
+        return QLatin1String("command-line");
+    default:
+        break;
+    }
+    return QString();
+}
 
-private:
-    QVariant getPreference(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QStringList pathList(const QString &key, const QString &defaultValue) const;
+CommandEchoMode commandEchoModeFromName(const QString &name)
+{
+    CommandEchoMode mode = defaultCommandEchoMode();
+    for (int i = 0; i <= static_cast<int>(CommandEchoModeLast); ++i) {
+        if (commandEchoModeName(static_cast<CommandEchoMode>(i)) == name) {
+            mode = static_cast<CommandEchoMode>(i);
+            break;
+        }
+    }
 
-    Settings *m_settings;
-    QString m_profile;
-};
+    return mode;
+}
+
+QStringList allCommandEchoModeStrings()
+{
+    QStringList result;
+    for (int i = 0; i <= static_cast<int>(CommandEchoModeLast); ++i)
+        result << commandEchoModeName(static_cast<CommandEchoMode>(i));
+    return result;
+}
 
 } // namespace qbs
-
-
-#endif // Header guard

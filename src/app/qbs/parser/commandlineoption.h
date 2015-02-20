@@ -32,6 +32,8 @@
 
 #include "commandtype.h"
 
+#include <tools/commandechomode.h>
+
 #include <QStringList>
 
 namespace qbs {
@@ -56,7 +58,7 @@ public:
         ForceTimestampCheckOptionType,
         BuildNonDefaultOptionType,
         LogTimeOptionType,
-        ShowCommandLinesOptionType,
+        CommandEchoModeOptionType,
         SettingsDirOptionType,
         GeneratorOptionType
     };
@@ -67,9 +69,11 @@ public:
     virtual QString longRepresentation() const = 0;
     virtual bool canAppearMoreThanOnce() const { return false; }
 
+    bool wasSet() const;
     void parse(CommandType command, const QString &representation, QStringList &input);
 
 protected:
+    CommandLineOption();
     QString getArgument(const QString &representation, QStringList &input);
     CommandType command() const { return m_command; }
 
@@ -77,6 +81,7 @@ private:
     virtual void doParse(const QString &representation, QStringList &input) = 0;
 
     CommandType m_command;
+    bool m_wasSet;
 };
 
 class FileOption : public CommandLineOption
@@ -326,12 +331,20 @@ public:
     QString longRepresentation() const;
 };
 
-class ShowCommandLinesOption : public OnOffOption
+class CommandEchoModeOption : public CommandLineOption
 {
 public:
+    CommandEchoModeOption();
+
     QString description(CommandType command) const;
     QString shortRepresentation() const { return QString(); }
     QString longRepresentation() const;
+    CommandEchoMode commandEchoMode() const;
+
+private:
+    void doParse(const QString &representation, QStringList &input);
+
+    CommandEchoMode m_echoMode;
 };
 
 class SettingsDirOption : public CommandLineOption

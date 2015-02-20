@@ -389,12 +389,14 @@ void CommandLineFrontend::makeClean()
 {
     if (m_parser.products().isEmpty()) {
         foreach (const Project &project, m_projects) {
-            m_buildJobs << project.cleanAllProducts(m_parser.cleanOptions(), this);
+            m_buildJobs << project.cleanAllProducts(m_parser.cleanOptions(project.profile()), this);
         }
     } else {
         const ProductMap &products = productsToUse();
         for (ProductMap::ConstIterator it = products.begin(); it != products.end(); ++it) {
-            m_buildJobs << it.key().cleanSomeProducts(it.value(), m_parser.cleanOptions(), this);
+            m_buildJobs << it.key().cleanSomeProducts(it.value(),
+                                                      m_parser.cleanOptions(it.key().profile()),
+                                                      this);
         }
     }
     connectBuildJobs();
@@ -404,14 +406,14 @@ int CommandLineFrontend::runShell()
 {
     const ProductData productToRun = getTheOneRunnableProduct();
     RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
-            m_parser.installOptions(),
+            m_parser.installOptions(m_projects.first().profile()),
             QProcessEnvironment::systemEnvironment(), m_settings);
     return runEnvironment.runShell();
 }
 
 BuildOptions CommandLineFrontend::buildOptions(const Project &project) const
 {
-    BuildOptions options = m_parser.buildOptions();
+    BuildOptions options = m_parser.buildOptions(m_projects.first().profile());
     if (options.maxJobCount() <= 0) {
         const QString profileName = project.profile();
         QBS_CHECK(!profileName.isEmpty());
@@ -488,20 +490,20 @@ void CommandLineFrontend::generate()
 
     generator->clearProjects();
     generator->addProjects(m_projects);
-    generator->generate(m_parser.installOptions());
+    generator->generate(m_parser.installOptions(m_projects.first().profile()));
 }
 
 int CommandLineFrontend::runTarget()
 {
     const ProductData productToRun = getTheOneRunnableProduct();
     const QString executableFilePath = m_projects.first().targetExecutable(productToRun,
-            m_parser.installOptions());
+            m_parser.installOptions(m_projects.first().profile()));
     if (executableFilePath.isEmpty()) {
         throw ErrorInfo(Tr::tr("Cannot run: Product '%1' is not an application.")
                     .arg(productToRun.name()));
     }
     RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
-            m_parser.installOptions(),
+            m_parser.installOptions(m_projects.first().profile()),
             QProcessEnvironment::systemEnvironment(), m_settings);
     return runEnvironment.runTarget(executableFilePath, m_parser.runArgs());
 }
@@ -608,12 +610,13 @@ void CommandLineFrontend::install()
     if (m_parser.products().isEmpty()) {
         const Project::ProductSelection productSelection = m_parser.withNonDefaultProducts()
                 ? Project::ProductSelectionWithNonDefault : Project::ProductSelectionDefaultOnly;
-        installJob = project.installAllProducts(m_parser.installOptions(), productSelection);
+        installJob = project.installAllProducts(m_parser.installOptions(project.profile()),
+                                                productSelection);
     } else {
         const Project project = m_projects.first();
         const ProductMap products = productsToUse();
         installJob = project.installSomeProducts(products.value(project),
-                                                 m_parser.installOptions());
+                                                 m_parser.installOptions(project.profile()));
     }
     connectJob(installJob);
 }

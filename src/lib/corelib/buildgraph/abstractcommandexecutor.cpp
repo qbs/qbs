@@ -40,6 +40,7 @@ namespace Internal {
 
 AbstractCommandExecutor::AbstractCommandExecutor(const Logger &logger, QObject *parent)
     : QObject(parent)
+    , m_echoMode(defaultCommandEchoMode())
     , m_command(0)
     , m_transformer(0)
     , m_mainThreadScriptEngine(0)
@@ -58,7 +59,7 @@ void AbstractCommandExecutor::start(Transformer *transformer, const AbstractComm
 
 void AbstractCommandExecutor::doReportCommandDescription()
 {
-    if (m_command->isSilent())
+    if (m_command->isSilent() || m_echoMode == CommandEchoModeSilent)
         return;
 
     if (m_command->description().isEmpty()) {

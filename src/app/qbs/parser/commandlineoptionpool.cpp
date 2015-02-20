@@ -101,8 +101,8 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::LogTimeOptionType:
             option = new LogTimeOption;
             break;
-        case CommandLineOption::ShowCommandLinesOptionType:
-            option = new ShowCommandLinesOption;
+        case CommandLineOption::CommandEchoModeOptionType:
+            option = new CommandEchoModeOption;
             break;
         case CommandLineOption::SettingsDirOptionType:
             option = new SettingsDirOption;
@@ -219,10 +219,10 @@ LogTimeOption *CommandLineOptionPool::logTimeOption() const
     return static_cast<LogTimeOption *>(getOption(CommandLineOption::LogTimeOptionType));
 }
 
-ShowCommandLinesOption *CommandLineOptionPool::showCommandLinesOption() const
+CommandEchoModeOption *CommandLineOptionPool::commandEchoModeOption() const
 {
-    return static_cast<ShowCommandLinesOption *>(
-                getOption(CommandLineOption::ShowCommandLinesOptionType));
+    return static_cast<CommandEchoModeOption *>(
+                getOption(CommandLineOption::CommandEchoModeOptionType));
 }
 
 SettingsDirOption *CommandLineOptionPool::settingsDirOption() const

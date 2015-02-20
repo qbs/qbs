@@ -32,6 +32,7 @@
 #define QBS_EXECUTORJOB_H
 
 #include <language/forward_decls.h>
+#include <tools/commandechomode.h>
 #include <tools/error.h>
 
 #include <QObject>
@@ -58,7 +59,7 @@ public:
 
     void setMainThreadScriptEngine(ScriptEngine *engine);
     void setDryRun(bool enabled);
-    void setShowCommandLines(bool enabled);
+    void setEchoMode(CommandEchoMode echoMode);
     void run(Transformer *t);
     void cancel();
 

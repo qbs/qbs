@@ -4,6 +4,7 @@ HEADERS += \
     $$PWD/architectures.h \
     $$PWD/buildgraphlocker.h \
     $$PWD/codelocation.h \
+    $$PWD/commandechomode.h \
     $$PWD/error.h \
     $$PWD/executablefinder.h \
     $$PWD/fileinfo.h \
@@ -39,6 +40,7 @@ SOURCES += \
     $$PWD/architectures.cpp \
     $$PWD/buildgraphlocker.cpp \
     $$PWD/codelocation.cpp \
+    $$PWD/commandechomode.cpp \
     $$PWD/error.cpp \
     $$PWD/executablefinder.cpp \
     $$PWD/fileinfo.cpp \

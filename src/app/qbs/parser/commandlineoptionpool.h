@@ -62,7 +62,7 @@ public:
     ForceTimeStampCheckOption *forceTimestampCheckOption() const;
     BuildNonDefaultOption *buildNonDefaultOption() const;
     LogTimeOption *logTimeOption() const;
-    ShowCommandLinesOption *showCommandLinesOption() const;
+    CommandEchoModeOption *commandEchoModeOption() const;
     SettingsDirOption *settingsDirOption() const;
     GeneratorOption *generatorOption() const;
 

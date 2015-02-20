@@ -78,9 +78,10 @@ void ExecutorJob::setDryRun(bool enabled)
     m_jsCommandExecutor->setDryRunEnabled(enabled);
 }
 
-void ExecutorJob::setShowCommandLines(bool enabled)
+void ExecutorJob::setEchoMode(CommandEchoMode echoMode)
 {
-    m_processCommandExecutor->setShowCommandLines(enabled);
+    m_processCommandExecutor->setEchoMode(echoMode);
+    m_jsCommandExecutor->setEchoMode(echoMode);
 }
 
 void ExecutorJob::run(Transformer *t)
