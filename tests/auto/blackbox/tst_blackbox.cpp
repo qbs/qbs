@@ -109,7 +109,7 @@ int TestBlackbox::runQbs(const QbsRunParameters &params)
     QProcess process;
     process.setProcessEnvironment(params.environment);
     process.start(cmdLine);
-    const int waitTime = 5 * 60000;
+    const int waitTime = 10 * 60000;
     if (!process.waitForStarted() || !process.waitForFinished(waitTime)) {
         m_qbsStderr = process.readAllStandardError();
         if (!params.expectFailure)
@@ -1660,6 +1660,7 @@ void TestBlackbox::nestedProperties()
 {
     QDir::setCurrent(testDataDir + "/nested-properties");
     QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL(0, "QBS-736", Abort);
     QVERIFY2(m_qbsStdout.contains("value in higherlevel"), m_qbsStdout.constData());
 }
 
