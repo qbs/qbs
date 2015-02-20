@@ -89,10 +89,12 @@ QString BuildDirectoryOption::description(CommandType command) const
             "\tBuild in the given directory. The default value is the current directory\n"
             "\tunless preferences.defaultBuildDirectory is set.\n"
             "\tRelative paths will be interpreted relative to the current directory.\n"
-            "\tIf the directory does not exist, it will be created. Use the special\n"
-            "\tvalue '%3' as a placeholder for the name of the directory\n"
-            "\tcontaining the project file.\n")
-            .arg(longRepresentation(), shortRepresentation(), magicProjectString());
+            "\tIf the directory does not exist, it will be created. Use the following\n"
+            "\tspecial values as placeholders:\n"
+            "\t%3: name of the project file excluding the extension\n"
+            "\t%4: directory containing the project file\n")
+            .arg(longRepresentation(), shortRepresentation(),
+                 magicProjectString(), magicProjectDirString());
 }
 
 QString BuildDirectoryOption::shortRepresentation() const
@@ -108,6 +110,11 @@ QString BuildDirectoryOption::longRepresentation() const
 QString BuildDirectoryOption::magicProjectString()
 {
     return QLatin1String("@project");
+}
+
+QString BuildDirectoryOption::magicProjectDirString()
+{
+    return QLatin1String("@path");
 }
 
 void BuildDirectoryOption::doParse(const QString &representation, QStringList &input)

@@ -433,8 +433,10 @@ QString CommandLineFrontend::buildDirectory(const QString &profileName) const
         }
     }
 
-    QDir projectDir(QFileInfo(m_parser.projectFilePath()).path());
-    buildDir.replace(BuildDirectoryOption::magicProjectString(), projectDir.dirName());
+    QString projectName(QFileInfo(m_parser.projectFilePath()).baseName());
+    buildDir.replace(BuildDirectoryOption::magicProjectString(), projectName);
+    QString projectDir(QFileInfo(m_parser.projectFilePath()).path());
+    buildDir.replace(BuildDirectoryOption::magicProjectDirString(), projectDir);
     if (!QFileInfo(buildDir).isAbsolute())
         buildDir = QDir::currentPath() + QLatin1Char('/') + buildDir;
     buildDir = QDir::cleanPath(buildDir);

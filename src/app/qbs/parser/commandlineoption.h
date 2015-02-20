@@ -99,6 +99,7 @@ class BuildDirectoryOption : public CommandLineOption
 public:
     QString projectBuildDirectory() const { return m_projectBuildDirectory; }
     static QString magicProjectString();
+    static QString magicProjectDirString();
 
 private:
     QString description(CommandType command) const;
