@@ -1,7 +1,9 @@
 import qbs
 
 Module {
-    property string prop: "value in lowerlevel module"
+    property string propDependency: "value in lowerlevel module"
+    property string prop: propDependency
+
     Rule {
         inputs: ["dummy-input"]
         Artifact {
