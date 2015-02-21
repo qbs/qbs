@@ -350,6 +350,9 @@ Module {
                                   args);
             cmd.description = 'qhelpgenerator ' + input.fileName;
             cmd.highlight = 'filegen';
+            cmd.stdoutFilterFunction = function(output) {
+                return "";
+            };
             return cmd;
         }
     }
