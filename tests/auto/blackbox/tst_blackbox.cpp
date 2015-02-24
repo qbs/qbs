@@ -1485,8 +1485,7 @@ void TestBlackbox::java()
     if (p.value("java.jdkPath").toString().isEmpty())
         QSKIP("java.jdkPath not set");
     QDir::setCurrent(testDataDir + "/java");
-    QCOMPARE(runQbs(QStringList("--show-command-lines")), 0);
-    qDebug("%s", m_qbsStdout.constData());
+    QCOMPARE(runQbs(), 0);
 
     const QStringList classFiles =
             QStringList() << "Car" << "Jet" << "Ship" << "Vehicle" << "Vehicles";
