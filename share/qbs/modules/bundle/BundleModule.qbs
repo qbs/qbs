@@ -10,14 +10,6 @@ import qbs.TextFile
 Module {
     additionalProductTypes: ["bundle"]
 
-    setupBuildEnvironment: {
-        if (qbs.hostOS.contains("darwin")) {
-            var v = new ModUtils.EnvironmentVariable("PATH", ":", false);
-            v.prepend("/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support");
-            v.set();
-        }
-    }
-
     property bool isBundle: qbs.targetOS.contains("darwin")
                             && (product.type.contains("application")
                                 || product.type.contains("dynamiclibrary")
@@ -85,6 +77,12 @@ Module {
     }
 
     property string localizedResourcesFolderSuffix: ".lproj"
+
+    property string lsregisterName: "lsregister"
+    property string lsregisterPath: FileInfo.joinPaths(
+                                        "/System/Library/Frameworks/CoreServices.framework" +
+                                        "/Versions/A/Frameworks/LaunchServices.framework" +
+                                        "/Versions/A/Support", lsregisterName);
 
     // all paths are relative to the directory containing the bundle
     readonly property string infoPlistPath: {
@@ -584,7 +582,8 @@ Module {
 
             if (product.type.contains("application") && product.moduleProperty("qbs", "hostOS").contains("darwin")) {
                 for (i in bundles) {
-                    cmd = new Command("lsregister", ["-f", bundles[i].filePath]);
+                    cmd = new Command(ModUtils.moduleProperty(product, "lsregisterPath"),
+                                      ["-f", bundles[i].filePath]);
                     cmd.description = "register " + ModUtils.moduleProperty(product, "bundleName");
                     commands.push(cmd);
                 }
