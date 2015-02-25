@@ -948,22 +948,18 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         dependsContext.productDependencies = &productContext->info.usedProducts;
         resolveDependencies(&dependsContext, module);
     }
-    if (!checkItemCondition(module)) {
-        m_logger.qbsTrace() << "[LDR] module condition is false";
-        m_modulePrototypeItemCache.insert(cacheKey, ItemCacheValue(module, false));
-        return 0;
-    }
 
     // Module properties that are defined in the profile are used as default values.
     const QVariantMap profileModuleProperties
             = productContext->moduleProperties.value(fullModuleName).toMap();
+    QList<ErrorInfo> unknownProfilePropertyErrors;
     for (QVariantMap::const_iterator vmit = profileModuleProperties.begin();
             vmit != profileModuleProperties.end(); ++vmit)
     {
         if (Q_UNLIKELY(!module->hasProperty(vmit.key()))) {
             const ErrorInfo error(Tr::tr("Unknown property: %1.%2").arg(fullModuleName,
                                                                         vmit.key()));
-            handlePropertyError(error, m_parameters, m_logger);
+            unknownProfilePropertyErrors.append(error);
             continue;
         }
         const PropertyDeclaration decl = module->propertyDeclaration(vmit.key());
@@ -971,6 +967,17 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
                 QStringList(fullModuleName), vmit.key()));
         module->setProperty(vmit.key(), v);
     }
+
+    // Check the condition last in case the condition needs to evaluate other properties that were
+    // set by the profile
+    if (!checkItemCondition(module)) {
+        m_logger.qbsTrace() << "[LDR] module condition is false";
+        m_modulePrototypeItemCache.insert(cacheKey, ItemCacheValue(module, false));
+        return 0;
+    }
+
+    foreach (const ErrorInfo &error, unknownProfilePropertyErrors)
+        handlePropertyError(error, m_parameters, m_logger);
 
     m_modulePrototypeItemCache.insert(cacheKey, ItemCacheValue(module, true));
     return module;
