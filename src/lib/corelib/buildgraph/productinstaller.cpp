@@ -178,8 +178,8 @@ void ProductInstaller::copyFile(const Artifact *artifact)
     const QString nativeFilePath = QDir::toNativeSeparators(artifact->filePath());
     const QString nativeTargetDir = QDir::toNativeSeparators(targetDir);
     if (m_options.dryRun()) {
-        m_logger.qbsInfo() << Tr::tr("Would copy file '%1' into target directory '%2'.")
-                              .arg(nativeFilePath, nativeTargetDir);
+        m_logger.qbsDebug() << Tr::tr("Would copy file '%1' into target directory '%2'.")
+                               .arg(nativeFilePath, nativeTargetDir);
         return;
     }
     m_logger.qbsDebug() << QString::fromLocal8Bit("Copying file '%1' into target directory '%2'.")
