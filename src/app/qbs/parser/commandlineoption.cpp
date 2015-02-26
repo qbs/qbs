@@ -41,20 +41,14 @@ CommandLineOption::~CommandLineOption()
 {
 }
 
-bool CommandLineOption::wasSet() const
-{
-    return m_wasSet;
-}
-
 void CommandLineOption::parse(CommandType command, const QString &representation, QStringList &input)
 {
     m_command = command;
-    m_wasSet = true;
     doParse(representation, input);
 }
 
 CommandLineOption::CommandLineOption()
-    : m_command(static_cast<CommandType>(-1)), m_wasSet(false)
+    : m_command(static_cast<CommandType>(-1))
 {
 }
 
@@ -575,7 +569,7 @@ void SettingsDirOption::doParse(const QString &representation, QStringList &inpu
 }
 
 CommandEchoModeOption::CommandEchoModeOption()
-    : m_echoMode(defaultCommandEchoMode())
+    : m_echoMode(static_cast<CommandEchoMode>(-1))
 {
 }
 

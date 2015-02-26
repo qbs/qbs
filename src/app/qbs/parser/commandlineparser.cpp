@@ -152,7 +152,7 @@ BuildOptions CommandLineParser::buildOptions(const QString &profile) const
         d->buildOptions.setMaxJobCount(preferences.jobs());
     }
 
-    if (!d->optionPool.commandEchoModeOption()->wasSet()) {
+    if (d->buildOptions.echoMode() < 0) {
         d->buildOptions.setEchoMode(preferences.defaultEchoMode());
     }
 
@@ -615,7 +615,7 @@ CommandEchoMode CommandLineParser::CommandLineParserPrivate::echoMode() const
     if (command->type() == GenerateCommandType)
         return CommandEchoModeSilent;
 
-    if (optionPool.commandEchoModeOption()->wasSet())
+    if (optionPool.commandEchoModeOption()->commandEchoMode() >= 0)
         return optionPool.commandEchoModeOption()->commandEchoMode();
 
     return defaultCommandEchoMode();

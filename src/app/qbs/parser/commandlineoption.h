@@ -69,7 +69,6 @@ public:
     virtual QString longRepresentation() const = 0;
     virtual bool canAppearMoreThanOnce() const { return false; }
 
-    bool wasSet() const;
     void parse(CommandType command, const QString &representation, QStringList &input);
 
 protected:
@@ -81,7 +80,6 @@ private:
     virtual void doParse(const QString &representation, QStringList &input) = 0;
 
     CommandType m_command;
-    bool m_wasSet;
 };
 
 class FileOption : public CommandLineOption
