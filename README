@@ -10,12 +10,12 @@ Windows XP SP2 or later
 Mac OS 10.6 or later
 Linux (tested on Debian 6/7 and Ubuntu 13)
 
-Building the sources requires Qt 4.8.0 or later.
+Building the sources requires Qt 5.1.0 or later.
 
 Build Instructions
 ==================
 Prerequisites:
-   * Qt 4.8.0 or later
+   * Qt 5.1.0 or later
    * On Windows:
      -  MinGW or Visual Studio
    * On Mac: Xcode
