@@ -53,7 +53,7 @@
     task of executing the commands in the low-level build graph (like make).
 
     \note Please report bugs and suggestions to the
-    \l{http://bugreports.qt-project.org/}{Qt Bug Tracker}.
+    \l{http://bugreports.qt.io/}{Qt Bug Tracker}.
 
     \list
        \li  \l{Introduction}

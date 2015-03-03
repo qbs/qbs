@@ -318,7 +318,7 @@ static void addDesignerComponentsModule(QList<QtModuleInfo> &modules)
 
 QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
 {
-    // as per http://qt-project.org/doc/qt-4.8/modules.html + private stuff.
+    // as per http://doc.qt.io/qt-4.8/modules.html + private stuff.
     QList<QtModuleInfo> modules;
 
     QtModuleInfo core(QLatin1String("QtCore"), QLatin1String("core"));
