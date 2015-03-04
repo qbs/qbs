@@ -78,8 +78,7 @@
     \row    \li \b{Default:}         \li \c{false} for gcc/clang, \c{true} for MSVC
     \endtable
 
-    The file name that is used for external debug information.
-    \note This property is ignored for OS X toolchains.
+    Whether to store debug information in an external file or bundle instead of within the binary.
 
     \section2 defines
 
