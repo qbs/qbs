@@ -753,16 +753,13 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
                 dependency.name = fullModuleName(moduleName);
                 dependency.profile = QLatin1String("*");
-                dependency.required = true;
                 productResults->append(ProductDependencyResult(dependsItem, dependency));
                 continue;
             }
-            const bool required = m_evaluator->boolValue(item, QLatin1String("required"));
             foreach (const QString &profile, profiles) {
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
                 dependency.name = fullModuleName(moduleName);
                 dependency.profile = profile;
-                dependency.required = required;
                 productResults->append(ProductDependencyResult(dependsItem, dependency));
             }
         }

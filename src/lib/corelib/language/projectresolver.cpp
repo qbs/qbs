@@ -899,7 +899,6 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
                     ModuleLoaderResult::ProductInfo::Dependency newDependency;
                     newDependency.name = p->name;
                     newDependency.profile = p->profile;
-                    newDependency.required = true;
                     productInfo->usedProducts << newDependency;
                 }
             }
@@ -914,7 +913,6 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
                 ModuleLoaderResult::ProductInfo::Dependency newDependency;
                 newDependency.name = p->name;
                 newDependency.profile = p->profile;
-                newDependency.required = true;
                 productInfo->usedProducts << newDependency;
             }
             productInfo->usedProducts.removeAt(i);
