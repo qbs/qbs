@@ -55,6 +55,9 @@ void TestTools::testFileInfo()
     QCOMPARE(FileInfo::completeBaseName("C:/waffl/copter.exe.lib"), QString("copter.exe"));
     QCOMPARE(FileInfo::path("abc"), QString("."));
     QCOMPARE(FileInfo::path("/abc/lol"), QString("/abc"));
+    QCOMPARE(FileInfo::path("/fileInRoot"), QString(QLatin1Char('/')));
+    if (HostOsInfo::isWindowsHost())
+        QCOMPARE(FileInfo::path("C:/fileInDriveRoot"), QString("C:/"));
     QVERIFY(!FileInfo::isAbsolute("bla/lol"));
     QVERIFY(FileInfo::isAbsolute("/bla/lol"));
     if (HostOsInfo::isWindowsHost())
