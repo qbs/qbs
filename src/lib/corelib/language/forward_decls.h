@@ -95,9 +95,9 @@ class ResolvedScanner;
 typedef QSharedPointer<ResolvedScanner> ResolvedScannerPtr;
 typedef QSharedPointer<const ResolvedScanner> ResolvedScannerConstPtr;
 
-class SourceArtifact;
-typedef QSharedPointer<SourceArtifact> SourceArtifactPtr;
-typedef QSharedPointer<const SourceArtifact> SourceArtifactConstPtr;
+class SourceArtifactInternal;
+typedef QSharedPointer<SourceArtifactInternal> SourceArtifactPtr;
+typedef QSharedPointer<const SourceArtifactInternal> SourceArtifactConstPtr;
 
 class ScriptFunction;
 typedef QSharedPointer<ScriptFunction> ScriptFunctionPtr;

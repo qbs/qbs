@@ -127,10 +127,10 @@ inline bool operator!=(const RuleArtifact::Binding &b1, const RuleArtifact::Bind
 bool operator==(const RuleArtifact &a1, const RuleArtifact &a2);
 inline bool operator!=(const RuleArtifact &a1, const RuleArtifact &a2) { return !(a1 == a2); }
 
-class SourceArtifact : public PersistentObject
+class SourceArtifactInternal : public PersistentObject
 {
 public:
-    static SourceArtifactPtr create() { return SourceArtifactPtr(new SourceArtifact); }
+    static SourceArtifactPtr create() { return SourceArtifactPtr(new SourceArtifactInternal); }
 
     QString absoluteFilePath;
     FileTags fileTags;
@@ -138,13 +138,13 @@ public:
     PropertyMapPtr properties;
 
 private:
-    SourceArtifact() : overrideFileTags(true) {}
+    SourceArtifactInternal() : overrideFileTags(true) {}
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 };
-bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2);
-inline bool operator!=(const SourceArtifact &sa1, const SourceArtifact &sa2) {
+bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal &sa2);
+inline bool operator!=(const SourceArtifactInternal &sa1, const SourceArtifactInternal &sa2) {
     return !(sa1 == sa2);
 }
 

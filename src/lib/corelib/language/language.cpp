@@ -110,7 +110,7 @@ void FileTagger::store(PersistentPool &pool) const
  * SourceArtifact could simply have a back pointer to the group in addition to the file path.)
  * \sa ResolvedGroup
  */
-void SourceArtifact::load(PersistentPool &pool)
+void SourceArtifactInternal::load(PersistentPool &pool)
 {
     absoluteFilePath = pool.idLoadString();
     pool.stream() >> fileTags;
@@ -118,7 +118,7 @@ void SourceArtifact::load(PersistentPool &pool)
     properties = pool.idLoadS<PropertyMapInternal>();
 }
 
-void SourceArtifact::store(PersistentPool &pool) const
+void SourceArtifactInternal::store(PersistentPool &pool) const
 {
     pool.storeString(absoluteFilePath);
     pool.stream() << fileTags;
@@ -1203,7 +1203,7 @@ QString keyFromElem(const ArtifactPropertiesPtr &ap)
     return lst.join(QLatin1Char(','));
 }
 
-bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
+bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal &sa2)
 {
     return sa1.absoluteFilePath == sa2.absoluteFilePath
             && sa1.fileTags == sa2.fileTags

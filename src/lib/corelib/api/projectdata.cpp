@@ -37,6 +37,8 @@
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
 
+#include <algorithm>
+
 namespace qbs {
 
 /*!
@@ -89,19 +91,30 @@ QString GroupData::name() const
 /*!
  * \brief The files listed in the group item's "files" binding.
  * \note These do not include expanded wildcards.
- * \sa GroupData::expandedWildcards
+ * \sa GroupData::sourceArtifactsFromWildcards
  */
-QStringList GroupData::filePaths() const
+QList<SourceArtifact> GroupData::sourceArtifacts() const
 {
-    return d->filePaths;
+    return d->sourceArtifacts;
 }
 
 /*!
  * \brief The list of files resulting from expanding all wildcard patterns in the group.
  */
-QStringList GroupData::expandedWildcards() const
+QList<SourceArtifact> GroupData::sourceArtifactsFromWildcards() const
 {
-    return d->expandedWildcards;
+    return d->sourceArtifactsFromWildcards;
+}
+
+/*!
+ * \brief All files in this group, regardless of how whether they were given explicitly
+ *        or via wildcards.
+ * \sa GroupData::sourceArtifacts
+ * \sa GroupData::sourceArtifactsFromWildcards
+ */
+QList<SourceArtifact> GroupData::allSourceArtifacts() const
+{
+    return sourceArtifacts() + sourceArtifactsFromWildcards();
 }
 
 /*!
@@ -130,15 +143,17 @@ bool GroupData::isEnabled() const
 }
 
 /*!
- * \fn QStringList GroupData::allFilePaths() const
- * \brief All files in this group, regardless of how whether they were given explicitly
- *        or via wildcards.
- * \sa GroupData::filePaths
- * \sa GroupData::expandedWildcards
+ * \brief The paths of all files in this group.
+ * \sa GroupData::allSourceArtifacts
  */
 QStringList GroupData::allFilePaths() const
 {
-    return d->filePaths + d->expandedWildcards;
+    const QList<SourceArtifact> &artifacts = allSourceArtifacts();
+    QStringList paths;
+    paths.reserve(artifacts.count());
+    std::transform(artifacts.constBegin(), artifacts.constEnd(), std::back_inserter(paths),
+                          [](const SourceArtifact &sa) { return sa.filePath(); });
+    return paths;
 }
 
 bool operator!=(const GroupData &lhs, const GroupData &rhs)
@@ -154,8 +169,8 @@ bool operator==(const GroupData &lhs, const GroupData &rhs)
     return lhs.isValid() == rhs.isValid()
             && lhs.name() == rhs.name()
             && lhs.location() == rhs.location()
-            && lhs.expandedWildcards() == rhs.expandedWildcards()
-            && lhs.filePaths() == rhs.filePaths()
+            && lhs.sourceArtifactsFromWildcards() == rhs.sourceArtifactsFromWildcards()
+            && lhs.sourceArtifacts() == rhs.sourceArtifacts()
             && lhs.properties() == rhs.properties()
             && lhs.isEnabled() == rhs.isEnabled();
 }
@@ -163,6 +178,70 @@ bool operator==(const GroupData &lhs, const GroupData &rhs)
 bool operator<(const GroupData &lhs, const GroupData &rhs)
 {
     return lhs.name() < rhs.name();
+}
+
+
+/*!
+ * \class SourceArtifact
+ * \brief The \c SourceArtifact class describes a source file in a product.
+ */
+
+SourceArtifact::SourceArtifact() : d(new Internal::SourceArtifactPrivate)
+{
+}
+
+SourceArtifact::SourceArtifact(const SourceArtifact &other) : d(other.d)
+{
+}
+
+SourceArtifact &SourceArtifact::operator=(const SourceArtifact &other)
+{
+    d = other.d;
+    return *this;
+}
+
+SourceArtifact::~SourceArtifact()
+{
+}
+
+/*!
+ * \brief Returns true if and only if this object holds data that was initialized by Qbs.
+ */
+bool SourceArtifact::isValid() const
+{
+    return d->isValid;
+}
+
+/*!
+ * \brief The full path of this file.
+ */
+QString SourceArtifact::filePath() const
+{
+    return d->filePath;
+}
+
+/*!
+ * \brief The tags of this file.
+ * Typically, this list will contain just one element.
+ */
+QStringList SourceArtifact::fileTags() const
+{
+    return d->fileTags;
+}
+
+bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
+{
+    return sa1.filePath() == sa2.filePath() && sa1.fileTags() == sa2.fileTags();
+}
+
+bool operator!=(const SourceArtifact &sa1, const SourceArtifact &sa2)
+{
+    return !(sa1 == sa2);
+}
+
+bool operator<(const SourceArtifact &sa1, const SourceArtifact &sa2)
+{
+    return sa1.filePath() < sa2.filePath();
 }
 
 
