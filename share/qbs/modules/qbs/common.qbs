@@ -101,7 +101,7 @@ Module {
                 FileInfo.joinPaths(installRoot, installPrefix)
             ].join(pathListSeparator);
 
-            if (sysroot) {
+            if (targetOS.contains("ios-simulator") && sysroot) {
                 env["DYLD_ROOT_PATH"] = [sysroot];
             }
         }
