@@ -10,6 +10,7 @@ Product {
                                          qbs.commonRunEnvironment,
                                          qbs.pathListSeparator)
     property bool limitToSubProject: true
+    property stringList wrapper: []
     Depends {
         productTypes: "autotest"
         limitToSubProject: product.limitToSubProject
@@ -22,7 +23,10 @@ Product {
             alwaysUpdated: false
         }
         prepare: {
-            var cmd = new Command(input.filePath, product.arguments);
+            var fullCommandLine = product.wrapper
+                .concat([input.filePath])
+                .concat(product.arguments);
+            var cmd = new Command(fullCommandLine[0], fullCommandLine.slice(1));
             cmd.description = "Running test " + input.fileName;
             cmd.environment = product.environment;
             return cmd;

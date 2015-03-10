@@ -96,6 +96,12 @@
         \li By default, only those autotests are considered that are in the same sub-project that
             the \c AutotestRunner was instantiated in. If you want to run all autotests regardless
             of their location in the project hierarchy, set this property to \c false.
+    \row
+        \li wrapper
+        \li stringList
+        \li empty
+        \li Wrapper binary and its arguments for wrapping autotest calls.
+            This is useful for tools like Valgrind and alike.
     \endtable
 
 */
