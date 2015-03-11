@@ -479,7 +479,13 @@ QString DumpNodesTreeCommand::representation() const
 
 QList<CommandLineOption::Type> DumpNodesTreeCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>() << CommandLineOption::ProductsOptionType;
+    return QList<CommandLineOption::Type>()
+            << CommandLineOption::LogLevelOptionType
+            << CommandLineOption::VerboseOptionType
+            << CommandLineOption::QuietOptionType
+            << CommandLineOption::FileOptionType
+            << CommandLineOption::BuildDirectoryOptionType
+            << CommandLineOption::ProductsOptionType;
 }
 
 QString HelpCommand::shortDescription() const
