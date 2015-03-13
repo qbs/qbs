@@ -79,6 +79,7 @@ CppModule {
     property string objcopyPath: toolchainPathPrefix + objcopyName
     property string stripPath: toolchainPathPrefix + stripName
     property string dsymutilPath: toolchainPathPrefix + dsymutilName
+    property stringList dsymutilFlags
 
     readonly property bool shouldCreateSymlinks: {
         return createSymlinks && internalVersion && qbs.targetOS.contains("unix");
