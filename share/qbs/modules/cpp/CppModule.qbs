@@ -1,4 +1,5 @@
 // base for Cpp modules
+import qbs.ModUtils
 
 Module {
     condition: false
@@ -253,5 +254,23 @@ Module {
     FileTagger {
         patterns: ["*.h", "*.H", "*.hpp", "*.hxx", "*.h++"]
         fileTags: ["hpp"]
+    }
+
+    setupRunEnvironment: {
+        var env = qbs.commonRunEnvironment;
+        for (var i in env) {
+            var v = new ModUtils.EnvironmentVariable(i, qbs.pathListSeparator,
+                                                     qbs.hostOS.contains("windows"));
+            var envValue = env[i];
+            if (typeof envValue === Array) {
+                for (var j in envValue) {
+                    v.append(envValue[j]);
+                }
+            } else {
+                v.value = envValue;
+            }
+
+            v.set();
+        }
     }
 }
