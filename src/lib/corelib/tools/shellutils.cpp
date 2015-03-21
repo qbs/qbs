@@ -30,10 +30,26 @@
 ****************************************************************************/
 
 #include "shellutils.h"
+#include <QFile>
 #include <QRegExp>
+#include <QTextStream>
 
 namespace qbs {
 namespace Internal {
+
+QString shellInterpreter(const QString &filePath) {
+    QFile file(filePath);
+    if (file.open(QIODevice::ReadOnly)) {
+        QTextStream ts(&file);
+        const QString shebang = ts.readLine();
+        if (shebang.startsWith(QLatin1String("#!"))) {
+            return (shebang.mid(2).split(QRegExp("\\s"),
+                                         QString::SkipEmptyParts) << QString()).first();
+        }
+    }
+
+    return QString();
+}
 
 // hasSpecialChars, shellQuoteUnix, shellQuoteWin: all from qtbase/qmake/library/ioutils.cpp
 

@@ -39,6 +39,7 @@
 namespace qbs {
 namespace Internal {
 
+QBS_EXPORT QString shellInterpreter(const QString &filePath);
 QBS_EXPORT QString shellQuoteUnix(const QString &arg);
 QBS_EXPORT QString shellQuoteWin(const QString &arg);
 

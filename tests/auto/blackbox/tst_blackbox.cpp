@@ -2287,4 +2287,28 @@ void TestBlackbox::testLoadableModule()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::testBadInterpreter()
+{
+    if (!HostOsInfo::isAnyUnixHost())
+        QSKIP("only applies on Unix");
+
+    QDir::setCurrent(testDataDir + QLatin1String("/badInterpreter"));
+    QCOMPARE(runQbs(), 0);
+
+    QbsRunParameters params("run");
+    params.expectFailure = true;
+
+    params.arguments = QStringList() << "-p" << "script-interp-missing";
+    QCOMPARE(runQbs(params), 1);
+    QVERIFY(m_qbsStderr.contains("bad interpreter: No such file or directory"));
+
+    params.arguments = QStringList() << "-p" << "script-interp-noexec";
+    QCOMPARE(runQbs(params), 1);
+    QVERIFY(m_qbsStderr.contains("bad interpreter: Permission denied"));
+
+    params.arguments = QStringList() << "-p" << "script-noexec";
+    QCOMPARE(runQbs(params), 1);
+    QCOMPARE(runQbs(QbsRunParameters("run", QStringList() << "-p" << "script-ok")), 0);
+}
+
 QTEST_MAIN(TestBlackbox)

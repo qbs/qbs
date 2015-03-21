@@ -171,6 +171,7 @@ private slots:
     void testObjcArc();
     void wildCardsAndRules();
     void testLoadableModule();
+    void testBadInterpreter();
 
 private:
     QByteArray m_qbsStderr;

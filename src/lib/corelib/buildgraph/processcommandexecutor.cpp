@@ -47,6 +47,7 @@
 #include <tools/processresult_p.h>
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
+#include <tools/shellutils.h>
 
 #include <QDir>
 #include <QScriptEngine>
@@ -243,8 +244,17 @@ void ProcessCommandExecutor::onProcessError()
     case QProcess::FailedToStart: {
         removeResponseFile();
         const QString binary = QDir::toNativeSeparators(processCommand()->program());
+        QString errorPrefixString;
+#ifdef Q_OS_UNIX
+        if (QFileInfo(binary).isExecutable()) {
+            const QString interpreter(shellInterpreter(binary));
+            if (!interpreter.isEmpty()) {
+                errorPrefixString = Tr::tr("%1: bad interpreter: ").arg(interpreter);
+            }
+        }
+#endif
         emit finished(ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
-                                .arg(binary, m_process.errorString())));
+                                .arg(binary, errorPrefixString + m_process.errorString())));
         break;
     }
     case QProcess::Crashed:
