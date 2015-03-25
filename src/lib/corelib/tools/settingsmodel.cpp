@@ -36,6 +36,7 @@
 #include <QBrush>
 #endif
 
+#include <QJsonDocument>
 #include <QList>
 #include <QScopedPointer>
 #include <QString>
@@ -372,22 +373,12 @@ QString settingsValueToRepresentation(const QVariant &value)
     return toJSLiteral(value);
 }
 
-static QVariant variantFromString(const QString &str)
-{
-    // ### use Qt5's JSON reader at some point.
-    QScriptEngine engine;
-    QScriptValue sv = engine.evaluate(QLatin1String("(function(){return ")
-                                      + str + QLatin1String(";})()"));
-    if (sv.isError())
-        return QVariant();
-    return sv.toVariant();
-}
-
 QVariant representationToSettingsValue(const QString &representation)
 {
-    const QVariant variant = variantFromString(representation);
-    if (variant.isValid())
-        return variant;
+    QJsonParseError error;
+    const QJsonDocument doc = QJsonDocument::fromJson(representation.toUtf8(), &error);
+    if (error.error == QJsonParseError::NoError)
+        return doc.toVariant();
 
     // If it's not valid JavaScript, interpret the value as a string.
     return representation;
