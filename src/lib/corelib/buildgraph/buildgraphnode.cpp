@@ -42,7 +42,7 @@
 namespace qbs {
 namespace Internal {
 
-BuildGraphNode::BuildGraphNode()
+BuildGraphNode::BuildGraphNode() : buildState(Untouched)
 {
 }
 

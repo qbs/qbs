@@ -110,7 +110,6 @@ void Artifact::setFileTags(const FileTags &newFileTags)
 void Artifact::initialize()
 {
     artifactType = Unknown;
-    buildState = Untouched;
     inputsScanned = false;
     timestampRetrieved = false;
     alwaysUpdated = true;
