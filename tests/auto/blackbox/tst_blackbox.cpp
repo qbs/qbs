@@ -2304,7 +2304,8 @@ void TestBlackbox::testBadInterpreter()
 
     params.arguments = QStringList() << "-p" << "script-interp-noexec";
     QCOMPARE(runQbs(params), 1);
-    QVERIFY(m_qbsStderr.contains("bad interpreter: Permission denied"));
+    QVERIFY(m_qbsStderr.contains("bad interpreter: Permission denied")
+            || m_qbsStderr.contains("bad interpreter: No such file or directory"));
 
     params.arguments = QStringList() << "-p" << "script-noexec";
     QCOMPARE(runQbs(params), 1);
