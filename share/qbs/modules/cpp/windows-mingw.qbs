@@ -62,7 +62,7 @@ GenericGCC {
                 args.push(includePaths[i]);
             }
             for (i in systemIncludePaths) {
-                args.push('-isystem');
+                args.push('-I');
                 args.push(systemIncludePaths[i]);
             }
 
