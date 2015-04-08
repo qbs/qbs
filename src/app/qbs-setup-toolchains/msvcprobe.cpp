@@ -178,7 +178,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
         }
 
         if (msvc.version.isEmpty()) {
-            qbsInfo() << Tr::tr("  Unknown MSVC version %1 found.").arg(nVersion);
+            qbsWarning() << Tr::tr("Unknown MSVC version %1 found.").arg(nVersion);
             continue;
         }
 
