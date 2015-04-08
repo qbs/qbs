@@ -19,5 +19,12 @@ Project {
       Depends { name: "cpp" }
       condition: qbs.toolchain.contains("gcc")
    }
+    StaticLibrary {
+        name : "testd"
+        files : [ "testd_" + qbs.architecture + ".asm" ]
+        Depends { name: "cpp" }
+        condition: qbs.toolchain.contains("msvc")
+                   && (qbs.architecture === "x86" || qbs.architecture === "x86_64")
+    }
 }
 

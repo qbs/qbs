@@ -16,6 +16,7 @@ CppModule {
     compilerDefines: ['_WIN32']
     warningLevel: "default"
     compilerName: "cl.exe"
+    property string assemblerName
     linkerName: "link.exe"
     runtimeLibrary: "dynamic"
     separateDebugInformation: false
@@ -245,6 +246,49 @@ CppModule {
                 return output.substr(idx + 1);
             }
 
+            return cmd;
+        }
+    }
+
+    FileTagger {
+        patterns: "*.asm"
+        fileTags: ["asm"]
+    }
+
+    Rule {
+        inputs: ["asm"]
+        Artifact {
+            filePath: ".obj/" + qbs.getHash(input.baseDir) + "/" + input.completeBaseName + ".obj"
+            fileTags: ["obj"]
+        }
+        prepare: {
+            var assemblerName = ModUtils.moduleProperty(product, "assemblerName");
+            if (!assemblerName) {
+                switch (product.moduleProperty("qbs", "architecture")) {
+                case "x86_64":
+                    assemblerName = "ml64.exe";
+                    break;
+                case "arm":
+                    assemblerName = "armasm.exe";
+                    break;
+                default:
+                    assemblerName = "ml.exe";
+                    break;
+                }
+            }
+            var args = ["/nologo", "/c",
+                        "/Fo" + FileInfo.toWindowsSeparators(output.filePath),
+                        FileInfo.toWindowsSeparators(input.filePath)];
+            if (ModUtils.moduleProperty(product, "debugInformation"))
+                args.push("/Zi");
+            var cmd = new Command(assemblerName, args);
+            cmd.description = "assembling " + input.fileName;
+            cmd.inputFileName = input.fileName;
+            cmd.stdoutFilterFunction = function(output) {
+                var lines = output.split("\r\n").filter(function (s) {
+                    return !s.endsWith(inputFileName); });
+                return lines.join("\r\n");
+            };
             return cmd;
         }
     }

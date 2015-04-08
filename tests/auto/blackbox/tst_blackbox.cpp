@@ -1966,6 +1966,7 @@ void TestBlackbox::testAssembly()
     Settings settings((QString()));
     Profile profile(profileName(), &settings);
     bool haveGcc = profile.value("qbs.toolchain").toStringList().contains("gcc");
+    bool haveMSVC = profile.value("qbs.toolchain").toStringList().contains("msvc");
     QDir::setCurrent(testDataDir + "/assembly");
     QVERIFY(runQbs() == 0);
     QCOMPARE((bool)m_qbsStdout.contains("compiling testa.s"), haveGcc);
@@ -1974,6 +1975,7 @@ void TestBlackbox::testAssembly()
     QCOMPARE((bool)m_qbsStdout.contains("creating libtesta.a"), haveGcc);
     QCOMPARE((bool)m_qbsStdout.contains("creating libtestb.a"), haveGcc);
     QCOMPARE((bool)m_qbsStdout.contains("creating libtestc.a"), haveGcc);
+    QCOMPARE(m_qbsStdout.contains("creating testd.lib"), haveMSVC);
 }
 
 void TestBlackbox::testNsis()
