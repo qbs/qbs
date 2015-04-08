@@ -175,6 +175,9 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
         case 12:
             msvc.version = QLatin1String("2013");
             break;
+        case 14:
+            msvc.version = QLatin1String("2015");
+            break;
         }
 
         if (msvc.version.isEmpty()) {
