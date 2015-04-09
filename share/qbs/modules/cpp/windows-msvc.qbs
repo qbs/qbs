@@ -45,6 +45,12 @@ CppModule {
 
     windowsApiCharacterSet: "unicode"
     platformDefines: base.concat(WindowsUtils.characterSetDefines(windowsApiCharacterSet))
+    platformCommonCompilerFlags: {
+        var flags = base;
+        if (compilerVersionMajor >= 18) // 2013
+            flags.push("/FS");
+        return flags;
+    }
     compilerDefines: ['_WIN32']
     warningLevel: "default"
     compilerName: "cl.exe"

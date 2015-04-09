@@ -50,8 +50,8 @@ CppModule {
     property stringList transitiveSOs
     property string toolchainPrefix
     property path toolchainInstallPath
-    compilerName: 'g++'
-    linkerName: 'g++'
+    compilerName: cxxCompilerName
+    linkerName: cxxCompilerName
     property string archiverName: 'ar'
     property string nmName: 'nm'
     property string objcopyName: "objcopy"
@@ -81,6 +81,22 @@ CppModule {
         if (toolchainPrefix)
             path += toolchainPrefix
         return path
+    }
+
+    property string cCompilerName: executablePrefix
+                                   + (qbs.toolchain.contains("clang") ? "clang" : "gcc")
+                                   + executableSuffix
+    property string cxxCompilerName: executablePrefix
+                                     + (qbs.toolchain.contains("clang") ? "clang++" : "g++")
+                                     + executableSuffix
+
+    compilerPathByLanguage: {
+        return {
+            "c": toolchainPathPrefix + cCompilerName,
+            "cpp": toolchainPathPrefix + cxxCompilerName,
+            "objc": toolchainPathPrefix + cCompilerName,
+            "objcpp": toolchainPathPrefix + cxxCompilerName
+        };
     }
 
     compilerPath: toolchainPathPrefix + compilerName

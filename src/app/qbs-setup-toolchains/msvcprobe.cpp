@@ -72,11 +72,6 @@ static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile>
     p.setValue(QLatin1String("cpp.toolchainInstallPath"), installPath);
     p.setValue(QLatin1String("qbs.toolchain"), QStringList(QLatin1String("msvc")));
     p.setValue(QLatin1String("qbs.architecture"), canonicalArchitecture(architecture));
-    if (msvc.version.toInt() >= 2013) {
-        const QStringList flags(QLatin1String("/FS"));
-        p.setValue(QLatin1String("cpp.platformCFlags"), flags);
-        p.setValue(QLatin1String("cpp.platformCxxFlags"), flags);
-    }
     const QProcessEnvironment compilerEnvironment = msvc.environments.value(architecture);
     setCompilerVersion(installPath + QLatin1String("/cl.exe"), QStringList(QLatin1String("msvc")),
                        p, compilerEnvironment);

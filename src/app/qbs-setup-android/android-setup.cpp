@@ -159,6 +159,7 @@ void setupNdk(qbs::Settings *settings, const QString &profileName, const QString
     Profile mainProfile(profileName, settings);
     mainProfile.setValue(qls("Android.ndk.ndkDir"), QDir::cleanPath(ndkDirPath));
     mainProfile.setValue(qls("Android.sdk.ndkDir"), QDir::cleanPath(ndkDirPath));
+    mainProfile.setValue(qls("qbs.toolchain"), QStringList() << qls("gcc"));
     foreach (const QString &arch, expectedArchs()) {
         Profile p(subProfileName(profileName, arch), settings);
         p.removeProfile();
