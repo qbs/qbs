@@ -164,7 +164,9 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     qtEnvironment.documentationPath = pathQueryValue(queryOutput, "QT_INSTALL_DOCS");
     qtEnvironment.includePath = pathQueryValue(queryOutput, "QT_INSTALL_HEADERS");
     qtEnvironment.libraryPath = pathQueryValue(queryOutput, "QT_INSTALL_LIBS");
-    qtEnvironment.binaryPath = pathQueryValue(queryOutput, "QT_INSTALL_BINS");
+    qtEnvironment.binaryPath = pathQueryValue(queryOutput, "QT_HOST_BINS");
+    if (qtEnvironment.binaryPath.isEmpty())
+        qtEnvironment.binaryPath = pathQueryValue(queryOutput, "QT_INSTALL_BINS");
     qtEnvironment.documentationPath = pathQueryValue(queryOutput, "QT_INSTALL_DOCS");
     qtEnvironment.pluginPath = pathQueryValue(queryOutput, "QT_INSTALL_PLUGINS");
     qtEnvironment.qmlPath = pathQueryValue(queryOutput, "QT_INSTALL_QML");
