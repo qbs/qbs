@@ -40,19 +40,13 @@ Module {
     additionalProductTypes: ["compiled_typescript"]
 
     property path toolchainInstallPath
-    property string version: {
-        var p = new Process();
-        p.exec(compilerPath, ["--version"]);
-        var match = p.readStdOut().match(/.*\bVersion ([0-9]+(\.[0-9]+){1,3})\n$/);
-        if (match !== null)
-            return match[1];
-    }
-
+    property string version: rawVersion ? rawVersion[2] : undefined
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
     property int versionMinor: versionParts[1]
     property int versionPatch: versionParts[2]
     property int versionBuild: versionParts[3]
+    property string versionSuffix: rawVersion ? rawVersion[3] : undefined
 
     property string compilerName: "tsc"
     property string compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
@@ -109,18 +103,36 @@ Module {
         description: "whether to compile all source files to a single output file"
     }
 
+    // private properties
+    readonly property var rawVersion: {
+        var p = new Process();
+        try {
+            p.exec(compilerPath, ["--version"]);
+            var match = p.readStdOut().match(/.*\bVersion (([0-9]+(?:\.[0-9]+){1,3})(?:-(.+?))?)\n$/);
+            if (match !== null)
+                return match;
+        } finally {
+            p.close();
+        }
+    }
+
     validate: {
         var validator = new ModUtils.PropertyValidator("typescript");
         validator.setRequiredProperty("version", version);
+        validator.setRequiredProperty("versionParts", versionParts);
         validator.setRequiredProperty("versionMajor", versionMajor);
         validator.setRequiredProperty("versionMinor", versionMinor);
         validator.setRequiredProperty("versionPatch", versionPatch);
-        validator.setRequiredProperty("versionBuild", versionBuild);
-        validator.addVersionValidator("version", version, 4, 4);
+        validator.addVersionValidator("version", version, 3, 4);
         validator.addRangeValidator("versionMajor", versionMajor, 1);
         validator.addRangeValidator("versionMinor", versionMinor, 0);
         validator.addRangeValidator("versionPatch", versionPatch, 0);
-        validator.addRangeValidator("versionBuild", versionBuild, 0);
+
+        if (versionParts && versionParts.length >= 4) {
+            validator.setRequiredProperty("versionBuild", versionBuild);
+            validator.addRangeValidator("versionBuild", versionBuild, 0);
+        }
+
         validator.validate();
     }
 
