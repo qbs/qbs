@@ -299,10 +299,10 @@ void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &re
 
     (result.success() ? qbsInfo() : qbsError())
             << QDir::toNativeSeparators(result.executableFilePath()) << " "
-            << result.arguments().join(QLatin1String(" "))
+            << result.arguments().join(QLatin1Char(' '))
             << (hasOutput ? QString::fromLatin1("\n") : QString())
-            << (result.stdOut().isEmpty() ? QString() : result.stdOut().join(QLatin1String("\n")))
-            << (result.stdErr().isEmpty() ? QString() : result.stdErr().join(QLatin1String("\n")));
+            << (result.stdOut().isEmpty() ? QString() : result.stdOut().join(QLatin1Char('\n')))
+            << (result.stdErr().isEmpty() ? QString() : result.stdErr().join(QLatin1Char('\n')));
 }
 
 bool CommandLineFrontend::resolvingMultipleProjects() const

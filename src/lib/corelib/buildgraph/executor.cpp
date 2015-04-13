@@ -961,12 +961,16 @@ void Executor::checkForCancellation()
 
 bool Executor::visit(Artifact *artifact)
 {
+    QBS_CHECK(artifact->buildState != BuildGraphNode::Untouched);
+    QBS_CHECK(m_productsToBuild.contains(artifact->product));
     buildArtifact(artifact);
     return false;
 }
 
 bool Executor::visit(RuleNode *ruleNode)
 {
+    QBS_CHECK(ruleNode->buildState != BuildGraphNode::Untouched);
+    QBS_CHECK(m_productsToBuild.contains(ruleNode->product));
     executeRuleNode(ruleNode);
     return false;
 }

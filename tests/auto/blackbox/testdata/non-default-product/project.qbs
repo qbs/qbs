@@ -9,6 +9,7 @@ Project {
 
     CppApplication {
         name: "non-default app"
+        Depends { name: "default app" }
         consoleApplication: true
         builtByDefault: false
         files: "main.cpp"

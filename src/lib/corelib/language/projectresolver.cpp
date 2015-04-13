@@ -460,7 +460,7 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductCon
         const PropertyMapPtr &properties, const QString &fileName, const FileTags &fileTags,
         bool overrideTags, QList<SourceArtifactPtr> &artifactList)
 {
-    SourceArtifactPtr artifact = SourceArtifact::create();
+    SourceArtifactPtr artifact = SourceArtifactInternal::create();
     artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
     artifact->absoluteFilePath = QDir::cleanPath(artifact->absoluteFilePath); // Potentially necessary for groups with prefixes.
     artifact->fileTags = fileTags;
@@ -601,7 +601,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
 static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
         const PropertyDeclaration &decl)
 {
-    const QString args = decl.functionArgumentNames().join(QLatin1String(","));
+    const QString args = decl.functionArgumentNames().join(QLatin1Char(','));
     if (value->hasFunctionForm()) {
         // Insert the argument list.
         QString code = value->sourceCodeForEvaluation();
@@ -814,7 +814,7 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
     foreach (const Item *child, item->children()) {
         if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
             throw ErrorInfo(Tr::tr("Transformer: wrong child type '%0'.").arg(child->typeName()));
-        SourceArtifactPtr artifact = SourceArtifact::create();
+        SourceArtifactPtr artifact = SourceArtifactInternal::create();
         artifact->properties = m_productContext->product->moduleProperties;
         QString filePath = m_evaluator->stringValue(child, QLatin1String("filePath"));
         if (Q_UNLIKELY(filePath.isEmpty()))

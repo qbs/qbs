@@ -238,17 +238,26 @@ GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup
     group.d->name = resolvedGroup->name;
     group.d->location = resolvedGroup->location;
     foreach (const SourceArtifactConstPtr &sa, resolvedGroup->files)
-        group.d->filePaths << sa->absoluteFilePath;
+        group.d->sourceArtifacts << createApiSourceArtifact(sa);
     if (resolvedGroup->wildcards) {
         foreach (const SourceArtifactConstPtr &sa, resolvedGroup->wildcards->files)
-            group.d->expandedWildcards << sa->absoluteFilePath;
+            group.d->sourceArtifactsFromWildcards << createApiSourceArtifact(sa);
     }
-    qSort(group.d->filePaths);
-    qSort(group.d->expandedWildcards);
+    qSort(group.d->sourceArtifacts);
+    qSort(group.d->sourceArtifactsFromWildcards);
     group.d->properties.d->m_map = resolvedGroup->properties;
     group.d->isEnabled = resolvedGroup->enabled;
     group.d->isValid = true;
     return group;
+}
+
+SourceArtifact ProjectPrivate::createApiSourceArtifact(const SourceArtifactConstPtr &sa)
+{
+    SourceArtifact saApi;
+    saApi.d->isValid = true;
+    saApi.d->filePath = sa->absoluteFilePath;
+    saApi.d->fileTags = sa->fileTags.toStringList();
+    return saApi;
 }
 
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
@@ -427,18 +436,18 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     updateInternalCodeLocations(internalProject, adder.itemPosition(), adder.lineOffset());
     updateExternalCodeLocations(m_projectData, adder.itemPosition(), adder.lineOffset());
 
-    QList<SourceArtifactPtr> addedSourceArtifacts;
+    QHash<QString, SourceArtifactPtr> addedSourceArtifacts;
     for (int i = 0; i < groupContext.resolvedGroups.count(); ++i) {
         const ResolvedProductPtr &resolvedProduct = groupContext.resolvedProducts.at(i);
         const GroupPtr &resolvedGroup = groupContext.resolvedGroups.at(i);
         foreach (const QString &file, filesContext.absoluteFilePaths) {
-             addedSourceArtifacts << createSourceArtifact(file, resolvedProduct,
-                    resolvedGroup, resolvedGroup->files, logger);
+             addedSourceArtifacts.insert(file, createSourceArtifact(file, resolvedProduct,
+                    resolvedGroup, resolvedGroup->files, logger));
         }
         foreach (const QString &file, filesContext.absoluteFilePathsFromWildcards) {
             QBS_CHECK(resolvedGroup->wildcards);
-             addedSourceArtifacts << createSourceArtifact(file, resolvedProduct,
-                    resolvedGroup, resolvedGroup->wildcards->files, logger);
+             addedSourceArtifacts.insert(file, createSourceArtifact(file, resolvedProduct,
+                    resolvedGroup, resolvedGroup->wildcards->files, logger));
         }
         if (resolvedProduct->enabled) {
             foreach (const SourceArtifactConstPtr &sa, addedSourceArtifacts)
@@ -446,10 +455,23 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         }
     }
     doSanityChecks(internalProject, logger);
+    QList<SourceArtifact> sourceArtifacts;
+    QList<SourceArtifact> sourceArtifactsFromWildcards;
+    foreach (const QString &fp, filesContext.absoluteFilePaths) {
+        const SourceArtifactConstPtr sa = addedSourceArtifacts.value(fp);
+        QBS_CHECK(sa);
+        sourceArtifacts << createApiSourceArtifact(sa);
+    }
+    foreach (const QString &fp, filesContext.absoluteFilePathsFromWildcards) {
+        const SourceArtifactConstPtr sa = addedSourceArtifacts.value(fp);
+        QBS_CHECK(sa);
+        sourceArtifactsFromWildcards << createApiSourceArtifact(sa);
+    }
     foreach (const GroupData &g, groupContext.groups) {
-        g.d->filePaths << filesContext.absoluteFilePaths;
-        g.d->expandedWildcards << filesContext.absoluteFilePathsFromWildcards;
-        qSort(g.d->filePaths);
+        g.d->sourceArtifacts << sourceArtifacts;
+        qSort(g.d->sourceArtifacts);
+        g.d->sourceArtifactsFromWildcards << sourceArtifactsFromWildcards;
+        qSort(g.d->sourceArtifactsFromWildcards);
     }
 }
 
@@ -491,8 +513,9 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
     updateInternalCodeLocations(internalProject, remover.itemPosition(), remover.lineOffset());
     updateExternalCodeLocations(m_projectData, remover.itemPosition(), remover.lineOffset());
     foreach (const GroupData &g, groupContext.groups) {
-        foreach (const QString &filePath, filesContext.absoluteFilePaths) {
-            g.d->filePaths.removeOne(filePath);
+        for (int i = g.d->sourceArtifacts.count() - 1; i >= 0; --i) {
+            if (filesContext.absoluteFilePaths.contains(g.d->sourceArtifacts.at(i).filePath()))
+                g.d->sourceArtifacts.removeAt(i);
         }
     }
 }

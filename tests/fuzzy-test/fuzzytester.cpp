@@ -202,7 +202,7 @@ bool FuzzyTester::doCleanBuild(QString *errorMessage)
 void FuzzyTester::throwIncrementalBuildError(const QString &message,
                                              const QStringList &commitSequence)
 {
-    const QString commitSequenceString = commitSequence.join(QLatin1String(","));
+    const QString commitSequenceString = commitSequence.join(QLatin1Char(','));
     throw TestError(QString::fromLocal8Bit("Found qbs bug with incremental build!\n"
             "%1\n"
             "The sequence of commits was: %2.").arg(message, commitSequenceString));

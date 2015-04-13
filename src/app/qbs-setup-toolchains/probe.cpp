@@ -224,7 +224,7 @@ static Profile createGccProfile(const QString &compilerFilePath, Settings *setti
     if (compilerName.contains(QLatin1Char('-'))) {
         QStringList nameParts = compilerName.split(QLatin1Char('-'));
         profile.setValue(QLatin1String("cpp.compilerName"), nameParts.takeLast());
-        toolchainPrefix = nameParts.join(QLatin1String("-")) + QLatin1Char('-');
+        toolchainPrefix = nameParts.join(QLatin1Char('-')) + QLatin1Char('-');
         profile.setValue(QLatin1String("cpp.toolchainPrefix"), toolchainPrefix);
     }
     profile.setValue(QLatin1String("cpp.linkerName"),

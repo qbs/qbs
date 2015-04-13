@@ -162,7 +162,7 @@ function additionalCompilerFlags(product, input, output) {
     }
 
     var args = []
-    var positionIndependentCode = product.moduleProperty('cpp', 'positionIndependentCode')
+    var positionIndependentCode = input.moduleProperty('cpp', 'positionIndependentCode')
     if (effectiveType === EffectiveTypeEnum.LIB) {
         if (positionIndependentCode !== false && !product.moduleProperty("qbs", "toolchain").contains("mingw"))
             args.push('-fPIC');
@@ -187,7 +187,7 @@ function additionalCompilerFlags(product, input, output) {
     if (systemIncludePaths)
         args = args.concat(systemIncludePaths.map(function(path) { return '-isystem' + path }));
 
-    var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
+    var minimumWindowsVersion = ModUtils.moduleProperty(input, "minimumWindowsVersion");
     if (minimumWindowsVersion && product.moduleProperty("qbs", "targetOS").contains("windows")) {
         var hexVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'hex');
         if (hexVersion) {
@@ -293,7 +293,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         args.push(useArc ? "-fobjc-arc" : "-fno-objc-arc");
     }
 
-    var visibility = ModUtils.moduleProperty(product, 'visibility');
+    var visibility = ModUtils.moduleProperty(input, 'visibility');
     if (!product.type.contains('staticlibrary')
             && !product.moduleProperty("qbs", "toolchain").contains("mingw")) {
         if (visibility === 'hidden' || visibility === 'minimal')
@@ -304,7 +304,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
             args.push('-fvisibility=default')
     }
 
-    var prefixHeaders = ModUtils.moduleProperty(product, "prefixHeaders");
+    var prefixHeaders = ModUtils.moduleProperty(input, "prefixHeaders");
     for (i in prefixHeaders) {
         args.push('-include');
         args.push(prefixHeaders[i]);
@@ -313,7 +313,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     args = args.concat(ModUtils.moduleProperties(input, 'platformCommonCompilerFlags'));
 
     var compilerPath;
-    var compilerPathByLanguage = ModUtils.moduleProperty(product, "compilerPathByLanguage");
+    var compilerPathByLanguage = ModUtils.moduleProperty(input, "compilerPathByLanguage");
     if (compilerPathByLanguage)
         compilerPath = compilerPathByLanguage[tag];
     if (!compilerPath || tag !== languageTagFromFileExtension(input.fileName)) {
@@ -323,7 +323,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     }
     if (!compilerPath) {
         // fall back to main compiler
-        compilerPath = ModUtils.moduleProperty(product, "compilerPath");
+        compilerPath = ModUtils.moduleProperty(input, "compilerPath");
     }
 
     args = args.concat(ModUtils.moduleProperties(input, 'platformFlags', tag),
@@ -348,7 +348,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     }
 
     if (tag === "c" || tag === "objc") {
-        var cVersion = ModUtils.moduleProperty(product, "cLanguageVersion");
+        var cVersion = ModUtils.moduleProperty(input, "cLanguageVersion");
         if (cVersion) {
             var gccCVersionsMap = {
                 "c89": "c89",
@@ -360,7 +360,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     }
 
     if (tag === "cpp" || tag === "objcpp") {
-        var cxxVersion = ModUtils.moduleProperty(product, "cxxLanguageVersion");
+        var cxxVersion = ModUtils.moduleProperty(input, "cxxLanguageVersion");
         if (cxxVersion) {
             var gccCxxVersionsMap = {
                 "c++98": "c++98",

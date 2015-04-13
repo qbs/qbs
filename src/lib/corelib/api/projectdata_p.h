@@ -45,10 +45,20 @@ public:
 
     QString name;
     CodeLocation location;
-    QStringList filePaths;
-    QStringList expandedWildcards;
+    QList<SourceArtifact> sourceArtifacts;
+    QList<SourceArtifact> sourceArtifactsFromWildcards;
     PropertyMap properties;
     bool isEnabled;
+    bool isValid;
+};
+
+class SourceArtifactPrivate : public QSharedData
+{
+public:
+    SourceArtifactPrivate() : isValid(false) {}
+
+    QString filePath;
+    QStringList fileTags;
     bool isValid;
 };
 

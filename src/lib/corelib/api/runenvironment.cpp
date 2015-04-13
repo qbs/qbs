@@ -41,6 +41,7 @@
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
 #include <tools/propertyfinder.h>
+#include <tools/shellutils.h>
 
 #include <QDir>
 #include <QProcess>
@@ -201,7 +202,27 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
     process.setProcessEnvironment(d->resolvedProduct->runEnvironment);
     process.setProcessChannelMode(QProcess::ForwardedChannels);
     process.start(targetExecutable, targetArguments);
-    process.waitForFinished(-1);
+    if (!process.waitForFinished(-1)) {
+        if (process.error() == QProcess::FailedToStart) {
+            QString errorPrefixString;
+#ifdef Q_OS_UNIX
+            if (QFileInfo(targetExecutable).isExecutable()) {
+                const QString interpreter(shellInterpreter(targetExecutable));
+                if (!interpreter.isEmpty()) {
+                    errorPrefixString = Tr::tr("%1: bad interpreter: ").arg(interpreter);
+                }
+            }
+#endif
+            throw ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
+                            .arg(targetExecutable)
+                            .arg(errorPrefixString + process.errorString()));
+        } else {
+            d->logger.qbsWarning()
+                    << "QProcess error: " << process.errorString();
+        }
+
+        return EXIT_FAILURE;
+    }
     return process.exitCode();
 }
 

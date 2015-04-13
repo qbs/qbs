@@ -37,18 +37,6 @@ UnixGCC {
         }
     }
 
-    setupRunEnvironment: {
-        var env = qbs.commonRunEnvironment;
-        env["DYLD_ROOT_PATH"] = sysroot;
-        var env;
-
-        for (var i in env) {
-            var v = new ModUtils.EnvironmentVariable(i, qbs.pathListSeparator);
-            v.value = env[i];
-            v.set();
-        }
-    }
-
     property var defaultInfoPlist: {
         var dict = {};
 

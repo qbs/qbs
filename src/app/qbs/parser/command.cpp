@@ -52,7 +52,7 @@ void Command::parse(QStringList &input)
     parseMore(input);
     if (!input.isEmpty()) {
         throw ErrorInfo(Tr::tr("Invalid use of command '%1': Extraneous input '%2'.\nUsage: %3")
-                    .arg(representation(), input.join(QLatin1String(" ")), longDescription()));
+                    .arg(representation(), input.join(QLatin1Char(' ')), longDescription()));
     }
 }
 
@@ -479,7 +479,13 @@ QString DumpNodesTreeCommand::representation() const
 
 QList<CommandLineOption::Type> DumpNodesTreeCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>() << CommandLineOption::ProductsOptionType;
+    return QList<CommandLineOption::Type>()
+            << CommandLineOption::LogLevelOptionType
+            << CommandLineOption::VerboseOptionType
+            << CommandLineOption::QuietOptionType
+            << CommandLineOption::FileOptionType
+            << CommandLineOption::BuildDirectoryOptionType
+            << CommandLineOption::ProductsOptionType;
 }
 
 QString HelpCommand::shortDescription() const

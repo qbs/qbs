@@ -183,7 +183,7 @@ QString ErrorInfo::toString() const
     QStringList lines;
     foreach (const ErrorItem &e, d->items)
         lines.append(e.toString());
-    return lines.join(QLatin1String("\n"));
+    return lines.join(QLatin1Char('\n'));
 }
 
 /*!

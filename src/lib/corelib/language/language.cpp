@@ -110,7 +110,7 @@ void FileTagger::store(PersistentPool &pool) const
  * SourceArtifact could simply have a back pointer to the group in addition to the file path.)
  * \sa ResolvedGroup
  */
-void SourceArtifact::load(PersistentPool &pool)
+void SourceArtifactInternal::load(PersistentPool &pool)
 {
     absoluteFilePath = pool.idLoadString();
     pool.stream() >> fileTags;
@@ -118,7 +118,7 @@ void SourceArtifact::load(PersistentPool &pool)
     properties = pool.idLoadS<PropertyMapInternal>();
 }
 
-void SourceArtifact::store(PersistentPool &pool) const
+void SourceArtifactInternal::store(PersistentPool &pool) const
 {
     pool.storeString(absoluteFilePath);
     pool.stream() << fileTags;
@@ -336,9 +336,9 @@ QString Rule::toString() const
     outputTagsSorted.sort();
     QStringList inputTagsSorted = inputs.toStringList();
     inputTagsSorted.sort();
-    return QLatin1Char('[') + outputTagsSorted.join(QLatin1String(","))
+    return QLatin1Char('[') + outputTagsSorted.join(QLatin1Char(','))
             + QLatin1String("][")
-            + inputTagsSorted.join(QLatin1String(",")) + QLatin1Char(']');
+            + inputTagsSorted.join(QLatin1Char(',')) + QLatin1Char(']');
 }
 
 bool Rule::acceptsAsInput(Artifact *artifact) const
@@ -1200,10 +1200,10 @@ QString keyFromElem(const ArtifactPropertiesPtr &ap)
 {
     QStringList lst = ap->fileTagsFilter().toStringList();
     lst.sort();
-    return lst.join(QLatin1String(","));
+    return lst.join(QLatin1Char(','));
 }
 
-bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
+bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal &sa2)
 {
     return sa1.absoluteFilePath == sa2.absoluteFilePath
             && sa1.fileTags == sa2.fileTags
@@ -1273,7 +1273,7 @@ bool operator==(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2
 
 uint qHash(const RuleArtifact::Binding &b)
 {
-    return qHash(qMakePair(b.code, b.name.join(QLatin1String(","))));
+    return qHash(qMakePair(b.code, b.name.join(QLatin1Char(','))));
 }
 
 bool artifactPropertyListsAreEqual(const QList<ArtifactPropertiesPtr> &l1,

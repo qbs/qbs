@@ -229,7 +229,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             scriptValue = engine()->evaluate(binding.code);
             if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
                 QString msg = QLatin1String("evaluating rule binding '%1': %2");
-                throw ErrorInfo(msg.arg(binding.name.join(QLatin1String(".")),
+                throw ErrorInfo(msg.arg(binding.name.join(QLatin1Char('.')),
                                         scriptValue.toString()), binding.location);
             }
             setConfigProperty(artifactModulesCfg, binding.name, scriptValue.toVariant());
@@ -433,7 +433,7 @@ public:
             const QStringList valuePath = findValuePath(artifactCfg, nvp.first);
             if (valuePath.isEmpty()) {
                 throw ErrorInfo(Tr::tr("Cannot set module property %1 on artifact %2.")
-                                .arg(nvp.first.join(QLatin1String(".")),
+                                .arg(nvp.first.join(QLatin1Char('.')),
                                      outputArtifact->filePath()));
             }
             setConfigProperty(artifactCfg, valuePath, nvp.second);
@@ -445,7 +445,7 @@ public:
     {
         QStringList tmp = nameParts;
         const QString propertyName = tmp.takeLast();
-        const QString moduleName = tmp.join(QLatin1String("."));
+        const QString moduleName = tmp.join(QLatin1Char('.'));
         const QStringList modulePath = findModulePath(cfg, moduleName);
         if (modulePath.isEmpty())
             return modulePath;

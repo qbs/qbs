@@ -82,8 +82,8 @@ public:
 
 private slots:
     void handleProcessResult(const qbs::ProcessResult &result) {
-        output += result.stdErr().join(QLatin1String("\n"));
-        output += result.stdOut().join(QLatin1String("\n"));
+        output += result.stdErr().join(QLatin1Char('\n'));
+        output += result.stdOut().join(QLatin1Char('\n'));
     }
 };
 
@@ -399,7 +399,7 @@ static void printProjectData(const qbs::ProjectData &project)
         qDebug("    Product '%s' at %s", qPrintable(p.name()), qPrintable(p.location().toString()));
         foreach (const qbs::GroupData &g, p.groups()) {
             qDebug("        Group '%s' at %s", qPrintable(g.name()), qPrintable(g.location().toString()));
-            qDebug("            Files: %s", qPrintable(g.filePaths().join(QLatin1String(", "))));
+            qDebug("            Files: %s", qPrintable(g.allFilePaths().join(QLatin1String(", "))));
         }
     }
 }
@@ -578,8 +578,9 @@ void TestApi::changeContent()
     product = projectData.products().first();
     group = findGroup(product, "Group with wildcards");
     QVERIFY(group.isValid());
-    QCOMPARE(group.expandedWildcards().count(), 1);
-    QCOMPARE(group.expandedWildcards().first(), QFileInfo(newFile).absoluteFilePath());
+    QCOMPARE(group.sourceArtifactsFromWildcards().count(), 1);
+    QCOMPARE(group.sourceArtifactsFromWildcards().first().filePath(),
+             QFileInfo(newFile).absoluteFilePath());
 
     // Error checking: Try to remove a file that originates from a wildcard pattern.
     projectData = project.projectData();

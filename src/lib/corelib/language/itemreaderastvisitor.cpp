@@ -261,7 +261,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
             }
             if (Q_UNLIKELY(!found)) {
                 throw ErrorInfo(Tr::tr("import %1 not found")
-                                .arg(importUri.join(QLatin1String("."))),
+                                .arg(importUri.join(QLatin1Char('.'))),
                                 toCodeLocation(import->fileNameToken));
             }
         }
@@ -332,7 +332,7 @@ void ItemReaderASTVisitor::checkDuplicateBinding(Item *item, const QStringList &
 {
     if (Q_UNLIKELY(item->properties().contains(bindingName.last()))) {
         QString msg = Tr::tr("Duplicate binding for '%1'");
-        throw ErrorInfo(msg.arg(bindingName.join(QLatin1String("."))),
+        throw ErrorInfo(msg.arg(bindingName.join(QLatin1Char('.'))),
                     qbs::Internal::toCodeLocation(m_file->filePath(), sourceLocation));
     }
 }
