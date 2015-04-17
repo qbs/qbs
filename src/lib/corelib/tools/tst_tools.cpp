@@ -29,13 +29,13 @@
 ****************************************************************************/
 #include "tst_tools.h"
 
-#include <tools/buildoptions.h>
-#include <tools/error.h>
-#include <tools/fileinfo.h>
-#include <tools/hostosinfo.h>
-#include <tools/profile.h>
-#include <tools/settings.h>
-#include <tools/setupprojectparameters.h>
+#include "buildoptions.h"
+#include "error.h"
+#include "fileinfo.h"
+#include "hostosinfo.h"
+#include "profile.h"
+#include "settings.h"
+#include "setupprojectparameters.h"
 
 #include <QFileInfo>
 #include <QTemporaryFile>
