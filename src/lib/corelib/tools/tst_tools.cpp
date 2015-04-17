@@ -36,6 +36,7 @@
 #include "error.h"
 #include "fileinfo.h"
 #include "hostosinfo.h"
+#include "processutils.h"
 #include "profile.h"
 #include "settings.h"
 #include "setupprojectparameters.h"
@@ -166,6 +167,11 @@ void TestTools::testBuildConfigMerging()
     const QVariantMap finalCppMap = finalMap.value(QLatin1String("cpp")).toMap();
     QCOMPARE(finalCppMap.count(), 1);
     QCOMPARE(finalCppMap.value(QLatin1String("treatWarningsAsErrors")).toBool(), true);
+}
+
+void TestTools::testProcessNameByPid()
+{
+    QCOMPARE(qAppName(), processNameByPid(QCoreApplication::applicationPid()));
 }
 
 } // namespace Internal

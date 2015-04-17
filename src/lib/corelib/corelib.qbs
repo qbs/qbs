@@ -320,6 +320,8 @@ QbsLibrary {
             "preferences.cpp",
             "processresult.cpp",
             "processresult_p.h",
+            "processutils.cpp",
+            "processutils.h",
             "profile.cpp",
             "progressobserver.cpp",
             "progressobserver.h",

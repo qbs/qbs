@@ -27,32 +27,20 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "qbs_export.h"
 
-#include <QObject>
+#ifndef QBS_PROCESSUTILS_H
+#define QBS_PROCESSUTILS_H
+
+#include <qglobal.h>
+#include <QString>
 
 namespace qbs {
-class Settings;
-
 namespace Internal {
 
-class QBS_EXPORT TestTools : public QObject
-{
-    Q_OBJECT
-
-public:
-    TestTools(Settings *settings);
-
-private slots:
-    void testFileInfo();
-    void fileCaseCheck();
-    void testProfiles();
-    void testBuildConfigMerging();
-    void testProcessNameByPid();
-
-private:
-    Settings * const m_settings;
-};
+QString processNameByPid(qint64 pid);
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_PROCESSUTILS_H
+
