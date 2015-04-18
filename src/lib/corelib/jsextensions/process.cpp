@@ -209,6 +209,12 @@ QString Process::readStdErr()
     return m_textStream->codec()->toUnicode(m_qProcess->readAllStandardError());
 }
 
+void Process::closeWriteChannel()
+{
+    m_textStream->flush();
+    m_qProcess->closeWriteChannel();
+}
+
 int Process::exitCode() const
 {
     return m_qProcess->exitCode();

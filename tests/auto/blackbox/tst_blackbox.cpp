@@ -1569,7 +1569,7 @@ void TestBlackbox::jsExtensionsProcess()
     QVERIFY(output.exists());
     QVERIFY(output.open(QIODevice::ReadOnly));
     const QList<QByteArray> lines = output.readAll().trimmed().split('\n');
-    QCOMPARE(lines.count(), 7);
+    QCOMPARE(lines.count(), 8);
     QCOMPARE(lines.at(0).trimmed().constData(), "0");
     QVERIFY(lines.at(1).startsWith("qbs "));
     QCOMPARE(lines.at(2).trimmed().constData(), "true");
@@ -1577,6 +1577,7 @@ void TestBlackbox::jsExtensionsProcess()
     QCOMPARE(lines.at(4).trimmed().constData(), "0");
     QVERIFY(lines.at(5).startsWith("qbs "));
     QCOMPARE(lines.at(6).trimmed().constData(), "false");
+    QCOMPARE(lines.at(7).trimmed().constData(), "should be");
 }
 
 void TestBlackbox::jsExtensionsPropertyList()

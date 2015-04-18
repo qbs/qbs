@@ -27,6 +27,20 @@ Project {
             output.writeLine(process.start("blubb", []));
             process.close();
 
+            // closeWriteChannel test
+            process = new Process();
+            if (qbs.hostOS.contains("windows"))
+                process.start("cmd", ["/C", "sort"]);
+            else
+                process.start("cat", []);
+            process.writeLine("should be");
+            process.closeWriteChannel();
+            process.writeLine("should not be");
+            if (!process.waitForFinished())
+                process.kill();
+            output.write(process.readStdOut());
+            process.close();
+
             // TODO: Test all the other Process methods as well.
 
             output.close();

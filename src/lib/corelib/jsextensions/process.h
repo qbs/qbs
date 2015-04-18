@@ -74,6 +74,8 @@ public:
     Q_INVOKABLE QString readStdOut();
     Q_INVOKABLE QString readStdErr();
 
+    Q_INVOKABLE void closeWriteChannel();
+
     Q_INVOKABLE void write(const QString &str);
     Q_INVOKABLE void writeLine(const QString &str);
 
