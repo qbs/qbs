@@ -163,10 +163,10 @@ int Process::exec(const QString &program, const QStringList &arguments, bool thr
 void Process::close()
 {
     Q_ASSERT(thisObject().engine() == engine());
-    delete m_qProcess;
-    m_qProcess = 0;
     delete m_textStream;
     m_textStream = 0;
+    delete m_qProcess;
+    m_qProcess = 0;
 }
 
 bool Process::waitForFinished(int msecs)
