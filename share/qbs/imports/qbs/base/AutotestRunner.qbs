@@ -47,7 +47,7 @@ Product {
     Rule {
         inputsFromDependencies: "application"
         Artifact {
-            filePath: input.filePath.replace('/', '-') + ".result.dummy" // Will never exist.
+            filePath: qbs.getHash(input.filePath) + ".result.dummy" // Will never exist.
             fileTags: "autotest-result"
             alwaysUpdated: false
         }
