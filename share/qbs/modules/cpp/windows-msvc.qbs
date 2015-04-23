@@ -49,7 +49,7 @@ CppModule {
     property string assemblerName
     linkerName: "link.exe"
     runtimeLibrary: "dynamic"
-    separateDebugInformation: false
+    separateDebugInformation: true
 
     property bool generateManifestFiles: true
     property path toolchainInstallPath
