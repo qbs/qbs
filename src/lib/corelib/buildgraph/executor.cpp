@@ -962,7 +962,8 @@ void Executor::checkForCancellation()
 bool Executor::visit(Artifact *artifact)
 {
     QBS_CHECK(artifact->buildState != BuildGraphNode::Untouched);
-    QBS_CHECK(m_productsToBuild.contains(artifact->product));
+    QBS_CHECK(artifact->artifactType == Artifact::SourceFile
+              || m_productsToBuild.contains(artifact->product));
     buildArtifact(artifact);
     return false;
 }
