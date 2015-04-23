@@ -183,8 +183,9 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     }
 
     if (debugInformation) {
+        args.push("/DEBUG");
         if (outputs.debuginfo)
-            args.push("/DEBUG", "/PDB:" + outputs.debuginfo[0].fileName);
+            args.push("/PDB:" + outputs.debuginfo[0].fileName);
     } else {
         args.push('/INCREMENTAL:NO')
     }

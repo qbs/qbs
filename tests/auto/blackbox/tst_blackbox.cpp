@@ -614,9 +614,8 @@ void TestBlackbox::separateDebugInfo()
         QVERIFY(!QFile::exists(relativeProductBuildDir("foo2") + "/libfoo2.so.debug"));
     } else if (toolchain.contains("msvc")) {
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.pdb"));
-        QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.pdb"));
         QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/foo1.pdb"));
-        QVERIFY(!QFile::exists(relativeProductBuildDir("foo2") + "/foo2.pdb"));
+        // MSVC's linker even creates a pdb file if /Z7 is passed to the compiler.
     } else {
         QSKIP("Unsupported toolchain. Skipping.");
     }
