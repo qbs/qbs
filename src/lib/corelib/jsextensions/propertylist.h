@@ -57,6 +57,7 @@ void initializeJsExtensionPropertyList(QScriptValue extensionObject)
 #include <QObject>
 #include <QScriptable>
 #include <QScriptValue>
+#include <QString>
 #include <QVariant>
 
 namespace qbs {
@@ -83,7 +84,7 @@ public:
     Q_INVOKABLE QScriptValue toObject() const;
     Q_INVOKABLE QString toString(const QString &plistFormat) const;
     Q_INVOKABLE QString toXMLString() const;
-    Q_INVOKABLE QString toJSON(const QString &style = "") const;
+    Q_INVOKABLE QString toJSON(const QString &style = QString()) const;
 private:
     PropertyListPrivate *d;
 };
