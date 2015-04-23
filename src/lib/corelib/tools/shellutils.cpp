@@ -43,7 +43,7 @@ QString shellInterpreter(const QString &filePath) {
         QTextStream ts(&file);
         const QString shebang = ts.readLine();
         if (shebang.startsWith(QLatin1String("#!"))) {
-            return (shebang.mid(2).split(QRegExp("\\s"),
+            return (shebang.mid(2).split(QRegExp(QLatin1String("\\s")),
                                          QString::SkipEmptyParts) << QString()).first();
         }
     }

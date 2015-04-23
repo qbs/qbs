@@ -124,12 +124,12 @@ static void setupCompilerPathByLanguage(Profile &profile, const QStringList &too
         const QString &toolchainInstallPath, const QString &toolchainPrefix)
 {
     QVariantMap m;
-    if (toolchainTypes.contains("clang")) {
-        m["c"] = m["objc"] = QLatin1String("clang");
-        m["cpp"] = m["objcpp"] = QLatin1String("clang++");
-    } else if (toolchainTypes.contains("gcc")) {
-        m["c"] = m["objc"] = QLatin1String("gcc");
-        m["cpp"] = m["objcpp"] = QLatin1String("g++");
+    if (toolchainTypes.contains(QLatin1String("clang"))) {
+        m[QLatin1String("c")] = m[QLatin1String("objc")] = QLatin1String("clang");
+        m[QLatin1String("cpp")] = m[QLatin1String("objcpp")] = QLatin1String("clang++");
+    } else if (toolchainTypes.contains(QLatin1String("gcc"))) {
+        m[QLatin1String("c")] = m[QLatin1String("objc")] = QLatin1String("gcc");
+        m[QLatin1String("cpp")] = m[QLatin1String("objcpp")] = QLatin1String("g++");
     } else {
         qDebug("WARNING: unexpected toolchain %s", qPrintable(toJSLiteral(toolchainTypes)));
         return;

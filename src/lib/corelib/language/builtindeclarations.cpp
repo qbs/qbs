@@ -298,7 +298,7 @@ void BuiltinDeclarations::addProductItem()
     item << buildDirProperty();
     item << decl;
     decl = PropertyDeclaration(QLatin1String("destinationDirectory"), PropertyDeclaration::String);
-    decl.setInitialValueSource("buildDirectory");
+    decl.setInitialValueSource(QStringLiteral("buildDirectory"));
     item << decl;
     item << PropertyDeclaration(QLatin1String("consoleApplication"),
                                 PropertyDeclaration::Boolean);
