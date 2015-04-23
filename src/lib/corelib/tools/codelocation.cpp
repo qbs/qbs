@@ -53,10 +53,10 @@ CodeLocation::CodeLocation()
 {
 }
 
-CodeLocation::CodeLocation(const QString &aFilePath, int aLine, int aColumn)
+CodeLocation::CodeLocation(const QString &aFilePath, int aLine, int aColumn, bool checkPath)
     : d(new CodeLocationPrivate)
 {
-    QBS_ASSERT(Internal::FileInfo::isAbsolute(aFilePath), qDebug() << aFilePath);
+    QBS_ASSERT(!checkPath || Internal::FileInfo::isAbsolute(aFilePath), qDebug() << aFilePath);
     d->filePath = aFilePath;
     d->line = aLine;
     d->column = aColumn;
