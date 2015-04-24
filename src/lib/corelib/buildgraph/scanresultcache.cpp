@@ -42,12 +42,12 @@ ScanResultCache::Dependency::Dependency(const QString &filePath)
             && !m_dirPath.contains(QLatin1String("//"));
 }
 
-ScanResultCache::Result ScanResultCache::value(void *scanner, const QString &fileName) const
+ScanResultCache::Result ScanResultCache::value(const void *scanner, const QString &fileName) const
 {
     return m_data[scanner][fileName];
 }
 
-void ScanResultCache::insert(void *scanner, const QString &fileName, const ScanResultCache::Result &value)
+void ScanResultCache::insert(const void *scanner, const QString &fileName, const ScanResultCache::Result &value)
 {
     m_data[scanner].insert(fileName, value);
 }
