@@ -28,6 +28,8 @@
 **
 ****************************************************************************/
 
+#undef QT_NO_CAST_FROM_ASCII // I am qmake, and I approve this hack.
+
 #include "tst_language.h"
 
 #include <language/evaluator.h>

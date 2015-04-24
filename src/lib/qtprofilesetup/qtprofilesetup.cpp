@@ -236,10 +236,10 @@ static void createModules(Profile &profile, Settings *settings,
 
 static QString guessMinimumWindowsVersion(const QtEnvironment &qt)
 {
-    if (qt.mkspecName.startsWith("winrt-"))
+    if (qt.mkspecName.startsWith(QLatin1String("winrt-")))
         return QLatin1String("6.2");
 
-    if (!qt.mkspecName.startsWith("win32-"))
+    if (!qt.mkspecName.startsWith(QLatin1String("win32-")))
         return QString();
 
     if (qt.architecture == QLatin1String("x86_64")
@@ -312,18 +312,20 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
     Profile profile(profileName, settings);
     profile.removeProfile();
     const QString settingsTemplate(QLatin1String("Qt.core.%1"));
-    profile.setValue(settingsTemplate.arg("config"), qtEnvironment.configItems);
-    profile.setValue(settingsTemplate.arg("qtConfig"), qtEnvironment.qtConfigItems);
-    profile.setValue(settingsTemplate.arg("binPath"), qtEnvironment.binaryPath);
-    profile.setValue(settingsTemplate.arg("libPath"), qtEnvironment.libraryPath);
-    profile.setValue(settingsTemplate.arg("pluginPath"), qtEnvironment.pluginPath);
-    profile.setValue(settingsTemplate.arg("incPath"), qtEnvironment.includePath);
-    profile.setValue(settingsTemplate.arg("mkspecPath"), qtEnvironment.mkspecPath);
-    profile.setValue(settingsTemplate.arg("docPath"), qtEnvironment.documentationPath);
-    profile.setValue(settingsTemplate.arg("version"), qtEnvironment.qtVersion);
-    profile.setValue(settingsTemplate.arg("libInfix"), qtEnvironment.qtLibInfix);
-    profile.setValue(settingsTemplate.arg("buildVariant"), qtEnvironment.buildVariant); // TODO: Remove in 1.5
-    profile.setValue(settingsTemplate.arg("availableBuildVariants"), qtEnvironment.buildVariant);
+    profile.setValue(settingsTemplate.arg(QLatin1String("config")), qtEnvironment.configItems);
+    profile.setValue(settingsTemplate.arg(QLatin1String("qtConfig")), qtEnvironment.qtConfigItems);
+    profile.setValue(settingsTemplate.arg(QLatin1String("binPath")), qtEnvironment.binaryPath);
+    profile.setValue(settingsTemplate.arg(QLatin1String("libPath")), qtEnvironment.libraryPath);
+    profile.setValue(settingsTemplate.arg(QLatin1String("pluginPath")), qtEnvironment.pluginPath);
+    profile.setValue(settingsTemplate.arg(QLatin1String("incPath")), qtEnvironment.includePath);
+    profile.setValue(settingsTemplate.arg(QLatin1String("mkspecPath")), qtEnvironment.mkspecPath);
+    profile.setValue(settingsTemplate.arg(QLatin1String("docPath")),
+                     qtEnvironment.documentationPath);
+    profile.setValue(settingsTemplate.arg(QLatin1String("version")), qtEnvironment.qtVersion);
+    profile.setValue(settingsTemplate.arg(QLatin1String("libInfix")), qtEnvironment.qtLibInfix);
+    profile.setValue(settingsTemplate.arg(QLatin1String("buildVariant")), qtEnvironment.buildVariant); // TODO: Remove in 1.5
+    profile.setValue(settingsTemplate.arg(QLatin1String("availableBuildVariants")),
+                     qtEnvironment.buildVariant);
     profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")), staticBuild);
 
     // Set the minimum operating system versions appropriate for this Qt version
@@ -336,20 +338,20 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
                                           qtEnvironment.qtPatchVersion);
         qtEnvironment.entryPointLibsDebug = fillEntryPointLibs(qtEnvironment, qtVersion, true);
         qtEnvironment.entryPointLibsRelease = fillEntryPointLibs(qtEnvironment, qtVersion, false);
-    } else if (qtEnvironment.mkspecPath.contains("macx")) {
-        profile.setValue(settingsTemplate.arg("frameworkBuild"), qtEnvironment.frameworkBuild);
+    } else if (qtEnvironment.mkspecPath.contains(QLatin1String("macx"))) {
+        profile.setValue(settingsTemplate.arg(QLatin1String("frameworkBuild")), qtEnvironment.frameworkBuild);
         if (qtEnvironment.qtMajorVersion >= 5) {
             osxVersion = QLatin1String("10.6");
         } else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 6) {
             QDir qconfigDir;
             if (qtEnvironment.frameworkBuild) {
                 qconfigDir.setPath(qtEnvironment.libraryPath);
-                qconfigDir.cd("QtCore.framework/Headers");
+                qconfigDir.cd(QLatin1String("QtCore.framework/Headers"));
             } else {
                 qconfigDir.setPath(qtEnvironment.includePath);
-                qconfigDir.cd("Qt");
+                qconfigDir.cd(QLatin1String("Qt"));
             }
-            QFile qconfig(qconfigDir.absoluteFilePath("qconfig.h"));
+            QFile qconfig(qconfigDir.absoluteFilePath(QLatin1String("qconfig.h")));
             if (qconfig.open(QIODevice::ReadOnly)) {
                 bool qtCocoaBuild = false;
                 QTextStream ts(&qconfig);
@@ -373,14 +375,14 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
             }
         }
 
-        if (qtEnvironment.qtConfigItems.contains("c++11"))
+        if (qtEnvironment.qtConfigItems.contains(QLatin1String("c++11")))
             osxVersion = QLatin1String("10.7");
     }
 
-    if (qtEnvironment.mkspecPath.contains("ios") && qtEnvironment.qtMajorVersion >= 5)
+    if (qtEnvironment.mkspecPath.contains(QLatin1String("ios")) && qtEnvironment.qtMajorVersion >= 5)
         iosVersion = QLatin1String("5.0");
 
-    if (qtEnvironment.mkspecPath.contains("android")) {
+    if (qtEnvironment.mkspecPath.contains(QLatin1String("android"))) {
         if (qtEnvironment.qtMajorVersion >= 5)
             androidVersion = QLatin1String("2.3");
         else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 8)

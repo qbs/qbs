@@ -225,12 +225,12 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
                 // Work around QTBUG-28792.
                 // The value of QMAKESPEC_ORIGINAL is wrong for MinGW packages. Y u h8 me?
                 const QRegExp rex(QLatin1String("\\binclude\\(([^)]+)/qmake\\.conf\\)"));
-                if (rex.indexIn(fileContent) != -1)
+                if (rex.indexIn(QString::fromLocal8Bit(fileContent)) != -1)
                     qtEnvironment.mkspecPath = QDir::cleanPath(baseDirPath + rex.cap(1));
             }
         } else {
-            qtEnvironment.mkspecPath
-                    = QFileInfo(qtEnvironment.mkspecBasePath + "/default").symLinkTarget();
+            qtEnvironment.mkspecPath = QFileInfo(qtEnvironment.mkspecBasePath
+                                                 + QLatin1String("/default")).symLinkTarget();
         }
         qtEnvironment.mkspecName = qtEnvironment.mkspecPath;
         int idx = qtEnvironment.mkspecName.lastIndexOf(QLatin1Char('/'));
@@ -260,7 +260,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
 static bool isToolchainProfileKey(const QString &key)
 {
     // The Qt profile setup itself sets cpp.minimum*Version for some systems.
-    return key.startsWith(QLatin1String("cpp.")) && !key.startsWith("cpp.minimum");
+    return key.startsWith(QLatin1String("cpp.")) && !key.startsWith(QLatin1String("cpp.minimum"));
 }
 
 void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironment &qtEnvironment,

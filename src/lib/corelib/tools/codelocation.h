@@ -48,7 +48,7 @@ class QBS_EXPORT CodeLocation
     friend QBS_EXPORT bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
 public:
     CodeLocation();
-    CodeLocation(const QString &aFilePath, int aLine = -1, int aColumn = -1);
+    CodeLocation(const QString &aFilePath, int aLine = -1, int aColumn = -1, bool checkPath = true);
     CodeLocation(const CodeLocation &other);
     CodeLocation &operator=(const CodeLocation &other);
     ~CodeLocation();

@@ -665,7 +665,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
             throw ErrorInfo(Tr::tr("The Rule.outputArtifacts script is not allowed in rules "
                                    "that contain Artifact items."),
                         item->location());
-        rule->outputFileTags = m_evaluator->fileTagsValue(item, "outputFileTags");
+        rule->outputFileTags = m_evaluator->fileTagsValue(item, QStringLiteral("outputFileTags"));
         if (rule->outputFileTags.isEmpty())
             throw ErrorInfo(Tr::tr("Rule.outputFileTags must be specified if "
                                    "Rule.outputArtifacts is specified."),

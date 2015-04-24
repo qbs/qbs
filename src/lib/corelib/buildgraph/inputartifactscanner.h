@@ -104,7 +104,7 @@ private:
         QList<DependencyScannerPtr> scanners;
     };
 
-    typedef QHash<void *, ScannerResolvedDependenciesCache> CacheItem;
+    typedef QHash<const void *, ScannerResolvedDependenciesCache> CacheItem;
 
     QHash<PropertyMapConstPtr, CacheItem> cache;
     QHash<ResolvedProduct*, QHash<FileTag, DependencyScannerCacheItem> > scannersCache;

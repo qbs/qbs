@@ -113,9 +113,12 @@ QVariant Preferences::getPreference(const QString &key, const QVariant &defaultV
 {
     const QString fullKey = QLatin1String("preferences.") + key;
     if (!m_profile.isEmpty()) {
-        const QVariant value = Profile(m_profile, m_settings).value(fullKey);
-        if (value.isValid())
+        QVariant value = Profile(m_profile, m_settings).value(fullKey);
+        if (value.isValid()) {
+            if (key == QLatin1String("qbsSearchPaths")) // Merge with top-level value.
+                value = value.toStringList() + m_settings->value(fullKey).toStringList();
             return value;
+        }
     }
 
     return m_settings->value(fullKey, defaultValue);
@@ -123,8 +126,7 @@ QVariant Preferences::getPreference(const QString &key, const QVariant &defaultV
 
 QStringList Preferences::pathList(const QString &key, const QString &defaultValue) const
 {
-    QStringList paths = getPreference(key).toString().split(
-                Internal::HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+    QStringList paths = getPreference(key).toStringList();
     paths << defaultValue;
     return paths;
 }

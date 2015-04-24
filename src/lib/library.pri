@@ -11,6 +11,7 @@ CONFIG(static, static|shared) {
 } else {
     DEFINES += QBS_LIBRARY
 }
+DEFINES += QT_NO_CAST_FROM_ASCII
 INCLUDEPATH += $${PWD}/../
 contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 win32:CONFIG(debug, debug|release):TARGET = $${TARGET}d

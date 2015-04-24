@@ -27,15 +27,18 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+
+#undef QT_NO_CAST_FROM_ASCII // I am qmake, and I approve this hack.
+
 #include "tst_tools.h"
 
-#include <tools/buildoptions.h>
-#include <tools/error.h>
-#include <tools/fileinfo.h>
-#include <tools/hostosinfo.h>
-#include <tools/profile.h>
-#include <tools/settings.h>
-#include <tools/setupprojectparameters.h>
+#include "buildoptions.h"
+#include "error.h"
+#include "fileinfo.h"
+#include "hostosinfo.h"
+#include "profile.h"
+#include "settings.h"
+#include "setupprojectparameters.h"
 
 #include <QFileInfo>
 #include <QTemporaryFile>

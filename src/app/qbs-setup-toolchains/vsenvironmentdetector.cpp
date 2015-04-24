@@ -125,7 +125,8 @@ static QString vcArchitecture(const QString &arch)
 
 void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcvarsallbat) const
 {
-    const QStringList varnames = QStringList() << "PATH" << "INCLUDE" << "LIB";
+    const QStringList varnames = QStringList() << QLatin1String("PATH")
+            << QLatin1String("INCLUDE") << QLatin1String("LIB");
     QTextStream s(device);
     s << "@echo off" << endl;
     foreach (const QString &architecture, m_msvc->architectures) {

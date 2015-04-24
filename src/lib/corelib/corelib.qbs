@@ -395,6 +395,7 @@ QbsLibrary {
     Group {
         condition: project.enableUnitTests
         name: "tests"
+        cpp.defines: outer.filter(function(def) { return def !== "QT_NO_CAST_FROM_ASCII"; })
         files: [
             "buildgraph/tst_buildgraph.cpp",
             "buildgraph/tst_buildgraph.h",

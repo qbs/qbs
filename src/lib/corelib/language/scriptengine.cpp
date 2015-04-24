@@ -315,7 +315,7 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
 static QString findExtensionDir(const QStringList &searchPaths, const QString &extensionPath)
 {
     foreach (const QString &searchPath, searchPaths) {
-        const QString dirPath = searchPath + "/imports/" + extensionPath;
+        const QString dirPath = searchPath + QStringLiteral("/imports/") + extensionPath;
         QFileInfo fi(dirPath);
         if (fi.exists() && fi.isDir())
             return dirPath;

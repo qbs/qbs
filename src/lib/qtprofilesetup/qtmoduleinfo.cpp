@@ -171,9 +171,10 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
     if (debugBuild) {
         if (!qtEnv.buildVariant.contains(QLatin1String("debug")))
             return;
-        const QStringList modulesNeverBuiltAsDebug = QStringList() << "bootstrap" << "qmldevtools";
+        const QStringList modulesNeverBuiltAsDebug = QStringList()
+                << QLatin1String("bootstrap") << QLatin1String("qmldevtools");
         foreach (const QString &m, modulesNeverBuiltAsDebug) {
-            if (qbsName == m || qbsName == m + "-private")
+            if (qbsName == m || qbsName == m + QLatin1String("-private"))
                 return;
         }
     } else if (!qtEnv.buildVariant.contains(QLatin1String("release"))) {
@@ -290,8 +291,9 @@ bool QtModuleInfo::isFramework(const QtEnvironment &qtEnv) const
     if (!qtEnv.frameworkBuild || isStaticLibrary)
         return false;
     const QStringList modulesNeverBuiltAsFrameworks = QStringList()
-            << "bootstrap" << "openglextensions" << "platformsupport" << "qmldevtools" << "uitools"
-            << "harfbuzzng";
+            << QLatin1String("bootstrap") << QLatin1String("openglextensions")
+            << QLatin1String("platformsupport") << QLatin1String("qmldevtools")
+            << QLatin1String("uitools") << QLatin1String("harfbuzzng");
     return !modulesNeverBuiltAsFrameworks.contains(qbsName);
 }
 
@@ -368,7 +370,7 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
             << QtModuleInfo(QLatin1String("QtXml"), QLatin1String("xml-private"),
                             QStringList() << QLatin1String("xml"))
             << QtModuleInfo(QLatin1String("QtXmlPatterns"), QLatin1String("xmlpatterns"),
-                            QStringList() << "network")
+                            QStringList() << QLatin1String("network"))
             << QtModuleInfo(QLatin1String("QtXmlPatterns"),
                             QLatin1String("xmlpatterns-private"),
                             QStringList() << QLatin1String("xmlpatterns"))

@@ -666,6 +666,15 @@
 
     Full path of the dsymutil binary. This is set in the build profile.
 
+    \section2 dsymutilFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the dsymutil tool.
+
     \section2 positionIndependentCode
 
     \table

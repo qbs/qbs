@@ -72,12 +72,12 @@ public:
         bool valid;
     };
 
-    Result value(void* scanner, const QString &fileName) const;
-    void insert(void* scanner, const QString &fileName, const Result &value);
+    Result value(const void* scanner, const QString &fileName) const;
+    void insert(const void* scanner, const QString &fileName, const Result &value);
     void remove(const QString &fileName);
 
 private:
-    typedef QHash<void*, QHash<QString, Result> > ScanResultCacheData;
+    typedef QHash<const void*, QHash<QString, Result> > ScanResultCacheData;
     ScanResultCacheData m_data;
 };
 

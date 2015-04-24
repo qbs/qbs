@@ -567,8 +567,8 @@ static bool findModuleMapRecursively_impl(const QVariantMap &cfg, const QString 
             *result = it.value().toMap();
             return true;
         }
-        if (findModuleMapRecursively_impl(it.value().toMap().value("modules").toMap(), moduleName,
-                                          result)) {
+        if (findModuleMapRecursively_impl(it.value().toMap().value(QStringLiteral("modules")).toMap(),
+                                          moduleName, result)) {
             return true;
         }
     }

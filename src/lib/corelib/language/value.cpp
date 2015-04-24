@@ -69,8 +69,8 @@ QString JSSourceValue::sourceCodeForEvaluation() const
         return m_sourceCode.toString();
 
     // rewrite blocks to be able to use return statements in property assignments
-    static const QString prefix = "(function()";
-    static const QString suffix = ")()";
+    static const QString prefix = QStringLiteral("(function()");
+    static const QString suffix = QStringLiteral(")()");
     return prefix + m_sourceCode.toString() + suffix;
 }
 

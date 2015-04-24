@@ -1,3 +1,33 @@
+/****************************************************************************
+**
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms and
+** conditions see http://www.qt.io/terms-conditions. For further information
+** use the contact form at http://www.qt.io/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 or version 3 as published by the Free
+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+** LICENSE.LGPLv3 included in the packaging of this file.  Please review the
+** following information to ensure the GNU Lesser General Public License
+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, The Qt Company gives you certain additional
+** rights.  These rights are described in The Qt Company LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
 import qbs
 import qbs.File
 import qbs.FileInfo
@@ -10,19 +40,13 @@ Module {
     additionalProductTypes: ["compiled_typescript"]
 
     property path toolchainInstallPath
-    property string version: {
-        var p = new Process();
-        p.exec(compilerPath, ["--version"]);
-        var match = p.readStdOut().match(/.*\bVersion ([0-9]+(\.[0-9]+){1,3})\n$/);
-        if (match !== null)
-            return match[1];
-    }
-
+    property string version: rawVersion ? rawVersion[2] : undefined
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
     property int versionMinor: versionParts[1]
     property int versionPatch: versionParts[2]
     property int versionBuild: versionParts[3]
+    property string versionSuffix: rawVersion ? rawVersion[3] : undefined
 
     property string compilerName: "tsc"
     property string compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
@@ -79,18 +103,36 @@ Module {
         description: "whether to compile all source files to a single output file"
     }
 
+    // private properties
+    readonly property var rawVersion: {
+        var p = new Process();
+        try {
+            p.exec(compilerPath, ["--version"]);
+            var match = p.readStdOut().match(/.*\bVersion (([0-9]+(?:\.[0-9]+){1,3})(?:-(.+?))?)\n$/);
+            if (match !== null)
+                return match;
+        } finally {
+            p.close();
+        }
+    }
+
     validate: {
         var validator = new ModUtils.PropertyValidator("typescript");
         validator.setRequiredProperty("version", version);
+        validator.setRequiredProperty("versionParts", versionParts);
         validator.setRequiredProperty("versionMajor", versionMajor);
         validator.setRequiredProperty("versionMinor", versionMinor);
         validator.setRequiredProperty("versionPatch", versionPatch);
-        validator.setRequiredProperty("versionBuild", versionBuild);
-        validator.addVersionValidator("version", version, 4, 4);
+        validator.addVersionValidator("version", version, 3, 4);
         validator.addRangeValidator("versionMajor", versionMajor, 1);
         validator.addRangeValidator("versionMinor", versionMinor, 0);
         validator.addRangeValidator("versionPatch", versionPatch, 0);
-        validator.addRangeValidator("versionBuild", versionBuild, 0);
+
+        if (versionParts && versionParts.length >= 4) {
+            validator.setRequiredProperty("versionBuild", versionBuild);
+            validator.addRangeValidator("versionBuild", versionBuild, 0);
+        }
+
         validator.validate();
     }
 

@@ -67,7 +67,6 @@ static void collectCppIncludePaths(const QVariantMap &modules, QSet<QString> *co
 PluginDependencyScanner::PluginDependencyScanner(ScannerPlugin *plugin)
     : m_plugin(plugin)
 {
-    m_fileTag += FileTag(plugin->fileTag);
 }
 
 QStringList PluginDependencyScanner::collectSearchPaths(Artifact *artifact)
@@ -110,32 +109,32 @@ QStringList PluginDependencyScanner::collectDependencies(FileResourceBase *file)
     return QStringList(result.toList());
 }
 
-const FileTags &PluginDependencyScanner::fileTags()
-{
-    return m_fileTag;
-}
-
-bool PluginDependencyScanner::recursive()
+bool PluginDependencyScanner::recursive() const
 {
     return m_plugin->flags & ScannerRecursiveDependencies;
 }
 
-void *PluginDependencyScanner::key()
+const void *PluginDependencyScanner::key() const
 {
     return m_plugin;
 }
 
 UserDependencyScanner::UserDependencyScanner(const ResolvedScannerConstPtr &scanner,
-        const Logger &logger, ScriptEngine *engine)
+        const Logger &logger)
     : m_scanner(scanner),
       m_logger(logger),
-      m_engine(engine),
-      m_observer(engine),
-      m_project(0),
+      m_engine(new ScriptEngine(logger)),
+      m_observer(m_engine),
       m_product(0)
 {
-    m_global = engine->newObject();
+    m_engine->setProcessEventsInterval(-1); // QBS-782
+    m_global = m_engine->newObject();
     setupScriptEngineForFile(m_engine, m_scanner->scanScript->fileContext, m_global);
+}
+
+UserDependencyScanner::~UserDependencyScanner()
+{
+    delete m_engine;
 }
 
 QStringList UserDependencyScanner::collectSearchPaths(Artifact *artifact)
@@ -152,26 +151,20 @@ QStringList UserDependencyScanner::collectDependencies(FileResourceBase *file)
     return evaluate(artifact, m_scanner->scanScript);
 }
 
-const FileTags &UserDependencyScanner::fileTags()
-{
-    return m_scanner->inputs;
-}
-
-bool UserDependencyScanner::recursive()
+bool UserDependencyScanner::recursive() const
 {
     return m_scanner->recursive;
 }
 
-void *UserDependencyScanner::key()
+const void *UserDependencyScanner::key() const
 {
-    return const_cast<ResolvedScanner*>(m_scanner.data());
+    return m_scanner.data();
 }
 
 QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunctionPtr &script)
 {
-    if ((artifact->product.data() != m_product) || (artifact->product->project.data() != m_project)) {
+    if (artifact->product.data() != m_product) {
         m_product = artifact->product.data();
-        m_project = artifact->product->project.data();
         setupScriptEngineForProduct(m_engine, artifact->product,
                                     m_scanner->module, m_global, &m_observer);
     }

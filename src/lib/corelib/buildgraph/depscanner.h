@@ -52,46 +52,46 @@ class DependencyScanner
 {
 public:
     virtual ~DependencyScanner() {}
+
     virtual QStringList collectSearchPaths(Artifact *artifact) = 0;
     virtual QStringList collectDependencies(FileResourceBase *file) = 0;
-    virtual const FileTags &fileTags() = 0;
-    virtual bool recursive() = 0;
-    virtual void *key() = 0;
+    virtual bool recursive() const = 0;
+    virtual const void *key() const = 0;
 };
 
 class PluginDependencyScanner : public DependencyScanner
 {
 public:
     PluginDependencyScanner(ScannerPlugin *plugin);
-    virtual QStringList collectSearchPaths(Artifact *artifact);
-    virtual QStringList collectDependencies(FileResourceBase *file);
-    virtual const FileTags &fileTags();
-    virtual bool recursive();
-    virtual void *key();
+
 private:
+    QStringList collectSearchPaths(Artifact *artifact);
+    QStringList collectDependencies(FileResourceBase *file);
+    bool recursive() const;
+    const void *key() const;
+
     ScannerPlugin* m_plugin;
-    FileTags m_fileTag;
 };
 
 class UserDependencyScanner : public DependencyScanner
 {
 public:
-    UserDependencyScanner(const ResolvedScannerConstPtr &scanner, const Logger &logger,
-                          ScriptEngine *engine);
-    virtual QStringList collectSearchPaths(Artifact *artifact);
-    virtual QStringList collectDependencies(FileResourceBase *file);
-    virtual const FileTags &fileTags();
-    virtual bool recursive();
-    virtual void *key();
+    UserDependencyScanner(const ResolvedScannerConstPtr &scanner, const Logger &logger);
+    ~UserDependencyScanner();
+
 private:
+    QStringList collectSearchPaths(Artifact *artifact);
+    QStringList collectDependencies(FileResourceBase *file);
+    bool recursive() const;
+    const void *key() const;
+
     QStringList evaluate(Artifact *artifact, const ScriptFunctionPtr &script);
-private:
+
     ResolvedScannerConstPtr m_scanner;
     Logger m_logger;
     ScriptEngine *m_engine;
     PrepareScriptObserver m_observer;
     QScriptValue m_global;
-    void *m_project;
     void *m_product;
 };
 
