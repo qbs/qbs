@@ -38,6 +38,7 @@ UnixGCC {
     loadableModulePrefix: ""
     loadableModuleSuffix: ".bundle"
     dynamicLibrarySuffix: ".dylib"
+    separateDebugInformation: true
     debugInfoSuffix: ".dSYM"
 
     validate: {
