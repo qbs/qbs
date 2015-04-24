@@ -76,8 +76,8 @@ private:
 class UserDependencyScanner : public DependencyScanner
 {
 public:
-    UserDependencyScanner(const ResolvedScannerConstPtr &scanner, const Logger &logger,
-                          ScriptEngine *engine);
+    UserDependencyScanner(const ResolvedScannerConstPtr &scanner, const Logger &logger);
+    ~UserDependencyScanner();
 
 private:
     QStringList collectSearchPaths(Artifact *artifact);

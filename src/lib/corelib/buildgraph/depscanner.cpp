@@ -120,15 +120,21 @@ const void *PluginDependencyScanner::key() const
 }
 
 UserDependencyScanner::UserDependencyScanner(const ResolvedScannerConstPtr &scanner,
-        const Logger &logger, ScriptEngine *engine)
+        const Logger &logger)
     : m_scanner(scanner),
       m_logger(logger),
-      m_engine(engine),
-      m_observer(engine),
+      m_engine(new ScriptEngine(logger)),
+      m_observer(m_engine),
       m_product(0)
 {
-    m_global = engine->newObject();
+    m_engine->setProcessEventsInterval(-1); // QBS-782
+    m_global = m_engine->newObject();
     setupScriptEngineForFile(m_engine, m_scanner->scanScript->fileContext, m_global);
+}
+
+UserDependencyScanner::~UserDependencyScanner()
+{
+    delete m_engine;
 }
 
 QStringList UserDependencyScanner::collectSearchPaths(Artifact *artifact)
