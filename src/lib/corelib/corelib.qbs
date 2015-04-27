@@ -18,6 +18,8 @@ QbsLibrary {
         "QT_CREATOR", "QML_BUILD_STATIC_LIB",   // needed for QmlJS
         "SRCDIR=\"" + path + "\""
     ]).concat(projectFileUpdateDefines)
+    cpp.dynamicLibraries: base.concat(qbs.targetOS.contains("windows")
+        ? ["Psapi.lib"] : [])
 
     Properties {
         condition: qbs.targetOS.contains("darwin")
