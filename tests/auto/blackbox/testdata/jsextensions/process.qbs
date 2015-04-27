@@ -30,7 +30,7 @@ Project {
             // closeWriteChannel test
             process = new Process();
             if (qbs.hostOS.contains("windows"))
-                process.start("cmd", ["/C", "sort"]);
+                process.start("cmd", ["/C", "c:\\windows\\system32\\sort.exe"]);
             else
                 process.start("cat", []);
             process.writeLine("should be");
