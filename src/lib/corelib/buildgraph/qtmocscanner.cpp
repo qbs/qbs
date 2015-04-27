@@ -121,15 +121,15 @@ void QtMocScanner::findIncludedMocCppFiles()
         const ScanResultCache::Result scanResult
                 = runScanner(m_cppScanner, artifact, m_scanResultCache);
         foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
-            QString includedFilePath = dependency.filePath();
-            if (includedFilePath.startsWith(QLatin1String("moc_"))
-                    && includedFilePath.endsWith(QLatin1String(".cpp"))) {
+            QString includedFileName = dependency.fileName();
+            if (includedFileName.startsWith(QLatin1String("moc_"))
+                    && includedFileName.endsWith(QLatin1String(".cpp"))) {
                 if (m_logger.traceEnabled())
                     m_logger.qbsTrace() << "[QtMocScanner] " << artifact->fileName()
-                                        << " includes " << includedFilePath;
-                includedFilePath.remove(0, 4);
-                includedFilePath.chop(4);
-                m_includedMocCppFiles.insert(includedFilePath, artifact->fileName());
+                                        << " includes " << includedFileName;
+                includedFileName.remove(0, 4);
+                includedFileName.chop(4);
+                m_includedMocCppFiles.insert(includedFileName, artifact->fileName());
             }
         }
     }
