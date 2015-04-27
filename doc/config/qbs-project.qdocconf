@@ -1,3 +1,8 @@
+include($QT_INSTALL_DOCS/global/macros.qdocconf)
+include($QT_INSTALL_DOCS/global/qt-cpp-defines.qdocconf)
+include($QT_INSTALL_DOCS/global/compat.qdocconf)
+include($QT_INSTALL_DOCS/global/fileextensions.qdocconf)
+
 project     = "Qt Build Suite"
 description = "QBS Manual"
 
@@ -8,8 +13,6 @@ outputdir = $OUTDIR
 exampledirs = $SRCDIR
 
 include(macros.qdocconf)
-include(qt-cpp-ignore.qdocconf)
-
 sources.fileextensions  = "*.qdoc"
 
 
