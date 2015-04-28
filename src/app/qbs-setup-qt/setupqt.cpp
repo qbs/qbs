@@ -47,6 +47,8 @@
 #include <QStringList>
 #include <QtDebug>
 
+#include <algorithm>
+
 namespace qbs {
 using Internal::HostOsInfo;
 using Internal::Tr;
@@ -83,8 +85,15 @@ QList<QtEnvironment> SetupQt::fetchEnvironments()
 {
     QList<QtEnvironment> qtEnvironments;
 
-    foreach (const QString &qmakePath, collectQmakePaths())
-        qtEnvironments.append(fetchEnvironment(qmakePath));
+    foreach (const QString &qmakePath, collectQmakePaths()) {
+        const QtEnvironment env = fetchEnvironment(qmakePath);
+        if (std::find_if(qtEnvironments.constBegin(), qtEnvironments.constEnd(),
+                         [&env](const QtEnvironment &otherEnv) {
+                                 return env.includePath == otherEnv.includePath;
+                          }) == qtEnvironments.constEnd()) {
+            qtEnvironments.append(env);
+        }
+    }
 
     return qtEnvironments;
 }
