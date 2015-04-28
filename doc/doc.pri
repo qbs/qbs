@@ -27,9 +27,6 @@ QHP_FILE = $$HTML_DOC_PATH/qbs.qhp
 QCH_FILE = $$OUT_PWD/doc/qbs.qch
 
 HELP_DEP_FILES = $$PWD/qbs.qdoc \
-                 $$PWD/config/macros.qdocconf \
-                 $$PWD/config/qt-html-templates.qdocconf \
-                 $$PWD/config/qt-html-default-styles.qdocconf \
                  $$QDOC_MAINFILE
 
 html_docs.commands = $$QDOC $$PWD/qbs.qdocconf
