@@ -51,6 +51,8 @@
 #include <QFile>
 #include <QFileInfo>
 
+#include <algorithm>
+
 namespace qbs {
 namespace Internal {
 
@@ -96,7 +98,12 @@ private:
         const ResolvedProduct * const product = static_cast<const ResolvedProduct *>(arg);
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
-        foreach (const ResolvedProductPtr &dependency, product->dependencies) {
+        QList<ResolvedProductPtr> productDeps = product->dependencies.toList();
+        std::sort(productDeps.begin(), productDeps.end(),
+                  [](const ResolvedProductPtr &p1, const ResolvedProductPtr &p2) {
+                          return p1->name < p2->name;
+                  });
+        foreach (const ResolvedProductPtr &dependency, productDeps) {
             QScriptValue obj = engine->newObject();
             setupProductScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency, 0);
             result.setProperty(idx++, obj);
