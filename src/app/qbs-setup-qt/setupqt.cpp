@@ -33,6 +33,7 @@
 #include "../shared/logging/consolelogger.h"
 #include <qtprofilesetup.h>
 #include <logging/translator.h>
+#include <tools/architectures.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
@@ -272,6 +273,151 @@ static bool isToolchainProfileKey(const QString &key)
     return key.startsWith(QLatin1String("cpp.")) && !key.startsWith(QLatin1String("cpp.minimum"));
 }
 
+template <typename T> bool areProfilePropertiesIncompatible(const T &set1, const T &set2)
+{
+    // Two objects are only considered incompatible if they are both non empty and compare inequal
+    // This logic is used for comparing target OS, toolchain lists, and architectures
+    return !set1.isEmpty() && !set2.isEmpty() && set1 != set2;
+}
+
+static QStringList qbsTargetOsFromQtMkspec(const QString &mkspec)
+{
+    if (mkspec.startsWith(QLatin1String("aix-")))
+        return QStringList()  << QLatin1String("aix") << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("android-")))
+        return QStringList()  << QLatin1String("android") << QLatin1String("linux")
+                              << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("blackberry")))
+        return QStringList()  << QLatin1String("blackberry") << QLatin1String("qnx")
+                              << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("darwin-")))
+        return QStringList() << QLatin1String("darwin") << QLatin1String("bsd")
+                             << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("freebsd-")))
+        return QStringList() << QLatin1String("freebsd") << QLatin1String("bsd")
+                             << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("haiku-")))
+        return QStringList() << QLatin1String("haiku");
+    if (mkspec.startsWith(QLatin1String("hpux-")) || mkspec.startsWith("hpuxi-"))
+        return QStringList() << QLatin1String("hpux") << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("hurd-")))
+        return QStringList() << QLatin1String("hurd") << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("irix-")))
+        return QStringList() << QLatin1String("irix") << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("linux-")))
+        return QStringList() << QLatin1String("linux") << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("lynxos-")))
+        return QStringList() << QLatin1String("lynx") << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("macx-")))
+        return QStringList() << (mkspec.startsWith(QLatin1String("macx-ios-"))
+                                 ? QLatin1String("ios") : QLatin1String("osx"))
+                             << QLatin1String("darwin") << QLatin1String("bsd")
+                             << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("nacl-")) || mkspec.startsWith(QLatin1String("nacl64-")))
+        return QStringList() << QLatin1String("nacl");
+    if (mkspec.startsWith(QLatin1String("netbsd-")))
+        return QStringList() << QLatin1String("netbsd") << QLatin1String("bsd")
+                             << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("openbsd-")))
+        return QStringList() << QLatin1String("openbsd") << QLatin1String("bsd")
+                             << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("qnx-")))
+        return QStringList() << QLatin1String("qnx") << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("sco-")))
+        return QStringList() << QLatin1String("sco") << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("solaris-")))
+        return QStringList() << QLatin1String("solaris") << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("tru64-")))
+        return QStringList() << QLatin1String("tru64") << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("unixware-")))
+        return QStringList() << QLatin1String("unixware") << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("vxworks-")))
+        return QStringList() << QLatin1String("vxworks") << QLatin1String("unix");
+    if (mkspec.startsWith(QLatin1String("win32-")))
+        return QStringList() << QLatin1String("windows");
+    if (mkspec.startsWith(QLatin1String("wince")))
+        return QStringList() << QLatin1String("windowsce") << QLatin1String("windows");
+    if (mkspec.startsWith(QLatin1String("winphone-")))
+        return QStringList() << QLatin1String("windowsphone") << QLatin1String("winrt") << QLatin1String("windows");
+    if (mkspec.startsWith(QLatin1String("winrt-")))
+        return QStringList() << QLatin1String("winrt") << QLatin1String("windows");
+    return QStringList();
+}
+
+static QStringList qbsToolchainFromQtMkspec(const QString &mkspec)
+{
+    if (mkspec.contains(QLatin1String("-msvc")))
+        return QStringList() << QLatin1String("msvc");
+    if (mkspec == QLatin1String("win32-g++"))
+        return QStringList() << QLatin1String("mingw") << QLatin1String("gcc");
+
+    if (mkspec.contains(QLatin1String("-clang")))
+        return QStringList() << QLatin1String("clang") << QLatin1String("llvm")
+                             << QLatin1String("gcc");
+    if (mkspec.contains(QLatin1String("-llvm")))
+        return QStringList() << QLatin1String("llvm") << QLatin1String("gcc");
+    if (mkspec.contains(QLatin1String("-g++")))
+        return QStringList() << QLatin1String("gcc");
+
+    // Worry about other, less common toolchains (ICC, QCC, etc.) later...
+    return QStringList();
+}
+
+static int msvcCompilerMajorVersionForYear(int year)
+{
+    switch (year)
+    {
+    case 2005:
+        return 14;
+    case 2008:
+        return 15;
+    case 2010:
+        return 16;
+    case 2012:
+        return 17;
+    case 2013:
+        return 18;
+    case 2015:
+        return 19;
+    default:
+        return 0;
+    }
+}
+
+static bool isIncompatibleQtBaseProfile(const QtEnvironment &env, const Profile &toolchainProfile)
+{
+    const QSet<QString> toolchainNames = toolchainProfile.value(QLatin1String("qbs.toolchain"))
+            .toStringList().toSet();
+    if (areProfilePropertiesIncompatible(qbsToolchainFromQtMkspec(env.mkspecName).toSet(),
+                                         toolchainNames))
+        return true;
+
+    const QSet<QString> targetOsNames = toolchainProfile.value(QLatin1String("qbs.targetOS"))
+            .toStringList().toSet();
+    if (areProfilePropertiesIncompatible(qbsTargetOsFromQtMkspec(env.mkspecName).toSet(),
+                                         targetOsNames))
+        return true;
+
+    const QString toolchainArchitecture = toolchainProfile.value(QLatin1String("qbs.architecture"))
+            .toString();
+    if (areProfilePropertiesIncompatible(canonicalArchitecture(env.architecture),
+                                         canonicalArchitecture(toolchainArchitecture)))
+        return true;
+
+    const QString msvcPrefix(QLatin1String("win32-msvc"));
+    if (env.mkspecName.startsWith(msvcPrefix)) {
+        const int compilerVersionMajor = msvcCompilerMajorVersionForYear(
+                    env.mkspecName.mid(msvcPrefix.size()).toInt());
+
+        // We want to know for sure that MSVC compiler versions match,
+        // because it's especially important for this toolchain
+        return compilerVersionMajor == 0 || compilerVersionMajor !=
+                toolchainProfile.value(QLatin1String("cpp.compilerVersionMajor"));
+    }
+
+    return false;
+}
+
 void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironment &qtEnvironment,
                                 Settings *settings)
 {
@@ -310,7 +456,8 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
                 break;
             }
         }
-        if (hasCppKey && !hasQtKey)
+        if (hasCppKey && !hasQtKey
+                && !isIncompatibleQtBaseProfile(qtEnvironment, Profile(profileName, settings)))
             toolchainProfiles << profileName;
     }
 
