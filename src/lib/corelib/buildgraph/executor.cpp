@@ -728,6 +728,17 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
             //       in the list already, no?
             childrenToConnect << qMakePair(child, cd.addedByScanner);
         }
+
+        if (canRescue) {
+            const int newChildCount = childrenToConnect.count()
+                    + ArtifactSet::fromNodeSet(artifact->children).count();
+            QBS_CHECK(newChildCount >= rad.children.count());
+            if (newChildCount > rad.children.count()) {
+                canRescue = false;
+                if (m_logger.traceEnabled())
+                    m_logger.qbsTrace() << "Artifact has children not present in rescue data";
+            }
+        }
     } else {
         if (m_logger.traceEnabled())
             m_logger.qbsTrace() << "Transformer commands changed.";
