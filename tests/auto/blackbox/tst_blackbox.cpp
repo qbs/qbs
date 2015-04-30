@@ -1185,9 +1185,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
 
-    // Not actually necessary, but qbs cannot know that, since a property change is potentially
-    // relevant to all rules.
-    QVERIFY(m_qbsStdout.contains("Making output from input"));
+    // qbs knows that this rule is not affected by the property change.
+    QVERIFY(!m_qbsStdout.contains("Making output from input"));
 
     // Incremental build, non-essential dependency removed.
     waitForNewTimestamp();
@@ -2273,7 +2272,6 @@ void TestBlackbox::wildCardsAndRules()
     // Add "explicitlyDependsOn".
     touch("dep.dep");
     QCOMPARE(runQbs(), 0);
-    QEXPECT_FAIL(0, "QBS-724", Abort);
     QVERIFY(m_qbsStdout.contains("Creating output artifact"));
 
     // Add nothing.
