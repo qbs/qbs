@@ -91,7 +91,7 @@ bool removeFileRecursion(const QFileInfo &f, QString *errorMessage);
 // FIXME: Used by tests.
 bool QBS_EXPORT removeDirectoryWithContents(const QString &path, QString *errorMessage);
 bool QBS_EXPORT copyFileRecursion(const QString &sourcePath, const QString &targetPath,
-                                  bool preserveSymLinks, QString *errorMessage);
+                                  bool preserveSymLinks, bool copyDirectoryContents, QString *errorMessage);
 
 } // namespace Internal
 } // namespace qbs

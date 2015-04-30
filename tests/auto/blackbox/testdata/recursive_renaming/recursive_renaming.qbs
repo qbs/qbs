@@ -3,6 +3,7 @@ import qbs 1.0
 Product {
     Group {
         qbs.install: true
-        files: "dir"
+        qbs.installSourceBase: "."
+        files: ["dir/**"]
     }
 }

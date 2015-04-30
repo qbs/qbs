@@ -143,7 +143,8 @@ void TestApi::initTestCase()
     QString errorMessage;
     qbs::Internal::removeDirectoryWithContents(m_workingDataDir, &errorMessage);
     QVERIFY2(qbs::Internal::copyFileRecursion(m_sourceDataDir,
-                                              m_workingDataDir, false, &errorMessage), qPrintable(errorMessage));
+                                              m_workingDataDir, false, true, &errorMessage),
+             qPrintable(errorMessage));
 }
 
 void TestApi::addQObjectMacroToCppFile()

@@ -190,13 +190,13 @@ void ProductInstaller::copyFile(const Artifact *artifact)
         return;
     }
     if (QFileInfo(artifact->filePath()).isDir()) {
-        m_logger.qbsWarning() << Tr::tr("Recursively copying directory '%1' into target directory "
-                                        "'%2'. This behavior is deprecated and will change in qbs "
-                                        "1.5. Install the individual file artifacts instead.")
+        m_logger.qbsWarning() << Tr::tr("Not recursively copying directory '%1' into target "
+                                        "directory '%2'. Install the individual file artifacts "
+                                        "instead.")
                                  .arg(nativeFilePath, nativeTargetDir);
     }
     QString errorMessage;
-    if (!copyFileRecursion(artifact->filePath(), targetFilePath, true, &errorMessage))
+    if (!copyFileRecursion(artifact->filePath(), targetFilePath, true, false, &errorMessage))
         handleError(Tr::tr("Installation error: %1").arg(errorMessage));
 }
 

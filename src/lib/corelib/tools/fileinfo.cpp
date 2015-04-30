@@ -440,7 +440,7 @@ static bool createSymLink(const QByteArray &path1, const QString &path2)
 */
 
 bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
-        bool preserveSymLinks, QString *errorMessage)
+        bool preserveSymLinks, bool copyDirectoryContents, QString *errorMessage)
 {
     QFileInfo srcFileInfo(srcFilePath);
     QFileInfo tgtFileInfo(tgtFilePath);
@@ -459,14 +459,21 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
             return false;
         }
     } else if (srcFileInfo.isDir()) {
-        QDir sourceDir(srcFilePath);
-        QStringList fileNames = sourceDir.entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot
-            | QDir::Hidden | QDir::System);
-        foreach (const QString &fileName, fileNames) {
-            const QString newSrcFilePath = srcFilePath + QLatin1Char('/') + fileName;
-            const QString newTgtFilePath = tgtFilePath + QLatin1Char('/') + fileName;
-            if (!copyFileRecursion(newSrcFilePath, newTgtFilePath, preserveSymLinks, errorMessage))
-                return false;
+        if (copyDirectoryContents) {
+            QDir sourceDir(srcFilePath);
+            QStringList fileNames = sourceDir.entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot
+                | QDir::Hidden | QDir::System);
+            foreach (const QString &fileName, fileNames) {
+                const QString newSrcFilePath = srcFilePath + QLatin1Char('/') + fileName;
+                const QString newTgtFilePath = tgtFilePath + QLatin1Char('/') + fileName;
+                if (!copyFileRecursion(newSrcFilePath, newTgtFilePath, preserveSymLinks,
+                                       copyDirectoryContents, errorMessage))
+                    return false;
+            }
+        } else {
+            if (tgtFileInfo.exists() && srcFileInfo.lastModified() <= tgtFileInfo.lastModified())
+                return true;
+            return QDir::root().mkpath(tgtFilePath);
         }
     } else {
         if (tgtFileInfo.exists() && srcFileInfo.lastModified() <= tgtFileInfo.lastModified())
