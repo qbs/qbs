@@ -14,6 +14,12 @@ Project {
         files: ["foo.cpp"]
         cpp.separateDebugInformation: true
     }
+    LoadableModule {
+        Depends { name: "cpp" }
+        name: "bar1"
+        files: ["foo.cpp"]
+        cpp.separateDebugInformation: true
+    }
     CppApplication {
         name: "app2"
         type: ["application"]
@@ -24,6 +30,12 @@ Project {
         Depends { name: "cpp" }
         name: "foo2"
         type: ["dynamiclibrary"]
+        files: ["foo.cpp"]
+        cpp.separateDebugInformation: false
+    }
+    LoadableModule {
+        Depends { name: "cpp" }
+        name: "bar2"
         files: ["foo.cpp"]
         cpp.separateDebugInformation: false
     }

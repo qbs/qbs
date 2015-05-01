@@ -607,14 +607,19 @@ void TestBlackbox::separateDebugInfo()
         QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.app.dSYM"));
         QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/foo1.framework.dSYM"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("foo2") + "/foo2.framework.dSYM"));
+        QVERIFY(QFile::exists(relativeProductBuildDir("bar1") + "/bar1.bundle.dSYM"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("bar2") + "/bar2.bundle.dSYM"));
     } else if (toolchain.contains("gcc")) {
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.debug"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.debug"));
         QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/libfoo1.so.debug"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("foo2") + "/libfoo2.so.debug"));
+        QVERIFY(QFile::exists(relativeProductBuildDir("bar1") + "/libbar1.so.debug"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("bar2") + "/libbar2.so.debug"));
     } else if (toolchain.contains("msvc")) {
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.pdb"));
         QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/foo1.pdb"));
+        QVERIFY(QFile::exists(relativeProductBuildDir("bar1") + "/bar1.pdb"));
         // MSVC's linker even creates a pdb file if /Z7 is passed to the compiler.
     } else {
         QSKIP("Unsupported toolchain. Skipping.");

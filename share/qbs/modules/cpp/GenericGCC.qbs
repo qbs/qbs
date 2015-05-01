@@ -205,7 +205,7 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "framework_copy", "staticlibrary"]
 
-        outputFileTags: ["loadablemodule", "debuginfo", "dsym"]
+        outputFileTags: ["loadablemodule", "debuginfo"]
         outputArtifacts: {
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -213,17 +213,10 @@ CppModule {
                 fileTags: ["loadablemodule"]
             }
             var artifacts = [app];
-            if (!product.moduleProperty("qbs", "targetOS").contains("darwin")
-                    && ModUtils.moduleProperty(product, "separateDebugInformation")) {
+            if (ModUtils.moduleProperty(product, "separateDebugInformation")) {
                 artifacts.push({
-                    filePath: app.filePath + ".debug",
+                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFileName(product)),
                     fileTags: ["debuginfo"]
-                });
-            }
-            if (ModUtils.moduleProperty(product, "buildDsym")) {
-                artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.dwarfDsymFileName(product)),
-                    fileTags: ["dsym"]
                 });
             }
             return artifacts;
