@@ -152,9 +152,19 @@ CppModule {
             }
             if (ModUtils.moduleProperty(product, "separateDebugInformation")) {
                 artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFileName(product)),
+                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
                     fileTags: ["debuginfo"]
                 });
+                if (PathTools.debugInfoIsBundle(product)) {
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoBundlePath(product)),
+                        fileTags: ["debuginfo_bundle"]
+                    });
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoPlistFilePath(product)),
+                        fileTags: ["debuginfo_plist"]
+                    });
+                }
             }
             return artifacts;
         }
@@ -226,9 +236,19 @@ CppModule {
             var artifacts = [app];
             if (ModUtils.moduleProperty(product, "separateDebugInformation")) {
                 artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFileName(product)),
+                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
                     fileTags: ["debuginfo"]
                 });
+                if (PathTools.debugInfoIsBundle(product)) {
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoBundlePath(product)),
+                        fileTags: ["debuginfo_bundle"]
+                    });
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoPlistFilePath(product)),
+                        fileTags: ["debuginfo_plist"]
+                    });
+                }
             }
             return artifacts;
         }
@@ -261,9 +281,19 @@ CppModule {
             var artifacts = [app];
             if (ModUtils.moduleProperty(product, "separateDebugInformation")) {
                 artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFileName(product)),
+                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
                     fileTags: ["debuginfo"]
                 });
+                if (PathTools.debugInfoIsBundle(product)) {
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoBundlePath(product)),
+                        fileTags: ["debuginfo_bundle"]
+                    });
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoPlistFilePath(product)),
+                        fileTags: ["debuginfo_plist"]
+                    });
+                }
             }
             return artifacts;
         }

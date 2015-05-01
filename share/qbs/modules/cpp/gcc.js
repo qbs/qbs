@@ -536,10 +536,12 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
     if (outputs.debuginfo) {
         if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
+            var dsymPath = outputs.debuginfo[0].filePath;
+            if (outputs.debuginfo_bundle && outputs.debuginfo_bundle[0])
+                dsymPath = outputs.debuginfo_bundle[0].filePath;
             var flags = ModUtils.moduleProperty(product, "dsymutilFlags") || [];
             cmd = new Command(ModUtils.moduleProperty(product, "dsymutilPath"), flags.concat([
-                "-o", outputs.debuginfo[0].filePath,
-                primaryOutput.filePath
+                "-o", dsymPath, primaryOutput.filePath
             ]));
             cmd.description = "generating dSYM for " + product.name;
             commands.push(cmd);

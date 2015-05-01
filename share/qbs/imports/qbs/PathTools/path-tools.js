@@ -118,19 +118,58 @@ function importLibraryFilePath(product) {
          + product.moduleProperty("cpp", "dynamicLibraryImportSuffix");
 }
 
+function debugInfoIsBundle(product) {
+    var flags = product.moduleProperty("cpp", "dsymutilFlags");
+    return !flags.contains("-f") && !flags.contains("--flat");
+}
+
 function debugInfoFileName(product) {
-    if (product.moduleProperty("bundle", "isBundle"))
-        return product.moduleProperty("bundle", "bundleName") + product.moduleProperty("cpp", "debugInfoSuffix");
-    else if (product.type.contains("application"))
-        return applicationFileName(product) + product.moduleProperty("cpp", "debugInfoSuffix");
+    var suffix = "";
+
+    // For bundled dSYMs, the suffix appears on the bundle name, not the actual debug info file
+    if (!product.moduleProperty("qbs", "targetOS").contains("darwin")
+            || !debugInfoIsBundle(product))
+        suffix = product.moduleProperty("cpp", "debugInfoSuffix");
+
+    if (product.moduleProperty("bundle", "isBundle")) {
+        if (!debugInfoIsBundle(product))
+            return product.moduleProperty("bundle", "bundleName") + suffix;
+    } else if (product.type.contains("application"))
+        return applicationFileName(product) + suffix;
     else if (product.type.contains("dynamiclibrary"))
-        return dynamicLibraryFileName(product) + product.moduleProperty("cpp", "debugInfoSuffix");
+        return dynamicLibraryFileName(product) + suffix;
     else if (product.type.contains("loadablemodule"))
-        return loadableModuleFileName(product) + product.moduleProperty("cpp", "debugInfoSuffix");
+        return loadableModuleFileName(product) + suffix;
     else if (product.type.contains("staticlibrary"))
-        return staticLibraryFileName(product) + product.moduleProperty("cpp", "debugInfoSuffix");
-    else
-        return product.targetName + product.moduleProperty("cpp", "debugInfoSuffix");
+        return staticLibraryFileName(product) + suffix;
+
+    return product.targetName + suffix;
+}
+
+function debugInfoBundlePath(product) {
+    if (!debugInfoIsBundle(product))
+        return undefined;
+    var suffix = product.moduleProperty("cpp", "debugInfoSuffix");
+    if (product.moduleProperty("qbs", "targetOS").contains("darwin")
+            && product.moduleProperty("bundle", "isBundle"))
+        return product.moduleProperty("bundle", "bundleName") + suffix;
+    return debugInfoFileName(product) + suffix;
+}
+
+function debugInfoFilePath(product) {
+    var name = debugInfoFileName(product);
+    if (product.moduleProperty("qbs", "targetOS").contains("darwin") && debugInfoIsBundle(product)) {
+        return FileInfo.joinPaths(debugInfoBundlePath(product), "Contents", "Resources", "DWARF",
+                                  name);
+    }
+
+    return name;
+}
+
+function debugInfoPlistFilePath(product) {
+    if (!debugInfoIsBundle(product))
+        return undefined;
+    return FileInfo.joinPaths(debugInfoBundlePath(product), "Contents", "Info.plist");
 }
 
 // Returns whether the string looks like a library filename
