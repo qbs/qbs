@@ -46,5 +46,6 @@ Project {
         "helloworld-complex/hello.qbs",
         "helloworld-minimal/hello.qbs",
         "helloworld-qt/hello.qbs",
+        "install-bundle/install-bundle.qbs",
     ]
 }
