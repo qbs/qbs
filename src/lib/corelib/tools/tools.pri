@@ -86,6 +86,7 @@ qbs_enable_unit_tests {
         $$PWD/architectures.h \
         $$PWD/cleanoptions.h \
         $$PWD/codelocation.h \
+        $$PWD/commandechomode.h \
         $$PWD/error.h \
         $$PWD/settings.h \
         $$PWD/settingsmodel.h \

@@ -39,6 +39,7 @@
 #include <api/runenvironment.h>
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
+#include <tools/projectgeneratormanager.h>
 
 #include <QDir>
 #include <QFile>
