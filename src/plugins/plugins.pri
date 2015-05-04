@@ -1,4 +1,5 @@
 include(../library_dirname.pri)
+include(../install_prefix.pri)
 
 !isEmpty(QBS_PLUGINS_BUILD_DIR) {
     destdirPrefix = $${QBS_PLUGINS_BUILD_DIR}

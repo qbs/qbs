@@ -1,3 +1,5 @@
+include(../src/install_prefix.pri)
+
 defineReplace(targetPath) {
     return($$replace(1, /, $$QMAKE_DIR_SEP))
 }

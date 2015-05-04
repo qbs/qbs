@@ -1,3 +1,5 @@
+include(../install_prefix.pri)
+
 QT = core
 TEMPLATE = app
 !isEmpty(QBS_APPS_DESTDIR):DESTDIR = $${QBS_APPS_DESTDIR}

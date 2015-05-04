@@ -1,3 +1,5 @@
+include(../../../install_prefix.pri)
+
 INCLUDEPATH += $$PWD/../.. # for plugins
 
 HEADERS += \

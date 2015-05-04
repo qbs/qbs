@@ -65,6 +65,8 @@ OTHER_FILES += $$FILES
     QMAKE_EXTRA_COMPILERS += copy2build
 }
 
+include(src/install_prefix.pri)
+
 share.files = share/qbs
 !isEmpty(QBS_RESOURCES_INSTALL_DIR): \
     installPrefix = $${QBS_RESOURCES_INSTALL_DIR}
