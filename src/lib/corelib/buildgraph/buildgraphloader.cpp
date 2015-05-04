@@ -164,6 +164,35 @@ void BuildGraphLoader::checkBuildGraphCompatibility(const TopLevelProjectConstPt
     }
 }
 
+static bool checkProductForChangedDependency(QList<ResolvedProductPtr> &changedProducts,
+        QSet<ResolvedProductPtr> &seenProducts, const ResolvedProductPtr &product)
+{
+    if (seenProducts.contains(product))
+        return false;
+    if (changedProducts.contains(product))
+        return true;
+    foreach (const ResolvedProductPtr &dep, product->dependencies) {
+        if (checkProductForChangedDependency(changedProducts, seenProducts, dep)) {
+            changedProducts << product;
+            return true;
+        }
+    }
+    seenProducts << product;
+    return false;
+}
+
+// All products depending on changed products also become changed. Otherwise the output
+// artifacts of the rules taking the artifacts from the dependency as inputs will be
+// rebuilt due to their rule getting re-applied (as the rescued input artifacts will show
+// up as newly added) and no rescue data being available.
+static void makeChangedProductsListComplete(QList<ResolvedProductPtr> &changedProducts,
+                                            const QList<ResolvedProductPtr> &allRestoredProducts)
+{
+    QSet<ResolvedProductPtr> seenProducts;
+    foreach (const ResolvedProductPtr &p, allRestoredProducts)
+        checkProductForChangedDependency(changedProducts, seenProducts, p);
+}
+
 void BuildGraphLoader::trackProjectChanges()
 {
     const TopLevelProjectPtr &restoredProject = m_result.loadedProject;
@@ -224,6 +253,8 @@ void BuildGraphLoader::trackProjectChanges()
             }
         }
     }
+
+    makeChangedProductsListComplete(changedProducts, allRestoredProducts);
 
     // Set up build data from scratch for all changed products. This does not necessarily
     // mean that artifacts will have to get rebuilt; whether this is necesessary will be decided
