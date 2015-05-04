@@ -11,7 +11,7 @@ Project {
         files: ["main.cpp"]
 
         property bool install: true
-        property string installDir: bundle.isBundle ? "Applications" : "bin"
+        property string installDir: bundle.isBundle ? "Applications" : (qbs.targetOS.contains("windows") ? "" : "bin")
 
         Group {
             fileTagsFilter: ["application"]
@@ -37,13 +37,13 @@ Project {
 
         name: "coreutils"
         targetName: bundle.isBundle ? "CoreUtils" : "coreutils"
-        files: ["coreutils.cpp"]
+        files: ["coreutils.cpp", "coreutils.h"]
 
         property bool install: true
-        property string installDir: bundle.isBundle ? "Library/Frameworks" : "lib"
+        property string installDir: bundle.isBundle ? "Library/Frameworks" : (qbs.targetOS.contains("windows") ? "" : "lib")
 
         Group {
-            fileTagsFilter: ["dynamiclibrary", "dynamiclibrary_symlink"]
+            fileTagsFilter: ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_import"]
             qbs.install: install
             qbs.installDir: bundle.isBundle ? FileInfo.joinPaths(installDir, FileInfo.path(bundle.executablePath)) : installDir
         }
