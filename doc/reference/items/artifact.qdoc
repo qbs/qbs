@@ -58,11 +58,6 @@
             find out whether they are up to date. Consequently, if all artifacts of a rule have this
             property set to \c false, the commands of the rule are always executed.
     \row
-        \li condition
-        \li bool
-        \li true
-        \li Determines whether the target file will actually be produced.
-    \row
         \li filePath
         \li string
         \li undefined
