@@ -30,6 +30,7 @@
 #ifndef QBS_FUZZYTESTER_H
 #define QBS_FUZZYTESTER_H
 
+#include <QQueue>
 #include <QString>
 
 #include <exception>
@@ -56,7 +57,7 @@ public:
     FuzzyTester();
 
     void runTest(const QString &profile, const QString &startCommit, int maxDurationInMinutes,
-                 int jobCount);
+                 int jobCount, bool log);
 
 private:
     void checkoutCommit(const QString &commit);
@@ -68,11 +69,16 @@ private:
     bool doCleanBuild(QString *errorMessage = 0);
     void throwIncrementalBuildError(const QString &message, const QStringList &commitSequence);
 
+    static QString logFilePath(const QString &commit, const QString &activity);
     static QString defaultBuildDir();
 
     QString m_profile;
     int m_jobCount;
+    bool m_log;
     QString m_headCommit;
+    QString m_currentCommit;
+    QString m_currentActivity;
+    QQueue<QString> m_commitsWithLogFiles;
 };
 
 #endif // Include guard.

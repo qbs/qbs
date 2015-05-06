@@ -37,9 +37,9 @@
 #include <iostream>
 
 static bool parseCommandLine(const QStringList &commandLine, QString &profile,
-                             QString &startCommi, int &maxDuration, int &jobCount);
+                             QString &startCommi, int &maxDuration, int &jobCount, bool &log);
 static bool runTest(const QString &profile, const QString &startCommit, int maxDuration,
-                    int jobCount);
+                    int jobCount, bool log);
 
 int main(int argc, char *argv[])
 {
@@ -49,16 +49,17 @@ int main(int argc, char *argv[])
     QString startCommit;
     int maxDuration;
     int jobCount;
-    if (!parseCommandLine(app.arguments(), profile, startCommit, maxDuration, jobCount))
+    bool log;
+    if (!parseCommandLine(app.arguments(), profile, startCommit, maxDuration, jobCount, log))
         return EXIT_FAILURE;
-    if (!runTest(profile, startCommit, maxDuration, jobCount))
+    if (!runTest(profile, startCommit, maxDuration, jobCount, log))
         return EXIT_FAILURE;
     std::cout << "Test finished successfully." << std::endl;
     return EXIT_SUCCESS;
 }
 
 bool parseCommandLine(const QStringList &commandLine, QString &profile, QString &startCommit,
-                      int &maxDuration, int &jobCount)
+                      int &maxDuration, int &jobCount, bool &log)
 {
     CommandLineParser cmdParser;
     try {
@@ -72,13 +73,15 @@ bool parseCommandLine(const QStringList &commandLine, QString &profile, QString 
     startCommit = cmdParser.startCommit();
     maxDuration = cmdParser.maxDurationInMinutes();
     jobCount = cmdParser.jobCount();
+    log = cmdParser.log();
     return true;
 }
 
-bool runTest(const QString &profile, const QString &startCommit, int maxDuration, int jobCount)
+bool runTest(const QString &profile, const QString &startCommit, int maxDuration, int jobCount,
+             bool log)
 {
     try {
-        FuzzyTester().runTest(profile, startCommit, maxDuration, jobCount);
+        FuzzyTester().runTest(profile, startCommit, maxDuration, jobCount, log);
     } catch (const TestError &e) {
         std::cerr << qPrintable(e.errorMessage) << std::endl;
         return false;

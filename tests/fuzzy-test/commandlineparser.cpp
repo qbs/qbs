@@ -37,6 +37,7 @@ static QString profileOption() { return "--profile"; }
 static QString startCommitOption() { return "--start-commit"; }
 static QString maxDurationoption() { return "--max-duration"; }
 static QString jobCountOption() { return "--jobs"; }
+static QString logOption() { return "--log"; }
 
 CommandLineParser::CommandLineParser()
 {
@@ -48,6 +49,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
     m_startCommit.clear();
     m_maxDuration = 0;
     m_jobCount = 0;
+    m_log = false;
     m_commandLine = commandLine;
     Q_ASSERT(!m_commandLine.isEmpty());
     m_command = m_commandLine.takeFirst();
@@ -61,6 +63,8 @@ void CommandLineParser::parse(const QStringList &commandLine)
             assignOptionArgument(arg, m_jobCount);
         else if (arg == maxDurationoption())
             parseDuration();
+        else if (arg == logOption())
+            m_log = true;
         else
             throw ParseException(QString::fromLocal8Bit("Unknown parameter '%1'").arg(arg));
     }
@@ -73,9 +77,9 @@ void CommandLineParser::parse(const QStringList &commandLine)
 QString CommandLineParser::usageString() const
 {
     return QString::fromLocal8Bit("%1 %2 <profile> %3 <start commit> [%4 <duration>] "
-                                  "[%5 <job count>]")
+                                  "[%5 <job count>] [%6]")
             .arg(QFileInfo(m_command).fileName(), profileOption(), startCommitOption(),
-                 maxDurationoption(), jobCountOption());
+                 maxDurationoption(), jobCountOption(), logOption());
 }
 
 void CommandLineParser::assignOptionArgument(const QString &option, QString &argument)
