@@ -33,6 +33,7 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QProcess>
+#include <QSettings>
 
 #include <algorithm>
 #include <cstdlib>
@@ -44,6 +45,12 @@ static QString buildFromScratchActivity() { return "build-from-scratch"; }
 
 FuzzyTester::FuzzyTester()
 {
+    loadSettings();
+}
+
+FuzzyTester::~FuzzyTester()
+{
+    storeSettings();
 }
 
 void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
@@ -153,13 +160,19 @@ QString FuzzyTester::findWorkingStartCommit(const QString &startCommit)
     QString qbsError;
     m_currentActivity = buildFromScratchActivity();
     for (int i = allCommits.count() - 1; i >= 0; --i) {
-        QString currentCommit = allCommits.at(i);
-        checkoutCommit(currentCommit);
+        m_currentCommit = allCommits.at(i);
+        if (m_unbuildableCommits.contains(m_currentCommit)) {
+            qDebug("Skipping known bad commit %s.", qPrintable(m_currentCommit));
+            continue;
+        }
+        checkoutCommit(m_currentCommit);
         removeDir(defaultBuildDir());
-        m_currentCommit = currentCommit;
-        if (runQbs(defaultBuildDir(), QLatin1String("build"), &qbsError))
-            return currentCommit;
-        qDebug("Commit %s is not buildable.", qPrintable(currentCommit));
+        if (runQbs(defaultBuildDir(), QLatin1String("build"), &qbsError)) {
+            m_buildableCommits << m_currentCommit;
+            return m_currentCommit;
+        }
+        qDebug("Commit %s is not buildable.", qPrintable(m_currentCommit));
+        m_unbuildableCommits << m_currentCommit;
     }
     throw TestError(QString::fromLocal8Bit("Cannot run test: Failed to find a single commit that "
             "builds successfully with qbs. The last qbs error was: '%1'").arg(qbsError));
@@ -231,9 +244,22 @@ void FuzzyTester::removeDir(const QString &dirPath)
 
 bool FuzzyTester::doCleanBuild(QString *errorMessage)
 {
+    if (m_unbuildableCommits.contains(m_currentCommit)) {
+        qDebug("Commit is known not to be buildable, not running qbs.");
+        return false;
+    }
+    if (m_buildableCommits.contains(m_currentCommit)) {
+        qDebug("Commit is known to be buildable, not running qbs.");
+        return true;
+    }
     const QString cleanBuildDir = "fuzzytest-verification-build";
     removeDir(cleanBuildDir);
-    return runQbs(cleanBuildDir, QLatin1String("build"), errorMessage);
+    if (runQbs(cleanBuildDir, QLatin1String("build"), errorMessage)) {
+        m_buildableCommits << m_currentCommit;
+        return true;
+    }
+    m_unbuildableCommits << m_currentCommit;
+    return false;
 }
 
 void FuzzyTester::throwIncrementalBuildError(const QString &message,
@@ -253,4 +279,24 @@ QString FuzzyTester::logFilePath(const QString &commit, const QString &activity)
 QString FuzzyTester::defaultBuildDir()
 {
     return "fuzzytest-build";
+}
+
+
+static QString organization() { return "QtProject"; }
+static QString app() { return "qbs-fuzzy-tester"; }
+static QString unbuildableCommitsKey() { return "unbuildable-commits"; }
+static QString buildableCommitsKey() { return "buildable-commits"; }
+
+void FuzzyTester::loadSettings()
+{
+    QSettings s(organization(), app());
+    m_unbuildableCommits = s.value(unbuildableCommitsKey()).toStringList();
+    m_buildableCommits = s.value(buildableCommitsKey()).toStringList();
+}
+
+void FuzzyTester::storeSettings() const
+{
+    QSettings s(organization(), app());
+    s.setValue(unbuildableCommitsKey(), m_unbuildableCommits);
+    s.setValue(buildableCommitsKey(), m_buildableCommits);
 }

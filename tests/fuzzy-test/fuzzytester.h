@@ -31,13 +31,9 @@
 #define QBS_FUZZYTESTER_H
 
 #include <QQueue>
-#include <QString>
+#include <QStringList>
 
 #include <exception>
-
-QT_BEGIN_NAMESPACE
-class QStringList;
-QT_END_NAMESPACE
 
 class TestError {
 public:
@@ -55,6 +51,7 @@ class FuzzyTester
 {
 public:
     FuzzyTester();
+    ~FuzzyTester();
 
     void runTest(const QString &profile, const QString &startCommit, int maxDurationInMinutes,
                  int jobCount, bool log);
@@ -69,6 +66,9 @@ private:
     bool doCleanBuild(QString *errorMessage = 0);
     void throwIncrementalBuildError(const QString &message, const QStringList &commitSequence);
 
+    void loadSettings();
+    void storeSettings() const;
+
     static QString logFilePath(const QString &commit, const QString &activity);
     static QString defaultBuildDir();
 
@@ -79,6 +79,8 @@ private:
     QString m_currentCommit;
     QString m_currentActivity;
     QQueue<QString> m_commitsWithLogFiles;
+    QStringList m_unbuildableCommits;
+    QStringList m_buildableCommits;
 };
 
 #endif // Include guard.
