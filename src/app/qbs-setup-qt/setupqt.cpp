@@ -298,7 +298,7 @@ static QStringList qbsTargetOsFromQtMkspec(const QString &mkspec)
                              << QLatin1String("unix");
     if (mkspec.startsWith(QLatin1String("haiku-")))
         return QStringList() << QLatin1String("haiku");
-    if (mkspec.startsWith(QLatin1String("hpux-")) || mkspec.startsWith("hpuxi-"))
+    if (mkspec.startsWith(QLatin1String("hpux-")) || mkspec.startsWith(QLatin1String("hpuxi-")))
         return QStringList() << QLatin1String("hpux") << QLatin1String("unix");
     if (mkspec.startsWith(QLatin1String("hurd-")))
         return QStringList() << QLatin1String("hurd") << QLatin1String("unix");
