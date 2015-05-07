@@ -60,6 +60,17 @@ CppModule {
     property path sysroot: qbs.sysroot
     property path platformPath
 
+    property string exportedSymbolsCheckMode: "ignore-undefined"
+    PropertyOptions {
+        name: "exportedSymbolsCheckMode"
+        allowedValues: ["strict", "ignore-undefined"]
+        description: "Controls when we consider an updated dynamic library as changed with "
+            + "regards to other binaries depending on it. The default is \"ignore-undefined\", "
+            + "which means we do not care about undefined symbols being added or removed. "
+            + "If you do care about that, e.g. because you link dependent products with an option "
+            + "such as \"--no-undefined\", then you should set this property to \"strict\"."
+    }
+
     property string toolchainPathPrefix: {
         var path = ''
         if (toolchainInstallPath) {

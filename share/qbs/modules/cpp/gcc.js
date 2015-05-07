@@ -597,14 +597,44 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
                 return;
             }
             var globalSymbolsTarget = process.readStdOut();
-            process.close();
 
             var globalSymbolsSourceLines = globalSymbolsSource.split('\n');
             var globalSymbolsTargetLines = globalSymbolsTarget.split('\n');
             if (globalSymbolsSourceLines.length !== globalSymbolsTargetLines.length) {
-                File.copy(sourceFilePath, targetFilePath);
-                return;
+                var checkMode = ModUtils.moduleProperty(product, "exportedSymbolsCheckMode");
+                if (checkMode === "strict") {
+                    File.copy(sourceFilePath, targetFilePath);
+                    return;
+                }
+
+                // Collect undefined symbols and remove them from the symbol lists.
+                // GNU nm has the "--defined" option for this purpose, but POSIX nm does not.
+                args.push("-u");
+                if (process.exec(command, args.concat(sourceFilePath), false) !== 0) {
+                    File.copy(sourceFilePath, targetFilePath);
+                    return;
+                }
+                var undefinedSymbolsSource = process.readStdOut();
+                if (process.exec(command, args.concat(targetFilePath), false) !== 0) {
+                    File.copy(sourceFilePath, targetFilePath);
+                    return;
+                }
+                var undefinedSymbolsTarget = process.readStdOut();
+                process.close();
+
+                var undefinedSymbolsSourceLines = undefinedSymbolsSource.split('\n');
+                var undefinedSymbolsTargetLines = undefinedSymbolsTarget.split('\n');
+
+                globalSymbolsSourceLines = globalSymbolsSourceLines.filter(function(line) {
+                    return !undefinedSymbolsSourceLines.contains(line); });
+                globalSymbolsTargetLines = globalSymbolsTargetLines.filter(function(line) {
+                    return !undefinedSymbolsTargetLines.contains(line); });
+                if (globalSymbolsSourceLines.length !== globalSymbolsTargetLines.length) {
+                    File.copy(sourceFilePath, targetFilePath);
+                    return;
+                }
             }
+
             while (globalSymbolsSourceLines.length > 0) {
                 var sourceLine = globalSymbolsSourceLines.shift();
                 var targetLine = globalSymbolsTargetLines.shift();
