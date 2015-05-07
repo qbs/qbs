@@ -2,6 +2,7 @@ import qbs 1.0
 import qbs.FileInfo
 import qbs.ModUtils
 import "moc.js" as Moc
+import "qdoc.js" as Qdoc
 
 Module {
     id: qtcore
@@ -20,7 +21,6 @@ Module {
     property string lreleaseName: "lrelease"
     property string qdocName: versionMajor >= 5 ? "qdoc" : "qdoc3"
     property stringList qdocEnvironment
-    property string qdocQhpFileName
     property path docPath
     property stringList helpGeneratorArgs: versionMajor >= 5 ? ["-platform", "minimal"] : []
     property string version
@@ -73,6 +73,7 @@ Module {
     // These are deliberately not path types
     // We don't want to resolve them against the source directory
     property string generatedFilesDir: product.buildDirectory + "/GeneratedFiles"
+    property string qdocOutputDir: FileInfo.joinPaths(generatedFilesDir, "html")
     property string qmFilesDir: product.destinationDirectory
 
     cpp.defines: {
@@ -303,25 +304,12 @@ Module {
         inputs: "qdocconf-main"
         explicitlyDependsOn: ["qdoc", "qdocconf"]
 
-        Artifact {
-            filePath: ModUtils.moduleProperty(product, "generatedFilesDir") + "/html"
-            fileTags: ["qdoc-html"]
-        }
-
-        Artifact {
-            filePath: ModUtils.moduleProperty(product, "generatedFilesDir") + "/html/"
-                      + ModUtils.moduleProperty(product, "qdocQhpFileName")
-            fileTags: ["qhp"]
-        }
+        outputFileTags: ModUtils.allFileTags(Qdoc.qdocFileTaggers())
+        outputArtifacts: Qdoc.outputArtifacts(product, input)
 
         prepare: {
-            var outputDir = outputs["qdoc-html"][0].filePath;
-            var args = [input.filePath];
-            var qtVersion = ModUtils.moduleProperty(product, "versionMajor");
-            if (qtVersion >= 5) {
-                args.push("-outputdir");
-                args.push(outputDir);
-            }
+            var outputDir = ModUtils.moduleProperty(product, "qdocOutputDir");
+            var args = Qdoc.qdocArgs(product, input, outputDir);
             var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/'
                                   + ModUtils.moduleProperty(product, "qdocName"), args);
             cmd.description = 'qdoc ' + input.fileName;

@@ -19,7 +19,6 @@ Product {
     }
 
     property string versionTag: QbsFunctions.qbsVersion().replace(/\.|-/g, "")
-    Qt.core.qdocQhpFileName: "qbs.qhp"
     Qt.core.qdocEnvironment: [
         "QBS_VERSION=" + QbsFunctions.qbsVersion(),
         "SRCDIR=" + path,
@@ -28,8 +27,9 @@ Product {
     ]
 
     Group {
-        fileTagsFilter: "qdoc-html"
+        fileTagsFilter: ["qdoc-output"]
         qbs.install: true
-        qbs.installDir: "share/doc/qbs"
+        qbs.installDir: "share/doc/qbs/html"
+        qbs.installSourceBase: Qt.core.qdocOutputDir
     }
 }

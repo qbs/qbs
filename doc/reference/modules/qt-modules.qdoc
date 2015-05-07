@@ -274,11 +274,6 @@
         \li \c{"qdoc3"} for Qt 4, \c{"qdoc"} otherwise
         \li The base name of the \c qdoc tool.
     \row
-        \li qdocQhpFileName
-        \li \c{string}
-        \li \c{undefined}
-        \li Controls which name the \c qhp file gets when generating documentation with \c qdoc.
-    \row
         \li qtBuildVariant
         \li \c{string}
         \li See below.

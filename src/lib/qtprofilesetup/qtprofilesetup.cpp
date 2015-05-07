@@ -209,6 +209,8 @@ static void createModules(Profile &profile, Settings *settings,
             moduleTemplateFileName = QLatin1String("core.qbs");
             copyTemplateFile(QLatin1String("moc.js"), qbsQtModuleDir, profile, qtEnvironment,
                              &allFiles);
+            copyTemplateFile(QLatin1String("qdoc.js"), qbsQtModuleDir, profile, qtEnvironment,
+                             &allFiles);
         } else if (module.qbsName == QLatin1String("gui")) {
             moduleTemplateFileName = QLatin1String("gui.qbs");
         } else if (module.qbsName == QLatin1String("phonon")) {
