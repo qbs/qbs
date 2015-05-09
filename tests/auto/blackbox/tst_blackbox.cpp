@@ -1518,8 +1518,6 @@ void TestBlackbox::java()
     // Now check whether we correctly predicted the class file output paths.
     QCOMPARE(runQbs(QbsRunParameters("clean", QStringList() << "--all-artifacts")), 0);
     foreach (const QString &classFile, classFiles1) {
-        if (classFile.contains("NoPackage"))
-            QEXPECT_FAIL(0, "Fix parser", Continue);
         QVERIFY2(!regularFileExists(classFile), qPrintable(classFile));
     }
 }
