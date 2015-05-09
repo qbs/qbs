@@ -32,12 +32,14 @@ setupqtprofilelib.subdir = src/lib/qtprofilesetup
 setupqtprofilelib.depends = corelib
 src_app.subdir = src/app
 src_app.depends = setupqtprofilelib
+src_libexec.subdir = src/libexec
 src_plugins.subdir = src/plugins
 tests.depends = corelib src_plugins
 SUBDIRS += \
     corelib\
     setupqtprofilelib\
     src_app\
+    src_libexec\
     src_plugins\
     static.pro\
     tests

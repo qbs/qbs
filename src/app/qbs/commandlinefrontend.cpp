@@ -157,6 +157,8 @@ void CommandLineFrontend::start()
                     + QLatin1String("/" QBS_RELATIVE_SEARCH_PATH))));
             params.setPluginPaths(prefs.pluginPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
                     + QLatin1String("/" QBS_RELATIVE_PLUGINS_PATH))));
+            params.setLibexecPath(QDir::cleanPath(QCoreApplication::applicationDirPath()
+                    + QLatin1String("/" QBS_RELATIVE_LIBEXEC_PATH)));
             params.setTopLevelProfile(profileName);
             params.setBuildVariant(buildVariant);
             params.setBuildRoot(buildDirectory(profileName));

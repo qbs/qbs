@@ -1348,6 +1348,8 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &proje
             + QLatin1String("/" QBS_RELATIVE_SEARCH_PATH))));
     setupParams.setPluginPaths(prefs.pluginPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
             + QLatin1String("/" QBS_RELATIVE_PLUGINS_PATH))));
+    setupParams.setLibexecPath(QDir::cleanPath(QCoreApplication::applicationDirPath()
+            + QLatin1String("/" QBS_RELATIVE_LIBEXEC_PATH)));
     setupParams.setTopLevelProfile(profileName());
     setupParams.setBuildVariant(QLatin1String("debug"));
     return setupParams;
