@@ -42,6 +42,17 @@ function extractPackageName(filePath)
     return packageName;
 }
 
+function supportsGeneratedNativeHeaderFiles(product) {
+    var compilerVersionMajor = ModUtils.moduleProperty(product, "compilerVersionMajor");
+    if (compilerVersionMajor === 1) {
+        if (ModUtils.moduleProperty(product, "compilerVersionMinor") >= 8) {
+            return true;
+        }
+    }
+
+    return compilerVersionMajor > 1;
+}
+
 function javacArguments(product, inputs) {
     var i;
     var outputDir = ModUtils.moduleProperty(product, "classFilesDir");
@@ -58,6 +69,8 @@ function javacArguments(product, inputs) {
             "-s", product.buildDirectory,
             debugArg, "-d", outputDir
         ];
+    if (supportsGeneratedNativeHeaderFiles(product))
+        args.push("-h", product.buildDirectory);
     var runtimeVersion = ModUtils.moduleProperty(product, "runtimeVersion");
     if (runtimeVersion)
         args.push("-target", runtimeVersion);
