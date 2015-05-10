@@ -57,51 +57,6 @@ static inline NSDate *QDateTime_toNSDate(const QDateTime &qdatetime)
 #endif
 }
 
-static inline QString QString_fromNSString(const NSString *string)
-{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-    return QString::fromNSString(string);
-#else
-    if (!string)
-        return QString();
-   QString qstring;
-   qstring.resize([string length]);
-   [string getCharacters:reinterpret_cast<unichar*>(qstring.data())
-                   range:NSMakeRange(0, [string length])];
-   return qstring;
-#endif
-}
-
-static inline NSString *QString_toNSString(const QString &qstring)
-{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-    return qstring.toNSString();
-#else
-    return [NSString stringWithCharacters:reinterpret_cast<const UniChar*>(qstring.unicode())
-                                   length:qstring.length()];
-#endif
-}
-
-static inline QByteArray QByteArray_fromNSData(const NSData *data)
-{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 3, 0)
-    return QByteArray::fromNSData(data);
-#else
-    if (!data)
-        return QByteArray();
-    return QByteArray(reinterpret_cast<const char*>([data bytes]), [data length]);
-#endif
-}
-
-static inline NSData *QByteArray_toNSData(const QByteArray &qbytearray)
-{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 3, 0)
-    return qbytearray.toNSData();
-#else
-    return [NSData dataWithBytes:qbytearray.constData() length:qbytearray.size()];
-#endif
-}
-
 static QVariant fromObject(id obj);
 static QVariantMap fromDictionary(NSDictionary *dict);
 static QVariantList fromArray(NSArray *array);

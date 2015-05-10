@@ -30,7 +30,6 @@
 ****************************************************************************/
 
 #include "propertylist.h"
-#include "propertylistutils.h"
 
 #include <tools/hostosinfo.h>
 
@@ -39,32 +38,16 @@
 #include <QScriptValue>
 #include <QTextStream>
 
-#import <Foundation/Foundation.h>
-
-// If this conflicts someday, just change it :)
+// Same values as CoreFoundation and Foundation APIs
 enum {
-    NSPropertyListJSONFormat = 1000
+    QPropertyListOpenStepFormat = 1,
+    QPropertyListXMLFormat_v1_0 = 100,
+    QPropertyListBinaryFormat_v1_0 = 200,
+    QPropertyListJSONFormat = 1000 // If this conflicts someday, just change it :)
 };
 
 namespace qbs {
 namespace Internal {
-
-static inline QString fromNSString(const NSString *string)
-{
-    if (!string)
-        return QString();
-   QString qstring;
-   qstring.resize([string length]);
-   [string getCharacters:reinterpret_cast<unichar*>(qstring.data())
-                   range:NSMakeRange(0, [string length])];
-   return qstring;
-}
-
-static inline NSString *toNSString(const QString &qstring)
-{
-    return [NSString stringWithCharacters:reinterpret_cast<const UniChar*>(qstring.unicode())
-                                   length:qstring.length()];
-}
 
 class PropertyListPrivate
 {
@@ -74,8 +57,8 @@ public:
     QVariant propertyListObject;
     int propertyListFormat;
 
-    void readFromData(QScriptContext *context, NSData *data);
-    NSData *writeToData(QScriptContext *context, const QString &format);
+    void readFromData(QScriptContext *context, QByteArray data);
+    QByteArray writeToData(QScriptContext *context, const QString &format);
 };
 
 void initializeJsExtensionPropertyList(QScriptValue extensionObject)
@@ -137,11 +120,7 @@ void PropertyList::readFromString(const QString &input)
 {
     Q_ASSERT(thisObject().engine() == engine());
     PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
-
-    NSString *inputString = toNSString(input);
-    NSData *data = [NSData dataWithBytes:[inputString UTF8String]
-                            length:[inputString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]];
-    p->d->readFromData(p->context(), data);
+    p->d->readFromData(p->context(), input.toUtf8());
 }
 
 void PropertyList::readFromFile(const QString &filePath)
@@ -149,16 +128,162 @@ void PropertyList::readFromFile(const QString &filePath)
     Q_ASSERT(thisObject().engine() == engine());
     PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
 
-    NSError *error = nil;
-    NSData *data = [NSData dataWithContentsOfFile:toNSString(filePath) options:0 error:&error];
-    if (data) {
-        p->d->readFromData(p->context(), data);
+    QFile file(filePath);
+    if (file.open(QIODevice::ReadOnly)) {
+        QByteArray data = file.readAll();
+        if (!data.isEmpty()) {
+            p->d->readFromData(p->context(), data);
+        } else {
+            p->context()->throwError(file.errorString());
+        }
     } else {
-        p->context()->throwError(fromNSString([error localizedDescription]));
+        p->context()->throwError(file.errorString());
     }
 }
 
-NSData *PropertyListPrivate::writeToData(QScriptContext *context, const QString &format)
+void PropertyList::writeToFile(const QString &filePath, const QString &plistFormat)
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+
+    QByteArray data = p->d->writeToData(p->context(), plistFormat);
+    if (Q_LIKELY(!data.isEmpty())) {
+        QFile file(filePath);
+        if (file.open(QIODevice::WriteOnly)) {
+            if (Q_UNLIKELY(file.write(data) != data.size())) {
+                p->context()->throwError(file.errorString());
+            }
+        } else {
+            p->context()->throwError(file.errorString());
+        }
+    }
+}
+
+QScriptValue PropertyList::format() const
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    switch (p->d->propertyListFormat)
+    {
+    case QPropertyListOpenStepFormat:
+        return QLatin1String("openstep");
+    case QPropertyListXMLFormat_v1_0:
+        return QLatin1String("xml1");
+    case QPropertyListBinaryFormat_v1_0:
+        return QLatin1String("binary1");
+    case QPropertyListJSONFormat:
+        return QLatin1String("json");
+    default:
+        return p->engine()->undefinedValue();
+    }
+}
+
+QScriptValue PropertyList::toObject() const
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    return p->engine()->toScriptValue(p->d->propertyListObject);
+}
+
+QString PropertyList::toString(const QString &plistFormat) const
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+
+    if (plistFormat == QLatin1String("binary1")) {
+        p->context()->throwError(QLatin1String("Property list object cannot be converted to a "
+                                               "string in the binary1 format; this format can only "
+                                               "be written directly to a file"));
+        return QString();
+    }
+
+    if (!isEmpty())
+        return QString::fromUtf8(p->d->writeToData(p->context(), plistFormat));
+
+    return QString();
+}
+
+QString PropertyList::toXMLString() const
+{
+    return toString(QLatin1String("xml1"));
+}
+
+QString PropertyList::toJSON(const QString &style) const
+{
+    QString format = QLatin1String("json");
+    if (!style.isEmpty())
+        format += QLatin1String("-") + style;
+
+    return toString(format);
+}
+
+} // namespace Internal
+} // namespace qbs
+
+#include "propertylistutils.h"
+
+namespace qbs {
+namespace Internal {
+
+void PropertyListPrivate::readFromData(QScriptContext *context, QByteArray data)
+{
+    NSPropertyListFormat format;
+    int internalFormat = 0;
+    NSError *error = nil;
+    NSString *errorString = nil;
+    id plist = nil;
+
+    if ([NSPropertyListSerialization
+            respondsToSelector:@selector(propertyListWithData:options:format:error:)]) {
+        error = nil;
+        errorString = nil;
+        plist = [NSPropertyListSerialization propertyListWithData:QByteArray_toNSData(data)
+                                                          options:0
+                                                           format:&format error:&error];
+        if (Q_UNLIKELY(!plist)) {
+            errorString = [error localizedDescription];
+        }
+    }
+    else
+    {
+        error = nil;
+        errorString = nil;
+        plist = [NSPropertyListSerialization propertyListFromData:QByteArray_toNSData(data)
+                                                 mutabilityOption:NSPropertyListImmutable
+                                                           format:&format
+                                                 errorDescription:&errorString];
+    }
+    if (plist)
+        internalFormat = format;
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_10_7
+    if (!plist && NSClassFromString(@"NSJSONSerialization")) {
+        error = nil;
+        errorString = nil;
+        plist = [NSJSONSerialization JSONObjectWithData:QByteArray_toNSData(data)
+                                                options:0
+                                                  error:&error];
+        if (Q_UNLIKELY(!plist)) {
+            errorString = [error localizedDescription];
+        } else {
+            internalFormat = QPropertyListJSONFormat;
+        }
+    }
+#endif
+
+    if (Q_UNLIKELY(!plist)) {
+        context->throwError(QString_fromNSString(errorString));
+    } else {
+        QVariant obj = QPropertyListUtils::fromPropertyList(plist);
+        if (!obj.isNull()) {
+            propertyListObject = obj;
+            propertyListFormat = internalFormat;
+        } else {
+            context->throwError(QLatin1String("error converting property list"));
+        }
+    }
+}
+
+QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QString &format)
 {
     NSError *error = nil;
     NSString *errorString = nil;
@@ -221,144 +346,10 @@ NSData *PropertyListPrivate::writeToData(QScriptContext *context, const QString 
     }
 
     if (Q_UNLIKELY(!data)) {
-        context->throwError(fromNSString(errorString));
+        context->throwError(QString_fromNSString(errorString));
     }
 
-    return data;
-}
-
-void PropertyList::writeToFile(const QString &filePath, const QString &plistFormat)
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
-
-    NSError *error = nil;
-    NSData *data = p->d->writeToData(p->context(), plistFormat);
-    if (Q_LIKELY(data)) {
-        if (Q_UNLIKELY(![data writeToFile:toNSString(filePath) options:NSDataWritingAtomic
-                                     error:&error])) {
-            p->context()->throwError(fromNSString([error localizedDescription]));
-        }
-    }
-}
-
-void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
-{
-    NSPropertyListFormat format;
-    int internalFormat = 0;
-    NSError *error = nil;
-    NSString *errorString = nil;
-    id plist = nil;
-
-    if ([NSPropertyListSerialization
-            respondsToSelector:@selector(propertyListWithData:options:format:error:)]) {
-        error = nil;
-        errorString = nil;
-        plist = [NSPropertyListSerialization propertyListWithData:data
-                                                          options:0
-                                                           format:&format error:&error];
-        if (Q_UNLIKELY(!plist)) {
-            errorString = [error localizedDescription];
-        }
-    }
-    else
-    {
-        error = nil;
-        errorString = nil;
-        plist = [NSPropertyListSerialization propertyListFromData:data
-                                                 mutabilityOption:NSPropertyListImmutable
-                                                           format:&format
-                                                 errorDescription:&errorString];
-    }
-    if (plist)
-        internalFormat = format;
-#if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_10_7
-    if (!plist && NSClassFromString(@"NSJSONSerialization")) {
-        error = nil;
-        errorString = nil;
-        plist = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-        if (Q_UNLIKELY(!plist)) {
-            errorString = [error localizedDescription];
-        } else {
-            internalFormat = NSPropertyListJSONFormat;
-        }
-    }
-#endif
-
-    if (Q_UNLIKELY(!plist)) {
-        context->throwError(fromNSString(errorString));
-    } else {
-        QVariant obj = QPropertyListUtils::fromPropertyList(plist);
-        if (!obj.isNull()) {
-            propertyListObject = obj;
-            propertyListFormat = internalFormat;
-        } else {
-            context->throwError(QLatin1String("error converting property list"));
-        }
-    }
-}
-
-QScriptValue PropertyList::format() const
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
-    switch (p->d->propertyListFormat)
-    {
-    case NSPropertyListOpenStepFormat:
-        return QLatin1String("openstep");
-    case NSPropertyListXMLFormat_v1_0:
-        return QLatin1String("xml1");
-    case NSPropertyListBinaryFormat_v1_0:
-        return QLatin1String("binary1");
-    case NSPropertyListJSONFormat:
-        return QLatin1String("json");
-    default:
-        return p->engine()->undefinedValue();
-    }
-}
-
-QScriptValue PropertyList::toObject() const
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
-    return p->engine()->toScriptValue(p->d->propertyListObject);
-}
-
-QString PropertyList::toString(const QString &plistFormat) const
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
-
-    if (plistFormat == QLatin1String("binary1")) {
-        p->context()->throwError(QLatin1String("Property list object cannot be converted to a "
-                                               "string in the binary1 format; this format can only "
-                                               "be written directly to a file"));
-        return QString();
-    }
-
-    if (!isEmpty())
-    {
-        NSData *data = p->d->writeToData(p->context(), plistFormat);
-        if (data)
-            return fromNSString([[[NSString alloc] initWithData:data
-                                                       encoding:NSUTF8StringEncoding] autorelease]);
-    }
-
-    return QString();
-}
-
-QString PropertyList::toXMLString() const
-{
-    return toString(QLatin1String("xml1"));
-}
-
-QString PropertyList::toJSON(const QString &style) const
-{
-    QString format = QLatin1String("json");
-    if (!style.isEmpty())
-        format += QLatin1String("-") + style;
-
-    return toString(format);
+    return QByteArray_fromNSData(data);
 }
 
 } // namespace Internal
