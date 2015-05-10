@@ -190,8 +190,8 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
     QString &libFilePath = debugBuild ? libFilePathDebug : libFilePathRelease;
 
     if (qtEnv.mkspecName.contains(QLatin1String("ios")) && isStaticLibrary) {
-        QtModuleInfo platformSupportModule = *this;
-        platformSupportModule.name = QLatin1String("QtPlatformSupport");
+        const QtModuleInfo platformSupportModule(QLatin1String("QtPlatformSupport"),
+                                                 QLatin1String("platformsupport"));
         libs << QLatin1String("z") << QLatin1String("m")
              << platformSupportModule.libNameForLinker(qtEnv, debugBuild);
         flags << QLatin1String("-force_load")
