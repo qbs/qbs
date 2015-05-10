@@ -223,7 +223,7 @@ static NSDictionary *toDictionary(const QVariantMap &map)
     QMapIterator<QString, QVariant> i(map);
     while (i.hasNext()) {
         i.next();
-        dict[QString_toNSString(i.key())] = toObject(i.value());
+        [dict setObject:toObject(i.value()) forKey:QString_toNSString(i.key())];
     }
     return [NSDictionary dictionaryWithDictionary:dict];
 }
