@@ -227,129 +227,133 @@ namespace Internal {
 
 void PropertyListPrivate::readFromData(QScriptContext *context, QByteArray data)
 {
-    NSPropertyListFormat format;
-    int internalFormat = 0;
-    NSError *error = nil;
-    NSString *errorString = nil;
-    id plist = nil;
+    @autoreleasepool {
+        NSPropertyListFormat format;
+        int internalFormat = 0;
+        NSError *error = nil;
+        NSString *errorString = nil;
+        id plist = nil;
 
-    if ([NSPropertyListSerialization
-            respondsToSelector:@selector(propertyListWithData:options:format:error:)]) {
-        error = nil;
-        errorString = nil;
-        plist = [NSPropertyListSerialization propertyListWithData:QByteArray_toNSData(data)
-                                                          options:0
-                                                           format:&format error:&error];
-        if (Q_UNLIKELY(!plist)) {
-            errorString = [error localizedDescription];
+        if ([NSPropertyListSerialization
+                respondsToSelector:@selector(propertyListWithData:options:format:error:)]) {
+            error = nil;
+            errorString = nil;
+            plist = [NSPropertyListSerialization propertyListWithData:QByteArray_toNSData(data)
+                                                              options:0
+                                                               format:&format error:&error];
+            if (Q_UNLIKELY(!plist)) {
+                errorString = [error localizedDescription];
+            }
         }
-    }
-    else
-    {
-        error = nil;
-        errorString = nil;
-        plist = [NSPropertyListSerialization propertyListFromData:QByteArray_toNSData(data)
-                                                 mutabilityOption:NSPropertyListImmutable
-                                                           format:&format
-                                                 errorDescription:&errorString];
-    }
-    if (plist)
-        internalFormat = format;
+        else
+        {
+            error = nil;
+            errorString = nil;
+            plist = [NSPropertyListSerialization propertyListFromData:QByteArray_toNSData(data)
+                                                     mutabilityOption:NSPropertyListImmutable
+                                                               format:&format
+                                                     errorDescription:&errorString];
+        }
+        if (plist)
+            internalFormat = format;
 #if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_10_7
-    if (!plist && NSClassFromString(@"NSJSONSerialization")) {
-        error = nil;
-        errorString = nil;
-        plist = [NSJSONSerialization JSONObjectWithData:QByteArray_toNSData(data)
-                                                options:0
-                                                  error:&error];
-        if (Q_UNLIKELY(!plist)) {
-            errorString = [error localizedDescription];
-        } else {
-            internalFormat = QPropertyListJSONFormat;
+        if (!plist && NSClassFromString(@"NSJSONSerialization")) {
+            error = nil;
+            errorString = nil;
+            plist = [NSJSONSerialization JSONObjectWithData:QByteArray_toNSData(data)
+                                                    options:0
+                                                      error:&error];
+            if (Q_UNLIKELY(!plist)) {
+                errorString = [error localizedDescription];
+            } else {
+                internalFormat = QPropertyListJSONFormat;
+            }
         }
-    }
 #endif
 
-    if (Q_UNLIKELY(!plist)) {
-        context->throwError(QString_fromNSString(errorString));
-    } else {
-        QVariant obj = QPropertyListUtils::fromPropertyList(plist);
-        if (!obj.isNull()) {
-            propertyListObject = obj;
-            propertyListFormat = internalFormat;
+        if (Q_UNLIKELY(!plist)) {
+            context->throwError(QString_fromNSString(errorString));
         } else {
-            context->throwError(QLatin1String("error converting property list"));
+            QVariant obj = QPropertyListUtils::fromPropertyList(plist);
+            if (!obj.isNull()) {
+                propertyListObject = obj;
+                propertyListFormat = internalFormat;
+            } else {
+                context->throwError(QLatin1String("error converting property list"));
+            }
         }
     }
 }
 
 QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QString &format)
 {
-    NSError *error = nil;
-    NSString *errorString = nil;
-    NSData *data = nil;
+    @autoreleasepool {
+        NSError *error = nil;
+        NSString *errorString = nil;
+        NSData *data = nil;
 
-    id obj = QPropertyListUtils::toPropertyList(propertyListObject);
-    if (!obj) {
-        context->throwError(QLatin1String("error converting property list"));
-        return 0;
-    }
+        id obj = QPropertyListUtils::toPropertyList(propertyListObject);
+        if (!obj) {
+            context->throwError(QLatin1String("error converting property list"));
+            return 0;
+        }
 
-    if (format == QLatin1String("json") || format == QLatin1String("json-pretty") ||
-        format == QLatin1String("json-compact")) {
+        if (format == QLatin1String("json") || format == QLatin1String("json-pretty") ||
+            format == QLatin1String("json-compact")) {
 #if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_10_7
-        if (NSClassFromString(@"NSJSONSerialization")) {
-            if ([NSJSONSerialization isValidJSONObject:obj]) {
-                error = nil;
-                errorString = nil;
-                const NSJSONWritingOptions options = format == QLatin1String("json-pretty")
-                        ? NSJSONWritingPrettyPrinted : 0;
-                data = [NSJSONSerialization dataWithJSONObject:obj
-                                                       options:options
-                                                         error:&error];
+            if (NSClassFromString(@"NSJSONSerialization")) {
+                if ([NSJSONSerialization isValidJSONObject:obj]) {
+                    error = nil;
+                    errorString = nil;
+                    const NSJSONWritingOptions options = format == QLatin1String("json-pretty")
+                            ? NSJSONWritingPrettyPrinted : 0;
+                    data = [NSJSONSerialization dataWithJSONObject:obj
+                                                           options:options
+                                                             error:&error];
+                    if (Q_UNLIKELY(!data)) {
+                        errorString = [error localizedDescription];
+                    }
+                } else {
+                    errorString = @"Property list object cannot be converted to JSON data";
+                }
+            }
+#endif
+            else {
+                errorString = @"JSON serialization of property lists is not "
+                              @"supported on this version of OS X";
+            }
+        } else if (format == QLatin1String("xml1") || format == QLatin1String("binary1")) {
+            const NSPropertyListFormat plistFormat = format == QLatin1String("xml1")
+                                                          ? NSPropertyListXMLFormat_v1_0
+                                                          : NSPropertyListBinaryFormat_v1_0;
+
+            error = nil;
+            errorString = nil;
+            if ([NSPropertyListSerialization
+                    respondsToSelector:@selector(dataWithPropertyList:format:options:error:)]) {
+                data = [NSPropertyListSerialization dataWithPropertyList:obj
+                                                                  format:plistFormat
+                                                                 options:0
+                                                                   error:&error];
                 if (Q_UNLIKELY(!data)) {
                     errorString = [error localizedDescription];
                 }
             } else {
-                errorString = @"Property list object cannot be converted to JSON data";
-            }
-        }
-#endif
-        else {
-            errorString = @"JSON serialization of property lists is not "
-                          @"supported on this version of OS X";
-        }
-    } else if (format == QLatin1String("xml1") || format == QLatin1String("binary1")) {
-        const NSPropertyListFormat plistFormat = format == QLatin1String("xml1")
-                                                      ? NSPropertyListXMLFormat_v1_0
-                                                      : NSPropertyListBinaryFormat_v1_0;
-
-        error = nil;
-        errorString = nil;
-        if ([NSPropertyListSerialization
-                respondsToSelector:@selector(dataWithPropertyList:format:options:error:)]) {
-            data = [NSPropertyListSerialization dataWithPropertyList:obj
-                                                              format:plistFormat
-                                                             options:0
-                                                               error:&error];
-            if (Q_UNLIKELY(!data)) {
-                errorString = [error localizedDescription];
+                data = [NSPropertyListSerialization dataFromPropertyList:obj
+                                                                  format:plistFormat
+                                                        errorDescription:&errorString];
             }
         } else {
-            data = [NSPropertyListSerialization dataFromPropertyList:obj
-                                                              format:plistFormat
-                                                    errorDescription:&errorString];
+            errorString = [NSString stringWithFormat:@"Property lists cannot be written in the '%s' "
+                                                     @"format", format.toUtf8().constData()];
         }
-    } else {
-        errorString = [NSString stringWithFormat:@"Property lists cannot be written in the '%s' "
-                                                 @"format", format.toUtf8().constData()];
-    }
 
-    if (Q_UNLIKELY(!data)) {
-        context->throwError(QString_fromNSString(errorString));
-    }
+        if (Q_UNLIKELY(!data)) {
+            context->throwError(QString_fromNSString(errorString));
+        }
 
-    return QByteArray_fromNSData(data);
+        return QByteArray_fromNSData(data);
+    }
 }
 
 } // namespace Internal
