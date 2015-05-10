@@ -36,6 +36,7 @@
 #include <tools/qbsassert.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/hostosinfo.h>
 #include <tools/propertyfinder.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
@@ -189,7 +190,8 @@ void ProductInstaller::copyFile(const Artifact *artifact)
         handleError(Tr::tr("Directory '%1' could not be created.").arg(nativeTargetDir));
         return;
     }
-    if (QFileInfo(artifact->filePath()).isDir()) {
+    QFileInfo fi(artifact->filePath());
+    if (fi.isDir() && !(HostOsInfo::isAnyUnixHost() && fi.isSymLink())) {
         m_logger.qbsWarning() << Tr::tr("Recursively copying directory '%1' into target directory "
                                         "'%2'. This behavior is deprecated and will change in qbs "
                                         "1.5. Install the individual file artifacts instead.")
