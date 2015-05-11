@@ -326,7 +326,7 @@ void TestBlackbox::android_data()
                                    << (QList<int>() << 10);
     QTest::newRow("multiple apks") << "multiple-apks-per-project"
                                    << (QStringList() << "twolibs1" << "twolibs2")
-                                   << (QList<int>() << 15 << 10);
+                                   << (QList<int>() << 15 << 9);
 }
 
 void TestBlackbox::buildDirectories()
