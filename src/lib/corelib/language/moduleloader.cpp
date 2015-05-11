@@ -45,6 +45,7 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/preferences.h>
 #include <tools/profile.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
@@ -433,7 +434,16 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
         productContext.moduleProperties = it.value().toMap();
     }
     productContext.project = projectContext;
-    m_reader->pushExtraSearchPaths(readExtraSearchPaths(item));
+
+    QStringList extraSearchPaths = readExtraSearchPaths(item);
+    Settings settings(m_parameters.settingsDirectory());
+    const QStringList prefsSearchPaths
+            = Preferences(&settings, productContext.profileName).searchPaths();
+    foreach (const QString &p, prefsSearchPaths) {
+        if (!m_moduleSearchPaths.contains(p) && FileInfo(p).exists())
+            extraSearchPaths << p;
+    }
+    m_reader->pushExtraSearchPaths(extraSearchPaths);
 
     productContext.item = item;
     ItemValuePtr itemValue = ItemValue::create(item);
