@@ -1012,6 +1012,27 @@ static void copyProperties(const QVariantMap &src, QVariantMap &dst)
     }
 }
 
+static bool hasDependencyCycle(QSet<ResolvedProduct *> *checked,
+                               QSet<ResolvedProduct *> *branch,
+                               const ResolvedProductPtr &product,
+                               ErrorInfo *error)
+{
+    if (branch->contains(product.data()))
+        return true;
+    if (checked->contains(product.data()))
+        return false;
+    checked->insert(product.data());
+    branch->insert(product.data());
+    foreach (const ResolvedProductPtr &dep, product->dependencies) {
+        if (hasDependencyCycle(checked, branch, dep, error)) {
+            error->prepend(dep->name, dep->location);
+            return true;
+        }
+    }
+    branch->remove(product.data());
+    return false;
+}
+
 void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
 {
     // Collect product dependencies from Export items.
@@ -1081,6 +1102,18 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
                 if (artifact->properties != rproduct->moduleProperties)
                     insertExportedConfig(usedProductName, exportedConfig, artifact->properties);
             }
+        }
+    }
+
+    // Check for cyclic dependencies.
+    QSet<ResolvedProduct *> checked;
+    foreach (const ResolvedProductPtr &rproduct, allProducts) {
+        QSet<ResolvedProduct *> branch;
+        ErrorInfo error;
+        if (hasDependencyCycle(&checked, &branch, rproduct, &error)) {
+            error.prepend(rproduct->name, rproduct->location);
+            error.prepend(Tr::tr("Cyclic dependencies detected."));
+            throw error;
         }
     }
 }
