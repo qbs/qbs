@@ -21,6 +21,8 @@ include(logging/logging.pri)
 include(parser/parser.pri)
 include(tools/tools.pri)
 
+win32:LIBS += Psapi.lib
+
 HEADERS += \
     qbs.h
 

@@ -63,36 +63,36 @@ QByteArray LanguageInfo::qmlTypeInfo()
 
         Internal::ItemDeclaration itemDecl = builtins.declarationsForType(typeName);
         foreach (const Internal::PropertyDeclaration &property, itemDecl.properties()) {
-            result.append("        Property { name=\"");
+            result.append("        Property { name: \"");
             result.append(property.name().toUtf8());
             result.append("\"; ");
             switch (property.type()) {
             case qbs::Internal::PropertyDeclaration::UnknownType:
-                result.append("type=\"unknown\"");
+                result.append("type: \"unknown\"");
                 break;
             case qbs::Internal::PropertyDeclaration::Boolean:
-                result.append("type=\"bool\"");
+                result.append("type: \"bool\"");
                 break;
             case qbs::Internal::PropertyDeclaration::Integer:
-                result.append("type=\"int\"");
+                result.append("type: \"int\"");
                 break;
             case qbs::Internal::PropertyDeclaration::Path:
-                result.append("type=\"string\"");
+                result.append("type: \"string\"");
                 break;
             case qbs::Internal::PropertyDeclaration::PathList:
-                result.append("type=\"string\"; isList=true");
+                result.append("type: \"string\"; isList: true");
                 break;
             case qbs::Internal::PropertyDeclaration::String:
-                result.append("type=\"string\"");
+                result.append("type: \"string\"");
                 break;
             case qbs::Internal::PropertyDeclaration::StringList:
-                result.append("type=\"string\"; isList=true");
+                result.append("type: \"string\"; isList: true");
                 break;
             case qbs::Internal::PropertyDeclaration::Variant:
-                result.append("type=\"QVariant\"");
+                result.append("type: \"QVariant\"");
                 break;
             case qbs::Internal::PropertyDeclaration::Verbatim:
-                result.append("type=\"string\"");
+                result.append("type: \"string\"");
                 break;
             }
             result.append(" }\n"); // Property

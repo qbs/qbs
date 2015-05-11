@@ -18,6 +18,8 @@ QbsLibrary {
         "QT_CREATOR", "QML_BUILD_STATIC_LIB",   // needed for QmlJS
         "SRCDIR=\"" + path + "\""
     ]).concat(projectFileUpdateDefines)
+    cpp.dynamicLibraries: base.concat(qbs.targetOS.contains("windows")
+        ? ["Psapi.lib"] : [])
 
     Properties {
         condition: qbs.targetOS.contains("darwin")
@@ -302,7 +304,6 @@ QbsLibrary {
             "cleanoptions.cpp",
             "codelocation.cpp",
             "commandechomode.cpp",
-            "commandechomode.h",
             "error.cpp",
             "executablefinder.cpp",
             "executablefinder.h",
@@ -320,6 +321,8 @@ QbsLibrary {
             "preferences.cpp",
             "processresult.cpp",
             "processresult_p.h",
+            "processutils.cpp",
+            "processutils.h",
             "profile.cpp",
             "progressobserver.cpp",
             "progressobserver.h",
@@ -352,6 +355,7 @@ QbsLibrary {
             "buildoptions.h",
             "cleanoptions.h",
             "codelocation.h",
+            "commandechomode.h",
             "error.h",
             "generateoptions.h",
             "installoptions.h",

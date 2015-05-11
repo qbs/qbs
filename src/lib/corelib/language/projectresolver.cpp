@@ -413,6 +413,10 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
         foreach (const Item::Module &childModule, m.item->modules())
             modules.enqueue(childModule);
     }
+    std::sort(m_productContext->product->modules.begin(), m_productContext->product->modules.end(),
+              [](const ResolvedModuleConstPtr &m1, const ResolvedModuleConstPtr &m2) {
+                      return m1->name < m2->name;
+              });
 }
 
 void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
@@ -899,7 +903,6 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
                     ModuleLoaderResult::ProductInfo::Dependency newDependency;
                     newDependency.name = p->name;
                     newDependency.profile = p->profile;
-                    newDependency.required = true;
                     productInfo->usedProducts << newDependency;
                 }
             }
@@ -914,7 +917,6 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
                 ModuleLoaderResult::ProductInfo::Dependency newDependency;
                 newDependency.name = p->name;
                 newDependency.profile = p->profile;
-                newDependency.required = true;
                 productInfo->usedProducts << newDependency;
             }
             productInfo->usedProducts.removeAt(i);

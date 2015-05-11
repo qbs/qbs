@@ -31,6 +31,7 @@
 #include "buildgraphlocker.h"
 
 #include "error.h"
+#include "processutils.h"
 
 #include <logging/translator.h>
 
@@ -41,8 +42,9 @@
 namespace qbs {
 namespace Internal {
 
-BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath)
+BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logger &logger)
     : m_lockFile(buildGraphFilePath + QLatin1String(".lock"))
+    , m_logger(logger)
 {
     const QString buildDir = QFileInfo(buildGraphFilePath).absolutePath();
     if (!QDir::root().mkpath(buildDir)) {
@@ -60,9 +62,15 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath)
             QString hostName;
             QString appName;
             if (m_lockFile.getLockInfo(&pid, &hostName, &appName)) {
-                throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': "
-                        "Already locked by '%2' (PID %3).")
-                                .arg(buildGraphFilePath, appName).arg(pid));
+                if (appName != processNameByPid(pid)) {
+                    // The process id was reused by some other process.
+                    m_logger.qbsInfo() << Tr::tr("Removing stale lock file.");
+                    m_lockFile.removeStaleLockFile();
+                } else {
+                    throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': "
+                            "Already locked by '%2' (PID %3).")
+                                    .arg(buildGraphFilePath, appName).arg(pid));
+                }
             }
             break;
         }

@@ -1,3 +1,5 @@
+include(../../../install_prefix.pri)
+
 HEADERS += \
     $$PWD/internaljobs.h \
     $$PWD/projectdata.h \

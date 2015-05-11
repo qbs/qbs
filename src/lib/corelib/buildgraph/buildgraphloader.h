@@ -84,8 +84,7 @@ private:
                                    const FileTime &referenceTime);
     void checkAllProductsForChanges(const QList<ResolvedProductPtr> &restoredProducts,
             const QMap<QString, ResolvedProductPtr> &newlyResolvedProductsByName,
-            QList<ResolvedProductPtr> &changedProducts,
-            QList<ResolvedProductPtr> &productsWithChangedFiles);
+            QList<ResolvedProductPtr> &changedProducts);
     bool checkProductForChanges(const ResolvedProductPtr &restoredProduct,
                                 const ResolvedProductPtr &newlyResolvedProduct);
     bool checkProductForInstallInfoChanges(const ResolvedProductPtr &restoredProduct,
@@ -96,8 +95,6 @@ private:
                                              const ResolvedProductPtr &newlyResolvedProduct);
     void onProductRemoved(const ResolvedProductPtr &product, ProjectBuildData *projectBuildData,
                           bool removeArtifactsFromDisk = true);
-    void onProductFileListChanged(const ResolvedProductPtr &restoredProduct,
-            const ResolvedProductPtr &newlyResolvedProduct, const ProjectBuildData *oldBuildData);
     bool checkForPropertyChanges(const TransformerPtr &restoredTrafo,
             const ResolvedProductPtr &freshProduct);
     bool checkForPropertyChange(const Property &restoredProperty,

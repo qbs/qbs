@@ -50,7 +50,11 @@ function linkerFlags(product, inputs) {
         args.push('-Wl,-rpath,' + rpaths.join(",-rpath,"));
 
     // Add filenames of internal library dependencies to the lists
+    var staticLibsFromInputs = inputs.staticlibrary
+            ? inputs.staticlibrary.map(function(a) { return a.filePath; }) : [];
     staticLibraries = concatLibsFromArtifacts(staticLibraries, inputs.staticlibrary);
+    var dynamicLibsFromInputs = inputs.dynamiclibrary_copy
+            ? inputs.dynamiclibrary_copy.map(function(a) { return a.filePath; }) : [];
     dynamicLibraries = concatLibsFromArtifacts(dynamicLibraries, inputs.dynamiclibrary_copy);
 
     // Flags for library search paths
@@ -61,7 +65,7 @@ function linkerFlags(product, inputs) {
         args = args.concat(linkerScripts.map(function(path) { return '-T' + path }));
 
     for (i in staticLibraries) {
-        if (File.exists(staticLibraries[i])) {
+        if (staticLibsFromInputs.contains(staticLibraries[i]) || File.exists(staticLibraries[i])) {
             args.push(staticLibraries[i]);
         } else {
             args.push('-l' + staticLibraries[i]);
@@ -69,7 +73,8 @@ function linkerFlags(product, inputs) {
     }
 
     for (i in dynamicLibraries) {
-        if (File.exists(dynamicLibraries[i])) {
+        if (dynamicLibsFromInputs.contains(dynamicLibraries[i])
+                || File.exists(dynamicLibraries[i])) {
             args.push(dynamicLibraries[i]);
         } else {
             args.push('-l' + dynamicLibraries[i]);
@@ -592,14 +597,44 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
                 return;
             }
             var globalSymbolsTarget = process.readStdOut();
-            process.close();
 
             var globalSymbolsSourceLines = globalSymbolsSource.split('\n');
             var globalSymbolsTargetLines = globalSymbolsTarget.split('\n');
             if (globalSymbolsSourceLines.length !== globalSymbolsTargetLines.length) {
-                File.copy(sourceFilePath, targetFilePath);
-                return;
+                var checkMode = ModUtils.moduleProperty(product, "exportedSymbolsCheckMode");
+                if (checkMode === "strict") {
+                    File.copy(sourceFilePath, targetFilePath);
+                    return;
+                }
+
+                // Collect undefined symbols and remove them from the symbol lists.
+                // GNU nm has the "--defined" option for this purpose, but POSIX nm does not.
+                args.push("-u");
+                if (process.exec(command, args.concat(sourceFilePath), false) !== 0) {
+                    File.copy(sourceFilePath, targetFilePath);
+                    return;
+                }
+                var undefinedSymbolsSource = process.readStdOut();
+                if (process.exec(command, args.concat(targetFilePath), false) !== 0) {
+                    File.copy(sourceFilePath, targetFilePath);
+                    return;
+                }
+                var undefinedSymbolsTarget = process.readStdOut();
+                process.close();
+
+                var undefinedSymbolsSourceLines = undefinedSymbolsSource.split('\n');
+                var undefinedSymbolsTargetLines = undefinedSymbolsTarget.split('\n');
+
+                globalSymbolsSourceLines = globalSymbolsSourceLines.filter(function(line) {
+                    return !undefinedSymbolsSourceLines.contains(line); });
+                globalSymbolsTargetLines = globalSymbolsTargetLines.filter(function(line) {
+                    return !undefinedSymbolsTargetLines.contains(line); });
+                if (globalSymbolsSourceLines.length !== globalSymbolsTargetLines.length) {
+                    File.copy(sourceFilePath, targetFilePath);
+                    return;
+                }
             }
+
             while (globalSymbolsSourceLines.length > 0) {
                 var sourceLine = globalSymbolsSourceLines.shift();
                 var targetLine = globalSymbolsTargetLines.shift();

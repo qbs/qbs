@@ -1,3 +1,5 @@
+include(../../../install_prefix.pri)
+
 SOURCES += \
     $$PWD/abstractcommandexecutor.cpp \
     $$PWD/artifact.cpp \

@@ -1082,6 +1082,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("linking product 1.debug"));
     QVERIFY(m_qbsStdout.contains("generated.txt"));
     QVERIFY(m_qbsStdout.contains("Making output from input"));
+    QVERIFY(m_qbsStdout.contains("Making output from other output"));
     QFile generatedFile(relativeProductBuildDir("generated text file") + "/generated.txt");
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
     QCOMPARE(generatedFile.readAll(), QByteArray("prefix 1contents 1suffix 1"));
@@ -1096,6 +1097,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("linking"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build with no changes, but updated project file timestamp.
     waitForNewTimestamp();
@@ -1110,6 +1112,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("linking"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build, input property changed for first product
     waitForNewTimestamp();
@@ -1127,6 +1130,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("linking library"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build, input property changed via project for second product.
     waitForNewTimestamp();
@@ -1142,6 +1146,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("linking product 3"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build, input property changed via command line for second product.
     params.arguments << "project.projectDefines:blubb002";
@@ -1157,6 +1162,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("linking product 3"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build, input property changed via environment for third product.
     params.environment.insert("QBS_BLACKBOX_DEFINE", "newvalue");
@@ -1172,6 +1178,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build, module property changed via command line.
     params.arguments << "qbs.enableDebugCode:false";
@@ -1189,10 +1196,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-
-    // Not actually necessary, but qbs cannot know that, since a property change is potentially
-    // relevant to all rules.
-    QVERIFY(m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build, non-essential dependency removed.
     waitForNewTimestamp();
@@ -1209,6 +1214,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("linking library"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build, prepare script of a transformer changed.
     waitForNewTimestamp();
@@ -1225,6 +1231,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(m_qbsStdout.contains("generated.txt"));
     QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
     QCOMPARE(generatedFile.readAll(), QByteArray("prefix 1contents 2suffix 1"));
     generatedFile.close();
@@ -1244,6 +1251,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(m_qbsStdout.contains("generated.txt"));
     QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
     QCOMPARE(generatedFile.readAll(), QByteArray("prefix 2contents 2suffix 1"));
     generatedFile.close();
@@ -1263,6 +1271,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(m_qbsStdout.contains("generated.txt"));
     QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
     QCOMPARE(generatedFile.readAll(), QByteArray("prefix 2contents 2suffix 2"));
     generatedFile.close();
@@ -1283,6 +1292,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     QVERIFY(m_qbsStdout.contains("Making output from input"));
+    QVERIFY(m_qbsStdout.contains("Making output from other output"));
 }
 
 void TestBlackbox::qobjectInObjectiveCpp()
@@ -2304,7 +2314,6 @@ void TestBlackbox::wildCardsAndRules()
     // Add "explicitlyDependsOn".
     touch("dep.dep");
     QCOMPARE(runQbs(), 0);
-    QEXPECT_FAIL(0, "QBS-724", Abort);
     QVERIFY(m_qbsStdout.contains("Creating output artifact"));
 
     // Add nothing.

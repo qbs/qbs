@@ -48,6 +48,7 @@ private slots:
     void fileCaseCheck();
     void testProfiles();
     void testBuildConfigMerging();
+    void testProcessNameByPid();
 
 private:
     Settings * const m_settings;

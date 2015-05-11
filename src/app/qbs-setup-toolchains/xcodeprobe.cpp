@@ -191,7 +191,7 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
                 continue;
             }
             QStringList targetOS;
-            targetOS << QLatin1String("darwin") << QLatin1String("unix");
+            targetOS << QLatin1String("darwin") << QLatin1String("bsd") << QLatin1String("unix");
             QString name = infoSettings.value(QLatin1String("Name")).toString();
             if (name == QLatin1String("macosx")) {
                 targetOS << QLatin1String("osx");

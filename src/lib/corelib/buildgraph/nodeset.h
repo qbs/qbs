@@ -34,10 +34,19 @@
 #include <set>
 #include <cstddef>
 
+#include <QSharedData>
+
 namespace qbs {
 namespace Internal {
 
 class BuildGraphNode;
+
+class NodeSetData : public QSharedData
+{
+public:
+    std::set<BuildGraphNode *> m_data;
+};
+
 class PersistentPool;
 
 /**
@@ -48,7 +57,6 @@ class NodeSet
 {
 public:
     NodeSet();
-    NodeSet(const NodeSet &other);
 
     NodeSet &unite(const NodeSet &other);
 
@@ -56,26 +64,26 @@ public:
     typedef std::set<BuildGraphNode *>::iterator iterator;
     typedef BuildGraphNode * value_type;
 
-    iterator begin() { return m_data.begin(); }
-    iterator end() { return m_data.end(); }
-    const_iterator begin() const { return m_data.begin(); }
-    const_iterator end() const { return m_data.end(); }
-    const_iterator constBegin() const { return m_data.begin(); }
-    const_iterator constEnd() const { return m_data.end(); }
+    iterator begin() { return d->m_data.begin(); }
+    iterator end() { return d->m_data.end(); }
+    const_iterator begin() const { return d->m_data.begin(); }
+    const_iterator end() const { return d->m_data.end(); }
+    const_iterator constBegin() const { return d->m_data.begin(); }
+    const_iterator constEnd() const { return d->m_data.end(); }
 
     void insert(BuildGraphNode *node)
     {
-        m_data.insert(node);
+        d->m_data.insert(node);
     }
 
     void operator+=(BuildGraphNode *node)
     {
-        insert(node);
+        d->m_data.insert(node);
     }
 
     NodeSet &operator<<(BuildGraphNode *node)
     {
-        insert(node);
+        d->m_data.insert(node);
         return *this;
     }
 
@@ -83,22 +91,22 @@ public:
 
     bool contains(BuildGraphNode *node) const
     {
-        return m_data.find(node) != m_data.end();
+        return d->m_data.find(node) != d->m_data.end();
     }
 
     void clear()
     {
-        m_data.clear();
+        d->m_data.clear();
     }
 
     bool isEmpty() const
     {
-        return m_data.empty();
+        return d->m_data.empty();
     }
 
     int count() const
     {
-        return (int)m_data.size();
+        return (int)d->m_data.size();
     }
 
     void reserve(int)
@@ -106,7 +114,7 @@ public:
         // no-op
     }
 
-    bool operator==(const NodeSet &other) const { return m_data == other.m_data; }
+    bool operator==(const NodeSet &other) const { return d->m_data == other.d->m_data; }
     bool operator!=(const NodeSet &other) const { return !(*this == other); }
 
     void load(PersistentPool &pool);
@@ -114,7 +122,7 @@ public:
 
 
 private:
-    std::set<BuildGraphNode *> m_data;
+    QSharedDataPointer<NodeSetData> d;
 };
 
 } // namespace Internal

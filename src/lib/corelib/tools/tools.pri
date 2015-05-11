@@ -1,3 +1,5 @@
+include(../../../install_prefix.pri)
+
 INCLUDEPATH += $$PWD/../.. # for plugins
 
 HEADERS += \
@@ -20,6 +22,7 @@ HEADERS += \
     $$PWD/profile.h \
     $$PWD/processresult.h \
     $$PWD/processresult_p.h \
+    $$PWD/processutils.h \
     $$PWD/progressobserver.h \
     $$PWD/projectgeneratormanager.h \
     $$PWD/propertyfinder.h \
@@ -53,6 +56,7 @@ SOURCES += \
     $$PWD/settingsmodel.cpp \
     $$PWD/preferences.cpp \
     $$PWD/processresult.cpp \
+    $$PWD/processutils.cpp \
     $$PWD/profile.cpp \
     $$PWD/progressobserver.cpp \
     $$PWD/projectgeneratormanager.cpp \
@@ -84,6 +88,7 @@ qbs_enable_unit_tests {
         $$PWD/architectures.h \
         $$PWD/cleanoptions.h \
         $$PWD/codelocation.h \
+        $$PWD/commandechomode.h \
         $$PWD/error.h \
         $$PWD/settings.h \
         $$PWD/settingsmodel.h \

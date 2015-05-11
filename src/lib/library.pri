@@ -1,4 +1,5 @@
 include(../library_dirname.pri)
+include(../install_prefix.pri)
 
 TEMPLATE = lib
 QT = core

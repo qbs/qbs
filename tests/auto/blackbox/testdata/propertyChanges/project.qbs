@@ -1,4 +1,5 @@
 import qbs 1.0
+import qbs.File
 import qbs.TextFile
 
 Project {
@@ -54,6 +55,26 @@ Project {
                                + project.fileContentSuffix);
                     file.close();
                 }
+                return cmd;
+            }
+        }
+    }
+
+    Product {
+        Depends { name: "ruletest" }
+        type: ["test-output2"]
+        Rule {
+            inputsFromDependencies: ['test-output']
+            Artifact {
+                fileTags: "test-output2"
+                filePath: input.fileName + ".out2"
+            }
+
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.highlight = "codegen";
+                cmd.description = "Making output from other output";
+                cmd.sourceCode = function() { File.copy(input.filePath, output.filePath); }
                 return cmd;
             }
         }

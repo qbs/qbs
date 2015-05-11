@@ -3,6 +3,7 @@ import QbsFunctions
 
 Product {
     name: "documentation"
+    builtByDefault: false
     type: "qch"
     Depends { name: "Qt.core" }
 

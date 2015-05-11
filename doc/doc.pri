@@ -1,3 +1,5 @@
+include(../src/install_prefix.pri)
+
 defineReplace(targetPath) {
     return($$replace(1, /, $$QMAKE_DIR_SEP))
 }
@@ -27,17 +29,19 @@ QHP_FILE = $$HTML_DOC_PATH/qbs.qhp
 QCH_FILE = $$OUT_PWD/doc/qbs.qch
 
 HELP_DEP_FILES = $$PWD/qbs.qdoc \
-                 $$PWD/config/macros.qdocconf \
-                 $$PWD/config/qt-cpp-ignore.qdocconf \
-                 $$PWD/config/qt-html-templates.qdocconf \
-                 $$PWD/config/qt-html-default-styles.qdocconf \
                  $$QDOC_MAINFILE
 
-html_docs.commands = $$QDOC $$QDOC_MAINFILE
+html_docs.commands = $$QDOC $$PWD/qbs.qdocconf
 html_docs.depends += $$HELP_DEP_FILES
+
+html_docs_online.commands = $$QDOC $$PWD/qbs-online.qdocconf
+html_docs_online.files = $$QHP_FILE
 
 qch_docs.commands = $$HELPGENERATOR -o $$shell_quote($$QCH_FILE) $$QHP_FILE
 qch_docs.depends += html_docs
+
+docs_online.depends = html_docs_online
+QMAKE_EXTRA_TARGETS += html_docs_online docs_online
 
 inst_qch_docs.files = $$QCH_FILE
 inst_qch_docs.path = $${QBS_INSTALL_PREFIX}/share/doc/qbs

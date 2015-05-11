@@ -1,3 +1,5 @@
+include(../../../install_prefix.pri)
+
 HEADERS += \
     $$PWD/logger.h \
     $$PWD/translator.h \

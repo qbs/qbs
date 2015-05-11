@@ -142,9 +142,11 @@ static QString findExecutable(const QStringList &fileNames)
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
 
     foreach (const QString &fileName, fileNames) {
+        const QString exeFileName = HostOsInfo::appendExecutableSuffix(fileName);
         foreach (const QString &ppath, path) {
-            const QString fullPath = ppath + QLatin1Char('/') + fileName;
-            if (QFileInfo(fullPath).exists())
+            const QString fullPath = ppath + QLatin1Char('/') + exeFileName;
+            QFileInfo fi(fullPath);
+            if (fi.exists() && fi.isFile() && fi.isExecutable())
                 return QDir::cleanPath(fullPath);
         }
     }
@@ -197,7 +199,8 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
 
     // Only check if the target is executable if we're not running it through another
     // known application such as msiexec or wine, as we can't check in this case anyways
-    if (targetBin == targetExecutable && !QFileInfo(targetExecutable).isExecutable()) {
+    QFileInfo fi(targetExecutable);
+    if (targetBin == targetExecutable && (!fi.isFile() || !fi.isExecutable())) {
         d->logger.qbsLog(LoggerError) << Tr::tr("File '%1' is not an executable.")
                                 .arg(QDir::toNativeSeparators(targetExecutable));
         return EXIT_FAILURE;

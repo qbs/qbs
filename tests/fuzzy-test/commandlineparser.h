@@ -57,6 +57,7 @@ public:
     QString startCommit() const { return m_startCommit; }
     int maxDurationInMinutes() const { return m_maxDuration; }
     int jobCount() const { return m_jobCount; }
+    bool log() const { return m_log; }
 
     QString usageString() const;
 
@@ -71,6 +72,7 @@ private:
     QString m_startCommit;
     int m_maxDuration;
     int m_jobCount;
+    bool m_log;
 };
 
 #endif // Include guard.

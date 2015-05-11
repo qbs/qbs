@@ -27,46 +27,20 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-/*!
-    \contentspage list-of-items.html
-    \page artifact-item.html
-    \previouspage applicationextension-item.html
-    \nextpage autotestrunner-item.html
-    \ingroup list-of-items
 
-    \title Artifact Item
-    \brief Describes a file produced by a \c Rule or \c Transformer.
+#ifndef QBS_PROCESSUTILS_H
+#define QBS_PROCESSUTILS_H
 
-    An \c Artifact represents a single file produced by a \c Rule or \c Transformer.
+#include <qglobal.h>
+#include <QString>
 
-    For example, if a rule produces three files, it needs to contain three Artifact items.
+namespace qbs {
+namespace Internal {
 
-    \section1 Artifact Properties
+QString processNameByPid(qint64 pid);
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li alwaysUpdated
-        \li bool
-        \li true
-        \li Setting this to \c false means the file is not necessarily always written to by any
-            command run by the rule. The timestamps of such artifacts are therefore not checked to
-            find out whether they are up to date. Consequently, if all artifacts of a rule have this
-            property set to \c false, the commands of the rule are always executed.
-    \row
-        \li filePath
-        \li string
-        \li undefined
-        \li The file path of the target artifact.
-    \row
-        \li fileTags
-        \li list
-        \li empty list
-        \li The tags to attach to the target file. These can then be matched by a rule.
-    \endtable
+} // namespace Internal
+} // namespace qbs
 
-*/
+#endif // QBS_PROCESSUTILS_H
+

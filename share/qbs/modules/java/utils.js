@@ -41,3 +41,40 @@ function extractPackageName(filePath)
         return "";
     return packageName;
 }
+
+function javacArguments(product, inputs) {
+    var i;
+    var outputDir = ModUtils.moduleProperty(product, "classFilesDir");
+    var classPaths = [outputDir];
+    var additionalClassPaths = ModUtils.moduleProperties(product, "additionalClassPaths");
+    if (additionalClassPaths)
+        classPaths = classPaths.concat(additionalClassPaths);
+    for (i in inputs["java.jar"])
+        classPaths.push(inputs["java.jar"][i].filePath);
+    var debugArg = product.moduleProperty("qbs", "buildVariant") === "debug"
+            ? "-g" : "-g:none";
+    var args = [
+            "-classpath", classPaths.join(product.moduleProperty("qbs", "pathListSeparator")),
+            "-s", product.buildDirectory,
+            debugArg, "-d", outputDir
+        ];
+    var runtimeVersion = ModUtils.moduleProperty(product, "runtimeVersion");
+    if (runtimeVersion)
+        args.push("-target", runtimeVersion);
+    var languageVersion = ModUtils.moduleProperty(product, "languageVersion");
+    if (languageVersion)
+        args.push("-source", languageVersion);
+    var bootClassPaths = ModUtils.moduleProperties(product, "bootClassPaths");
+    if (bootClassPaths && bootClassPaths.length > 0)
+        args.push("-bootclasspath", bootClassPaths.join(';'));
+    if (!ModUtils.moduleProperty(product, "enableWarnings"))
+        args.push("-nowarn");
+    if (ModUtils.moduleProperty(product, "warningsAsErrors"))
+        args.push("-Werror");
+    var otherFlags = ModUtils.moduleProperty(product, "additionalCompilerFlags")
+    if (otherFlags)
+        args = args.concat(otherFlags);
+    for (i = 0; i < inputs["java.java"].length; ++i)
+        args.push(inputs["java.java"][i].filePath);
+    return args;
+}

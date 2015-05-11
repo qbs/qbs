@@ -40,23 +40,19 @@ namespace qbs {
 namespace Internal {
 
 NodeSet::NodeSet()
-{
-}
-
-NodeSet::NodeSet(const NodeSet &other)
-    : m_data(other.m_data)
+    : d(new NodeSetData)
 {
 }
 
 NodeSet &NodeSet::unite(const NodeSet &other)
 {
-    m_data.insert(other.begin(), other.end());
+    d->m_data.insert(other.begin(), other.end());
     return *this;
 }
 
 void NodeSet::remove(BuildGraphNode *node)
 {
-    m_data.erase(node);
+    d->m_data.erase(node);
 }
 
 void NodeSet::load(PersistentPool &pool)

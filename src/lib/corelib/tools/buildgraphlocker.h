@@ -32,6 +32,7 @@
 #define QBS_BUILDGRAPHLOCKER_H
 
 #include <QLockFile>
+#include <logging/logger.h>
 
 QT_BEGIN_NAMESPACE
 class QString;
@@ -43,11 +44,12 @@ namespace Internal {
 class BuildGraphLocker
 {
 public:
-    explicit BuildGraphLocker(const QString &buildGraphFilePath);
+    explicit BuildGraphLocker(const QString &buildGraphFilePath, const Logger &logger);
     ~BuildGraphLocker();
 
 private:
     QLockFile m_lockFile;
+    Logger m_logger;
 };
 
 } // namespace Internal

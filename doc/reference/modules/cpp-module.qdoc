@@ -603,6 +603,19 @@
 
     Full path of the archiver binary. This is set in the build profile.
 
+    \section2 exportedSymbolsCheckMode
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li "ignore-undefined"
+    \endtable
+
+    Controls how \QBS determines whether an updated dynamic library causes relinking of
+    dependents. The default value is \c "ignore-undefined", which means that undefined symbols being
+    added or removed do not cause any relinking. If that should happen, for example because
+    dependent products are linked with an option such as \c "--no-undefined", then this property
+    can be set to \c "strict".
+
     \section2 nmName
 
     \table
