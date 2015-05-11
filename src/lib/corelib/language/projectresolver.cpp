@@ -1177,8 +1177,7 @@ static QStringList ownPropertiesSet(Item *item)
 
     std::sort(names.begin(), names.end());
     QStringList::iterator lastIt = std::unique(names.begin(), names.end());
-    if (lastIt != names.end())
-        names.erase(lastIt);
+    names.erase(lastIt, names.end());
     return names;
 }
 
