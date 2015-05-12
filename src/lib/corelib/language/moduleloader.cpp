@@ -232,17 +232,13 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     ProjectContext projectContext;
     projectContext.result = loadResult;
     projectContext.buildDirectory = buildDirectory;
-    projectContext.localModuleSearchPath = FileInfo::resolvePath(item->file()->dirPath(),
-                                                                 moduleSearchSubDir);
-
     ProductContext dummyProductContext;
     dummyProductContext.project = &projectContext;
     dummyProductContext.moduleProperties = m_parameters.finalBuildConfigurationTree();
     loadBaseModule(&dummyProductContext, item);
     overrideItemProperties(item, QLatin1String("project"), m_parameters.overriddenValuesTree());
 
-    projectContext.extraSearchPaths = readExtraSearchPaths(item);
-    m_reader->pushExtraSearchPaths(projectContext.extraSearchPaths);
+    m_reader->pushExtraSearchPaths(readExtraSearchPaths(item) << item->file()->dirPath());
     projectContext.item = item;
     ItemValuePtr itemValue = ItemValue::create(item);
     projectContext.scope = Item::create(m_pool);
@@ -437,14 +433,7 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
         productContext.moduleProperties = it.value().toMap();
     }
     productContext.project = projectContext;
-    bool extraSearchPathsSet = false;
-    const QStringList extraSearchPaths = readExtraSearchPaths(item, &extraSearchPathsSet);
-    if (extraSearchPathsSet) { // Inherit from project if not set in product itself.
-        productContext.extraSearchPaths = extraSearchPaths;
-        m_reader->pushExtraSearchPaths(extraSearchPaths);
-    } else {
-        productContext.extraSearchPaths = projectContext->extraSearchPaths;
-    }
+    m_reader->pushExtraSearchPaths(readExtraSearchPaths(item));
 
     productContext.item = item;
     ItemValuePtr itemValue = ItemValue::create(item);
@@ -470,8 +459,7 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
 
     mergeExportItems(&productContext);
     projectContext->result->productInfos.insert(item, productContext.info);
-    if (extraSearchPathsSet)
-        m_reader->popExtraSearchPaths();
+    m_reader->popExtraSearchPaths();
 }
 
 void ModuleLoader::initProductProperties(const ProjectContext *project, Item *item)
@@ -806,8 +794,8 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         return moduleInstance;
     }
 
-    QStringList moduleSearchPaths(productContext->project->localModuleSearchPath);
-    foreach (const QString &searchPath, productContext->extraSearchPaths)
+    QStringList moduleSearchPaths;
+    foreach (const QString &searchPath, m_reader->searchPaths())
         addExtraModuleSearchPath(moduleSearchPaths, searchPath);
     bool cacheHit;
     Item *modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,

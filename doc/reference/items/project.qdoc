@@ -89,8 +89,9 @@
             \li stringList
             \li empty
             \li These paths are searched for imports and modules in addition to the ones listed
-                in \c{preferences.qbsSearchPaths}.
-                All products in the project inherit this value by default.
+                in \c{preferences.qbsSearchPaths}. The value set here is merged with the value
+                inherited from the parent project, if there is one. The result is inherited by
+                all products in the project.
         \row
             \li references
             \li path list
