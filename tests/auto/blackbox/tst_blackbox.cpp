@@ -37,6 +37,7 @@
 #include <tools/installoptions.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
+#include <tools/version.h>
 
 #include <QLocale>
 #include <QRegExp>
@@ -2320,6 +2321,23 @@ void TestBlackbox::testBadInterpreter()
     params.arguments = QStringList() << "-p" << "script-noexec";
     QCOMPARE(runQbs(params), 1);
     QCOMPARE(runQbs(QbsRunParameters("run", QStringList() << "-p" << "script-ok")), 0);
+}
+
+void TestBlackbox::qbsVersion()
+{
+    const qbs::Internal::Version v = qbs::Internal::Version::qbsVersion();
+    QDir::setCurrent(testDataDir + QLatin1String("/qbsVersion"));
+    QbsRunParameters params;
+    params.arguments = QStringList()
+            << "project.qbsVersion:" + v.toString()
+            << "project.qbsVersionMajor:" + QString::number(v.majorVersion())
+            << "project.qbsVersionMinor:" + QString::number(v.minorVersion())
+            << "project.qbsVersionPatch:" + QString::number(v.patchLevel());
+    QCOMPARE(runQbs(params), 0);
+
+    params.arguments.append("project.qbsVersionPatch:" + QString::number(v.patchLevel() + 1));
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
 }
 
 QTEST_MAIN(TestBlackbox)

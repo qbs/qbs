@@ -172,6 +172,7 @@ private slots:
     void wildCardsAndRules();
     void testLoadableModule();
     void testBadInterpreter();
+    void qbsVersion();
 
 private:
     QByteArray m_qbsStderr;

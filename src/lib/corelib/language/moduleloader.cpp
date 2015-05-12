@@ -1126,6 +1126,14 @@ void ModuleLoader::setupBaseModulePrototype(Item *prototype)
                            BuiltinValue::create(BuiltinValue::CanonicalArchitectureFunction));
     prototype->setProperty(QLatin1String("rfc1034Identifier"),
                            BuiltinValue::create(BuiltinValue::Rfc1034IdentifierFunction));
+
+    const Version qbsVersion = Version::qbsVersion();
+    prototype->setProperty(QLatin1String("versionMajor"),
+                           VariantValue::create(qbsVersion.majorVersion()));
+    prototype->setProperty(QLatin1String("versionMinor"),
+                           VariantValue::create(qbsVersion.minorVersion()));
+    prototype->setProperty(QLatin1String("versionPatch"),
+                           VariantValue::create(qbsVersion.patchLevel()));
 }
 
 static void collectItemsWithId_impl(Item *item, QList<Item *> *result)
