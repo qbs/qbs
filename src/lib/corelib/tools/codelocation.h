@@ -33,6 +33,7 @@
 
 #include "qbs_export.h"
 
+#include <QDebug>
 #include <QExplicitlySharedDataPointer>
 
 QT_BEGIN_NAMESPACE
@@ -70,6 +71,8 @@ private:
 
 QBS_EXPORT bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
 QBS_EXPORT bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2);
+
+QDebug operator<<(QDebug debug, const CodeLocation &location);
 
 } // namespace qbs
 
