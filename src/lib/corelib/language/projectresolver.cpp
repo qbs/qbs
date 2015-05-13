@@ -1239,12 +1239,7 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
         {
             if (result.contains(it.key()))
                 break;
-            PropertyDeclaration pd;
-            for (Item *obj = item; obj; obj = obj->prototype()) {
-                pd = obj->propertyDeclarations().value(it.key());
-                if (pd.isValid())
-                    break;
-            }
+            const PropertyDeclaration pd = item->propertyDeclaration(it.key());
             if (pd.type() == PropertyDeclaration::Verbatim
                 || pd.flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
             {
