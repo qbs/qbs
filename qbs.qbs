@@ -7,7 +7,7 @@ Project {
     property bool enableProjectFileUpdates: false
     property bool enableRPath: true
     property bool installApiHeaders: true
-    property bool withExamples: true
+    property bool withExamples: false
     property string libDirName: "lib"
     property string appInstallDir: "bin"
     property string libInstallDir: qbs.targetOS.contains("windows") ? "bin" : libDirName
