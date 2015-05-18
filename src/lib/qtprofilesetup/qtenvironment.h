@@ -38,6 +38,11 @@ namespace qbs {
 
 class QBS_EXPORT QtEnvironment {
 public:
+    QtEnvironment()
+        : staticBuild(false), frameworkBuild(false)
+    {
+    }
+
     QString installPrefixPath;
     QString libraryPath;
     QString includePath;
@@ -62,6 +67,7 @@ public:
     int qtMajorVersion;
     int qtMinorVersion;
     int qtPatchVersion;
+    bool staticBuild;
     bool frameworkBuild;
 };
 

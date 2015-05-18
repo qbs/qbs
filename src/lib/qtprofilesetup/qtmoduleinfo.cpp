@@ -472,8 +472,12 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
     }
 
     QSet<QString> nonExistingPrlFiles;
-    for (int i = 0; i < modules.count(); ++i)
-        modules[i].setupLibraries(qtEnvironment, &nonExistingPrlFiles);
+    for (int i = 0; i < modules.count(); ++i) {
+        QtModuleInfo &module = modules[i];
+        if (qtEnvironment.staticBuild)
+            module.isStaticLibrary = true;
+        module.setupLibraries(qtEnvironment, &nonExistingPrlFiles);
+    }
     replaceQtLibNamesWithFilePath(&modules, qtEnvironment);
 
     return modules;

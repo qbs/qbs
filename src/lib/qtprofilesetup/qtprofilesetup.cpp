@@ -303,10 +303,10 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
                       const QtEnvironment &_qtEnvironment)
 {
     QtEnvironment qtEnvironment = _qtEnvironment;
-    const bool staticBuild = checkForStaticBuild(qtEnvironment);
+    qtEnvironment.staticBuild = checkForStaticBuild(qtEnvironment);
 
     // determine whether user apps require C++11
-    if (qtEnvironment.qtConfigItems.contains(QLatin1String("c++11")) && staticBuild)
+    if (qtEnvironment.qtConfigItems.contains(QLatin1String("c++11")) && qtEnvironment.staticBuild)
         qtEnvironment.configItems.append(QLatin1String("c++11"));
 
     Profile profile(profileName, settings);
@@ -326,7 +326,7 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
     profile.setValue(settingsTemplate.arg(QLatin1String("buildVariant")), qtEnvironment.buildVariant); // TODO: Remove in 1.5
     profile.setValue(settingsTemplate.arg(QLatin1String("availableBuildVariants")),
                      qtEnvironment.buildVariant);
-    profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")), staticBuild);
+    profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")), qtEnvironment.staticBuild);
 
     // Set the minimum operating system versions appropriate for this Qt version
     const QString windowsVersion = guessMinimumWindowsVersion(qtEnvironment);
