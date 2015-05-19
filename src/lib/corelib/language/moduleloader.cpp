@@ -45,6 +45,7 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/preferences.h>
 #include <tools/profile.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
@@ -232,17 +233,13 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     ProjectContext projectContext;
     projectContext.result = loadResult;
     projectContext.buildDirectory = buildDirectory;
-    projectContext.localModuleSearchPath = FileInfo::resolvePath(item->file()->dirPath(),
-                                                                 moduleSearchSubDir);
-
     ProductContext dummyProductContext;
     dummyProductContext.project = &projectContext;
     dummyProductContext.moduleProperties = m_parameters.finalBuildConfigurationTree();
     loadBaseModule(&dummyProductContext, item);
     overrideItemProperties(item, QLatin1String("project"), m_parameters.overriddenValuesTree());
 
-    projectContext.extraSearchPaths = readExtraSearchPaths(item);
-    m_reader->pushExtraSearchPaths(projectContext.extraSearchPaths);
+    m_reader->pushExtraSearchPaths(readExtraSearchPaths(item) << item->file()->dirPath());
     projectContext.item = item;
     ItemValuePtr itemValue = ItemValue::create(item);
     projectContext.scope = Item::create(m_pool);
@@ -437,14 +434,16 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
         productContext.moduleProperties = it.value().toMap();
     }
     productContext.project = projectContext;
-    bool extraSearchPathsSet = false;
-    const QStringList extraSearchPaths = readExtraSearchPaths(item, &extraSearchPathsSet);
-    if (extraSearchPathsSet) { // Inherit from project if not set in product itself.
-        productContext.extraSearchPaths = extraSearchPaths;
-        m_reader->pushExtraSearchPaths(extraSearchPaths);
-    } else {
-        productContext.extraSearchPaths = projectContext->extraSearchPaths;
+
+    QStringList extraSearchPaths = readExtraSearchPaths(item);
+    Settings settings(m_parameters.settingsDirectory());
+    const QStringList prefsSearchPaths
+            = Preferences(&settings, productContext.profileName).searchPaths();
+    foreach (const QString &p, prefsSearchPaths) {
+        if (!m_moduleSearchPaths.contains(p) && FileInfo(p).exists())
+            extraSearchPaths << p;
     }
+    m_reader->pushExtraSearchPaths(extraSearchPaths);
 
     productContext.item = item;
     ItemValuePtr itemValue = ItemValue::create(item);
@@ -470,8 +469,7 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
 
     mergeExportItems(&productContext);
     projectContext->result->productInfos.insert(item, productContext.info);
-    if (extraSearchPathsSet)
-        m_reader->popExtraSearchPaths();
+    m_reader->popExtraSearchPaths();
 }
 
 void ModuleLoader::initProductProperties(const ProjectContext *project, Item *item)
@@ -806,8 +804,8 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         return moduleInstance;
     }
 
-    QStringList moduleSearchPaths(productContext->project->localModuleSearchPath);
-    foreach (const QString &searchPath, productContext->extraSearchPaths)
+    QStringList moduleSearchPaths;
+    foreach (const QString &searchPath, m_reader->searchPaths())
         addExtraModuleSearchPath(moduleSearchPaths, searchPath);
     bool cacheHit;
     Item *modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
@@ -1128,6 +1126,14 @@ void ModuleLoader::setupBaseModulePrototype(Item *prototype)
                            BuiltinValue::create(BuiltinValue::CanonicalArchitectureFunction));
     prototype->setProperty(QLatin1String("rfc1034Identifier"),
                            BuiltinValue::create(BuiltinValue::Rfc1034IdentifierFunction));
+
+    const Version qbsVersion = Version::qbsVersion();
+    prototype->setProperty(QLatin1String("versionMajor"),
+                           VariantValue::create(qbsVersion.majorVersion()));
+    prototype->setProperty(QLatin1String("versionMinor"),
+                           VariantValue::create(qbsVersion.minorVersion()));
+    prototype->setProperty(QLatin1String("versionPatch"),
+                           VariantValue::create(qbsVersion.patchLevel()));
 }
 
 static void collectItemsWithId_impl(Item *item, QList<Item *> *result)

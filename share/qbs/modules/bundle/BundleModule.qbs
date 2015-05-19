@@ -522,7 +522,7 @@ Module {
 
             // Product is unbundled
             if (commands.length === 0) {
-                cmd = new JavaScriptComment();
+                cmd = new JavaScriptCommand();
                 cmd.silent = true;
                 cmd.sourceCode = function () { };
                 commands.push(cmd);

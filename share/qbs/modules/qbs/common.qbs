@@ -146,4 +146,10 @@ Module {
 
         return env;
     }
+
+    // internal properties
+    readonly property string version: [versionMajor, versionMinor, versionPatch].join(".")
+    readonly property int versionMajor: undefined // set internally
+    readonly property int versionMinor: undefined // set internally
+    readonly property int versionPatch: undefined // set internally
 }

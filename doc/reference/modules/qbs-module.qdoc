@@ -306,5 +306,37 @@
 
     Holds the platform-specific separator for path list that is used in environment variables or
     other contexts. E.g. on Windows is this \c{";"}, on Unix derivatives \c{":"}.
+
+    \section1 version
+
+    \table
+    \row    \li \b{Type:}           \li \c{string} (read only)
+    \endtable
+
+    Version number of \QBS as a string, i.e. "1.4.1".
+
+    \section1 versionMajor
+
+    \table
+    \row    \li \b{Type:}           \li \c{int} (read only)
+    \endtable
+
+    Major version number of \QBS.
+
+    \section1 versionMinor
+
+    \table
+    \row    \li \b{Type:}           \li \c{int} (read only)
+    \endtable
+
+    Minor version number of \QBS.
+
+    \section1 versionPatch
+
+    \table
+    \row    \li \b{Type:}           \li \c{int} (read only)
+    \endtable
+
+    Patch version number of \QBS.
 */
 

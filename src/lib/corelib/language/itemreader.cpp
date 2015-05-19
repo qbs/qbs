@@ -123,9 +123,10 @@ void ItemReader::popExtraSearchPaths()
 
 QStringList ItemReader::searchPaths() const
 {
-    QStringList paths = m_searchPaths;
-    if (!m_extraSearchPaths.isEmpty())
-        paths += m_extraSearchPaths.top();
+    QStringList paths;
+    for (int i = m_extraSearchPaths.count(); --i >= 0;)
+        paths += m_extraSearchPaths.at(i);
+    paths += m_searchPaths;
     return paths;
 }
 

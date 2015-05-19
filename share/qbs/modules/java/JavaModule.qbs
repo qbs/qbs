@@ -31,6 +31,7 @@
 import qbs
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Process
 
 import "utils.js" as JavaUtils
 
@@ -48,6 +49,13 @@ Module {
     property string jarName: "jar"
     property path jdkPath
 
+    property string compilerVersion: rawCompilerVersion ? rawCompilerVersion[1] : undefined
+    property var compilerVersionParts: compilerVersion ? compilerVersion.split(/[\._]/).map(function(item) { return parseInt(item, 10); }) : []
+    property int compilerVersionMajor: compilerVersionParts[0]
+    property int compilerVersionMinor: compilerVersionParts[1]
+    property int compilerVersionPatch: compilerVersionParts[2]
+    property int compilerVersionUpdate: compilerVersionParts[3]
+
     property string languageVersion
     PropertyOptions {
         name: "languageVersion"
@@ -64,6 +72,34 @@ Module {
 
     // Internal properties
     property path classFilesDir: FileInfo.joinPaths(product.buildDirectory, "classFiles")
+
+    // private properties
+    readonly property var rawCompilerVersion: {
+        var p = new Process();
+        try {
+            p.exec(compilerFilePath, ["-version"]);
+            var match = p.readStdErr().trim().match(/^javac (([0-9]+(?:\.[0-9]+){2,2})_([0-9]+))$/);
+            if (match !== null)
+                return match;
+        } finally {
+            p.close();
+        }
+    }
+
+    validate: {
+        var validator = new ModUtils.PropertyValidator("java");
+        validator.setRequiredProperty("compilerVersion", compilerVersion);
+        validator.setRequiredProperty("compilerVersionParts", compilerVersionParts);
+        validator.setRequiredProperty("compilerVersionMajor", compilerVersionMajor);
+        validator.setRequiredProperty("compilerVersionMinor", compilerVersionMinor);
+        validator.setRequiredProperty("compilerVersionUpdate", compilerVersionUpdate);
+        validator.addVersionValidator("compilerVersion", compilerVersion.replace("_", "."), 4, 4);
+        validator.addRangeValidator("compilerVersionMajor", compilerVersionMajor, 1);
+        validator.addRangeValidator("compilerVersionMinor", compilerVersionMinor, 0);
+        validator.addRangeValidator("compilerVersionPatch", compilerVersionPatch, 0);
+        validator.addRangeValidator("compilerVersionUpdate", compilerVersionUpdate, 0);
+        validator.validate();
+    }
 
     FileTagger {
         patterns: "*.java"

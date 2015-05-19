@@ -128,7 +128,6 @@ private:
 
         Item *item;
         Item *scope;
-        QStringList extraSearchPaths;
     };
 
     class ProjectContext : public ContextBase
@@ -136,7 +135,6 @@ private:
     public:
         ModuleLoaderResult *result;
         QString buildDirectory;
-        QString localModuleSearchPath;
     };
 
     class ProductContext : public ContextBase

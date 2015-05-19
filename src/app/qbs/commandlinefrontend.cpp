@@ -152,7 +152,7 @@ void CommandLineFrontend::start()
                                     "'qbs config defaultProfile <profile name>'."));
                 throw error;
             }
-            const Preferences prefs(m_settings, profileName);
+            const Preferences prefs(m_settings);
             params.setSearchPaths(prefs.searchPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
                     + QLatin1String("/" QBS_RELATIVE_SEARCH_PATH))));
             params.setPluginPaths(prefs.pluginPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()

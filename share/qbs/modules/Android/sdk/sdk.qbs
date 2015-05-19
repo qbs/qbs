@@ -86,25 +86,37 @@ Module {
     Rule {
         multiplex: true
         inputs: ["android.resources", "android.assets", "android.manifest"]
-        Artifact {
-            filePath: FileInfo.joinPaths(ModUtils.moduleProperty(product, "generatedJavaFilesDir"),
-                                         "R.java")
-            fileTags: ["java.java"]
-        }
 
-        Artifact {
-            filePath: product.name + ".ap_"
-            fileTags: ["android.ap_"]
+        outputFileTags: ["android.ap_", "java.java"]
+        outputArtifacts: {
+            var artifacts = [{
+                filePath: product.name + ".ap_",
+                fileTags: ["android.ap_"]
+            }];
+
+            var resources = inputs["android.resources"];
+            if (resources && resources.length) {
+                artifacts.push({
+                    filePath: FileInfo.joinPaths(
+                                  ModUtils.moduleProperty(product, "generatedJavaFilesDir"),
+                                  "R.java"),
+                    fileTags: ["java.java"]
+                });
+            }
+
+            return artifacts;
         }
 
         prepare: {
             var manifestFilePath = inputs["android.manifest"][0].filePath;
             var args = ["package", "-f", "-m", "--no-crunch",
                         "-M", manifestFilePath,
-                        "-S", product.resourcesDir,
                         "-I", ModUtils.moduleProperty(product, "androidJarFilePath"),
-                        "-J", ModUtils.moduleProperty(product, "generatedJavaFilesBaseDir"),
                         "-F", outputs["android.ap_"][0].filePath, "--generate-dependencies"];
+            var resources = inputs["android.resources"];
+            if (resources && resources.length)
+                args.push("-S", product.resourcesDir,
+                          "-J", ModUtils.moduleProperty(product, "generatedJavaFilesBaseDir"));
             if (product.moduleProperty("qbs", "buildVariant") === "debug")
                 args.push("--debug-mode");
             if (File.exists(product.assetsDir))

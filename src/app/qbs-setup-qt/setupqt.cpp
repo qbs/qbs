@@ -55,21 +55,32 @@ using Internal::HostOsInfo;
 using Internal::Tr;
 using Internal::Version;
 
-const QString qmakeExecutableName = QLatin1String("qmake" QBS_HOST_EXE_SUFFIX);
+static QStringList qmakeExecutableNames()
+{
+    const QString baseName = HostOsInfo::appendExecutableSuffix(QStringLiteral("qmake"));
+    QStringList lst(baseName);
+    if (HostOsInfo::isLinuxHost()) {
+        // Some distributions ship binaries called qmake-qt5 or qmake-qt4.
+        lst << baseName + QLatin1String("-qt5") << baseName + QLatin1String("-qt4");
+    }
+    return lst;
+}
 
 static QStringList collectQmakePaths()
 {
+    const QStringList qmakeExeNames = qmakeExecutableNames();
     QStringList qmakePaths;
-
     QByteArray environmentPath = qgetenv("PATH");
     QList<QByteArray> environmentPaths
             = environmentPath.split(HostOsInfo::pathListSeparator().toLatin1());
     foreach (const QByteArray &path, environmentPaths) {
-        QFileInfo pathFileInfo(QDir(QLatin1String(path)), qmakeExecutableName);
-        if (pathFileInfo.exists()) {
-            QString qmakePath = pathFileInfo.absoluteFilePath();
-            if (!qmakePaths.contains(qmakePath))
-                qmakePaths.append(qmakePath);
+        foreach (const QString &qmakeExecutableName, qmakeExeNames) {
+            QFileInfo pathFileInfo(QDir(QLatin1String(path)), qmakeExecutableName);
+            if (pathFileInfo.exists()) {
+                QString qmakePath = pathFileInfo.absoluteFilePath();
+                if (!qmakePaths.contains(qmakePath))
+                    qmakePaths.append(qmakePath);
+            }
         }
     }
 

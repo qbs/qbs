@@ -190,8 +190,8 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
     QString &libFilePath = debugBuild ? libFilePathDebug : libFilePathRelease;
 
     if (qtEnv.mkspecName.contains(QLatin1String("ios")) && isStaticLibrary) {
-        QtModuleInfo platformSupportModule = *this;
-        platformSupportModule.name = QLatin1String("QtPlatformSupport");
+        const QtModuleInfo platformSupportModule(QLatin1String("QtPlatformSupport"),
+                                                 QLatin1String("platformsupport"));
         libs << QLatin1String("z") << QLatin1String("m")
              << platformSupportModule.libNameForLinker(qtEnv, debugBuild);
         flags << QLatin1String("-force_load")
@@ -472,8 +472,12 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
     }
 
     QSet<QString> nonExistingPrlFiles;
-    for (int i = 0; i < modules.count(); ++i)
-        modules[i].setupLibraries(qtEnvironment, &nonExistingPrlFiles);
+    for (int i = 0; i < modules.count(); ++i) {
+        QtModuleInfo &module = modules[i];
+        if (qtEnvironment.staticBuild)
+            module.isStaticLibrary = true;
+        module.setupLibraries(qtEnvironment, &nonExistingPrlFiles);
+    }
     replaceQtLibNamesWithFilePath(&modules, qtEnvironment);
 
     return modules;
