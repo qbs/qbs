@@ -140,17 +140,11 @@ private:
         bool strongPrecedence;
     };
 
-    struct ModulePropertyEvalContext {
-        ModulePropertyEvalContext() : globalResult(0) {}
-        QString moduleName;
-        QHash<QString, EvalResult> *globalResult;
-        QStringList ownProperties;
-    };
-    QVariantMap evaluateProperties(Item *item, const ModulePropertyEvalContext &evalContext,
-                                   bool lookupPrototype = true) const;
-    QVariantMap evaluateProperties(Item *item, Item *propertiesContainer,
-            const ModulePropertyEvalContext &evalContext, const QVariantMap &tmplt,
+    QVariantMap evaluateProperties(Item *item, bool lookupPrototype = true) const;
+    QVariantMap evaluateProperties(Item *item, Item *propertiesContainer, const QVariantMap &tmplt,
             bool lookupPrototype = true) const;
+    QScriptValue evaluateJSSourceValue(Item *item, const JSSourceValuePtr &sourceValue,
+            const QString &propertyName) const;
     QVariantMap createProductConfig() const;
     QString convertPathProperty(const QString &path, const QString &dirPath) const;
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;

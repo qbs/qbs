@@ -27,35 +27,43 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_PROPERTY_FINDER_H
-#define QBS_PROPERTY_FINDER_H
 
-#include <QVariantList>
-#include <QVariantMap>
+#ifndef QBS_MODULEMERGER_H
+#define QBS_MODULEMERGER_H
+
+#include "item.h"
+#include <logging/logger.h>
+
+#include <QHash>
+#include <QSet>
+#include <QStringList>
 
 namespace qbs {
 namespace Internal {
 
-class PropertyFinder
-{
+class ModuleMerger {
 public:
-    QVariantList propertyValues(const QVariantMap &properties, const QString &moduleName,
-                              const QString &key);
-
-    // Note that this can still be a list if the property type itself is one.
-    QVariant propertyValue(const QVariantMap &properties, const QString &moduleName,
-                         const QString &key);
+    ModuleMerger(const Logger &logger, Item *root, Item *moduleToMerge,
+            const QStringList &moduleName);
+    void start();
 
 private:
-    void findModuleValues(const QVariantMap &properties);
-    void addToList(const QVariant &value);
+    Item::PropertyMap dfs(const Item::Module &m, Item::PropertyMap props);
+    void pushScalarProperties(Item::PropertyMap *dst, Item *srcItem);
+    void mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap &src);
+    void pullListProperties(Item::PropertyMap *dst, Item *instance);
+    static void setDefiningItem(const JSSourceValuePtr &v, Item *item);
 
-    QString m_moduleName;
-    QString m_key;
-    QVariantList m_values;
+    const Logger &m_logger;
+    Item * const m_rootItem;
+    Item *m_mergedModuleItem;
+    const QStringList m_moduleName;
+    QHash<JSSourceValuePtr, PropertyDeclaration> m_decls;
+    QSet<const Item *> m_seenInstancesTopDown;
+    QSet<const Item *> m_seenInstancesBottomUp;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // Include guard
+#endif // QBS_MODULEMERGER_H

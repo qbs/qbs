@@ -128,6 +128,12 @@ public:
     void setAlternatives(const QList<Alternative> &alternatives) { m_alternatives = alternatives; }
     void addAlternative(const Alternative &alternative) { m_alternatives.append(alternative); }
 
+    Item *definingItem() const;
+    void setDefiningItem(Item *item);
+
+    JSSourceValuePtr next() const;
+    void setNext(const JSSourceValuePtr &next);
+
 private:
     QStringRef m_sourceCode;
     int m_line;
@@ -136,6 +142,8 @@ private:
     Flags m_flags;
     JSSourceValuePtr m_baseValue;
     QList<Alternative> m_alternatives;
+    Item *m_definingItem;
+    JSSourceValuePtr m_next;
 };
 
 class Item;

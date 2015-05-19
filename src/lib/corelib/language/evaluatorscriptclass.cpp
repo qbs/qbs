@@ -205,6 +205,8 @@ private:
             }
             engine->currentContext()->pushScope(conditionFileScope);
             pushItemScopes(conditionScopeItem);
+            if (alternative->value->definingItem())
+                pushItemScopes(alternative->value->definingItem());
             engine->currentContext()->pushScope(conditionScope);
             const QScriptValue cr = engine->evaluate(alternative->condition);
             engine->currentContext()->popScope();
@@ -248,6 +250,8 @@ private:
 
         pushScope(data->evaluator->fileScope(value->file()));
         pushItemScopes(data->item);
+        if (value->definingItem())
+            pushItemScopes(value->definingItem());
         if (itemOfProperty && !itemOfProperty->isModuleInstance()) {
             // Own properties of module instances must not have the instance itself in the scope.
             pushScope(*object);

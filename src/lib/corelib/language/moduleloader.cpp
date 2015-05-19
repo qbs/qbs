@@ -456,6 +456,7 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     dependsContext.productDependencies = &productContext.info.usedProducts;
     setScopeForDescendants(item, productContext.scope);
     resolveDependencies(&dependsContext, item);
+    addTransitiveDependencies(&productContext, productContext.item);
     checkItemCondition(item);
 
     foreach (Item *child, item->children()) {
@@ -467,7 +468,8 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
             resolveProbe(item, child);
     }
 
-    mergeExportItems(&productContext);
+    Item *mergedExportItem = mergeExportItems(&productContext);
+    addTransitiveDependencies(&productContext, mergedExportItem);
     projectContext->result->productInfos.insert(item, productContext.info);
     m_reader->popExtraSearchPaths();
 }
@@ -565,7 +567,7 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
     }
 }
 
-void ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext)
+Item *ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext)
 {
     Item *merged = Item::create(productContext->item->pool());
     merged->setTypeName(QLatin1String("Export"));
@@ -603,6 +605,7 @@ void ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext
     dependsContext.product = productContext;
     dependsContext.productDependencies = &productContext->info.usedProductsFromExportItem;
     resolveDependencies(&dependsContext, merged);
+    return merged;
 }
 
 void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, Item *item)
@@ -1438,6 +1441,11 @@ QString ModuleLoader::fullModuleName(const QStringList &moduleName)
     return moduleName.join(QLatin1Char('.'));
 }
 
+QStringList ModuleLoader::fromFullModuleName(const QString &name)
+{
+    return name.split(QLatin1Char('.'));
+}
+
 void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfigKey,
         const QVariantMap &buildConfig)
 {
@@ -1456,6 +1464,45 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
         item->setProperty(it.key(),
                 VariantValue::create(convertToPropertyType(it.value(), decl.type(),
                         QStringList(buildConfigKey), it.key())));
+    }
+}
+
+static void collectAllModuleNames(Item *item, QVector<QStringList> *names)
+{
+    foreach (const Item::Module &m, item->modules()) {
+        if (names->contains(m.name))
+            continue;
+        names->append(m.name);
+        collectAllModuleNames(m.item, names);
+    }
+}
+
+static QVector<QStringList> allModuleNames(Item *item)
+{
+    QVector<QStringList> lst;
+    collectAllModuleNames(item, &lst);
+    return lst;
+}
+
+void ModuleLoader::addTransitiveDependencies(ProductContext *ctx, Item *item)
+{
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[MODLDR] addTransitiveDependencies";
+    QVector<QStringList> transitiveDeps = allModuleNames(item);
+    std::sort(transitiveDeps.begin(), transitiveDeps.end());
+    foreach (const Item::Module &m, item->modules()) {
+        auto it = std::lower_bound(transitiveDeps.begin(), transitiveDeps.end(), m.name);
+        if (it != transitiveDeps.end() && *it == m.name)
+            transitiveDeps.erase(it);
+    }
+    foreach (const QStringList &moduleName, transitiveDeps) {
+        Item::Module dep;
+        dep.item = loadModule(ctx, item, item->location(), QString(), moduleName,
+                              false, true);
+        if (!dep.item)
+            continue;
+        dep.name = moduleName;
+        item->modules() += dep;
     }
 }
 

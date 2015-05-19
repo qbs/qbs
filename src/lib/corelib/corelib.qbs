@@ -229,6 +229,8 @@ QbsLibrary {
             "loader.h",
             "moduleloader.cpp",
             "moduleloader.h",
+            "modulemerger.cpp",
+            "modulemerger.h",
             "preparescriptobserver.cpp",
             "preparescriptobserver.h",
             "projectresolver.cpp",

@@ -31,6 +31,8 @@
 #include "value.h"
 #include "item.h"
 
+#include <tools/qbsassert.h>
+
 namespace qbs {
 namespace Internal {
 
@@ -45,7 +47,7 @@ Value::~Value()
 
 
 JSSourceValue::JSSourceValue()
-    : Value(JSSourceValueType), m_line(-1), m_column(-1)
+    : Value(JSSourceValueType), m_line(-1), m_column(-1), m_definingItem(0)
 {
 }
 
@@ -91,6 +93,27 @@ void JSSourceValue::setHasFunctionForm(bool b)
         m_flags |= HasFunctionForm;
     else
         m_flags &= ~HasFunctionForm;
+}
+
+Item *JSSourceValue::definingItem() const
+{
+    return m_definingItem;
+}
+
+void JSSourceValue::setDefiningItem(Item *item)
+{
+    m_definingItem = item;
+}
+
+JSSourceValuePtr JSSourceValue::next() const
+{
+    return m_next;
+}
+
+void JSSourceValue::setNext(const JSSourceValuePtr &next)
+{
+    QBS_ASSERT(next.data() != this, return);
+    m_next = next;
 }
 
 

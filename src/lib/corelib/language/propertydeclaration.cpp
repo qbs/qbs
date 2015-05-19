@@ -90,6 +90,12 @@ bool PropertyDeclaration::isValid() const
     return d && d->type != UnknownType;
 }
 
+bool PropertyDeclaration::isScalar() const
+{
+    // ### Should be determined by a PropertyOption in the future.
+    return d->type != PathList && d->type != StringList;
+}
+
 PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QString &typeName)
 {
     if (typeName == QLatin1String("bool"))

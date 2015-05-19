@@ -108,6 +108,7 @@ public:
     ModuleLoaderResult load(const SetupProjectParameters &parameters);
 
     static QString fullModuleName(const QStringList &moduleName);
+    static QStringList fromFullModuleName(const QString &name);
 
 private:
     struct ItemCacheValue {
@@ -167,7 +168,7 @@ private:
             const QSet<QString> &referencedFilePaths);
     void handleGroup(ProductContext *productContext, Item *group);
     void deferExportItem(ProductContext *productContext, Item *item);
-    void mergeExportItems(ProductContext *productContext);
+    Item *mergeExportItems(ProductContext *productContext);
     void propagateModulesFromProduct(ProductContext *productContext, Item *item);
     void resolveDependencies(DependsContext *productContext, Item *item);
     class ItemModuleList;
@@ -201,6 +202,7 @@ private:
     static void setScopeForDescendants(Item *item, Item *scope);
     void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                 const QVariantMap &buildConfig);
+    void addTransitiveDependencies(ProductContext *ctx, Item *item);
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;
