@@ -93,7 +93,8 @@ Module {
         validator.setRequiredProperty("compilerVersionMajor", compilerVersionMajor);
         validator.setRequiredProperty("compilerVersionMinor", compilerVersionMinor);
         validator.setRequiredProperty("compilerVersionUpdate", compilerVersionUpdate);
-        validator.addVersionValidator("compilerVersion", compilerVersion.replace("_", "."), 4, 4);
+        validator.addVersionValidator("compilerVersion", compilerVersion
+                                      ? compilerVersion.replace("_", ".") : undefined, 4, 4);
         validator.addRangeValidator("compilerVersionMajor", compilerVersionMajor, 1);
         validator.addRangeValidator("compilerVersionMinor", compilerVersionMinor, 0);
         validator.addRangeValidator("compilerVersionPatch", compilerVersionPatch, 0);
