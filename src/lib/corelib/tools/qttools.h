@@ -36,6 +36,7 @@
 
 QT_BEGIN_NAMESPACE
 uint qHash(const QStringList &list);
+bool operator<(const QStringList &a, const QStringList &b);
 QT_END_NAMESPACE
 
 #endif // QBSQTTOOLS_H

@@ -38,4 +38,23 @@ uint qHash(const QStringList &list)
         s ^= qHash(n) + 0x9e3779b9 + (s << 6) + (s >> 2);
     return s;
 }
+
+/*!
+ * Shorter lists are less than longer lists.
+ * For lists a, b of same length c, a < b if and only if a[i] < b[i] for the first i in [0,c) for
+ * which a[i] != b[i].
+ */
+bool operator<(const QStringList &a, const QStringList &b)
+{
+    if (a.length() < b.length())
+        return true;
+    if (a.length() == b.length()) {
+        const int c = a.length();
+        for (int i = 0; i < c; ++i) {
+            if (a.at(i) != b.at(i))
+                return a.at(i) < b.at(i);
+        }
+    }
+    return false;
+}
 QT_END_NAMESPACE
