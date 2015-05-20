@@ -342,9 +342,8 @@ void TestApi::buildProjectDryRun()
     const qbs::ErrorInfo errorInfo
             = doBuildProject(projectSubDir + "/project.qbs", 0, 0, 0, options);
     VERIFY_NO_ERROR(errorInfo);
-    const QStringList &buildDirContents
-            = QDir(relativeBuildDir()).entryList(QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
-    QVERIFY2(buildDirContents.isEmpty(), qPrintable(buildDirContents.join(" ")));
+    QVERIFY2(!QFileInfo::exists(relativeBuildDir()), qPrintable(QDir(relativeBuildDir())
+            .entryList(QDir::NoDotAndDotDot | QDir::AllEntries | QDir::System).join(", ")));
 }
 
 void TestApi::buildProjectDryRun_data()
