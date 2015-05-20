@@ -240,7 +240,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         var s = {};
         var c = libs.length;
         for (var i = 0; i < c; ++i) {
-            var lib = libs[i];
+            var lib = FileInfo.toWindowsSeparators(libs[i]);
             if (!lib.match(/\.lib$/i))
                 lib += ".lib";
             if (s[lib])
