@@ -44,7 +44,7 @@ namespace Internal {
 class ModuleMerger {
 public:
     ModuleMerger(const Logger &logger, Item *root, Item *moduleToMerge,
-            const QStringList &moduleName);
+            const QualifiedId &moduleName);
     void start();
 
 private:

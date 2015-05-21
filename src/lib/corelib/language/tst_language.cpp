@@ -48,6 +48,8 @@
 
 #include <QProcessEnvironment>
 
+#include <algorithm>
+
 Q_DECLARE_METATYPE(QList<bool>)
 
 namespace qbs {
@@ -1302,6 +1304,28 @@ void TestLanguage::propertiesBlocks()
         v = productPropertyValue(product, "someString");
         QCOMPARE(v.toString(), expectedStringValue);
     }
+}
+
+void TestLanguage::qualifiedId()
+{
+    QString str = "foo.bar.baz";
+    QualifiedId id = QualifiedId::fromString(str);
+    QCOMPARE(id.count(), 3);
+    QCOMPARE(id.toString(), str);
+
+    id = QualifiedId("blubb.di.blubb"); // c'tor does not split
+    QCOMPARE(id.count(), 1);
+
+    QList<QualifiedId> ids;
+    ids << QualifiedId::fromString("a")
+        << QualifiedId::fromString("a.a")
+        << QualifiedId::fromString("b")
+        << QualifiedId::fromString("c.a")
+        << QualifiedId::fromString("c.b.a")
+        << QualifiedId::fromString("c.c");
+    QList<QualifiedId> sorted = ids;
+    std::sort(sorted.begin(), sorted.end());
+    QCOMPARE(ids, sorted);
 }
 
 void TestLanguage::fileTags_data()

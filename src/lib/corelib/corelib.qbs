@@ -240,6 +240,8 @@ QbsLibrary {
             "propertydeclaration.h",
             "propertymapinternal.cpp",
             "propertymapinternal.h",
+            "qualifiedid.cpp",
+            "qualifiedid.h",
             "resolvedfilecontext.cpp",
             "resolvedfilecontext.h",
             "scriptengine.cpp",

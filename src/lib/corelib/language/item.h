@@ -36,6 +36,7 @@
 #include "value.h"
 #include "functiondeclaration.h"
 #include "propertydeclaration.h"
+#include "qualifiedid.h"
 #include <parser/qmljsmemorypool_p.h>
 #include <tools/codelocation.h>
 #include <tools/weakpointer.h>
@@ -68,7 +69,7 @@ public:
             : item(0)
         {}
 
-        QStringList name;
+        QualifiedId name;
         Item *item;
     };
     typedef QList<Module> Modules;

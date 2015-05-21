@@ -33,6 +33,7 @@
 
 #include "forward_decls.h"
 #include "itempool.h"
+#include "qualifiedid.h"
 #include <logging/logger.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/version.h>
@@ -107,9 +108,6 @@ public:
 
     ModuleLoaderResult load(const SetupProjectParameters &parameters);
 
-    static QString fullModuleName(const QStringList &moduleName);
-    static QStringList fromFullModuleName(const QString &name);
-
 private:
     struct ItemCacheValue {
         explicit ItemCacheValue(Item *module = 0, bool enabled = false)
@@ -173,18 +171,18 @@ private:
     void resolveDependencies(DependsContext *productContext, Item *item);
     class ItemModuleList;
     void resolveDependsItem(DependsContext *dependsContext, Item *item, Item *dependsItem, ItemModuleList *moduleResults, ProductDependencyResults *productResults);
-    Item *moduleInstanceItem(Item *item, const QStringList &moduleName);
+    Item *moduleInstanceItem(Item *item, const QualifiedId &moduleName);
     Item *loadModule(ProductContext *productContext, Item *item,
             const CodeLocation &dependsItemLocation, const QString &moduleId,
-            const QStringList &moduleName, bool isBaseModule, bool isRequired);
+            const QualifiedId &moduleName, bool isBaseModule, bool isRequired);
     Item *searchAndLoadModuleFile(ProductContext *productContext,
-            const CodeLocation &dependsItemLocation, const QStringList &moduleName,
+            const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
             const QStringList &extraSearchPaths, bool isRequired, bool *cacheHit);
     Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
             bool isBaseModule, const QString &filePath, bool *cacheHit, bool *triedToLoad);
     void loadBaseModule(ProductContext *productContext, Item *item);
     void setupBaseModulePrototype(Item *prototype);
-    void instantiateModule(ProductContext *productContext, Item *instanceScope, Item *moduleInstance, Item *modulePrototype, const QStringList &moduleName);
+    void instantiateModule(ProductContext *productContext, Item *instanceScope, Item *moduleInstance, Item *modulePrototype, const QualifiedId &moduleName);
     void createChildInstances(ProductContext *productContext, Item *instance,
                               Item *prototype, QHash<Item *, Item *> *prototypeInstanceMap) const;
     void resolveProbes(Item *item);
@@ -197,7 +195,7 @@ private:
     void copyProperties(const Item *sourceProject, Item *targetProject);
     Item *wrapWithProject(Item *item);
     static QString findExistingModulePath(const QString &searchPath,
-            const QStringList &moduleName);
+            const QualifiedId &moduleName);
     static void copyProperty(const QString &propertyName, const Item *source, Item *destination);
     static void setScopeForDescendants(Item *item, Item *scope);
     void overrideItemProperties(Item *item, const QString &buildConfigKey,

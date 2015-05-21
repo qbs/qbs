@@ -37,7 +37,7 @@ namespace qbs {
 namespace Internal {
 
 ModuleMerger::ModuleMerger(const Logger &logger, Item *root, Item *moduleToMerge,
-        const QStringList &moduleName)
+        const QualifiedId &moduleName)
     : m_logger(logger)
     , m_rootItem(root)
     , m_mergedModuleItem(moduleToMerge)

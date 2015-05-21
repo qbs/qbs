@@ -28,14 +28,47 @@
 **
 ****************************************************************************/
 
-#ifndef QBSQTTOOLS_H
-#define QBSQTTOOLS_H
+#include "qualifiedid.h"
 
-#include <QHash>
-#include <QStringList>
+namespace qbs {
+namespace Internal {
 
-QT_BEGIN_NAMESPACE
-uint qHash(const QStringList &list);
-QT_END_NAMESPACE
+QualifiedId::QualifiedId()
+{
+}
 
-#endif // QBSQTTOOLS_H
+QualifiedId::QualifiedId(const QString &singlePartName)
+    : QStringList(singlePartName)
+{
+}
+
+QualifiedId::QualifiedId(const QStringList &nameParts)
+    : QStringList(nameParts)
+{
+}
+
+QualifiedId QualifiedId::fromString(const QString &str)
+{
+    return QualifiedId(str.split(QLatin1Char('.')));
+}
+
+QString QualifiedId::toString() const
+{
+    return join(QLatin1Char('.'));
+}
+
+bool operator<(const QualifiedId &a, const QualifiedId &b)
+{
+    const int c = qMin(a.count(), b.count());
+    for (int i = 0; i < c; ++i) {
+        int n = a.at(i).compare(b.at(i));
+        if (n < 0)
+            return true;
+        if (n > 0)
+            return false;
+    }
+    return a.count() < b.count();
+}
+
+} // namespace Internal
+} // namespace qbs

@@ -104,6 +104,7 @@ private slots:
     void productDirectories();
     void propertiesBlocks_data();
     void propertiesBlocks();
+    void qualifiedId();
     void fileTags_data();
     void fileTags();
     void wildcards_data();

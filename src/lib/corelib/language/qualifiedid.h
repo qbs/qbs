@@ -28,14 +28,28 @@
 **
 ****************************************************************************/
 
-#ifndef QBSQTTOOLS_H
-#define QBSQTTOOLS_H
+#ifndef QBS_QUALIFIEDID_H
+#define QBS_QUALIFIEDID_H
 
-#include <QHash>
 #include <QStringList>
 
-QT_BEGIN_NAMESPACE
-uint qHash(const QStringList &list);
-QT_END_NAMESPACE
+namespace qbs {
+namespace Internal {
 
-#endif // QBSQTTOOLS_H
+class QualifiedId : public QStringList
+{
+public:
+    QualifiedId();
+    QualifiedId(const QString &singlePartName);
+    QualifiedId(const QStringList &nameParts);
+
+    static QualifiedId fromString(const QString &str);
+    QString toString() const;
+};
+
+bool operator<(const QualifiedId &a, const QualifiedId &b);
+
+} // namespace Internal
+} // namespace qbs
+
+#endif // QBS_QUALIFIEDID_H

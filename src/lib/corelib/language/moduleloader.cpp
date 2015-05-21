@@ -647,7 +647,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     QSet<QString> loadedModuleNames;
     foreach (const ItemModuleList &moduleList, loadedModules) {
         foreach (const Item::Module &module, moduleList) {
-            const QString fullName = fullModuleName(module.name);
+            const QString fullName = module.name.toString();
             if (loadedModuleNames.contains(fullName))
                 continue;
             loadedModuleNames.insert(fullName);
@@ -720,17 +720,17 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
         throw ErrorInfo(msg, dependsItem->location());
     }
 
-    QList<QStringList> moduleNames;
-    const QStringList nameParts = name.split(QLatin1Char('.'));
+    QList<QualifiedId> moduleNames;
+    const QualifiedId nameParts = QualifiedId::fromString(name);
     if (submodules.isEmpty()) {
         moduleNames << nameParts;
     } else {
         foreach (const QString &submodule, submodules)
-            moduleNames << nameParts + submodule.split(QLatin1Char('.'));
+            moduleNames << nameParts + QualifiedId::fromString(submodule);
     }
 
     Item::Module result;
-    foreach (const QStringList &moduleName, moduleNames) {
+    foreach (const QualifiedId &moduleName, moduleNames) {
         const bool isRequired
                 = m_evaluator->boolValue(dependsItem, QLatin1String("required"));
         Item *moduleItem = 0;
@@ -743,7 +743,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
         }
         if (moduleItem) {
             if (m_logger.traceEnabled())
-                m_logger.qbsTrace() << "module loaded: " << fullModuleName(moduleName);
+                m_logger.qbsTrace() << "module loaded: " << moduleName.toString();
             result.name = moduleName;
             result.item = moduleItem;
             moduleResults->append(result);
@@ -752,14 +752,14 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
             const QStringList profiles = m_evaluator->stringListValue(dependsItem, profilesKey);
             if (profiles.isEmpty()) {
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
-                dependency.name = fullModuleName(moduleName);
+                dependency.name = moduleName.toString();
                 dependency.profile = QLatin1String("*");
                 productResults->append(ProductDependencyResult(dependsItem, dependency));
                 continue;
             }
             foreach (const QString &profile, profiles) {
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
-                dependency.name = fullModuleName(moduleName);
+                dependency.name = moduleName.toString();
                 dependency.profile = profile;
                 productResults->append(ProductDependencyResult(dependsItem, dependency));
             }
@@ -767,7 +767,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
     }
 }
 
-Item *ModuleLoader::moduleInstanceItem(Item *item, const QStringList &moduleName)
+Item *ModuleLoader::moduleInstanceItem(Item *item, const QualifiedId &moduleName)
 {
     Item *instance = item;
     for (int i = 0; i < moduleName.count(); ++i) {
@@ -794,7 +794,7 @@ Item *ModuleLoader::moduleInstanceItem(Item *item, const QStringList &moduleName
 
 Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         const CodeLocation &dependsItemLocation,
-        const QString &moduleId, const QStringList &moduleName, bool isBaseModule, bool isRequired)
+        const QString &moduleId, const QualifiedId &moduleName, bool isBaseModule, bool isRequired)
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] loadModule name: " << moduleName << ", id: " << moduleId;
@@ -825,14 +825,14 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
 // It's not necessarily an error if we don't find a required module with the given name,
 // because the dependency could refer to a product instead.
 Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
-        const CodeLocation &dependsItemLocation, const QStringList &moduleName,
+        const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
         const QStringList &extraSearchPaths, bool isRequired, bool *cacheHit)
 {
     QStringList searchPaths = extraSearchPaths;
     searchPaths.append(m_moduleSearchPaths);
 
     bool triedToLoadModule = false;
-    const QString fullName = fullModuleName(moduleName);
+    const QString fullName = moduleName.toString();
     foreach (const QString &path, searchPaths) {
         const QString dirPath = findExistingModulePath(path, moduleName);
         if (dirPath.isEmpty())
@@ -993,7 +993,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 
 void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
 {
-    const QStringList baseModuleName(QLatin1String("qbs"));
+    const QualifiedId baseModuleName(QLatin1String("qbs"));
     Item::Module baseModuleDesc;
     baseModuleDesc.name = baseModuleName;
     baseModuleDesc.item = loadModule(productContext, item, CodeLocation(), QString(),
@@ -1168,9 +1168,9 @@ static QList<Item *> collectItemsWithId(Item *item)
 
 void ModuleLoader::instantiateModule(ProductContext *productContext, Item *instanceScope,
                                      Item *moduleInstance, Item *modulePrototype,
-                                     const QStringList &moduleName)
+                                     const QualifiedId &moduleName)
 {
-    const QString fullName = fullModuleName(moduleName);
+    const QString fullName = moduleName.toString();
     modulePrototype->setProperty(QLatin1String("name"),
                                  VariantValue::create(fullName));
 
@@ -1232,7 +1232,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
          vmit != userModuleProperties.end(); ++vmit) {
         if (Q_UNLIKELY(!moduleInstance->hasProperty(vmit.key()))) {
             const ErrorInfo error(Tr::tr("Unknown property: %1.%2")
-                                  .arg(fullModuleName(moduleName), vmit.key()));
+                                  .arg(moduleName.toString(), vmit.key()));
             handlePropertyError(error, m_parameters, m_logger);
             continue;
         }
@@ -1411,7 +1411,7 @@ Item *ModuleLoader::wrapWithProject(Item *item)
 }
 
 QString ModuleLoader::findExistingModulePath(const QString &searchPath,
-        const QStringList &moduleName)
+        const QualifiedId &moduleName)
 {
     QString dirPath = searchPath;
     foreach (const QString &moduleNamePart, moduleName) {
@@ -1436,16 +1436,6 @@ void ModuleLoader::setScopeForDescendants(Item *item, Item *scope)
     }
 }
 
-QString ModuleLoader::fullModuleName(const QStringList &moduleName)
-{
-    return moduleName.join(QLatin1Char('.'));
-}
-
-QStringList ModuleLoader::fromFullModuleName(const QString &name)
-{
-    return name.split(QLatin1Char('.'));
-}
-
 void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfigKey,
         const QVariantMap &buildConfig)
 {
@@ -1467,7 +1457,7 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
     }
 }
 
-static void collectAllModuleNames(Item *item, QVector<QStringList> *names)
+static void collectAllModuleNames(Item *item, QVector<QualifiedId> *names)
 {
     foreach (const Item::Module &m, item->modules()) {
         if (names->contains(m.name))
@@ -1477,9 +1467,9 @@ static void collectAllModuleNames(Item *item, QVector<QStringList> *names)
     }
 }
 
-static QVector<QStringList> allModuleNames(Item *item)
+static QVector<QualifiedId> allModuleNames(Item *item)
 {
-    QVector<QStringList> lst;
+    QVector<QualifiedId> lst;
     collectAllModuleNames(item, &lst);
     return lst;
 }
@@ -1488,14 +1478,14 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx, Item *item)
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] addTransitiveDependencies";
-    QVector<QStringList> transitiveDeps = allModuleNames(item);
+    QVector<QualifiedId> transitiveDeps = allModuleNames(item);
     std::sort(transitiveDeps.begin(), transitiveDeps.end());
     foreach (const Item::Module &m, item->modules()) {
         auto it = std::lower_bound(transitiveDeps.begin(), transitiveDeps.end(), m.name);
         if (it != transitiveDeps.end() && *it == m.name)
             transitiveDeps.erase(it);
     }
-    foreach (const QStringList &moduleName, transitiveDeps) {
+    foreach (const QualifiedId &moduleName, transitiveDeps) {
         Item::Module dep;
         dep.item = loadModule(ctx, item, item->location(), QString(), moduleName,
                               false, true);

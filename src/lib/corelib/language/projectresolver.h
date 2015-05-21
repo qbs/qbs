@@ -51,7 +51,7 @@ class Item;
 class ModuleLoader;
 class ProgressObserver;
 class ScriptEngine;
-class StringListSet;
+class QualifiedIdSet;
 
 class ProjectResolver
 {
@@ -117,13 +117,13 @@ private:
     void resolveSubProject(Item *item, ProjectContext *projectContext);
     void resolveProduct(Item *item, ProjectContext *projectContext);
     void resolveModules(const Item *item, ProjectContext *projectContext);
-    void resolveModule(const QStringList &moduleName, Item *item, ProjectContext *projectContext);
+    void resolveModule(const QualifiedId &moduleName, Item *item, ProjectContext *projectContext);
     void resolveGroup(Item *item, ProjectContext *projectContext);
     void resolveRule(Item *item, ProjectContext *projectContext);
     void resolveRuleArtifact(const RulePtr &rule, Item *item);
     static void resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact, Item *item,
                                            const QStringList &namePrefix,
-                                           StringListSet *seenBindings);
+                                           QualifiedIdSet *seenBindings);
     void resolveFileTagger(Item *item, ProjectContext *projectContext);
     void resolveTransformer(Item *item, ProjectContext *projectContext);
     void resolveScanner(Item *item, ProjectContext *projectContext);

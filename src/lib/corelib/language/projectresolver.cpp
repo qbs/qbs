@@ -420,7 +420,7 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
               });
 }
 
-void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
+void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item,
                                     ProjectContext *projectContext)
 {
     checkCancelation();
@@ -433,7 +433,7 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
     m_moduleContext = &moduleContext;
 
     const ResolvedModulePtr &module = moduleContext.module;
-    module->name = ModuleLoader::fullModuleName(moduleName);
+    module->name = moduleName.toString();
     module->setupBuildEnvironmentScript = scriptFunctionValue(item,
                                                             QLatin1String("setupBuildEnvironment"));
     module->setupRunEnvironmentScript = scriptFunctionValue(item,
@@ -443,7 +443,7 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
             m_evaluator->fileTagsValue(item, QLatin1String("additionalProductTypes"));
 
     foreach (const Item::Module &m, item->modules())
-        module->moduleDependencies += ModuleLoader::fullModuleName(m.name);
+        module->moduleDependencies += m.name.toString();
 
     m_productContext->product->modules += module;
 
@@ -701,24 +701,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
         projectContext->rules += rule;
 }
 
-class StringListLess
-{
-public:
-    bool operator()(const QStringList &lhs, const QStringList &rhs)
-    {
-        const int c = qMin(lhs.count(), rhs.count());
-        for (int i = 0; i < c; ++i) {
-            int n = lhs.at(i).compare(rhs.at(i));
-            if (n < 0)
-                return true;
-            if (n > 0)
-                return false;
-        }
-        return lhs.count() < rhs.count();
-    }
-};
-
-class StringListSet : public std::set<QStringList, StringListLess>
+class QualifiedIdSet : public std::set<QualifiedId>
 {
 public:
     typedef std::pair<iterator, bool> InsertResult;
@@ -734,7 +717,7 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
     artifact->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
     artifact->alwaysUpdated = m_evaluator->boolValue(item, QLatin1String("alwaysUpdated"));
 
-    StringListSet seenBindings;
+    QualifiedIdSet seenBindings;
     for (Item *obj = item; obj; obj = obj->prototype()) {
         for (QMap<QString, ValuePtr>::const_iterator it = obj->properties().constBegin();
              it != obj->properties().constEnd(); ++it)
@@ -750,7 +733,7 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
 void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact,
                                                  Item *item,
                                                  const QStringList &namePrefix,
-                                                 StringListSet *seenBindings)
+                                                 QualifiedIdSet *seenBindings)
 {
     for (QMap<QString, ValuePtr>::const_iterator it = item->properties().constBegin();
          it != item->properties().constEnd(); ++it)
@@ -761,7 +744,7 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
                                        it.value().staticCast<ItemValue>()->item(), name,
                                        seenBindings);
         } else if (it.value()->type() == Value::JSSourceValueType) {
-            const StringListSet::InsertResult insertResult = seenBindings->insert(name);
+            const QualifiedIdSet::InsertResult insertResult = seenBindings->insert(name);
             if (!insertResult.second)
                 continue;
             JSSourceValuePtr sourceValue = it.value().staticCast<JSSourceValue>();
@@ -899,11 +882,11 @@ static void insertExportedModuleProperties(const Item::Module &moduleInProduct,
 static void insertExportedConfig(Item *productItem, Item *exportItem,
         const QVariantMap &exportedConfig, const PropertyMapPtr &propertyMap)
 {
-    QHash<QStringList, Item::Module> productModules;
+    QHash<QualifiedId, Item::Module> productModules;
     foreach (const Item::Module &m, productItem->modules())
         productModules[m.name] = m;
 
-    QHash<QStringList, Item::Module> exportModules;
+    QHash<QualifiedId, Item::Module> exportModules;
     foreach (const Item::Module &m, exportItem->modules())
         exportModules[m.name] = m;
 
@@ -913,7 +896,7 @@ static void insertExportedConfig(Item *productItem, Item *exportItem,
     const QVariantMap &exportedModules = exportedConfig.value(QStringLiteral("modules")).toMap();
     for (auto it = exportedModules.constBegin(); it != exportedModules.constEnd(); ++it) {
         const QString &fullModuleName = it.key();
-        const QStringList &moduleName = ModuleLoader::fromFullModuleName(fullModuleName);
+        const QualifiedId &moduleName = QualifiedId::fromString(fullModuleName);
         QVariant &moduleVariant = modules[fullModuleName];
         QVariantMap module = moduleVariant.toMap();
         insertExportedModuleProperties(productModules.value(moduleName),
@@ -1195,7 +1178,7 @@ QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototy
 {
     QVariantMap moduleValues;
     foreach (const Item::Module &module, item->modules()) {
-        const QString fullName = ModuleLoader::fullModuleName(module.name);
+        const QString fullName = module.name.toString();
         moduleValues[fullName] = evaluateProperties(module.item, lookupPrototype);
     }
 
