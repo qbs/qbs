@@ -180,6 +180,12 @@
             \c{function(project, product, inputs, outputs, input, output)}.
             The argument \c{input} is \c{undefined} if there's more than one input artifact for this
             rule. Similarly, \c{output} is only defined if there's exactly one output artifact.
+    \row
+        \li alwaysRun
+        \li bool
+        \li false
+        \li If true, the rule's commands are always executed, even if all output artifacts
+            are up to date.
     \endtable
 
 */

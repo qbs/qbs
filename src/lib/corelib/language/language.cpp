@@ -377,7 +377,8 @@ void Rule::load(PersistentPool &pool)
         >> excludedAuxiliaryInputs
         >> inputsFromDependencies
         >> explicitlyDependsOn
-        >> multiplex;
+        >> multiplex
+        >> alwaysRun;
 
     pool.loadContainerS(artifacts);
 }
@@ -395,7 +396,8 @@ void Rule::store(PersistentPool &pool) const
         << excludedAuxiliaryInputs
         << inputsFromDependencies
         << explicitlyDependsOn
-        << multiplex;
+        << multiplex
+        << alwaysRun;
 
     pool.storeContainer(artifacts);
 }
@@ -1157,6 +1159,7 @@ void ResolvedTransformer::load(PersistentPool &pool)
     pool.loadContainerS(outputs);
     transform = pool.idLoadS<ScriptFunction>();
     pool.stream() >> explicitlyDependsOn;
+    pool.stream() >> alwaysRun;
 }
 
 void ResolvedTransformer::store(PersistentPool &pool) const
@@ -1166,6 +1169,7 @@ void ResolvedTransformer::store(PersistentPool &pool) const
     pool.storeContainer(outputs);
     pool.store(transform);
     pool.stream() << explicitlyDependsOn;
+    pool.stream() << alwaysRun;
 }
 
 
@@ -1223,7 +1227,8 @@ bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2)
             && t1.inputs.toSet() == t2.inputs.toSet()
             && sourceArtifactSetsAreEqual(t1.outputs, t2.outputs)
             && equals(t1.transform.data(), t2.transform.data())
-            && t1.explicitlyDependsOn == t2.explicitlyDependsOn;
+            && t1.explicitlyDependsOn == t2.explicitlyDependsOn
+            && t1.alwaysRun == t2.alwaysRun;
 }
 
 bool transformerListsAreEqual(const QList<ResolvedTransformerPtr> &l1,
@@ -1250,7 +1255,8 @@ bool operator==(const Rule &r1, const Rule &r2)
             && r1.excludedAuxiliaryInputs == r2.excludedAuxiliaryInputs
             && r1.inputsFromDependencies == r2.inputsFromDependencies
             && r1.explicitlyDependsOn == r2.explicitlyDependsOn
-            && r1.multiplex == r2.multiplex;
+            && r1.multiplex == r2.multiplex
+            && r1.alwaysRun == r2.alwaysRun;
 }
 
 bool ruleListsAreEqual(const QList<RulePtr> &l1, const QList<RulePtr> &l2)

@@ -677,6 +677,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     }
 
     rule->multiplex = m_evaluator->boolValue(item, QLatin1String("multiplex"));
+    rule->alwaysRun = m_evaluator->boolValue(item, QLatin1String("alwaysRun"));
     rule->inputs = m_evaluator->fileTagsValue(item, QLatin1String("inputs"));
     rule->inputsFromDependencies
             = m_evaluator->fileTagsValue(item, QLatin1String("inputsFromDependencies"));
@@ -814,6 +815,7 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
     rtrafo->transform = scriptFunctionValue(item, QLatin1String("prepare"));
     rtrafo->explicitlyDependsOn = m_evaluator->fileTagsValue(item,
                                                              QLatin1String("explicitlyDependsOn"));
+    rtrafo->alwaysRun = m_evaluator->boolValue(item, QLatin1String("alwaysRun"));
 
     foreach (const Item *child, item->children()) {
         if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))

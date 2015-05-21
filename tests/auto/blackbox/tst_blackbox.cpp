@@ -283,6 +283,39 @@ void TestBlackbox::tar()
     QCOMPARE(listContents.readAllStandardOutput(), listFile.readAll());
 }
 
+void TestBlackbox::alwaysRun()
+{
+    QFETCH(QString, projectFile);
+
+    QDir::setCurrent(testDataDir + "/always-run");
+    rmDirR(relativeBuildDir());
+    QbsRunParameters params("build", QStringList() << "-f" << projectFile);
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("yo"));
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!m_qbsStdout.contains("yo"));
+    waitForNewTimestamp();
+    QFile f(projectFile);
+    QVERIFY2(f.open(QIODevice::ReadWrite), qPrintable(f.errorString()));
+    QByteArray content = f.readAll();
+    content.replace("alwaysRun: false", "alwaysRun: true");
+    f.resize(0);
+    f.write(content);
+    f.close();
+
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("yo"));
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("yo"));
+}
+
+void TestBlackbox::alwaysRun_data()
+{
+    QTest::addColumn<QString>("projectFile");
+    QTest::newRow("Transformer") << "transformer.qbs";
+    QTest::newRow("Rule") << "rule.qbs";
+}
+
 void TestBlackbox::android()
 {
     QFETCH(QString, projectDir);

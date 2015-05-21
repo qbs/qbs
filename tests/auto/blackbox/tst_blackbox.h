@@ -93,6 +93,8 @@ public slots:
     void initTestCase();
 
 private slots:
+    void alwaysRun();
+    void alwaysRun_data();
     void android();
     void android_data();
     void buildDirectories();

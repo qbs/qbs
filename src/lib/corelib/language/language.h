@@ -277,6 +277,7 @@ public:
     FileTags explicitlyDependsOn;
     bool multiplex;
     QList<RuleArtifactPtr> artifacts;           // unused, if outputFileTags/outputArtifactsScript is non-empty
+    bool alwaysRun;
 
     // members that we don't need to save
     int ruleGraphId;
@@ -287,7 +288,7 @@ public:
     FileTags collectedOutputFileTags() const;
     bool isDynamic() const;
 private:
-    Rule() : multiplex(false), ruleGraphId(-1) {}
+    Rule() : multiplex(false), alwaysRun(false), ruleGraphId(-1) {}
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
@@ -309,9 +310,10 @@ public:
     QList<SourceArtifactPtr> outputs;
     ScriptFunctionPtr transform;
     FileTags explicitlyDependsOn;
+    bool alwaysRun;
 
 private:
-    ResolvedTransformer() {}
+    ResolvedTransformer() :alwaysRun(false) {}
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;

@@ -61,6 +61,7 @@ public:
     PropertySet propertiesRequestedInPrepareScript;
     PropertySet propertiesRequestedInCommands;
     QHash<QString, PropertySet> propertiesRequestedFromArtifactInPrepareScript;
+    bool alwaysRun;
 
     static QScriptValue translateFileConfig(QScriptEngine *scriptEngine,
                                             Artifact *artifact,

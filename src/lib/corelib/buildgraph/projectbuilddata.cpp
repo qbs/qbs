@@ -495,6 +495,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         }
         TransformerPtr transformer = Transformer::create();
         trafos += TrafoPair(rtrafo, transformer);
+        transformer->alwaysRun = rtrafo->alwaysRun;
         transformer->inputs = inputArtifacts;
         const RulePtr rule = Rule::create();
         ResolvedModulePtr module = ResolvedModule::create();

@@ -104,6 +104,12 @@
         \li \c{undefined}
         \li A list of file tags. All output artifacts of this transformer will have a dependency
             to all artifacts with the given file tags.
+    \row
+        \li alwaysRun
+        \li bool
+        \li false
+        \li If true, the transformer's commands are always executed, even if all output artifacts
+            are up to date.
     \endtable
 
 */

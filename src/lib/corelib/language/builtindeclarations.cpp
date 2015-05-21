@@ -127,6 +127,13 @@ static PropertyDeclaration conditionProperty()
     return decl;
 }
 
+static PropertyDeclaration alwaysRunProperty()
+{
+    PropertyDeclaration decl(QLatin1String("alwaysRun"), PropertyDeclaration::Boolean);
+    decl.setInitialValueSource(QLatin1String("false"));
+    return decl;
+}
+
 static PropertyDeclaration nameProperty()
 {
     return PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String);
@@ -355,6 +362,7 @@ void BuiltinDeclarations::addRuleItem()
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
             << QLatin1String("Artifact"));
     item << conditionProperty();
+    item << alwaysRunProperty();
     PropertyDeclaration decl(QLatin1String("multiplex"), PropertyDeclaration::Boolean);
     decl.setInitialValueSource(QLatin1String("false"));
     item << decl;
@@ -404,6 +412,7 @@ void BuiltinDeclarations::addTransformerItem()
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
             << QLatin1String("Artifact"));
     item << conditionProperty();
+    item << alwaysRunProperty();
     item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::Variant);
     item << prepareScriptProperty();
     item << PropertyDeclaration(QLatin1String("explicitlyDependsOn"),

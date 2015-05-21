@@ -162,6 +162,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     m_transformer = Transformer::create();
     m_transformer->rule = m_rule;
     m_transformer->inputs = inputArtifacts;
+    m_transformer->alwaysRun = m_rule->alwaysRun;
 
     // create the output artifacts from the set of input artifacts
     Transformer::setupInputs(prepareScriptContext, inputArtifacts, m_rule->module->name);

@@ -48,7 +48,7 @@
 namespace qbs {
 namespace Internal {
 
-Transformer::Transformer()
+Transformer::Transformer() : alwaysRun(false)
 {
 }
 
@@ -283,6 +283,7 @@ void Transformer::load(PersistentPool &pool)
         propertiesRequestedFromArtifactInPrepareScript.insert(artifactName, list);
     }
     commands = loadCommandList(pool);
+    pool.stream() >> alwaysRun;
 }
 
 static void storePropertyList(PersistentPool &pool, const PropertySet &list)
@@ -315,6 +316,7 @@ void Transformer::store(PersistentPool &pool) const
         }
     }
     storeCommandList(commands, pool);
+    pool.stream() << alwaysRun;
 }
 
 } // namespace Internal

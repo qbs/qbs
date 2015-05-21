@@ -385,6 +385,8 @@ bool Executor::isUpToDate(Artifact *artifact) const
 
 bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
 {
+    if (transformer->alwaysRun)
+        return true;
     bool hasAlwaysUpdatedArtifacts = false;
     foreach (Artifact *artifact, transformer->outputs) {
         if (artifact->alwaysUpdated)
