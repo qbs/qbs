@@ -34,6 +34,7 @@
 #include <tools/buildoptions.h>
 
 #include <QObject>
+#include <QVariant>
 
 namespace qbs {
 class ErrorInfo;
@@ -123,7 +124,8 @@ private:
                                   QObject *buildDescriptionReceiver = 0,
                                   QObject *procResultReceiver = 0,
                                   QObject *taskReceiver = 0,
-                                  const qbs::BuildOptions &options = qbs::BuildOptions());
+                                  const qbs::BuildOptions &options = qbs::BuildOptions(),
+                                  const QVariantMap overriddenValues = QVariantMap());
 
     LogSink * const m_logSink;
     const QString m_sourceDataDir;

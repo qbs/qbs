@@ -968,7 +968,26 @@ void TestApi::infiniteLoopResolving()
 
 void TestApi::inheritQbsSearchPaths()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("inherit-qbs-search-paths/prj.qbs");
+    const QString projectFilePath = "inherit-qbs-search-paths/prj.qbs";
+    qbs::ErrorInfo errorInfo = doBuildProject(projectFilePath);
+    VERIFY_NO_ERROR(errorInfo);
+
+    waitForNewTimestamp();
+    QFile projectFile(m_workingDataDir + '/' + projectFilePath);
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    QByteArray content = projectFile.readAll();
+    content.replace("qbsSearchPaths: \"subdir\"", "//qbsSearchPaths: \"subdir\"");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    errorInfo = doBuildProject(projectFilePath);
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("Product dependency 'bli' not found"),
+             qPrintable(errorInfo.toString()));
+
+    QVariantMap overriddenValues;
+    overriddenValues.insert("project.qbsSearchPaths", QStringList() << "subdir");
+    errorInfo = doBuildProject(projectFilePath, 0, 0, 0, qbs::BuildOptions(), overriddenValues);
     VERIFY_NO_ERROR(errorInfo);
 }
 
@@ -1649,9 +1668,10 @@ void TestApi::uic()
 
 qbs::ErrorInfo TestApi::doBuildProject(const QString &projectFilePath,
         QObject *buildDescriptionReceiver, QObject *procResultReceiver, QObject *taskReceiver,
-        const qbs::BuildOptions &options)
+        const qbs::BuildOptions &options, const QVariantMap overriddenValues)
 {
     qbs::SetupProjectParameters params = defaultSetupParameters(projectFilePath);
+    params.setOverriddenValues(overriddenValues);
     params.setDryRun(options.dryRun());
     const QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
                                                                                     m_logSink, 0));

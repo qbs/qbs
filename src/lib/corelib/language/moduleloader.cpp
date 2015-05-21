@@ -1337,8 +1337,13 @@ QStringList ModuleLoader::readExtraSearchPaths(Item *item, bool *wasSet)
     const QString propertyName = QLatin1String("qbsSearchPaths");
     const QStringList paths = m_evaluator->stringListValue(item, propertyName, wasSet);
     const JSSourceValueConstPtr prop = item->sourceProperty(propertyName);
+
+    // Value can come from within a project file or as an overridden value from the user
+    // (e.g command line).
+    const QString basePath = FileInfo::path(prop ? prop->file()->filePath()
+                                                 : m_parameters.projectFilePath());
     foreach (const QString &path, paths)
-        result += FileInfo::resolvePath(FileInfo::path(prop->file()->filePath()), path);
+        result += FileInfo::resolvePath(basePath, path);
     return result;
 }
 
