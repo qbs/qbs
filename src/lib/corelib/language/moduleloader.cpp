@@ -847,9 +847,11 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
             Item *module = loadModuleFile(productContext, fullName,
                                             moduleName.count() == 1
                                                 && moduleName.first() == QLatin1String("qbs"),
-                                            filePath, cacheHit);
+                                            filePath, cacheHit, &triedToLoadModule);
             if (module)
                 return module;
+            if (!triedToLoadModule)
+                m_moduleDirListCache[dirPath].removeOne(filePath);
         }
     }
 
@@ -921,7 +923,7 @@ static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Ty
 }
 
 Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
-        bool isBaseModule, const QString &filePath, bool *cacheHit)
+        bool isBaseModule, const QString &filePath, bool *cacheHit, bool *triedToLoad)
 {
     checkCancelation();
 
@@ -937,6 +939,14 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     }
     *cacheHit = false;
     Item * const module = m_reader->readFile(filePath);
+    if (module->typeName() != QLatin1String("Module")) {
+        if (m_logger.traceEnabled()) {
+            m_logger.qbsTrace() << "[MODLDR] Alleged module " << fullModuleName << " has type '"
+                                << module->typeName() << "', so it's not a module after all.";
+        }
+        *triedToLoad = false;
+        return 0;
+    }
     if (!isBaseModule) {
         DependsContext dependsContext;
         dependsContext.product = productContext;

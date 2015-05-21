@@ -180,7 +180,7 @@ private:
             const CodeLocation &dependsItemLocation, const QStringList &moduleName,
             const QStringList &extraSearchPaths, bool isRequired, bool *cacheHit);
     Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
-            bool isBaseModule, const QString &filePath, bool *cacheHit);
+            bool isBaseModule, const QString &filePath, bool *cacheHit, bool *triedToLoad);
     void loadBaseModule(ProductContext *productContext, Item *item);
     void setupBaseModulePrototype(Item *prototype);
     void instantiateModule(ProductContext *productContext, Item *instanceScope, Item *moduleInstance, Item *modulePrototype, const QStringList &moduleName);
