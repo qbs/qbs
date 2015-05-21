@@ -18,4 +18,9 @@ Project {
         Depends { name: "dummy" }
         dummy.cxxFlags: ["-foo", "BAR", "-foo", "BAZ"]
     }
+    Product {
+        name: "merge_lists_with_prototype_values"
+        Depends { name: "dummyqt"; submodules: ["gui", "network"] }
+        Depends { name: "dummy" }
+    }
 }

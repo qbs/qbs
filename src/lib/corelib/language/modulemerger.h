@@ -52,6 +52,9 @@ private:
     void pushScalarProperties(Item::PropertyMap *dst, Item *srcItem);
     void mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap &src);
     void pullListProperties(Item::PropertyMap *dst, Item *instance);
+    void appendPrototypeValueToNextChain(Item *moduleProto, const QString &propertyName,
+            const ValuePtr &sv) const;
+    static ValuePtr lastInNextChain(const ValuePtr &v);
 
     const Logger &m_logger;
     Item * const m_rootItem;

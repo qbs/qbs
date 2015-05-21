@@ -12,4 +12,5 @@ Module {
 
     Depends { name: "dummy" }
     dummy.defines: ["QT_CORE"]
+    dummy.rpaths: ["/opt/qt/lib"]
 }

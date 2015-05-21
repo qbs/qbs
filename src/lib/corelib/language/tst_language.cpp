@@ -926,6 +926,9 @@ void TestLanguage::moduleProperties_data()
     QTest::newRow("merge_lists_with_duplicates")
             << "cxxFlags"
             << (QStringList() << "-foo" << "BAR" << "-foo" << "BAZ");
+    QTest::newRow("merge_lists_with_prototype_values")
+            << "rpaths"
+            << (QStringList() << "/opt/qt/lib" << "$ORIGIN");
     QTest::newRow("cleanup") << QString() << QStringList();
 }
 
@@ -1136,8 +1139,7 @@ void TestLanguage::profileValuesAndOverriddenValues()
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.first().toString(), QString("IN_PROFILE"));
         values = pf.propertyValues(product->moduleProperties->value(), "dummy", "defines");
-        QCOMPARE(values.length(), 1);
-        QCOMPARE(values.first().toString(), QString("IN_FILE"));
+        QCOMPARE(values, QVariantList() << QLatin1String("IN_FILE") << QLatin1String("IN_PROFILE"));
         values = pf.propertyValues(product->moduleProperties->value(), "dummy", "cFlags");
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.first().toString(), QString("OVERRIDDEN"));

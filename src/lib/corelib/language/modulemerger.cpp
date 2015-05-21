@@ -51,8 +51,15 @@ void ModuleMerger::start()
     m.item = m_rootItem;
     const Item::PropertyMap props = dfs(m, Item::PropertyMap());
     Item::PropertyMap mergedProps = m_mergedModuleItem->properties();
-    for (auto it = props.constBegin(); it != props.constEnd(); ++it)
+
+    Item *moduleProto = m_mergedModuleItem->prototype();
+    while (moduleProto->prototype())
+        moduleProto = moduleProto->prototype();
+
+    for (auto it = props.constBegin(); it != props.constEnd(); ++it) {
+        appendPrototypeValueToNextChain(moduleProto, it.key(), it.value());
         mergedProps[it.key()] = it.value();
+    }
     m_mergedModuleItem->setProperties(mergedProps);
 }
 
@@ -145,11 +152,7 @@ void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap
             }
             v = it.value();
         } else {
-            ValuePtr lastDstNext = dstVal;
-            while (lastDstNext->next()) {
-                lastDstNext = lastDstNext->next();
-            }
-            lastDstNext->setNext(srcVal);
+            lastInNextChain(dstVal)->setNext(srcVal);
         }
     }
 }
@@ -181,6 +184,28 @@ void ModuleMerger::pullListProperties(Item::PropertyMap *dst, Item *instance)
         }
         instance = instance->prototype();
     } while (instance && instance->isModuleInstance());
+}
+
+void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QString &propertyName,
+        const ValuePtr &sv) const
+{
+    const PropertyDeclaration pd = m_mergedModuleItem->propertyDeclaration(propertyName);
+    if (pd.isScalar())
+        return;
+    ValuePtr protoValue = moduleProto->property(propertyName);
+    if (!protoValue)
+        return;
+    ValuePtr cloned = protoValue->clone();
+    cloned->setDefiningItem(moduleProto);
+    lastInNextChain(sv)->setNext(cloned);
+}
+
+ValuePtr ModuleMerger::lastInNextChain(const ValuePtr &v)
+{
+    ValuePtr n = v;
+    while (n->next())
+        n = n->next();
+    return n;
 }
 
 } // namespace Internal
