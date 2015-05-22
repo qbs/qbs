@@ -63,9 +63,13 @@ public:
     Item *definingItem() const;
     virtual void setDefiningItem(Item *item);
 
+    ValuePtr next() const;
+    void setNext(const ValuePtr &next);
+
 private:
     Type m_type;
     Item *m_definingItem;
+    ValuePtr m_next;
 };
 
 class ValueHandler
@@ -134,9 +138,6 @@ public:
 
     void setDefiningItem(Item *item);
 
-    JSSourceValuePtr next() const;
-    void setNext(const JSSourceValuePtr &next);
-
 private:
     QStringRef m_sourceCode;
     int m_line;
@@ -145,7 +146,6 @@ private:
     Flags m_flags;
     JSSourceValuePtr m_baseValue;
     QList<Alternative> m_alternatives;
-    JSSourceValuePtr m_next;
 };
 
 class Item;

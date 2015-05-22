@@ -55,6 +55,17 @@ void Value::setDefiningItem(Item *item)
     m_definingItem = item;
 }
 
+ValuePtr Value::next() const
+{
+    return m_next;
+}
+
+void Value::setNext(const ValuePtr &next)
+{
+    QBS_ASSERT(next.data() != this, return);
+    m_next = next;
+}
+
 
 JSSourceValue::JSSourceValue()
     : Value(JSSourceValueType), m_line(-1), m_column(-1)
@@ -110,17 +121,6 @@ void JSSourceValue::setDefiningItem(Item *item)
     Value::setDefiningItem(item);
     foreach (const JSSourceValue::Alternative &a, m_alternatives)
         a.value->setDefiningItem(item);
-}
-
-JSSourceValuePtr JSSourceValue::next() const
-{
-    return m_next;
-}
-
-void JSSourceValue::setNext(const JSSourceValuePtr &next)
-{
-    QBS_ASSERT(next.data() != this, return);
-    m_next = next;
 }
 
 

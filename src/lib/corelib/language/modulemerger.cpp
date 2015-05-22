@@ -145,7 +145,7 @@ void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap
             }
             v = it.value();
         } else {
-            JSSourceValuePtr lastDstNext = dstVal;
+            ValuePtr lastDstNext = dstVal;
             while (lastDstNext->next()) {
                 lastDstNext = lastDstNext->next();
             }
@@ -168,14 +168,13 @@ void ModuleMerger::pullListProperties(Item::PropertyMap *dst, Item *instance)
                 const PropertyDeclaration srcDecl = instance->propertyDeclaration(it.key());
                 if (!srcDecl.isValid() || srcDecl.isScalar())
                     continue;
-                JSSourceValuePtr clonedVal = srcVal->clone().dynamicCast<JSSourceValue>();
+                ValuePtr clonedVal = srcVal->clone();
                 m_decls[clonedVal] = srcDecl;
                 clonedVal->setDefiningItem(origInstance);
                 ValuePtr &v = (*dst)[it.key()];
                 if (v) {
-                    JSSourceValuePtr dstSrcVal = v.dynamicCast<JSSourceValue>();
                     QBS_CHECK(!clonedVal->next());
-                    clonedVal->setNext(dstSrcVal);
+                    clonedVal->setNext(v);
                 }
                 v = clonedVal;
             }

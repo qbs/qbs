@@ -1276,8 +1276,8 @@ QScriptValue ProjectResolver::evaluateJSSourceValue(Item *item, const JSSourceVa
         return m_evaluator->value(item, propertyName);
 
     QScriptValueList lst;
-    for (JSSourceValuePtr sv = sourceValue; sv; sv = sv->next()) {
-        QScriptValue v = m_evaluator->property(sv->definingItem(), propertyName);
+    for (ValuePtr value = sourceValue; value; value = value->next()) {
+        QScriptValue v = m_evaluator->property(value->definingItem(), propertyName);
         if (v.isError())
             return v;
         if (!v.isUndefined())
