@@ -121,6 +121,7 @@ private slots:
     void nestedProperties();
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();
+    void propertyPrecedence();
     void qmlDebugging();
     void productDependenciesByType();
     void properQuoting();
