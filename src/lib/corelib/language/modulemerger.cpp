@@ -105,9 +105,9 @@ void ModuleMerger::pushScalarProperties(Item::PropertyMap *dst, Item *srcItem)
                 ValuePtr &v = (*dst)[it.key()];
                 if (v)
                     continue;
-                JSSourceValuePtr clonedVal = srcVal->clone().dynamicCast<JSSourceValue>();
+                ValuePtr clonedVal = srcVal->clone();
                 m_decls[clonedVal] = srcDecl;
-                setDefiningItem(clonedVal, origSrcItem);
+                clonedVal->setDefiningItem(origSrcItem);
                 v = clonedVal;
             }
         }
@@ -170,7 +170,7 @@ void ModuleMerger::pullListProperties(Item::PropertyMap *dst, Item *instance)
                     continue;
                 JSSourceValuePtr clonedVal = srcVal->clone().dynamicCast<JSSourceValue>();
                 m_decls[clonedVal] = srcDecl;
-                setDefiningItem(clonedVal, origInstance);
+                clonedVal->setDefiningItem(origInstance);
                 ValuePtr &v = (*dst)[it.key()];
                 if (v) {
                     JSSourceValuePtr dstSrcVal = v.dynamicCast<JSSourceValue>();
@@ -182,13 +182,6 @@ void ModuleMerger::pullListProperties(Item::PropertyMap *dst, Item *instance)
         }
         instance = instance->prototype();
     } while (instance && instance->isModuleInstance());
-}
-
-void ModuleMerger::setDefiningItem(const JSSourceValuePtr &v, Item *item)
-{
-    v->setDefiningItem(item);
-    foreach (const JSSourceValue::Alternative &a, v->alternatives())
-        a.value->setDefiningItem(item);
 }
 
 } // namespace Internal

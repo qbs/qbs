@@ -37,7 +37,7 @@ namespace qbs {
 namespace Internal {
 
 Value::Value(Type t)
-    : m_type(t)
+    : m_type(t), m_definingItem(0)
 {
 }
 
@@ -45,9 +45,19 @@ Value::~Value()
 {
 }
 
+Item *Value::definingItem() const
+{
+    return m_definingItem;
+}
+
+void Value::setDefiningItem(Item *item)
+{
+    m_definingItem = item;
+}
+
 
 JSSourceValue::JSSourceValue()
-    : Value(JSSourceValueType), m_line(-1), m_column(-1), m_definingItem(0)
+    : Value(JSSourceValueType), m_line(-1), m_column(-1)
 {
 }
 
@@ -95,14 +105,11 @@ void JSSourceValue::setHasFunctionForm(bool b)
         m_flags &= ~HasFunctionForm;
 }
 
-Item *JSSourceValue::definingItem() const
-{
-    return m_definingItem;
-}
-
 void JSSourceValue::setDefiningItem(Item *item)
 {
-    m_definingItem = item;
+    Value::setDefiningItem(item);
+    foreach (const JSSourceValue::Alternative &a, m_alternatives)
+        a.value->setDefiningItem(item);
 }
 
 JSSourceValuePtr JSSourceValue::next() const

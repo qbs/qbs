@@ -52,13 +52,12 @@ private:
     void pushScalarProperties(Item::PropertyMap *dst, Item *srcItem);
     void mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap &src);
     void pullListProperties(Item::PropertyMap *dst, Item *instance);
-    static void setDefiningItem(const JSSourceValuePtr &v, Item *item);
 
     const Logger &m_logger;
     Item * const m_rootItem;
     Item *m_mergedModuleItem;
     const QStringList m_moduleName;
-    QHash<JSSourceValuePtr, PropertyDeclaration> m_decls;
+    QHash<ValuePtr, PropertyDeclaration> m_decls;
     QSet<const Item *> m_seenInstancesTopDown;
     QSet<const Item *> m_seenInstancesBottomUp;
 };

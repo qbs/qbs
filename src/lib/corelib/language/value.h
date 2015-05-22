@@ -60,8 +60,12 @@ public:
     virtual ValuePtr clone() const = 0;
     virtual CodeLocation location() const { return CodeLocation(); }
 
+    Item *definingItem() const;
+    virtual void setDefiningItem(Item *item);
+
 private:
     Type m_type;
+    Item *m_definingItem;
 };
 
 class ValueHandler
@@ -128,7 +132,6 @@ public:
     void setAlternatives(const QList<Alternative> &alternatives) { m_alternatives = alternatives; }
     void addAlternative(const Alternative &alternative) { m_alternatives.append(alternative); }
 
-    Item *definingItem() const;
     void setDefiningItem(Item *item);
 
     JSSourceValuePtr next() const;
@@ -142,7 +145,6 @@ private:
     Flags m_flags;
     JSSourceValuePtr m_baseValue;
     QList<Alternative> m_alternatives;
-    Item *m_definingItem;
     JSSourceValuePtr m_next;
 };
 
