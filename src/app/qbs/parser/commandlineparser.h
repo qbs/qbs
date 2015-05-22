@@ -71,6 +71,7 @@ public:
     QStringList products() const;
     QList<QVariantMap> buildConfigurations() const;
     bool showProgress() const;
+    bool showVersion() const;
     QString settingsDir() const;
 
 private:

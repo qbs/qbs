@@ -61,6 +61,7 @@ public:
     ForceOption *forceOption() const;
     ForceTimeStampCheckOption *forceTimestampCheckOption() const;
     BuildNonDefaultOption *buildNonDefaultOption() const;
+    VersionOption *versionOption() const;
     LogTimeOption *logTimeOption() const;
     CommandEchoModeOption *commandEchoModeOption() const;
     SettingsDirOption *settingsDirOption() const;

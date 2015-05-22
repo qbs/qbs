@@ -244,6 +244,11 @@ bool CommandLineParser::showProgress() const
     return d->showProgress;
 }
 
+bool CommandLineParser::showVersion() const
+{
+    return d->optionPool.versionOption()->enabled();
+}
+
 QString CommandLineParser::settingsDir() const
 {
     return d->settingsDir();
@@ -367,6 +372,9 @@ void CommandLineParser::CommandLineParserPrivate::doParse()
     command->parse(commandLine);
 
     if (command->type() == HelpCommandType)
+        return;
+
+    if (command->type() == BuildCommandType && optionPool.versionOption()->enabled())
         return;
 
     setupProjectFile();

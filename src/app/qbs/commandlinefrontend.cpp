@@ -122,6 +122,11 @@ void CommandLineFrontend::start()
             break;
         }
 
+        if (m_parser.showVersion()) {
+            puts("qbs version " QBS_VERSION);
+            qApp->exit(EXIT_SUCCESS);
+            return;
+        }
         if (m_parser.showProgress())
             m_observer = new ConsoleProgressObserver;
         SetupProjectParameters params;
