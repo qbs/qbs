@@ -39,16 +39,26 @@ Module {
     property path sdkDir
     property path ndkDir
     property string buildToolsVersion
+    property var buildToolsVersionParts: buildToolsVersion ? buildToolsVersion.split('.').map(function(item) { return parseInt(item, 10); }) : []
+    property int buildToolsVersionMajor: buildToolsVersionParts[0]
+    property int buildToolsVersionMinor: buildToolsVersionParts[1]
+    property int buildToolsVersionPatch: buildToolsVersionParts[2]
     property string platform
 
     // Internal properties.
+    property path buildToolsDir: {
+        var path = FileInfo.joinPaths(sdkDir, "build-tools", buildToolsVersion);
+        if (buildToolsVersionMajor >= 23)
+            return FileInfo.joinPaths(path, "bin");
+        return path;
+    }
+
     property path aaptFilePath: FileInfo.joinPaths(buildToolsDir, "aapt")
     property path aidlFilePath: FileInfo.joinPaths(buildToolsDir, "aidl")
     property path dxFilePath: FileInfo.joinPaths(buildToolsDir, "dx")
     property path zipalignFilePath: FileInfo.joinPaths(buildToolsDir, "zipalign")
     property path androidJarFilePath: FileInfo.joinPaths(sdkDir, "platforms", platform,
                                                          "android.jar")
-    property path buildToolsDir: FileInfo.joinPaths(sdkDir, "build-tools", buildToolsVersion)
     property path generatedJavaFilesBaseDir: FileInfo.joinPaths(product.buildDirectory, "gen")
     property path generatedJavaFilesDir: FileInfo.joinPaths(generatedJavaFilesBaseDir,
                                          product.packageName.split('.').join('/'))
