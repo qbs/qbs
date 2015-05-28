@@ -1667,6 +1667,7 @@ void TestBlackbox::nestedProperties()
 {
     QDir::setCurrent(testDataDir + "/nested-properties");
     QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL(0, "QBS-736", Continue);
     QVERIFY2(m_qbsStdout.contains("value in higherlevel"), m_qbsStdout.constData());
 }
 

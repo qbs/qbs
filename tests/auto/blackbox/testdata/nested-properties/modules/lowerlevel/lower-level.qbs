@@ -3,6 +3,7 @@ import qbs
 Module {
     property string propDependency: "value in lowerlevel module"
     property string prop: propDependency
+    property string someOtherProp
 
     Rule {
         inputs: ["dummy-input"]
