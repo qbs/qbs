@@ -105,7 +105,7 @@ QString FileTime::toString() const
                                  stLocal.wMilliseconds);
     return SUCCEEDED(hr) ? QString::fromWCharArray(szString) : QString();
 #else // Q_CC_MSVC
-    const QString result = QString("%1.%2.%3 %4:%5:%6")
+    const QString result = QString::fromLatin1("%1.%2.%3 %4:%5:%6")
             .arg(stLocal.wDay, 2, 10, QLatin1Char('0')).arg(stLocal.wMonth, 2, 10, QLatin1Char('0')).arg(stLocal.wYear)
             .arg(stLocal.wHour, 2, 10, QLatin1Char('0')).arg(stLocal.wMinute, 2, 10, QLatin1Char('0')).arg(stLocal.wSecond, 2, 10, QLatin1Char('0'));
     return result;

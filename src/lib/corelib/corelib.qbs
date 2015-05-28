@@ -19,7 +19,7 @@ QbsLibrary {
         "SRCDIR=\"" + path + "\""
     ]).concat(projectFileUpdateDefines)
     cpp.dynamicLibraries: base.concat(qbs.targetOS.contains("windows")
-        ? ["Psapi.lib"] : [])
+        ? ["Psapi"] : [])
 
     Properties {
         condition: qbs.targetOS.contains("darwin")
