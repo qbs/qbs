@@ -190,7 +190,6 @@ private:
     void checkCancelation() const;
     bool checkItemCondition(Item *item);
     void checkItemTypes(Item *item);
-    void callValidateScript(Item *module);
     QStringList readExtraSearchPaths(Item *item, bool *wasSet = 0);
     void copyProperties(const Item *sourceProject, Item *targetProject);
     Item *wrapWithProject(Item *item);

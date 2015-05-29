@@ -818,7 +818,6 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
     if (!cacheHit && isBaseModule)
         setupBaseModulePrototype(modulePrototype);
     instantiateModule(productContext, item, moduleInstance, modulePrototype, moduleName);
-    callValidateScript(moduleInstance);
     return moduleInstance;
 }
 
@@ -1337,11 +1336,6 @@ void ModuleLoader::checkItemTypes(Item *item)
 
     foreach (const Item::Module &m, item->modules())
         checkItemTypes(m.item);
-}
-
-void ModuleLoader::callValidateScript(Item *module)
-{
-    m_evaluator->boolValue(module, QLatin1String("validate"));
 }
 
 QStringList ModuleLoader::readExtraSearchPaths(Item *item, bool *wasSet)
