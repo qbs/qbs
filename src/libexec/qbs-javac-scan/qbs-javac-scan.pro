@@ -48,6 +48,11 @@ mkpath($$absolute_path($$CLASS_DIR, $$OUT_PWD)) | error("Aborting.")
 # Disable all linker flags since we are overriding the regular linker
 QMAKE_LFLAGS =
 QMAKE_CFLAGS =
+QMAKE_LFLAGS_CONSOLE =
+QMAKE_LFLAGS_WINDOWS =
+QMAKE_LFLAGS_DLL =
+QMAKE_LFLAGS_DEBUG =
+QMAKE_LFLAGS_RELEASE =
 QMAKE_LFLAGS_RPATH =
 QMAKE_LFLAGS_PLUGIN =
 QMAKE_LIBS =
@@ -55,6 +60,14 @@ QMAKE_LIBS_OPENGL_ES2 =
 QMAKE_LIBDIR =
 QMAKE_EXTENSION_SHLIB = jar
 
+# nmake
+QMAKE_LINK = jar
+QMAKE_LFLAGS = cfe $(DESTDIR_TARGET) $$JAVAMAINCLASS -C $$CLASS_DIR .
+
+# Demonstrate an excellent reason why qbs exists
+QMAKE_LINK_O_FLAG = && "echo "
+
+# make
 QMAKE_LINK_SHLIB_CMD = jar cfe $(TARGET) $$JAVAMAINCLASS -C $$CLASS_DIR .
 
 # Force link step to always happen, since we are always updating the

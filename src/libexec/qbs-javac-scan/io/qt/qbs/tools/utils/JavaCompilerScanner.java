@@ -36,6 +36,7 @@ import io.qt.qbs.ArtifactListTextWriter;
 import io.qt.qbs.ArtifactListWriter;
 import io.qt.qbs.ArtifactListXmlWriter;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -93,7 +94,8 @@ public class JavaCompilerScanner {
                     throws IOException {
                 JavaFileObject o = super.getJavaFileForOutput(location,
                         className, kind, sibling);
-                Artifact artifact = new Artifact(o.toUri().getPath());
+                Artifact artifact = new Artifact(new File(o.toUri()
+                        .getSchemeSpecificPart()).toString());
                 if (kind.equals(JavaFileObject.Kind.CLASS)) {
                     artifact.addFileTag("java.class");
                 } else if (kind.equals(JavaFileObject.Kind.SOURCE)) {
@@ -108,7 +110,8 @@ public class JavaCompilerScanner {
                     String relativeName, FileObject sibling) throws IOException {
                 FileObject o = super.getFileForOutput(location, packageName,
                         relativeName, sibling);
-                Artifact artifact = new Artifact(o.toUri().getPath());
+                Artifact artifact = new Artifact(new File(o.toUri()
+                        .getSchemeSpecificPart()).toString());
                 if (o.getName().endsWith(".h")) {
                     artifact.addFileTag("hpp");
                 }
