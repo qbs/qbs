@@ -1,5 +1,6 @@
 import qbs
 import qbs.File
+import qbs.FileInfo
 import qbs.TextFile
 
 Product {
@@ -16,6 +17,12 @@ Product {
         copy.writeLine(File.exists("original.txt"));
         copy.writeLine(File.exists("copy.txt"));
         copy.close();
+        var zePath = FileInfo.joinPaths(path, "zePath");
+        if (File.exists(zePath))
+            throw new Error("zePath already exists.");
+        var created = File.makePath(zePath);
+        if (!created || !File.exists(zePath))
+            throw new Error("zePath was not created.");
         return "palim-palim";
     }
 }

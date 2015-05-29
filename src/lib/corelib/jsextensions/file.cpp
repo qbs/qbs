@@ -34,6 +34,7 @@
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
 
+#include <QDir>
 #include <QFileInfo>
 #include <QScriptEngine>
 
@@ -49,6 +50,7 @@ private:
     static QScriptValue js_copy(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_exists(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_lastModified(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_makePath(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_remove(QScriptContext *context, QScriptEngine *engine);
 };
 
@@ -60,6 +62,7 @@ void initializeJsExtensionFile(QScriptValue extensionObject)
     fileObj.setProperty(QLatin1String("copy"), engine->newFunction(File::js_copy));
     fileObj.setProperty(QLatin1String("exists"), engine->newFunction(File::js_exists));
     fileObj.setProperty(QLatin1String("lastModified"), engine->newFunction(File::js_lastModified));
+    fileObj.setProperty(QLatin1String("makePath"), engine->newFunction(File::js_makePath));
     fileObj.setProperty(QLatin1String("remove"), engine->newFunction(File::js_remove));
     extensionObject.setProperty(QLatin1String("File"), fileObj);
 }
@@ -129,6 +132,16 @@ QScriptValue File::js_lastModified(QScriptContext *context, QScriptEngine *engin
     ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
     se->addFileLastModifiedResult(filePath, timestamp);
     return static_cast<qsreal>(timestamp.m_fileTime);
+}
+
+QScriptValue File::js_makePath(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    if (Q_UNLIKELY(context->argumentCount() < 1)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   Tr::tr("makePath expects 1 argument"));
+    }
+    return QDir::root().mkpath(context->argument(0).toString());
 }
 
 } // namespace Internal
