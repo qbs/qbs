@@ -1,6 +1,6 @@
-TARGET = qbs-javac-scan
+include(../libexec.pri)
 
-DESTDIR = ../../../libexec
+TARGET = qbs-javac-scan
 
 PATHPREFIX = $$PWD/io/qt/qbs/
 
@@ -17,10 +17,6 @@ JAVASOURCES += \
     $$PATHPREFIX/tools/utils/NullFileObject.java
 
 JAVAMAINCLASS = io.qt.qbs.tools.JavaCompilerScannerTool
-
-# install
-target.path = $${QBS_INSTALL_PREFIX}/libexec
-INSTALLS += target
 
 # from mkspecs/features/java.prf
 TEMPLATE = lib

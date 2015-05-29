@@ -12,7 +12,8 @@ Project {
     property string libDirName: "lib"
     property string appInstallDir: "bin"
     property string libInstallDir: qbs.targetOS.contains("windows") ? "bin" : libDirName
-    property string relativeLibexecPath: "../libexec"
+    property string libexecInstallDir: "libexec"
+    property string relativeLibexecPath: "../" + libexecInstallDir
     property string relativePluginsPath: "../" + libDirName
     property string relativeSearchPath: ".."
     property stringList libRPaths: {

@@ -5,12 +5,12 @@ JavaJarFile {
 
     property string entryPoint: "io.qt.qbs.tools.JavaCompilerScannerTool"
 
-    destinationDirectory: "libexec"
+    destinationDirectory: project.libexecInstallDir
 
     Group {
         fileTagsFilter: ["java.jar"]
         qbs.install: true
-        qbs.installDir: "libexec"
+        qbs.installDir: project.libexecInstallDir
     }
 
     files: [
