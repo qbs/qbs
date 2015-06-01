@@ -98,6 +98,7 @@ private slots:
     void objC();
     void projectInvalidation();
     void projectLocking();
+    void projectPropertiesByName();
     void projectWithPropertiesItem();
     void propertiesBlocks();
     void rc();

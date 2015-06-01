@@ -1329,6 +1329,24 @@ void TestApi::projectLocking()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
 }
 
+void TestApi::projectPropertiesByName()
+{
+    const QString projectFile = "project-properties-by-name/project.qbs";
+    qbs::ErrorInfo errorInfo = doBuildProject(projectFile);
+    QVERIFY(errorInfo.hasError());
+    QVariantMap overridden;
+    overridden.insert("project.theDefines", QStringList() << "SUB1" << "SUB2");
+    errorInfo = doBuildProject(projectFile, 0, 0, 0, qbs::BuildOptions(), overridden);
+    QVERIFY(errorInfo.hasError());
+    overridden.clear();
+    overridden.insert("subproject1.theDefines", QStringList() << "SUB1");
+    errorInfo = doBuildProject(projectFile, 0, 0, 0, qbs::BuildOptions(), overridden);
+    QVERIFY(errorInfo.hasError());
+    overridden.insert("subproject2.theDefines", QStringList() << "SUB2");
+    errorInfo = doBuildProject(projectFile, 0, 0, 0, qbs::BuildOptions(), overridden);
+    VERIFY_NO_ERROR(errorInfo);
+}
+
 void TestApi::projectWithPropertiesItem()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("project-with-properties-item/project.qbs");
