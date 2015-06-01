@@ -117,6 +117,7 @@ private slots:
     void jsExtensionsProcess();
     void jsExtensionsPropertyList();
     void jsExtensionsTextFile();
+    void listPropertiesWithOuter();
     void mixedBuildVariants();
     void nestedProperties();
     void nonBrokenFilesInBrokenProduct();

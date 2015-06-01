@@ -1643,6 +1643,14 @@ void TestBlackbox::jsExtensionsTextFile()
     QCOMPARE(lines.at(4).trimmed().constData(), "true");
 }
 
+void TestBlackbox::listPropertiesWithOuter()
+{
+    QDir::setCurrent(testDataDir + "/list-properties-with-outer");
+    QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL(0, "QBS-817", Continue);
+    QVERIFY2(m_qbsStderr.contains("3 elements"), m_qbsStderr.constData());
+}
+
 void TestBlackbox::mixedBuildVariants()
 {
     QDir::setCurrent(testDataDir + "/mixed-build-variants");
