@@ -13,7 +13,8 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.sourceCode = function() {
-                print(product.moduleProperty("lower", "listProp").length + " elements");
+                var listProp = input.moduleProperty("lower", "listProp");
+                print("listProp: " + JSON.stringify(listProp));
             }
             return [cmd];
         }
