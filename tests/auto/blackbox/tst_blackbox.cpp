@@ -1524,8 +1524,8 @@ void TestBlackbox::java()
 
 void TestBlackbox::jsExtensionsFile()
 {
-    QDir::setCurrent(testDataDir + "/jsextensions");
-    QbsRunParameters params(QStringList() << "-nf" << "file.qbs");
+    QDir::setCurrent(testDataDir + "/jsextensions-file");
+    QbsRunParameters params(QStringList() << "-f" << "file.qbs");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!QFileInfo("original.txt").exists());
     QFile copy("copy.txt");
@@ -1539,8 +1539,8 @@ void TestBlackbox::jsExtensionsFile()
 
 void TestBlackbox::jsExtensionsFileInfo()
 {
-    QDir::setCurrent(testDataDir + "/jsextensions");
-    QbsRunParameters params(QStringList() << "-nf" << "fileinfo.qbs");
+    QDir::setCurrent(testDataDir + "/jsextensions-fileinfo");
+    QbsRunParameters params(QStringList() << "-f" << "fileinfo.qbs");
     QCOMPARE(runQbs(params), 0);
     QFile output("output.txt");
     QVERIFY(output.exists());
@@ -1570,8 +1570,8 @@ void TestBlackbox::jsExtensionsFileInfo()
 
 void TestBlackbox::jsExtensionsProcess()
 {
-    QDir::setCurrent(testDataDir + "/jsextensions");
-    QbsRunParameters params(QStringList() << "-nf" << "process.qbs" << "project.qbsFilePath:"
+    QDir::setCurrent(testDataDir + "/jsextensions-process");
+    QbsRunParameters params(QStringList() << "-f" << "process.qbs" << "project.qbsFilePath:"
                             + qbsExecutableFilePath);
     QCOMPARE(runQbs(params), 0);
     QFile output("output.txt");
@@ -1593,7 +1593,7 @@ void TestBlackbox::jsExtensionsPropertyList()
     if (!HostOsInfo::isOsxHost())
         QSKIP("temporarily only applies on OS X");
 
-    QDir::setCurrent(testDataDir + "/jsextensions");
+    QDir::setCurrent(testDataDir + "/jsextensions-propertylist");
     QbsRunParameters params(QStringList() << "-nf" << "propertylist.qbs");
     QCOMPARE(runQbs(params), 0);
     QFile file1("test.json");
@@ -1624,8 +1624,8 @@ void TestBlackbox::jsExtensionsPropertyList()
 
 void TestBlackbox::jsExtensionsTextFile()
 {
-    QDir::setCurrent(testDataDir + "/jsextensions");
-    QbsRunParameters params(QStringList() << "-nf" << "textfile.qbs");
+    QDir::setCurrent(testDataDir + "/jsextensions-textfile");
+    QbsRunParameters params(QStringList() << "-f" << "textfile.qbs");
     QCOMPARE(runQbs(params), 0);
     QFile file1("file1.txt");
     QVERIFY(file1.exists());
