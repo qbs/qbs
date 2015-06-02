@@ -502,7 +502,9 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     PropertyMapPtr moduleProperties = m_productContext->product->moduleProperties;
     if (isSomeModulePropertySet(item)) {
         moduleProperties = PropertyMapInternal::create();
+        m_evaluator->setCachingEnabled(true);
         moduleProperties->setValue(evaluateModuleValues(item));
+        m_evaluator->setCachingEnabled(false);
     }
 
     const bool isEnabled = m_evaluator->boolValue(item, QLatin1String("condition"));
@@ -849,7 +851,9 @@ void ProjectResolver::resolveExport(Item *item, ProjectContext *projectContext)
         ModuleMerger merger(m_logger, item, module.item, module.name);
         merger.start();
     }
+    m_evaluator->setCachingEnabled(true);
     m_exportsContext->moduleValues = evaluateModuleValues(item, false);
+    m_evaluator->setCachingEnabled(false);
 
     ItemFuncMap mapping;
     mapping["Depends"] = &ProjectResolver::ignoreItem;
@@ -1308,8 +1312,10 @@ QVariantMap ProjectResolver::createProductConfig() const
         merger.start();
     }
 
+    m_evaluator->setCachingEnabled(true);
     QVariantMap cfg = evaluateModuleValues(m_productContext->item);
     cfg = evaluateProperties(m_productContext->item, m_productContext->item, cfg);
+    m_evaluator->setCachingEnabled(false);
     return cfg;
 }
 

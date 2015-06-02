@@ -294,7 +294,7 @@ enum QueryPropertyType
 EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Logger &logger)
     : QScriptClass(scriptEngine)
     , m_logger(logger)
-    , m_valueCacheEnabled(true)
+    , m_valueCacheEnabled(false)
 {
     m_getNativeSettingBuiltin = scriptEngine->newFunction(js_getNativeSetting, 3);
     m_getEnvBuiltin = scriptEngine->newFunction(js_getEnv, 1);
