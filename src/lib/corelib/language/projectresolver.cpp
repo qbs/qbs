@@ -1235,7 +1235,7 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesCont
                 m_evaluator->engine()->setPropertyCacheEnabled(false);
             }
 
-            const QScriptValue scriptValue = evaluateJSSourceValue(item, srcValue, it.key());
+            const QScriptValue scriptValue = m_evaluator->property(item, it.key());
             if (cacheDisabled) {
                 m_evaluator->setCachingEnabled(true);
                 m_evaluator->engine()->setPropertyCacheEnabled(true);
@@ -1274,35 +1274,6 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesCont
     return lookupPrototype && propertiesContainer->prototype()
             ? evaluateProperties(item, propertiesContainer->prototype(), result, true)
             : result;
-}
-
-QScriptValue ProjectResolver::evaluateJSSourceValue(Item *item, const JSSourceValuePtr &sourceValue,
-        const QString &propertyName) const
-{
-    if (!sourceValue->next())
-        return m_evaluator->value(item, propertyName);
-
-    QScriptValueList lst;
-    for (ValuePtr value = sourceValue; value; value = value->next()) {
-        QScriptValue v = m_evaluator->property(value->definingItem(), propertyName);
-        if (v.isError())
-            return v;
-        if (!v.isUndefined())
-            lst << v;
-    }
-    QScriptValue a = m_engine->newArray();
-    quint32 k = 0;
-    for (int i = 0; i < lst.count(); ++i) {
-        const QScriptValue &v = lst.at(i);
-        if (v.isArray()) {
-            const quint32 vlen = v.property(QStringLiteral("length")).toInt32();
-            for (quint32 j = 0; j < vlen; ++j)
-                a.setProperty(k++, v.property(j));
-        } else {
-            a.setProperty(k++, v);
-        }
-    }
-    return a;
 }
 
 QVariantMap ProjectResolver::createProductConfig() const

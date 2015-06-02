@@ -382,6 +382,40 @@ Item *EvaluatorScriptClass::findParentOfType(const Item *item, const QString &ty
     return 0;
 }
 
+void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data, QScriptValue *result,
+        const QString &propertyName, const ValuePtr &value)
+{
+    QScriptValueList lst;
+    QSet<Value *> oldNextChain = m_currentNextChain;
+    for (ValuePtr next = value; next; next = next->next())
+        m_currentNextChain.insert(next.data());
+
+    for (ValuePtr next = value; next; next = next->next()) {
+        QScriptValue v = data->evaluator->property(next->definingItem(), propertyName);
+        if (v.isUndefined())
+            continue;
+        lst << v;
+    }
+    m_currentNextChain = oldNextChain;
+
+    *result = engine()->newArray();
+    quint32 k = 0;
+    for (int i = 0; i < lst.count(); ++i) {
+        const QScriptValue &v = lst.at(i);
+        if (v.isError()) {
+            *result = v;
+            return;
+        }
+        if (v.isArray()) {
+            const quint32 vlen = v.property(QStringLiteral("length")).toInt32();
+            for (quint32 j = 0; j < vlen; ++j)
+                result->setProperty(k++, v.property(j));
+        } else {
+            result->setProperty(k++, v);
+        }
+    }
+}
+
 inline void convertToPropertyType(const PropertyDeclaration::Type t, QScriptValue &v)
 {
     if (v.isUndefined())
@@ -449,12 +483,16 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
         }
     }
 
-    SVConverter converter(this, &object, value, itemOfProperty, &name, data, &result,
-                          &m_sourceValueStack);
-    converter.start();
+    if (value->next() && !m_currentNextChain.contains(value.data())) {
+        collectValuesFromNextChain(data, &result, name.toString(), value);
+    } else {
+        SVConverter converter(this, &object, value, itemOfProperty, &name, data, &result,
+                              &m_sourceValueStack);
+        converter.start();
 
-    const PropertyDeclaration decl = data->item->propertyDeclarations().value(name.toString());
-    convertToPropertyType(decl.type(), result);
+        const PropertyDeclaration decl = data->item->propertyDeclarations().value(name.toString());
+        convertToPropertyType(decl.type(), result);
+    }
 
     if (debugProperties)
         m_logger.qbsTrace() << "[SC] cache miss " << name << ": " << resultToString(result);
