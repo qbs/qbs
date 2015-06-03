@@ -68,7 +68,6 @@ public:
         Module()
             : item(0)
         {}
-        bool operator<(const Module &other) { return name < other.name; }
 
         QualifiedId name;
         Item *item;
@@ -277,6 +276,8 @@ inline const Item::Modules &Item::modules() const
 {
     return m_modules;
 }
+
+inline bool operator<(const Item::Module &m1, const Item::Module &m2) { return m1.name < m2.name; }
 
 } // namespace Internal
 } // namespace qbs
