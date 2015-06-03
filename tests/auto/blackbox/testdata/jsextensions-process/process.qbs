@@ -4,7 +4,7 @@ import qbs.Process
 import qbs.TextFile
 
 Project {
-    property path qbsFilePath
+    property string qbsFilePath
     Product {
         Depends { name: "Qt.core" }
         type: ["dummy"]
@@ -19,9 +19,10 @@ Project {
                 cmd.sourceCode = function() {
                     // Synchronous run, successful.
                     var process = new Process();
-                    process.setEnv("PATH", [qbs.getEnv("PATH"),
-                                            product.moduleProperty("Qt.core", "binPath")]
-                                   .join(qbs.pathListSeparator));
+                    var pathVal = [process.getEnv("PATH"),
+                                   product.moduleProperty("Qt.core", "binPath")]
+                                   .join(product.moduleProperty("qbs", "pathListSeparator"));
+                    process.setEnv("PATH", pathVal);
                     process.exec(project.qbsFilePath, ["help"], true);
                     var output = new TextFile("output.txt", TextFile.WriteOnly);
                     output.writeLine(process.exitCode());
@@ -30,9 +31,7 @@ Project {
 
                     // Asynchronous run, successful.
                     process = new Process();
-                    process.setEnv("PATH", [qbs.getEnv("PATH"),
-                                            product.moduleProperty("Qt.core", "binPath")]
-                                   .join(qbs.pathListSeparator));
+                    process.setEnv("PATH", pathVal);
                     output.writeLine(process.start(project.qbsFilePath, ["help"]));
                     output.writeLine(process.waitForFinished());
                     output.writeLine(process.exitCode());
