@@ -68,6 +68,7 @@ public:
         Module()
             : item(0)
         {}
+        bool operator<(const Module &other) { return name < other.name; }
 
         QualifiedId name;
         Item *item;
@@ -95,7 +96,9 @@ public:
     const PropertyDeclarationMap &propertyDeclarations() const;
     const PropertyDeclaration propertyDeclaration(const QString &name) const;
     const Modules &modules() const;
-    Modules &modules();
+    void addModule(const Module &module);
+    void removeModules() { m_modules.clear(); }
+    void setModules(const Modules &modules) { m_modules = modules; }
 
     bool hasProperty(const QString &name) const;
     bool hasOwnProperty(const QString &name) const;
@@ -271,11 +274,6 @@ inline void Item::addChild(Item *parent, Item *child)
 }
 
 inline const Item::Modules &Item::modules() const
-{
-    return m_modules;
-}
-
-inline Item::Modules &Item::modules()
 {
     return m_modules;
 }

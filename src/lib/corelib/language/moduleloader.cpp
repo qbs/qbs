@@ -388,7 +388,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         productItem->setProperty(qbsKey, qbsValue);
     else
         productItem->removeProperty(qbsKey);
-    productItem->modules().clear();
+    productItem->removeModules();
     m_validItemPropertyNamesPerItem[productItem].clear();
 
     QList<Item *> additionalProductItems;
@@ -621,7 +621,7 @@ void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, I
         targetItem->setPrototype(m.item);
         targetItem->setModuleInstanceFlag(true);
         targetItem->setScope(m.item->scope());
-        targetItem->modules() = m.item->modules();
+        targetItem->setModules(m.item->modules());
 
         // "parent" should point to the group/artifact parent
         targetItem->setParent(item->parent());
@@ -630,7 +630,7 @@ void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, I
         targetItem->setOuterItem(m.item);   // ### Is this always the same as the scope item?
 
         m.item = targetItem;
-        item->modules() += m;
+        item->addModule(m);
     }
 }
 
@@ -654,7 +654,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
             if (loadedModuleNames.contains(fullName))
                 continue;
             loadedModuleNames.insert(fullName);
-            item->modules() += module;
+            item->addModule(module);
             resolveProbes(module.item);
         }
     }
@@ -1002,7 +1002,7 @@ void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
                                      baseModuleName, true, true);
     if (Q_UNLIKELY(!baseModuleDesc.item))
         throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
-    item->modules() += baseModuleDesc;
+    item->addModule(baseModuleDesc);
 }
 
 static QStringList hostOS()
@@ -1224,7 +1224,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
         }
         instantiateModule(productContext, moduleInstance, depinst, m.item, m.name);
         m.item = depinst;
-        moduleInstance->modules() += m;
+        moduleInstance->addModule(m);
     }
 
     // override module properties given on the command line
@@ -1489,7 +1489,7 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx, Item *item)
         if (!dep.item)
             continue;
         dep.name = moduleName;
-        item->modules() += dep;
+        item->addModule(dep);
     }
 }
 

@@ -35,6 +35,8 @@
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 
+#include <algorithm>
+
 namespace qbs {
 namespace Internal {
 
@@ -147,6 +149,12 @@ const PropertyDeclaration Item::propertyDeclaration(const QString &name) const
 {
     const PropertyDeclaration decl = m_propertyDeclarations.value(name);
     return (!decl.isValid() && m_prototype) ? m_prototype->propertyDeclaration(name) : decl;
+}
+
+void Item::addModule(const Item::Module &module)
+{
+    const auto it = std::lower_bound(m_modules.begin(), m_modules.end(), module);
+    m_modules.insert(it, module);
 }
 
 void Item::setPropertyObserver(ItemObserver *observer) const

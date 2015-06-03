@@ -1663,7 +1663,6 @@ void TestBlackbox::listPropertyOrder()
         if (m_qbsStderr != firstOutput)
             break;
     }
-    QEXPECT_FAIL(0, "QBS-818", Continue);
     QCOMPARE(m_qbsStderr.constData(), firstOutput.constData());
 }
 
