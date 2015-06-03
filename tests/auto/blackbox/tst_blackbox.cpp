@@ -1651,6 +1651,22 @@ void TestBlackbox::listPropertiesWithOuter()
              m_qbsStderr.constData());
 }
 
+void TestBlackbox::listPropertyOrder()
+{
+    QDir::setCurrent(testDataDir + "/list-property-order");
+    const QbsRunParameters params(QStringList() << "-qq");
+    QCOMPARE(runQbs(params), 0);
+    const QByteArray firstOutput = m_qbsStderr;
+    for (int i = 0; i < 25; ++i) {
+        rmDirR(relativeBuildDir());
+        QCOMPARE(runQbs(params), 0);
+        if (m_qbsStderr != firstOutput)
+            break;
+    }
+    QEXPECT_FAIL(0, "QBS-818", Continue);
+    QCOMPARE(m_qbsStderr.constData(), firstOutput.constData());
+}
+
 void TestBlackbox::mixedBuildVariants()
 {
     QDir::setCurrent(testDataDir + "/mixed-build-variants");
