@@ -123,7 +123,7 @@ void CommandLineFrontend::start()
         }
 
         if (m_parser.showVersion()) {
-            puts("qbs version " QBS_VERSION);
+            puts(QBS_VERSION);
             qApp->exit(EXIT_SUCCESS);
             return;
         }
