@@ -120,6 +120,7 @@ private slots:
     void listPropertiesWithOuter();
     void listPropertyOrder();
     void mixedBuildVariants();
+    void multipleChanges();
     void nestedProperties();
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();

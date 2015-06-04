@@ -1686,6 +1686,17 @@ void TestBlackbox::mixedBuildVariants()
     }
 }
 
+void TestBlackbox::multipleChanges()
+{
+    QDir::setCurrent(testDataDir + "/multiple-changes");
+    QCOMPARE(runQbs(), 0);
+    QFile newFile("test.blubb");
+    QVERIFY(newFile.open(QIODevice::WriteOnly));
+    newFile.close();
+    QCOMPARE(runQbs(QStringList() << "-qq" << "project.prop:true"), 0);
+    QVERIFY(m_qbsStderr.contains("prop: true"));
+}
+
 void TestBlackbox::nestedProperties()
 {
     QDir::setCurrent(testDataDir + "/nested-properties");
