@@ -48,6 +48,8 @@
 
 #include <QProcessEnvironment>
 
+#include <algorithm>
+
 Q_DECLARE_METATYPE(QList<bool>)
 
 namespace qbs {
@@ -462,8 +464,7 @@ void TestLanguage::exports()
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(product);
-        QStringList propertyName = QStringList() << "modules" << "mylib.qbs_autotests"
-                                                 << "modules" << "dummy" << "defines";
+        QStringList propertyName = QStringList() << "modules" << "dummy" << "defines";
         QVariant propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "USE_MYLIB");
 
@@ -493,12 +494,10 @@ void TestLanguage::exports()
 
         product = products.value("myapp2");
         QVERIFY(product);
-        propertyName = QStringList() << "modules" << "productWithInheritedExportItem.qbs_autotests"
-                                     << "modules" << "dummy" << "cxxFlags";
+        propertyName = QStringList() << "modules" << "dummy" << "cxxFlags";
         propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "-bar");
-        propertyName = QStringList() << "modules" << "productWithInheritedExportItem.qbs_autotests"
-                                     << "modules" << "dummy" << "defines";
+        propertyName = QStringList() << "modules" << "dummy" << "defines";
         propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "ABC");
         QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
@@ -920,13 +919,16 @@ void TestLanguage::moduleProperties_data()
     QTest::newRow("init") << QString() << QStringList();
     QTest::newRow("merge_lists")
             << "defines"
-            << (QStringList() << "THE_PRODUCT" << "QT_GUI" << "QT_CORE" << "QT_NETWORK");
+            << (QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
     QTest::newRow("merge_lists_and_values")
             << "defines"
-            << (QStringList() << "THE_PRODUCT" << "QT_GUI" << "QT_CORE" << "QT_NETWORK");
+            << (QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
     QTest::newRow("merge_lists_with_duplicates")
             << "cxxFlags"
             << (QStringList() << "-foo" << "BAR" << "-foo" << "BAZ");
+    QTest::newRow("merge_lists_with_prototype_values")
+            << "rpaths"
+            << (QStringList() << "/opt/qt/lib" << "$ORIGIN");
     QTest::newRow("cleanup") << QString() << QStringList();
 }
 
@@ -940,8 +942,7 @@ void TestLanguage::moduleProperties()
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(product);
     QVariantList values = PropertyFinder().propertyValues(product->moduleProperties->value(),
-                                                          "dummy", propertyName,
-                                                          PropertyFinder::DoMergeLists);
+                                                          "dummy", propertyName);
     QStringList valueStrings;
     foreach (const QVariant &v, values)
         valueStrings += v.toString();
@@ -1134,16 +1135,12 @@ void TestLanguage::profileValuesAndOverriddenValues()
         QVERIFY(product);
         PropertyFinder pf;
         QVariantList values;
-        values = pf.propertyValues(product->moduleProperties->value(),
-                                   "dummy", "cxxFlags", PropertyFinder::DoMergeLists);
+        values = pf.propertyValues(product->moduleProperties->value(), "dummy", "cxxFlags");
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.first().toString(), QString("IN_PROFILE"));
-        values = pf.propertyValues(product->moduleProperties->value(),
-                                   "dummy", "defines", PropertyFinder::DoMergeLists);
-        QCOMPARE(values.length(), 1);
-        QCOMPARE(values.first().toString(), QString("IN_FILE"));
-        values = pf.propertyValues(product->moduleProperties->value(),
-                                   "dummy", "cFlags", PropertyFinder::DoMergeLists);
+        values = pf.propertyValues(product->moduleProperties->value(), "dummy", "defines");
+        QCOMPARE(values, QVariantList() << QLatin1String("IN_FILE") << QLatin1String("IN_PROFILE"));
+        values = pf.propertyValues(product->moduleProperties->value(), "dummy", "cFlags");
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.first().toString(), QString("OVERRIDDEN"));
     } catch (const ErrorInfo &e) {
@@ -1309,6 +1306,28 @@ void TestLanguage::propertiesBlocks()
         v = productPropertyValue(product, "someString");
         QCOMPARE(v.toString(), expectedStringValue);
     }
+}
+
+void TestLanguage::qualifiedId()
+{
+    QString str = "foo.bar.baz";
+    QualifiedId id = QualifiedId::fromString(str);
+    QCOMPARE(id.count(), 3);
+    QCOMPARE(id.toString(), str);
+
+    id = QualifiedId("blubb.di.blubb"); // c'tor does not split
+    QCOMPARE(id.count(), 1);
+
+    QList<QualifiedId> ids;
+    ids << QualifiedId::fromString("a")
+        << QualifiedId::fromString("a.a")
+        << QualifiedId::fromString("b")
+        << QualifiedId::fromString("c.a")
+        << QualifiedId::fromString("c.b.a")
+        << QualifiedId::fromString("c.c");
+    QList<QualifiedId> sorted = ids;
+    std::sort(sorted.begin(), sorted.end());
+    QCOMPARE(ids, sorted);
 }
 
 void TestLanguage::fileTags_data()

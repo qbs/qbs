@@ -205,6 +205,8 @@ private:
             }
             engine->currentContext()->pushScope(conditionFileScope);
             pushItemScopes(conditionScopeItem);
+            if (alternative->value->definingItem())
+                pushItemScopes(alternative->value->definingItem());
             engine->currentContext()->pushScope(conditionScope);
             const QScriptValue cr = engine->evaluate(alternative->condition);
             engine->currentContext()->popScope();
@@ -248,6 +250,8 @@ private:
 
         pushScope(data->evaluator->fileScope(value->file()));
         pushItemScopes(data->item);
+        if (value->definingItem())
+            pushItemScopes(value->definingItem());
         if (itemOfProperty && !itemOfProperty->isModuleInstance()) {
             // Own properties of module instances must not have the instance itself in the scope.
             pushScope(*object);
@@ -290,7 +294,7 @@ enum QueryPropertyType
 EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Logger &logger)
     : QScriptClass(scriptEngine)
     , m_logger(logger)
-    , m_valueCacheEnabled(true)
+    , m_valueCacheEnabled(false)
 {
     m_getNativeSettingBuiltin = scriptEngine->newFunction(js_getNativeSetting, 3);
     m_getEnvBuiltin = scriptEngine->newFunction(js_getEnv, 1);
@@ -378,6 +382,40 @@ Item *EvaluatorScriptClass::findParentOfType(const Item *item, const QString &ty
     return 0;
 }
 
+void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data, QScriptValue *result,
+        const QString &propertyName, const ValuePtr &value)
+{
+    QScriptValueList lst;
+    QSet<Value *> oldNextChain = m_currentNextChain;
+    for (ValuePtr next = value; next; next = next->next())
+        m_currentNextChain.insert(next.data());
+
+    for (ValuePtr next = value; next; next = next->next()) {
+        QScriptValue v = data->evaluator->property(next->definingItem(), propertyName);
+        if (v.isUndefined())
+            continue;
+        lst << v;
+    }
+    m_currentNextChain = oldNextChain;
+
+    *result = engine()->newArray();
+    quint32 k = 0;
+    for (int i = 0; i < lst.count(); ++i) {
+        const QScriptValue &v = lst.at(i);
+        if (v.isError()) {
+            *result = v;
+            return;
+        }
+        if (v.isArray()) {
+            const quint32 vlen = v.property(QStringLiteral("length")).toInt32();
+            for (quint32 j = 0; j < vlen; ++j)
+                result->setProperty(k++, v.property(j));
+        } else {
+            result->setProperty(k++, v);
+        }
+    }
+}
+
 inline void convertToPropertyType(const PropertyDeclaration::Type t, QScriptValue &v)
 {
     if (v.isUndefined())
@@ -445,12 +483,16 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
         }
     }
 
-    SVConverter converter(this, &object, value, itemOfProperty, &name, data, &result,
-                          &m_sourceValueStack);
-    converter.start();
+    if (value->next() && !m_currentNextChain.contains(value.data())) {
+        collectValuesFromNextChain(data, &result, name.toString(), value);
+    } else {
+        SVConverter converter(this, &object, value, itemOfProperty, &name, data, &result,
+                              &m_sourceValueStack);
+        converter.start();
 
-    const PropertyDeclaration decl = data->item->propertyDeclarations().value(name.toString());
-    convertToPropertyType(decl.type(), result);
+        const PropertyDeclaration decl = data->item->propertyDeclarations().value(name.toString());
+        convertToPropertyType(decl.type(), result);
+    }
 
     if (debugProperties)
         m_logger.qbsTrace() << "[SC] cache miss " << name << ": " << resultToString(result);

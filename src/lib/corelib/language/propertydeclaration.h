@@ -73,6 +73,7 @@ public:
     PropertyDeclaration &operator=(const PropertyDeclaration &other);
 
     bool isValid() const;
+    bool isScalar() const;
 
     static Type propertyTypeFromString(const QString &typeName);
 

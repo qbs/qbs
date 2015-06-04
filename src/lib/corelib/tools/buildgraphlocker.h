@@ -31,12 +31,11 @@
 #ifndef QBS_BUILDGRAPHLOCKER_H
 #define QBS_BUILDGRAPHLOCKER_H
 
-#include <QLockFile>
 #include <logging/logger.h>
 
-QT_BEGIN_NAMESPACE
-class QString;
-QT_END_NAMESPACE
+#include <QLockFile>
+#include <QQueue>
+#include <QString>
 
 namespace qbs {
 namespace Internal {
@@ -48,8 +47,12 @@ public:
     ~BuildGraphLocker();
 
 private:
+    void rememberCreatedDirectories(const QString &buildDir);
+    void removeEmptyCreatedDirectories();
+
     QLockFile m_lockFile;
     Logger m_logger;
+    QQueue<QString> m_createdParentDirs;
 };
 
 } // namespace Internal

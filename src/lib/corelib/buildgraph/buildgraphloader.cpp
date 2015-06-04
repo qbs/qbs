@@ -299,8 +299,10 @@ void BuildGraphLoader::trackProjectChanges()
     }
 
     // Products still left in the list do not exist anymore.
-    foreach (const ResolvedProductPtr &removedProduct, allRestoredProducts)
+    foreach (const ResolvedProductPtr &removedProduct, allRestoredProducts) {
+        changedProducts.removeOne(removedProduct);
         onProductRemoved(removedProduct, m_result.newlyResolvedProject->buildData.data());
+    }
 
     // Products still left in the list need resolving, either because they are new
     // or because they are newly enabled.
@@ -717,6 +719,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
         const ResolvedProductPtr &newlyResolvedProduct, ProjectBuildData *oldBuildData,
         const ChildListHash &childLists, const AllRescuableArtifactData &existingRad)
 {
+    QBS_CHECK(newlyResolvedProduct);
     if (!restoredProduct->enabled || !newlyResolvedProduct->enabled)
         return;
 

@@ -148,4 +148,9 @@ bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2)
     return !(cl1 == cl2);
 }
 
+QDebug operator<<(QDebug debug, const CodeLocation &location)
+{
+    return debug << location.toString();
+}
+
 } // namespace qbs

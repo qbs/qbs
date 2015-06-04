@@ -28,19 +28,9 @@
 **
 ****************************************************************************/
 
-var TextFile = loadExtension("qbs.TextFile");
-
-// TODO: Parse exactly, so we won't get fooled by e.g. comments.
-function extractPackageName(filePath)
-{
-    var file = new TextFile(filePath);
-    var contents = file.readAll();
-    file.close();
-    var packageName = contents.replace(/[\s\S]*package\s+([^\s;]+)[\s;][\s\S]*/m, "$1");
-    if (packageName === contents) // no package statement
-        return "";
-    return packageName;
-}
+var File = loadExtension("qbs.File");
+var FileInfo = loadExtension("qbs.FileInfo");
+var Process = loadExtension("qbs.Process");
 
 function supportsGeneratedNativeHeaderFiles(product) {
     var compilerVersionMajor = ModUtils.moduleProperty(product, "compilerVersionMajor");
@@ -90,4 +80,29 @@ function javacArguments(product, inputs) {
     for (i = 0; i < inputs["java.java"].length; ++i)
         args.push(inputs["java.java"][i].filePath);
     return args;
+}
+
+function outputArtifacts(product, inputs) {
+    if (!File.exists(FileInfo.joinPaths(product.moduleProperty("qbs", "libexecPath"),
+                                        "qbs-javac-scan.jar"))) {
+        throw "Qbs was built without Java support. Rebuild Qbs with CONFIG+=qbs_enable_java " +
+                "(qmake) or project.enableJava:true (self hosted build)";
+    }
+
+    // We need to ensure that the output directory is created first, because the Java compiler
+    // internally checks that it is present before performing any actions
+    File.makePath(ModUtils.moduleProperty(product, "classFilesDir"));
+
+    var process;
+    try {
+        process = new Process();
+        process.exec(product.moduleProperty("java", "interpreterFilePath"), ["-jar",
+                              FileInfo.joinPaths(product.moduleProperty("qbs", "libexecPath"),
+                                                 "qbs-javac-scan.jar"),
+                              "--output-format", "json"]
+                     .concat(javacArguments(product, inputs)), true);
+        return JSON.parse(process.readStdOut());
+    } finally {
+        process.close();
+    }
 }

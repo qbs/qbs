@@ -63,6 +63,7 @@ public:
     QString buildRoot;
     QStringList searchPaths;
     QStringList pluginPaths;
+    QString libexecPath;
     QString settingsBaseDir;
     QVariantMap overriddenValues;
     QVariantMap buildConfiguration;
@@ -206,6 +207,23 @@ QStringList SetupProjectParameters::pluginPaths() const
 void SetupProjectParameters::setPluginPaths(const QStringList &pluginPaths)
 {
     d->pluginPaths = pluginPaths;
+}
+
+/*!
+ * \brief Where to look for internal binaries.
+ */
+QString SetupProjectParameters::libexecPath() const
+{
+    return d->libexecPath;
+}
+
+/*!
+ * \brief Sets the information about where to look for internal binaries.
+ * \note \p libexecPath must be an absolute path.
+ */
+void SetupProjectParameters::setLibexecPath(const QString &libexecPath)
+{
+    d->libexecPath = libexecPath;
 }
 
 /*!

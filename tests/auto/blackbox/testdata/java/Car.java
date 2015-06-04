@@ -4,4 +4,9 @@ class Car implements Vehicle
     {
         System.out.println("Driving!");
     }
+
+    public class InternalCombustionEngine
+    {
+        public native void run();
+    }
 }

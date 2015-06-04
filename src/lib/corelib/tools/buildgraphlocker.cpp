@@ -36,6 +36,7 @@
 #include <logging/translator.h>
 
 #include <QDir>
+#include <QDirIterator>
 #include <QFileInfo>
 #include <QString>
 
@@ -47,6 +48,7 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
     , m_logger(logger)
 {
     const QString buildDir = QFileInfo(buildGraphFilePath).absolutePath();
+    rememberCreatedDirectories(buildDir);
     if (!QDir::root().mkpath(buildDir)) {
         throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': Failed to create directory.")
                         .arg(buildGraphFilePath));
@@ -58,6 +60,12 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
             return;
         switch (m_lockFile.error()) {
         case QLockFile::LockFailedError: {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 1))
+            throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': "
+                    "Already locked by '%2' (PID %3).")
+                            .arg(buildGraphFilePath, appName).arg(pid));
+#else
+            // work around QTBUG-45497
             qint64 pid;
             QString hostName;
             QString appName;
@@ -74,6 +82,7 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
             }
             break;
         }
+#endif
         case QLockFile::PermissionError:
             throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': Permission denied.")
                             .arg(buildGraphFilePath));
@@ -93,6 +102,32 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
 BuildGraphLocker::~BuildGraphLocker()
 {
     m_lockFile.unlock();
+    removeEmptyCreatedDirectories();
+}
+
+void BuildGraphLocker::rememberCreatedDirectories(const QString &buildDir)
+{
+    QString parentDir = buildDir;
+    while (!QFileInfo::exists(parentDir)) {
+        m_createdParentDirs.enqueue(parentDir);
+        parentDir = QDir::cleanPath(parentDir + QLatin1String("/.."));
+    }
+}
+
+void BuildGraphLocker::removeEmptyCreatedDirectories()
+{
+    QDir root = QDir::root();
+    while (!m_createdParentDirs.isEmpty()) {
+        const QString parentDir = m_createdParentDirs.dequeue();
+        QDirIterator it(parentDir, QDir::AllEntries | QDir::NoDotAndDotDot | QDir::System,
+                        QDirIterator::Subdirectories);
+        if (it.hasNext())
+            break;
+        if (!root.rmdir(parentDir)) {
+            m_logger.printWarning(ErrorInfo(Tr::tr("Failed to remove empty directory '%1'.")
+                                            .arg(parentDir)));
+        }
+    }
 }
 
 } // namespace Internal

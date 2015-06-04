@@ -36,6 +36,7 @@
 #include "filecontext.h"
 #include "item.h"
 #include "moduleloader.h"
+#include "modulemerger.h"
 #include "propertymapinternal.h"
 #include "resolvedfilecontext.h"
 #include "scriptengine.h"
@@ -419,12 +420,15 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
               });
 }
 
-void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
+void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item,
                                     ProjectContext *projectContext)
 {
     checkCancelation();
     if (!m_evaluator->boolValue(item, QLatin1String("present")))
         return;
+
+    if (m_productContext->product->enabled)
+        m_evaluator->boolValue(item, QLatin1String("validate"));
 
     ModuleContext * const oldModuleContext = m_moduleContext;
     ModuleContext moduleContext;
@@ -432,7 +436,7 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
     m_moduleContext = &moduleContext;
 
     const ResolvedModulePtr &module = moduleContext.module;
-    module->name = ModuleLoader::fullModuleName(moduleName);
+    module->name = moduleName.toString();
     module->setupBuildEnvironmentScript = scriptFunctionValue(item,
                                                             QLatin1String("setupBuildEnvironment"));
     module->setupRunEnvironmentScript = scriptFunctionValue(item,
@@ -442,7 +446,7 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
             m_evaluator->fileTagsValue(item, QLatin1String("additionalProductTypes"));
 
     foreach (const Item::Module &m, item->modules())
-        module->moduleDependencies += ModuleLoader::fullModuleName(m.name);
+        module->moduleDependencies += m.name.toString();
 
     m_productContext->product->modules += module;
 
@@ -498,7 +502,9 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     PropertyMapPtr moduleProperties = m_productContext->product->moduleProperties;
     if (isSomeModulePropertySet(item)) {
         moduleProperties = PropertyMapInternal::create();
+        m_evaluator->setCachingEnabled(true);
         moduleProperties->setValue(evaluateModuleValues(item));
+        m_evaluator->setCachingEnabled(false);
     }
 
     const bool isEnabled = m_evaluator->boolValue(item, QLatin1String("condition"));
@@ -701,24 +707,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
         projectContext->rules += rule;
 }
 
-class StringListLess
-{
-public:
-    bool operator()(const QStringList &lhs, const QStringList &rhs)
-    {
-        const int c = qMin(lhs.count(), rhs.count());
-        for (int i = 0; i < c; ++i) {
-            int n = lhs.at(i).compare(rhs.at(i));
-            if (n < 0)
-                return true;
-            if (n > 0)
-                return false;
-        }
-        return lhs.count() < rhs.count();
-    }
-};
-
-class StringListSet : public std::set<QStringList, StringListLess>
+class QualifiedIdSet : public std::set<QualifiedId>
 {
 public:
     typedef std::pair<iterator, bool> InsertResult;
@@ -734,7 +723,7 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
     artifact->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
     artifact->alwaysUpdated = m_evaluator->boolValue(item, QLatin1String("alwaysUpdated"));
 
-    StringListSet seenBindings;
+    QualifiedIdSet seenBindings;
     for (Item *obj = item; obj; obj = obj->prototype()) {
         for (QMap<QString, ValuePtr>::const_iterator it = obj->properties().constBegin();
              it != obj->properties().constEnd(); ++it)
@@ -750,7 +739,7 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
 void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact,
                                                  Item *item,
                                                  const QStringList &namePrefix,
-                                                 StringListSet *seenBindings)
+                                                 QualifiedIdSet *seenBindings)
 {
     for (QMap<QString, ValuePtr>::const_iterator it = item->properties().constBegin();
          it != item->properties().constEnd(); ++it)
@@ -761,7 +750,7 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
                                        it.value().staticCast<ItemValue>()->item(), name,
                                        seenBindings);
         } else if (it.value()->type() == Value::JSSourceValueType) {
-            const StringListSet::InsertResult insertResult = seenBindings->insert(name);
+            const QualifiedIdSet::InsertResult insertResult = seenBindings->insert(name);
             if (!insertResult.second)
                 continue;
             JSSourceValuePtr sourceValue = it.value().staticCast<JSSourceValue>();
@@ -860,7 +849,13 @@ void ProjectResolver::resolveExport(Item *item, ProjectContext *projectContext)
     const QString &productName = m_productContext->product->uniqueName();
     m_exportsContext = &m_exports[productName];
     m_exportsContext->item = item;
+    foreach (const Item::Module &module, item->modules()) {
+        ModuleMerger merger(m_logger, item, module.item, module.name);
+        merger.start();
+    }
+    m_evaluator->setCachingEnabled(true);
     m_exportsContext->moduleValues = evaluateModuleValues(item, false);
+    m_evaluator->setCachingEnabled(false);
 
     ItemFuncMap mapping;
     mapping["Depends"] = &ProjectResolver::ignoreItem;
@@ -873,15 +868,52 @@ void ProjectResolver::resolveExport(Item *item, ProjectContext *projectContext)
     m_exportsContext = 0;
 }
 
-static void insertExportedConfig(const QString &usedProductName,
-        const QVariantMap &exportedConfig,
-        const PropertyMapPtr &propertyMap)
+static void insertExportedModuleProperties(const Item::Module &moduleInProduct,
+        const Item::Module &moduleInExport, const QVariantMap &exported, QVariantMap *dstModule)
 {
+    for (auto it = exported.constBegin(); it != exported.constEnd(); ++it) {
+        QVariant &dst = (*dstModule)[it.key()];
+        const PropertyDeclaration &pd = moduleInExport.item->propertyDeclaration(it.key());
+        if (pd.isScalar()) {
+            // If this scalar property is not directly set in the product.
+            if (moduleInProduct.item && moduleInProduct.item->hasOwnProperty(it.key()))
+                continue;
+            dst = it.value();
+        } else {
+            // TODO: Make the merge configurable: Order, Duplicates, ...?
+            QStringList lst = dst.toStringList() + it.value().toStringList();
+            lst.removeDuplicates();
+            dst = lst;
+        }
+    }
+}
+
+static void insertExportedConfig(Item *productItem, Item *exportItem,
+        const QVariantMap &exportedConfig, const PropertyMapPtr &propertyMap)
+{
+    QHash<QualifiedId, Item::Module> productModules;
+    foreach (const Item::Module &m, productItem->modules())
+        productModules[m.name] = m;
+
+    QHash<QualifiedId, Item::Module> exportModules;
+    foreach (const Item::Module &m, exportItem->modules())
+        exportModules[m.name] = m;
+
     QVariantMap properties = propertyMap->value();
-    QVariant &modulesEntry = properties[QLatin1String("modules")];
-    QVariantMap modules = modulesEntry.toMap();
-    modules.insert(usedProductName, exportedConfig);
-    modulesEntry = modules;
+    QVariant &modulesVariant = properties[QStringLiteral("modules")];
+    QVariantMap modules = modulesVariant.toMap();
+    const QVariantMap &exportedModules = exportedConfig.value(QStringLiteral("modules")).toMap();
+    for (auto it = exportedModules.constBegin(); it != exportedModules.constEnd(); ++it) {
+        const QString &fullModuleName = it.key();
+        const QualifiedId &moduleName = QualifiedId::fromString(fullModuleName);
+        QVariant &moduleVariant = modules[fullModuleName];
+        QVariantMap module = moduleVariant.toMap();
+        insertExportedModuleProperties(productModules.value(moduleName),
+                                       exportModules.value(moduleName), it.value().toMap(),
+                                       &module);
+        moduleVariant = module;
+    }
+    modulesVariant = modules;
     propertyMap->setValue(properties);
 }
 
@@ -1097,12 +1129,14 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
             if (exportedConfig.isEmpty())
                 continue;
 
-            insertExportedConfig(usedProductName, exportedConfig, rproduct->moduleProperties);
+            insertExportedConfig(productItem, ctx.item, exportedConfig, rproduct->moduleProperties);
 
             // insert the configuration of the Export item into the artifact configurations
             foreach (SourceArtifactPtr artifact, rproduct->allEnabledFiles()) {
-                if (artifact->properties != rproduct->moduleProperties)
-                    insertExportedConfig(usedProductName, exportedConfig, artifact->properties);
+                if (artifact->properties != rproduct->moduleProperties) {
+                    insertExportedConfig(productItem, ctx.item, exportedConfig,
+                                         artifact->properties);
+                }
             }
         }
     }
@@ -1149,79 +1183,26 @@ void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
     }
 }
 
-struct ModuleInfo {
-    QString fullName;
-    QVariantMap propertyMap;
-    QStringList ownProperties;
-};
-
-static void gatherModuleValues(Item *item, QVariantMap *parentModulesMap,
-                               const QHash<Item *, ModuleInfo> &moduleInfo)
-{
-    foreach (const Item::Module &module, item->modules()) {
-        const ModuleInfo &mi = moduleInfo.value(module.item);
-        QVariantMap modulesMap;
-        gatherModuleValues(module.item, &modulesMap, moduleInfo);
-        QVariantMap propertyMap = mi.propertyMap;
-        propertyMap.insert(QLatin1String("modules"), modulesMap);
-        parentModulesMap->insert(mi.fullName, propertyMap);
-        parentModulesMap->insert(QLatin1Char('@') + mi.fullName, mi.ownProperties);
-    }
-}
-
-static QStringList ownPropertiesSet(Item *item)
-{
-    QStringList names;
-    do {
-        names += item->properties().keys();
-        item = item->prototype();
-    } while (item && item->isModuleInstance());
-
-    std::sort(names.begin(), names.end());
-    QStringList::iterator lastIt = std::unique(names.begin(), names.end());
-    names.erase(lastIt, names.end());
-    return names;
-}
-
 QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototype) const
 {
-    QHash<Item *, ModuleInfo> moduleInfo;
-    QHash<QString, EvalResult> globalResult;
-
-    // Optimization in evaluateProperties() requires breadth-first traversal.
-    QList<Item::Module> modulesQueue = item->modules();
-    while (!modulesQueue.isEmpty()) {
-        checkCancelation();
-        const Item::Module module = modulesQueue.takeFirst();
-        const QString fullName = ModuleLoader::fullModuleName(module.name);
-        ModulePropertyEvalContext evalContext;
-        evalContext.globalResult = &globalResult;
-        evalContext.moduleName = fullName;
-        evalContext.ownProperties = ownPropertiesSet(module.item);
-        ModuleInfo mi;
-        mi.fullName = fullName;
-        mi.propertyMap = evaluateProperties(module.item, evalContext, lookupPrototype);
-        mi.ownProperties = evalContext.ownProperties;
-        moduleInfo.insert(module.item, mi);
-        modulesQueue << module.item->modules();
+    QVariantMap moduleValues;
+    foreach (const Item::Module &module, item->modules()) {
+        const QString fullName = module.name.toString();
+        moduleValues[fullName] = evaluateProperties(module.item, lookupPrototype);
     }
 
-    QVariantMap modules;
-    gatherModuleValues(item, &modules, moduleInfo);
     QVariantMap result;
-    result[QLatin1String("modules")] = modules;
+    result[QLatin1String("modules")] = moduleValues;
     return result;
 }
 
-QVariantMap ProjectResolver::evaluateProperties(Item *item,
-        const ModulePropertyEvalContext &evalContext, bool lookupPrototype) const
+QVariantMap ProjectResolver::evaluateProperties(Item *item, bool lookupPrototype) const
 {
     const QVariantMap tmplt;
-    return evaluateProperties(item, item, evalContext, tmplt, lookupPrototype);
+    return evaluateProperties(item, item, tmplt, lookupPrototype);
 }
 
-QVariantMap ProjectResolver::evaluateProperties(Item *item,
-        Item *propertiesContainer, const ModulePropertyEvalContext &evalContext,
+QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesContainer,
         const QVariantMap &tmplt, bool lookupPrototype) const
 {
     QVariantMap result = tmplt;
@@ -1229,7 +1210,6 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
          it != propertiesContainer->properties().end(); ++it)
     {
         checkCancelation();
-        const QString fullKey = evalContext.moduleName + QLatin1Char('.') + it.key();
         switch (it.value()->type()) {
         case Value::ItemValueType:
         {
@@ -1241,34 +1221,11 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
         {
             if (result.contains(it.key()))
                 break;
-            PropertyDeclaration pd;
-            for (Item *obj = item; obj; obj = obj->prototype()) {
-                pd = obj->propertyDeclarations().value(it.key());
-                if (pd.isValid())
-                    break;
-            }
+            const PropertyDeclaration pd = item->propertyDeclaration(it.key());
             if (pd.type() == PropertyDeclaration::Verbatim
                 || pd.flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
             {
                 break;
-            }
-
-            // Skip values that the PropertyFinder will never see due to them being shadowed
-            // by values in other, higher-precedence instances of the module.
-            const bool isPotentialGlobalEntry = evalContext.globalResult
-                    && pd.type() != PropertyDeclaration::StringList
-                    && pd.type() != PropertyDeclaration::PathList;
-            const bool isOwnProperty = std::binary_search(evalContext.ownProperties.constBegin(),
-                    evalContext.ownProperties.constEnd(), it.key());
-            if (isPotentialGlobalEntry) {
-                const QHash<QString, EvalResult>::ConstIterator globalIt
-                        = evalContext.globalResult->find(fullKey);
-                if (globalIt != evalContext.globalResult->constEnd()) {
-                    if (!isOwnProperty || globalIt->strongPrecedence) {
-                        result[it.key()] = globalIt->value;
-                        break;
-                    }
-                }
             }
 
             bool cacheDisabled = false;
@@ -1280,7 +1237,7 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
                 m_evaluator->engine()->setPropertyCacheEnabled(false);
             }
 
-            const QScriptValue scriptValue = m_evaluator->value(item, it.key());
+            const QScriptValue scriptValue = m_evaluator->property(item, it.key());
             if (cacheDisabled) {
                 m_evaluator->setCachingEnabled(true);
                 m_evaluator->engine()->setPropertyCacheEnabled(true);
@@ -1301,8 +1258,6 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
             else if (pd.type() == PropertyDeclaration::StringList)
                 v = v.toStringList();
             result[it.key()] = v;
-            if (isPotentialGlobalEntry)
-                evalContext.globalResult->insert(fullKey, EvalResult(v, isOwnProperty));
             break;
         }
         case Value::VariantValueType:
@@ -1311,8 +1266,6 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
                 break;
             VariantValuePtr vvp = it.value().staticCast<VariantValue>();
             result[it.key()] = vvp->value();
-            if (evalContext.globalResult)
-                evalContext.globalResult->insert(fullKey, EvalResult(vvp->value(), true));
             break;
         }
         case Value::BuiltinValueType:
@@ -1321,15 +1274,21 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
         }
     }
     return lookupPrototype && propertiesContainer->prototype()
-            ? evaluateProperties(item, propertiesContainer->prototype(), evalContext, result, true)
+            ? evaluateProperties(item, propertiesContainer->prototype(), result, true)
             : result;
 }
 
 QVariantMap ProjectResolver::createProductConfig() const
 {
+    foreach (const Item::Module &module, m_productContext->item->modules()) {
+        ModuleMerger merger(m_logger, m_productContext->item, module.item, module.name);
+        merger.start();
+    }
+
+    m_evaluator->setCachingEnabled(true);
     QVariantMap cfg = evaluateModuleValues(m_productContext->item);
-    cfg = evaluateProperties(m_productContext->item, m_productContext->item,
-                             ModulePropertyEvalContext(), cfg);
+    cfg = evaluateProperties(m_productContext->item, m_productContext->item, cfg);
+    m_evaluator->setCachingEnabled(false);
     return cfg;
 }
 

@@ -247,6 +247,7 @@ static QList<CommandLineOption::Type> buildOptions()
             << CommandLineOption::ChangedFilesOptionType
             << CommandLineOption::ForceTimestampCheckOptionType
             << CommandLineOption::BuildNonDefaultOptionType
+            << CommandLineOption::VersionOptionType
             << CommandLineOption::CommandEchoModeOptionType
             << CommandLineOption::NoInstallOptionType
             << CommandLineOption::RemoveFirstOptionType;

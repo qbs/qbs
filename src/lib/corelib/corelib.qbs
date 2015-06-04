@@ -19,7 +19,7 @@ QbsLibrary {
         "SRCDIR=\"" + path + "\""
     ]).concat(projectFileUpdateDefines)
     cpp.dynamicLibraries: base.concat(qbs.targetOS.contains("windows")
-        ? ["Psapi.lib"] : [])
+        ? ["Psapi"] : [])
 
     Properties {
         condition: qbs.targetOS.contains("darwin")
@@ -229,6 +229,8 @@ QbsLibrary {
             "loader.h",
             "moduleloader.cpp",
             "moduleloader.h",
+            "modulemerger.cpp",
+            "modulemerger.h",
             "preparescriptobserver.cpp",
             "preparescriptobserver.h",
             "projectresolver.cpp",
@@ -238,6 +240,8 @@ QbsLibrary {
             "propertydeclaration.h",
             "propertymapinternal.cpp",
             "propertymapinternal.h",
+            "qualifiedid.cpp",
+            "qualifiedid.h",
             "resolvedfilecontext.cpp",
             "resolvedfilecontext.h",
             "scriptengine.cpp",

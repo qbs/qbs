@@ -149,6 +149,7 @@
 
     \table
     \header \li Option              \li Notes
+    \row    \li qbs_enable_java     \li Enable support for compiling Java source code.
     \row    \li qbs_enable_unit_tests           \li Enable additional autotests.
     \row    \li qbs_disable_rpath       \li Disable the use of rpath. This can be used when packaging
                                         \QBS for distributions which do not permit the use of rpath,

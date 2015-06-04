@@ -66,6 +66,13 @@
     returned value are platform-specific. You should only rely on the property that a smaller value
     indicates an older timestamp.
 
+    \section2 makePath
+    \code
+    File.makePath(path: string): boolean
+    \endcode
+    Makes the directory at \c path, creating intermediate directories if necessary.
+    Conceptually equivalent to \c{mkdir -p}
+
     \section2 remove
     \code
     File.remove(filePath: string): boolean

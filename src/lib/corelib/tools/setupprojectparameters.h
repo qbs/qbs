@@ -73,6 +73,9 @@ public:
     QStringList pluginPaths() const;
     void setPluginPaths(const QStringList &pluginPaths);
 
+    QString libexecPath() const;
+    void setLibexecPath(const QString &libexecPath);
+
     QString settingsDirectory() const;
     void setSettingsDirectory(const QString &settingsBaseDir);
 

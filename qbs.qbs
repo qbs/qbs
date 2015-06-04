@@ -3,6 +3,7 @@ import qbs 1.0
 Project {
     minimumQbsVersion: "1.4"
     qbsSearchPaths: ["qbs-resources"]
+    property bool enableJava: false
     property bool enableUnitTests: false
     property bool enableProjectFileUpdates: false
     property bool enableRPath: true
@@ -11,6 +12,8 @@ Project {
     property string libDirName: "lib"
     property string appInstallDir: "bin"
     property string libInstallDir: qbs.targetOS.contains("windows") ? "bin" : libDirName
+    property string libexecInstallDir: "libexec"
+    property string relativeLibexecPath: "../" + libexecInstallDir
     property string relativePluginsPath: "../" + libDirName
     property string relativeSearchPath: ".."
     property stringList libRPaths: {

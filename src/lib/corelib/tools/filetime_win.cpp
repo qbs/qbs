@@ -32,9 +32,7 @@
 
 #include <QString>
 #include <qt_windows.h>
-#ifdef Q_CC_MSVC
 #include <strsafe.h>
-#endif // Q_CC_MSVC
 
 namespace qbs {
 namespace Internal {
@@ -96,7 +94,6 @@ QString FileTime::toString() const
     SYSTEMTIME stUTC, stLocal;
     FileTimeToSystemTime(ft, &stUTC);
     SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
-#ifdef Q_CC_MSVC
     WCHAR szString[512];
     HRESULT hr = StringCchPrintf(szString, sizeof(szString) / sizeof(WCHAR),
                                  L"%02d.%02d.%d %02d:%02d:%02d:%02d",
@@ -104,12 +101,6 @@ QString FileTime::toString() const
                                  stLocal.wHour, stLocal.wMinute, stLocal.wSecond,
                                  stLocal.wMilliseconds);
     return SUCCEEDED(hr) ? QString::fromWCharArray(szString) : QString();
-#else // Q_CC_MSVC
-    const QString result = QString("%1.%2.%3 %4:%5:%6")
-            .arg(stLocal.wDay, 2, 10, QLatin1Char('0')).arg(stLocal.wMonth, 2, 10, QLatin1Char('0')).arg(stLocal.wYear)
-            .arg(stLocal.wHour, 2, 10, QLatin1Char('0')).arg(stLocal.wMinute, 2, 10, QLatin1Char('0')).arg(stLocal.wSecond, 2, 10, QLatin1Char('0'));
-    return result;
-#endif // Q_CC_MSVC
 }
 
 } // namespace Internal

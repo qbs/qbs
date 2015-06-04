@@ -98,6 +98,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::BuildNonDefaultOptionType:
             option = new BuildNonDefaultOption;
             break;
+        case CommandLineOption::VersionOptionType:
+            option = new VersionOption;
+            break;
         case CommandLineOption::LogTimeOptionType:
             option = new LogTimeOption;
             break;
@@ -212,6 +215,12 @@ BuildNonDefaultOption *CommandLineOptionPool::buildNonDefaultOption() const
 {
     return static_cast<BuildNonDefaultOption *>(
                 getOption(CommandLineOption::BuildNonDefaultOptionType));
+}
+
+VersionOption *CommandLineOptionPool::versionOption() const
+{
+    return static_cast<VersionOption *>(
+                getOption(CommandLineOption::VersionOptionType));
 }
 
 LogTimeOption *CommandLineOptionPool::logTimeOption() const

@@ -93,7 +93,8 @@ Module {
         validator.setRequiredProperty("compilerVersionMajor", compilerVersionMajor);
         validator.setRequiredProperty("compilerVersionMinor", compilerVersionMinor);
         validator.setRequiredProperty("compilerVersionUpdate", compilerVersionUpdate);
-        validator.addVersionValidator("compilerVersion", compilerVersion.replace("_", "."), 4, 4);
+        validator.addVersionValidator("compilerVersion", compilerVersion
+                                      ? compilerVersion.replace("_", ".") : undefined, 4, 4);
         validator.addRangeValidator("compilerVersionMajor", compilerVersionMajor, 1);
         validator.addRangeValidator("compilerVersionMinor", compilerVersionMinor, 0);
         validator.addRangeValidator("compilerVersionPatch", compilerVersionPatch, 0);
@@ -110,21 +111,9 @@ Module {
         multiplex: true
         inputs: ["java.java"]
         inputsFromDependencies: ["java.jar"]
-        outputFileTags: ["java.class"] // Annotations can produce additional java source files. Ignored for now.
+        outputFileTags: ["java.class", "hpp"] // Annotations can produce additional java source files. Ignored for now.
         outputArtifacts: {
-            // Note: We'd have to duplicate some javac functionality to catch all outputs
-            //       (e.g. private classes), so ignore these for now.
-            var oFilePaths = [];
-            // Extract package name to find out where the class name will be
-            for (var i = 0; i < inputs["java.java"].length; ++i) {
-                var inp = inputs["java.java"][i];
-                var packageName = JavaUtils.extractPackageName(inp.filePath);
-                var oFileName = inp.completeBaseName + ".class";
-                var oFilePath = FileInfo.joinPaths(ModUtils.moduleProperty(product, "classFilesDir"),
-                                                   packageName.split('.').join('/'), oFileName);
-                oFilePaths.push({ filePath: oFilePath, fileTags: ["java.class"] });
-            }
-            return oFilePaths;
+            return JavaUtils.outputArtifacts(product, inputs);
         }
         prepare: {
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerFilePath"),

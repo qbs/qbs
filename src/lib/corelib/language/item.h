@@ -36,6 +36,7 @@
 #include "value.h"
 #include "functiondeclaration.h"
 #include "propertydeclaration.h"
+#include "qualifiedid.h"
 #include <parser/qmljsmemorypool_p.h>
 #include <tools/codelocation.h>
 #include <tools/weakpointer.h>
@@ -68,7 +69,7 @@ public:
             : item(0)
         {}
 
-        QStringList name;
+        QualifiedId name;
         Item *item;
     };
     typedef QList<Module> Modules;
@@ -94,7 +95,9 @@ public:
     const PropertyDeclarationMap &propertyDeclarations() const;
     const PropertyDeclaration propertyDeclaration(const QString &name) const;
     const Modules &modules() const;
-    Modules &modules();
+    void addModule(const Module &module);
+    void removeModules() { m_modules.clear(); }
+    void setModules(const Modules &modules) { m_modules = modules; }
 
     bool hasProperty(const QString &name) const;
     bool hasOwnProperty(const QString &name) const;
@@ -104,6 +107,7 @@ public:
     VariantValuePtr variantProperty(const QString &name) const;
     void setPropertyObserver(ItemObserver *observer) const;
     void setProperty(const QString &name, const ValuePtr &value);
+    void setProperties(const PropertyMap &props) { m_properties = props; }
     void removeProperty(const QString &name);
     void setPropertyDeclaration(const QString &name, const PropertyDeclaration &declaration);
     void setTypeName(const QString &name);
@@ -273,10 +277,7 @@ inline const Item::Modules &Item::modules() const
     return m_modules;
 }
 
-inline Item::Modules &Item::modules()
-{
-    return m_modules;
-}
+inline bool operator<(const Item::Module &m1, const Item::Module &m2) { return m1.name < m2.name; }
 
 } // namespace Internal
 } // namespace qbs

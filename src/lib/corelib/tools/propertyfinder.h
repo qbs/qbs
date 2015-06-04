@@ -39,9 +39,8 @@ namespace Internal {
 class PropertyFinder
 {
 public:
-    enum MergeType { DoMergeLists, DoNotMergeLists };
     QVariantList propertyValues(const QVariantMap &properties, const QString &moduleName,
-                              const QString &key, MergeType mergeType = DoMergeLists);
+                              const QString &key);
 
     // Note that this can still be a list if the property type itself is one.
     QVariant propertyValue(const QVariantMap &properties, const QString &moduleName,
@@ -49,9 +48,7 @@ public:
 
 private:
     void findModuleValues(const QVariantMap &properties);
-    void findScalarModuleValue(const QVariantMap &properties);
     void addToList(const QVariant &value);
-    static void mergeLists(QVariantList *values);
 
     QString m_moduleName;
     QString m_key;

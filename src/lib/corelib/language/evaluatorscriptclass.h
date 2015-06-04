@@ -73,6 +73,7 @@ private:
                                  bool ignoreParent = false);
     static QString resultToString(const QScriptValue &scriptValue);
     static Item *findParentOfType(const Item *item, const QString &typeName);
+    void collectValuesFromNextChain(const EvaluationData *data, QScriptValue *result, const QString &propertyName, const ValuePtr &value);
 
     struct QueryResult
     {
@@ -98,6 +99,7 @@ private:
     QScriptValue m_rfc1034identifierBuiltin;
     QScriptValue m_getHashBuiltin;
     QStack<JSSourceValue *> m_sourceValueStack;
+    QSet<Value *> m_currentNextChain;
 };
 
 } // namespace Internal

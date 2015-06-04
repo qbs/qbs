@@ -7,6 +7,7 @@ QbsApp {
     targetName: "qbs"
     cpp.defines: base.concat([
         'QBS_VERSION="' + QbsFunctions.qbsVersion() + '"',
+        'QBS_RELATIVE_LIBEXEC_PATH="' + project.relativeLibexecPath + '"',
         'QBS_RELATIVE_SEARCH_PATH="' + project.relativeSearchPath + '"',
         'QBS_RELATIVE_PLUGINS_PATH="' + project.relativePluginsPath + '"'
     ])

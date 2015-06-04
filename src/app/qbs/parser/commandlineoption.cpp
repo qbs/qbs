@@ -453,6 +453,23 @@ QString BuildNonDefaultOption::longRepresentation() const
     return QLatin1String("--all-products");
 }
 
+QString VersionOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1\n"
+            "\tDisplay the qbs version and exit.\n").arg(longRepresentation());
+}
+
+QString VersionOption::shortRepresentation() const
+{
+    return QString();
+}
+
+QString VersionOption::longRepresentation() const
+{
+    return QStringLiteral("--version");
+}
+
 
 InstallRootOption::InstallRootOption() : m_useSysroot(false)
 {

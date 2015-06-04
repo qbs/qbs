@@ -18,8 +18,10 @@ contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 win32:CONFIG(debug, debug|release):TARGET = $${TARGET}d
 CONFIG += c++11
 
-!qbs_disable_rpath {
-    macx:QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
+qbs_disable_rpath {
+    osx:QMAKE_LFLAGS_SONAME = -Wl,-install_name,$$QBS_INSTALL_PREFIX/$$QBS_LIBRARY_DIRNAME/
+} else {
+    osx:QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
 }
 include(../../qbs_version.pri)
 VERSION = $${QBS_VERSION}

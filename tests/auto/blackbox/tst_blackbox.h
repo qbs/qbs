@@ -120,10 +120,13 @@ private slots:
     void jsExtensionsProcess();
     void jsExtensionsPropertyList();
     void jsExtensionsTextFile();
+    void listPropertiesWithOuter();
+    void listPropertyOrder();
     void mixedBuildVariants();
     void nestedProperties();
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();
+    void propertyPrecedence();
     void qmlDebugging();
     void productDependenciesByType();
     void properQuoting();

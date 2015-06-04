@@ -343,9 +343,8 @@ void TestApi::buildProjectDryRun()
     const qbs::ErrorInfo errorInfo
             = doBuildProject(projectSubDir + "/project.qbs", 0, 0, 0, options);
     VERIFY_NO_ERROR(errorInfo);
-    const QStringList &buildDirContents
-            = QDir(relativeBuildDir()).entryList(QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
-    QVERIFY2(buildDirContents.isEmpty(), qPrintable(buildDirContents.join(" ")));
+    QVERIFY2(!QFileInfo::exists(relativeBuildDir()), qPrintable(QDir(relativeBuildDir())
+            .entryList(QDir::NoDotAndDotDot | QDir::AllEntries | QDir::System).join(", ")));
 }
 
 void TestApi::buildProjectDryRun_data()
@@ -969,7 +968,26 @@ void TestApi::infiniteLoopResolving()
 
 void TestApi::inheritQbsSearchPaths()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("inherit-qbs-search-paths/prj.qbs");
+    const QString projectFilePath = "inherit-qbs-search-paths/prj.qbs";
+    qbs::ErrorInfo errorInfo = doBuildProject(projectFilePath);
+    VERIFY_NO_ERROR(errorInfo);
+
+    waitForNewTimestamp();
+    QFile projectFile(m_workingDataDir + '/' + projectFilePath);
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    QByteArray content = projectFile.readAll();
+    content.replace("qbsSearchPaths: \"subdir\"", "//qbsSearchPaths: \"subdir\"");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    errorInfo = doBuildProject(projectFilePath);
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("Product dependency 'bli' not found"),
+             qPrintable(errorInfo.toString()));
+
+    QVariantMap overriddenValues;
+    overriddenValues.insert("project.qbsSearchPaths", QStringList() << "subdir");
+    errorInfo = doBuildProject(projectFilePath, 0, 0, 0, qbs::BuildOptions(), overriddenValues);
     VERIFY_NO_ERROR(errorInfo);
 }
 
@@ -1312,6 +1330,24 @@ void TestApi::projectLocking()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
 }
 
+void TestApi::projectPropertiesByName()
+{
+    const QString projectFile = "project-properties-by-name/project.qbs";
+    qbs::ErrorInfo errorInfo = doBuildProject(projectFile);
+    QVERIFY(errorInfo.hasError());
+    QVariantMap overridden;
+    overridden.insert("project.theDefines", QStringList() << "SUB1" << "SUB2");
+    errorInfo = doBuildProject(projectFile, 0, 0, 0, qbs::BuildOptions(), overridden);
+    QVERIFY(errorInfo.hasError());
+    overridden.clear();
+    overridden.insert("subproject1.theDefines", QStringList() << "SUB1");
+    errorInfo = doBuildProject(projectFile, 0, 0, 0, qbs::BuildOptions(), overridden);
+    QVERIFY(errorInfo.hasError());
+    overridden.insert("subproject2.theDefines", QStringList() << "SUB2");
+    errorInfo = doBuildProject(projectFile, 0, 0, 0, qbs::BuildOptions(), overridden);
+    VERIFY_NO_ERROR(errorInfo);
+}
+
 void TestApi::projectWithPropertiesItem()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("project-with-properties-item/project.qbs");
@@ -1349,6 +1385,8 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &proje
             + QLatin1String("/" QBS_RELATIVE_SEARCH_PATH))));
     setupParams.setPluginPaths(prefs.pluginPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
             + QLatin1String("/" QBS_RELATIVE_PLUGINS_PATH))));
+    setupParams.setLibexecPath(QDir::cleanPath(QCoreApplication::applicationDirPath()
+            + QLatin1String("/" QBS_RELATIVE_LIBEXEC_PATH)));
     setupParams.setTopLevelProfile(profileName());
     setupParams.setBuildVariant(QLatin1String("debug"));
     return setupParams;
@@ -1648,9 +1686,10 @@ void TestApi::uic()
 
 qbs::ErrorInfo TestApi::doBuildProject(const QString &projectFilePath,
         QObject *buildDescriptionReceiver, QObject *procResultReceiver, QObject *taskReceiver,
-        const qbs::BuildOptions &options)
+        const qbs::BuildOptions &options, const QVariantMap overriddenValues)
 {
     qbs::SetupProjectParameters params = defaultSetupParameters(projectFilePath);
+    params.setOverriddenValues(overriddenValues);
     params.setDryRun(options.dryRun());
     const QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
                                                                                     m_logSink, 0));

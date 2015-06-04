@@ -60,8 +60,16 @@ public:
     virtual ValuePtr clone() const = 0;
     virtual CodeLocation location() const { return CodeLocation(); }
 
+    Item *definingItem() const;
+    virtual void setDefiningItem(Item *item);
+
+    ValuePtr next() const;
+    void setNext(const ValuePtr &next);
+
 private:
     Type m_type;
+    Item *m_definingItem;
+    ValuePtr m_next;
 };
 
 class ValueHandler
@@ -127,6 +135,8 @@ public:
     const QList<Alternative> &alternatives() const { return m_alternatives; }
     void setAlternatives(const QList<Alternative> &alternatives) { m_alternatives = alternatives; }
     void addAlternative(const Alternative &alternative) { m_alternatives.append(alternative); }
+
+    void setDefiningItem(Item *item);
 
 private:
     QStringRef m_sourceCode;

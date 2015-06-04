@@ -238,6 +238,9 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     dummyProductContext.moduleProperties = m_parameters.finalBuildConfigurationTree();
     loadBaseModule(&dummyProductContext, item);
     overrideItemProperties(item, QLatin1String("project"), m_parameters.overriddenValuesTree());
+    const QString projectName = m_evaluator->stringValue(item, QLatin1String("name"));
+    if (!projectName.isEmpty())
+        overrideItemProperties(item, projectName, m_parameters.overriddenValuesTree());
 
     m_reader->pushExtraSearchPaths(readExtraSearchPaths(item) << item->file()->dirPath());
     projectContext.item = item;
@@ -385,7 +388,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         productItem->setProperty(qbsKey, qbsValue);
     else
         productItem->removeProperty(qbsKey);
-    productItem->modules().clear();
+    productItem->removeModules();
     m_validItemPropertyNamesPerItem[productItem].clear();
 
     QList<Item *> additionalProductItems;
@@ -456,6 +459,7 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     dependsContext.productDependencies = &productContext.info.usedProducts;
     setScopeForDescendants(item, productContext.scope);
     resolveDependencies(&dependsContext, item);
+    addTransitiveDependencies(&productContext, productContext.item);
     checkItemCondition(item);
 
     foreach (Item *child, item->children()) {
@@ -467,7 +471,8 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
             resolveProbe(item, child);
     }
 
-    mergeExportItems(&productContext);
+    Item *mergedExportItem = mergeExportItems(&productContext);
+    addTransitiveDependencies(&productContext, mergedExportItem);
     projectContext->result->productInfos.insert(item, productContext.info);
     m_reader->popExtraSearchPaths();
 }
@@ -565,7 +570,7 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
     }
 }
 
-void ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext)
+Item *ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext)
 {
     Item *merged = Item::create(productContext->item->pool());
     merged->setTypeName(QLatin1String("Export"));
@@ -603,6 +608,7 @@ void ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext
     dependsContext.product = productContext;
     dependsContext.productDependencies = &productContext->info.usedProductsFromExportItem;
     resolveDependencies(&dependsContext, merged);
+    return merged;
 }
 
 void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, Item *item)
@@ -615,7 +621,7 @@ void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, I
         targetItem->setPrototype(m.item);
         targetItem->setModuleInstanceFlag(true);
         targetItem->setScope(m.item->scope());
-        targetItem->modules() = m.item->modules();
+        targetItem->setModules(m.item->modules());
 
         // "parent" should point to the group/artifact parent
         targetItem->setParent(item->parent());
@@ -624,7 +630,7 @@ void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, I
         targetItem->setOuterItem(m.item);   // ### Is this always the same as the scope item?
 
         m.item = targetItem;
-        item->modules() += m;
+        item->addModule(m);
     }
 }
 
@@ -644,11 +650,11 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     QSet<QString> loadedModuleNames;
     foreach (const ItemModuleList &moduleList, loadedModules) {
         foreach (const Item::Module &module, moduleList) {
-            const QString fullName = fullModuleName(module.name);
+            const QString fullName = module.name.toString();
             if (loadedModuleNames.contains(fullName))
                 continue;
             loadedModuleNames.insert(fullName);
-            item->modules() += module;
+            item->addModule(module);
             resolveProbes(module.item);
         }
     }
@@ -717,17 +723,17 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
         throw ErrorInfo(msg, dependsItem->location());
     }
 
-    QList<QStringList> moduleNames;
-    const QStringList nameParts = name.split(QLatin1Char('.'));
+    QList<QualifiedId> moduleNames;
+    const QualifiedId nameParts = QualifiedId::fromString(name);
     if (submodules.isEmpty()) {
         moduleNames << nameParts;
     } else {
         foreach (const QString &submodule, submodules)
-            moduleNames << nameParts + submodule.split(QLatin1Char('.'));
+            moduleNames << nameParts + QualifiedId::fromString(submodule);
     }
 
     Item::Module result;
-    foreach (const QStringList &moduleName, moduleNames) {
+    foreach (const QualifiedId &moduleName, moduleNames) {
         const bool isRequired
                 = m_evaluator->boolValue(dependsItem, QLatin1String("required"));
         Item *moduleItem = 0;
@@ -740,7 +746,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
         }
         if (moduleItem) {
             if (m_logger.traceEnabled())
-                m_logger.qbsTrace() << "module loaded: " << fullModuleName(moduleName);
+                m_logger.qbsTrace() << "module loaded: " << moduleName.toString();
             result.name = moduleName;
             result.item = moduleItem;
             moduleResults->append(result);
@@ -749,14 +755,14 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
             const QStringList profiles = m_evaluator->stringListValue(dependsItem, profilesKey);
             if (profiles.isEmpty()) {
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
-                dependency.name = fullModuleName(moduleName);
+                dependency.name = moduleName.toString();
                 dependency.profile = QLatin1String("*");
                 productResults->append(ProductDependencyResult(dependsItem, dependency));
                 continue;
             }
             foreach (const QString &profile, profiles) {
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
-                dependency.name = fullModuleName(moduleName);
+                dependency.name = moduleName.toString();
                 dependency.profile = profile;
                 productResults->append(ProductDependencyResult(dependsItem, dependency));
             }
@@ -764,7 +770,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
     }
 }
 
-Item *ModuleLoader::moduleInstanceItem(Item *item, const QStringList &moduleName)
+Item *ModuleLoader::moduleInstanceItem(Item *item, const QualifiedId &moduleName)
 {
     Item *instance = item;
     for (int i = 0; i < moduleName.count(); ++i) {
@@ -791,7 +797,7 @@ Item *ModuleLoader::moduleInstanceItem(Item *item, const QStringList &moduleName
 
 Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         const CodeLocation &dependsItemLocation,
-        const QString &moduleId, const QStringList &moduleName, bool isBaseModule, bool isRequired)
+        const QString &moduleId, const QualifiedId &moduleName, bool isBaseModule, bool isRequired)
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] loadModule name: " << moduleName << ", id: " << moduleId;
@@ -815,21 +821,20 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
     if (!cacheHit && isBaseModule)
         setupBaseModulePrototype(modulePrototype);
     instantiateModule(productContext, item, moduleInstance, modulePrototype, moduleName);
-    callValidateScript(moduleInstance);
     return moduleInstance;
 }
 
 // It's not necessarily an error if we don't find a required module with the given name,
 // because the dependency could refer to a product instead.
 Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
-        const CodeLocation &dependsItemLocation, const QStringList &moduleName,
+        const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
         const QStringList &extraSearchPaths, bool isRequired, bool *cacheHit)
 {
     QStringList searchPaths = extraSearchPaths;
     searchPaths.append(m_moduleSearchPaths);
 
     bool triedToLoadModule = false;
-    const QString fullName = fullModuleName(moduleName);
+    const QString fullName = moduleName.toString();
     foreach (const QString &path, searchPaths) {
         const QString dirPath = findExistingModulePath(path, moduleName);
         if (dirPath.isEmpty())
@@ -847,9 +852,11 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
             Item *module = loadModuleFile(productContext, fullName,
                                             moduleName.count() == 1
                                                 && moduleName.first() == QLatin1String("qbs"),
-                                            filePath, cacheHit);
+                                            filePath, cacheHit, &triedToLoadModule);
             if (module)
                 return module;
+            if (!triedToLoadModule)
+                m_moduleDirListCache[dirPath].removeOne(filePath);
         }
     }
 
@@ -921,7 +928,7 @@ static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Ty
 }
 
 Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
-        bool isBaseModule, const QString &filePath, bool *cacheHit)
+        bool isBaseModule, const QString &filePath, bool *cacheHit, bool *triedToLoad)
 {
     checkCancelation();
 
@@ -937,6 +944,14 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     }
     *cacheHit = false;
     Item * const module = m_reader->readFile(filePath);
+    if (module->typeName() != QLatin1String("Module")) {
+        if (m_logger.traceEnabled()) {
+            m_logger.qbsTrace() << "[MODLDR] Alleged module " << fullModuleName << " has type '"
+                                << module->typeName() << "', so it's not a module after all.";
+        }
+        *triedToLoad = false;
+        return 0;
+    }
     if (!isBaseModule) {
         DependsContext dependsContext;
         dependsContext.product = productContext;
@@ -980,14 +995,14 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 
 void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
 {
-    const QStringList baseModuleName(QLatin1String("qbs"));
+    const QualifiedId baseModuleName(QLatin1String("qbs"));
     Item::Module baseModuleDesc;
     baseModuleDesc.name = baseModuleName;
     baseModuleDesc.item = loadModule(productContext, item, CodeLocation(), QString(),
                                      baseModuleName, true, true);
     if (Q_UNLIKELY(!baseModuleDesc.item))
         throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
-    item->modules() += baseModuleDesc;
+    item->addModule(baseModuleDesc);
 }
 
 static QStringList hostOS()
@@ -1126,6 +1141,8 @@ void ModuleLoader::setupBaseModulePrototype(Item *prototype)
                            BuiltinValue::create(BuiltinValue::CanonicalArchitectureFunction));
     prototype->setProperty(QLatin1String("rfc1034Identifier"),
                            BuiltinValue::create(BuiltinValue::Rfc1034IdentifierFunction));
+    prototype->setProperty(QLatin1String("libexecPath"),
+                           VariantValue::create(m_parameters.libexecPath()));
 
     const Version qbsVersion = Version::qbsVersion();
     prototype->setProperty(QLatin1String("versionMajor"),
@@ -1153,9 +1170,9 @@ static QList<Item *> collectItemsWithId(Item *item)
 
 void ModuleLoader::instantiateModule(ProductContext *productContext, Item *instanceScope,
                                      Item *moduleInstance, Item *modulePrototype,
-                                     const QStringList &moduleName)
+                                     const QualifiedId &moduleName)
 {
-    const QString fullName = fullModuleName(moduleName);
+    const QString fullName = moduleName.toString();
     modulePrototype->setProperty(QLatin1String("name"),
                                  VariantValue::create(fullName));
 
@@ -1207,7 +1224,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
         }
         instantiateModule(productContext, moduleInstance, depinst, m.item, m.name);
         m.item = depinst;
-        moduleInstance->modules() += m;
+        moduleInstance->addModule(m);
     }
 
     // override module properties given on the command line
@@ -1217,7 +1234,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
          vmit != userModuleProperties.end(); ++vmit) {
         if (Q_UNLIKELY(!moduleInstance->hasProperty(vmit.key()))) {
             const ErrorInfo error(Tr::tr("Unknown property: %1.%2")
-                                  .arg(fullModuleName(moduleName), vmit.key()));
+                                  .arg(moduleName.toString(), vmit.key()));
             handlePropertyError(error, m_parameters, m_logger);
             continue;
         }
@@ -1324,19 +1341,19 @@ void ModuleLoader::checkItemTypes(Item *item)
         checkItemTypes(m.item);
 }
 
-void ModuleLoader::callValidateScript(Item *module)
-{
-    m_evaluator->boolValue(module, QLatin1String("validate"));
-}
-
 QStringList ModuleLoader::readExtraSearchPaths(Item *item, bool *wasSet)
 {
     QStringList result;
     const QString propertyName = QLatin1String("qbsSearchPaths");
     const QStringList paths = m_evaluator->stringListValue(item, propertyName, wasSet);
     const JSSourceValueConstPtr prop = item->sourceProperty(propertyName);
+
+    // Value can come from within a project file or as an overridden value from the user
+    // (e.g command line).
+    const QString basePath = FileInfo::path(prop ? prop->file()->filePath()
+                                                 : m_parameters.projectFilePath());
     foreach (const QString &path, paths)
-        result += FileInfo::resolvePath(FileInfo::path(prop->file()->filePath()), path);
+        result += FileInfo::resolvePath(basePath, path);
     return result;
 }
 
@@ -1391,7 +1408,7 @@ Item *ModuleLoader::wrapWithProject(Item *item)
 }
 
 QString ModuleLoader::findExistingModulePath(const QString &searchPath,
-        const QStringList &moduleName)
+        const QualifiedId &moduleName)
 {
     QString dirPath = searchPath;
     foreach (const QString &moduleNamePart, moduleName) {
@@ -1416,11 +1433,6 @@ void ModuleLoader::setScopeForDescendants(Item *item, Item *scope)
     }
 }
 
-QString ModuleLoader::fullModuleName(const QStringList &moduleName)
-{
-    return moduleName.join(QLatin1Char('.'));
-}
-
 void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfigKey,
         const QVariantMap &buildConfig)
 {
@@ -1439,6 +1451,45 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
         item->setProperty(it.key(),
                 VariantValue::create(convertToPropertyType(it.value(), decl.type(),
                         QStringList(buildConfigKey), it.key())));
+    }
+}
+
+static void collectAllModuleNames(Item *item, QVector<QualifiedId> *names)
+{
+    foreach (const Item::Module &m, item->modules()) {
+        if (names->contains(m.name))
+            continue;
+        names->append(m.name);
+        collectAllModuleNames(m.item, names);
+    }
+}
+
+static QVector<QualifiedId> allModuleNames(Item *item)
+{
+    QVector<QualifiedId> lst;
+    collectAllModuleNames(item, &lst);
+    return lst;
+}
+
+void ModuleLoader::addTransitiveDependencies(ProductContext *ctx, Item *item)
+{
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[MODLDR] addTransitiveDependencies";
+    QVector<QualifiedId> transitiveDeps = allModuleNames(item);
+    std::sort(transitiveDeps.begin(), transitiveDeps.end());
+    foreach (const Item::Module &m, item->modules()) {
+        auto it = std::lower_bound(transitiveDeps.begin(), transitiveDeps.end(), m.name);
+        if (it != transitiveDeps.end() && *it == m.name)
+            transitiveDeps.erase(it);
+    }
+    foreach (const QualifiedId &moduleName, transitiveDeps) {
+        Item::Module dep;
+        dep.item = loadModule(ctx, item, item->location(), QString(), moduleName,
+                              false, true);
+        if (!dep.item)
+            continue;
+        dep.name = moduleName;
+        item->addModule(dep);
     }
 }
 

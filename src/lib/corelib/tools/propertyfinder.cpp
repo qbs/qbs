@@ -31,22 +31,16 @@
 
 #include "qbsassert.h"
 
-#include <QQueue>
 #include <QStringList>
 
 namespace qbs {
 namespace Internal {
 
 QVariantList PropertyFinder::propertyValues(const QVariantMap &properties,
-        const QString &moduleName, const QString &key, MergeType mergeType)
+        const QString &moduleName, const QString &key)
 {
-    m_moduleName = moduleName;
-    m_key = key;
-    m_values.clear();
-    findModuleValues(properties);
-    if (mergeType == DoMergeLists)
-        mergeLists(&m_values);
-    return m_values;
+    QVariant v = propertyValue(properties, moduleName, key);
+    return v.toList();
 }
 
 QVariant PropertyFinder::propertyValue(const QVariantMap &properties, const QString &moduleName,
@@ -55,61 +49,19 @@ QVariant PropertyFinder::propertyValue(const QVariantMap &properties, const QStr
     m_moduleName = moduleName;
     m_key = key;
     m_values.clear();
-    findScalarModuleValue(properties);
+    findModuleValues(properties);
 
     return m_values.isEmpty() ? QVariant() : m_values.first();
 }
 
 void PropertyFinder::findModuleValues(const QVariantMap &properties)
 {
-    QVariantMap moduleProperties = properties.value(QLatin1String("modules")).toMap();
-
-    // Direct hits come first.
-    const QVariantMap::Iterator modIt = moduleProperties.find(m_moduleName);
-    if (modIt != moduleProperties.end()) {
+    const QVariantMap moduleProperties = properties.value(QLatin1String("modules")).toMap();
+    const QVariantMap::const_iterator modIt = moduleProperties.find(m_moduleName);
+    if (modIt != moduleProperties.constEnd()) {
         const QVariantMap moduleMap = modIt->toMap();
         const QVariant property = moduleMap.value(m_key);
         addToList(property);
-        moduleProperties.erase(modIt);
-    }
-
-    // These are the non-matching modules.
-    for (QVariantMap::ConstIterator it = moduleProperties.constBegin();
-         it != moduleProperties.constEnd(); ++it) {
-        findModuleValues(it->toMap());
-    }
-}
-
-void PropertyFinder::findScalarModuleValue(const QVariantMap &properties)
-{
-    QQueue<QVariantMap> q;
-    q.enqueue(properties.value(QLatin1String("modules")).toMap());
-
-    while (!q.isEmpty()) {
-        QVariantMap moduleProperties = q.takeFirst();
-        const QVariantMap::Iterator modIt = moduleProperties.find(m_moduleName);
-        if (modIt != moduleProperties.end()) {
-            const QVariantMap moduleMap = modIt->toMap();
-            const QVariant property = moduleMap.value(m_key);
-            const QStringList ownPropertiesSet
-                    = moduleProperties.value(QLatin1Char('@') + m_moduleName).toStringList();
-            if (std::binary_search(ownPropertiesSet.constBegin(), ownPropertiesSet.constEnd(),
-                                   m_key)) {
-                // this is the one!
-                m_values.clear();
-                addToList(property);
-                return;
-            }
-            addToList(property);
-            moduleProperties.erase(modIt);
-        }
-
-        // These are the non-matching modules.
-        for (QVariantMap::ConstIterator it = moduleProperties.constBegin();
-             it != moduleProperties.constEnd(); ++it) {
-            if (!it.key().startsWith(QLatin1Char('@')))
-                q.enqueue(it->toMap().value(QLatin1String("modules")).toMap());
-        }
     }
 }
 
@@ -117,22 +69,6 @@ void PropertyFinder::addToList(const QVariant &value)
 {
     if (!value.isNull() && !m_values.contains(value))
         m_values << value;
-}
-
-void PropertyFinder::mergeLists(QVariantList *values)
-{
-    QVariantList::iterator it = values->begin();
-    while (it != values->end()) {
-        if (it->canConvert<QVariantList>()) {
-            QVariantList sublist = it->toList();
-            mergeLists(&sublist);
-            it = values->erase(it);
-            for (int k = sublist.count(); --k >= 0;)
-                it = values->insert(it, sublist.at(k));
-        } else {
-            ++it;
-        }
-    }
 }
 
 } // namespace Internal
