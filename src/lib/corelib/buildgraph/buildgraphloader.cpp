@@ -214,6 +214,7 @@ void BuildGraphLoader::trackProjectChanges()
     if (hasBuildSystemFileChanged(buildSystemFiles, restoredProject->lastResolveTime)
             || hasEnvironmentChanged(restoredProject)
             || hasFileExistsResultChanged(restoredProject)
+            || hasDirectoryEntriesResultChanged(restoredProject)
             || hasFileLastModifiedResultChanged(restoredProject)) {
         reResolvingNecessary = true;
     }
@@ -352,6 +353,23 @@ bool BuildGraphLoader::hasFileExistsResultChanged(const TopLevelProjectConstPtr 
         if (FileInfo(it.key()).exists() != it.value()) {
             m_logger.qbsDebug() << "Existence check for file '" << it.key()
                                 << " 'changed, must re-resolve project.";
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool BuildGraphLoader::hasDirectoryEntriesResultChanged(const TopLevelProjectConstPtr &restoredProject) const
+{
+    for (auto it = restoredProject->directoryEntriesResults.constBegin();
+         it != restoredProject->directoryEntriesResults.constEnd(); ++it) {
+        if (QDir(it.key().first).entryList(static_cast<QDir::Filters>(it.key().second), QDir::Name)
+                != it.value()) {
+            m_logger.qbsDebug() << "Entry list for directory '" << it.key().first
+                                << "' ("
+                                << static_cast<QDir::Filters>(it.key().second)
+                                << ") changed, must re-resolve project.";
             return true;
         }
     }

@@ -35,7 +35,12 @@ Product {
                 var created = File.makePath(zePath);
                 if (!created || !File.exists(zePath))
                     throw new Error("zePath was not created.");
-
+                var entries = File.directoryEntries(product.sourceDirectory, File.AllEntries | File.NoDotAndDotDot);
+                if (entries.length < 3 || !entries.contains("file.qbs"))
+                    throw new Error("Directory did not contain file.qbs");
+                entries = File.directoryEntries(product.sourceDirectory, File.Dirs | File.NoDotAndDotDot);
+                if (entries.length < 1 || !entries.contains("zePath"))
+                    throw new Error("Directory did not contain only zePath");
             };
             return [cmd];
         }

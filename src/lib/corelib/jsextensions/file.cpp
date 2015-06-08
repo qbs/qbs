@@ -36,31 +36,67 @@
 
 #include <QDir>
 #include <QFileInfo>
+#include <QScriptable>
 #include <QScriptEngine>
 
 namespace qbs {
 namespace Internal {
 
-class File
+class File : public QObject, QScriptable
 {
+    Q_OBJECT
+public:
+    enum Filter {
+        Dirs = 0x001,
+        Files = 0x002,
+        Drives = 0x004,
+        NoSymLinks = 0x008,
+        AllEntries = Dirs | Files | Drives,
+        TypeMask = 0x00f,
+
+        Readable = 0x010,
+        Writable = 0x020,
+        Executable = 0x040,
+        PermissionMask = 0x070,
+
+        Modified = 0x080,
+        Hidden = 0x100,
+        System = 0x200,
+
+        AccessMask  = 0x3F0,
+
+        AllDirs = 0x400,
+        CaseSensitive = 0x800,
+        NoDot = 0x2000,
+        NoDotDot = 0x4000,
+        NoDotAndDotDot = NoDot | NoDotDot,
+
+        NoFilter = -1
+    };
+    Q_DECLARE_FLAGS(Filters, Filter)
+    Q_ENUMS(Filter)
+
     friend void initializeJsExtensionFile(QScriptValue extensionObject);
 
 private:
     static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_copy(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_exists(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_directoryEntries(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_lastModified(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_makePath(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_remove(QScriptContext *context, QScriptEngine *engine);
 };
 
-
 void initializeJsExtensionFile(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
-    QScriptValue fileObj = engine->newFunction(File::js_ctor);
+    QScriptValue fileObj = engine->newQMetaObject(&File::staticMetaObject,
+                                                  engine->newFunction(&File::js_ctor));
     fileObj.setProperty(QLatin1String("copy"), engine->newFunction(File::js_copy));
     fileObj.setProperty(QLatin1String("exists"), engine->newFunction(File::js_exists));
+    fileObj.setProperty(QLatin1String("directoryEntries"),
+                        engine->newFunction(File::js_directoryEntries));
     fileObj.setProperty(QLatin1String("lastModified"), engine->newFunction(File::js_lastModified));
     fileObj.setProperty(QLatin1String("makePath"), engine->newFunction(File::js_makePath));
     fileObj.setProperty(QLatin1String("remove"), engine->newFunction(File::js_remove));
@@ -105,6 +141,22 @@ QScriptValue File::js_exists(QScriptContext *context, QScriptEngine *engine)
     return exists;
 }
 
+QScriptValue File::js_directoryEntries(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    if (Q_UNLIKELY(context->argumentCount() < 2)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   Tr::tr("directoryEntries expects 2 arguments"));
+    }
+    const QString path = context->argument(0).toString();
+    const QDir::Filters filters = static_cast<QDir::Filters>(context->argument(1).toUInt32());
+    QDir dir(path);
+    const QStringList entries = dir.entryList(filters, QDir::Name);
+    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    se->addDirectoryEntriesResult(path, filters, entries);
+    return qScriptValueFromSequence(engine, entries);
+}
+
 QScriptValue File::js_remove(QScriptContext *context, QScriptEngine *engine)
 {
     Q_UNUSED(engine);
@@ -146,3 +198,7 @@ QScriptValue File::js_makePath(QScriptContext *context, QScriptEngine *engine)
 
 } // namespace Internal
 } // namespace qbs
+
+Q_DECLARE_METATYPE(qbs::Internal::File *)
+
+#include "file.moc"

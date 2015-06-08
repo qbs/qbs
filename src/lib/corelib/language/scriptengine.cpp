@@ -439,6 +439,13 @@ void ScriptEngine::addFileExistsResult(const QString &filePath, bool exists)
     m_fileExistsResult.insert(filePath, exists);
 }
 
+void ScriptEngine::addDirectoryEntriesResult(const QString &path, QDir::Filters filters,
+                                             const QStringList &entries)
+{
+    m_directoryEntriesResult.insert(QPair<QString, quint32>(path, static_cast<quint32>(filters)),
+                                    entries);
+}
+
 void ScriptEngine::addFileLastModifiedResult(const QString &filePath, FileTime fileTime)
 {
     m_fileLastModifiedResult.insert(filePath, fileTime);

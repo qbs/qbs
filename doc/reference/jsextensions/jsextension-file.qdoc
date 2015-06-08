@@ -58,6 +58,13 @@
     \endcode
     Returns true if and only if there is a file at \c filePath.
 
+    \section2 directoryEntries
+    \code
+    File.directoryEntries(path: string, filter: File.Filter): string[]
+    \endcode
+    Returns a sorted list of the directory \c{path}'s contents non-recursively,
+    filtered by \c filter. The values of \c filter are equivalent to Qt's \c QDir::Filter.
+
     \section2 lastModified
     \code
     File.lastModified(filePath: string): number

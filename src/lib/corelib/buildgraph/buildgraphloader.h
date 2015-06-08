@@ -75,6 +75,7 @@ private:
     void trackProjectChanges();
     bool hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileExistsResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
+    bool hasDirectoryEntriesResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileLastModifiedResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasProductFileChanged(const QList<ResolvedProductPtr> &restoredProducts,
                                const FileTime &referenceTime,

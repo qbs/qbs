@@ -466,6 +466,7 @@ public:
     QProcessEnvironment environment;
     QHash<QString, QString> usedEnvironment; // Environment variables requested by the project while resolving.
     QHash<QString, bool> fileExistsResults; // Results of calls to "File.exists()".
+    QHash<QPair<QString, quint32>, QStringList> directoryEntriesResults; // Results of calls to "File.directoryEntries()".
     QHash<QString, FileTime> fileLastModifiedResults; // Results of calls to "File.lastModified()".
     QScopedPointer<ProjectBuildData> buildData;
     BuildGraphLocker *bgLocker; // This holds the system-wide build graph file lock.
