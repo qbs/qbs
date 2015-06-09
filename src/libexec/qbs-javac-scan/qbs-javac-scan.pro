@@ -22,6 +22,7 @@ JAVAMAINCLASS = io.qt.qbs.tools.JavaCompilerScannerTool
 TEMPLATE = lib
 
 CLASS_DIR = .classes
+CLASS_DIR_MARKER = .classes.marker
 
 CONFIG -= qt
 
@@ -31,12 +32,10 @@ CONFIG -= qt
 CONFIG += plugin no_plugin_name_prefix
 
 javac.input = JAVASOURCES
-javac.output = $$CLASS_DIR
+javac.output = $$CLASS_DIR_MARKER
 javac.CONFIG += combine
-javac.commands = javac -source 1.6 -target 1.6 -Xlint:unchecked -cp $$shell_quote($$system_path($$join(JAVACLASSPATH, $$DIRLIST_SEPARATOR))) -d $$shell_quote($$CLASS_DIR) ${QMAKE_FILE_IN}
-# Force rebuild every time, because we don't know the paths of the destination files
-# as they depend on the code.
-javac.depends = FORCE
+javac.commands = javac -source 1.6 -target 1.6 -Xlint:unchecked -cp $$shell_quote($$system_path($$join(JAVACLASSPATH, $$DIRLIST_SEPARATOR))) -d $$shell_quote($$CLASS_DIR) ${QMAKE_FILE_IN} $$escape_expand(\\n\\t) \
+    @echo Nothing to see here. Move along. > $$CLASS_DIR_MARKER
 QMAKE_EXTRA_COMPILERS += javac
 
 mkpath($$absolute_path($$CLASS_DIR, $$OUT_PWD)) | error("Aborting.")
