@@ -667,6 +667,19 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         }
     }
 
+    var actualSigningIdentity = product.moduleProperty("xcode", "actualSigningIdentity");
+    var codesignDisplayName = product.moduleProperty("xcode", "actualSigningIdentityDisplayName");
+    if (actualSigningIdentity && !product.moduleProperty("bundle", "isBundle")) {
+        cmd = new Command(product.moduleProperty("xcode", "codesignPath"),
+                          ["--force", "--sign", actualSigningIdentity,
+                          primaryOutput.filePath]);
+        cmd.description = "codesign "
+                + primaryOutput.fileName
+                + " using " + codesignDisplayName
+                + " (" + actualSigningIdentity + ")";
+        commands.push(cmd);
+    }
+
     return commands;
 }
 

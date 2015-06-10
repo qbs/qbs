@@ -30,6 +30,7 @@
 
 var File = loadExtension("qbs.File");
 var FileInfo = loadExtension("qbs.FileInfo");
+var Process = loadExtension("qbs.Process");
 var PropertyList = loadExtension("qbs.PropertyList");
 
 function applePlatformDirectoryName(targetOSList, version, throwOnError) {
@@ -96,4 +97,54 @@ function sdkInfoList(sdksPath) {
     });
 
     return sdkInfo;
+}
+
+function findSigningIdentities(security, searchString) {
+    var process;
+    var identities;
+    if (searchString) {
+        try {
+            process = new Process();
+            if (process.exec(security, ["find-identity", "-p", "codesigning", "-v"], true) !== 0)
+                print(process.readStdErr());
+
+            var lines = process.readStdOut().split("\n");
+            for (var i in lines) {
+                // e.g. 1) AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA "Mac Developer: John Doe (XXXXXXXXXX) john.doe@example.org"
+                var match = lines[i].match(/^\s*[0-9]+\)\s+([A-Fa-f0-9]{40})\s+"([^"]+)"$/);
+                if (match !== null) {
+                    var hexId = match[1];
+                    var displayName = match[2];
+                    if (hexId === searchString || displayName.startsWith(searchString)) {
+                        if (!identities)
+                            identities = [];
+                        identities.push([hexId, displayName]);
+                        break;
+                    }
+                }
+            }
+        } finally {
+            process.close();
+        }
+    }
+    return identities;
+}
+
+function readProvisioningProfileData(path) {
+    var process;
+    try {
+        process = new Process();
+        if (process.exec("openssl", ["smime", "-verify", "-noverify", "-inform", "DER", "-in", path], true) !== 0)
+            print(process.readStdErr());
+
+        var propertyList = new PropertyList();
+        try {
+            propertyList.readFromString(process.readStdOut());
+            return propertyList.toObject();
+        } finally {
+            propertyList.clear();
+        }
+    } finally {
+        process.close();
+    }
 }

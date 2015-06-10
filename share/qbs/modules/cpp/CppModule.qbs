@@ -239,11 +239,6 @@ Module {
     property stringList platformLinkerFlags
 
     // OS X and iOS properties
-    property bool buildIpa: !qbs.targetOS.contains('ios-simulator')
-
-    property string signingIdentity
-    property path provisioningProfile
-
     property bool automaticReferenceCounting
     PropertyOptions {
         name: "automaticReferenceCounting"

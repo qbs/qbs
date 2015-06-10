@@ -54,6 +54,36 @@ Module {
         }
     }
 
+    property string signingIdentity
+    readonly property string actualSigningIdentity: {
+        if (_actualSigningIdentity && _actualSigningIdentity.length === 1)
+            return _actualSigningIdentity[0][0];
+    }
+
+    readonly property string actualSigningIdentityDisplayName: {
+        if (_actualSigningIdentity && _actualSigningIdentity.length === 1)
+            return _actualSigningIdentity[0][1];
+    }
+
+    property string provisioningProfile
+    property path provisioningProfilePath: {
+        var files = _availableProvisioningProfiles;
+        for (var i in files) {
+            var data = Utils.readProvisioningProfileData(files[i]);
+            if (data["UUID"] === provisioningProfile ||
+                data["Name"] === provisioningProfile) {
+                return files[i];
+            }
+        }
+    }
+
+    property string securityName: "security"
+    property string securityPath: securityName
+
+    property string codesignName: "codesign"
+    property string codesignPath: codesignName
+    property stringList codesignFlags
+
     readonly property path toolchainPath: FileInfo.joinPaths(toolchainsPath,
                                                              "XcodeDefault" + ".xctoolchain")
     readonly property path platformPath: FileInfo.joinPaths(platformsPath,
@@ -74,6 +104,23 @@ Module {
     readonly property path sdkSettingsPlist: FileInfo.joinPaths(sdkPath, "SDKSettings.plist")
     readonly property path toolchainInfoPlist: FileInfo.joinPaths(toolchainPath,
                                                                   "ToolchainInfo.plist")
+
+    readonly property stringList _actualSigningIdentity: {
+        if (/^[A-Fa-f0-9]{40}$/.test(signingIdentity)) {
+            return signingIdentity;
+        }
+
+        var identities = Utils.findSigningIdentities(securityPath, signingIdentity);
+        if (identities && identities.length > 1) {
+            throw "Signing identity '" + signingIdentity + "' is ambiguous";
+        }
+
+        return identities;
+    }
+
+    property path provisioningProfilesPath: {
+        return FileInfo.joinPaths(qbs.getEnv("HOME"), "Library/MobileDevice/Provisioning Profiles");
+    }
 
     readonly property var _availableSdks: Utils.sdkInfoList(sdksPath)
 
@@ -135,6 +182,7 @@ Module {
 
     property var buildEnv: {
         return {
+            "CODESIGN_ALLOCATE": platformPath + "/Developer/usr/bin/codesign_allocate",
             "DEVELOPER_DIR": developerPath
         };
     }

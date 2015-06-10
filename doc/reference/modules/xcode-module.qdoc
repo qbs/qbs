@@ -56,6 +56,11 @@
             directory of the Xcode installation at its default location in /Applications.
             Corresponds to the \c DEVELOPER_DIR environment variable.
     \row
+        \li provisioningProfile
+        \li string
+        \li undefined
+        \li Name or UUID of the provisioning profile to embed in the product.
+    \row
         \li sdk
         \li string
         \li \c{"macosx"} on OS X, \c{"iphoneos"} on iOS, \c{"iphonesimulator"} on iOS Simulator
@@ -64,11 +69,50 @@
             \c{"10.10"}), or a platform identifier (i.e. \c{"macosx"}) in which case the latest SDK
             available for that platform will be used.
     \row
+        \li signingIdentity
+        \li string
+        \li undefined
+        \li Search string used to find the certificate to sign the product. This does not have to be
+            a full certificate name like "Mac Developer: John Doe (XXXXXXXXXX)", and can instead be
+            a partial string like "Mac Developer".
+            The search string should generally be one of the following:
+            \li 3rd Party Mac Developer Application
+            \li 3rd Party Mac Developer Installer
+            \li Developer ID Application
+            \li Developer ID Installer
+            \li iPhone Developer
+            \li iPhone Distribution
+            \li Mac Developer
+            Complete documentation for the existing certificate types can be found at:
+            https://developer.apple.com/library/mac/documentation/IDEs/Conceptual/AppDistributionGuide/MaintainingCertificates/MaintainingCertificates.html#//apple_ref/doc/uid/TP40012582-CH31-SW41
+    \row
         \li targetDevices
         \li stringList
         \li \c{["mac"]} on OS X; {["iphone", "ipad"]} on iOS
         \li List of the Apple devices targeted by this product. For OS X, this should always be
             "mac", and for iOS it can be one or both of "iphone" and "ipad".
+    \endtable
+
+    \section1 Advanced Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li provisioningProfilePath
+        \li path
+        \li determined by \c{xcode.provisioningProfilesPath} and \c{xcode.provisioningProfile}
+        \li Path of the provisioning profile to embed in the product. Generally you should not set
+            this property and instead use \c{xcode.provisioningProfile} to automatically
+            determine the provisioning profile's path based on its name or UUID.
+    \row
+        \li provisioningProfilesPath
+        \li path
+        \li \c{"~/Library/MobileDevice/Provisioning Profiles"}
+        \li Path to directory containing provisioning profiles installed on the system.
     \endtable
 
     \section1 Read-only Properties

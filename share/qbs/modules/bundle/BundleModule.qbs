@@ -426,7 +426,7 @@ Module {
         condition: qbs.targetOS.contains("darwin")
         multiplex: true
         inputs: ["infoplist", "pkginfo", "hpp",
-                 "icns", "resourcerules", "ipa",
+                 "icns", "resourcerules",
                  "compiled_nib", "compiled_storyboard", "compiled_assetcatalog"]
 
         outputFileTags: ["bundle",
@@ -610,12 +610,36 @@ Module {
             if (cmd.sources && cmd.sources.length)
                 commands.push(cmd);
 
-            if (product.type.contains("application") && product.moduleProperty("qbs", "hostOS").contains("darwin")) {
+            if (product.moduleProperty("qbs", "hostOS").contains("darwin")) {
                 for (i in bundles) {
-                    cmd = new Command(ModUtils.moduleProperty(product, "lsregisterPath"),
-                                      ["-f", bundles[i].filePath]);
-                    cmd.description = "register " + ModUtils.moduleProperty(product, "bundleName");
-                    commands.push(cmd);
+                    var actualSigningIdentity = product.moduleProperty("xcode", "actualSigningIdentity");
+                    var codesignDisplayName = product.moduleProperty("xcode", "actualSigningIdentityDisplayName");
+                    if (actualSigningIdentity) {
+                        // If this is a framework, we need to sign its versioned directory
+                        var subpath = "";
+                        var frameworkVersion = ModUtils.moduleProperty(product, "frameworkVersion");
+                        if (frameworkVersion) {
+                            subpath = ModUtils.moduleProperty(product, "contentsFolderPath");
+                            subpath = subpath.substring(subpath.indexOf(ModUtils.moduleProperty("qbs", "pathSeparator")));
+                        }
+
+                        cmd = new Command(product.moduleProperty("xcode", "codesignPath"),
+                                          (product.moduleProperty("xcode", "codesignFlags") || [])
+                                          .concat(["--force", "--sign", actualSigningIdentity,
+                                          bundles[i].filePath + subpath]));
+                        cmd.description = "codesign "
+                                + ModUtils.moduleProperty(product, "bundleName")
+                                + " using " + codesignDisplayName
+                                + " (" + actualSigningIdentity + ")";
+                        commands.push(cmd);
+                    }
+
+                    if (product.type.contains("application")) {
+                        cmd = new Command(ModUtils.moduleProperty(product, "lsregisterPath"),
+                                          ["-f", bundles[i].filePath]);
+                        cmd.description = "register " + ModUtils.moduleProperty(product, "bundleName");
+                        commands.push(cmd);
+                    }
                 }
             }
 

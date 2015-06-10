@@ -31,6 +31,7 @@
 import qbs 1.0
 import qbs.DarwinTools
 import qbs.File
+import qbs.FileInfo
 import qbs.ModUtils
 
 DarwinGCC {
@@ -78,36 +79,35 @@ DarwinGCC {
     }
 
     Rule {
-        condition: product.moduleProperty("cpp", "buildIpa")
-        multiplex: true
-        inputs: ["application", "infoplist", "pkginfo", "resourcerules", "compiled_nib"]
+        inputsFromDependencies: ["bundle"]
 
         Artifact {
-            filePath: product.destinationDirectory + "/" + product.targetName + ".ipa"
+            filePath: FileInfo.joinPaths(product.destinationDirectory, product.targetName + ".ipa")
             fileTags: ["ipa"]
         }
 
         prepare: {
-            var signingIdentity = product.moduleProperty("cpp", "signingIdentity");
+            var signingIdentity = product.moduleProperty("xcode", "actualSigningIdentity");
+            var signingIdentityDisplay = product.moduleProperty("xcode",
+                                                                "actualSigningIdentityDisplayName");
             if (!signingIdentity)
                 throw "The name of a valid signing identity must be set using " +
-                        "cpp.signingIdentity in order to build an IPA package.";
+                        "xcode.signingIdentity in order to build an IPA package.";
 
-            var provisioningProfile = product.moduleProperty("cpp", "provisioningProfile");
-            if (!provisioningProfile)
+            var provisioningProfilePath = product.moduleProperty("xcode",
+                                                                 "provisioningProfilePath");
+            if (!provisioningProfilePath)
                 throw "The path to a provisioning profile must be set using " +
-                        "cpp.provisioningProfile in order to build an IPA package.";
+                        "xcode.provisioningProfilePath in order to build an IPA package.";
 
-            var args = ["-sdk", product.moduleProperty("cpp", "xcodeSdkName"), "PackageApplication",
-                        "-v", product.buildDirectory + "/" + product.moduleProperty("bundle", "bundleName"),
-                        "-o", outputs.ipa[0].filePath, "--sign", signingIdentity,
-                        "--embed", provisioningProfile];
+            var args = [input.filePath,
+                        "-o", output.filePath,
+                        "--sign", signingIdentity,
+                        "--embed", provisioningProfilePath];
 
-            var command = "/usr/bin/xcrun";
-            var cmd = new Command(command, args)
-            cmd.description = "creating ipa, signing with " + signingIdentity;
+            var cmd = new Command("PackageApplication", args);
+            cmd.description = "creating ipa, signing with " + signingIdentityDisplay;
             cmd.highlight = "codegen";
-            cmd.workingDirectory = product.buildDirectory;
             return cmd;
         }
     }
