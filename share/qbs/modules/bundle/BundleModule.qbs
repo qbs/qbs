@@ -211,7 +211,7 @@ Module {
             cmd.infoPlistFormat = ModUtils.moduleProperty(product, "infoPlistFormat");
             cmd.qmakeEnv = ModUtils.moduleProperty(product, "qmakeEnv");
 
-            cmd.platformPath = product.moduleProperty("cpp", "platformPath");
+            cmd.platformPath = product.moduleProperty("xcode", "platformPath");
             cmd.toolchainInstallPath = product.moduleProperty("cpp", "toolchainInstallPath");
             cmd.buildEnv = product.moduleProperty("cpp", "buildEnv");
             cmd.defines = product.moduleProperty("cpp", "defines");
@@ -219,9 +219,9 @@ Module {
             cmd.compilerDefines = product.moduleProperty("cpp", "compilerDefines");
             cmd.allDefines = [].concat(cmd.defines || []).concat(cmd.platformDefines || []).concat(cmd.compilerDefines || []);
 
-            cmd.platformInfoPlist = product.moduleProperty("cpp", "platformInfoPlist");
-            cmd.sdkSettingsPlist = product.moduleProperty("cpp", "sdkSettingsPlist");
-            cmd.toolchainInfoPlist = product.moduleProperty("cpp", "toolchainInfoPlist");
+            cmd.platformInfoPlist = product.moduleProperty("xcode", "platformInfoPlist");
+            cmd.sdkSettingsPlist = product.moduleProperty("xcode", "sdkSettingsPlist");
+            cmd.toolchainInfoPlist = product.moduleProperty("xcode", "toolchainInfoPlist");
 
             cmd.sysroot = product.moduleProperty("qbs", "sysroot");
             cmd.osBuildVersion = product.moduleProperty("qbs", "hostOSBuildVersion");

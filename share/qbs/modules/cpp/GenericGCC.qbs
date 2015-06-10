@@ -58,7 +58,6 @@ CppModule {
     property string stripName: "strip"
     property string dsymutilName: "dsymutil"
     property path sysroot: qbs.sysroot
-    property path platformPath
 
     property string exportedSymbolsCheckMode: "ignore-undefined"
     PropertyOptions {

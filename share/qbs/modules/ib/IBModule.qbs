@@ -37,8 +37,8 @@ import qbs.Process
 import 'ib.js' as Ib
 
 Module {
-    Depends { name: "cpp" } // to put toolchainInstallPath in the PATH for actool
     Depends { name: "bundle" }
+    Depends { name: "xcode" }
 
     condition: qbs.hostOS.contains("darwin") && qbs.targetOS.contains("darwin")
 

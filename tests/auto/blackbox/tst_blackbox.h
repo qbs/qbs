@@ -185,6 +185,7 @@ private slots:
     void transitiveOptionalDependencies();
     void groupsInModules();
     void probesInNestedModules();
+    void xcode();
 
 private:
     QString findArchiver(const QString &fileName, int *status = nullptr);

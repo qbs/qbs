@@ -39,7 +39,7 @@ DarwinGCC {
                qbs.toolchain && qbs.toolchain.contains('gcc')
 
     // Setting a minimum is especially important for Simulator or CC/LD thinks the target is OS X
-    minimumIosVersion: xcodeSdkVersion || (cxxStandardLibrary === "libc++" ? "5.0" : undefined)
+    minimumIosVersion: xcode.sdkVersion || (cxxStandardLibrary === "libc++" ? "5.0" : undefined)
 
     platformObjcFlags: base.concat(simulatorObjcFlags)
     platformObjcxxFlags: base.concat(simulatorObjcFlags)

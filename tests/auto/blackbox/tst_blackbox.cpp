@@ -249,6 +249,13 @@ QString TestBlackbox::findArchiver(const QString &fileName, int *status)
     return binary;
 }
 
+static bool isXcodeProfile(const QString &profileName)
+{
+    qbs::Settings settings((QString()));
+    qbs::Profile profile(profileName, &settings);
+    return profile.value("qbs.toolchain").toStringList().contains("xcode");
+}
+
 void TestBlackbox::sevenZip()
 {
     QDir::setCurrent(testDataDir + "/archiver");
@@ -518,7 +525,6 @@ void TestBlackbox::dependenciesProperty()
     QScriptValue product2_deps = product2.property(QLatin1String("dependencies"));
     QVERIFY(product2_deps.isObject());
     c = product2_deps.property(QLatin1String("length")).toInt32();
-    QCOMPARE(c, 2);
     QScriptValue product2_qbs;
     QScriptValue product2_cpp;
     for (int i = 0; i < c; ++i) {
@@ -528,7 +534,13 @@ void TestBlackbox::dependenciesProperty()
             product2_cpp = dep;
         else if (name == QLatin1String("qbs"))
             product2_qbs = dep;
+        else if (name == QLatin1String("")) // non-loaded xcode module
+            --c;
     }
+    if (isXcodeProfile(profileName()))
+        QCOMPARE(c, 3);
+    else
+        QCOMPARE(c, 2);
     QVERIFY(product2_qbs.isObject());
     QVERIFY(product2_cpp.isObject());
     QCOMPARE(product2_cpp.property("defines").toString(), QLatin1String("SMURF"));
@@ -2654,8 +2666,8 @@ void TestBlackbox::typescript()
 
 void TestBlackbox::iconset()
 {
-    if (!HostOsInfo::isOsxHost())
-        QSKIP("only applies on OS X");
+    if (!HostOsInfo::isOsxHost() || !isXcodeProfile(profileName()))
+        QSKIP("only applies on OS X with Xcode based profiles");
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/iconset"));
 
@@ -2668,8 +2680,8 @@ void TestBlackbox::iconset()
 
 void TestBlackbox::iconsetApp()
 {
-    if (!HostOsInfo::isOsxHost())
-        QSKIP("only applies on OS X");
+    if (!HostOsInfo::isOsxHost() || !isXcodeProfile(profileName()))
+        QSKIP("only applies on OS X with Xcode based profiles");
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/iconsetapp"));
 
@@ -2682,8 +2694,8 @@ void TestBlackbox::iconsetApp()
 
 void TestBlackbox::assetCatalog()
 {
-    if (!HostOsInfo::isOsxHost())
-        QSKIP("only applies on OS X");
+    if (!HostOsInfo::isOsxHost() || !isXcodeProfile(profileName()))
+        QSKIP("only applies on OS X with Xcode based profiles");
 #ifdef Q_OS_MAC
     if (QSysInfo::macVersion() < Q_MV_OSX(10, 9))
         QSKIP("This test needs at least OS X 10.9.");
@@ -2886,6 +2898,45 @@ void TestBlackbox::probesInNestedModules()
     QVERIFY(m_qbsStderr.contains("product a, inner.something = hahaha"));
     QEXPECT_FAIL(0, "QBS-833", Continue);
     QVERIFY(m_qbsStderr.contains("product a, outer.something = hello"));
+}
+
+void TestBlackbox::xcode()
+{
+    if (!HostOsInfo::isOsxHost() || !isXcodeProfile(profileName()))
+        QSKIP("only applies on OS X with Xcode based profiles");
+
+    QProcess xcodeSelect;
+    xcodeSelect.start("xcode-select", QStringList() << "--print-path");
+    QVERIFY2(xcodeSelect.waitForStarted(), qPrintable(xcodeSelect.errorString()));
+    QVERIFY2(xcodeSelect.waitForFinished(), qPrintable(xcodeSelect.errorString()));
+    QVERIFY2(xcodeSelect.exitCode() == 0, qPrintable(xcodeSelect.readAllStandardError().constData()));
+    const QString developerDir(QString::fromLocal8Bit(xcodeSelect.readAllStandardOutput().trimmed()));
+
+    QMultiMap<QString, QString> sdks;
+
+    QProcess xcodebuildShowSdks;
+    xcodebuildShowSdks.start("xcrun", QStringList() << "xcodebuild" << "-showsdks");
+    QVERIFY2(xcodebuildShowSdks.waitForStarted(), qPrintable(xcodebuildShowSdks.errorString()));
+    QVERIFY2(xcodebuildShowSdks.waitForFinished(), qPrintable(xcodebuildShowSdks.errorString()));
+    QVERIFY2(xcodebuildShowSdks.exitCode() == 0, qPrintable(xcodebuildShowSdks.readAllStandardError().constData()));
+    for (const QString &line : QString::fromLocal8Bit(xcodebuildShowSdks.readAllStandardOutput().trimmed()).split('\n', QString::SkipEmptyParts)) {
+        static const QRegularExpression regexp(QStringLiteral("\\s+\\-sdk\\s+(?<platform>[a-z]+)(?<version>[0-9]+\\.[0-9]+)$"));
+        QRegularExpressionMatch match = regexp.match(line);
+        if (match.isValid()) {
+            sdks.insert(match.captured("platform"), match.captured("version"));
+        }
+    }
+
+    // values() returns items with most recently added first; we want the reverse of that
+    QStringList sdkValues(sdks.values("macosx"));
+    std::reverse(std::begin(sdkValues), std::end(sdkValues));
+
+    QDir::setCurrent(testDataDir + "/xcode");
+    QbsRunParameters params;
+    params.arguments = (QStringList()
+                        << (QStringLiteral("xcode.developerDir:") + developerDir)
+                        << (QStringLiteral("project.sdks:") + sdkValues.join(",")));
+    QCOMPARE(runQbs(params), 0);
 }
 
 QTEST_MAIN(TestBlackbox)

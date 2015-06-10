@@ -36,5 +36,5 @@ DarwinGCC {
                qbs.targetOS.contains('osx') &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
 
-    minimumOsxVersion: xcodeSdkVersion || (cxxStandardLibrary === "libc++" ? "10.7" : undefined)
+    minimumOsxVersion: xcode.sdkVersion || (cxxStandardLibrary === "libc++" ? "10.7" : undefined)
 }

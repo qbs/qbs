@@ -29,10 +29,13 @@
 ****************************************************************************/
 
 import qbs
+import qbs.FileInfo
 import qbs.ModUtils
 
 UnixGCC {
     condition: false
+
+    Depends { name: "xcode"; required: false }
 
     compilerDefines: ["__GNUC__", "__APPLE__"]
     loadableModulePrefix: ""
@@ -41,26 +44,11 @@ UnixGCC {
     separateDebugInformation: true
     debugInfoSuffix: ".dSYM"
 
-    validate: {
-        if (qbs.sysroot) {
-            var validator = new ModUtils.PropertyValidator("cpp");
-            validator.setRequiredProperty("xcodeSdkName", xcodeSdkName);
-            validator.setRequiredProperty("xcodeSdkVersion", xcodeSdkVersion);
-            validator.validate();
-        }
-    }
+    toolchainInstallPath: xcode.present
+                          ? FileInfo.joinPaths(xcode.toolchainPath, "usr", "bin") : base
+    sysroot: xcode.present ? xcode.sdkPath : base
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", ":", false);
-        if (platformPath) {
-            v.prepend(platformPath + "/Developer/usr/bin");
-            var platformPathL = platformPath.split("/");
-            platformPathL.pop();
-            platformPathL.pop();
-            var devPath = platformPathL.join("/")
-            v.prepend(devPath + "/usr/bin");
-            v.set();
-        }
         for (var key in buildEnv) {
             v = new ModUtils.EnvironmentVariable(key);
             v.value = buildEnv[key];
@@ -113,8 +101,4 @@ UnixGCC {
             env["MACOSX_DEPLOYMENT_TARGET"] = minimumOsxVersion;
         return env;
     }
-
-    readonly property path platformInfoPlist: platformPath ? [platformPath, "Info.plist"].join("/") : undefined
-    readonly property path sdkSettingsPlist: sysroot ? [sysroot, "SDKSettings.plist"].join("/") : undefined
-    readonly property path toolchainInfoPlist: toolchainInstallPath ? [toolchainInstallPath, "../../ToolchainInfo.plist"].join("/") : undefined
 }

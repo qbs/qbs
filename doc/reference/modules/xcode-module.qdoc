@@ -1,0 +1,121 @@
+/****************************************************************************
+**
+** Copyright (C) 2015 Jake Petroules.
+** Contact: http://www.qt.io/licensing
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company.  For licensing terms and
+** conditions see http://www.qt.io/terms-conditions.  For further information
+** use the contact form at http://www.qt.io/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 or version 3 as published by the Free
+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+** LICENSE.LGPLv3 included in the packaging of this file.  Please review the
+** following information to ensure the GNU Lesser General Public License
+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, The Qt Company gives you certain additional
+** rights.  These rights are described in The Qt Company LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page xcode-module.html
+    \ingroup list-of-modules
+
+    \title Module xcode
+    \brief Provides Xcode support.
+
+    The \c xcode module contains properties and rules for Xcode-based development.
+    This module provides the foundation for several other modules on Apple platforms, including the
+    \c cpp and \c ib modules.
+
+    \section1 General Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li developerPath
+        \li path
+        \li \c{"/Applications/Xcode.app/Contents/Developer"}
+        \li Developer directory of the Xcode installation. By default this is set to the developer
+            directory of the Xcode installation at its default location in /Applications.
+            Corresponds to the \c DEVELOPER_DIR environment variable.
+    \row
+        \li sdk
+        \li string
+        \li \c{"macosx"} on OS X, \c{"iphoneos"} on iOS, \c{"iphonesimulator"} on iOS Simulator
+        \li Version of the Xcode SDK used to build products. This can be specified as a full
+            canonical SDK name (i.e. \c{"macosx10.10"}), a platform version number (i.e.
+            \c{"10.10"}), or a platform identifier (i.e. \c{"macosx"}) in which case the latest SDK
+            available for that platform will be used.
+    \endtable
+
+    \section1 Read-only Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li sdkName
+        \li string
+        \li determined by \c{xcode.sdk}
+        \li Canonical name of the SDK used to build products. For example, macosx10.9.
+    \row
+        \li sdkVersion
+        \li string
+        \li determined by \c{xcode.sdk}
+        \li Version number of the SDK used to build products. For example, 10.9.
+    \row
+        \li latestSdkName
+        \li string
+        \li determined by \c{xcode.developerPath}
+        \li Canonical name of the latest SDK available in the Xcode installation.
+            For example, macosx10.10.
+    \row
+        \li latestSdkVersion
+        \li string
+        \li determined by \c{xcode.developerPath}
+        \li Version number of the latest SDK available in the Xcode installation.
+            For example, 10.9.
+    \row
+        \li availableSdkNames
+        \li stringList
+        \li determined by \c{xcode.developerPath}
+        \li Canonical names of all SDKs available in the Xcode installation for the current
+            platform. For example, [macosx10.9, macosx10.10].
+    \row
+        \li availableSdkVersions
+        \li stringList
+        \li determined by \c{xcode.developerPath}
+        \li Version numbers of all SDK available in the Xcode installation for the current
+            platform. For example, [10.9, 10.10].
+    \row
+        \li platformPath
+        \li path
+        \li determined by \c{xcode.developerPath}
+        \li Path of the platform directory containing \c{xcode.sdkPath}.
+    \row
+        \li sdkPath
+        \li path
+        \li determined by \c{xcode.developerPath} and \c{xcode.sdk}
+        \li Path of the SDK used to build products. Equivalent to \c{cpp.sysroot}.
+    \endtable
+*/
