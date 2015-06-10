@@ -31,6 +31,35 @@
 var FileInfo = loadExtension("qbs.FileInfo");
 
 /**
+  * Returns the numeric identifier corresponding to an Apple device name
+  * (i.e. for use by TARGETED_DEVICE_FAMILY).
+  */
+function appleDeviceNumber(deviceName) {
+    if (deviceName === "mac") {
+        return undefined; // only iOS devices have an ID
+    } else if (deviceName === "iphone") {
+        return 1;
+    } else if (deviceName === "ipad") {
+        return 2;
+    } else if (deviceName === "tv") {
+        return 3;
+    } else if (deviceName === "watch") {
+        return 4;
+    } else if (deviceName === "car") {
+        return 5;
+    }
+}
+
+/**
+  * Returns the TARGETED_DEVICE_FAMILY string given a list of target device names.
+  */
+function targetedDeviceFamily(deviceNames) {
+    return deviceNames.map(function (deviceName) {
+        return DarwinTools.appleDeviceNumber(deviceName);
+    }).join(",");
+}
+
+/**
   * Returns the most appropriate Apple platform name given a targetOS list.
   * Possible platform names include macosx, iphoneos, and iphonesimulator.
   */

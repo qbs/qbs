@@ -11,6 +11,12 @@ Module {
 
     property path developerPath: "/Applications/Xcode.app/Contents/Developer"
     property string sdk: DarwinTools.applePlatformName(qbs.targetOS)
+    property stringList targetDevices: {
+        if (qbs.targetOS.contains("osx"))
+            return ["mac"];
+        if (qbs.targetOS.contains("ios"))
+            return ["iphone", "ipad"];
+    }
 
     readonly property string sdkName: {
         if (_sdkSettings) {

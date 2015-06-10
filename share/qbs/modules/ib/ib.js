@@ -116,14 +116,11 @@ function ibtooldArguments(product, inputs, outputs, overrideOutput) {
             args.push("--output-partial-info-plist", outputs.partial_infoplist[0].filePath);
         }
 
-        if (product.moduleProperty("qbs", "targetOS").contains("osx"))
-            args.push("--target-device", "mac");
-
-        if (product.moduleProperty("qbs", "targetOS").contains("ios")) {
-            // TODO: Only output the devices specified in TARGET_DEVICE_FAMILY
-            // We can't get this info from Info.plist keys due to dependency order
-            args.push("--target-device", "iphone");
-            args.push("--target-device", "ipad");
+        // For iOS, we'd normally only output the devices specified in TARGETED_DEVICE_FAMILY
+        // We can't get this info from Info.plist keys due to dependency order, so use the qbs prop
+        var targetDevices = ModUtils.moduleProperty(product, "targetDevices");
+        for (i in targetDevices) {
+            args.push("--target-device", targetDevices[i]);
         }
     }
 

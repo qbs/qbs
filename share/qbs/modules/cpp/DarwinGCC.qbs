@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs
+import qbs.DarwinTools
 import qbs.FileInfo
 import qbs.ModUtils
 
@@ -83,6 +84,9 @@ UnixGCC {
             dict["UISupportedInterfaceOrientations"] = orientations;
             orientations.splice(1, 0, "UIInterfaceOrientationPortraitUpsideDown");
             dict["UISupportedInterfaceOrientations~ipad"] = orientations;
+
+            if (xcode.present)
+                dict["UIDeviceFamily"] = DarwinTools.targetedDeviceFamily(xcode.targetDevices)
         }
 
         return dict;
@@ -99,6 +103,8 @@ UnixGCC {
             env["IPHONEOS_DEPLOYMENT_TARGET"] = minimumIosVersion;
         if (qbs.targetOS.contains("osx") && minimumOsxVersion)
             env["MACOSX_DEPLOYMENT_TARGET"] = minimumOsxVersion;
+        if (xcode.present)
+            env["TARGETED_DEVICE_FAMILY"] = DarwinTools.targetedDeviceFamily(xcode.targetDevices);
         return env;
     }
 }

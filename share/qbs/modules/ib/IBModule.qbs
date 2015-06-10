@@ -79,6 +79,8 @@ Module {
     property int ibtoolVersionMinor: ibtoolVersionParts[1]
     property int ibtoolVersionPatch: ibtoolVersionParts[2]
 
+    property stringList targetDevices: xcode.targetDevices
+
     property path actoolOutputDirectory: {
         var dir = product.destinationDirectory;
         if (bundle.isBundle)
