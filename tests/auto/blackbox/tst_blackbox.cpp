@@ -2336,7 +2336,7 @@ void TestBlackbox::missingProfile()
     QVERIFY(m_qbsStderr.contains("No profile"));
 }
 
-void TestBlackbox::testAssembly()
+void TestBlackbox::assembly()
 {
     Settings settings((QString()));
     Profile profile(profileName(), &settings);
@@ -2353,7 +2353,7 @@ void TestBlackbox::testAssembly()
     QCOMPARE(m_qbsStdout.contains("creating testd.lib"), haveMSVC);
 }
 
-void TestBlackbox::testNsis()
+void TestBlackbox::nsis()
 {
     QStringList regKeys;
     regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\NSIS")
@@ -2393,7 +2393,7 @@ void TestBlackbox::testNsis()
     QVERIFY(!QFile::exists(defaultInstallRoot + "/you-should-not-see-a-file-with-this-name.exe"));
 }
 
-void TestBlackbox::testEmbedInfoPlist()
+void TestBlackbox::embedInfoPlist()
 {
     if (!HostOsInfo::isOsxHost())
         QSKIP("only applies on OS X");
@@ -2409,7 +2409,7 @@ void TestBlackbox::testEmbedInfoPlist()
     QVERIFY(runQbs(params) != 0);
 }
 
-void TestBlackbox::testFrameworkStructure()
+void TestBlackbox::frameworkStructure()
 {
     if (!HostOsInfo::isOsxHost())
         QSKIP("only applies on OS X");
@@ -2470,7 +2470,7 @@ static bool haveWiX()
     return false;
 }
 
-void TestBlackbox::testWiX()
+void TestBlackbox::wix()
 {
     if (!HostOsInfo::isWindowsHost()) {
         QSKIP("only applies on Windows");
@@ -2505,7 +2505,7 @@ static bool haveNodeJs()
                                       << QLatin1String("node")).isEmpty();
 }
 
-void TestBlackbox::testNodeJs()
+void TestBlackbox::nodejs()
 {
     if (!haveNodeJs()) {
         QSKIP("Node.js is not installed");
@@ -2521,7 +2521,7 @@ void TestBlackbox::testNodeJs()
     QVERIFY(regularFileExists(relativeProductBuildDir("hello") + "/hello.js"));
 }
 
-void TestBlackbox::testTypeScript()
+void TestBlackbox::typescript()
 {
     if (!haveNodeJs()) {
         QSKIP("node.js is not installed");
@@ -2540,7 +2540,7 @@ void TestBlackbox::testTypeScript()
     QVERIFY(regularFileExists(relativeProductBuildDir("animals") + "/main.js"));
 }
 
-void TestBlackbox::testIconset()
+void TestBlackbox::iconset()
 {
     if (!HostOsInfo::isOsxHost())
         QSKIP("only applies on OS X");
@@ -2554,7 +2554,7 @@ void TestBlackbox::testIconset()
     QVERIFY(regularFileExists(relativeProductBuildDir("iconset") + "/white.icns"));
 }
 
-void TestBlackbox::testIconsetApp()
+void TestBlackbox::iconsetApp()
 {
     if (!HostOsInfo::isOsxHost())
         QSKIP("only applies on OS X");
@@ -2568,7 +2568,7 @@ void TestBlackbox::testIconsetApp()
     QVERIFY(regularFileExists(relativeProductBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
 }
 
-void TestBlackbox::testAssetCatalog()
+void TestBlackbox::assetCatalog()
 {
     if (!HostOsInfo::isOsxHost())
         QSKIP("only applies on OS X");
@@ -2616,7 +2616,7 @@ void TestBlackbox::testAssetCatalog()
         QVERIFY(directoryExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
 }
 
-void TestBlackbox::testObjcArc()
+void TestBlackbox::objcArc()
 {
     if (!HostOsInfo::isOsxHost())
         QSKIP("only applies on platforms supporting Objective-C");
@@ -2656,14 +2656,14 @@ void TestBlackbox::wildCardsAndRules()
     QVERIFY(!m_qbsStdout.contains("Creating output artifact"));
 }
 
-void TestBlackbox::testLoadableModule()
+void TestBlackbox::loadableModule()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/loadablemodule"));
 
     QCOMPARE(runQbs(), 0);
 }
 
-void TestBlackbox::testBadInterpreter()
+void TestBlackbox::badInterpreter()
 {
     if (!HostOsInfo::isAnyUnixHost())
         QSKIP("only applies on Unix");
