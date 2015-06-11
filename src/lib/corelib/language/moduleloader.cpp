@@ -749,6 +749,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
                 m_logger.qbsTrace() << "module loaded: " << moduleName.toString();
             result.name = moduleName;
             result.item = moduleItem;
+            result.required = isRequired;
             moduleResults->append(result);
         } else {
             const QString profilesKey = QLatin1String("profiles");
@@ -1454,20 +1455,26 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
     }
 }
 
-static void collectAllModuleNames(Item *item, QVector<QualifiedId> *names)
+static void collectAllModules(Item *item, QVector<Item::Module> *modules)
 {
     foreach (const Item::Module &m, item->modules()) {
-        if (names->contains(m.name))
+        auto it = std::find_if(modules->begin(), modules->end(),
+                               [m] (const Item::Module &m2) { return m.name == m2.name; });
+        if (it != modules->end()) {
+            // If a module is required somewhere, it is required in the top-level item.
+            if (m.required)
+                it->required = true;
             continue;
-        names->append(m.name);
-        collectAllModuleNames(m.item, names);
+        }
+        modules->append(m);
+        collectAllModules(m.item, modules);
     }
 }
 
-static QVector<QualifiedId> allModuleNames(Item *item)
+static QVector<Item::Module> allModules(Item *item)
 {
-    QVector<QualifiedId> lst;
-    collectAllModuleNames(item, &lst);
+    QVector<Item::Module> lst;
+    collectAllModules(item, &lst);
     return lst;
 }
 
@@ -1475,20 +1482,20 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx, Item *item)
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] addTransitiveDependencies";
-    QVector<QualifiedId> transitiveDeps = allModuleNames(item);
+    QVector<Item::Module> transitiveDeps = allModules(item);
     std::sort(transitiveDeps.begin(), transitiveDeps.end());
     foreach (const Item::Module &m, item->modules()) {
-        auto it = std::lower_bound(transitiveDeps.begin(), transitiveDeps.end(), m.name);
-        if (it != transitiveDeps.end() && *it == m.name)
+        auto it = std::lower_bound(transitiveDeps.begin(), transitiveDeps.end(), m);
+        if (it != transitiveDeps.end() && it->name == m.name)
             transitiveDeps.erase(it);
     }
-    foreach (const QualifiedId &moduleName, transitiveDeps) {
+    foreach (const Item::Module &module, transitiveDeps) {
         Item::Module dep;
-        dep.item = loadModule(ctx, item, item->location(), QString(), moduleName,
-                              false, true);
+        dep.item = loadModule(ctx, item, item->location(), QString(), module.name,
+                              false, module.required);
         if (!dep.item)
             continue;
-        dep.name = moduleName;
+        dep.name = module.name;
         item->addModule(dep);
     }
 }

@@ -66,11 +66,12 @@ public:
     struct Module
     {
         Module()
-            : item(0)
+            : item(0), required(true)
         {}
 
         QualifiedId name;
         Item *item;
+        bool required;
     };
     typedef QList<Module> Modules;
     typedef QMap<QString, PropertyDeclaration> PropertyDeclarationMap;
