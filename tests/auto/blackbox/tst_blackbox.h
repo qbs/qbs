@@ -179,6 +179,7 @@ private slots:
     void testLoadableModule();
     void testBadInterpreter();
     void qbsVersion();
+    void transitiveOptionalDependencies();
 
 private:
     QByteArray m_qbsStderr;

@@ -2705,4 +2705,13 @@ void TestBlackbox::qbsVersion()
     QVERIFY(runQbs(params) != 0);
 }
 
+void TestBlackbox::transitiveOptionalDependencies()
+{
+    QDir::setCurrent(testDataDir + "/transitive-optional-dependencies");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QEXPECT_FAIL(0, "QBS-821", Continue);
+    QCOMPARE(runQbs(params), 0);
+}
+
 QTEST_MAIN(TestBlackbox)
