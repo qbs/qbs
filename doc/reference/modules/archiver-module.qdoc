@@ -58,7 +58,7 @@
     \row
         \li archiveBaseName
         \li string
-        \li \c{product.name}
+        \li \c{product.targetName}
         \li The base name of the archive file (in other words, the file name without
             any extensions).
     \row

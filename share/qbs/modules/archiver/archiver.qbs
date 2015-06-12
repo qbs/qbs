@@ -34,7 +34,7 @@ import qbs.FileInfo
 
 Module {
     property string type
-    property string archiveBaseName: product.name
+    property string archiveBaseName: product.targetName
     property string workingDirectory
     property stringList flags: []
     property path outputDirectory: product.destinationDirectory
