@@ -395,25 +395,35 @@ static int msvcCompilerMajorVersionForYear(int year)
     }
 }
 
-static bool isIncompatibleQtBaseProfile(const QtEnvironment &env, const Profile &toolchainProfile)
+enum class Match { Full, Partial, None };
+
+static Match compatibility(const QtEnvironment &env, const Profile &toolchainProfile)
 {
+    Match match = Match::Full;
+
     const QSet<QString> toolchainNames = toolchainProfile.value(QLatin1String("qbs.toolchain"))
             .toStringList().toSet();
-    if (areProfilePropertiesIncompatible(qbsToolchainFromQtMkspec(env.mkspecName).toSet(),
-                                         toolchainNames))
-        return true;
+    const QSet<QString> mkspecToolchainNames = qbsToolchainFromQtMkspec(env.mkspecName).toSet();
+    if (areProfilePropertiesIncompatible(toolchainNames, mkspecToolchainNames)) {
+        QSet<QString> intersection = toolchainNames;
+        intersection.intersect(mkspecToolchainNames);
+        if (!intersection.isEmpty())
+            match = Match::Partial;
+        else
+            return Match::None;
+    }
 
     const QSet<QString> targetOsNames = toolchainProfile.value(QLatin1String("qbs.targetOS"))
             .toStringList().toSet();
     if (areProfilePropertiesIncompatible(qbsTargetOsFromQtMkspec(env.mkspecName).toSet(),
                                          targetOsNames))
-        return true;
+        return Match::None;
 
     const QString toolchainArchitecture = toolchainProfile.value(QLatin1String("qbs.architecture"))
             .toString();
     if (areProfilePropertiesIncompatible(canonicalArchitecture(env.architecture),
                                          canonicalArchitecture(toolchainArchitecture)))
-        return true;
+        return Match::None;
 
     const QString msvcPrefix(QLatin1String("win32-msvc"));
     if (env.mkspecName.startsWith(msvcPrefix)) {
@@ -422,11 +432,13 @@ static bool isIncompatibleQtBaseProfile(const QtEnvironment &env, const Profile 
 
         // We want to know for sure that MSVC compiler versions match,
         // because it's especially important for this toolchain
-        return compilerVersionMajor == 0 || compilerVersionMajor !=
-                toolchainProfile.value(QLatin1String("cpp.compilerVersionMajor"));
+        if (compilerVersionMajor == 0 || compilerVersionMajor !=
+                toolchainProfile.value(QLatin1String("cpp.compilerVersionMajor"))) {
+            return Match::None;
+        }
     }
 
-    return false;
+    return match;
 }
 
 void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironment &qtEnvironment,
@@ -447,12 +459,13 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
     Profile profile(cleanQtVersionName, settings);
     if (!profile.baseProfile().isEmpty())
         return;
-    QStringList toolchainProfiles;
     foreach (const QString &key, profile.allKeys(Profile::KeySelectionNonRecursive)) {
         if (isToolchainProfileKey(key))
             return;
     }
 
+    QStringList fullMatches;
+    QStringList partialMatches;
     foreach (const QString &profileName, settings->profiles()) {
         if (profileName == profile.name())
             continue;
@@ -467,28 +480,42 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
                 break;
             }
         }
-        if (hasCppKey && !hasQtKey
-                && !isIncompatibleQtBaseProfile(qtEnvironment, Profile(profileName, settings)))
-            toolchainProfiles << profileName;
+        if (hasCppKey && !hasQtKey)
+            switch (compatibility(qtEnvironment, Profile(profileName, settings))) {
+            case Match::Full:
+                fullMatches << profileName;
+                break;
+            case Match::Partial:
+                partialMatches << profileName;
+                break;
+            default:
+                break;
+            }
     }
 
-    if (toolchainProfiles.count() != 1) {
+    QString bestMatch;
+    if (fullMatches.count() == 1)
+        bestMatch = fullMatches.first();
+    else if (fullMatches.isEmpty() && partialMatches.count() == 1)
+        bestMatch = partialMatches.first();
+    if (bestMatch.isEmpty()) {
         QString message = Tr::tr("You need to set up toolchain information before you can "
                                  "use this Qt version for building. ");
-        if (toolchainProfiles.isEmpty()) {
+        if (fullMatches.isEmpty() && partialMatches.isEmpty()) {
             message += Tr::tr("However, no toolchain profile was found. Either create one "
                               "using qbs-setup-toolchains and set it as this profile's "
                               "base profile or add the toolchain settings manually "
                               "to this profile.");
         } else {
             message += Tr::tr("Consider setting one of these profiles as this profile's base "
-                              "profile: %1.").arg(toolchainProfiles.join(QLatin1String(", ")));
+                              "profile: %1.").arg((fullMatches + partialMatches)
+                                                  .join(QLatin1String(", ")));
         }
         qbsWarning() << message;
     } else {
-        profile.setBaseProfile(toolchainProfiles.first());
+        profile.setBaseProfile(bestMatch);
         qbsInfo() << Tr::tr("Setting profile '%1' as the base profile for this profile.")
-                     .arg(toolchainProfiles.first());
+                     .arg(bestMatch);
     }
 }
 
