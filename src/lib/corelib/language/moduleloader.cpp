@@ -462,16 +462,17 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     addTransitiveDependencies(&productContext, productContext.item);
     checkItemCondition(item);
 
+    QVector<Item *> exportItems;
     foreach (Item *child, item->children()) {
         if (child->typeName() == QLatin1String("Group"))
             handleGroup(&productContext, child);
         else if (child->typeName() == QLatin1String("Export"))
-            deferExportItem(&productContext, child);
+            exportItems << child;
         else if (child->typeName() == QLatin1String("Probe"))
             resolveProbe(item, child);
     }
 
-    Item *mergedExportItem = mergeExportItems(&productContext);
+    Item *mergedExportItem = mergeExportItems(&productContext, exportItems);
     addTransitiveDependencies(&productContext, mergedExportItem);
     projectContext->result->productInfos.insert(item, productContext.info);
     m_reader->popExtraSearchPaths();
@@ -550,11 +551,6 @@ void ModuleLoader::handleGroup(ProductContext *productContext, Item *item)
     checkItemCondition(item);
 }
 
-void ModuleLoader::deferExportItem(ModuleLoader::ProductContext *productContext, Item *item)
-{
-    productContext->exportItems.append(item);
-}
-
 static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
 {
     if (value->type() == Value::ItemValueType) {
@@ -570,14 +566,15 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
     }
 }
 
-Item *ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext)
+Item *ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext,
+        const QVector<Item *> &exportItemsInProduct)
 {
     Item *merged = Item::create(productContext->item->pool());
     merged->setTypeName(QLatin1String("Export"));
     merged->setFile(productContext->item->file());
     merged->setLocation(productContext->item->location());
     QSet<Item *> exportItems;
-    foreach (Item *exportItem, productContext->exportItems) {
+    foreach (Item *exportItem, exportItemsInProduct) {
         checkCancelation();
         if (Q_UNLIKELY(productContext->filesWithExportItem.contains(exportItem->file())))
             throw ErrorInfo(Tr::tr("Multiple Export items in one product are prohibited."),
