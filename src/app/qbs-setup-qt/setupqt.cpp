@@ -253,6 +253,11 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
             qtEnvironment.mkspecPath = QFileInfo(qtEnvironment.mkspecBasePath
                                                  + QLatin1String("/default")).symLinkTarget();
         }
+
+        // E.g. in qmake.conf for Qt 4.8/mingw we find this gem:
+        //    QMAKESPEC_ORIGINAL=C:\\Qt\\Qt\\4.8\\mingw482\\mkspecs\\win32-g++
+        qtEnvironment.mkspecPath = QDir::cleanPath(qtEnvironment.mkspecPath);
+
         qtEnvironment.mkspecName = qtEnvironment.mkspecPath;
         int idx = qtEnvironment.mkspecName.lastIndexOf(QLatin1Char('/'));
         if (idx != -1)
