@@ -78,7 +78,8 @@ Module {
         var p = new Process();
         try {
             p.exec(compilerFilePath, ["-version"]);
-            var match = p.readStdErr().trim().match(/^javac (([0-9]+(?:\.[0-9]+){2,2})_([0-9]+))$/);
+            var re = /^javac (([0-9]+(?:\.[0-9]+){2,2})_([0-9]+))$/m;
+            var match = p.readStdErr().trim().match(re);
             if (match !== null)
                 return match;
         } finally {
