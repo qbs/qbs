@@ -156,6 +156,8 @@ private:
     typedef QPair<Item *, ModuleLoaderResult::ProductInfo::Dependency> ProductDependencyResult;
     typedef QList<ProductDependencyResult> ProductDependencyResults;
 
+    void handleTopLevelProject(ModuleLoaderResult *loadResult, Item *item,
+            const QString &buildDirectory, const QSet<QString> &referencedFilePaths);
     void handleProject(ModuleLoaderResult *loadResult, Item *item, const QString &buildDirectory,
             const QSet<QString> &referencedFilePaths);
     QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);

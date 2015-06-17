@@ -136,7 +136,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     root->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDirectory));
     root->setProperty(QLatin1String("profile"),
                       VariantValue::create(m_parameters.topLevelProfile()));
-    handleProject(&result, root, buildDirectory,
+    handleTopLevelProject(&result, root, buildDirectory,
                   QSet<QString>() << QDir::cleanPath(parameters.projectFilePath()));
     result.root = root;
     result.qbsFiles = m_reader->filesRead();
@@ -224,6 +224,16 @@ private:
     void handle(VariantValue *) { /* only created internally - no need to check */ }
     void handle(BuiltinValue *) { /* only created internally - no need to check */ }
 };
+
+void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *item,
+        const QString &buildDirectory, const QSet<QString> &referencedFilePaths)
+{
+    handleProject(loadResult, item, buildDirectory, referencedFilePaths);
+    checkItemTypes(item);
+    PropertyDeclarationCheck check(m_validItemPropertyNamesPerItem, m_disabledItems, m_parameters,
+                                   m_logger);
+    check(item);
+}
 
 void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
         const QString &buildDirectory, const QSet<QString> &referencedFilePaths)
@@ -339,12 +349,6 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
                         subItem->location());
         }
     }
-
-    checkItemTypes(item);
-
-    PropertyDeclarationCheck check(m_validItemPropertyNamesPerItem, m_disabledItems, m_parameters,
-                                   m_logger);
-    check(item);
 
     m_reader->popExtraSearchPaths();
 }
