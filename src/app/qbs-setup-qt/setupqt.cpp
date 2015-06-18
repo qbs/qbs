@@ -400,11 +400,11 @@ static int msvcCompilerMajorVersionForYear(int year)
     }
 }
 
-enum class Match { Full, Partial, None };
+enum Match { MatchFull, MatchPartial, MatchNone };
 
 static Match compatibility(const QtEnvironment &env, const Profile &toolchainProfile)
 {
-    Match match = Match::Full;
+    Match match = MatchFull;
 
     const QSet<QString> toolchainNames = toolchainProfile.value(QLatin1String("qbs.toolchain"))
             .toStringList().toSet();
@@ -413,22 +413,22 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
         QSet<QString> intersection = toolchainNames;
         intersection.intersect(mkspecToolchainNames);
         if (!intersection.isEmpty())
-            match = Match::Partial;
+            match = MatchPartial;
         else
-            return Match::None;
+            return MatchNone;
     }
 
     const QSet<QString> targetOsNames = toolchainProfile.value(QLatin1String("qbs.targetOS"))
             .toStringList().toSet();
     if (areProfilePropertiesIncompatible(qbsTargetOsFromQtMkspec(env.mkspecName).toSet(),
                                          targetOsNames))
-        return Match::None;
+        return MatchNone;
 
     const QString toolchainArchitecture = toolchainProfile.value(QLatin1String("qbs.architecture"))
             .toString();
     if (areProfilePropertiesIncompatible(canonicalArchitecture(env.architecture),
                                          canonicalArchitecture(toolchainArchitecture)))
-        return Match::None;
+        return MatchNone;
 
     const QString msvcPrefix(QLatin1String("win32-msvc"));
     if (env.mkspecName.startsWith(msvcPrefix)) {
@@ -439,7 +439,7 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
         // because it's especially important for this toolchain
         if (compilerVersionMajor == 0 || compilerVersionMajor !=
                 toolchainProfile.value(QLatin1String("cpp.compilerVersionMajor"))) {
-            return Match::None;
+            return MatchNone;
         }
     }
 
@@ -487,10 +487,10 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
         }
         if (hasCppKey && !hasQtKey)
             switch (compatibility(qtEnvironment, Profile(profileName, settings))) {
-            case Match::Full:
+            case MatchFull:
                 fullMatches << profileName;
                 break;
-            case Match::Partial:
+            case MatchPartial:
                 partialMatches << profileName;
                 break;
             default:
