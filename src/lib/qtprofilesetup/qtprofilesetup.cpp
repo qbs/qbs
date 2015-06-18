@@ -265,13 +265,14 @@ static bool checkForStaticBuild(const QtEnvironment &qt)
         return qt.qtConfigItems.contains(QLatin1String("static"));
     if (qt.frameworkBuild)
         return false; // there are no Qt4 static frameworks
-    QDir libdir(qt.libraryPath);
+    const bool isWin = qt.mkspecName.startsWith(QLatin1String("win"));
+    const QDir libdir(isWin ? qt.binaryPath : qt.libraryPath);
     const QStringList coreLibFiles
             = libdir.entryList(QStringList(QLatin1String("*Core*")), QDir::Files);
     if (coreLibFiles.isEmpty())
         throw ErrorInfo(Internal::Tr::tr("Could not determine whether Qt is a static build."));
     foreach (const QString &fileName, coreLibFiles) {
-        if (QLibrary::isLibrary(qt.libraryPath + QLatin1Char('/') + fileName))
+        if (QLibrary::isLibrary(fileName))
             return false;
     }
     return true;
