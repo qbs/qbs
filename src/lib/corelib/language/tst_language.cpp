@@ -466,7 +466,13 @@ void TestLanguage::exports()
         QVERIFY(product);
         QStringList propertyName = QStringList() << "modules" << "dummy" << "defines";
         QVariant propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
-        QCOMPARE(propertyValue.toStringList(), QStringList() << "USE_MYLIB");
+        QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYAPP" << "USE_MYLIB");
+        propertyName = QStringList() << "modules" << "dummy" << "includePaths";
+        QVariantList propertyValues = getConfigProperty(product->moduleProperties->value(),
+                                                        propertyName).toList();
+        QCOMPARE(propertyValues.count(), 2);
+        QVERIFY(propertyValues.at(0).toString().endsWith("/app"));
+        QVERIFY(propertyValues.at(1).toString().endsWith("/subdir/lib"));
 
         QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
                                                 "productName").toString(), QString("myapp"));

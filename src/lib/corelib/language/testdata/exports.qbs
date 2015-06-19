@@ -5,16 +5,14 @@ Project {
     Application {
         name: "myapp"
         Depends { name: "mylib" }
-    }
-    StaticLibrary {
-        name: "mylib"
         Depends { name: "dummy" }
-        dummy.defines: ["BUILD_MYLIB"]
-        Export {
-            Depends { name: "dummy" }
-            dummy.defines: ["USE_MYLIB"]
-        }
+        dummy.defines: ["BUILD_" + product.name.toUpperCase()]
+        dummy.includePaths: ["./app"]
     }
+
+    references: [
+        "subdir/exports-mylib.qbs"
+    ]
 
     Application {
         name: "A"

@@ -10,4 +10,5 @@ DummyBase {
     property string productName: product.name
     property string upperCaseProductName: productName.toUpperCase()
     property string zort: "zort in dummy"
+    property pathList includePaths
 }
