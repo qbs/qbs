@@ -37,8 +37,10 @@
     \title Export Item
     \brief Exports dependencies and properties to other products.
 
-    An \c Export item can appear inside a \l{Product Item}. The properties attached to it will
-    take effect in all products that depend on the product inside which the Export item is defined.
+    An \c Export item can appear inside a \l{Product Item}. It defines a Module with the product's
+    name that can be depended on by other products.
+    The properties attached to the Export item will take effect in all products that depend on the
+    product inside which the Export item is defined.
     As an example, consider these two products:
     \code
     Product {
@@ -46,6 +48,7 @@
         Export {
             Depends { name: "cpp" }
             cpp.includePaths: "."
+            cpp.defines: ["USING_" + product.name.toUpperCase()]
         }
     }
 
@@ -57,8 +60,11 @@
 
     The sources in product B will be able to use headers from product A without specifiying
     the full path to them, because the include path has been made known to the compiler via
-    A's Export item.
+    A's Export item. Additionally, product B will be compiled with the define \c{USING_A}.
 
     \note This relationship is transitive, so a product C depending on product B will also
-    get the include paths via A's Export item.
+    get the include paths and preprocessor macros via A's Export item.
+
+    In contrast to Module items, \c{product} within Export items refers to the product which defines
+    the Export item.
 */
