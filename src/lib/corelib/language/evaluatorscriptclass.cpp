@@ -490,7 +490,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
                               &m_sourceValueStack);
         converter.start();
 
-        const PropertyDeclaration decl = data->item->propertyDeclarations().value(name.toString());
+        const PropertyDeclaration decl = data->item->propertyDeclaration(name.toString());
         convertToPropertyType(decl.type(), result);
     }
 
