@@ -41,14 +41,18 @@
 
     \section1 General Properties
 
-
-    \section2 applicationFile
-
     \table
-    \row    \li \b{Type:}            \li \c{path}
-    \row    \li \b{Default:}         \li \c{undefined}
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li applicationFile
+        \li path
+        \li \c{undefined}
+        \li The input JavaScript file whose corresponding output will be executed when running the
+            Node.js application. If this property is \c{undefined}, the product will not be
+            runnable.
     \endtable
-
-    The input JavaScript file whose corresponding output will be executed when running the Node.js
-    application. If this property is \c{undefined}, the product will not be runnable.
 */
