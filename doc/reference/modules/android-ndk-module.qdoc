@@ -34,6 +34,7 @@
     \ingroup list-of-modules
 
     \title Module Android.ndk
+    \since 1.4
     \brief Provides support for building native Android libraries.
 
     The \c Android.ndk module contains the properties and rules to create native libraries
@@ -71,16 +72,19 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li abi
         \li string
+        \li 1.4
         \li undefined
         \li The ABI name as it appears under "lib/" in the application package.
     \row
         \li appStl
         \li string
+        \li 1.4
         \li \c{"system"}
         \li The library to use for C++. The possible values are: "system", "gabi++_static",
             "gabi++_shared", "stlport_static", "stlport_shared", "gnustl_static", "gnustl_shared",
@@ -88,26 +92,31 @@
     \row
         \li buildProfile
         \li string
+        \li 1.4
         \li undefined
         \li The name of the build profile, e.g. "armeabi-v7a-hard".
     \row
         \li enableExceptions
         \li bool
+        \li 1.4
         \li \c{appStl !== "system"}
         \li Whether to enable exceptions in C++ code.
     \row
         \li enableRtti
         \li bool
+        \li 1.4
         \li \c{appStl !== "system"}
         \li Whether to enable runtime type information in C++ code.
     \row
         \li ndkDir
         \li path
+        \li 1.4
         \li undefined
         \li The NDK base directory.
     \row
         \li platform
         \li string
+        \li 1.4
         \li \c{"android-9"}
         \li The versioned platform name.
     \endtable

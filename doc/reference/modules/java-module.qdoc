@@ -34,6 +34,7 @@
     \ingroup list-of-modules
 
     \title Module java
+    \since 1.4
     \brief Provides Java support.
 
     The \c java module contains the properties and rules for building Java projects.
@@ -44,83 +45,99 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li additionalClassPaths
         \li stringList
+        \li 1.4
         \li undefined
         \li Locations beside this product's class output path to consider when compiling.
     \row
         \li additionalCompilerFlags
         \li stringList
+        \li 1.4
         \li undefined
         \li Use this to supply compiler flags not covered by any of the properties in this module.
     \row
         \li additionalJarFlags
         \li stringList
+        \li 1.4
         \li undefined
         \li Use this to supply archiver flags not covered by any of the properties in this module.
     \row
         \li bootClassPaths
         \li stringList
+        \li 1.4
         \li undefined
         \li Use this if you need to specify non-standard bootstrap class files.
     \row
         \li compilerFilePath
         \li string
+        \li 1.4
         \li \c compilerName, prefixed by \c jdkPath if it is defined
         \li The command to invoke when compiling Java sources.
     \row
         \li compilerName
         \li string
+        \li 1.4
         \li \c{"javac"}
         \li The file name of the Java compiler.
     \row
         \li enableWarnings
         \li bool
+        \li 1.4
         \li \c true
         \li Controls whether warnings are emitted when compiling Java sources.
     \row
         \li interpreterFilePath
         \li string
+        \li 1.4
         \li \c interpreterName, prefixed by \c jdkPath if it is defined
         \li The command to invoke when executing Java code.
     \row
         \li interpreterName
         \li string
+        \li 1.4
         \li \c{"java"}
         \li The file name of the Java interpreter.
     \row
         \li jarFilePath
         \li string
+        \li 1.4
         \li \c jarName, prefixed by \c jdkPath if it is defined
         \li The command to run when creating or extracting \c jar files.
     \row
         \li jarName
         \li string
+        \li 1.4
         \li \c{"jar"}
         \li The file name of the \c jar tool.
     \row
         \li jdkPath
         \li path
+        \li 1.4
         \li undefined
         \li The base path of Java-related tools.
     \row
         \li languageVersion
         \li string
+        \li 1.4
         \li undefined
         \li The Java language version to interpret source code as. If undefined, the compiler
             will use its default.
     \row
         \li runtimeVersion
         \li string
+        \li 1.4
         \li undefined
         \li The version of the Java runtime to generate compatible bytecode for. If undefined,
             the compiler will use its default.
     \row
         \li warningsAsErrors
         \li bool
+        \li 1.4
         \li \c false
         \li If this property is enabled, the compiler will abort where it would normally emit
             a warning.

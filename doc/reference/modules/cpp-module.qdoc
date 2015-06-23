@@ -34,6 +34,7 @@
     \ingroup list-of-modules
 
     \title Module cpp
+    \since 1.0
     \brief Provides C/C++ support.
 
     The \c cpp module contains the properties and rules for toolchains of the C/C++ family.
@@ -45,11 +46,13 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li allowUnresolvedSymbols
         \li \c{bool}
+        \li 1.2
         \li \c{false}
         \li Switch this on if you want the linking step to succeed even if the resulting binary
             contains unresolved symbols. Normally this makes little sense, but in special cases it
@@ -58,22 +61,26 @@
     \row
         \li architecture
         \li \c{string}
+        \li 1.0
         \li \c{qbs.architecture}
         \li Target architecture. See \c{qbs.architecture}.
     \row
         \li debugInformation
         \li \c{bool}
+        \li 1.0
         \li \c{qbs.debugInformation}
         \li Generate debug information. See \c{qbs.debugInformation}.
     \row
         \li separateDebugInformation
         \li \c{bool}
+        \li 1.4
         \li \c{false} for gcc/clang, \c{true} for MSVC
         \li Whether to store debug information in an external file or bundle instead of within the
             binary.
     \row
         \li defines
         \li \c{stringList}
+        \li 1.0
         \li \c{undefined}
         \li List of preprocessor macros that gets passed to the compiler.
             To set macro values use the following syntax:
@@ -81,24 +88,28 @@
     \row
         \li platformDefines
         \li \c{stringList}
+        \li 1.0
         \li \c{undefined}
         \li List of preprocessor macros that are used for all projects that are built for the
             current target platform. User project files usually do not set this property.
     \row
         \li compilerDefines
         \li \c{stringList}
+        \li 1.0
         \li \c{undefined}
         \li List of preprocessor macros that are used for all projects that are using the current
             toolchain. User project files usually do not set this property.
     \row
         \li includePaths
         \li \c{pathList}
+        \li 1.0
         \li \c{undefined}
         \li List of include paths. Relative paths are considered to be relative to the .qbs product
             file they are used in.
     \row
         \li systemIncludePaths
         \li \c{pathList}
+        \li 1.0
         \li \c{undefined}
         \li List of include paths that are passed as system include paths to the compiler.
             For header files in those paths warnings will be ignored.
@@ -106,30 +117,35 @@
     \row
         \li libraryPaths
         \li \c{pathList}
+        \li 1.0
         \li \c{undefined}
         \li List of library search paths. Relative paths are considered to be relative to the .qbs
             product file they are used in.
     \row
         \li dynamicLibraries
         \li \c{stringList}
+        \li 1.0
         \li \c{undefined}
         \li List of dynamic libraries to be linked. If the library is part of your project, consider
             using a Depends item instead.
     \row
         \li staticLibraries
         \li \c{stringList}
+        \li 1.0
         \li \c{undefined}
         \li List of static libraries to be linked. If the library is part of your project, consider
             using a Depends item instead.
     \row
         \li prefixHeaders
         \li \c{pathList}
+        \li 1.0.1
         \li \c{undefined}
         \li List of files to automatically include at the beginning of each source file in the
             product.
     \row
         \li precompiledHeader
         \li \c{path}
+        \li 1.0
         \li \c{undefined}
         \li Name of the header file to be precompiled.
 
@@ -143,82 +159,98 @@
     \row
         \li cPrecompiledHeader
         \li \c{path}
+        \li 1.1
         \li \c{precompiledHeader}
         \li Name of the C header file to be precompiled.
     \row
         \li cxxPrecompiledHeader
         \li \c{path}
+        \li 1.1
         \li \c{precompiledHeader}
         \li Name of the C++ header file to be precompiled.
     \row
         \li objcPrecompiledHeader
         \li \c{path}
+        \li 1.1
         \li \c{precompiledHeader}
         \li Name of the Objective-C header file to be precompiled.
     \row
         \li objcxxPrecompiledHeader
         \li \c{path}
+        \li 1.1
         \li \c{precompiledHeader}
         \li Name of the Objective-C++ header file to be precompiled.
     \row
         \li precompiledHeaderDir
         \li \c{path}
+        \li 1.0
         \li \c{product.buildDirectory}
         \li The directory that will contain the precompiled header files.
             Usually you won't need to set this.
     \row
         \li optimization
         \li \c{string}
+        \li 1.0
         \li \c{qbs.optimization}
         \li Optimization level. See \c{qbs.optimization}.
     \row
         \li treatWarningsAsErrors
         \li \c{bool}
+        \li 1.0
         \li \c{false}
         \li Warnings will be handled as errors and cause the build to fail.
     \row
         \li warningLevel
         \li \c{string}
+        \li 1.0
         \li \c{"all"}
         \li Specifies the warning level for the compiler - \c{"none"} or \c{"all"}.
     \row
         \li commonCompilerFlags
         \li \c{stringList}
+        \li 1.0.1
         \li undefined
         \li Flags that are added to all compilation commands independently of the language.
     \row
         \li compilerVersionMajor
         \li \c{int}
+        \li 1.4
         \li undefined
         \li The major version of the compiler.
     \row
         \li compilerVersionMinor
         \li \c{int}
+        \li 1.4
         \li undefined
         \li The minor version of the compiler.
     \row
         \li compilerVersionPatch
         \li \c{int}
+        \li 1.4
         \li undefined
         \li The patch level component of the compiler version.
     \row
         \li cppFlags
         \li \c{stringList}
+        \li 1.0
         \li undefined
         \li Additional flags for the C preprocessor.
     \row
         \li cFlags
         \li \c{stringList}
+        \li 1.0
         \li undefined
         \li Additional flags for the C compiler.
     \row
         \li cxxFlags
         \li \c{stringList}
+        \li 1.0
         \li undefined
         \li Additional flags for the C++ compiler.
     \row
         \li cLanguageVersion
         \li \c{string}
+        \li 1.4
         \li undefined
         \li The version of the C standard with which the code must comply. If this property is set,
             corresponding compiler and/or linker flags will be added, depending on the toolchain.
@@ -227,6 +259,7 @@
     \row
         \li cxxLanguageVersion
         \li \c{string}
+        \li 1.4
         \li undefined
         \li The version of the C++ standard with which the code must comply. If this property is
             set, corresponding compiler and/or linker flags will be added, depending on the
@@ -235,6 +268,7 @@
     \row
         \li cxxStandardLibrary
         \li \c{string}
+        \li 1.4
         \li undefined
         \li The C++ standard library to link to. If this property is set, corresponding compiler
             and/or linker flags will be added, assuming the value is valid for the current
@@ -243,31 +277,37 @@
     \row
         \li objcFlags
         \li \c{stringList}
+        \li 1.0
         \li undefined
         \li Additional flags for the Objective-C compiler.
     \row
         \li objcxxFlags
         \li \c{stringList}
+        \li 1.0
         \li undefined
         \li Additional flags for the Objective-C++ compiler.
     \row
         \li linkerFlags
         \li \c{stringList}
+        \li 1.0
         \li undefined
         \li Additional flags for the linker.
     \row
         \li linkerScripts
         \li \c{pathList}
+        \li 1.2
         \li \c{undefined}
         \li List of linker script files.
     \row
         \li compilerName
         \li \c{string}
+        \li 1.0
         \li determined by qbs-setup-toolchains
         \li Name of the main compiler binary. This is set in the build profile.
     \row
         \li compilerPath
         \li \c{string}
+        \li 1.0
         \li determined by qbs-setup-toolchains
         \li Full path of the main compiler binary. This is set in the build profile.
             If the toolchain provides different compilers for different languages, then
@@ -275,33 +315,39 @@
     \row
         \li compilerPathByLanguage
         \li \c{string} to \c{string} map
+        \li 1.3
         \li determined by qbs-setup-toolchains
         \li Maps file tags to full paths of compiler binaries. This is set in the build profile.
     \row
         \li compilerWrapper
         \li \c{stringList}
+        \li 1.1
         \li \c{undefined}
         \li Wrapper binary and its arguments for wrapping compiler calls.
             This is useful for compiler wrappers like ccache and alike.
     \row
         \li linkerName
         \li \c{string}
+        \li 1.1.1
         \li determined by qbs-setup-toolchains
         \li Name of the linker binary. This is set in the build profile.
     \row
         \li linkerPath
         \li \c{string}
+        \li 1.1.1
         \li determined by qbs-setup-toolchains
         \li Full path of the linker binary. This is set in the build profile.
     \row
         \li entryPoint
         \li \c{string}
+        \li 1.3
         \li \c{undefined}
         \li Name of the entry point of an executable or dynamic library. If this property is
             undefined, the toolchain's default is used.
     \row
         \li runtimeLibrary
         \li \c{string}
+        \li 1.3.3
         \li \c{"dynamic"} for MSVC, \c{undefined} for others
         \li Type of the used runtime library. Accepted values are \c{"static"} and \c{"dynamic"}.
             If this property is set to \c{undefined}, then the default runtime library of the
@@ -316,17 +362,20 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li frameworkPaths
         \li \c{pathList}
+        \li 1.0
         \li \c{undefined}
         \li List of framework search paths. Relative paths are considered to be relative to the
             .qbs product file they are used in.
     \row
         \li systemFrameworkPaths
         \li \c{pathList}
+        \li 1.0
         \li \c{undefined}
         \li List of framework search paths. Relative paths are considered to be relative to the
             .qbs product file they are used in. Header files in frameworks in those paths will not
@@ -334,18 +383,21 @@
     \row
         \li frameworks
         \li \c{stringList}
+        \li 1.0
         \li \c{undefined}
         \li List of frameworks to be linked.
             If the framework is part of your project, consider using a Depends item instead.
     \row
         \li weakFrameworks
         \li \c{stringList}
+        \li 1.0
         \li \c{undefined}
         \li List of frameworks to be weakly linked.
             If the framework is part of your project, consider using a Depends item instead.
     \row
         \li installNamePrefix
         \li \c{string}
+        \li 1.0
         \li \c{undefined}
         \li The prefix for the internal install name (LC_ID_DYLIB) of a dynamic library on Darwin
             (OS X and iOS). Typically this should be set to \c{"@rpath"} on modern platforms that
@@ -353,12 +405,14 @@
     \row
         \li automaticReferenceCounting
         \li \c{bool}
+        \li 1.4
         \li \c{undefined}
         \li Whether to enable Automatic Reference Counting (ARC) for Objective-C and Objective-C++
             source code. If \c{undefined}, uses the compiler default (probably \c{false}).
     \row
         \li requireAppExtensionSafeApi
         \li \c{bool}
+        \li 1.4
         \li \c{undefined}
         \li Whether to enforce the use of only app-extension-safe APIs on OS X and iOS. This is
             necessary for building Application Extensions in OS X Yosemite and iOS 8 and above. If
@@ -366,6 +420,7 @@
     \row
         \li minimumIosVersion
         \li \c{string}
+        \li 1.0
         \li undefined, but may be set by generated profiles
         \li A version number in the format [major].[minor] indicating the earliest version of iOS
             that the product should run on. Passes -miphoneos-version-min=<version> to the compiler.
@@ -373,6 +428,7 @@
     \row
         \li minimumOsxVersion
         \li \c{string}
+        \li 1.0.1
         \li undefined, but may be set by generated profiles
         \li A version number in the format [major].[minor] indicating the earliest version of OS X
             that the product should run on. Passes -mmacosx-version-min=<version> to the compiler.
@@ -385,21 +441,25 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li archiverName
         \li \c{string}
+        \li 1.0
         \li \c{"ar"}
         \li Name of the archiver binary. This is set in the build profile.
     \row
         \li archiverPath
         \li \c{string}
+        \li 1.0
         \li determined by qbs-setup-toolchains
         \li Full path of the archiver binary. This is set in the build profile.
     \row
         \li exportedSymbolsCheckMode
         \li \c{string}
+        \li 1.4.1
         \li "ignore-undefined"
         \li Controls how \QBS determines whether an updated dynamic library causes relinking of
             dependents. The default value is \c "ignore-undefined", which means that undefined
@@ -409,46 +469,55 @@
     \row
         \li nmName
         \li \c{string}
+        \li 1.2
         \li \c{"nm"}
         \li Name of the nm binary. This is set in the build profile.
     \row
         \li nmPath
         \li \c{string}
+        \li 1.2
         \li determined by qbs-setup-toolchains
         \li Full path of the nm binary. This is set in the build profile.
     \row
         \li objcopyName
         \li \c{string}
+        \li 1.4
         \li \c{"objcopy"}
         \li Name of the objcopy binary. This is set in the build profile.
     \row
         \li objcopyPath
         \li \c{string}
+        \li 1.4
         \li determined by qbs-setup-toolchains
         \li Full path of the objcopy binary. This is set in the build profile.
     \row
         \li stripName
         \li \c{string}
+        \li 1.4
         \li \c{"strip"}
         \li Name of the strip binary. This is set in the build profile.
     \row
         \li stripPath
         \li \c{string}
+        \li 1.4
         \li determined by qbs-setup-toolchains
         \li Full path of the strip binary. This is set in the build profile.
     \row
         \li dsymutilPath
         \li \c{string}
+        \li 1.4
         \li determined by qbs-setup-toolchains
         \li Full path of the dsymutil binary. This is set in the build profile.
     \row
         \li dsymutilFlags
         \li \c{stringList}
+        \li 1.4.1
         \li undefined
         \li Additional flags for the dsymutil tool.
     \row
         \li positionIndependentCode
         \li \c{bool}
+        \li 1.0
         \li \c{undefined}
         \li Generate position independent code.
             If this property is \c{undefined}, then position independent code is generated for
@@ -456,16 +525,19 @@
     \row
         \li rpaths
         \li \c{stringList}
+        \li 1.0
         \li \c{undefined}
         \li List of rpaths that are passed to the linker.
     \row
         \li useRPaths
         \li \c{bool}
+        \li 1.3
         \li \c{true}
         \li Set this property to \c{false} to prevent the linker from writing rpaths to the binary.
     \row
         \li visibility
         \li \c{string}
+        \li 1.0
         \li \c{"default"}
         \li Visibility level for exported symbols.
             Possible values include: \c{"default"}, \c{"hidden"}, \c{"hiddenInlines"},
@@ -478,11 +550,13 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li windowsApiCharacterSet
         \li \c{string}
+        \li 1.0.1
         \li \c{"unicode"}
         \li Specifies the character set used in the Win32 API. "unicode" will define the
             preprocessor symbols UNICODE and _UNICODE, "mbcs" will define _MBCS, and
@@ -490,6 +564,7 @@
     \row
         \li minimumWindowsVersion
         \li \c{string}
+        \li 1.0
         \li undefined, but may be set by generated profiles
         \li A version number in the format [major].[minor] indicating the earliest version of
             Windows that the product should run on. Defines WINVER, _WIN32_WINNT, and

@@ -34,6 +34,7 @@
     \ingroup list-of-modules
 
     \title Module wix
+    \since 1.2
     \brief Provides Windows Installer XML Toolset support.
 
     The \c wix module contains properties and rules for building MSI and
@@ -47,16 +48,19 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li debugInformation
         \li \c{bool}
+        \li 1.2
         \li \c{qbs.debugInformation}
         \li Generate debug information. See \c{qbs.debugInformation}.
     \row
         \li defines
         \li \c{stringList}
+        \li 1.2
         \li \c{undefined}
         \li List of preprocessor macros that get passed to the compiler.
             To set macro values use the following syntax:
@@ -64,6 +68,7 @@
     \row
         \li enableQbsDefines
         \li \c{bool}
+        \li 1.2
         \li \c{true}
         \li Whether to define preprocessor macros corresponding to values from the project and
             product objects. When building a 64-bit package, the preprocessor variable \c{Win64}
@@ -71,50 +76,59 @@
     \row
         \li visualStudioCompatibility
         \li \c{bool}
+        \li 1.2
         \li \c{true}
         \li Passes most of the same preprocessor macros to the compiler as Visual Studio does.
             This allows easier authoring WiX files that are compatible with both \QBS and MSBuild.
     \row
         \li includePaths
         \li \c{pathList}
+        \li 1.2
         \li \c{undefined}
         \li List of include paths. Relative paths are considered to be relative to the .qbs product
             file they are used in.
     \row
         \li treatWarningsAsErrors
         \li \c{bool}
+        \li 1.2
         \li \c{false}
         \li Warnings will be handled as errors and cause the build to fail.
     \row
         \li warningLevel
         \li \c{string}
+        \li 1.2
         \li \c{"normal"}
         \li Severity of warnings to emit. The higher the level, the more warnings will be shown.
             Possible values include: \c{"none"}, \c{"normal"}, \c{"pedantic"}
     \row
         \li verboseOutput
         \li \c{bool}
+        \li 1.2
         \li \c{false}
         \li Whether to display verbose output from the compiler and linker.
     \row
         \li compilerFlags
         \li \c{stringList}
+        \li 1.2
         \li \c{undefined}
         \li Additional flags for the Candle compiler.
     \row
         \li linkerFlags
         \li \c{stringList}
+        \li 1.2
         \li \c{undefined}
         \li Additional flags for the Light linker.
     \row
         \li cultures
         \li \c{stringList}
+        \li 1.2
         \li \c{undefined}
         \li List of localizations to include in the MSI.
             Use \c{undefined} to include all localizations.
     \row
         \li extensions
         \li \c{stringList}
+        \li 1.2
         \li \c{["WixBalExtension"]} if the product type is an EXE setup application,
             otherwise \c{undefined}.
         \li List of extension assemblies to link into the output.
@@ -139,67 +153,79 @@
     \row
         \li version
         \li \c{string}
+        \li 1.2
         \li \c{undefined}
         \li The WiX version. Consists of four numbers separated by dots, for instance "3.7.1224.0".
     \row
         \li versionMajor
         \li \c{int}
+        \li 1.2
         \li \c{versionParts[0]}
         \li The WiX major version.
     \row
         \li versionMinor
         \li \c{int}
+        \li 1.2
         \li \c{versionParts[1]}
         \li The WiX minor version.
     \row
         \li versionParts
         \li \c{list}
+        \li 1.2
         \li \c{empty}
         \li The WiX version as a list. For instance, WiX version 3.7.1224.0 would correspond to a
             value of \c[3, 7, 1224, 0].
     \row
         \li versionPatch
         \li \c{int}
+        \li 1.2
         \li \c{versionParts[2]}
         \li The WiX patch level.
     \row
         \li versionBuild
         \li \c{int}
+        \li 1.2
         \li \c{versionParts[3]}
         \li The fourth WiX version number component.
     \row
         \li toolchainInstallPath
         \li \c{path}
+        \li 1.2
         \li determined automatically
         \li WiX installation directory. Determined by searching the registry for the latest version.
             This should not normally need to be changed.
     \row
         \li toolchainInstallRoot
         \li \c{path}
+        \li 1.2
         \li determined automatically
         \li WiX binaries directory. Determined by searching the registry for the latest version.
             This should not normally need to be changed.
     \row
         \li compilerName
         \li \c{string}
+        \li 1.2
         \li \c{"candle.exe"}
         \li Name of the compiler binary.
             This should not normally need to be changed.
     \row
         \li compilerPath
         \li \c{string}
+        \li 1.2
         \li \c{compilerName}
         \li Directory where the compiler binary is located.
             This should not normally need to be changed.
     \row
         \li linkerName
         \li \c{string}
+        \li 1.2
         \li \c{"light.exe"}
         \li Name of the linker binary.
             This should not normally need to be changed.
     \row
         \li linkerPath
         \li \c{string}
+        \li 1.2
         \li \c{linkerName}
         \li Directory where the linker binary is located.
             This should not normally need to be changed.

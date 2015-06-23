@@ -34,6 +34,7 @@
     \ingroup list-of-modules
 
     \title Module qbs
+    \since 1.0
     \brief Comprises general properties.
 
     The \c qbs module is implicitly loaded in every product. It contains properties of the current
@@ -45,33 +46,39 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li buildVariant
         \li \c{string}
+        \li 1.0
         \li \c{"debug"}
         \li Contains the name of the build variant for the current build.
     \row
         \li debugInformation
         \li \c bool
+        \li 1.0
         \li \c{true} for debug builds, \c{false} otherwise
         \li Specifies whether to generate debug information.
     \row
         \li enableDebugCode
         \li \c bool
+        \li 1.0
         \li \c{true} for debug builds, \c{false} otherwise
         \li Specifies whether to compile debug code in the product.
             This is typically enabled for debug builds and disabled for release builds.
     \row
         \li optimization
         \li \c{string}
+        \li 1.0
         \li \c{"none"} for debug builds, \c{"fast"} for release builds
         \li Specifies the general type of optimization that should be performed by all toolchains.
             Allowed values: \c{"none"}, \c{"fast"}, \c{"small"}
     \row
         \li targetOS
         \li \c{stringList}
+        \li 1.0
         \li \c{undefined}
         \li Specifies the OS you want to build the project for. This is typically set in a profile.
             Possible values include one or more of the following:
@@ -119,6 +126,7 @@
     \row
         \li architecture
         \li \c{string}
+        \li 1.0
         \li \c{undefined}
         \li Specifies the target platform's processor architecture.
             This is typically set in a profile.
@@ -126,18 +134,21 @@
     \row
         \li toolchain
         \li \c{stringList}
+        \li 1.0
         \li \c{undefined}
         \li Specifies the attributes of the toolchain that is going to be used for this build.
             Typical values include: \c{"gcc"}, \c{"llvm"}, \c{"clang"}, \c{"mingw"}, \c{"msvc"}
     \row
         \li sysroot
         \li \c{string}
+        \li 1.0
         \li \c{undefined}
         \li Specifies the sysroot of the target platform.
             This property is typically set in a profile for cross-compiling.
     \row
         \li pathListSeparator
         \li \c{string}
+        \li 1.0
         \li \c{";"} on Windows,
             \c{":"} on Unix
         \li Holds the platform-specific separator for path list that is used in environment
@@ -153,11 +164,13 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li hostOS
         \li \c{stringList} (read only)
+        \li 1.0
         \li \c{undefined}
         \li This property is set by \QBS internally and specifies the OS \QBS is running on.
             The possible values for this property are the values of \c targetOS, though some may not
@@ -165,6 +178,7 @@
     \row
         \li hostOSVersion
         \li \c{string} (read only)
+        \li 1.2
         \li \c{undefined}
         \li The host operating system version. Currently only defined for Windows and Apple
             platforms. Consists of two or three numbers separated by dots, for instance "10.9" or
@@ -172,6 +186,7 @@
     \row
         \li hostOSBuildVersion
         \li \c{string} (read only)
+        \li 1.2
         \li \c{undefined}
         \li The host operating system's build version. Currently only defined for Windows and Apple
             platforms. On Windows, this is the 4 or 5 digit Windows build number and is equivalent
@@ -180,16 +195,19 @@
     \row
         \li hostOSVersionMajor
         \li \c{int} (read only)
+        \li 1.2
         \li \c{hostOSVersionParts[0]}
         \li The host operating system major version.
     \row
         \li hostOSVersionMinor
         \li \c{int} (read only)
+        \li 1.2
         \li \c{hostOSVersionParts[1]}
         \li The host operating system minor version.
     \row
         \li hostOSVersionParts
         \li \c{list} (read only)
+        \li 1.2
         \li \c{empty}
         \li The host operating system version as a list.
             For instance, Windows 8.1 (version 6.3.9600) would correspond to a value of
@@ -197,26 +215,31 @@
     \row
         \li hostOSVersionPatch
         \li \c{int} (read only)
+        \li 1.2
         \li \c{hostOSVersionParts[2]}
         \li The host operating system patch level.
     \row
         \li version
         \li \c{string} (read only)
+        \li 1.4.1
         \li
         \li Version number of \QBS as a string, i.e. "1.4.1".
     \row
         \li versionMajor
         \li \c{int} (read only)
+        \li 1.4.1
         \li
         \li Major version number of \QBS.
     \row
         \li versionMinor
         \li \c{int} (read only)
+        \li 1.4.1
         \li
         \li Minor version number of \QBS.
     \row
         \li versionPatch
         \li \c{int} (read only)
+        \li 1.4.1
         \li
         \li Patch version number of \QBS.
     \endtable
@@ -230,11 +253,13 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li install
         \li \c{bool}
+        \li 1.0
         \li \c{false}
         \li Specifies whether to install a certain set of files.
             This is typically set in a \c{Group} item to mark a number of files as installable.
@@ -243,6 +268,7 @@
     \row
         \li installSourceBase
         \li \c{string}
+        \li 1.4
         \li see below
         \li Specifies the base directory of the local files that are going to be installed. The
             source base directory is omitted from the target directory path specified in
@@ -251,12 +277,14 @@
     \row
         \li installDir
         \li \c{string}
+        \li 1.0
         \li \c{undefined}
         \li Specifies the installation directory for the files of a product or a \c{Group}. The
             value of this property is a path that is relative to \c installPrefix.
     \row
         \li installPrefix
         \li \c{string}
+        \li 1.1
         \li \c{empty}
         \li Specifies the global installation prefix. It is implicitly prepended to all values of
             \c installDir. The \c installPrefix itself is relative to the \c installRoot in the
@@ -264,6 +292,7 @@
     \row
         \li installRoot
         \li \c{string}
+        \li 1.4
         \li \c{<build dir>/install-root}
         \li Specifies the global installation root. It is implicitly prepended to all values
             of \c installPrefix in the context of installation.

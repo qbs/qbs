@@ -34,6 +34,7 @@
     \ingroup list-of-modules
 
     \title Module Android.sdk
+    \since 1.4
     \brief Provides support for building Android packages.
 
     The \c Android.sdk module contains the properties and rules to create Android application
@@ -51,28 +52,33 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li buildToolsVersion
         \li string
+        \li 1.4
         \li undefined
         \li The version of the build tools such as aapt and dx. The \c setup-android
             tool sets this to the highest version available in the SDK.
     \row
         \li ndkDir
         \li string
+        \li 1.4
         \li undefined
         \li The NDK base directory, if an NDK is present.
     \row
         \li platform
         \li string
+        \li 1.4
         \li undefined
         \li The versioned platform name (e.g. "android-21"). The \c setup-android
             tool sets this to the highest version available in the SDK.
     \row
         \li sdkDir
         \li string
+        \li 1.4
         \li undefined
         \li The SDK base directory.
     \endtable

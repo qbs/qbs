@@ -34,6 +34,7 @@
     \ingroup list-of-modules
 
     \title Module nsis
+    \since 1.2
     \brief Provides Nullsoft Scriptable Install System support.
 
     The \c nsis module contains properties and rules for building EXE installers
@@ -51,11 +52,13 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li defines
         \li stringList
+        \li 1.2
         \li \c{undefined}
         \li List of preprocessor macros that get passed to the compiler.
             To set macro values, use the following syntax:
@@ -63,12 +66,14 @@
     \row
         \li disableConfig
         \li bool
+        \li 1.2
         \li \c{false}
         \li Whether to disable inclusion of nsisconf.nsh.
             Generally you do not need to set this property.
     \row
         \li enableQbsDefines
         \li bool
+        \li 1.2
         \li \c{true}
         \li Whether to define preprocessor macros corresponding to values from the project and
             product objects. When building a 64-bit package, the preprocessor variable \c{Win64}
@@ -76,6 +81,7 @@
     \row
         \li warningLevel
         \li string
+        \li 1.2
         \li \c{"normal"}
         \li Severity of warnings to emit. The higher the level, the more warnings will be shown.
             The levels \c{none}, \c{errors}, \c{warnings}, \c{info} and \c{all} correspond to NSIS
@@ -83,11 +89,13 @@
     \row
         \li compilerFlags
         \li stringList
+        \li 1.2
         \li undefined
         \li Additional flags for the NSIS compiler.
     \row
         \li compressor
         \li string
+        \li 1.2
         \li \c{"default"}
         \li Compression algorithm used to compress files and data in the installer.
             Setting this property overrides any SetCompressor command in the NSI file being
@@ -96,48 +104,57 @@
     \row
         \li version
         \li string
+        \li 1.2
         \li \c{undefined}
         \li The NSIS version. Consists of four numbers separated by dots, for instance "2.46.0.0".
     \row
         \li versionMajor
         \li int
+        \li 1.2
         \li \c{versionParts[0]}
         \li The NSIS major version.
     \row
         \li versionMinor
         \li int
+        \li 1.2
         \li \c{versionParts[1]}
         \li The NSIS minor version.
     \row
         \li versionParts
         \li list
+        \li 1.2
         \li \c{empty}
         \li The NSIS version as a list. For instance, NSIS version 2.46.0.0 would correspond to a
             value of \c[2, 46, 0, 0].
     \row
         \li versionPatch
         \li int
+        \li 1.2
         \li \c{versionParts[2]}
         \li The NSIS patch level.
     \row
         \li versionBuild
         \li int
+        \li 1.2
         \li \c{versionParts[3]}
         \li The fourth NSIS version number component.
     \row
         \li toolchainInstallPath
         \li path
+        \li 1.2
         \li determined automatically
         \li NSIS installation directory. Determined by searching known registry keys and known
             installation paths until a match is found. This should not normally need to be changed.
     \row
         \li compilerName
         \li string
+        \li 1.2
         \li \c{"makensis"}
         \li Name of the compiler binary. This should not normally need to be changed.
     \row
         \li compilerPath
         \li string
+        \li 1.2
         \li \c{compilerName}
         \li Directory where the compiler binary is located. This should not normally need to be
             changed.
