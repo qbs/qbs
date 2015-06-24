@@ -40,12 +40,12 @@ Module {
     property stringList additionalCompilerFlags
     property stringList additionalJarFlags
     property stringList bootClassPaths
-    property string compilerFilePath: FileInfo.joinPaths(jdkPath, compilerName)
+    property string compilerFilePath: FileInfo.joinPaths(jdkPath, "bin", compilerName)
     property string compilerName: "javac"
     property bool enableWarnings: true
-    property string interpreterFilePath : FileInfo.joinPaths(jdkPath, interpreterName)
+    property string interpreterFilePath : FileInfo.joinPaths(jdkPath, "bin", interpreterName)
     property string interpreterName: "java"
-    property string jarFilePath: FileInfo.joinPaths(jdkPath, jarName)
+    property string jarFilePath: FileInfo.joinPaths(jdkPath, "bin", jarName)
     property string jarName: "jar"
     property path jdkPath
 
@@ -89,6 +89,7 @@ Module {
 
     validate: {
         var validator = new ModUtils.PropertyValidator("java");
+        validator.setRequiredProperty("jdkPath", jdkPath);
         validator.setRequiredProperty("compilerVersion", compilerVersion);
         validator.setRequiredProperty("compilerVersionParts", compilerVersionParts);
         validator.setRequiredProperty("compilerVersionMajor", compilerVersionMajor);
