@@ -1498,7 +1498,7 @@ void TestBlackbox::java()
     QCOMPARE(runQbs(), 0);
 
     const QStringList classFiles =
-            QStringList() << "Car" << "Jet" << "Ship" << "Vehicle" << "Vehicles";
+            QStringList() << "Jet" << "Ship" << "Vehicles";
     QStringList classFiles1 = QStringList(classFiles) << "io/qt/qbs/HelloWorld" << "NoPackage";
     for (int i = 0; i < classFiles1.count(); ++i) {
         QString &classFile = classFiles1[i];
