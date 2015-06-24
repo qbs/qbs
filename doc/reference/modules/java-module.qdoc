@@ -125,8 +125,16 @@
         \li jdkPath
         \li path
         \li 1.4
-        \li undefined
-        \li The base path of Java-related tools.
+        \li determined automatically
+        \li The base path of the Java Development Kit (JDK). This is equivalent to the \c JAVA_HOME
+            environment variable, and by default will be determined automatically from one of the
+            following:
+            \list
+            \li \c JAVA_HOME environment variable (all platforms)
+            \li Registry (Windows)
+            \li \c java_home tool (OS X)
+            \li Known JDK paths (other Unix platforms)
+            \endlist
     \row
         \li languageVersion
         \li string

@@ -32,6 +32,69 @@ var File = loadExtension("qbs.File");
 var FileInfo = loadExtension("qbs.FileInfo");
 var Process = loadExtension("qbs.Process");
 
+function findJdkPath(hostOS, arch) {
+    var i;
+    var env = qbs.getEnv("JAVA_HOME");
+    if (env) {
+        return env;
+    }
+
+    if (hostOS.contains("windows")) {
+        var keys = [
+            "HKEY_LOCAL_MACHINE\\SOFTWARE\\JavaSoft\\Java Development Kit",
+            "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\JavaSoft\\Java Development Kit"
+        ];
+
+        for (i in keys) {
+            var current =  qbs.getNativeSetting(keys[i], "CurrentVersion"); // 1.8 etc.
+            if (current) {
+                var home = qbs.getNativeSetting([keys[i], current].join("\\"), "JavaHome");
+                if (home) {
+                    return home;
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    if (hostOS.contains("osx")) {
+        var p = new Process();
+        try {
+            arch = arch === "x86" ? "i386" : arch;
+
+            // We filter by architecture here so that we'll get a compatible JVM for JNI use.
+            // --failfast doesn't print the default JVM if nothing matches the filter.
+            p.exec("/usr/libexec/java_home", ["--arch", arch, "--failfast"]);
+            return p.readStdOut().trim();
+        } catch (e) {
+            return undefined;
+        } finally {
+            p.close();
+        }
+    }
+
+    if (hostOS.contains("unix")) {
+        var requiredTools = ["javac", "java", "jar"];
+        var searchPaths = [
+            "/usr/lib/jvm/default-java", // Debian/Ubuntu
+            "/etc/alternatives/java_sdk_openjdk", // Fedora
+            "/usr/lib/jvm/default" // Arch
+        ];
+        for (i = 0; i < searchPaths.length; ++i) {
+            function fullToolPath(tool) {
+                return FileInfo.joinPaths(searchPaths[i], "bin", tool);
+            }
+
+            if (requiredTools.map(fullToolPath).every(File.exists)) {
+                return searchPaths[i];
+            }
+        }
+
+        return undefined;
+    }
+}
+
 function supportsGeneratedNativeHeaderFiles(product) {
     var compilerVersionMajor = ModUtils.moduleProperty(product, "compilerVersionMajor");
     if (compilerVersionMajor === 1) {

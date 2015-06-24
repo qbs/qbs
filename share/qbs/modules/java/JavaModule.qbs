@@ -47,7 +47,7 @@ Module {
     property string interpreterName: "java"
     property string jarFilePath: FileInfo.joinPaths(jdkPath, "bin", jarName)
     property string jarName: "jar"
-    property path jdkPath
+    property path jdkPath: JavaUtils.findJdkPath(qbs.hostOS, qbs.architecture)
 
     property string compilerVersion: rawCompilerVersion ? rawCompilerVersion[1] : undefined
     property var compilerVersionParts: compilerVersion ? compilerVersion.split(/[\._]/).map(function(item) { return parseInt(item, 10); }) : []

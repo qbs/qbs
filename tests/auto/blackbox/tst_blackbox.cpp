@@ -1492,10 +1492,15 @@ void TestBlackbox::java()
 {
     Settings settings((QString()));
     Profile p(profileName(), &settings);
-    if (p.value("java.jdkPath").toString().isEmpty())
-        QSKIP("java.jdkPath not set");
     QDir::setCurrent(testDataDir + "/java");
-    QCOMPARE(runQbs(), 0);
+
+    int status = runQbs();
+    if (!p.value("java.jdkPath").toString().isEmpty()
+            && status != 0 && m_qbsStderr.contains("jdkPath")) {
+        QSKIP("java.jdkPath not set and automatic detection failed");
+    }
+
+    QCOMPARE(status, 0);
 
     const QStringList classFiles =
             QStringList() << "Jet" << "Ship" << "Vehicles";
