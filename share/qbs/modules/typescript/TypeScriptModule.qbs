@@ -108,7 +108,8 @@ Module {
         var p = new Process();
         try {
             p.exec(compilerPath, ["--version"]);
-            var match = p.readStdOut().match(/.*\bVersion (([0-9]+(?:\.[0-9]+){1,3})(?:-(.+?))?)\n$/);
+            var re = /^(?:message TS6029: )?Version (([0-9]+(?:\.[0-9]+){1,3})(?:-(.+?))?)$/m;
+            var match = p.readStdOut().match(re);
             if (match !== null)
                 return match;
         } finally {
