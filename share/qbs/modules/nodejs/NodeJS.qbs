@@ -44,6 +44,10 @@ Module {
         description: "file whose corresponding output will be executed when running the Node.js app"
     }
 
+    // private properties
+    readonly property path compiledIntermediateDir: FileInfo.joinPaths(product.buildDirectory,
+                                                                       "tmp", "nodejs.intermediate")
+
     setupRunEnvironment: {
         var v = new ModUtils.EnvironmentVariable("NODE_PATH", qbs.pathListSeparator, qbs.hostOS.contains("windows"));
         v.prepend(FileInfo.path(getEnv("QBS_RUN_FILE_PATH")));
@@ -64,8 +68,21 @@ Module {
                 product.moduleProperty("nodejs", "applicationFile") === input.filePath)
                 tags.push("application");
 
+            // Preserve directory structure of input files
+            var intermediatePath = product.sourceDirectory;
+
+            // Handle nodejs.compiledIntermediateDir (QBS-5 workaround)
+            var compiled = product.moduleProperty("nodejs", "compiledIntermediateDir");
+            if (input.filePath.startsWith(compiled)) {
+                intermediatePath = compiled;
+            }
+
+            intermediatePath = FileInfo.path(FileInfo.relativePath(intermediatePath,
+                                                                   input.filePath));
+
             return [{
-                filePath: product.destinationDirectory + '/' + input.fileName,
+                filePath: FileInfo.joinPaths(product.destinationDirectory, intermediatePath,
+                                             input.fileName),
                 fileTags: tags
             }];
         }

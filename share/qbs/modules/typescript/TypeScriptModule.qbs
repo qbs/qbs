@@ -166,6 +166,10 @@ Module {
         outputArtifacts: {
             var artifacts = [];
 
+            if (!inputs.typescript) {
+                return artifacts;
+            }
+
             if (product.moduleProperty("typescript", "singleFile")) {
                 var jsTags = ["js", "compiled_typescript"];
 
@@ -177,29 +181,51 @@ Module {
                 var filePath = FileInfo.joinPaths(product.destinationDirectory, product.targetName);
 
                 artifacts.push({fileTags: jsTags,
-                                filePath: FileInfo.joinPaths(".obj", product.targetName, "typescript", filePath + ".js")});
-                artifacts.push({condition: product.moduleProperty("typescript", "generateDeclarations"), // ### QBS-412
-                                fileTags: ["typescript_declaration"],
-                                filePath: filePath + ".d.ts"});
-                artifacts.push({condition: product.moduleProperty("typescript", "generateSourceMaps"), // ### QBS-412
-                                fileTags: ["source_map"],
-                                filePath: filePath + ".js.map"});
+                                filePath: FileInfo.joinPaths(
+                                              product.moduleProperty("nodejs",
+                                                                     "compiledIntermediateDir"),
+                                              product.targetName + ".js")});
+
+                if (product.moduleProperty("typescript", "generateDeclarations")) {
+                    artifacts.push({fileTags: ["typescript_declaration"],
+                                    filePath: filePath + ".d.ts"});
+                }
+
+                if (product.moduleProperty("typescript", "generateSourceMaps")) {
+                    artifacts.push({fileTags: ["source_map"],
+                                    filePath: filePath + ".js.map"});
+                }
             } else {
                 for (var i = 0; i < inputs.typescript.length; ++i) {
                     var jsTags = ["js", "compiled_typescript"];
                     if (product.moduleProperty("nodejs", "applicationFile") === inputs.typescript[i].filePath)
                         jsTags.push("application_js");
 
-                    var filePath = FileInfo.joinPaths(product.destinationDirectory, FileInfo.baseName(inputs.typescript[i].filePath));
+                    var intermediatePath = FileInfo.path(FileInfo.relativePath(
+                                                             product.sourceDirectory,
+                                                             inputs.typescript[i].filePath));
+
+                    var baseName = FileInfo.baseName(inputs.typescript[i].fileName);
+                    var filePath = FileInfo.joinPaths(product.destinationDirectory,
+                                                      intermediatePath,
+                                                      baseName);
 
                     artifacts.push({fileTags: jsTags,
-                                    filePath: FileInfo.joinPaths(".obj", product.targetName, "typescript", filePath + ".js")});
-                    artifacts.push({condition: product.moduleProperty("typescript", "generateDeclarations"), // ### QBS-412
-                                    fileTags: ["typescript_declaration"],
-                                    filePath: filePath + ".d.ts"});
-                    artifacts.push({condition: product.moduleProperty("typescript", "generateSourceMaps"), // ### QBS-412
-                                    fileTags: ["source_map"],
-                                    filePath: filePath + ".js.map"});
+                                    filePath: FileInfo.joinPaths(
+                                                  product.moduleProperty("nodejs",
+                                                                         "compiledIntermediateDir"),
+                                                  intermediatePath,
+                                                  baseName + ".js")});
+
+                    if (product.moduleProperty("typescript", "generateDeclarations")) {
+                        artifacts.push({fileTags: ["typescript_declaration"],
+                                        filePath: filePath + ".d.ts"});
+                    }
+
+                    if (product.moduleProperty("typescript", "generateSourceMaps")) {
+                        artifacts.push({fileTags: ["source_map"],
+                                        filePath: filePath + ".js.map"});
+                    }
                 }
             }
 
@@ -280,15 +306,20 @@ Module {
             cmd.highlight = "compiler";
             cmds.push(cmd);
 
-            // Move all the compiled TypeScript files to the proper intermediate directory
+            // QBS-5
+            // Move the compiled JavaScript files compiled by TypeScript to an intermediate
+            // directory so that the nodejs module can perform any necessary postprocessing
+            // on the result. The nodejs module will move the files back to their original
+            // locations after postprocessing.
             cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.outDir = product.buildDirectory;
             cmd.sourceCode = function() {
                 for (i = 0; i < outputs.compiled_typescript.length; ++i) {
-                    var fp = outputs.compiled_typescript[i].filePath;
-                    var originalFilePath = FileInfo.joinPaths(outDir, FileInfo.fileName(fp));
-                    File.copy(originalFilePath, fp);
+                    var output = outputs.compiled_typescript[i];
+                    var intermediatePath = FileInfo.path(FileInfo.relativePath(product.moduleProperty("nodejs", "compiledIntermediateDir"), output.filePath));
+                    var originalFilePath = FileInfo.joinPaths(outDir, intermediatePath, output.fileName);
+                    File.copy(originalFilePath, output.filePath);
                     File.remove(originalFilePath);
                 }
             };
