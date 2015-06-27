@@ -45,6 +45,8 @@ BinaryProbe {
     property var version
 
     configure: {
+        if (!nodejsToolchainInstallPath)
+            throw '"nodejsToolchainInstallPath" must be specified';
         // HACK: Duplicated from PathProbe.qbs
         if (!names)
             throw '"names" must be specified';

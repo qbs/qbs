@@ -41,6 +41,12 @@ Module {
 
     additionalProductTypes: ["compiled_typescript"]
 
+    // QBS-833 workaround
+    Probes.NodeJsProbe { id: nodejsProbe; pathPrefixes: [nodejsProbe.toolchainInstallPath] }
+    nodejs.toolchainInstallPath: nodejsProbe.path
+    nodejs.interpreterFileName: nodejsProbe.fileName
+    nodejs.interpreterFilePath: nodejsProbe.filePath
+
     Probes.TypeScriptProbe {
         id: tsc
         pathPrefixes: [toolchainInstallPath]
@@ -146,11 +152,49 @@ Module {
         fileTags: ["typescript"]
     }
 
+    Group {
+        name: "io.qt.qbs.internal.typescript-helper"
+        files: [
+            FileInfo.joinPaths(path, "qbs-tsc-scan", "qbs-tsc-scan.ts"),
+            FileInfo.joinPaths(product.typescript.toolchainInstallPath, "typescript.d.ts")
+        ]
+        fileTags: ["typescript.typescript-internal"]
+    }
+
+    Rule {
+        multiplex: true
+        inputs: ["typescript.typescript-internal"]
+
+        outputFileTags: ["typescript.compiled_typescript-internal"]
+        outputArtifacts: {
+            if (!TypeScript.supportsModernFeatures(product))
+                return [];
+            return [{
+                filePath: FileInfo.joinPaths(product.buildDirectory,
+                                             ".io.qt.qbs.internal.typescript", "qbs-tsc-scan.js"),
+                fileTags: ["typescript.compiled_typescript-internal"]
+            }];
+        }
+
+        prepare: {
+            var inputPaths = inputs["typescript.typescript-internal"].map(function (input) {
+                return input.filePath;
+            });
+
+            var args = ["--module", "commonjs",
+                        "--outDir", FileInfo.path(output.filePath)].concat(inputPaths);
+            var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
+            cmd.silent = true;
+            return [cmd];
+        }
+    }
+
     Rule {
         id: typescriptCompiler
         multiplex: true
         inputs: ["typescript"]
         inputsFromDependencies: ["typescript_declaration"]
+        explicitlyDependsOn: ["typescript.compiled_typescript-internal"]
 
         outputArtifacts: TypeScript.outputArtifacts(product, inputs)
 
@@ -160,9 +204,9 @@ Module {
             var cmd, cmds = [];
 
             cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"),
-                              TypeScript.tscArguments(product, inputs, outputs));
+                              TypeScript.tscArguments(product, inputs));
             cmd.description = "compiling " + (ModUtils.moduleProperty(product, "singleFile")
-                                                ? primaryOutput.fileName
+                                                ? outputs.compiled_typescript[0].fileName
                                                 : inputs.typescript.map(function(obj) {
                                                                 return obj.fileName; }).join(", "));
             cmd.highlight = "compiler";
