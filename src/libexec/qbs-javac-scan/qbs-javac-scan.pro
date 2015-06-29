@@ -21,8 +21,9 @@ JAVAMAINCLASS = io.qt.qbs.tools.JavaCompilerScannerTool
 # from mkspecs/features/java.prf
 TEMPLATE = lib
 
-CLASS_DIR = .classes
-CLASS_DIR_MARKER = .classes.marker
+CLASS_DIR = classes
+CLASS_DIR_MARKER = classes.marker
+CLASS_DIR_PREFIX = $$CLASS_DIR/io/qt/qbs
 
 CONFIG -= qt
 
@@ -33,6 +34,21 @@ CONFIG += plugin no_plugin_name_prefix
 
 javac.input = JAVASOURCES
 javac.output = $$CLASS_DIR_MARKER
+javac.clean = \
+    $$shell_path($$CLASS_DIR_PREFIX/Artifact.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/ArtifactListJsonWriter.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/ArtifactListWriter.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/ArtifactListTextWriter.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/ArtifactListXmlWriter.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/tools/JavaCompilerScannerTool.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/tools/utils/JavaCompilerOptions.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/tools/utils/JavaCompilerScanner$1.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/tools/utils/JavaCompilerScanner.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/tools/utils/NullFileObject$1.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/tools/utils/NullFileObject$2.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/tools/utils/NullFileObject$3.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/tools/utils/NullFileObject$4.class) \
+    $$shell_path($$CLASS_DIR_PREFIX/tools/utils/NullFileObject.class)
 javac.CONFIG += combine
 javac.commands = javac -source 1.6 -target 1.6 -Xlint:unchecked -cp $$shell_quote($$system_path($$join(JAVACLASSPATH, $$DIRLIST_SEPARATOR))) -d $$shell_quote($$CLASS_DIR) ${QMAKE_FILE_IN} $$escape_expand(\\n\\t) \
     @echo Nothing to see here. Move along. > $$CLASS_DIR_MARKER
@@ -57,14 +73,10 @@ QMAKE_EXTENSION_SHLIB = jar
 
 # nmake
 QMAKE_LINK = jar
-QMAKE_LFLAGS = cfe $(DESTDIR_TARGET) $$JAVAMAINCLASS -C $$CLASS_DIR .
+QMAKE_LFLAGS = cfe $(DESTDIR_TARGET) $$JAVAMAINCLASS -C $$CLASS_DIR . && "echo "
 
 # Demonstrate an excellent reason why qbs exists
 QMAKE_LINK_O_FLAG = && "echo "
 
 # make
 QMAKE_LINK_SHLIB_CMD = jar cfe $(TARGET) $$JAVAMAINCLASS -C $$CLASS_DIR .
-
-# Force link step to always happen, since we are always updating the
-# .class files
-PRE_TARGETDEPS += FORCE
