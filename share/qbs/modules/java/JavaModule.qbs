@@ -70,6 +70,27 @@ Module {
 
     property bool warningsAsErrors: false
 
+    property pathList jdkIncludePaths: {
+        var paths = [];
+        if (qbs.hostOS.contains("darwin") && compilerVersionMinor <= 6) {
+            paths.push("/System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers");
+        } else {
+            paths.push(FileInfo.joinPaths(jdkPath, "include"));
+
+            var hostOS = qbs.hostOS.contains("windows") ? qbs.hostOS.concat(["win32"]) : qbs.hostOS;
+            var platforms = ["win32", "darwin", "linux", "bsd", "solaris"];
+            for (var i = 0; i < platforms.length; ++i) {
+                if (hostOS.contains(platforms[i])) {
+                    // Corresponds to JDK_INCLUDE_SUBDIR in the JDK Makefiles
+                    paths.push(FileInfo.joinPaths(jdkPath, "include", platforms[i]));
+                    break;
+                }
+            }
+        }
+
+        return paths;
+    }
+
     // Internal properties
     property path classFilesDir: FileInfo.joinPaths(product.buildDirectory, "classFiles")
 

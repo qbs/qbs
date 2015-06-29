@@ -115,6 +115,13 @@
         \li \c{"jar"}
         \li The file name of the \c jar tool.
     \row
+        \li jdkIncludePaths
+        \li pathList
+        \li 1.4.1
+        \li determined automatically
+        \li List of include paths for native header files. Applications using JNI to interface
+            with native code should add these paths to \c{cpp.includePaths}.
+    \row
         \li jdkPath
         \li path
         \li 1.4
