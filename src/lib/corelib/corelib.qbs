@@ -415,6 +415,6 @@ QbsLibrary {
     }
     Export {
         Depends { name: "Qt"; submodules: ["script", "xml"] }
-        cpp.defines: projectFileUpdateDefines
+        cpp.defines: product.projectFileUpdateDefines
     }
 }
