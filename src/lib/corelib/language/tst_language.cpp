@@ -77,7 +77,7 @@ TestLanguage::~TestLanguage()
 QHash<QString, ResolvedProductPtr> TestLanguage::productsFromProject(ResolvedProjectPtr project)
 {
     QHash<QString, ResolvedProductPtr> result;
-    foreach (ResolvedProductPtr product, project->products)
+    foreach (const ResolvedProductPtr &product, project->allProducts())
         result.insert(product->name, product);
     return result;
 }
@@ -460,7 +460,7 @@ void TestLanguage::exports()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 9);
+        QCOMPARE(products.count(), 11);
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(product);
@@ -518,6 +518,12 @@ void TestLanguage::exports()
                                                 "productName").toString(), QString("myapp3"));
         QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
                 "upperCaseProductName").toString(), QString("MYAPP3"));
+
+        // Verify we refer to the right "project" variable.
+        product = products.value("sub p2");
+        QVERIFY(product);
+        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
+                                                "someString").toString(), QString("sub1"));
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;

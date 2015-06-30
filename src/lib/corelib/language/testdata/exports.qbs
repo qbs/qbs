@@ -48,4 +48,23 @@ Project {
         name: "myapp3"
         Depends { name: "productWithInheritedExportItem" }
     }
+
+    Project {
+        name: "sub1"
+        Product {
+            name: "sub p1"
+            Export {
+                Depends { name: "dummy" }
+                dummy.someString: project.name
+            }
+        }
+    }
+
+    Project {
+        name: "sub2"
+        Product {
+            name: "sub p2"
+            Depends { name: "sub p1" }
+        }
+    }
 }
