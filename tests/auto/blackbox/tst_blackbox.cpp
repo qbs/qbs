@@ -1495,7 +1495,7 @@ void TestBlackbox::java()
     QDir::setCurrent(testDataDir + "/java");
 
     int status = runQbs();
-    if (!p.value("java.jdkPath").toString().isEmpty()
+    if (p.value("java.jdkPath").toString().isEmpty()
             && status != 0 && m_qbsStderr.contains("jdkPath")) {
         QSKIP("java.jdkPath not set and automatic detection failed");
     }
