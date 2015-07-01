@@ -156,3 +156,10 @@ function frameworkExecutablePath(frameworkPath) {
     }
     return undefined;
 }
+
+// pathList is also a string, using the respective separator
+function prependOrSetPath(path, pathList, separator) {
+    if (!pathList || pathList.length === 0)
+        return path;
+    return path + separator + pathList;
+}

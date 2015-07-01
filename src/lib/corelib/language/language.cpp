@@ -554,6 +554,18 @@ static QScriptValue js_unsetEnv(QScriptContext *context, QScriptEngine *engine)
     return engine->undefinedValue();
 }
 
+static QScriptValue js_currentEnv(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(context);
+    QVariant v = engine->property("_qbs_procenv");
+    const QProcessEnvironment * const procenv
+            = reinterpret_cast<QProcessEnvironment*>(v.value<void*>());
+    QScriptValue envObject = engine->newObject();
+    foreach (const QString &key, procenv->keys())
+        envObject.setProperty(key, QScriptValue(procenv->value(key)));
+    return envObject;
+}
+
 enum EnvType
 {
     BuildEnv, RunEnv
@@ -622,11 +634,13 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
     QScriptValue scope = engine->newObject();
 
     const QScriptValue getEnvValue = engine->newFunction(js_getEnv, 1);
-    const QScriptValue putEnvValue = engine->newFunction(js_putEnv, 1);
+    const QScriptValue putEnvValue = engine->newFunction(js_putEnv, 2);
     const QScriptValue unsetEnvValue = engine->newFunction(js_unsetEnv, 1);
+    const QScriptValue currentEnvValue = engine->newFunction(js_currentEnv, 0);
     scope.setProperty(QLatin1String("getEnv"), getEnvValue);
     scope.setProperty(QLatin1String("putEnv"), putEnvValue);
     scope.setProperty(QLatin1String("unsetEnv"), unsetEnvValue);
+    scope.setProperty(QLatin1String("currentEnv"), currentEnvValue);
 
     QSet<QString> seenModuleNames;
     QList<const ResolvedModule *> topSortedModules = topSortModules(moduleChildren, rootModules, seenModuleNames);

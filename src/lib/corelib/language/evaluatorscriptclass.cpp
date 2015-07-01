@@ -298,6 +298,7 @@ EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Log
 {
     m_getNativeSettingBuiltin = scriptEngine->newFunction(js_getNativeSetting, 3);
     m_getEnvBuiltin = scriptEngine->newFunction(js_getEnv, 1);
+    m_currentEnvBuiltin = scriptEngine->newFunction(js_currentEnv, 0);
     m_canonicalArchitectureBuiltin = scriptEngine->newFunction(js_canonicalArchitecture, 1);
     m_rfc1034identifierBuiltin = scriptEngine->newFunction(js_rfc1034identifier, 1);
     m_getHashBuiltin = scriptEngine->newFunction(js_getHash, 1);
@@ -513,6 +514,8 @@ QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin b
         return m_getNativeSettingBuiltin;
     case BuiltinValue::GetEnvFunction:
         return m_getEnvBuiltin;
+    case BuiltinValue::CurrentEnvFunction:
+        return m_currentEnvBuiltin;
     case BuiltinValue::CanonicalArchitectureFunction:
         return m_canonicalArchitectureBuiltin;
     case BuiltinValue::Rfc1034IdentifierFunction:
@@ -553,6 +556,16 @@ QScriptValue EvaluatorScriptClass::js_getEnv(QScriptContext *context, QScriptEng
     const QString value = e->environment().value(name);
     e->addEnvironmentVariable(name, value);
     return value.isNull() ? engine->undefinedValue() : value;
+}
+
+QScriptValue EvaluatorScriptClass::js_currentEnv(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(context);
+    const QProcessEnvironment env = static_cast<ScriptEngine *>(engine)->environment();
+    QScriptValue envObject = engine->newObject();
+    foreach (const QString &key, env.keys())
+        envObject.setProperty(key, QScriptValue(env.value(key)));
+    return envObject;
 }
 
 QScriptValue EvaluatorScriptClass::js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine)

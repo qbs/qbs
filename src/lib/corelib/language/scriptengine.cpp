@@ -501,6 +501,8 @@ void ScriptEngine::installQbsBuiltins()
                        EvaluatorScriptClass::js_getNativeSetting);
     installQbsFunction(QLatin1String("getEnv"),
                        EvaluatorScriptClass::js_getEnv);
+    installQbsFunction(QLatin1String("currentEnv"),
+                       EvaluatorScriptClass::js_currentEnv);
     installQbsFunction(QLatin1String("canonicalArchitecture"),
                        EvaluatorScriptClass::js_canonicalArchitecture);
     installQbsFunction(QLatin1String("rfc1034Identifier"),
