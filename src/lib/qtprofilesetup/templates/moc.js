@@ -34,6 +34,8 @@ function args(product, input, outputFileName)
     defines = defines.uniqueConcat(
                 ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'defines'));
     var includePaths = ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'includePaths');
+    includePaths = includePaths.uniqueConcat(ModUtils.modulePropertiesFromArtifacts(
+                                                 product, [input], 'cpp', 'systemIncludePaths'));
     var frameworkPaths = product.moduleProperties("cpp", "frameworkPaths");
     frameworkPaths = frameworkPaths.uniqueConcat(
                 product.moduleProperties("cpp", "systemFrameworkPaths"));
