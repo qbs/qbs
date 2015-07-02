@@ -119,9 +119,7 @@ Module {
     property var commonRunEnvironment: {
         var env = {};
         if (targetOS.contains("windows")) {
-            env["PATH"] = [
-                FileInfo.joinPaths(installRoot, installPrefix)
-            ];
+            env["PATH"] = FileInfo.joinPaths(installRoot, installPrefix);
         } else if (hostOS.contains("darwin") && targetOS.contains("darwin")) {
             env["DYLD_FRAMEWORK_PATH"] = [
                 FileInfo.joinPaths(installRoot, installPrefix, "Library", "Frameworks"),
@@ -136,12 +134,10 @@ Module {
             ].join(pathListSeparator);
 
             if (targetOS.contains("ios-simulator") && sysroot) {
-                env["DYLD_ROOT_PATH"] = [sysroot];
+                env["DYLD_ROOT_PATH"] = sysroot;
             }
         } else if (hostOS.contains("unix") && targetOS.contains("unix")) {
-            env["LD_LIBRARY_PATH"] = [
-                FileInfo.joinPaths(installRoot, installPrefix, "lib")
-            ];
+            env["LD_LIBRARY_PATH"] = FileInfo.joinPaths(installRoot, installPrefix, "lib");
         }
 
         return env;

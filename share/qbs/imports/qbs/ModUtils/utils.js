@@ -176,13 +176,8 @@ function concatAll() {
   */
 function flattenEnvironmentDictionary(dict, pathListSeparator) {
     var list = [];
-    for (var i in dict) {
-        var value = dict[i];
-        if (typeof value === Array) {
-            value = value.join(pathListSeparator);
-        }
-        list.push(i + "=" + value);
-    }
+    for (var i in dict)
+        list.push(i + "=" + dict[i]);
     return list;
 }
 
