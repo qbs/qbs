@@ -1507,13 +1507,13 @@ void TestBlackbox::java()
     QStringList classFiles1 = QStringList(classFiles) << "io/qt/qbs/HelloWorld" << "NoPackage";
     for (int i = 0; i < classFiles1.count(); ++i) {
         QString &classFile = classFiles1[i];
-        classFile = relativeProductBuildDir("class_collection") + "/classFiles/"
+        classFile = relativeProductBuildDir("class_collection") + "/classes/"
                 + classFile + ".class";
         QVERIFY2(regularFileExists(classFile), qPrintable(classFile));
     }
 
     foreach (const QString &classFile, classFiles) {
-        const QString filePath = relativeProductBuildDir("jar_file") + "/classFiles/" + classFile
+        const QString filePath = relativeProductBuildDir("jar_file") + "/classes/" + classFile
                 + ".class";
         QVERIFY2(regularFileExists(filePath), qPrintable(filePath));
     }

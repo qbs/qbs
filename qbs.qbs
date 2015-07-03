@@ -3,7 +3,6 @@ import qbs 1.0
 Project {
     minimumQbsVersion: "1.4"
     qbsSearchPaths: ["qbs-resources"]
-    property bool enableJava: false
     property bool enableUnitTests: false
     property bool enableProjectFileUpdates: false
     property bool enableRPath: true

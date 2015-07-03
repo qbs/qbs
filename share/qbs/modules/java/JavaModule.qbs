@@ -92,7 +92,14 @@ Module {
     }
 
     // Internal properties
-    property path classFilesDir: FileInfo.joinPaths(product.buildDirectory, "classFiles")
+    property path classFilesDir: FileInfo.joinPaths(product.buildDirectory, "classes")
+    property path internalClassFilesDir: FileInfo.joinPaths(product.buildDirectory, ".classes")
+
+    property path runtimeJarPath: {
+        if (qbs.hostOS.contains("osx") && compilerVersionMajor === 1 && compilerVersionMinor < 7)
+            return FileInfo.joinPaths(jdkPath, "bundle", "Classes", "classes.jar");
+        return FileInfo.joinPaths(jdkPath, "jre", "lib", "rt.jar");
+    }
 
     // private properties
     readonly property var rawCompilerVersion: {
@@ -130,10 +137,42 @@ Module {
         fileTags: ["java.java"]
     }
 
+    Group {
+        name: "io.qt.qbs.internal.java-helper"
+        files: {
+            return JavaUtils.helperFullyQualifiedNames("java").map(function(name) {
+                return FileInfo.joinPaths(path, name + ".java");
+            });
+        }
+
+        fileTags: ["java.java-internal"]
+    }
+
+    Rule {
+        multiplex: true
+        inputs: ["java.java-internal"]
+
+        outputFileTags: ["java.class-internal"]
+        outputArtifacts: {
+            return JavaUtils.helperOutputArtifacts(product);
+        }
+
+        prepare: {
+            var cmd = new Command(ModUtils.moduleProperty(product, "compilerFilePath"),
+                                  JavaUtils.javacArguments(product, inputs,
+                                                           JavaUtils.helperOverrideArgs(product,
+                                                                                        "javac")));
+            cmd.silent = true;
+            return [cmd];
+        }
+    }
+
     Rule {
         multiplex: true
         inputs: ["java.java"]
         inputsFromDependencies: ["java.jar"]
+        explicitlyDependsOn: ["java.class-internal"]
+
         outputFileTags: ["java.class", "hpp"] // Annotations can produce additional java source files. Ignored for now.
         outputArtifacts: {
             return JavaUtils.outputArtifacts(product, inputs);
