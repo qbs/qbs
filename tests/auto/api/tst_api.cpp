@@ -46,6 +46,9 @@
 #include <QTest>
 #include <QTimer>
 
+#include <algorithm>
+#include <functional>
+
 #define VERIFY_NO_ERROR(errorInfo) \
     QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()))
 
@@ -990,6 +993,12 @@ void TestApi::inheritQbsSearchPaths()
     VERIFY_NO_ERROR(errorInfo);
 }
 
+template <typename T, class Pred> T findElem(const QList<T> &list, Pred p)
+{
+    const auto it = std::find_if(list.constBegin(), list.constEnd(), p);
+    return it == list.constEnd() ? T() : *it;
+}
+
 void TestApi::installableFiles()
 {
     qbs::SetupProjectParameters setupParams
@@ -1004,12 +1013,16 @@ void TestApi::installableFiles()
     VERIFY_NO_ERROR(errorInfo);
 
     qbs::ProjectData projectData = project.projectData();
-    QCOMPARE(projectData.allProducts().count(), 1);
-    qbs::ProductData product = projectData.allProducts().first();
+    QCOMPARE(projectData.allProducts().count(), 2);
+    qbs::ProductData product = findElem(projectData.allProducts(), [](const qbs::ProductData &p) {
+        return p.name() == QLatin1String("installedApp");
+    });
+    QVERIFY(product.isValid());
     qbs::InstallOptions installOptions;
     installOptions.setInstallRoot(QLatin1String("/tmp"));
     QList<qbs::InstallableFile> installableFiles
             = project.installableFilesForProduct(product, installOptions);
+    QEXPECT_FAIL(0, "QBS-830", Continue);
     QCOMPARE(installableFiles.count(), 2);
     foreach (const qbs::InstallableFile &f,installableFiles) {
         if (!f.sourceFilePath().endsWith("main.cpp")) {
