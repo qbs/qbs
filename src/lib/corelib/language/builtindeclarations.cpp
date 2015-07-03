@@ -233,6 +233,7 @@ void BuiltinDeclarations::addModuleItem()
 {
     ItemDeclaration item(QLatin1String("Module"));
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
+            << QLatin1String("Group")
             << QLatin1String("Depends")
             << QLatin1String("FileTagger")
             << QLatin1String("Rule")

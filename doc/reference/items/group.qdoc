@@ -85,6 +85,9 @@
      }
      \endcode
 
+     Groups may also appear in modules, which causes the respective sources to be added to the
+     products depending on said module.
+
     \section1 Group Properties
 
     \table
