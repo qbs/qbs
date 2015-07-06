@@ -46,6 +46,21 @@ Module {
     property string platform
 
     // Internal properties.
+    property int platformVersion: {
+        if (platform) {
+            var match = platform.match(/^android-([0-9]+)$/);
+            if (match !== null) {
+                return parseInt(match[1], 10);
+            }
+        }
+    }
+
+    property string platformJavaVersion: {
+        if (platformVersion >= 21)
+            return "1.7";
+        return "1.5";
+    }
+
     property path buildToolsDir: {
         var path = FileInfo.joinPaths(sdkDir, "build-tools", buildToolsVersion);
         if (buildToolsVersionMajor >= 23)
@@ -64,8 +79,8 @@ Module {
                                          product.packageName.split('.').join('/'))
 
     Depends { name: "java" }
-    java.languageVersion: "1.5"
-    java.runtimeVersion: "1.5"
+    java.languageVersion: platformJavaVersion
+    java.runtimeVersion: platformJavaVersion
     java.bootClassPaths: androidJarFilePath
 
     FileTagger {
