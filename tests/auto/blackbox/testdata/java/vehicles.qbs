@@ -39,17 +39,16 @@ Project {
     JavaJarFile {
         name: "car_jar"
         files: ["Car.java", "Vehicle.java"]
+        property stringList cppIncludePaths: {
+            var paths = java.jdkIncludePaths;
+            if (java.compilerVersionMinor >= 8)
+                paths.push(product.buildDirectory); // generated JNI headers
+            return paths;
+        }
 
         Export {
             Depends { name: "cpp" }
-            cpp.systemIncludePaths: {
-                var paths = java.jdkIncludePaths;
-                if (java.compilerVersionMinor >= 8) {
-                    paths.push(product.buildDirectory); // generated JNI headers
-                }
-
-                return paths;
-            }
+            cpp.systemIncludePaths: product.cppIncludePaths
         }
 
         Group {
