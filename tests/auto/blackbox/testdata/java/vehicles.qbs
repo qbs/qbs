@@ -41,8 +41,9 @@ Project {
         files: ["Car.java", "Vehicle.java"]
         property stringList cppIncludePaths: {
             var paths = java.jdkIncludePaths;
-            if (java.compilerVersionMinor >= 8)
-                paths.push(product.buildDirectory); // generated JNI headers
+            if (java.compilerVersionMinor >= 8) {
+                paths.push(buildDirectory); // generated JNI headers
+            }
             return paths;
         }
 
