@@ -128,9 +128,10 @@
         \li \c{string}
         \li 1.0
         \li \c{undefined}
-        \li Specifies the target platform's processor architecture.
+        \li Specifies the target platform's processor architecture. \c{undefined} indicates that
+            the target platform is architecture-independent (for example the CLR or JVM).
             This is typically set in a profile.
-            Currently used values are: \c{"x86"}, \c{"x86_64"} and \c{"arm"}.
+            Commonly used values are: \c{"x86"}, \c{"x86_64"} and \c{"arm"}.
     \row
         \li toolchain
         \li \c{stringList}

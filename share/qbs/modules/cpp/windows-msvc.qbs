@@ -63,6 +63,13 @@ CppModule {
     debugInfoSuffix: ".pdb"
     property string dynamicLibraryImportSuffix: ".lib"
 
+    validate: {
+        var validator = new ModUtils.PropertyValidator("cpp");
+        validator.setRequiredProperty("architecture", architecture,
+                                      "you might want to re-run 'qbs-setup-toolchains'");
+        validator.validate();
+    }
+
     Transformer {
         condition: cPrecompiledHeader !== undefined
         inputs: cPrecompiledHeader

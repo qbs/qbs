@@ -89,8 +89,6 @@ Module {
 
     validate: {
         var validator = new ModUtils.PropertyValidator("qbs");
-        validator.setRequiredProperty("architecture", architecture,
-                                      "you might want to re-run 'qbs-setup-toolchains'");
         validator.setRequiredProperty("hostOS", hostOS);
         validator.setRequiredProperty("targetOS", targetOS);
         if (hostOS && (hostOS.contains("windows") || hostOS.contains("osx"))) {
@@ -108,7 +106,7 @@ Module {
         }
 
         validator.addCustomValidator("architecture", architecture, function (value) {
-            return architecture === canonicalArchitecture(architecture);
+            return !architecture || architecture === canonicalArchitecture(architecture);
         }, "'" + architecture + "' is invalid. You must use the canonical name '" +
         canonicalArchitecture(architecture) + "'");
 

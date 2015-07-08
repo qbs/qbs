@@ -370,7 +370,6 @@ void setupSdk(qbs::Settings *settings, const QString &profileName, const QString
     profile.setValue(qls("Android.sdk.buildToolsVersion"),
                      detectBuildToolsVersion(sdkDirPath));
     profile.setValue(qls("Android.sdk.platform"), detectPlatform(sdkDirPath));
-    profile.setValue(qls("qbs.architecture"), qls("blubb"));
     profile.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux"));
 }
 
