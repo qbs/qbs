@@ -61,11 +61,14 @@ function findJdkPath(hostOS, arch) {
     if (hostOS.contains("osx")) {
         var p = new Process();
         try {
-            arch = arch === "x86" ? "i386" : arch;
-
             // We filter by architecture here so that we'll get a compatible JVM for JNI use.
-            // --failfast doesn't print the default JVM if nothing matches the filter.
-            p.exec("/usr/libexec/java_home", ["--arch", arch, "--failfast"]);
+            var args = [];
+            if (arch) {
+                args.push("--arch", arch === "x86" ? "i386" : arch);
+            }
+
+            // --failfast doesn't print the default JVM if nothing matches the filter(s).
+            p.exec("/usr/libexec/java_home", args.concat(["--failfast"]), true);
             return p.readStdOut().trim();
         } catch (e) {
             return undefined;
