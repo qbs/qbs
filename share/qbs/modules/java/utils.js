@@ -120,8 +120,9 @@ function javacArguments(product, inputs) {
         classPaths.push(inputs["java.jar"][i].filePath);
     var debugArg = product.moduleProperty("qbs", "buildVariant") === "debug"
             ? "-g" : "-g:none";
+    var pathListSeparator = product.moduleProperty("qbs", "pathListSeparator");
     var args = [
-            "-classpath", classPaths.join(product.moduleProperty("qbs", "pathListSeparator")),
+            "-classpath", classPaths.join(pathListSeparator),
             "-s", product.buildDirectory,
             debugArg, "-d", outputDir
         ];
@@ -135,7 +136,7 @@ function javacArguments(product, inputs) {
         args.push("-source", languageVersion);
     var bootClassPaths = ModUtils.moduleProperties(product, "bootClassPaths");
     if (bootClassPaths && bootClassPaths.length > 0)
-        args.push("-bootclasspath", bootClassPaths.join(';'));
+        args.push("-bootclasspath", bootClassPaths.join(pathListSeparator));
     if (!ModUtils.moduleProperty(product, "enableWarnings"))
         args.push("-nowarn");
     if (ModUtils.moduleProperty(product, "warningsAsErrors"))
