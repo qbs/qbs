@@ -33,11 +33,12 @@ var FileInfo = loadExtension("qbs.FileInfo");
 var ModUtils = loadExtension("qbs.ModUtils");
 var Process = loadExtension("qbs.Process");
 
-function findJdkPath(hostOS, arch) {
+function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
     var i;
-    var env = qbs.getEnv("JAVA_HOME");
-    if (env) {
-        return env;
+    for (var key in environmentPaths) {
+        if (environmentPaths[key]) {
+            return environmentPaths[key];
+        }
     }
 
     if (hostOS.contains("windows")) {
@@ -71,8 +72,6 @@ function findJdkPath(hostOS, arch) {
             // --failfast doesn't print the default JVM if nothing matches the filter(s).
             p.exec("/usr/libexec/java_home", args.concat(["--failfast"]), true);
             return p.readStdOut().trim();
-        } catch (e) {
-            return undefined;
         } finally {
             p.close();
         }
@@ -80,11 +79,6 @@ function findJdkPath(hostOS, arch) {
 
     if (hostOS.contains("unix")) {
         var requiredTools = ["javac", "java", "jar"];
-        var searchPaths = [
-            "/usr/lib/jvm/default-java", // Debian/Ubuntu
-            "/etc/alternatives/java_sdk_openjdk", // Fedora
-            "/usr/lib/jvm/default" // Arch
-        ];
         for (i = 0; i < searchPaths.length; ++i) {
             function fullToolPath(tool) {
                 return FileInfo.joinPaths(searchPaths[i], "bin", tool);
@@ -96,6 +90,19 @@ function findJdkPath(hostOS, arch) {
         }
 
         return undefined;
+    }
+}
+
+function findJdkVersion(compilerFilePath) {
+    var p = new Process();
+    try {
+        p.exec(compilerFilePath, ["-version"]);
+        var re = /^javac (([0-9]+(?:\.[0-9]+){2,2})_([0-9]+))$/m;
+        var match = p.readStdErr().trim().match(re);
+        if (match !== null)
+            return match;
+    } finally {
+        p.close();
     }
 }
 

@@ -31,11 +31,17 @@
 import qbs
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Probes
 import qbs.Process
 
 import "utils.js" as JavaUtils
 
 Module {
+    Probes.JdkProbe {
+        id: jdk
+        environmentPaths: [jdkPath].concat(base)
+    }
+
     property stringList additionalClassPaths
     property stringList additionalCompilerFlags
     property stringList additionalJarFlags
@@ -47,9 +53,10 @@ Module {
     property string interpreterName: "java"
     property string jarFilePath: FileInfo.joinPaths(jdkPath, "bin", jarName)
     property string jarName: "jar"
-    property path jdkPath: JavaUtils.findJdkPath(qbs.hostOS, qbs.architecture)
 
-    property string compilerVersion: rawCompilerVersion ? rawCompilerVersion[1] : undefined
+    property path jdkPath: jdk.path
+
+    property string compilerVersion: jdk.version ? jdk.version[1] : undefined
     property var compilerVersionParts: compilerVersion ? compilerVersion.split(/[\._]/).map(function(item) { return parseInt(item, 10); }) : []
     property int compilerVersionMajor: compilerVersionParts[0]
     property int compilerVersionMinor: compilerVersionParts[1]
@@ -99,20 +106,6 @@ Module {
         if (qbs.hostOS.contains("osx") && compilerVersionMajor === 1 && compilerVersionMinor < 7)
             return FileInfo.joinPaths(jdkPath, "bundle", "Classes", "classes.jar");
         return FileInfo.joinPaths(jdkPath, "jre", "lib", "rt.jar");
-    }
-
-    // private properties
-    readonly property var rawCompilerVersion: {
-        var p = new Process();
-        try {
-            p.exec(compilerFilePath, ["-version"]);
-            var re = /^javac (([0-9]+(?:\.[0-9]+){2,2})_([0-9]+))$/m;
-            var match = p.readStdErr().trim().match(re);
-            if (match !== null)
-                return match;
-        } finally {
-            p.close();
-        }
     }
 
     validate: {
