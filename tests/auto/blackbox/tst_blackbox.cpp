@@ -2689,4 +2689,15 @@ void TestBlackbox::groupsInModules()
     QCOMPARE(output.readAll().trimmed(), QByteArray("diamond"));
 }
 
+void TestBlackbox::probesInNestedModules()
+{
+    QDir::setCurrent(testDataDir + "/probes-in-nested-modules");
+    QbsRunParameters params;
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStderr.contains("running probe..."));
+    QVERIFY(m_qbsStderr.contains("product b, inner.something = hello"));
+    QEXPECT_FAIL(0, "QBS-833", Continue);
+    QVERIFY(m_qbsStderr.contains("product a, outer.something = hello"));
+}
+
 QTEST_MAIN(TestBlackbox)

@@ -179,6 +179,7 @@ private slots:
     void qbsVersion();
     void transitiveOptionalDependencies();
     void groupsInModules();
+    void probesInNestedModules();
 
 private:
     QByteArray m_qbsStderr;
