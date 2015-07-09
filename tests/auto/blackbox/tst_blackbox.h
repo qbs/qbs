@@ -138,6 +138,8 @@ private slots:
     void separateDebugInfo();
     void sevenZip();
     void tar();
+    void zip();
+    void zip_data();
     void track_qrc();
     void track_qobject_change();
     void trackAddFile();
@@ -180,6 +182,9 @@ private slots:
     void transitiveOptionalDependencies();
     void groupsInModules();
     void probesInNestedModules();
+
+private:
+    QString findArchiver(const QString &fileName, int *status = nullptr);
 
 private:
     QByteArray m_qbsStderr;

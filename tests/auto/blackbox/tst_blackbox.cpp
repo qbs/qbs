@@ -229,8 +229,17 @@ static QString findExecutable(const QStringList &fileNames)
     return QString();
 }
 
-static QString findArchiver(const QString &fileName)
+QString TestBlackbox::findArchiver(const QString &fileName, int *status)
 {
+    if (fileName == "jar") {
+        QDir::setCurrent(testDataDir + "/find-java");
+        const int res = runQbs(QbsRunParameters(QStringList()
+                                                << "-f" << "find-jar.qbs" << "--dry-run"));
+        if (status)
+            *status = res;
+        return QString::fromUtf8(m_qbsStderr).trimmed();
+    }
+
     QString binary = findExecutable(QStringList(fileName));
     if (binary.isEmpty()) {
         Settings s((QString()));
@@ -282,6 +291,51 @@ void TestBlackbox::tar()
     QFile listFile("list.txt");
     QVERIFY2(listFile.open(QIODevice::ReadOnly), qPrintable(listFile.errorString()));
     QCOMPARE(listContents.readAllStandardOutput(), listFile.readAll());
+}
+
+static QStringList sortedFileList(const QByteArray &ba)
+{
+    auto list = QString::fromUtf8(ba).split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
+    std::sort(list.begin(), list.end());
+    return list;
+}
+
+void TestBlackbox::zip()
+{
+    QFETCH(QString, binaryName);
+    int status = 0;
+    const QString binary = findArchiver(binaryName, &status);
+    QCOMPARE(status, 0);
+    if (binary.isEmpty())
+        QSKIP("zip tool not found");
+
+    QDir::setCurrent(testDataDir + "/archiver");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList()
+                                     << "archiver.type:zip"
+                                     << "archiver.command:" + binaryName)), 0);
+    const QString outputFile = relativeProductBuildDir("archivable") + "/archivable.zip";
+    QVERIFY2(regularFileExists(outputFile), qPrintable(outputFile));
+    QProcess listContents;
+    if (binaryName == "zip") {
+        // zipinfo is part of Info-Zip
+        listContents.start("zipinfo", QStringList() << "-1" << outputFile);
+    } else {
+        listContents.start(binary, QStringList() << "tf" << outputFile);
+    }
+    QVERIFY2(listContents.waitForStarted(), qPrintable(listContents.errorString()));
+    QVERIFY2(listContents.waitForFinished(), qPrintable(listContents.errorString()));
+    QVERIFY2(listContents.exitCode() == 0, listContents.readAllStandardError().constData());
+    QFile listFile("list.txt");
+    QVERIFY2(listFile.open(QIODevice::ReadOnly), qPrintable(listFile.errorString()));
+    QCOMPARE(sortedFileList(listContents.readAllStandardOutput()),
+             sortedFileList(listFile.readAll()));
+}
+
+void TestBlackbox::zip_data()
+{
+    QTest::addColumn<QString>("binaryName");
+    QTest::newRow("zip") << "zip";
+    QTest::newRow("jar") << "jar";
 }
 
 void TestBlackbox::android()
