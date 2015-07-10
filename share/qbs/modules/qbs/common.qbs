@@ -122,7 +122,7 @@ Module {
                                                                            installPrefix));
             env["PATH"] = PathTools.prependOrSetPath(newEntry, env["PATH"], qbs.pathListSeparator);
         } else if (hostOS.contains("darwin") && targetOS.contains("darwin")) {
-            env["DYLD_FRAMEWORK_PATH"] = PathTools.prependOrSet([
+            env["DYLD_FRAMEWORK_PATH"] = PathTools.prependOrSetPath([
                 FileInfo.joinPaths(installRoot, installPrefix, "Library", "Frameworks"),
                 FileInfo.joinPaths(installRoot, installPrefix, "lib"),
                 FileInfo.joinPaths(installRoot, installPrefix)
