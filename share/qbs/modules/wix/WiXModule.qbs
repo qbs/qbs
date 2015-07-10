@@ -179,6 +179,7 @@ Module {
     Rule {
         id: candleCompiler
         inputs: ["wxs"]
+        auxiliaryInputs: ['wxi']
 
         Artifact {
             fileTags: ["wixobj"]
