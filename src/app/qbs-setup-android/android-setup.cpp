@@ -370,7 +370,8 @@ void setupSdk(qbs::Settings *settings, const QString &profileName, const QString
     profile.setValue(qls("Android.sdk.buildToolsVersion"),
                      detectBuildToolsVersion(sdkDirPath));
     profile.setValue(qls("Android.sdk.platform"), detectPlatform(sdkDirPath));
-    profile.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux"));
+    profile.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux")
+                     << qls("unix"));
 }
 
 void setupNdk(qbs::Settings *settings, const QString &profileName, const QString &ndkDirPath)
@@ -432,7 +433,8 @@ void setupNdk(qbs::Settings *settings, const QString &profileName, const QString
         p.setValue(qls("cpp.toolchainInstallPath"), arch.toolchainInstallPath);
         p.setValue(qls("cpp.toolchainPrefix"), arch.toolchainPrefix);
         p.setValue(qls("qbs.architecture"), arch.qbsArchName);
-        p.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux"));
+        p.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux")
+                   << qls("unix"));
         p.setValue(qls("qbs.toolchain"), QStringList(qls("gcc")));
     }
 }
