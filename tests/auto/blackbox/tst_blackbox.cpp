@@ -83,6 +83,11 @@ static QString initQbsExecutableFilePath()
     return filePath;
 }
 
+static bool supportsBuildDirectoryOption(const QString &command) {
+    return !(QStringList() << "help" << "config" << "config-ui" << "qmltypes"
+             << "setup-android" << "setup-qt" << "setup-toolchains").contains(command);
+}
+
 TestBlackbox::TestBlackbox()
     : testDataDir(testWorkDir(QStringLiteral("blackbox"))),
       testSourceDir(QDir::cleanPath(SRCDIR "/testdata")),
@@ -97,10 +102,7 @@ int TestBlackbox::runQbs(const QbsRunParameters &params)
     QStringList args;
     if (!params.command.isEmpty())
         args << params.command;
-    if ((QStringList() << QLatin1String("") << QLatin1String("build") << QLatin1String("clean")
-         << QLatin1String("install") << QLatin1String("resolve") << QLatin1String("run")
-         << QLatin1String("shell") << QLatin1String("status") << QLatin1String("update-timestamps"))
-            .contains(params.command)) {
+    if (supportsBuildDirectoryOption(params.command)) {
         args.append(QStringList(QLatin1String("-d")) << QLatin1String("."));
     }
     args << params.arguments;
@@ -1712,7 +1714,7 @@ void TestBlackbox::nestedProperties()
 void TestBlackbox::nonBrokenFilesInBrokenProduct()
 {
     QDir::setCurrent(testDataDir + "/non-broken-files-in-broken-product");
-    QbsRunParameters params("-k");
+    QbsRunParameters params(QStringList() << "-k");
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QVERIFY(m_qbsStdout.contains("fine.cpp"));
@@ -1730,7 +1732,7 @@ void TestBlackbox::nonDefaultProduct()
     QVERIFY2(QFile::exists(defaultAppExe), qPrintable(defaultAppExe));
     QVERIFY2(!QFile::exists(nonDefaultAppExe), qPrintable(nonDefaultAppExe));
 
-    QCOMPARE(runQbs(QbsRunParameters("--all-products")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "--all-products")), 0);
     QVERIFY2(QFile::exists(nonDefaultAppExe), qPrintable(nonDefaultAppExe));
 }
 
