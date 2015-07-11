@@ -106,12 +106,9 @@ int TestBlackbox::runQbs(const QbsRunParameters &params)
     args << params.arguments;
     if (params.useProfile)
         args.append(QLatin1String("profile:") + profileName());
-    QString cmdLine = qbsExecutableFilePath;
-    foreach (const QString &str, args)
-        cmdLine += QLatin1String(" \"") + str + QLatin1Char('"');
     QProcess process;
     process.setProcessEnvironment(params.environment);
-    process.start(cmdLine);
+    process.start(qbsExecutableFilePath, args);
     const int waitTime = 10 * 60000;
     if (!process.waitForStarted() || !process.waitForFinished(waitTime)) {
         m_qbsStderr = process.readAllStandardError();
@@ -674,7 +671,7 @@ void TestBlackbox::trackAddFile()
     QDir::setCurrent(testDataDir + "/trackAddFile/work");
     QCOMPARE(runQbs(), 0);
 
-    process.start(relativeExecutableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"), QStringList());
     QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
     QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
     QCOMPARE(process.exitCode(), 0);
@@ -691,7 +688,7 @@ void TestBlackbox::trackAddFile()
     touch("main.cpp");
     QCOMPARE(runQbs(), 0);
 
-    process.start(relativeExecutableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"), QStringList());
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -780,7 +777,7 @@ void TestBlackbox::trackRemoveFile()
     QDir::setCurrent(testDataDir + "/trackAddFile/work");
     QCOMPARE(runQbs(), 0);
 
-    process.start(relativeExecutableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"), QStringList());
     QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
     QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
     QCOMPARE(process.exitCode(), 0);
@@ -805,7 +802,7 @@ void TestBlackbox::trackRemoveFile()
     touch("project.qbs");
     QCOMPARE(runQbs(), 0);
 
-    process.start(relativeExecutableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"), QStringList());
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -834,7 +831,7 @@ void TestBlackbox::trackAddFileTag()
     QDir::setCurrent(testDataDir + "/trackFileTags/work");
     QCOMPARE(runQbs(), 0);
 
-    process.start(relativeExecutableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"), QStringList());
     QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
     QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
     QCOMPARE(process.exitCode(), 0);
@@ -847,7 +844,7 @@ void TestBlackbox::trackAddFileTag()
     touch("project.qbs");
     QCOMPARE(runQbs(), 0);
 
-    process.start(relativeExecutableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"), QStringList());
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -873,7 +870,7 @@ void TestBlackbox::trackRemoveFileTag()
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main_foo.cpp"));
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main.foo"));
 
-    process.start(relativeExecutableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"), QStringList());
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -886,7 +883,7 @@ void TestBlackbox::trackRemoveFileTag()
     touch("project.qbs");
     QCOMPARE(runQbs(), 0);
 
-    process.start(relativeExecutableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"), QStringList());
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
