@@ -29,15 +29,26 @@
 ****************************************************************************/
 
 var DarwinTools = loadExtension("qbs.DarwinTools");
+var File = loadExtension("qbs.File");
 var FileInfo = loadExtension("qbs.FileInfo");
 var ModUtils = loadExtension("qbs.ModUtils");
 var Process = loadExtension("qbs.Process");
 var PropertyList = loadExtension("qbs.PropertyList");
 
-function ibtooldArguments(product, input, outputs) {
-    var args = [];
+function artifactsFromInputs(inputs) {
+    var artifacts = [];
+    for (var tag in inputs) {
+        artifacts = artifacts.concat(inputs[tag]);
+    }
+    return artifacts;
+}
 
-    var outputFormat = ModUtils.moduleProperty(input, "outputFormat");
+function ibtooldArguments(product, inputs, outputs, overrideOutput) {
+    var i;
+    var args = [];
+    var allInputs = artifactsFromInputs(inputs);
+
+    var outputFormat = ModUtils.moduleProperty(product, "outputFormat");
     if (outputFormat) {
         if (!["binary1", "xml1", "human-readable-text"].contains(outputFormat))
             throw("Invalid ibtoold output format: " + outputFormat + ". " +
@@ -46,49 +57,48 @@ function ibtooldArguments(product, input, outputs) {
         args.push("--output-format", outputFormat);
     }
 
-    if (ModUtils.moduleProperty(input, "warnings"))
-        args.push("--warnings");
+    var debugFlags = ["warnings", "errors", "notices"];
+    for (var j in debugFlags) {
+        var flag = debugFlags[j];
+        if (ModUtils.modulePropertyFromArtifacts(product, allInputs, product.moduleName, flag)) {
+            args.push("--" + flag);
+        }
+    }
 
-    if (ModUtils.moduleProperty(input, "errors"))
-        args.push("--errors");
-
-    if (ModUtils.moduleProperty(input, "notices"))
-        args.push("--notices");
-
-    if (input.fileTags.contains("assetcatalog")) {
+    if (inputs.assetcatalog) {
         args.push("--platform", DarwinTools.applePlatformName(product.moduleProperty("qbs", "targetOS")));
 
-        var appIconName = ModUtils.moduleProperty(input, "appIconName");
+        var appIconName = ModUtils.modulePropertyFromArtifacts(product, inputs.assetcatalog, product.moduleName, "appIconName");
         if (appIconName)
             args.push("--app-icon", appIconName);
 
-        var launchImageName = ModUtils.moduleProperty(input, "launchImageName");
+        var launchImageName = ModUtils.modulePropertyFromArtifacts(product, inputs.assetcatalog, product.moduleName, "launchImageName");
         if (launchImageName)
             args.push("--launch-image", launchImageName);
 
         // Undocumented but used by Xcode (only for iOS?), probably runs pngcrush or equivalent
-        if (ModUtils.moduleProperty(input, "compressPngs"))
+        if (ModUtils.modulePropertyFromArtifacts(product, inputs.assetcatalog, product.moduleName, "compressPngs"))
             args.push("--compress-pngs");
     } else {
         var sysroot = product.moduleProperty("qbs", "sysroot");
         if (sysroot)
             args.push("--sdk", sysroot);
 
-        args.push("--flatten", ModUtils.moduleProperty(input, "flatten") ? 'YES' : 'NO');
+        args.push("--flatten", ModUtils.modulePropertyFromArtifacts(product, allInputs, product.moduleName, "flatten") ? 'YES' : 'NO');
 
         // --module and --auto-activate-custom-fonts were introduced in Xcode 6.0
-        if (ModUtils.moduleProperty(input, "ibtoolVersionMajor") >= 6) {
-            var module = ModUtils.moduleProperty(input, "module");
+        if (ModUtils.moduleProperty(product, "ibtoolVersionMajor") >= 6) {
+            var module = ModUtils.moduleProperty(product, "module");
             if (module)
                 args.push("--module", module);
 
-            if (ModUtils.moduleProperty(input, "autoActivateCustomFonts"))
+            if (ModUtils.modulePropertyFromArtifacts(product, allInputs, product.moduleName, "autoActivateCustomFonts"))
                 args.push("--auto-activate-custom-fonts");
         }
     }
 
     // --minimum-deployment-target was introduced in Xcode 5.0
-    if (ModUtils.moduleProperty(input, "ibtoolVersionMajor") >= 5) {
+    if (ModUtils.moduleProperty(product, "ibtoolVersionMajor") >= 5) {
         if (product.moduleProperty("cpp", "minimumOsxVersion")) {
             args.push("--minimum-deployment-target");
             args.push(product.moduleProperty("cpp", "minimumOsxVersion"));
@@ -101,8 +111,10 @@ function ibtooldArguments(product, input, outputs) {
     }
 
     // --target-device and -output-partial-info-plist were introduced in Xcode 6.0 for ibtool
-    if (ModUtils.moduleProperty(input, "ibtoolVersionMajor") >= 6 || input.fileTags.contains("assetcatalog")) {
-        args.push("--output-partial-info-plist", outputs.partial_infoplist[0].filePath);
+    if (ModUtils.moduleProperty(product, "ibtoolVersionMajor") >= 6 || compilingAssetCatalogs) {
+        if (outputs && outputs.partial_infoplist) {
+            args.push("--output-partial-info-plist", outputs.partial_infoplist[0].filePath);
+        }
 
         if (product.moduleProperty("qbs", "targetOS").contains("osx"))
             args.push("--target-device", "mac");
@@ -115,47 +127,93 @@ function ibtooldArguments(product, input, outputs) {
         }
     }
 
-    var flags = ModUtils.moduleProperty(input, "flags");
-    if (flags)
-        args = args.concat(flags);
+    args = args.concat(ModUtils.modulePropertiesFromArtifacts(product, allInputs,
+                                                              product.moduleName, "flags"));
 
-    if (outputs.compiled_ibdoc)
-        args.push("--compile", outputs.compiled_ibdoc[0].filePath);
+    if (overrideOutput) {
+        args.push("--compile", overrideOutput);
+    } else {
+        if (outputs.compiled_ibdoc)
+            args.push("--compile", outputs.compiled_ibdoc[0].filePath);
 
-    if (outputs.compiled_assetcatalog)
-        args.push("--compile", FileInfo.path(outputs.compiled_assetcatalog[0].filePath));
+        if (outputs.compiled_assetcatalog)
+            args.push("--compile", ModUtils.moduleProperty(product, "actoolOutputDirectory"));
+    }
 
-    args.push(input.filePath);
+    for (i in allInputs)
+        args.push(allInputs[i].filePath);
 
     return args;
 }
 
-function runActool(actool, args) {
+function createTemporaryDirectory() {
     var process;
-    var outputFilePaths;
     try {
         process = new Process();
-
-        // Last --output-format argument overrides any previous ones
-        if (process.exec(actool, args.concat(["--output-format", "xml1"]), true) !== 0)
-            print(process.readStdErr());
-
-        var propertyList = new PropertyList();
-        try {
-            propertyList.readFromString(process.readStdOut());
-
-            var plist = propertyList.toObject();
-            if (plist)
-                plist = plist["com.apple.actool.compilation-results"];
-            if (plist)
-                outputFilePaths = plist["output-files"];
-        } finally {
-            propertyList.clear();
-        }
+        process.exec("mktemp", ["-d", "/tmp/io.qt.qbs." + new Array(32).join("X")], true);
+        return process.readStdOut().trim();
     } finally {
         process.close();
     }
-    return outputFilePaths;
+}
+
+function actoolOutputArtifacts(product, inputs) {
+    var process;
+    try {
+        // actool has no --dry-run option (rdar://21786925),
+        // so compile to a fake temporary directory in order to extract the list of output files
+        var outputDirectory = ModUtils.moduleProperty(product, "actoolOutputDirectory");
+        var fakeOutputDirectory = createTemporaryDirectory();
+
+        // Last --output-format argument overrides any previous ones
+        process = new Process();
+        process.exec(ModUtils.moduleProperty(product, "actoolPath"),
+                     Ib.ibtooldArguments(product, inputs, undefined, fakeOutputDirectory)
+                     .concat(["--output-format", "xml1"]), true);
+
+        var artifacts = parseActoolOutput(process.readStdOut());
+
+        // Fix the paths since we faked them
+        for (var i in artifacts)
+            artifacts[i].filePath = outputDirectory + artifacts[i].filePath.substr(fakeOutputDirectory.length);
+
+        // Newer versions of actool don't generate *anything* if there's no input;
+        // in that case a partial Info.plist would not have been generated either
+        if (artifacts && artifacts.length > 0)
+            artifacts.push({filePath: FileInfo.joinPaths(product.destinationDirectory, "assetcatalog_generated_info.plist"), fileTags: ["partial_infoplist"]});
+
+        return artifacts;
+    } finally {
+        process.close();
+    }
+}
+
+function parseActoolOutput(output) {
+    var propertyList = new PropertyList();
+    try {
+        propertyList.readFromString(output);
+
+        var plist = propertyList.toObject();
+        if (plist)
+            plist = plist["com.apple.actool.compilation-results"];
+        if (plist) {
+            var artifacts = [];
+            files = plist["output-files"];
+            for (var i in files) {
+                var tags = files[i].endsWith(".plist")
+                        ? ["partial_infoplist"]
+                        : ["compiled_assetcatalog"];
+                artifacts.push({
+                    filePath: files[i],
+                    fileTags: tags
+                });
+            }
+
+            return artifacts;
+        }
+    } finally {
+        propertyList.clear();
+    }
 }
 
 function ibtoolVersion(ibtool) {

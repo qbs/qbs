@@ -2533,6 +2533,12 @@ void TestBlackbox::testAssetCatalog()
     QDir::setCurrent(testDataDir + QLatin1String("/ib/assetcatalog"));
 
     QbsRunParameters params;
+
+    // Make sure a dry run does not write anything
+    params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs" << "--dry-run";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!directoryExists(relativeBuildDir()));
+
     params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs";
     QCOMPARE(runQbs(params), 0);
 
@@ -2567,6 +2573,18 @@ void TestBlackbox::testAssetCatalog()
     if (QSysInfo::macVersion() >= Q_MV_OSX(10, 10))
 #endif
         QVERIFY(directoryExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
+
+    QDir::setCurrent(testDataDir + QLatin1String("/ib/multiple-asset-catalogs"));
+    params.arguments = QStringList();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling assetcatalog1.xcassets"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("compiling assetcatalog2.xcassets"), m_qbsStdout);
+
+    QDir::setCurrent(testDataDir + QLatin1String("/ib/empty-asset-catalogs"));
+    params.arguments = QStringList();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling assetcatalog1.xcassets"), m_qbsStdout);
+    QVERIFY2(!m_qbsStdout.contains("compiling assetcatalog2.xcassets"), m_qbsStdout);
 }
 
 void TestBlackbox::testObjcArc()

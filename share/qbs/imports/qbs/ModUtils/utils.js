@@ -124,6 +124,32 @@ function moduleProperty(product, propertyName, langFilter) {
     return product.moduleProperty(product.moduleName, languagePropertyName(propertyName, langFilter))
 }
 
+/**
+  * Returns roughly the same value as moduleProperty for a product, but ensures that all of the
+  * given input artifacts share the same value of said property, as a sort of sanity check.
+  *
+  * This allows us to verify that users do not, for example, try to set different values on input
+  * artifacts for which the value is input specific (not product specific), but which must be the
+  * same for all inputs.
+  */
+function modulePropertyFromArtifacts(product, artifacts, moduleName, propertyName, langFilter) {
+    var values = [product.moduleProperty(moduleName, languagePropertyName(propertyName, langFilter))];
+    for (var i in artifacts) {
+        var value = artifacts[i].moduleProperty(moduleName, languagePropertyName(propertyName, langFilter));
+        if (!values.contains(value)) {
+            values.push(value);
+        }
+    }
+
+    if (values.length !== 1) {
+        throw "The value of " + [moduleName, propertyName].join(".")
+                + " must be identical for the following input artifacts: "
+                + artifacts.map(function (artifact) { return artifact.filePath; });
+    }
+
+    return values[0];
+}
+
 function dumpProperty(key, value, level) {
     var indent = "";
     for (var k = 0; k < level; ++k)
