@@ -65,17 +65,23 @@ ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *pa
     connect(&m_process, SIGNAL(finished(int)), SLOT(onProcessFinished(int)));
 }
 
-void ProcessCommandExecutor::doStart()
+void ProcessCommandExecutor::doSetup()
 {
-    QBS_ASSERT(m_process.state() == QProcess::NotRunning, return);
-
     const ProcessCommand * const cmd = processCommand();
     const QString program = ExecutableFinder(transformer()->product(),
                                              transformer()->product()->buildEnvironment, logger())
             .findExecutable(cmd->program(), cmd->workingDir());
 
-    // Use native separators for debug output, so people can copy-paste it to a command line.
-    const QString programNative = QDir::toNativeSeparators(program);
+    m_program = program;
+    m_arguments = cmd->arguments();
+    m_shellInvocation = shellQuote(QDir::toNativeSeparators(m_program), m_arguments);
+}
+
+void ProcessCommandExecutor::doStart()
+{
+    QBS_ASSERT(m_process.state() == QProcess::NotRunning, return);
+
+    const ProcessCommand * const cmd = processCommand();
 
     QProcessEnvironment env = m_buildEnvironment;
     const QProcessEnvironment &additionalVariables = cmd->environment();
@@ -83,8 +89,7 @@ void ProcessCommandExecutor::doStart()
         env.insert(key, additionalVariables.value(key));
     m_process.setProcessEnvironment(env);
 
-    QStringList arguments = cmd->arguments();
-    const QString argString = shellQuote(programNative, arguments);
+    QStringList arguments = m_arguments;
 
     if (dryRun()) {
         QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
@@ -96,7 +101,8 @@ void ProcessCommandExecutor::doStart()
         FileInfo fi(workingDir);
         if (!fi.exists() || !fi.isDir()) {
             emit finished(ErrorInfo(Tr::tr("The working directory '%1' for process '%2' "
-                    "is invalid.").arg(QDir::toNativeSeparators(workingDir), programNative),
+                    "is invalid.").arg(QDir::toNativeSeparators(workingDir),
+                                       QDir::toNativeSeparators(m_program)),
                                     cmd->codeLocation()));
             return;
         }
@@ -104,7 +110,7 @@ void ProcessCommandExecutor::doStart()
 
     // Automatically use response files, if the command line gets to long.
     if (!cmd->responseFileUsagePrefix().isEmpty()) {
-        const int commandLineLength = argString.length();
+        const int commandLineLength = m_shellInvocation.length();
         if (cmd->responseFileThreshold() >= 0 && commandLineLength > cmd->responseFileThreshold()) {
             if (logger().debugEnabled()) {
                 logger().qbsDebug() << QString::fromLocal8Bit("[EXEC] Using response file. "
@@ -135,13 +141,11 @@ void ProcessCommandExecutor::doStart()
         }
     }
 
-    logger().qbsDebug() << "[EXEC] Running external process; full command line is: " << argString;
+    logger().qbsDebug() << "[EXEC] Running external process; full command line is: "
+                        << m_shellInvocation;
     logger().qbsTrace() << "[EXEC] Additional environment:" << additionalVariables.toStringList();
     m_process.setWorkingDirectory(workingDir);
-    m_process.start(program, arguments);
-
-    m_program = program;
-    m_arguments = arguments;
+    m_process.start(m_program, arguments);
 }
 
 void ProcessCommandExecutor::cancel()
@@ -266,8 +270,7 @@ void ProcessCommandExecutor::onProcessFinished(int exitCode)
 void ProcessCommandExecutor::doReportCommandDescription()
 {
     if (m_echoMode == CommandEchoModeCommandLine) {
-        const ProcessCommand * const cmd = processCommand();
-        emit reportCommandDescription(QString(), shellQuote(cmd->program(), cmd->arguments()));
+        emit reportCommandDescription(command()->highlight(), m_shellInvocation);
         return;
     }
 

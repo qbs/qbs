@@ -61,6 +61,7 @@ private slots:
     void onProcessFinished(int exitCode);
 
 private:
+    void doSetup();
     void doReportCommandDescription();
     void doStart();
     void cancel();
@@ -74,6 +75,7 @@ private:
 private:
     QString m_program;
     QStringList m_arguments;
+    QString m_shellInvocation;
 
     QProcess m_process;
     QProcessEnvironment m_buildEnvironment;

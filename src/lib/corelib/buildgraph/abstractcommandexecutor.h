@@ -74,6 +74,7 @@ protected:
     CommandEchoMode m_echoMode;
 
 private:
+    virtual void doSetup() { };
     virtual void doStart() = 0;
 
 private:
