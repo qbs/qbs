@@ -46,9 +46,9 @@ Module {
     property int versionBuild: versionParts[3]
 
     property string compilerName: "candle.exe"
-    property string compilerPath: compilerName
+    property string compilerPath: FileInfo.joinPaths(toolchainInstallRoot, compilerName)
     property string linkerName: "light.exe"
-    property string linkerPath: linkerName
+    property string linkerPath: FileInfo.joinPaths(toolchainInstallRoot, linkerName)
 
     property string warningLevel: "normal"
     PropertyOptions {
@@ -408,7 +408,7 @@ Module {
 
             for (i in inputs.wxl) {
                 args.push("-loc");
-                args.push(inputs.wxl[i].filePath);
+                args.push(FileInfo.toWindowsSeparators(inputs.wxl[i].filePath));
             }
 
             if (product.type.contains("msi")) {
@@ -424,7 +424,7 @@ Module {
             }
 
             for (i in inputs.wixobj) {
-                args.push(inputs.wixobj[i].filePath);
+                args.push(FileInfo.toWindowsSeparators(inputs.wixobj[i].filePath));
             }
 
             var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
