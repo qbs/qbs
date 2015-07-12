@@ -224,11 +224,8 @@ Module {
             var inputFileNames = [];
             for (i in inputs.nsi) {
                 inputFileNames.push(inputs.nsi[i].fileName);
-                if (product.moduleProperty("qbs", "hostOS").contains("windows")) {
-                    args.push(FileInfo.toWindowsSeparators(inputs.nsi[i].filePath));
-                } else {
-                    args.push(inputs.nsi[i].filePath);
-                }
+                args.push(FileInfo.toNativeSeparators(inputs.nsi[i].filePath,
+                                                      product.moduleProperty("qbs", "hostOS")));
             }
 
             // Output file name - this goes last to override any OutFile command in the script

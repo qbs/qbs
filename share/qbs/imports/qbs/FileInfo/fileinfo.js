@@ -110,6 +110,14 @@ function fromWindowsSeparators(str) {
     return str.toString().replace(/\\/g, '/');
 }
 
+function toNativeSeparators(str, os) {
+    return os.contains("windows") ? toWindowsSeparators(str) : str;
+}
+
+function fromNativeSeparators(str, os) {
+    return os.contains("windows") ? fromWindowsSeparators(str) : str;
+}
+
 function joinPaths() {
     function pathFilter(path) {
         return path && typeof path === "string";
