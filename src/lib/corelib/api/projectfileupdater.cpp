@@ -41,6 +41,7 @@
 #include <parser/qmljslexer_p.h>
 #include <parser/qmljsparser_p.h>
 #include <tools/hostosinfo.h>
+#include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 
 #include <QFile>
@@ -268,11 +269,6 @@ ProjectFileFilesAdder::ProjectFileFilesAdder(const ProductData &product, const G
 {
 }
 
-static QString fileRepr(const QString &relFilePath)
-{
-    return QLatin1Char('"') + relFilePath + QLatin1Char('"');
-}
-
 static QString &addToFilesRepr(QString &filesRepr, const QString &fileRepr, int indentation)
 {
     filesRepr += QString(indentation, QLatin1Char(' '));
@@ -284,7 +280,7 @@ static QString &addToFilesRepr(QString &filesRepr, const QString &fileRepr, int 
 static QString &addToFilesRepr(QString &filesRepr, const QStringList &filePaths, int indentation)
 {
     foreach (const QString &f, filePaths)
-        addToFilesRepr(filesRepr, fileRepr(f), indentation);
+        addToFilesRepr(filesRepr, toJSLiteral(f), indentation);
     return filesRepr;
 }
 
@@ -339,7 +335,7 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
             }
 
             // Insert new files "sorted", but do not change the order of existing files.
-            const QString firstNewFileRepr = fileRepr(sortedFiles.first());
+            const QString firstNewFileRepr = toJSLiteral(sortedFiles.first());
             while (!oldFileReprs.isEmpty()) {
                 if (oldFileReprs.first() > firstNewFileRepr)
                     break;
