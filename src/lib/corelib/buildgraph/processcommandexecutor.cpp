@@ -65,22 +65,6 @@ ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *pa
     connect(&m_process, SIGNAL(finished(int)), SLOT(onProcessFinished(int)));
 }
 
-// returns an empty string or one that starts with a space!
-static QString commandArgsToString(const QStringList &args)
-{
-    QString result;
-    QRegExp ws(QLatin1String("\\s"));
-    foreach (const QString &arg, args) {
-        result += QLatin1Char(' ');
-
-        if (arg.contains(ws) || arg.isEmpty())
-            result += QLatin1Char('"') + arg + QLatin1Char('"');
-        else
-            result += arg;
-    }
-    return result;
-}
-
 void ProcessCommandExecutor::doStart()
 {
     QBS_ASSERT(m_process.state() == QProcess::NotRunning, return);
@@ -100,7 +84,7 @@ void ProcessCommandExecutor::doStart()
     m_process.setProcessEnvironment(env);
 
     QStringList arguments = cmd->arguments();
-    QString argString = commandArgsToString(arguments);
+    const QString argString = shellQuote(programNative, arguments);
 
     if (dryRun()) {
         QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
@@ -120,7 +104,7 @@ void ProcessCommandExecutor::doStart()
 
     // Automatically use response files, if the command line gets to long.
     if (!cmd->responseFileUsagePrefix().isEmpty()) {
-        const int commandLineLength = program.length() + argString.length();
+        const int commandLineLength = argString.length();
         if (cmd->responseFileThreshold() >= 0 && commandLineLength > cmd->responseFileThreshold()) {
             if (logger().debugEnabled()) {
                 logger().qbsDebug() << QString::fromLocal8Bit("[EXEC] Using response file. "
@@ -151,8 +135,7 @@ void ProcessCommandExecutor::doStart()
         }
     }
 
-    logger().qbsDebug() << "[EXEC] Running external process; full command line is: "
-                        << programNative << commandArgsToString(arguments);
+    logger().qbsDebug() << "[EXEC] Running external process; full command line is: " << argString;
     logger().qbsTrace() << "[EXEC] Additional environment:" << additionalVariables.toStringList();
     m_process.setWorkingDirectory(workingDir);
     m_process.start(program, arguments);
@@ -284,9 +267,7 @@ void ProcessCommandExecutor::doReportCommandDescription()
 {
     if (m_echoMode == CommandEchoModeCommandLine) {
         const ProcessCommand * const cmd = processCommand();
-        emit reportCommandDescription(QString(),
-                                      cmd->program() + QLatin1Char(' ')
-                                      + cmd->arguments().join(QLatin1Char(' ')));
+        emit reportCommandDescription(QString(), shellQuote(cmd->program(), cmd->arguments()));
         return;
     }
 
