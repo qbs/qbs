@@ -18,6 +18,7 @@ Project {
 
     WindowsSetupPackage {
         Depends { name: "QbsSetup" }
+        condition: qbs.hostOS.contains("windows") // currently does not work in Wine with WiX 3.9
         name: "QbsBootstrapper"
         targetName: "qbs-setup-" + qbs.architecture
         files: ["QbsBootstrapper.wxs"]

@@ -34,7 +34,7 @@ import qbs.FileInfo
 import qbs.ModUtils
 
 Module {
-    condition: qbs.hostOS.contains("windows") && qbs.targetOS.contains("windows")
+    condition: qbs.targetOS.contains("windows")
 
     property path toolchainInstallPath: qbs.getNativeSetting(registryKey, "InstallFolder")
     property path toolchainInstallRoot: qbs.getNativeSetting(registryKey, "InstallRoot")
@@ -117,6 +117,9 @@ Module {
             return executableSuffix;
         }
     }
+
+    // MSI/MSM package validation only works natively on Windows
+    property bool enablePackageValidation: qbs.hostOS.contains("windows")
 
     property string executableSuffix: ".exe"
     property string windowsInstallerSuffix: ".msi"
@@ -373,6 +376,10 @@ Module {
             }
 
             var args = ["-nologo"];
+
+            if (!ModUtils.moduleProperty(product, "enablePackageValidation")) {
+                args.push("-sval");
+            }
 
             if (ModUtils.moduleProperty(product, "warningLevel") === "none") {
                 args.push("-sw");

@@ -2390,8 +2390,13 @@ void TestBlackbox::testFrameworkStructure()
     QVERIFY(!directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/PrivateHeaders"));
 }
 
-static bool haveWiX()
+static bool haveWiX(const Profile &profile)
 {
+    if (profile.value("wix.toolchainInstallPath").isValid() &&
+            profile.value("wix.toolchainInstallRoot").isValid()) {
+        return true;
+    }
+
     QStringList regKeys;
     regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\")
             << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\");
@@ -2425,28 +2430,31 @@ static bool haveWiX()
 
 void TestBlackbox::testWiX()
 {
-    if (!HostOsInfo::isWindowsHost()) {
-        QSKIP("only applies on Windows");
-        return;
-    }
+    Settings settings((QString()));
+    Profile profile(profileName(), &settings);
 
-    if (!haveWiX()) {
+    if (!haveWiX(profile)) {
         QSKIP("WiX is not installed");
         return;
     }
 
-    Settings settings((QString()));
-    Profile profile(profileName(), &settings);
     const QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
 
     QDir::setCurrent(testDataDir + "/wix");
-    QCOMPARE(runQbs(), 0);
+    QbsRunParameters params;
+    if (!HostOsInfo::isWindowsHost())
+        params.arguments << "qbs.targetOS:windows";
+    QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("compiling QbsSetup.wxs"));
-    QVERIFY(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"));
     QVERIFY(m_qbsStdout.contains("linking qbs-" + arch + ".msi"));
-    QVERIFY(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"));
     QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs-" + arch + ".msi"));
-    QVERIFY(regularFileExists(relativeProductBuildDir("QbsBootstrapper") + "/qbs-setup-" + arch + ".exe"));
+
+    if (HostOsInfo::isWindowsHost()) {
+        QVERIFY(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"));
+        QVERIFY(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("QbsBootstrapper")
+                                  + "/qbs-setup-" + arch + ".exe"));
+    }
 }
 
 static bool haveNodeJs()
