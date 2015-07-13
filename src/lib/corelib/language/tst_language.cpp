@@ -1342,6 +1342,33 @@ void TestLanguage::qualifiedId()
     QCOMPARE(ids, sorted);
 }
 
+void TestLanguage::recursiveProductDependencies()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(
+                    testProject("recursive-dependencies/recursive-dependencies.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 4);
+        const ResolvedProductConstPtr p1 = products.value("p1");
+        QVERIFY(p1);
+        const ResolvedProductConstPtr p2 = products.value("p2");
+        QVERIFY(p2);
+        const ResolvedProductPtr p3 = products.value("p3");
+        QVERIFY(p3);
+        const ResolvedProductPtr p4 = products.value("p4");
+        QVERIFY(p4);
+        QVERIFY(p1->dependencies == QSet<ResolvedProductPtr>() << p3 << p4);
+        QVERIFY(p2->dependencies == QSet<ResolvedProductPtr>() << p3 << p4);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::fileTags_data()
 {
     QTest::addColumn<int>("numberOfGroups");
