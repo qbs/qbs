@@ -50,6 +50,8 @@
 #define Q_MV_OSX(major, minor) (major == 10 ? minor + 2 : (major == 9 ? 1 : 0))
 #endif
 
+#define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
+
 using qbs::InstallOptions;
 using qbs::Internal::HostOsInfo;
 using qbs::Internal::removeDirectoryWithContents;
@@ -370,7 +372,7 @@ void TestBlackbox::changedFiles()
     QCOMPARE(m_qbsStdout.count("compiling"), 3);
     QCOMPARE(m_qbsStdout.count("creating"), 3);
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     touch(QDir::currentPath() + "/main.cpp");
 
     // Now only the file marked as changed must be compiled, even though it hasn't really
@@ -386,7 +388,7 @@ void TestBlackbox::changeInDisabledProduct()
 {
     QDir::setCurrent(testDataDir + "/change-in-disabled-product");
     QCOMPARE(runQbs(), 0);
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile projectFile("project.qbs");
     QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
     QByteArray content = projectFile.readAll();
@@ -584,7 +586,7 @@ void TestBlackbox::renameDependency()
     QDir::setCurrent(testDataDir + "/renameDependency/work");
     QCOMPARE(runQbs(), 0);
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile::remove("lib.h");
     QFile::remove("lib.cpp");
     ccp("../after", ".");
@@ -629,7 +631,7 @@ void TestBlackbox::track_qrc()
     const QString fileName = relativeExecutableFilePath("i");
     QVERIFY2(regularFileExists(fileName), qPrintable(fileName));
     QDateTime dt = QFileInfo(fileName).lastModified();
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     {
         QFile f("stuff.txt");
         f.remove();
@@ -653,7 +655,7 @@ void TestBlackbox::track_qobject_change()
             + inputDirHash("GeneratedFiles") + objectFileName("/moc_bla.cpp", profileName());
     QVERIFY2(regularFileExists(moc_bla_objectFileName), qPrintable(moc_bla_objectFileName));
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     copyFileAndUpdateTimestamp("bla_noqobject.h", "bla.h");
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(productFilePath));
@@ -683,7 +685,7 @@ void TestBlackbox::trackAddFile()
             + objectFileName("/someapp/narf.cpp", profileName());
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     ccp("../after", ".");
     touch("project.qbs");
     touch("main.cpp");
@@ -727,7 +729,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile jsFile("fileList.js");
     QVERIFY(jsFile.open(QIODevice::ReadWrite));
     QByteArray jsCode = jsFile.readAll();
@@ -790,7 +792,7 @@ void TestBlackbox::trackRemoveFile()
             + objectFileName("/someapp/narf.cpp", profileName());
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile::remove("project.qbs");
     QFile::remove("main.cpp");
     QFile::copy("../before/project.qbs", "project.qbs");
@@ -839,7 +841,7 @@ void TestBlackbox::trackAddFileTag()
     output = process.readAllStandardOutput().split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     ccp("../after", ".");
     touch("main.cpp");
     touch("project.qbs");
@@ -878,7 +880,7 @@ void TestBlackbox::trackRemoveFileTag()
     output = process.readAllStandardOutput().split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's 15 foo here");
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     ccp("../before", ".");
     touch("main.cpp");
     touch("project.qbs");
@@ -911,7 +913,7 @@ void TestBlackbox::trackAddMocInclude()
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     ccp("../after", ".");
     touch("main.cpp");
     QCOMPARE(runQbs(), 0);
@@ -932,7 +934,7 @@ void TestBlackbox::trackAddProduct()
     QVERIFY(m_qbsStdout.contains("linking product1"));
     QVERIFY(m_qbsStdout.contains("linking product2"));
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     ccp("../after", ".");
     touch("trackProducts.qbs");
     QCOMPARE(runQbs(params), 0);
@@ -962,7 +964,7 @@ void TestBlackbox::trackRemoveProduct()
     QVERIFY(m_qbsStdout.contains("linking product2"));
     QVERIFY(m_qbsStdout.contains("linking product3"));
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile::remove("zoo.cpp");
     QFile::remove("product3.qbs");
     copyFileAndUpdateTimestamp("../before/trackProducts.qbs", "trackProducts.qbs");
@@ -993,7 +995,7 @@ void TestBlackbox::recursiveRenaming()
     QCOMPARE(runQbs(QbsRunParameters("install")), 0);
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/wasser.txt").exists());
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/subdir/blubb.txt").exists());
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(QFile::rename(QDir::currentPath() + "/dir/wasser.txt", QDir::currentPath() + "/dir/wein.txt"));
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"),
                                      QStringList("--clean-install-root"))), 0);
@@ -1096,7 +1098,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build with no changes, but updated project file timestamp.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(projectFile.open(QIODevice::ReadWrite | QIODevice::Append));
     projectFile.write("\n");
     projectFile.close();
@@ -1111,7 +1113,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build, input property changed for first product
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     QByteArray contents = projectFile.readAll();
     contents.replace("blubb1", "blubb01");
@@ -1129,7 +1131,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build, input property changed via project for second product.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     contents = projectFile.readAll();
     contents.replace("blubb2", "blubb02");
@@ -1196,7 +1198,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build, non-essential dependency removed.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     contents = projectFile.readAll();
     contents.replace("Depends { name: 'library' }", "// Depends { name: 'library' }");
@@ -1213,7 +1215,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build, prepare script of a transformer changed.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     contents = projectFile.readAll();
     contents.replace("contents 1", "contents 2");
@@ -1233,7 +1235,7 @@ void TestBlackbox::propertyChanges()
     generatedFile.close();
 
     // Incremental build, product property used in JavaScript command changed.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     contents = projectFile.readAll();
     contents.replace("prefix 1", "prefix 2");
@@ -1253,7 +1255,7 @@ void TestBlackbox::propertyChanges()
     generatedFile.close();
 
     // Incremental build, project property used in JavaScript command changed.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     contents = projectFile.readAll();
     contents.replace("suffix 1", "suffix 2");
@@ -1273,7 +1275,7 @@ void TestBlackbox::propertyChanges()
     generatedFile.close();
 
     // Incremental build, prepare script of a rule in a module changed.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile moduleFile("modules/TestModule/module.qbs");
     QVERIFY(moduleFile.open(QIODevice::ReadWrite));
     contents = moduleFile.readAll();
@@ -1307,7 +1309,7 @@ void TestBlackbox::dynamicMultiplexRule()
     QCOMPARE(runQbs(), 0);
     const QString outputFilePath = relativeProductBuildDir("dynamicMultiplexRule") + "/stuff-from-3-inputs";
     QVERIFY(regularFileExists(outputFilePath));
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     touch("two.txt");
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(outputFilePath));
@@ -1336,7 +1338,7 @@ void TestBlackbox::dynamicRuleOutputs()
     QVERIFY(!QFile::exists(sourceFile2));
 
     QDateTime appFileTimeStamp1 = QFileInfo(appFile).lastModified();
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     copyFileAndUpdateTimestamp("../after/numbers.l", "numbers.l");
     QCOMPARE(runQbs(), 0);
 
@@ -1348,7 +1350,7 @@ void TestBlackbox::dynamicRuleOutputs()
     QVERIFY(!QFile::exists(sourceFile1));
     QVERIFY(regularFileExists(sourceFile2));
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     copyFileAndUpdateTimestamp("../before/numbers.l", "numbers.l");
     QCOMPARE(runQbs(), 0);
 
@@ -1406,14 +1408,14 @@ void TestBlackbox::fileDependencies()
     QVERIFY(!m_qbsStdout.contains("linking"));
 
     // Incremental build with changed file dependency.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     touch("awesomelib/awesome.h");
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
 
     // Incremental build with changed 2nd level file dependency.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     touch("awesomelib/magnificent.h");
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
@@ -2080,7 +2082,7 @@ void TestBlackbox::radAfterIncompleteBuild()
     // Step 1: Have a directory where a file used to be.
     QbsRunParameters params(QStringList() << "-f" << projectFileName);
     QCOMPARE(runQbs(params), 0);
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile projectFile(projectFileName);
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     QByteArray content = projectFile.readAll();
@@ -2090,14 +2092,14 @@ void TestBlackbox::radAfterIncompleteBuild()
     projectFile.flush();
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     content.replace("oldfile/newfile", "newfile");
     projectFile.resize(0);
     projectFile.write(content);
     projectFile.flush();
     params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     content.replace("newfile", "oldfile/newfile");
     projectFile.resize(0);
     projectFile.write(content);
@@ -2105,21 +2107,21 @@ void TestBlackbox::radAfterIncompleteBuild()
     QCOMPARE(runQbs(params), 0);
 
     // Step 2: Have a file where a directory used to be.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     content.replace("oldfile/newfile", "oldfile");
     projectFile.resize(0);
     projectFile.write(content);
     projectFile.flush();
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     content.replace("oldfile", "newfile");
     projectFile.resize(0);
     projectFile.write(content);
     projectFile.flush();
     params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     content.replace("newfile", "oldfile");
     projectFile.resize(0);
     projectFile.write(content);
@@ -2172,7 +2174,7 @@ void TestBlackbox::installedApp()
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     QByteArray content = projectFile.readAll();
     content.replace("qbs.installPrefix: \"/usr\"", "qbs.installPrefix: '/usr/local'");
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     projectFile.resize(0);
     projectFile.write(content);
     QVERIFY(projectFile.flush());
@@ -2183,7 +2185,7 @@ void TestBlackbox::installedApp()
 
     // Check whether changing install parameters on the artifact causes re-installation.
     content.replace("qbs.installDir: \"bin\"", "qbs.installDir: 'custom'");
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     projectFile.resize(0);
     projectFile.write(content);
     QVERIFY(projectFile.flush());
@@ -2193,7 +2195,7 @@ void TestBlackbox::installedApp()
 
     // Check whether changing install parameters on a source file causes re-installation.
     content.replace("qbs.installDir: \"src\"", "qbs.installDir: 'source'");
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     projectFile.resize(0);
     projectFile.write(content);
     projectFile.close();
@@ -2676,7 +2678,7 @@ void TestBlackbox::groupsInModules()
     QVERIFY(!m_qbsStdout.contains("compile rock.coal => rock.diamond"));
     QVERIFY(!m_qbsStdout.contains("compile chunk.coal => chunk.diamond"));
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     touch("modules/helper/diamondc.c");
 
     QCOMPARE(runQbs(params), 0);
