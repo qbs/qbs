@@ -167,7 +167,7 @@ private:
     void handleGroup(ProductContext *productContext, Item *group);
     Item *mergeExportItems(ProductContext *productContext, const QVector<Item *> &exportItemsInProduct);
     void propagateModulesFromProduct(ProductContext *productContext, Item *item);
-    void resolveDependencies(DependsContext *productContext, Item *item);
+    void resolveDependencies(DependsContext *dependsContext, Item *item);
     class ItemModuleList;
     void resolveDependsItem(DependsContext *dependsContext, Item *item, Item *dependsItem, ItemModuleList *moduleResults, ProductDependencyResults *productResults);
     Item *moduleInstanceItem(Item *item, const QualifiedId &moduleName);
