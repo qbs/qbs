@@ -153,8 +153,7 @@ private:
         QList<ModuleLoaderResult::ProductInfo::Dependency> *productDependencies;
     };
 
-    typedef QPair<Item *, ModuleLoaderResult::ProductInfo::Dependency> ProductDependencyResult;
-    typedef QList<ProductDependencyResult> ProductDependencyResults;
+    typedef QList<ModuleLoaderResult::ProductInfo::Dependency> ProductDependencyResults;
 
     void handleTopLevelProject(ModuleLoaderResult *loadResult, Item *item,
             const QString &buildDirectory, const QSet<QString> &referencedFilePaths);

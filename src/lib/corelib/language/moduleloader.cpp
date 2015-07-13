@@ -660,8 +660,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
         }
     }
 
-    foreach (const ProductDependencyResult &pd, productDependencies)
-        dependsContext->productDependencies->append(pd.second);
+    dependsContext->productDependencies->append(productDependencies);
 }
 
 static bool containsEmptyString(const QStringList &lst)
@@ -712,7 +711,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
         dependency.productTypes = productTypes;
         dependency.limitToSubProject
                 = m_evaluator->boolValue(dependsItem, QLatin1String("limitToSubProject"));
-        productResults->append(ProductDependencyResult(dependsItem, dependency));
+        productResults->append(dependency);
         return;
     }
     if (submodules.isEmpty() && submodulesPropertySet) {
@@ -759,14 +758,14 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
                 dependency.name = moduleName.toString();
                 dependency.profile = QLatin1String("*");
-                productResults->append(ProductDependencyResult(dependsItem, dependency));
+                productResults->append(dependency);
                 continue;
             }
             foreach (const QString &profile, profiles) {
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
                 dependency.name = moduleName.toString();
                 dependency.profile = profile;
-                productResults->append(ProductDependencyResult(dependsItem, dependency));
+                productResults->append(dependency);
             }
         }
     }
