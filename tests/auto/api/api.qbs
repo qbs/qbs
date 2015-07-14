@@ -9,4 +9,11 @@ QbsAutotest {
         'QBS_RELATIVE_SEARCH_PATH="' + project.relativeSearchPath + '"',
         'QBS_RELATIVE_PLUGINS_PATH="' + project.relativePluginsPath + '"'
     ]).concat(project.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : [])
+
+    Group {
+        name: "testdata"
+        prefix: "testdata/"
+        files: ["**/*"]
+        fileTags: []
+    }
 }
