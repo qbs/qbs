@@ -1,7 +1,7 @@
-void d();
+int d();
 
-void e()
+int e()
 {
-    d();
+    return d();
 }
 

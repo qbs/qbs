@@ -45,6 +45,15 @@ Project {
             "d.cpp",
         ]
 
+        Properties {
+            condition: qbs.targetOS.contains("windows")
+            cpp.defines: ["WITH_SETUPAPI"]
+        }
+        Properties {
+            condition: qbs.targetOS.contains("unix")
+            cpp.defines: ["WITH_PTHREAD"]
+        }
+
         Export {
             Depends { name: "cpp" }
             Properties {
@@ -52,7 +61,7 @@ Project {
                 cpp.staticLibraries: ["pthread"]
             }
             Properties {
-                condition: qbs.toolchain.contains("msvc")
+                condition: qbs.targetOS.contains("windows")
                 cpp.staticLibraries: ["setupapi"]
             }
         }
@@ -73,17 +82,12 @@ Project {
         type: "application"
         consoleApplication: true
 
+        Depends { name: "e" }
+
         Properties {
-            condition: qbs.targetOS.contains("linux")
-            cpp.defines: ["WITH_PTHREAD"]
+            condition: qbs.targetOS.contains("unix")
             cpp.linkerFlags: ["-static"]
         }
-        Properties {
-            condition: qbs.toolchain.contains("msvc")
-            cpp.defines: ["WITH_SETUPAPI"]
-        }
-
-        Depends { name: "e" }
 
         files: [
             "main.cpp",
