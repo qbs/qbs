@@ -181,7 +181,7 @@ CppModule {
             filePath: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
             fileTags: ["staticlibrary"]
             cpp.staticLibraries: {
-                var result = []
+                var result = ModUtils.moduleProperties(product, 'staticLibraries');
                 for (var i in inputs.staticlibrary) {
                     var lib = inputs.staticlibrary[i]
                     result = Gcc.concatLibs(result, [lib.filePath].concat(
@@ -190,7 +190,7 @@ CppModule {
                 return result
             }
             cpp.dynamicLibraries: {
-                var result = []
+                var result = ModUtils.moduleProperties(product, 'dynamicLibraries');
                 for (var i in inputs.dynamiclibrary)
                     result.push(inputs.dynamiclibrary[i].filePath);
                 return result
