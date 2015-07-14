@@ -2775,8 +2775,18 @@ void TestBlackbox::probesInNestedModules()
     QDir::setCurrent(testDataDir + "/probes-in-nested-modules");
     QbsRunParameters params;
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(m_qbsStderr.contains("running probe..."));
-    QVERIFY(m_qbsStderr.contains("product b, inner.something = hello"));
+
+    QCOMPARE(m_qbsStderr.count("running probe a"), 1);
+    QCOMPARE(m_qbsStderr.count("running probe b"), 1);
+    QCOMPARE(m_qbsStderr.count("running probe c"), 1);
+    QCOMPARE(m_qbsStderr.count("running second probe a"), 1);
+
+    QVERIFY(m_qbsStderr.contains("product a, outer.somethingElse = goodbye"));
+    QVERIFY(m_qbsStderr.contains("product b, inner.something = hahaha"));
+    QVERIFY(m_qbsStderr.contains("product c, inner.something = hello"));
+
+    QEXPECT_FAIL(0, "QBS-833", Continue);
+    QVERIFY(m_qbsStderr.contains("product a, inner.something = hahaha"));
     QEXPECT_FAIL(0, "QBS-833", Continue);
     QVERIFY(m_qbsStderr.contains("product a, outer.something = hello"));
 }
