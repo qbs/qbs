@@ -445,8 +445,10 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item,
     m_productContext->additionalFileTags +=
             m_evaluator->fileTagsValue(item, QLatin1String("additionalProductTypes"));
 
-    foreach (const Item::Module &m, item->modules())
-        module->moduleDependencies += m.name.toString();
+    foreach (const Item::Module &m, item->modules()) {
+        if (m_evaluator->boolValue(m.item, QLatin1String("present")))
+            module->moduleDependencies += m.name.toString();
+    }
 
     m_productContext->product->modules += module;
 
