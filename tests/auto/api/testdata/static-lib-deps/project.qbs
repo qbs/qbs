@@ -48,7 +48,7 @@ Project {
         Export {
             Depends { name: "cpp" }
             Properties {
-                condition: qbs.targetOS.contains("unix")
+                condition: qbs.targetOS.contains("linux")
                 cpp.staticLibraries: ["pthread"]
             }
             Properties {
@@ -74,7 +74,7 @@ Project {
         consoleApplication: true
 
         Properties {
-            condition: qbs.targetOS.contains("unix")
+            condition: qbs.targetOS.contains("linux")
             cpp.defines: ["WITH_PTHREAD"]
             cpp.linkerFlags: ["-static"]
         }
