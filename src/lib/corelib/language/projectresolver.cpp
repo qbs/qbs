@@ -427,8 +427,8 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item,
     if (!m_evaluator->boolValue(item, QLatin1String("present")))
         return;
 
-    if (m_productContext->product->enabled)
-        m_evaluator->boolValue(item, QLatin1String("validate"));
+    if (m_productContext->product->enabled && item->delayedError().hasError())
+        throw item->delayedError();
 
     ModuleContext * const oldModuleContext = m_moduleContext;
     ModuleContext moduleContext;

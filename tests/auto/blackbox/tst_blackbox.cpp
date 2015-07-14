@@ -310,9 +310,9 @@ void TestBlackbox::zip()
         QSKIP("zip tool not found");
 
     QDir::setCurrent(testDataDir + "/archiver");
-    QCOMPARE(runQbs(QbsRunParameters(QStringList()
-                                     << "archiver.type:zip"
-                                     << "archiver.command:" + binaryName)), 0);
+    QbsRunParameters params(QStringList()
+                            << "archiver.type:zip" << "archiver.command:" + binaryName);
+    QCOMPARE(runQbs(params), 0);
     const QString outputFile = relativeProductBuildDir("archivable") + "/archivable.zip";
     QVERIFY2(regularFileExists(outputFile), qPrintable(outputFile));
     QProcess listContents;
@@ -329,6 +329,10 @@ void TestBlackbox::zip()
     QVERIFY2(listFile.open(QIODevice::ReadOnly), qPrintable(listFile.errorString()));
     QCOMPARE(sortedFileList(listContents.readAllStandardOutput()),
              sortedFileList(listFile.readAll()));
+
+    // Make sure the module is still loaded when the java/jar fallback is not available
+    params.arguments << "java.jdkPath:/blubb";
+    QCOMPARE(runQbs(params), 0);
 }
 
 void TestBlackbox::zip_data()

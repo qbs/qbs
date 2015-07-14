@@ -199,6 +199,7 @@ private:
     void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                 const QVariantMap &buildConfig);
     void addTransitiveDependencies(ProductContext *ctx, Item *item);
+    Item *createNonPresentModule(const QString &name, const QString &reason, Item *module);
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;

@@ -168,6 +168,13 @@ void Item::dump() const
     dump(0);
 }
 
+bool Item::isPresentModule() const
+{
+    // Initial value is "true" as JS source, overwritten one is always QVariant(false).
+    const ValueConstPtr v = property(QLatin1String("present"));
+    return v && v->type() == Value::JSSourceValueType;
+}
+
 static const char *valueType(const Value *v)
 {
     switch (v->type()) {

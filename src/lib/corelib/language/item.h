@@ -39,6 +39,7 @@
 #include "qualifiedid.h"
 #include <parser/qmljsmemorypool_p.h>
 #include <tools/codelocation.h>
+#include <tools/error.h>
 #include <tools/weakpointer.h>
 
 #include <QList>
@@ -122,6 +123,10 @@ public:
     void setParent(Item *item);
     static void addChild(Item *parent, Item *child);
     void dump() const;
+    bool isPresentModule() const;
+
+    void setDelayedError(const ErrorInfo &e) { m_delayedError = e; }
+    ErrorInfo delayedError() const { return m_delayedError; }
 
 private:
     void dump(int indentation) const;
@@ -142,6 +147,7 @@ private:
     PropertyDeclarationMap m_propertyDeclarations;
     QList<FunctionDeclaration> m_functions;
     Modules m_modules;
+    ErrorInfo m_delayedError;
 };
 
 inline ItemPool *Item::pool() const

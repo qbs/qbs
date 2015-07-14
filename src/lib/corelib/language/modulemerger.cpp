@@ -47,6 +47,8 @@ ModuleMerger::ModuleMerger(const Logger &logger, Item *root, Item *moduleToMerge
 
 void ModuleMerger::start()
 {
+    if (!m_mergedModuleItem->isPresentModule())
+        return;
     Item::Module m;
     m.item = m_rootItem;
     const Item::PropertyMap props = dfs(m, Item::PropertyMap());

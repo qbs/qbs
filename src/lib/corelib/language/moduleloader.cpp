@@ -818,6 +818,18 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
     if (!cacheHit && isBaseModule)
         setupBaseModulePrototype(modulePrototype);
     instantiateModule(productContext, item, moduleInstance, modulePrototype, moduleName);
+    if (moduleInstance->isPresentModule()) {
+        try {
+            m_evaluator->boolValue(moduleInstance, QLatin1String("validate"));
+        } catch (const ErrorInfo &error) {
+            if (isRequired) { // Error will be thrown for enabled products only
+                moduleInstance->setDelayedError(error);
+            } else {
+                return createNonPresentModule(moduleName.toString(),
+                                              QLatin1String("failed validation"), moduleInstance);
+            }
+        }
+    }
     return moduleInstance;
 }
 
@@ -857,16 +869,8 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         }
     }
 
-    if (!isRequired) {
-        if (m_logger.traceEnabled()) {
-            m_logger.qbsTrace() << "Non-required module '" << fullName << "' not found."
-                                << "Creating dummy module for presence check.";
-        }
-        Item * const module = Item::create(m_pool);
-        module->setFile(FileContext::create());
-        module->setProperty(QLatin1String("present"), VariantValue::create(false));
-        return module;
-    }
+    if (!isRequired)
+        return createNonPresentModule(fullName, QLatin1String("not found"), nullptr);
 
     if (Q_UNLIKELY(triedToLoadModule))
         throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
@@ -1496,6 +1500,21 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx, Item *item)
         dep.name = module.name;
         item->addModule(dep);
     }
+}
+
+Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &reason, Item *module)
+{
+    if (m_logger.traceEnabled()) {
+        m_logger.qbsTrace() << "Non-required module '" << name << "' not loaded (" << reason << ")."
+                            << "Creating dummy module for presence check.";
+    }
+    if (!module) {
+        module = Item::create(m_pool);
+        module->setFile(FileContext::create());
+        module->setTypeName(QLatin1String("Module"));
+    }
+    module->setProperty(QLatin1String("present"), VariantValue::create(false));
+    return module;
 }
 
 QString ModuleLoaderResult::ProductInfo::Dependency::uniqueName() const
