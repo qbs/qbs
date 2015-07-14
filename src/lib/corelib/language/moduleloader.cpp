@@ -640,24 +640,20 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     loadBaseModule(dependsContext->product, item);
 
     // Resolve all Depends items.
-    typedef QHash<Item *, ItemModuleList> ModuleHash;
-    ModuleHash loadedModules;
+    ItemModuleList loadedModules;
     ProductDependencyResults productDependencies;
     foreach (Item *child, item->children())
         if (child->typeName() == QLatin1String("Depends"))
-            resolveDependsItem(dependsContext, item, child, &loadedModules[child],
-                               &productDependencies);
+            resolveDependsItem(dependsContext, item, child, &loadedModules, &productDependencies);
 
     QSet<QString> loadedModuleNames;
-    foreach (const ItemModuleList &moduleList, loadedModules) {
-        foreach (const Item::Module &module, moduleList) {
-            const QString fullName = module.name.toString();
-            if (loadedModuleNames.contains(fullName))
-                continue;
-            loadedModuleNames.insert(fullName);
-            item->addModule(module);
-            resolveProbes(module.item);
-        }
+    foreach (const Item::Module &module, loadedModules) {
+        const QString fullName = module.name.toString();
+        if (loadedModuleNames.contains(fullName))
+            continue;
+        loadedModuleNames.insert(fullName);
+        item->addModule(module);
+        resolveProbes(module.item);
     }
 
     dependsContext->productDependencies->append(productDependencies);
