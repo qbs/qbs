@@ -990,6 +990,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     foreach (const ErrorInfo &error, unknownProfilePropertyErrors)
         handlePropertyError(error, m_parameters, m_logger);
 
+    module->setProperty(QLatin1String("name"), VariantValue::create(fullModuleName));
     m_modulePrototypeItemCache.insert(cacheKey, ItemCacheValue(module, true));
     return module;
 }
@@ -1176,9 +1177,6 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
                                      const QualifiedId &moduleName)
 {
     const QString fullName = moduleName.toString();
-    modulePrototype->setProperty(QLatin1String("name"),
-                                 VariantValue::create(fullName));
-
     moduleInstance->setPrototype(modulePrototype);
     moduleInstance->setFile(modulePrototype->file());
     moduleInstance->setLocation(modulePrototype->location());
