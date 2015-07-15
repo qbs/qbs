@@ -240,8 +240,10 @@ void ProcessCommandExecutor::onProcessError()
             }
         }
 #endif
-        emit finished(ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
-                                .arg(binary, errorPrefixString + m_process.errorString())));
+        emit finished(ErrorInfo(Tr::tr("The process '%1' could not be started: %2. "
+                                       "The full command line invocation was: %3")
+                                .arg(binary, errorPrefixString + m_process.errorString(),
+                                     m_shellInvocation)));
         break;
     }
     case QProcess::Crashed:
