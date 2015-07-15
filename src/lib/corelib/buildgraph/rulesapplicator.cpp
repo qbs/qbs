@@ -230,7 +230,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
                 QString msg = QLatin1String("evaluating rule binding '%1': %2");
                 throw ErrorInfo(msg.arg(binding.name.join(QLatin1Char('.')),
-                                        scriptValue.toString()), binding.location);
+                                        engine()->lastErrorString(scriptValue)), binding.location);
             }
             setConfigProperty(artifactModulesCfg, binding.name, scriptValue.toVariant());
         }
@@ -269,7 +269,8 @@ Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->filePath);
     if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
         throw ErrorInfo(Tr::tr("Error in Rule.Artifact fileName at %1: %2")
-                        .arg(ruleArtifact->location.toString(), scriptValue.toString()));
+                        .arg(ruleArtifact->location.toString(),
+                             engine()->lastErrorString(scriptValue)));
     }
     QString outputPath = FileInfo::resolvePath(m_product->buildDirectory(), scriptValue.toString());
     if (Q_UNLIKELY(outputFilePaths->contains(outputPath))) {

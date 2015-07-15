@@ -182,7 +182,7 @@ private:
             engine->currentContext()->popScope();
             popScopes();
             if (engine->hasErrorOrException(cr)) {
-                *result = cr;
+                *result = engine->lastErrorValue(cr);
                 return;
             }
             if (cr.toBool()) {

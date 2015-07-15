@@ -188,7 +188,7 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
     QScriptValue filteredOutput = filterFunction.call(scriptEngine()->undefinedValue(), outputArg);
     if (scriptEngine()->hasErrorOrException(filteredOutput)) {
         logger().printWarning(ErrorInfo(Tr::tr("Error when calling output filter function: %1")
-                         .arg(filteredOutput.toString())));
+                         .arg(scriptEngine()->lastErrorString(filteredOutput))));
         return output;
     }
 

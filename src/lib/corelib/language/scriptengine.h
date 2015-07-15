@@ -107,6 +107,10 @@ public:
     bool hasErrorOrException(const QScriptValue &v) const {
         return v.isError() || hasUncaughtException();
     }
+    QScriptValue lastErrorValue(const QScriptValue &v) const {
+        return v.isError() ? v : uncaughtException();
+    }
+    QString lastErrorString(const QScriptValue &v) const { return lastErrorValue(v).toString(); }
 
     void cancel();
 

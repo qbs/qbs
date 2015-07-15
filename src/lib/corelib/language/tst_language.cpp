@@ -894,7 +894,7 @@ void TestLanguage::jsExtensions()
     QScriptValue evaluated = m_engine->evaluate(code, file.fileName(), 1);
     if (m_engine->hasErrorOrException(evaluated)) {
         qDebug() << m_engine->uncaughtExceptionBacktrace();
-        QFAIL(qPrintable(evaluated.toString()));
+        QFAIL(qPrintable(m_engine->lastErrorString(evaluated)));
     }
 }
 

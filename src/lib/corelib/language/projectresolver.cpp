@@ -1033,8 +1033,10 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesCont
             }
 
             const QScriptValue scriptValue = m_evaluator->property(item, it.key());
-            if (Q_UNLIKELY(m_evaluator->engine()->hasErrorOrException(scriptValue)))
-                throw ErrorInfo(scriptValue.toString(), it.value()->location());
+            if (Q_UNLIKELY(m_evaluator->engine()->hasErrorOrException(scriptValue))) {
+                throw ErrorInfo(m_evaluator->engine()->lastErrorString(scriptValue),
+                                it.value()->location());
+            }
 
             // NOTE: Loses type information if scriptValue.isUndefined == true,
             //       as such QScriptValues become invalid QVariants.

@@ -1407,7 +1407,7 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
         scope.setProperty(b.first, b.second);
     QScriptValue sv = m_engine->evaluate(configureScript->sourceCodeForEvaluation());
     if (Q_UNLIKELY(m_engine->hasErrorOrException(sv)))
-        throw ErrorInfo(sv.toString(), configureScript->location());
+        throw ErrorInfo(m_engine->lastErrorString(sv), configureScript->location());
     foreach (const ProbeProperty &b, probeBindings) {
         const QVariant newValue = scope.property(b.first).toVariant();
         if (newValue != b.second.toVariant())
