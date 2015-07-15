@@ -50,7 +50,7 @@ Project {
             cpp.defines: ["WITH_SETUPAPI"]
         }
         Properties {
-            condition: qbs.targetOS.contains("unix")
+            condition: qbs.targetOS.contains("linux")
             cpp.defines: ["WITH_PTHREAD"]
         }
 
@@ -85,7 +85,7 @@ Project {
         Depends { name: "e" }
 
         Properties {
-            condition: qbs.targetOS.contains("unix")
+            condition: qbs.targetOS.contains("linux")
             cpp.linkerFlags: ["-static"]
         }
 
