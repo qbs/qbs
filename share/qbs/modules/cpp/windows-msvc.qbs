@@ -37,7 +37,9 @@ import qbs.WindowsUtils
 import 'msvc.js' as MSVC
 
 CppModule {
-    condition: qbs.hostOS.contains('windows') && qbs.targetOS.contains('windows') && qbs.toolchain.contains('msvc')
+    condition: qbs.hostOS.contains('windows') &&
+               qbs.targetOS.contains('windows') &&
+               qbs.toolchain && qbs.toolchain.contains('msvc')
 
     id: module
 

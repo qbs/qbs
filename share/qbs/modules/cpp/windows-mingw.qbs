@@ -33,7 +33,8 @@ import qbs.ModUtils
 import qbs.WindowsUtils
 
 GenericGCC {
-    condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("mingw")
+    condition: qbs.targetOS.contains("windows") &&
+               qbs.toolchain && qbs.toolchain.contains("mingw")
     staticLibraryPrefix: "lib"
     dynamicLibraryPrefix: ""
     executablePrefix: ""
