@@ -70,8 +70,8 @@ function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
             }
 
             // --failfast doesn't print the default JVM if nothing matches the filter(s).
-            p.exec("/usr/libexec/java_home", args.concat(["--failfast"]), true);
-            return p.readStdOut().trim();
+            var status = p.exec("/usr/libexec/java_home", args.concat(["--failfast"]));
+            return status === 0 ? p.readStdOut().trim() : undefined;
         } finally {
             p.close();
         }
