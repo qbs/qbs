@@ -5,7 +5,7 @@ Project {
         name: "p1lib1"
         files: ["src/main/jni/lib1.cpp"]
         Android.ndk.appStl: "stlport_shared"
-        architectures: ["mips", "x86"]
+        architectures: ["mipsel", "x86"]
         cpp.useRPaths: false
     }
 

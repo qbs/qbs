@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2015 Jake Petroules.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of the Qt Build Suite.
@@ -28,21 +28,38 @@
 **
 ****************************************************************************/
 
-Product {
-    type: {
-        if (isForAndroid && !consoleApplication)
-            return ["dynamiclibrary"];
-        return ["application"];
+import qbs
+import qbs.File
+import qbs.FileInfo
+
+PathProbe {
+    // Inputs
+    property stringList hostOS: qbs.hostOS
+
+    environmentPaths: qbs.getEnv("ANDROID_NDK_ROOT")
+
+    // Outputs
+    property var hostArch
+
+    configure: {
+        var i, j;
+        for (i in environmentPaths) {
+            var platforms = [];
+            if (hostOS.contains("windows"))
+                platforms.push("windows-x86_64", "windows");
+            if (hostOS.contains("darwin"))
+                platforms.push("darwin-x86_64", "darwin-x86");
+            if (hostOS.contains("linux"))
+                platforms.push("linux-x86_64", "linux-x86");
+            for (j in platforms) {
+                if (File.exists(FileInfo.joinPaths(environmentPaths[i], "prebuilt",
+                                                   platforms[j]))) {
+                    path = environmentPaths[i];
+                    hostArch = platforms[j];
+                    found = true;
+                    return;
+                }
+            }
+        }
     }
-
-    property bool isForAndroid: qbs.targetOS.contains("android")
-    property stringList architectures: isForAndroid ? ["armv5"] : undefined
-
-    Depends { name: "Android.ndk"; condition: isForAndroid }
-    Depends { name: "bundle" }
-    Depends { name: "cpp"; condition: isForAndroid }
-
-    profiles: isForAndroid
-        ? architectures.map(function(arch) { return project.profile + '_' + arch; })
-        : [project.profile]
 }

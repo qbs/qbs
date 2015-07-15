@@ -81,6 +81,7 @@
         \li 1.4
         \li undefined
         \li The ABI name as it appears under "lib/" in the application package.
+            Corresponds to APP_ABI in Android.mk.
     \row
         \li appStl
         \li string
@@ -90,11 +91,11 @@
             "gabi++_shared", "stlport_static", "stlport_shared", "gnustl_static", "gnustl_shared",
             "c++_static", "c++_shared".
     \row
-        \li buildProfile
-        \li string
-        \li 1.4
+        \li hardFloat
+        \li bool
+        \li 1.4.2
         \li undefined
-        \li The name of the build profile, e.g. "armeabi-v7a-hard".
+        \li Whether to use the hard floating point variant of the armeabi-v7a ABI.
     \row
         \li enableExceptions
         \li bool

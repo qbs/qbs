@@ -111,288 +111,22 @@ static QString detectPlatform(const QString &sdkDir)
     return newestPlatform;
 }
 
-// Independent of architecture, build variant and language.
-static QStringList commonCompilerFlags()
+static QStringList expectedArchs()
 {
-    return QStringList() << qls("-ffunction-sections") << qls("-funwind-tables")
-            << qls("-no-canonical-prefixes") << qls("-Wa,--noexecstack")
-            << qls("-Werror=format-security");
-}
-
-// Independent of architecture and language
-static QStringList commonCompilerFlagsDebug()
-{
-    return commonCompilerFlags() << qls("-fno-omit-frame-pointer") << qls("-fno-strict-aliasing")
-            << qls("-O0");
-}
-
-// Independent of architecture and language
-static QStringList commonCompilerFlagsRelease()
-{
-    return commonCompilerFlags() << qls("-fomit-frame-pointer");
-}
-
-static QStringList arm64FlagsDebug()
-{
-    return commonCompilerFlagsDebug() << qls("-fpic") << qls("-fstack-protector")
-            << qls("-funswitch-loops") << qls("-finline-limit=300");
-}
-
-static QStringList arm64FlagsRelease()
-{
-    return commonCompilerFlagsRelease() << qls("-fpic") << qls("-fstack-protector") << qls("-O2")
-            << qls("-fstrict-aliasing") << qls("-funswitch-loops") << qls("-finline-limit=300");
-}
-
-static QStringList armeabiFlagsDebug()
-{
-    return commonCompilerFlagsDebug() << qls("-fpic") << qls("-fstack-protector")
-            << qls("-march=armv5te") << qls("-mtune=xscale") << qls("-msoft-float")
-            << qls("-finline-limit=64");
-}
-
-static QStringList armeabiFlagsRelease()
-{
-    return commonCompilerFlagsRelease() << qls("-fpic") << qls("-fstack-protector")
-            << qls("-march=armv5te") << qls("-mtune=xscale") << qls("-msoft-float") << qls("-Os")
-            << qls("-fno-strict-aliasing") << qls("-finline-limit=64");
-}
-
-static QStringList armeabiV7aFlagsDebug()
-{
-    return commonCompilerFlagsDebug() << qls("-fpic") << qls("-fstack-protector")
-            << qls("-march=armv7-a") << qls("-mfpu=vfpv3-d16") << qls("-mfloat-abi=softfp")
-            << qls("-finline-limit=64");
-}
-
-static QStringList armeabiV7aFlagsRelease()
-{
-    return commonCompilerFlagsRelease() << qls("-fpic") << qls("-fstack-protector")
-            << qls("-march=armv7-a") << qls("-mfpu=vfpv3-d16") << qls("-mfloat-abi=softfp")
-            << qls("-Os") << qls("-fno-strict-aliasing") << qls("-finline-limit=64");
-}
-
-static QStringList armeabiV7aHardFlagsDebug()
-{
-    return commonCompilerFlagsDebug() << qls("-fpic") << qls("-fstack-protector")
-            << qls("-march=armv7-a") << qls("-mfpu=vfpv3-d16") << qls("-mhard-float")
-            << qls("-finline-limit=64");
-}
-
-static QStringList armeabiV7aHardFlagsRelease()
-{
-    return commonCompilerFlagsRelease() << qls("-fpic") << qls("-fstack-protector")
-            << qls("-march=armv7-a") << qls("-mfpu=vfpv3-d16") << qls("-mhard-float") << qls("-Os")
-            << qls("-fno-strict-aliasing") << qls("-finline-limit=64");
-}
-
-static QStringList mipsFlagsDebug()
-{
-    return commonCompilerFlagsDebug() << qls("-fpic") << qls("-finline-functions")
-            << qls("-fmessage-length=0") << qls("-fno-inline-functions-called-once")
-            << qls("-fgcse-after-reload") << qls("-frerun-cse-after-loop")
-            << qls("-frename-registers");
-}
-
-static QStringList mipsFlagsRelease()
-{
-    return commonCompilerFlagsRelease() << qls("-fpic") << qls("-fno-strict-aliasing")
-            << qls("-finline-functions") << qls("-fmessage-length=0")
-            << qls("-fno-inline-functions-called-once") << qls("-fgcse-after-reload")
-            << qls("-frerun-cse-after-loop") << qls("-frename-registers") << qls("-O2")
-            << qls("-funswitch-loops") << qls("-finline-limit=300");
-}
-
-static QStringList x86FlagsDebug()
-{
-    return commonCompilerFlagsDebug() << qls("-fstack-protector") << qls("-funswitch-loops")
-            << qls("-finline-limit=300");
-}
-
-static QStringList x86FlagsRelease()
-{
-    return commonCompilerFlagsRelease() << qls("-fstack-protector") << qls("-O2")
-            << qls("-fstrict-aliasing") << qls("-funswitch-loops") << qls("-finline-limit=300");
-}
-
-static QStringList commonLinkerFlags()
-{
-    return QStringList() << qls("-no-canonical-prefixes") << qls("-Wl,-z,noexecstack")
-            << qls("-Wl,-z,relro") << qls("-Wl,-z,now");
-}
-
-static QStringList armeabiV7aLinkerFlags()
-{
-    return commonLinkerFlags() << qls("-march=armv7-a") << qls("-Wl,--fix-cortex-a8");
-}
-
-static QStringList armeabiV7aHardLinkerFlags()
-{
-    return armeabiV7aLinkerFlags() << qls("-Wl,-no-warn-mismatch");
-}
-
-class BuildProfile {
-public:
-    BuildProfile() : linkerFlags(commonLinkerFlags()), hardFp(false) {}
-
-    QString profileSuffix;
-    QString abi;
-    QString qbsArchName;
-    QString toolchainDirPrefix;
-    QString toolchainPrefix;
-    QStringList compilerFlagsDebug;
-    QStringList compilerFlagsRelease;
-    QStringList linkerFlags;
-    bool hardFp;
-};
-
-uint qHash(const BuildProfile &arch) { return qHash(arch.profileSuffix); }
-bool operator==(const BuildProfile &a1, const BuildProfile &a2) {
-    return a1.profileSuffix == a2.profileSuffix;
-}
-typedef QHash<QString, BuildProfile> BuildProfileMap;
-
-// As of r10c. Let's hope they don't change it gratuitously.
-static BuildProfileMap createArchMap()
-{
-    BuildProfileMap map;
-
-    BuildProfile aarch64;
-    aarch64.abi = qls("arm64-v8a");
-    aarch64.profileSuffix = aarch64.abi;
-    aarch64.qbsArchName = qls("arm64");
-    aarch64.toolchainDirPrefix = qls("aarch64-linux-android-");
-    aarch64.toolchainPrefix = qls("aarch64-linux-android-");
-    aarch64.compilerFlagsDebug = arm64FlagsDebug();
-    aarch64.compilerFlagsRelease = arm64FlagsRelease();
-    map.insert(aarch64.profileSuffix, aarch64);
-
-    BuildProfile armeabi;
-    armeabi.abi = qls("armeabi");
-    armeabi.profileSuffix = armeabi.abi;
-    armeabi.qbsArchName = qls("arm");
-    armeabi.toolchainDirPrefix = qls("arm-linux-androideabi-");
-    armeabi.toolchainPrefix = qls("arm-linux-androideabi-");
-    armeabi.compilerFlagsDebug = armeabiFlagsDebug();
-    armeabi.compilerFlagsRelease = armeabiFlagsRelease();
-    map.insert(armeabi.profileSuffix, armeabi);
-
-    BuildProfile armeabiV7a = armeabi;
-    armeabiV7a.abi = qls("armeabi-v7a");
-    armeabiV7a.profileSuffix = armeabiV7a.abi;
-    armeabiV7a.compilerFlagsDebug = armeabiV7aFlagsDebug();
-    armeabiV7a.compilerFlagsRelease = armeabiV7aFlagsRelease();
-    armeabiV7a.linkerFlags = armeabiV7aLinkerFlags();
-    map.insert(armeabiV7a.profileSuffix, armeabiV7a);
-
-    BuildProfile armeabiV7aHard = armeabiV7a;
-    armeabiV7aHard.profileSuffix = qls("armeabi-v7a-hard"); // Same abi as above.
-    armeabiV7aHard.compilerFlagsDebug = armeabiV7aHardFlagsDebug();
-    armeabiV7aHard.compilerFlagsRelease = armeabiV7aHardFlagsRelease();
-    armeabiV7aHard.linkerFlags = armeabiV7aHardLinkerFlags();
-    armeabiV7aHard.hardFp = true;
-    map.insert(armeabiV7aHard.profileSuffix, armeabiV7aHard);
-
-    BuildProfile mips;
-    mips.abi = qls("mips");
-    mips.profileSuffix = mips.abi;
-    mips.qbsArchName = qls("mipsel");
-    mips.toolchainDirPrefix = qls("mipsel-linux-android-");
-    mips.toolchainPrefix = qls("mipsel-linux-android-");
-    mips.compilerFlagsDebug = mipsFlagsDebug();
-    mips.compilerFlagsRelease = mipsFlagsRelease();
-    map.insert(mips.profileSuffix, mips);
-
-    BuildProfile mips64;
-    mips64.abi = qls("mips64");
-    mips64.profileSuffix = mips64.abi;
-    mips64.qbsArchName = qls("mips64el");
-    mips64.toolchainDirPrefix = qls("mips64el-linux-android-");
-    mips64.toolchainPrefix = qls("mips64el-linux-android-");
-    mips64.compilerFlagsDebug = mipsFlagsDebug();
-    mips64.compilerFlagsRelease = mipsFlagsRelease();
-    map.insert(mips64.profileSuffix, mips64);
-
-    BuildProfile x86;
-    x86.abi = qls("x86");
-    x86.profileSuffix = x86.abi;
-    x86.qbsArchName = x86.abi;
-    x86.toolchainDirPrefix = qls("x86-");
-    x86.toolchainPrefix = qls("i686-linux-android-");
-    x86.compilerFlagsDebug = x86FlagsDebug();
-    x86.compilerFlagsRelease = x86FlagsRelease();
-    map.insert(x86.profileSuffix, x86);
-
-    BuildProfile x86_64;
-    x86_64.abi = qls("x86_64");
-    x86_64.profileSuffix = x86_64.abi;
-    x86_64.qbsArchName = x86_64.abi;
-    x86_64.toolchainDirPrefix = qls("x86_64-");
-    x86_64.toolchainPrefix = qls("x86_64-linux-android-");
-    x86_64.compilerFlagsDebug = x86FlagsDebug();
-    x86_64.compilerFlagsRelease = x86FlagsRelease();
-    map.insert(x86_64.profileSuffix, x86_64);
-
-    return map;
+    return QStringList({
+        QStringLiteral("arm64"),
+        QStringLiteral("armv5"),
+        QStringLiteral("armv7"),
+        QStringLiteral("mipsel"),
+        QStringLiteral("mips64el"),
+        QStringLiteral("x86"),
+        QStringLiteral("x86_64")});
 }
 
 
-static QString subProfileName(const QString &mainProfileName, const BuildProfile &arch)
+static QString subProfileName(const QString &mainProfileName, const QString &arch)
 {
-    return mainProfileName + QLatin1Char('_') + arch.profileSuffix;
-}
-
-static QString detectToolchainHostArch(const QString &ndkDirPath)
-{
-    QStringList candidates;
-    if (Internal::HostOsInfo::isWindowsHost()) {
-#ifdef Q_PROCESSOR_X86_64
-        candidates << qls("windows-x86_64");
-#endif
-#ifdef Q_PROCESSOR_X86
-        candidates << qls("windows"); // no -x86 suffix for Windows 32-bit
-#endif
-    }
-    if (Internal::HostOsInfo::isOsxHost()) {
-#ifdef Q_PROCESSOR_X86_64
-        candidates << qls("darwin-x86_64");
-#endif
-#ifdef Q_PROCESSOR_X86
-        candidates << qls("darwin-x86");
-#endif
-    }
-    if (Internal::HostOsInfo::isLinuxHost()) {
-#ifdef Q_PROCESSOR_X86_64
-        candidates << qls("linux-x86_64");
-#endif
-#ifdef Q_PROCESSOR_X86
-        candidates << qls("linux-x86");
-#endif
-    }
-
-    if (candidates.isEmpty()) {
-        throw ErrorInfo(Tr::tr("Unsupported host platform for Android NDK."));
-    }
-
-    QStringList checkedPaths;
-    QString hostArch;
-    Q_FOREACH (const QString &candidate, candidates) {
-        const QDir tcDir(ndkDirPath + qls("/prebuilt/") + candidate);
-        if (QDir(tcDir).exists() && hostArch.isEmpty()) {
-            hostArch = candidate;
-        }
-
-        checkedPaths << qls("'")
-                        + QDir::toNativeSeparators(QDir::cleanPath(tcDir.absolutePath()))
-                        + qls("'");
-    }
-
-    if (hostArch.isEmpty()) {
-        throw ErrorInfo(Tr::tr("None of the following paths are present:\n%1")
-                        .arg(checkedPaths.join(qls("\n"))));
-    }
-
-    return hostArch;
+    return mainProfileName + QLatin1Char('_') + arch;
 }
 
 void setupSdk(qbs::Settings *settings, const QString &profileName, const QString &sdkDirPath)
@@ -403,6 +137,7 @@ void setupSdk(qbs::Settings *settings, const QString &profileName, const QString
     }
 
     Profile profile(profileName, settings);
+    profile.removeProfile();
     profile.setValue(qls("Android.sdk.sdkDir"), QDir::cleanPath(sdkDirPath));
     profile.setValue(qls("Android.sdk.buildToolsVersion"),
                      detectBuildToolsVersion(sdkDirPath));
@@ -420,54 +155,15 @@ void setupNdk(qbs::Settings *settings, const QString &profileName, const QString
         throw ErrorInfo(Tr::tr("NDK directory '%1' does not exist.")
                         .arg(QDir::toNativeSeparators(ndkDirPath)));
     }
-    QDir stlLibsDir(ndkDirPath + qls("/sources/cxx-stl/stlport/libs"));
-    if (!stlLibsDir.exists()) {
-        throw ErrorInfo(Tr::tr("Expected directory '%1' to be present, but it is not.")
-                        .arg(QDir::toNativeSeparators(stlLibsDir.path())));
-    }
-    const QStringList archList = stlLibsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    if (archList.isEmpty()) {
-        throw ErrorInfo(Tr::tr("Failed to detect the architectures supported by the NDK, because "
-                "directory '%1' is empty.").arg(QDir::toNativeSeparators(stlLibsDir.path())));
-    }
-
-    const BuildProfileMap archMap = createArchMap();
-    QList<BuildProfile> architectures;
-    foreach (const QString &archName, archList) {
-        const BuildProfileMap::ConstIterator it = archMap.find(archName);
-        if (it == archMap.constEnd()) {
-            qDebug("Ignoring unknown architecture '%s'.", qPrintable(archName));
-            continue;
-        }
-        architectures << it.value();
-    }
-
-    for (BuildProfileMap::ConstIterator it = archMap.constBegin();
-         it != archMap.constEnd(); ++it) {
-        Profile(subProfileName(profileName, it.value()), settings).removeProfile();
-    }
 
     Profile mainProfile(profileName, settings);
+    mainProfile.setValue(qls("Android.ndk.ndkDir"), QDir::cleanPath(ndkDirPath));
     mainProfile.setValue(qls("Android.sdk.ndkDir"), QDir::cleanPath(ndkDirPath));
-    foreach (const BuildProfile &arch, architectures) {
+    foreach (const QString &arch, expectedArchs()) {
         Profile p(subProfileName(profileName, arch), settings);
-        p.setValue(qls("Android.ndk.abi"), arch.abi);
-        p.setValue(qls("Android.ndk.buildProfile"), arch.profileSuffix);
-        p.setValue(qls("Android.ndk.compilerFlagsDebug"), arch.compilerFlagsDebug);
-        p.setValue(qls("Android.ndk.compilerFlagsRelease"), arch.compilerFlagsRelease);
-        p.setValue(qls("Android.ndk.hardFp"), arch.hardFp);
-        p.setValue(qls("Android.ndk.hostArch"), detectToolchainHostArch(ndkDirPath));
-        p.setValue(qls("Android.ndk.ndkDir"), QDir::cleanPath(ndkDirPath));
-        p.setValue(qls("Android.ndk.toolchainDirPrefix"), arch.toolchainDirPrefix);
-        p.setValue(qls("cpp.compilerName"), qls("gcc"));
-        p.setValue(qls("cpp.debugInformation"), true);
-        p.setValue(qls("cpp.linkerFlags"), arch.linkerFlags);
-        p.setValue(qls("cpp.linkerName"), qls("g++"));
-        p.setValue(qls("cpp.toolchainPrefix"), arch.toolchainPrefix);
-        p.setValue(qls("qbs.architecture"), arch.qbsArchName);
-        p.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux")
-                   << qls("unix"));
-        p.setValue(qls("qbs.toolchain"), QStringList(qls("gcc")));
+        p.removeProfile();
+        p.setBaseProfile(mainProfile.name());
+        p.setValue(qls("qbs.architecture"), arch);
     }
 }
 

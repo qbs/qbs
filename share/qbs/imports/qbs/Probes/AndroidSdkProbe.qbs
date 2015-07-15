@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2015 Jake Petroules.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of the Qt Build Suite.
@@ -28,21 +28,27 @@
 **
 ****************************************************************************/
 
-Product {
-    type: {
-        if (isForAndroid && !consoleApplication)
-            return ["dynamiclibrary"];
-        return ["application"];
+import qbs
+import qbs.File
+import qbs.FileInfo
+
+PathProbe {
+    environmentPaths: qbs.getEnv("ANDROID_HOME")
+
+    // Outputs
+    property string buildToolsVersion
+    property string platform
+
+    configure: {
+        var i;
+        for (i in environmentPaths) {
+            if (File.exists(FileInfo.joinPaths(environmentPaths[i], "tools", "android"))) {
+                path = environmentPaths[i];
+                buildToolsVersion = undefined; // not yet implemented
+                platform = undefined; // not yet implemented
+                found = true;
+                return;
+            }
+        }
     }
-
-    property bool isForAndroid: qbs.targetOS.contains("android")
-    property stringList architectures: isForAndroid ? ["armv5"] : undefined
-
-    Depends { name: "Android.ndk"; condition: isForAndroid }
-    Depends { name: "bundle" }
-    Depends { name: "cpp"; condition: isForAndroid }
-
-    profiles: isForAndroid
-        ? architectures.map(function(arch) { return project.profile + '_' + arch; })
-        : [project.profile]
 }

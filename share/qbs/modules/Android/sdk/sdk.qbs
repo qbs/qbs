@@ -37,14 +37,24 @@ import qbs.TextFile
 import "utils.js" as SdkUtils
 
 Module {
-    property path sdkDir
-    property path ndkDir
-    property string buildToolsVersion
+    Probes.AndroidSdkProbe {
+        id: sdkProbe
+        environmentPaths: [sdkDir].concat(base)
+    }
+
+    Probes.AndroidNdkProbe {
+        id: ndkProbe
+        environmentPaths: [ndkDir].concat(base)
+    }
+
+    property path sdkDir: sdkProbe.path
+    property path ndkDir: ndkProbe.path
+    property string buildToolsVersion: sdkProbe.buildToolsVersion
     property var buildToolsVersionParts: buildToolsVersion ? buildToolsVersion.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int buildToolsVersionMajor: buildToolsVersionParts[0]
     property int buildToolsVersionMinor: buildToolsVersionParts[1]
     property int buildToolsVersionPatch: buildToolsVersionParts[2]
-    property string platform
+    property string platform: sdkProbe.platform
 
     // Internal properties.
     property int platformVersion: {
