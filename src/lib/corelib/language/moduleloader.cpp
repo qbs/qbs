@@ -653,7 +653,6 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
             continue;
         loadedModuleNames.insert(fullName);
         item->addModule(module);
-        resolveProbes(module.item);
     }
 
     dependsContext->productDependencies->append(productDependencies);
@@ -819,6 +818,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         setupBaseModulePrototype(modulePrototype);
     instantiateModule(productContext, item, moduleInstance, modulePrototype, moduleName);
     if (moduleInstance->isPresentModule()) {
+        resolveProbes(moduleInstance);
         try {
             m_evaluator->boolValue(moduleInstance, QLatin1String("validate"));
         } catch (const ErrorInfo &error) {
