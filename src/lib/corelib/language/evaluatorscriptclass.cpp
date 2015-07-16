@@ -316,7 +316,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue 
     QBS_ASSERT(m_queryResult.isNull(), return QueryFlags());
 
     if (debugProperties)
-        m_logger.qbsTrace() << "[SC] queryProperty " << object.objectId() << " " << name;
+        qDebug() << "[SC] queryProperty " << object.objectId() << " " << name;
 
     EvaluationData *const data = attachedPointer<EvaluationData>(object);
     const QString nameString = name.toString();
@@ -329,7 +329,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue 
     *id = QPTDefault;
     if (!data) {
         if (debugProperties)
-            m_logger.qbsTrace() << "[SC] queryProperty: no data attached";
+            qDebug() << "[SC] queryProperty: no data attached";
         return QScriptClass::QueryFlags();
     }
 
@@ -351,7 +351,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
 
     if (!ignoreParent && data->item && data->item->parent()) {
         if (debugProperties)
-            m_logger.qbsTrace() << "[SC] queryProperty: query parent";
+            qDebug() << "[SC] queryProperty: query parent";
         EvaluationData parentdata = *data;
         parentdata.item = data->item->parent();
         const QueryFlags qf = queryItemProperty(&parentdata, name, true);
@@ -362,7 +362,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
     }
 
     if (debugProperties)
-        m_logger.qbsTrace() << "[SC] queryProperty: no such property";
+        qDebug() << "[SC] queryProperty: no such property";
     return QScriptClass::QueryFlags();
 }
 
@@ -472,14 +472,14 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     QBS_ASSERT(m_queryResult.isNull(), return QScriptValue());
 
     if (debugProperties)
-        m_logger.qbsTrace() << "[SC] property " << name;
+        qDebug() << "[SC] property " << name;
 
     QScriptValue result;
     if (m_valueCacheEnabled) {
         result = data->valueCache.value(name);
         if (result.isValid()) {
             if (debugProperties)
-                m_logger.qbsTrace() << "[SC] cache hit " << name << ": " << resultToString(result);
+                qDebug() << "[SC] cache hit " << name << ": " << resultToString(result);
             return result;
         }
     }
@@ -496,7 +496,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     }
 
     if (debugProperties)
-        m_logger.qbsTrace() << "[SC] cache miss " << name << ": " << resultToString(result);
+        qDebug() << "[SC] cache miss " << name << ": " << resultToString(result);
     if (m_valueCacheEnabled)
         data->valueCache.insert(name, result);
     return result;
