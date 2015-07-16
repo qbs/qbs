@@ -121,6 +121,11 @@ void ItemReader::popExtraSearchPaths()
     m_extraSearchPaths.pop();
 }
 
+QStack<QStringList> ItemReader::extraSearchPathsStack() const
+{
+    return m_extraSearchPaths;
+}
+
 QStringList ItemReader::searchPaths() const
 {
     QStringList paths;

@@ -38,6 +38,7 @@
 #include "scriptengine.h"
 #include "propertydeclaration.h"
 #include <tools/architectures.h>
+#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
@@ -51,29 +52,6 @@
 
 namespace qbs {
 namespace Internal {
-
-template <class T>
-class ScopedPopper
-{
-    QStack<T> *m_stack;
-    bool m_mustPop;
-public:
-    ScopedPopper(QStack<T> *s)
-        : m_stack(s), m_mustPop(false)
-    {
-    }
-
-    ~ScopedPopper()
-    {
-        if (m_mustPop)
-            m_stack->pop();
-    }
-
-    void mustPop()
-    {
-        m_mustPop = true;
-    }
-};
 
 class SVConverter : ValueHandler
 {
@@ -153,15 +131,6 @@ private:
 
     void handle(JSSourceValue *value)
     {
-        ScopedPopper<JSSourceValue *> popper(sourceValueStack);
-        if (value->sourceUsesProduct()) {
-            foreach (JSSourceValue *a, *sourceValueStack)
-                a->setSourceUsesProductFlag();
-        } else {
-            sourceValueStack->push(value);
-            popper.mustPop();
-        }
-
         const Item *conditionScopeItem = 0;
         QScriptValue conditionScope;
         QScriptValue conditionFileScope;
@@ -256,6 +225,8 @@ private:
             // Own properties of module instances must not have the instance itself in the scope.
             pushScope(*object);
         }
+        if (value->exportScope())
+            pushScope(data->evaluator->scriptValue(value->exportScope()));
         pushScope(extraScope);
         *result = engine->evaluate(value->sourceCodeForEvaluation(), value->file()->filePath(),
                                    value->line());
@@ -393,6 +364,7 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
 
     for (ValuePtr next = value; next; next = next->next()) {
         QScriptValue v = data->evaluator->property(next->definingItem(), propertyName);
+        data->evaluator->handleEvaluationError(next->definingItem(), propertyName, v);
         if (v.isUndefined())
             continue;
         lst << v;
@@ -417,7 +389,14 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
     }
 }
 
-inline void convertToPropertyType(const PropertyDeclaration::Type t, QScriptValue &v)
+static QString overriddenSourceDirectory(const Item *item)
+{
+    const VariantValuePtr v = item->variantProperty(QLatin1String("_qbs_sourceDir"));
+    return v ? v->value().toString() : QString();
+}
+
+inline void convertToPropertyType(const Item *item, const PropertyDeclaration::Type t,
+        QScriptValue &v)
 {
     if (v.isUndefined())
         return;
@@ -435,11 +414,36 @@ inline void convertToPropertyType(const PropertyDeclaration::Type t, QScriptValu
             v = v.toNumber();
         break;
     case PropertyDeclaration::Path:
+    {
+        if (!v.isString())
+            v = v.toString();
+        const QString srcDir = overriddenSourceDirectory(item);
+        if (!srcDir.isEmpty())
+            v = v.engine()->toScriptValue(FileInfo::resolvePath(srcDir, v.toString()));
+        break;
+    }
     case PropertyDeclaration::String:
         if (!v.isString())
             v = v.toString();
         break;
     case PropertyDeclaration::PathList:
+    {
+        if (!v.isArray()) {
+            QScriptValue x = v.engine()->newArray(1);
+            x.setProperty(0, v.isString() ? v : v.toString());
+            v = x;
+        }
+        const QString srcDir = overriddenSourceDirectory(item);
+        if (srcDir.isEmpty())
+            break;
+        const quint32 c = v.property(QLatin1String("length")).toUInt32();
+        for (quint32 i = 0; i < c; ++i) {
+            QScriptValue elem = v.property(i);
+            elem = v.engine()->toScriptValue(FileInfo::resolvePath(srcDir, elem.toString()));
+            v.setProperty(i, elem);
+        }
+        break;
+    }
     case PropertyDeclaration::StringList:
         if (!v.isArray()) {
             QScriptValue x = v.engine()->newArray(1);
@@ -492,7 +496,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
         converter.start();
 
         const PropertyDeclaration decl = data->item->propertyDeclaration(name.toString());
-        convertToPropertyType(decl.type(), result);
+        convertToPropertyType(data->item, decl.type(), result);
     }
 
     if (debugProperties)

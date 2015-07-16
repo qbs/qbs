@@ -91,7 +91,6 @@ class JSSourceValue : public Value
         NoFlags = 0x00,
         SourceUsesBase = 0x01,
         SourceUsesOuter = 0x02,
-        SourceUsesProduct = 0x04,
         HasFunctionForm = 0x08
     };
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -118,8 +117,7 @@ public:
     void setSourceUsesBaseFlag() { m_flags |= SourceUsesBase; }
     bool sourceUsesBase() const { return m_flags.testFlag(SourceUsesBase); }
     bool sourceUsesOuter() const { return m_flags.testFlag(SourceUsesOuter); }
-    void setSourceUsesProductFlag() { m_flags |= SourceUsesProduct; }
-    bool sourceUsesProduct() const { return m_flags.testFlag(SourceUsesProduct); }
+    bool isInExportItem() const { return m_exportScope; }
     bool hasFunctionForm() const { return m_flags.testFlag(HasFunctionForm); }
     void setHasFunctionForm(bool b);
 
@@ -138,6 +136,9 @@ public:
 
     void setDefiningItem(Item *item);
 
+    Item *exportScope() const;
+    void setExportScope(Item *exportScope);
+
 private:
     QStringRef m_sourceCode;
     int m_line;
@@ -146,6 +147,7 @@ private:
     Flags m_flags;
     JSSourceValuePtr m_baseValue;
     QList<Alternative> m_alternatives;
+    Item *m_exportScope;
 };
 
 class Item;

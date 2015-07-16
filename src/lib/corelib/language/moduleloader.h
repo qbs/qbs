@@ -40,6 +40,7 @@
 
 #include <QMap>
 #include <QSet>
+#include <QStack>
 #include <QStringList>
 #include <QVariantMap>
 
@@ -80,7 +81,6 @@ struct ModuleLoaderResult
         };
 
         QList<Dependency> usedProducts;
-        QList<Dependency> usedProductsFromExportItem;
     };
 
     QSharedPointer<ItemPool> itemPool;
@@ -129,21 +129,46 @@ private:
         Item *scope;
     };
 
-    class ProjectContext : public ContextBase
-    {
-    public:
-        ModuleLoaderResult *result;
-        QString buildDirectory;
-    };
+    class ProjectContext;
 
     class ProductContext : public ContextBase
     {
     public:
         ProjectContext *project;
         ModuleLoaderResult::ProductInfo info;
+        QString name;
         QString profileName;
         QSet<FileContextConstPtr> filesWithExportItem;
         QVariantMap moduleProperties;
+    };
+
+    class TopLevelProjectContext;
+
+    class ProjectContext : public ContextBase
+    {
+    public:
+        TopLevelProjectContext *topLevelProject;
+        ModuleLoaderResult *result;
+        QString buildDirectory;
+        QVector<ProductContext> products;
+        QStack<QStringList> searchPathsStack;
+    };
+
+    struct ProductModuleInfo
+    {
+        Item *exportItem = 0;
+        QList<ModuleLoaderResult::ProductInfo::Dependency> productDependencies;
+    };
+
+    class TopLevelProjectContext
+    {
+        Q_DISABLE_COPY(TopLevelProjectContext)
+    public:
+        TopLevelProjectContext() {}
+        ~TopLevelProjectContext() { qDeleteAll(projects); }
+
+        QVector<ProjectContext *> projects;
+        QHash<QString, ProductModuleInfo> productModules;
     };
 
     class DependsContext
@@ -157,10 +182,12 @@ private:
 
     void handleTopLevelProject(ModuleLoaderResult *loadResult, Item *item,
             const QString &buildDirectory, const QSet<QString> &referencedFilePaths);
-    void handleProject(ModuleLoaderResult *loadResult, Item *item, const QString &buildDirectory,
-            const QSet<QString> &referencedFilePaths);
+    void handleProject(ModuleLoaderResult *loadResult,
+            TopLevelProjectContext *topLevelProjectContext, Item *item,
+            const QString &buildDirectory, const QSet<QString> &referencedFilePaths);
     QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);
-    void handleProduct(ProjectContext *projectContext, Item *item);
+    void prepareProduct(ProjectContext *projectContext, Item *item);
+    void handleProduct(ProductContext *productContext);
     void initProductProperties(const ProjectContext *project, Item *item);
     void handleSubProject(ProjectContext *projectContext, Item *item,
             const QSet<QString> &referencedFilePaths);
@@ -171,9 +198,10 @@ private:
     class ItemModuleList;
     void resolveDependsItem(DependsContext *dependsContext, Item *item, Item *dependsItem, ItemModuleList *moduleResults, ProductDependencyResults *productResults);
     Item *moduleInstanceItem(Item *item, const QualifiedId &moduleName);
+    Item *loadProductModule(ProductContext *productContext, const QString &moduleName);
     Item *loadModule(ProductContext *productContext, Item *item,
             const CodeLocation &dependsItemLocation, const QString &moduleId,
-            const QualifiedId &moduleName, bool isBaseModule, bool isRequired);
+            const QualifiedId &moduleName, bool isBaseModule, bool isRequired, bool *isModuleDependency);
     Item *searchAndLoadModuleFile(ProductContext *productContext,
             const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
             const QStringList &extraSearchPaths, bool isRequired, bool *cacheHit);
@@ -181,7 +209,9 @@ private:
             bool isBaseModule, const QString &filePath, bool *cacheHit, bool *triedToLoad);
     void loadBaseModule(ProductContext *productContext, Item *item);
     void setupBaseModulePrototype(Item *prototype);
-    void instantiateModule(ProductContext *productContext, Item *instanceScope, Item *moduleInstance, Item *modulePrototype, const QualifiedId &moduleName);
+    void instantiateModule(ProductContext *productContext, Item *exportingProductItem,
+            Item *instanceScope, Item *moduleInstance, Item *modulePrototype,
+            const QualifiedId &moduleName, bool isProduct);
     void createChildInstances(ProductContext *productContext, Item *instance,
                               Item *prototype, QHash<Item *, Item *> *prototypeInstanceMap) const;
     void resolveProbes(Item *item);
@@ -209,6 +239,7 @@ private:
     Evaluator *m_evaluator;
     QStringList m_moduleSearchPaths;
     QMap<QString, QStringList> m_moduleDirListCache;
+    QHash<QString, Item *> m_productModuleCache;
     ModuleItemCache m_modulePrototypeItemCache;
     QHash<Item *, QSet<QString> > m_validItemPropertyNamesPerItem;
     QSet<Item *> m_disabledItems;

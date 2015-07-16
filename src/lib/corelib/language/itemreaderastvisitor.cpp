@@ -450,18 +450,15 @@ bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
     m_sourceValue->setLocation(statement->firstSourceLocation().startLine,
                                statement->firstSourceLocation().startColumn);
 
-    bool usesBase, usesOuter, usesProduct;
+    bool usesBase, usesOuter;
     IdentifierSearch idsearch;
     idsearch.add(QLatin1String("base"), &usesBase);
     idsearch.add(QLatin1String("outer"), &usesOuter);
-    idsearch.add(QLatin1String("product"), &usesProduct);
     idsearch.start(statement);
     if (usesBase)
         m_sourceValue->m_flags |= JSSourceValue::SourceUsesBase;
     if (usesOuter)
         m_sourceValue->m_flags |= JSSourceValue::SourceUsesOuter;
-    if (usesProduct)
-        m_sourceValue->m_flags |= JSSourceValue::SourceUsesProduct;
     return false;
 }
 

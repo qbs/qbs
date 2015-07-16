@@ -1765,7 +1765,6 @@ void TestBlackbox::nestedProperties()
 {
     QDir::setCurrent(testDataDir + "/nested-properties");
     QCOMPARE(runQbs(), 0);
-    QEXPECT_FAIL(0, "QBS-736", Continue);
     QVERIFY2(m_qbsStdout.contains("value in higherlevel"), m_qbsStdout.constData());
 }
 
@@ -1865,28 +1864,26 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
     QCOMPARE(runQbs(params), 0);
-    QVERIFY2(m_qbsStderr == "scalar prop: export\nlist prop: [\"leaf\",\"export\"]\n",
+    QVERIFY2(m_qbsStderr == "scalar prop: export\nlist prop: [\"export\",\"leaf\"]\n",
              m_qbsStderr.constData());
 
     // Case 6: [cmdline=0,prod=0,export=1,nonleaf=0,profile=1]
     switchProfileContents(profile.p, &s, true);
     QCOMPARE(runQbs(params), 0);
-    QVERIFY2(m_qbsStderr == "scalar prop: export\nlist prop: [\"profile\",\"export\"]\n",
+    QVERIFY2(m_qbsStderr == "scalar prop: export\nlist prop: [\"export\",\"profile\"]\n",
              m_qbsStderr.constData());
 
     // Case 7: [cmdline=0,prod=0,export=1,nonleaf=1,profile=0]
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(params), 0);
-    QEXPECT_FAIL(0, "QBS-814", Continue);
-    QVERIFY2(m_qbsStderr == "scalar prop: export\nlist prop: [\"nonleaf\",\"leaf\",\"export\"]\n",
+    QVERIFY2(m_qbsStderr == "scalar prop: export\nlist prop: [\"export\",\"nonleaf\",\"leaf\"]\n",
              m_qbsStderr.constData());
 
     // Case 8: [cmdline=0,prod=0,export=1,nonleaf=1,profile=1]
     switchProfileContents(profile.p, &s, true);
     QCOMPARE(runQbs(params), 0);
-    QEXPECT_FAIL(0, "QBS-814", Continue);
-    QVERIFY2(m_qbsStderr == "scalar prop: export\nlist prop: [\"nonleaf\",\"profile\",\"export\"]\n",
+    QVERIFY2(m_qbsStderr == "scalar prop: export\nlist prop: [\"export\",\"nonleaf\",\"profile\"]\n",
              m_qbsStderr.constData());
 
     // Case 9: [cmdline=0,prod=1,export=0,nonleaf=0,profile=0]
@@ -1924,26 +1921,26 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
     QCOMPARE(runQbs(params), 0);
-    QVERIFY2(m_qbsStderr == "scalar prop: product\nlist prop: [\"product\",\"leaf\",\"export\"]\n",
+    QVERIFY2(m_qbsStderr == "scalar prop: product\nlist prop: [\"product\",\"export\",\"leaf\"]\n",
              m_qbsStderr.constData());
 
     // Case 14: [cmdline=0,prod=1,export=1,nonleaf=0,profile=1]
     switchProfileContents(profile.p, &s, true);
     QCOMPARE(runQbs(params), 0);
-    QVERIFY2(m_qbsStderr == "scalar prop: product\nlist prop: [\"product\",\"profile\",\"export\"]\n",
+    QVERIFY2(m_qbsStderr == "scalar prop: product\nlist prop: [\"product\",\"export\",\"profile\"]\n",
              m_qbsStderr.constData());
 
     // Case 15: [cmdline=0,prod=1,export=1,nonleaf=1,profile=0]
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(params), 0);
-    QVERIFY2(m_qbsStderr == "scalar prop: product\nlist prop: [\"product\",\"nonleaf\",\"leaf\",\"export\"]\n",
+    QVERIFY2(m_qbsStderr == "scalar prop: product\nlist prop: [\"product\",\"export\",\"nonleaf\",\"leaf\"]\n",
              m_qbsStderr.constData());
 
     // Case 16: [cmdline=0,prod=1,export=1,nonleaf=1,profile=1]
     switchProfileContents(profile.p, &s, true);
     QCOMPARE(runQbs(params), 0);
-    QVERIFY2(m_qbsStderr == "scalar prop: product\nlist prop: [\"product\",\"nonleaf\",\"profile\",\"export\"]\n",
+    QVERIFY2(m_qbsStderr == "scalar prop: product\nlist prop: [\"product\",\"export\",\"nonleaf\",\"profile\"]\n",
              m_qbsStderr.constData());
 
     // Command line properties wipe everything, including lists.

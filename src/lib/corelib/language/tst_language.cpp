@@ -460,19 +460,21 @@ void TestLanguage::exports()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 11);
+        QCOMPARE(products.count(), 12);
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(product);
         QStringList propertyName = QStringList() << "modules" << "dummy" << "defines";
         QVariant propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
-        QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYAPP" << "USE_MYLIB");
+        QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYAPP" << "USE_MYLIB"
+                 << "USE_MYLIB2");
         propertyName = QStringList() << "modules" << "dummy" << "includePaths";
         QVariantList propertyValues = getConfigProperty(product->moduleProperties->value(),
                                                         propertyName).toList();
-        QCOMPARE(propertyValues.count(), 2);
+        QCOMPARE(propertyValues.count(), 3);
         QVERIFY(propertyValues.at(0).toString().endsWith("/app"));
         QVERIFY(propertyValues.at(1).toString().endsWith("/subdir/lib"));
+        QVERIFY(propertyValues.at(2).toString().endsWith("/subdir2/lib"));
 
         QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
                                                 "productName").toString(), QString("myapp"));
@@ -482,6 +484,12 @@ void TestLanguage::exports()
         propertyName = QStringList() << "modules" << "dummy" << "defines";
         propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB");
+
+        product = products.value("mylib2");
+        QVERIFY(product);
+        propertyName = QStringList() << "modules" << "dummy" << "defines";
+        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB2");
 
         product = products.value("A");
         QVERIFY(product);

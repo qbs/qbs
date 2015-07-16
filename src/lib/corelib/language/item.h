@@ -67,11 +67,12 @@ public:
     struct Module
     {
         Module()
-            : item(0), required(true)
+            : item(0), isProduct(false), required(true)
         {}
 
         QualifiedId name;
         Item *item;
+        bool isProduct;
         bool required;
     };
     typedef QList<Module> Modules;

@@ -11,7 +11,8 @@ Project {
     }
 
     references: [
-        "subdir/exports-mylib.qbs"
+        "subdir/exports-mylib.qbs",
+        "subdir2/exports-mylib2.qbs"
     ]
 
     Application {

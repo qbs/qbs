@@ -68,11 +68,11 @@ public:
 
     void setCachingEnabled(bool enabled);
 
+    void handleEvaluationError(const Item *item, const QString &name,
+            const QScriptValue &scriptValue);
 private:
     void onItemPropertyChanged(Item *item);
     void onItemDestroyed(Item *item);
-    void handleEvaluationError(const Item *item, const QString &name,
-            const QScriptValue &scriptValue);
     bool evaluateProperty(QScriptValue *result, const Item *item, const QString &name,
             bool *propertyWasSet);
 

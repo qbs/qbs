@@ -331,6 +331,9 @@ void TestApi::buildProject_data()
     QTest::newRow("only default properties")
             << QString("two-default-property-values")
             << relativeProductBuildDir("two-default-property-values") + "/set";
+    QTest::newRow("Export item with Group")
+            << QString("export-item-with-group")
+            << relativeExecutableFilePath("app");
     QTest::newRow("QBS-728")
             << QString("QBS-728")
             << QString();
@@ -1024,7 +1027,6 @@ void TestApi::installableFiles()
     installOptions.setInstallRoot(QLatin1String("/tmp"));
     QList<qbs::InstallableFile> installableFiles
             = project.installableFilesForProduct(product, installOptions);
-    QEXPECT_FAIL(0, "QBS-830", Continue);
     QCOMPARE(installableFiles.count(), 2);
     foreach (const qbs::InstallableFile &f,installableFiles) {
         if (!f.sourceFilePath().endsWith("main.cpp")) {

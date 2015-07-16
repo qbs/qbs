@@ -117,7 +117,8 @@ private:
     void resolveSubProject(Item *item, ProjectContext *projectContext);
     void resolveProduct(Item *item, ProjectContext *projectContext);
     void resolveModules(const Item *item, ProjectContext *projectContext);
-    void resolveModule(const QualifiedId &moduleName, Item *item, ProjectContext *projectContext);
+    void resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
+                       ProjectContext *projectContext);
     void resolveGroup(Item *item, ProjectContext *projectContext);
     void resolveRule(Item *item, ProjectContext *projectContext);
     void resolveRuleArtifact(const RulePtr &rule, Item *item);
@@ -127,7 +128,6 @@ private:
     void resolveFileTagger(Item *item, ProjectContext *projectContext);
     void resolveTransformer(Item *item, ProjectContext *projectContext);
     void resolveScanner(Item *item, ProjectContext *projectContext);
-    void resolveExport(Item *item, ProjectContext *projectContext);
     void resolveProductDependencies(ProjectContext *projectContext);
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
@@ -148,7 +148,7 @@ private:
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
     QList<ResolvedProductPtr> getProductDependencies(const ResolvedProductConstPtr &product,
-            const Item *productItem, ModuleLoaderResult::ProductInfo *productInfo);
+            ModuleLoaderResult::ProductInfo *productInfo);
     static void matchArtifactProperties(const ResolvedProductPtr &product,
             const QList<SourceArtifactPtr> &artifacts);
 
@@ -160,7 +160,6 @@ private:
     ProductContext *m_productContext;
     ModuleContext *m_moduleContext;
     ExportsContext *m_exportsContext;
-    bool m_disableCachedEvaluation;
     QMap<QString, ResolvedProductPtr> m_productsByName;
     QHash<QString, QList<ResolvedProductPtr> > m_productsByType;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
