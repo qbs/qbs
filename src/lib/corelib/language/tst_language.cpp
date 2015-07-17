@@ -432,6 +432,8 @@ void TestLanguage::erroneousFiles_data()
                "but this is qbs version " QBS_VERSION ".";
     QTest::newRow("wrongQbsVersionFormat")
             << "The value '.*' of Project.minimumQbsVersion is not a valid version string.";
+    QTest::newRow("properties-item-with-invalid-condition")
+            << "TypeError: Result of expression 'cpp.nonexistingproperty'";
 }
 
 void TestLanguage::erroneousFiles()
