@@ -80,11 +80,8 @@ Project {
 
     AndroidApk {
         name: "com.sample.teapot"
-        property string sourcesPrefix: Android.sdk.ndkDir + "/samples/Teapot"
-
-        resourcesDir: sourcesPrefix + "/res"
-        sourcesDir: sourcesPrefix + "/java"
-        manifestFile: sourcesPrefix + "/AndroidManifest.xml"
+        sourceSetDir: Android.sdk.ndkDir + "/samples/Teapot"
+        legacyLayout: true
         Depends { productTypes: ["android.nativelibrary"] }
     }
 }

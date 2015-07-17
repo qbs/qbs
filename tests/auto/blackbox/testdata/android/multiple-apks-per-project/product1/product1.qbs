@@ -3,7 +3,7 @@ import qbs
 Project {
     DynamicLibrary {
         name: "p1lib1"
-        files: ["lib1.cpp"]
+        files: ["src/main/jni/lib1.cpp"]
         Android.ndk.appStl: "stlport_shared"
         architectures: ["mips", "x86"]
         cpp.useRPaths: false
@@ -11,7 +11,7 @@ Project {
 
     DynamicLibrary {
         name: "p1lib2"
-        files: ["lib2.cpp"]
+        files: ["src/main/jni/lib2.cpp"]
         Android.ndk.appStl: "stlport_shared"
         cpp.useRPaths: false
     }
@@ -19,7 +19,6 @@ Project {
     AndroidApk {
         name: "twolibs1"
         packageName: "io.qt.dummy1"
-        sourcesDir: "src"
         Depends {
             productTypes: ["android.nativelibrary"]
             limitToSubProject: true
