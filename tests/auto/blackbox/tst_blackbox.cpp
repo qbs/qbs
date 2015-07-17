@@ -311,7 +311,7 @@ void TestBlackbox::zip()
 
     QDir::setCurrent(testDataDir + "/archiver");
     QbsRunParameters params(QStringList()
-                            << "archiver.type:zip" << "archiver.command:" + binaryName);
+                            << "archiver.type:zip" << "archiver.command:" + binary);
     QCOMPARE(runQbs(params), 0);
     const QString outputFile = relativeProductBuildDir("archivable") + "/archivable.zip";
     QVERIFY2(regularFileExists(outputFile), qPrintable(outputFile));
