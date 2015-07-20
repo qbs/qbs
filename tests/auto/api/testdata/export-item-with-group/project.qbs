@@ -11,6 +11,7 @@ Project {
 
     Application {
         name: "app"
+        bundle.isBundle: false
         Depends { name: "dep" }
     }
 }
