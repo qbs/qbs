@@ -200,6 +200,7 @@ void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *project
     resolveProject(item, projectContext);
     project->setBuildConfiguration(m_setupParams.finalBuildConfigurationTree());
     project->usedEnvironment = m_engine->usedEnvironment();
+    project->canonicalFilePathResults = m_engine->canonicalFilePathResults();
     project->fileExistsResults = m_engine->fileExistsResults();
     project->fileLastModifiedResults = m_engine->fileLastModifiedResults();
     project->environment = m_engine->environment();

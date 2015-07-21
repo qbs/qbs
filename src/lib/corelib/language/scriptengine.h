@@ -94,8 +94,10 @@ public:
     void setEnvironment(const QProcessEnvironment &env);
     void addEnvironmentVariable(const QString &name, const QString &value);
     QHash<QString, QString> usedEnvironment() const { return m_usedEnvironment; }
+    void addCanonicalFilePathResult(const QString &filePath, const QString &resultFilePath);
     void addFileExistsResult(const QString &filePath, bool exists);
     void addFileLastModifiedResult(const QString &filePath, FileTime fileTime);
+    QHash<QString, QString> canonicalFilePathResults() const { return m_canonicalFilePathResult; }
     QHash<QString, bool> fileExistsResults() const { return m_fileExistsResult; }
     QHash<QString, FileTime> fileLastModifiedResults() const { return m_fileLastModifiedResult; }
     QSet<QString> imports() const;
@@ -157,6 +159,7 @@ private:
     QScriptValue m_emptyFunction;
     QProcessEnvironment m_environment;
     QHash<QString, QString> m_usedEnvironment;
+    QHash<QString, QString> m_canonicalFilePathResult;
     QHash<QString, bool> m_fileExistsResult;
     QHash<QString, FileTime> m_fileLastModifiedResult;
     QStack<QString> m_currentDirPathStack;

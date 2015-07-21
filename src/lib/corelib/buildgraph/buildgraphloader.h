@@ -74,6 +74,7 @@ private:
     void checkBuildGraphCompatibility(const TopLevelProjectConstPtr &project);
     void trackProjectChanges();
     bool hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const;
+    bool hasCanonicalFilePathResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileExistsResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileLastModifiedResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasProductFileChanged(const QList<ResolvedProductPtr> &restoredProducts,

@@ -434,6 +434,12 @@ void ScriptEngine::addEnvironmentVariable(const QString &name, const QString &va
     m_usedEnvironment.insert(name, value);
 }
 
+void ScriptEngine::addCanonicalFilePathResult(const QString &filePath,
+                                              const QString &resultFilePath)
+{
+    m_canonicalFilePathResult.insert(filePath, resultFilePath);
+}
+
 void ScriptEngine::addFileExistsResult(const QString &filePath, bool exists)
 {
     m_fileExistsResult.insert(filePath, exists);

@@ -213,6 +213,7 @@ void BuildGraphLoader::trackProjectChanges()
     // anew.
     if (hasBuildSystemFileChanged(buildSystemFiles, restoredProject->lastResolveTime)
             || hasEnvironmentChanged(restoredProject)
+            || hasCanonicalFilePathResultChanged(restoredProject)
             || hasFileExistsResultChanged(restoredProject)
             || hasFileLastModifiedResultChanged(restoredProject)) {
         reResolvingNecessary = true;
@@ -342,6 +343,20 @@ bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &rest
             return true;
         }
     }
+    return false;
+}
+
+bool BuildGraphLoader::hasCanonicalFilePathResultChanged(const TopLevelProjectConstPtr &restoredProject) const
+{
+    for (auto it = restoredProject->canonicalFilePathResults.constBegin();
+         it != restoredProject->canonicalFilePathResults.constEnd(); ++it) {
+        if (QFileInfo(it.key()).canonicalFilePath() != it.value()) {
+            m_logger.qbsDebug() << "Canonical file path for file '" << it.key()
+                                << "' changed, must re-resolve project.";
+            return true;
+        }
+    }
+
     return false;
 }
 

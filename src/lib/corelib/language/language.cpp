@@ -1010,6 +1010,7 @@ void TopLevelProject::load(PersistentPool &pool)
     ResolvedProject::load(pool);
     m_id = pool.idLoadString();
     pool.stream() >> usedEnvironment;
+    pool.stream() >> canonicalFilePathResults;
     pool.stream() >> fileExistsResults;
     pool.stream() >> fileLastModifiedResults;
     QHash<QString, QString> envHash;
@@ -1028,7 +1029,9 @@ void TopLevelProject::store(PersistentPool &pool) const
 {
     ResolvedProject::store(pool);
     pool.storeString(m_id);
-    pool.stream() << usedEnvironment << fileExistsResults
+    pool.stream() << usedEnvironment
+                  << canonicalFilePathResults
+                  << fileExistsResults
                   << fileLastModifiedResults;
     QHash<QString, QString> envHash;
     foreach (const QString &key, environment.keys())

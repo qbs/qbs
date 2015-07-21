@@ -52,6 +52,7 @@ private:
     static QScriptValue js_lastModified(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_makePath(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_remove(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_canonicalFilePath(QScriptContext *context, QScriptEngine *engine);
 };
 
 
@@ -64,6 +65,8 @@ void initializeJsExtensionFile(QScriptValue extensionObject)
     fileObj.setProperty(QLatin1String("lastModified"), engine->newFunction(File::js_lastModified));
     fileObj.setProperty(QLatin1String("makePath"), engine->newFunction(File::js_makePath));
     fileObj.setProperty(QLatin1String("remove"), engine->newFunction(File::js_remove));
+    fileObj.setProperty(QLatin1String("canonicalFilePath"),
+                        engine->newFunction(File::js_canonicalFilePath));
     extensionObject.setProperty(QLatin1String("File"), fileObj);
 }
 
@@ -142,6 +145,16 @@ QScriptValue File::js_makePath(QScriptContext *context, QScriptEngine *engine)
                                    Tr::tr("makePath expects 1 argument"));
     }
     return QDir::root().mkpath(context->argument(0).toString());
+}
+
+QScriptValue File::js_canonicalFilePath(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    if (Q_UNLIKELY(context->argumentCount() < 1)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   Tr::tr("canonicalFilePath expects 1 argument"));
+    }
+    return QFileInfo(context->argument(0).toString()).canonicalFilePath();
 }
 
 } // namespace Internal
