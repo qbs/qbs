@@ -29,6 +29,22 @@
 ****************************************************************************/
 
 var ModUtils = loadExtension("qbs.ModUtils");
+var Process = loadExtension("qbs.Process");
+
+function findTscVersion(compilerFilePath, nodejsPath) {
+    var p = new Process();
+    try {
+        if (nodejsPath)
+            p.setEnv("PATH", nodejsPath);
+        p.exec(compilerFilePath, ["--version"]);
+        var re = /^(?:message TS6029: )?Version (([0-9]+(?:\.[0-9]+){1,3})(?:-(.+?))?)$/m;
+        var match = p.readStdOut().trim().match(re);
+        if (match !== null)
+            return match;
+    } finally {
+        p.close();
+    }
+}
 
 function tscArguments(product, inputs, outputs) {
     var i;

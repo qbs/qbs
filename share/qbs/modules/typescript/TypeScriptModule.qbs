@@ -32,6 +32,7 @@ import qbs
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Probes
 import qbs.Process
 import "typescript.js" as TypeScript
 
@@ -40,17 +41,23 @@ Module {
 
     additionalProductTypes: ["compiled_typescript"]
 
-    property path toolchainInstallPath
-    property string version: rawVersion ? rawVersion[2] : undefined
+    Probes.TypeScriptProbe {
+        id: tsc
+        pathPrefixes: [toolchainInstallPath]
+        nodejsToolchainInstallPath: nodejs.toolchainInstallPath
+    }
+
+    property path toolchainInstallPath: tsc.path
+    property string version: tsc.version ? tsc.version[2] : undefined
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
     property int versionMinor: versionParts[1]
     property int versionPatch: versionParts[2]
     property int versionBuild: versionParts[3]
-    property string versionSuffix: rawVersion ? rawVersion[3] : undefined
+    property string versionSuffix: tsc.version ? tsc.version[3] : undefined
 
-    property string compilerName: "tsc"
-    property string compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
+    property string compilerName: tsc.fileName
+    property string compilerPath: tsc.filePath
 
     property string warningLevel: "normal"
     PropertyOptions {
@@ -104,22 +111,11 @@ Module {
         description: "whether to compile all source files to a single output file"
     }
 
-    // private properties
-    readonly property var rawVersion: {
-        var p = new Process();
-        try {
-            p.exec(compilerPath, ["--version"]);
-            var re = /^(?:message TS6029: )?Version (([0-9]+(?:\.[0-9]+){1,3})(?:-(.+?))?)$/m;
-            var match = p.readStdOut().match(re);
-            if (match !== null)
-                return match;
-        } finally {
-            p.close();
-        }
-    }
-
     validate: {
         var validator = new ModUtils.PropertyValidator("typescript");
+        validator.setRequiredProperty("toolchainInstallPath", toolchainInstallPath);
+        validator.setRequiredProperty("compilerName", compilerName);
+        validator.setRequiredProperty("compilerPath", compilerPath);
         validator.setRequiredProperty("version", version);
         validator.setRequiredProperty("versionParts", versionParts);
         validator.setRequiredProperty("versionMajor", versionMajor);
@@ -136,14 +132,6 @@ Module {
         }
 
         validator.validate();
-    }
-
-    setupBuildEnvironment: {
-        if (toolchainInstallPath) {
-            var v = new ModUtils.EnvironmentVariable("PATH", qbs.pathListSeparator, qbs.hostOS.contains("windows"));
-            v.prepend(toolchainInstallPath);
-            v.set();
-        }
     }
 
     // TypeScript declaration files
