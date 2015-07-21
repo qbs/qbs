@@ -33,6 +33,7 @@ import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Process
+import "typescript.js" as TypeScript
 
 Module {
     Depends { name: "nodejs" }
@@ -163,142 +164,15 @@ Module {
         inputs: ["typescript"]
         inputsFromDependencies: ["typescript_declaration"]
 
-        outputArtifacts: {
-            var artifacts = [];
-
-            if (!inputs.typescript) {
-                return artifacts;
-            }
-
-            if (product.moduleProperty("typescript", "singleFile")) {
-                var jsTags = ["js", "compiled_typescript"];
-
-                // We could check
-                // if (product.moduleProperty("nodejs", "applicationFile") === inputs.typescript[i].filePath)
-                // but since we're compiling to a single file there's no need to state it explicitly
-                jsTags.push("application_js");
-
-                var filePath = FileInfo.joinPaths(product.destinationDirectory, product.targetName);
-
-                artifacts.push({fileTags: jsTags,
-                                filePath: FileInfo.joinPaths(
-                                              product.moduleProperty("nodejs",
-                                                                     "compiledIntermediateDir"),
-                                              product.targetName + ".js")});
-
-                if (product.moduleProperty("typescript", "generateDeclarations")) {
-                    artifacts.push({fileTags: ["typescript_declaration"],
-                                    filePath: filePath + ".d.ts"});
-                }
-
-                if (product.moduleProperty("typescript", "generateSourceMaps")) {
-                    artifacts.push({fileTags: ["source_map"],
-                                    filePath: filePath + ".js.map"});
-                }
-            } else {
-                for (var i = 0; i < inputs.typescript.length; ++i) {
-                    var jsTags = ["js", "compiled_typescript"];
-                    if (product.moduleProperty("nodejs", "applicationFile") === inputs.typescript[i].filePath)
-                        jsTags.push("application_js");
-
-                    var intermediatePath = FileInfo.path(FileInfo.relativePath(
-                                                             product.sourceDirectory,
-                                                             inputs.typescript[i].filePath));
-
-                    var baseName = FileInfo.baseName(inputs.typescript[i].fileName);
-                    var filePath = FileInfo.joinPaths(product.destinationDirectory,
-                                                      intermediatePath,
-                                                      baseName);
-
-                    artifacts.push({fileTags: jsTags,
-                                    filePath: FileInfo.joinPaths(
-                                                  product.moduleProperty("nodejs",
-                                                                         "compiledIntermediateDir"),
-                                                  intermediatePath,
-                                                  baseName + ".js")});
-
-                    if (product.moduleProperty("typescript", "generateDeclarations")) {
-                        artifacts.push({fileTags: ["typescript_declaration"],
-                                        filePath: filePath + ".d.ts"});
-                    }
-
-                    if (product.moduleProperty("typescript", "generateSourceMaps")) {
-                        artifacts.push({fileTags: ["source_map"],
-                                        filePath: filePath + ".js.map"});
-                    }
-                }
-            }
-
-            return artifacts;
-        }
+        outputArtifacts: TypeScript.outputArtifacts(product, inputs)
 
         outputFileTags: ["application_js", "compiled_typescript", "js", "source_map", "typescript_declaration"]
 
         prepare: {
-            var i;
-            var args = [];
-
-            var primaryOutput = outputs.compiled_typescript[0];
-
-            if (ModUtils.moduleProperty(product, "warningLevel") === "pedantic") {
-                args.push("--noImplicitAny");
-            }
-
-            var targetVersion = ModUtils.moduleProperty(product, "targetVersion");
-            if (targetVersion) {
-                args.push("--target");
-                args.push(targetVersion);
-            }
-
-            var moduleLoader = ModUtils.moduleProperty(product, "moduleLoader");
-            if (moduleLoader) {
-                if (ModUtils.moduleProperty(product, "singleFile")) {
-                    throw("typescript.singleFile cannot be true when typescript.moduleLoader is set");
-                }
-
-                args.push("--module");
-                args.push(moduleLoader);
-            }
-
-            if (ModUtils.moduleProperty(product, "stripComments")) {
-                args.push("--removeComments");
-            }
-
-            if (ModUtils.moduleProperty(product, "generateDeclarations")) {
-                args.push("--declaration");
-            }
-
-            if (ModUtils.moduleProperty(product, "generateSourceMaps")) {
-                args.push("--sourcemap");
-            }
-
-            // User-supplied flags
-            var flags = ModUtils.moduleProperty(product, "compilerFlags");
-            for (i in flags) {
-                args.push(flags[i]);
-            }
-
-            args.push("--outDir");
-            args.push(product.buildDirectory);
-
-            if (ModUtils.moduleProperty(product, "singleFile")) {
-                args.push("--out");
-                args.push(primaryOutput.filePath);
-            }
-
-            if (inputs.typescript_declaration) {
-                for (i = 0; i < inputs.typescript_declaration.length; ++i) {
-                    args.push(inputs.typescript_declaration[i].filePath);
-                }
-            }
-
-            for (i = 0; i < inputs.typescript.length; ++i) {
-                args.push(inputs.typescript[i].filePath);
-            }
-
             var cmd, cmds = [];
 
-            cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
+            cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"),
+                              TypeScript.tscArguments(product, inputs, outputs));
             cmd.description = "compiling " + (ModUtils.moduleProperty(product, "singleFile")
                                                 ? primaryOutput.fileName
                                                 : inputs.typescript.map(function(obj) {
@@ -315,7 +189,7 @@ Module {
             cmd.silent = true;
             cmd.outDir = product.buildDirectory;
             cmd.sourceCode = function() {
-                for (i = 0; i < outputs.compiled_typescript.length; ++i) {
+                for (var i = 0; i < outputs.compiled_typescript.length; ++i) {
                     var output = outputs.compiled_typescript[i];
                     var intermediatePath = FileInfo.path(FileInfo.relativePath(product.moduleProperty("nodejs", "compiledIntermediateDir"), output.filePath));
                     var originalFilePath = FileInfo.joinPaths(outDir, intermediatePath, output.fileName);
