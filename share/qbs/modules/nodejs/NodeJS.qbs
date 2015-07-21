@@ -32,11 +32,17 @@ import qbs
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Probes
 
 Module {
     // JavaScript files which have been "processed" - currently this simply means "copied to output
     // directory" but might later include minification and obfuscation processing
     additionalProductTypes: ["nodejs_processed_js"].concat(applicationFile ? ["application"] : [])
+
+    Probes.NodeJsProbe {
+        id: nodejs
+        pathPrefixes: [toolchainInstallPath]
+    }
 
     property path applicationFile
     PropertyOptions {
@@ -44,9 +50,20 @@ Module {
         description: "file whose corresponding output will be executed when running the Node.js app"
     }
 
+    property path toolchainInstallPath: nodejs.path
+
+    property path interpreterFileName: nodejs.fileName
+    property path interpreterFilePath: nodejs.filePath
+
     // private properties
     readonly property path compiledIntermediateDir: FileInfo.joinPaths(product.buildDirectory,
                                                                        "tmp", "nodejs.intermediate")
+
+    setupBuildEnvironment: {
+        var v = new ModUtils.EnvironmentVariable("PATH", qbs.pathListSeparator, qbs.hostOS.contains("windows"));
+        v.prepend(toolchainInstallPath);
+        v.set();
+    }
 
     setupRunEnvironment: {
         var v = new ModUtils.EnvironmentVariable("NODE_PATH", qbs.pathListSeparator, qbs.hostOS.contains("windows"));
@@ -57,6 +74,14 @@ Module {
     FileTagger {
         patterns: ["*.js"]
         fileTags: ["js"]
+    }
+
+    validate: {
+        var validator = new ModUtils.PropertyValidator("nodejs");
+        validator.setRequiredProperty("toolchainInstallPath", toolchainInstallPath);
+        validator.setRequiredProperty("interpreterFileName", interpreterFileName);
+        validator.setRequiredProperty("interpreterFilePath", interpreterFilePath);
+        validator.validate();
     }
 
     Rule {
