@@ -12,7 +12,7 @@ Project {
             Depends { name: "wix" }
             wix.defines: base.concat(["msiName=" +
                 FileInfo.joinPaths(product.buildDirectory,
-                    targetName + wix.windowsInstallerSuffix)])
+                    product.targetName + wix.windowsInstallerSuffix)])
         }
     }
 
