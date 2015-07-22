@@ -154,6 +154,13 @@
             \c{":"} on Unix
         \li Holds the platform-specific separator for path list that is used in environment
             variables or other contexts.
+    \row
+        \li nullDevice
+        \li \c{string}
+        \li 1.4.2
+        \li \c{"NUL"} on Windows,
+            \c{"/dev/null"} on Unix
+        \li Holds the platform-specific file path corresponding to the null device.
     \endtable
 
     \section1 Environment Properties

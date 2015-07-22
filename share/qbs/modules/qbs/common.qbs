@@ -66,6 +66,7 @@ Module {
     property stringList targetOS: hostOS
     property string pathListSeparator: hostOS.contains("windows") ? ";" : ":"
     property string pathSeparator: hostOS.contains("windows") ? "\\" : "/"
+    property string nullDevice: hostOS.contains("windows") ? "NUL" : "/dev/null"
     property string profile
     property stringList toolchain
     property string architecture
