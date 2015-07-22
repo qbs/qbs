@@ -38,6 +38,10 @@ UnixGCC {
 
     Depends { name: "xcode"; required: false }
 
+    targetVendor: "apple"
+    targetSystem: "darwin"
+    targetAbi: "macho"
+
     compilerDefines: ["__GNUC__", "__APPLE__"]
     loadableModulePrefix: ""
     loadableModuleSuffix: ".bundle"

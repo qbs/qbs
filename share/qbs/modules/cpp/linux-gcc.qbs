@@ -34,5 +34,8 @@ UnixGCC {
     condition: qbs.targetOS.contains('linux') &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
     rpaths: ['$ORIGIN']
-}
 
+    targetVendor: "pc"
+    targetSystem: "linux"
+    targetAbi: "gnu"
+}

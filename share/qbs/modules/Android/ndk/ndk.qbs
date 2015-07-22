@@ -69,7 +69,14 @@ Module {
     }
 
     property string hostArch: ndkProbe.hostArch
-    property string toolchainDir: NdkUtils.toolchainDir(qbs.toolchain, toolchainVersion, abi)
+    property string toolchainDir: {
+        if (qbs.toolchain && qbs.toolchain.contains("clang"))
+            return "llvm-" + toolchainVersionNumber;
+        if (["x86", "x86_64"].contains(abi))
+            return abi + "-" + toolchainVersionNumber;
+        return cpp.toolchainPrefix + toolchainVersionNumber;
+    }
+
     property bool enableExceptions: appStl !== "system"
     property bool enableRtti: appStl !== "system"
     property bool hardFloat
@@ -93,6 +100,13 @@ Module {
         if (platformVersion >= 21)
             list.push("arm64-v8a", "mips64", "x86_64");
         return list;
+    }
+
+    property string toolchainVersionNumber: {
+        var prefix = "clang";
+        if (toolchainVersion && toolchainVersion.startsWith(prefix))
+            return toolchainVersion.substr(prefix.length);
+        return toolchainVersion;
     }
 
     property stringList defines: ["ANDROID"]
@@ -145,9 +159,14 @@ Module {
     cpp.toolchainInstallPath: FileInfo.joinPaths(ndkDir, "toolchains", toolchainDir, "prebuilt",
                                                  hostArch, "bin")
 
-    cpp.toolchainPrefix: NdkUtils.toolchainPrefix(qbs.toolchain, abi)
+    cpp.toolchainPrefix: {
+        if (qbs.toolchain && qbs.toolchain.contains("clang"))
+            return undefined;
+        return [cpp.targetAbi === "androideabi" ? "arm" : cpp.targetArch,
+                                                  cpp.targetSystem, cpp.targetAbi].join("-") + "-";
+    }
 
-    qbs.optimization: ["armeabi", "armeabi-v7a"].contains(abi) ? "small" : base
+    qbs.optimization: cpp.targetAbi === "androideabi" ? "small" : base
 
     cpp.commonCompilerFlags: NdkUtils.commonCompilerFlags(qbs.buildVariant, abi, hardFloat, armMode)
 
@@ -217,6 +236,20 @@ Module {
     }
     cpp.sysroot: FileInfo.joinPaths(ndkDir, "platforms", platform,
                                     "arch-" + NdkUtils.abiNameToDirName(abi))
+
+    cpp.targetArch: {
+        if (qbs.architecture === "arm64")
+            return "aarch64";
+        if (qbs.architecture === "armv5")
+            return qbs.architecture + "te";
+        if (qbs.architecture === "x86")
+            return "i686";
+        return qbs.architecture;
+    }
+
+    cpp.targetVendor: "none"
+    cpp.targetSystem: "linux"
+    cpp.targetAbi: "android" + (["armeabi", "armeabi-v7a"].contains(abi) ? "eabi" : "")
 
     Rule {
         inputs: ["dynamiclibrary"]

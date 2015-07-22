@@ -131,12 +131,10 @@ function linkerFlags(product, inputs) {
 function configFlags(config) {
     var args = [];
 
-    var arch = ModUtils.moduleProperty(config, "architecture")
-    if (config.moduleProperty("qbs", "toolchain").contains("llvm") &&
-        config.moduleProperty("qbs", "targetOS").contains("darwin")) {
-        args.push("-arch");
-        args.push(arch === "x86" ? "i386" : arch);
+    if (config.moduleProperty("qbs", "toolchain").contains("clang")) {
+        args.push("-target", config.moduleProperty("cpp", "target"));
     } else {
+        var arch = ModUtils.moduleProperty(config, "architecture");
         if (arch === 'x86_64')
             args.push('-m64');
         else if (arch === 'x86')

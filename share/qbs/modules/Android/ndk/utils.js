@@ -48,28 +48,6 @@ function androidAbi(arch) {
     }[arch];
 }
 
-function toolchainDir(toolchain, version, abi) {
-    if (toolchain && toolchain.contains("clang"))
-        return "llvm-" + version;
-    if (["x86", "x86_64"].contains(abi))
-        return abi + "-" + version;
-    return toolchainPrefix(toolchain, abi) + version;
-}
-
-function toolchainPrefix(toolchain, abi) {
-    if (toolchain && toolchain.contains("clang"))
-        return undefined;
-    return {
-        "arm64-v8a": "aarch64-linux-android-",
-        "armeabi": "arm-linux-androideabi-",
-        "armeabi-v7a": "arm-linux-androideabi-", // same prefix as above
-        "mips": "mipsel-linux-android-",
-        "mips64": "mips64el-linux-android-",
-        "x86": "i686-linux-android-",
-        "x86_64": "x86_64-linux-android-"
-    }[abi];
-}
-
 function commonCompilerFlags(buildVariant, abi, hardFloat, armMode) {
     var flags = ["-ffunction-sections", "-funwind-tables", "-no-canonical-prefixes",
                  "-Wa,--noexecstack", "-Werror=format-security"];

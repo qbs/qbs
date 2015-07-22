@@ -47,6 +47,12 @@ CppModule {
         }
     }
 
+    property string target: [targetArch, targetVendor, targetSystem, targetAbi].join("-")
+    property string targetArch: qbs.architecture === "x86" ? "i386" : qbs.architecture
+    property string targetVendor: "unknown"
+    property string targetSystem: "unknown"
+    property string targetAbi: "unknown"
+
     property stringList transitiveSOs
     property string toolchainPrefix
     property path toolchainInstallPath
