@@ -33,6 +33,22 @@ var FileInfo = loadExtension("qbs.FileInfo");
 var Process = loadExtension("qbs.Process");
 var TemporaryDir = loadExtension("qbs.TemporaryDir");
 
+function artifactInstalledFilePath(artifact, product) {
+    var relativeInstallDir = artifact.moduleProperty("qbs", "installDir");
+    var installPrefix = artifact.moduleProperty("qbs", "installPrefix");
+    var installSourceBase = artifact.moduleProperty("qbs", "installSourceBase");
+    var targetDir = FileInfo.joinPaths(artifact.moduleProperty("qbs", "installRoot"),
+                                       installPrefix, relativeInstallDir);
+    if (installSourceBase) {
+        if (!FileInfo.isAbsolutePath(installSourceBase))
+            throw "installSourceBase is not an absolute path";
+        if (!artifact.filePath.startsWith(installSourceBase))
+            throw "artifact file path doesn't start with the value of qbs.installSourceBase";
+        return FileInfo.joinPaths(targetDir, artifact.filePath.substr(installSourceBase.length + 1));
+    }
+    return FileInfo.joinPaths(targetDir, artifact.fileName);
+}
+
 /**
   * Given a list of file tags, returns the file tag (one of [c, cpp, objc, objcpp])
   * corresponding to the C-family language the file should be compiled as.

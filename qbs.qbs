@@ -27,6 +27,7 @@ Project {
     property string pluginsInstallDir: libDirName
 
     references: [
+        "dist/dist.qbs",
         "doc/doc.qbs",
         "share/share.qbs",
         "src/src.qbs",
