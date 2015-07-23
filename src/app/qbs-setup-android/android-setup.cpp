@@ -113,14 +113,14 @@ static QString detectPlatform(const QString &sdkDir)
 
 static QStringList expectedArchs()
 {
-    return QStringList({
-        QStringLiteral("arm64"),
-        QStringLiteral("armv5"),
-        QStringLiteral("armv7"),
-        QStringLiteral("mipsel"),
-        QStringLiteral("mips64el"),
-        QStringLiteral("x86"),
-        QStringLiteral("x86_64")});
+    return QStringList()
+            << QStringLiteral("arm64")
+            << QStringLiteral("armv5")
+            << QStringLiteral("armv7")
+            << QStringLiteral("mipsel")
+            << QStringLiteral("mips64el")
+            << QStringLiteral("x86")
+            << QStringLiteral("x86_64");
 }
 
 

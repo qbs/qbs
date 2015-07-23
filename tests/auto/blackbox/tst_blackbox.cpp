@@ -1546,7 +1546,7 @@ static QProcessEnvironment processEnvironmentWithCurrentDirectoryInLibraryPath()
 {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert(HostOsInfo::libraryPathEnvironmentVariable(),
-               QStringList({env.value(HostOsInfo::libraryPathEnvironmentVariable()), "."})
+               (QStringList() << env.value(HostOsInfo::libraryPathEnvironmentVariable()) << ".")
                .join(HostOsInfo::pathListSeparator()));
     return env;
 }
