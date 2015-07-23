@@ -118,6 +118,20 @@
     }
     \endcode
 
+    \section2 \c original
+    This is the value of the property in the module itself (possibly overridden from a profile or
+    the command line). Use it to set a module property conditionally:
+    \code
+    Module { // This is mymodule
+        property string aProperty: "z"
+    }
+    ----------
+    Product {
+        Depends { name: "mymodule" }
+        Depends { name: "myothermodule" }
+        mymodule.aProperty: myothermodule.anotherProperty === "x" ? "y" : original // => "y" if myothermodule.anotherProperty is "x", "z" otherwise
+    \endcode
+
     \section2 \c outer
     This value is used in nested items, where it refers to the value of the respective property
     in the surrounding item. It is often encountered in \l{Group Item}{groups}:
@@ -132,6 +146,7 @@
         }
     }
     \endcode
+
 
     \section1 Module Properties
 

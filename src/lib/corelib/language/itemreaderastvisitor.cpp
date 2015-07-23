@@ -463,15 +463,18 @@ bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
     m_sourceValue->setLocation(statement->firstSourceLocation().startLine,
                                statement->firstSourceLocation().startColumn);
 
-    bool usesBase, usesOuter;
+    bool usesBase, usesOuter, usesOriginal;
     IdentifierSearch idsearch;
     idsearch.add(QLatin1String("base"), &usesBase);
     idsearch.add(QLatin1String("outer"), &usesOuter);
+    idsearch.add(QLatin1String("original"), &usesOriginal);
     idsearch.start(statement);
     if (usesBase)
         m_sourceValue->m_flags |= JSSourceValue::SourceUsesBase;
     if (usesOuter)
         m_sourceValue->m_flags |= JSSourceValue::SourceUsesOuter;
+    if (usesOriginal)
+        m_sourceValue->m_flags |= JSSourceValue::SourceUsesOriginal;
     return false;
 }
 
