@@ -22,6 +22,7 @@ include(parser/parser.pri)
 include(tools/tools.pri)
 
 win32:LIBS += -lpsapi
+freebsd:LIBS += -lutil
 
 HEADERS += \
     qbs.h
