@@ -32,6 +32,7 @@
 
 #include "error.h"
 #include "processutils.h"
+#include "version.h"
 
 #include <logging/translator.h>
 
@@ -42,6 +43,11 @@
 
 namespace qbs {
 namespace Internal {
+
+static bool hasQtBug45497()
+{
+    return Version::fromString(QLatin1String(qVersion())) < Version(5, 5, 1);
+}
 
 BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logger &logger)
     : m_lockFile(buildGraphFilePath + QLatin1String(".lock"))
@@ -60,29 +66,22 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
             return;
         switch (m_lockFile.error()) {
         case QLockFile::LockFailedError: {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 1))
-            throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': "
-                    "Already locked by '%2' (PID %3).")
-                            .arg(buildGraphFilePath, appName).arg(pid));
-#else
-            // work around QTBUG-45497
             qint64 pid;
             QString hostName;
             QString appName;
             if (m_lockFile.getLockInfo(&pid, &hostName, &appName)) {
-                if (appName != processNameByPid(pid)) {
-                    // The process id was reused by some other process.
-                    m_logger.qbsInfo() << Tr::tr("Removing stale lock file.");
-                    m_lockFile.removeStaleLockFile();
-                } else {
+                if (!hasQtBug45497() || appName == processNameByPid(pid)) {
                     throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': "
-                            "Already locked by '%2' (PID %3).")
+                                           "Already locked by '%2' (PID %3).")
                                     .arg(buildGraphFilePath, appName).arg(pid));
                 }
+
+                // The process id was reused by some other process.
+                m_logger.qbsInfo() << Tr::tr("Removing stale lock file.");
+                m_lockFile.removeStaleLockFile();
             }
             break;
         }
-#endif
         case QLockFile::PermissionError:
             throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': Permission denied.")
                             .arg(buildGraphFilePath));

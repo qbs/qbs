@@ -65,7 +65,7 @@
     \code
     close(): void
     \endcode
-    Closes the file. We recommended to always call this function as soon as you are finished
+    Closes the file. It is recommended to always call this function as soon as you are finished
     with the file, in order to keep the number of in-flight file descriptors as low as possible.
 
     \section2 readAll

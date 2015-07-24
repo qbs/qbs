@@ -32,24 +32,32 @@ import qbs
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Probes
 import qbs.Process
+import "typescript.js" as TypeScript
 
 Module {
     Depends { name: "nodejs" }
 
     additionalProductTypes: ["compiled_typescript"]
 
-    property path toolchainInstallPath
-    property string version: rawVersion ? rawVersion[2] : undefined
+    Probes.TypeScriptProbe {
+        id: tsc
+        pathPrefixes: [toolchainInstallPath]
+        nodejsToolchainInstallPath: nodejs.toolchainInstallPath
+    }
+
+    property path toolchainInstallPath: tsc.path
+    property string version: tsc.version ? tsc.version[2] : undefined
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
     property int versionMinor: versionParts[1]
     property int versionPatch: versionParts[2]
     property int versionBuild: versionParts[3]
-    property string versionSuffix: rawVersion ? rawVersion[3] : undefined
+    property string versionSuffix: tsc.version ? tsc.version[3] : undefined
 
-    property string compilerName: "tsc"
-    property string compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
+    property string compilerName: tsc.fileName
+    property string compilerPath: tsc.filePath
 
     property string warningLevel: "normal"
     PropertyOptions {
@@ -103,21 +111,11 @@ Module {
         description: "whether to compile all source files to a single output file"
     }
 
-    // private properties
-    readonly property var rawVersion: {
-        var p = new Process();
-        try {
-            p.exec(compilerPath, ["--version"]);
-            var match = p.readStdOut().match(/.*\bVersion (([0-9]+(?:\.[0-9]+){1,3})(?:-(.+?))?)\n$/);
-            if (match !== null)
-                return match;
-        } finally {
-            p.close();
-        }
-    }
-
     validate: {
         var validator = new ModUtils.PropertyValidator("typescript");
+        validator.setRequiredProperty("toolchainInstallPath", toolchainInstallPath);
+        validator.setRequiredProperty("compilerName", compilerName);
+        validator.setRequiredProperty("compilerPath", compilerPath);
         validator.setRequiredProperty("version", version);
         validator.setRequiredProperty("versionParts", versionParts);
         validator.setRequiredProperty("versionMajor", versionMajor);
@@ -134,14 +132,6 @@ Module {
         }
 
         validator.validate();
-    }
-
-    setupBuildEnvironment: {
-        if (toolchainInstallPath) {
-            var v = new ModUtils.EnvironmentVariable("PATH", qbs.pathListSeparator, qbs.hostOS.contains("windows"));
-            v.prepend(toolchainInstallPath);
-            v.set();
-        }
     }
 
     // TypeScript declaration files
@@ -162,116 +152,15 @@ Module {
         inputs: ["typescript"]
         inputsFromDependencies: ["typescript_declaration"]
 
-        outputArtifacts: {
-            var artifacts = [];
-
-            if (product.moduleProperty("typescript", "singleFile")) {
-                var jsTags = ["js", "compiled_typescript"];
-
-                // We could check
-                // if (product.moduleProperty("nodejs", "applicationFile") === inputs.typescript[i].filePath)
-                // but since we're compiling to a single file there's no need to state it explicitly
-                jsTags.push("application_js");
-
-                var filePath = FileInfo.joinPaths(product.destinationDirectory, product.targetName);
-
-                artifacts.push({fileTags: jsTags,
-                                filePath: FileInfo.joinPaths(".obj", product.targetName, "typescript", filePath + ".js")});
-                artifacts.push({condition: product.moduleProperty("typescript", "generateDeclarations"), // ### QBS-412
-                                fileTags: ["typescript_declaration"],
-                                filePath: filePath + ".d.ts"});
-                artifacts.push({condition: product.moduleProperty("typescript", "generateSourceMaps"), // ### QBS-412
-                                fileTags: ["source_map"],
-                                filePath: filePath + ".js.map"});
-            } else {
-                for (var i = 0; i < inputs.typescript.length; ++i) {
-                    var jsTags = ["js", "compiled_typescript"];
-                    if (product.moduleProperty("nodejs", "applicationFile") === inputs.typescript[i].filePath)
-                        jsTags.push("application_js");
-
-                    var filePath = FileInfo.joinPaths(product.destinationDirectory, FileInfo.baseName(inputs.typescript[i].filePath));
-
-                    artifacts.push({fileTags: jsTags,
-                                    filePath: FileInfo.joinPaths(".obj", product.targetName, "typescript", filePath + ".js")});
-                    artifacts.push({condition: product.moduleProperty("typescript", "generateDeclarations"), // ### QBS-412
-                                    fileTags: ["typescript_declaration"],
-                                    filePath: filePath + ".d.ts"});
-                    artifacts.push({condition: product.moduleProperty("typescript", "generateSourceMaps"), // ### QBS-412
-                                    fileTags: ["source_map"],
-                                    filePath: filePath + ".js.map"});
-                }
-            }
-
-            return artifacts;
-        }
+        outputArtifacts: TypeScript.outputArtifacts(product, inputs)
 
         outputFileTags: ["application_js", "compiled_typescript", "js", "source_map", "typescript_declaration"]
 
         prepare: {
-            var i;
-            var args = [];
-
-            var primaryOutput = outputs.compiled_typescript[0];
-
-            if (ModUtils.moduleProperty(product, "warningLevel") === "pedantic") {
-                args.push("--noImplicitAny");
-            }
-
-            var targetVersion = ModUtils.moduleProperty(product, "targetVersion");
-            if (targetVersion) {
-                args.push("--target");
-                args.push(targetVersion);
-            }
-
-            var moduleLoader = ModUtils.moduleProperty(product, "moduleLoader");
-            if (moduleLoader) {
-                if (ModUtils.moduleProperty(product, "singleFile")) {
-                    throw("typescript.singleFile cannot be true when typescript.moduleLoader is set");
-                }
-
-                args.push("--module");
-                args.push(moduleLoader);
-            }
-
-            if (ModUtils.moduleProperty(product, "stripComments")) {
-                args.push("--removeComments");
-            }
-
-            if (ModUtils.moduleProperty(product, "generateDeclarations")) {
-                args.push("--declaration");
-            }
-
-            if (ModUtils.moduleProperty(product, "generateSourceMaps")) {
-                args.push("--sourcemap");
-            }
-
-            // User-supplied flags
-            var flags = ModUtils.moduleProperty(product, "compilerFlags");
-            for (i in flags) {
-                args.push(flags[i]);
-            }
-
-            args.push("--outDir");
-            args.push(product.buildDirectory);
-
-            if (ModUtils.moduleProperty(product, "singleFile")) {
-                args.push("--out");
-                args.push(primaryOutput.filePath);
-            }
-
-            if (inputs.typescript_declaration) {
-                for (i = 0; i < inputs.typescript_declaration.length; ++i) {
-                    args.push(inputs.typescript_declaration[i].filePath);
-                }
-            }
-
-            for (i = 0; i < inputs.typescript.length; ++i) {
-                args.push(inputs.typescript[i].filePath);
-            }
-
             var cmd, cmds = [];
 
-            cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
+            cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"),
+                              TypeScript.tscArguments(product, inputs, outputs));
             cmd.description = "compiling " + (ModUtils.moduleProperty(product, "singleFile")
                                                 ? primaryOutput.fileName
                                                 : inputs.typescript.map(function(obj) {
@@ -279,15 +168,20 @@ Module {
             cmd.highlight = "compiler";
             cmds.push(cmd);
 
-            // Move all the compiled TypeScript files to the proper intermediate directory
+            // QBS-5
+            // Move the compiled JavaScript files compiled by TypeScript to an intermediate
+            // directory so that the nodejs module can perform any necessary postprocessing
+            // on the result. The nodejs module will move the files back to their original
+            // locations after postprocessing.
             cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.outDir = product.buildDirectory;
             cmd.sourceCode = function() {
-                for (i = 0; i < outputs.compiled_typescript.length; ++i) {
-                    var fp = outputs.compiled_typescript[i].filePath;
-                    var originalFilePath = FileInfo.joinPaths(outDir, FileInfo.fileName(fp));
-                    File.copy(originalFilePath, fp);
+                for (var i = 0; i < outputs.compiled_typescript.length; ++i) {
+                    var output = outputs.compiled_typescript[i];
+                    var intermediatePath = FileInfo.path(FileInfo.relativePath(product.moduleProperty("nodejs", "compiledIntermediateDir"), output.filePath));
+                    var originalFilePath = FileInfo.joinPaths(outDir, intermediatePath, output.fileName);
+                    File.copy(originalFilePath, output.filePath);
                     File.remove(originalFilePath);
                 }
             };

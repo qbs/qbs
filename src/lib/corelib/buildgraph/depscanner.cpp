@@ -194,7 +194,7 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunc
     ctx->popScope();
     m_engine->clearRequestedProperties();
     if (Q_UNLIKELY(m_engine->hasErrorOrException(result))) {
-        QString msg = Tr::tr("evaluating scan script: ") + m_engine->uncaughtException().toString();
+        QString msg = Tr::tr("evaluating scan script: ") + m_engine->lastErrorString(result);
         m_engine->clearExceptions();
         throw ErrorInfo(msg, script->location);
     }

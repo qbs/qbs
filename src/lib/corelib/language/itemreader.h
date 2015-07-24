@@ -78,6 +78,9 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     void pushExtraSearchPaths(const QStringList &extraSearchPaths);
     void popExtraSearchPaths();
+    QStack<QStringList> extraSearchPathsStack() const;
+    void setExtraSearchPathsStack(const QStack<QStringList> &s) { m_extraSearchPaths = s; }
+    void clearExtraSearchPathsStack() { m_extraSearchPaths.clear(); }
     QStringList searchPaths() const;
 
     Item *readFile(const QString &filePath);

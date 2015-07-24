@@ -68,7 +68,7 @@ void Value::setNext(const ValuePtr &next)
 
 
 JSSourceValue::JSSourceValue()
-    : Value(JSSourceValueType), m_line(-1), m_column(-1)
+    : Value(JSSourceValueType), m_line(-1), m_column(-1), m_exportScope(nullptr)
 {
 }
 
@@ -121,6 +121,16 @@ void JSSourceValue::setDefiningItem(Item *item)
     Value::setDefiningItem(item);
     foreach (const JSSourceValue::Alternative &a, m_alternatives)
         a.value->setDefiningItem(item);
+}
+
+Item *JSSourceValue::exportScope() const
+{
+    return m_exportScope;
+}
+
+void JSSourceValue::setExportScope(Item *extraScope)
+{
+    m_exportScope = extraScope;
 }
 
 

@@ -47,6 +47,8 @@ ModuleMerger::ModuleMerger(const Logger &logger, Item *root, Item *moduleToMerge
 
 void ModuleMerger::start()
 {
+    if (!m_mergedModuleItem->isPresentModule())
+        return;
     Item::Module m;
     m.item = m_rootItem;
     const Item::PropertyMap props = dfs(m, Item::PropertyMap());
@@ -144,13 +146,15 @@ void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap
             continue;
 
         if (pd.isScalar()) {
-            if (dstVal->sourceCode() != srcVal->sourceCode()) {
+            if (dstVal->sourceCode() != srcVal->sourceCode()
+                    && dstVal->isInExportItem() == srcVal->isInExportItem()) {
                 m_logger.qbsWarning() << Tr::tr("Conflicting scalar values at %1 and %2.").arg(
                                              dstVal->location().toString(),
                                              srcVal->location().toString());
                 // TODO: yield error with a hint how to solve the conflict.
             }
-            v = it.value();
+            if (!dstVal->isInExportItem())
+                v = it.value();
         } else {
             lastInNextChain(dstVal)->setNext(srcVal);
         }

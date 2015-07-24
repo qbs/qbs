@@ -505,6 +505,8 @@ void Executor::finishJob(ExecutorJob *job, bool success)
     const JobMap::Iterator it = m_processingJobs.find(job);
     QBS_CHECK(it != m_processingJobs.end());
     const TransformerPtr transformer = it.value();
+    m_processingJobs.erase(it);
+    m_availableJobs.append(job);
     if (success) {
         m_project->buildData->isDirty = true;
         foreach (Artifact *artifact, transformer->outputs) {
@@ -515,8 +517,6 @@ void Executor::finishJob(ExecutorJob *job, bool success)
         }
         finishTransformer(transformer);
     }
-    m_processingJobs.erase(it);
-    m_availableJobs.append(job);
 
     if (!success && !m_buildOptions.keepGoing())
         cancelJobs();

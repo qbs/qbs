@@ -15,6 +15,7 @@ Project {
         files: [
             "animals.ts",
             "extra.js",
+            "woosh/extra.ts",
             "main.ts"
         ]
     }
@@ -30,5 +31,27 @@ Project {
         files: [
             "foo.ts"
         ]
+    }
+
+    Product {
+        Depends { name: "typescript" }
+
+        typescript.generateDeclarations: true
+
+        name: "lib2"
+
+        files: [
+            "foo2.ts"
+        ]
+    }
+
+    NodeJSApplication {
+        Depends { name: "typescript" }
+        Depends { name: "lib2" }
+
+        typescript.singleFile: true
+        nodejs.applicationFile: "hello.ts"
+
+        name: "single"
     }
 }

@@ -1,19 +1,27 @@
 import qbs 1.0
 
-Application {
-    name: "installedApp"
-    type: "application"
-    consoleApplication: true
-    Depends { name: "cpp" }
-    Group {
-        files: "main.cpp"
-        qbs.install: true
-        qbs.installDir: "src"
+
+Project {
+    CppApplication {
+        name: "other app"
+        files: ["main.cpp"]
     }
-    qbs.installPrefix: "/usr"
-    Group {
-        fileTagsFilter: "application"
-        qbs.install: true
-        qbs.installDir: "bin"
+
+    CppApplication {
+        name: "installedApp"
+        type: "application"
+        consoleApplication: true
+        Depends { name: "other app" }
+        Group {
+            files: "main.cpp"
+            qbs.install: true
+            qbs.installDir: "src"
+        }
+        qbs.installPrefix: "/usr"
+        Group {
+            fileTagsFilter: "application"
+            qbs.install: true
+            qbs.installDir: "bin"
+        }
     }
 }

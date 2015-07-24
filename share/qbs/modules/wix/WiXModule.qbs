@@ -34,7 +34,7 @@ import qbs.FileInfo
 import qbs.ModUtils
 
 Module {
-    condition: qbs.hostOS.contains("windows") && qbs.targetOS.contains("windows")
+    condition: qbs.targetOS.contains("windows")
 
     property path toolchainInstallPath: qbs.getNativeSetting(registryKey, "InstallFolder")
     property path toolchainInstallRoot: qbs.getNativeSetting(registryKey, "InstallRoot")
@@ -46,9 +46,9 @@ Module {
     property int versionBuild: versionParts[3]
 
     property string compilerName: "candle.exe"
-    property string compilerPath: compilerName
+    property string compilerPath: FileInfo.joinPaths(toolchainInstallRoot, compilerName)
     property string linkerName: "light.exe"
-    property string linkerPath: linkerName
+    property string linkerPath: FileInfo.joinPaths(toolchainInstallRoot, linkerName)
 
     property string warningLevel: "normal"
     PropertyOptions {
@@ -118,6 +118,9 @@ Module {
         }
     }
 
+    // MSI/MSM package validation only works natively on Windows
+    property bool enablePackageValidation: qbs.hostOS.contains("windows")
+
     property string executableSuffix: ".exe"
     property string windowsInstallerSuffix: ".msi"
 
@@ -179,6 +182,7 @@ Module {
     Rule {
         id: candleCompiler
         inputs: ["wxs"]
+        auxiliaryInputs: ['wxi']
 
         Artifact {
             fileTags: ["wixobj"]
@@ -373,6 +377,10 @@ Module {
 
             var args = ["-nologo"];
 
+            if (!ModUtils.moduleProperty(product, "enablePackageValidation")) {
+                args.push("-sval");
+            }
+
             if (ModUtils.moduleProperty(product, "warningLevel") === "none") {
                 args.push("-sw");
             } else {
@@ -407,7 +415,7 @@ Module {
 
             for (i in inputs.wxl) {
                 args.push("-loc");
-                args.push(inputs.wxl[i].filePath);
+                args.push(FileInfo.toWindowsSeparators(inputs.wxl[i].filePath));
             }
 
             if (product.type.contains("msi")) {
@@ -423,7 +431,7 @@ Module {
             }
 
             for (i in inputs.wixobj) {
-                args.push(inputs.wixobj[i].filePath);
+                args.push(FileInfo.toWindowsSeparators(inputs.wixobj[i].filePath));
             }
 
             var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);

@@ -18,8 +18,16 @@ QbsLibrary {
         "QT_CREATOR", "QML_BUILD_STATIC_LIB",   // needed for QmlJS
         "SRCDIR=\"" + path + "\""
     ]).concat(projectFileUpdateDefines)
-    cpp.dynamicLibraries: base.concat(qbs.targetOS.contains("windows")
-        ? ["Psapi"] : [])
+
+    Properties {
+        condition: qbs.targetOS.contains("windows")
+        cpp.dynamicLibraries: base.concat(["Psapi"])
+    }
+    Properties {
+        condition: qbs.targetOS.contains("freebsd")
+        cpp.dynamicLibraries: base.concat(["util"])
+    }
+    cpp.dynamicLibraries: base
 
     Properties {
         condition: qbs.targetOS.contains("darwin")
@@ -415,6 +423,6 @@ QbsLibrary {
     }
     Export {
         Depends { name: "Qt"; submodules: ["script", "xml"] }
-        cpp.defines: projectFileUpdateDefines
+        cpp.defines: product.projectFileUpdateDefines
     }
 }

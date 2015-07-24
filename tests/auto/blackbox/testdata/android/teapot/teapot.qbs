@@ -1,7 +1,7 @@
 import qbs
 
 Project {
-    property stringList architectures: ["arm64-v8a", "armeabi-v7a-hard", "x86_64", "mips"]
+    property stringList architectures: ["arm64", "armv7", "x86_64", "mipsel"]
     StaticLibrary {
         architectures: project.architectures
         name: "native-glue"
@@ -80,11 +80,8 @@ Project {
 
     AndroidApk {
         name: "com.sample.teapot"
-        property string sourcesPrefix: Android.sdk.ndkDir + "/samples/Teapot"
-
-        resourcesDir: sourcesPrefix + "/res"
-        sourcesDir: sourcesPrefix + "/java"
-        manifestFile: sourcesPrefix + "/AndroidManifest.xml"
+        sourceSetDir: Android.sdk.ndkDir + "/samples/Teapot"
+        legacyLayout: true
         Depends { productTypes: ["android.nativelibrary"] }
     }
 }

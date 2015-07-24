@@ -32,20 +32,46 @@ import qbs
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Probes
 import qbs.TextFile
 import "utils.js" as SdkUtils
 
 Module {
-    property path sdkDir
-    property path ndkDir
-    property string buildToolsVersion
+    Probes.AndroidSdkProbe {
+        id: sdkProbe
+        environmentPaths: [sdkDir].concat(base)
+    }
+
+    Probes.AndroidNdkProbe {
+        id: ndkProbe
+        environmentPaths: [ndkDir].concat(base)
+    }
+
+    property path sdkDir: sdkProbe.path
+    property path ndkDir: ndkProbe.path
+    property string buildToolsVersion: sdkProbe.buildToolsVersion
     property var buildToolsVersionParts: buildToolsVersion ? buildToolsVersion.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int buildToolsVersionMajor: buildToolsVersionParts[0]
     property int buildToolsVersionMinor: buildToolsVersionParts[1]
     property int buildToolsVersionPatch: buildToolsVersionParts[2]
-    property string platform
+    property string platform: sdkProbe.platform
 
     // Internal properties.
+    property int platformVersion: {
+        if (platform) {
+            var match = platform.match(/^android-([0-9]+)$/);
+            if (match !== null) {
+                return parseInt(match[1], 10);
+            }
+        }
+    }
+
+    property string platformJavaVersion: {
+        if (platformVersion >= 21)
+            return "1.7";
+        return "1.5";
+    }
+
     property path buildToolsDir: {
         var path = FileInfo.joinPaths(sdkDir, "build-tools", buildToolsVersion);
         if (buildToolsVersionMajor >= 23)
@@ -64,9 +90,14 @@ Module {
                                          product.packageName.split('.').join('/'))
 
     Depends { name: "java" }
-    java.languageVersion: "1.5"
-    java.runtimeVersion: "1.5"
+    java.languageVersion: platformJavaVersion
+    java.runtimeVersion: platformJavaVersion
     java.bootClassPaths: androidJarFilePath
+
+    // QBS-833 workaround
+    Probes.JdkProbe { id: jdk; environmentPaths: [java.jdkPath].concat(base) }
+    java.jdkPath: jdk.path
+    java.compilerVersion: jdk.version ? jdk.version[1] : undefined
 
     FileTagger {
         patterns: ["AndroidManifest.xml"]

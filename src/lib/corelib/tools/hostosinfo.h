@@ -88,6 +88,15 @@ public:
         return isWindowsHost() ? Qt::CaseInsensitive: Qt::CaseSensitive;
     }
 
+    static QString libraryPathEnvironmentVariable()
+    {
+        if (isWindowsHost())
+            return QStringLiteral("PATH");
+        if (isOsxHost())
+            return QStringLiteral("DYLD_LIBRARY_PATH");
+        return QStringLiteral("LD_LIBRARY_PATH");
+    }
+
     static QChar pathListSeparator()
     {
         return isWindowsHost() ? QLatin1Char(';') : QLatin1Char(':');

@@ -38,6 +38,7 @@ import 'ib.js' as Ib
 
 Module {
     Depends { name: "cpp" } // to put toolchainInstallPath in the PATH for actool
+    Depends { name: "bundle" }
 
     condition: qbs.hostOS.contains("darwin") && qbs.targetOS.contains("darwin")
 
@@ -77,6 +78,13 @@ Module {
     property int ibtoolVersionMajor: ibtoolVersionParts[0]
     property int ibtoolVersionMinor: ibtoolVersionParts[1]
     property int ibtoolVersionPatch: ibtoolVersionParts[2]
+
+    property path actoolOutputDirectory: {
+        var dir = product.destinationDirectory;
+        if (bundle.isBundle)
+            dir = FileInfo.joinPaths(dir, bundle.unlocalizedResourcesFolderPath);
+        return dir;
+    }
 
     validate: {
         var validator = new ModUtils.PropertyValidator("ib");
@@ -165,8 +173,8 @@ Module {
         }
 
         prepare: {
-            var cmd = new Command(ModUtils.moduleProperty(input, "ibtoolPath"),
-                                  Ib.ibtooldArguments(product, input, outputs));
+            var cmd = new Command(ModUtils.moduleProperty(product, "ibtoolPath"),
+                                  Ib.ibtooldArguments(product, inputs, outputs));
             cmd.description = ModUtils.moduleProperty(input, "ibtoolName") + ' ' + input.fileName;
 
             // Also display the language name of the nib/storyboard being compiled if it has one
@@ -191,56 +199,23 @@ Module {
 
     Rule {
         inputs: ["assetcatalog"]
+        multiplex: true
 
-        // actool takes an output *directory*, and in this directory it will
-        // potentially output "Assets.car" and/or one or more additional files.
-        // We can discover which files were written in an easily parseable manner
-        // through use of --output-format xml1
-        outputArtifacts: {
-            var outputDirectory = product.destinationDirectory;
-            if (product.moduleProperty("bundle", "isBundle")) {
-                outputDirectory = FileInfo.joinPaths(outputDirectory,
-                                            product.moduleProperty("bundle", "unlocalizedResourcesFolderPath"));
-            }
-
-            // Chicken and egg... create a fake outputs dictionary for building actool args list
-            var outputs = {
-                partial_infoplist: [{filePath: FileInfo.joinPaths(product.destinationDirectory, "assetcatalog_generated_info.plist")}],
-                compiled_assetcatalog: [{filePath: FileInfo.joinPaths(outputDirectory, "Assets" + ModUtils.moduleProperty(product, "compiledAssetCatalogSuffix"))}]
-            };
-
-            var process = new Process();
-            try {
-                process.exec("mkdir", ["-p", outputDirectory], true);
-            } finally {
-                process.close();
-            }
-
-            var filePaths = Ib.runActool(ModUtils.moduleProperty(input, "actoolPath"),
-                                         Ib.ibtooldArguments(product, input, outputs));
-
-            var artifacts = [];
-            for (var i in filePaths) {
-                artifacts.push({
-                    filePath: filePaths[i],
-                    fileTags: filePaths[i] === outputs.partial_infoplist[0].filePath ? ["partial_infoplist"] : ["compiled_assetcatalog"]
-                });
-            }
-
-            return artifacts;
-        }
-
+        outputArtifacts: Ib.actoolOutputArtifacts(product, inputs)
         outputFileTags: ["compiled_assetcatalog", "partial_infoplist"]
 
-        // Just a note, the man page for actool is somewhat outdated (probably forgotten to be updated late in the development cycle).
-        // It mentions the file extension .assetcatalog (which isn't used by Xcode), the --write option does not exist, and the example
-        // invocation near the bottom of the man page doesn't work at all.
-        // There's also the undocumented --export-dependency-info <output.txt> which is used by Xcode and generated a \0x00\0x02-delimited
-        // file (yes, really) that contains the output file names, identical to the output of actool itself (what's the point?).
         prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.description = ModUtils.moduleProperty(input, "actoolName") + ' ' + input.fileName;
+            var cmd = new Command(ModUtils.moduleProperty(product, "actoolPath"),
+                                  Ib.ibtooldArguments(product, inputs, outputs));
+            cmd.description = inputs["assetcatalog"].map(function (input) {
+                return "compiling " + input.fileName;
+            }).join('\n');
             cmd.highlight = "compiler";
+
+            cmd.stdoutFilterFunction = function(output) {
+                return output;
+            };
+
             return cmd;
         }
     }

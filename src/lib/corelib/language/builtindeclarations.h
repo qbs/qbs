@@ -62,6 +62,7 @@ private:
     void addFileTaggerItem();
     void addGroupItem();
     void addModuleItem();
+    void addModuleLikeItem(const QString &typeName);
     void addProbeItem();
     void addProductItem();
     void addProjectItem();

@@ -43,6 +43,7 @@ public:
     {
         GetNativeSettingFunction,
         GetEnvFunction,
+        CurrentEnvFunction,
         CanonicalArchitectureFunction,
         Rfc1034IdentifierFunction
     };

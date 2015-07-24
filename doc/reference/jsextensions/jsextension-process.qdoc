@@ -51,7 +51,7 @@
     \code
     close(): void
     \endcode
-    Frees the resources associated with the process. We recommended to always call this function as
+    Frees the resources associated with the process. It is recommended to always call this function as
     soon as you are finished with the process.
 
     \section2 closeWriteChannel

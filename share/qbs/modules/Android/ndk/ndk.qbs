@@ -32,6 +32,7 @@ import qbs
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Probes
 import qbs.TextFile
 
 import "utils.js" as NdkUtils
@@ -39,7 +40,17 @@ import "utils.js" as NdkUtils
 Module {
     Depends { name: "cpp" }
 
-    property string abi // Corresponds to the subdir under "lib/" in the apk file.
+    Probes.AndroidNdkProbe {
+        id: ndkProbe
+        environmentPaths: [ndkDir].concat(base)
+    }
+
+    readonly property string abi: NdkUtils.androidAbi(qbs.architecture)
+    PropertyOptions {
+        name: "abi"
+        description: "Corresponds to the 'APP_ABI' variable in an Android.mk file."
+        allowedValues: ["arm64-v8a", "armeabi", "armeabi-v7a", "mips", "mips64", "x86", "x86_64"]
+    }
 
     property string appStl: "system"
     PropertyOptions {
@@ -51,21 +62,46 @@ Module {
         ]
     }
 
-    property string buildProfile // E.g. "armeabi-v7a-hard"
+    property string toolchainVersion: "4.9"
+    PropertyOptions {
+        name: "toolchainVersion"
+        description: "Corresponds to the 'NDK_TOOLCHAIN_VERSION' variable in an Android.mk file."
+    }
+
+    property string hostArch: ndkProbe.hostArch
+    property string toolchainDirPrefix: NdkUtils.toolchainDirPrefix(qbs.toolchain, abi)
     property bool enableExceptions: appStl !== "system"
     property bool enableRtti: appStl !== "system"
-    property string ndkDir
+    property bool hardFloat
+    property string ndkDir: ndkProbe.path
     property string platform: "android-9"
 
     // Internal properties.
-    property stringList compilerFlagsDebug: []
-    property stringList compilerFlagsRelease: []
+    property int platformVersion: {
+        if (platform) {
+            var match = platform.match(/^android-([0-9]+)$/);
+            if (match !== null) {
+                return parseInt(match[1], 10);
+            }
+        }
+    }
+
+    property stringList abis: {
+        var list = ["armeabi", "armeabi-v7a"];
+        if (platformVersion >= 9)
+            list.push("mips", "x86");
+        if (platformVersion >= 21)
+            list.push("arm64-v8a", "mips64", "x86_64");
+        return list;
+    }
+
     property stringList defines: ["ANDROID"]
-    property bool hardFp
+    property string buildProfile: (abi === "armeabi-v7a" && hardFloat) ? (abi + "-hard") : abi
     property string cxxStlBaseDir: FileInfo.joinPaths(ndkDir, "sources/cxx-stl")
     property string gabiBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "gabi++")
     property string stlPortBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "stlport")
-    property string gnuStlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "gnu-libstdc++/4.9")
+    property string gnuStlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "gnu-libstdc++",
+                                                      toolchainVersion)
     property string llvmStlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "llvm-libc++")
     property string stlBaseDir: {
         if (appStl.startsWith("gabi++_"))
@@ -106,13 +142,28 @@ Module {
         allowedValues: ["arm", "thumb"]
     }
 
-    cpp.commonCompilerFlags: {
-        var flags = qbs.buildVariant === "debug"
-                ? compilerFlagsDebug : compilerFlagsRelease;
-        if (armMode)
-            flags.push("-m" + armMode);
-        return flags;
+    cpp.toolchainInstallPath: FileInfo.joinPaths(ndkDir, "toolchains",
+                                                 toolchainDirPrefix +
+                                                 NdkUtils.toolchainVersionNumber(toolchainVersion),
+                                                 "prebuilt", hostArch, "bin")
+
+    cpp.toolchainPrefix: NdkUtils.toolchainPrefix(qbs.toolchain, abi)
+
+    qbs.toolchain: {
+        var tc = [];
+        if (toolchainVersion && toolchainVersion.startsWith("clang"))
+            tc.push("clang");
+        return tc.concat(["gcc"]);
     }
+
+    qbs.optimization: ["armeabi", "armeabi-v7a"].contains(abi) ? "small" : base
+
+    cpp.compilerName: qbs.toolchain.contains("clang") ? "clang++" : "g++"
+    cpp.linkerName: qbs.toolchain.contains("clang") ? "clang++" : "g++"
+
+    cpp.commonCompilerFlags: NdkUtils.commonCompilerFlags(qbs.buildVariant, abi, hardFloat, armMode)
+
+    cpp.linkerFlags: NdkUtils.commonLinkerFlags(abi, hardFloat)
 
     cpp.cxxFlags: {
         var flags = [];
@@ -130,7 +181,7 @@ Module {
     cpp.libraryPaths: {
         var prefix = FileInfo.joinPaths(cpp.sysroot, "usr");
         var paths = [];
-        if (buildProfile === "mips64" || buildProfile === "x86_64") // no lib64 for arm64-v8a
+        if (abi === "mips64" || abi === "x86_64") // no lib64 for arm64-v8a
             paths.push(FileInfo.joinPaths(prefix, "lib64"));
         paths.push(FileInfo.joinPaths(prefix, "lib"));
         return paths;
@@ -138,7 +189,7 @@ Module {
 
     cpp.dynamicLibraries: {
         var libs = ["c"];
-        if (!hardFp)
+        if (!hardFloat)
             libs.push("m");
         if (sharedStlFilePath)
             libs.push(sharedStlFilePath);
@@ -146,7 +197,7 @@ Module {
     }
     cpp.staticLibraries: {
         var libs = ["gcc"];
-        if (hardFp)
+        if (hardFloat)
             libs.push("m_hard");
         if (staticStlFilePath)
             libs.push(staticStlFilePath);
@@ -172,7 +223,7 @@ Module {
     }
     cpp.defines: {
         var list = defines;
-        if (hardFp)
+        if (hardFloat)
             list.push("_NDK_MATH_NO_SOFTFP=1");
         return list;
     }
@@ -232,11 +283,10 @@ Module {
                     infoFile.close();
                 }
             }
-            var stripBinary = product.moduleProperty("cpp", "toolchainPathPrefix") + "strip";
             var stripArgs = ["--strip-unneeded", outputs["android.nativelibrary"][0].filePath];
             if (stlFilePath)
                 stripArgs.push(stlFilePath);
-            var stripCmd = new Command(stripBinary, stripArgs);
+            var stripCmd = new Command(product.moduleProperty("cpp", "stripPath"), stripArgs);
             stripCmd.description = "Stripping unneeded symbols from "
                     + outputs["android.nativelibrary"][0].fileName;
             return [copyCmd, stripCmd];

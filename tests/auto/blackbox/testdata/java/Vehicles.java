@@ -5,6 +5,7 @@ class Vehicles
 {
     public static void main(String[] args)
     {
+        System.loadLibrary("native");
         RandomStuff.bar();
         ArrayList<Vehicle> vehicles = new ArrayList<Vehicle>();
 

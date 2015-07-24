@@ -41,6 +41,8 @@
 #   include <unistd.h>
 #   include <cstdio>
 #elif defined(Q_OS_BSD4)
+#   include <libutil.h>
+#   include <sys/types.h>
 #   include <sys/user.h>
 #else
 #   error Missing implementation of processNameByPid for this platform.

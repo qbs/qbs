@@ -434,6 +434,12 @@ void ScriptEngine::addEnvironmentVariable(const QString &name, const QString &va
     m_usedEnvironment.insert(name, value);
 }
 
+void ScriptEngine::addCanonicalFilePathResult(const QString &filePath,
+                                              const QString &resultFilePath)
+{
+    m_canonicalFilePathResult.insert(filePath, resultFilePath);
+}
+
 void ScriptEngine::addFileExistsResult(const QString &filePath, bool exists)
 {
     m_fileExistsResult.insert(filePath, exists);
@@ -508,6 +514,8 @@ void ScriptEngine::installQbsBuiltins()
                        EvaluatorScriptClass::js_getNativeSetting);
     installQbsFunction(QLatin1String("getEnv"),
                        EvaluatorScriptClass::js_getEnv);
+    installQbsFunction(QLatin1String("currentEnv"),
+                       EvaluatorScriptClass::js_currentEnv);
     installQbsFunction(QLatin1String("canonicalArchitecture"),
                        EvaluatorScriptClass::js_canonicalArchitecture);
     installQbsFunction(QLatin1String("rfc1034Identifier"),

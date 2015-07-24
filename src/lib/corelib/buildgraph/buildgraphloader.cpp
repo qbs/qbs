@@ -213,6 +213,7 @@ void BuildGraphLoader::trackProjectChanges()
     // anew.
     if (hasBuildSystemFileChanged(buildSystemFiles, restoredProject->lastResolveTime)
             || hasEnvironmentChanged(restoredProject)
+            || hasCanonicalFilePathResultChanged(restoredProject)
             || hasFileExistsResultChanged(restoredProject)
             || hasDirectoryEntriesResultChanged(restoredProject)
             || hasFileLastModifiedResultChanged(restoredProject)) {
@@ -346,6 +347,20 @@ bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &rest
     return false;
 }
 
+bool BuildGraphLoader::hasCanonicalFilePathResultChanged(const TopLevelProjectConstPtr &restoredProject) const
+{
+    for (auto it = restoredProject->canonicalFilePathResults.constBegin();
+         it != restoredProject->canonicalFilePathResults.constEnd(); ++it) {
+        if (QFileInfo(it.key()).canonicalFilePath() != it.value()) {
+            m_logger.qbsDebug() << "Canonical file path for file '" << it.key()
+                                << "' changed, must re-resolve project.";
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool BuildGraphLoader::hasFileExistsResultChanged(const TopLevelProjectConstPtr &restoredProject) const
 {
     for (QHash<QString, bool>::ConstIterator it = restoredProject->fileExistsResults.constBegin();
@@ -446,8 +461,6 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
         QList<ResolvedProductPtr> &changedProducts)
 {
     foreach (const ResolvedProductPtr &restoredProduct, restoredProducts) {
-        if (changedProducts.contains(restoredProduct))
-            continue;
         const ResolvedProductPtr newlyResolvedProduct
                 = newlyResolvedProductsByName.value(restoredProduct->uniqueName());
         if (!newlyResolvedProduct)
@@ -455,7 +468,16 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
         if (newlyResolvedProduct->enabled != restoredProduct->enabled) {
             m_logger.qbsDebug() << "Condition of product '" << restoredProduct->uniqueName()
                                 << "' was changed, must set up build data from scratch";
-            changedProducts << restoredProduct;
+            if (!changedProducts.contains(restoredProduct))
+                changedProducts << restoredProduct;
+            continue;
+        }
+
+        if (checkProductForChanges(restoredProduct, newlyResolvedProduct)) {
+            m_logger.qbsDebug() << "Product '" << restoredProduct->uniqueName()
+                                << "' was changed, must set up build data from scratch";
+            if (!changedProducts.contains(restoredProduct))
+                changedProducts << restoredProduct;
             continue;
         }
 
@@ -463,13 +485,8 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
                                         newlyResolvedProduct->allFiles())) {
             m_logger.qbsDebug() << "File list of product '" << restoredProduct->uniqueName()
                                 << "' was changed.";
-            changedProducts += restoredProduct;
-            continue;
-        }
-        if (checkProductForChanges(restoredProduct, newlyResolvedProduct)) {
-            m_logger.qbsDebug() << "Product '" << restoredProduct->uniqueName()
-                                << "' was changed, must set up build data from scratch";
-            changedProducts << restoredProduct;
+            if (!changedProducts.contains(restoredProduct))
+                changedProducts << restoredProduct;
         }
     }
 }

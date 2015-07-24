@@ -34,6 +34,7 @@
     \ingroup list-of-modules
 
     \title Module java
+    \since 1.4
     \brief Provides Java support.
 
     The \c java module contains the properties and rules for building Java projects.
@@ -44,83 +45,138 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li additionalClassPaths
         \li stringList
+        \li 1.4
         \li undefined
         \li Locations beside this product's class output path to consider when compiling.
     \row
         \li additionalCompilerFlags
         \li stringList
+        \li 1.4
         \li undefined
         \li Use this to supply compiler flags not covered by any of the properties in this module.
     \row
         \li additionalJarFlags
         \li stringList
+        \li 1.4
         \li undefined
         \li Use this to supply archiver flags not covered by any of the properties in this module.
     \row
         \li bootClassPaths
         \li stringList
+        \li 1.4
         \li undefined
         \li Use this if you need to specify non-standard bootstrap class files.
     \row
         \li compilerFilePath
         \li string
+        \li 1.4
         \li \c compilerName, prefixed by \c jdkPath if it is defined
         \li The command to invoke when compiling Java sources.
     \row
         \li compilerName
         \li string
+        \li 1.4
         \li \c{"javac"}
         \li The file name of the Java compiler.
     \row
         \li enableWarnings
         \li bool
+        \li 1.4
         \li \c true
         \li Controls whether warnings are emitted when compiling Java sources.
     \row
         \li interpreterFilePath
         \li string
+        \li 1.4
         \li \c interpreterName, prefixed by \c jdkPath if it is defined
         \li The command to invoke when executing Java code.
     \row
         \li interpreterName
         \li string
+        \li 1.4
         \li \c{"java"}
         \li The file name of the Java interpreter.
     \row
         \li jarFilePath
         \li string
+        \li 1.4
         \li \c jarName, prefixed by \c jdkPath if it is defined
         \li The command to run when creating or extracting \c jar files.
     \row
         \li jarName
         \li string
+        \li 1.4
         \li \c{"jar"}
         \li The file name of the \c jar tool.
     \row
+        \li jdkIncludePaths
+        \li pathList
+        \li 1.4.1
+        \li determined automatically
+        \li List of include paths for native header files. Applications using JNI to interface
+            with native code should add these paths to \c{cpp.includePaths}.
+    \row
         \li jdkPath
         \li path
-        \li undefined
-        \li The base path of Java-related tools.
+        \li 1.4
+        \li determined automatically
+        \li The base path of the Java Development Kit (JDK). This is equivalent to the \c JAVA_HOME
+            environment variable, and by default will be determined automatically from one of the
+            following:
+            \list
+            \li \c JAVA_HOME environment variable (all platforms)
+            \li Registry (Windows)
+            \li \c java_home tool (OS X)
+            \li Known JDK paths (other Unix platforms)
+            \endlist
     \row
         \li languageVersion
         \li string
+        \li 1.4
         \li undefined
         \li The Java language version to interpret source code as. If undefined, the compiler
             will use its default.
     \row
         \li runtimeVersion
         \li string
+        \li 1.4
         \li undefined
         \li The version of the Java runtime to generate compatible bytecode for. If undefined,
             the compiler will use its default.
     \row
+        \li manifest
+        \li object
+        \li 1.4.2
+        \li undefined
+        \li The properties to add to the manifest file when building a JAR.
+            The contents of this property will be aggregated with the values from \c{manifestFile}.
+            If \c{manifest} and \c{manifestFile} contain the same key, the former will take
+            precedence. If undefined, will not be taken into account.
+    \row
+        \li manifestFile
+        \li path
+        \li 1.4.2
+        \li undefined
+        \li The manifest file to embed when building a JAR.
+            The contents of this file will be aggregated with the values in \c{manifest}.
+            If \c{manifestFile} and \c{manifest} contain the same key, the latter will take
+            precedence. If undefined, will not be taken into account.
+    \row
+        \li manifestClassPath
+        \li stringList
+        \li 1.4.2
+        \li undefined
+        \li The entries to add to the manifest's Class-Path when building a JAR.
+    \row
         \li warningsAsErrors
         \li bool
+        \li 1.4
         \li \c false
         \li If this property is enabled, the compiler will abort where it would normally emit
             a warning.

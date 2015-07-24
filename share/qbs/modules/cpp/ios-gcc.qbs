@@ -34,7 +34,9 @@ import qbs.File
 import qbs.ModUtils
 
 DarwinGCC {
-    condition: qbs.hostOS.contains('osx') && qbs.targetOS.contains('ios') && qbs.toolchain.contains('gcc')
+    condition: qbs.hostOS.contains('osx') &&
+               qbs.targetOS.contains('ios') &&
+               qbs.toolchain && qbs.toolchain.contains('gcc')
 
     // Setting a minimum is especially important for Simulator or CC/LD thinks the target is OS X
     minimumIosVersion: xcodeSdkVersion || (cxxStandardLibrary === "libc++" ? "5.0" : undefined)

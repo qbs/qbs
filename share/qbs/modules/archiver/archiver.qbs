@@ -31,10 +31,25 @@
 import qbs
 import qbs.File
 import qbs.FileInfo
+import qbs.Probes
 
 Module {
+    // jar is a suitable fallback for creating zip files as they are the same format
+    // This will most likely end up being used on Windows
+    Depends { name: "java"; required: false }
+
+    // QBS-833 workaround
+    Probes.JdkProbe { id: jdk; environmentPaths: [java.jdkPath].concat(base) }
+    java.jdkPath: jdk.path
+    java.compilerVersion: jdk.version ? jdk.version[1] : undefined
+
+    Probes.BinaryProbe {
+        id: zipProbe
+        names: ["zip"]
+    }
+
     property string type
-    property string archiveBaseName: product.name
+    property string archiveBaseName: product.targetName
     property string workingDirectory
     property stringList flags: []
     property path outputDirectory: product.destinationDirectory
@@ -47,6 +62,8 @@ Module {
                 extension += "." + compressionType;
             return extension;
         }
+        if (type === "zip")
+            return "zip";
         return undefined;
     }
     property string command: {
@@ -54,31 +71,45 @@ Module {
             return "7z";
         if (type === "tar")
             return "tar";
+        if (type === "zip") {
+            // Prefer zip (probably Info-Zip) and fall back to jar when it's not available
+            // (as is the likely case on Windows)
+            if (zipProbe.found)
+                return zipProbe.filePath;
+            if (java.present)
+                return java.jarFilePath;
+        }
         return undefined;
     }
 
     property string compressionLevel
-    property string compressionType: "gz"
+    property string compressionType: {
+        if (type === "tar")
+            return "gz";
+        return undefined;
+    }
 
     PropertyOptions {
         name: "type"
         description: "The type of archive to create."
-        allowedValues: ["7zip", "tar"]
+        allowedValues: ["7zip", "tar", "zip"]
     }
 
     PropertyOptions {
         name: "compressionLevel"
         description: "How much effort to put into compression.\n"
             + "Higher numbers mean smaller archive files at the cost of taking more time.\n"
-            + "This property is only used for the '7zip' type."
-        allowedValues: [undefined, "0", "1", "3", "5", "7", "9"]
+            + "This property is only used for the '7zip' and 'zip' types.\n"
+            + "'7zip' only supports 0 and odd numbers."
+        allowedValues: [undefined, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     }
 
     PropertyOptions {
         name: "compressionType"
-        description: "The compression format to use. The respective tool needs to be present.\n"
-            + "This property is only used for the 'tar' type."
-        allowedValues: ["none", "gz", "bz2", "Z", "xz"]
+        description: "The compression format to use.\n"
+            + "For tar archives, the respective tool needs to be present.\n"
+            + "This property is only used for the 'tar' and 'zip' types."
+        allowedValues: ["none", "gz", "bz2", "Z", "xz", "deflate", "store"]
     }
 
     Rule {
@@ -96,6 +127,8 @@ Module {
             var args = [];
             var commands = [];
             var type = product.moduleProperty("archiver", "type");
+            var compression = product.moduleProperty("archiver", "compressionType");
+            var compressionLevel = product.moduleProperty("archiver", "compressionLevel");
             if (type === "7zip") {
                 var rmCommand = new JavaScriptCommand();
                 rmCommand.silent = true;
@@ -105,7 +138,6 @@ Module {
                 };
                 commands.push(rmCommand);
                 args.push("a", "-y", "-mmt=on");
-                var compressionLevel = product.moduleProperty("archiver", "compressionLevel");
                 if (compressionLevel)
                     args.push("-mx" + compressionLevel);
                 args = args.concat(product.moduleProperty("archiver", "flags"));
@@ -113,7 +145,6 @@ Module {
                 args.push("@" + input.filePath);
             } else if (type === "tar") {
                 args.push("-c");
-                var compression = product.moduleProperty("tar", "compressiontype");
                 if (compression === "gz")
                     args.push("-z");
                 else if (compression === "bz2")
@@ -123,6 +154,31 @@ Module {
                 else if (compression === "xz")
                     args.push("-J");
                 args.push("-f", output.filePath, "-T", input.filePath);
+                args = args.concat(product.moduleProperty("archiver", "flags"));
+            } else if (type === "zip") {
+                var binaryName = FileInfo.baseName(binary);
+                if (binaryName === "jar") {
+                    if (compression === "none" || compressionLevel === "0")
+                        args.push("-0");
+
+                    args.push("-cfM", output.filePath, "@" + input.filePath);
+                } else if (binaryName === "zip") {
+                    // The "zip" program included with most Linux and Unix distributions
+                    // (including OS X) is Info-ZIP's Zip, so this should be fairly portable.
+                    if (compression === "none") {
+                        args.push("-0");
+                    } else {
+                        compression = compression === "bz2" ? "bzip2" : compression;
+                        if (["store", "deflate", "bzip2"].contains(compression))
+                            args.push("-Z", compression);
+
+                        if (compressionLevel)
+                            args.push("-" + compressionLevel);
+                    }
+
+                    args.push("-r", output.filePath, ".", "-i@" + input.filePath);
+                }
+
                 args = args.concat(product.moduleProperty("archiver", "flags"));
             }
             var archiverCommand = new Command(binary, args);

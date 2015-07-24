@@ -37,7 +37,9 @@ import qbs.WindowsUtils
 import 'msvc.js' as MSVC
 
 CppModule {
-    condition: qbs.hostOS.contains('windows') && qbs.targetOS.contains('windows') && qbs.toolchain.contains('msvc')
+    condition: qbs.hostOS.contains('windows') &&
+               qbs.targetOS.contains('windows') &&
+               qbs.toolchain && qbs.toolchain.contains('msvc')
 
     id: module
 
@@ -62,6 +64,13 @@ CppModule {
     executableSuffix: ".exe"
     debugInfoSuffix: ".pdb"
     property string dynamicLibraryImportSuffix: ".lib"
+
+    validate: {
+        var validator = new ModUtils.PropertyValidator("cpp");
+        validator.setRequiredProperty("architecture", architecture,
+                                      "you might want to re-run 'qbs-setup-toolchains'");
+        validator.validate();
+    }
 
     Transformer {
         condition: cPrecompiledHeader !== undefined
@@ -197,7 +206,7 @@ CppModule {
             fileTags: ["staticlibrary"]
             filePath: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
             cpp.staticLibraries: {
-                var result = []
+                var result = ModUtils.moduleProperties(product, 'staticLibraries');
                 for (var i in inputs.staticlibrary) {
                     var lib = inputs.staticlibrary[i]
                     result.push(lib.filePath)

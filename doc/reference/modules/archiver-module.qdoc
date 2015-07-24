@@ -34,6 +34,7 @@
     \ingroup list-of-modules
 
     \title Module archiver
+    \since 1.4
     \brief Provides support for building archives.
 
     The \c archiver module contains the properties and rules for creating (compressed) archives.
@@ -48,50 +49,63 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li flags
         \li stringList
+        \li 1.4
         \li empty list
         \li Custom options not covered by any of the other properties.
     \row
         \li archiveBaseName
         \li string
-        \li \c{product.name}
+        \li 1.4
+        \li \c{product.targetName}
         \li The base name of the archive file (in other words, the file name without
             any extensions).
     \row
         \li compressionLevel
         \li string
+        \li 1.4
         \li \c undefined
-        \li How much effort to put into the compression of a 7-Zip archive.
-            Possible values are \c undefined, "0", "1", "3", "5", "7" and "9". Higher numbers
-            result in a smaller archive, but the compressing process will take more time.
+        \li How much effort to put into the compression of a 7-Zip or zip archive.
+            Possible values are \c undefined, "0", "1", "2", "3", "4", "5", "6", "7", "8" and "9"
+            Higher numbers result in a smaller archive, but the compressing process will take more
+            time. 7-Zip only supports 0 and odd numbers.
             A value of \c undefined means to use the default compression level.
     \row
         \li compressionType
         \li string
-        \li \c{"gz"}
-        \li How to compress a tar archive. Possible options are "none", "gz", "bz2", "Z" and "xz".
+        \li 1.4
+        \li \c{"gz"} for tar archives, otherwise \c undefined
+        \li How to compress a tar or zip archive.
+            Possible options are "none", "gz", "bz2", "Z", "xz", "deflate", "store".
+            \c undefined uses the archiver's default compression type.
     \row
         \li outputDirectory
         \li string
+        \li 1.4
         \li \c{product.destinationDirectory}
         \li Where to put the archive file.
     \row
         \li type
         \li string
+        \li 1.4
         \li \c{undefined}
-        \li Which kind of archiver to use. The currently supported values are "tar" and "7zip".
+        \li Which kind of archiver to use.
+            The currently supported values are: "tar", "7zip", "zip".
     \row
         \li workingDirectory
         \li string
+        \li 1.4
         \li undefined
         \li The directory in which to execute \c command.
     \row
         \li command
         \li string
+        \li 1.4
         \li Depends on \c{type}.
         \li The command with which to invoke the archiver.
     \endtable

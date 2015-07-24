@@ -34,259 +34,200 @@
     \ingroup list-of-modules
 
     \title Module wix
+    \since 1.2
     \brief Provides Windows Installer XML Toolset support.
 
     The \c wix module contains properties and rules for building MSI and
-    EXE setup packages with the Windows Installer XML Toolset.
+    EXE setup packages with the \l{http://wixtoolset.org}{Windows Installer XML Toolset}.
 
-    This module is only available on Windows.
+    This module is available on all platforms.
 
     \section1 General Properties
 
-
-    \section2 debugInformation
-
     \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{qbs.debugInformation}
+    \header
+        \li Property
+        \li Type
+        \li Since
+        \li Default
+        \li Description
+    \row
+        \li debugInformation
+        \li \c{bool}
+        \li 1.2
+        \li \c{qbs.debugInformation}
+        \li Generate debug information. See \c{qbs.debugInformation}.
+    \row
+        \li defines
+        \li \c{stringList}
+        \li 1.2
+        \li \c{undefined}
+        \li List of preprocessor macros that get passed to the compiler.
+            To set macro values use the following syntax:
+            \c{wix.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']}
+    \row
+        \li enableQbsDefines
+        \li \c{bool}
+        \li 1.2
+        \li \c{true}
+        \li Whether to define preprocessor macros corresponding to values from the project and
+            product objects. When building a 64-bit package, the preprocessor variable \c{Win64}
+            will also be defined.
+    \row
+        \li visualStudioCompatibility
+        \li \c{bool}
+        \li 1.2
+        \li \c{true}
+        \li Passes most of the same preprocessor macros to the compiler as Visual Studio does.
+            This allows easier authoring WiX files that are compatible with both \QBS and MSBuild.
+    \row
+        \li includePaths
+        \li \c{pathList}
+        \li 1.2
+        \li \c{undefined}
+        \li List of include paths. Relative paths are considered to be relative to the .qbs product
+            file they are used in.
+    \row
+        \li treatWarningsAsErrors
+        \li \c{bool}
+        \li 1.2
+        \li \c{false}
+        \li Warnings will be handled as errors and cause the build to fail.
+    \row
+        \li warningLevel
+        \li \c{string}
+        \li 1.2
+        \li \c{"normal"}
+        \li Severity of warnings to emit. The higher the level, the more warnings will be shown.
+            Possible values include: \c{"none"}, \c{"normal"}, \c{"pedantic"}
+    \row
+        \li verboseOutput
+        \li \c{bool}
+        \li 1.2
+        \li \c{false}
+        \li Whether to display verbose output from the compiler and linker.
+    \row
+        \li compilerFlags
+        \li \c{stringList}
+        \li 1.2
+        \li \c{undefined}
+        \li Additional flags for the Candle compiler.
+    \row
+        \li linkerFlags
+        \li \c{stringList}
+        \li 1.2
+        \li \c{undefined}
+        \li Additional flags for the Light linker.
+    \row
+        \li cultures
+        \li \c{stringList}
+        \li 1.2
+        \li \c{undefined}
+        \li List of localizations to include in the MSI.
+            Use \c{undefined} to include all localizations.
+    \row
+        \li extensions
+        \li \c{stringList}
+        \li 1.2
+        \li \c{["WixBalExtension"]} if the product type is an EXE setup application,
+            otherwise \c{undefined}.
+        \li List of extension assemblies to link into the output.
+            Possible values include:
+            \c{"WixBalExtension"},
+            \c{"WixComPlusExtension"},
+            \c{"WixDependencyExtension"},
+            \c{"WixDifxAppExtension"},
+            \c{"WixDirectXExtension"},
+            \c{"WixFirewallExtension"},
+            \c{"WixGamingExtension"},
+            \c{"WixIisExtension"},
+            \c{"WixMsmqExtension"},
+            \c{"WixNetFxExtension"},
+            \c{"WixPSExtension"},
+            \c{"WixSqlExtension"},
+            \c{"WixTagExtension"},
+            \c{"WixUIExtension"},
+            \c{"WixUtilExtension"},
+            \c{"WixVSExtension"},
+            custom assemblies
+    \row
+        \li version
+        \li \c{string}
+        \li 1.2
+        \li \c{undefined}
+        \li The WiX version. Consists of four numbers separated by dots, for instance "3.7.1224.0".
+    \row
+        \li versionMajor
+        \li \c{int}
+        \li 1.2
+        \li \c{versionParts[0]}
+        \li The WiX major version.
+    \row
+        \li versionMinor
+        \li \c{int}
+        \li 1.2
+        \li \c{versionParts[1]}
+        \li The WiX minor version.
+    \row
+        \li versionParts
+        \li \c{list}
+        \li 1.2
+        \li \c{empty}
+        \li The WiX version as a list. For instance, WiX version 3.7.1224.0 would correspond to a
+            value of \c[3, 7, 1224, 0].
+    \row
+        \li versionPatch
+        \li \c{int}
+        \li 1.2
+        \li \c{versionParts[2]}
+        \li The WiX patch level.
+    \row
+        \li versionBuild
+        \li \c{int}
+        \li 1.2
+        \li \c{versionParts[3]}
+        \li The fourth WiX version number component.
+    \row
+        \li toolchainInstallPath
+        \li \c{path}
+        \li 1.2
+        \li determined automatically
+        \li WiX installation directory. Determined by searching the registry for the latest version.
+            This should not normally need to be changed.
+    \row
+        \li toolchainInstallRoot
+        \li \c{path}
+        \li 1.2
+        \li determined automatically
+        \li WiX binaries directory. Determined by searching the registry for the latest version.
+            This should not normally need to be changed.
+    \row
+        \li compilerName
+        \li \c{string}
+        \li 1.2
+        \li \c{"candle.exe"}
+        \li Name of the compiler binary.
+            This should not normally need to be changed.
+    \row
+        \li compilerPath
+        \li \c{string}
+        \li 1.2
+        \li \c{compilerName}
+        \li Directory where the compiler binary is located.
+            This should not normally need to be changed.
+    \row
+        \li linkerName
+        \li \c{string}
+        \li 1.2
+        \li \c{"light.exe"}
+        \li Name of the linker binary.
+            This should not normally need to be changed.
+    \row
+        \li linkerPath
+        \li \c{string}
+        \li 1.2
+        \li \c{linkerName}
+        \li Directory where the linker binary is located.
+            This should not normally need to be changed.
     \endtable
-
-    Generate debug information. See \c{qbs.debugInformation}.
-
-    \section2 defines
-
-    \table
-    \row    \li \b{Type:}            \li \c{stringList}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    List of preprocessor macros that get passed to the compiler.
-    To set macro values use the following syntax:
-    \code
-    wix.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']
-    \endcode
-
-    \section2 enableQbsDefines
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{true}
-    \endtable
-
-    Whether to define preprocessor macros corresponding to values from the project and product
-    objects. When building a 64-bit package, the preprocessor variable \c{Win64} will also be
-    defined.
-
-    \section2 visualStudioCompatibility
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{true}
-    \endtable
-
-    Passes most of the same preprocessor macros to the compiler as Visual Studio does.
-    This allows easier authoring WiX files that are compatible with both \QBS and MSBuild.
-
-    \section2 includePaths
-
-    \table
-    \row    \li \b{Type:}            \li \c{pathList}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    List of include paths. Relative paths are considered to be relative to the .qbs product file
-    they are used in.
-
-    \section2 treatWarningsAsErrors
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{false}
-    \endtable
-
-    Warnings will be handled as errors and cause the build to fail.
-
-    \section2 warningLevel
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Allowed Values:}  \li \c{"none"}, \c{"normal"}, \c{"pedantic"}
-    \row    \li \b{Default:}         \li \c{"normal"}
-    \endtable
-
-    Severity of warnings to emit. The higher the level, the more warnings will be shown.
-
-    \section2 verboseOutput
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{false}
-    \endtable
-
-    Whether to display verbose output from the compiler and linker.
-
-    \section2 compilerFlags
-
-    \table
-    \row    \li \b{Type:}            \li \c{stringList}
-    \row    \li \b{Default:}         \li undefined
-    \endtable
-
-    Additional flags for the Candle compiler.
-
-    \section2 linkerFlags
-
-    \table
-    \row    \li \b{Type:}            \li \c{stringList}
-    \row    \li \b{Default:}         \li undefined
-    \endtable
-
-    Additional flags for the Light linker.
-
-    \section2 cultures
-
-    \table
-    \row    \li \b{Type:}            \li \c{stringList}
-    \row    \li \b{Default:}         \li undefined
-    \endtable
-
-    List of localizations to include in the MSI. Use \c{undefined} to include all localizations.
-
-    \section2 extensions
-
-    \table
-    \row    \li \b{Type:}            \li \c{stringList}
-    \row    \li \b{Default:}         \li \c{["WixBalExtension"]} if the product type is an EXE setup
-                                         application, otherwise \c{undefined}.
-    \row    \li \b{Possible Values:} \li \c{"WixBalExtension"},
-                                         \c{"WixComPlusExtension"},
-                                         \c{"WixDependencyExtension"},
-                                         \c{"WixDifxAppExtension"},
-                                         \c{"WixDirectXExtension"},
-                                         \c{"WixFirewallExtension"},
-                                         \c{"WixGamingExtension"},
-                                         \c{"WixIisExtension"},
-                                         \c{"WixMsmqExtension"},
-                                         \c{"WixNetFxExtension"},
-                                         \c{"WixPSExtension"},
-                                         \c{"WixSqlExtension"},
-                                         \c{"WixTagExtension"},
-                                         \c{"WixUIExtension"},
-                                         \c{"WixUtilExtension"},
-                                         \c{"WixVSExtension"},
-                                         custom assemblies
-    \endtable
-
-    List of extension assemblies to link into the output.
-
-    \section2 version
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    The WiX version. Consists of four numbers separated by dots, for instance "3.7.1224.0".
-
-    \section2 versionMajor
-
-    \table
-    \row    \li \b{Type:}            \li \c{int}
-    \row    \li \b{Default:}         \li \c{versionParts[0]}
-    \endtable
-
-    The WiX major version.
-
-    \section2 versionMinor
-
-    \table
-    \row    \li \b{Type:}            \li \c{int}
-    \row    \li \b{Default:}         \li \c{versionParts[1]}
-    \endtable
-
-    The WiX minor version.
-
-    \section2 versionParts
-
-    \table
-    \row    \li \b{Type:}            \li \c{list}
-    \row    \li \b{Default:}         \li \c{empty}
-    \endtable
-
-    The WiX version as a list. For instance, WiX version 3.7.1224.0 would correspond to a value of
-    \c[3, 7, 1224, 0].
-
-    \section2 versionPatch
-
-    \table
-    \row    \li \b{Type:}            \li \c{int}
-    \row    \li \b{Default:}         \li \c{versionParts[2]}
-    \endtable
-
-    The WiX patch level.
-
-    \section2 versionBuild
-
-    \table
-    \row    \li \b{Type:}            \li \c{int}
-    \row    \li \b{Default:}         \li \c{versionParts[3]}
-    \endtable
-
-    The fourth WiX version number component.
-
-    \section2 toolchainInstallPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{path}
-    \row    \li \b{Default:}         \li determined automatically
-    \endtable
-
-    WiX installation directory. Determined by searching the registry for the latest version.
-    This should not normally need to be changed.
-
-    \section2 toolchainInstallRoot
-
-    \table
-    \row    \li \b{Type:}            \li \c{path}
-    \row    \li \b{Default:}         \li determined automatically
-    \endtable
-
-    WiX binaries directory. Determined by searching the registry for the latest version.
-    This should not normally need to be changed.
-
-    \section2 compilerName
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{"candle.exe"}
-    \endtable
-
-    Name of the compiler binary. This should not normally need to be changed.
-
-    \section2 compilerPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{compilerName}
-    \endtable
-
-    Directory where the compiler binary is located. This should not normally need to be changed.
-
-    \section2 linkerName
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{"light.exe"}
-    \endtable
-
-    Name of the linker binary. This should not normally need to be changed.
-
-    \section2 linkerPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{linkerName}
-    \endtable
-
-    Directory where the linker binary is located. This should not normally need to be changed.
 */

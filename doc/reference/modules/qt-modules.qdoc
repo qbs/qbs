@@ -179,307 +179,216 @@
         \li xmlpatterns
         \li Qt XML Patterns
         \li
+        \li
     \endtable
 
-    \section2 core Properties
+    \section1 core Properties
 
     As opposed to most other \c Qt modules, \c core defines a number of properties that can be
     interesting to users. Some of them only need to be defined if the respective installation
     of Qt was built in some unusual way, for instance by setting non-default \c configure flags.
 
-    \section3 availableBuildVariants
-
     \table
-    \row    \li \b{Type:}            \li \c{stringList}
-    \row    \li \b{Default:}         \li set by \c{qbs-setup-qt}
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li availableBuildVariants
+        \li \c{stringList}
+        \li set by \c{qbs-setup-qt}
+        \li The build variants that this Qt installation offers.
+    \row
+        \li binPath
+        \li \c{path}
+        \li \c{undefined}
+        \li The path in which Qt tools such as \c qmake, \c moc and so on are located.
+    \row
+        \li config
+        \li \c{stringList}
+        \li \c{empty}
+        \li Corresponds to the default value of qmake's \c CONFIG variable.
+    \row
+        \li docPath
+        \li \c{path}
+        \li \c{undefined}
+        \li The path in which the Qt documentation is located.
+    \row
+        \li frameworkBuild
+        \li \c{bool}
+        \li \c{undefined}
+        \li Specifies whether Qt was built as a framework. This is only relevant for Darwin systems.
+    \row
+        \li incPath
+        \li \c{path}
+        \li \c{undefined}
+        \li The base path of the Qt headers.
+    \row
+        \li libInfix
+        \li \c{string}
+        \li \c{empty}
+        \li The library infix can be set at Qt build time to change the name of Qt's libraries.
+            For instance, if the infix is "Test", then on Unix systems, the \c{Qt Core} library will
+            be in a file called \c{libQt5CoreTest.so} instead of the default \c{libQt5Core.so}.
+    \row
+        \li libPath
+        \li \c{path}
+        \li \c{undefined}
+        \li The path in which the Qt libraries are located.
+    \row
+        \li lreleaseName
+        \li \c{string}
+        \li \c{"lrelease"}
+        \li The base name of the \c lrelease tool. Set this if your system uses a name such as "lrelease-qt4".
+    \row
+        \li mkspecPath
+        \li \c{path}
+        \li \c{undefined}
+        \li The path in which the Qt mkspecs are located.
+    \row
+        \li mocName
+        \li \c{string}
+        \li \c{"moc"}
+        \li The base name of the \c moc tool. Set this if your system uses a name such as "moc-qt4".
+    \row
+        \li namespace
+        \li \c{string}
+        \li \c{undefined}
+        \li The Qt namespace that can be set at build time via the \c configure script. By default,
+            Qt is not built in a namespace.
+    \row
+        \li pluginPath
+        \li \c{path}
+        \li \c{undefined}
+        \li The path in which the Qt plugins are located.
+    \row
+        \li qdocEnvironment
+        \li \c{stringlist}
+        \li \c{undefined}
+        \li The environment for calls to \c qdoc. Typically, you will need to set some variables
+            here when running \c qdoc to build your project documentation.
+    \row
+        \li qdocName
+        \li \c{string}
+        \li \c{"qdoc3"} for Qt 4, \c{"qdoc"} otherwise
+        \li The base name of the \c qdoc tool.
+    \row
+        \li qdocQhpFileName
+        \li \c{string}
+        \li \c{undefined}
+        \li Controls which name the \c qhp file gets when generating documentation with \c qdoc.
+    \row
+        \li qtBuildVariant
+        \li \c{string}
+        \li See below.
+        \li Specifies the type of Qt libraries to build against: "debug" or "release".
+            The default value is the build variant of the code linking against Qt. If Qt does not
+            offer that build variant, the build variant offered by Qt is chosen instead.
+            \note On some systems, it is not possible to link code built in debug mode against
+            libraries built in release mode and vice versa.
+    \row
+        \li qtConfig
+        \li \c{stringList}
+        \li \c{empty}
+        \li Corresponds to the default value of qmake's \c QT_CONFIG variable.
+    \row
+        \li staticBuild
+        \li \c{bool}
+        \li \c{undefined}
+        \li Specifies whether Qt was built statically.
+    \row
+        \li version
+        \li \c{string}
+        \li \c{undefined}
+        \li The Qt version. Consists of three numbers separated by dots, for instance "5.1.1".
+    \row
+        \li versionMajor
+        \li \c{int}
+        \li \c{versionParts[0]}
+        \li The Qt major version.
+    \row
+        \li versionMinor
+        \li \c{int}
+        \li \c{versionParts[1]}
+        \li The Qt minor version.
+    \row
+        \li versionParts
+        \li \c{list}
+        \li \c{empty}
+        \li The Qt version as a list. For instance, Qt version 5.1.1 would correspond to a value of
+            \c[5, 1, 1].
+    \row
+        \li versionPatch
+        \li \c{int}
+        \li \c{versionParts[2]}
+        \li The Qt patch level.
     \endtable
 
-    The build variants that this Qt installation offers.
-
-    \section3 binPath
+    \section1 declarative Properties
 
     \table
-    \row    \li \b{Type:}            \li \c{path}
-    \row    \li \b{Default:}         \li \c{undefined}
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li qmlDebugging
+        \li \c{bool}
+        \li \c{false}
+        \li Specifies whether QML debugging support should be compiled into your binaries.
+    \row
+        \li qmlImportsPath
+        \li \c{string}
+        \li set by \c{qbs-setup-qt}
+        \li The absolute path to the directory where Qt's QML imports are installed.
+    \row
+        \li qmlPath
+        \li \c{string}
+        \li set by \c{qbs-setup-qt}
+        \li The absolute path to the directory where Qt's QML files are installed.
+            This property is undefined for Qt4.
     \endtable
 
-    The path in which Qt tools such as \c qmake, \c moc and so on are located.
-
-    \section3 config
+    \section1 gui Properties
 
     \table
-    \row    \li \b{Type:}            \li \c{stringList}
-    \row    \li \b{Default:}         \li \c{empty}
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li uicName
+        \li \c{string}
+        \li \c{"uic"}
+        \li The base name of the \c uic tool. Set this if your system uses a name such as "uic-qt4".
     \endtable
 
-    Corresponds to the default value of qmake's \c CONFIG variable.
-
-    \section3 docPath
+    \section1 quick Properties
 
     \table
-    \row    \li \b{Type:}            \li \c{path}
-    \row    \li \b{Default:}         \li \c{undefined}
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li qmlDebugging
+        \li \c{bool}
+        \li \c{false}
+        \li Specifies whether QML debugging support should be compiled into your binaries.
+    \row
+        \li qmlImportsPath
+        \li \c{string}
+        \li set by \c{qbs-setup-qt}
+        \li The absolute path to the directory where Qt's QML imports are installed.
+    \row
+        \li qmlPath
+        \li \c{string}
+        \li set by \c{qbs-setup-qt}
+        \li The absolute path to the directory where Qt's QML files are installed.
+            This property is undefined for Qt4.
     \endtable
-
-    The path in which the Qt documentation is located.
-
-    \section3 frameworkBuild
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    Specifies whether Qt was built as a framework. This is only relevant for Darwin systems.
-
-    \section3 incPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{path}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    The base path of the Qt headers.
-
-    \section3 libInfix
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{empty}
-    \endtable
-
-    The library infix can be set at Qt build time to change the name of Qt's libraries. For instance, if the infix
-    is "Test", then on Unix systems, the \c{Qt Core} library will be in a file called
-    \c{libQt5CoreTest.so} instead of the default \c{libQt5Core.so}.
-
-    \section3 libPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{path}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    The path in which the Qt libraries are located.
-
-    \section3 lreleaseName
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{"lrelease"}
-    \endtable
-
-    The base name of the \c lrelease tool. Set this if your system uses a name such as "lrelease-qt4".
-
-    \section3 mkspecPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{path}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    The path in which the Qt mkspecs are located.
-
-    \section3 mocName
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{"moc"}
-    \endtable
-
-    The base name of the \c moc tool. Set this if your system uses a name such as "moc-qt4".
-
-    \section3 namespace
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    The Qt namespace that can be set at build time via the \c configure script. By default, Qt
-    is not built in a namespace.
-
-    \section3 pluginPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{path}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    The path in which the Qt plugins are located.
-
-    \section3 qdocEnvironment
-
-    \table
-    \row    \li \b{Type:}            \li \c{stringlist}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    The environment for calls to \c qdoc. Typically, you will need to set some variables here
-    when running \c qdoc to build your project documentation.
-
-    \section3 qdocName
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{"qdoc3"} for Qt 4, \c{"qdoc"} otherwise
-    \endtable
-
-    The base name of the \c qdoc tool.
-
-    \section3 qdocQhpFileName
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    Controls which name the \c qhp file gets when generating documentation with \c qdoc.
-
-    \section3 qtBuildVariant
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li See below.
-    \endtable
-
-    Specifies the type of Qt libraries to build against: "debug" or "release".
-    The default value is the build variant of the code linking against Qt. If Qt does not offer
-    that build variant, the build variant offered by Qt is chosen instead.
-    \note On some systems, it is not possible to link code built in debug mode against libraries
-          built in release mode and vice versa.
-
-    \section3 qtConfig
-
-    \table
-    \row    \li \b{Type:}            \li \c{stringList}
-    \row    \li \b{Default:}         \li \c{empty}
-    \endtable
-
-    Corresponds to the default value of qmake's \c QT_CONFIG variable.
-
-    \section3 staticBuild
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    Specifies whether Qt was built statically.
-
-    \section3 version
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    The Qt version. Consists of three numbers separated by dots, for instance "5.1.1".
-
-    \section3 versionMajor
-
-    \table
-    \row    \li \b{Type:}            \li \c{int}
-    \row    \li \b{Default:}         \li \c{versionParts[0]}
-    \endtable
-
-    The Qt major version.
-
-    \section3 versionMinor
-
-    \table
-    \row    \li \b{Type:}            \li \c{int}
-    \row    \li \b{Default:}         \li \c{versionParts[1]}
-    \endtable
-
-    The Qt minor version.
-
-    \section3 versionParts
-
-    \table
-    \row    \li \b{Type:}            \li \c{list}
-    \row    \li \b{Default:}         \li \c{empty}
-    \endtable
-
-    The Qt version as a list. For instance, Qt version 5.1.1 would correspond to a value of \c[5, 1, 1].
-
-    \section3 versionPatch
-
-    \table
-    \row    \li \b{Type:}            \li \c{int}
-    \row    \li \b{Default:}         \li \c{versionParts[2]}
-    \endtable
-
-    The Qt patch level.
-
-    \section2 declarative Properties
-
-    \section3 qmlDebugging
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{false}
-    \endtable
-
-    Specifies whether QML debugging support should be compiled into your binaries.
-
-    \section3 qmlImportsPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li set by \c{qbs-setup-qt}
-    \endtable
-
-    The absolute path to the directory where Qt's QML imports are installed.
-
-    \section3 qmlPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li set by \c{qbs-setup-qt}
-    \endtable
-
-    The absolute path to the directory where Qt's QML files are installed.
-    This property is undefined for Qt4.
-
-    \section2 gui Properties
-
-    \section3 uicName
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{"uic"}
-    \endtable
-
-    The base name of the \c uic tool. Set this if your system uses a name such as "uic-qt4".
-
-    \section2 quick Properties
-
-    \section3 qmlDebugging
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{false}
-    \endtable
-
-    Specifies whether QML debugging support should be compiled into your binaries.
-
-    \section3 qmlImportsPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li set by \c{qbs-setup-qt}
-    \endtable
-
-    The absolute path to the directory where Qt's QML imports are installed.
-
-    \section3 qmlPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li set by \c{qbs-setup-qt}
-    \endtable
-
-    The absolute path to the directory where Qt's QML files are installed.
-    This property is undefined for Qt4.
-
 */

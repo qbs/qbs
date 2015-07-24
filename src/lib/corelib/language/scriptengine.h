@@ -95,10 +95,12 @@ public:
     void setEnvironment(const QProcessEnvironment &env);
     void addEnvironmentVariable(const QString &name, const QString &value);
     QHash<QString, QString> usedEnvironment() const { return m_usedEnvironment; }
+    void addCanonicalFilePathResult(const QString &filePath, const QString &resultFilePath);
     void addFileExistsResult(const QString &filePath, bool exists);
     void addDirectoryEntriesResult(const QString &path, QDir::Filters filters,
                                    const QStringList &entries);
     void addFileLastModifiedResult(const QString &filePath, FileTime fileTime);
+    QHash<QString, QString> canonicalFilePathResults() const { return m_canonicalFilePathResult; }
     QHash<QString, bool> fileExistsResults() const { return m_fileExistsResult; }
     QHash<QPair<QString, quint32>, QStringList> directoryEntriesResults() const
     {
@@ -115,6 +117,10 @@ public:
     bool hasErrorOrException(const QScriptValue &v) const {
         return v.isError() || hasUncaughtException();
     }
+    QScriptValue lastErrorValue(const QScriptValue &v) const {
+        return v.isError() ? v : uncaughtException();
+    }
+    QString lastErrorString(const QScriptValue &v) const { return lastErrorValue(v).toString(); }
 
     void cancel();
 
@@ -161,6 +167,7 @@ private:
     QScriptValue m_emptyFunction;
     QProcessEnvironment m_environment;
     QHash<QString, QString> m_usedEnvironment;
+    QHash<QString, QString> m_canonicalFilePathResult;
     QHash<QString, bool> m_fileExistsResult;
     QHash<QPair<QString, quint32>, QStringList> m_directoryEntriesResult;
     QHash<QString, FileTime> m_fileLastModifiedResult;

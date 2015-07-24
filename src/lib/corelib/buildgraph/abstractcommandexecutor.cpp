@@ -53,6 +53,7 @@ void AbstractCommandExecutor::start(Transformer *transformer, const AbstractComm
 {
     m_transformer = transformer;
     m_command = cmd;
+    doSetup();
     doReportCommandDescription();
     doStart();
 }

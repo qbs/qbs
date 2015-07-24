@@ -1,10 +1,7 @@
-#include <cstdlib>
-
-void e();
+int e();
 
 int main()
 {
-    e();
-    return EXIT_SUCCESS;
+    return e();
 }
 

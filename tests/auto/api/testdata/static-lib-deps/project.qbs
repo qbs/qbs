@@ -44,6 +44,27 @@ Project {
         files: [
             "d.cpp",
         ]
+
+        Properties {
+            condition: qbs.targetOS.contains("windows")
+            cpp.defines: ["WITH_SETUPAPI"]
+        }
+        Properties {
+            condition: qbs.targetOS.contains("linux")
+            cpp.defines: ["WITH_PTHREAD"]
+        }
+
+        Export {
+            Depends { name: "cpp" }
+            Properties {
+                condition: qbs.targetOS.contains("linux")
+                cpp.staticLibraries: ["pthread"]
+            }
+            Properties {
+                condition: qbs.targetOS.contains("windows")
+                cpp.staticLibraries: ["setupapi"]
+            }
+        }
     }
     StaticLibrary {
         name: "e"
@@ -62,6 +83,11 @@ Project {
         consoleApplication: true
 
         Depends { name: "e" }
+
+        Properties {
+            condition: qbs.targetOS.contains("linux")
+            cpp.linkerFlags: ["-static"]
+        }
 
         files: [
             "main.cpp",

@@ -40,6 +40,7 @@
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
 #include <tools/projectgeneratormanager.h>
+#include <tools/shellutils.h>
 
 #include <QDir>
 #include <QFile>
@@ -306,8 +307,7 @@ void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &re
         return;
 
     (result.success() ? qbsInfo() : qbsError())
-            << QDir::toNativeSeparators(result.executableFilePath()) << " "
-            << result.arguments().join(QLatin1Char(' '))
+            << shellQuote(QDir::toNativeSeparators(result.executableFilePath()), result.arguments())
             << (hasOutput ? QString::fromLatin1("\n") : QString())
             << (result.stdOut().isEmpty() ? QString() : result.stdOut().join(QLatin1Char('\n')))
             << (result.stdErr().isEmpty() ? QString() : result.stdErr().join(QLatin1Char('\n')));

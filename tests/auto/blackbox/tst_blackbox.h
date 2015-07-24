@@ -123,6 +123,7 @@ private slots:
     void listPropertiesWithOuter();
     void listPropertyOrder();
     void mixedBuildVariants();
+    void multipleChanges();
     void nestedProperties();
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();
@@ -140,6 +141,8 @@ private slots:
     void separateDebugInfo();
     void sevenZip();
     void tar();
+    void zip();
+    void zip_data();
     void track_qrc();
     void track_qobject_change();
     void trackAddFile();
@@ -180,8 +183,12 @@ private slots:
     void badInterpreter();
     void qbsVersion();
     void transitiveOptionalDependencies();
+    void groupsInModules();
+    void probesInNestedModules();
 
 private:
+    QString findArchiver(const QString &fileName, int *status = nullptr);
+
     QByteArray m_qbsStderr;
     QByteArray m_qbsStdout;
 };

@@ -36,9 +36,7 @@ Product {
     type: ["autotest-result"]
     builtByDefault: false
     property stringList arguments: []
-    property stringList environment: ModUtils.flattenEnvironmentDictionary(
-                                         qbs.commonRunEnvironment,
-                                         qbs.pathListSeparator)
+    property stringList environment: ModUtils.flattenEnvironmentDictionary(qbs.commonRunEnvironment)
     property bool limitToSubProject: true
     property stringList wrapper: []
     Depends {

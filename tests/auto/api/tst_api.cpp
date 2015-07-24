@@ -46,8 +46,13 @@
 #include <QTest>
 #include <QTimer>
 
+#include <algorithm>
+#include <functional>
+
 #define VERIFY_NO_ERROR(errorInfo) \
     QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()))
+
+#define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(m_workingDataDir)
 
 class LogSink: public qbs::ILogSink
 {
@@ -155,7 +160,7 @@ void TestApi::addQObjectMacroToCppFile()
     QVERIFY2(!receiver.descriptions.contains("moc"), qPrintable(receiver.descriptions));
     receiver.descriptions.clear();
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile cppFile("object.cpp");
     QVERIFY2(cppFile.open(QIODevice::ReadWrite), qPrintable(cppFile.errorString()));
     QByteArray contents = cppFile.readAll();
@@ -185,7 +190,7 @@ void TestApi::addedFilePersistent()
     receiver.output.clear();
 
     // Add a file. qbs must schedule it for rule application on the next build.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     const qbs::SetupProjectParameters params = defaultSetupParameters(relProjectFilePath);
     QFile projectFile(params.projectFilePath());
     QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
@@ -203,7 +208,7 @@ void TestApi::addedFilePersistent()
 
     // Remove the file again. qbs must unschedule the rule application again.
     // Consequently, the linking step must fail as in the initial run.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     projectFile.resize(0);
     projectFile.write(originalContent);
     projectFile.flush();
@@ -212,7 +217,7 @@ void TestApi::addedFilePersistent()
     QVERIFY2(isAboutUndefinedSymbols(receiver.output), qPrintable((receiver.output)));
 
     // Add the file again. qbs must schedule it for rule application on the next build.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     projectFile.resize(0);
     projectFile.write(addedFileContent);
     projectFile.close();
@@ -264,7 +269,7 @@ void TestApi::buildProject()
         QVERIFY2(QFile::remove(productFileName), qPrintable(productFileName));
     }
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     qbs::BuildOptions options;
     options.setForceTimestampCheck(true);
     errorInfo = doBuildProject(projectSubDir + "/project.qbs", 0, 0, 0, options);
@@ -327,6 +332,9 @@ void TestApi::buildProject_data()
     QTest::newRow("only default properties")
             << QString("two-default-property-values")
             << relativeProductBuildDir("two-default-property-values") + "/set";
+    QTest::newRow("Export item with Group")
+            << QString("export-item-with-group")
+            << relativeExecutableFilePath("app");
     QTest::newRow("QBS-728")
             << QString("QBS-728")
             << QString();
@@ -740,7 +748,7 @@ void TestApi::changeDependentLib()
     qbs::ErrorInfo errorInfo = doBuildProject("change-dependent-lib/change-dependent-lib.qbs");
     VERIFY_NO_ERROR(errorInfo);
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     const QString qbsFileName("change-dependent-lib.qbs");
     QFile qbsFile(qbsFileName);
     QVERIFY(qbsFile.open(QIODevice::ReadWrite));
@@ -762,7 +770,7 @@ void TestApi::enableAndDisableProduct()
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(!bdr.descriptions.contains("compiling"));
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile projectFile("project.qbs");
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     QByteArray content = projectFile.readAll();
@@ -775,7 +783,7 @@ void TestApi::enableAndDisableProduct()
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(bdr.descriptions.contains("linking"));
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     touch("main.cpp");
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     content = projectFile.readAll();
@@ -883,7 +891,7 @@ void TestApi::explicitlyDependsOn()
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(!receiver.descriptions.contains("Creating output artifact"));
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     touch("dependency.txt");
     errorInfo = doBuildProject("explicitly-depends-on/project.qbs", &receiver);
     VERIFY_NO_ERROR(errorInfo);
@@ -972,7 +980,7 @@ void TestApi::inheritQbsSearchPaths()
     qbs::ErrorInfo errorInfo = doBuildProject(projectFilePath);
     VERIFY_NO_ERROR(errorInfo);
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile projectFile(m_workingDataDir + '/' + projectFilePath);
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     QByteArray content = projectFile.readAll();
@@ -991,6 +999,12 @@ void TestApi::inheritQbsSearchPaths()
     VERIFY_NO_ERROR(errorInfo);
 }
 
+template <typename T, class Pred> T findElem(const QList<T> &list, Pred p)
+{
+    const auto it = std::find_if(list.constBegin(), list.constEnd(), p);
+    return it == list.constEnd() ? T() : *it;
+}
+
 void TestApi::installableFiles()
 {
     qbs::SetupProjectParameters setupParams
@@ -1005,8 +1019,11 @@ void TestApi::installableFiles()
     VERIFY_NO_ERROR(errorInfo);
 
     qbs::ProjectData projectData = project.projectData();
-    QCOMPARE(projectData.allProducts().count(), 1);
-    qbs::ProductData product = projectData.allProducts().first();
+    QCOMPARE(projectData.allProducts().count(), 2);
+    qbs::ProductData product = findElem(projectData.allProducts(), [](const qbs::ProductData &p) {
+        return p.name() == QLatin1String("installedApp");
+    });
+    QVERIFY(product.isValid());
     qbs::InstallOptions installOptions;
     installOptions.setInstallRoot(QLatin1String("/tmp"));
     QList<qbs::InstallableFile> installableFiles
@@ -1080,7 +1097,7 @@ void TestApi::mocCppIncluded()
     VERIFY_NO_ERROR(errorInfo);
 
     // Touch header and try again.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile headerFile("object.h");
     QVERIFY2(headerFile.open(QIODevice::WriteOnly | QIODevice::Append),
              qPrintable(headerFile.errorString()));
@@ -1090,7 +1107,7 @@ void TestApi::mocCppIncluded()
     VERIFY_NO_ERROR(errorInfo);
 
     // Touch cpp file and try again.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile cppFile("object.cpp");
     QVERIFY2(cppFile.open(QIODevice::WriteOnly | QIODevice::Append),
              qPrintable(cppFile.errorString()));
@@ -1206,7 +1223,7 @@ void TestApi::newOutputArtifactInDependency()
     QVERIFY(!receiver.descriptions.contains(linkingLibString));
     receiver.descriptions.clear();
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile projectFile("project.qbs");
     QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
     QByteArray contents = projectFile.readAll();
@@ -1296,13 +1313,13 @@ void TestApi::projectInvalidation()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     QVERIFY(project.isValid());
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     copyFileAndUpdateTimestamp("project.early-error.qbs", "project.qbs");
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
     QVERIFY(setupJob->error().hasError());
     QVERIFY(project.isValid()); // Error in Loader, old project still valid.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     copyFileAndUpdateTimestamp("project.late-error.qbs", "project.qbs");
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
@@ -1428,7 +1445,7 @@ void TestApi::renameProduct()
     VERIFY_NO_ERROR(errorInfo);
 
     // Rename lib and adapt Depends item.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile f("rename.qbs");
     QVERIFY(f.open(QIODevice::ReadWrite));
     QByteArray contents = f.readAll();
@@ -1440,7 +1457,7 @@ void TestApi::renameProduct()
     VERIFY_NO_ERROR(errorInfo);
 
     // Rename lib and don't adapt Depends item.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(f.open(QIODevice::ReadWrite));
     contents = f.readAll();
     const int libNameIndex = contents.lastIndexOf("thelib");
@@ -1466,7 +1483,7 @@ void TestApi::renameTargetArtifact()
     receiver.descriptions.clear();
 
     // Rename library file name.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile f("rename.qbs");
     QVERIFY(f.open(QIODevice::ReadWrite));
     QByteArray contents = f.readAll();
@@ -1569,7 +1586,7 @@ void TestApi::subProjects()
 
     // Disabling both the project with the dependency and the one with the dependent
     // should not cause an error.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile f(params.projectFilePath());
     QVERIFY(f.open(QIODevice::ReadWrite));
     QByteArray contents = f.readAll();
@@ -1589,7 +1606,7 @@ void TestApi::subProjects()
 
     // Disabling the project with the dependency only is an error.
     // This tests also whether changes in sub-projects are detected.
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     f.setFileName(params.projectFilePath());
     QVERIFY(f.open(QIODevice::ReadWrite));
     contents = f.readAll();
@@ -1618,7 +1635,7 @@ void TestApi::trackAddQObjectHeader()
     QVERIFY(errorInfo.hasError());
     QVERIFY2(isAboutUndefinedSymbols(receiver.output), qPrintable(receiver.output));
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
     qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
                   "    files: ['main.cpp', 'myobject.cpp','myobject.h']\n}");
@@ -1640,7 +1657,7 @@ void TestApi::trackRemoveQObjectHeader()
     qbs::ErrorInfo errorInfo = doBuildProject("missing-qobject-header/missingheader.qbs");
     VERIFY_NO_ERROR(errorInfo);
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
     qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
                   "    files: ['main.cpp', 'myobject.cpp']\n}");
@@ -1664,7 +1681,7 @@ void TestApi::typeChange()
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY2(!receiver.descriptions.contains("compiling"), qPrintable(receiver.descriptions));
 
-    waitForNewTimestamp();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile projectFile("project.qbs");
     QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
     QByteArray content = projectFile.readAll();

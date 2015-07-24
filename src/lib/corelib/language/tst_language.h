@@ -105,6 +105,7 @@ private slots:
     void propertiesBlocks_data();
     void propertiesBlocks();
     void qualifiedId();
+    void recursiveProductDependencies();
     void fileTags_data();
     void fileTags();
     void wildcards_data();

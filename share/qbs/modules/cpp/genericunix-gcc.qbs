@@ -31,7 +31,6 @@
 import qbs 1.0
 
 UnixGCC {
-    condition: qbs.targetOS.contains('unix')
-            && !qbs.targetOS.contains('darwin') && !qbs.targetOS.contains('linux')  // ### HACK
-            && qbs.toolchain.contains('gcc')
+    condition: !qbs.targetOS.contains('darwin') && !qbs.targetOS.contains('linux') &&
+               qbs.toolchain && qbs.toolchain.contains('gcc') && !qbs.toolchain.contains('mingw')
 }

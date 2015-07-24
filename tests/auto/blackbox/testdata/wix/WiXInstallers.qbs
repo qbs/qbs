@@ -12,12 +12,13 @@ Project {
             Depends { name: "wix" }
             wix.defines: base.concat(["msiName=" +
                 FileInfo.joinPaths(product.buildDirectory,
-                    targetName + wix.windowsInstallerSuffix)])
+                    product.targetName + wix.windowsInstallerSuffix)])
         }
     }
 
     WindowsSetupPackage {
         Depends { name: "QbsSetup" }
+        condition: qbs.hostOS.contains("windows") // currently does not work in Wine with WiX 3.9
         name: "QbsBootstrapper"
         targetName: "qbs-setup-" + qbs.architecture
         files: ["QbsBootstrapper.wxs"]

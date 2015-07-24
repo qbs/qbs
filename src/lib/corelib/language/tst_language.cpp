@@ -77,7 +77,7 @@ TestLanguage::~TestLanguage()
 QHash<QString, ResolvedProductPtr> TestLanguage::productsFromProject(ResolvedProjectPtr project)
 {
     QHash<QString, ResolvedProductPtr> result;
-    foreach (ResolvedProductPtr product, project->products)
+    foreach (const ResolvedProductPtr &product, project->allProducts())
         result.insert(product->name, product);
     return result;
 }
@@ -432,6 +432,8 @@ void TestLanguage::erroneousFiles_data()
                "but this is qbs version " QBS_VERSION ".";
     QTest::newRow("wrongQbsVersionFormat")
             << "The value '.*' of Project.minimumQbsVersion is not a valid version string.";
+    QTest::newRow("properties-item-with-invalid-condition")
+            << "TypeError: Result of expression 'cpp.nonexistingproperty'";
 }
 
 void TestLanguage::erroneousFiles()
@@ -460,13 +462,21 @@ void TestLanguage::exports()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 9);
+        QCOMPARE(products.count(), 12);
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(product);
         QStringList propertyName = QStringList() << "modules" << "dummy" << "defines";
         QVariant propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
-        QCOMPARE(propertyValue.toStringList(), QStringList() << "USE_MYLIB");
+        QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYAPP" << "USE_MYLIB"
+                 << "USE_MYLIB2");
+        propertyName = QStringList() << "modules" << "dummy" << "includePaths";
+        QVariantList propertyValues = getConfigProperty(product->moduleProperties->value(),
+                                                        propertyName).toList();
+        QCOMPARE(propertyValues.count(), 3);
+        QVERIFY(propertyValues.at(0).toString().endsWith("/app"));
+        QVERIFY(propertyValues.at(1).toString().endsWith("/subdir/lib"));
+        QVERIFY(propertyValues.at(2).toString().endsWith("/subdir2/lib"));
 
         QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
                                                 "productName").toString(), QString("myapp"));
@@ -476,6 +486,12 @@ void TestLanguage::exports()
         propertyName = QStringList() << "modules" << "dummy" << "defines";
         propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB");
+
+        product = products.value("mylib2");
+        QVERIFY(product);
+        propertyName = QStringList() << "modules" << "dummy" << "defines";
+        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB2");
 
         product = products.value("A");
         QVERIFY(product);
@@ -512,6 +528,12 @@ void TestLanguage::exports()
                                                 "productName").toString(), QString("myapp3"));
         QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
                 "upperCaseProductName").toString(), QString("MYAPP3"));
+
+        // Verify we refer to the right "project" variable.
+        product = products.value("sub p2");
+        QVERIFY(product);
+        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
+                                                "someString").toString(), QString("sub1"));
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -874,7 +896,7 @@ void TestLanguage::jsExtensions()
     QScriptValue evaluated = m_engine->evaluate(code, file.fileName(), 1);
     if (m_engine->hasErrorOrException(evaluated)) {
         qDebug() << m_engine->uncaughtExceptionBacktrace();
-        QFAIL(qPrintable(evaluated.toString()));
+        QFAIL(qPrintable(m_engine->lastErrorString(evaluated)));
     }
 }
 
@@ -1328,6 +1350,33 @@ void TestLanguage::qualifiedId()
     QList<QualifiedId> sorted = ids;
     std::sort(sorted.begin(), sorted.end());
     QCOMPARE(ids, sorted);
+}
+
+void TestLanguage::recursiveProductDependencies()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(
+                    testProject("recursive-dependencies/recursive-dependencies.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 4);
+        const ResolvedProductConstPtr p1 = products.value("p1");
+        QVERIFY(p1);
+        const ResolvedProductConstPtr p2 = products.value("p2");
+        QVERIFY(p2);
+        const ResolvedProductPtr p3 = products.value("p3");
+        QVERIFY(p3);
+        const ResolvedProductPtr p4 = products.value("p4");
+        QVERIFY(p4);
+        QVERIFY(p1->dependencies == QSet<ResolvedProductPtr>() << p3 << p4);
+        QVERIFY(p2->dependencies == QSet<ResolvedProductPtr>() << p3 << p4);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
 }
 
 void TestLanguage::fileTags_data()

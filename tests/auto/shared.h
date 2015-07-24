@@ -35,12 +35,12 @@
 #include <tools/settings.h>
 
 #include <QCryptographicHash>
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QTemporaryFile>
 #include <QtTest>
-
-#include <ctime>
 
 inline QString profileName() { return QLatin1String("qbs_autotests"); }
 inline QString relativeBuildDir(const QString &pName = QString())
@@ -88,19 +88,25 @@ inline QString relativeExecutableFilePath(const QString &productName)
             + qbs::Internal::HostOsInfo::appendExecutableSuffix(productName);
 }
 
-inline void waitForNewTimestamp()
+inline void waitForNewTimestamp(const QString &testDir)
 {
     // Waits for the time that corresponds to the host file system's time stamp granularity.
     if (qbs::Internal::HostOsInfo::isWindowsHost()) {
         QTest::qWait(1);        // NTFS has 100 ns precision. Let's ignore exFAT.
     } else {
-        time_t oldTime;
-        time_t newTime = std::time(0);
-        do {
-            oldTime = newTime;
+        const QString nameTemplate = testDir + "/XXXXXX";
+        QTemporaryFile f1(nameTemplate);
+        if (!f1.open())
+            qFatal("Failed to open temp file");
+        const QDateTime initialTime = QFileInfo(f1).lastModified();
+        while (true) {
             QTest::qWait(50);
-            newTime = std::time(0);
-        } while (oldTime == newTime);
+            QTemporaryFile f2(nameTemplate);
+            if (!f2.open())
+                qFatal("Failed to open temp file");
+            if (QFileInfo(f2).lastModified() > initialTime)
+                break;
+        }
     }
 }
 

@@ -34,6 +34,7 @@
     \ingroup list-of-modules
 
     \title Module nodejs
+    \since 1.3
     \brief Provides Node.js support.
 
     The \c nodejs module contains support for running \l{http://nodejs.org}{Node.js}
@@ -41,14 +42,20 @@
 
     \section1 General Properties
 
-
-    \section2 applicationFile
-
     \table
-    \row    \li \b{Type:}            \li \c{path}
-    \row    \li \b{Default:}         \li \c{undefined}
+    \header
+        \li Property
+        \li Type
+        \li Since
+        \li Default
+        \li Description
+    \row
+        \li applicationFile
+        \li path
+        \li 1.3
+        \li \c{undefined}
+        \li The input JavaScript file whose corresponding output will be executed when running the
+            Node.js application. If this property is \c{undefined}, the product will not be
+            runnable.
     \endtable
-
-    The input JavaScript file whose corresponding output will be executed when running the Node.js
-    application. If this property is \c{undefined}, the product will not be runnable.
 */

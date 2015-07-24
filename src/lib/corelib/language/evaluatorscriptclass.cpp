@@ -38,6 +38,7 @@
 #include "scriptengine.h"
 #include "propertydeclaration.h"
 #include <tools/architectures.h>
+#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
@@ -51,29 +52,6 @@
 
 namespace qbs {
 namespace Internal {
-
-template <class T>
-class ScopedPopper
-{
-    QStack<T> *m_stack;
-    bool m_mustPop;
-public:
-    ScopedPopper(QStack<T> *s)
-        : m_stack(s), m_mustPop(false)
-    {
-    }
-
-    ~ScopedPopper()
-    {
-        if (m_mustPop)
-            m_stack->pop();
-    }
-
-    void mustPop()
-    {
-        m_mustPop = true;
-    }
-};
 
 class SVConverter : ValueHandler
 {
@@ -153,15 +131,6 @@ private:
 
     void handle(JSSourceValue *value)
     {
-        ScopedPopper<JSSourceValue *> popper(sourceValueStack);
-        if (value->sourceUsesProduct()) {
-            foreach (JSSourceValue *a, *sourceValueStack)
-                a->setSourceUsesProductFlag();
-        } else {
-            sourceValueStack->push(value);
-            popper.mustPop();
-        }
-
         const Item *conditionScopeItem = 0;
         QScriptValue conditionScope;
         QScriptValue conditionFileScope;
@@ -213,7 +182,7 @@ private:
             engine->currentContext()->popScope();
             popScopes();
             if (engine->hasErrorOrException(cr)) {
-                *result = cr;
+                *result = engine->lastErrorValue(cr);
                 return;
             }
             if (cr.toBool()) {
@@ -256,6 +225,8 @@ private:
             // Own properties of module instances must not have the instance itself in the scope.
             pushScope(*object);
         }
+        if (value->exportScope())
+            pushScope(data->evaluator->scriptValue(value->exportScope()));
         pushScope(extraScope);
         *result = engine->evaluate(value->sourceCodeForEvaluation(), value->file()->filePath(),
                                    value->line());
@@ -298,6 +269,7 @@ EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Log
 {
     m_getNativeSettingBuiltin = scriptEngine->newFunction(js_getNativeSetting, 3);
     m_getEnvBuiltin = scriptEngine->newFunction(js_getEnv, 1);
+    m_currentEnvBuiltin = scriptEngine->newFunction(js_currentEnv, 0);
     m_canonicalArchitectureBuiltin = scriptEngine->newFunction(js_canonicalArchitecture, 1);
     m_rfc1034identifierBuiltin = scriptEngine->newFunction(js_rfc1034identifier, 1);
     m_getHashBuiltin = scriptEngine->newFunction(js_getHash, 1);
@@ -315,7 +287,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue 
     QBS_ASSERT(m_queryResult.isNull(), return QueryFlags());
 
     if (debugProperties)
-        m_logger.qbsTrace() << "[SC] queryProperty " << object.objectId() << " " << name;
+        qDebug() << "[SC] queryProperty " << object.objectId() << " " << name;
 
     EvaluationData *const data = attachedPointer<EvaluationData>(object);
     const QString nameString = name.toString();
@@ -328,7 +300,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue 
     *id = QPTDefault;
     if (!data) {
         if (debugProperties)
-            m_logger.qbsTrace() << "[SC] queryProperty: no data attached";
+            qDebug() << "[SC] queryProperty: no data attached";
         return QScriptClass::QueryFlags();
     }
 
@@ -350,7 +322,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
 
     if (!ignoreParent && data->item && data->item->parent()) {
         if (debugProperties)
-            m_logger.qbsTrace() << "[SC] queryProperty: query parent";
+            qDebug() << "[SC] queryProperty: query parent";
         EvaluationData parentdata = *data;
         parentdata.item = data->item->parent();
         const QueryFlags qf = queryItemProperty(&parentdata, name, true);
@@ -361,7 +333,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
     }
 
     if (debugProperties)
-        m_logger.qbsTrace() << "[SC] queryProperty: no such property";
+        qDebug() << "[SC] queryProperty: no such property";
     return QScriptClass::QueryFlags();
 }
 
@@ -392,6 +364,7 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
 
     for (ValuePtr next = value; next; next = next->next()) {
         QScriptValue v = data->evaluator->property(next->definingItem(), propertyName);
+        data->evaluator->handleEvaluationError(next->definingItem(), propertyName, v);
         if (v.isUndefined())
             continue;
         lst << v;
@@ -416,7 +389,14 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
     }
 }
 
-inline void convertToPropertyType(const PropertyDeclaration::Type t, QScriptValue &v)
+static QString overriddenSourceDirectory(const Item *item)
+{
+    const VariantValuePtr v = item->variantProperty(QLatin1String("_qbs_sourceDir"));
+    return v ? v->value().toString() : QString();
+}
+
+inline void convertToPropertyType(const Item *item, const PropertyDeclaration::Type t,
+        QScriptValue &v)
 {
     if (v.isUndefined())
         return;
@@ -434,11 +414,36 @@ inline void convertToPropertyType(const PropertyDeclaration::Type t, QScriptValu
             v = v.toNumber();
         break;
     case PropertyDeclaration::Path:
+    {
+        if (!v.isString())
+            v = v.toString();
+        const QString srcDir = overriddenSourceDirectory(item);
+        if (!srcDir.isEmpty())
+            v = v.engine()->toScriptValue(FileInfo::resolvePath(srcDir, v.toString()));
+        break;
+    }
     case PropertyDeclaration::String:
         if (!v.isString())
             v = v.toString();
         break;
     case PropertyDeclaration::PathList:
+    {
+        if (!v.isArray()) {
+            QScriptValue x = v.engine()->newArray(1);
+            x.setProperty(0, v.isString() ? v : v.toString());
+            v = x;
+        }
+        const QString srcDir = overriddenSourceDirectory(item);
+        if (srcDir.isEmpty())
+            break;
+        const quint32 c = v.property(QLatin1String("length")).toUInt32();
+        for (quint32 i = 0; i < c; ++i) {
+            QScriptValue elem = v.property(i);
+            elem = v.engine()->toScriptValue(FileInfo::resolvePath(srcDir, elem.toString()));
+            v.setProperty(i, elem);
+        }
+        break;
+    }
     case PropertyDeclaration::StringList:
         if (!v.isArray()) {
             QScriptValue x = v.engine()->newArray(1);
@@ -471,14 +476,14 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     QBS_ASSERT(m_queryResult.isNull(), return QScriptValue());
 
     if (debugProperties)
-        m_logger.qbsTrace() << "[SC] property " << name;
+        qDebug() << "[SC] property " << name;
 
     QScriptValue result;
     if (m_valueCacheEnabled) {
         result = data->valueCache.value(name);
         if (result.isValid()) {
             if (debugProperties)
-                m_logger.qbsTrace() << "[SC] cache hit " << name << ": " << resultToString(result);
+                qDebug() << "[SC] cache hit " << name << ": " << resultToString(result);
             return result;
         }
     }
@@ -490,12 +495,12 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
                               &m_sourceValueStack);
         converter.start();
 
-        const PropertyDeclaration decl = data->item->propertyDeclarations().value(name.toString());
-        convertToPropertyType(decl.type(), result);
+        const PropertyDeclaration decl = data->item->propertyDeclaration(name.toString());
+        convertToPropertyType(data->item, decl.type(), result);
     }
 
     if (debugProperties)
-        m_logger.qbsTrace() << "[SC] cache miss " << name << ": " << resultToString(result);
+        qDebug() << "[SC] cache miss " << name << ": " << resultToString(result);
     if (m_valueCacheEnabled)
         data->valueCache.insert(name, result);
     return result;
@@ -513,6 +518,8 @@ QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin b
         return m_getNativeSettingBuiltin;
     case BuiltinValue::GetEnvFunction:
         return m_getEnvBuiltin;
+    case BuiltinValue::CurrentEnvFunction:
+        return m_currentEnvBuiltin;
     case BuiltinValue::CanonicalArchitectureFunction:
         return m_canonicalArchitectureBuiltin;
     case BuiltinValue::Rfc1034IdentifierFunction:
@@ -553,6 +560,16 @@ QScriptValue EvaluatorScriptClass::js_getEnv(QScriptContext *context, QScriptEng
     const QString value = e->environment().value(name);
     e->addEnvironmentVariable(name, value);
     return value.isNull() ? engine->undefinedValue() : value;
+}
+
+QScriptValue EvaluatorScriptClass::js_currentEnv(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(context);
+    const QProcessEnvironment env = static_cast<ScriptEngine *>(engine)->environment();
+    QScriptValue envObject = engine->newObject();
+    foreach (const QString &key, env.keys())
+        envObject.setProperty(key, QScriptValue(env.value(key)));
+    return envObject;
 }
 
 QScriptValue EvaluatorScriptClass::js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine)

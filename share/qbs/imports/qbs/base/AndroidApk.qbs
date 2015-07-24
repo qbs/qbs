@@ -29,7 +29,7 @@
 ****************************************************************************/
 
 import qbs
-import qbs.File
+import qbs.FileInfo
 
 Product {
     type: ["android.apk"]
@@ -37,10 +37,13 @@ Product {
 
     property string packageName: name
     property bool automaticSources: true
-    property path resourcesDir: "res"
-    property path assetsDir: "assets"
-    property path sourcesDir: "src"
-    property path manifestFile: "AndroidManifest.xml"
+    property bool legacyLayout: false
+
+    property path sourceSetDir: legacyLayout ? undefined : "src/main"
+    property path resourcesDir: FileInfo.joinPaths(sourceSetDir, "res")
+    property path assetsDir: FileInfo.joinPaths(sourceSetDir, "assets")
+    property path sourcesDir: FileInfo.joinPaths(sourceSetDir, legacyLayout ? "src" : "java")
+    property path manifestFile: FileInfo.joinPaths(sourceSetDir, "AndroidManifest.xml")
 
     Group {
         name: "java sources"

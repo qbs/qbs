@@ -286,20 +286,21 @@ Module {
         fileTags: ["hpp"]
     }
 
+    validate: {
+        var validator = new ModUtils.PropertyValidator("cpp");
+        validator.addCustomValidator("architecture", architecture, function (value) {
+            return !architecture || architecture === canonicalArchitecture(architecture);
+        }, "'" + architecture + "' is invalid. You must use the canonical name '" +
+        canonicalArchitecture(architecture) + "'");
+        validator.validate();
+    }
+
     setupRunEnvironment: {
         var env = qbs.commonRunEnvironment;
         for (var i in env) {
             var v = new ModUtils.EnvironmentVariable(i, qbs.pathListSeparator,
                                                      qbs.hostOS.contains("windows"));
-            var envValue = env[i];
-            if (typeof envValue === Array) {
-                for (var j in envValue) {
-                    v.append(envValue[j]);
-                }
-            } else {
-                v.value = envValue;
-            }
-
+            v.value = env[i];
             v.set();
         }
     }

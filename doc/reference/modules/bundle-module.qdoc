@@ -35,347 +35,248 @@
     \ingroup list-of-modules
 
     \title Module bundle
+    \since 1.4
     \brief Provides Core Foundation bundle support.
 
     The \c bundle module contains properties and rules for building and working with
-    Core Foundation bundles on OS X and iOS (commonly known as CFBundles or simply "bundles"),
+    Core Foundation bundles on Apple platforms (commonly known as CFBundles or simply "bundles"),
     directories with a standardized hierarchical structure that hold executable code and resources.
     Examples include applications, frameworks, and plugins.
 
-    This module is available on all platforms but is currently only useful on OS X and iOS.
+    This module is available on all platforms but is currently only useful on Apple platforms.
 
     \note Core Foundation bundles are not to be confused with Mach-O loadable modules, which are
     also referred to as (loadable) "bundles" in Apple parlance.
     In \QBS, Core Foundation bundles are referred to as "bundles",
     while Mach-O loadable bundles are referred to as "loadable modules".
 
-
     \section1 General Properties
 
-    \section2 isBundle
-
     \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{true} for application and dynamic
-                                         library products on OS X and iOS,
-                                         \c{false} otherwise
+    \header
+        \li Property
+        \li Type
+        \li Since
+        \li Default
+        \li Description
+    \row
+        \li isBundle
+        \li \c{bool}
+        \li 1.4
+        \li \c{true} for applications and dynamic libraries on Apple platforms, \c{false} otherwise
+        \li Whether the product should actually be packaged as a bundle as opposed to a flat file.
+            This allows a product indirectly dependent on the \c{bundle} module to retain control of
+            whether it should actually be built as a bundle.
+    \row
+        \li isShallow
+        \li \c{bool}
+        \li 1.4
+        \li \c{true} for iOS applications
+        \li Whether the bundle directory tree is "shallow", i.e. whether it lacks a Contents
+            subdirectory. This is the default for iOS applications and should normally never be
+            changed.
+    \row
+        \li identifierPrefix
+        \li \c{string}
+        \li 1.4
+        \li \c{org.example}
+        \li Prefix for the product's bundle identifier. If \c{identifier} is left unset, the bundle
+            identifier will be a concatenation of this value and the \c{identifier} property,
+            separated by a '.'. This corresponds to the organization identifier in Xcode.
+    \row
+        \li identifier
+        \li \c{string}
+        \li 1.4
+        \li combination of \c{identifierPrefix} and the product's target name formatted as an
+            RFC 1034 identifier
+        \li The bundle's identifier. If left unset, the bundle identifier will be a concatenation
+            of this value and the \c{identifierPrefix} property, separated by a '.'.
+    \row
+        \li extension
+        \li \c{string}
+        \li 1.4
+        \li \c{"app"} for \c{"APPL"} packages,
+            \c{"framework"} for \c{"FMWK"} packages,
+            \c{"bundle"} for \c{"BNDL"} and custom packages
+        \li The extension of the bundle's wrapper directory (minus the leading '.'). This property
+            should not normally need to be set unless creating a custom bundle type.
+    \row
+        \li packageType
+        \li \c{string}
+        \li 1.4
+        \li \c{"APPL"} for applications,
+            \c{"FMWK"} for frameworks,
+            \c{"BNDL"} for custom bundles
+        \li The four-letter file type code of the bundle, specified in the bundle's PkgInfo file and
+            in the bundle's Info.plist as the value for the CFBundlePackageType key.
+            This property should almost never need to be changed, though specifying an
+            alternative package type for custom bundles is allowed.
+    \row
+        \li signature
+        \li \c{string}
+        \li 1.4
+        \li \c{"????"}
+        \li The four-letter signature specific to the bundle, also known as the creator code,
+            specified in the bundle's PkgInfo file and in the bundle's Info.plist as the value for
+            the CFBundleSignature key. This property should normally never need to be set.
+    \row
+        \li bundleName
+        \li \c{string}
+        \li 1.4
+        \li combination of the product's \c{targetName} and bundle's \c{extension}
+        \li The file name of the bundle's wrapper directory.
+            This property should not normally need to be changed.
+    \row
+        \li frameworkVersion
+        \li \c{string}
+        \li 1.4
+        \li \c{"A"}
+        \li For framework bundles, the version of the framework. Unused for other package types.
+    \row
+        \li publicHeaders
+        \li \c{pathList}
+        \li 1.4
+        \li \c{undefined}
+        \li List of public header files to copy to a framework bundle's Headers subdirectory.
+    \row
+        \li privateHeaders
+        \li \c{pathList}
+        \li 1.4
+        \li \c{undefined}
+        \li List of private header files to copy to a framework bundle's PrivateHeaders subdirectory
+    \row
+        \li resources
+        \li \c{pathList}
+        \li 1.4
+        \li \c{undefined}
+        \li List of resources to copy to a bundle's Resources subdirectory. Files will automatically
+            be copied into lproj subdirectories corresponding to the input files' paths.
+    \row
+        \li infoPlistFile
+        \li \c{path}
+        \li 1.4
+        \li \c{undefined}
+        \li Path to the Info.plist file used by the bundle.
+            The contents of this file will be aggregated with the values in \c{infoPlist}.
+            If \c{infoPlistFile} and \c{infoPlist} contain the same key, the latter will take
+            precedence, but may also be overridden during postprocessing (see \c{processInfoPlist}).
+            If undefined, will not be taken into account.
+    \row
+        \li infoPlist
+        \li \c{object}
+        \li 1.4
+        \li \c{undefined}
+        \li Dictionary of key-value pairs to add to the bundle's Info.plist.
+            The contents of this property will be aggregated with the values from \c{infoPlistFile}.
+            If \c{infoPlist} and \c{infoPlistFile} contain the same key, the former will take
+            precedence, but may also be overridden during postprocessing (see \c{processInfoPlist}).
+            If undefined, will not be taken into account.
+    \row
+        \li processInfoPlist
+        \li \c{bool}
+        \li 1.4
+        \li \c{true}
+        \li Whether to perform post-processing on the aggregated Info.plist contents.
+            If this property is \c{true}, various post-processing operations will be applied to the
+            bundle's property list dictionary after it has been aggregated from the contents of the
+            file specified by the \c{infoPlistFile} property and the \c{infoPlist} property.
+            First, values from a list of defaults will be added to the dictionary if they were not
+            already present. Then, values from the AdditionalInfo key of the platform SDK's
+            Info.plist file will be added to the dictionary if they were not already present, as
+            well as some other miscellaneous keys, such as BuildMachineOSBuild and UIDeviceFamily
+            (on iOS). Finally, variable expansions will be performed such that substrings of the
+            form $(VAR) or ${VAR} will be replaced with their corresponding environment variables.
+    \row
+        \li embedInfoPlist
+        \li \c{bool}
+        \li 1.4
+        \li \c{true} if the product is a command line tool, otherwise \c{false}.
+        \li Whether to create a __TEXT section in the product's executable containing the processed
+            Info.plist. Only applies to command line applications.
+    \row
+        \li infoPlistFormat
+        \li \c{string}
+        \li 1.4
+        \li \c{"binary1"} for iOS;
+            \c{"same-as-input"} or \c{"xml1"} for OS X depending on whether \c{infoPlistFile} is
+            specified; undefined for all other operating systems.
+        \li The file format to write the product's resulting Info.plist in.
+            Possible values: \c{"xml1"}, \c{"binary1"}, \c{"json"}, \c{"same-as-input"}
     \endtable
-
-    Whether the product should actually be packaged as a bundle as opposed to a flat file.
-    This allows a product indirectly dependent on the \c{bundle} module to retain control of
-    whether it should actually be built as a bundle.
-
-    \section2 isShallow
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{true} for iOS applications
-    \endtable
-
-    Whether the bundle directory tree is "shallow", i.e. whether it lacks a Contents
-    subdirectory. This is the default for iOS applications and should normally never be changed.
-
-    \section2 identifierPrefix
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{org.example}
-    \endtable
-
-    Prefix for the product's bundle identifier. If \c{identifier} is left unset, the bundle
-    identifier will be a concatenation of this value and the \c{identifier} property,
-    separated by a '.'. This corresponds to the organization identifier in Xcode.
-
-    \section2 identifier
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li combination of \c{identifierPrefix} and the product's
-                                         target name formatted as an RFC 1034 identifier
-    \endtable
-
-    The bundle's identifier. If left unset, the bundle
-    identifier will be a concatenation of this value and the \c{identifierPrefix} property,
-    separated by a '.'.
-
-    \section2 extension
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{"app"} for \c{"APPL"} packages,
-                                         \c{"framework"} for \c{"FMWK"} packages,
-                                         \c{"bundle"} for \c{"BNDL"} and custom packages
-    \endtable
-
-    The extension of the bundle's wrapper directory (minus the leading '.'). This property
-    should not normally need to be set unless creating a custom bundle type.
-
-    \section2 packageType
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{"APPL"} for applications,
-                                         \c{"FMWK"} for frameworks
-                                         \c{"BNDL"} for custom bundles
-    \endtable
-
-    The four-letter file type code of the bundle, specified in the bundle's PkgInfo file and in
-    the bundle's Info.plist as the value for the CFBundlePackageType key.
-    This property should almost never need to be changed, though specifying an
-    alternative package type for custom bundles is allowed.
-
-    \section2 signature
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{"????"}
-    \endtable
-
-    The four-letter signature specific to the bundle, also known as the creator code, specified
-    in the bundle's PkgInfo file and in the bundle's Info.plist as the value for the CFBundleSignature key.
-    This property should normally never need to be set.
-
-    \section2 bundleName
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li combination of the product's \c{targetName} and bundle's \c{extension}
-    \endtable
-
-    The file name of the bundle's wrapper directory.
-    This property should not normally need to be changed.
-
-    \section2 frameworkVersion
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{"A"}
-    \endtable
-
-    For framework bundles, the version of the framework. Unused for other package types.
-
-    \section2 publicHeaders
-
-    \table
-    \row    \li \b{Type:}            \li \c{pathList}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    List of public header files to copy to a framework bundle's Headers subdirectory.
-
-    \section2 privateHeaders
-
-    \table
-    \row    \li \b{Type:}            \li \c{pathList}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    List of private header files to copy to a framework bundle's PrivateHeaders subdirectory.
-
-    \section2 resources
-
-    \table
-    \row    \li \b{Type:}            \li \c{pathList}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    List of resources to copy to a bundle's Resources subdirectory. Files will automatically
-    be copied into lproj subdirectories corresponding to the input files' paths.
-
-    \section2 infoPlistFile
-
-    \table
-    \row    \li \b{Type:}            \li \c{path}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    Path to the Info.plist file used by the bundle.
-    The contents of this file will be aggregated with the values in \c{infoPlist}.
-    If \c{infoPlistFile} and \c{infoPlist} contain the same key, the latter will take precedence,
-    but may also be overridden during postprocessing (see \c{processInfoPlist}).
-    If undefined, will not be taken into account.
-
-    \section2 infoPlist
-
-    \table
-    \row    \li \b{Type:}            \li \c{object}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    Dictionary of key-value pairs to add to the bundle's Info.plist.
-    The contents of this property will be aggregated with the values from \c{infoPlistFile}.
-    If \c{infoPlist} and \c{infoPlistFile} contain the same key, the former will take precedence,
-    but may also be overridden during postprocessing (see \c{processInfoPlist}).
-    If undefined, will not be taken into account.
-
-    \section2 processInfoPlist
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{true}
-    \endtable
-
-    Whether to perform post-processing on the aggregated Info.plist contents.
-    If this property is \c{true}, various post-processing operations will be applied to the
-    bundle's property list dictionary after it has been aggregated from the contents of the file
-    specified by the \c{infoPlistFile} property and the \c{infoPlist} property.
-    First, values from a list of defaults will be added to the dictionary if they were not already
-    present. Then, values from the AdditionalInfo key of the platform SDK's Info.plist file will be
-    added to the dictionary if they were not already present, as well as some other miscellaneous
-    keys, such as BuildMachineOSBuild and UIDeviceFamily (on iOS).
-    Finally, variable expansions will be performed such that substrings of the form $(VAR) or ${VAR}
-    will be replaced with their corresponding environment variables.
-
-    \section2 embedInfoPlist
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{true} if the product is a command line tool,
-                                         otherwise \c{false}.
-    \endtable
-
-    Whether to create a __TEXT section in the product's executable containing the processed Info.plist.
-    Only applies to command line applications.
-
-    \section2 infoPlistFormat
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Allowed Values:}  \li \c{"xml1"}, \c{"binary1"}, \c{"json"}, \c{"same-as-input"}
-    \row    \li \b{Default:}         \li \c{"binary1"} for iOS; \c{"same-as-input"} or \c{"xml1"}
-                                         for OS X depending on whether \c{infoPlistFile} is
-                                         specified; undefined for all other operating systems.
-    \endtable
-
-    The file format to write the product's resulting Info.plist in.
-
 
     \section1 Path Specific Properties
 
-    All properties in this section are read-only properties specifying file paths
+    All properties in this section are read-only properties of type \c{string} specifying file paths
     relative to the directory containing the bundle.
 
-    \section2 infoPlistPath
-
     \table
-    \row    \li \b{Type:}            \li \c{string}
+    \header
+        \li Property
+        \li Since
+        \li Description
+    \row
+        \li infoPlistPath
+        \li 1.4
+        \li Path that the Info.plist file will be written to. If \c{embedInfoPlist} is \c{true},
+            this will point to a file in a temporary directory.
+    \row
+        \li infoPlistPath
+        \li 1.4
+        \li Path that the PkgInfo file will be written to.
+    \row
+        \li versionPlistPath
+        \li 1.4
+        \li Path that the version.plist file will be written to.
+    \row
+        \li executablePath
+        \li 1.4
+        \li Path that the main executable file will be written to.
+    \row
+        \li executableFolderPath
+        \li 1.4
+        \li Path of the directory where the main exectuable will be written.
+            Not to be confused with \c{executablesFolderPath}.
+    \row
+        \li executablesFolderPath
+        \li 1.4
+        \li Path of the directory where auxiliary executables will be copied.
+            Not to be confused with \c{executableFolderPath}.
+    \row
+        \li frameworksFolderPath
+        \li 1.4
+        \li Path of the directory where internal frameworks will be copied.
+    \row
+        \li pluginsFolderPath
+        \li 1.4
+        \li Path of the directory where plugins will be copied.
+    \row
+        \li privateHeadersFolderPath
+        \li 1.4
+        \li Path of the directory where private header files will be copied.
+    \row
+        \li publicHeadersFolderPath
+        \li 1.4
+        \li Path of the directory where public headers files will be copied.
+    \row
+        \li scriptsFolderPath
+        \li 1.4
+        \li Path of the directory where script files will be copied.
+    \row
+        \li sharedFrameworksFolderPath
+        \li 1.4
+        \li Path of the directory where shared frameworks will be copied.
+    \row
+        \li sharedSupportFolderPath
+        \li 1.4
+        \li Path of the directory where shared support files will be copied.
+    \row
+        \li unlocalizedResourcesFolderPath
+        \li 1.4
+        \li Path of the directory where non-localized resource files will be copied.
+            This is the same as the base resources path.
+    \row
+        \li contentsFolderPath
+        \li 1.4
+        \li Path of the bundle's Contents subdirectory.
     \endtable
-
-    Path that the Info.plist file will be written to. If \c{embedInfoPlist} is \c{true}, this will
-    point to a file in a temporary directory.
-
-    \section2 infoPlistPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path that the PkgInfo file will be written to.
-
-    \section2 versionPlistPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path that the version.plist file will be written to.
-
-    \section2 executablePath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path that the main executable file will be written to.
-
-    \section2 executableFolderPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path of the directory where the main exectuable will be written.
-    Not to be confused with \c{executablesFolderPath}.
-
-    \section2 executablesFolderPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path of the directory where auxiliary executables will be copied.
-    Not to be confused with \c{executableFolderPath}.
-
-    \section2 frameworksFolderPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path of the directory where internal frameworks will be copied.
-
-    \section2 pluginsFolderPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path of the directory where plugins will be copied.
-
-    \section2 privateHeadersFolderPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path of the directory where private header files will be copied.
-
-    \section2 publicHeadersFolderPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path of the directory where public headers files will be copied.
-
-    \section2 scriptsFolderPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path of the directory where script files will be copied.
-
-    \section2 sharedFrameworksFolderPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path of the directory where shared frameworks will be copied.
-
-    \section2 sharedSupportFolderPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path of the directory where shared support files will be copied.
-
-    \section2 unlocalizedResourcesFolderPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path of the directory where non-localized resource files will be copied.
-    This is the same as the base resources path.
-
-    \section2 contentsFolderPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \endtable
-
-    Path of the bundle's Contents subdirectory.
 */

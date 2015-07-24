@@ -264,6 +264,7 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
                 .split(QLatin1Char(' '), QString::SkipEmptyParts);
         for (int i = 0; i < parts.count(); ++i) {
             QString part = parts.at(i);
+            part.replace(QLatin1String("$$[QT_INSTALL_LIBS]"), qtEnv.libraryPath);
             if (part.startsWith(QLatin1String("-l"))) {
                 libs << part.mid(2);
             } else if (part.startsWith(QLatin1String("-L"))) {

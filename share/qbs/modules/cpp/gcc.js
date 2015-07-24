@@ -150,6 +150,8 @@ function configFlags(config) {
         args.push('-O2');
     if (opt === 'small')
         args.push('-Os');
+    if (opt === 'none')
+        args.push('-O0');
 
     var warnings = ModUtils.moduleProperty(config, "warningLevel")
     if (warnings === 'none')

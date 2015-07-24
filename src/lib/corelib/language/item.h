@@ -39,6 +39,7 @@
 #include "qualifiedid.h"
 #include <parser/qmljsmemorypool_p.h>
 #include <tools/codelocation.h>
+#include <tools/error.h>
 #include <tools/weakpointer.h>
 
 #include <QList>
@@ -66,11 +67,13 @@ public:
     struct Module
     {
         Module()
-            : item(0)
+            : item(0), isProduct(false), required(true)
         {}
 
         QualifiedId name;
         Item *item;
+        bool isProduct;
+        bool required;
     };
     typedef QList<Module> Modules;
     typedef QMap<QString, PropertyDeclaration> PropertyDeclarationMap;
@@ -121,6 +124,10 @@ public:
     void setParent(Item *item);
     static void addChild(Item *parent, Item *child);
     void dump() const;
+    bool isPresentModule() const;
+
+    void setDelayedError(const ErrorInfo &e) { m_delayedError = e; }
+    ErrorInfo delayedError() const { return m_delayedError; }
 
 private:
     void dump(int indentation) const;
@@ -141,6 +148,7 @@ private:
     PropertyDeclarationMap m_propertyDeclarations;
     QList<FunctionDeclaration> m_functions;
     Modules m_modules;
+    ErrorInfo m_delayedError;
 };
 
 inline ItemPool *Item::pool() const

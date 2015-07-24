@@ -63,7 +63,7 @@ inline static bool hasSpecialChars(const QString &arg, const uchar (&iqm)[16])
     return false;
 }
 
-QString shellQuoteUnix(const QString &arg)
+static QString shellQuoteUnix(const QString &arg)
 {
     // Chars that should be quoted (TM). This includes:
     static const uchar iqm[] = {
@@ -83,7 +83,7 @@ QString shellQuoteUnix(const QString &arg)
     return ret;
 }
 
-QString shellQuoteWin(const QString &arg)
+static QString shellQuoteWin(const QString &arg)
 {
     // Chars that should be quoted (TM). This includes:
     // - control chars & space
@@ -113,6 +113,20 @@ QString shellQuoteWin(const QString &arg)
         ret.prepend(QLatin1Char('"'));
     }
     return ret;
+}
+
+QString shellQuote(const QString &arg, HostOsInfo::HostOs os)
+{
+    return os == HostOsInfo::HostOsWindows ? shellQuoteWin(arg) : shellQuoteUnix(arg);
+}
+
+QString shellQuote(const QString &program, const QStringList &args, HostOsInfo::HostOs os)
+{
+    QString result = shellQuote(program, os);
+    foreach (const QString &arg, args) {
+        result += QLatin1Char(' ') + shellQuote(arg, os);
+    }
+    return result;
 }
 
 } // namespace Internal

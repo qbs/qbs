@@ -31,25 +31,33 @@
 import qbs
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Probes
 import qbs.Process
+import qbs.TextFile
 
 import "utils.js" as JavaUtils
 
 Module {
+    Probes.JdkProbe {
+        id: jdk
+        environmentPaths: [jdkPath].concat(base)
+    }
+
     property stringList additionalClassPaths
     property stringList additionalCompilerFlags
     property stringList additionalJarFlags
     property stringList bootClassPaths
-    property string compilerFilePath: FileInfo.joinPaths(jdkPath, compilerName)
+    property string compilerFilePath: FileInfo.joinPaths(jdkPath, "bin", compilerName)
     property string compilerName: "javac"
     property bool enableWarnings: true
-    property string interpreterFilePath : FileInfo.joinPaths(jdkPath, interpreterName)
+    property string interpreterFilePath : FileInfo.joinPaths(jdkPath, "bin", interpreterName)
     property string interpreterName: "java"
-    property string jarFilePath: FileInfo.joinPaths(jdkPath, jarName)
+    property string jarFilePath: FileInfo.joinPaths(jdkPath, "bin", jarName)
     property string jarName: "jar"
-    property path jdkPath
 
-    property string compilerVersion: rawCompilerVersion ? rawCompilerVersion[1] : undefined
+    property path jdkPath: jdk.path
+
+    property string compilerVersion: jdk.version ? jdk.version[1] : undefined
     property var compilerVersionParts: compilerVersion ? compilerVersion.split(/[\._]/).map(function(item) { return parseInt(item, 10); }) : []
     property int compilerVersionMajor: compilerVersionParts[0]
     property int compilerVersionMinor: compilerVersionParts[1]
@@ -68,26 +76,66 @@ Module {
         description: "version of the Java runtime to generate compatible bytecode for"
     }
 
+    property var manifest: {
+        return {
+            "Manifest-Version": "1.0",
+            "Class-Path": manifestClassPath ? manifestClassPath.join(" ") : undefined
+        };
+    }
+
+    PropertyOptions {
+        name: "manifest"
+        description: "properties to add to the manifest file when building a JAR"
+    }
+
+    property path manifestFile
+    PropertyOptions {
+        name: "manifestFile"
+        description: "manifest file to embed when building a JAR"
+    }
+
+    property stringList manifestClassPath
+    PropertyOptions {
+        name: "manifestClassPath"
+        description: "entries to add to the manifest's Class-Path when building a JAR"
+    }
+
     property bool warningsAsErrors: false
 
-    // Internal properties
-    property path classFilesDir: FileInfo.joinPaths(product.buildDirectory, "classFiles")
+    property pathList jdkIncludePaths: {
+        var paths = [];
+        if (qbs.hostOS.contains("darwin") && compilerVersionMinor <= 6) {
+            paths.push("/System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers");
+        } else {
+            paths.push(FileInfo.joinPaths(jdkPath, "include"));
 
-    // private properties
-    readonly property var rawCompilerVersion: {
-        var p = new Process();
-        try {
-            p.exec(compilerFilePath, ["-version"]);
-            var match = p.readStdErr().trim().match(/^javac (([0-9]+(?:\.[0-9]+){2,2})_([0-9]+))$/);
-            if (match !== null)
-                return match;
-        } finally {
-            p.close();
+            var hostOS = qbs.hostOS.contains("windows") ? qbs.hostOS.concat(["win32"]) : qbs.hostOS;
+            var platforms = ["win32", "darwin", "linux", "bsd", "solaris"];
+            for (var i = 0; i < platforms.length; ++i) {
+                if (hostOS.contains(platforms[i])) {
+                    // Corresponds to JDK_INCLUDE_SUBDIR in the JDK Makefiles
+                    paths.push(FileInfo.joinPaths(jdkPath, "include", platforms[i]));
+                    break;
+                }
+            }
         }
+
+        return paths;
+    }
+
+    // Internal properties
+    property path classFilesDir: FileInfo.joinPaths(product.buildDirectory, "classes")
+    property path internalClassFilesDir: FileInfo.joinPaths(product.buildDirectory, ".classes")
+
+    property path runtimeJarPath: {
+        if (qbs.hostOS.contains("osx") && compilerVersionMajor === 1 && compilerVersionMinor < 7)
+            return FileInfo.joinPaths(jdkPath, "bundle", "Classes", "classes.jar");
+        return FileInfo.joinPaths(jdkPath, "jre", "lib", "rt.jar");
     }
 
     validate: {
         var validator = new ModUtils.PropertyValidator("java");
+        validator.setRequiredProperty("jdkPath", jdkPath);
         validator.setRequiredProperty("compilerVersion", compilerVersion);
         validator.setRequiredProperty("compilerVersionParts", compilerVersionParts);
         validator.setRequiredProperty("compilerVersionMajor", compilerVersionMajor);
@@ -107,10 +155,42 @@ Module {
         fileTags: ["java.java"]
     }
 
+    Group {
+        name: "io.qt.qbs.internal.java-helper"
+        files: {
+            return JavaUtils.helperFullyQualifiedNames("java").map(function(name) {
+                return FileInfo.joinPaths(path, name + ".java");
+            });
+        }
+
+        fileTags: ["java.java-internal"]
+    }
+
+    Rule {
+        multiplex: true
+        inputs: ["java.java-internal"]
+
+        outputFileTags: ["java.class-internal"]
+        outputArtifacts: {
+            return JavaUtils.helperOutputArtifacts(product);
+        }
+
+        prepare: {
+            var cmd = new Command(ModUtils.moduleProperty(product, "compilerFilePath"),
+                                  JavaUtils.javacArguments(product, inputs,
+                                                           JavaUtils.helperOverrideArgs(product,
+                                                                                        "javac")));
+            cmd.silent = true;
+            return [cmd];
+        }
+    }
+
     Rule {
         multiplex: true
         inputs: ["java.java"]
         inputsFromDependencies: ["java.jar"]
+        explicitlyDependsOn: ["java.class-internal"]
+
         outputFileTags: ["java.class", "hpp"] // Annotations can produce additional java source files. Ignored for now.
         outputArtifacts: {
             return JavaUtils.outputArtifacts(product, inputs);
@@ -134,12 +214,50 @@ Module {
         }
 
         prepare: {
-            var i;
+            var i, key;
             var flags = "cf";
             var args = [output.filePath];
 
-            var manifestFile = ModUtils.moduleProperty(product, "manifest");
-            if (manifestFile) {
+            var manifestFile = ModUtils.moduleProperty(product, "manifestFile");
+            var manifest = ModUtils.moduleProperty(product, "manifest");
+            var aggregateManifest = JavaUtils.manifestContents(manifestFile) || {};
+
+            // Add local key-value pairs (overrides equivalent keys specified in the file if
+            // one was given)
+            for (key in manifest) {
+                if (manifest.hasOwnProperty(key))
+                    aggregateManifest[key] = manifest[key];
+            }
+
+            for (key in aggregateManifest) {
+                if (aggregateManifest.hasOwnProperty(key) && aggregateManifest[key] === undefined)
+                    delete aggregateManifest[key];
+            }
+
+            // Use default manifest unless we actually have properties to set
+            var needsManifestFile = manifestFile !== undefined || aggregateManifest !== {"Manifest-Version": "1.0"};
+
+            manifestFile = FileInfo.joinPaths(product.buildDirectory, "manifest.mf");
+
+            var mf;
+            try {
+                mf = new TextFile(manifestFile, TextFile.WriteOnly);
+
+                // Ensure that manifest version comes first
+                mf.write("Manifest-Version: " + (aggregateManifest["Manifest-Version"] || "1.0") + "\n");
+                delete aggregateManifest["Manifest-Version"];
+
+                for (key in aggregateManifest)
+                    mf.write(key + ": " + aggregateManifest[key] + "\n");
+
+                mf.write("\n");
+            } finally {
+                if (mf) {
+                    mf.close();
+                }
+            }
+
+            if (needsManifestFile) {
                 flags += "m";
                 args.push(manifestFile);
             }

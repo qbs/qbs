@@ -75,7 +75,6 @@ ProjectResolver::ProjectResolver(ModuleLoader *ldr, const BuiltinDeclarations *b
     , m_logger(logger)
     , m_engine(m_evaluator->engine())
     , m_progressObserver(0)
-    , m_disableCachedEvaluation(false)
 {
 }
 
@@ -201,6 +200,7 @@ void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *project
     resolveProject(item, projectContext);
     project->setBuildConfiguration(m_setupParams.finalBuildConfigurationTree());
     project->usedEnvironment = m_engine->usedEnvironment();
+    project->canonicalFilePathResults = m_engine->canonicalFilePathResults();
     project->fileExistsResults = m_engine->fileExistsResults();
     project->directoryEntriesResults = m_engine->directoryEntriesResults();
     project->fileLastModifiedResults = m_engine->fileLastModifiedResults();
@@ -376,7 +376,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
     mapping["Transformer"] = &ProjectResolver::resolveTransformer;
     mapping["Group"] = &ProjectResolver::resolveGroup;
-    mapping["Export"] = &ProjectResolver::resolveExport;
+    mapping["Export"] = &ProjectResolver::ignoreItem;
     mapping["Probe"] = &ProjectResolver::ignoreItem;
     mapping["PropertyOptions"] = &ProjectResolver::ignoreItem;
 
@@ -411,7 +411,7 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
         if (seen.contains(m.name))
             continue;
         seen.insert(m.name);
-        resolveModule(m.name, m.item, projectContext);
+        resolveModule(m.name, m.item, m.isProduct, projectContext);
         foreach (const Item::Module &childModule, m.item->modules())
             modules.enqueue(childModule);
     }
@@ -421,15 +421,15 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
               });
 }
 
-void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item,
+void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
                                     ProjectContext *projectContext)
 {
     checkCancelation();
     if (!m_evaluator->boolValue(item, QLatin1String("present")))
         return;
 
-    if (m_productContext->product->enabled)
-        m_evaluator->boolValue(item, QLatin1String("validate"));
+    if (m_productContext->product->enabled && item->delayedError().hasError())
+        throw item->delayedError();
 
     ModuleContext * const oldModuleContext = m_moduleContext;
     ModuleContext moduleContext;
@@ -446,12 +446,16 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item,
     m_productContext->additionalFileTags +=
             m_evaluator->fileTagsValue(item, QLatin1String("additionalProductTypes"));
 
-    foreach (const Item::Module &m, item->modules())
-        module->moduleDependencies += m.name.toString();
+    foreach (const Item::Module &m, item->modules()) {
+        if (m_evaluator->boolValue(m.item, QLatin1String("present")))
+            module->moduleDependencies += m.name.toString();
+    }
 
-    m_productContext->product->modules += module;
+    if (!isProduct)
+        m_productContext->product->modules += module;
 
     ItemFuncMap mapping;
+    mapping["Group"] = &ProjectResolver::resolveGroup;
     mapping["Rule"] = &ProjectResolver::resolveRule;
     mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
     mapping["Transformer"] = &ProjectResolver::resolveTransformer;
@@ -843,83 +847,8 @@ void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext
     m_productContext->product->scanners += scanner;
 }
 
-void ProjectResolver::resolveExport(Item *item, ProjectContext *projectContext)
-{
-    Q_UNUSED(projectContext);
-    checkCancelation();
-    const QString &productName = m_productContext->product->uniqueName();
-    m_exportsContext = &m_exports[productName];
-    m_exportsContext->item = item;
-    foreach (const Item::Module &module, item->modules()) {
-        ModuleMerger merger(m_logger, item, module.item, module.name);
-        merger.start();
-    }
-    m_evaluator->setCachingEnabled(true);
-    m_exportsContext->moduleValues = evaluateModuleValues(item, false);
-    m_evaluator->setCachingEnabled(false);
-
-    ItemFuncMap mapping;
-    mapping["Depends"] = &ProjectResolver::ignoreItem;
-    mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
-    mapping["Rule"] = &ProjectResolver::resolveRule;
-
-    foreach (Item *child, item->children())
-        callItemFunction(mapping, child, projectContext);
-
-    m_exportsContext = 0;
-}
-
-static void insertExportedModuleProperties(const Item::Module &moduleInProduct,
-        const Item::Module &moduleInExport, const QVariantMap &exported, QVariantMap *dstModule)
-{
-    for (auto it = exported.constBegin(); it != exported.constEnd(); ++it) {
-        QVariant &dst = (*dstModule)[it.key()];
-        const PropertyDeclaration &pd = moduleInExport.item->propertyDeclaration(it.key());
-        if (pd.isScalar()) {
-            // If this scalar property is not directly set in the product.
-            if (moduleInProduct.item && moduleInProduct.item->hasOwnProperty(it.key()))
-                continue;
-            dst = it.value();
-        } else {
-            // TODO: Make the merge configurable: Order, Duplicates, ...?
-            QStringList lst = dst.toStringList() + it.value().toStringList();
-            lst.removeDuplicates();
-            dst = lst;
-        }
-    }
-}
-
-static void insertExportedConfig(Item *productItem, Item *exportItem,
-        const QVariantMap &exportedConfig, const PropertyMapPtr &propertyMap)
-{
-    QHash<QualifiedId, Item::Module> productModules;
-    foreach (const Item::Module &m, productItem->modules())
-        productModules[m.name] = m;
-
-    QHash<QualifiedId, Item::Module> exportModules;
-    foreach (const Item::Module &m, exportItem->modules())
-        exportModules[m.name] = m;
-
-    QVariantMap properties = propertyMap->value();
-    QVariant &modulesVariant = properties[QStringLiteral("modules")];
-    QVariantMap modules = modulesVariant.toMap();
-    const QVariantMap &exportedModules = exportedConfig.value(QStringLiteral("modules")).toMap();
-    for (auto it = exportedModules.constBegin(); it != exportedModules.constEnd(); ++it) {
-        const QString &fullModuleName = it.key();
-        const QualifiedId &moduleName = QualifiedId::fromString(fullModuleName);
-        QVariant &moduleVariant = modules[fullModuleName];
-        QVariantMap module = moduleVariant.toMap();
-        insertExportedModuleProperties(productModules.value(moduleName),
-                                       exportModules.value(moduleName), it.value().toMap(),
-                                       &module);
-        moduleVariant = module;
-    }
-    modulesVariant = modules;
-    propertyMap->setValue(properties);
-}
-
 QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const ResolvedProductConstPtr &product,
-        const Item *productItem, ModuleLoaderResult::ProductInfo *productInfo)
+        ModuleLoaderResult::ProductInfo *productInfo)
 {
     QList<ResolvedProductPtr> usedProducts;
     for (int i = productInfo->usedProducts.count() - 1; i >= 0; --i) {
@@ -958,10 +887,7 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
         } else {
             const ResolvedProductPtr &usedProduct
                     = m_productsByName.value(dependency.uniqueName());
-            if (Q_UNLIKELY(!usedProduct)) {
-                throw ErrorInfo(Tr::tr("Product dependency '%1' not found for profile '%2'.")
-                        .arg(dependency.name, dependency.profile), productItem->location());
-            }
+            QBS_ASSERT(usedProduct, continue);
             usedProducts << usedProduct;
         }
     }
@@ -976,73 +902,6 @@ void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
                  product->artifactProperties) {
             if (artifact->fileTags.matches(artifactProperties->fileTagsFilter()))
                 artifact->properties = artifactProperties->propertyMap();
-        }
-    }
-}
-
-static void addUsedProducts(ModuleLoaderResult::ProductInfo *productInfo,
-                            const ModuleLoaderResult::ProductInfo &usedProductInfo,
-                            bool *productsAdded)
-{
-    int oldCount = productInfo->usedProducts.count();
-    QSet<QString> usedProductNames;
-    foreach (const ModuleLoaderResult::ProductInfo::Dependency &usedProduct,
-            productInfo->usedProducts)
-        usedProductNames += usedProduct.uniqueName();
-    foreach (const ModuleLoaderResult::ProductInfo::Dependency &usedProduct,
-             usedProductInfo.usedProductsFromExportItem) {
-        if (!usedProductNames.contains(usedProduct.uniqueName()))
-            productInfo->usedProducts  += usedProduct;
-    }
-    *productsAdded = (oldCount != productInfo->usedProducts.count());
-}
-
-typedef QHash<Item *, ValuePtr> ValuePerItem;
-
-static void replaceProductRecursive(Item *item, const ItemValuePtr &productItemValue,
-        ValuePerItem *seen)
-{
-    if (seen->contains(item))
-        return;
-    ValuePtr oldProductValue = item->property(QLatin1String("product"));
-    seen->insert(item, oldProductValue);
-    if (oldProductValue)
-        item->setProperty(QLatin1String("product"), productItemValue);
-    if (item->scope())
-        replaceProductRecursive(item->scope(), productItemValue, seen);
-    foreach (const Item::Module &module, item->modules())
-        replaceProductRecursive(module.item, productItemValue, seen);
-    foreach (Item *child, item->children())
-        replaceProductRecursive(child, productItemValue, seen);
-}
-
-static ValuePerItem replaceProduct(Item *item, const ItemValuePtr &productItemValue)
-{
-    ValuePerItem seen;
-    replaceProductRecursive(item, productItemValue, &seen);
-    return seen;
-}
-
-static void restoreOldProducts(const ValuePerItem &vip)
-{
-    for (ValuePerItem::const_iterator it = vip.constBegin(); it != vip.constEnd(); ++it) {
-        const ValuePtr &oldProductValue = it.value();
-        if (oldProductValue)
-            it.key()->setProperty(QLatin1String("product"), oldProductValue);
-    }
-}
-
-static void copyProperties(const QVariantMap &src, QVariantMap &dst)
-{
-    for (QVariantMap::const_iterator it = src.constBegin(); it != src.constEnd(); ++it) {
-        const QVariant &v = it.value();
-        if (v.type() == QVariant::Map) {
-            QVariant &dstValue = dst[it.key()];
-            QVariantMap dstMap = dstValue.toMap();
-            copyProperties(v.toMap(), dstMap);
-            dstValue = dstMap;
-        } else {
-            dst[it.key()] = v;
         }
     }
 }
@@ -1070,40 +929,16 @@ static bool hasDependencyCycle(QSet<ResolvedProduct *> *checked,
 
 void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
 {
-    // Collect product dependencies from Export items.
-    bool productDependenciesAdded;
-    QList<ResolvedProductPtr> allProducts = projectContext->project->allProducts();
-    do {
-        productDependenciesAdded = false;
-        foreach (const ResolvedProductPtr &rproduct, allProducts) {
-            if (!rproduct->enabled)
-                continue;
-            Item *productItem = m_productItemMap.value(rproduct);
-            ModuleLoaderResult::ProductInfo &productInfo
-                    = projectContext->loadResult->productInfos[productItem];
-            foreach (const ResolvedProductPtr &usedProduct,
-                     getProductDependencies(rproduct, productItem, &productInfo)) {
-                Item *usedProductItem = m_productItemMap.value(usedProduct);
-                const ModuleLoaderResult::ProductInfo usedProductInfo
-                        = projectContext->loadResult->productInfos.value(usedProductItem);
-                bool added;
-                addUsedProducts(&productInfo, usedProductInfo, &added);
-                if (added)
-                    productDependenciesAdded = true;
-            }
-        }
-    } while (productDependenciesAdded);
-
     // Resolve all inter-product dependencies.
+    QList<ResolvedProductPtr> allProducts = projectContext->project->allProducts();
     foreach (const ResolvedProductPtr &rproduct, allProducts) {
         if (!rproduct->enabled)
             continue;
         Item *productItem = m_productItemMap.value(rproduct);
-        ItemValuePtr productItemValue = ItemValue::create(productItem);
         ModuleLoaderResult::ProductInfo &productInfo
                 = projectContext->loadResult->productInfos[productItem];
         foreach (const ResolvedProductPtr &usedProduct,
-                 getProductDependencies(rproduct, productItem, &productInfo)) {
+                 getProductDependencies(rproduct, &productInfo)) {
             rproduct->dependencies.insert(usedProduct);
             const QString &usedProductName = usedProduct->uniqueName();
             const ExportsContext ctx = m_exports.value(usedProductName);
@@ -1111,34 +946,6 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
             rproduct->fileTaggers << ctx.fileTaggers;
             foreach (const RulePtr &rule, ctx.rules)
                 rproduct->rules << rule;
-
-            // Evaluate properties of the Export item using the importing product.
-            ProductContext productContext;
-            productContext.product = usedProduct;
-            m_productContext = &productContext;
-            const ValuePerItem oldProducts = replaceProduct(ctx.item, productItemValue);
-            m_disableCachedEvaluation = true;
-            QVariantMap exportedConfig = evaluateModuleValues(ctx.item);
-            m_disableCachedEvaluation = false;
-            restoreOldProducts(oldProducts);
-
-            // Re-evaluate direct properties of the Export item using the exporting product.
-            copyProperties(ctx.moduleValues, exportedConfig);
-            m_productContext = 0;
-
-            // insert the configuration of the Export item into the product's configuration
-            if (exportedConfig.isEmpty())
-                continue;
-
-            insertExportedConfig(productItem, ctx.item, exportedConfig, rproduct->moduleProperties);
-
-            // insert the configuration of the Export item into the artifact configurations
-            foreach (SourceArtifactPtr artifact, rproduct->allEnabledFiles()) {
-                if (artifact->properties != rproduct->moduleProperties) {
-                    insertExportedConfig(productItem, ctx.item, exportedConfig,
-                                         artifact->properties);
-                }
-            }
         }
     }
 
@@ -1229,22 +1036,11 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesCont
                 break;
             }
 
-            bool cacheDisabled = false;
-            const JSSourceValuePtr srcValue = it.value().staticCast<JSSourceValue>();
-            if (m_disableCachedEvaluation && (pd.type() == PropertyDeclaration::Path
-                                || srcValue->sourceUsesProduct())) {
-                cacheDisabled = true;
-                m_evaluator->setCachingEnabled(false);
-                m_evaluator->engine()->setPropertyCacheEnabled(false);
-            }
-
             const QScriptValue scriptValue = m_evaluator->property(item, it.key());
-            if (cacheDisabled) {
-                m_evaluator->setCachingEnabled(true);
-                m_evaluator->engine()->setPropertyCacheEnabled(true);
+            if (Q_UNLIKELY(m_evaluator->engine()->hasErrorOrException(scriptValue))) {
+                throw ErrorInfo(m_evaluator->engine()->lastErrorString(scriptValue),
+                                it.value()->location());
             }
-            if (Q_UNLIKELY(m_evaluator->engine()->hasErrorOrException(scriptValue)))
-                throw ErrorInfo(scriptValue.toString(), it.value()->location());
 
             // NOTE: Loses type information if scriptValue.isUndefined == true,
             //       as such QScriptValues become invalid QVariants.

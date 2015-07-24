@@ -5,16 +5,15 @@ Project {
     Application {
         name: "myapp"
         Depends { name: "mylib" }
-    }
-    StaticLibrary {
-        name: "mylib"
         Depends { name: "dummy" }
-        dummy.defines: ["BUILD_MYLIB"]
-        Export {
-            Depends { name: "dummy" }
-            dummy.defines: ["USE_MYLIB"]
-        }
+        dummy.defines: ["BUILD_" + product.name.toUpperCase()]
+        dummy.includePaths: ["./app"]
     }
+
+    references: [
+        "subdir/exports-mylib.qbs",
+        "subdir2/exports-mylib2.qbs"
+    ]
 
     Application {
         name: "A"
@@ -49,5 +48,24 @@ Project {
     Application {
         name: "myapp3"
         Depends { name: "productWithInheritedExportItem" }
+    }
+
+    Project {
+        name: "sub1"
+        Product {
+            name: "sub p1"
+            Export {
+                Depends { name: "dummy" }
+                dummy.someString: project.name
+            }
+        }
+    }
+
+    Project {
+        name: "sub2"
+        Product {
+            name: "sub p2"
+            Depends { name: "sub p1" }
+        }
     }
 }

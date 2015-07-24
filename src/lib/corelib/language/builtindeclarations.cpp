@@ -195,12 +195,7 @@ void BuiltinDeclarations::addDependsItem()
 
 void BuiltinDeclarations::addExportItem()
 {
-    ItemDeclaration item(QLatin1String("Export"));
-    item.setAllowedChildTypes(ItemDeclaration::TypeNames()
-            << QLatin1String("Depends")
-            << QLatin1String("FileTagger")
-            << QLatin1String("Rule"));
-    insert(item);
+    addModuleLikeItem(QStringLiteral("Export"));
 }
 
 void BuiltinDeclarations::addFileTaggerItem()
@@ -238,8 +233,14 @@ void BuiltinDeclarations::addGroupItem()
 
 void BuiltinDeclarations::addModuleItem()
 {
-    ItemDeclaration item(QLatin1String("Module"));
+    addModuleLikeItem(QStringLiteral("Module"));
+}
+
+void BuiltinDeclarations::addModuleLikeItem(const QString &typeName)
+{
+    ItemDeclaration item(typeName);
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
+            << QLatin1String("Group")
             << QLatin1String("Depends")
             << QLatin1String("FileTagger")
             << QLatin1String("Rule")

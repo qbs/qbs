@@ -34,6 +34,7 @@
     \ingroup list-of-modules
 
     \title Module typescript
+    \since 1.3
     \brief Provides TypeScript support.
 
     The \c typescript module contains properties and rules for building
@@ -42,169 +43,128 @@
 
     \section1 General Properties
 
-
-    \section2 warningLevel
-
     \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Allowed Values:}  \li \c{"normal"}, \c{"pedantic"}
-    \row    \li \b{Default:}         \li \c{"normal"}
+    \header
+        \li Property
+        \li Type
+        \li Since
+        \li Default
+        \li Description
+    \row
+        \li warningLevel
+        \li \c{string}
+        \li 1.3
+        \li \c{"normal"}
+        \li Severity of warnings to emit. The higher the level, the more warnings will be shown.
+            \c{pedantic} causes the TypeScript to emit warnings on expressions and declarations with
+            an implied 'any' type.
+    \row
+        \li targetVersion
+        \li \c{string}
+        \li 1.3
+        \li \c{undefined}
+        \li ECMAScript target version for generated JavaScript code. \c{undefined} uses the
+            TypeScript
+            \l{https://github.com/Microsoft/TypeScript/wiki/Compiler-Options}{compiler default}.
+    \row
+        \li moduleLoader
+        \li \c{string}
+        \li 1.3
+        \li \c{undefined}
+        \li If TypeScript modules are being used, the JavaScript module loading mechanism to use in
+            the generated JavaScript code. \c{undefined} indicates modules are not being used.
+            See \l{https://github.com/Microsoft/TypeScript/wiki/Compiler-Options}{Compiler Options}
+            for a list of possible values.
+    \row
+        \li stripComments
+        \li \c{bool}
+        \li 1.3
+        \li \c{!qbs.debugInformation}
+        \li Whether to remove comments from the generated JavaScript files.
+    \row
+        \li generateDeclarations
+        \li \c{bool}
+        \li 1.3
+        \li \c{false}
+        \li Whether to generate corresponding .d.ts files during compilation; these are TypeScript's
+            equivalent of header files.
+    \row
+        \li generateSourceMaps
+        \li \c{bool}
+        \li 1.3
+        \li \c{qbs.debugInformation}
+        \li Whether to generate corresponding .map files during compilation.
+    \row
+        \li compilerFlags
+        \li \c{stringList}
+        \li 1.3
+        \li \c{undefined}
+        \li Additional flags for the TypeScript compiler.
+    \row
+        \li singleFile
+        \li \c{bool}
+        \li 1.3
+        \li \c{false}
+        \li Whether to compile all TypeScript source files to a single JavaScript output file. The
+            default is to compile each TypeScript file to a corresponding JavaScript file. This
+            property is incompatible with \c{moduleLoader}.
+    \row
+        \li version
+        \li \c{string}
+        \li 1.3
+        \li \c{undefined}
+        \li The TypeScript version. Consists of four numbers separated by dots, for instance
+            "1.0.0.0".
+    \row
+        \li versionMajor
+        \li \c{int}
+        \li 1.3
+        \li \c{versionParts[0]}
+        \li The TypeScript major version.
+    \row
+        \li versionMinor
+        \li \c{int}
+        \li 1.3
+        \li \c{versionParts[1]}
+        \li The TypeScript minor version.
+    \row
+        \li versionParts
+        \li \c{list}
+        \li 1.3
+        \li \c{empty}
+        \li The TypeScript version as a list. For instance, TypeScript version 1.0 would correspond
+            to a value of \c[1, 0, 0, 0].
+    \row
+        \li versionPatch
+        \li \c{int}
+        \li 1.3
+        \li \c{versionParts[2]}
+        \li The TypeScript patch level.
+    \row
+        \li versionBuild
+        \li \c{int}
+        \li 1.3
+        \li \c{versionParts[3]}
+        \li The fourth TypeScript version number component.
+    \row
+        \li toolchainInstallPath
+        \li \c{path}
+        \li 1.3
+        \li \c{undefined}
+        \li TypeScript installation directory. This should not normally need to be changed provided
+            that \c{tsc} is already available by searching the PATH environment variable.
+    \row
+        \li compilerName
+        \li \c{string}
+        \li 1.3
+        \li \c{"tsc"}
+        \li Name of the compiler binary. This should not normally need to be changed.
+    \row
+        \li compilerPath
+        \li \c{string}
+        \li 1.3
+        \li \c{compilerName}
+        \li Directory where the compiler binary is located.
+            This should not normally need to be changed.
     \endtable
-
-    Severity of warnings to emit. The higher the level, the more warnings will be shown.
-    \c{pedantic} causes the TypeScript to emit warnings on expressions and declarations with an
-    implied 'any' type.
-
-    \section2 targetVersion
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Allowed Values:}  \li \c{"ES3"}, \c{"ES5"}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    ECMAScript target version for generated JavaScript code. \c{undefined} uses the TypeScript
-    compiler default, which is currently \c{"ES3"}.
-
-    \section2 moduleLoader
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Allowed Values:}  \li \c{"commonjs"}, \c{"amd"}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    If TypeScript modules are being used, the JavaScript module loading mechanism to use in the
-    generated JavaScript code. \c{undefined} indicates modules are not being used.
-
-    \section2 stripComments
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{!qbs.debugInformation}
-    \endtable
-
-    Whether to remove comments from the generated JavaScript files.
-
-    \section2 generateDeclarations
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{false}
-    \endtable
-
-    Whether to generate corresponding .d.ts files during compilation; these are TypeScript's
-    equivalent of header files.
-
-    \section2 generateSourceMaps
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{qbs.debugInformation}
-    \endtable
-
-    Whether to generate corresponding .map files during compilation.
-
-    \section2 compilerFlags
-
-    \table
-    \row    \li \b{Type:}            \li \c{stringList}
-    \row    \li \b{Default:}         \li undefined
-    \endtable
-
-    Additional flags for the TypeScript compiler.
-
-    \section2 singleFile
-
-    \table
-    \row    \li \b{Type:}            \li \c{bool}
-    \row    \li \b{Default:}         \li \c{false}
-    \endtable
-
-    Whether to compile all TypeScript source files to a single JavaScript output file. The default
-    is to compile each TypeScript file to a corresponding JavaScript file. This property is
-    incompatible with \c{moduleLoader}.
-
-    \section2 version
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    The TypeScript version. Consists of four numbers separated by dots, for instance "1.0.0.0".
-
-    \section2 versionMajor
-
-    \table
-    \row    \li \b{Type:}            \li \c{int}
-    \row    \li \b{Default:}         \li \c{versionParts[0]}
-    \endtable
-
-    The TypeScript major version.
-
-    \section2 versionMinor
-
-    \table
-    \row    \li \b{Type:}            \li \c{int}
-    \row    \li \b{Default:}         \li \c{versionParts[1]}
-    \endtable
-
-    The TypeScript minor version.
-
-    \section2 versionParts
-
-    \table
-    \row    \li \b{Type:}            \li \c{list}
-    \row    \li \b{Default:}         \li \c{empty}
-    \endtable
-
-    The TypeScript version as a list. For instance, TypeScript version 1.0 would correspond to a
-    value of \c[1, 0, 0, 0].
-
-    \section2 versionPatch
-
-    \table
-    \row    \li \b{Type:}            \li \c{int}
-    \row    \li \b{Default:}         \li \c{versionParts[2]}
-    \endtable
-
-    The TypeScript patch level.
-
-    \section2 versionBuild
-
-    \table
-    \row    \li \b{Type:}            \li \c{int}
-    \row    \li \b{Default:}         \li \c{versionParts[3]}
-    \endtable
-
-    The fourth TypeScript version number component.
-
-    \section2 toolchainInstallPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{path}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    TypeScript installation directory. This should not normally need to be changed provided that
-    \c{tsc} is already available by searching the PATH environment variable.
-
-    \section2 compilerName
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{"tsc"}
-    \endtable
-
-    Name of the compiler binary. This should not normally need to be changed.
-
-    \section2 compilerPath
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{compilerName}
-    \endtable
-
-    Directory where the compiler binary is located. This should not normally need to be changed.
 */
