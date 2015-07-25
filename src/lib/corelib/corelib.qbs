@@ -175,6 +175,8 @@ QbsLibrary {
             "moduleproperties.h",
             "process.cpp",
             "process.h",
+            "temporarydir.cpp",
+            "temporarydir.h",
             "textfile.cpp",
             "textfile.h",
             "domxml.cpp",

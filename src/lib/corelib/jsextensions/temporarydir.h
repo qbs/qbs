@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2015 Jake Petroules.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of the Qt Build Suite.
@@ -28,55 +28,33 @@
 **
 ****************************************************************************/
 
-#include "jsextensions.h"
+#ifndef QBS_TEMPORARYDIR_H
+#define QBS_TEMPORARYDIR_H
 
-#include "domxml.h"
-#include "file.h"
-#include "process.h"
-#include "propertylist.h"
-#include "temporarydir.h"
-#include "textfile.h"
-
-#include <QScriptEngine>
+#include <QObject>
+#include <QScriptable>
+#include <QTemporaryDir>
+#include <QVariant>
 
 namespace qbs {
 namespace Internal {
 
-void JsExtensions::setupExtensions(const QStringList &names, QScriptValue scope)
+void initializeJsExtensionTemporaryDir(QScriptValue extensionObject);
+
+class TemporaryDir : public QObject, public QScriptable
 {
-    foreach (const QString &name, names)
-        initializers().value(name)(scope);
-}
-
-QScriptValue JsExtensions::loadExtension(QScriptEngine *engine, const QString &name)
-{
-    if (!hasExtension(name))
-        return QScriptValue();
-
-    QScriptValue extensionObj = engine->newObject();
-    initializers().value(name)(extensionObj);
-    return extensionObj.property(name);
-}
-
-bool JsExtensions::hasExtension(const QString &name)
-{
-    return initializers().contains(name);
-}
-
-JsExtensions::InitializerMap JsExtensions::initializers()
-{
-    if (m_initializers.isEmpty()) {
-        m_initializers.insert(QLatin1String("File"), &initializeJsExtensionFile);
-        m_initializers.insert(QLatin1String("Process"), &initializeJsExtensionProcess);
-        m_initializers.insert(QLatin1String("Xml"), &initializeJsExtensionXml);
-        m_initializers.insert(QLatin1String("TemporaryDir"), &initializeJsExtensionTemporaryDir);
-        m_initializers.insert(QLatin1String("TextFile"), &initializeJsExtensionTextFile);
-        m_initializers.insert(QLatin1String("PropertyList"), &initializeJsExtensionPropertyList);
-    }
-    return m_initializers;
-}
-
-JsExtensions::InitializerMap JsExtensions::m_initializers;
+    Q_OBJECT
+public:
+    static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
+    TemporaryDir(QScriptContext *context);
+    Q_INVOKABLE bool isValid() const;
+    Q_INVOKABLE QString path() const;
+    Q_INVOKABLE bool remove();
+private:
+    QTemporaryDir dir;
+};
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_TEMPORARYDIR_H

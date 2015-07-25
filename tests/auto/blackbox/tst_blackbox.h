@@ -121,6 +121,7 @@ private slots:
     void jsExtensionsFileInfo();
     void jsExtensionsProcess();
     void jsExtensionsPropertyList();
+    void jsExtensionsTemporaryDir();
     void jsExtensionsTextFile();
     void listPropertiesWithOuter();
     void listPropertyOrder();

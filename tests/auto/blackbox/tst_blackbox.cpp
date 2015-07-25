@@ -1715,6 +1715,13 @@ void TestBlackbox::jsExtensionsPropertyList()
     QVERIFY(file1Contents != file5.readAll());
 }
 
+void TestBlackbox::jsExtensionsTemporaryDir()
+{
+    QDir::setCurrent(testDataDir + "/jsextensions-temporarydir");
+    QbsRunParameters params;
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::jsExtensionsTextFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions-textfile");

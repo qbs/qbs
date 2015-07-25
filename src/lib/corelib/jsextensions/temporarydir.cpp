@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2015 Jake Petroules.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of the Qt Build Suite.
@@ -28,55 +28,49 @@
 **
 ****************************************************************************/
 
-#include "jsextensions.h"
-
-#include "domxml.h"
-#include "file.h"
-#include "process.h"
-#include "propertylist.h"
 #include "temporarydir.h"
-#include "textfile.h"
 
 #include <QScriptEngine>
+#include <QScriptValue>
+#include <QTemporaryDir>
 
 namespace qbs {
 namespace Internal {
 
-void JsExtensions::setupExtensions(const QStringList &names, QScriptValue scope)
+void initializeJsExtensionTemporaryDir(QScriptValue extensionObject)
 {
-    foreach (const QString &name, names)
-        initializers().value(name)(scope);
+    QScriptEngine *engine = extensionObject.engine();
+    QScriptValue obj = engine->newQMetaObject(&TemporaryDir::staticMetaObject,
+                                              engine->newFunction(&TemporaryDir::ctor));
+    extensionObject.setProperty(QLatin1String("TemporaryDir"), obj);
 }
 
-QScriptValue JsExtensions::loadExtension(QScriptEngine *engine, const QString &name)
+QScriptValue TemporaryDir::ctor(QScriptContext *context, QScriptEngine *engine)
 {
-    if (!hasExtension(name))
-        return QScriptValue();
-
-    QScriptValue extensionObj = engine->newObject();
-    initializers().value(name)(extensionObj);
-    return extensionObj.property(name);
+    TemporaryDir *t = new TemporaryDir(context);
+    QScriptValue obj = engine->newQObject(t, QScriptEngine::ScriptOwnership);
+    return obj;
 }
 
-bool JsExtensions::hasExtension(const QString &name)
+TemporaryDir::TemporaryDir(QScriptContext *context)
 {
-    return initializers().contains(name);
+    Q_UNUSED(context);
 }
 
-JsExtensions::InitializerMap JsExtensions::initializers()
+bool TemporaryDir::isValid() const
 {
-    if (m_initializers.isEmpty()) {
-        m_initializers.insert(QLatin1String("File"), &initializeJsExtensionFile);
-        m_initializers.insert(QLatin1String("Process"), &initializeJsExtensionProcess);
-        m_initializers.insert(QLatin1String("Xml"), &initializeJsExtensionXml);
-        m_initializers.insert(QLatin1String("TemporaryDir"), &initializeJsExtensionTemporaryDir);
-        m_initializers.insert(QLatin1String("TextFile"), &initializeJsExtensionTextFile);
-        m_initializers.insert(QLatin1String("PropertyList"), &initializeJsExtensionPropertyList);
-    }
-    return m_initializers;
+    return dir.isValid();
 }
 
-JsExtensions::InitializerMap JsExtensions::m_initializers;
+QString TemporaryDir::path() const
+{
+    return dir.path();
+}
+
+bool TemporaryDir::remove()
+{
+    return dir.remove();
+}
 
 } // namespace Internal
 } // namespace qbs
