@@ -148,46 +148,31 @@ function ibtooldArguments(product, inputs, outputs, overrideOutput) {
     return args;
 }
 
-function createTemporaryDirectory() {
-    var process;
-    try {
-        process = new Process();
-        process.exec("mktemp", ["-d", "/tmp/io.qt.qbs." + new Array(32).join("X")], true);
-        return process.readStdOut().trim();
-    } finally {
-        process.close();
-    }
-}
-
 function actoolOutputArtifacts(product, inputs) {
-    var process;
-    try {
-        // actool has no --dry-run option (rdar://21786925),
-        // so compile to a fake temporary directory in order to extract the list of output files
-        var outputDirectory = ModUtils.moduleProperty(product, "actoolOutputDirectory");
-        var fakeOutputDirectory = createTemporaryDirectory();
-
+    // actool has no --dry-run option (rdar://21786925),
+    // so compile to a fake temporary directory in order to extract the list of output files
+    var tracker = new ModUtils.BlackboxOutputArtifactTracker();
+    tracker.hostOS = product.moduleProperty("qbs", "hostOS");
+    tracker.command = ModUtils.moduleProperty(product, "actoolPath");
+    tracker.commandArgsFunction = function (outputDirectory) {
         // Last --output-format argument overrides any previous ones
-        process = new Process();
-        process.exec(ModUtils.moduleProperty(product, "actoolPath"),
-                     Ib.ibtooldArguments(product, inputs, undefined, fakeOutputDirectory)
-                     .concat(["--output-format", "xml1"]), true);
+        return ibtooldArguments(product, inputs,
+                                undefined, outputDirectory).concat(["--output-format", "xml1"]);
+    };
+    tracker.processStdOutFunction = parseActoolOutput;
+    var artifacts = tracker.artifacts(ModUtils.moduleProperty(product, "actoolOutputDirectory"));
 
-        var artifacts = parseActoolOutput(process.readStdOut());
-
-        // Fix the paths since we faked them
-        for (var i in artifacts)
-            artifacts[i].filePath = outputDirectory + artifacts[i].filePath.substr(fakeOutputDirectory.length);
-
-        // Newer versions of actool don't generate *anything* if there's no input;
-        // in that case a partial Info.plist would not have been generated either
-        if (artifacts && artifacts.length > 0)
-            artifacts.push({filePath: FileInfo.joinPaths(product.destinationDirectory, "assetcatalog_generated_info.plist"), fileTags: ["partial_infoplist"]});
-
-        return artifacts;
-    } finally {
-        process.close();
+    // Newer versions of actool don't generate *anything* if there's no input;
+    // in that case a partial Info.plist would not have been generated either
+    if (artifacts && artifacts.length > 0) {
+        artifacts.push({
+            filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                         "assetcatalog_generated_info.plist"),
+            fileTags: ["partial_infoplist"]
+        });
     }
+
+    return artifacts;
 }
 
 function parseActoolOutput(output) {
