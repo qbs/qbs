@@ -28,7 +28,10 @@
 **
 ****************************************************************************/
 
+var File = loadExtension("qbs.File");
 var FileInfo = loadExtension("qbs.FileInfo");
+var Process = loadExtension("qbs.Process");
+var TemporaryDir = loadExtension("qbs.TemporaryDir");
 
 /**
   * Given a list of file tags, returns the file tag (one of [c, cpp, objc, objcpp])
@@ -196,6 +199,13 @@ function concatAll() {
     return result;
 }
 
+function allFileTags(fileTaggers) {
+    var tags = [];
+    for (var ext in fileTaggers)
+        tags = tags.uniqueConcat(fileTaggers[ext]);
+    return tags;
+}
+
 /**
   * Flattens an environment dictionary (string keys to arrays or strings)
   * into a string list containing items like \c key=value1:value2:value3
@@ -351,4 +361,80 @@ var PropertyValidator = (function () {
         return errorMessage.length == 0;
     };
     return PropertyValidator;
+})();
+
+var BlackboxOutputArtifactTracker = (function () {
+    function BlackboxOutputArtifactTracker() {
+    }
+    BlackboxOutputArtifactTracker.prototype.artifacts = function (outputDirectory) {
+        var process;
+        var fakeOutputDirectory;
+        try {
+            fakeOutputDirectory = new TemporaryDir();
+            if (!fakeOutputDirectory.isValid())
+                throw "could not create temporary directory";
+            process = new Process();
+            if (this.commandEnvironmentFunction) {
+                var env = this.commandEnvironmentFunction(fakeOutputDirectory.path());
+                for (var key in env)
+                    process.setEnv(key, env[key]);
+            }
+            process.exec(this.command, this.commandArgsFunction(fakeOutputDirectory.path()), true);
+            var artifacts = [];
+            if (this.fileTaggers) {
+                var files = this.findFiles(fakeOutputDirectory.path());
+                for (var i = 0; i < files.length; ++i)
+                    artifacts.push(this.createArtifact(files[i]));
+            }
+            if (this.processStdOutFunction)
+                artifacts = artifacts.concat(this.processStdOutFunction(process.readStdOut()));
+            artifacts = this.fixArtifactPaths(artifacts, outputDirectory, fakeOutputDirectory.path());
+            return artifacts;
+        }
+        finally {
+            if (process)
+                process.close();
+            if (fakeOutputDirectory)
+                fakeOutputDirectory.remove();
+        }
+    };
+    BlackboxOutputArtifactTracker.prototype.createArtifact = function (filePath) {
+        for (var ext in this.fileTaggers) {
+            if (filePath.endsWith(ext)) {
+                return {
+                    filePath: filePath,
+                    fileTags: this.fileTaggers[ext]
+                };
+            }
+        }
+        if (!this.allowUntaggedFiles)
+            throw "could not tag file " + filePath;
+        return {
+            filePath: filePath,
+            fileTags: []
+        };
+    };
+    // TODO: Use File.directoryEntries
+    BlackboxOutputArtifactTracker.prototype.findFiles = function (dir) {
+        var proc;
+        try {
+            proc = new Process();
+            if (this.hostOS && this.hostOS.contains("windows"))
+                proc.exec("cmd", ["/C", "dir", FileInfo.toWindowsSeparators(dir), "/B", "/S"], true);
+            else
+                proc.exec("find", [dir, "-type", "f"], true);
+            return proc.readStdOut().trim().split(/[\r\n]/).map(FileInfo.fromWindowsSeparators);
+        }
+        finally {
+            if (proc)
+                proc.close();
+        }
+    };
+    BlackboxOutputArtifactTracker.prototype.fixArtifactPaths = function (artifacts, realBasePath, fakeBasePath) {
+        for (var i = 0; i < artifacts.length; ++i)
+            artifacts[i].filePath = realBasePath
+                + artifacts[i].filePath.substr(fakeBasePath.length);
+        return artifacts;
+    };
+    return BlackboxOutputArtifactTracker;
 })();
