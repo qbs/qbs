@@ -45,11 +45,6 @@
 #include <QScriptEngine>
 #include <QScriptValue>
 
-// from qsysinfo.h
-#ifndef Q_MV_OSX
-#define Q_MV_OSX(major, minor) (major == 10 ? minor + 2 : (major == 9 ? 1 : 0))
-#endif
-
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
 using qbs::InstallOptions;
@@ -2620,10 +2615,9 @@ void TestBlackbox::testAssetCatalog()
 {
     if (!HostOsInfo::isOsxHost())
         QSKIP("only applies on OS X");
-#ifdef Q_OS_MAC
-    if (QSysInfo::macVersion() < Q_MV_OSX(10, 9))
+
+    if (HostOsInfo::hostOsVersion() < qbs::Internal::Version(10, 9))
         QSKIP("This test needs at least OS X 10.9.");
-#endif
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/assetcatalog"));
 
@@ -2664,9 +2658,7 @@ void TestBlackbox::testAssetCatalog()
 
     // make sure the nibs/storyboards are in there
     QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/MainMenu.nib"));
-#ifdef Q_OS_MAC
-    if (QSysInfo::macVersion() >= Q_MV_OSX(10, 10))
-#endif
+    if (HostOsInfo::hostOsVersion() >= qbs::Internal::Version(10, 10))
         QVERIFY(directoryExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/multiple-asset-catalogs"));

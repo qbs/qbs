@@ -32,9 +32,11 @@
 #define QBS_HOSTOSINFO_H
 
 #include "qbs_export.h"
+#include "version.h"
 
 #include <QtGlobal>
 #include <QMap>
+#include <QSettings>
 #include <QString>
 #include <QStringList>
 
@@ -62,6 +64,25 @@ public:
     enum HostOs { HostOsWindows, HostOsLinux, HostOsOsx, HostOsOtherUnix, HostOsOther };
 
     static inline HostOs hostOs();
+
+    static inline Version hostOsVersion() {
+        Version v;
+        if (HostOsInfo::isWindowsHost()) {
+            QSettings settings(QStringLiteral("HKEY_LOCAL_MACHINE\\Software\\"
+                                              "Microsoft\\Windows NT\\CurrentVersion"),
+                               QSettings::NativeFormat);
+            v = v.fromString(settings.value(QStringLiteral("CurrentVersion")).toString() +
+                             QLatin1Char('.') +
+                             settings.value(QStringLiteral("CurrentBuildNumber")).toString());
+            Q_ASSERT(v.isValid());
+        } else if (HostOsInfo::isOsxHost()) {
+            QSettings settings(QStringLiteral("/System/Library/CoreServices/SystemVersion.plist"),
+                               QSettings::NativeFormat);
+            v = v.fromString(settings.value(QStringLiteral("ProductVersion")).toString());
+            Q_ASSERT(v.isValid());
+        }
+        return v;
+    }
 
     static bool isWindowsHost() { return hostOs() == HostOsWindows; }
     static bool isLinuxHost() { return hostOs() == HostOsLinux; }
