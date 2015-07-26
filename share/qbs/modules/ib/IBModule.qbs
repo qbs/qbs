@@ -147,37 +147,19 @@ Module {
     Rule {
         inputs: ["nib", "storyboard"]
 
-        outputFileTags: [
-            "compiled_ibdoc", "compiled_nib", "compiled_storyboard", "partial_infoplist"
-        ]
-        outputArtifacts: {
-            // When the flatten property is true, this artifact will be a FILE, otherwise it will be a DIRECTORY
-            var path = BundleTools.destinationDirectoryForResource(product, input);
-            var suffix = "";
-            if (input.fileTags.contains("nib"))
-                suffix = ModUtils.moduleProperty(product, "compiledNibSuffix");
-            else if (input.fileTags.contains("storyboard"))
-                suffix = ModUtils.moduleProperty(product, "compiledStoryboardSuffix");
-            path += '/' + input.completeBaseName + suffix;
-            var tags = ["compiled_ibdoc"];
-            if (inputs["nib"])
-                tags.push("compiled_nib");
-            if (inputs["storyboard"])
-                tags.push("compiled_storyboard");
-            var artifacts = [{ filePath: path, fileTags: tags }];
-            if (product.moduleProperty("ib", "ibtoolVersionMajor") >= 6) {
-                var prefix = input.fileTags.contains("storyboard") ? "SB" : "";
-                path = FileInfo.joinPaths(product.destinationDirectory, input.completeBaseName +
-                                          "-" + prefix + "PartialInfo.plist");
-                artifacts.push({ filePath: path, fileTags: "partial_infoplist" });
-            }
-            return artifacts;
+        outputFileTags: {
+            var tags = [];
+            for (var i = 0; i < inputs.length; ++i)
+                tags = tags.uniqueConcat(ModUtils.allFileTags(Ib.ibtoolFileTaggers(inputs[i])));
+            return tags;
         }
+
+        outputArtifacts: Ib.ibtoolOutputArtifacts(product, inputs, input)
 
         prepare: {
             var cmd = new Command(ModUtils.moduleProperty(product, "ibtoolPath"),
                                   Ib.ibtooldArguments(product, inputs, outputs));
-            cmd.description = ModUtils.moduleProperty(input, "ibtoolName") + ' ' + input.fileName;
+            cmd.description = "compiling " + input.fileName;
 
             // Also display the language name of the nib/storyboard being compiled if it has one
             var localizationKey = DarwinTools.localizationKey(input.filePath);

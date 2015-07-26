@@ -99,6 +99,7 @@ private slots:
     void android_data();
     void assembly();
     void assetCatalog();
+    void assetCatalog_data();
     void badInterpreter();
     void buildDirectories();
     void changedFiles_data();

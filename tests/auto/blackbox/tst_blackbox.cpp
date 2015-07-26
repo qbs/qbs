@@ -2698,23 +2698,27 @@ void TestBlackbox::iconsetApp()
 
 void TestBlackbox::assetCatalog()
 {
+    QFETCH(bool, flatten);
+
     if (!HostOsInfo::isOsxHost() || !isXcodeProfile(profileName()))
         QSKIP("only applies on OS X with Xcode based profiles");
-    if (!HostOsInfo::isOsxHost())
-        QSKIP("only applies on OS X");
+
     if (HostOsInfo::hostOsVersion() < qbs::Internal::Version(10, 9))
         QSKIP("This test needs at least OS X 10.9.");
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/assetcatalog"));
 
+    rmDirR(relativeBuildDir());
+
     QbsRunParameters params;
+    const QString flattens = "ib.flatten:" + QString(flatten ? "true" : "false");
 
     // Make sure a dry run does not write anything
-    params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs" << "--dry-run";
+    params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs" << "--dry-run" << flattens;
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!directoryExists(relativeBuildDir()));
 
-    params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs";
+    params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs" << flattens;
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
@@ -2743,21 +2747,63 @@ void TestBlackbox::assetCatalog()
     QVERIFY((bool)m_qbsStdout.contains("iconutil"));
 
     // make sure the nibs/storyboards are in there
-    QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/MainMenu.nib"));
-    if (HostOsInfo::hostOsVersion() >= qbs::Internal::Version(10, 10))
-        QVERIFY(directoryExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
+    QString nib = relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/MainMenu.nib";
+    QStringList nibFiles;
+    if (flatten) {
+        QVERIFY(regularFileExists(nib));
+    } else {
+        QVERIFY(directoryExists(nib));
+        nibFiles = QStringList() << "designable.nib" << "keyedobjects.nib";
+    }
+
+    QString storyboardc = relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc";
+    QStringList storyboardcFiles;
+    if (HostOsInfo::hostOsVersion() >= qbs::Internal::Version(10, 10)) {
+        QVERIFY(directoryExists(storyboardc));
+
+        storyboardcFiles = QStringList()
+                << "1os-k8-h10-view-qKA-a5-eUe.nib"
+                << "Info.plist"
+                << "Iqk-Fi-Vhk-view-HRv-3O-Qxh.nib"
+                << "Main.nib"
+                << "NSViewController-Iqk-Fi-Vhk.nib"
+                << "NSViewController-Yem-rc-72E.nib"
+                << "Yem-rc-72E-view-ODp-aO-Dmf.nib";
+
+        if (!flatten) {
+            storyboardcFiles << "designable.storyboard";
+            storyboardcFiles.sort();
+        }
+    }
+
+    QCOMPARE(QDir(nib).entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name), nibFiles);
+    QCOMPARE(QDir(storyboardc).entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name), storyboardcFiles);
+    QbsRunParameters params2 = params;
+    params2.command = "clean";
+    QCOMPARE(runQbs(params2), 0);
+    QCOMPARE(QDir(nib).entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name), QStringList());
+    QCOMPARE(QDir(storyboardc).entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name), QStringList());
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/multiple-asset-catalogs"));
+    rmDirR(relativeBuildDir());
     params.arguments = QStringList();
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("compiling assetcatalog1.xcassets"), m_qbsStdout);
     QVERIFY2(m_qbsStdout.contains("compiling assetcatalog2.xcassets"), m_qbsStdout);
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/empty-asset-catalogs"));
+    rmDirR(relativeBuildDir());
     params.arguments = QStringList();
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(!m_qbsStdout.contains("compiling assetcatalog1.xcassets"), m_qbsStdout);
     QVERIFY2(!m_qbsStdout.contains("compiling assetcatalog2.xcassets"), m_qbsStdout);
+}
+
+void TestBlackbox::assetCatalog_data()
+{
+    QTest::addColumn<bool>("flatten");
+    QTest::newRow("flattened") << true;
+    QTest::newRow("unflattened") << false;
 }
 
 void TestBlackbox::objcArc()

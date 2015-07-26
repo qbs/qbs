@@ -427,7 +427,7 @@ Module {
         multiplex: true
         inputs: ["infoplist", "pkginfo", "hpp",
                  "icns", "resourcerules",
-                 "compiled_nib", "compiled_storyboard", "compiled_assetcatalog"]
+                 "compiled_ibdoc", "compiled_assetcatalog"]
 
         outputFileTags: ["bundle",
             "bundle.symlink.headers", "bundle.symlink.private-headers",

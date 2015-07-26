@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var BundleTools = loadExtension("qbs.BundleTools");
 var DarwinTools = loadExtension("qbs.DarwinTools");
 var File = loadExtension("qbs.File");
 var FileInfo = loadExtension("qbs.FileInfo");
@@ -135,8 +136,8 @@ function ibtooldArguments(product, inputs, outputs, overrideOutput) {
     if (overrideOutput) {
         args.push("--compile", overrideOutput);
     } else {
-        if (outputs.compiled_ibdoc)
-            args.push("--compile", outputs.compiled_ibdoc[0].filePath);
+        if (outputs.compiled_ibdoc_main)
+            args.push("--compile", outputs.compiled_ibdoc_main[0].filePath);
 
         if (outputs.compiled_assetcatalog)
             args.push("--compile", ModUtils.moduleProperty(product, "actoolOutputDirectory"));
@@ -146,6 +147,81 @@ function ibtooldArguments(product, inputs, outputs, overrideOutput) {
         args.push(allInputs[i].filePath);
 
     return args;
+}
+
+function ibtoolFileTaggers(fileTags) {
+    var ext;
+    if (fileTags.contains("nib") && !fileTags.contains("storyboard"))
+        ext = "nib";
+    if (fileTags.contains("storyboard") && !fileTags.contains("nib"))
+        ext = "storyboard";
+
+    if (!ext)
+        throw "unknown ibtool input file tags: " + fileTags;
+
+    var t = "compiled_ibdoc";
+    return {
+        ".nib": [t, "compiled_" + ext + (ext !== "nib" ? "_nib" : "")],
+        ".plist": [t, "compiled_" + ext + "_infoplist"],
+        ".storyboard": [t, "compiled_" + ext]
+    };
+}
+
+function ibtoolOutputArtifacts(product, inputs, input) {
+    var suffix = input.completeBaseName;
+    if (input.fileTags.contains("nib"))
+        suffix += ModUtils.moduleProperty(product, "compiledNibSuffix");
+    else if (input.fileTags.contains("storyboard"))
+        suffix += ModUtils.moduleProperty(product, "compiledStoryboardSuffix");
+
+    var tracker = new ModUtils.BlackboxOutputArtifactTracker();
+    tracker.hostOS = product.moduleProperty("qbs", "hostOS");
+    tracker.fileTaggers = ibtoolFileTaggers(input.fileTags);
+    tracker.command = ModUtils.moduleProperty(product, "ibtoolPath");
+    tracker.commandArgsFunction = function (outputDirectory) {
+        // Last --output-format argument overrides any previous ones
+        // Append the name of the base output since it can be either a file or a directory
+        // in the case of XIB compilations
+        return ibtooldArguments(product, inputs,
+                                undefined, FileInfo.joinPaths(outputDirectory, suffix))
+            .concat(["--output-format", "xml1"]);
+    };
+
+    var artifacts = tracker.artifacts(
+                FileInfo.joinPaths(BundleTools.destinationDirectoryForResource(product, input)));
+
+    if (product.moduleProperty("ib", "ibtoolVersionMajor") >= 6) {
+        var prefix = input.fileTags.contains("storyboard") ? "SB" : "";
+        var path = FileInfo.joinPaths(product.destinationDirectory, input.completeBaseName +
+                                      "-" + prefix + "PartialInfo.plist");
+        artifacts.push({ filePath: path, fileTags: ["partial_infoplist"] });
+    }
+
+    // Tag the "main" output
+    // This can be either a file or directory so the artifact might already exist in the output list
+    var main = FileInfo.joinPaths(BundleTools.destinationDirectoryForResource(product, input),
+                                  suffix);
+    var mainTags = ["compiled_ibdoc", "compiled_ibdoc_main"];
+    var mainIndex = -1;
+    for (var i = 0; i < artifacts.length; ++i) {
+        if (artifacts[i].filePath === main) {
+            mainIndex = i;
+            break;
+        }
+    }
+
+    if (mainIndex === -1) {
+        // artifact not in list - the output was a directory (unflatted nib or storyboard)
+        artifacts.splice(0, 0, {
+            filePath: main,
+            fileTags: mainTags
+        });
+    } else {
+        // artifact in list - the output was a file (flattened nib)
+        artifacts[mainIndex].fileTags = mainTags.uniqueConcat(artifacts[mainIndex].fileTags);
+    }
+
+    return artifacts;
 }
 
 function actoolOutputArtifacts(product, inputs) {
