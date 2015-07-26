@@ -121,13 +121,13 @@ QString ProductInstaller::targetFilePath(const TopLevelProject *project,
         // This has the same effect as if installSourceBase would equal the directory of the file.
         targetFilePath = FileInfo::fileName(sourceFilePath);
     } else {
-        const QString localAbsBasePath = QDir::cleanPath(productSourceDir + QLatin1Char('/')
-                                                         + installSourceBase);
+        const QString localAbsBasePath = FileInfo::resolvePath(QDir::cleanPath(productSourceDir),
+                                                               QDir::cleanPath(installSourceBase));
         targetFilePath = sourceFilePath;
         if (!targetFilePath.startsWith(localAbsBasePath)) {
             throw ErrorInfo(Tr::tr("Cannot install '%1', because it doesn't start with the"
                                    " value of qbs.installSourceBase '%2'.").arg(sourceFilePath,
-                                                                                installSourceBase));
+                                                                                localAbsBasePath));
         }
 
         targetFilePath.remove(0, localAbsBasePath.length() + 1);
