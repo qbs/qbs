@@ -133,10 +133,10 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
     const QString compilerName = QFileInfo(compilerFilePath).fileName();
     if (!standardCompilerFileNames().contains(compilerName))
         qWarning("%s", qPrintable(
-                     QString(QStringLiteral("'%1' is not a standard compiler file name; "
+                     QString::fromLatin1("'%1' is not a standard compiler file name; "
                                             "you must set the cpp.cCompilerName and "
                                             "cpp.cxxCompilerName properties of this profile "
-                                            "manually")).arg(compilerName)));
+                                            "manually").arg(compilerName)));
 
 
     if (toolchainTypes.contains(QStringLiteral("mingw")))
