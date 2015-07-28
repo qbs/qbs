@@ -230,6 +230,8 @@ QbsLibrary {
             "itemreader.h",
             "itemreaderastvisitor.cpp",
             "itemreaderastvisitor.h",
+            "itemreadervisitorstate.cpp",
+            "itemreadervisitorstate.h",
             "jsimports.h",
             "language.cpp",
             "language.h",

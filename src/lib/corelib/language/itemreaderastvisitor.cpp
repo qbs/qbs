@@ -29,10 +29,12 @@
 ****************************************************************************/
 
 #include "itemreaderastvisitor.h"
+
 #include "asttools.h"
 #include "builtindeclarations.h"
 #include "identifiersearch.h"
-#include "itemreader.h"
+#include "itemreadervisitorstate.h"
+
 #include <jsextensions/jsextensions.h>
 #include <parser/qmljsast_p.h>
 #include <tools/error.h>
@@ -43,19 +45,19 @@
 
 #include <QDirIterator>
 #include <QFileInfo>
-#include <QStringList>
 
 using namespace QbsQmlJS;
 
 namespace qbs {
 namespace Internal {
 
-ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReader *reader, ItemReaderResult *result)
-    : m_reader(reader)
-    , m_readerResult(result)
+ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReaderVisitorState &visitorState,
+        ItemPool *itemPool, Logger logger, const QStringList &searchPaths)
+    : m_visitorState(visitorState)
     , m_file(FileContext::create())
-    , m_item(0)
-    , m_sourceValue(0)
+    , m_itemPool(itemPool)
+    , m_logger(logger)
+    , m_searchPaths(searchPaths)
 {
 }
 
@@ -77,7 +79,7 @@ bool ItemReaderASTVisitor::visit(AST::UiProgram *ast)
 {
     Q_UNUSED(ast);
     m_sourceValue.clear();
-    m_file->m_searchPaths = m_reader->searchPaths();
+    m_file->m_searchPaths = m_searchPaths;
 
     if (Q_UNLIKELY(!ast->members->member))
         throw ErrorInfo(Tr::tr("No root item found in %1.").arg(m_file->filePath()));
@@ -108,7 +110,7 @@ bool ItemReaderASTVisitor::addPrototype(const QString &fileName, const QString &
 void ItemReaderASTVisitor::collectPrototypes(const QString &path, const QString &as)
 {
     QStringList fileNames; // Yes, file *names*.
-    if (m_reader->findDirectoryEntries(path, &fileNames)) {
+    if (m_visitorState.findDirectoryEntries(path, &fileNames)) {
         foreach (const QString &fileName, fileNames)
             addPrototype(fileName, path + QLatin1Char('/') + fileName, as, false);
         return;
@@ -121,12 +123,12 @@ void ItemReaderASTVisitor::collectPrototypes(const QString &path, const QString 
         if (addPrototype(fileName, filePath, as, true))
             fileNames << fileName;
     }
-    m_reader->cacheDirectoryEntries(path, fileNames);
+    m_visitorState.cacheDirectoryEntries(path, fileNames);
 }
 
 bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
 {
-    foreach (const QString &searchPath, m_reader->searchPaths())
+    foreach (const QString &searchPath, m_searchPaths)
         collectPrototypes(searchPath + QLatin1String("/imports"), QString());
 
     const QString path = FileInfo::path(m_file->filePath());
@@ -150,8 +152,8 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
             if (isBase)
                 checkImportVersion(import->versionToken);
             else if (import->versionToken.length)
-                m_reader->logger().printWarning(ErrorInfo(Tr::tr("Superfluous version specification."),
-                                                    toCodeLocation(import->versionToken)));
+                m_logger.printWarning(ErrorInfo(Tr::tr("Superfluous version specification."),
+                                                toCodeLocation(import->versionToken)));
         }
 
         QString as;
@@ -169,8 +171,8 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                                                "must not have 'as' specifier.").arg(extensionName));
                     }
                     if (Q_UNLIKELY(m_file->m_jsExtensions.contains(extensionName))) {
-                        m_reader->logger().printWarning(Tr::tr("Built-in extension '%1' already "
-                                                               "imported.").arg(extensionName));
+                        m_logger.printWarning(Tr::tr("Built-in extension '%1' already "
+                                                     "imported.").arg(extensionName));
                     } else {
                         m_file->m_jsExtensions << extensionName;
                     }
@@ -233,7 +235,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                     ? QLatin1String("qbs/base") : importUri.join(QDir::separator());
             bool found = m_typeNameToFile.contains(importUri);
             if (!found) {
-                foreach (const QString &searchPath, m_reader->searchPaths()) {
+                foreach (const QString &searchPath, m_searchPaths) {
                     const QFileInfo fi(FileInfo::resolvePath(
                                            FileInfo::resolvePath(searchPath,
                                                                  QLatin1String("imports")),
@@ -279,7 +281,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
 {
     const QString typeName = ast->qualifiedTypeNameId->name.toString();
 
-    Item *item = Item::create(m_reader->m_pool);
+    Item *item = Item::create(m_itemPool);
     item->m_file = m_file;
     item->m_parent = m_item;
     item->m_typeName = typeName;
@@ -292,7 +294,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     } else {
         // This is the root item.
         m_item = item;
-        m_readerResult->rootItem = item;
+        m_rootItem = item;
     }
 
     if (ast->initializer) {
@@ -301,7 +303,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         qSwap(m_item, item);
     }
 
-    BuiltinDeclarations::instance().setupItemForBuiltinType(item, m_reader->logger());
+    BuiltinDeclarations::instance().setupItemForBuiltinType(item, m_logger);
 
     if (item->typeName() != QLatin1String("Properties")
             && item->typeName() != QLatin1String("SubProject")) {
@@ -312,14 +314,15 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     const QStringList fullTypeName = toStringList(ast->qualifiedTypeNameId);
     const QString baseTypeFileName = m_typeNameToFile.value(fullTypeName);
     if (!baseTypeFileName.isEmpty()) {
-        const ItemReaderResult baseFile = m_reader->internalReadFile(baseTypeFileName);
+        const Item * const rootItem
+                = m_visitorState.readFile(baseTypeFileName, m_searchPaths, m_itemPool);
 
-        inheritItem(item, baseFile.rootItem);
-        if (baseFile.rootItem->m_file->m_idScope) {
+        inheritItem(item, rootItem);
+        if (rootItem->m_file->m_idScope) {
             // Make ids from the derived file visible in the base file.
             // ### Do we want to turn off this feature? It's QMLish but kind of strange.
             ensureIdScope(item->m_file);
-            baseFile.rootItem->m_file->m_idScope->setPrototype(item->m_file->m_idScope);
+            rootItem->m_file->m_idScope->setPrototype(item->m_file->m_idScope);
         }
     }
 
@@ -475,7 +478,7 @@ Item *ItemReaderASTVisitor::targetItemForBinding(Item *item,
     for (int i = 0; i < c; ++i) {
         ValuePtr v = targetItem->m_properties.value(bindingName.at(i));
         if (!v) {
-            Item *newItem = Item::create(m_reader->m_pool);
+            Item *newItem = Item::create(m_itemPool);
             v = ItemValue::create(newItem);
             targetItem->m_properties.insert(bindingName.at(i), v);
         }
@@ -556,7 +559,7 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
 void ItemReaderASTVisitor::ensureIdScope(const FileContextPtr &file)
 {
     if (!file->m_idScope) {
-        file->m_idScope = Item::create(m_reader->m_pool);
+        file->m_idScope = Item::create(m_itemPool);
         file->m_idScope->m_typeName = QLatin1String("IdScope");
     }
 }

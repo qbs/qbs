@@ -34,21 +34,23 @@
 #include "item.h"
 #include "filecontext.h"
 
+#include <logging/logger.h>
 #include <parser/qmljsastvisitor_p.h>
 
 #include <QHash>
+#include <QStringList>
 
 namespace qbs {
 namespace Internal {
 
-class ItemReader;
-struct ItemReaderResult;
+class ItemReaderVisitorState;
 class Version;
 
 class ItemReaderASTVisitor : public QbsQmlJS::AST::Visitor
 {
 public:
-    ItemReaderASTVisitor(ItemReader *reader, ItemReaderResult *result);
+    ItemReaderASTVisitor(ItemReaderVisitorState &visitorState,
+                         ItemPool *itemPool, Logger logger, const QStringList &searchPaths);
     ~ItemReaderASTVisitor();
 
     void setFilePath(const QString &filePath);
@@ -60,6 +62,8 @@ public:
     bool visit(QbsQmlJS::AST::UiPublicMember *ast);
     bool visit(QbsQmlJS::AST::UiScriptBinding *ast);
     bool visit(QbsQmlJS::AST::FunctionDeclaration *ast);
+
+    Item *rootItem() const { return m_rootItem; }
 
 private:
     static Version readImportVersion(const QString &str,
@@ -80,11 +84,14 @@ private:
     bool addPrototype(const QString &fileName, const QString &filePath, const QString &as,
                       bool needsCheck);
 
-    ItemReader *m_reader;
-    ItemReaderResult *m_readerResult;
-    FileContextPtr m_file;
+    ItemReaderVisitorState &m_visitorState;
+    const FileContextPtr m_file;
+    ItemPool * const m_itemPool;
+    Logger m_logger;
+    const QStringList m_searchPaths;
     QHash<QStringList, QString> m_typeNameToFile;
-    Item *m_item;
+    Item *m_item = nullptr;
+    Item *m_rootItem = nullptr;
     JSSourceValuePtr m_sourceValue;
 };
 

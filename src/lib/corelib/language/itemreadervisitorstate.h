@@ -27,11 +27,9 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_ITEMREADERVISITORSTATE_H
+#define QBS_ITEMREADERVISITORSTATE_H
 
-#ifndef QBS_ITEMREADER_H
-#define QBS_ITEMREADER_H
-
-#include "forward_decls.h"
 #include <logging/logger.h>
 
 #include <QSet>
@@ -40,47 +38,33 @@
 
 namespace qbs {
 namespace Internal {
-
+class BuiltinDeclarations;
 class Item;
 class ItemPool;
-class ItemReaderVisitorState;
 
-/*
- * Reads a qbs file and creates a tree of Item objects.
- *
- * In this stage the following steps are performed:
- *    - The QML/JS parser creates the AST.
- *    - The AST is converted to a tree of Item objects.
- *
- * This class is also responsible for the QMLish inheritance semantics.
- */
-class ItemReader
+class ItemReaderVisitorState
 {
 public:
-    ItemReader(const Logger &logger);
-    ~ItemReader();
+    ItemReaderVisitorState(Logger logger);
+    ~ItemReaderVisitorState();
 
-    void setPool(ItemPool *pool) { m_pool = pool; }
-    void setSearchPaths(const QStringList &searchPaths);
-    void pushExtraSearchPaths(const QStringList &extraSearchPaths);
-    void popExtraSearchPaths();
-    QStack<QStringList> extraSearchPathsStack() const;
-    void setExtraSearchPathsStack(const QStack<QStringList> &s) { m_extraSearchPaths = s; }
-    void clearExtraSearchPathsStack() { m_extraSearchPaths.clear(); }
-    QStringList searchPaths() const;
+    QSet<QString> filesRead() const { return m_filesRead; }
 
-    Item *readFile(const QString &filePath);
+    Item *readFile(const QString &filePath, const QStringList &searchPaths, ItemPool *itemPool);
 
-    QSet<QString> filesRead() const;
+    void cacheDirectoryEntries(const QString &dirPath, const QStringList &entries);
+    bool findDirectoryEntries(const QString &dirPath, QStringList *entries) const;
 
 private:
-    ItemPool *m_pool = nullptr;
-    QStringList m_searchPaths;
-    QStack<QStringList> m_extraSearchPaths;
-    ItemReaderVisitorState * const m_visitorState;
+    Logger m_logger;
+    QSet<QString> m_filesRead;
+    QHash<QString, QStringList> m_directoryEntries;
+
+    class ASTCache;
+    ASTCache * const m_astCache;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_ITEMREADER_H
+#endif // Include guard.
