@@ -46,13 +46,16 @@ class Item;
 class BuiltinDeclarations
 {
 public:
-    BuiltinDeclarations();
+    static const BuiltinDeclarations &instance();
 
     QString languageVersion() const;
     bool containsType(const QString &typeName) const;
     QStringList allTypeNames() const;
     ItemDeclaration declarationsForType(const QString &typeName) const;
-    void setupItemForBuiltinType(qbs::Internal::Item *item, Logger logger) const;
+    void setupItemForBuiltinType(Item *item, Logger logger) const;
+
+protected:
+    BuiltinDeclarations();
 
 private:
     void insert(const ItemDeclaration &decl);

@@ -39,6 +39,9 @@
 namespace qbs {
 namespace Internal {
 
+class AClassWithPublicConstructor : public BuiltinDeclarations { };
+Q_GLOBAL_STATIC(AClassWithPublicConstructor, theInstance)
+
 const char QBS_LANGUAGE_VERSION[] = "1.0";
 
 BuiltinDeclarations::BuiltinDeclarations()
@@ -59,6 +62,11 @@ BuiltinDeclarations::BuiltinDeclarations()
     addSubprojectItem();
     addTransformerItem();
     addScannerItem();
+}
+
+const BuiltinDeclarations &BuiltinDeclarations::instance()
+{
+    return *theInstance;
 }
 
 QString BuiltinDeclarations::languageVersion() const

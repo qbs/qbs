@@ -68,10 +68,9 @@ static const FileTag unknownFileTag()
     return tag;
 }
 
-ProjectResolver::ProjectResolver(ModuleLoader *ldr, const BuiltinDeclarations *builtins,
+ProjectResolver::ProjectResolver(ModuleLoader *ldr,
         const Logger &logger)
     : m_evaluator(ldr->evaluator())
-    , m_builtins(builtins)
     , m_logger(logger)
     , m_engine(m_evaluator->engine())
     , m_progressObserver(0)
@@ -365,7 +364,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         fakeGroup->setProperty(QLatin1String("excludeFiles"),
                                item->property(QLatin1String("excludeFiles")));
         fakeGroup->setProperty(QLatin1String("overrideTags"), VariantValue::create(false));
-        m_builtins->setupItemForBuiltinType(fakeGroup, m_logger);
+        BuiltinDeclarations::instance().setupItemForBuiltinType(fakeGroup, m_logger);
         subItems.prepend(fakeGroup);
     }
 

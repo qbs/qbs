@@ -386,7 +386,7 @@ class ArtifactBindingsExtractor
     {
         QSet<QString> s;
         foreach (const PropertyDeclaration &pd,
-                 BuiltinDeclarations().declarationsForType(
+                 BuiltinDeclarations::instance().declarationsForType(
                      QLatin1String("Artifact")).properties()) {
             s.insert(pd.name());
         }

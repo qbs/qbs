@@ -65,13 +65,13 @@ class ModuleLoader::ItemModuleList : public QList<Item::Module> {};
 
 const QString moduleSearchSubDir = QLatin1String("modules");
 
-ModuleLoader::ModuleLoader(ScriptEngine *engine, BuiltinDeclarations *builtins,
+ModuleLoader::ModuleLoader(ScriptEngine *engine,
                            const Logger &logger)
     : m_engine(engine)
     , m_pool(0)
     , m_logger(logger)
     , m_progressObserver(0)
-    , m_reader(new ItemReader(builtins, logger))
+    , m_reader(new ItemReader(logger))
     , m_evaluator(new Evaluator(engine, logger))
 {
 }
@@ -641,7 +641,7 @@ Item *ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContex
     }
     productContext->item->setChildren(children);
     Item::addChild(productContext->item, merged);
-    m_reader->builtins()->setupItemForBuiltinType(merged, m_logger);
+    BuiltinDeclarations::instance().setupItemForBuiltinType(merged, m_logger);
     return merged;
 }
 
@@ -1438,12 +1438,13 @@ bool ModuleLoader::checkItemCondition(Item *item)
 void ModuleLoader::checkItemTypes(Item *item)
 {
     if (Q_UNLIKELY(!item->typeName().isEmpty()
-                   && !m_reader->builtins()->containsType(item->typeName()))) {
+                   && !BuiltinDeclarations::instance().containsType(item->typeName()))) {
         const QString msg = Tr::tr("Unexpected item type '%1'.");
         throw ErrorInfo(msg.arg(item->typeName()), item->location());
     }
 
-    const ItemDeclaration decl = m_reader->builtins()->declarationsForType(item->typeName());
+    const ItemDeclaration decl
+            = BuiltinDeclarations::instance().declarationsForType(item->typeName());
     foreach (Item *child, item->children()) {
         if (child->typeName().isEmpty())
             continue;
@@ -1477,8 +1478,8 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
 {
     if (!sourceProject)
         return;
-    const QList<PropertyDeclaration> &builtinProjectProperties
-            = m_reader->builtins()->declarationsForType(QLatin1String("Project")).properties();
+    const QList<PropertyDeclaration> &builtinProjectProperties = BuiltinDeclarations::instance()
+            .declarationsForType(QLatin1String("Project")).properties();
     QSet<QString> builtinProjectPropertyNames;
     foreach (const PropertyDeclaration &p, builtinProjectProperties)
         builtinProjectPropertyNames << p.name();
@@ -1519,7 +1520,7 @@ Item *ModuleLoader::wrapWithProject(Item *item)
     prj->setTypeName(QLatin1String("Project"));
     prj->setFile(item->file());
     prj->setLocation(item->location());
-    m_reader->builtins()->setupItemForBuiltinType(prj, m_logger);
+    BuiltinDeclarations::instance().setupItemForBuiltinType(prj, m_logger);
     return prj;
 }
 

@@ -42,7 +42,6 @@
 namespace qbs {
 namespace Internal {
 
-class BuiltinDeclarations;
 class Item;
 class ItemPool;
 
@@ -68,10 +67,9 @@ class ItemReader
 {
     friend class ItemReaderASTVisitor;
 public:
-    ItemReader(BuiltinDeclarations *builtins, const Logger &logger);
+    ItemReader(const Logger &logger);
     ~ItemReader();
 
-    BuiltinDeclarations *builtins() const { return m_builtins; }
     Logger logger() const { return m_logger; }
 
     void setPool(ItemPool *pool) { m_pool = pool; }
@@ -94,7 +92,6 @@ private:
     bool findDirectoryEntries(const QString &dirPath, QStringList *entries) const;
 
     ItemPool *m_pool;
-    BuiltinDeclarations *m_builtins;
     Logger m_logger;
     QStringList m_searchPaths;
     QStack<QStringList> m_extraSearchPaths;

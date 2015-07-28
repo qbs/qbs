@@ -93,9 +93,8 @@ private:
 class ItemReader::ASTCache : public QHash<QString, ASTCacheValue> {};
 
 
-ItemReader::ItemReader(BuiltinDeclarations *builtins, const Logger &logger)
+ItemReader::ItemReader(const Logger &logger)
     : m_pool(0)
-    , m_builtins(builtins)
     , m_logger(logger)
     , m_astCache(new ASTCache)
 {

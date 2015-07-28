@@ -55,7 +55,6 @@ class CodeLocation;
 
 namespace Internal {
 
-class BuiltinDeclarations;
 class Evaluator;
 class Item;
 class ItemReader;
@@ -99,7 +98,7 @@ struct ModuleLoaderResult
 class ModuleLoader
 {
 public:
-    ModuleLoader(ScriptEngine *engine, BuiltinDeclarations *builtins, const Logger &logger);
+    ModuleLoader(ScriptEngine *engine, const Logger &logger);
     ~ModuleLoader();
 
     void setProgressObserver(ProgressObserver *progressObserver);

@@ -40,7 +40,7 @@ LanguageInfo::LanguageInfo()
 
 QByteArray LanguageInfo::qmlTypeInfo()
 {
-    Internal::BuiltinDeclarations builtins;
+    const Internal::BuiltinDeclarations &builtins = Internal::BuiltinDeclarations::instance();
 
     // Header:
     QByteArray result;

@@ -40,7 +40,6 @@ namespace qbs {
 class Settings;
 class SetupProjectParameters;
 namespace Internal {
-class BuiltinDeclarations;
 class Logger;
 class ModuleLoader;
 class ProgressObserver;
@@ -64,7 +63,6 @@ private slots:
 private:
     Logger m_logger;
     ProgressObserver *m_progressObserver;
-    BuiltinDeclarations *m_builtins;
     ModuleLoader *m_moduleLoader;
     ProjectResolver *m_projectResolver;
     ScriptEngine * const m_engine;

@@ -53,7 +53,7 @@ namespace Internal {
 ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReader *reader, ItemReaderResult *result)
     : m_reader(reader)
     , m_readerResult(result)
-    , m_languageVersion(readImportVersion(reader->builtins()->languageVersion()))
+    , m_languageVersion(readImportVersion(BuiltinDeclarations::instance().languageVersion()))
     , m_file(FileContext::create())
     , m_item(0)
     , m_sourceValue(0)
@@ -302,7 +302,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         qSwap(m_item, item);
     }
 
-    m_reader->m_builtins->setupItemForBuiltinType(item, m_reader->logger());
+    BuiltinDeclarations::instance().setupItemForBuiltinType(item, m_reader->logger());
 
     if (item->typeName() != QLatin1String("Properties")
             && item->typeName() != QLatin1String("SubProject")) {
@@ -499,7 +499,7 @@ void ItemReaderASTVisitor::checkImportVersion(const AST::SourceLocation &version
                                                     toCodeLocation(versionToken));
     if (Q_UNLIKELY(importVersion != m_languageVersion))
         throw ErrorInfo(Tr::tr("Incompatible qbs language version %1. This is version %2.").arg(
-                        importVersionString, m_reader->builtins()->languageVersion()),
+                        importVersionString, BuiltinDeclarations::instance().languageVersion()),
                     toCodeLocation(versionToken));
 }
 

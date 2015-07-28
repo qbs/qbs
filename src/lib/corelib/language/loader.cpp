@@ -49,9 +49,8 @@ namespace Internal {
 Loader::Loader(ScriptEngine *engine, const Logger &logger)
     : m_logger(logger)
     , m_progressObserver(0)
-    , m_builtins(new BuiltinDeclarations)
-    , m_moduleLoader(new ModuleLoader(engine, m_builtins, logger))
-    , m_projectResolver(new ProjectResolver(m_moduleLoader, m_builtins, logger))
+    , m_moduleLoader(new ModuleLoader(engine, logger))
+    , m_projectResolver(new ProjectResolver(m_moduleLoader, logger))
     , m_engine(engine)
 {
 }
@@ -60,7 +59,6 @@ Loader::~Loader()
 {
     delete m_projectResolver;
     delete m_moduleLoader;
-    delete m_builtins;
 }
 
 void Loader::setProgressObserver(ProgressObserver *observer)
