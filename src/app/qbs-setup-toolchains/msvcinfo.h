@@ -31,6 +31,7 @@
 #ifndef QBS_MSVCINFO_H
 #define QBS_MSVCINFO_H
 
+#include <QDir>
 #include <QHash>
 #include <QProcessEnvironment>
 #include <QStringList>
@@ -40,16 +41,30 @@ class MSVC
 public:
     QString version;
     QString installPath;
+    QString pathPrefix;
     QStringList architectures;
 
     typedef QHash<QString, QProcessEnvironment> EnvironmentPerArch;
     EnvironmentPerArch environments;
+
+    QString clPath(const QString &arch = QString()) {
+        return QDir::cleanPath(
+                    installPath + QLatin1Char('/') +
+                    pathPrefix + QLatin1Char('/') +
+                    arch + QLatin1Char('/') +
+                    QLatin1String("cl.exe"));
+    }
 };
 
 class WinSDK : public MSVC
 {
 public:
     bool isDefault;
+
+    WinSDK()
+    {
+        pathPrefix = QLatin1String("bin");
+    }
 };
 
 #endif // QBS_MSVCINFO_H

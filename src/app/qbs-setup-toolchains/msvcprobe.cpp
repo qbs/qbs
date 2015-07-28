@@ -79,12 +79,20 @@ static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile>
     profiles << p;
 }
 
-static void findSupportedArchitectures(MSVC *msvc, const QString &pathPrefix = QString())
+static void findSupportedArchitectures(MSVC *msvc)
 {
-    if (QFile::exists(msvc->installPath + pathPrefix + QLatin1String("/cl.exe")))
+    if (QFile::exists(msvc->clPath())
+            || QFile::exists(msvc->clPath(QLatin1String("amd64_x86"))))
         msvc->architectures += QLatin1String("x86");
-    if (QFile::exists(msvc->installPath + pathPrefix + QLatin1String("/amd64/cl.exe")))
+    if (QFile::exists(msvc->clPath(QLatin1String("amd64")))
+            || QFile::exists(msvc->clPath(QLatin1String("x86_amd64"))))
         msvc->architectures += QLatin1String("x86_64");
+    if (QFile::exists(msvc->clPath(QLatin1String("ia64")))
+            || QFile::exists(msvc->clPath(QLatin1String("x86_ia64"))))
+        msvc->architectures += QLatin1String("ia64");
+    if (QFile::exists(msvc->clPath(QLatin1String("x86_arm")))
+            || QFile::exists(msvc->clPath(QLatin1String("amd64_arm"))))
+        msvc->architectures += QLatin1String("armv7");
 }
 
 static QString wow6432Key()
@@ -118,7 +126,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
                 continue;
             if (sdk.installPath.endsWith(QLatin1Char('\\')))
                 sdk.installPath.chop(1);
-            findSupportedArchitectures(&sdk, QLatin1String("/bin"));
+            findSupportedArchitectures(&sdk);
             if (sdk.isDefault)
                 defaultWinSDK = sdk;
             winSDKs += sdk;
