@@ -283,10 +283,28 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     return qtEnvironment;
 }
 
-static bool isToolchainProfileKey(const QString &key)
+static bool isToolchainProfile(const Profile &profile)
 {
-    // The Qt profile setup itself sets cpp.minimum*Version for some systems.
-    return key.startsWith(QLatin1String("cpp.")) && !key.startsWith(QLatin1String("cpp.minimum"));
+    const QSet<QString> actual = profile.allKeys(Profile::KeySelectionRecursive).toSet();
+    QSet<QString> expected = QSet<QString>()
+            << QLatin1String("qbs.toolchain")
+            << QLatin1String("qbs.architecture");
+    if (HostOsInfo::isOsxHost())
+        expected.insert(QLatin1String("qbs.targetOS")); // match only Xcode profiles
+    return QSet<QString>(actual).unite(expected) == actual;
+}
+
+static bool isQtProfile(const Profile &profile)
+{
+    bool hasQtKey = false;
+    foreach (const QString &key, profile.allKeys(Profile::KeySelectionRecursive)) {
+        if (key.startsWith(QLatin1String("Qt."))) {
+            hasQtKey = true;
+            break;
+        }
+    }
+
+    return hasQtKey;
 }
 
 template <typename T> bool areProfilePropertiesIncompatible(const T &set1, const T &set2)
@@ -464,38 +482,28 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
     Profile profile(cleanQtVersionName, settings);
     if (!profile.baseProfile().isEmpty())
         return;
-    foreach (const QString &key, profile.allKeys(Profile::KeySelectionNonRecursive)) {
-        if (isToolchainProfileKey(key))
-            return;
-    }
+    if (isToolchainProfile(profile))
+        return;
 
     QStringList fullMatches;
     QStringList partialMatches;
     foreach (const QString &profileName, settings->profiles()) {
-        if (profileName == profile.name())
-            continue;
         const Profile otherProfile(profileName, settings);
-        bool hasCppKey = false;
-        bool hasQtKey = false;
-        foreach (const QString &key, otherProfile.allKeys(Profile::KeySelectionNonRecursive)) {
-            if (isToolchainProfileKey(key)) {
-                hasCppKey = true;
-            } else if (key.startsWith(QLatin1String("Qt."))) {
-                hasQtKey = true;
-                break;
-            }
+        if (profileName == profile.name()
+                || !isToolchainProfile(otherProfile)
+                || isQtProfile(otherProfile))
+            continue;
+
+        switch (compatibility(qtEnvironment, otherProfile)) {
+        case MatchFull:
+            fullMatches << profileName;
+            break;
+        case MatchPartial:
+            partialMatches << profileName;
+            break;
+        default:
+            break;
         }
-        if (hasCppKey && !hasQtKey)
-            switch (compatibility(qtEnvironment, Profile(profileName, settings))) {
-            case MatchFull:
-                fullMatches << profileName;
-                break;
-            case MatchPartial:
-                partialMatches << profileName;
-                break;
-            default:
-                break;
-            }
     }
 
     QString bestMatch;
