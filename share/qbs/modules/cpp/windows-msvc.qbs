@@ -247,6 +247,7 @@ CppModule {
 
     Rule {
         inputs: ["rc"]
+        auxiliaryInputs: ["hpp"]
 
         Artifact {
             filePath: ".obj/" + qbs.getHash(input.baseDir) + "/" + input.completeBaseName + ".res"
