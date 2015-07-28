@@ -122,6 +122,10 @@ static QStringList targetOSList(const QString &applePlatformName)
         targetOS << QStringLiteral("ios");
     } else if (applePlatformName == QStringLiteral("iphonesimulator")) {
         targetOS << QStringLiteral("ios") << QStringLiteral("ios-simulator");
+    } else if (applePlatformName == QStringLiteral("watchos")) {
+        targetOS << QStringLiteral("watchos");
+    } else if (applePlatformName == QStringLiteral("watchsimulator")) {
+        targetOS << QStringLiteral("watchos") << QStringLiteral("watchos-simulator");
     }
 
     targetOS << QStringLiteral("darwin") << QStringLiteral("bsd") << QStringLiteral("unix");
@@ -132,10 +136,15 @@ static QStringList archList(const QString &applePlatformName)
 {
     QStringList archs;
     if (applePlatformName == QStringLiteral("macosx")
-            || applePlatformName == QStringLiteral("iphonesimulator")) {
-        archs << QStringLiteral("x86") << QStringLiteral("x86_64");
+            || applePlatformName == QStringLiteral("iphonesimulator")
+            || applePlatformName == QStringLiteral("watchsimulator")) {
+        archs << QStringLiteral("x86");
+        if (applePlatformName != QStringLiteral("watchsimulator"))
+            archs << QStringLiteral("x86_64");
     } else if (applePlatformName == QStringLiteral("iphoneos")) {
         archs << QStringLiteral("armv7") << QStringLiteral("arm64");
+    } else if (applePlatformName == QStringLiteral("watchos")) {
+        archs << QStringLiteral("armv7k");
     }
 
     return archs;
@@ -161,7 +170,9 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
     QStringList platforms;
     platforms << QStringLiteral("macosx")
               << QStringLiteral("iphoneos")
-              << QStringLiteral("iphonesimulator");
+              << QStringLiteral("iphonesimulator")
+              << QStringLiteral("watchos")
+              << QStringLiteral("watchsimulator");
     for (const QString &platform : platforms) {
         Profile platformProfile(xcodeName + QLatin1Char('-') + platform, settings);
         platformProfile.removeProfile();

@@ -103,6 +103,8 @@ UnixGCC {
             env["IPHONEOS_DEPLOYMENT_TARGET"] = minimumIosVersion;
         if (qbs.targetOS.contains("osx") && minimumOsxVersion)
             env["MACOSX_DEPLOYMENT_TARGET"] = minimumOsxVersion;
+        if (qbs.targetOS.contains("watchos") && minimumWatchosVersion)
+            env["WATCHOS_DEPLOYMENT_TARGET"] = minimumWatchosVersion;
         if (xcode.present)
             env["TARGETED_DEVICE_FAMILY"] = DarwinTools.targetedDeviceFamily(xcode.targetDevices);
         return env;

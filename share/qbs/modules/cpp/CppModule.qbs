@@ -88,6 +88,14 @@ Module {
                         to the compiler. if undefined, compiler defaults will be used."
     }
 
+    property string minimumWatchosVersion
+    PropertyOptions {
+        name: "minimumWatchosVersion"
+        description: "a version number in the format [major].[minor] indicating the earliest \
+                        version of watchOS that the product should run on. if undefined, compiler \
+                        defaults will be used."
+    }
+
     property string minimumAndroidVersion
     PropertyOptions {
         name: "minimumAndroidVersion"

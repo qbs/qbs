@@ -108,6 +108,11 @@ function ibtooldArguments(product, inputs, outputs, overrideOutput) {
             args.push("--minimum-deployment-target");
             args.push(product.moduleProperty("cpp", "minimumIosVersion"));
         }
+
+        if (product.moduleProperty("cpp", "minimumWatchosVersion")) {
+            args.push("--minimum-deployment-target");
+            args.push(product.moduleProperty("cpp", "minimumWatchosVersion"));
+        }
     }
 
     // --target-device and -output-partial-info-plist were introduced in Xcode 6.0 for ibtool

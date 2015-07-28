@@ -266,6 +266,14 @@ function additionalCompilerAndLinkerFlags(product) {
             args.push('-miphoneos-version-min=' + minimumiOSVersion);
     }
 
+    var minimumWatchosVersion = ModUtils.moduleProperty(product, "minimumWatchosVersion");
+    if (minimumWatchosVersion && product.moduleProperty("qbs", "targetOS").contains("watchos")) {
+        if (product.moduleProperty("qbs", "targetOS").contains("watchos-simulator"))
+            args.push("-mwatchos-simulator-version-min=" + minimumWatchosVersion);
+        else
+            args.push("-mwatchos-version-min=" + minimumWatchosVersion);
+    }
+
     var requireAppExtensionSafeApi = ModUtils.moduleProperty(product, "requireAppExtensionSafeApi");
     if (requireAppExtensionSafeApi !== undefined && product.moduleProperty("qbs", "targetOS").contains("darwin")) {
         args.push(requireAppExtensionSafeApi ? "-fapplication-extension" : "-fno-application-extension");

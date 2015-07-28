@@ -16,6 +16,8 @@ Module {
             return ["mac"];
         if (qbs.targetOS.contains("ios"))
             return ["iphone", "ipad"];
+        if (qbs.targetOS.contains("watchos"))
+            return ["watch"];
     }
 
     readonly property string sdkName: {

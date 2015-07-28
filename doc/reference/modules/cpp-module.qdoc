@@ -433,6 +433,14 @@
         \li A version number in the format [major].[minor] indicating the earliest version of OS X
             that the product should run on. Passes -mmacosx-version-min=<version> to the compiler.
             If undefined, compiler defaults will be used.
+    \row
+        \li minimumWatchosVersion
+        \li \c{string}
+        \li 1.5
+        \li undefined, but may be set by generated profiles
+        \li A version number in the format [major].[minor] indicating the earliest version of
+            Apple watchOS that the product should run on.
+            If undefined, compiler defaults will be used.
     \endtable
 
     \section1 Properties Specific to Unix Platforms

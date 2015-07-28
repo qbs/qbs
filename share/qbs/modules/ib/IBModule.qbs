@@ -193,6 +193,8 @@ Module {
                     cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" + product.moduleProperty("cpp", "minimumIosVersion"));
                 if (targetOS.contains("osx"))
                     cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" + product.moduleProperty("cpp", "minimumOsxVersion"));
+                if (targetOS.contains("watchos"))
+                    cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" + product.moduleProperty("cpp", "minimumWatchosVersion"));
             }
 
             return cmd;

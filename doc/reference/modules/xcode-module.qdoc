@@ -63,7 +63,8 @@
     \row
         \li sdk
         \li string
-        \li \c{"macosx"} on OS X, \c{"iphoneos"} on iOS, \c{"iphonesimulator"} on iOS Simulator
+        \li \c{"macosx"} on OS X, \c{"iphoneos"} on iOS, \c{"iphonesimulator"} on iOS Simulator,
+            \c{"watchos"} on watchOS, \c{"watchsimulator"} on watchOS Simulator
         \li Version of the Xcode SDK used to build products. This can be specified as a full
             canonical SDK name (i.e. \c{"macosx10.10"}), a platform version number (i.e.
             \c{"10.10"}), or a platform identifier (i.e. \c{"macosx"}) in which case the latest SDK
@@ -88,9 +89,10 @@
     \row
         \li targetDevices
         \li stringList
-        \li \c{["mac"]} on OS X; {["iphone", "ipad"]} on iOS
-        \li List of the Apple devices targeted by this product. For OS X, this should always be
-            "mac", and for iOS it can be one or both of "iphone" and "ipad".
+        \li \c{["mac"]} on OS X; {["iphone", "ipad"]} on iOS; \c{["watch"]} on watchOS
+        \li List of the Apple devices targeted by this product. For OS X and watchOS, this should
+            always be "mac" and "watch", respectively, and for iOS it can be one or both of
+            "iphone" and "ipad".
     \endtable
 
     \section1 Advanced Properties
