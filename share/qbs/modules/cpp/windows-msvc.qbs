@@ -54,7 +54,19 @@ CppModule {
     compilerDefines: ['_WIN32']
     warningLevel: "default"
     compilerName: "cl.exe"
-    property string assemblerName
+    property string assemblerName: {
+        switch (qbs.architecture) {
+        case "armv7":
+            return "armasm.exe";
+        case "ia64":
+            return "ias.exe";
+        case "x86":
+            return "ml.exe";
+        case "x86_64":
+            return "ml64.exe";
+        }
+    }
+
     linkerName: "link.exe"
     runtimeLibrary: "dynamic"
     separateDebugInformation: true
@@ -308,26 +320,12 @@ CppModule {
             fileTags: ["obj"]
         }
         prepare: {
-            var assemblerName = ModUtils.moduleProperty(product, "assemblerName");
-            if (!assemblerName) {
-                switch (product.moduleProperty("qbs", "architecture")) {
-                case "x86_64":
-                    assemblerName = "ml64.exe";
-                    break;
-                case "arm":
-                    assemblerName = "armasm.exe";
-                    break;
-                default:
-                    assemblerName = "ml.exe";
-                    break;
-                }
-            }
             var args = ["/nologo", "/c",
                         "/Fo" + FileInfo.toWindowsSeparators(output.filePath),
                         FileInfo.toWindowsSeparators(input.filePath)];
             if (ModUtils.moduleProperty(product, "debugInformation"))
                 args.push("/Zi");
-            var cmd = new Command(assemblerName, args);
+            var cmd = new Command(ModUtils.moduleProperty(product, "assemblerName"), args);
             cmd.description = "assembling " + input.fileName;
             cmd.inputFileName = input.fileName;
             cmd.stdoutFilterFunction = function(output) {
