@@ -34,6 +34,7 @@
 #include "itemdeclaration.h"
 
 #include <logging/logger.h>
+#include <tools/version.h>
 
 #include <QByteArray>
 #include <QMap>
@@ -48,7 +49,7 @@ class BuiltinDeclarations
 public:
     static const BuiltinDeclarations &instance();
 
-    QString languageVersion() const;
+    Version languageVersion() const;
     bool containsType(const QString &typeName) const;
     QStringList allTypeNames() const;
     ItemDeclaration declarationsForType(const QString &typeName) const;
@@ -76,7 +77,7 @@ private:
     void addTransformerItem();
     void addScannerItem();
 
-    QString m_languageVersion;
+    Version m_languageVersion;
     QMap<QString, ItemDeclaration> m_builtins;
 };
 

@@ -45,7 +45,7 @@ Q_GLOBAL_STATIC(AClassWithPublicConstructor, theInstance)
 const char QBS_LANGUAGE_VERSION[] = "1.0";
 
 BuiltinDeclarations::BuiltinDeclarations()
-    : m_languageVersion(QLatin1String(QBS_LANGUAGE_VERSION))
+    : m_languageVersion(Version::fromString(QLatin1String(QBS_LANGUAGE_VERSION)))
 {
     addArtifactItem();
     addDependsItem();
@@ -69,7 +69,7 @@ const BuiltinDeclarations &BuiltinDeclarations::instance()
     return *theInstance;
 }
 
-QString BuiltinDeclarations::languageVersion() const
+Version BuiltinDeclarations::languageVersion() const
 {
     return m_languageVersion;
 }

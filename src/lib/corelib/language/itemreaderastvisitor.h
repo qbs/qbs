@@ -35,7 +35,6 @@
 #include "filecontext.h"
 
 #include <parser/qmljsastvisitor_p.h>
-#include <tools/version.h>
 
 #include <QHash>
 
@@ -44,6 +43,7 @@ namespace Internal {
 
 class ItemReader;
 struct ItemReaderResult;
+class Version;
 
 class ItemReaderASTVisitor : public QbsQmlJS::AST::Visitor
 {
@@ -82,7 +82,6 @@ private:
 
     ItemReader *m_reader;
     ItemReaderResult *m_readerResult;
-    const Version m_languageVersion;
     FileContextPtr m_file;
     QHash<QStringList, QString> m_typeNameToFile;
     Item *m_item;
