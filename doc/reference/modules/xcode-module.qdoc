@@ -34,6 +34,7 @@
     \ingroup list-of-modules
 
     \title Module xcode
+    \since 1.5
     \brief Provides Xcode support.
 
     The \c xcode module contains properties and rules for Xcode-based development.
@@ -46,11 +47,13 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li developerPath
         \li path
+        \li 1.5
         \li \c{"/Applications/Xcode.app/Contents/Developer"}
         \li Developer directory of the Xcode installation. By default this is set to the developer
             directory of the Xcode installation at its default location in /Applications.
@@ -58,41 +61,48 @@
     \row
         \li provisioningProfile
         \li string
-        \li undefined
+        \li 1.5
+        \li \c undefined
         \li Name or UUID of the provisioning profile to embed in the product.
     \row
         \li sdk
         \li string
-        \li \c{"macosx"} on OS X, \c{"iphoneos"} on iOS, \c{"iphonesimulator"} on iOS Simulator,
-            \c{"watchos"} on watchOS, \c{"watchsimulator"} on watchOS Simulator
+        \li 1.5
+        \li determined by \c{qbs.targetOS}
         \li Version of the Xcode SDK used to build products. This can be specified as a full
             canonical SDK name (i.e. \c{"macosx10.10"}), a platform version number (i.e.
             \c{"10.10"}), or a platform identifier (i.e. \c{"macosx"}) in which case the latest SDK
-            available for that platform will be used.
+            available for that platform will be used. The default is the latest SDK available in the
+            Xcode installation for the current platform.
     \row
         \li signingIdentity
         \li string
-        \li undefined
+        \li 1.5
+        \li \c undefined
         \li Search string used to find the certificate to sign the product. This does not have to be
             a full certificate name like "Mac Developer: John Doe (XXXXXXXXXX)", and can instead be
             a partial string like "Mac Developer".
             The search string should generally be one of the following:
-            \li 3rd Party Mac Developer Application
-            \li 3rd Party Mac Developer Installer
-            \li Developer ID Application
-            \li Developer ID Installer
-            \li iPhone Developer
-            \li iPhone Distribution
-            \li Mac Developer
-            Complete documentation for the existing certificate types can be found at:
-            https://developer.apple.com/library/mac/documentation/IDEs/Conceptual/AppDistributionGuide/MaintainingCertificates/MaintainingCertificates.html#//apple_ref/doc/uid/TP40012582-CH31-SW41
+            \list
+                \li 3rd Party Mac Developer Application
+                \li 3rd Party Mac Developer Installer
+                \li Developer ID Application
+                \li Developer ID Installer
+                \li iPhone Developer
+                \li iPhone Distribution
+                \li Mac Developer
+            \endlist
+            See \l{https://developer.apple.com/library/mac/documentation/IDEs/Conceptual/AppDistributionGuide/MaintainingCertificates/MaintainingCertificates.html#//apple_ref/doc/uid/TP40012582-CH31-SW41}{Maintaining Your Signing Identities and Certificates}
+            for complete documentation on the existing certificate types.
     \row
         \li targetDevices
         \li stringList
-        \li \c{["mac"]} on OS X; {["iphone", "ipad"]} on iOS; \c{["watch"]} on watchOS
+        \li 1.5
+        \li determined by \c{qbs.targetOS}
         \li List of the Apple devices targeted by this product. For OS X and watchOS, this should
-            always be "mac" and "watch", respectively, and for iOS it can be one or both of
-            "iphone" and "ipad".
+            always be "mac" and "watch", respectively. For iOS, this can be one or both of
+            "iphone" and "ipad". The default is the list of all device types supported by the
+            current platform.
     \endtable
 
     \section1 Advanced Properties
@@ -101,11 +111,13 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li provisioningProfilePath
         \li path
+        \li 1.5
         \li determined by \c{xcode.provisioningProfilesPath} and \c{xcode.provisioningProfile}
         \li Path of the provisioning profile to embed in the product. Generally you should not set
             this property and instead use \c{xcode.provisioningProfile} to automatically
@@ -113,6 +125,7 @@
     \row
         \li provisioningProfilesPath
         \li path
+        \li 1.5
         \li \c{"~/Library/MobileDevice/Provisioning Profiles"}
         \li Path to directory containing provisioning profiles installed on the system.
     \endtable
@@ -123,50 +136,59 @@
     \header
         \li Property
         \li Type
+        \li Since
         \li Default
         \li Description
     \row
         \li sdkName
         \li string
+        \li 1.5
         \li determined by \c{xcode.sdk}
         \li Canonical name of the SDK used to build products. For example, macosx10.9.
     \row
         \li sdkVersion
         \li string
+        \li 1.5
         \li determined by \c{xcode.sdk}
         \li Version number of the SDK used to build products. For example, 10.9.
     \row
         \li latestSdkName
         \li string
+        \li 1.5
         \li determined by \c{xcode.developerPath}
         \li Canonical name of the latest SDK available in the Xcode installation.
             For example, macosx10.10.
     \row
         \li latestSdkVersion
         \li string
+        \li 1.5
         \li determined by \c{xcode.developerPath}
         \li Version number of the latest SDK available in the Xcode installation.
-            For example, 10.9.
+            For example, 10.10.
     \row
         \li availableSdkNames
         \li stringList
+        \li 1.5
         \li determined by \c{xcode.developerPath}
         \li Canonical names of all SDKs available in the Xcode installation for the current
             platform. For example, [macosx10.9, macosx10.10].
     \row
         \li availableSdkVersions
         \li stringList
+        \li 1.5
         \li determined by \c{xcode.developerPath}
         \li Version numbers of all SDK available in the Xcode installation for the current
             platform. For example, [10.9, 10.10].
     \row
         \li platformPath
         \li path
+        \li 1.5
         \li determined by \c{xcode.developerPath}
         \li Path of the platform directory containing \c{xcode.sdkPath}.
     \row
         \li sdkPath
         \li path
+        \li 1.5
         \li determined by \c{xcode.developerPath} and \c{xcode.sdk}
         \li Path of the SDK used to build products. Equivalent to \c{cpp.sysroot}.
     \endtable
