@@ -7,6 +7,7 @@ Project {
         targetName: "qbs-" + qbs.architecture
         files: ["QbsSetup.wxs", "ExampleScript.bat"]
         wix.defines: ["scriptName=ExampleScript.bat"]
+        wix.extensions: ["WixBalExtension", "WixUIExtension"]
 
         Export {
             Depends { name: "wix" }

@@ -107,13 +107,13 @@ Module {
         description: "the list of localizations to build the MSI for; leave undefined to build all localizations"
     }
 
-    property stringList extensions: type.contains("wixsetup") ? ["WixBalExtension"] : [] // default to WiX Standard Bootstrapper extension
+    property stringList extensions: product.type.contains("wixsetup") ? ["WixBalExtension"] : [] // default to WiX Standard Bootstrapper extension
 
     // private properties
     property string targetSuffix: {
-        if (type.contains("msi")) {
+        if (product.type.contains("msi")) {
             return windowsInstallerSuffix;
-        } else if (type.contains("wixsetup")) {
+        } else if (product.type.contains("wixsetup")) {
             return executableSuffix;
         }
     }
