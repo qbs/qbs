@@ -641,7 +641,7 @@ Item *ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContex
     }
     productContext->item->setChildren(children);
     Item::addChild(productContext->item, merged);
-    BuiltinDeclarations::instance().setupItemForBuiltinType(merged, m_logger);
+    merged->setupForBuiltinType(m_logger);
     return merged;
 }
 
@@ -1520,7 +1520,7 @@ Item *ModuleLoader::wrapWithProject(Item *item)
     prj->setTypeName(QLatin1String("Project"));
     prj->setFile(item->file());
     prj->setLocation(item->location());
-    BuiltinDeclarations::instance().setupItemForBuiltinType(prj, m_logger);
+    prj->setupForBuiltinType(m_logger);
     return prj;
 }
 

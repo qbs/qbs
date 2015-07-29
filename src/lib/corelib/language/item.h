@@ -40,22 +40,18 @@
 #include <parser/qmljsmemorypool_p.h>
 #include <tools/codelocation.h>
 #include <tools/error.h>
-#include <tools/weakpointer.h>
 
 #include <QList>
 #include <QMap>
-#include <QSharedPointer>
-#include <QStringList>
 
 namespace qbs {
 namespace Internal {
 
 class ItemPool;
-class ProjectFile;
+class Logger;
 
 class Item : public QbsQmlJS::Managed
 {
-    friend class BuiltinDeclarations;
     friend class ItemPool;
     friend class ItemReaderASTVisitor;
     Q_DISABLE_COPY(Item)
@@ -125,6 +121,7 @@ public:
     static void addChild(Item *parent, Item *child);
     void dump() const;
     bool isPresentModule() const;
+    void setupForBuiltinType(Logger &logger);
 
     void setDelayedError(const ErrorInfo &e) { m_delayedError = e; }
     ErrorInfo delayedError() const { return m_delayedError; }

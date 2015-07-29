@@ -31,7 +31,6 @@
 #include "projectresolver.h"
 
 #include "artifactproperties.h"
-#include "builtindeclarations.h"
 #include "evaluator.h"
 #include "filecontext.h"
 #include "item.h"
@@ -364,7 +363,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         fakeGroup->setProperty(QLatin1String("excludeFiles"),
                                item->property(QLatin1String("excludeFiles")));
         fakeGroup->setProperty(QLatin1String("overrideTags"), VariantValue::create(false));
-        BuiltinDeclarations::instance().setupItemForBuiltinType(fakeGroup, m_logger);
+        fakeGroup->setupForBuiltinType(m_logger);
         subItems.prepend(fakeGroup);
     }
 

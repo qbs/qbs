@@ -33,7 +33,6 @@
 
 #include "itemdeclaration.h"
 
-#include <logging/logger.h>
 #include <tools/version.h>
 
 #include <QByteArray>
@@ -41,8 +40,6 @@
 
 namespace qbs {
 namespace Internal {
-
-class Item;
 
 class BuiltinDeclarations
 {
@@ -53,7 +50,6 @@ public:
     bool containsType(const QString &typeName) const;
     QStringList allTypeNames() const;
     ItemDeclaration declarationsForType(const QString &typeName) const;
-    void setupItemForBuiltinType(Item *item, Logger logger) const;
 
 protected:
     BuiltinDeclarations();

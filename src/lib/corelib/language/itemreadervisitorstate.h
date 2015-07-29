@@ -38,7 +38,6 @@
 
 namespace qbs {
 namespace Internal {
-class BuiltinDeclarations;
 class Item;
 class ItemPool;
 

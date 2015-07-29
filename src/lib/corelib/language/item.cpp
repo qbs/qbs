@@ -29,8 +29,13 @@
 ****************************************************************************/
 
 #include "item.h"
-#include "itempool.h"
+
+#include "builtindeclarations.h"
+#include "deprecationinfo.h"
 #include "filecontext.h"
+#include "itempool.h"
+
+#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/qbsassert.h>
@@ -173,6 +178,41 @@ bool Item::isPresentModule() const
     // Initial value is "true" as JS source, overwritten one is always QVariant(false).
     const ValueConstPtr v = property(QLatin1String("present"));
     return v && v->type() == Value::JSSourceValueType;
+}
+
+void Item::setupForBuiltinType(Logger &logger)
+{
+    const BuiltinDeclarations &builtins = BuiltinDeclarations::instance();
+    foreach (const PropertyDeclaration &pd, builtins.declarationsForType(typeName()).properties()) {
+        m_propertyDeclarations.insert(pd.name(), pd);
+        ValuePtr &value = m_properties[pd.name()];
+        if (!value) {
+            JSSourceValuePtr sourceValue = JSSourceValue::create();
+            sourceValue->setFile(file());
+            static const QString undefinedKeyword = QLatin1String("undefined");
+            sourceValue->setSourceCode(pd.initialValueSource().isEmpty()
+                                       ? QStringRef(&undefinedKeyword)
+                                       : QStringRef(&pd.initialValueSource()));
+            value = sourceValue;
+        } else if (pd.isDeprecated()) {
+            const DeprecationInfo &di = pd.deprecationInfo();
+            if (di.removalVersion() <= Version::qbsVersion()) {
+                QString message = Tr::tr("The property '%1' is no longer valid for %2 items. "
+                        "It was removed in qbs %3.")
+                        .arg(pd.name(), typeName(), di.removalVersion().toString());
+                ErrorInfo error(message, value->location());
+                if (!di.additionalUserInfo().isEmpty())
+                    error.append(di.additionalUserInfo());
+                throw error;
+            }
+            QString warning = Tr::tr("The property '%1' is deprecated and will be removed in "
+                                     "qbs %2.").arg(pd.name(), di.removalVersion().toString());
+            ErrorInfo error(warning, value->location());
+            if (!di.additionalUserInfo().isEmpty())
+                error.append(di.additionalUserInfo());
+            logger.printWarning(error);
+        }
+    }
 }
 
 static const char *valueType(const Value *v)

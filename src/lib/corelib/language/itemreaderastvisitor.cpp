@@ -303,7 +303,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         qSwap(m_item, item);
     }
 
-    BuiltinDeclarations::instance().setupItemForBuiltinType(item, m_logger);
+    item->setupForBuiltinType(m_logger);
 
     if (item->typeName() != QLatin1String("Properties")
             && item->typeName() != QLatin1String("SubProject")) {
