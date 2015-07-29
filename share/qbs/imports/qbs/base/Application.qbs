@@ -31,7 +31,7 @@
 Product {
     type: {
         if (isForAndroid && !consoleApplication)
-            return ["dynamiclibrary"];
+            return ["dynamiclibrary", "android.nativelibrary"];
         return ["application"];
     }
 
