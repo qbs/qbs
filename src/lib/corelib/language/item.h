@@ -122,6 +122,7 @@ public:
     void dump() const;
     bool isPresentModule() const;
     void setupForBuiltinType(Logger &logger);
+    void copyProperty(const QString &propertyName, Item *target) const;
 
     void setDelayedError(const ErrorInfo &e) { m_delayedError = e; }
     ErrorInfo delayedError() const { return m_delayedError; }

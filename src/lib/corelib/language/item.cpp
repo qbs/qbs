@@ -215,6 +215,11 @@ void Item::setupForBuiltinType(Logger &logger)
     }
 }
 
+void Item::copyProperty(const QString &propertyName, Item *target) const
+{
+    target->setProperty(propertyName, property(propertyName));
+}
+
 static const char *valueType(const Value *v)
 {
     switch (v->type()) {

@@ -1261,8 +1261,8 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     QBS_CHECK(instanceScope->file());
     moduleScope->setFile(instanceScope->file());
     moduleScope->setScope(instanceScope);
-    copyProperty(QLatin1String("project"), productContext->project->scope, moduleScope);
-    copyProperty(QLatin1String("product"), productContext->scope, moduleScope);
+    productContext->project->scope->copyProperty(QLatin1String("project"), moduleScope);
+    productContext->scope->copyProperty(QLatin1String("product"), moduleScope);
 
     if (isProduct) {
         exportingProduct = 0;
@@ -1497,7 +1497,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
                     = targetProject->property(it.key()).dynamicCast<const JSSourceValue>();
             QBS_ASSERT(v, continue);
             if (v->sourceCode() == QLatin1String("undefined"))
-                copyProperty(it.key(), sourceProject, targetProject);
+                sourceProject->copyProperty(it.key(), targetProject);
             continue;
         }
 
@@ -1508,7 +1508,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
             continue; // Ignore stuff the target project already has.
 
         targetProject->setPropertyDeclaration(it.key(), it.value());
-        copyProperty(it.key(), sourceProject, targetProject);
+        sourceProject->copyProperty(it.key(), targetProject);
     }
 }
 
@@ -1534,12 +1534,6 @@ QString ModuleLoader::findExistingModulePath(const QString &searchPath,
             return QString();
     }
     return dirPath;
-}
-
-void ModuleLoader::copyProperty(const QString &propertyName, const Item *source,
-                                Item *destination)
-{
-    destination->setProperty(propertyName, source->property(propertyName));
 }
 
 void ModuleLoader::setScopeForDescendants(Item *item, Item *scope)

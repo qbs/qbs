@@ -225,7 +225,6 @@ private:
     Item *wrapWithProject(Item *item);
     static QString findExistingModulePath(const QString &searchPath,
             const QualifiedId &moduleName);
-    static void copyProperty(const QString &propertyName, const Item *source, Item *destination);
     static void setScopeForDescendants(Item *item, Item *scope);
     void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                 const QVariantMap &buildConfig);
