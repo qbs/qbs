@@ -951,6 +951,9 @@ void TestLanguage::moduleProperties_data()
     QTest::newRow("merge_lists_with_prototype_values")
             << "rpaths"
             << (QStringList() << "/opt/qt/lib" << "$ORIGIN");
+    QTest::newRow("list_property_that_references_product")
+            << "listProp"
+            << (QStringList() << "x" << "123");
     QTest::newRow("cleanup") << QString() << QStringList();
 }
 

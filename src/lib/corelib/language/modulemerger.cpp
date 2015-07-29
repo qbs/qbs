@@ -199,9 +199,15 @@ void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QStr
     ValuePtr protoValue = moduleProto->property(propertyName);
     if (!protoValue)
         return;
-    ValuePtr cloned = protoValue->clone();
-    cloned->setDefiningItem(moduleProto);
-    lastInNextChain(sv)->setNext(cloned);
+    Item * const clonedModulePrototype = moduleProto->clone(moduleProto->pool());
+    Item * const scope = Item::create(clonedModulePrototype->pool());
+    scope->setFile(clonedModulePrototype->file());
+    m_mergedModuleItem->scope()->copyProperty(QLatin1String("project"), scope);
+    m_mergedModuleItem->scope()->copyProperty(QLatin1String("product"), scope);
+    clonedModulePrototype->setScope(scope);
+    const ValuePtr clonedValue = protoValue->clone();
+    clonedValue->setDefiningItem(clonedModulePrototype);
+    lastInNextChain(sv)->setNext(clonedValue);
 }
 
 ValuePtr ModuleMerger::lastInNextChain(const ValuePtr &v)
