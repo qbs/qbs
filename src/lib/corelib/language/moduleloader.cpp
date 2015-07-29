@@ -425,7 +425,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         }
         if (i == 0)
             continue; // We use the original item for the first profile.
-        Item * const cloned = productItem->clone(productItem->pool());
+        Item * const cloned = productItem->clone();
         cloned->setProperty(profileKey, VariantValue::create(profileNames.at(i)));
         additionalProductItems << cloned;
     }

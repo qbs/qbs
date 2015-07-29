@@ -76,7 +76,7 @@ public:
     typedef QMap<QString, ValuePtr> PropertyMap;
 
     static Item *create(ItemPool *pool);
-    Item *clone(ItemPool *pool) const;
+    Item *clone() const;
     ItemPool *pool() const;
 
     const QString &id() const;

@@ -67,9 +67,9 @@ Item *Item::create(ItemPool *pool)
     return pool->allocateItem();
 }
 
-Item *Item::clone(ItemPool *pool) const
+Item *Item::clone() const
 {
-    Item *dup = create(pool);
+    Item *dup = create(pool());
     dup->m_id = m_id;
     dup->m_typeName = m_typeName;
     dup->m_location = m_location;
@@ -85,7 +85,7 @@ Item *Item::clone(ItemPool *pool) const
 
     dup->m_children.reserve(m_children.count());
     foreach (const Item *child, m_children) {
-        Item *clonedChild = child->clone(pool);
+        Item *clonedChild = child->clone();
         clonedChild->m_parent = dup;
         dup->m_children.append(clonedChild);
     }

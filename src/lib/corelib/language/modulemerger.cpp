@@ -199,7 +199,7 @@ void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QStr
     ValuePtr protoValue = moduleProto->property(propertyName);
     if (!protoValue)
         return;
-    Item * const clonedModulePrototype = moduleProto->clone(moduleProto->pool());
+    Item * const clonedModulePrototype = moduleProto->clone();
     Item * const scope = Item::create(clonedModulePrototype->pool());
     scope->setFile(clonedModulePrototype->file());
     m_mergedModuleItem->scope()->copyProperty(QLatin1String("project"), scope);
