@@ -2910,7 +2910,7 @@ void TestBlackbox::xcode()
     QVERIFY2(xcodeSelect.waitForStarted(), qPrintable(xcodeSelect.errorString()));
     QVERIFY2(xcodeSelect.waitForFinished(), qPrintable(xcodeSelect.errorString()));
     QVERIFY2(xcodeSelect.exitCode() == 0, qPrintable(xcodeSelect.readAllStandardError().constData()));
-    const QString developerDir(QString::fromLocal8Bit(xcodeSelect.readAllStandardOutput().trimmed()));
+    const QString developerPath(QString::fromLocal8Bit(xcodeSelect.readAllStandardOutput().trimmed()));
 
     QMultiMap<QString, QString> sdks;
 
@@ -2934,7 +2934,7 @@ void TestBlackbox::xcode()
     QDir::setCurrent(testDataDir + "/xcode");
     QbsRunParameters params;
     params.arguments = (QStringList()
-                        << (QStringLiteral("xcode.developerDir:") + developerDir)
+                        << (QStringLiteral("xcode.developerPath:") + developerPath)
                         << (QStringLiteral("project.sdks:") + sdkValues.join(",")));
     QCOMPARE(runQbs(params), 0);
 }
