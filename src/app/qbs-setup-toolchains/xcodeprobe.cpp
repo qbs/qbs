@@ -53,7 +53,7 @@ namespace {
 static const QString defaultDeveloperPath =
         QStringLiteral("/Applications/Xcode.app/Contents/Developer");
 static const QRegularExpression defaultDeveloperPathRegex(
-        QStringLiteral("/Applications/Xcode([a-zA-Z0-9_-]+)\\.app/Contents/Developer"));
+        QStringLiteral("^/Applications/Xcode([a-zA-Z0-9 _-]+)\\.app/Contents/Developer$"));
 
 class XcodeProbe
 {
@@ -198,9 +198,13 @@ void XcodeProbe::detectAll()
     detectDeveloperPaths();
     for (const QString &developerPath : developerPaths) {
         QRegularExpressionMatch match(defaultDeveloperPathRegex.match(developerPath));
-        const QString profileName = match.isValid()
-                ? QString::fromLatin1("xcode%1").arg(match.capturedTexts().value(1).toLower())
-                : QString::fromLatin1("xcode%1").arg(i++);
+        QString profileName = QLatin1String("xcode");
+        if (developerPath != defaultDeveloperPath) {
+            profileName += match.hasMatch()
+                    ? match.capturedTexts().value(1).toLower().replace(QLatin1Char(' '),
+                                                                       QLatin1Char('-'))
+                    : QString::number(i++);
+        }
         setupDefaultToolchains(developerPath, profileName);
     }
 }
