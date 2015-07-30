@@ -37,19 +37,19 @@
 namespace qbs {
 namespace Internal {
 class Item;
+class ItemPool;
 
 class FileContext : public FileContextBase
 {
-    friend class ItemReaderASTVisitor;
-
-    FileContext();
-
 public:
     static FileContextPtr create();
 
     Item *idScope() const { return m_idScope; }
+    void ensureIdScope(ItemPool *itemPool);
 
 private:
+    FileContext();
+
     Item *m_idScope;
 };
 

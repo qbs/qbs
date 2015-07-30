@@ -82,7 +82,7 @@ bool ItemReaderASTVisitor::visit(AST::UiProgram *ast)
 {
     Q_UNUSED(ast);
     m_sourceValue.clear();
-    m_file->m_searchPaths = m_searchPaths;
+    m_file->setSearchPaths(m_searchPaths);
 
     if (Q_UNLIKELY(!ast->members->member))
         throw ErrorInfo(Tr::tr("No root item found in %1.").arg(m_file->filePath()));
@@ -173,11 +173,11 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                         throw ErrorInfo(Tr::tr("Import of built-in extension '%1' "
                                                "must not have 'as' specifier.").arg(extensionName));
                     }
-                    if (Q_UNLIKELY(m_file->m_jsExtensions.contains(extensionName))) {
+                    if (Q_UNLIKELY(m_file->jsExtensions().contains(extensionName))) {
                         m_logger.printWarning(Tr::tr("Built-in extension '%1' already "
                                                      "imported.").arg(extensionName));
                     } else {
-                        m_file->m_jsExtensions << extensionName;
+                        m_file->addJsExtension(extensionName);
                     }
                     continue;
                 }
@@ -274,7 +274,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
     for (QHash<QString, JsImport>::const_iterator it = jsImports.constBegin();
          it != jsImports.constEnd(); ++it)
     {
-        m_file->m_jsImports += it.value();
+        m_file->addJsImport(it.value());
     }
 
     return false;
@@ -321,11 +321,11 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
                 = m_visitorState.readFile(baseTypeFileName, m_searchPaths, m_itemPool);
 
         inheritItem(item, rootItem);
-        if (rootItem->m_file->m_idScope) {
+        if (rootItem->m_file->idScope()) {
             // Make ids from the derived file visible in the base file.
             // ### Do we want to turn off this feature? It's QMLish but kind of strange.
-            ensureIdScope(item->m_file);
-            rootItem->m_file->m_idScope->setPrototype(item->m_file->m_idScope);
+            item->m_file->ensureIdScope(m_itemPool);
+            rootItem->m_file->idScope()->setPrototype(item->m_file->idScope());
         }
     }
 
@@ -395,8 +395,8 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
         if (Q_UNLIKELY(!idExp || idExp->name.isEmpty()))
             throw ErrorInfo(Tr::tr("id: must be followed by identifier"));
         m_item->m_id = idExp->name.toString();
-        ensureIdScope(m_file);
-        m_file->m_idScope->m_properties[m_item->m_id] = ItemValue::create(m_item);
+        m_file->ensureIdScope(m_itemPool);
+        m_file->idScope()->m_properties[m_item->m_id] = ItemValue::create(m_item);
         return false;
     }
 
@@ -556,14 +556,6 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
             = src->m_propertyDeclarations.constBegin();
             it != src->m_propertyDeclarations.constEnd(); ++it) {
         dst->m_propertyDeclarations[it.key()] = it.value();
-    }
-}
-
-void ItemReaderASTVisitor::ensureIdScope(const FileContextPtr &file)
-{
-    if (!file->m_idScope) {
-        file->m_idScope = Item::create(m_itemPool);
-        file->m_idScope->m_typeName = QLatin1String("IdScope");
     }
 }
 

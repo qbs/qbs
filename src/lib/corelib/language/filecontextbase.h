@@ -45,10 +45,10 @@ public:
     void setContent(const QString &content) { m_content = content; }
     const QString &content() const { return m_content; }
 
-    void setJsImports(const JsImports &jsImports) { m_jsImports = jsImports; }
+    void addJsImport(const JsImport &jsImport) { m_jsImports << jsImport; }
     JsImports jsImports() const { return m_jsImports; }
 
-    void setJsExtensions(const QStringList &extensions) { m_jsExtensions = extensions; }
+    void addJsExtension(const QString &extension) { m_jsExtensions << extension; }
     QStringList jsExtensions() const { return m_jsExtensions; }
 
     void setSearchPaths(const QStringList &paths) { m_searchPaths = paths; }

@@ -77,7 +77,6 @@ private:
                                  const JSSourceValueConstPtr &value);
     void checkImportVersion(const QbsQmlJS::AST::SourceLocation &versionToken) const;
     static void inheritItem(Item *dst, const Item *src);
-    void ensureIdScope(const FileContextPtr &file);
     void setupAlternatives(Item *item);
     static void replaceConditionScopes(const JSSourceValuePtr &value, Item *newScope);
     void handlePropertiesBlock(Item *item, const Item *block);
