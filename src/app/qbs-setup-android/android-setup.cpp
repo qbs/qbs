@@ -126,7 +126,7 @@ static QStringList expectedArchs()
 
 static QString subProfileName(const QString &mainProfileName, const QString &arch)
 {
-    return mainProfileName + QLatin1Char('_') + arch;
+    return mainProfileName + QLatin1Char('-') + arch;
 }
 
 void setupSdk(qbs::Settings *settings, const QString &profileName, const QString &sdkDirPath)

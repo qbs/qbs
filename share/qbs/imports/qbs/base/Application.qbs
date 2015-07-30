@@ -43,6 +43,6 @@ Product {
     Depends { name: "cpp"; condition: isForAndroid }
 
     profiles: isForAndroid
-        ? architectures.map(function(arch) { return project.profile + '_' + arch; })
+        ? architectures.map(function(arch) { return project.profile + '-' + arch; })
         : [project.profile]
 }
