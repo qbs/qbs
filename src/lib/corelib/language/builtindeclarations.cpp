@@ -34,6 +34,8 @@
 
 #include <logging/translator.h>
 
+#include <QStringList>
+
 namespace qbs {
 namespace Internal {
 

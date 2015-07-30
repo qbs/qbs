@@ -36,6 +36,7 @@
 #include <tools/version.h>
 
 #include <QMap>
+#include <QString>
 
 namespace qbs {
 namespace Internal {

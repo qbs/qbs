@@ -32,6 +32,8 @@
 
 #include <language/builtindeclarations.h>
 
+#include <QStringList>
+
 namespace qbs {
 
 LanguageInfo::LanguageInfo()
