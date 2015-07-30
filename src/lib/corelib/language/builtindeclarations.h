@@ -35,7 +35,6 @@
 
 #include <tools/version.h>
 
-#include <QByteArray>
 #include <QMap>
 
 namespace qbs {
@@ -73,7 +72,7 @@ private:
     void addTransformerItem();
     void addScannerItem();
 
-    Version m_languageVersion;
+    const Version m_languageVersion;
     QMap<QString, ItemDeclaration> m_builtins;
 };
 

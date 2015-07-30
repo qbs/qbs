@@ -32,6 +32,7 @@
 
 #include <buildgraph/artifact.h>
 #include <language/language.h>
+#include <language/propertymapinternal.h>
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/error.h>

@@ -31,8 +31,6 @@
 #ifndef QBS_ITEMOBSERVER_H
 #define QBS_ITEMOBSERVER_H
 
-#include <QString>
-
 namespace qbs {
 namespace Internal {
 

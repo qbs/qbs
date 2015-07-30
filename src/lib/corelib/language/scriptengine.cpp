@@ -32,9 +32,10 @@
 
 #include "evaluatorscriptclass.h"
 #include "filecontextbase.h"
-#include "item.h"
+#include "jsimports.h"
 #include "propertymapinternal.h"
 #include "scriptpropertyobserver.h"
+
 #include <buildgraph/artifact.h>
 #include <jsextensions/jsextensions.h>
 #include <tools/error.h>
@@ -445,7 +446,7 @@ void ScriptEngine::addFileExistsResult(const QString &filePath, bool exists)
     m_fileExistsResult.insert(filePath, exists);
 }
 
-void ScriptEngine::addFileLastModifiedResult(const QString &filePath, FileTime fileTime)
+void ScriptEngine::addFileLastModifiedResult(const QString &filePath, const FileTime &fileTime)
 {
     m_fileLastModifiedResult.insert(filePath, fileTime);
 }

@@ -31,18 +31,19 @@
 #ifndef QBS_ITEMREADERASTVISITOR_H
 #define QBS_ITEMREADERASTVISITOR_H
 
-#include "item.h"
-#include "filecontext.h"
+#include "forward_decls.h"
 
 #include <logging/logger.h>
 #include <parser/qmljsastvisitor_p.h>
+#include <tools/codelocation.h>
 
 #include <QHash>
 #include <QStringList>
 
 namespace qbs {
 namespace Internal {
-
+class Item;
+class ItemPool;
 class ItemReaderVisitorState;
 class Version;
 

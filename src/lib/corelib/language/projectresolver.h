@@ -31,9 +31,7 @@
 #ifndef PROJECTRESOLVER_H
 #define PROJECTRESOLVER_H
 
-#include "evaluator.h"
 #include "filetags.h"
-#include "language.h"
 #include "moduleloader.h"
 
 #include <logging/logger.h>
@@ -47,7 +45,6 @@ namespace Internal {
 
 class Evaluator;
 class Item;
-class ModuleLoader;
 class ProgressObserver;
 class ScriptEngine;
 class QualifiedIdSet;

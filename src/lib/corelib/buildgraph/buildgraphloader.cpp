@@ -39,10 +39,13 @@
 #include "projectbuilddata.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
+
 #include <language/artifactproperties.h>
 #include <language/language.h>
 #include <language/loader.h>
+#include <language/propertymapinternal.h>
 #include <logging/translator.h>
+#include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>

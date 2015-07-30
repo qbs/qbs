@@ -31,10 +31,8 @@
 #include "builtindeclarations.h"
 
 #include "deprecationinfo.h"
-#include "item.h"
 
 #include <logging/translator.h>
-#include <tools/error.h>
 
 namespace qbs {
 namespace Internal {

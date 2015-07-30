@@ -32,7 +32,6 @@
 #define QBS_SCRIPTENGINE_H
 
 #include "forward_decls.h"
-#include "jsimports.h"
 #include "property.h"
 #include <logging/logger.h>
 #include <tools/filetime.h>
@@ -47,7 +46,7 @@
 namespace qbs {
 namespace Internal {
 class Artifact;
-
+class JsImport;
 class ScriptPropertyObserver;
 
 class ScriptEngine : public QScriptEngine
@@ -96,7 +95,7 @@ public:
     QHash<QString, QString> usedEnvironment() const { return m_usedEnvironment; }
     void addCanonicalFilePathResult(const QString &filePath, const QString &resultFilePath);
     void addFileExistsResult(const QString &filePath, bool exists);
-    void addFileLastModifiedResult(const QString &filePath, FileTime fileTime);
+    void addFileLastModifiedResult(const QString &filePath, const FileTime &fileTime);
     QHash<QString, QString> canonicalFilePathResults() const { return m_canonicalFilePathResult; }
     QHash<QString, bool> fileExistsResults() const { return m_fileExistsResult; }
     QHash<QString, FileTime> fileLastModifiedResults() const { return m_fileLastModifiedResult; }

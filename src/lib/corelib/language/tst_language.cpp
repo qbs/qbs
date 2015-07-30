@@ -33,18 +33,23 @@
 #include "tst_language.h"
 
 #include <language/evaluator.h>
+#include <language/filecontext.h>
 #include <language/identifiersearch.h>
 #include <language/item.h>
 #include <language/itempool.h>
 #include <language/language.h>
+#include <language/propertymapinternal.h>
 #include <language/scriptengine.h>
+#include <language/value.h>
 #include <parser/qmljslexer_p.h>
 #include <parser/qmljsparser_p.h>
 #include <tools/scripttools.h>
 #include <tools/error.h>
+#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 #include <tools/propertyfinder.h>
+#include <tools/settings.h>
 
 #include <QProcessEnvironment>
 

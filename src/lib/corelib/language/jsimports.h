@@ -32,8 +32,8 @@
 #define QBS_JSIMPORTS_H
 
 #include <tools/codelocation.h>
+
 #include <QHash>
-#include <QSet>
 #include <QStringList>
 
 namespace qbs {

@@ -31,8 +31,9 @@
 #ifndef QBS_ARTIFACTPROPERTIES_H
 #define QBS_ARTIFACTPROPERTIES_H
 
-#include "language.h"
+#include "filetags.h"
 #include "forward_decls.h"
+
 #include <tools/persistentobject.h>
 
 namespace qbs {

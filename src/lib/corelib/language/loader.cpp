@@ -30,10 +30,11 @@
 
 #include "loader.h"
 
-#include "builtindeclarations.h"
-#include "item.h"
+#include "language.h"
 #include "moduleloader.h"
 #include "projectresolver.h"
+#include "scriptengine.h"
+
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
@@ -41,6 +42,7 @@
 #include <tools/setupprojectparameters.h>
 
 #include <QDir>
+#include <QObject>
 #include <QTimer>
 
 namespace qbs {
@@ -49,23 +51,13 @@ namespace Internal {
 Loader::Loader(ScriptEngine *engine, const Logger &logger)
     : m_logger(logger)
     , m_progressObserver(0)
-    , m_moduleLoader(new ModuleLoader(engine, logger))
-    , m_projectResolver(new ProjectResolver(m_moduleLoader, logger))
     , m_engine(engine)
 {
-}
-
-Loader::~Loader()
-{
-    delete m_projectResolver;
-    delete m_moduleLoader;
 }
 
 void Loader::setProgressObserver(ProgressObserver *observer)
 {
     m_progressObserver = observer;
-    m_moduleLoader->setProgressObserver(observer);
-    m_projectResolver->setProgressObserver(observer);
 }
 
 void Loader::setSearchPaths(const QStringList &_searchPaths)
@@ -80,7 +72,7 @@ void Loader::setSearchPaths(const QStringList &_searchPaths)
         }
     }
 
-    m_moduleLoader->setSearchPaths(searchPaths);
+    m_searchPaths = searchPaths;
 }
 
 TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
@@ -101,13 +93,22 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
                 .arg(TopLevelProject::deriveId(parameters.topLevelProfile(),
                                                parameters.finalBuildConfigurationTree())), 1);
         cancelationTimer.setSingleShot(false);
-        QObject::connect(&cancelationTimer, SIGNAL(timeout()), SLOT(checkForCancelation()));
+        QObject::connect(&cancelationTimer, &QTimer::timeout, [this]() {
+            QBS_ASSERT(m_progressObserver, return);
+            if (m_progressObserver->canceled())
+                m_engine->cancel();
+        });
         cancelationTimer.start(1000);
     }
 
     const FileTime resolveTime = FileTime::currentTime();
-    ModuleLoaderResult loadResult = m_moduleLoader->load(parameters);
-    const TopLevelProjectPtr project = m_projectResolver->resolve(loadResult, parameters);
+    ModuleLoader moduleLoader(m_engine, m_logger);
+    moduleLoader.setProgressObserver(m_progressObserver);
+    moduleLoader.setSearchPaths(m_searchPaths);
+    ModuleLoaderResult loadResult = moduleLoader.load(parameters);
+    ProjectResolver resolver(&moduleLoader, m_logger);
+    resolver.setProgressObserver(m_progressObserver);
+    const TopLevelProjectPtr project = resolver.resolve(loadResult, parameters);
     project->lastResolveTime = resolveTime;
 
     // E.g. if the top-level project is disabled.
@@ -115,13 +116,6 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
         m_progressObserver->setFinished();
 
     return project;
-}
-
-void Loader::checkForCancelation()
-{
-    QBS_ASSERT(m_progressObserver, return);
-    if (m_progressObserver->canceled())
-        m_engine->cancel();
 }
 
 } // namespace Internal

@@ -33,7 +33,6 @@
 
 #include "forward_decls.h"
 #include "itempool.h"
-#include "qualifiedid.h"
 #include <logging/logger.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/version.h>
@@ -59,6 +58,7 @@ class Evaluator;
 class Item;
 class ItemReader;
 class ProgressObserver;
+class QualifiedId;
 class ScriptEngine;
 
 struct ModuleLoaderResult

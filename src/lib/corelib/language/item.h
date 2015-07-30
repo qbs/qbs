@@ -32,8 +32,6 @@
 #define QBS_ITEM_H
 
 #include "forward_decls.h"
-#include "itemobserver.h"
-#include "value.h"
 #include "functiondeclaration.h"
 #include "propertydeclaration.h"
 #include "qualifiedid.h"
@@ -46,7 +44,7 @@
 
 namespace qbs {
 namespace Internal {
-
+class ItemObserver;
 class ItemPool;
 class Logger;
 
@@ -77,23 +75,23 @@ public:
 
     static Item *create(ItemPool *pool);
     Item *clone() const;
-    ItemPool *pool() const;
+    ItemPool *pool() const { return m_pool; }
 
-    const QString &id() const;
-    const QString &typeName() const;
-    const CodeLocation &location() const;
-    Item *prototype() const;
-    Item *scope() const;
-    bool isModuleInstance() const;
-    Item *outerItem() const;
-    Item *parent() const;
-    const FileContextPtr file() const;
-    QList<Item *> children() const;
+    const QString &id() const { return m_id; }
+    const QString &typeName() const { return m_typeName; }
+    const CodeLocation &location() const { return m_location; }
+    Item *prototype() const { return m_prototype; }
+    Item *scope() const { return m_scope; }
+    bool isModuleInstance() const { return m_moduleInstance; }
+    Item *outerItem() const { return m_outerItem; }
+    Item *parent() const { return m_parent; }
+    const FileContextPtr file() const { return m_file; }
+    QList<Item *> children() const { return m_children; }
     Item *child(const QString &type, bool checkForMultiple = true) const;
-    const PropertyMap &properties() const;
-    const PropertyDeclarationMap &propertyDeclarations() const;
-    const PropertyDeclaration propertyDeclaration(const QString &name) const;
-    const Modules &modules() const;
+    const PropertyMap &properties() const { return m_properties; }
+    const PropertyDeclarationMap &propertyDeclarations() const { return m_propertyDeclarations; }
+    PropertyDeclaration propertyDeclaration(const QString &name) const;
+    const Modules &modules() const { return m_modules; }
     void addModule(const Module &module);
     void removeModules() { m_modules.clear(); }
     void setModules(const Modules &modules) { m_modules = modules; }
@@ -109,15 +107,15 @@ public:
     void setProperties(const PropertyMap &props) { m_properties = props; }
     void removeProperty(const QString &name);
     void setPropertyDeclaration(const QString &name, const PropertyDeclaration &declaration);
-    void setTypeName(const QString &name);
-    void setLocation(const CodeLocation &location);
-    void setPrototype(Item *prototype);
-    void setFile(const FileContextPtr &file);
-    void setScope(Item *item);
-    void setModuleInstanceFlag(bool b);
-    void setOuterItem(Item *item);
-    void setChildren(const QList<Item *> &children);
-    void setParent(Item *item);
+    void setTypeName(const QString &name) { m_typeName = name; }
+    void setLocation(const CodeLocation &location) { m_location = location; }
+    void setPrototype(Item *prototype) { m_prototype = prototype; }
+    void setFile(const FileContextPtr &file) { m_file = file; }
+    void setScope(Item *item) { m_scope = item; }
+    void setModuleInstanceFlag(bool b) { m_moduleInstance = b; }
+    void setOuterItem(Item *item) { m_outerItem = item; }
+    void setChildren(const QList<Item *> &children) { m_children = children; }
+    void setParent(Item *item) { m_parent = item; }
     static void addChild(Item *parent, Item *child);
     void dump() const;
     bool isPresentModule() const;
@@ -148,140 +146,6 @@ private:
     Modules m_modules;
     ErrorInfo m_delayedError;
 };
-
-inline ItemPool *Item::pool() const
-{
-    return m_pool;
-}
-
-inline const QString &Item::id() const
-{
-    return m_id;
-}
-
-inline const QString &Item::typeName() const
-{
-    return m_typeName;
-}
-
-inline const CodeLocation &Item::location() const
-{
-    return m_location;
-}
-
-inline Item *Item::prototype() const
-{
-    return m_prototype;
-}
-
-inline Item *Item::scope() const
-{
-    return m_scope;
-}
-
-inline bool Item::isModuleInstance() const
-{
-    return m_moduleInstance;
-}
-
-inline Item *Item::outerItem() const
-{
-    return m_outerItem;
-}
-
-inline Item *Item::parent() const
-{
-    return m_parent;
-}
-
-inline const FileContextPtr Item::file() const
-{
-    return m_file;
-}
-
-inline QList<Item *> Item::children() const
-{
-    return m_children;
-}
-
-inline const Item::PropertyMap &Item::properties() const
-{
-    return m_properties;
-}
-
-inline const Item::PropertyDeclarationMap &Item::propertyDeclarations() const
-{
-    return m_propertyDeclarations;
-}
-
-inline void Item::setProperty(const QString &name, const ValuePtr &value)
-{
-    m_properties.insert(name, value);
-    if (m_propertyObserver)
-        m_propertyObserver->onItemPropertyChanged(this);
-}
-
-inline void Item::setPropertyDeclaration(const QString &name,
-                                         const PropertyDeclaration &declaration)
-{
-    m_propertyDeclarations.insert(name, declaration);
-}
-
-inline void Item::setTypeName(const QString &name)
-{
-    m_typeName = name;
-}
-
-inline void Item::setLocation(const CodeLocation &location)
-{
-    m_location = location;
-}
-
-inline void Item::setPrototype(Item *prototype)
-{
-    m_prototype = prototype;
-}
-
-inline void Item::setFile(const FileContextPtr &file)
-{
-    m_file = file;
-}
-
-inline void Item::setScope(Item *item)
-{
-    m_scope = item;
-}
-
-inline void Item::setModuleInstanceFlag(bool b)
-{
-    m_moduleInstance = b;
-}
-
-inline void Item::setOuterItem(Item *item)
-{
-    m_outerItem = item;
-}
-
-inline void Item::setChildren(const QList<Item *> &children)
-{
-    m_children = children;
-}
-
-inline void Item::setParent(Item *item)
-{
-    m_parent = item;
-}
-
-inline void Item::addChild(Item *parent, Item *child)
-{
-    parent->m_children.append(child);
-    child->setParent(parent);
-}
-
-inline const Item::Modules &Item::modules() const
-{
-    return m_modules;
-}
 
 inline bool operator<(const Item::Module &m1, const Item::Module &m2) { return m1.name < m2.name; }
 

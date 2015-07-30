@@ -32,7 +32,9 @@
 
 #include "deprecationinfo.h"
 
+#include <QScriptValue>
 #include <QSharedData>
+#include <QStringList>
 
 namespace qbs {
 namespace Internal {

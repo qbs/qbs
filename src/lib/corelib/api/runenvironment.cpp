@@ -33,6 +33,7 @@
 #include <api/projectdata.h>
 #include <buildgraph/productinstaller.h>
 #include <language/language.h>
+#include <language/propertymapinternal.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <logging/translator.h>

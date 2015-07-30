@@ -37,6 +37,7 @@
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>

@@ -30,6 +30,8 @@
 
 #include "modulemerger.h"
 
+#include "value.h"
+
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
 

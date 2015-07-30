@@ -33,16 +33,16 @@
 
 #include "forward_decls.h"
 #include "itemobserver.h"
-#include <language/scriptengine.h>
 
 #include <QHash>
 #include <QScriptValue>
 
 namespace qbs {
 namespace Internal {
-class FileTags;
-
 class EvaluatorScriptClass;
+class FileTags;
+class Logger;
+class ScriptEngine;
 
 class Evaluator : private ItemObserver
 {
@@ -52,7 +52,7 @@ public:
     Evaluator(ScriptEngine *scriptEngine, const Logger &logger);
     virtual ~Evaluator();
 
-    ScriptEngine *engine() const;
+    ScriptEngine *engine() const { return m_scriptEngine; }
     QScriptValue property(const Item *item, const QString &name);
 
     QScriptValue value(const Item *item, const QString &name, bool *propertySet = 0);
@@ -81,11 +81,6 @@ private:
     mutable QHash<const Item *, QScriptValue> m_scriptValueMap;
     mutable QHash<FileContextConstPtr, QScriptValue> m_fileScopeMap;
 };
-
-inline ScriptEngine *Evaluator::engine() const
-{
-    return m_scriptEngine;
-}
 
 } // namespace Internal
 } // namespace qbs

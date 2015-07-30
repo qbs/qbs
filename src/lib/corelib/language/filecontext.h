@@ -32,10 +32,11 @@
 #define QBS_FILECONTEXT_H
 
 #include "filecontextbase.h"
-#include "item.h"
+#include "forward_decls.h"
 
 namespace qbs {
 namespace Internal {
+class Item;
 
 class FileContext : public FileContextBase
 {
@@ -46,16 +47,11 @@ class FileContext : public FileContextBase
 public:
     static FileContextPtr create();
 
-    Item *idScope() const;
+    Item *idScope() const { return m_idScope; }
 
 private:
     Item *m_idScope;
 };
-
-inline Item *FileContext::idScope() const
-{
-    return m_idScope;
-}
 
 } // namespace Internal
 } // namespace qbs

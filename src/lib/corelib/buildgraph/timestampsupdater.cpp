@@ -33,7 +33,9 @@
 #include "artifactvisitor.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
+
 #include <language/language.h>
+#include <tools/fileinfo.h>
 #include <tools/filetime.h>
 #include <tools/qbsassert.h>
 

@@ -31,7 +31,9 @@
 
 #include "artifact.h"
 #include "productbuilddata.h"
+
 #include <language/language.h>
+#include <language/propertymapinternal.h>
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
 #include <tools/error.h>

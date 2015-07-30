@@ -32,8 +32,11 @@
 
 #include "asttools.h"
 #include "builtindeclarations.h"
+#include "filecontext.h"
 #include "identifiersearch.h"
+#include "item.h"
 #include "itemreadervisitorstate.h"
+#include "value.h"
 
 #include <jsextensions/jsextensions.h>
 #include <parser/qmljsast_p.h>

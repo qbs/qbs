@@ -34,11 +34,13 @@
 #include "evaluator.h"
 #include "filecontext.h"
 #include "item.h"
-#include "moduleloader.h"
+#include "language.h"
 #include "modulemerger.h"
 #include "propertymapinternal.h"
 #include "resolvedfilecontext.h"
 #include "scriptengine.h"
+#include "value.h"
+
 #include <jsextensions/moduleproperties.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -48,10 +50,8 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 
-#include <QFileInfo>
 #include <QDir>
 #include <QQueue>
-#include <QSet>
 
 #include <algorithm>
 #include <set>

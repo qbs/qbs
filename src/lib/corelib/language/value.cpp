@@ -29,6 +29,8 @@
 ****************************************************************************/
 
 #include "value.h"
+
+#include "filecontext.h"
 #include "item.h"
 
 #include <tools/qbsassert.h>

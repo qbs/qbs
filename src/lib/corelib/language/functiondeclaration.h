@@ -33,6 +33,8 @@
 
 #include <tools/codelocation.h>
 
+#include <QString>
+
 namespace qbs {
 namespace Internal {
 

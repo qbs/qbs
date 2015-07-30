@@ -33,7 +33,9 @@
 #include "builtindeclarations.h"
 #include "deprecationinfo.h"
 #include "filecontext.h"
+#include "itemobserver.h"
 #include "itempool.h"
+#include "value.h"
 
 #include <logging/logger.h>
 #include <logging/translator.h>
@@ -150,7 +152,7 @@ VariantValuePtr Item::variantProperty(const QString &name) const
     return v.staticCast<VariantValue>();
 }
 
-const PropertyDeclaration Item::propertyDeclaration(const QString &name) const
+PropertyDeclaration Item::propertyDeclaration(const QString &name) const
 {
     const PropertyDeclaration decl = m_propertyDeclarations.value(name);
     return (!decl.isValid() && m_prototype) ? m_prototype->propertyDeclaration(name) : decl;
@@ -166,6 +168,13 @@ void Item::setPropertyObserver(ItemObserver *observer) const
 {
     QBS_ASSERT(!observer || !m_propertyObserver, return);   // warn if accidentally overwritten
     m_propertyObserver = observer;
+}
+
+void Item::setProperty(const QString &name, const ValuePtr &value)
+{
+    m_properties.insert(name, value);
+    if (m_propertyObserver)
+        m_propertyObserver->onItemPropertyChanged(this);
 }
 
 void Item::dump() const
@@ -291,6 +300,17 @@ Item *Item::child(const QString &type, bool checkForMultiple) const
         }
     }
     return child;
+}
+
+void Item::addChild(Item *parent, Item *child)
+{
+    parent->m_children.append(child);
+    child->setParent(parent);
+}
+
+void Item::setPropertyDeclaration(const QString &name, const PropertyDeclaration &declaration)
+{
+    m_propertyDeclarations.insert(name, declaration);
 }
 
 } // namespace Internal

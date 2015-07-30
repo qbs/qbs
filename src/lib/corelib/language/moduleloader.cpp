@@ -36,20 +36,20 @@
 #include "filecontext.h"
 #include "item.h"
 #include "itemreader.h"
+#include "qualifiedid.h"
 #include "scriptengine.h"
 #include "value.h"
+
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
-#include <tools/hostosinfo.h>
 #include <tools/preferences.h>
 #include <tools/profile.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
-#include <tools/qttools.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
 
