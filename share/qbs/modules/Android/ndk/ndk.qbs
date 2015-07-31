@@ -62,7 +62,7 @@ Module {
         ]
     }
 
-    property string toolchainVersion: "4.9"
+    property string toolchainVersion: latestToolchainVersion
     PropertyOptions {
         name: "toolchainVersion"
         description: "Corresponds to the 'NDK_TOOLCHAIN_VERSION' variable in an Android.mk file."
@@ -84,6 +84,44 @@ Module {
     property string platform: "android-9"
 
     // Internal properties.
+    property stringList availableToolchains: File.directoryEntries(
+                                                 FileInfo.joinPaths(ndkDir, "toolchains"),
+                                                 File.Dirs | File.NoDotAndDotDot)
+
+    property stringList availableToolchainVersions: {
+        var prefix = ["x86", "x86_64"].contains(abi) ? (abi + "-") : cpp.toolchainPrefix;
+        if (qbs.toolchain.contains("clang"))
+            prefix = "llvm-";
+
+        var tcs = availableToolchains;
+        var versions = [];
+        for (var i = 0; i < tcs.length; ++i) {
+            if (tcs[i].startsWith(prefix)) {
+                var v = tcs[i].substr(prefix.length);
+                var re = /^([0-9]+)\.([0-9]+)$/;
+                if (v.match(re))
+                    versions.push(v);
+            }
+        }
+
+        // Sort by version number
+        versions.sort(function (a, b) {
+            var re = /^([0-9]+)\.([0-9]+)$/;
+            a = a.match(re);
+            a = {major: a[1], minor: a[2]};
+            b = b.match(re);
+            b = {major: b[1], minor: b[2]};
+            if (a.major === b.major)
+                return a.minor - b.minor;
+            return a.major - b.major;
+        });
+
+        return versions;
+    }
+
+    property string latestToolchainVersion: availableToolchainVersions
+                                            [availableToolchainVersions.length - 1]
+
     property int platformVersion: {
         if (platform) {
             var match = platform.match(/^android-([0-9]+)$/);
@@ -115,7 +153,7 @@ Module {
     property string gabiBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "gabi++")
     property string stlPortBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "stlport")
     property string gnuStlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "gnu-libstdc++",
-                                                      toolchainVersion)
+                                                      toolchainVersionNumber)
     property string llvmStlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "llvm-libc++")
     property string stlBaseDir: {
         if (appStl.startsWith("gabi++_"))
