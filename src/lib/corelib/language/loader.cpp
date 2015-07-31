@@ -81,6 +81,8 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
 
     m_engine->setEnvironment(parameters.adjustedEnvironment());
     m_engine->clearExceptions();
+    m_engine->clearImportsCache();
+    m_engine->clearRequestedProperties();
 
     QTimer cancelationTimer;
 
