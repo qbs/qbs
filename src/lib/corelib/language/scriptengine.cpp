@@ -124,23 +124,20 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptV
     QBS_ASSERT(targetObject.engine() == this, return);
 
     if (debugJSImports)
-        m_logger.qbsDebug() << "[ENGINE] import into " << jsImport.scopeName;
+        qDebug() << "[ENGINE] import into " << jsImport.scopeName;
 
-    foreach (const QString &filePath, jsImport.filePaths) {
-        QScriptValue jsImportValue;
-        jsImportValue = m_jsImportCache.value(filePath);
-        if (jsImportValue.isValid()) {
-            if (debugJSImports)
-                m_logger.qbsDebug() << "[ENGINE] " << filePath << " (cache hit)";
-            targetObject.setProperty(jsImport.scopeName, jsImportValue);
-        } else {
-            if (debugJSImports)
-                m_logger.qbsDebug() << "[ENGINE] " << filePath << " (cache miss)";
-            jsImportValue = importFile(filePath, scope);
-            targetObject.setProperty(jsImport.scopeName, jsImportValue);
-            m_jsImportCache.insert(filePath, jsImportValue);
-        }
+    QScriptValue jsImportValue = m_jsImportCache.value(jsImport);
+    if (jsImportValue.isValid()) {
+        if (debugJSImports)
+            qDebug() << "[ENGINE] " << jsImport.filePaths << " (cache hit)";
+    } else {
+        if (debugJSImports)
+            qDebug() << "[ENGINE] " << jsImport.filePaths << " (cache miss)";
+        foreach (const QString &filePath, jsImport.filePaths)
+            importFile(filePath, scope, &jsImportValue);
+        m_jsImportCache.insert(jsImport, jsImportValue);
     }
+    targetObject.setProperty(jsImport.scopeName, jsImportValue);
 }
 
 void ScriptEngine::clearImportsCache()
@@ -237,7 +234,8 @@ void ScriptEngine::setEnvironment(const QProcessEnvironment &env)
     m_environment = env;
 }
 
-QScriptValue ScriptEngine::importFile(const QString &filePath, const QScriptValue &scope)
+QScriptValue ScriptEngine::importFile(const QString &filePath, const QScriptValue &scope,
+                                      QScriptValue *targetObject)
 {
     QFile file(filePath);
     if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
@@ -245,11 +243,13 @@ QScriptValue ScriptEngine::importFile(const QString &filePath, const QScriptValu
     const QString sourceCode = QTextStream(&file).readAll();
     file.close();
     QScriptProgram program(sourceCode, filePath);
-    QScriptValue obj = newObject();
+    QScriptValue obj;
+    if (!targetObject)
+        obj = newObject();
     m_currentDirPathStack.push(FileInfo::path(filePath));
-    importProgram(program, scope, obj);
+    importProgram(program, scope, targetObject ? *targetObject : obj);
     m_currentDirPathStack.pop();
-    return obj;
+    return targetObject ? *targetObject : obj;
 }
 
 void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptValue &scope,
@@ -289,7 +289,7 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
         while (it.hasNext()) {
             it.next();
             if (debugJSImports)
-                m_logger.qbsDebug() << "[ENGINE] Copying property " << it.name();
+                qDebug() << "[ENGINE] Copying property " << it.name();
             targetObject.setProperty(it.name(), it.value());
         }
     }
@@ -304,8 +304,8 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
             continue;
 
         if (debugJSImports) {
-            m_logger.qbsDebug() << "[ENGINE] inserting global property "
-                                << it.name() << " " << it.value().toString();
+            qDebug() << "[ENGINE] inserting global property "
+                     << it.name() << " " << it.value().toString();
         }
 
         targetObject.setProperty(it.name(), it.value());
@@ -453,7 +453,12 @@ void ScriptEngine::addFileLastModifiedResult(const QString &filePath, const File
 
 QSet<QString> ScriptEngine::imports() const
 {
-    return QSet<QString>::fromList(m_jsImportCache.keys());
+    QSet<QString> filePaths;
+    foreach (const JsImport &jsImport, m_jsImportCache.keys()) {
+        foreach (const QString &filePath, jsImport.filePaths)
+            filePaths << filePath;
+    }
+    return filePaths;
 }
 
 QScriptValueList ScriptEngine::argumentList(const QStringList &argumentNames,

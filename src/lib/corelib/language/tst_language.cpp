@@ -805,6 +805,24 @@ void TestLanguage::idUsage()
     QVERIFY(!exceptionCaught);
 }
 
+void TestLanguage::importCollection()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("import-collection/project.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        const ResolvedProductConstPtr product = products.value("da product");
+        QCOMPARE(product->productProperties.value("targetName").toString(), QLatin1String("f1f2"));
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QVERIFY(!exceptionCaught);
+}
+
 void TestLanguage::invalidBindingInDisabledItem()
 {
     bool exceptionCaught = false;

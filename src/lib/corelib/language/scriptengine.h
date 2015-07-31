@@ -124,7 +124,8 @@ private:
     void installQbsFunction(const QString &name, FunctionSignature f);
     void installImportFunctions();
     void uninstallImportFunctions();
-    QScriptValue importFile(const QString &filePath, const QScriptValue &scope);
+    QScriptValue importFile(const QString &filePath, const QScriptValue &scope,
+                            QScriptValue *targetObject = nullptr);
     void importProgram(const QScriptProgram &program, const QScriptValue &scope,
                        QScriptValue &targetObject);
     static QScriptValue js_loadExtension(QScriptContext *context, QScriptEngine *qtengine);
@@ -148,7 +149,7 @@ private:
     friend bool operator==(const PropertyCacheKey &lhs, const PropertyCacheKey &rhs);
     friend uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed);
 
-    QHash<QString, QScriptValue> m_jsImportCache;
+    QHash<JsImport, QScriptValue> m_jsImportCache;
     bool m_propertyCacheEnabled;
     QHash<PropertyCacheKey, QVariant> m_propertyCache;
     PropertySet m_propertiesRequestedInScript;
