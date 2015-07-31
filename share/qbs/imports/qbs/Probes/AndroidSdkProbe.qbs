@@ -31,12 +31,15 @@
 import qbs
 import qbs.File
 import qbs.FileInfo
+import "../../../modules/Android/sdk/utils.js" as SdkUtils
 
 PathProbe {
     environmentPaths: qbs.getEnv("ANDROID_HOME")
 
     // Outputs
+    property var buildToolsVersions
     property string buildToolsVersion
+    property var platforms
     property string platform
 
     configure: {
@@ -44,8 +47,10 @@ PathProbe {
         for (i in environmentPaths) {
             if (File.exists(FileInfo.joinPaths(environmentPaths[i], "tools", "android"))) {
                 path = environmentPaths[i];
-                buildToolsVersion = undefined; // not yet implemented
-                platform = undefined; // not yet implemented
+                buildToolsVersions = SdkUtils.availableBuildToolsVersions(path)
+                buildToolsVersion = buildToolsVersions[buildToolsVersions.length - 1];
+                platforms = SdkUtils.availableSdkPlatforms(path)
+                platform = platforms[platforms.length - 1];
                 found = true;
                 return;
             }

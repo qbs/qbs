@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var File = loadExtension("qbs.File");
 var FileInfo = loadExtension("qbs.FileInfo");
 var TextFile = loadExtension("qbs.TextFile");
 
@@ -56,4 +57,54 @@ function outputArtifactsFromInfoFiles(inputs, product, inputTag, outputTag)
     for (i = 0; i < pathSpecs.targetPaths.length; ++i)
         artifacts.push({filePath: pathSpecs.targetPaths[i], fileTags: [outputTag]});
     return artifacts;
+}
+
+function availableSdkPlatforms(sdkDir) {
+    var re = /^android-([0-9]+)$/;
+    var platforms = File.directoryEntries(FileInfo.joinPaths(sdkDir, "platforms"),
+                                          File.Dirs | File.NoDotAndDotDot);
+    var versions = [];
+    for (var i = 0; i < platforms.length; ++i) {
+        var match = platforms[i].match(re);
+        if (match !== null) {
+            versions.push(platforms[i]);
+        }
+    }
+
+    versions.sort(function (a, b) {
+        return parseInt(a.match(re)[1], 10) - parseInt(b.match(re)[1], 10);
+    });
+    return versions;
+}
+
+function availableBuildToolsVersions(sdkDir) {
+    var re = /^([0-9]+)\.([0-9]+)\.([0-9]+)$/;
+    var buildTools = File.directoryEntries(FileInfo.joinPaths(sdkDir, "build-tools"),
+                                           File.Dirs | File.NoDotAndDotDot);
+    var versions = [];
+    for (var i = 0; i < buildTools.length; ++i) {
+        var match = buildTools[i].match(re);
+        if (match !== null) {
+            versions.push(buildTools[i]);
+        }
+    }
+
+    // Sort by version number
+    versions.sort(function (a, b) {
+        a = a.match(re);
+        if (a)
+            a = {major: a[1], minor: a[2], patch: a[3]};
+        b = b.match(re);
+        if (b)
+            b = {major: b[1], minor: b[2], patch: a[3]};
+
+        if (a.major === b.major) {
+            if (a.minor === b.minor)
+                return a.patch - b.patch;
+            return a.minor - b.minor;
+        }
+        return a.major - b.major;
+    });
+
+    return versions;
 }

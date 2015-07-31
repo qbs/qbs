@@ -37,79 +37,12 @@
 #include <tools/version.h>
 
 #include <QDir>
-#include <QHash>
-#include <QSet>
 #include <QString>
-
-#include <algorithm>
 
 using namespace qbs;
 using qbs::Internal::Tr;
 
 static QString qls(const char *s) { return QLatin1String(s); }
-
-
-static QStringList allPlatforms(const QString &baseDir)
-{
-    QDir platformsDir(baseDir + qls("/platforms"));
-    if (!platformsDir.exists()) {
-        throw ErrorInfo(Tr::tr("Expected directory '%1' to be present, but it is not.")
-                        .arg(QDir::toNativeSeparators(platformsDir.path())));
-    }
-    const QStringList platforms = platformsDir.entryList(
-                QStringList() << qls("android-*"), QDir::Dirs | QDir::NoDotAndDotDot);
-    if (platforms.isEmpty()) {
-        throw ErrorInfo(Tr::tr("No platforms found in '%1'.")
-                        .arg(QDir::toNativeSeparators(platformsDir.path())));
-    }
-    return platforms;
-}
-
-static bool compareBuildToolVersions(const QString &v1, const QString &v2)
-{
-    return Internal::Version::fromString(v1) < Internal::Version::fromString(v2);
-}
-
-static QString detectBuildToolsVersion(const QString &sdkDir)
-{
-    QDir baseDir(sdkDir + qls("/build-tools"));
-    if (!baseDir.exists()) {
-        throw ErrorInfo(Tr::tr("Expected directory '%1' to be present, but it is not.")
-                        .arg(QDir::toNativeSeparators(baseDir.path())));
-    }
-    QStringList versions = baseDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    if (versions.isEmpty()) {
-        throw ErrorInfo(Tr::tr("No build tools found in '%1'.")
-                        .arg(QDir::toNativeSeparators(baseDir.path())));
-    }
-
-    std::sort(versions.begin(), versions.end(), compareBuildToolVersions);
-    return versions.last();
-}
-
-static QString detectPlatform(const QString &sdkDir)
-{
-    const QStringList sdkPlatforms = allPlatforms(sdkDir);
-
-    QString newestPlatform;
-    int max = 0;
-    foreach (const QString &platform, sdkPlatforms) {
-        static const QString prefix = qls("android-");
-        if (!platform.startsWith(prefix))
-            continue;
-        bool ok;
-        const int nr = platform.mid(prefix.count()).toInt(&ok);
-        if (!ok)
-            continue;
-        if (nr > max) {
-            max = nr;
-            newestPlatform = platform;
-        }
-    }
-    if (newestPlatform.isEmpty())
-        throw ErrorInfo(Tr::tr("No platforms found in SDK."));
-    return newestPlatform;
-}
 
 static QStringList expectedArchs()
 {
@@ -139,9 +72,6 @@ void setupSdk(qbs::Settings *settings, const QString &profileName, const QString
     Profile profile(profileName, settings);
     profile.removeProfile();
     profile.setValue(qls("Android.sdk.sdkDir"), QDir::cleanPath(sdkDirPath));
-    profile.setValue(qls("Android.sdk.buildToolsVersion"),
-                     detectBuildToolsVersion(sdkDirPath));
-    profile.setValue(qls("Android.sdk.platform"), detectPlatform(sdkDirPath));
     profile.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux")
                      << qls("unix"));
 }
