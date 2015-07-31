@@ -31,15 +31,16 @@
 #include "projectresolver.h"
 
 #include "artifactproperties.h"
-#include "builtindeclarations.h"
 #include "evaluator.h"
 #include "filecontext.h"
 #include "item.h"
-#include "moduleloader.h"
+#include "language.h"
 #include "modulemerger.h"
 #include "propertymapinternal.h"
 #include "resolvedfilecontext.h"
 #include "scriptengine.h"
+#include "value.h"
+
 #include <jsextensions/moduleproperties.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -49,10 +50,8 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 
-#include <QFileInfo>
 #include <QDir>
 #include <QQueue>
-#include <QSet>
 
 #include <algorithm>
 #include <set>
@@ -68,10 +67,9 @@ static const FileTag unknownFileTag()
     return tag;
 }
 
-ProjectResolver::ProjectResolver(ModuleLoader *ldr, const BuiltinDeclarations *builtins,
+ProjectResolver::ProjectResolver(ModuleLoader *ldr,
         const Logger &logger)
     : m_evaluator(ldr->evaluator())
-    , m_builtins(builtins)
     , m_logger(logger)
     , m_engine(m_evaluator->engine())
     , m_progressObserver(0)
@@ -366,7 +364,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         fakeGroup->setProperty(QLatin1String("excludeFiles"),
                                item->property(QLatin1String("excludeFiles")));
         fakeGroup->setProperty(QLatin1String("overrideTags"), VariantValue::create(false));
-        m_builtins->setupItemForBuiltinType(fakeGroup, m_logger);
+        fakeGroup->setupForBuiltinType(m_logger);
         subItems.prepend(fakeGroup);
     }
 

@@ -118,6 +118,8 @@ static void batPrintVars(QTextStream &s, const QStringList &varnames)
 
 static QString vcArchitecture(const QString &arch)
 {
+    if (arch == QLatin1String("armv7"))
+        return QLatin1String("arm");
     if (arch == QLatin1String("x86_64"))
         return QLatin1String("amd64");
     return arch;

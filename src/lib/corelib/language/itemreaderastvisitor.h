@@ -31,24 +31,27 @@
 #ifndef QBS_ITEMREADERASTVISITOR_H
 #define QBS_ITEMREADERASTVISITOR_H
 
-#include "item.h"
-#include "filecontext.h"
+#include "forward_decls.h"
 
+#include <logging/logger.h>
 #include <parser/qmljsastvisitor_p.h>
-#include <tools/version.h>
+#include <tools/codelocation.h>
 
 #include <QHash>
+#include <QStringList>
 
 namespace qbs {
 namespace Internal {
-
-class ItemReader;
-struct ItemReaderResult;
+class Item;
+class ItemPool;
+class ItemReaderVisitorState;
+class Version;
 
 class ItemReaderASTVisitor : public QbsQmlJS::AST::Visitor
 {
 public:
-    ItemReaderASTVisitor(ItemReader *reader, ItemReaderResult *result);
+    ItemReaderASTVisitor(ItemReaderVisitorState &visitorState,
+                         ItemPool *itemPool, Logger logger, const QStringList &searchPaths);
     ~ItemReaderASTVisitor();
 
     void setFilePath(const QString &filePath);
@@ -61,6 +64,8 @@ public:
     bool visit(QbsQmlJS::AST::UiScriptBinding *ast);
     bool visit(QbsQmlJS::AST::FunctionDeclaration *ast);
 
+    Item *rootItem() const { return m_rootItem; }
+
 private:
     static Version readImportVersion(const QString &str,
             const CodeLocation &location = CodeLocation());
@@ -72,7 +77,6 @@ private:
                                  const JSSourceValueConstPtr &value);
     void checkImportVersion(const QbsQmlJS::AST::SourceLocation &versionToken) const;
     static void inheritItem(Item *dst, const Item *src);
-    void ensureIdScope(const FileContextPtr &file);
     void setupAlternatives(Item *item);
     static void replaceConditionScopes(const JSSourceValuePtr &value, Item *newScope);
     void handlePropertiesBlock(Item *item, const Item *block);
@@ -80,12 +84,14 @@ private:
     bool addPrototype(const QString &fileName, const QString &filePath, const QString &as,
                       bool needsCheck);
 
-    ItemReader *m_reader;
-    ItemReaderResult *m_readerResult;
-    const Version m_languageVersion;
-    FileContextPtr m_file;
+    ItemReaderVisitorState &m_visitorState;
+    const FileContextPtr m_file;
+    ItemPool * const m_itemPool;
+    Logger m_logger;
+    const QStringList m_searchPaths;
     QHash<QStringList, QString> m_typeNameToFile;
-    Item *m_item;
+    Item *m_item = nullptr;
+    Item *m_rootItem = nullptr;
     JSSourceValuePtr m_sourceValue;
 };
 

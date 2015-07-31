@@ -45,11 +45,6 @@
 #include <QScriptEngine>
 #include <QScriptValue>
 
-// from qsysinfo.h
-#ifndef Q_MV_OSX
-#define Q_MV_OSX(major, minor) (major == 10 ? minor + 2 : (major == 9 ? 1 : 0))
-#endif
-
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
 using qbs::InstallOptions;
@@ -1601,7 +1596,7 @@ static QProcessEnvironment processEnvironmentWithCurrentDirectoryInLibraryPath()
 {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert(HostOsInfo::libraryPathEnvironmentVariable(),
-               QStringList({env.value(HostOsInfo::libraryPathEnvironmentVariable()), "."})
+               (QStringList() << env.value(HostOsInfo::libraryPathEnvironmentVariable()) << ".")
                .join(HostOsInfo::pathListSeparator()));
     return env;
 }
@@ -1649,23 +1644,25 @@ void TestBlackbox::java()
     QProcess process;
     process.setProcessEnvironment(processEnvironmentWithCurrentDirectoryInLibraryPath());
     process.start("java", QStringList() << "-jar" << "jar_file.jar");
-    QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
-    QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
-    QVERIFY2(process.exitCode() == 0, process.readAllStandardError().constData());
-    QByteArray stdOut = process.readAllStandardOutput();
-    QVERIFY2(stdOut.contains("Driving!"), stdOut.constData());
-    QVERIFY2(stdOut.contains("Flying!"), stdOut.constData());
-    QVERIFY2(stdOut.contains("Flying (this is a space ship)!"), stdOut.constData());
-    QVERIFY2(stdOut.contains("Sailing!"), stdOut.constData());
-    QVERIFY2(stdOut.contains("Native code performing complex internal combustion process (0x"),
-             stdOut.constData());
+    if (process.waitForStarted()) {
+        QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
+        QVERIFY2(process.exitCode() == 0, process.readAllStandardError().constData());
+        const QByteArray stdOut = process.readAllStandardOutput();
+        QVERIFY2(stdOut.contains("Driving!"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Flying!"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Flying (this is a space ship)!"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Sailing!"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Native code performing complex internal combustion process (0x"),
+                 stdOut.constData());
+    }
 
     process.start("unzip", QStringList() << "-p" << "jar_file.jar");
-    QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
-    QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
-    stdOut = process.readAllStandardOutput();
-    QVERIFY2(stdOut.contains("Class-Path: car_jar.jar random_stuff.jar"), stdOut.constData());
-    QVERIFY2(stdOut.contains("Main-Class: Vehicles"), stdOut.constData());
+    if (process.waitForStarted()) {
+        QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
+        const QByteArray stdOut = process.readAllStandardOutput();
+        QVERIFY2(stdOut.contains("Class-Path: car_jar.jar random_stuff.jar"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Main-Class: Vehicles"), stdOut.constData());
+    }
 }
 
 void TestBlackbox::cli()
@@ -1792,6 +1789,13 @@ void TestBlackbox::jsExtensionsPropertyList()
     QVERIFY(file5.exists());
     QVERIFY(file5.open(QIODevice::ReadOnly));
     QVERIFY(file1Contents != file5.readAll());
+}
+
+void TestBlackbox::jsExtensionsTemporaryDir()
+{
+    QDir::setCurrent(testDataDir + "/jsextensions-temporarydir");
+    QbsRunParameters params;
+    QCOMPARE(runQbs(params), 0);
 }
 
 void TestBlackbox::jsExtensionsTextFile()
@@ -2696,10 +2700,10 @@ void TestBlackbox::assetCatalog()
 {
     if (!HostOsInfo::isOsxHost() || !isXcodeProfile(profileName()))
         QSKIP("only applies on OS X with Xcode based profiles");
-#ifdef Q_OS_MAC
-    if (QSysInfo::macVersion() < Q_MV_OSX(10, 9))
+    if (!HostOsInfo::isOsxHost())
+        QSKIP("only applies on OS X");
+    if (HostOsInfo::hostOsVersion() < qbs::Internal::Version(10, 9))
         QSKIP("This test needs at least OS X 10.9.");
-#endif
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/assetcatalog"));
 
@@ -2740,9 +2744,7 @@ void TestBlackbox::assetCatalog()
 
     // make sure the nibs/storyboards are in there
     QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/MainMenu.nib"));
-#ifdef Q_OS_MAC
-    if (QSysInfo::macVersion() >= Q_MV_OSX(10, 10))
-#endif
+    if (HostOsInfo::hostOsVersion() >= qbs::Internal::Version(10, 10))
         QVERIFY(directoryExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/multiple-asset-catalogs"));

@@ -34,6 +34,7 @@
 #include "file.h"
 #include "process.h"
 #include "propertylist.h"
+#include "temporarydir.h"
 #include "textfile.h"
 
 #include <QScriptEngine>
@@ -68,6 +69,7 @@ JsExtensions::InitializerMap JsExtensions::initializers()
         m_initializers.insert(QLatin1String("File"), &initializeJsExtensionFile);
         m_initializers.insert(QLatin1String("Process"), &initializeJsExtensionProcess);
         m_initializers.insert(QLatin1String("Xml"), &initializeJsExtensionXml);
+        m_initializers.insert(QLatin1String("TemporaryDir"), &initializeJsExtensionTemporaryDir);
         m_initializers.insert(QLatin1String("TextFile"), &initializeJsExtensionTextFile);
         m_initializers.insert(QLatin1String("PropertyList"), &initializeJsExtensionPropertyList);
     }

@@ -31,14 +31,13 @@
 #ifndef QBS_VALUE_H
 #define QBS_VALUE_H
 
-#include "filecontext.h"
-#include "item.h"
+#include "forward_decls.h"
 #include <tools/codelocation.h>
 #include <QVariant>
 
 namespace qbs {
 namespace Internal {
-
+class Item;
 class ValueHandler;
 
 class Value
@@ -150,7 +149,6 @@ private:
     Item *m_exportScope;
 };
 
-class Item;
 
 class ItemValue : public Value
 {

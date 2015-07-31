@@ -31,9 +31,7 @@
 #ifndef PROJECTRESOLVER_H
 #define PROJECTRESOLVER_H
 
-#include "evaluator.h"
 #include "filetags.h"
-#include "language.h"
 #include "moduleloader.h"
 
 #include <logging/logger.h>
@@ -45,10 +43,8 @@
 namespace qbs {
 namespace Internal {
 
-class BuiltinDeclarations;
 class Evaluator;
 class Item;
-class ModuleLoader;
 class ProgressObserver;
 class ScriptEngine;
 class QualifiedIdSet;
@@ -56,7 +52,7 @@ class QualifiedIdSet;
 class ProjectResolver
 {
 public:
-    ProjectResolver(ModuleLoader *ldr, const BuiltinDeclarations *builtins, const Logger &logger);
+    ProjectResolver(ModuleLoader *ldr, const Logger &logger);
     ~ProjectResolver();
 
     void setProgressObserver(ProgressObserver *observer);
@@ -153,7 +149,6 @@ private:
             const QList<SourceArtifactPtr> &artifacts);
 
     Evaluator *m_evaluator;
-    const BuiltinDeclarations *m_builtins;
     Logger m_logger;
     ScriptEngine *m_engine;
     ProgressObserver *m_progressObserver;

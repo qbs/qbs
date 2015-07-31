@@ -32,7 +32,6 @@
 #define QBS_SCRIPTENGINE_H
 
 #include "forward_decls.h"
-#include "jsimports.h"
 #include "property.h"
 #include <logging/logger.h>
 #include <tools/filetime.h>
@@ -48,7 +47,7 @@
 namespace qbs {
 namespace Internal {
 class Artifact;
-
+class JsImport;
 class ScriptPropertyObserver;
 
 class ScriptEngine : public QScriptEngine
@@ -99,7 +98,7 @@ public:
     void addFileExistsResult(const QString &filePath, bool exists);
     void addDirectoryEntriesResult(const QString &path, QDir::Filters filters,
                                    const QStringList &entries);
-    void addFileLastModifiedResult(const QString &filePath, FileTime fileTime);
+    void addFileLastModifiedResult(const QString &filePath, const FileTime &fileTime);
     QHash<QString, QString> canonicalFilePathResults() const { return m_canonicalFilePathResult; }
     QHash<QString, bool> fileExistsResults() const { return m_fileExistsResult; }
     QHash<QPair<QString, quint32>, QStringList> directoryEntriesResults() const
@@ -133,7 +132,8 @@ private:
     void installQbsFunction(const QString &name, FunctionSignature f);
     void installImportFunctions();
     void uninstallImportFunctions();
-    QScriptValue importFile(const QString &filePath, const QScriptValue &scope);
+    QScriptValue importFile(const QString &filePath, const QScriptValue &scope,
+                            QScriptValue *targetObject = nullptr);
     void importProgram(const QScriptProgram &program, const QScriptValue &scope,
                        QScriptValue &targetObject);
     static QScriptValue js_loadExtension(QScriptContext *context, QScriptEngine *qtengine);
@@ -157,7 +157,7 @@ private:
     friend bool operator==(const PropertyCacheKey &lhs, const PropertyCacheKey &rhs);
     friend uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed);
 
-    QHash<QString, QScriptValue> m_jsImportCache;
+    QHash<JsImport, QScriptValue> m_jsImportCache;
     bool m_propertyCacheEnabled;
     QHash<PropertyCacheKey, QVariant> m_propertyCache;
     PropertySet m_propertiesRequestedInScript;

@@ -32,6 +32,8 @@
 
 #include <language/builtindeclarations.h>
 
+#include <QStringList>
+
 namespace qbs {
 
 LanguageInfo::LanguageInfo()
@@ -40,7 +42,7 @@ LanguageInfo::LanguageInfo()
 
 QByteArray LanguageInfo::qmlTypeInfo()
 {
-    Internal::BuiltinDeclarations builtins;
+    const Internal::BuiltinDeclarations &builtins = Internal::BuiltinDeclarations::instance();
 
     // Header:
     QByteArray result;
@@ -57,7 +59,7 @@ QByteArray LanguageInfo::qmlTypeInfo()
         result.append("        exports: [ \"qbs/");
         result.append(utf8TypeName);
         result.append(" ");
-        result.append(builtins.languageVersion().toUtf8());
+        result.append(builtins.languageVersion().toString().toUtf8());
         result.append("\" ]\n");
         result.append("        prototype: \"QQuickItem\"\n");
 

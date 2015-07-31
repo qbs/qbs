@@ -21,6 +21,7 @@ HEADERS += \
     $$PWD/itempool.h \
     $$PWD/itemreader.h \
     $$PWD/itemreaderastvisitor.h \
+    $$PWD/itemreadervisitorstate.h \
     $$PWD/jsimports.h \
     $$PWD/language.h \
     $$PWD/loader.h \
@@ -53,6 +54,7 @@ SOURCES += \
     $$PWD/itempool.cpp \
     $$PWD/itemreader.cpp \
     $$PWD/itemreaderastvisitor.cpp \
+    $$PWD/itemreadervisitorstate.cpp \
     $$PWD/language.cpp \
     $$PWD/loader.cpp \
     $$PWD/moduleloader.cpp \

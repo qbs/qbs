@@ -29,6 +29,8 @@
 ****************************************************************************/
 
 #include "value.h"
+
+#include "filecontext.h"
 #include "item.h"
 
 #include <tools/qbsassert.h>
@@ -151,7 +153,7 @@ ItemValue::~ItemValue()
 
 ValuePtr ItemValue::clone() const
 {
-    Item *clonedItem = m_item ? m_item->clone(m_item->pool()) : 0;
+    Item *clonedItem = m_item ? m_item->clone() : 0;
     return ItemValuePtr(new ItemValue(clonedItem));
 }
 

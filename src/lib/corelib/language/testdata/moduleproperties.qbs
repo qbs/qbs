@@ -23,4 +23,11 @@ Project {
         Depends { name: "dummyqt"; submodules: ["gui", "network"] }
         Depends { name: "dummy" }
     }
+
+    Product {
+        name: "list_property_that_references_product"
+        type: ["blubb"]
+        Depends { name: "dummy" }
+        dummy.listProp: ["x"]
+    }
 }

@@ -49,7 +49,7 @@ Product {
 
     Export {
         Depends { name: "cpp" }
-        cpp.includePaths: ["."]
+        cpp.includePaths: [product.sourceDirectory]
     }
 }
 

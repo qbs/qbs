@@ -31,9 +31,12 @@
 #include "language.h"
 
 #include "artifactproperties.h"
+#include "propertymapinternal.h"
 #include "resolvedfilecontext.h"
 #include "scriptengine.h"
+
 #include <buildgraph/artifact.h>
+#include <buildgraph/artifactset.h>
 #include <buildgraph/productbuilddata.h>
 #include <buildgraph/projectbuilddata.h>
 #include <buildgraph/rulegraph.h> // TODO: Move to language?
@@ -43,7 +46,7 @@
 #include <tools/buildgraphlocker.h>
 #include <tools/hostosinfo.h>
 #include <tools/error.h>
-#include <tools/propertyfinder.h>
+#include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
 

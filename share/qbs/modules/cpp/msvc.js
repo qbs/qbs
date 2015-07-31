@@ -137,15 +137,10 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         }
     }
 
-    if (tag === "cpp") {
-        args = args.concat(
-                    ModUtils.moduleProperties(input, 'platformCxxFlags'),
-                    ModUtils.moduleProperties(input, 'cxxFlags'));
-    } else if (tag === "c") {
-        args = args.concat(
-                    ModUtils.moduleProperties(input, 'platformCFlags'),
-                    ModUtils.moduleProperties(input, 'cFlags'));
-    }
+    args = args.concat(ModUtils.moduleProperties(input, 'platformFlags'),
+                       ModUtils.moduleProperties(input, 'flags'),
+                       ModUtils.moduleProperties(input, 'platformFlags', tag),
+                       ModUtils.moduleProperties(input, 'flags', tag));
 
     var compilerPath = ModUtils.moduleProperty(product, "compilerPath");
     var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");

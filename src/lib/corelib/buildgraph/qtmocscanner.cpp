@@ -34,6 +34,7 @@
 #include "productbuilddata.h"
 #include "scanresultcache.h"
 #include <logging/translator.h>
+#include <tools/fileinfo.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
 

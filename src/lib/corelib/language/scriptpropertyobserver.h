@@ -31,7 +31,12 @@
 #ifndef QBS_SCRIPTPROPERTYOBSERVER_H
 #define QBS_SCRIPTPROPERTYOBSERVER_H
 
-#include <QScriptValue>
+#include <QtGlobal>
+
+QT_BEGIN_NAMESPACE
+class QScriptValue;
+class QString;
+QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {

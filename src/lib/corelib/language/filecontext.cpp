@@ -30,6 +30,8 @@
 
 #include "filecontext.h"
 
+#include "item.h"
+
 namespace qbs {
 namespace Internal {
 
@@ -41,6 +43,14 @@ FileContext::FileContext()
 FileContextPtr FileContext::create()
 {
     return FileContextPtr(new FileContext);
+}
+
+void FileContext::ensureIdScope(ItemPool *itemPool)
+{
+    if (!m_idScope) {
+        m_idScope = Item::create(itemPool);
+        m_idScope->setTypeName(QLatin1String("IdScope"));
+    }
 }
 
 } // namespace Internal

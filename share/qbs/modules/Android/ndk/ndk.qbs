@@ -69,7 +69,7 @@ Module {
     }
 
     property string hostArch: ndkProbe.hostArch
-    property string toolchainDirPrefix: NdkUtils.toolchainDirPrefix(qbs.toolchain, abi)
+    property string toolchainDir: NdkUtils.toolchainDir(qbs.toolchain, toolchainVersion, abi)
     property bool enableExceptions: appStl !== "system"
     property bool enableRtti: appStl !== "system"
     property bool hardFloat
@@ -142,24 +142,12 @@ Module {
         allowedValues: ["arm", "thumb"]
     }
 
-    cpp.toolchainInstallPath: FileInfo.joinPaths(ndkDir, "toolchains",
-                                                 toolchainDirPrefix +
-                                                 NdkUtils.toolchainVersionNumber(toolchainVersion),
-                                                 "prebuilt", hostArch, "bin")
+    cpp.toolchainInstallPath: FileInfo.joinPaths(ndkDir, "toolchains", toolchainDir, "prebuilt",
+                                                 hostArch, "bin")
 
     cpp.toolchainPrefix: NdkUtils.toolchainPrefix(qbs.toolchain, abi)
 
-    qbs.toolchain: {
-        var tc = [];
-        if (toolchainVersion && toolchainVersion.startsWith("clang"))
-            tc.push("clang");
-        return tc.concat(["gcc"]);
-    }
-
     qbs.optimization: ["armeabi", "armeabi-v7a"].contains(abi) ? "small" : base
-
-    cpp.compilerName: qbs.toolchain.contains("clang") ? "clang++" : "g++"
-    cpp.linkerName: qbs.toolchain.contains("clang") ? "clang++" : "g++"
 
     cpp.commonCompilerFlags: NdkUtils.commonCompilerFlags(qbs.buildVariant, abi, hardFloat, armMode)
 

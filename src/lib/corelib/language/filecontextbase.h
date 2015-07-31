@@ -38,23 +38,21 @@ namespace Internal {
 
 class FileContextBase
 {
-    friend class ItemReaderASTVisitor;
-
 public:
-    void setFilePath(const QString &filePath);
-    QString filePath() const;
+    void setFilePath(const QString &filePath) { m_filePath = filePath; }
+    QString filePath() const { return m_filePath; }
 
-    void setContent(const QString &content);
-    const QString &content() const;
+    void setContent(const QString &content) { m_content = content; }
+    const QString &content() const { return m_content; }
 
-    void setJsImports(const JsImports &jsImports);
-    JsImports jsImports() const;
+    void addJsImport(const JsImport &jsImport) { m_jsImports << jsImport; }
+    JsImports jsImports() const { return m_jsImports; }
 
-    void setJsExtensions(const QStringList &extensions);
-    QStringList jsExtensions() const;
+    void addJsExtension(const QString &extension) { m_jsExtensions << extension; }
+    QStringList jsExtensions() const { return m_jsExtensions; }
 
-    void setSearchPaths(const QStringList &paths);
-    QStringList searchPaths() const;
+    void setSearchPaths(const QStringList &paths) { m_searchPaths = paths; }
+    QStringList searchPaths() const { return m_searchPaths; }
 
     QString dirPath() const;
 
@@ -68,56 +66,6 @@ protected:
     QStringList m_jsExtensions;
     QStringList m_searchPaths;
 };
-
-inline void FileContextBase::setFilePath(const QString &filePath)
-{
-    m_filePath = filePath;
-}
-
-inline QString FileContextBase::filePath() const
-{
-    return m_filePath;
-}
-
-inline void FileContextBase::setContent(const QString &content)
-{
-    m_content = content;
-}
-
-inline const QString &FileContextBase::content() const
-{
-    return m_content;
-}
-
-inline void FileContextBase::setJsImports(const JsImports &jsImports)
-{
-    m_jsImports = jsImports;
-}
-
-inline JsImports FileContextBase::jsImports() const
-{
-    return m_jsImports;
-}
-
-inline void FileContextBase::setJsExtensions(const QStringList &extensions)
-{
-    m_jsExtensions = extensions;
-}
-
-inline QStringList FileContextBase::jsExtensions() const
-{
-    return m_jsExtensions;
-}
-
-inline void FileContextBase::setSearchPaths(const QStringList &paths)
-{
-    m_searchPaths = paths;
-}
-
-inline QStringList FileContextBase::searchPaths() const
-{
-    return m_searchPaths;
-}
 
 } // namespace Internal
 } // namespace qbs

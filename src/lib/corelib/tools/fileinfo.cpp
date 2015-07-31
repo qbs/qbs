@@ -193,6 +193,12 @@ QString FileInfo::resolvePath(const QString &base, const QString &rel)
         if (idx >= 0)
             r.truncate(idx);
     }
+    if (s == QLatin1String("..")) {
+        int idx = r.lastIndexOf(QLatin1Char('/'));
+        if (idx >= 0)
+            r.truncate(idx);
+        return r;
+    }
 
     r.reserve(r.length() + 1 + s.length());
     r += QLatin1Char('/');

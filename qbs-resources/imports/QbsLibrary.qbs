@@ -23,7 +23,7 @@ QbsProduct {
         Depends { name: "cpp" }
         Depends { name: "Qt"; submodules: ["core"] }
         cpp.rpaths: project.libRPaths
-        cpp.includePaths: "."
+        cpp.includePaths: [product.sourceDirectory]
         cpp.defines: product.type === "staticlibrary" ? ["QBS_STATIC_LIB"] : []
     }
 }

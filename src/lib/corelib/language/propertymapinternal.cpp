@@ -80,7 +80,7 @@ static QString toJSLiteral_impl(const QVariantMap &vm, int level = 0)
             str += toJSLiteral_impl(it.value().toMap(), level + 1);
             str += indent + QLatin1String("}\n");
         } else {
-            str += indent + it.key() + QLatin1String(": ") + qbs::toJSLiteral(it.value())
+            str += indent + it.key() + QLatin1String(": ") + toJSLiteral(it.value())
                     + QLatin1Char('\n');
         }
     }

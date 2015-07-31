@@ -66,9 +66,8 @@ private slots:
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     void changeContent();
 #endif
-    void commandExtraction();
     void changeDependentLib();
-    void enableAndDisableProduct();
+    void commandExtraction();
     void disabledInstallGroup();
     void disabledProduct();
     void disabledProject();
@@ -77,6 +76,7 @@ private slots:
     void dynamicLibs();
     void emptyFileTagList();
     void emptySubmodulesList();
+    void enableAndDisableProduct();
     void explicitlyDependsOn();
     void exportSimple();
     void exportWithRecursiveDepends();
@@ -93,8 +93,8 @@ private slots:
     void multiArch();
     void newOutputArtifactInDependency();
     void newPatternMatch();
-    void nonexistingProjectPropertyFromProduct();
     void nonexistingProjectPropertyFromCommandLine();
+    void nonexistingProjectPropertyFromProduct();
     void objC();
     void projectInvalidation();
     void projectLocking();
@@ -103,9 +103,9 @@ private slots:
     void propertiesBlocks();
     void rc();
     void references();
+    void removeFileDependency();
     void renameProduct();
     void renameTargetArtifact();
-    void removeFileDependency();
     void resolveProject();
     void resolveProject_data();
     void resolveProjectDryRun();

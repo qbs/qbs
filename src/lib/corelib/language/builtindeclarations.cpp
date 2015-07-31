@@ -31,18 +31,21 @@
 #include "builtindeclarations.h"
 
 #include "deprecationinfo.h"
-#include "item.h"
 
 #include <logging/translator.h>
-#include <tools/error.h>
+
+#include <QStringList>
 
 namespace qbs {
 namespace Internal {
 
+class AClassWithPublicConstructor : public BuiltinDeclarations { };
+Q_GLOBAL_STATIC(AClassWithPublicConstructor, theInstance)
+
 const char QBS_LANGUAGE_VERSION[] = "1.0";
 
 BuiltinDeclarations::BuiltinDeclarations()
-    : m_languageVersion(QLatin1String(QBS_LANGUAGE_VERSION))
+    : m_languageVersion(Version::fromString(QLatin1String(QBS_LANGUAGE_VERSION)))
 {
     addArtifactItem();
     addDependsItem();
@@ -61,7 +64,12 @@ BuiltinDeclarations::BuiltinDeclarations()
     addScannerItem();
 }
 
-QString BuiltinDeclarations::languageVersion() const
+const BuiltinDeclarations &BuiltinDeclarations::instance()
+{
+    return *theInstance;
+}
+
+Version BuiltinDeclarations::languageVersion() const
 {
     return m_languageVersion;
 }
@@ -79,40 +87,6 @@ QStringList BuiltinDeclarations::allTypeNames() const
 ItemDeclaration BuiltinDeclarations::declarationsForType(const QString &typeName) const
 {
     return m_builtins.value(typeName);
-}
-
-void BuiltinDeclarations::setupItemForBuiltinType(Item *item, Logger logger) const
-{
-    foreach (const PropertyDeclaration &pd, declarationsForType(item->typeName()).properties()) {
-        item->m_propertyDeclarations.insert(pd.name(), pd);
-        ValuePtr &value = item->m_properties[pd.name()];
-        if (!value) {
-            JSSourceValuePtr sourceValue = JSSourceValue::create();
-            sourceValue->setFile(item->file());
-            static const QString undefinedKeyword = QLatin1String("undefined");
-            sourceValue->setSourceCode(pd.initialValueSource().isEmpty()
-                                       ? QStringRef(&undefinedKeyword)
-                                       : QStringRef(&pd.initialValueSource()));
-            value = sourceValue;
-        } else if (pd.isDeprecated()) {
-            const DeprecationInfo &di = pd.deprecationInfo();
-            if (di.removalVersion() <= Version::qbsVersion()) {
-                QString message = Tr::tr("The property '%1' is no longer valid for %2 items. "
-                        "It was removed in qbs %3.")
-                        .arg(pd.name(), item->typeName(), di.removalVersion().toString());
-                ErrorInfo error(message, value->location());
-                if (!di.additionalUserInfo().isEmpty())
-                    error.append(di.additionalUserInfo());
-                throw error;
-            }
-            QString warning = Tr::tr("The property '%1' is deprecated and will be removed in "
-                                     "qbs %2.").arg(pd.name(), di.removalVersion().toString());
-            ErrorInfo error(warning, value->location());
-            if (!di.additionalUserInfo().isEmpty())
-                error.append(di.additionalUserInfo());
-            logger.printWarning(error);
-        }
-    }
 }
 
 void BuiltinDeclarations::insert(const ItemDeclaration &decl)

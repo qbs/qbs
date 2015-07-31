@@ -33,26 +33,26 @@
 
 #include "itemdeclaration.h"
 
-#include <logging/logger.h>
+#include <tools/version.h>
 
-#include <QByteArray>
 #include <QMap>
+#include <QString>
 
 namespace qbs {
 namespace Internal {
 
-class Item;
-
 class BuiltinDeclarations
 {
 public:
-    BuiltinDeclarations();
+    static const BuiltinDeclarations &instance();
 
-    QString languageVersion() const;
+    Version languageVersion() const;
     bool containsType(const QString &typeName) const;
     QStringList allTypeNames() const;
     ItemDeclaration declarationsForType(const QString &typeName) const;
-    void setupItemForBuiltinType(qbs::Internal::Item *item, Logger logger) const;
+
+protected:
+    BuiltinDeclarations();
 
 private:
     void insert(const ItemDeclaration &decl);
@@ -73,7 +73,7 @@ private:
     void addTransformerItem();
     void addScannerItem();
 
-    QString m_languageVersion;
+    const Version m_languageVersion;
     QMap<QString, ItemDeclaration> m_builtins;
 };
 

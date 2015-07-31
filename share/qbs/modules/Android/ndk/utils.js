@@ -48,19 +48,12 @@ function androidAbi(arch) {
     }[arch];
 }
 
-function toolchainVersionNumber(version) {
-    var prefix = "clang";
-    if (version && version.startsWith(prefix))
-        return version.substr(prefix.length);
-    return version;
-}
-
-function toolchainDirPrefix(toolchain, abi) {
+function toolchainDir(toolchain, version, abi) {
     if (toolchain && toolchain.contains("clang"))
-        return "llvm-";
+        return "llvm-" + version;
     if (["x86", "x86_64"].contains(abi))
-        return abi + "-";
-    return toolchainPrefix(toolchain, abi);
+        return abi + "-" + version;
+    return toolchainPrefix(toolchain, abi) + version;
 }
 
 function toolchainPrefix(toolchain, abi) {

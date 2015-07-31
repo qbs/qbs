@@ -355,8 +355,6 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         args.push(prefixHeaders[i]);
     }
 
-    args = args.concat(ModUtils.moduleProperties(input, 'platformCommonCompilerFlags'));
-
     var compilerPath;
     var compilerPathByLanguage = ModUtils.moduleProperty(input, "compilerPathByLanguage");
     if (compilerPathByLanguage)
@@ -371,7 +369,9 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         compilerPath = ModUtils.moduleProperty(input, "compilerPath");
     }
 
-    args = args.concat(ModUtils.moduleProperties(input, 'platformFlags', tag),
+    args = args.concat(ModUtils.moduleProperties(input, 'platformFlags'),
+                       ModUtils.moduleProperties(input, 'flags'),
+                       ModUtils.moduleProperties(input, 'platformFlags', tag),
                        ModUtils.moduleProperties(input, 'flags', tag));
 
     if (!pchOutput && ModUtils.moduleProperty(product, 'precompiledHeader', tag)) {
@@ -381,7 +381,6 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         args.push('-include', pchFilePath);
     }
 
-    args = args.concat(ModUtils.moduleProperties(input, 'commonCompilerFlags'));
     args = args.concat(additionalCompilerFlags(product, input, output));
     args = args.concat(additionalCompilerAndLinkerFlags(product));
 

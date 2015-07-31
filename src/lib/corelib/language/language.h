@@ -34,22 +34,18 @@
 #include "filetags.h"
 #include "forward_decls.h"
 #include "jsimports.h"
-#include "propertymapinternal.h"
-#include <buildgraph/artifactset.h>
+
 #include <buildgraph/forward_decls.h>
 #include <tools/codelocation.h>
-#include <tools/fileinfo.h>
+#include <tools/filetime.h>
 #include <tools/persistentobject.h>
-#include <tools/settings.h>
 #include <tools/weakpointer.h>
 
-#include <QByteArray>
 #include <QDataStream>
 #include <QHash>
 #include <QMutex>
 #include <QProcessEnvironment>
 #include <QRegExp>
-#include <QScriptProgram>
 #include <QScriptValue>
 #include <QScopedPointer>
 #include <QSet>

@@ -32,7 +32,9 @@
 #define QBS_ITEMDECLARATION_H
 
 #include "propertydeclaration.h"
+
 #include <QSet>
+#include <QString>
 
 namespace qbs {
 namespace Internal {

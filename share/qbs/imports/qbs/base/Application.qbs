@@ -31,7 +31,7 @@
 Product {
     type: {
         if (isForAndroid && !consoleApplication)
-            return ["dynamiclibrary"];
+            return ["dynamiclibrary", "android.nativelibrary"];
         return ["application"];
     }
 
@@ -43,6 +43,6 @@ Product {
     Depends { name: "cpp"; condition: isForAndroid }
 
     profiles: isForAndroid
-        ? architectures.map(function(arch) { return project.profile + '_' + arch; })
+        ? architectures.map(function(arch) { return project.profile + '-' + arch; })
         : [project.profile]
 }

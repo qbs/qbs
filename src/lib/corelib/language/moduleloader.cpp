@@ -36,20 +36,20 @@
 #include "filecontext.h"
 #include "item.h"
 #include "itemreader.h"
+#include "qualifiedid.h"
 #include "scriptengine.h"
 #include "value.h"
+
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
-#include <tools/hostosinfo.h>
 #include <tools/preferences.h>
 #include <tools/profile.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
-#include <tools/qttools.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
 
@@ -65,13 +65,13 @@ class ModuleLoader::ItemModuleList : public QList<Item::Module> {};
 
 const QString moduleSearchSubDir = QLatin1String("modules");
 
-ModuleLoader::ModuleLoader(ScriptEngine *engine, BuiltinDeclarations *builtins,
+ModuleLoader::ModuleLoader(ScriptEngine *engine,
                            const Logger &logger)
     : m_engine(engine)
     , m_pool(0)
     , m_logger(logger)
     , m_progressObserver(0)
-    , m_reader(new ItemReader(builtins, logger))
+    , m_reader(new ItemReader(logger))
     , m_evaluator(new Evaluator(engine, logger))
 {
 }
@@ -425,7 +425,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         }
         if (i == 0)
             continue; // We use the original item for the first profile.
-        Item * const cloned = productItem->clone(productItem->pool());
+        Item * const cloned = productItem->clone();
         cloned->setProperty(profileKey, VariantValue::create(profileNames.at(i)));
         additionalProductItems << cloned;
     }
@@ -641,7 +641,7 @@ Item *ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContex
     }
     productContext->item->setChildren(children);
     Item::addChild(productContext->item, merged);
-    m_reader->builtins()->setupItemForBuiltinType(merged, m_logger);
+    merged->setupForBuiltinType(m_logger);
     return merged;
 }
 
@@ -1261,8 +1261,8 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     QBS_CHECK(instanceScope->file());
     moduleScope->setFile(instanceScope->file());
     moduleScope->setScope(instanceScope);
-    copyProperty(QLatin1String("project"), productContext->project->scope, moduleScope);
-    copyProperty(QLatin1String("product"), productContext->scope, moduleScope);
+    productContext->project->scope->copyProperty(QLatin1String("project"), moduleScope);
+    productContext->scope->copyProperty(QLatin1String("product"), moduleScope);
 
     if (isProduct) {
         exportingProduct = 0;
@@ -1438,12 +1438,13 @@ bool ModuleLoader::checkItemCondition(Item *item)
 void ModuleLoader::checkItemTypes(Item *item)
 {
     if (Q_UNLIKELY(!item->typeName().isEmpty()
-                   && !m_reader->builtins()->containsType(item->typeName()))) {
+                   && !BuiltinDeclarations::instance().containsType(item->typeName()))) {
         const QString msg = Tr::tr("Unexpected item type '%1'.");
         throw ErrorInfo(msg.arg(item->typeName()), item->location());
     }
 
-    const ItemDeclaration decl = m_reader->builtins()->declarationsForType(item->typeName());
+    const ItemDeclaration decl
+            = BuiltinDeclarations::instance().declarationsForType(item->typeName());
     foreach (Item *child, item->children()) {
         if (child->typeName().isEmpty())
             continue;
@@ -1477,8 +1478,8 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
 {
     if (!sourceProject)
         return;
-    const QList<PropertyDeclaration> &builtinProjectProperties
-            = m_reader->builtins()->declarationsForType(QLatin1String("Project")).properties();
+    const QList<PropertyDeclaration> &builtinProjectProperties = BuiltinDeclarations::instance()
+            .declarationsForType(QLatin1String("Project")).properties();
     QSet<QString> builtinProjectPropertyNames;
     foreach (const PropertyDeclaration &p, builtinProjectProperties)
         builtinProjectPropertyNames << p.name();
@@ -1496,7 +1497,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
                     = targetProject->property(it.key()).dynamicCast<const JSSourceValue>();
             QBS_ASSERT(v, continue);
             if (v->sourceCode() == QLatin1String("undefined"))
-                copyProperty(it.key(), sourceProject, targetProject);
+                sourceProject->copyProperty(it.key(), targetProject);
             continue;
         }
 
@@ -1507,7 +1508,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
             continue; // Ignore stuff the target project already has.
 
         targetProject->setPropertyDeclaration(it.key(), it.value());
-        copyProperty(it.key(), sourceProject, targetProject);
+        sourceProject->copyProperty(it.key(), targetProject);
     }
 }
 
@@ -1519,7 +1520,7 @@ Item *ModuleLoader::wrapWithProject(Item *item)
     prj->setTypeName(QLatin1String("Project"));
     prj->setFile(item->file());
     prj->setLocation(item->location());
-    m_reader->builtins()->setupItemForBuiltinType(prj, m_logger);
+    prj->setupForBuiltinType(m_logger);
     return prj;
 }
 
@@ -1533,12 +1534,6 @@ QString ModuleLoader::findExistingModulePath(const QString &searchPath,
             return QString();
     }
     return dirPath;
-}
-
-void ModuleLoader::copyProperty(const QString &propertyName, const Item *source,
-                                Item *destination)
-{
-    destination->setProperty(propertyName, source->property(propertyName));
 }
 
 void ModuleLoader::setScopeForDescendants(Item *item, Item *scope)

@@ -33,7 +33,6 @@
 
 #include "forward_decls.h"
 #include "itempool.h"
-#include "qualifiedid.h"
 #include <logging/logger.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/version.h>
@@ -55,11 +54,11 @@ class CodeLocation;
 
 namespace Internal {
 
-class BuiltinDeclarations;
 class Evaluator;
 class Item;
 class ItemReader;
 class ProgressObserver;
+class QualifiedId;
 class ScriptEngine;
 
 struct ModuleLoaderResult
@@ -99,7 +98,7 @@ struct ModuleLoaderResult
 class ModuleLoader
 {
 public:
-    ModuleLoader(ScriptEngine *engine, BuiltinDeclarations *builtins, const Logger &logger);
+    ModuleLoader(ScriptEngine *engine, const Logger &logger);
     ~ModuleLoader();
 
     void setProgressObserver(ProgressObserver *progressObserver);
@@ -156,7 +155,9 @@ private:
 
     struct ProductModuleInfo
     {
-        Item *exportItem = 0;
+        ProductModuleInfo() : exportItem() {}
+
+        Item *exportItem;
         QList<ModuleLoaderResult::ProductInfo::Dependency> productDependencies;
     };
 
@@ -224,7 +225,6 @@ private:
     Item *wrapWithProject(Item *item);
     static QString findExistingModulePath(const QString &searchPath,
             const QualifiedId &moduleName);
-    static void copyProperty(const QString &propertyName, const Item *source, Item *destination);
     static void setScopeForDescendants(Item *item, Item *scope);
     void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                 const QVariantMap &buildConfig);

@@ -33,7 +33,7 @@
 
 #include "forward_decls.h"
 #include "filecontextbase.h"
-#include "jsimports.h"
+
 #include <tools/persistentobject.h>
 
 namespace qbs {

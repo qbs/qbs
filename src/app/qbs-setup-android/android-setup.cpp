@@ -113,20 +113,20 @@ static QString detectPlatform(const QString &sdkDir)
 
 static QStringList expectedArchs()
 {
-    return QStringList({
-        QStringLiteral("arm64"),
-        QStringLiteral("armv5"),
-        QStringLiteral("armv7"),
-        QStringLiteral("mipsel"),
-        QStringLiteral("mips64el"),
-        QStringLiteral("x86"),
-        QStringLiteral("x86_64")});
+    return QStringList()
+            << QStringLiteral("arm64")
+            << QStringLiteral("armv5")
+            << QStringLiteral("armv7")
+            << QStringLiteral("mipsel")
+            << QStringLiteral("mips64el")
+            << QStringLiteral("x86")
+            << QStringLiteral("x86_64");
 }
 
 
 static QString subProfileName(const QString &mainProfileName, const QString &arch)
 {
-    return mainProfileName + QLatin1Char('_') + arch;
+    return mainProfileName + QLatin1Char('-') + arch;
 }
 
 void setupSdk(qbs::Settings *settings, const QString &profileName, const QString &sdkDirPath)
@@ -159,6 +159,7 @@ void setupNdk(qbs::Settings *settings, const QString &profileName, const QString
     Profile mainProfile(profileName, settings);
     mainProfile.setValue(qls("Android.ndk.ndkDir"), QDir::cleanPath(ndkDirPath));
     mainProfile.setValue(qls("Android.sdk.ndkDir"), QDir::cleanPath(ndkDirPath));
+    mainProfile.setValue(qls("qbs.toolchain"), QStringList() << qls("gcc"));
     foreach (const QString &arch, expectedArchs()) {
         Profile p(subProfileName(profileName, arch), settings);
         p.removeProfile();

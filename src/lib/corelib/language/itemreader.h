@@ -34,7 +34,6 @@
 #include "forward_decls.h"
 #include <logging/logger.h>
 
-#include <QHash>
 #include <QSet>
 #include <QStack>
 #include <QStringList>
@@ -42,18 +41,9 @@
 namespace qbs {
 namespace Internal {
 
-class BuiltinDeclarations;
 class Item;
 class ItemPool;
-
-struct ItemReaderResult
-{
-    ItemReaderResult()
-        : rootItem(0)
-    {}
-
-    Item *rootItem;
-};
+class ItemReaderVisitorState;
 
 /*
  * Reads a qbs file and creates a tree of Item objects.
@@ -66,13 +56,9 @@ struct ItemReaderResult
  */
 class ItemReader
 {
-    friend class ItemReaderASTVisitor;
 public:
-    ItemReader(BuiltinDeclarations *builtins, const Logger &logger);
+    ItemReader(const Logger &logger);
     ~ItemReader();
-
-    BuiltinDeclarations *builtins() const { return m_builtins; }
-    Logger logger() const { return m_logger; }
 
     void setPool(ItemPool *pool) { m_pool = pool; }
     void setSearchPaths(const QStringList &searchPaths);
@@ -88,22 +74,10 @@ public:
     QSet<QString> filesRead() const;
 
 private:
-    ItemReaderResult internalReadFile(const QString &filePath);
-
-    void cacheDirectoryEntries(const QString &dirPath, const QStringList &entries);
-    bool findDirectoryEntries(const QString &dirPath, QStringList *entries) const;
-
-    ItemPool *m_pool;
-    BuiltinDeclarations *m_builtins;
-    Logger m_logger;
+    ItemPool *m_pool = nullptr;
     QStringList m_searchPaths;
     QStack<QStringList> m_extraSearchPaths;
-    QHash<const Item *, QSet<JSSourceValuePtr> > m_conditionalValuesPerScopeItem;
-
-    class ASTCache;
-    ASTCache *m_astCache;
-    QSet<QString> m_filesRead;
-    QHash<QString, QStringList> m_directoryEntries;
+    ItemReaderVisitorState * const m_visitorState;
 };
 
 } // namespace Internal

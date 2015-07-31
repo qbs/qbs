@@ -29,22 +29,24 @@
 ****************************************************************************/
 
 #include "evaluator.h"
+
 #include "evaluationdata.h"
 #include "evaluatorscriptclass.h"
 #include "filecontext.h"
 #include "filetags.h"
 #include "item.h"
+#include "scriptengine.h"
+
 #include <jsextensions/jsextensions.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
+
 #include <QDebug>
-#include <QScriptEngine>
 
 namespace qbs {
 namespace Internal {
-
 
 Evaluator::Evaluator(ScriptEngine *scriptEngine, const Logger &logger)
     : m_scriptEngine(scriptEngine)

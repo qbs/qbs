@@ -44,11 +44,11 @@ public:
     TestTools(Settings *settings);
 
 private slots:
-    void testFileInfo();
     void fileCaseCheck();
-    void testProfiles();
     void testBuildConfigMerging();
+    void testFileInfo();
     void testProcessNameByPid();
+    void testProfiles();
 
 private:
     Settings * const m_settings;

@@ -31,8 +31,9 @@
 #ifndef QBS_EVALUATORSCRIPTCLASS_H
 #define QBS_EVALUATORSCRIPTCLASS_H
 
-#include "value.h"
 #include "builtinvalue.h"
+#include "forward_decls.h"
+
 #include <logging/logger.h>
 
 #include <QScriptClass>

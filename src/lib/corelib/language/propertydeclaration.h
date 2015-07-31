@@ -32,9 +32,12 @@
 #define QBS_PROPERTYDECLARATION_H
 
 #include <QSharedDataPointer>
-#include <QString>
-#include <QStringList>
-#include <QScriptValue>
+
+QT_BEGIN_NAMESPACE
+class QScriptValue;
+class QString;
+class QStringList;
+QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
