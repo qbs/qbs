@@ -53,7 +53,7 @@ public:
     QStringList filePaths;
     CodeLocation location;
 };
-inline uint qHash(const JsImport &jsi) { return qHash(jsi.location.toString()); }
+inline uint qHash(const JsImport &jsi) { return qHash(jsi.scopeName); }
 
 typedef QList<JsImport> JsImports;
 
