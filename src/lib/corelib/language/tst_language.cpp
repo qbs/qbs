@@ -977,6 +977,9 @@ void TestLanguage::moduleProperties_data()
     QTest::newRow("list_property_that_references_product")
             << "listProp"
             << (QStringList() << "x" << "123");
+    QTest::newRow("list_property_depending_on_overridden_property")
+            << "listProp2"
+            << (QStringList() << "PRODUCT_STUFF" << "DEFAULT_STUFF" << "EXTRA_STUFF");
     QTest::newRow("cleanup") << QString() << QStringList();
 }
 
@@ -994,6 +997,7 @@ void TestLanguage::moduleProperties()
     QStringList valueStrings;
     foreach (const QVariant &v, values)
         valueStrings += v.toString();
+    QEXPECT_FAIL("list_property_depending_on_overridden_property", "QBS_845", Continue);
     QCOMPARE(valueStrings, expectedValues);
 }
 

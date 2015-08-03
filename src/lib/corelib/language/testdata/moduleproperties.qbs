@@ -30,4 +30,11 @@ Project {
         Depends { name: "dummy" }
         dummy.listProp: ["x"]
     }
+
+    Product {
+        name: "list_property_depending_on_overridden_property"
+        Depends { name: "dummy" }
+        dummy.listProp2: ["PRODUCT_STUFF"]
+        dummy.controllingProp: true
+    }
 }
