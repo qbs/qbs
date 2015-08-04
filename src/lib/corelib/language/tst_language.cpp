@@ -814,7 +814,8 @@ void TestLanguage::importCollection()
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         const ResolvedProductConstPtr product = products.value("da product");
-        QCOMPARE(product->productProperties.value("targetName").toString(), QLatin1String("f1f2"));
+        QCOMPARE(product->productProperties.value("targetName").toString(),
+                 QLatin1String("C1f1C1f2C2f1C2f2"));
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
