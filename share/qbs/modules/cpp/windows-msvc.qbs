@@ -273,6 +273,10 @@ CppModule {
             var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
             var args = [];
             var i;
+            var hasNoLogo = ModUtils.moduleProperty(product, "compilerVersionMajor") >= 16; // 2010
+            if (hasNoLogo)
+                args.push("/nologo");
+
             for (i in platformDefines) {
                 args.push('/d');
                 args.push(platformDefines[i]);
@@ -295,13 +299,14 @@ CppModule {
             cmd.description = 'compiling ' + input.fileName;
             cmd.highlight = 'compiler';
 
-            // Remove the first two lines of stdout. That's the logo.
-            // Unfortunately there's no command line switch to turn that off.
-            cmd.stdoutFilterFunction = function(output) {
-                var idx = 0;
-                for (var i = 0; i < 3; ++i)
-                    idx = output.indexOf('\n', idx + 1);
-                return output.substr(idx + 1);
+            if (!hasNoLogo) {
+                // Remove the first two lines of stdout. That's the logo.
+                cmd.stdoutFilterFunction = function(output) {
+                    var idx = 0;
+                    for (var i = 0; i < 3; ++i)
+                        idx = output.indexOf('\n', idx + 1);
+                    return output.substr(idx + 1);
+                }
             }
 
             return cmd;
