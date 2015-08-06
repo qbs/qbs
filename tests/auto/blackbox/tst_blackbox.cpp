@@ -2387,6 +2387,16 @@ void TestBlackbox::installedApp()
     QVERIFY(m_qbsStderr.contains("No build graph"));
 }
 
+void TestBlackbox::installDuplicates()
+{
+    QDir::setCurrent(testDataDir + "/install-duplicates");
+
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY(m_qbsStderr.contains("Cannot install files"));
+}
+
 void TestBlackbox::installedSourceFiles()
 {
     QDir::setCurrent(testDataDir + "/installed-source-files");

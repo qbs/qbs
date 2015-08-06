@@ -80,6 +80,8 @@ ProductInstaller::ProductInstaller(const TopLevelProjectPtr &project,
 
 void ProductInstaller::install()
 {
+    m_targetFilePathsMap.clear();
+
     if (m_options.removeExistingInstallation())
         removeInstallRoot();
 
@@ -199,6 +201,14 @@ void ProductInstaller::copyFile(const Artifact *artifact)
                                         "instead.")
                                  .arg(nativeFilePath, nativeTargetDir);
     }
+
+    if (m_targetFilePathsMap.contains(targetFilePath)) {
+        handleError(Tr::tr("Cannot install files '%1' and '%2' to the same location '%3'.")
+                    .arg(artifact->filePath(), m_targetFilePathsMap[targetFilePath],
+                         targetFilePath));
+    }
+    m_targetFilePathsMap.insert(targetFilePath, artifact->filePath());
+
     QString errorMessage;
     if (!copyFileRecursion(artifact->filePath(), targetFilePath, true, false, &errorMessage))
         handleError(Tr::tr("Installation error: %1").arg(errorMessage));

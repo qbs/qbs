@@ -36,6 +36,7 @@
 #include <logging/logger.h>
 #include <tools/installoptions.h>
 
+#include <QHash>
 #include <QList>
 
 namespace qbs {
@@ -65,6 +66,7 @@ private:
     InstallOptions m_options;
     ProgressObserver * const m_observer;
     Logger m_logger;
+    QHash<QString, QString> m_targetFilePathsMap;
 };
 
 } // namespace Internal

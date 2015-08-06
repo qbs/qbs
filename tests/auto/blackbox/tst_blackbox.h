@@ -123,6 +123,7 @@ private slots:
     void inputsFromDependencies();
     void installable();
     void installedApp();
+    void installDuplicates();
     void installedSourceFiles();
     void installedTransformerOutput();
     void installPackage();
