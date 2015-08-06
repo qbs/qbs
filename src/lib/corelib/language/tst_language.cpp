@@ -488,6 +488,7 @@ void TestLanguage::erroneousFiles_data()
             << "The value '.*' of Project.minimumQbsVersion is not a valid version string.";
     QTest::newRow("properties-item-with-invalid-condition")
             << "TypeError: Result of expression 'cpp.nonexistingproperty'";
+    QTest::newRow("misused-inherited-property") << "Binding to non-item property";
 }
 
 void TestLanguage::erroneousFiles()
@@ -505,7 +506,8 @@ void TestLanguage::erroneousFiles()
         }
         return;
     }
-    QFAIL("No error thrown on invalid input.");
+    QEXPECT_FAIL("misused-inherited-property", "QBS-847", Continue);
+    QVERIFY(!"No error thrown on invalid input.");
 }
 
 void TestLanguage::exports()
