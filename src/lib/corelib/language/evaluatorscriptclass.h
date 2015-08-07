@@ -68,6 +68,7 @@ public:
     static QScriptValue js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_rfc1034identifier(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getHash(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_shellQuote(QScriptContext *context, QScriptEngine *engine);
 
 private:
     QueryFlags queryItemProperty(const EvaluationData *data,
@@ -101,6 +102,7 @@ private:
     QScriptValue m_canonicalArchitectureBuiltin;
     QScriptValue m_rfc1034identifierBuiltin;
     QScriptValue m_getHashBuiltin;
+    QScriptValue m_shellQuoteBuiltin;
     QStack<JSSourceValue *> m_sourceValueStack;
     QSet<Value *> m_currentNextChain;
 };

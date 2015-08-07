@@ -528,6 +528,8 @@ void ScriptEngine::installQbsBuiltins()
                        EvaluatorScriptClass::js_rfc1034identifier);
     installQbsFunction(QLatin1String("getHash"),
                        EvaluatorScriptClass::js_getHash);
+    installQbsFunction(QLatin1String("shellQuote"),
+                       EvaluatorScriptClass::js_shellQuote);
 }
 
 void ScriptEngine::extendJavaScriptBuiltins()
