@@ -88,6 +88,11 @@
         \li empty
         \li A message that is displayed when the command is executed.
     \row
+        \li \c extendedDescription
+        \li string
+        \li empty
+        \li A detailed description that is displayed when the command is executed.
+    \row
         \li \c highlight
         \li string
         \li empty

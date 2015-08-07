@@ -659,6 +659,7 @@ RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
                 foreach (const AbstractCommandPtr &internalCommand, transformer->commands) {
                     RuleCommand externalCommand;
                     externalCommand.d->description = internalCommand->description();
+                    externalCommand.d->extendedDescription = internalCommand->extendedDescription();
                     switch (internalCommand->type()) {
                     case AbstractCommand::JavaScriptCommandType: {
                         externalCommand.d->type = RuleCommand::JavaScriptCommandType;

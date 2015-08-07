@@ -60,6 +60,7 @@ public:
 
     Type type() const;
     QString description() const;
+    QString extendedDescription() const;
     QString sourceCode() const;
     QString executable() const;
     QStringList arguments() const;

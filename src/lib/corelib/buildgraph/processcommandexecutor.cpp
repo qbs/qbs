@@ -272,7 +272,10 @@ void ProcessCommandExecutor::onProcessFinished(int exitCode)
 void ProcessCommandExecutor::doReportCommandDescription()
 {
     if (m_echoMode == CommandEchoModeCommandLine) {
-        emit reportCommandDescription(command()->highlight(), m_shellInvocation);
+        emit reportCommandDescription(command()->highlight(),
+                                      !command()->extendedDescription().isEmpty()
+                                          ? command()->extendedDescription()
+                                          : m_shellInvocation);
         return;
     }
 

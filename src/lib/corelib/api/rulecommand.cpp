@@ -86,6 +86,15 @@ QString RuleCommand::description() const
 }
 
 /*!
+ * Returns the detailed description of this command that \QBS will print when
+ * the command is executed.
+ */
+QString RuleCommand::extendedDescription() const
+{
+    return d->extendedDescription;
+}
+
+/*!
  * Returns the source of the command if \c type() is \c JavaScriptCommandType.
  * If \c type() is anything else, the behavior of this function is undefined.
  */

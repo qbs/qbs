@@ -43,6 +43,7 @@ namespace Internal {
 
 AbstractCommand::AbstractCommand()
     : m_description(defaultDescription()),
+      m_extendedDescription(defaultExtendedDescription()),
       m_highlight(defaultHighLight()),
       m_silent(defaultIsSilent())
 {
@@ -54,20 +55,25 @@ AbstractCommand::~AbstractCommand()
 
 bool AbstractCommand::equals(const AbstractCommand *other) const
 {
-    return m_description == other->m_description && m_highlight == other->m_highlight
-            && m_silent == other->m_silent && type() == other->type()
+    return type() == other->type()
+            && m_description == other->m_description
+            && m_extendedDescription == other->m_extendedDescription
+            && m_highlight == other->m_highlight
+            && m_silent == other->m_silent
             && m_properties == other->m_properties;
 }
 
 void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
 {
     m_description = scriptValue->property(QLatin1String("description")).toString();
+    m_extendedDescription = scriptValue->property(QLatin1String("extendedDescription")).toString();
     m_highlight = scriptValue->property(QLatin1String("highlight")).toString();
     m_silent = scriptValue->property(QLatin1String("silent")).toBool();
     m_codeLocation = codeLocation;
 
     m_predefinedProperties
             << QLatin1String("description")
+            << QLatin1String("extendedDescription")
             << QLatin1String("highlight")
             << QLatin1String("silent");
 }
@@ -75,6 +81,7 @@ void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const
 void AbstractCommand::load(PersistentPool &pool)
 {
     m_description = pool.idLoadString();
+    m_extendedDescription = pool.idLoadString();
     m_highlight = pool.idLoadString();
     pool.stream() >> m_silent;
     m_codeLocation.load(pool);
@@ -84,6 +91,7 @@ void AbstractCommand::load(PersistentPool &pool)
 void AbstractCommand::store(PersistentPool &pool) const
 {
     pool.storeString(m_description);
+    pool.storeString(m_extendedDescription);
     pool.storeString(m_highlight);
     pool.stream() << m_silent;
     m_codeLocation.store(pool);
@@ -107,6 +115,8 @@ static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engin
     QBS_ASSERT(context->isCalledAsConstructor(), cmd = engine->newObject());
     cmd.setProperty(QLatin1String("description"),
                     engine->toScriptValue(AbstractCommand::defaultDescription()));
+    cmd.setProperty(QLatin1String("extendedDescription"),
+                    engine->toScriptValue(AbstractCommand::defaultExtendedDescription()));
     cmd.setProperty(QLatin1String("highlight"),
                     engine->toScriptValue(AbstractCommand::defaultHighLight()));
     cmd.setProperty(QLatin1String("silent"),

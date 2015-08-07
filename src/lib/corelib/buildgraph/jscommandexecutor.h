@@ -56,6 +56,7 @@ private slots:
     void onJavaScriptCommandFinished();
 
 private:
+    void doReportCommandDescription();
     void doStart();
     void cancel();
 

@@ -46,6 +46,7 @@ public:
 
     RuleCommand::Type type;
     QString description;
+    QString extendedDescription;
     QString sourceCode;
     QString executable;
     QStringList arguments;

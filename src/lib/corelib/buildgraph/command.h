@@ -56,6 +56,7 @@ public:
     };
 
     static QString defaultDescription() { return QString(); }
+    static QString defaultExtendedDescription() { return QString(); }
     static QString defaultHighLight() { return QString(); }
     static bool defaultIsSilent() { return false; }
 
@@ -64,6 +65,7 @@ public:
     virtual void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
 
     const QString description() const { return m_description; }
+    const QString extendedDescription() const { return m_extendedDescription; }
     const QString highlight() const { return m_highlight; }
     bool isSilent() const { return m_silent; }
     CodeLocation codeLocation() const { return m_codeLocation; }
@@ -82,6 +84,7 @@ protected:
 
 private:
     QString m_description;
+    QString m_extendedDescription;
     QString m_highlight;
     bool m_silent;
     CodeLocation m_codeLocation;

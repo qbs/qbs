@@ -166,6 +166,16 @@ JsCommandExecutor::~JsCommandExecutor()
     m_thread->wait();
 }
 
+void JsCommandExecutor::doReportCommandDescription()
+{
+    if (m_echoMode == CommandEchoModeCommandLine && !command()->extendedDescription().isEmpty()) {
+        emit reportCommandDescription(command()->highlight(), command()->extendedDescription());
+        return;
+    }
+
+    AbstractCommandExecutor::doReportCommandDescription();
+}
+
 void JsCommandExecutor::waitForFinished()
 {
     if (!m_running)
