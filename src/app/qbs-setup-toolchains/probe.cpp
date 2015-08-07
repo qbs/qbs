@@ -131,13 +131,6 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
 {
     const QFileInfo cfi(compilerFilePath);
     const QString compilerName = QFileInfo(compilerFilePath).fileName();
-    if (!standardCompilerFileNames().contains(compilerName))
-        qWarning("%s", qPrintable(
-                     QString::fromLatin1("'%1' is not a standard compiler file name; "
-                                            "you must set the cpp.cCompilerName and "
-                                            "cpp.cxxCompilerName properties of this profile "
-                                            "manually").arg(compilerName)));
-
 
     if (toolchainTypes.contains(QStringLiteral("mingw")))
         profile.setValue(QStringLiteral("qbs.targetOS"), QStringList(QStringLiteral("windows")));
@@ -150,6 +143,14 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
     profile.setValue(QLatin1String("qbs.toolchain"), toolchainTypes);
     profile.setValue(QLatin1String("qbs.architecture"), canonicalArchitecture(architecture));
     setCompilerVersion(compilerFilePath, toolchainTypes, profile);
+
+    const QString suffix = compilerName.right(compilerName.size() - prefix.size());
+    if (!standardCompilerFileNames().contains(suffix))
+        qWarning("%s", qPrintable(
+                     QString::fromLatin1("'%1' is not a standard compiler file name; "
+                                            "you must set the cpp.cCompilerName and "
+                                            "cpp.cxxCompilerName properties of this profile "
+                                            "manually").arg(compilerName)));
 }
 
 class ToolPathSetup
