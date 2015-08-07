@@ -85,6 +85,7 @@ private:
     static QScriptValue js_directoryEntries(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_lastModified(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_makePath(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_move(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_remove(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_canonicalFilePath(QScriptContext *context, QScriptEngine *engine);
 };
@@ -100,6 +101,7 @@ void initializeJsExtensionFile(QScriptValue extensionObject)
                         engine->newFunction(File::js_directoryEntries));
     fileObj.setProperty(QLatin1String("lastModified"), engine->newFunction(File::js_lastModified));
     fileObj.setProperty(QLatin1String("makePath"), engine->newFunction(File::js_makePath));
+    fileObj.setProperty(QLatin1String("move"), engine->newFunction(File::js_move));
     fileObj.setProperty(QLatin1String("remove"), engine->newFunction(File::js_remove));
     fileObj.setProperty(QLatin1String("canonicalFilePath"),
                         engine->newFunction(File::js_canonicalFilePath));
@@ -197,6 +199,51 @@ QScriptValue File::js_makePath(QScriptContext *context, QScriptEngine *engine)
                                    Tr::tr("makePath expects 1 argument"));
     }
     return QDir::root().mkpath(context->argument(0).toString());
+}
+
+QScriptValue File::js_move(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    if (Q_UNLIKELY(context->argumentCount() < 2)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   Tr::tr("move expects 2 arguments"));
+    }
+
+    const QString sourceFile = context->argument(0).toString();
+    const QString targetFile = context->argument(1).toString();
+    const bool overwrite = context->argumentCount() > 2 ? context->argument(2).toBool() : true;
+
+    if (Q_UNLIKELY(QFileInfo(sourceFile).isDir()))
+        return context->throwError(QString(QLatin1String("Could not move '%1' to '%2': "
+                                                         "Source file path is a directory."))
+                                   .arg(sourceFile, targetFile));
+
+    if (Q_UNLIKELY(QFileInfo(targetFile).isDir())) {
+        return context->throwError(QString(QLatin1String("Could not move '%1' to '%2': "
+                                                         "Destination file path is a directory."))
+                                   .arg(sourceFile, targetFile));
+    }
+
+    if (!QFile(sourceFile).isReadable())
+        return context->throwError(QString(QLatin1String("Could not move '%1' to '%2': "
+                                                         "Source file is not accessible."))
+                                   .arg(sourceFile, targetFile));
+
+    QFile f(targetFile);
+    if (overwrite && !f.remove())
+        return context->throwError(QString(QLatin1String("Could not move '%1' to '%2': %3"))
+                                   .arg(sourceFile, targetFile, f.errorString()));
+
+    if (QFile::exists(targetFile))
+        return context->throwError(QString(QLatin1String("Could not move '%1' to '%2': "
+                                                         "Destination file exists."))
+                                   .arg(sourceFile, targetFile));
+
+    QFile f2(sourceFile);
+    if (Q_UNLIKELY(!f2.rename(targetFile)))
+        return context->throwError(QString(QLatin1String("Could not move '%1' to '%2': %3"))
+                                   .arg(sourceFile, targetFile, f2.errorString()));
+    return true;
 }
 
 QScriptValue File::js_canonicalFilePath(QScriptContext *context, QScriptEngine *engine)

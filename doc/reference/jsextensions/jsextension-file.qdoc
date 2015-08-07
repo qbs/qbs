@@ -80,6 +80,15 @@
     Makes the directory at \c path, creating intermediate directories if necessary.
     Conceptually equivalent to \c{mkdir -p}
 
+    \section2 move
+    \code
+    File.move(oldPath: string, newPath: string, overwrite: boolean = true): boolean
+    \endcode
+    Renames the file \c oldPath to \c newPath.
+    Returns \c true if successful; otherwise returns \c false.
+    If a file with the name \c newPath already exists, and \c overwrite is \c false,
+    \c move() returns \c false (that is, the file will not be overwritten).
+
     \section2 remove
     \code
     File.remove(filePath: string): boolean
