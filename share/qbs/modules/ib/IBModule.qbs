@@ -38,7 +38,7 @@ import 'ib.js' as Ib
 
 Module {
     Depends { name: "bundle" }
-    Depends { name: "xcode" }
+    Depends { name: "xcode"; required: false }
 
     condition: qbs.hostOS.contains("darwin") && qbs.targetOS.contains("darwin")
 
@@ -50,18 +50,18 @@ Module {
 
     // iconutil specific
     property string iconutilName: "iconutil"
-    property string iconutilPath: iconutilName
+    property string iconutilPath: FileInfo.joinPaths("/usr/bin", iconutilName)
 
     // XIB/NIB specific
     property string ibtoolName: "ibtool"
-    property string ibtoolPath: ibtoolName
+    property string ibtoolPath: FileInfo.joinPaths(xcode.developerPath, "/usr/bin", ibtoolName)
     property bool flatten: true
     property string module
     property bool autoActivateCustomFonts: true
 
     // Asset catalog specific
     property string actoolName: "actool"
-    property string actoolPath: actoolName
+    property string actoolPath: FileInfo.joinPaths(xcode.developerPath, "/usr/bin", actoolName)
     property string appIconName
     property string launchImageName
     property bool compressPngs: true
@@ -79,7 +79,9 @@ Module {
     property int ibtoolVersionMinor: ibtoolVersionParts[1]
     property int ibtoolVersionPatch: ibtoolVersionParts[2]
 
-    property stringList targetDevices: xcode.targetDevices
+    property stringList targetDevices: xcode.present
+                                       ? xcode.targetDevices
+                                       : DarwinTools.targetDevices(qbs.targetOS)
 
     property path actoolOutputDirectory: {
         var dir = product.destinationDirectory;

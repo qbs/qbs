@@ -51,6 +51,18 @@ function appleDeviceNumber(deviceName) {
 }
 
 /**
+  * Returns the list of target devices available for the given qbs target OS list.
+  */
+function targetDevices(targetOS) {
+    if (targetOS.contains("osx"))
+        return ["mac"];
+    if (targetOS.contains("ios"))
+        return ["iphone", "ipad"];
+    if (targetOS.contains("watchos"))
+        return ["watch"];
+}
+
+/**
   * Returns the TARGETED_DEVICE_FAMILY string given a list of target device names.
   */
 function targetedDeviceFamily(deviceNames) {
