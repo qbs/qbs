@@ -55,6 +55,7 @@ QScriptValue TemporaryDir::ctor(QScriptContext *context, QScriptEngine *engine)
 TemporaryDir::TemporaryDir(QScriptContext *context)
 {
     Q_UNUSED(context);
+    dir.setAutoRemove(false);
 }
 
 bool TemporaryDir::isValid() const

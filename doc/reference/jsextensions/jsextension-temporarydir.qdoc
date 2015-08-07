@@ -67,5 +67,5 @@
     Removes the temporary directory, including all its contents.
     Returns \c true if removing was successful.
     It is recommended to always call this function as soon as you are finished with the temporary
-    directory.
+    directory. The directory will not be removed automatically.
 */
