@@ -58,19 +58,18 @@ public:
     void setFilePath(const QString &filePath);
     void setSourceCode(const QString &sourceCode);
 
-    bool visit(QbsQmlJS::AST::UiProgram *ast);
     bool visit(QbsQmlJS::AST::UiImportList *uiImportList);
     bool visit(QbsQmlJS::AST::UiObjectDefinition *ast);
     bool visit(QbsQmlJS::AST::UiPublicMember *ast);
     bool visit(QbsQmlJS::AST::UiScriptBinding *ast);
     bool visit(QbsQmlJS::AST::FunctionDeclaration *ast);
 
-    Item *rootItem() const { return m_rootItem; }
+    Item *rootItem() const { return m_item; }
 
 private:
     static Version readImportVersion(const QString &str,
             const CodeLocation &location = CodeLocation());
-    bool visitStatement(QbsQmlJS::AST::Statement *statement);
+    bool visitStatement(QbsQmlJS::AST::Statement *statement, const JSSourceValuePtr &value);
     CodeLocation toCodeLocation(const QbsQmlJS::AST::SourceLocation &location) const;
     void checkDuplicateBinding(Item *item, const QStringList &bindingName,
             const QbsQmlJS::AST::SourceLocation &sourceLocation);
@@ -94,11 +93,8 @@ private:
     const FileContextPtr m_file;
     ItemPool * const m_itemPool;
     Logger m_logger;
-    const QStringList m_searchPaths;
     QHash<QStringList, QString> m_typeNameToFile;
     Item *m_item = nullptr;
-    Item *m_rootItem = nullptr;
-    JSSourceValuePtr m_sourceValue;
 };
 
 } // namespace Internal

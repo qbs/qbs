@@ -60,8 +60,8 @@ ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReaderVisitorState &visitorState,
     , m_file(FileContext::create())
     , m_itemPool(itemPool)
     , m_logger(logger)
-    , m_searchPaths(searchPaths)
 {
+    m_file->setSearchPaths(searchPaths);
 }
 
 ItemReaderASTVisitor::~ItemReaderASTVisitor()
@@ -76,18 +76,6 @@ void ItemReaderASTVisitor::setFilePath(const QString &filePath)
 void ItemReaderASTVisitor::setSourceCode(const QString &sourceCode)
 {
     m_file->setContent(sourceCode);
-}
-
-bool ItemReaderASTVisitor::visit(AST::UiProgram *ast)
-{
-    Q_UNUSED(ast);
-    m_sourceValue.clear();
-    m_file->setSearchPaths(m_searchPaths);
-
-    if (Q_UNLIKELY(!ast->members->member))
-        throw ErrorInfo(Tr::tr("No root item found in %1.").arg(m_file->filePath()));
-
-    return true;
 }
 
 bool ItemReaderASTVisitor::addPrototype(const QString &fileName, const QString &filePath,
@@ -148,7 +136,7 @@ void ItemReaderASTVisitor::collectPrototypesAndJsCollections(const QString &path
 
 bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
 {
-    foreach (const QString &searchPath, m_searchPaths)
+    foreach (const QString &searchPath, m_file->searchPaths())
         collectPrototypes(searchPath + QLatin1String("/imports"), QString());
 
     const QString path = FileInfo::path(m_file->filePath());
@@ -256,7 +244,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                     ? QLatin1String("qbs/base") : importUri.join(QDir::separator());
             bool found = m_typeNameToFile.contains(importUri);
             if (!found) {
-                foreach (const QString &searchPath, m_searchPaths) {
+                foreach (const QString &searchPath, m_file->searchPaths()) {
                     const QFileInfo fi(FileInfo::resolvePath(
                                            FileInfo::resolvePath(searchPath,
                                                                  QLatin1String("imports")),
@@ -299,14 +287,10 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     item->m_location = ::qbs::Internal::toCodeLocation(m_file->filePath(),
                                                        ast->qualifiedTypeNameId->identifierToken);
 
-    if (m_item) {
-        // Add this item to the children of the parent item.
-        m_item->m_children += item;
-    } else {
-        // This is the root item.
-        m_item = item;
-        m_rootItem = item;
-    }
+    if (m_item)
+        m_item->m_children += item; // Add this item to the children of the parent item.
+    else
+        m_item = item; // This is the root item.
 
     if (ast->initializer) {
         qSwap(m_item, item);
@@ -326,7 +310,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     const QString baseTypeFileName = m_typeNameToFile.value(fullTypeName);
     if (!baseTypeFileName.isEmpty()) {
         const Item * const rootItem
-                = m_visitorState.readFile(baseTypeFileName, m_searchPaths, m_itemPool);
+                = m_visitorState.readFile(baseTypeFileName, m_file->searchPaths(), m_itemPool);
 
         inheritItem(item, rootItem);
         if (rootItem->m_file->idScope()) {
@@ -375,9 +359,7 @@ bool ItemReaderASTVisitor::visit(AST::UiPublicMember *ast)
     JSSourceValuePtr value = JSSourceValue::create();
     value->setFile(m_file);
     if (ast->statement) {
-        m_sourceValue.swap(value);
-        visitStatement(ast->statement);
-        m_sourceValue.swap(value);
+        visitStatement(ast->statement, value);
         const QStringList bindingName(p.name());
         checkDuplicateBinding(m_item, bindingName, ast->colonToken);
     }
@@ -410,9 +392,7 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
 
     JSSourceValuePtr value = JSSourceValue::create();
     value->setFile(m_file);
-    m_sourceValue.swap(value);
-    visitStatement(ast->statement);
-    m_sourceValue.swap(value);
+    visitStatement(ast->statement, value);
 
     Item *targetItem = targetItemForBinding(m_item, bindingName, value);
     checkDuplicateBinding(targetItem, bindingName, ast->qualifiedId->identifierToken);
@@ -450,17 +430,17 @@ Version ItemReaderASTVisitor::readImportVersion(const QString &str, const CodeLo
     return v;
 }
 
-bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
+bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement, const JSSourceValuePtr &value)
 {
     QBS_CHECK(statement);
-    QBS_CHECK(m_sourceValue);
+    QBS_CHECK(value);
 
     if (AST::cast<AST::Block *>(statement))
-        m_sourceValue->m_flags |= JSSourceValue::HasFunctionForm;
+        value->m_flags |= JSSourceValue::HasFunctionForm;
 
-    m_sourceValue->setFile(m_file);
-    m_sourceValue->setSourceCode(textRefOf(m_file->content(), statement));
-    m_sourceValue->setLocation(statement->firstSourceLocation().startLine,
+    value->setFile(m_file);
+    value->setSourceCode(textRefOf(m_file->content(), statement));
+    value->setLocation(statement->firstSourceLocation().startLine,
                                statement->firstSourceLocation().startColumn);
 
     bool usesBase, usesOuter, usesOriginal;
@@ -470,11 +450,11 @@ bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
     idsearch.add(QLatin1String("original"), &usesOriginal);
     idsearch.start(statement);
     if (usesBase)
-        m_sourceValue->m_flags |= JSSourceValue::SourceUsesBase;
+        value->m_flags |= JSSourceValue::SourceUsesBase;
     if (usesOuter)
-        m_sourceValue->m_flags |= JSSourceValue::SourceUsesOuter;
+        value->m_flags |= JSSourceValue::SourceUsesOuter;
     if (usesOriginal)
-        m_sourceValue->m_flags |= JSSourceValue::SourceUsesOriginal;
+        value->m_flags |= JSSourceValue::SourceUsesOriginal;
     return false;
 }
 
