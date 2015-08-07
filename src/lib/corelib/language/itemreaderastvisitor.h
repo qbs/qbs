@@ -45,6 +45,7 @@ namespace Internal {
 class Item;
 class ItemPool;
 class ItemReaderVisitorState;
+class JsImport;
 class Version;
 
 class ItemReaderASTVisitor : public QbsQmlJS::AST::Visitor
@@ -81,6 +82,11 @@ private:
     static void replaceConditionScopes(const JSSourceValuePtr &value, Item *newScope);
     void handlePropertiesBlock(Item *item, const Item *block);
     void collectPrototypes(const QString &path, const QString &as);
+
+    using JsImportsHash = QHash<QString, JsImport>;
+    void collectPrototypesAndJsCollections(const QString &path, const QString &as,
+                                           const CodeLocation &location, JsImportsHash &jsImports);
+
     bool addPrototype(const QString &fileName, const QString &filePath, const QString &as,
                       bool needsCheck);
 

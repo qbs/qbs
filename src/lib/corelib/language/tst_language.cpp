@@ -354,6 +354,55 @@ void qbs::Internal::TestLanguage::dependencyOnAllProfiles()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::defaultValue()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("defaultvalue/egon.qbs"));
+        QFETCH(QString, prop1Value);
+        QVariantMap overridden;
+        if (!prop1Value.isEmpty())
+            overridden.insert("lower.prop1", prop1Value);
+        params.setOverriddenValues(overridden);
+        TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 2);
+        const ResolvedProductPtr product = products.value("egon");
+        QVERIFY(product);
+        QStringList propertyName = QStringList() << "modules" << "lower" << "prop2";
+        QVariant propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        QFETCH(QVariant, expectedProp2Value);
+        QCOMPARE(propertyValue, expectedProp2Value);
+        propertyName = QStringList() << "modules" << "lower" << "listProp";
+        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        QFETCH(QVariant, expectedListPropValue);
+        QEXPECT_FAIL("controlling property not overwritten", "QBS-845", Continue);
+        QCOMPARE(propertyValue.toStringList(), expectedListPropValue.toStringList());
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::defaultValue_data()
+{
+    QTest::addColumn<QString>("prop1Value");
+    QTest::addColumn<QVariant>("expectedProp2Value");
+    QTest::addColumn<QVariant>("expectedListPropValue");
+    QTest::newRow("controlling property with random value") << "random" << QVariant("withoutBlubb")
+            << QVariant(QStringList({"other", "other"}));
+    QTest::newRow("controlling property with blubb value") << "blubb" << QVariant("withBlubb")
+            << QVariant(QStringList({"blubb", "other", "blubb", "other"}));
+    QTest::newRow("controlling property with egon value") << "egon" << QVariant("withEgon")
+            << QVariant(QStringList({"egon", "other"}));
+    QTest::newRow("controlling property not overwritten") << "" << QVariant("withBlubb")
+            << QVariant(QStringList({"blubb", "other", "blubb", "other"}));
+}
+
 void TestLanguage::environmentVariable()
 {
     bool exceptionCaught = false;
@@ -439,6 +488,7 @@ void TestLanguage::erroneousFiles_data()
             << "The value '.*' of Project.minimumQbsVersion is not a valid version string.";
     QTest::newRow("properties-item-with-invalid-condition")
             << "TypeError: Result of expression 'cpp.nonexistingproperty'";
+    QTest::newRow("misused-inherited-property") << "Binding to non-item property";
 }
 
 void TestLanguage::erroneousFiles()
@@ -456,7 +506,8 @@ void TestLanguage::erroneousFiles()
         }
         return;
     }
-    QFAIL("No error thrown on invalid input.");
+    QEXPECT_FAIL("misused-inherited-property", "QBS-847", Continue);
+    QVERIFY(!"No error thrown on invalid input.");
 }
 
 void TestLanguage::exports()
@@ -814,7 +865,8 @@ void TestLanguage::importCollection()
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         const ResolvedProductConstPtr product = products.value("da product");
-        QCOMPARE(product->productProperties.value("targetName").toString(), QLatin1String("f1f2"));
+        QCOMPARE(product->productProperties.value("targetName").toString(),
+                 QLatin1String("C1f1C1f2C2f1C2f2"));
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -977,6 +1029,9 @@ void TestLanguage::moduleProperties_data()
     QTest::newRow("list_property_that_references_product")
             << "listProp"
             << (QStringList() << "x" << "123");
+    QTest::newRow("list_property_depending_on_overridden_property")
+            << "listProp2"
+            << (QStringList() << "PRODUCT_STUFF" << "DEFAULT_STUFF" << "EXTRA_STUFF");
     QTest::newRow("cleanup") << QString() << QStringList();
 }
 
@@ -994,6 +1049,7 @@ void TestLanguage::moduleProperties()
     QStringList valueStrings;
     foreach (const QVariant &v, values)
         valueStrings += v.toString();
+    QEXPECT_FAIL("list_property_depending_on_overridden_property", "QBS-845", Continue);
     QCOMPARE(valueStrings, expectedValues);
 }
 

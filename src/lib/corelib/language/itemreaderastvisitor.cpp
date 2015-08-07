@@ -129,6 +129,23 @@ void ItemReaderASTVisitor::collectPrototypes(const QString &path, const QString 
     m_visitorState.cacheDirectoryEntries(path, fileNames);
 }
 
+
+void ItemReaderASTVisitor::collectPrototypesAndJsCollections(const QString &path,
+        const QString &as, const CodeLocation &location, JsImportsHash &jsImports)
+{
+    collectPrototypes(path, as);
+    QDirIterator dirIter(path, QStringList(QLatin1String("*.js")));
+    while (dirIter.hasNext()) {
+        dirIter.next();
+        JsImport &jsImport = jsImports[as];
+        if (jsImport.scopeName.isNull()) {
+            jsImport.scopeName = as;
+            jsImport.location = location;
+        }
+        jsImport.filePaths.append(dirIter.filePath());
+    }
+}
+
 bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
 {
     foreach (const QString &searchPath, m_searchPaths)
@@ -140,7 +157,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
     collectPrototypes(path, QString());
 
     QSet<QString> importAsNames;
-    QHash<QString, JsImport> jsImports;
+    JsImportsHash jsImports;
 
     for (const AST::UiImportList *it = uiImportList; it; it = it->next) {
         const AST::UiImport *const import = it->import;
@@ -218,7 +235,8 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                                          import->fileNameToken.startColumn));
             filePath = fi.canonicalFilePath();
             if (fi.isDir()) {
-                collectPrototypes(filePath, as);
+                collectPrototypesAndJsCollections(filePath, as,
+                                                  toCodeLocation(import->fileNameToken), jsImports);
             } else {
                 if (filePath.endsWith(QLatin1String(".js"), Qt::CaseInsensitive)) {
                     JsImport &jsImport = jsImports[as];
@@ -246,18 +264,8 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                     if (fi.isDir()) {
                         // ### versioning, qbsdir file, etc.
                         const QString &resultPath = fi.absoluteFilePath();
-                        collectPrototypes(resultPath, as);
-
-                        QDirIterator dirIter(resultPath, QStringList(QLatin1String("*.js")));
-                        while (dirIter.hasNext()) {
-                            dirIter.next();
-                            JsImport &jsImport = jsImports[as];
-                            if (jsImport.scopeName.isNull()) {
-                                jsImport.scopeName = as;
-                                jsImport.location = toCodeLocation(import->firstSourceLocation());
-                            }
-                            jsImport.filePaths.append(dirIter.filePath());
-                        }
+                        collectPrototypesAndJsCollections(resultPath, as,
+                                toCodeLocation(import->importIdToken), jsImports);
                         found = true;
                         break;
                     }
@@ -455,15 +463,18 @@ bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
     m_sourceValue->setLocation(statement->firstSourceLocation().startLine,
                                statement->firstSourceLocation().startColumn);
 
-    bool usesBase, usesOuter;
+    bool usesBase, usesOuter, usesOriginal;
     IdentifierSearch idsearch;
     idsearch.add(QLatin1String("base"), &usesBase);
     idsearch.add(QLatin1String("outer"), &usesOuter);
+    idsearch.add(QLatin1String("original"), &usesOriginal);
     idsearch.start(statement);
     if (usesBase)
         m_sourceValue->m_flags |= JSSourceValue::SourceUsesBase;
     if (usesOuter)
         m_sourceValue->m_flags |= JSSourceValue::SourceUsesOuter;
+    if (usesOriginal)
+        m_sourceValue->m_flags |= JSSourceValue::SourceUsesOriginal;
     return false;
 }
 

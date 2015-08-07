@@ -29,7 +29,12 @@
 ****************************************************************************/
 
 import qbs
+import qbs.FileInfo
 
 BinaryProbe {
-    names: ["nodejs", "node"]
+    names: ["nodejs", "node" + (qbs.hostOS.contains("windows") ? ".exe" : "")]
+    platformPaths: base.concat(qbs.hostOS.contains("windows")
+                               ? [FileInfo.joinPaths(qbs.getEnv("PROGRAMFILES"), "nodejs"),
+                                  FileInfo.joinPaths(qbs.getEnv("PROGRAMFILES(X86)"), "nodejs")]
+                               : [])
 }

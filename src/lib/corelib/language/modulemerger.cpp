@@ -193,7 +193,7 @@ void ModuleMerger::pullListProperties(Item::PropertyMap *dst, Item *instance)
 }
 
 void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QString &propertyName,
-        const ValuePtr &sv) const
+        const ValuePtr &sv)
 {
     const PropertyDeclaration pd = m_mergedModuleItem->propertyDeclaration(propertyName);
     if (pd.isScalar())
@@ -201,14 +201,16 @@ void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QStr
     ValuePtr protoValue = moduleProto->property(propertyName);
     if (!protoValue)
         return;
-    Item * const clonedModulePrototype = moduleProto->clone();
-    Item * const scope = Item::create(clonedModulePrototype->pool());
-    scope->setFile(clonedModulePrototype->file());
-    m_mergedModuleItem->scope()->copyProperty(QLatin1String("project"), scope);
-    m_mergedModuleItem->scope()->copyProperty(QLatin1String("product"), scope);
-    clonedModulePrototype->setScope(scope);
+    if (!m_clonedModulePrototype) {
+        m_clonedModulePrototype = moduleProto->clone();
+        Item * const scope = Item::create(m_clonedModulePrototype->pool());
+        scope->setFile(m_clonedModulePrototype->file());
+        m_mergedModuleItem->scope()->copyProperty(QLatin1String("project"), scope);
+        m_mergedModuleItem->scope()->copyProperty(QLatin1String("product"), scope);
+        m_clonedModulePrototype->setScope(scope);
+    }
     const ValuePtr clonedValue = protoValue->clone();
-    clonedValue->setDefiningItem(clonedModulePrototype);
+    clonedValue->setDefiningItem(m_clonedModulePrototype);
     lastInNextChain(sv)->setNext(clonedValue);
 }
 

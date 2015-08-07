@@ -1,1 +1,1 @@
-function f2() { return "f2"; }
+function f2() { return "C1f2"; }

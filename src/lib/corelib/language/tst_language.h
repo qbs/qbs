@@ -106,6 +106,8 @@ private slots:
     void profileValuesAndOverriddenValues();
     void propertiesBlocks_data();
     void propertiesBlocks();
+    void defaultValue();
+    void defaultValue_data();
     void qualifiedId();
     void recursiveProductDependencies();
     void rfc1034Identifier();

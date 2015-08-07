@@ -215,6 +215,16 @@ private:
         if (value->sourceUsesOuter() && outerItem)
             setupConvenienceProperty(QLatin1String("outer"), &extraScope,
                                      data->evaluator->property(outerItem, *propertyName));
+        if (value->sourceUsesOriginal()) {
+            const Item *item = itemOfProperty;
+            while (item->isModuleInstance())
+                item = item->prototype();
+            QScriptValue originalValue;
+            SVConverter converter(scriptClass, object, item->property(*propertyName), item,
+                                  propertyName, data, &originalValue, sourceValueStack);
+            converter.start();
+            setupConvenienceProperty(QLatin1String("original"), &extraScope, originalValue);
+        }
 
         pushScope(data->evaluator->fileScope(value->file()));
         pushItemScopes(data->item);
