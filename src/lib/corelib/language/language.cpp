@@ -635,7 +635,6 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
         engine->setProperty("_qbs_procenv", v);
     }
 
-    engine->clearImportsCache();
     QScriptValue scope = engine->newObject();
 
     const QScriptValue getEnvValue = engine->newFunction(js_getEnv, 1);
