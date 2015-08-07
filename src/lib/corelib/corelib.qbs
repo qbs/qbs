@@ -200,6 +200,10 @@ QbsLibrary {
         files: [
             "artifactproperties.cpp",
             "artifactproperties.h",
+            "astimportshandler.cpp",
+            "astimportshandler.h",
+            "astpropertiesitemhandler.cpp",
+            "astpropertiesitemhandler.h",
             "asttools.cpp",
             "asttools.h",
             "builtindeclarations.cpp",
@@ -260,7 +264,7 @@ QbsLibrary {
             "scriptengine.h",
             "scriptpropertyobserver.h",
             "value.cpp",
-            "value.h"
+            "value.h",
         ]
     }
     Group {

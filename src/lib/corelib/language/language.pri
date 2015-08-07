@@ -2,6 +2,8 @@ include(../../../install_prefix.pri)
 
 HEADERS += \
     $$PWD/artifactproperties.h \
+    $$PWD/astimportshandler.h \
+    $$PWD/astpropertiesitemhandler.h \
     $$PWD/asttools.h \
     $$PWD/builtindeclarations.h \
     $$PWD/builtinvalue.h \
@@ -40,6 +42,8 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/artifactproperties.cpp \
+    $$PWD/astimportshandler.cpp \
+    $$PWD/astpropertiesitemhandler.cpp \
     $$PWD/asttools.cpp \
     $$PWD/builtindeclarations.cpp \
     $$PWD/builtinvalue.cpp \

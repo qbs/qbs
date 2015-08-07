@@ -50,6 +50,7 @@ class Logger;
 
 class Item : public QbsQmlJS::Managed
 {
+    friend class ASTPropertiesItemHandler;
     friend class ItemPool;
     friend class ItemReaderASTVisitor;
     Q_DISABLE_COPY(Item)
@@ -85,7 +86,7 @@ public:
     bool isModuleInstance() const { return m_moduleInstance; }
     Item *outerItem() const { return m_outerItem; }
     Item *parent() const { return m_parent; }
-    const FileContextPtr file() const { return m_file; }
+    const FileContextPtr &file() const { return m_file; }
     QList<Item *> children() const { return m_children; }
     Item *child(const QString &type, bool checkForMultiple = true) const;
     const PropertyMap &properties() const { return m_properties; }

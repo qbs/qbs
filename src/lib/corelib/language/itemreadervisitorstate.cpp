@@ -30,6 +30,7 @@
 #include "itemreadervisitorstate.h"
 
 #include "asttools.h"
+#include "filecontext.h"
 #include "itemreaderastvisitor.h"
 
 #include <logging/translator.h>
@@ -140,9 +141,12 @@ Item *ItemReaderVisitorState::readFile(const QString &filePath, const QStringLis
         cacheValue.setAst(parser.ast());
     }
 
-    ItemReaderASTVisitor astVisitor(*this, itemPool, m_logger, searchPaths);
-    astVisitor.setFilePath(QFileInfo(filePath).absoluteFilePath());
-    astVisitor.setSourceCode(cacheValue.code());
+    const FileContextPtr file = FileContext::create();
+    file->setFilePath(QFileInfo(filePath).absoluteFilePath());
+    file->setContent(cacheValue.code());
+    file->setSearchPaths(searchPaths);
+
+    ItemReaderASTVisitor astVisitor(*this, file, itemPool, m_logger);
     cacheValue.setProcessingFlag(true);
     cacheValue.ast()->accept(&astVisitor);
     cacheValue.setProcessingFlag(false);
