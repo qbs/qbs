@@ -211,19 +211,17 @@ Module {
             cmd.infoPlistFormat = ModUtils.moduleProperty(product, "infoPlistFormat");
             cmd.qmakeEnv = ModUtils.moduleProperty(product, "qmakeEnv");
 
-            cmd.platformPath = product.moduleProperty("xcode", "platformPath");
-            cmd.toolchainInstallPath = product.moduleProperty("cpp", "toolchainInstallPath");
             cmd.buildEnv = product.moduleProperty("cpp", "buildEnv");
             cmd.defines = product.moduleProperty("cpp", "defines");
             cmd.platformDefines = product.moduleProperty("cpp", "platformDefines");
             cmd.compilerDefines = product.moduleProperty("cpp", "compilerDefines");
             cmd.allDefines = [].concat(cmd.defines || []).concat(cmd.platformDefines || []).concat(cmd.compilerDefines || []);
 
+            cmd.toolchain = product.moduleProperty("qbs", "toolchain");
             cmd.platformInfoPlist = product.moduleProperty("xcode", "platformInfoPlist");
             cmd.sdkSettingsPlist = product.moduleProperty("xcode", "sdkSettingsPlist");
             cmd.toolchainInfoPlist = product.moduleProperty("xcode", "toolchainInfoPlist");
 
-            cmd.sysroot = product.moduleProperty("qbs", "sysroot");
             cmd.osBuildVersion = product.moduleProperty("qbs", "hostOSBuildVersion");
 
             cmd.sourceCode = function() {
@@ -258,57 +256,36 @@ Module {
 
                     // Add keys from platform's Info.plist if not already present
                     var platformInfo = {};
-                    if (platformPath) {
-                        if (File.exists(platformInfoPlist)) {
-                            plist = new PropertyList();
-                            try {
-                                plist.readFromFile(platformInfoPlist);
-                                platformInfo = plist.toObject();
-                            } finally {
-                                plist.clear();
-                            }
-
-                            var additionalProps = platformInfo["AdditionalInfo"];
-                            for (key in additionalProps) {
-                                if (additionalProps.hasOwnProperty(key) && !(key in aggregatePlist)) // override infoPlist?
-                                    aggregatePlist[key] = defaultValues[key];
-                            }
-                            props = platformInfo['OverrideProperties'];
-                            for (key in props) {
-                                aggregatePlist[key] = props[key];
-                            }
-
-                            if (product.moduleProperty("qbs", "targetOS").contains("ios")) {
-                                key = "UIDeviceFamily";
-                                if (key in platformInfo && !(key in aggregatePlist))
-                                    aggregatePlist[key] = platformInfo[key];
-                            }
-                        } else {
-                            print("warning: platform path given but no platform Info.plist found");
-                        }
-                    } else {
-                        print("no platform path specified");
-                    }
-
                     var sdkSettings = {};
-                    if (sysroot) {
-                        if (File.exists(sdkSettingsPlist)) {
-                            plist = new PropertyList();
-                            try {
-                                plist.readFromFile(sdkSettingsPlist);
-                                sdkSettings = plist.toObject();
-                            } finally {
-                                plist.clear();
-                            }
-                        } else {
-                            print("warning: sysroot (SDK path) given but no SDKSettings.plist found");
-                        }
-                    } else {
-                        print("no sysroot (SDK path) specified");
-                    }
-
                     var toolchainInfo = {};
-                    if (toolchainInstallPath && File.exists(toolchainInfoPlist)) {
+                    if (toolchain.contains("xcode")) {
+                        plist = new PropertyList();
+                        try {
+                            plist.readFromFile(platformInfoPlist);
+                            platformInfo = plist.toObject();
+                        } finally {
+                            plist.clear();
+                        }
+
+                        var additionalProps = platformInfo["AdditionalInfo"];
+                        for (key in additionalProps) {
+                            // override infoPlist?
+                            if (additionalProps.hasOwnProperty(key) && !(key in aggregatePlist))
+                                aggregatePlist[key] = defaultValues[key];
+                        }
+                        props = platformInfo['OverrideProperties'];
+                        for (key in props) {
+                            aggregatePlist[key] = props[key];
+                        }
+
+                        plist = new PropertyList();
+                        try {
+                            plist.readFromFile(sdkSettingsPlist);
+                            sdkSettings = plist.toObject();
+                        } finally {
+                            plist.clear();
+                        }
+
                         plist = new PropertyList();
                         try {
                             plist.readFromFile(toolchainInfoPlist);
@@ -316,8 +293,6 @@ Module {
                         } finally {
                             plist.clear();
                         }
-                    } else {
-                        print("could not find a ToolchainInfo.plist near the toolchain install path");
                     }
 
                     aggregatePlist["BuildMachineOSBuild"] = osBuildVersion;
