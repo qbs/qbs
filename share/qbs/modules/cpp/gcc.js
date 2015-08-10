@@ -131,16 +131,6 @@ function linkerFlags(product, inputs) {
 function configFlags(config) {
     var args = [];
 
-    if (config.moduleProperty("qbs", "toolchain").contains("clang")) {
-        args.push("-target", config.moduleProperty("cpp", "target"));
-    } else {
-        var arch = ModUtils.moduleProperty(config, "architecture");
-        if (arch === 'x86_64')
-            args.push('-m64');
-        else if (arch === 'x86')
-            args.push('-m32');
-    }
-
     if (ModUtils.moduleProperty(config, "debugInformation"))
         args.push('-g');
     var opt = ModUtils.moduleProperty(config, "optimization")
@@ -244,32 +234,42 @@ function additionalCompilerFlags(product, input, output) {
 function additionalCompilerAndLinkerFlags(product) {
     var args = []
 
+    if (product.moduleProperty("qbs", "toolchain").contains("clang")) {
+        args.push("-target", product.moduleProperty("cpp", "target"));
+    } else {
+        var arch = ModUtils.moduleProperty(product, "architecture");
+        if (arch === 'x86_64')
+            args.push('-m64');
+        else if (arch === 'x86')
+            args.push('-m32');
+
+        var minimumOsxVersion = ModUtils.moduleProperty(product, "minimumOsxVersion");
+        if (minimumOsxVersion && product.moduleProperty("qbs", "targetOS").contains("osx"))
+            args.push('-mmacosx-version-min=' + minimumOsxVersion);
+
+        var minimumiOSVersion = ModUtils.moduleProperty(product, "minimumIosVersion");
+        if (minimumiOSVersion && product.moduleProperty("qbs", "targetOS").contains("ios")) {
+            if (product.moduleProperty("qbs", "targetOS").contains("ios-simulator"))
+                args.push('-mios-simulator-version-min=' + minimumiOSVersion);
+            else
+                args.push('-miphoneos-version-min=' + minimumiOSVersion);
+        }
+
+        var minimumWatchosVersion = ModUtils.moduleProperty(product, "minimumWatchosVersion");
+        if (minimumWatchosVersion && product.moduleProperty("qbs", "targetOS").contains("watchos")) {
+            if (product.moduleProperty("qbs", "targetOS").contains("watchos-simulator"))
+                args.push("-mwatchos-simulator-version-min=" + minimumWatchosVersion);
+            else
+                args.push("-mwatchos-version-min=" + minimumWatchosVersion);
+        }
+    }
+
     var sysroot = ModUtils.moduleProperty(product, "sysroot");
     if (sysroot) {
         if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
             args.push("-isysroot", sysroot);
         else
             args.push("--sysroot=" + sysroot);
-    }
-
-    var minimumOsxVersion = ModUtils.moduleProperty(product, "minimumOsxVersion");
-    if (minimumOsxVersion && product.moduleProperty("qbs", "targetOS").contains("osx"))
-        args.push('-mmacosx-version-min=' + minimumOsxVersion);
-
-    var minimumiOSVersion = ModUtils.moduleProperty(product, "minimumIosVersion");
-    if (minimumiOSVersion && product.moduleProperty("qbs", "targetOS").contains("ios")) {
-        if (product.moduleProperty("qbs", "targetOS").contains("ios-simulator"))
-            args.push('-mios-simulator-version-min=' + minimumiOSVersion);
-        else
-            args.push('-miphoneos-version-min=' + minimumiOSVersion);
-    }
-
-    var minimumWatchosVersion = ModUtils.moduleProperty(product, "minimumWatchosVersion");
-    if (minimumWatchosVersion && product.moduleProperty("qbs", "targetOS").contains("watchos")) {
-        if (product.moduleProperty("qbs", "targetOS").contains("watchos-simulator"))
-            args.push("-mwatchos-simulator-version-min=" + minimumWatchosVersion);
-        else
-            args.push("-mwatchos-version-min=" + minimumWatchosVersion);
     }
 
     var requireAppExtensionSafeApi = ModUtils.moduleProperty(product, "requireAppExtensionSafeApi");
