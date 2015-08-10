@@ -466,7 +466,7 @@ void TestLanguage::erroneousFiles_data()
             << "Array element at index 1 is undefined. String expected.";
     QTest::newRow("undeclared_item")
             << "Item 'cpp' is not declared.";
-    QTest::newRow("undeclared_property")
+    QTest::newRow("undeclared_property_wrapper")
             << "Property 'doesntexist' is not declared.";
     QTest::newRow("unknown_item_type")
             << "Unexpected item type 'Narf'";

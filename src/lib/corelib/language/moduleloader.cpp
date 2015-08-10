@@ -208,7 +208,9 @@ private:
     {
         if (m_disabledItems.contains(item)
                 || item->typeName() == QLatin1String("Export")
-                || item->typeName() == QLatin1String("SubProject")) {
+
+                // The Properties child of a SubProject item is not a regular item.
+                || item->typeName() == QLatin1String("Properties")) {
             return;
         }
 
