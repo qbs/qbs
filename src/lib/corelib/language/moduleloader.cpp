@@ -213,12 +213,12 @@ private:
         }
 
         Item *oldParentItem = m_parentItem;
+        m_parentItem = item;
         for (Item::PropertyMap::const_iterator it = item->properties().constBegin();
                 it != item->properties().constEnd(); ++it) {
             if (item->propertyDeclaration(it.key()).isValid())
                 continue;
             m_currentName = it.key();
-            m_parentItem = item;
             it.value()->apply(this);
         }
         m_parentItem = oldParentItem;
