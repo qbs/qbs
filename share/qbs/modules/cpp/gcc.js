@@ -231,13 +231,26 @@ function additionalCompilerFlags(product, input, output) {
     return args
 }
 
+function haveTargetOption(product) {
+    var toolchain = product.moduleProperty("qbs", "toolchain");
+    var major = product.moduleProperty("cpp", "compilerVersionMajor");
+    var minor = product.moduleProperty("cpp", "compilerVersionMinor");
+
+    // Apple Clang 3.1 (shipped with Xcode 4.3) just happened to also correspond to LLVM 3.1,
+    // so no special version check is needed for Apple
+    return toolchain.contains("clang") && (major > 3 || (major === 3 && minor >= 1));
+}
+
 function additionalCompilerAndLinkerFlags(product) {
     var args = []
 
-    if (product.moduleProperty("qbs", "toolchain").contains("clang")) {
+    if (haveTargetOption(product)) {
         args.push("-target", product.moduleProperty("cpp", "target"));
     } else {
         var arch = ModUtils.moduleProperty(product, "architecture");
+        if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
+            args.push("-arch", arch);
+
         if (arch === 'x86_64')
             args.push('-m64');
         else if (arch === 'x86')
