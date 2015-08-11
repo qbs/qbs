@@ -39,6 +39,7 @@
 #include <tools/codelocation.h>
 #include <tools/error.h>
 
+#include <QFlags>
 #include <QList>
 #include <QMap>
 
@@ -55,6 +56,9 @@ class Item : public QbsQmlJS::Managed
     friend class ItemReaderASTVisitor;
     Q_DISABLE_COPY(Item)
     Item(ItemPool *pool);
+
+    enum Flag { FlagModuleInstance = 1 };
+    Q_DECLARE_FLAGS(Flags, Flag)
 
 public:
     ~Item();
@@ -83,7 +87,7 @@ public:
     const CodeLocation &location() const { return m_location; }
     Item *prototype() const { return m_prototype; }
     Item *scope() const { return m_scope; }
-    bool isModuleInstance() const { return m_moduleInstance; }
+    bool isModuleInstance() const { return m_flags.testFlag(FlagModuleInstance); }
     Item *outerItem() const { return m_outerItem; }
     Item *parent() const { return m_parent; }
     const FileContextPtr &file() const { return m_file; }
@@ -113,7 +117,7 @@ public:
     void setPrototype(Item *prototype) { m_prototype = prototype; }
     void setFile(const FileContextPtr &file) { m_file = file; }
     void setScope(Item *item) { m_scope = item; }
-    void setModuleInstanceFlag(bool b) { m_moduleInstance = b; }
+    void setModuleInstanceFlag(bool b) { switchFlag(FlagModuleInstance, b); }
     void setOuterItem(Item *item) { m_outerItem = item; }
     void setChildren(const QList<Item *> &children) { m_children = children; }
     void setParent(Item *item) { m_parent = item; }
@@ -127,14 +131,15 @@ public:
     ErrorInfo delayedError() const { return m_delayedError; }
 
 private:
+
     void dump(int indentation) const;
+    void switchFlag(Flag flag, bool on);
 
     ItemPool *m_pool;
     mutable ItemObserver *m_propertyObserver;
     QString m_id;
     QString m_typeName;
     CodeLocation m_location;
-    bool m_moduleInstance;
     Item *m_prototype;
     Item *m_scope;
     Item *m_outerItem;
@@ -146,6 +151,7 @@ private:
     QList<FunctionDeclaration> m_functions;
     Modules m_modules;
     ErrorInfo m_delayedError;
+    Flags m_flags;
 };
 
 inline bool operator<(const Item::Module &m1, const Item::Module &m2) { return m1.name < m2.name; }

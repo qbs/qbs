@@ -50,7 +50,6 @@ namespace Internal {
 Item::Item(ItemPool *pool)
     : m_pool(pool)
     , m_propertyObserver(0)
-    , m_moduleInstance(false)
     , m_prototype(0)
     , m_scope(0)
     , m_outerItem(0)
@@ -75,7 +74,7 @@ Item *Item::clone() const
     dup->m_id = m_id;
     dup->m_typeName = m_typeName;
     dup->m_location = m_location;
-    dup->m_moduleInstance = m_moduleInstance;
+    dup->m_flags = m_flags;
     dup->m_prototype = m_prototype;
     dup->m_scope = m_scope;
     dup->m_outerItem = m_outerItem;
@@ -275,6 +274,14 @@ void Item::dump(int indentation) const
         qDebug("%sprototype:", indent.constData());
         prototype()->dump(indentation + 4);
     }
+}
+
+void Item::switchFlag(Item::Flag flag, bool on)
+{
+    if (on)
+        m_flags |= flag;
+    else
+        m_flags &= ~flag;
 }
 
 void Item::removeProperty(const QString &name)
