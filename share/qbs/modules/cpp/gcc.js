@@ -35,7 +35,7 @@ var PathTools = loadExtension("qbs.PathTools");
 var UnixUtils = loadExtension("qbs.UnixUtils");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
-function linkerFlags(product, inputs) {
+function linkerFlags(product, inputs, output) {
     var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
     var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
     var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
@@ -44,10 +44,108 @@ function linkerFlags(product, inputs) {
     var weakFrameworks = ModUtils.moduleProperties(product, 'weakFrameworks');
     var rpaths = (product.moduleProperty("cpp", "useRPaths") !== false)
             ? ModUtils.moduleProperties(product, 'rpaths') : undefined;
-    var args = [], i;
+    var isDarwin = product.moduleProperty("qbs", "targetOS").contains("darwin");
+    var i, args = additionalCompilerAndLinkerFlags(product);
+
+    if (output.fileTags.contains("dynamiclibrary")) {
+        args.push(isDarwin ? "-dynamiclib" : "-shared");
+
+        if (isDarwin) {
+            var internalVersion = product.moduleProperty("cpp", "internalVersion");
+            if (internalVersion)
+                args.push("-current_version", internalVersion);
+
+            args.push("-Wl,-install_name," + UnixUtils.soname(product, output.fileName));
+        } else {
+            args.push("-Wl,-soname=" + UnixUtils.soname(product, output.fileName));
+        }
+    }
+
+    if (output.fileTags.contains("loadablemodule"))
+        args.push(isDarwin ? "-bundle" : "-shared");
+
+    if (output.fileTags.contains("dynamiclibrary") || output.fileTags.contains("loadablemodule")) {
+        if (isDarwin)
+            args.push("-Wl,-headerpad_max_install_names");
+        else
+            args.push("-Wl,--as-needed");
+    }
+
+    var unresolvedSymbolsAction = isDarwin ? "error" : "ignore-in-shared-libs";
+    if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
+        unresolvedSymbolsAction = isDarwin ? "suppress" : "ignore-all";
+    var unresolvedSymbolsKey = isDarwin ? "-undefined," : "--unresolved-symbols=";
+    args.push("-Wl," + unresolvedSymbolsKey + unresolvedSymbolsAction);
 
     if (rpaths && rpaths.length)
         args.push('-Wl,-rpath,' + rpaths.join(",-rpath,"));
+
+    if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
+        var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product,
+                                                                   inputs.dynamiclibrary_copy, 'cpp', 'transitiveSOs')
+        var uniqueSOs = [].uniqueConcat(transitiveSOs)
+        for (i in uniqueSOs) {
+            // The real library is located one level up.
+            args.push("-Wl,-rpath-link=" + FileInfo.path(FileInfo.path(uniqueSOs[i])));
+        }
+    }
+
+    if (product.moduleProperty("cpp", "entryPoint"))
+        args.push("-Wl,-e," + product.moduleProperty("cpp", "entryPoint"));
+
+    if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
+        if (product.consoleApplication !== undefined)
+            if (product.consoleApplication)
+                args.push("-Wl,-subsystem,console");
+            else
+                args.push("-Wl,-subsystem,windows");
+
+        var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
+        if (minimumWindowsVersion) {
+            var subsystemVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
+            if (subsystemVersion) {
+                var major = subsystemVersion.split('.')[0];
+                var minor = subsystemVersion.split('.')[1];
+
+                // http://sourceware.org/binutils/docs/ld/Options.html
+                args.push("-Wl,--major-subsystem-version," + major);
+                args.push("-Wl,--minor-subsystem-version," + minor);
+                args.push("-Wl,--major-os-version," + major);
+                args.push("-Wl,--minor-os-version," + minor);
+            } else {
+                print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
+            }
+        }
+    }
+
+    if (inputs.infoplist)
+        args.push("-sectcreate", "__TEXT", "__info_plist", inputs.infoplist[0].filePath);
+
+    if (product.moduleProperty("qbs", "toolchain").contains("clang")) {
+        var stdlib = product.moduleProperty("cpp", "cxxStandardLibrary");
+        if (stdlib) {
+            args.push("-stdlib=" + stdlib);
+        }
+
+        if (product.moduleProperty("qbs", "targetOS").contains("linux") && stdlib === "libc++")
+            args.push("-lc++abi");
+    }
+
+    // Flags for library search paths
+    if (libraryPaths)
+        args = args.concat(libraryPaths.map(function(path) { return '-L' + path }));
+
+    if (linkerScripts)
+        args = args.concat(linkerScripts.map(function(path) { return '-T' + path }));
+
+    args = args.concat(configFlags(product));
+    args = args.concat(ModUtils.moduleProperties(product, 'platformLinkerFlags'));
+    args = args.concat(ModUtils.moduleProperties(product, 'linkerFlags'));
+
+    args.push("-o", output.filePath);
+
+    if (inputs.obj)
+        args = args.concat(inputs.obj.map(function (obj) { return obj.filePath }));
 
     // Add filenames of internal library dependencies to the lists
     var staticLibsFromInputs = inputs.staticlibrary
@@ -56,13 +154,6 @@ function linkerFlags(product, inputs) {
     var dynamicLibsFromInputs = inputs.dynamiclibrary_copy
             ? inputs.dynamiclibrary_copy.map(function(a) { return a.filePath; }) : [];
     dynamicLibraries = concatLibsFromArtifacts(dynamicLibraries, inputs.dynamiclibrary_copy);
-
-    // Flags for library search paths
-    if (libraryPaths)
-        args = args.concat(libraryPaths.map(function(path) { return '-L' + path }));
-
-    if (linkerScripts)
-        args = args.concat(linkerScripts.map(function(path) { return '-T' + path }));
 
     for (i in staticLibraries) {
         if (staticLibsFromInputs.contains(staticLibraries[i]) || File.exists(staticLibraries[i])) {
@@ -95,33 +186,6 @@ function linkerFlags(product, inputs) {
             args = args.concat(['-weak_library', frameworkExecutablePath]);
         else
             args = args.concat(['-weak_framework', weakFrameworks[i]]);
-    }
-
-    var isDarwin = product.moduleProperty("qbs", "targetOS").contains("darwin");
-    var unresolvedSymbolsAction = isDarwin ? "error" : "ignore-in-shared-libs";
-    if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
-        unresolvedSymbolsAction = isDarwin ? "suppress" : "ignore-all";
-    var unresolvedSymbolsKey = isDarwin ? "-undefined," : "--unresolved-symbols=";
-    args.push("-Wl," + unresolvedSymbolsKey + unresolvedSymbolsAction);
-
-    if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
-        var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product,
-                                                                   inputs.dynamiclibrary_copy, 'cpp', 'transitiveSOs')
-        var uniqueSOs = [].uniqueConcat(transitiveSOs)
-        for (i in uniqueSOs) {
-            // The real library is located one level up.
-            args.push("-Wl,-rpath-link=" + FileInfo.path(FileInfo.path(uniqueSOs[i])));
-        }
-    }
-
-    if (product.moduleProperty("qbs", "toolchain").contains("clang")) {
-        var stdlib = product.moduleProperty("cpp", "cxxStandardLibrary");
-        if (stdlib) {
-            args.push("-stdlib=" + stdlib);
-        }
-
-        if (product.moduleProperty("qbs", "targetOS").contains("linux") && stdlib === "libc++")
-            args.push("-lc++abi");
     }
 
     return args;
@@ -474,81 +538,18 @@ function collectTransitiveSos(inputs)
 }
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
-    var i, primaryOutput, cmd, commands = [], args = [];
+    var i, primaryOutput, cmd, commands = [];
 
     if (outputs.application) {
         primaryOutput = outputs.application[0];
     } else if (outputs.dynamiclibrary) {
         primaryOutput = outputs.dynamiclibrary[0];
-
-        args.push("-shared");
-
-        if (product.moduleProperty("qbs", "targetOS").contains("linux")) {
-            args.push("-Wl,--as-needed");
-            args.push("-Wl,-soname=" + UnixUtils.soname(product, primaryOutput.fileName));
-        } else if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
-            args.push("-Wl,-install_name," + UnixUtils.soname(product, primaryOutput.fileName));
-            args.push("-Wl,-headerpad_max_install_names");
-
-            var internalVersion = product.moduleProperty("cpp", "internalVersion");
-            if (internalVersion)
-                args.push("-current_version", internalVersion);
-        }
     } else if (outputs.loadablemodule) {
         primaryOutput = outputs.loadablemodule[0];
-
-        args.push("-bundle");
-
-        if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
-            args.push("-Wl,-headerpad_max_install_names");
-        }
     }
 
-    if (product.moduleProperty("cpp", "entryPoint"))
-        args.push("-Wl,-e," + product.moduleProperty("cpp", "entryPoint"));
-
-    if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
-        if (product.consoleApplication !== undefined)
-            if (product.consoleApplication)
-                args.push("-Wl,-subsystem,console");
-            else
-                args.push("-Wl,-subsystem,windows");
-
-        var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
-        if (minimumWindowsVersion) {
-            var subsystemVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
-            if (subsystemVersion) {
-                var major = subsystemVersion.split('.')[0];
-                var minor = subsystemVersion.split('.')[1];
-
-                // http://sourceware.org/binutils/docs/ld/Options.html
-                args.push("-Wl,--major-subsystem-version," + major);
-                args.push("-Wl,--minor-subsystem-version," + minor);
-                args.push("-Wl,--major-os-version," + major);
-                args.push("-Wl,--minor-os-version," + minor);
-            } else {
-                print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
-            }
-        }
-    }
-
-    if (inputs.infoplist)
-        args.push("-sectcreate", "__TEXT", "__info_plist", inputs.infoplist[0].filePath);
-
-    if (inputs.obj)
-        args = args.concat(inputs.obj.map(function (obj) { return obj.filePath }));
-
-    args = args.concat(configFlags(product));
-    args = args.concat(linkerFlags(product, inputs));
-    args = args.concat(additionalCompilerAndLinkerFlags(product));
-
-    args = args.concat(ModUtils.moduleProperties(product, 'platformLinkerFlags'));
-    args = args.concat(ModUtils.moduleProperties(product, 'linkerFlags'));
-
-    args.push("-o");
-    args.push(primaryOutput.filePath);
-
-    cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
+    cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"),
+                      linkerFlags(product, inputs, primaryOutput));
     cmd.description = 'linking ' + primaryOutput.fileName;
     cmd.highlight = 'linker';
     cmd.responseFileUsagePrefix = '@';
