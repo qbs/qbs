@@ -470,6 +470,8 @@ void TestLanguage::erroneousFiles_data()
             << "Property 'doesntexist' is not declared.";
     QTest::newRow("undeclared_property_in_export_item")
             << "Property 'blubb' is not declared.";
+    QTest::newRow("undeclared_property_in_export_item2")
+            << "Item 'something' is not declared.";
     QTest::newRow("unknown_item_type")
             << "Unexpected item type 'Narf'";
     QTest::newRow("invalid_child_item_type")
@@ -508,6 +510,7 @@ void TestLanguage::erroneousFiles()
         }
         return;
     }
+    QEXPECT_FAIL("undeclared_property_in_export_item2", "QBS-851", Continue);
     QEXPECT_FAIL("misused-inherited-property", "QBS-847", Continue);
     QVERIFY(!"No error thrown on invalid input.");
 }
