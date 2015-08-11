@@ -207,8 +207,6 @@ private:
     void handleItem(Item *item)
     {
         if (m_disabledItems.contains(item)
-                || item->typeName() == QLatin1String("Export")
-
                 // The Properties child of a SubProject item is not a regular item.
                 || item->typeName() == QLatin1String("Properties")) {
             return;
@@ -224,8 +222,10 @@ private:
             it.value()->apply(this);
         }
         m_parentItem = oldParentItem;
-        foreach (Item *child, item->children())
-            handleItem(child);
+        foreach (Item *child, item->children()) {
+            if (child->typeName() != QLatin1String("Export"))
+                handleItem(child);
+        }
     }
 
     void handle(VariantValue *) { /* only created internally - no need to check */ }
