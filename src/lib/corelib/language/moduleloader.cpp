@@ -113,7 +113,6 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] load" << parameters.projectFilePath();
     m_parameters = parameters;
-    m_validItemPropertyNamesPerItem.clear();
     m_productModuleCache.clear();
     m_modulePrototypeItemCache.clear();
     m_disabledItems.clear();
@@ -155,18 +154,15 @@ static void handlePropertyError(const ErrorInfo &error, const SetupProjectParame
 
 class PropertyDeclarationCheck : public ValueHandler
 {
-    const QHash<Item *, QSet<QString> > &m_validItemPropertyNamesPerItem;
     const QSet<Item *> &m_disabledItems;
     Item *m_parentItem;
     QString m_currentName;
     SetupProjectParameters m_params;
     Logger m_logger;
 public:
-    PropertyDeclarationCheck(const QHash<Item *, QSet<QString> > &validItemPropertyNamesPerItem,
-          const QSet<Item *> &disabledItems, const SetupProjectParameters &params,
-          const Logger &logger)
-        : m_validItemPropertyNamesPerItem(validItemPropertyNamesPerItem)
-        , m_disabledItems(disabledItems)
+    PropertyDeclarationCheck(const QSet<Item *> &disabledItems,
+                             const SetupProjectParameters &params, const Logger &logger)
+        : m_disabledItems(disabledItems)
         , m_parentItem(0)
         , m_params(params)
         , m_logger(logger)
@@ -189,7 +185,7 @@ private:
     void handle(ItemValue *value)
     {
         if (!value->item()->isModuleInstance()
-                && !m_validItemPropertyNamesPerItem.value(m_parentItem).contains(m_currentName)
+                && !value->item()->isModulePrefix()
                 && m_parentItem->file()
                 && !m_parentItem->file()->idScope()->hasProperty(m_currentName)) {
             const ErrorInfo error(Tr::tr("Item '%1' is not declared. "
@@ -243,8 +239,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *i
 
     m_reader->clearExtraSearchPathsStack();
     checkItemTypes(item);
-    PropertyDeclarationCheck check(m_validItemPropertyNamesPerItem, m_disabledItems, m_parameters,
-                                   m_logger);
+    PropertyDeclarationCheck check(m_disabledItems, m_parameters, m_logger);
     check(item);
 }
 
@@ -408,7 +403,6 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     else
         productItem->removeProperty(qbsKey);
     productItem->removeModules();
-    m_validItemPropertyNamesPerItem[productItem].clear();
 
     QList<Item *> additionalProductItems;
     const QString profileKey = QLatin1String("profile");
@@ -789,7 +783,6 @@ Item *ModuleLoader::moduleInstanceItem(Item *item, const QualifiedId &moduleName
     Item *instance = item;
     for (int i = 0; i < moduleName.count(); ++i) {
         const QString &moduleNameSegment = moduleName.at(i);
-        m_validItemPropertyNamesPerItem[instance].insert(moduleNameSegment);
         bool createNewItem = true;
         const ValuePtr v = instance->properties().value(moduleName.at(i));
         if (v && v->type() == Value::ItemValueType) {
@@ -804,6 +797,8 @@ Item *ModuleLoader::moduleInstanceItem(Item *item, const QualifiedId &moduleName
             instance->setProperty(moduleNameSegment, ItemValue::create(newItem));
             instance = newItem;
         }
+        if (i < moduleName.count() - 1)
+            instance->setModulePrefixFlag(true);
     }
     QBS_ASSERT(moduleName.isEmpty() || instance != item, return 0);
     return instance;

@@ -57,7 +57,7 @@ class Item : public QbsQmlJS::Managed
     Q_DISABLE_COPY(Item)
     Item(ItemPool *pool);
 
-    enum Flag { FlagModuleInstance = 1 };
+    enum Flag { FlagModuleInstance = 1, FlagModulePrefix = 2 };
     Q_DECLARE_FLAGS(Flags, Flag)
 
 public:
@@ -88,6 +88,7 @@ public:
     Item *prototype() const { return m_prototype; }
     Item *scope() const { return m_scope; }
     bool isModuleInstance() const { return m_flags.testFlag(FlagModuleInstance); }
+    bool isModulePrefix() const { return m_flags.testFlag(FlagModulePrefix); }
     Item *outerItem() const { return m_outerItem; }
     Item *parent() const { return m_parent; }
     const FileContextPtr &file() const { return m_file; }
@@ -118,6 +119,7 @@ public:
     void setFile(const FileContextPtr &file) { m_file = file; }
     void setScope(Item *item) { m_scope = item; }
     void setModuleInstanceFlag(bool b) { switchFlag(FlagModuleInstance, b); }
+    void setModulePrefixFlag(bool b) { switchFlag(FlagModulePrefix, b); }
     void setOuterItem(Item *item) { m_outerItem = item; }
     void setChildren(const QList<Item *> &children) { m_children = children; }
     void setParent(Item *item) { m_parent = item; }
@@ -151,6 +153,12 @@ private:
     QList<FunctionDeclaration> m_functions;
     Modules m_modules;
     ErrorInfo m_delayedError;
+
+    // TODO: The way we use these flags, they are always mutually exclusive and conceptually
+    //       seem more like a type. However, introducing a type member and only using it for
+    //       module instances and module prefixes seems a bit weird as well. Let's investigate
+    //       if and how having this information for more types of items (e.g. scopes) could help
+    //       us. Maybe it could replace the type name member?
     Flags m_flags;
 };
 
