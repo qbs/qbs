@@ -354,6 +354,23 @@ void qbs::Internal::TestLanguage::dependencyOnAllProfiles()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::derivedSubProject()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("derived-sub-project/project.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 1);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::defaultValue()
 {
     bool exceptionCaught = false;
@@ -1389,6 +1406,8 @@ void TestLanguage::propertiesBlocks_data()
             << QString("dummy.defines")
             << (QStringList() << QString("OVERWRITTEN"))
             << QString();
+    QTest::newRow("using_derived_Properties_item") << "dummy.defines"
+            << (QStringList() << "string from MyProperties") << QString();
     QTest::newRow("cleanup") << QString() << QStringList() << QString();
 }
 

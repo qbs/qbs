@@ -45,10 +45,6 @@ ASTPropertiesItemHandler::ASTPropertiesItemHandler(Item *parentItem) : m_parentI
 
 void ASTPropertiesItemHandler::handlePropertiesItems()
 {
-    // TODO: The checks won't work if users derive from these items, as inheritance has
-    //       not yet been resolved and therefore the type name is not yet the one of the
-    //       item inherited from. So either forbid inheriting from Properties and SubProject
-    //       or do the name replacement part of inheritance earlier.
     if (m_parentItem->typeName() != QLatin1String("Properties")
             && m_parentItem->typeName() != QLatin1String("SubProject")) {
         setupAlternatives();

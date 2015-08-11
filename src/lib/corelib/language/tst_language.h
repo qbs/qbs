@@ -72,6 +72,7 @@ private slots:
     void canonicalArchitecture();
     void conditionalDepends();
     void dependencyOnAllProfiles();
+    void derivedSubProject();
     void environmentVariable();
     void erroneousFiles_data();
     void erroneousFiles();

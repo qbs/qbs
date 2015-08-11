@@ -93,20 +93,29 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
 
     item->setupForBuiltinType(m_logger);
 
-    ASTPropertiesItemHandler(item).handlePropertiesItems();
+    const Item *inheritorItem = nullptr;
 
-    // resolve inheritance
+    // Inheritance resolving, part 1: Find out our actual type name (needed for setting
+    // up alternatives).
     const QStringList fullTypeName = toStringList(ast->qualifiedTypeNameId);
     const QString baseTypeFileName = m_typeNameToFile.value(fullTypeName);
     if (!baseTypeFileName.isEmpty()) {
-        const Item * const rootItem
-                = m_visitorState.readFile(baseTypeFileName, m_file->searchPaths(), m_itemPool);
-        inheritItem(item, rootItem);
-        if (rootItem->file()->idScope()) {
+        inheritorItem = m_visitorState.readFile(baseTypeFileName, m_file->searchPaths(),
+                                                m_itemPool);
+        if (!inheritorItem->typeName().isEmpty())
+            item->setTypeName(inheritorItem->typeName());
+    }
+
+    ASTPropertiesItemHandler(item).handlePropertiesItems();
+
+    // Inheritance resolving, part 2 (depends on alternatives having been set up).
+    if (inheritorItem) {
+        inheritItem(item, inheritorItem);
+        if (inheritorItem->file()->idScope()) {
             // Make ids from the derived file visible in the base file.
             // ### Do we want to turn off this feature? It's QMLish but kind of strange.
             item->file()->ensureIdScope(m_itemPool);
-            rootItem->file()->idScope()->setPrototype(item->file()->idScope());
+            inheritorItem->file()->idScope()->setPrototype(item->file()->idScope());
         }
     }
 
@@ -263,9 +272,6 @@ Item *ItemReaderASTVisitor::targetItemForBinding(const QStringList &bindingName,
 
 void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
 {
-    if (!src->typeName().isEmpty())
-        dst->setTypeName(src->typeName());
-
     int insertPos = 0;
     for (int i = 0; i < src->m_children.count(); ++i) {
         Item *child = src->m_children.at(i);
