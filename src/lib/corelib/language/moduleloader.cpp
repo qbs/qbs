@@ -181,11 +181,9 @@ public:
 private:
     void handle(JSSourceValue *value)
     {
-        if (!m_parentItem->propertyDeclaration(m_currentName).isValid()) {
-            const ErrorInfo error(Tr::tr("Property '%1' is not declared.")
-                            .arg(m_currentName), value->location());
-            handlePropertyError(error, m_params, m_logger);
-        }
+        const ErrorInfo error(Tr::tr("Property '%1' is not declared.")
+                              .arg(m_currentName), value->location());
+        handlePropertyError(error, m_params, m_logger);
     }
 
     void handle(ItemValue *value)
