@@ -226,9 +226,51 @@ function configFlags(config) {
     return args;
 }
 
+function languageTagFromFileExtension(fileName) {
+    var i = fileName.lastIndexOf('.');
+    if (i === -1)
+        return;
+    var m = {
+        "c"     : "c",
+        "C"     : "cpp",
+        "cpp"   : "cpp",
+        "cxx"   : "cpp",
+        "c++"   : "cpp",
+        "cc"    : "cpp",
+        "m"     : "objc",
+        "mm"    : "objcpp",
+        "s"     : "asm",
+        "S"     : "asm_cpp",
+        "sx"    : "asm_cpp"
+    };
+    return m[fileName.substring(i + 1)];
+}
+
+function effectiveCompilerInfo(input, output) {
+    var compilerPath, language;
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
+
+    // Whether we're compiling a precompiled header or normal source file
+    var pchOutput = output.fileTags.contains(tag + "_pch");
+
+    var compilerPathByLanguage = ModUtils.moduleProperty(input, "compilerPathByLanguage");
+    if (compilerPathByLanguage)
+        compilerPath = compilerPathByLanguage[tag];
+    if (!compilerPath || tag !== languageTagFromFileExtension(input.fileName))
+        language = languageName(tag) + (pchOutput ? '-header' : '');
+    if (!compilerPath)
+        // fall back to main compiler
+        compilerPath = ModUtils.moduleProperty(input, "compilerPath");
+    return {
+        path: compilerPath,
+        language: language,
+        tag: tag
+    };
+}
+
 // ### what we actually need here is something like product.usedFileTags
 //     that contains all fileTags that have been used when applying the rules.
-function additionalCompilerFlags(product, input, output) {
+function compilerFlags(product, input, output) {
     var includePaths = ModUtils.moduleProperties(input, 'includePaths');
     var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
 
@@ -250,7 +292,56 @@ function additionalCompilerFlags(product, input, output) {
         }
     }
 
-    var args = []
+    // Determine which C-language we're compiling
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
+    if (!["c", "cpp", "objc", "objcpp", "asm", "asm_cpp"].contains(tag))
+        throw ("unsupported source language: " + tag);
+
+    var compilerInfo = effectiveCompilerInfo(input, output);
+
+    var args = additionalCompilerAndLinkerFlags(product);
+    args = args.concat(configFlags(input));
+    args.push('-pipe');
+
+    var useArc = ModUtils.moduleProperty(input, "automaticReferenceCounting");
+    if (useArc !== undefined && (tag === "objc" || tag === "objcpp")) {
+        args.push(useArc ? "-fobjc-arc" : "-fno-objc-arc");
+    }
+
+    var visibility = ModUtils.moduleProperty(input, 'visibility');
+    if (!product.type.contains('staticlibrary')
+            && !product.moduleProperty("qbs", "toolchain").contains("mingw")) {
+        if (visibility === 'hidden' || visibility === 'minimal')
+            args.push('-fvisibility=hidden');
+        if ((visibility === 'hiddenInlines' || visibility === 'minimal') && tag === 'cpp')
+            args.push('-fvisibility-inlines-hidden');
+        if (visibility === 'default')
+            args.push('-fvisibility=default')
+    }
+
+    var prefixHeaders = ModUtils.moduleProperty(input, "prefixHeaders");
+    for (i in prefixHeaders) {
+        args.push('-include');
+        args.push(prefixHeaders[i]);
+    }
+
+    if (compilerInfo.language)
+        // Only push '-x language' if we have to.
+        args.push("-x", compilerInfo.language);
+
+    args = args.concat(ModUtils.moduleProperties(input, 'platformFlags'),
+                       ModUtils.moduleProperties(input, 'flags'),
+                       ModUtils.moduleProperties(input, 'platformFlags', tag),
+                       ModUtils.moduleProperties(input, 'flags', tag));
+
+    var pchOutput = output.fileTags.contains(compilerInfo.tag + "_pch");
+    if (!pchOutput && ModUtils.moduleProperty(product, 'precompiledHeader', tag)) {
+        var pchFilePath = FileInfo.joinPaths(
+            ModUtils.moduleProperty(product, "precompiledHeaderDir"),
+            product.name + "_" + tag);
+        args.push('-include', pchFilePath);
+    }
+
     var positionIndependentCode = input.moduleProperty('cpp', 'positionIndependentCode')
     if (effectiveType === EffectiveTypeEnum.LIB) {
         if (positionIndependentCode !== false && !product.moduleProperty("qbs", "toolchain").contains("mingw"))
@@ -288,11 +379,39 @@ function additionalCompilerFlags(product, input, output) {
         }
     }
 
-    args.push('-c');
-    args.push(input.filePath);
-    args.push('-o');
-    args.push(output.filePath);
-    return args
+    if (tag === "c" || tag === "objc") {
+        var cVersion = ModUtils.moduleProperty(input, "cLanguageVersion");
+        if (cVersion) {
+            var gccCVersionsMap = {
+                "c89": "c89",
+                "c99": "c99",
+                "c11": "c1x" // Deprecated, but compatible with older gcc versions.
+            };
+            args.push("-std=" + gccCVersionsMap[cVersion]);
+        }
+    }
+
+    if (tag === "cpp" || tag === "objcpp") {
+        var cxxVersion = ModUtils.moduleProperty(input, "cxxLanguageVersion");
+        if (cxxVersion) {
+            var gccCxxVersionsMap = {
+                "c++98": "c++98",
+                "c++11": "c++0x", // Deprecated, but compatible with older gcc versions.
+                "c++14": "c++1y"
+            };
+            args.push("-std=" + gccCxxVersionsMap[cxxVersion]);
+        }
+
+        var cxxStandardLibrary = product.moduleProperty("cpp", "cxxStandardLibrary");
+        if (cxxStandardLibrary && product.moduleProperty("qbs", "toolchain").contains("clang")) {
+            args.push("-stdlib=" + cxxStandardLibrary);
+        }
+    }
+
+    args.push("-o", output.filePath);
+    args.push("-c", input.filePath);
+
+    return args;
 }
 
 function haveTargetOption(product) {
@@ -374,91 +493,11 @@ function languageName(fileTag) {
 }
 
 function prepareCompiler(project, product, inputs, outputs, input, output) {
+    var compilerInfo = effectiveCompilerInfo(input, output);
+    var compilerPath = compilerInfo.path;
+    var pchOutput = output.fileTags.contains(compilerInfo.tag + "_pch");
 
-    function languageTagFromFileExtension(fileName) {
-        var i = fileName.lastIndexOf('.');
-        if (i === -1)
-            return;
-        var m = {
-            "c"     : "c",
-            "C"     : "cpp",
-            "cpp"   : "cpp",
-            "cxx"   : "cpp",
-            "c++"   : "cpp",
-            "cc"    : "cpp",
-            "m"     : "objc",
-            "mm"    : "objcpp",
-            "s"     : "asm",
-            "S"     : "asm_cpp",
-            "sx"    : "asm_cpp"
-        };
-        return m[fileName.substring(i + 1)];
-    }
-
-    var i, c;
-
-    // Determine which C-language we're compiling
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
-    if (!["c", "cpp", "objc", "objcpp", "asm", "asm_cpp"].contains(tag))
-        throw ("unsupported source language: " + tag);
-
-    // Whether we're compiling a precompiled header or normal source file
-    var pchOutput = outputs[tag + "_pch"] ? outputs[tag + "_pch"][0] : undefined;
-
-    var args = configFlags(input);
-    args.push('-pipe');
-
-    var useArc = ModUtils.moduleProperty(input, "automaticReferenceCounting");
-    if (useArc !== undefined && (tag === "objc" || tag === "objcpp")) {
-        args.push(useArc ? "-fobjc-arc" : "-fno-objc-arc");
-    }
-
-    var visibility = ModUtils.moduleProperty(input, 'visibility');
-    if (!product.type.contains('staticlibrary')
-            && !product.moduleProperty("qbs", "toolchain").contains("mingw")) {
-        if (visibility === 'hidden' || visibility === 'minimal')
-            args.push('-fvisibility=hidden');
-        if ((visibility === 'hiddenInlines' || visibility === 'minimal') && tag === 'cpp')
-            args.push('-fvisibility-inlines-hidden');
-        if (visibility === 'default')
-            args.push('-fvisibility=default')
-    }
-
-    var prefixHeaders = ModUtils.moduleProperty(input, "prefixHeaders");
-    for (i in prefixHeaders) {
-        args.push('-include');
-        args.push(prefixHeaders[i]);
-    }
-
-    var compilerPath;
-    var compilerPathByLanguage = ModUtils.moduleProperty(input, "compilerPathByLanguage");
-    if (compilerPathByLanguage)
-        compilerPath = compilerPathByLanguage[tag];
-    if (!compilerPath || tag !== languageTagFromFileExtension(input.fileName)) {
-        // Only push '-x language' if we have to.
-        args.push('-x');
-        args.push(languageName(tag) + (pchOutput ? '-header' : ''));
-    }
-    if (!compilerPath) {
-        // fall back to main compiler
-        compilerPath = ModUtils.moduleProperty(input, "compilerPath");
-    }
-
-    args = args.concat(ModUtils.moduleProperties(input, 'platformFlags'),
-                       ModUtils.moduleProperties(input, 'flags'),
-                       ModUtils.moduleProperties(input, 'platformFlags', tag),
-                       ModUtils.moduleProperties(input, 'flags', tag));
-
-    if (!pchOutput && ModUtils.moduleProperty(product, 'precompiledHeader', tag)) {
-        var pchFilePath = FileInfo.joinPaths(
-            ModUtils.moduleProperty(product, "precompiledHeaderDir"),
-            product.name + "_" + tag);
-        args.push('-include', pchFilePath);
-    }
-
-    args = args.concat(additionalCompilerFlags(product, input, output));
-    args = args.concat(additionalCompilerAndLinkerFlags(product));
-
+    var args = compilerFlags(product, input, output);
     var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");
     if (wrapperArgs && wrapperArgs.length > 0) {
         args.unshift(compilerPath);
@@ -466,39 +505,10 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         args = wrapperArgs.concat(args);
     }
 
-    if (tag === "c" || tag === "objc") {
-        var cVersion = ModUtils.moduleProperty(input, "cLanguageVersion");
-        if (cVersion) {
-            var gccCVersionsMap = {
-                "c89": "c89",
-                "c99": "c99",
-                "c11": "c1x" // Deprecated, but compatible with older gcc versions.
-            };
-            args.push("-std=" + gccCVersionsMap[cVersion]);
-        }
-    }
-
-    if (tag === "cpp" || tag === "objcpp") {
-        var cxxVersion = ModUtils.moduleProperty(input, "cxxLanguageVersion");
-        if (cxxVersion) {
-            var gccCxxVersionsMap = {
-                "c++98": "c++98",
-                "c++11": "c++0x", // Deprecated, but compatible with older gcc versions.
-                "c++14": "c++1y"
-            };
-            args.push("-std=" + gccCxxVersionsMap[cxxVersion]);
-        }
-
-        var cxxStandardLibrary = product.moduleProperty("cpp", "cxxStandardLibrary");
-        if (cxxStandardLibrary && product.moduleProperty("qbs", "toolchain").contains("clang")) {
-            args.push("-stdlib=" + cxxStandardLibrary);
-        }
-    }
-
     var cmd = new Command(compilerPath, args);
     cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + input.fileName;
     if (pchOutput)
-        cmd.description += ' (' + tag + ')';
+        cmd.description += ' (' + compilerInfo.tag + ')';
     cmd.highlight = "compiler";
     cmd.responseFileUsagePrefix = '@';
     return cmd;
