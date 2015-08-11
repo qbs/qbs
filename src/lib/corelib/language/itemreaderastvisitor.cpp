@@ -102,8 +102,8 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     if (!baseTypeFileName.isEmpty()) {
         inheritorItem = m_visitorState.readFile(baseTypeFileName, m_file->searchPaths(),
                                                 m_itemPool);
-        if (!inheritorItem->typeName().isEmpty())
-            item->setTypeName(inheritorItem->typeName());
+        QBS_CHECK(!inheritorItem->typeName().isEmpty());
+        item->setTypeName(inheritorItem->typeName());
     }
 
     ASTPropertiesItemHandler(item).handlePropertiesItems();
@@ -290,8 +290,7 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
         switch (v->type()) {
         case Value::JSSourceValueType: {
             JSSourceValuePtr sv = v.staticCast<JSSourceValue>();
-            while (sv->baseValue())
-                sv = sv->baseValue();
+            QBS_CHECK(!sv->baseValue());
             const JSSourceValuePtr baseValue = it.value().staticCast<JSSourceValue>();
             sv->setBaseValue(baseValue);
             for (auto it = sv->m_alternatives.begin(); it != sv->m_alternatives.end(); ++it)
