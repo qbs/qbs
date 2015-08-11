@@ -217,7 +217,7 @@ Module {
             cmd.compilerDefines = product.moduleProperty("cpp", "compilerDefines");
             cmd.allDefines = [].concat(cmd.defines || []).concat(cmd.platformDefines || []).concat(cmd.compilerDefines || []);
 
-            cmd.toolchain = product.moduleProperty("qbs", "toolchain");
+            cmd.developerPath = product.moduleProperty("xcode", "developerPath");
             cmd.platformInfoPlist = product.moduleProperty("xcode", "platformInfoPlist");
             cmd.sdkSettingsPlist = product.moduleProperty("xcode", "sdkSettingsPlist");
             cmd.toolchainInfoPlist = product.moduleProperty("xcode", "toolchainInfoPlist");
@@ -258,7 +258,7 @@ Module {
                     var platformInfo = {};
                     var sdkSettings = {};
                     var toolchainInfo = {};
-                    if (toolchain.contains("xcode")) {
+                    if (developerPath) {
                         plist = new PropertyList();
                         try {
                             plist.readFromFile(platformInfoPlist);
