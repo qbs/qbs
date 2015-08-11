@@ -226,6 +226,13 @@ private:
             if (child->typeName() != QLatin1String("Export"))
                 handleItem(child);
         }
+
+        // Properties that don't refer to an existing module with a matching Depends item
+        // only exist in the prototype, not in the instance.
+        // Example 1 - setting a property of an unknown module: Export { abc.def: true }
+        // Example 2 - setting a non-existing Export property: Export { blubb: true }
+        if (item->typeName() == QLatin1String("Export") && item->prototype())
+            handleItem(item->prototype());
     }
 
     void handle(VariantValue *) { /* only created internally - no need to check */ }
