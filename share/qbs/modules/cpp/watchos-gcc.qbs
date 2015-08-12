@@ -36,5 +36,7 @@ DarwinGCC {
                qbs.targetOS.contains('watchos') &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
 
+    targetSystem: "watchos" + (minimumWatchosVersion || "")
+
     minimumWatchosVersion: xcode.sdkVersion || (cxxStandardLibrary === "libc++" ? "2.0" : undefined)
 }
