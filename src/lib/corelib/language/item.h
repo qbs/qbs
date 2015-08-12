@@ -33,13 +33,13 @@
 
 #include "forward_decls.h"
 #include "functiondeclaration.h"
+#include "itemtype.h"
 #include "propertydeclaration.h"
 #include "qualifiedid.h"
 #include <parser/qmljsmemorypool_p.h>
 #include <tools/codelocation.h>
 #include <tools/error.h>
 
-#include <QFlags>
 #include <QList>
 #include <QMap>
 
@@ -55,10 +55,7 @@ class Item : public QbsQmlJS::Managed
     friend class ItemPool;
     friend class ItemReaderASTVisitor;
     Q_DISABLE_COPY(Item)
-    Item(ItemPool *pool);
-
-    enum Flag { FlagModuleInstance = 1, FlagModulePrefix = 2 };
-    Q_DECLARE_FLAGS(Flags, Flag)
+    Item(ItemPool *pool, ItemType type);
 
 public:
     ~Item();
@@ -78,7 +75,7 @@ public:
     typedef QMap<QString, PropertyDeclaration> PropertyDeclarationMap;
     typedef QMap<QString, ValuePtr> PropertyMap;
 
-    static Item *create(ItemPool *pool);
+    static Item *create(ItemPool *pool, ItemType type = ItemType::Unknown);
     Item *clone() const;
     ItemPool *pool() const { return m_pool; }
 
@@ -87,13 +84,11 @@ public:
     const CodeLocation &location() const { return m_location; }
     Item *prototype() const { return m_prototype; }
     Item *scope() const { return m_scope; }
-    bool isModuleInstance() const { return m_flags.testFlag(FlagModuleInstance); }
-    bool isModulePrefix() const { return m_flags.testFlag(FlagModulePrefix); }
     Item *outerItem() const { return m_outerItem; }
     Item *parent() const { return m_parent; }
     const FileContextPtr &file() const { return m_file; }
     QList<Item *> children() const { return m_children; }
-    Item *child(const QString &type, bool checkForMultiple = true) const;
+    Item *child(ItemType type, bool checkForMultiple = true) const;
     const PropertyMap &properties() const { return m_properties; }
     const PropertyDeclarationMap &propertyDeclarations() const { return m_propertyDeclarations; }
     PropertyDeclaration propertyDeclaration(const QString &name) const;
@@ -101,6 +96,9 @@ public:
     void addModule(const Module &module);
     void removeModules() { m_modules.clear(); }
     void setModules(const Modules &modules) { m_modules = modules; }
+
+    ItemType type() const { return m_type; }
+    void setType(ItemType type) { m_type = type; }
 
     bool hasProperty(const QString &name) const;
     bool hasOwnProperty(const QString &name) const;
@@ -118,8 +116,6 @@ public:
     void setPrototype(Item *prototype) { m_prototype = prototype; }
     void setFile(const FileContextPtr &file) { m_file = file; }
     void setScope(Item *item) { m_scope = item; }
-    void setModuleInstanceFlag(bool b) { switchFlag(FlagModuleInstance, b); }
-    void setModulePrefixFlag(bool b) { switchFlag(FlagModulePrefix, b); }
     void setOuterItem(Item *item) { m_outerItem = item; }
     void setChildren(const QList<Item *> &children) { m_children = children; }
     void setParent(Item *item) { m_parent = item; }
@@ -133,9 +129,7 @@ public:
     ErrorInfo delayedError() const { return m_delayedError; }
 
 private:
-
     void dump(int indentation) const;
-    void switchFlag(Flag flag, bool on);
 
     ItemPool *m_pool;
     mutable ItemObserver *m_propertyObserver;
@@ -153,13 +147,7 @@ private:
     QList<FunctionDeclaration> m_functions;
     Modules m_modules;
     ErrorInfo m_delayedError;
-
-    // TODO: The way we use these flags, they are always mutually exclusive and conceptually
-    //       seem more like a type. However, introducing a type member and only using it for
-    //       module instances and module prefixes seems a bit weird as well. Let's investigate
-    //       if and how having this information for more types of items (e.g. scopes) could help
-    //       us. Maybe it could replace the type name member?
-    Flags m_flags;
+    ItemType m_type;
 };
 
 inline bool operator<(const Item::Module &m1, const Item::Module &m2) { return m1.name < m2.name; }

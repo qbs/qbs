@@ -166,7 +166,7 @@ private:
                 //
                 // data->item points to the product and the condition's scope chain must contain
                 // the product item.
-                conditionScopeItem = data->item->isModuleInstance()
+                conditionScopeItem = data->item->type() == ItemType::ModuleInstance
                         ? data->item->scope() : data->item;
                 conditionScope = data->evaluator->scriptValue(conditionScopeItem);
                 QBS_ASSERT(conditionScope.isObject(), return);
@@ -218,7 +218,7 @@ private:
                                      data->evaluator->property(outerItem, *propertyName));
         if (value->sourceUsesOriginal()) {
             const Item *item = itemOfProperty;
-            while (item->isModuleInstance())
+            while (item->type() == ItemType::ModuleInstance)
                 item = item->prototype();
             QScriptValue originalValue;
             SVConverter converter(scriptClass, object, item->property(*propertyName), item,
@@ -231,7 +231,7 @@ private:
         pushItemScopes(data->item);
         if (value->definingItem())
             pushItemScopes(value->definingItem());
-        if (itemOfProperty && !itemOfProperty->isModuleInstance()) {
+        if (itemOfProperty && itemOfProperty->type() != ItemType::ModuleInstance) {
             // Own properties of module instances must not have the instance itself in the scope.
             pushScope(*object);
         }

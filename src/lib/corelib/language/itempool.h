@@ -39,6 +39,7 @@ namespace qbs {
 namespace Internal {
 
 class Item;
+enum class ItemType;
 
 class ItemPool
 {
@@ -47,7 +48,7 @@ public:
     ItemPool();
     ~ItemPool();
 
-    Item *allocateItem();
+    Item *allocateItem(const ItemType &type);
 
 private:
     QbsQmlJS::MemoryPool m_pool;

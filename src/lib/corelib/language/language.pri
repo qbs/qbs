@@ -24,6 +24,7 @@ HEADERS += \
     $$PWD/itemreader.h \
     $$PWD/itemreaderastvisitor.h \
     $$PWD/itemreadervisitorstate.h \
+    $$PWD/itemtype.h \
     $$PWD/jsimports.h \
     $$PWD/language.h \
     $$PWD/loader.h \

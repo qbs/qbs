@@ -32,9 +32,11 @@
 #define QBS_BUILTINDECLARATIONS_H
 
 #include "itemdeclaration.h"
+#include "itemtype.h"
 
 #include <tools/version.h>
 
+#include <QHash>
 #include <QMap>
 #include <QString>
 
@@ -47,9 +49,10 @@ public:
     static const BuiltinDeclarations &instance();
 
     Version languageVersion() const;
-    bool containsType(const QString &typeName) const;
     QStringList allTypeNames() const;
-    ItemDeclaration declarationsForType(const QString &typeName) const;
+    ItemDeclaration declarationsForType(ItemType type) const;
+    ItemType typeForName(const QString &typeName) const;
+    QString nameForType(ItemType itemType) const;
 
 protected:
     BuiltinDeclarations();
@@ -62,7 +65,7 @@ private:
     void addFileTaggerItem();
     void addGroupItem();
     void addModuleItem();
-    void addModuleLikeItem(const QString &typeName);
+    void addModuleLikeItem(ItemType type);
     void addProbeItem();
     void addProductItem();
     void addProjectItem();
@@ -74,7 +77,8 @@ private:
     void addScannerItem();
 
     const Version m_languageVersion;
-    QMap<QString, ItemDeclaration> m_builtins;
+    QMap<ItemType, ItemDeclaration> m_builtins;
+    const QHash<QString, ItemType> m_typeMap;
 };
 
 } // namespace Internal

@@ -63,7 +63,8 @@ QByteArray LanguageInfo::qmlTypeInfo()
         result.append("\" ]\n");
         result.append("        prototype: \"QQuickItem\"\n");
 
-        Internal::ItemDeclaration itemDecl = builtins.declarationsForType(typeName);
+        Internal::ItemDeclaration itemDecl
+                = builtins.declarationsForType(builtins.typeForName(typeName));
         foreach (const Internal::PropertyDeclaration &property, itemDecl.properties()) {
             result.append("        Property { name: \"");
             result.append(property.name().toUtf8());

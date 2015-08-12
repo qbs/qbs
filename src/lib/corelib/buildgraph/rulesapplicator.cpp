@@ -391,7 +391,7 @@ class ArtifactBindingsExtractor
         QSet<QString> s;
         foreach (const PropertyDeclaration &pd,
                  BuiltinDeclarations::instance().declarationsForType(
-                     QLatin1String("Artifact")).properties()) {
+                     ItemType::Artifact).properties()) {
             s.insert(pd.name());
         }
         s.insert(QLatin1String("explicitlyDependsOn"));

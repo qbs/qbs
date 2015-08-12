@@ -47,13 +47,14 @@
 namespace qbs {
 namespace Internal {
 
-Item::Item(ItemPool *pool)
+Item::Item(ItemPool *pool, ItemType type)
     : m_pool(pool)
     , m_propertyObserver(0)
     , m_prototype(0)
     , m_scope(0)
     , m_outerItem(0)
     , m_parent(0)
+    , m_type(type)
 {
 }
 
@@ -63,18 +64,18 @@ Item::~Item()
         m_propertyObserver->onItemDestroyed(this);
 }
 
-Item *Item::create(ItemPool *pool)
+Item *Item::create(ItemPool *pool, ItemType type)
 {
-    return pool->allocateItem();
+    return pool->allocateItem(type);
 }
 
 Item *Item::clone() const
 {
     Item *dup = create(pool());
     dup->m_id = m_id;
+    dup->m_type = m_type;
     dup->m_typeName = m_typeName;
     dup->m_location = m_location;
-    dup->m_flags = m_flags;
     dup->m_prototype = m_prototype;
     dup->m_scope = m_scope;
     dup->m_outerItem = m_outerItem;
@@ -191,7 +192,7 @@ bool Item::isPresentModule() const
 void Item::setupForBuiltinType(Logger &logger)
 {
     const BuiltinDeclarations &builtins = BuiltinDeclarations::instance();
-    foreach (const PropertyDeclaration &pd, builtins.declarationsForType(typeName()).properties()) {
+    foreach (const PropertyDeclaration &pd, builtins.declarationsForType(type()).properties()) {
         m_propertyDeclarations.insert(pd.name(), pd);
         ValuePtr &value = m_properties[pd.name()];
         if (!value) {
@@ -276,29 +277,22 @@ void Item::dump(int indentation) const
     }
 }
 
-void Item::switchFlag(Item::Flag flag, bool on)
-{
-    if (on)
-        m_flags |= flag;
-    else
-        m_flags &= ~flag;
-}
-
 void Item::removeProperty(const QString &name)
 {
     m_properties.remove(name);
 }
 
-Item *Item::child(const QString &type, bool checkForMultiple) const
+Item *Item::child(ItemType type, bool checkForMultiple) const
 {
     Item *child = 0;
     foreach (Item * const currentChild, children()) {
-        if (currentChild->typeName() == type) {
+        if (currentChild->type() == type) {
             if (!checkForMultiple)
                 return currentChild;
             if (child) {
                 ErrorInfo error(Tr::tr("Multiple instances of item '%1' found where at most one "
-                                       "is allowed.").arg(type));
+                                       "is allowed.")
+                                .arg(BuiltinDeclarations::instance().nameForType(type)));
                 error.append(Tr::tr("First item"), child->location());
                 error.append(Tr::tr("Second item"), currentChild->location());
                 throw error;

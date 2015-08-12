@@ -45,10 +45,9 @@ ASTPropertiesItemHandler::ASTPropertiesItemHandler(Item *parentItem) : m_parentI
 
 void ASTPropertiesItemHandler::handlePropertiesItems()
 {
-    if (m_parentItem->typeName() != QLatin1String("Properties")
-            && m_parentItem->typeName() != QLatin1String("SubProject")) {
+    // TODO: Simply forbid Properties items to have child items and get rid of this check.
+    if (m_parentItem->type() != ItemType::Properties)
         setupAlternatives();
-    }
 }
 
 void ASTPropertiesItemHandler::setupAlternatives()
@@ -56,7 +55,7 @@ void ASTPropertiesItemHandler::setupAlternatives()
     auto it = m_parentItem->m_children.begin();
     while (it != m_parentItem->m_children.end()) {
         Item * const child = *it;
-        if (child->typeName() == QLatin1String("Properties")) {
+        if (child->type() == ItemType::Properties) {
             handlePropertiesBlock(child);
             it = m_parentItem->m_children.erase(it);
         } else {

@@ -126,7 +126,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     if (!root)
         return ModuleLoaderResult();
 
-    if (root->typeName() != QLatin1String("Project"))
+    if (root->type() != ItemType::Project)
         root = wrapWithProject(root);
 
     const QString buildDirectory = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(),
@@ -184,8 +184,8 @@ private:
 
     void handle(ItemValue *value)
     {
-        if (!value->item()->isModuleInstance()
-                && !value->item()->isModulePrefix()
+        if (value->item()->type() != ItemType::ModuleInstance
+                && value->item()->type() != ItemType::ModulePrefix
                 && m_parentItem->file()
                 && !m_parentItem->file()->idScope()->hasProperty(m_currentName)) {
             const ErrorInfo error(Tr::tr("Item '%1' is not declared. "
@@ -202,7 +202,7 @@ private:
     {
         if (m_disabledItems.contains(item)
                 // The Properties child of a SubProject item is not a regular item.
-                || item->typeName() == QLatin1String("Properties")) {
+                || item->type() == ItemType::PropertiesInSubProject) {
             return;
         }
 
@@ -297,7 +297,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
 
     foreach (Item *child, item->children()) {
         child->setScope(projectContext.scope);
-        if (child->typeName() == QLatin1String("Product")) {
+        if (child->type() == ItemType::Product) {
             foreach (Item * const additionalProductItem,
                      multiplexProductItem(&dummyProductContext, child)) {
                 Item::addChild(item, additionalProductItem);
@@ -306,13 +306,19 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     }
 
     foreach (Item *child, item->children()) {
-        if (child->typeName() == QLatin1String("Product")) {
+        switch (child->type()) {
+        case ItemType::Product:
             prepareProduct(&projectContext, child);
-        } else if (child->typeName() == QLatin1String("SubProject")) {
+            break;
+        case ItemType::SubProject:
             handleSubProject(&projectContext, child, referencedFilePaths);
-        } else if (child->typeName() == QLatin1String("Project")) {
+            break;
+        case ItemType::Project:
             copyProperties(item, child);
             handleProject(loadResult, topLevelProjectContext, child, referencedFilePaths);
+            break;
+        default:
+            break;
         }
     }
 
@@ -347,7 +353,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         subItem->setScope(projectContext.scope);
         subItem->setParent(projectContext.item);
         additionalProjectChildren << qMakePair(subItem, absReferencePath);
-        if (subItem->typeName() == QLatin1String("Product")) {
+        if (subItem->type() == ItemType::Product) {
             foreach (Item * const additionalProductItem,
                      multiplexProductItem(&dummyProductContext, subItem)) {
                 additionalProjectChildren << qMakePair(additionalProductItem, absReferencePath);
@@ -357,16 +363,20 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     foreach (const ItemAndRefPath &irp, additionalProjectChildren) {
         Item * const subItem = irp.first;
         Item::addChild(projectContext.item, subItem);
-        if (subItem->typeName() == QLatin1String("Product")) {
+        switch (subItem->type()) {
+        case ItemType::Product:
             prepareProduct(&projectContext, subItem);
-        } else if (subItem->typeName() == QLatin1String("Project")) {
+            break;
+        case ItemType::Project:
             copyProperties(item, subItem);
             handleProject(loadResult, topLevelProjectContext, subItem,
                           QSet<QString>(referencedFilePaths) << irp.second);
-        } else {
+            break;
+        default:
             throw ErrorInfo(Tr::tr("The top-level item of a file in a \"references\" list must be "
-                               "a Product or a Project, but it is \"%1\".").arg(subItem->typeName()),
-                        subItem->location());
+                                   "a Product or a Project, but it is \"%1\".")
+                            .arg(subItem->typeName()),
+                            subItem->location());
         }
     }
     m_reader->popExtraSearchPaths();
@@ -465,7 +475,7 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *item)
 
     QVector<Item *> exportItems;
     foreach (Item *child, item->children()) {
-        if (child->typeName() == QLatin1String("Export"))
+        if (child->type() == ItemType::Export)
             exportItems << child;
     }
 
@@ -508,9 +518,9 @@ void ModuleLoader::handleProduct(ProductContext *productContext)
     checkItemCondition(item);
 
     foreach (Item *child, item->children()) {
-        if (child->typeName() == QLatin1String("Group"))
+        if (child->type() == ItemType::Group)
             handleGroup(productContext, child);
-        else if (child->typeName() == QLatin1String("Probe"))
+        else if (child->type() == ItemType::Probe)
             resolveProbe(item, child);
     }
 
@@ -537,7 +547,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] handleSubProject " << item->file()->filePath();
 
-    Item * const propertiesItem = item->child(QLatin1String("Properties"));
+    Item * const propertiesItem = item->child(ItemType::PropertiesInSubProject);
     bool subProjectEnabled = true;
     if (propertiesItem)
         subProjectEnabled = checkItemCondition(propertiesItem);
@@ -551,7 +561,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
         throw ErrorInfo(Tr::tr("Cycle detected while loading subproject file '%1'.")
                             .arg(relativeFilePath), item->location());
     Item *loadedItem = m_reader->readFile(subProjectFilePath);
-    if (loadedItem->typeName() == QLatin1String("Product"))
+    if (loadedItem->type() == ItemType::Product)
         loadedItem = wrapWithProject(loadedItem);
     const bool inheritProperties
             = m_evaluator->boolValue(item, QLatin1String("inheritProperties"), true);
@@ -566,7 +576,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
         }
     }
 
-    if (loadedItem->typeName() != QLatin1String("Project")) {
+    if (loadedItem->type() != ItemType::Project) {
         ErrorInfo error;
         error.append(Tr::tr("Expected Project item, but encountered '%1'.")
                      .arg(loadedItem->typeName()), loadedItem->location());
@@ -607,8 +617,7 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
 Item *ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext,
         const QVector<Item *> &exportItemsInProduct)
 {
-    Item *merged = Item::create(productContext->item->pool());
-    merged->setTypeName(QLatin1String("Export"));
+    Item *merged = Item::create(productContext->item->pool(), ItemType::Export);
     merged->setFile(productContext->item->file());
     merged->setLocation(productContext->item->location());
     QSet<Item *> exportItems;
@@ -650,7 +659,7 @@ void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, I
         Item::Module m = *it;
         Item *targetItem = moduleInstanceItem(item, m.name);
         targetItem->setPrototype(m.item);
-        targetItem->setModuleInstanceFlag(true);
+        targetItem->setType(ItemType::ModuleInstance);
         targetItem->setScope(m.item->scope());
         targetItem->setModules(m.item->modules());
 
@@ -673,7 +682,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     ItemModuleList loadedModules;
     ProductDependencyResults productDependencies;
     foreach (Item *child, item->children())
-        if (child->typeName() == QLatin1String("Depends"))
+        if (child->type() == ItemType::Depends)
             resolveDependsItem(dependsContext, item, child, &loadedModules, &productDependencies);
 
     QSet<QString> loadedModuleNames;
@@ -807,7 +816,7 @@ Item *ModuleLoader::moduleInstanceItem(Item *item, const QualifiedId &moduleName
             instance = newItem;
         }
         if (i < moduleName.count() - 1)
-            instance->setModulePrefixFlag(true);
+            instance->setType(ItemType::ModulePrefix);
     }
     QBS_ASSERT(moduleName.isEmpty() || instance != item, return 0);
     return instance;
@@ -849,7 +858,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
     Item *moduleInstance = moduleId.isEmpty()
             ? moduleInstanceItem(item, moduleName)
             : moduleInstanceItem(item, QStringList(moduleId));
-    if (!moduleInstance->typeName().isNull()) {
+    if (moduleInstance->type() == ItemType::ModuleInstance) {
         // already handled
         return moduleInstance;
     }
@@ -998,7 +1007,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     }
     *cacheHit = false;
     Item * const module = m_reader->readFile(filePath);
-    if (module->typeName() != QLatin1String("Module")) {
+    if (module->type() != ItemType::Module) {
         if (m_logger.traceEnabled()) {
             m_logger.qbsTrace() << "[MODLDR] Alleged module " << fullModuleName << " has type '"
                                 << module->typeName() << "', so it's not a module after all.";
@@ -1232,7 +1241,7 @@ static Item *productOf(Item *item)
 {
     do {
         item = item->parent();
-    } while (item && item->typeName() != QLatin1String("Product"));
+    } while (item && item->type() != ItemType::Product);
     return item;
 }
 
@@ -1254,7 +1263,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     moduleInstance->setPrototype(modulePrototype);
     moduleInstance->setFile(modulePrototype->file());
     moduleInstance->setLocation(modulePrototype->location());
-    moduleInstance->setTypeName(modulePrototype->typeName());
+    moduleInstance->setType(ItemType::ModuleInstance);
 
     // create module scope
     Item *moduleScope = Item::create(m_pool);
@@ -1303,7 +1312,6 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     }
 
     moduleInstance->setScope(moduleScope);
-    moduleInstance->setModuleInstanceFlag(true);
 
     QHash<Item *, Item *> prototypeInstanceMap;
     prototypeInstanceMap[modulePrototype] = moduleInstance;
@@ -1366,7 +1374,7 @@ void ModuleLoader::createChildInstances(ProductContext *productContext, Item *in
                                         QHash<Item *, Item *> *prototypeInstanceMap) const
 {
     foreach (Item *childPrototype, prototype->children()) {
-        Item *childInstance = Item::create(m_pool);
+        Item *childInstance = Item::create(m_pool, childPrototype->type());
         prototypeInstanceMap->insert(childPrototype, childInstance);
         childInstance->setPrototype(childPrototype);
         childInstance->setTypeName(childPrototype->typeName());
@@ -1381,7 +1389,7 @@ void ModuleLoader::createChildInstances(ProductContext *productContext, Item *in
 void ModuleLoader::resolveProbes(Item *item)
 {
     foreach (Item *child, item->children())
-        if (child->typeName() == QLatin1String("Probe"))
+        if (child->type() == ItemType::Probe)
             resolveProbe(item, child);
 }
 
@@ -1437,19 +1445,12 @@ bool ModuleLoader::checkItemCondition(Item *item)
 
 void ModuleLoader::checkItemTypes(Item *item)
 {
-    if (Q_UNLIKELY(!item->typeName().isEmpty()
-                   && !BuiltinDeclarations::instance().containsType(item->typeName()))) {
-        const QString msg = Tr::tr("Unexpected item type '%1'.");
-        throw ErrorInfo(msg.arg(item->typeName()), item->location());
-    }
-
-    const ItemDeclaration decl
-            = BuiltinDeclarations::instance().declarationsForType(item->typeName());
+    const ItemDeclaration decl = BuiltinDeclarations::instance().declarationsForType(item->type());
     foreach (Item *child, item->children()) {
-        if (child->typeName().isEmpty())
+        if (child->type() > ItemType::LastActualItem)
             continue;
         checkItemTypes(child);
-        if (!decl.isChildTypeAllowed(child->typeName()))
+        if (!decl.isChildTypeAllowed(child->type()))
             throw ErrorInfo(Tr::tr("Items of type '%1' cannot contain items of type '%2'.")
                 .arg(item->typeName(), child->typeName()), item->location());
     }
@@ -1479,7 +1480,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
     if (!sourceProject)
         return;
     const QList<PropertyDeclaration> &builtinProjectProperties = BuiltinDeclarations::instance()
-            .declarationsForType(QLatin1String("Project")).properties();
+            .declarationsForType(ItemType::Project).properties();
     QSet<QString> builtinProjectPropertyNames;
     foreach (const PropertyDeclaration &p, builtinProjectProperties)
         builtinProjectPropertyNames << p.name();
@@ -1514,9 +1515,8 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
 
 Item *ModuleLoader::wrapWithProject(Item *item)
 {
-    Item *prj = Item::create(item->pool());
-    prj->setChildren(QList<Item *>() << item);
-    item->setParent(prj);
+    Item *prj = Item::create(item->pool(), ItemType::Project);
+    Item::addChild(prj, item);
     prj->setTypeName(QLatin1String("Project"));
     prj->setFile(item->file());
     prj->setLocation(item->location());
@@ -1630,9 +1630,8 @@ Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &r
                             << "Creating dummy module for presence check.";
     }
     if (!module) {
-        module = Item::create(m_pool);
+        module = Item::create(m_pool, ItemType::ModuleInstance);
         module->setFile(FileContext::create());
-        module->setTypeName(QLatin1String("Module"));
     }
     module->setProperty(QLatin1String("present"), VariantValue::create(false));
     return module;

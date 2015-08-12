@@ -74,7 +74,6 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
 bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
 {
     const QString typeName = ast->qualifiedTypeNameId->name.toString();
-
     Item *item = Item::create(m_itemPool);
     item->setFile(m_file);
     item->setTypeName(typeName);
@@ -85,25 +84,29 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     else
         m_item = item; // This is the root item.
 
-    if (ast->initializer) {
-        qSwap(m_item, item);
-        ast->initializer->accept(this);
-        qSwap(m_item, item);
-    }
-
-    item->setupForBuiltinType(m_logger);
-
     const Item *inheritorItem = nullptr;
 
     // Inheritance resolving, part 1: Find out our actual type name (needed for setting
-    // up alternatives).
+    // up children and alternatives).
     const QStringList fullTypeName = toStringList(ast->qualifiedTypeNameId);
     const QString baseTypeFileName = m_typeNameToFile.value(fullTypeName);
     if (!baseTypeFileName.isEmpty()) {
         inheritorItem = m_visitorState.readFile(baseTypeFileName, m_file->searchPaths(),
                                                 m_itemPool);
-        QBS_CHECK(!inheritorItem->typeName().isEmpty());
-        item->setTypeName(inheritorItem->typeName());
+        QBS_CHECK(inheritorItem->type() <= ItemType::LastActualItem);
+        item->setType(inheritorItem->type());
+    } else {
+        item->setType(BuiltinDeclarations::instance().typeForName(typeName));
+        if (item->type() == ItemType::Properties && item->parent()
+                && item->parent()->type() == ItemType::SubProject) {
+            item->setType(ItemType::PropertiesInSubProject);
+        }
+    }
+
+    if (ast->initializer) {
+        qSwap(m_item, item);
+        ast->initializer->accept(this);
+        qSwap(m_item, item);
     }
 
     ASTPropertiesItemHandler(item).handlePropertiesItems();
@@ -117,6 +120,11 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
             item->file()->ensureIdScope(m_itemPool);
             inheritorItem->file()->idScope()->setPrototype(item->file()->idScope());
         }
+    } else {
+        // Only the item at the top of the inheritance chain is a built-in item.
+        // We cannot do this in "part 1", because then the visitor would complain about duplicate
+        // bindings.
+        item->setupForBuiltinType(m_logger);
     }
 
     return false;

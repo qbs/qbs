@@ -32,6 +32,7 @@
 #define PROJECTRESOLVER_H
 
 #include "filetags.h"
+#include "itemtype.h"
 #include "moduleloader.h"
 
 #include <logging/logger.h>
@@ -163,7 +164,7 @@ private:
     SetupProjectParameters m_setupParams;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);
-    typedef QMap<QByteArray, ItemFuncPtr> ItemFuncMap;
+    typedef QMap<ItemType, ItemFuncPtr> ItemFuncMap;
     void callItemFunction(const ItemFuncMap &mappings, Item *item, ProjectContext *projectContext);
 };
 

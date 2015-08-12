@@ -253,13 +253,14 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
     }
     projectContext->project->setProjectProperties(projectProperties);
 
-    ItemFuncMap mapping;
-    mapping["Project"] = &ProjectResolver::resolveProject;
-    mapping["SubProject"] = &ProjectResolver::resolveSubProject;
-    mapping["Product"] = &ProjectResolver::resolveProduct;
-    mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
-    mapping["Rule"] = &ProjectResolver::resolveRule;
-    mapping["PropertyOptions"] = &ProjectResolver::ignoreItem;
+    static const ItemFuncMap mapping = {
+        { ItemType::Project, &ProjectResolver::resolveProject },
+        { ItemType::SubProject, &ProjectResolver::resolveSubProject },
+        { ItemType::Product, &ProjectResolver::resolveProduct },
+        { ItemType::FileTagger, &ProjectResolver::resolveFileTagger },
+        { ItemType::Rule, &ProjectResolver::resolveRule },
+        { ItemType::PropertyOptions, &ProjectResolver::ignoreItem }
+    };
 
     foreach (Item *child, item->children())
         callItemFunction(mapping, child, projectContext);
@@ -272,7 +273,7 @@ void ProjectResolver::resolveSubProject(Item *item, ProjectResolver::ProjectCont
 {
     ProjectContext subProjectContext = createProjectContext(projectContext);
 
-    Item * const projectItem = item->child(QLatin1String("Project"));
+    Item * const projectItem = item->child(ItemType::Project);
     if (projectItem) {
         resolveProject(projectItem, &subProjectContext);
         return;
@@ -280,7 +281,7 @@ void ProjectResolver::resolveSubProject(Item *item, ProjectResolver::ProjectCont
 
     // No project item was found, which means the project was disabled.
     subProjectContext.project->enabled = false;
-    Item * const propertiesItem = item->child(QLatin1String("Properties"));
+    Item * const propertiesItem = item->child(ItemType::PropertiesInSubProject);
     if (propertiesItem) {
         subProjectContext.project->name
                 = m_evaluator->stringValue(propertiesItem, QLatin1String("name"));
@@ -358,7 +359,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         fakeGroup->setFile(item->file());
         fakeGroup->setLocation(item->location());
         fakeGroup->setScope(item);
-        fakeGroup->setTypeName(QLatin1String("Group"));
+        fakeGroup->setType(ItemType::Group);
         fakeGroup->setProperty(QLatin1String("name"), VariantValue::create(product->name));
         fakeGroup->setProperty(QLatin1String("files"), filesProperty);
         fakeGroup->setProperty(QLatin1String("excludeFiles"),
@@ -368,15 +369,16 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         subItems.prepend(fakeGroup);
     }
 
-    ItemFuncMap mapping;
-    mapping["Depends"] = &ProjectResolver::ignoreItem;
-    mapping["Rule"] = &ProjectResolver::resolveRule;
-    mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
-    mapping["Transformer"] = &ProjectResolver::resolveTransformer;
-    mapping["Group"] = &ProjectResolver::resolveGroup;
-    mapping["Export"] = &ProjectResolver::ignoreItem;
-    mapping["Probe"] = &ProjectResolver::ignoreItem;
-    mapping["PropertyOptions"] = &ProjectResolver::ignoreItem;
+    static const ItemFuncMap mapping = {
+        { ItemType::Depends, &ProjectResolver::ignoreItem },
+        { ItemType::Rule, &ProjectResolver::resolveRule },
+        { ItemType::FileTagger, &ProjectResolver::resolveFileTagger },
+        { ItemType::Transformer, &ProjectResolver::resolveTransformer },
+        { ItemType::Group, &ProjectResolver::resolveGroup },
+        { ItemType::Export, &ProjectResolver::ignoreItem },
+        { ItemType::Probe, &ProjectResolver::ignoreItem },
+        { ItemType::PropertyOptions, &ProjectResolver::ignoreItem }
+    };
 
     foreach (Item *child, subItems)
         callItemFunction(mapping, child, projectContext);
@@ -452,15 +454,16 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
     if (!isProduct)
         m_productContext->product->modules += module;
 
-    ItemFuncMap mapping;
-    mapping["Group"] = &ProjectResolver::resolveGroup;
-    mapping["Rule"] = &ProjectResolver::resolveRule;
-    mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
-    mapping["Transformer"] = &ProjectResolver::resolveTransformer;
-    mapping["Scanner"] = &ProjectResolver::resolveScanner;
-    mapping["PropertyOptions"] = &ProjectResolver::ignoreItem;
-    mapping["Depends"] = &ProjectResolver::ignoreItem;
-    mapping["Probe"] = &ProjectResolver::ignoreItem;
+    static const ItemFuncMap mapping {
+        { ItemType::Group, &ProjectResolver::resolveGroup },
+        { ItemType::Rule, &ProjectResolver::resolveRule },
+        { ItemType::FileTagger, &ProjectResolver::resolveFileTagger },
+        { ItemType::Transformer, &ProjectResolver::resolveTransformer },
+        { ItemType::Scanner, &ProjectResolver::resolveScanner },
+        { ItemType::PropertyOptions, &ProjectResolver::ignoreItem },
+        { ItemType::Depends, &ProjectResolver::ignoreItem },
+        { ItemType::Probe, &ProjectResolver::ignoreItem }
+    };
     foreach (Item *child, item->children())
         callItemFunction(mapping, child, projectContext);
 
@@ -662,10 +665,10 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     // read artifacts
     bool hasArtifactChildren = false;
     foreach (Item *child, item->children()) {
-        if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
+        if (Q_UNLIKELY(child->type() != ItemType::Artifact)) {
             throw ErrorInfo(Tr::tr("'Rule' can only have children of type 'Artifact'."),
                                child->location());
-
+        }
         hasArtifactChildren = true;
         resolveRuleArtifact(rule, child);
     }
@@ -810,7 +813,7 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
     rtrafo->alwaysRun = m_evaluator->boolValue(item, QLatin1String("alwaysRun"));
 
     foreach (const Item *child, item->children()) {
-        if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
+        if (Q_UNLIKELY(child->type() != ItemType::Artifact))
             throw ErrorInfo(Tr::tr("Transformer: wrong child type '%0'.").arg(child->typeName()));
         SourceArtifactPtr artifact = SourceArtifactInternal::create();
         artifact->properties = m_productContext->product->moduleProperties;
@@ -1104,10 +1107,9 @@ QStringList ProjectResolver::convertPathListProperty(const QStringList &paths,
 void ProjectResolver::callItemFunction(const ItemFuncMap &mappings, Item *item,
                                        ProjectContext *projectContext)
 {
-    const QByteArray typeName = item->typeName().toLocal8Bit();
-    ItemFuncPtr f = mappings.value(typeName);
+    const ItemFuncPtr f = mappings.value(item->type());
     QBS_CHECK(f);
-    if (typeName == "Project") {
+    if (item->type() == ItemType::Project) {
         ProjectContext subProjectContext = createProjectContext(projectContext);
         (this->*f)(item, &subProjectContext);
     } else {

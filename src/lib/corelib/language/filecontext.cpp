@@ -47,10 +47,8 @@ FileContextPtr FileContext::create()
 
 void FileContext::ensureIdScope(ItemPool *itemPool)
 {
-    if (!m_idScope) {
-        m_idScope = Item::create(itemPool);
-        m_idScope->setTypeName(QLatin1String("IdScope"));
-    }
+    if (!m_idScope)
+        m_idScope = Item::create(itemPool, ItemType::IdScope);
 }
 
 } // namespace Internal

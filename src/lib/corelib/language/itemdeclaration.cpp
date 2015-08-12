@@ -33,13 +33,13 @@
 namespace qbs {
 namespace Internal {
 
-ItemDeclaration::ItemDeclaration(const QString &typeName)
-    : m_typeName(typeName)
+ItemDeclaration::ItemDeclaration(ItemType type)
+    : m_type(type)
 {
 }
 
 ItemDeclaration::ItemDeclaration(const qbs::Internal::ItemDeclaration &other)
-    : m_typeName(other.m_typeName)
+    : m_type(other.m_type)
     , m_properties(other.m_properties)
     , m_allowedChildTypes(other.m_allowedChildTypes)
 {
@@ -51,9 +51,11 @@ ItemDeclaration &ItemDeclaration::operator<<(const PropertyDeclaration &decl)
     return *this;
 }
 
-bool ItemDeclaration::isChildTypeAllowed(const QString &typeName) const
+bool ItemDeclaration::isChildTypeAllowed(ItemType type) const
 {
-    return m_allowedChildTypes.contains(typeName);
+    if (m_type > ItemType::LastActualItem || type > ItemType::LastActualItem)
+        return true;
+    return m_allowedChildTypes.contains(type);
 }
 
 } // namespace Internal

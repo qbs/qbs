@@ -123,7 +123,7 @@ void ModuleMerger::pushScalarProperties(Item::PropertyMap *dst, Item *srcItem)
             }
         }
         srcItem = srcItem->prototype();
-    } while (srcItem && srcItem->isModuleInstance());
+    } while (srcItem && srcItem->type() == ItemType::ModuleInstance);
 }
 
 void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap &src)
@@ -189,7 +189,7 @@ void ModuleMerger::pullListProperties(Item::PropertyMap *dst, Item *instance)
             }
         }
         instance = instance->prototype();
-    } while (instance && instance->isModuleInstance());
+    } while (instance && instance->type() == ItemType::ModuleInstance);
 }
 
 void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QString &propertyName,

@@ -31,6 +31,7 @@
 #ifndef QBS_ITEMDECLARATION_H
 #define QBS_ITEMDECLARATION_H
 
+#include "itemtype.h"
 #include "propertydeclaration.h"
 
 #include <QSet>
@@ -42,10 +43,10 @@ namespace Internal {
 class ItemDeclaration
 {
 public:
-    ItemDeclaration(const QString &typeName = QString());
+    ItemDeclaration(ItemType type = ItemType::Unknown);
     ItemDeclaration(const ItemDeclaration &other);
 
-    const QString &typeName() const { return m_typeName; }
+    ItemType type() const { return m_type; }
 
     typedef QList<PropertyDeclaration> Properties;
     void setProperties(const Properties &props) { m_properties = props; }
@@ -53,13 +54,13 @@ public:
 
     ItemDeclaration &operator<<(const PropertyDeclaration &decl);
 
-    typedef QSet<QString> TypeNames;
+    typedef QSet<ItemType> TypeNames;
     void setAllowedChildTypes(const TypeNames &typeNames) { m_allowedChildTypes = typeNames; }
     const TypeNames &allowedChildTypes() const { return m_allowedChildTypes; }
-    bool isChildTypeAllowed(const QString &typeName) const;
+    bool isChildTypeAllowed(ItemType type) const;
 
 private:
-    QString m_typeName;
+    ItemType m_type;
     Properties m_properties;
     TypeNames m_allowedChildTypes;
 };

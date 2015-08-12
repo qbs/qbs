@@ -28,28 +28,48 @@
 **
 ****************************************************************************/
 
-#include "itempool.h"
-#include "item.h"
+#ifndef QBS_ITEMTYPE_H
+#define QBS_ITEMTYPE_H
+
+#include <QHash>
 
 namespace qbs {
 namespace Internal {
 
-ItemPool::ItemPool()
-{
-}
+enum class ItemType {
+    // Actual user-visible items.
+    FirstActualItem,
+    Artifact = FirstActualItem,
+    Depends,
+    Export,
+    FileTagger,
+    Group,
+    Module,
+    Probe,
+    Product,
+    Project,
+    Properties,
+    PropertiesInSubProject,
+    PropertyOptions,
+    Rule,
+    Scanner,
+    SubProject,
+    Transformer,
+    LastActualItem = Transformer,
 
-ItemPool::~ItemPool()
-{
-    for (ItemVector::const_iterator it = m_items.constBegin(); it != m_items.constEnd(); ++it)
-        (*it)->~Item();
-}
+    // Internal items created mainly by the module loader.
+    IdScope,
+    ModuleInstance,
+    ModulePrefix,
+    Scope,
 
-Item *ItemPool::allocateItem(const ItemType &type)
-{
-    Item *item = new (&m_pool) Item(this, type);
-    m_items.push_back(item);
-    return item;
-}
+    Unknown
+};
+
+inline uint qHash(ItemType t) { return QT_PREPEND_NAMESPACE(qHash)(uint(t)); }
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // Include guard.
+
