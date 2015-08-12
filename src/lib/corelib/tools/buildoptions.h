@@ -70,6 +70,9 @@ public:
     bool forceTimestampCheck() const;
     void setForceTimestampCheck(bool enabled);
 
+    bool forceOutputCheck() const;
+    void setForceOutputCheck(bool enabled);
+
     bool logElapsedTime() const;
     void setLogElapsedTime(bool log);
 

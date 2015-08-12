@@ -40,6 +40,7 @@ class BuildOptionsPrivate : public QSharedData
 public:
     BuildOptionsPrivate()
         : maxJobCount(0), dryRun(false), keepGoing(false), forceTimestampCheck(false),
+          forceOutputCheck(false),
           logElapsedTime(false), echoMode(defaultCommandEchoMode()), install(true),
           removeExistingInstallation(false), onlyExecuteRules(false)
     {
@@ -52,6 +53,7 @@ public:
     bool dryRun;
     bool keepGoing;
     bool forceTimestampCheck;
+    bool forceOutputCheck;
     bool logElapsedTime;
     CommandEchoMode echoMode;
     bool install;
@@ -237,6 +239,25 @@ bool BuildOptions::forceTimestampCheck() const
 void BuildOptions::setForceTimestampCheck(bool enabled)
 {
     d->forceTimestampCheck = enabled;
+}
+
+/*!
+ * \brief Returns true if qbs will test whether rules and transformers actually create their
+ * declared output artifacts.
+ * The default is \c false.
+ */
+bool BuildOptions::forceOutputCheck() const
+{
+    return d->forceOutputCheck;
+}
+
+/*!
+ * \brief Controls whether qbs should test whether rules and transformers actually create their
+ * declared output artifacts. Enabling this may introduce some small I/O overhead during the build.
+ */
+void BuildOptions::setForceOutputCheck(bool enabled)
+{
+    d->forceOutputCheck = enabled;
 }
 
 /*!

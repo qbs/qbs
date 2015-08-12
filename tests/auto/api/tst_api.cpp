@@ -389,6 +389,27 @@ void TestApi::buildSingleFile()
              qPrintable(receiver.descriptions));
 }
 
+void TestApi::checkOutputs()
+{
+    QFETCH(bool, check);
+    qbs::SetupProjectParameters params = defaultSetupParameters("/check-outputs/project.qbs");
+    qbs::BuildOptions options;
+    options.setForceOutputCheck(check);
+    removeBuildDir(params);
+    qbs::ErrorInfo errorInfo = doBuildProject("/check-outputs/project.qbs", 0, 0, 0, options);
+    if (check)
+        QVERIFY(errorInfo.hasError());
+    else
+        VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::checkOutputs_data()
+{
+    QTest::addColumn<bool>("check");
+    QTest::newRow("checked outputs") << true;
+    QTest::newRow("unchecked outputs") << false;
+}
+
 qbs::GroupData findGroup(const qbs::ProductData &product, const QString &name)
 {
     foreach (const qbs::GroupData &g, product.groups()) {

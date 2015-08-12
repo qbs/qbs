@@ -510,10 +510,26 @@ void Executor::finishJob(ExecutorJob *job, bool success)
     if (success) {
         m_project->buildData->isDirty = true;
         foreach (Artifact *artifact, transformer->outputs) {
-            if (artifact->alwaysUpdated)
+            if (artifact->alwaysUpdated) {
                 artifact->setTimestamp(FileTime::currentTime());
-            else
+                if (m_buildOptions.forceOutputCheck() && !FileInfo(artifact->filePath()).exists()) {
+                    if (transformer->rule) {
+                        if (!transformer->rule->name.isEmpty()) {
+                            throw ErrorInfo(tr("Rule '%1' declares artifact '%2', "
+                                               "but the artifact was not produced.")
+                                            .arg(transformer->rule->name, artifact->filePath()));
+                        }
+                        throw ErrorInfo(tr("Rule declares artifact '%1', "
+                                           "but the artifact was not produced.")
+                                        .arg(artifact->filePath()));
+                    }
+                    throw ErrorInfo(tr("Transformer declares artifact '%1', "
+                                       "but the artifact was not produced.")
+                                    .arg(artifact->filePath()));
+                }
+            } else {
                 artifact->setTimestamp(FileInfo(artifact->filePath()).lastModified());
+            }
         }
         finishTransformer(transformer);
     }

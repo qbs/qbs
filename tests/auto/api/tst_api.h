@@ -67,6 +67,8 @@ private slots:
     void changeContent();
 #endif
     void changeDependentLib();
+    void checkOutputs();
+    void checkOutputs_data();
     void commandExtraction();
     void disabledInstallGroup();
     void disabledProduct();

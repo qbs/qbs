@@ -63,6 +63,7 @@ private slots:
         args << "--changed-files" << "foo,bar" << fileArgs;
         args << "--force";
         args << "--check-timestamps";
+        args << "--check-outputs";
         CommandLineParser parser;
 
         QVERIFY(parser.parseCommandLine(args));
@@ -73,6 +74,7 @@ private slots:
         QVERIFY(parser.buildOptions(QString()).keepGoing());
         QVERIFY(parser.force());
         QVERIFY(parser.forceTimestampCheck());
+        QVERIFY(parser.forceOutputCheck());
         QVERIFY(!parser.logTime());
         QCOMPARE(parser.buildConfigurations().count(), 1);
 
