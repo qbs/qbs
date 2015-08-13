@@ -202,7 +202,7 @@ private:
     Item *loadProductModule(ProductContext *productContext, const QString &moduleName);
     Item *loadModule(ProductContext *productContext, Item *item,
             const CodeLocation &dependsItemLocation, const QString &moduleId,
-            const QualifiedId &moduleName, bool isBaseModule, bool isRequired, bool *isModuleDependency);
+            const QualifiedId &moduleName, bool isRequired, bool *isModuleDependency);
     Item *searchAndLoadModuleFile(ProductContext *productContext,
             const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
             const QStringList &extraSearchPaths, bool isRequired, bool *cacheHit);

@@ -750,8 +750,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
         const bool isRequired
                 = m_evaluator->boolValue(dependsItem, QLatin1String("required"));
         Item *moduleItem = loadModule(dependsContext->product, item, dependsItem->location(),
-                                      dependsItem->id(), moduleName, false, isRequired,
-                                      &result.isProduct);
+                                      dependsItem->id(), moduleName, isRequired, &result.isProduct);
         if (!moduleItem) {
             // ### 1.5: change error message to the more generic "Dependency '%1' not found.".
             throw ErrorInfo(Tr::tr("Product dependency '%1' not found.").arg(moduleName.toString()),
@@ -837,7 +836,7 @@ Item *ModuleLoader::loadProductModule(ModuleLoader::ProductContext *productConte
 
 Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         const CodeLocation &dependsItemLocation,
-        const QString &moduleId, const QualifiedId &moduleName, bool isBaseModule, bool isRequired,
+        const QString &moduleId, const QualifiedId &moduleName, bool isRequired,
         bool *isProductDependency)
 {
     if (m_logger.traceEnabled())
@@ -861,7 +860,8 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         bool cacheHit;
         modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
                 moduleName, moduleSearchPaths, isRequired, &cacheHit);
-        if (isBaseModule && modulePrototype && !cacheHit)
+        static const QualifiedId baseModuleId = QualifiedId(QLatin1String("qbs"));
+        if (modulePrototype && !cacheHit && moduleName == baseModuleId)
             setupBaseModulePrototype(modulePrototype);
     }
     if (!modulePrototype)
@@ -1050,7 +1050,7 @@ void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
     Item::Module baseModuleDesc;
     baseModuleDesc.name = baseModuleName;
     baseModuleDesc.item = loadModule(productContext, item, CodeLocation(), QString(),
-                                     baseModuleName, true, true, &baseModuleDesc.isProduct);
+                                     baseModuleName, true, &baseModuleDesc.isProduct);
     QBS_CHECK(!baseModuleDesc.isProduct);
     if (Q_UNLIKELY(!baseModuleDesc.item))
         throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
@@ -1610,7 +1610,7 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx, Item *item)
         } else {
             Item::Module dep;
             dep.item = loadModule(ctx, item, item->location(), QString(), module.name,
-                                  false, module.required, &dep.isProduct);
+                                  module.required, &dep.isProduct);
             if (!dep.item)
                 continue;
             dep.name = module.name;
