@@ -366,6 +366,18 @@
         \li Default
         \li Description
     \row
+        \li dsymutilFlags
+        \li \c{stringList}
+        \li 1.4.1
+        \li undefined
+        \li Additional flags for the dsymutil tool.
+    \row
+        \li dsymutilPath
+        \li \c{string}
+        \li 1.4
+        \li determined by qbs-setup-toolchains
+        \li Full path of the dsymutil binary. This is set in the build profile.
+    \row
         \li frameworkPaths
         \li \c{pathList}
         \li 1.0
@@ -510,18 +522,6 @@
         \li 1.4
         \li determined by qbs-setup-toolchains
         \li Full path of the strip binary. This is set in the build profile.
-    \row
-        \li dsymutilPath
-        \li \c{string}
-        \li 1.4
-        \li determined by qbs-setup-toolchains
-        \li Full path of the dsymutil binary. This is set in the build profile.
-    \row
-        \li dsymutilFlags
-        \li \c{stringList}
-        \li 1.4.1
-        \li undefined
-        \li Additional flags for the dsymutil tool.
     \row
         \li positionIndependentCode
         \li \c{bool}
