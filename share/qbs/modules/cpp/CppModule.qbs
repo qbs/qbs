@@ -174,6 +174,7 @@ Module {
     property stringList frameworks // list of frameworks, will be linked with '-framework <name>'
     property stringList weakFrameworks // list of weakly-linked frameworks, will be linked with '-weak_framework <name>'
     property stringList rpaths
+    property string sonamePrefix
     property bool useRPaths: true
 
     property stringList assemblerFlags

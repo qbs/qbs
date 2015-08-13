@@ -7,7 +7,11 @@ Project {
         targetName: "qbs can handle any file paths, even the crazy ones! ;)"
         files: ["coreutils.cpp", "coreutils.h"]
         bundle.isBundle: false
-        cpp.installNamePrefix: "@rpath"
+
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            cpp.sonamePrefix: "@rpath"
+        }
 
         Group {
             fileTagsFilter: product.type

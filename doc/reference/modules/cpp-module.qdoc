@@ -398,6 +398,7 @@
         \li The prefix for the internal install name (LC_ID_DYLIB) of a dynamic library on Darwin
             (OS X and iOS). Typically this should be set to \c{"@rpath"} on modern platforms that
             support it, which includes OS X 10.5 and above, and all versions of iOS.
+            \b Deprecated: use \c{cpp.sonamePrefix} instead.
     \row
         \li automaticReferenceCounting
         \li \c{bool}
@@ -528,6 +529,36 @@
         \li 1.0
         \li \c{undefined}
         \li List of rpaths that are passed to the linker.
+    \row
+        \li sonamePrefix
+        \li \c{string}
+        \li 1.5
+        \li \c{undefined}
+        \li If defined, the value of this variable is used as a path to be prepended to
+            the built shared library's \c SONAME identifier. The \c SONAME
+            (\c LC_ID_DYLIB on Apple platforms, \c DT_SONAME on other Unix-like platforms) is the
+            identifier that the dynamic linker will later use to reference the library.
+            In general, this reference may be a library name or full library path.
+
+            On Apple platforms, the path may contain the following placeholders:
+
+            \list
+                \li \b @rpath -
+                    Expands to paths defined by LC_RPATH Mach-O commands in
+                    the current process executable or the referring libraries.
+                \li \b @executable_path -
+                    Expands to the current process executable location.
+                \li \b @loader_path -
+                    Expands to the referring executable or library location.
+            \endlist
+
+            In most cases, using \c @rpath is sufficient and recommended.
+            However, the prefix may be also specified using different placeholders, or
+            an absolute path.
+
+            For more information, see the
+            \l{https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/dyld.1.html}{dyld documentation}
+            on dynamic library install names.
     \row
         \li useRPaths
         \li \c{bool}
