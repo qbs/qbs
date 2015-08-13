@@ -232,7 +232,8 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *i
         const QString &buildDirectory, const QSet<QString> &referencedFilePaths)
 {
     TopLevelProjectContext tlp;
-    handleProject(loadResult, &tlp, item, buildDirectory, referencedFilePaths);
+    tlp.buildDirectory = buildDirectory;
+    handleProject(loadResult, &tlp, item, referencedFilePaths);
 
     foreach (ProjectContext *projectContext, tlp.projects) {
         m_reader->setExtraSearchPathsStack(projectContext->searchPathsStack);
@@ -248,7 +249,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *i
 }
 
 void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
-        TopLevelProjectContext *topLevelProjectContext, Item *item, const QString &buildDirectory,
+        TopLevelProjectContext *topLevelProjectContext, Item *item,
         const QSet<QString> &referencedFilePaths)
 {
     if (!checkItemCondition(item))
@@ -258,7 +259,6 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     topLevelProjectContext->projects << &projectContext;
     projectContext.topLevelProject = topLevelProjectContext;
     projectContext.result = loadResult;
-    projectContext.buildDirectory = buildDirectory;
     ProductContext dummyProductContext;
     dummyProductContext.project = &projectContext;
     dummyProductContext.moduleProperties = m_parameters.finalBuildConfigurationTree();
@@ -308,8 +308,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
             handleSubProject(&projectContext, child, referencedFilePaths);
         } else if (child->typeName() == QLatin1String("Project")) {
             copyProperties(item, child);
-            handleProject(loadResult, topLevelProjectContext, child, buildDirectory,
-                          referencedFilePaths);
+            handleProject(loadResult, topLevelProjectContext, child, referencedFilePaths);
         }
     }
 
@@ -358,7 +357,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
             prepareProduct(&projectContext, subItem);
         } else if (subItem->typeName() == QLatin1String("Project")) {
             copyProperties(item, subItem);
-            handleProject(loadResult, topLevelProjectContext, subItem, buildDirectory,
+            handleProject(loadResult, topLevelProjectContext, subItem,
                           QSet<QString>(referencedFilePaths) << irp.second);
         } else {
             throw ErrorInfo(Tr::tr("The top-level item of a file in a \"references\" list must be "
@@ -521,11 +520,9 @@ void ModuleLoader::initProductProperties(const ProjectContext *project, Item *it
     const QString productName = m_evaluator->stringValue(item, QLatin1String("name"));
     const QString profile = m_evaluator->stringValue(item, QLatin1String("profile"));
     QBS_CHECK(!profile.isEmpty());
-    const QString buildDir = ResolvedProduct::deriveBuildDirectoryName(productName, profile);
-    item->setProperty(QLatin1String("buildDirectory"),
-                      VariantValue::create(
-                          FileInfo::resolvePath(project->buildDirectory, buildDir)));
-
+    QString buildDir = ResolvedProduct::deriveBuildDirectoryName(productName, profile);
+    buildDir = FileInfo::resolvePath(project->topLevelProject->buildDirectory, buildDir);
+    item->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDir));
     item->setProperty(QLatin1String("sourceDirectory"),
                       VariantValue::create(
                           QFileInfo(item->file()->filePath()).absolutePath()));
@@ -579,7 +576,6 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
     Item::addChild(item, loadedItem);
     item->setScope(projectContext->scope);
     handleProject(projectContext->result, projectContext->topLevelProject, loadedItem,
-                  projectContext->buildDirectory,
                   QSet<QString>(referencedFilePaths) << subProjectFilePath);
 }
 

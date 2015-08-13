@@ -148,7 +148,6 @@ private:
     public:
         TopLevelProjectContext *topLevelProject;
         ModuleLoaderResult *result;
-        QString buildDirectory;
         QVector<ProductContext> products;
         QStack<QStringList> searchPathsStack;
     };
@@ -170,6 +169,7 @@ private:
 
         QVector<ProjectContext *> projects;
         QHash<QString, ProductModuleInfo> productModules;
+        QString buildDirectory;
     };
 
     class DependsContext
@@ -185,7 +185,7 @@ private:
             const QString &buildDirectory, const QSet<QString> &referencedFilePaths);
     void handleProject(ModuleLoaderResult *loadResult,
             TopLevelProjectContext *topLevelProjectContext, Item *item,
-            const QString &buildDirectory, const QSet<QString> &referencedFilePaths);
+            const QSet<QString> &referencedFilePaths);
     QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);
     void prepareProduct(ProjectContext *projectContext, Item *item);
     void handleProduct(ProductContext *productContext);
