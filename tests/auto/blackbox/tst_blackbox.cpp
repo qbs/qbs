@@ -1652,7 +1652,7 @@ void TestBlackbox::java()
         QVERIFY2(stdOut.contains("Flying!"), stdOut.constData());
         QVERIFY2(stdOut.contains("Flying (this is a space ship)!"), stdOut.constData());
         QVERIFY2(stdOut.contains("Sailing!"), stdOut.constData());
-        QVERIFY2(stdOut.contains("Native code performing complex internal combustion process (0x"),
+        QVERIFY2(stdOut.contains("Native code performing complex internal combustion process ("),
                  stdOut.constData());
     }
 
