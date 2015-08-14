@@ -356,15 +356,6 @@ QString EvaluatorScriptClass::resultToString(const QScriptValue &scriptValue)
         : scriptValue.toVariant().toString());
 }
 
-Item *EvaluatorScriptClass::findParentOfType(const Item *item, const QString &typeName)
-{
-    for (Item *it = item->parent(); it; it = it->parent()) {
-        if (it->typeName() == typeName)
-            return it;
-    }
-    return 0;
-}
-
 void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data, QScriptValue *result,
         const QString &propertyName, const ValuePtr &value)
 {
