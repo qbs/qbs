@@ -36,6 +36,8 @@
 #include <tools/scripttools.h>
 #include <tools/settings.h>
 
+#include <QFileInfo>
+
 namespace qbs {
 namespace Internal {
 
@@ -151,6 +153,10 @@ QString SetupProjectParameters::projectFilePath() const
 void SetupProjectParameters::setProjectFilePath(const QString &projectFilePath)
 {
     d->projectFilePath = projectFilePath;
+
+    const QString canonicalProjectFilePath = QFileInfo(d->projectFilePath).canonicalFilePath();
+    if (!canonicalProjectFilePath.isEmpty())
+        d->projectFilePath = projectFilePath;
 }
 
 /*!
@@ -173,6 +179,10 @@ QString SetupProjectParameters::buildRoot() const
 void SetupProjectParameters::setBuildRoot(const QString &buildRoot)
 {
     d->buildRoot = buildRoot;
+
+    const QString canonicalBuildRoot = QFileInfo(d->buildRoot).canonicalFilePath();
+    if (!canonicalBuildRoot.isEmpty())
+        d->buildRoot = canonicalBuildRoot;
 }
 
 /*!
