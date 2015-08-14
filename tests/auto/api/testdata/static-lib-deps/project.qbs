@@ -50,6 +50,10 @@ Project {
             cpp.defines: ["WITH_SETUPAPI"]
         }
         Properties {
+            condition: qbs.targetOS.contains("osx")
+            cpp.defines: ["WITH_LEX_YACC"]
+        }
+        Properties {
             condition: qbs.targetOS.contains("linux")
             cpp.defines: ["WITH_PTHREAD"]
         }
@@ -59,6 +63,10 @@ Project {
             Properties {
                 condition: qbs.targetOS.contains("linux")
                 cpp.staticLibraries: ["pthread"]
+            }
+            Properties {
+                condition: qbs.targetOS.contains("osx")
+                cpp.staticLibraries: ["l", "y"]
             }
             Properties {
                 condition: qbs.targetOS.contains("windows")
