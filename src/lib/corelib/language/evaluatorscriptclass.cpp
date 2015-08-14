@@ -245,10 +245,7 @@ private:
 
     void handle(ItemValue *value)
     {
-        Item *item = value->item();
-        if (!item)
-            qDebug() << "SVConverter got null item" << propertyName->toString();
-        *result = data->evaluator->scriptValue(item);
+        *result = data->evaluator->scriptValue(value->item());
         if (!result->isValid())
             qDebug() << "SVConverter returned invalid script value.";
     }

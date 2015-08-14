@@ -140,6 +140,7 @@ ItemValue::ItemValue(Item *item)
     : Value(ItemValueType)
     , m_item(item)
 {
+    QBS_CHECK(m_item);
 }
 
 ItemValuePtr ItemValue::create(Item *item)

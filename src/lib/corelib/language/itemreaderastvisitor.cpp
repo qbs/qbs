@@ -306,8 +306,6 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
             break;
         }
         case Value::ItemValueType:
-            QBS_CHECK(v.staticCast<ItemValue>()->item());
-            QBS_CHECK(it.value().staticCast<const ItemValue>()->item());
             inheritItem(v.staticCast<ItemValue>()->item(),
                         it.value().staticCast<const ItemValue>()->item());
             break;

@@ -603,8 +603,6 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
 {
     if (value->type() == Value::ItemValueType) {
         Item *valueItem = value.staticCast<ItemValue>()->item();
-        if (!valueItem)
-            return;
         Item *subItem = dst->itemProperty(name, true)->item();
         for (QMap<QString, ValuePtr>::const_iterator it = valueItem->properties().constBegin();
                 it != valueItem->properties().constEnd(); ++it)
@@ -801,16 +799,10 @@ Item *ModuleLoader::moduleInstanceItem(Item *item, const QualifiedId &moduleName
     Item *instance = item;
     for (int i = 0; i < moduleName.count(); ++i) {
         const QString &moduleNameSegment = moduleName.at(i);
-        bool createNewItem = true;
         const ValuePtr v = instance->properties().value(moduleName.at(i));
         if (v && v->type() == Value::ItemValueType) {
-            const ItemValuePtr iv = v.staticCast<ItemValue>();
-            if (iv->item()) {
-                createNewItem = false;
-                instance = iv->item();
-            }
-        }
-        if (createNewItem) {
+            instance = v.staticCast<ItemValue>()->item();
+        } else {
             Item *newItem = Item::create(m_pool);
             instance->setProperty(moduleNameSegment, ItemValue::create(newItem));
             instance = newItem;
@@ -1340,7 +1332,6 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
                 ItemValuePtr iv = obj->itemProperty(m.name.at(i));
                 QBS_CHECK(iv);
                 obj = iv->item();
-                QBS_CHECK(obj);
             }
             QBS_CHECK(obj == depinst);
         }
