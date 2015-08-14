@@ -147,14 +147,9 @@ ItemValuePtr ItemValue::create(Item *item)
     return ItemValuePtr(new ItemValue(item));
 }
 
-ItemValue::~ItemValue()
-{
-}
-
 ValuePtr ItemValue::clone() const
 {
-    Item *clonedItem = m_item ? m_item->clone() : 0;
-    return ItemValuePtr(new ItemValue(clonedItem));
+    return create(m_item->clone());
 }
 
 VariantValue::VariantValue(const QVariant &v)

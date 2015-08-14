@@ -156,27 +156,16 @@ class ItemValue : public Value
 {
     ItemValue(Item *item);
 public:
-    static ItemValuePtr create(Item *item = 0);
-    ~ItemValue();
+    static ItemValuePtr create(Item *item);
 
-    void apply(ValueHandler *handler) { handler->handle(this); }
-    ValuePtr clone() const;
-    Item *item() const;
-    void setItem(Item *ptr);
+    Item *item() const { return m_item; }
 
 private:
-    Item *m_item;
+    void apply(ValueHandler *handler) override { handler->handle(this); }
+    ValuePtr clone() const override;
+
+    Item * const m_item;
 };
-
-inline Item *ItemValue::item() const
-{
-    return m_item;
-}
-
-inline void ItemValue::setItem(Item *ptr)
-{
-    m_item = ptr;
-}
 
 
 class VariantValue : public Value
