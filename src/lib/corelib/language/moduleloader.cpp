@@ -201,8 +201,8 @@ private:
     void handleItem(Item *item)
     {
         if (m_disabledItems.contains(item)
-                || item->typeName() == QLatin1String("Export")
-                || item->typeName() == QLatin1String("SubProject")) {
+                // The Properties child of a SubProject item is not a regular item.
+                || item->typeName() == QLatin1String("Properties")) {
             return;
         }
 
@@ -216,8 +216,17 @@ private:
             it.value()->apply(this);
         }
         m_parentItem = oldParentItem;
-        foreach (Item *child, item->children())
-            handleItem(child);
+        foreach (Item *child, item->children()) {
+            if (child->typeName() != QLatin1String("Export"))
+                handleItem(child);
+        }
+
+        // Properties that don't refer to an existing module with a matching Depends item
+        // only exist in the prototype, not in the instance.
+        // Example 1 - setting a property of an unknown module: Export { abc.def: true }
+        // Example 2 - setting a non-existing Export property: Export { blubb: true }
+        if (item->typeName() == QLatin1String("Export") && item->prototype())
+            handleItem(item->prototype());
     }
 
     void handle(VariantValue *) { /* only created internally - no need to check */ }
