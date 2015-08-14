@@ -420,10 +420,11 @@ var BlackboxOutputArtifactTracker = (function () {
         try {
             proc = new Process();
             if (this.hostOS && this.hostOS.contains("windows"))
-                proc.exec("cmd", ["/C", "dir", FileInfo.toWindowsSeparators(dir), "/B", "/S"], true);
+                proc.exec(this.shellPath, ["/C", "dir", FileInfo.toWindowsSeparators(dir),
+                                           "/B", "/S", "/A:-D"], true);
             else
                 proc.exec("find", [dir, "-type", "f"], true);
-            return proc.readStdOut().trim().split(/[\r\n]/).map(FileInfo.fromWindowsSeparators);
+            return proc.readStdOut().trim().split(/\r?\n/).map(FileInfo.fromWindowsSeparators);
         }
         finally {
             if (proc)

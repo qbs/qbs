@@ -163,6 +163,7 @@ function ibtoolOutputArtifacts(product, inputs, input) {
 
     var tracker = new ModUtils.BlackboxOutputArtifactTracker();
     tracker.hostOS = product.moduleProperty("qbs", "hostOS");
+    tracker.shellPath = product.moduleProperty("qbs", "shellPath");
     tracker.fileTaggers = ibtoolFileTaggers(input.fileTags);
     tracker.command = ModUtils.moduleProperty(product, "ibtoolPath");
     tracker.commandArgsFunction = function (outputDirectory) {
@@ -216,6 +217,7 @@ function actoolOutputArtifacts(product, inputs) {
     // so compile to a fake temporary directory in order to extract the list of output files
     var tracker = new ModUtils.BlackboxOutputArtifactTracker();
     tracker.hostOS = product.moduleProperty("qbs", "hostOS");
+    tracker.shellPath = product.moduleProperty("qbs", "shellPath");
     tracker.command = ModUtils.moduleProperty(product, "actoolPath");
     tracker.commandArgsFunction = function (outputDirectory) {
         // Last --output-format argument overrides any previous ones
