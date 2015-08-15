@@ -201,6 +201,11 @@ private:
     void handleItem(Item *item)
     {
         if (m_disabledItems.contains(item)
+                // TODO: We never checked module prototypes, apparently. Should we?
+                // It's currently not possible because of e.g. things like "cpp.staticLibraries"
+                // inside Artifact items...
+                || item->type() == ItemType::Module
+
                 // The Properties child of a SubProject item is not a regular item.
                 || item->type() == ItemType::PropertiesInSubProject) {
             return;
@@ -217,15 +222,15 @@ private:
         }
         m_parentItem = oldParentItem;
         foreach (Item *child, item->children()) {
-            if (child->typeName() != QLatin1String("Export"))
+            if (child->type () != ItemType::Export)
                 handleItem(child);
         }
 
         // Properties that don't refer to an existing module with a matching Depends item
-        // only exist in the prototype, not in the instance.
+        // only exist in the prototype of an Export item, not in the instance.
         // Example 1 - setting a property of an unknown module: Export { abc.def: true }
         // Example 2 - setting a non-existing Export property: Export { blubb: true }
-        if (item->typeName() == QLatin1String("Export") && item->prototype())
+        if (item->type() == ItemType::ModuleInstance && item->prototype())
             handleItem(item->prototype());
     }
 
