@@ -41,9 +41,6 @@ DarwinGCC {
 
     targetSystem: "ios" + (minimumIosVersion || "")
 
-    // Setting a minimum is especially important for Simulator or CC/LD thinks the target is OS X
-    minimumIosVersion: xcode.sdkVersion || (cxxStandardLibrary === "libc++" ? "5.0" : undefined)
-
     platformObjcFlags: base.concat(simulatorObjcFlags)
     platformObjcxxFlags: base.concat(simulatorObjcFlags)
 
