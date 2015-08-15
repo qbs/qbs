@@ -157,7 +157,7 @@
             \li Default
             \li Description
         \row
-            \li additionalProductFileTags
+            \li additionalProductTypes
             \li string list
             \li empty list
             \li The elements of this list will be added to the \c type property of a product
