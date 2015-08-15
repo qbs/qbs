@@ -178,7 +178,8 @@ Module {
     property var buildEnv: {
         return {
             "CODESIGN_ALLOCATE": platformPath + "/Developer/usr/bin/codesign_allocate",
-            "DEVELOPER_DIR": developerPath
+            "DEVELOPER_DIR": developerPath,
+            "SDKROOT": sdkPath
         };
     }
 
