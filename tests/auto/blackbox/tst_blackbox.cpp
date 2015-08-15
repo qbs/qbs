@@ -1819,6 +1819,12 @@ void TestBlackbox::jsExtensionsTextFile()
     QCOMPARE(lines.at(4).trimmed().constData(), "true");
 }
 
+void TestBlackbox::ld()
+{
+    QDir::setCurrent(testDataDir + "/ld");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::listPropertiesWithOuter()
 {
     QDir::setCurrent(testDataDir + "/list-properties-with-outer");

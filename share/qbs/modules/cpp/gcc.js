@@ -35,6 +35,34 @@ var PathTools = loadExtension("qbs.PathTools");
 var UnixUtils = loadExtension("qbs.UnixUtils");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
+function escapeLinkerFlags(product, linkerFlags) {
+    if (!linkerFlags || linkerFlags.length === 0)
+        return [];
+
+    var linkerName = product.moduleProperty("cpp", "linkerName") ;
+    var needsEscape = linkerName === product.moduleProperty("cpp", "cxxCompilerName")
+            || linkerName === product.moduleProperty("cpp", "cCompilerName");
+    if (needsEscape) {
+        var sep = ",";
+        var useXlinker = linkerFlags.some(function (f) { return f.contains(sep); });
+        if (useXlinker) {
+            // One or more linker arguments contain the separator character itself
+            // Use -Xlinker to handle these
+            var xlinkerFlags = [];
+            linkerFlags.map(function (linkerFlag) {
+                xlinkerFlags.push("-Xlinker", linkerFlag);
+            });
+            return xlinkerFlags;
+        }
+
+        // If no linker arguments contain the separator character we can just use -Wl,
+        // which is more compact and easier to read in logs
+        return [["-Wl"].concat(linkerFlags).join(sep)];
+    }
+
+    return linkerFlags;
+}
+
 function linkerFlags(product, inputs, output) {
     var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
     var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
@@ -55,9 +83,13 @@ function linkerFlags(product, inputs, output) {
             if (internalVersion)
                 args.push("-current_version", internalVersion);
 
-            args.push("-Wl,-install_name," + UnixUtils.soname(product, output.fileName));
+            args = args.concat(escapeLinkerFlags(product, [
+                                                     "-install_name",
+                                                     UnixUtils.soname(product, output.fileName)]));
         } else {
-            args.push("-Wl,-soname=" + UnixUtils.soname(product, output.fileName));
+            args = args.concat(escapeLinkerFlags(product, [
+                                                     "-soname=" +
+                                                     UnixUtils.soname(product, output.fileName)]));
         }
     }
 
@@ -66,19 +98,20 @@ function linkerFlags(product, inputs, output) {
 
     if (output.fileTags.contains("dynamiclibrary") || output.fileTags.contains("loadablemodule")) {
         if (isDarwin)
-            args.push("-Wl,-headerpad_max_install_names");
+            args = args.concat(escapeLinkerFlags(product, ["-headerpad_max_install_names"]));
         else
-            args.push("-Wl,--as-needed");
+            args = args.concat(escapeLinkerFlags(product, ["--as-needed"]));
     }
 
     var unresolvedSymbolsAction = isDarwin ? "error" : "ignore-in-shared-libs";
     if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
         unresolvedSymbolsAction = isDarwin ? "suppress" : "ignore-all";
-    var unresolvedSymbolsKey = isDarwin ? "-undefined," : "--unresolved-symbols=";
-    args.push("-Wl," + unresolvedSymbolsKey + unresolvedSymbolsAction);
+    args = args.concat(escapeLinkerFlags(product, isDarwin
+                                         ? ["-undefined", unresolvedSymbolsAction]
+                                         : ["--unresolved-symbols=" + unresolvedSymbolsAction]));
 
-    if (rpaths && rpaths.length)
-        args.push('-Wl,-rpath,' + rpaths.join(",-rpath,"));
+    for (i in rpaths)
+        args = args.concat(escapeLinkerFlags(product, ["-rpath", rpaths[i]]));
 
     if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
         var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product,
@@ -86,19 +119,22 @@ function linkerFlags(product, inputs, output) {
         var uniqueSOs = [].uniqueConcat(transitiveSOs)
         for (i in uniqueSOs) {
             // The real library is located one level up.
-            args.push("-Wl,-rpath-link=" + FileInfo.path(FileInfo.path(uniqueSOs[i])));
+            args = args.concat(escapeLinkerFlags(product, [
+                                                     "-rpath-link=" +
+                                                     FileInfo.path(FileInfo.path(uniqueSOs[i]))]));
         }
     }
 
     if (product.moduleProperty("cpp", "entryPoint"))
-        args.push("-Wl,-e," + product.moduleProperty("cpp", "entryPoint"));
+        args = args.concat(escapeLinkerFlags(product, ["-e", product.moduleProperty("cpp", "entryPoint")]));
 
     if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
         if (product.consoleApplication !== undefined)
-            if (product.consoleApplication)
-                args.push("-Wl,-subsystem,console");
-            else
-                args.push("-Wl,-subsystem,windows");
+            args = args.concat(escapeLinkerFlags(product, [
+                                                     "-subsystem",
+                                                     product.consoleApplication
+                                                        ? "console"
+                                                        : "windows"]));
 
         var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
         if (minimumWindowsVersion) {
@@ -108,10 +144,10 @@ function linkerFlags(product, inputs, output) {
                 var minor = subsystemVersion.split('.')[1];
 
                 // http://sourceware.org/binutils/docs/ld/Options.html
-                args.push("-Wl,--major-subsystem-version," + major);
-                args.push("-Wl,--minor-subsystem-version," + minor);
-                args.push("-Wl,--major-os-version," + major);
-                args.push("-Wl,--minor-os-version," + minor);
+                args = args.concat(escapeLinkerFlags(product, ["--major-subsystem-version", major]));
+                args = args.concat(escapeLinkerFlags(product, ["--minor-subsystem-version", minor]));
+                args = args.concat(escapeLinkerFlags(product, ["--major-os-version", major]));
+                args = args.concat(escapeLinkerFlags(product, ["--minor-os-version", minor]));
             } else {
                 print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
             }
