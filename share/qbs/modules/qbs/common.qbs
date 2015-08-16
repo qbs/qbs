@@ -44,7 +44,7 @@ Module {
             return getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductVersion") ||
                    getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductVersion");
         } else if (hostOS && hostOS.contains("windows")) {
-            var version = getNativeSetting("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentVersion");
+            var version = getNativeSetting(windowsRegistryKey, "CurrentVersion");
             return version + "." + hostOSBuildVersion;
         }
     }
@@ -54,7 +54,7 @@ Module {
             return getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductBuildVersion") ||
                    getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductBuildVersion");
         } else if (hostOS.contains("windows")) {
-            return getNativeSetting("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentBuildNumber");
+            return getNativeSetting(windowsRegistryKey, "CurrentBuildNumber");
         }
     }
 
@@ -67,6 +67,7 @@ Module {
     property string pathListSeparator: hostOS.contains("windows") ? ";" : ":"
     property string pathSeparator: hostOS.contains("windows") ? "\\" : "/"
     property string nullDevice: hostOS.contains("windows") ? "NUL" : "/dev/null"
+    property path shellPath: hostOS.contains("windows") ? windowsShellPath : "/bin/sh"
     property string profile
     property stringList toolchain
     property string architecture
@@ -116,6 +117,10 @@ Module {
     }
 
     // private properties
+    property string windowsRegistryKey: "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion"
+    property path windowsSystemRoot: FileInfo.fromWindowsSeparators(getNativeSetting(windowsRegistryKey, "SystemRoot"))
+    property path windowsShellPath: FileInfo.fromWindowsSeparators(getEnv("COMSPEC")) || FileInfo.joinPaths(windowsSystemRoot, "System32", "cmd.exe")
+
     property var commonRunEnvironment: {
         var env = qbs.currentEnv();
         if (targetOS.contains("windows")) {

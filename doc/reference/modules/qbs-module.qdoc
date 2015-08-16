@@ -161,6 +161,16 @@
         \li \c{"NUL"} on Windows,
             \c{"/dev/null"} on Unix
         \li Holds the platform-specific file path corresponding to the null device.
+    \row
+        \li shellPath
+        \li \c{path}
+        \li 1.5
+        \li \c{"%COMSPEC%"} on Windows,
+            \c{"/bin/sh"} on Unix
+        \li Holds the platform-specific file path corresponding to the command line interpreter.
+            On Windows this is the path to \c{cmd.exe}, which is held in the \c{COMSPEC}
+            environment variable - typically \c{C:/Windows/System32/cmd.exe},
+            and on Unix-like platforms this is \c{/bin/sh}.
     \endtable
 
     \section1 Environment Properties
