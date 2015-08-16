@@ -276,7 +276,7 @@ function manifestContents(filePath) {
 
     if (contents) {
         var dict = {};
-        var lines = contents.split(/[\r\n]/g);
+        var lines = contents.split(/\r?\n/g);
         for (var i in lines) {
             var kv = lines[i].split(":");
             if (kv.length !== 2)
