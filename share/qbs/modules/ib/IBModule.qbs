@@ -141,7 +141,7 @@ Module {
         prepare: {
             var args = ["--convert", "icns", "--output", output.filePath, input.filePath];
             var cmd = new Command(ModUtils.moduleProperty(product, "iconutilPath"), args);
-            cmd.description = ModUtils.moduleProperty(product, "iconutilName") + ' ' + input.fileName;
+            cmd.description = "compiling " + input.fileName;
             return cmd;
         }
     }
@@ -181,6 +181,10 @@ Module {
                     cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" + product.moduleProperty("cpp", "minimumWatchosVersion"));
             }
 
+            cmd.stdoutFilterFunction = function(output) {
+                return "";
+            };
+
             return cmd;
         }
     }
@@ -201,7 +205,7 @@ Module {
             cmd.highlight = "compiler";
 
             cmd.stdoutFilterFunction = function(output) {
-                return output;
+                return "";
             };
 
             return cmd;

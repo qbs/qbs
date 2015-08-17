@@ -2738,7 +2738,7 @@ void TestBlackbox::assetCatalog()
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
-    QVERIFY((bool)m_qbsStdout.contains("actool"));
+    QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
 
     // should not produce a CAR since minimumOsxVersion will be < 10.9
     QVERIFY(!regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
@@ -2748,19 +2748,19 @@ void TestBlackbox::assetCatalog()
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
-    QVERIFY((bool)m_qbsStdout.contains("actool"));
+    QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
     QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
 
     // this asset catalog happens to have an embedded icon set,
     // but this should NOT be built since it is not in the files list
-    QVERIFY(!(bool)m_qbsStdout.contains("iconutil"));
+    QVERIFY(!(bool)m_qbsStdout.contains(".iconset"));
 
     // now we'll add the iconset
     rmDirR(relativeBuildDir());
     params.arguments.append("project.includeIconset:true");
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(!(bool)m_qbsStdout.contains("actool"));
-    QVERIFY((bool)m_qbsStdout.contains("iconutil"));
+    QVERIFY(!(bool)m_qbsStdout.contains(".xcassets"));
+    QVERIFY((bool)m_qbsStdout.contains("compiling empty.iconset"));
 
     // make sure the nibs/storyboards are in there
     QString nib = relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/MainMenu.nib";
