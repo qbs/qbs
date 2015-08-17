@@ -38,8 +38,8 @@
 namespace qbs {
 namespace Internal {
 
-Value::Value(Type t)
-    : m_type(t), m_definingItem(0)
+Value::Value(Type t, bool createdByPropertiesBlock)
+    : m_type(t), m_definingItem(0), m_createdByPropertiesBlock(createdByPropertiesBlock)
 {
 }
 
@@ -69,14 +69,17 @@ void Value::setNext(const ValuePtr &next)
 }
 
 
-JSSourceValue::JSSourceValue()
-    : Value(JSSourceValueType), m_line(-1), m_column(-1), m_exportScope(nullptr)
+JSSourceValue::JSSourceValue(bool createdByPropertiesBlock)
+    : Value(JSSourceValueType, createdByPropertiesBlock)
+    , m_line(-1)
+    , m_column(-1)
+    , m_exportScope(nullptr)
 {
 }
 
-JSSourceValuePtr JSSourceValue::create()
+JSSourceValuePtr JSSourceValue::create(bool createdByPropertiesBlock)
 {
-    return JSSourceValuePtr(new JSSourceValue);
+    return JSSourceValuePtr(new JSSourceValue(createdByPropertiesBlock));
 }
 
 JSSourceValue::~JSSourceValue()
@@ -136,15 +139,15 @@ void JSSourceValue::setExportScope(Item *extraScope)
 }
 
 
-ItemValue::ItemValue(Item *item)
-    : Value(ItemValueType)
+ItemValue::ItemValue(Item *item, bool createdByPropertiesBlock)
+    : Value(ItemValueType, createdByPropertiesBlock)
     , m_item(item)
 {
 }
 
-ItemValuePtr ItemValue::create(Item *item)
+ItemValuePtr ItemValue::create(Item *item, bool createdByPropertiesBlock)
 {
-    return ItemValuePtr(new ItemValue(item));
+    return ItemValuePtr(new ItemValue(item, createdByPropertiesBlock));
 }
 
 ItemValue::~ItemValue()
@@ -154,11 +157,11 @@ ItemValue::~ItemValue()
 ValuePtr ItemValue::clone() const
 {
     Item *clonedItem = m_item ? m_item->clone() : 0;
-    return ItemValuePtr(new ItemValue(clonedItem));
+    return ItemValuePtr(new ItemValue(clonedItem, createdByPropertiesBlock()));
 }
 
 VariantValue::VariantValue(const QVariant &v)
-    : Value(VariantValueType)
+    : Value(VariantValueType, false)
     , m_value(v)
 {
 }

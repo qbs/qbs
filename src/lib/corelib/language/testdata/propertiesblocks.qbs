@@ -159,4 +159,15 @@ Project {
             cpp.defines: ["OVERWRITTEN"]
         }
     }
+    Product {
+        name: "conditional-depends"
+        Depends {
+            name: "dummy"
+            condition: false
+        }
+        Properties {
+            condition: false
+            dummy.defines: ["a string"]
+        }
+    }
 }
