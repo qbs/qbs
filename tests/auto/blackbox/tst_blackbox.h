@@ -183,6 +183,7 @@ private slots:
     void wildcardRenaming();
     void zip();
     void zip_data();
+    void zipInvalid();
 
 private:
     QString findArchiver(const QString &fileName, int *status = nullptr);

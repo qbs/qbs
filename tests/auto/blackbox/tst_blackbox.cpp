@@ -337,6 +337,16 @@ void TestBlackbox::zip_data()
     QTest::newRow("jar") << "jar";
 }
 
+void TestBlackbox::zipInvalid()
+{
+    QDir::setCurrent(testDataDir + "/archiver");
+    QbsRunParameters params(QStringList() << "archiver.type:zip"
+                            << "archiver.command:/bin/something");
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("Unknown zip tool 'something'"), m_qbsStderr.constData());
+}
+
 void TestBlackbox::android()
 {
     QFETCH(QString, projectDir);
