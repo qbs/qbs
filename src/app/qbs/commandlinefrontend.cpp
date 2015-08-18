@@ -135,7 +135,7 @@ void CommandLineFrontend::start()
         params.setIgnoreDifferentProjectFilePath(m_parser.force());
         params.setDryRun(m_parser.dryRun());
         params.setLogElapsedTime(m_parser.logTime());
-        params.setSettingsDirectory(m_settings->baseDirectoy());
+        params.setSettingsDirectory(m_settings->baseDirectory());
         if (!m_parser.buildBeforeInstalling() || m_parser.command() == DumpNodesTreeCommandType)
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {

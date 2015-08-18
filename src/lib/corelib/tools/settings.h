@@ -61,7 +61,7 @@ public:
     QStringList profiles() const;
 
     QString fileName() const;
-    QString baseDirectoy() const { return m_baseDir; }
+    QString baseDirectory() const { return m_baseDir; }
 
 private:
     QString internalRepresentation(const QString &externalKey) const;
