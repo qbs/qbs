@@ -168,6 +168,9 @@ function linkerFlags(product, inputs, output) {
     if (linkerScripts)
         args = args.concat(linkerScripts.map(function(path) { return '-T' + path }));
 
+    if (isDarwin && ModUtils.moduleProperty(product, "warningLevel") === "none")
+        args.push('-w');
+
     args = args.concat(configFlags(product));
     args = args.concat(ModUtils.moduleProperties(product, 'platformLinkerFlags'));
     args = args.concat(ModUtils.moduleProperties(product, 'linkerFlags'));
@@ -228,26 +231,6 @@ function linkerFlags(product, inputs, output) {
 // for compiler AND linker
 function configFlags(config) {
     var args = [];
-
-    if (ModUtils.moduleProperty(config, "debugInformation"))
-        args.push('-g');
-    var opt = ModUtils.moduleProperty(config, "optimization")
-    if (opt === 'fast')
-        args.push('-O2');
-    if (opt === 'small')
-        args.push('-Os');
-    if (opt === 'none')
-        args.push('-O0');
-
-    var warnings = ModUtils.moduleProperty(config, "warningLevel")
-    if (warnings === 'none')
-        args.push('-w');
-    if (warnings === 'all') {
-        args.push('-Wall');
-        args.push('-Wextra');
-    }
-    if (ModUtils.moduleProperty(config, "treatWarningsAsErrors"))
-        args.push('-Werror');
 
     var frameworkPaths = ModUtils.moduleProperties(config, 'frameworkPaths');
     if (frameworkPaths)
@@ -334,6 +317,27 @@ function compilerFlags(product, input, output) {
     var compilerInfo = effectiveCompilerInfo(input, output);
 
     var args = additionalCompilerAndLinkerFlags(product);
+
+    if (ModUtils.moduleProperty(input, "debugInformation"))
+        args.push('-g');
+    var opt = ModUtils.moduleProperty(input, "optimization")
+    if (opt === 'fast')
+        args.push('-O2');
+    if (opt === 'small')
+        args.push('-Os');
+    if (opt === 'none')
+        args.push('-O0');
+
+    var warnings = ModUtils.moduleProperty(input, "warningLevel")
+    if (warnings === 'none')
+        args.push('-w');
+    if (warnings === 'all') {
+        args.push('-Wall');
+        args.push('-Wextra');
+    }
+    if (ModUtils.moduleProperty(input, "treatWarningsAsErrors"))
+        args.push('-Werror');
+
     args = args.concat(configFlags(input));
     args.push('-pipe');
 
