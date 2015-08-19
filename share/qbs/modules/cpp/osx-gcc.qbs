@@ -37,4 +37,8 @@ DarwinGCC {
                qbs.toolchain && qbs.toolchain.contains('gcc')
 
     targetSystem: "macosx" + (minimumOsxVersion || "")
+
+    minimumDarwinVersion: minimumOsxVersion
+    minimumDarwinVersionCompilerFlag: "-mmacosx-version-min"
+    minimumDarwinVersionLinkerFlag: "-macosx_version_min"
 }

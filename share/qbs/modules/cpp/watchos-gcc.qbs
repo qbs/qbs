@@ -37,4 +37,12 @@ DarwinGCC {
                qbs.toolchain && qbs.toolchain.contains('gcc')
 
     targetSystem: "watchos" + (minimumWatchosVersion || "")
+
+    minimumDarwinVersion: minimumWatchosVersion
+    minimumDarwinVersionCompilerFlag: qbs.targetOS.contains("watchos-simulator")
+                                      ? "-mwatchos-simulator-version-min"
+                                      : "-mwatchos-version-min"
+    minimumDarwinVersionLinkerFlag: qbs.targetOS.contains("watchos-simulator")
+                                    ? "-watchos_simulator_version_min"
+                                    : "-watchos_version_min"
 }

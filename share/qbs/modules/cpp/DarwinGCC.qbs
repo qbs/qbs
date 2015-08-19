@@ -117,4 +117,8 @@ UnixGCC {
             env["TARGETED_DEVICE_FAMILY"] = DarwinTools.targetedDeviceFamily(xcode.targetDevices);
         return env;
     }
+
+    property string minimumDarwinVersion
+    property string minimumDarwinVersionCompilerFlag
+    property string minimumDarwinVersionLinkerFlag
 }

@@ -103,6 +103,17 @@ function linkerFlags(product, inputs, output) {
             args = args.concat(escapeLinkerFlags(product, ["--as-needed"]));
     }
 
+    var arch = product.moduleProperty("cpp", "targetArch");
+    if (isDarwin)
+        args.push("-arch", arch);
+
+    var minimumDarwinVersion = ModUtils.moduleProperty(product, "minimumDarwinVersion");
+    if (minimumDarwinVersion) {
+        var flag = ModUtils.moduleProperty(product, "minimumDarwinVersionLinkerFlag");
+        if (flag)
+            args = args.concat(escapeLinkerFlags(product, [flag, minimumDarwinVersion]));
+    }
+
     var sysroot = ModUtils.moduleProperty(product, "sysroot");
     if (sysroot) {
         if (isDarwin)
@@ -326,6 +337,26 @@ function compilerFlags(product, input, output) {
 
     var args = additionalCompilerAndLinkerFlags(product);
 
+    if (haveTargetOption(product)) {
+        args.push("-target", product.moduleProperty("cpp", "target"));
+    } else {
+        var arch = product.moduleProperty("cpp", "targetArch");
+        if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
+            args.push("-arch", arch);
+
+        if (arch === 'x86_64')
+            args.push('-m64');
+        else if (arch === 'i386')
+            args.push('-m32');
+
+        var minimumDarwinVersion = ModUtils.moduleProperty(product, "minimumDarwinVersion");
+        if (minimumDarwinVersion) {
+            var flag = ModUtils.moduleProperty(product, "minimumDarwinVersionCompilerFlag");
+            if (flag)
+                args.push(flag + "=" + minimumDarwinVersion);
+        }
+    }
+
     var sysroot = ModUtils.moduleProperty(product, "sysroot");
     if (sysroot) {
         if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
@@ -480,39 +511,6 @@ function haveTargetOption(product) {
 
 function additionalCompilerAndLinkerFlags(product) {
     var args = []
-
-    if (haveTargetOption(product)) {
-        args.push("-target", product.moduleProperty("cpp", "target"));
-    } else {
-        var arch = ModUtils.moduleProperty(product, "architecture");
-        if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
-            args.push("-arch", arch);
-
-        if (arch === 'x86_64')
-            args.push('-m64');
-        else if (arch === 'x86')
-            args.push('-m32');
-
-        var minimumOsxVersion = ModUtils.moduleProperty(product, "minimumOsxVersion");
-        if (minimumOsxVersion && product.moduleProperty("qbs", "targetOS").contains("osx"))
-            args.push('-mmacosx-version-min=' + minimumOsxVersion);
-
-        var minimumiOSVersion = ModUtils.moduleProperty(product, "minimumIosVersion");
-        if (minimumiOSVersion && product.moduleProperty("qbs", "targetOS").contains("ios")) {
-            if (product.moduleProperty("qbs", "targetOS").contains("ios-simulator"))
-                args.push('-mios-simulator-version-min=' + minimumiOSVersion);
-            else
-                args.push('-miphoneos-version-min=' + minimumiOSVersion);
-        }
-
-        var minimumWatchosVersion = ModUtils.moduleProperty(product, "minimumWatchosVersion");
-        if (minimumWatchosVersion && product.moduleProperty("qbs", "targetOS").contains("watchos")) {
-            if (product.moduleProperty("qbs", "targetOS").contains("watchos-simulator"))
-                args.push("-mwatchos-simulator-version-min=" + minimumWatchosVersion);
-            else
-                args.push("-mwatchos-version-min=" + minimumWatchosVersion);
-        }
-    }
 
     var requireAppExtensionSafeApi = ModUtils.moduleProperty(product, "requireAppExtensionSafeApi");
     if (requireAppExtensionSafeApi !== undefined && product.moduleProperty("qbs", "targetOS").contains("darwin")) {

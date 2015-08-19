@@ -41,6 +41,14 @@ DarwinGCC {
 
     targetSystem: "ios" + (minimumIosVersion || "")
 
+    minimumDarwinVersion: minimumIosVersion
+    minimumDarwinVersionCompilerFlag: qbs.targetOS.contains("ios-simulator")
+                                      ? "-mios-simulator-version-min"
+                                      : "-miphoneos-version-min"
+    minimumDarwinVersionLinkerFlag: qbs.targetOS.contains("ios-simulator")
+                                    ? "-ios_simulator_version_min"
+                                    : "-iphoneos_version_min"
+
     platformObjcFlags: base.concat(simulatorObjcFlags)
     platformObjcxxFlags: base.concat(simulatorObjcFlags)
 
