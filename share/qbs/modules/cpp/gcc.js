@@ -388,6 +388,20 @@ function compilerFlags(product, input, output) {
     args = args.concat(configFlags(input));
     args.push('-pipe');
 
+    if (ModUtils.moduleProperty(input, "enableReproducibleBuilds")) {
+        var hashString = FileInfo.relativePath(project.sourceDirectory, input.filePath);
+        var hash = qbs.getHash(hashString);
+        args.push("-frandom-seed=" + hash);
+
+        var toolchain = product.moduleProperty("qbs", "toolchain");
+        var major = product.moduleProperty("cpp", "compilerVersionMajor");
+        var minor = product.moduleProperty("cpp", "compilerVersionMinor");
+        if ((toolchain.contains("clang") && (major > 3 || (major === 3 && minor >= 5))) ||
+            (toolchain.contains("gcc") && (major > 4 || (major === 4 && minor >= 9)))) {
+            args.push("-Wdate-time");
+        }
+    }
+
     var useArc = ModUtils.moduleProperty(input, "automaticReferenceCounting");
     if (useArc !== undefined && (tag === "objc" || tag === "objcpp")) {
         args.push(useArc ? "-fobjc-arc" : "-fno-objc-arc");

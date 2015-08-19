@@ -354,6 +354,15 @@
             toolchain is used.
             \note For MSVC the default value is \c{"dynamic"}.
             \note At the moment this property is only functional for MSVC.
+
+    \row
+        \li enableReproducibleBuilds
+        \li \c{bool}
+        \li 1.5
+        \li \c{false}
+        \li Try to generate reproducible object files. Some compilers (notably gcc) use random
+            numbers for generating symbol names that have to be different in every compilation
+            unit. This is avoided by setting this property to \c{true}.
     \endtable
 
     \section1 Properties Specific to Apple Platforms

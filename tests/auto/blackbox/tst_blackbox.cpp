@@ -1124,6 +1124,45 @@ void TestBlackbox::recursiveWildcards()
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file2.txt").exists());
 }
 
+void TestBlackbox::reproducibleBuild()
+{
+    Settings s((QString()));
+    const Profile profile(profileName(), &s);
+    if (!profile.value("qbs.toolchain").toStringList().contains("gcc"))
+        QSKIP("reproducible builds only supported for gcc-like compilers");
+
+    QFETCH(bool, reproducible);
+    if (!reproducible)
+        QSKIP("TODO: Find out how to provoke a non-reproducible build");
+
+    QDir::setCurrent(testDataDir + "/reproducible-build");
+    QbsRunParameters params;
+    params.arguments << QString("cpp.enableReproducibleBuilds:")
+                        + (reproducible ? "true" : "false");
+    QCOMPARE(runQbs(params), 0);
+    QFile exe(relativeExecutableFilePath("the product"));
+    QVERIFY(exe.open(QIODevice::ReadOnly));
+    const QByteArray oldContents = exe.readAll();
+    exe.close();
+    QbsRunParameters cleanParams = params;
+    cleanParams.command = "clean";
+    cleanParams.arguments.prepend("--all-artifacts");
+    QCOMPARE(runQbs(cleanParams), 0);
+    QVERIFY(!exe.exists());
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(exe.open(QIODevice::ReadOnly));
+    const QByteArray newContents = exe.readAll();
+    QCOMPARE(oldContents == newContents, reproducible);
+    QCOMPARE(runQbs(cleanParams), 0);
+}
+
+void TestBlackbox::reproducibleBuild_data()
+{
+    QTest::addColumn<bool>("reproducible");
+    QTest::newRow("non-reproducible build") << false;
+    QTest::newRow("reproducible build") << true;
+}
+
 void TestBlackbox::ruleConditions()
 {
     QDir::setCurrent(testDataDir + "/ruleConditions");

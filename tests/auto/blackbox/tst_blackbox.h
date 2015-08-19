@@ -162,6 +162,8 @@ private slots:
     void radAfterIncompleteBuild();
     void recursiveRenaming();
     void recursiveWildcards();
+    void reproducibleBuild();
+    void reproducibleBuild_data();
     void ruleConditions();
     void ruleCycle();
     void subProfileChangeTracking();
