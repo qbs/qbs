@@ -157,15 +157,9 @@ function linkerFlags(product, inputs, output) {
     if (inputs.infoplist)
         args.push("-sectcreate", "__TEXT", "__info_plist", inputs.infoplist[0].filePath);
 
-    if (product.moduleProperty("qbs", "toolchain").contains("clang")) {
-        var stdlib = product.moduleProperty("cpp", "cxxStandardLibrary");
-        if (stdlib) {
-            args.push("-stdlib=" + stdlib);
-        }
-
-        if (product.moduleProperty("qbs", "targetOS").contains("linux") && stdlib === "libc++")
-            args.push("-lc++abi");
-    }
+    var stdlib = product.moduleProperty("cpp", "cxxStandardLibrary");
+    if (stdlib && product.moduleProperty("qbs", "toolchain").contains("clang"))
+        args.push("-stdlib=" + stdlib);
 
     // Flags for library search paths
     if (libraryPaths)
@@ -191,6 +185,22 @@ function linkerFlags(product, inputs, output) {
             ? inputs.dynamiclibrary_copy.map(function(a) { return a.filePath; }) : [];
     dynamicLibraries = concatLibsFromArtifacts(dynamicLibraries, inputs.dynamiclibrary_copy);
 
+    for (i in frameworks) {
+        frameworkExecutablePath = PathTools.frameworkExecutablePath(frameworks[i]);
+        if (File.exists(frameworkExecutablePath))
+            args.push(frameworkExecutablePath);
+        else
+            args = args.concat(['-framework', frameworks[i]]);
+    }
+
+    for (i in weakFrameworks) {
+        frameworkExecutablePath = PathTools.frameworkExecutablePath(weakFrameworks[i]);
+        if (File.exists(frameworkExecutablePath))
+            args = args.concat(['-weak_library', frameworkExecutablePath]);
+        else
+            args = args.concat(['-weak_framework', weakFrameworks[i]]);
+    }
+
     for (i in staticLibraries) {
         if (staticLibsFromInputs.contains(staticLibraries[i]) || File.exists(staticLibraries[i])) {
             args.push(staticLibraries[i]);
@@ -208,21 +218,9 @@ function linkerFlags(product, inputs, output) {
         }
     }
 
-    for (i in frameworks) {
-        frameworkExecutablePath = PathTools.frameworkExecutablePath(frameworks[i]);
-        if (File.exists(frameworkExecutablePath))
-            args.push(frameworkExecutablePath);
-        else
-            args = args.concat(['-framework', frameworks[i]]);
-    }
-
-    for (i in weakFrameworks) {
-        frameworkExecutablePath = PathTools.frameworkExecutablePath(weakFrameworks[i]);
-        if (File.exists(frameworkExecutablePath))
-            args = args.concat(['-weak_library', frameworkExecutablePath]);
-        else
-            args = args.concat(['-weak_framework', weakFrameworks[i]]);
-    }
+    if (product.moduleProperty("qbs", "toolchain").contains("clang")
+            && product.moduleProperty("qbs", "targetOS").contains("linux") && stdlib === "libc++")
+        args.push("-lc++abi");
 
     return args;
 }
