@@ -103,6 +103,14 @@ function linkerFlags(product, inputs, output) {
             args = args.concat(escapeLinkerFlags(product, ["--as-needed"]));
     }
 
+    var sysroot = ModUtils.moduleProperty(product, "sysroot");
+    if (sysroot) {
+        if (isDarwin)
+            args = args.concat(escapeLinkerFlags(product, ["-syslibroot", sysroot]));
+        else
+            args.push("--sysroot=" + sysroot); // do not escape, compiler-as-linker also needs it
+    }
+
     var unresolvedSymbolsAction = isDarwin ? "error" : "ignore-in-shared-libs";
     if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
         unresolvedSymbolsAction = isDarwin ? "suppress" : "ignore-all";
@@ -318,6 +326,14 @@ function compilerFlags(product, input, output) {
 
     var args = additionalCompilerAndLinkerFlags(product);
 
+    var sysroot = ModUtils.moduleProperty(product, "sysroot");
+    if (sysroot) {
+        if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
+            args.push("-isysroot", sysroot);
+        else
+            args.push("--sysroot=" + sysroot);
+    }
+
     if (ModUtils.moduleProperty(input, "debugInformation"))
         args.push('-g');
     var opt = ModUtils.moduleProperty(input, "optimization")
@@ -496,14 +512,6 @@ function additionalCompilerAndLinkerFlags(product) {
             else
                 args.push("-mwatchos-version-min=" + minimumWatchosVersion);
         }
-    }
-
-    var sysroot = ModUtils.moduleProperty(product, "sysroot");
-    if (sysroot) {
-        if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
-            args.push("-isysroot", sysroot);
-        else
-            args.push("--sysroot=" + sysroot);
     }
 
     var requireAppExtensionSafeApi = ModUtils.moduleProperty(product, "requireAppExtensionSafeApi");
