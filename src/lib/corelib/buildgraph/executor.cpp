@@ -998,13 +998,17 @@ bool Executor::visit(RuleNode *ruleNode)
   */
 void Executor::prepareAllNodes()
 {
-    foreach (const ResolvedProductPtr &product, m_productsToBuild) {
-        foreach (BuildGraphNode *node, product->buildData->nodes) {
-            node->buildState = BuildGraphNode::Untouched;
-            Artifact *artifact = dynamic_cast<Artifact *>(node);
-            if (artifact)
-                prepareArtifact(artifact);
+    foreach (const ResolvedProductPtr &product, m_project->allProducts()) {
+        if (product->enabled) {
+            QBS_CHECK(product->buildData);
+            foreach (BuildGraphNode * const node, product->buildData->nodes)
+                node->buildState = BuildGraphNode::Untouched;
         }
+    }
+    foreach (const ResolvedProductPtr &product, m_productsToBuild) {
+        QBS_CHECK(product->buildData);
+        foreach (Artifact * const artifact, ArtifactSet::fromNodeSet(product->buildData->nodes))
+            prepareArtifact(artifact);
     }
 }
 
