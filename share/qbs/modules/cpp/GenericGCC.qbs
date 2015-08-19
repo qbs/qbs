@@ -254,7 +254,7 @@ CppModule {
                 tags.push("infoplist");
             return tags;
         }
-        inputsFromDependencies: ["dynamiclibrary_copy", "framework_copy", "staticlibrary"]
+        inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
 
         outputFileTags: ["loadablemodule", "debuginfo"]
         outputArtifacts: {
