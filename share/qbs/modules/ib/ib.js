@@ -99,22 +99,9 @@ function ibtooldArguments(product, inputs, outputs, overrideOutput) {
     }
 
     // --minimum-deployment-target was introduced in Xcode 5.0
-    if (ModUtils.moduleProperty(product, "ibtoolVersionMajor") >= 5) {
-        if (product.moduleProperty("cpp", "minimumOsxVersion")) {
-            args.push("--minimum-deployment-target");
-            args.push(product.moduleProperty("cpp", "minimumOsxVersion"));
-        }
-
-        if (product.moduleProperty("cpp", "minimumIosVersion")) {
-            args.push("--minimum-deployment-target");
-            args.push(product.moduleProperty("cpp", "minimumIosVersion"));
-        }
-
-        if (product.moduleProperty("cpp", "minimumWatchosVersion")) {
-            args.push("--minimum-deployment-target");
-            args.push(product.moduleProperty("cpp", "minimumWatchosVersion"));
-        }
-    }
+    var minimumDarwinVersion = product.moduleProperty("cpp", "minimumDarwinVersion");
+    if (minimumDarwinVersion && ModUtils.moduleProperty(product, "ibtoolVersionMajor") >= 5)
+        args.push("--minimum-deployment-target", minimumDarwinVersion);
 
     // --target-device and -output-partial-info-plist were introduced in Xcode 6.0 for ibtool
     if (ModUtils.moduleProperty(product, "ibtoolVersionMajor") >= 6 || compilingAssetCatalogs) {

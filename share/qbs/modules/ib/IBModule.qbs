@@ -171,15 +171,9 @@ Module {
             cmd.highlight = 'compiler';
 
             // May not be strictly needed, but is set by some versions of Xcode
-            if (input.fileTags.contains("storyboard")) {
-                var targetOS = product.moduleProperty("qbs", "targetOS");
-                if (targetOS.contains("ios"))
-                    cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" + product.moduleProperty("cpp", "minimumIosVersion"));
-                if (targetOS.contains("osx"))
-                    cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" + product.moduleProperty("cpp", "minimumOsxVersion"));
-                if (targetOS.contains("watchos"))
-                    cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" + product.moduleProperty("cpp", "minimumWatchosVersion"));
-            }
+            if (input.fileTags.contains("storyboard"))
+                cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" +
+                                     (product.moduleProperty("cpp", "minimumDarwinVersion") || ""));
 
             cmd.stdoutFilterFunction = function(output) {
                 return "";
