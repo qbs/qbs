@@ -936,7 +936,7 @@ void TestApi::fileTagsFilterOverride()
     QList<qbs::InstallableFile> installableFiles
             = project.installableFilesForProduct(product, qbs::InstallOptions());
     QCOMPARE(installableFiles.count(), 1);
-    QVERIFY(installableFiles.first().targetDirectory().contains("habicht"));
+    QVERIFY(installableFiles.first().targetFilePath().contains("habicht"));
 }
 
 void TestApi::infiniteLoopBuilding()

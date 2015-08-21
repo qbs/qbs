@@ -1010,12 +1010,12 @@ QList<InstallableFile> Project::installableFilesForProduct(const ProductData &pr
             InstallableFile f;
             const QString &targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
                     internalProduct->sourceDirectory,
-                    artifact->absoluteFilePath, artifact->properties, mutableOptions,
-                    &f.d->targetDirectory);
+                    artifact->absoluteFilePath, artifact->properties, mutableOptions);
             if (targetFilePath.isEmpty())
                 continue;
             f.d->sourceFilePath = artifact->absoluteFilePath;
             f.d->fileTags = artifact->fileTags.toStringList();
+            f.d->targetFilePath = targetFilePath;
             f.d->isValid = true;
             installableFiles << f;
         }
@@ -1029,12 +1029,12 @@ QList<InstallableFile> Project::installableFilesForProduct(const ProductData &pr
             InstallableFile f;
             const QString &targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
                     internalProduct->sourceDirectory,
-                    artifact->filePath(), artifact->properties, mutableOptions,
-                    &f.d->targetDirectory);
+                    artifact->filePath(), artifact->properties, mutableOptions);
             if (targetFilePath.isEmpty())
                 continue;
             f.d->sourceFilePath = artifact->filePath();
             f.d->fileTags = artifact->fileTags().toStringList();
+            f.d->targetFilePath = targetFilePath;
             f.d->isValid = true;
             installableFiles << f;
         }

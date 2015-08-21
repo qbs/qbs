@@ -51,7 +51,7 @@ public:
 
     static QString targetFilePath(const TopLevelProject *project, const QString &productSourceDir,
             const QString &sourceFilePath, const PropertyMapConstPtr &properties,
-            InstallOptions &options, QString *targetDirectory = 0);
+            InstallOptions &options);
     static void initInstallRoot(const TopLevelProject *project, InstallOptions &options);
 
     void removeInstallRoot();

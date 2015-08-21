@@ -171,7 +171,6 @@ public:
     bool isValid() const;
 
     QString sourceFilePath() const;
-    QString targetDirectory() const;
     QString targetFilePath() const;
     QStringList fileTags() const;
     bool isExecutable() const;
