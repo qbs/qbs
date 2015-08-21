@@ -80,8 +80,6 @@ QString FileInfo::path(const QString &fp)
 {
     if (fp.isEmpty())
         return QString();
-    if (fp.at(fp.size() - 1) == QLatin1Char('/'))
-        return fp;
     int last = fp.lastIndexOf(QLatin1Char('/'));
     if (last < 0)
         return QLatin1String(".");
