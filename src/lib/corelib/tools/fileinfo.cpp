@@ -31,7 +31,6 @@
 #include "fileinfo.h"
 
 #include <logging/translator.h>
-#include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
 
 #include <QCoreApplication>
@@ -76,7 +75,7 @@ QString FileInfo::completeBaseName(const QString &fp)
     return fn.mid(0, dot);
 }
 
-QString FileInfo::path(const QString &fp)
+QString FileInfo::path(const QString &fp, HostOsInfo::HostOs hostOs)
 {
     if (fp.isEmpty())
         return QString();
@@ -84,7 +83,7 @@ QString FileInfo::path(const QString &fp)
     if (last < 0)
         return QLatin1String(".");
     QString p = QDir::cleanPath(fp.mid(0, last));
-    if (p.isEmpty() || (HostOsInfo::isWindowsHost() && p.length() == 2 && p.at(0).isLetter()
+    if (p.isEmpty() || (hostOs == HostOsInfo::HostOsWindows && p.length() == 2 && p.at(0).isLetter()
             && p.at(1) == QLatin1Char(':'))) {
         // Make sure we don't return Windows drive roots without an ending slash.
         // Those paths are considered relative.
@@ -123,7 +122,7 @@ bool FileInfo::exists(const QString &fp)
 }
 
 // from creator/src/shared/proparser/ioutils.cpp
-bool FileInfo::isAbsolute(const QString &path)
+bool FileInfo::isAbsolute(const QString &path, HostOsInfo::HostOs hostOs)
 {
     const int n = path.size();
     if (n == 0)
@@ -131,7 +130,7 @@ bool FileInfo::isAbsolute(const QString &path)
     const QChar at0 = path.at(0);
     if (at0 == QLatin1Char('/'))
         return true;
-    if (HostOsInfo::isWindowsHost()) {
+    if (hostOs == HostOsInfo::HostOsWindows) {
         if (at0 == QLatin1Char('\\'))
             return true;
         // Unlike QFileInfo, this won't accept a relative path with a drive letter.
