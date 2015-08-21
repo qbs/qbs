@@ -592,6 +592,22 @@ void TestBlackbox::clean()
     foreach (const QString &symLink, symlinks)
         QVERIFY2(!symlinkExists(symLink), qPrintable(symLink));
 
+    // Remove all, with a forced re-resolve in between.
+    // This checks that rescuable artifacts are also removed.
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "cpp.optimization:none")), 0);
+    QVERIFY(regularFileExists(appObjectFilePath));
+    QVERIFY(regularFileExists(appExeFilePath));
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList() << "cpp.optimization:fast")), 0);
+    QVERIFY(regularFileExists(appObjectFilePath));
+    QVERIFY(regularFileExists(appExeFilePath));
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"), QStringList("--all-artifacts"))), 0);
+    QVERIFY(!QFile(appObjectFilePath).exists());
+    QVERIFY(!QFile(appExeFilePath).exists());
+    QVERIFY(!QFile(depObjectFilePath).exists());
+    QVERIFY(!QFile(depLibFilePath).exists());
+    foreach (const QString &symLink, symlinks)
+        QVERIFY2(!symlinkExists(symLink), qPrintable(symLink));
+
     // Dry run.
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
