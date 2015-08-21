@@ -22,6 +22,8 @@ Product {
                 output.writeLine(FileInfo.fromWindowsSeparators("c:\\tmp\\blubb.tar.gz"));
                 output.writeLine(FileInfo.isAbsolutePath("/tmp/blubb.tar.gz"));
                 output.writeLine(FileInfo.isAbsolutePath("c:\\tmp\\blubb.tar.gz"));
+                output.writeLine(FileInfo.isAbsolutePath("c:\\tmp\\blubb.tar.gz", ["unix"]));
+                output.writeLine(FileInfo.isAbsolutePath("c:\\tmp\\blubb.tar.gz", ["windows"]));
                 output.writeLine(FileInfo.isAbsolutePath("blubb.tar.gz"));
                 output.writeLine(FileInfo.isAbsolutePath("../blubb.tar.gz"));
                 output.writeLine(FileInfo.joinPaths("/", "tmp", "blubb.tar.gz"));
@@ -29,6 +31,8 @@ Product {
                 output.writeLine(FileInfo.path("/tmp/"));
                 output.writeLine(FileInfo.path("/"));
                 output.writeLine(FileInfo.path("d:/"));
+                output.writeLine(FileInfo.path("d:/", ["unix"]));
+                output.writeLine(FileInfo.path("d:/", ["windows"]));
                 output.writeLine(FileInfo.relativePath("/tmp", "/tmp/blubb.tar.gz"));
                 output.writeLine(FileInfo.relativePath("/", "/tmp/blubb.tar.gz"));
                 output.writeLine(FileInfo.relativePath("/tmp", "/blubb.tar.gz"));

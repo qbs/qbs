@@ -2,6 +2,7 @@ QT += xml
 
 HEADERS += \
     $$PWD/file.h \
+    $$PWD/fileinfoextension.h \
     $$PWD/temporarydir.h \
     $$PWD/textfile.h \
     $$PWD/process.h \
@@ -11,6 +12,7 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/file.cpp \
+    $$PWD/fileinfoextension.cpp \
     $$PWD/temporarydir.cpp \
     $$PWD/textfile.cpp \
     $$PWD/process.cpp \

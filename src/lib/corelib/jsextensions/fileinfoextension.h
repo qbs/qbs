@@ -28,57 +28,17 @@
 **
 ****************************************************************************/
 
-#include "jsextensions.h"
+#ifndef QBS_FILEINFOEXTENSION_H
+#define QBS_FILEINFOEXTENSION_H
 
-#include "domxml.h"
-#include "file.h"
-#include "fileinfoextension.h"
-#include "process.h"
-#include "propertylist.h"
-#include "temporarydir.h"
-#include "textfile.h"
-
-#include <QScriptEngine>
+#include <QScriptValue>
 
 namespace qbs {
 namespace Internal {
 
-void JsExtensions::setupExtensions(const QStringList &names, QScriptValue scope)
-{
-    foreach (const QString &name, names)
-        initializers().value(name)(scope);
-}
-
-QScriptValue JsExtensions::loadExtension(QScriptEngine *engine, const QString &name)
-{
-    if (!hasExtension(name))
-        return QScriptValue();
-
-    QScriptValue extensionObj = engine->newObject();
-    initializers().value(name)(extensionObj);
-    return extensionObj.property(name);
-}
-
-bool JsExtensions::hasExtension(const QString &name)
-{
-    return initializers().contains(name);
-}
-
-JsExtensions::InitializerMap JsExtensions::initializers()
-{
-    if (m_initializers.isEmpty()) {
-        m_initializers.insert(QLatin1String("File"), &initializeJsExtensionFile);
-        m_initializers.insert(QLatin1String("FileInfo"), &initializeJsExtensionFileInfo);
-        m_initializers.insert(QLatin1String("Process"), &initializeJsExtensionProcess);
-        m_initializers.insert(QLatin1String("Xml"), &initializeJsExtensionXml);
-        m_initializers.insert(QLatin1String("TemporaryDir"), &initializeJsExtensionTemporaryDir);
-        m_initializers.insert(QLatin1String("TextFile"), &initializeJsExtensionTextFile);
-        m_initializers.insert(QLatin1String("PropertyList"), &initializeJsExtensionPropertyList);
-    }
-    return m_initializers;
-}
-
-JsExtensions::InitializerMap JsExtensions::m_initializers;
+void initializeJsExtensionFileInfo(QScriptValue extensionObject);
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_FILEINFOEXTENSION_H

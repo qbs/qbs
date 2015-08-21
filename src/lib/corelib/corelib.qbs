@@ -169,6 +169,8 @@ QbsLibrary {
         files: [
             "file.cpp",
             "file.h",
+            "fileinfoextension.cpp",
+            "fileinfoextension.h",
             "jsextensions.cpp",
             "jsextensions.h",
             "moduleproperties.cpp",
