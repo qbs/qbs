@@ -92,8 +92,12 @@ private:
             if (inner == m_propertiesBlock && it.key() == QLatin1String("condition"))
                 continue;
             if (it.value()->type() == Value::ItemValueType) {
-                doApply(outer->itemProperty(it.key(), true)->item(),
-                      it.value().staticCast<ItemValue>()->item());
+                ItemValuePtr outerVal = outer->itemProperty(it.key());
+                if (!outerVal) {
+                    outerVal = ItemValue::create(Item::create(outer->pool()), true);
+                    outer->setProperty(it.key(), outerVal);
+                }
+                doApply(outerVal->item(), it.value().staticCast<ItemValue>()->item());
             } else if (it.value()->type() == Value::JSSourceValueType) {
                 const ValuePtr outerVal = outer->property(it.key());
                 if (Q_UNLIKELY(outerVal && outerVal->type() != Value::JSSourceValueType)) {
@@ -113,7 +117,7 @@ private:
     {
         QBS_ASSERT(!value || value->file() == conditionalValue->file(), return);
         if (!value) {
-            value = JSSourceValue::create();
+            value = JSSourceValue::create(true);
             value->setFile(conditionalValue->file());
             item->setProperty(propertyName, value);
             static const QString baseKeyword = QLatin1String("base");

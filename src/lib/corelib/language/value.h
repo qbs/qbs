@@ -51,7 +51,7 @@ public:
         BuiltinValueType
     };
 
-    Value(Type t);
+    Value(Type t, bool createdByPropertiesBlock);
     virtual ~Value();
 
     Type type() const { return m_type; }
@@ -65,10 +65,13 @@ public:
     ValuePtr next() const;
     void setNext(const ValuePtr &next);
 
+    bool createdByPropertiesBlock() const { return m_createdByPropertiesBlock; }
+
 private:
     Type m_type;
     Item *m_definingItem;
     ValuePtr m_next;
+    const bool m_createdByPropertiesBlock;
 };
 
 class ValueHandler
@@ -83,7 +86,7 @@ public:
 class JSSourceValue : public Value
 {
     friend class ItemReaderASTVisitor;
-    JSSourceValue();
+    JSSourceValue(bool createdByPropertiesBlock);
 
     enum Flag
     {
@@ -96,7 +99,7 @@ class JSSourceValue : public Value
     Q_DECLARE_FLAGS(Flags, Flag)
 
 public:
-    static JSSourceValuePtr create();
+    static JSSourceValuePtr create(bool createdByPropertiesBlock = false);
     ~JSSourceValue();
 
     void apply(ValueHandler *handler) { handler->handle(this); }
@@ -154,9 +157,9 @@ private:
 
 class ItemValue : public Value
 {
-    ItemValue(Item *item);
+    ItemValue(Item *item, bool createdByPropertiesBlock);
 public:
-    static ItemValuePtr create(Item *item);
+    static ItemValuePtr create(Item *item, bool createdByPropertiesBlock = false);
 
     Item *item() const { return m_item; }
 

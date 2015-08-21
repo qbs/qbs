@@ -159,13 +159,23 @@ Project {
             cpp.defines: ["OVERWRITTEN"]
         }
     }
-
     Product {
         name: "using_derived_Properties_item"
         Depends { name: "dummy" }
         MyProperties {
             condition: true
             dummy.defines: ["string from MyProperties"]
+        }
+    }
+    Product {
+        name: "conditional-depends"
+        Depends {
+            name: "dummy"
+            condition: false
+        }
+        Properties {
+            condition: false
+            dummy.defines: ["a string"]
         }
     }
 }

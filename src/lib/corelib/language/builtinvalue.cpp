@@ -34,7 +34,7 @@ namespace qbs {
 namespace Internal {
 
 BuiltinValue::BuiltinValue(Builtin builtin)
-    : Value(Value::BuiltinValueType)
+    : Value(Value::BuiltinValueType, false)
     , m_builtin(builtin)
 {
 }

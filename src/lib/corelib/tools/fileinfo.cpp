@@ -63,7 +63,7 @@ QString FileInfo::baseName(const QString &fp)
     QString fn = fileName(fp);
     int dot = fn.indexOf(QLatin1Char('.'));
     if (dot < 0)
-        return fp;
+        return fn;
     return fn.mid(0, dot);
 }
 
@@ -72,7 +72,7 @@ QString FileInfo::completeBaseName(const QString &fp)
     QString fn = fileName(fp);
     int dot = fn.lastIndexOf(QLatin1Char('.'));
     if (dot < 0)
-        return fp;
+        return fn;
     return fn.mid(0, dot);
 }
 

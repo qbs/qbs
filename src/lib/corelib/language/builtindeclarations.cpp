@@ -269,7 +269,7 @@ void BuiltinDeclarations::addModuleLikeItem(ItemType type)
     item << PropertyDeclaration(QLatin1String("validate"),
                                       PropertyDeclaration::Variant,
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("additionalProductFileTags"),
+    item << PropertyDeclaration(QLatin1String("additionalProductTypes"),
                                       PropertyDeclaration::Variant);
     PropertyDeclaration presentDecl(QLatin1String("present"), PropertyDeclaration::Boolean);
     presentDecl.setInitialValueSource(QLatin1String("true"));

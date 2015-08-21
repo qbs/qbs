@@ -177,6 +177,8 @@ Module {
                     }
 
                     args.push("-r", output.filePath, ".", "-i@" + input.filePath);
+                } else {
+                    throw "Unknown zip tool '" + binaryName + "'";
                 }
 
                 args = args.concat(product.moduleProperty("archiver", "flags"));

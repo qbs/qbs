@@ -512,6 +512,7 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("properties-item-with-invalid-condition")
             << "TypeError: Result of expression 'cpp.nonexistingproperty'";
     QTest::newRow("misused-inherited-property") << "Binding to non-item property";
+    QTest::newRow("undeclared_property_in_Properties_item") << "Item 'blubb' is not declared";
 }
 
 void TestLanguage::erroneousFiles()
@@ -530,6 +531,7 @@ void TestLanguage::erroneousFiles()
         return;
     }
     QEXPECT_FAIL("misused-inherited-property", "QBS-847", Continue);
+    QEXPECT_FAIL("undeclared_property_in_Properties_item", "Too expensive to check", Continue);
     QVERIFY(!"No error thrown on invalid input.");
 }
 
@@ -1414,6 +1416,10 @@ void TestLanguage::propertiesBlocks_data()
             << QString();
     QTest::newRow("using_derived_Properties_item") << "dummy.defines"
             << (QStringList() << "string from MyProperties") << QString();
+    QTest::newRow("conditional-depends")
+            << QString("dummy.defines")
+            << QStringList()
+            << QString();
     QTest::newRow("cleanup") << QString() << QStringList() << QString();
 }
 

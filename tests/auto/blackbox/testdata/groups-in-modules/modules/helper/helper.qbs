@@ -4,7 +4,7 @@ import qbs.FileInfo
 Module {
     Depends { name: "cpp" }
 
-    additionalProductFileTags: ["diamond"]
+    additionalProductTypes: ["diamond"]
 
     Group {
         name: "Helper Sources"

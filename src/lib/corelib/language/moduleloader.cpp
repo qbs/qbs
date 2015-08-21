@@ -177,9 +177,11 @@ public:
 private:
     void handle(JSSourceValue *value)
     {
-        const ErrorInfo error(Tr::tr("Property '%1' is not declared.")
-                              .arg(m_currentName), value->location());
-        handlePropertyError(error, m_params, m_logger);
+        if (!value->createdByPropertiesBlock()) {
+            const ErrorInfo error(Tr::tr("Property '%1' is not declared.")
+                                  .arg(m_currentName), value->location());
+            handlePropertyError(error, m_params, m_logger);
+        }
     }
 
     void handle(ItemValue *value)
@@ -187,7 +189,8 @@ private:
         if (value->item()->type() != ItemType::ModuleInstance
                 && value->item()->type() != ItemType::ModulePrefix
                 && m_parentItem->file()
-                && !m_parentItem->file()->idScope()->hasProperty(m_currentName)) {
+                && !m_parentItem->file()->idScope()->hasProperty(m_currentName)
+                && !value->createdByPropertiesBlock()) {
             const ErrorInfo error(Tr::tr("Item '%1' is not declared. "
                                          "Did you forget to add a Depends item?").arg(m_currentName),
                                   value->location().isValid() ? value->location()
