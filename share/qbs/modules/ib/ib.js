@@ -113,9 +113,9 @@ function ibtooldArguments(product, inputs, outputs, overrideOutput) {
 
     // --target-device and -output-partial-info-plist were introduced in Xcode 6.0 for ibtool
     if (ModUtils.moduleProperty(product, "ibtoolVersionMajor") >= 6 || compilingAssetCatalogs) {
-        if (outputs && outputs.partial_infoplist) {
-            args.push("--output-partial-info-plist", outputs.partial_infoplist[0].filePath);
-        }
+        args.push("--output-partial-info-plist", (outputs && outputs.partial_infoplist)
+                  ? outputs.partial_infoplist[0].filePath
+                  : "/dev/null");
 
         if (product.moduleProperty("qbs", "targetOS").contains("osx"))
             args.push("--target-device", "mac");
