@@ -38,7 +38,6 @@ import 'ib.js' as Ib
 
 Module {
     Depends { name: "cpp" } // to put toolchainInstallPath in the PATH for actool
-    Depends { name: "bundle" }
 
     condition: qbs.hostOS.contains("darwin") && qbs.targetOS.contains("darwin")
 
@@ -79,13 +78,6 @@ Module {
     property int ibtoolVersionMinor: ibtoolVersionParts[1]
     property int ibtoolVersionPatch: ibtoolVersionParts[2]
 
-    property path actoolOutputDirectory: {
-        var dir = product.destinationDirectory;
-        if (bundle.isBundle)
-            dir = FileInfo.joinPaths(dir, bundle.unlocalizedResourcesFolderPath);
-        return dir;
-    }
-
     validate: {
         var validator = new ModUtils.PropertyValidator("ib");
         validator.setRequiredProperty("ibtoolVersion", ibtoolVersion);
@@ -123,14 +115,9 @@ Module {
         inputs: ["iconset"]
 
         Artifact {
-            filePath: {
-                var outputDirectory = product.destinationDirectory;
-                if (product.moduleProperty("bundle", "isBundle")) {
-                    outputDirectory = FileInfo.joinPaths(outputDirectory,
-                                            product.moduleProperty("bundle", "unlocalizedResourcesFolderPath"));
-                }
-                return FileInfo.joinPaths(outputDirectory, input.completeBaseName + ModUtils.moduleProperty(product, "appleIconSuffix"))
-            }
+            filePath: FileInfo.joinPaths(BundleTools.destinationDirectoryForResource(product, input),
+                                         input.completeBaseName +
+                                         ModUtils.moduleProperty(product, "appleIconSuffix"))
             fileTags: ["icns"]
         }
 
