@@ -1626,6 +1626,14 @@ void TestLanguage::wildcards_data()
             << (QStringList() << "*.h")
             << QStringList()
             << (QStringList() << "subdir/foo.h" << "subdir/bar.h");
+    QTest::newRow(QByteArray("non-existing absolute path"))
+            << useGroup
+            << QStringList()
+            << QString()
+            << QString("/dir")
+            << (QStringList() << "*.whatever")
+            << QStringList()
+            << QStringList();
 }
 
 void TestLanguage::wildcards()
