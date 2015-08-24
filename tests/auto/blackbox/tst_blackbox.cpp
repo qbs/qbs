@@ -1128,30 +1128,29 @@ void TestBlackbox::reproducibleBuild()
 {
     Settings s((QString()));
     const Profile profile(profileName(), &s);
-    if (!profile.value("qbs.toolchain").toStringList().contains("gcc"))
-        QSKIP("reproducible builds only supported for gcc-like compilers");
+    const QStringList toolchains = profile.value("qbs.toolchain").toStringList();
+    if (!toolchains.contains("gcc") || toolchains.contains("clang"))
+        QSKIP("reproducible builds only supported for gcc");
 
     QFETCH(bool, reproducible);
-    if (!reproducible)
-        QSKIP("TODO: Find out how to provoke a non-reproducible build");
 
     QDir::setCurrent(testDataDir + "/reproducible-build");
     QbsRunParameters params;
     params.arguments << QString("cpp.enableReproducibleBuilds:")
                         + (reproducible ? "true" : "false");
     QCOMPARE(runQbs(params), 0);
-    QFile exe(relativeExecutableFilePath("the product"));
-    QVERIFY(exe.open(QIODevice::ReadOnly));
-    const QByteArray oldContents = exe.readAll();
-    exe.close();
+    QFile object(relativeProductBuildDir("the product") + "/.obj/" + inputDirHash(".") + '/'
+                 + objectFileName("file1.cpp", profileName()));
+    QVERIFY2(object.open(QIODevice::ReadOnly), qPrintable(object.fileName()));
+    const QByteArray oldContents = object.readAll();
+    object.close();
     QbsRunParameters cleanParams = params;
     cleanParams.command = "clean";
-    cleanParams.arguments.prepend("--all-artifacts");
     QCOMPARE(runQbs(cleanParams), 0);
-    QVERIFY(!exe.exists());
+    QVERIFY(!object.exists());
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(exe.open(QIODevice::ReadOnly));
-    const QByteArray newContents = exe.readAll();
+    QVERIFY(object.open(QIODevice::ReadOnly));
+    const QByteArray newContents = object.readAll();
     QCOMPARE(oldContents == newContents, reproducible);
     QCOMPARE(runQbs(cleanParams), 0);
 }
