@@ -1,10 +1,24 @@
 import qbs
 
-Product {
-    Depends { name: "helper" }
-    type: ["diamond"]
+Project {
+    Product {
+        Depends { name: "dep" }
+        Depends { name: "helper" }
+        Depends {
+            name: "helper3"
+            required: false
+        }
+        type: ["diamond"]
 
-    files: [
-        "rock.coal"
-    ]
+        files: [
+            "rock.coal"
+        ]
+    }
+
+    Product {
+        name: "dep"
+        Export {
+            Depends { name: "helper4" }
+        }
+    }
 }

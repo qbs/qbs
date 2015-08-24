@@ -2812,6 +2812,11 @@ void TestBlackbox::groupsInModules()
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("compile rock.coal => rock.diamond"));
     QVERIFY(m_qbsStdout.contains("compile chunk.coal => chunk.diamond"));
+    QVERIFY(m_qbsStdout.contains("compiling helper2.c"));
+    QVERIFY(!m_qbsStdout.contains("compiling helper3.c"));
+    QVERIFY(m_qbsStdout.contains("compiling helper4.c"));
+    QVERIFY(m_qbsStdout.contains("compiling helper5.c"));
+    QVERIFY(!m_qbsStdout.contains("compiling helper6.c"));
 
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compile rock.coal => rock.diamond"));

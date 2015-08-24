@@ -156,7 +156,7 @@ Module {
         name: "io.qt.qbs.internal.typescript-helper"
         files: [
             FileInfo.joinPaths(path, "qbs-tsc-scan", "qbs-tsc-scan.ts"),
-            FileInfo.joinPaths(product.typescript.toolchainInstallPath, "typescript.d.ts")
+            FileInfo.joinPaths(typescript.toolchainInstallPath, "typescript.d.ts")
         ]
         fileTags: ["typescript.typescript-internal"]
     }

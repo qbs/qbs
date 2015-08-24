@@ -451,7 +451,7 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
         m_productContext->product->modules += module;
 
     ItemFuncMap mapping;
-    mapping["Group"] = &ProjectResolver::resolveGroup;
+    mapping["Group"] = &ProjectResolver::ignoreItem;
     mapping["Rule"] = &ProjectResolver::resolveRule;
     mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
     mapping["Transformer"] = &ProjectResolver::resolveTransformer;
