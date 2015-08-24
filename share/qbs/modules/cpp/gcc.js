@@ -389,11 +389,13 @@ function compilerFlags(product, input, output) {
     args.push('-pipe');
 
     if (ModUtils.moduleProperty(input, "enableReproducibleBuilds")) {
-        var hashString = FileInfo.relativePath(project.sourceDirectory, input.filePath);
-        var hash = qbs.getHash(hashString);
-        args.push("-frandom-seed=" + hash);
-
         var toolchain = product.moduleProperty("qbs", "toolchain");
+        if (!toolchain.contains("clang")) {
+            var hashString = FileInfo.relativePath(project.sourceDirectory, input.filePath);
+            var hash = qbs.getHash(hashString);
+            args.push("-frandom-seed=0x" + hash.substring(0, 8));
+        }
+
         var major = product.moduleProperty("cpp", "compilerVersionMajor");
         var minor = product.moduleProperty("cpp", "compilerVersionMinor");
         if ((toolchain.contains("clang") && (major > 3 || (major === 3 && minor >= 5))) ||
