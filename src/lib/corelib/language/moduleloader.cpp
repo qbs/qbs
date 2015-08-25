@@ -58,6 +58,8 @@
 #include <QDirIterator>
 #include <QPair>
 
+#include <algorithm>
+
 namespace qbs {
 namespace Internal {
 
@@ -691,14 +693,8 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
         if (child->type() == ItemType::Depends)
             resolveDependsItem(dependsContext, item, child, &loadedModules, &productDependencies);
 
-    QSet<QString> loadedModuleNames;
-    foreach (const Item::Module &module, loadedModules) {
-        const QString fullName = module.name.toString();
-        if (loadedModuleNames.contains(fullName))
-            continue;
-        loadedModuleNames.insert(fullName);
+    foreach (const Item::Module &module, loadedModules)
         item->addModule(module);
-    }
 
     dependsContext->productDependencies->append(productDependencies);
 }
@@ -765,6 +761,13 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
 
     Item::Module result;
     foreach (const QualifiedId &moduleName, moduleNames) {
+        // Don't load the same module twice. Duplicate Depends statements can easily
+        // happen due to inheritance.
+        const auto it = std::find_if(moduleResults->constBegin(), moduleResults->constEnd(),
+                [moduleName](const Item::Module &m) { return m.name == moduleName; });
+        if (it != moduleResults->constEnd())
+            continue;
+
         const bool isRequired
                 = m_evaluator->boolValue(dependsItem, QLatin1String("required"));
         Item *moduleItem = loadModule(dependsContext->product, item, dependsItem->location(),
