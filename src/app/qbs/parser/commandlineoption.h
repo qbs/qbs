@@ -51,7 +51,6 @@ public:
         ShowProgressOptionType,
         ChangedFilesOptionType,
         ProductsOptionType,
-        AllArtifactsOptionType,
         NoInstallOptionType,
         InstallRootOptionType, RemoveFirstOptionType, NoBuildOptionType,
         ForceOptionType,
@@ -212,13 +211,6 @@ class NoInstallOption : public OnOffOption
 class ShowProgressOption : public OnOffOption
 {
 public:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
-};
-
-class AllArtifactsOption : public OnOffOption
-{
     QString description(CommandType command) const;
     QString shortRepresentation() const { return QString(); }
     QString longRepresentation() const;

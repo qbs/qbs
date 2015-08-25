@@ -38,11 +38,10 @@ class CleanOptionsPrivate : public QSharedData
 {
 public:
     CleanOptionsPrivate()
-        : cleanType(CleanOptions::CleanupAll), dryRun(false),
+        : dryRun(false),
           keepGoing(false), logElapsedTime(false)
     { }
 
-    CleanOptions::CleanType cleanType;
     bool dryRun;
     bool keepGoing;
     bool logElapsedTime;
@@ -81,23 +80,6 @@ CleanOptions &CleanOptions::operator=(const CleanOptions &other)
 
 CleanOptions::~CleanOptions()
 {
-}
-
-/*!
- * \brief Returns information about which type of artifacts will be removed.
- */
-CleanOptions::CleanType CleanOptions::cleanType() const
-{
-    return d->cleanType;
-}
-
-/*!
- * \brief Controls which kind of artifacts to remove.
- * \sa CleanOptions::CleanType
- */
-void CleanOptions::setCleanType(CleanOptions::CleanType cleanType)
-{
-    d->cleanType = cleanType;
 }
 
 /*!

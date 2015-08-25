@@ -105,10 +105,6 @@ public:
         ArtifactVisitor::visitProduct(product);
         auto it = product->buildData->rescuableArtifactData.begin();
         while (it != product->buildData->rescuableArtifactData.end()) {
-            // TODO: This does not respect CleanOptions::cleanType(), because the information
-            // about whether an artifact is a target artifact is not stored in the RAD structure.
-            // Rather than add it there, we should get rid of the CleanType altogether, as it
-            // makes little sense.
             Artifact tmp;
             tmp.product = product;
             tmp.setFilePath(it.key());
@@ -129,13 +125,6 @@ private:
 
         if (artifact->product != m_product)
             return;
-        if (m_options.cleanType() == CleanOptions::CleanupTemporaries) {
-            QBS_CHECK(artifact->transformer);
-            foreach (Artifact * const sibling, artifact->transformer->outputs) {
-                if (artifact->product->targetArtifacts().contains(sibling))
-                    return;
-            }
-        }
         try {
             removeArtifactFromDisk(artifact, m_options.dryRun(), m_logger);
         } catch (const ErrorInfo &error) {

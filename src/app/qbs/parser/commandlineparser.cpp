@@ -163,8 +163,6 @@ CleanOptions CommandLineParser::cleanOptions(const QString &profile) const
 {
     Q_ASSERT(command() == CleanCommandType);
     CleanOptions options;
-    options.setCleanType(d->optionPool.allArtifactsOption()->enabled()
-                         ? CleanOptions::CleanupAll : CleanOptions::CleanupTemporaries);
     options.setDryRun(buildOptions(profile).dryRun());
     options.setKeepGoing(buildOptions(profile).keepGoing());
     options.setLogElapsedTime(logTime());

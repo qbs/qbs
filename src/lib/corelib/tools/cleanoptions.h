@@ -46,10 +46,6 @@ public:
     CleanOptions &operator=(const CleanOptions &other);
     ~CleanOptions();
 
-    enum CleanType { CleanupAll, CleanupTemporaries };
-    CleanType cleanType() const;
-    void setCleanType(CleanType cleanType);
-
     bool dryRun() const;
     void setDryRun(bool dryRun);
 

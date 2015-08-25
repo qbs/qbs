@@ -618,27 +618,11 @@ void TestBlackbox::clean()
 
     QDir::setCurrent(testDataDir + "/clean");
 
-    // Default behavior: Remove only temporaries.
+    // Default behavior: Remove all.
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
-    QVERIFY(regularFileExists(depObjectFilePath));
-    QVERIFY(regularFileExists(depLibFilePath));
-    foreach (const QString &symLink, symlinks)
-        QVERIFY2(regularFileExists(symLink), qPrintable(symLink));
-    QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
-    QVERIFY(!QFile(appObjectFilePath).exists());
-    QVERIFY(regularFileExists(appExeFilePath));
-    QVERIFY(!QFile(depObjectFilePath).exists());
-    QVERIFY(regularFileExists(depLibFilePath));
-    foreach (const QString &symLink, symlinks)
-        QVERIFY2(symlinkExists(symLink), qPrintable(symLink));
-
-    // Remove all.
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(regularFileExists(appObjectFilePath));
-    QVERIFY(regularFileExists(appExeFilePath));
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"), QStringList("--all-artifacts"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"))), 0);
     QVERIFY(!QFile(appObjectFilePath).exists());
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(!QFile(depObjectFilePath).exists());
@@ -654,7 +638,7 @@ void TestBlackbox::clean()
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList() << "cpp.optimization:fast")), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"), QStringList("--all-artifacts"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
     QVERIFY(!QFile(appObjectFilePath).exists());
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(!QFile(depObjectFilePath).exists());
@@ -666,8 +650,7 @@ void TestBlackbox::clean()
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"),
-                                     QStringList("--all-artifacts") << "-n")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"), QStringList("-n"))), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(regularFileExists(depObjectFilePath));
@@ -681,9 +664,7 @@ void TestBlackbox::clean()
     QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(regularFileExists(depObjectFilePath));
     QVERIFY(regularFileExists(depLibFilePath));
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"),
-                                     QStringList("--all-artifacts") << "-p" << "dep")),
-             0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"), QStringList("-p") << "dep")), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(!QFile(depObjectFilePath).exists());
@@ -697,9 +678,7 @@ void TestBlackbox::clean()
     QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(regularFileExists(depObjectFilePath));
     QVERIFY(regularFileExists(depLibFilePath));
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"),
-                                     QStringList("--all-artifacts") << "-p" << "app")),
-             0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"), QStringList("-p") << "app")), 0);
     QVERIFY(!QFile(appObjectFilePath).exists());
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(regularFileExists(depObjectFilePath));
@@ -1712,7 +1691,7 @@ void TestBlackbox::java()
     QVERIFY2(regularFileExists(jarFilePath), qPrintable(jarFilePath));
 
     // Now check whether we correctly predicted the class file output paths.
-    QCOMPARE(runQbs(QbsRunParameters("clean", QStringList() << "--all-artifacts")), 0);
+    QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
     foreach (const QString &classFile, classFiles1) {
         QVERIFY2(!regularFileExists(classFile), qPrintable(classFile));
     }

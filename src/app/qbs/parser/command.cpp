@@ -284,7 +284,7 @@ QList<CommandLineOption::Type> CleanCommand::supportedOptions() const
     options.removeOne(CommandLineOption::JobsOptionType);
     options.removeOne(CommandLineOption::BuildNonDefaultOptionType);
     options.removeOne(CommandLineOption::CommandEchoModeOptionType);
-    return options << CommandLineOption::AllArtifactsOptionType;
+    return options;
 }
 
 QString InstallCommand::shortDescription() const
