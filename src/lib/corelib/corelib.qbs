@@ -369,6 +369,8 @@ QbsLibrary {
             "shellutils.h",
             "version.cpp",
             "version.h",
+            "visualstudioversioninfo.cpp",
+            "visualstudioversioninfo.h",
             "weakpointer.h"
         ]
     }

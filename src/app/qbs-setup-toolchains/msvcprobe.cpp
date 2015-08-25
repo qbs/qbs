@@ -40,6 +40,7 @@
 #include <tools/architectures.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
+#include <tools/visualstudioversioninfo.h>
 
 #include <QDir>
 #include <QFileInfo>
@@ -161,30 +162,10 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
         msvc.installPath += QLatin1String("bin");
         findSupportedArchitectures(&msvc);
 
-        int nVersion = vsName.left(dotPos).toInt();
-        switch (nVersion) {
-        case 8:
-            msvc.version = QLatin1String("2005");
-            break;
-        case 9:
-            msvc.version = QLatin1String("2008");
-            break;
-        case 10:
-            msvc.version = QLatin1String("2010");
-            break;
-        case 11:
-            msvc.version = QLatin1String("2012");
-            break;
-        case 12:
-            msvc.version = QLatin1String("2013");
-            break;
-        case 14:
-            msvc.version = QLatin1String("2015");
-            break;
-        }
-
+        msvc.version = QString::number(Internal::VisualStudioVersionInfo(
+            Internal::Version::fromString(vsName)).marketingVersion());
         if (msvc.version.isEmpty()) {
-            qbsWarning() << Tr::tr("Unknown MSVC version %1 found.").arg(nVersion);
+            qbsWarning() << Tr::tr("Unknown MSVC version %1 found.").arg(vsName);
             continue;
         }
 

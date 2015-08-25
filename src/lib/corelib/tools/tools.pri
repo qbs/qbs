@@ -38,7 +38,8 @@ HEADERS += \
     $$PWD/qbsassert.h \
     $$PWD/qttools.h \
     $$PWD/settingscreator.h \
-    $$PWD/version.h
+    $$PWD/version.h \
+    $$PWD/visualstudioversioninfo.h
 
 SOURCES += \
     $$PWD/architectures.cpp \
@@ -70,7 +71,8 @@ SOURCES += \
     $$PWD/qbsassert.cpp \
     $$PWD/qttools.cpp \
     $$PWD/settingscreator.cpp \
-    $$PWD/version.cpp
+    $$PWD/version.cpp \
+    $$PWD/visualstudioversioninfo.cpp
 
 win32 {
     SOURCES += $$PWD/filetime_win.cpp
