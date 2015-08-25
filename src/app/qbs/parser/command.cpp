@@ -215,6 +215,7 @@ QList<CommandLineOption::Type> GenerateCommand::supportedOptions() const
             << CommandLineOption::VerboseOptionType
             << CommandLineOption::QuietOptionType
             << CommandLineOption::ShowProgressOptionType
+            << CommandLineOption::InstallRootOptionType
             << CommandLineOption::LogTimeOptionType
             << CommandLineOption::GeneratorOptionType;
 }
