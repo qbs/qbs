@@ -118,9 +118,9 @@ public:
         return QStringLiteral("LD_LIBRARY_PATH");
     }
 
-    static QChar pathListSeparator()
+    static QChar pathListSeparator(HostOsInfo::HostOs hostOs = HostOsInfo::hostOs())
     {
-        return isWindowsHost() ? QLatin1Char(';') : QLatin1Char(':');
+        return hostOs == HostOsWindows ? QLatin1Char(';') : QLatin1Char(':');
     }
 
     static Qt::KeyboardModifier controlModifier()
