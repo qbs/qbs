@@ -72,7 +72,7 @@ Module {
     property stringList toolchain
     property string architecture
     property bool install: false
-    property string installSourceBase
+    property path installSourceBase
     readonly property string installRoot: undefined
     property string installDir
     property string installPrefix: ""
