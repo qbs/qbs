@@ -1240,12 +1240,13 @@ static QList<Item *> collectItemsWithId(Item *item)
     return result;
 }
 
-static void copyNonOverriddenProperties(const Item *src, Item *dst)
+static void copyPropertiesFromExportItem(const Item *src, Item *dst)
 {
     const Item::PropertyMap &srcProps = src->properties();
     for (auto it = srcProps.constBegin(); it != srcProps.constEnd(); ++it) {
-        if (it.value()->type() != Value::JSSourceValueType || dst->hasOwnProperty(it.key()))
+        if (it.value()->type() != Value::JSSourceValueType)
             continue;
+        QBS_CHECK(!dst->hasOwnProperty(it.key()));
         dst->setProperty(it.key(), it.value());
     }
 }
@@ -1258,6 +1259,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     moduleInstance->setPrototype(modulePrototype);
     moduleInstance->setFile(modulePrototype->file());
     moduleInstance->setLocation(modulePrototype->location());
+    QBS_CHECK(moduleInstance->type() != ItemType::ModuleInstance);
     moduleInstance->setType(ItemType::ModuleInstance);
 
     // create module scope
@@ -1282,7 +1284,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
 
     if (exportingProduct) {
         if (!isProduct) {
-            copyNonOverriddenProperties(modulePrototype, moduleInstance);
+            copyPropertiesFromExportItem(modulePrototype, moduleInstance);
             moduleInstance->setPrototype(modulePrototype->prototype());
         }
 
