@@ -122,8 +122,11 @@ static QString gccMachineName(const QString &compilerFilePath)
 
 static QStringList standardCompilerFileNames()
 {
-    return QStringList() << QStringLiteral("gcc") << QStringLiteral("g++")
-                         << QStringLiteral("clang") << QStringLiteral("clang++");
+    return QStringList()
+            << HostOsInfo::appendExecutableSuffix(QStringLiteral("gcc"))
+            << HostOsInfo::appendExecutableSuffix(QStringLiteral("g++"))
+            << HostOsInfo::appendExecutableSuffix(QStringLiteral("clang"))
+            << HostOsInfo::appendExecutableSuffix(QStringLiteral("clang++"));
 }
 
 static void setCommonProperties(Profile &profile, const QString &compilerFilePath,
