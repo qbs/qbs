@@ -1240,14 +1240,6 @@ static QList<Item *> collectItemsWithId(Item *item)
     return result;
 }
 
-static Item *productOf(Item *item)
-{
-    do {
-        item = item->parent();
-    } while (item && item->type() != ItemType::Product);
-    return item;
-}
-
 static void copyNonOverriddenProperties(const Item *src, Item *dst)
 {
     const Item::PropertyMap &srcProps = src->properties();
@@ -1278,12 +1270,14 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
 
     if (isProduct) {
         exportingProduct = 0;
-        for (Item *exportItem = modulePrototype; exportItem; exportItem = exportItem->prototype()) {
-            exportingProduct = productOf(exportItem);
-            if (exportingProduct)
-                break;
+        for (Item *exportItem = modulePrototype; exportItem && !exportingProduct;
+             exportItem = exportItem->prototype()) {
+            // exportItem is either of type ModuleInstance or Export. Only the latter has
+            // a parent item, which is always of type Product.
+            exportingProduct = exportItem->parent();
         }
         QBS_CHECK(exportingProduct);
+        QBS_CHECK(exportingProduct->type() == ItemType::Product);
     }
 
     if (exportingProduct) {
