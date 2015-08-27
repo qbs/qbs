@@ -1424,6 +1424,23 @@ void TestLanguage::propertiesBlocks()
     }
 }
 
+void TestLanguage::qbsPropertiesInProjectCondition()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(
+                    testProject("qbs-properties-in-project-condition.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 0);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::qualifiedId()
 {
     QString str = "foo.bar.baz";

@@ -264,11 +264,8 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         TopLevelProjectContext *topLevelProjectContext, Item *item, const QString &buildDirectory,
         const QSet<QString> &referencedFilePaths)
 {
-    if (!checkItemCondition(item))
-        return;
     auto *p = new ProjectContext;
     auto &projectContext = *p;
-    topLevelProjectContext->projects << &projectContext;
     projectContext.topLevelProject = topLevelProjectContext;
     projectContext.result = loadResult;
     projectContext.buildDirectory = buildDirectory;
@@ -276,6 +273,11 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     dummyProductContext.project = &projectContext;
     dummyProductContext.moduleProperties = m_parameters.finalBuildConfigurationTree();
     loadBaseModule(&dummyProductContext, item);
+    if (!checkItemCondition(item)) {
+        delete p;
+        return;
+    }
+    topLevelProjectContext->projects << &projectContext;
     overrideItemProperties(item, QLatin1String("project"), m_parameters.overriddenValuesTree());
     const QString projectName = m_evaluator->stringValue(item, QLatin1String("name"));
     if (!projectName.isEmpty())
