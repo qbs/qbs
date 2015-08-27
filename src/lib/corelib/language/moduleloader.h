@@ -181,24 +181,25 @@ private:
 
     typedef QList<ModuleLoaderResult::ProductInfo::Dependency> ProductDependencyResults;
 
-    void handleTopLevelProject(ModuleLoaderResult *loadResult, Item *item,
+    void handleTopLevelProject(ModuleLoaderResult *loadResult, Item *projectItem,
             const QString &buildDirectory, const QSet<QString> &referencedFilePaths);
     void handleProject(ModuleLoaderResult *loadResult,
-            TopLevelProjectContext *topLevelProjectContext, Item *item,
+            TopLevelProjectContext *topLevelProjectContext, Item *projectItem,
             const QSet<QString> &referencedFilePaths);
     QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);
-    void prepareProduct(ProjectContext *projectContext, Item *item);
+    void prepareProduct(ProjectContext *projectContext, Item *productItem);
     void handleProduct(ProductContext *productContext);
-    void initProductProperties(const ProjectContext *project, Item *item);
-    void handleSubProject(ProjectContext *projectContext, Item *item,
+    void initProductProperties(const ProjectContext *project, Item *productItem);
+    void handleSubProject(ProjectContext *projectContext, Item *projectItem,
             const QSet<QString> &referencedFilePaths);
-    void handleGroup(ProductContext *productContext, Item *group);
+    void handleGroup(ProductContext *productContext, Item *groupItem);
     Item *mergeExportItems(ProductContext *productContext, const QVector<Item *> &exportItemsInProduct);
-    void propagateModulesFromProduct(ProductContext *productContext, Item *item);
+    void propagateModulesFromProduct(ProductContext *productContext, Item *groupItem);
     void resolveDependencies(DependsContext *dependsContext, Item *item);
     class ItemModuleList;
-    void resolveDependsItem(DependsContext *dependsContext, Item *item, Item *dependsItem, ItemModuleList *moduleResults, ProductDependencyResults *productResults);
-    Item *moduleInstanceItem(Item *item, const QualifiedId &moduleName);
+    void resolveDependsItem(DependsContext *dependsContext, Item *parentItem, Item *dependsItem,
+                            ItemModuleList *moduleResults, ProductDependencyResults *productResults);
+    Item *moduleInstanceItem(Item *containerItem, const QualifiedId &moduleName);
     Item *loadProductModule(ProductContext *productContext, const QString &moduleName);
     Item *loadModule(ProductContext *productContext, Item *item,
             const CodeLocation &dependsItemLocation, const QString &moduleId,
@@ -228,7 +229,7 @@ private:
     static void setScopeForDescendants(Item *item, Item *scope);
     void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                 const QVariantMap &buildConfig);
-    void addTransitiveDependencies(ProductContext *ctx, Item *item);
+    void addTransitiveDependencies(ProductContext *ctx);
     Item *createNonPresentModule(const QString &name, const QString &reason, Item *module);
 
     ScriptEngine *m_engine;
