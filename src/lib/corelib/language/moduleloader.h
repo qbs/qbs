@@ -189,7 +189,7 @@ private:
     QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);
     void prepareProduct(ProjectContext *projectContext, Item *productItem);
     void handleProduct(ProductContext *productContext);
-    void initProductProperties(const ProjectContext *project, Item *productItem);
+    void initProductProperties(const ProductContext &product);
     void handleSubProject(ProjectContext *projectContext, Item *projectItem,
             const QSet<QString> &referencedFilePaths);
     void handleGroup(ProductContext *productContext, Item *groupItem);

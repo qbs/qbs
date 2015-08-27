@@ -460,7 +460,6 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] prepareProduct " << productItem->file()->filePath();
 
-    initProductProperties(projectContext, productItem);
     ProductContext productContext;
     productContext.name = m_evaluator->stringValue(productItem, QLatin1String("name"));
     QBS_CHECK(!productContext.name.isEmpty());
@@ -484,6 +483,7 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     }
     productContext.item = productItem;
     productContext.project = projectContext;
+    initProductProperties(productContext);
 
     QVector<Item *> exportItems;
     foreach (Item *child, productItem->children()) {
@@ -540,17 +540,13 @@ void ModuleLoader::handleProduct(ProductContext *productContext)
     m_reader->popExtraSearchPaths();
 }
 
-void ModuleLoader::initProductProperties(const ProjectContext *project, Item *productItem)
+void ModuleLoader::initProductProperties(const ProductContext &product)
 {
-    const QString productName = m_evaluator->stringValue(productItem, QLatin1String("name"));
-    const QString profile = m_evaluator->stringValue(productItem, QLatin1String("profile"));
-    QBS_CHECK(!profile.isEmpty());
-    QString buildDir = ResolvedProduct::deriveBuildDirectoryName(productName, profile);
-    buildDir = FileInfo::resolvePath(project->topLevelProject->buildDirectory, buildDir);
-    productItem->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDir));
-    productItem->setProperty(QLatin1String("sourceDirectory"),
-                      VariantValue::create(
-                          QFileInfo(productItem->file()->filePath()).absolutePath()));
+    QString buildDir = ResolvedProduct::deriveBuildDirectoryName(product.name, product.profileName);
+    buildDir = FileInfo::resolvePath(product.project->topLevelProject->buildDirectory, buildDir);
+    product.item->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDir));
+    const QString sourceDir = QFileInfo(product.item->file()->filePath()).absolutePath();
+    product.item->setProperty(QLatin1String("sourceDirectory"), VariantValue::create(sourceDir));
 }
 
 void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext, Item *projectItem,
