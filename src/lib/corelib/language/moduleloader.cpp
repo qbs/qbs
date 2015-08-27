@@ -575,17 +575,6 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
         }
     }
 
-    if (loadedItem->type() != ItemType::Project) {
-        ErrorInfo error;
-        error.append(Tr::tr("Expected Project item, but encountered '%1'.")
-                     .arg(loadedItem->typeName()), loadedItem->location());
-        const ValuePtr &filePathProperty
-                = projectItem->properties().value(QLatin1String("filePath"));
-        error.append(Tr::tr("The problematic file was referenced from here."),
-                     filePathProperty->location());
-        throw error;
-    }
-
     Item::addChild(projectItem, loadedItem);
     projectItem->setScope(projectContext->scope);
     handleProject(projectContext->result, projectContext->topLevelProject, loadedItem,
