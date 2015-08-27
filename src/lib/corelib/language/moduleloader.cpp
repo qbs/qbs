@@ -128,8 +128,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     if (!root)
         return ModuleLoaderResult();
 
-    if (root->type() != ItemType::Project)
-        root = wrapWithProject(root);
+    root = wrapInProjectIfNecessary(root);
 
     const QString buildDirectory = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(),
             TopLevelProject::deriveId(parameters.topLevelProfile(),
@@ -562,8 +561,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
         throw ErrorInfo(Tr::tr("Cycle detected while loading subproject file '%1'.")
                             .arg(relativeFilePath), projectItem->location());
     Item *loadedItem = m_reader->readFile(subProjectFilePath);
-    if (loadedItem->type() == ItemType::Product)
-        loadedItem = wrapWithProject(loadedItem);
+    loadedItem = wrapInProjectIfNecessary(loadedItem);
     const bool inheritProperties
             = m_evaluator->boolValue(projectItem, QLatin1String("inheritProperties"), true);
 
@@ -1513,8 +1511,10 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
     }
 }
 
-Item *ModuleLoader::wrapWithProject(Item *item)
+Item *ModuleLoader::wrapInProjectIfNecessary(Item *item)
 {
+    if (item->type() == ItemType::Project)
+        return item;
     Item *prj = Item::create(item->pool(), ItemType::Project);
     Item::addChild(prj, item);
     prj->setTypeName(QLatin1String("Project"));

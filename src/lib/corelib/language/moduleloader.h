@@ -222,7 +222,7 @@ private:
     void checkItemTypes(Item *item);
     QStringList readExtraSearchPaths(Item *item, bool *wasSet = 0);
     void copyProperties(const Item *sourceProject, Item *targetProject);
-    Item *wrapWithProject(Item *item);
+    Item *wrapInProjectIfNecessary(Item *item);
     static QString findExistingModulePath(const QString &searchPath,
             const QualifiedId &moduleName);
     static void setScopeForDescendants(Item *item, Item *scope);
