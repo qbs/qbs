@@ -137,7 +137,6 @@ private:
         ModuleLoaderResult::ProductInfo info;
         QString name;
         QString profileName;
-        QSet<FileContextConstPtr> filesWithExportItem;
         QVariantMap moduleProperties;
     };
 
@@ -193,7 +192,7 @@ private:
     void handleSubProject(ProjectContext *projectContext, Item *projectItem,
             const QSet<QString> &referencedFilePaths);
     void handleGroup(ProductContext *productContext, Item *groupItem);
-    Item *mergeExportItems(ProductContext *productContext, const QVector<Item *> &exportItemsInProduct);
+    void mergeExportItems(const ProductContext &productContext);
     void propagateModulesFromProduct(ProductContext *productContext, Item *groupItem);
     void resolveDependencies(DependsContext *dependsContext, Item *item);
     class ItemModuleList;

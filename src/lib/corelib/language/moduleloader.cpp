@@ -485,15 +485,7 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     productContext.project = projectContext;
     initProductProperties(productContext);
 
-    QVector<Item *> exportItems;
-    foreach (Item *child, productItem->children()) {
-        if (child->type() == ItemType::Export)
-            exportItems << child;
-    }
-
-    Item *mergedExportItem = mergeExportItems(&productContext, exportItems);
-    ProductModuleInfo &pmi = projectContext->topLevelProject->productModules[productContext.name];
-    pmi.exportItem = mergedExportItem;
+    mergeExportItems(productContext);
 
     ItemValuePtr itemValue = ItemValue::create(productItem);
     productContext.scope = Item::create(m_pool);
@@ -622,22 +614,34 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
     }
 }
 
-Item *ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext,
-        const QVector<Item *> &exportItemsInProduct)
+void ModuleLoader::mergeExportItems(const ProductContext &productContext)
 {
-    Item *merged = Item::create(productContext->item->pool(), ItemType::Export);
-    merged->setFile(productContext->item->file());
-    merged->setLocation(productContext->item->location());
-    QSet<Item *> exportItems;
-    foreach (Item *exportItem, exportItemsInProduct) {
+    QVector<Item *> exportItems;
+    QList<Item *> children = productContext.item->children();
+    for (int i = 0; i < children.count();) {
+        Item * const child = children.at(i);
+        if (child->type() == ItemType::Export) {
+            exportItems << child;
+            children.removeAt(i);
+        } else {
+            ++i;
+        }
+    }
+
+    // Note that we do not return if there are no Export items: The "merged" item becomes the
+    // "product module", which always needs to exist, regardless of whether the product sources
+    // actually contain an Export item or not.
+    if (!exportItems.isEmpty())
+        productContext.item->setChildren(children);
+
+    Item *merged = Item::create(productContext.item->pool(), ItemType::Export);
+    QSet<FileContextConstPtr> filesWithExportItem;
+    foreach (Item *exportItem, exportItems) {
         checkCancelation();
-        if (Q_UNLIKELY(productContext->filesWithExportItem.contains(exportItem->file())))
+        if (Q_UNLIKELY(filesWithExportItem.contains(exportItem->file())))
             throw ErrorInfo(Tr::tr("Multiple Export items in one product are prohibited."),
                         exportItem->location());
-        merged->setFile(exportItem->file());
-        merged->setLocation(exportItem->location());
-        productContext->filesWithExportItem += exportItem->file();
-        exportItems.insert(exportItem);
+        filesWithExportItem += exportItem->file();
         foreach (Item *child, exportItem->children())
             Item::addChild(merged, child);
         for (QMap<QString, ValuePtr>::const_iterator it = exportItem->properties().constBegin();
@@ -645,18 +649,15 @@ Item *ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContex
             mergeProperty(merged, it.key(), it.value());
         }
     }
-
-    QList<Item *> children = productContext->item->children();
-    for (int i = 0; i < children.count();) {
-        if (exportItems.contains(children.at(i)))
-            children.removeAt(i);
-        else
-            ++i;
-    }
-    productContext->item->setChildren(children);
-    Item::addChild(productContext->item, merged);
+    merged->setFile(exportItems.isEmpty()
+            ? productContext.item->file() : exportItems.last()->file());
+    merged->setLocation(exportItems.isEmpty()
+            ? productContext.item->location() : exportItems.last()->location());
+    Item::addChild(productContext.item, merged);
     merged->setupForBuiltinType(m_logger);
-    return merged;
+    ProductModuleInfo &pmi
+            = productContext.project->topLevelProject->productModules[productContext.name];
+    pmi.exportItem = merged;
 }
 
 void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, Item *groupItem)
