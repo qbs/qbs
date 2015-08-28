@@ -85,8 +85,8 @@ void TestTools::testFileInfo()
 
 void TestTools::fileCaseCheck()
 {
-    QTemporaryFile tempFile(QLatin1String("CamelCase"));
-    QVERIFY(tempFile.open());
+    QTemporaryFile tempFile(QDir::tempPath() + QLatin1String("/CamelCase"));
+    QVERIFY2(tempFile.open(), qPrintable(tempFile.errorString()));
     QFileInfo tempFileInfo(tempFile.fileName());
     const QString lowerFilePath = tempFileInfo.absolutePath() + QLatin1Char('/')
             + tempFileInfo.fileName().toLower();
