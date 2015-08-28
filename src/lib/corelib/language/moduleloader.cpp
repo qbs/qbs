@@ -1594,8 +1594,8 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
         }
 
         auto it = std::lower_bound(transitiveDeps.begin(), transitiveDeps.end(), m);
-        if (it != transitiveDeps.end() && it->name == m.name)
-            transitiveDeps.erase(it);
+        QBS_CHECK(it != transitiveDeps.end() && it->name == m.name);
+        transitiveDeps.erase(it);
     }
     foreach (const Item::Module &module, transitiveDeps) {
         if (module.isProduct) {
