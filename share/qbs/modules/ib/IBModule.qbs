@@ -37,7 +37,6 @@ import qbs.Process
 import 'ib.js' as Ib
 
 Module {
-    Depends { name: "bundle" }
     Depends { name: "xcode"; required: false }
 
     condition: qbs.hostOS.contains("darwin") && qbs.targetOS.contains("darwin")
@@ -83,13 +82,6 @@ Module {
                                        ? xcode.targetDevices
                                        : DarwinTools.targetDevices(qbs.targetOS)
 
-    property path actoolOutputDirectory: {
-        var dir = product.destinationDirectory;
-        if (bundle.isBundle)
-            dir = FileInfo.joinPaths(dir, bundle.unlocalizedResourcesFolderPath);
-        return dir;
-    }
-
     validate: {
         var validator = new ModUtils.PropertyValidator("ib");
         validator.setRequiredProperty("ibtoolVersion", ibtoolVersion);
@@ -127,14 +119,9 @@ Module {
         inputs: ["iconset"]
 
         Artifact {
-            filePath: {
-                var outputDirectory = product.destinationDirectory;
-                if (product.moduleProperty("bundle", "isBundle")) {
-                    outputDirectory = FileInfo.joinPaths(outputDirectory,
-                                            product.moduleProperty("bundle", "unlocalizedResourcesFolderPath"));
-                }
-                return FileInfo.joinPaths(outputDirectory, input.completeBaseName + ModUtils.moduleProperty(product, "appleIconSuffix"))
-            }
+            filePath: FileInfo.joinPaths(BundleTools.destinationDirectoryForResource(product, input),
+                                         input.completeBaseName +
+                                         ModUtils.moduleProperty(product, "appleIconSuffix"))
             fileTags: ["icns"]
         }
 

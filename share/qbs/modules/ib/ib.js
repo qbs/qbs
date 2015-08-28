@@ -105,9 +105,9 @@ function ibtooldArguments(product, inputs, outputs, overrideOutput) {
 
     // --target-device and -output-partial-info-plist were introduced in Xcode 6.0 for ibtool
     if (ModUtils.moduleProperty(product, "ibtoolVersionMajor") >= 6 || compilingAssetCatalogs) {
-        if (outputs && outputs.partial_infoplist) {
-            args.push("--output-partial-info-plist", outputs.partial_infoplist[0].filePath);
-        }
+        args.push("--output-partial-info-plist", (outputs && outputs.partial_infoplist)
+                  ? outputs.partial_infoplist[0].filePath
+                  : "/dev/null");
 
         // For iOS, we'd normally only output the devices specified in TARGETED_DEVICE_FAMILY
         // We can't get this info from Info.plist keys due to dependency order, so use the qbs prop
@@ -127,7 +127,8 @@ function ibtooldArguments(product, inputs, outputs, overrideOutput) {
             args.push("--compile", outputs.compiled_ibdoc_main[0].filePath);
 
         if (outputs.compiled_assetcatalog)
-            args.push("--compile", ModUtils.moduleProperty(product, "actoolOutputDirectory"));
+            args.push("--compile",
+                      BundleTools.destinationDirectoryForResource(product, inputs.assetcatalog[0]));
     }
 
     for (i in allInputs)
@@ -225,7 +226,8 @@ function actoolOutputArtifacts(product, inputs) {
                                 undefined, outputDirectory).concat(["--output-format", "xml1"]);
     };
     tracker.processStdOutFunction = parseActoolOutput;
-    var artifacts = tracker.artifacts(ModUtils.moduleProperty(product, "actoolOutputDirectory"));
+    var artifacts = tracker.artifacts(BundleTools.destinationDirectoryForResource(product,
+            inputs.assetcatalog[0]));
 
     // Newer versions of actool don't generate *anything* if there's no input;
     // in that case a partial Info.plist would not have been generated either
