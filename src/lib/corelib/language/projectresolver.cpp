@@ -67,6 +67,31 @@ static const FileTag unknownFileTag()
     return tag;
 }
 
+struct ProjectResolver::ProjectContext
+{
+    ResolvedProjectPtr project;
+    QList<FileTaggerConstPtr> fileTaggers;
+    QList<RulePtr> rules;
+    ResolvedModulePtr dummyModule;
+};
+
+struct ProjectResolver::ProductContext
+{
+    ResolvedProductPtr product;
+    QString buildDirectory;
+    FileTags additionalFileTags;
+    Item *item;
+    typedef QPair<ArtifactPropertiesPtr, CodeLocation> ArtifactPropertiesInfo;
+    QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
+    QHash<QString, CodeLocation> sourceArtifactLocations;
+};
+
+struct ProjectResolver::ModuleContext
+{
+    ResolvedModulePtr module;
+};
+
+
 ProjectResolver::ProjectResolver(ModuleLoader *ldr,
         const Logger &logger)
     : m_evaluator(ldr->evaluator())

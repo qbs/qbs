@@ -67,29 +67,9 @@ public:
             const FileTags &fileTags, bool overrideTags, QList<SourceArtifactPtr> &artifactList);
 
 private:
-    struct ProjectContext
-    {
-        ResolvedProjectPtr project;
-        QList<FileTaggerConstPtr> fileTaggers;
-        QList<RulePtr> rules;
-        ResolvedModulePtr dummyModule;
-    };
-
-    struct ProductContext
-    {
-        ResolvedProductPtr product;
-        QString buildDirectory;
-        FileTags additionalFileTags;
-        Item *item;
-        typedef QPair<ArtifactPropertiesPtr, CodeLocation> ArtifactPropertiesInfo;
-        QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
-        QHash<QString, CodeLocation> sourceArtifactLocations;
-    };
-
-    struct ModuleContext
-    {
-        ResolvedModulePtr module;
-    };
+    struct ProjectContext;
+    struct ProductContext;
+    struct ModuleContext;
 
     void checkCancelation() const;
     QString verbatimValue(const ValueConstPtr &value, bool *propertyWasSet = 0) const;
