@@ -71,7 +71,6 @@ private:
     {
         ResolvedProjectPtr project;
         QList<FileTaggerConstPtr> fileTaggers;
-        ModuleLoaderResult *loadResult;
         QList<RulePtr> rules;
         ResolvedModulePtr dummyModule;
     };
@@ -98,7 +97,7 @@ private:
     ScriptFunctionPtr scriptFunctionValue(Item *item, const QString &name) const;
     ResolvedFileContextPtr resolvedFileContext(const FileContextConstPtr &ctx) const;
     void ignoreItem(Item *item, ProjectContext *projectContext);
-    void resolveTopLevelProject(Item *item, ProjectContext *projectContext);
+    void resolveTopLevelProject(ProjectContext *projectContext);
     void resolveProject(Item *item, ProjectContext *projectContext);
     void resolveSubProject(Item *item, ProjectContext *projectContext);
     void resolveProduct(Item *item, ProjectContext *projectContext);
@@ -149,6 +148,7 @@ private:
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
     SetupProjectParameters m_setupParams;
+    ModuleLoaderResult *m_loadResult;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);
     typedef QMap<ItemType, ItemFuncPtr> ItemFuncMap;

@@ -111,12 +111,12 @@ TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[PR] resolving " << loadResult.root->file()->filePath();
 
+    m_loadResult = &loadResult;
     ProjectContext projectContext;
-    projectContext.loadResult = &loadResult;
     m_setupParams = setupParameters;
     m_productContext = 0;
     m_moduleContext = 0;
-    resolveTopLevelProject(loadResult.root, &projectContext);
+    resolveTopLevelProject(&projectContext);
     TopLevelProjectPtr top = projectContext.project.staticCast<TopLevelProject>();
     checkForDuplicateProductNames(top);
     top->buildSystemFiles.unite(loadResult.qbsFiles);
@@ -185,16 +185,16 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
     }
 }
 
-void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *projectContext)
+void ProjectResolver::resolveTopLevelProject(ProjectContext *projectContext)
 {
     if (m_progressObserver)
-        m_progressObserver->setMaximum(projectContext->loadResult->productInfos.count());
+        m_progressObserver->setMaximum(m_loadResult->productInfos.count());
     const TopLevelProjectPtr project = TopLevelProject::create();
     project->buildDirectory = TopLevelProject::deriveBuildDirectory(m_setupParams.buildRoot(),
             TopLevelProject::deriveId(m_setupParams.topLevelProfile(),
                                       m_setupParams.finalBuildConfigurationTree()));
     projectContext->project = project;
-    resolveProject(item, projectContext);
+    resolveProject(m_loadResult->root, projectContext);
     project->setBuildConfiguration(m_setupParams.finalBuildConfigurationTree());
     project->usedEnvironment = m_engine->usedEnvironment();
     project->canonicalFilePathResults = m_engine->canonicalFilePathResults();
@@ -926,8 +926,7 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
         if (!rproduct->enabled)
             continue;
         Item *productItem = m_productItemMap.value(rproduct);
-        ModuleLoaderResult::ProductInfo &productInfo
-                = projectContext->loadResult->productInfos[productItem];
+        ModuleLoaderResult::ProductInfo &productInfo = m_loadResult->productInfos[productItem];
         foreach (const ResolvedProductPtr &usedProduct,
                  getProductDependencies(rproduct, &productInfo)) {
             rproduct->dependencies.insert(usedProduct);
@@ -1107,7 +1106,6 @@ ProjectResolver::ProjectContext ProjectResolver::createProjectContext(ProjectCon
     subProjectContext.project = ResolvedProject::create();
     parentProjectContext->project->subProjects += subProjectContext.project;
     subProjectContext.project->parentProject = parentProjectContext->project;
-    subProjectContext.loadResult = parentProjectContext->loadResult;
     return subProjectContext;
 }
 
