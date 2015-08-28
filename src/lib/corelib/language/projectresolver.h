@@ -117,14 +117,6 @@ private:
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
     QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true) const;
-
-    struct EvalResult {
-        EvalResult(const QVariant &v, bool s) : value(v), strongPrecedence(s) {}
-        EvalResult() : strongPrecedence(false) {}
-        QVariant value;
-        bool strongPrecedence;
-    };
-
     QVariantMap evaluateProperties(Item *item, bool lookupPrototype = true) const;
     QVariantMap evaluateProperties(Item *item, Item *propertiesContainer, const QVariantMap &tmplt,
             bool lookupPrototype = true) const;
