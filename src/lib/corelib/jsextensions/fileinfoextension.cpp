@@ -234,9 +234,12 @@ QScriptValue FileInfoExtension::js_joinPaths(QScriptContext *context, QScriptEng
     Q_UNUSED(engine);
     QStringList paths;
     for (int i = 0; i < context->argumentCount(); ++i) {
-        QString arg = context->argument(i).toString();
-        if (!arg.isEmpty())
-            paths.append(arg);
+        const QScriptValue value = context->argument(i);
+        if (!value.isUndefined() && !value.isNull()) {
+            const QString arg = value.toString();
+            if (!arg.isEmpty())
+                paths.append(arg);
+        }
     }
     return paths.join(QLatin1Char('/')).replace(QRegularExpression(QLatin1String("/{2,}")),
                                                 QLatin1String("/"));
