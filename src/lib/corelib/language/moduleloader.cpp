@@ -798,6 +798,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
 
 Item *ModuleLoader::moduleInstanceItem(Item *containerItem, const QualifiedId &moduleName)
 {
+    QBS_CHECK(!moduleName.isEmpty());
     Item *instance = containerItem;
     for (int i = 0; i < moduleName.count(); ++i) {
         const QString &moduleNameSegment = moduleName.at(i);
@@ -812,7 +813,7 @@ Item *ModuleLoader::moduleInstanceItem(Item *containerItem, const QualifiedId &m
         if (i < moduleName.count() - 1)
             instance->setType(ItemType::ModulePrefix);
     }
-    QBS_ASSERT(moduleName.isEmpty() || instance != containerItem, return 0);
+    QBS_CHECK(instance != containerItem);
     return instance;
 }
 
