@@ -254,6 +254,8 @@ function parseActoolOutput(output) {
             var artifacts = [];
             files = plist["output-files"];
             for (var i in files) {
+                if (files[i] === "/dev/null")
+                    continue;
                 var tags = files[i].endsWith(".plist")
                         ? ["partial_infoplist"]
                         : ["compiled_assetcatalog"];
