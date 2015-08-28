@@ -1443,6 +1443,23 @@ void TestLanguage::propertiesBlocks()
     }
 }
 
+void TestLanguage::qbsPropertiesInProjectCondition()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(
+                    testProject("qbs-properties-in-project-condition.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 0);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::qualifiedId()
 {
     QString str = "foo.bar.baz";
@@ -1645,6 +1662,14 @@ void TestLanguage::wildcards_data()
             << (QStringList() << "*.h")
             << QStringList()
             << (QStringList() << "subdir/foo.h" << "subdir/bar.h");
+    QTest::newRow(QByteArray("non-existing absolute path"))
+            << useGroup
+            << QStringList()
+            << QString()
+            << QString("/dir")
+            << (QStringList() << "*.whatever")
+            << QStringList()
+            << QStringList();
 }
 
 void TestLanguage::wildcards()

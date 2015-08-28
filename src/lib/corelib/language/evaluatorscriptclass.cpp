@@ -363,7 +363,11 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
 
     for (ValuePtr next = value; next; next = next->next()) {
         QScriptValue v = data->evaluator->property(next->definingItem(), propertyName);
-        data->evaluator->handleEvaluationError(next->definingItem(), propertyName, v);
+        ScriptEngine * const se = static_cast<ScriptEngine *>(engine());
+        if (se->hasErrorOrException(v)) {
+            *result = se->lastErrorValue(v);
+            return;
+        }
         if (v.isUndefined())
             continue;
         lst << v;
@@ -374,10 +378,7 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
     quint32 k = 0;
     for (int i = 0; i < lst.count(); ++i) {
         const QScriptValue &v = lst.at(i);
-        if (v.isError()) {
-            *result = v;
-            return;
-        }
+        QBS_ASSERT(!v.isError(), continue);
         if (v.isArray()) {
             const quint32 vlen = v.property(QStringLiteral("length")).toInt32();
             for (quint32 j = 0; j < vlen; ++j)

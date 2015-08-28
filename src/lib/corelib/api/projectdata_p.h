@@ -79,7 +79,7 @@ public:
     InstallableFilePrivate() : isValid(false) {}
 
     QString sourceFilePath;
-    QString targetDirectory;
+    QString targetFilePath;
     QStringList fileTags;
     bool isValid;
 };

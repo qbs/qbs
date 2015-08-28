@@ -104,7 +104,7 @@ void ProductInstaller::install()
 QString ProductInstaller::targetFilePath(const TopLevelProject *project,
         const QString &productSourceDir,
         const QString &sourceFilePath, const PropertyMapConstPtr &properties,
-        InstallOptions &options, QString *targetDirectory)
+        InstallOptions &options)
 {
     if (!properties->qbsPropertyValue(QLatin1String("install")).toBool())
         return QString();
@@ -138,8 +138,6 @@ QString ProductInstaller::targetFilePath(const TopLevelProject *project,
     }
 
     targetFilePath.prepend(targetDir + QLatin1Char('/'));
-    if (targetDirectory)
-        *targetDirectory = targetDir;
     return targetFilePath;
 }
 
@@ -176,10 +174,11 @@ void ProductInstaller::copyFile(const Artifact *artifact)
         throw ErrorInfo(Tr::tr("Installation canceled for configuration '%1'.")
                     .arg(m_products.first()->project->topLevelProject()->id()));
     }
-    QString targetDir;
+
     const QString targetFilePath = this->targetFilePath(m_project.data(),
             artifact->product->sourceDirectory, artifact->filePath(),
-            artifact->properties, m_options, &targetDir);
+            artifact->properties, m_options);
+    const QString targetDir = FileInfo::path(targetFilePath);
     const QString nativeFilePath = QDir::toNativeSeparators(artifact->filePath());
     const QString nativeTargetDir = QDir::toNativeSeparators(targetDir);
     if (m_options.dryRun()) {

@@ -371,21 +371,11 @@ QString InstallableFile::sourceFilePath() const
 }
 
 /*!
- * \brief The directory that this file will be copied into on installation.
- */
-QString InstallableFile::targetDirectory() const
-{
-    return d->targetDirectory;
-}
-
-/*!
  * \brief The file path that this file will be copied to on installation.
- * This is a convenience function.
- * \sa InstallableFile::targetDirectory()
  */
 QString InstallableFile::targetFilePath() const
 {
-    return d->targetDirectory + QLatin1Char('/') + Internal::FileInfo::fileName(d->sourceFilePath);
+    return d->targetFilePath;
 }
 
 /*!
