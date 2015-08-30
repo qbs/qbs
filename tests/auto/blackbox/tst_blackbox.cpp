@@ -1720,15 +1720,19 @@ void TestBlackbox::cli()
     Settings s((QString()));
     Profile p("qbs_autotests-cli", &s);
     const QStringList toolchain = p.value("qbs.toolchain").toStringList();
-    if (!p.exists()
-            || p.value("cli.toolchainInstallPath").toString().isEmpty()
-            || !(toolchain.contains("dotnet") || toolchain.contains("mono")))
+    if (!p.exists() || !(toolchain.contains("dotnet") || toolchain.contains("mono")))
         QSKIP("No suitable Common Language Infrastructure test profile");
 
     QbsRunParameters params(QStringList() << "-f" << "dotnettest.qbs"
                             << "profile:" + p.name());
     params.useProfile = false;
-    QCOMPARE(runQbs(params), 0);
+
+    int status = runQbs(params);
+    if (p.value("cli.toolchainInstallPath").toString().isEmpty()
+            && status != 0 && m_qbsStderr.contains("toolchainInstallPath"))
+        QSKIP("cli.toolchainInstallPath not set and automatic detection failed");
+
+    QCOMPARE(status, 0);
     rmDirR(relativeBuildDir(p.name()));
 
     QbsRunParameters params2(QStringList() << "-f" << "fshello.qbs"
