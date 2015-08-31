@@ -57,7 +57,7 @@ public:
     ~ProjectResolver();
 
     void setProgressObserver(ProgressObserver *observer);
-    TopLevelProjectPtr resolve(ModuleLoaderResult &loadResult,
+    TopLevelProjectPtr resolve(const ModuleLoaderResult &loadResult,
                                const SetupProjectParameters &setupParameters);
 
     static void applyFileTaggers(const SourceArtifactPtr &artifact,
@@ -120,7 +120,7 @@ private:
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
     SetupProjectParameters m_setupParams;
-    ModuleLoaderResult *m_loadResult;
+    const ModuleLoaderResult *m_loadResult;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);
     typedef QMap<ItemType, ItemFuncPtr> ItemFuncMap;

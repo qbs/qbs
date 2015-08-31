@@ -129,7 +129,7 @@ static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project
     }
 }
 
-TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
+TopLevelProjectPtr ProjectResolver::resolve(const ModuleLoaderResult &loadResult,
         const SetupProjectParameters &setupParameters)
 {
     QBS_CHECK(FileInfo::isAbsolute(setupParameters.buildRoot()));

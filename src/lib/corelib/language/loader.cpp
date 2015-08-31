@@ -107,7 +107,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     ModuleLoader moduleLoader(m_engine, m_logger);
     moduleLoader.setProgressObserver(m_progressObserver);
     moduleLoader.setSearchPaths(m_searchPaths);
-    ModuleLoaderResult loadResult = moduleLoader.load(parameters);
+    const ModuleLoaderResult loadResult = moduleLoader.load(parameters);
     ProjectResolver resolver(&moduleLoader, m_logger);
     resolver.setProgressObserver(m_progressObserver);
     const TopLevelProjectPtr project = resolver.resolve(loadResult, parameters);
