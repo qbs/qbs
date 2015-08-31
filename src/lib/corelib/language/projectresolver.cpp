@@ -138,15 +138,9 @@ TopLevelProjectPtr ProjectResolver::resolve()
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[PR] resolving " << m_loadResult.root->file()->filePath();
 
-    ProjectContext projectContext;
     m_productContext = 0;
     m_moduleContext = 0;
-    resolveTopLevelProject(&projectContext);
-    TopLevelProjectPtr top = projectContext.project.staticCast<TopLevelProject>();
-    checkForDuplicateProductNames(top);
-    top->buildSystemFiles.unite(m_loadResult.qbsFiles);
-    top->profileConfigs = m_loadResult.profileConfigs;
-    return top;
+    return resolveTopLevelProject();
 }
 
 void ProjectResolver::checkCancelation() const
@@ -210,7 +204,7 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
     }
 }
 
-void ProjectResolver::resolveTopLevelProject(ProjectContext *projectContext)
+TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
 {
     if (m_progressObserver)
         m_progressObserver->setMaximum(m_loadResult.productInfos.count());
@@ -218,8 +212,11 @@ void ProjectResolver::resolveTopLevelProject(ProjectContext *projectContext)
     project->buildDirectory = TopLevelProject::deriveBuildDirectory(m_setupParams.buildRoot(),
             TopLevelProject::deriveId(m_setupParams.topLevelProfile(),
                                       m_setupParams.finalBuildConfigurationTree()));
-    projectContext->project = project;
-    resolveProject(m_loadResult.root, projectContext);
+    project->buildSystemFiles = m_loadResult.qbsFiles;
+    project->profileConfigs = m_loadResult.profileConfigs;
+    ProjectContext projectContext;
+    projectContext.project = project;
+    resolveProject(m_loadResult.root, &projectContext);
     project->setBuildConfiguration(m_setupParams.finalBuildConfigurationTree());
     project->usedEnvironment = m_engine->usedEnvironment();
     project->canonicalFilePathResults = m_engine->canonicalFilePathResults();
@@ -227,9 +224,10 @@ void ProjectResolver::resolveTopLevelProject(ProjectContext *projectContext)
     project->directoryEntriesResults = m_engine->directoryEntriesResults();
     project->fileLastModifiedResults = m_engine->fileLastModifiedResults();
     project->environment = m_engine->environment();
-    project->buildSystemFiles = m_engine->imports();
+    project->buildSystemFiles.unite(m_engine->imports());
     makeSubProjectNamesUniqe(project);
     resolveProductDependencies(projectContext);
+    checkForDuplicateProductNames(project);
 
     foreach (const ResolvedProductPtr &product, project->allProducts()) {
         if (!product->enabled)
@@ -244,6 +242,7 @@ void ProjectResolver::resolveTopLevelProject(ProjectContext *projectContext)
                 artifact->fileTags += "installable";
         }
     }
+    return project;
 }
 
 void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
@@ -953,10 +952,10 @@ static bool hasDependencyCycle(QSet<ResolvedProduct *> *checked,
     return false;
 }
 
-void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
+void ProjectResolver::resolveProductDependencies(const ProjectContext &projectContext)
 {
     // Resolve all inter-product dependencies.
-    QList<ResolvedProductPtr> allProducts = projectContext->project->allProducts();
+    QList<ResolvedProductPtr> allProducts = projectContext.project->allProducts();
     foreach (const ResolvedProductPtr &rproduct, allProducts) {
         if (!rproduct->enabled)
             continue;

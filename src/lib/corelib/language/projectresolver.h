@@ -76,7 +76,7 @@ private:
     ScriptFunctionPtr scriptFunctionValue(Item *item, const QString &name) const;
     ResolvedFileContextPtr resolvedFileContext(const FileContextConstPtr &ctx) const;
     void ignoreItem(Item *item, ProjectContext *projectContext);
-    void resolveTopLevelProject(ProjectContext *projectContext);
+    TopLevelProjectPtr resolveTopLevelProject();
     void resolveProject(Item *item, ProjectContext *projectContext);
     void resolveSubProject(Item *item, ProjectContext *projectContext);
     void resolveProduct(Item *item, ProjectContext *projectContext);
@@ -92,7 +92,7 @@ private:
     void resolveFileTagger(Item *item, ProjectContext *projectContext);
     void resolveTransformer(Item *item, ProjectContext *projectContext);
     void resolveScanner(Item *item, ProjectContext *projectContext);
-    void resolveProductDependencies(ProjectContext *projectContext);
+    void resolveProductDependencies(const ProjectContext &projectContext);
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
     QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true) const;
