@@ -864,12 +864,12 @@ void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext
 }
 
 QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const ResolvedProductConstPtr &product,
-        ModuleLoaderResult::ProductInfo *productInfo)
+        const ModuleLoaderResult::ProductInfo &productInfo)
 {
+    QList<ModuleLoaderResult::ProductInfo::Dependency> dependencies = productInfo.usedProducts;
     QList<ResolvedProductPtr> usedProducts;
-    for (int i = productInfo->usedProducts.count() - 1; i >= 0; --i) {
-        const ModuleLoaderResult::ProductInfo::Dependency &dependency
-                = productInfo->usedProducts.at(i);
+    for (int i = dependencies.count() - 1; i >= 0; --i) {
+        const ModuleLoaderResult::ProductInfo::Dependency &dependency = dependencies.at(i);
         QBS_CHECK(dependency.name.isEmpty() != dependency.productTypes.isEmpty());
         if (!dependency.productTypes.isEmpty()) {
             foreach (const QString &tag, dependency.productTypes) {
@@ -883,10 +883,10 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
                     ModuleLoaderResult::ProductInfo::Dependency newDependency;
                     newDependency.name = p->name;
                     newDependency.profile = p->profile;
-                    productInfo->usedProducts << newDependency;
+                    dependencies << newDependency;
                 }
             }
-            productInfo->usedProducts.removeAt(i);
+            dependencies.removeAt(i);
         } else if (dependency.profile == QLatin1String("*")) {
             foreach (const ResolvedProductPtr &p, m_productsByName) {
                 if (p->name != dependency.name || p == product || !p->enabled
@@ -897,9 +897,9 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
                 ModuleLoaderResult::ProductInfo::Dependency newDependency;
                 newDependency.name = p->name;
                 newDependency.profile = p->profile;
-                productInfo->usedProducts << newDependency;
+                dependencies << newDependency;
             }
-            productInfo->usedProducts.removeAt(i);
+            dependencies.removeAt(i);
         } else {
             const ResolvedProductPtr &usedProduct
                     = m_productsByName.value(dependency.uniqueName());
@@ -961,9 +961,10 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
         if (!rproduct->enabled)
             continue;
         Item *productItem = m_productItemMap.value(rproduct);
-        ModuleLoaderResult::ProductInfo &productInfo = m_loadResult->productInfos[productItem];
+        const ModuleLoaderResult::ProductInfo &productInfo
+                = m_loadResult->productInfos.value(productItem);
         foreach (const ResolvedProductPtr &usedProduct,
-                 getProductDependencies(rproduct, &productInfo)) {
+                 getProductDependencies(rproduct, productInfo)) {
             rproduct->dependencies.insert(usedProduct);
         }
     }

@@ -105,7 +105,7 @@ private:
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
     QList<ResolvedProductPtr> getProductDependencies(const ResolvedProductConstPtr &product,
-            ModuleLoaderResult::ProductInfo *productInfo);
+            const ModuleLoaderResult::ProductInfo &productInfo);
     static void matchArtifactProperties(const ResolvedProductPtr &product,
             const QList<SourceArtifactPtr> &artifacts);
 
