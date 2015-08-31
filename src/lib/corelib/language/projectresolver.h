@@ -36,7 +36,6 @@
 #include "moduleloader.h"
 
 #include <logging/logger.h>
-#include <tools/setupprojectparameters.h>
 
 #include <QMap>
 #include <QSet>
@@ -53,12 +52,12 @@ class QualifiedIdSet;
 class ProjectResolver
 {
 public:
-    ProjectResolver(ModuleLoader *ldr, const Logger &logger);
+    ProjectResolver(Evaluator *evaluator, const ModuleLoaderResult &loadResult,
+                    const SetupProjectParameters &setupParameters, const Logger &logger);
     ~ProjectResolver();
 
     void setProgressObserver(ProgressObserver *observer);
-    TopLevelProjectPtr resolve(const ModuleLoaderResult &loadResult,
-                               const SetupProjectParameters &setupParameters);
+    TopLevelProjectPtr resolve();
 
     static void applyFileTaggers(const SourceArtifactPtr &artifact,
             const ResolvedProductConstPtr &product, const Logger &logger);
@@ -119,8 +118,8 @@ private:
     QHash<QString, QList<ResolvedProductPtr> > m_productsByType;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
-    SetupProjectParameters m_setupParams;
-    const ModuleLoaderResult *m_loadResult;
+    const SetupProjectParameters &m_setupParams;
+    const ModuleLoaderResult &m_loadResult;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);
     typedef QMap<ItemType, ItemFuncPtr> ItemFuncMap;

@@ -108,9 +108,9 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     moduleLoader.setProgressObserver(m_progressObserver);
     moduleLoader.setSearchPaths(m_searchPaths);
     const ModuleLoaderResult loadResult = moduleLoader.load(parameters);
-    ProjectResolver resolver(&moduleLoader, m_logger);
+    ProjectResolver resolver(moduleLoader.evaluator(), loadResult, parameters, m_logger);
     resolver.setProgressObserver(m_progressObserver);
-    const TopLevelProjectPtr project = resolver.resolve(loadResult, parameters);
+    const TopLevelProjectPtr project = resolver.resolve();
     project->lastResolveTime = resolveTime;
 
     // E.g. if the top-level project is disabled.

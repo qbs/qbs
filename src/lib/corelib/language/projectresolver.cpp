@@ -49,6 +49,7 @@
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/setupprojectparameters.h>
 
 #include <QDir>
 #include <QQueue>
@@ -92,13 +93,16 @@ struct ProjectResolver::ModuleContext
 };
 
 
-ProjectResolver::ProjectResolver(ModuleLoader *ldr,
-        const Logger &logger)
-    : m_evaluator(ldr->evaluator())
+ProjectResolver::ProjectResolver(Evaluator *evaluator, const ModuleLoaderResult &loadResult,
+        const SetupProjectParameters &setupParameters, const Logger &logger)
+    : m_evaluator(evaluator)
     , m_logger(logger)
     , m_engine(m_evaluator->engine())
     , m_progressObserver(0)
+    , m_setupParams(setupParameters)
+    , m_loadResult(loadResult)
 {
+    QBS_CHECK(FileInfo::isAbsolute(m_setupParams.buildRoot()));
 }
 
 ProjectResolver::~ProjectResolver()
@@ -129,23 +133,19 @@ static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project
     }
 }
 
-TopLevelProjectPtr ProjectResolver::resolve(const ModuleLoaderResult &loadResult,
-        const SetupProjectParameters &setupParameters)
+TopLevelProjectPtr ProjectResolver::resolve()
 {
-    QBS_CHECK(FileInfo::isAbsolute(setupParameters.buildRoot()));
     if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[PR] resolving " << loadResult.root->file()->filePath();
+        m_logger.qbsTrace() << "[PR] resolving " << m_loadResult.root->file()->filePath();
 
-    m_loadResult = &loadResult;
     ProjectContext projectContext;
-    m_setupParams = setupParameters;
     m_productContext = 0;
     m_moduleContext = 0;
     resolveTopLevelProject(&projectContext);
     TopLevelProjectPtr top = projectContext.project.staticCast<TopLevelProject>();
     checkForDuplicateProductNames(top);
-    top->buildSystemFiles.unite(loadResult.qbsFiles);
-    top->profileConfigs = loadResult.profileConfigs;
+    top->buildSystemFiles.unite(m_loadResult.qbsFiles);
+    top->profileConfigs = m_loadResult.profileConfigs;
     return top;
 }
 
@@ -213,13 +213,13 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
 void ProjectResolver::resolveTopLevelProject(ProjectContext *projectContext)
 {
     if (m_progressObserver)
-        m_progressObserver->setMaximum(m_loadResult->productInfos.count());
+        m_progressObserver->setMaximum(m_loadResult.productInfos.count());
     const TopLevelProjectPtr project = TopLevelProject::create();
     project->buildDirectory = TopLevelProject::deriveBuildDirectory(m_setupParams.buildRoot(),
             TopLevelProject::deriveId(m_setupParams.topLevelProfile(),
                                       m_setupParams.finalBuildConfigurationTree()));
     projectContext->project = project;
-    resolveProject(m_loadResult->root, projectContext);
+    resolveProject(m_loadResult.root, projectContext);
     project->setBuildConfiguration(m_setupParams.finalBuildConfigurationTree());
     project->usedEnvironment = m_engine->usedEnvironment();
     project->canonicalFilePathResults = m_engine->canonicalFilePathResults();
@@ -962,7 +962,7 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
             continue;
         Item *productItem = m_productItemMap.value(rproduct);
         const ModuleLoaderResult::ProductInfo &productInfo
-                = m_loadResult->productInfos.value(productItem);
+                = m_loadResult.productInfos.value(productItem);
         foreach (const ResolvedProductPtr &usedProduct,
                  getProductDependencies(rproduct, productInfo)) {
             rproduct->dependencies.insert(usedProduct);
