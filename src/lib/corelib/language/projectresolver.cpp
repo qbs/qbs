@@ -116,7 +116,6 @@ TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
     m_setupParams = setupParameters;
     m_productContext = 0;
     m_moduleContext = 0;
-    m_exportsContext = 0;
     resolveTopLevelProject(loadResult.root, &projectContext);
     TopLevelProjectPtr top = projectContext.project.staticCast<TopLevelProject>();
     checkForDuplicateProductNames(top);
@@ -700,9 +699,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     rule->explicitlyDependsOn
             = m_evaluator->fileTagsValue(item, QLatin1String("explicitlyDependsOn"));
     rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
-    if (m_exportsContext)
-        m_exportsContext->rules += rule;
-    else if (m_productContext)
+    if (m_productContext)
         m_productContext->product->rules += rule;
     else
         projectContext->rules += rule;
@@ -769,11 +766,9 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
 void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
-    QList<FileTaggerConstPtr> &fileTaggers = m_exportsContext
-            ? m_exportsContext->fileTaggers
-            : (m_productContext
-               ? m_productContext->product->fileTaggers
-               : projectContext->fileTaggers);
+    QList<FileTaggerConstPtr> &fileTaggers = m_productContext
+            ? m_productContext->product->fileTaggers
+            : projectContext->fileTaggers;
     const QStringList patterns = m_evaluator->stringListValue(item, QLatin1String("patterns"));
     if (patterns.isEmpty())
         throw ErrorInfo(Tr::tr("FileTagger.patterns must be a non-empty list."), item->location());
@@ -935,12 +930,6 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
         foreach (const ResolvedProductPtr &usedProduct,
                  getProductDependencies(rproduct, &productInfo)) {
             rproduct->dependencies.insert(usedProduct);
-            const QString &usedProductName = usedProduct->uniqueName();
-            const ExportsContext ctx = m_exports.value(usedProductName);
-
-            rproduct->fileTaggers << ctx.fileTaggers;
-            foreach (const RulePtr &rule, ctx.rules)
-                rproduct->rules << rule;
         }
     }
 
