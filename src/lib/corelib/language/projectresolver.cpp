@@ -311,20 +311,6 @@ void ProjectResolver::resolveSubProject(Item *item, ProjectResolver::ProjectCont
     }
 }
 
-class ModuleNameEquals
-{
-    QString m_str;
-public:
-    ModuleNameEquals(const QString &str)
-        : m_str(str)
-    {}
-
-    bool operator()(const Item::Module &module)
-    {
-        return module.name.count() == 1 && module.name.first() == m_str;
-    }
-};
-
 void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
@@ -343,13 +329,6 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     product->profile = m_evaluator->stringValue(item, QLatin1String("profile"));
     QBS_CHECK(!product->profile.isEmpty());
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->uniqueName();
-
-    if (std::find_if(item->modules().begin(), item->modules().end(),
-            ModuleNameEquals(product->name)) != item->modules().end()) {
-        throw ErrorInfo(
-                    Tr::tr("The product name '%1' collides with a module name.").arg(product->name),
-                    item->location());
-    }
 
     product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
     product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
