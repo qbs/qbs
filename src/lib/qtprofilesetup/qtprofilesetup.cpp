@@ -326,7 +326,6 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
                      qtEnvironment.documentationPath);
     profile.setValue(settingsTemplate.arg(QLatin1String("version")), qtEnvironment.qtVersion);
     profile.setValue(settingsTemplate.arg(QLatin1String("libInfix")), qtEnvironment.qtLibInfix);
-    profile.setValue(settingsTemplate.arg(QLatin1String("buildVariant")), qtEnvironment.buildVariant); // TODO: Remove in 1.5
     profile.setValue(settingsTemplate.arg(QLatin1String("availableBuildVariants")),
                      qtEnvironment.buildVariant);
     profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")), qtEnvironment.staticBuild);

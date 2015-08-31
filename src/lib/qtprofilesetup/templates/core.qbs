@@ -32,7 +32,6 @@ Module {
     property bool staticBuild
 
     property stringList availableBuildVariants
-    property stringList buildVariant // TODO: Remove in 1.5
     property string qtBuildVariant: {
         if (availableBuildVariants.contains(qbs.buildVariant))
             return qbs.buildVariant;
