@@ -144,8 +144,7 @@ void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap
             continue;
 
         const PropertyDeclaration pd = m_decls.value(srcVal);
-        if (!pd.isValid())
-            continue;
+        QBS_CHECK(pd.isValid());
 
         if (pd.isScalar()) {
             if (dstVal->sourceCode() != srcVal->sourceCode()
