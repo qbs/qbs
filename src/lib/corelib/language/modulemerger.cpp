@@ -198,8 +198,7 @@ void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QStr
     if (pd.isScalar())
         return;
     ValuePtr protoValue = moduleProto->property(propertyName);
-    if (!protoValue)
-        return;
+    QBS_CHECK(protoValue);
     if (!m_clonedModulePrototype) {
         m_clonedModulePrototype = moduleProto->clone();
         Item * const scope = Item::create(m_clonedModulePrototype->pool());
