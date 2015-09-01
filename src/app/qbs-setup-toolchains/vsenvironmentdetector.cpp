@@ -116,13 +116,40 @@ static void batPrintVars(QTextStream &s, const QStringList &varnames)
         s << "echo " << varname << "=%" << varname << '%' << endl;
 }
 
-static QString vcArchitecture(const QString &arch)
+static void findSupportedArchitectures(MSVC *msvc)
 {
-    if (arch == QLatin1String("armv7"))
-        return QLatin1String("arm");
-    if (arch == QLatin1String("x86_64"))
-        return QLatin1String("amd64");
-    return arch;
+    if (QFile::exists(msvc->clPath())
+            || QFile::exists(msvc->clPath(QLatin1String("amd64_x86"))))
+        msvc->architectures += QLatin1String("x86");
+    if (QFile::exists(msvc->clPath(QLatin1String("amd64")))
+            || QFile::exists(msvc->clPath(QLatin1String("x86_amd64"))))
+        msvc->architectures += QLatin1String("x86_64");
+    if (QFile::exists(msvc->clPath(QLatin1String("ia64")))
+            || QFile::exists(msvc->clPath(QLatin1String("x86_ia64"))))
+        msvc->architectures += QLatin1String("ia64");
+    if (QFile::exists(msvc->clPath(QLatin1String("x86_arm")))
+            || QFile::exists(msvc->clPath(QLatin1String("amd64_arm"))))
+        msvc->architectures += QLatin1String("armv7");
+}
+
+static QString vcArchitecture(MSVC *msvc, const QString &targetArch)
+{
+    QString vcArch = targetArch;
+    if (targetArch == QLatin1String("armv7"))
+        vcArch = QLatin1String("arm");
+    if (targetArch == QLatin1String("x86_64"))
+        vcArch = QLatin1String("amd64");
+
+    // Empty string for the native compiler (preferred)
+    for (const QString &hostPrefix :
+         QStringList({QString(), QStringLiteral("amd64_"), QStringLiteral("x86_")})) {
+        if (QFile::exists(msvc->clPath(hostPrefix + vcArch))) {
+            vcArch.prepend(hostPrefix);
+            break;
+        }
+    }
+
+    return vcArch;
 }
 
 void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcvarsallbat) const
@@ -136,7 +163,7 @@ void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcv
           << "setlocal" << endl;
         batClearVars(s, varnames);
         s << "set PATH=" << m_windowsSystemDirPath << endl; // vcvarsall.bat needs tools from here
-        s << "call \"" << vcvarsallbat << "\" " << vcArchitecture(architecture)
+        s << "call \"" << vcvarsallbat << "\" " << vcArchitecture(m_msvc, architecture)
           << " || exit /b 1" << endl;
         batPrintVars(s, varnames);
         s << "endlocal" << endl;
