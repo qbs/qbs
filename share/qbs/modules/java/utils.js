@@ -32,6 +32,43 @@ var File = loadExtension("qbs.File");
 var FileInfo = loadExtension("qbs.FileInfo");
 var ModUtils = loadExtension("qbs.ModUtils");
 var Process = loadExtension("qbs.Process");
+var WindowsUtils = loadExtension("qbs.WindowsUtils");
+
+function is64bitProcess() {
+    var y = jdkRootRegistryKey(true);
+    var n = jdkRootRegistryKey(false);
+    y = qbs.getNativeSetting(y + "\\" + qbs.getNativeSetting(y, "CurrentVersion"), "JavaHome");
+    n = qbs.getNativeSetting(n + "\\" + qbs.getNativeSetting(n, "CurrentVersion"), "JavaHome");
+    return y !== n;
+}
+
+function useWow64Key(arch) {
+    var wow64 = false;
+    switch (arch) {
+    case "x86_64":
+    case "ia64":
+        // QTBUG-3845
+        if (!is64bitProcess())
+            return undefined;
+        break;
+    case "x86":
+    case "armv7":
+        wow64 = is64bitProcess();
+        break;
+    }
+    return wow64;
+}
+
+function jdkRootRegistryKey(wow64) {
+    // If an architecture is specified, search the appropriate key for that architecture,
+    // on this version of Windows (i.e. WOW64 or not) if compatible,
+    // otherwise get both keys since any JDK will be usable
+    if (wow64 === undefined)
+        return undefined;
+    return FileInfo.toWindowsSeparators(FileInfo.joinPaths("HKEY_LOCAL_MACHINE", "SOFTWARE",
+                                                           (wow64 ? "Wow6432Node" : undefined),
+                                                           "JavaSoft", "Java Development Kit"));
+}
 
 function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
     var i;
@@ -42,15 +79,11 @@ function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
     }
 
     if (hostOS.contains("windows")) {
-        var keys = [
-            "HKEY_LOCAL_MACHINE\\SOFTWARE\\JavaSoft\\Java Development Kit",
-            "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\JavaSoft\\Java Development Kit"
-        ];
-
-        for (i in keys) {
-            var current =  qbs.getNativeSetting(keys[i], "CurrentVersion"); // 1.8 etc.
+        var rootKey = jdkRootRegistryKey(useWow64Key(arch));
+        if (rootKey) {
+            var current = qbs.getNativeSetting(rootKey, "CurrentVersion"); // 1.8 etc.
             if (current) {
-                var home = qbs.getNativeSetting([keys[i], current].join("\\"), "JavaHome");
+                var home = qbs.getNativeSetting([rootKey, current].join("\\"), "JavaHome");
                 if (home) {
                     return home;
                 }

@@ -224,16 +224,25 @@ static QString findExecutable(const QStringList &fileNames)
     return QString();
 }
 
+QMap<QString, QString> TestBlackbox::findJdkTools(int *status)
+{
+    QDir::setCurrent(testDataDir + "/find-java");
+    const int res = runQbs(QbsRunParameters(QStringList()
+                                            << "-f" << "find-jar.qbs" << "--dry-run"));
+    if (status)
+        *status = res;
+    const auto tools = QJsonDocument::fromJson(m_qbsStderr).toVariant().toMap();
+    return QMap<QString, QString> {
+        {"java", QDir::fromNativeSeparators(tools["java"].toString())},
+        {"javac", QDir::fromNativeSeparators(tools["javac"].toString())},
+        {"jar", QDir::fromNativeSeparators(tools["jar"].toString())}
+    };
+}
+
 QString TestBlackbox::findArchiver(const QString &fileName, int *status)
 {
-    if (fileName == "jar") {
-        QDir::setCurrent(testDataDir + "/find-java");
-        const int res = runQbs(QbsRunParameters(QStringList()
-                                                << "-f" << "find-jar.qbs" << "--dry-run"));
-        if (status)
-            *status = res;
-        return QString::fromUtf8(m_qbsStderr).trimmed();
-    }
+    if (fileName == "jar")
+        return findJdkTools(status)[fileName];
 
     QString binary = findExecutable(QStringList(fileName));
     if (binary.isEmpty()) {
@@ -1653,9 +1662,14 @@ void TestBlackbox::java()
 {
     Settings settings((QString()));
     Profile p(profileName(), &settings);
+
+    int status;
+    const auto jdkTools = findJdkTools(&status);
+    QCOMPARE(status, 0);
+
     QDir::setCurrent(testDataDir + "/java");
 
-    int status = runQbs();
+    status = runQbs();
     if (p.value("java.jdkPath").toString().isEmpty()
             && status != 0 && m_qbsStderr.contains("jdkPath")) {
         QSKIP("java.jdkPath not set and automatic detection failed");
@@ -1691,18 +1705,17 @@ void TestBlackbox::java()
     QDir::setCurrent(relativeBuildDir() + "/install-root");
     QProcess process;
     process.setProcessEnvironment(processEnvironmentWithCurrentDirectoryInLibraryPath());
-    process.start("java", QStringList() << "-jar" << "jar_file.jar");
-    if (process.waitForStarted()) {
-        QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
-        QVERIFY2(process.exitCode() == 0, process.readAllStandardError().constData());
-        const QByteArray stdOut = process.readAllStandardOutput();
-        QVERIFY2(stdOut.contains("Driving!"), stdOut.constData());
-        QVERIFY2(stdOut.contains("Flying!"), stdOut.constData());
-        QVERIFY2(stdOut.contains("Flying (this is a space ship)!"), stdOut.constData());
-        QVERIFY2(stdOut.contains("Sailing!"), stdOut.constData());
-        QVERIFY2(stdOut.contains("Native code performing complex internal combustion process ("),
-                 stdOut.constData());
-    }
+    process.start(HostOsInfo::appendExecutableSuffix(jdkTools["java"]),
+            QStringList() << "-jar" << "jar_file.jar");
+    QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
+    QVERIFY2(process.exitCode() == 0, process.readAllStandardError().constData());
+    const QByteArray stdOut = process.readAllStandardOutput();
+    QVERIFY2(stdOut.contains("Driving!"), stdOut.constData());
+    QVERIFY2(stdOut.contains("Flying!"), stdOut.constData());
+    QVERIFY2(stdOut.contains("Flying (this is a space ship)!"), stdOut.constData());
+    QVERIFY2(stdOut.contains("Sailing!"), stdOut.constData());
+    QVERIFY2(stdOut.contains("Native code performing complex internal combustion process ("),
+             stdOut.constData());
 
     process.start("unzip", QStringList() << "-p" << "jar_file.jar");
     if (process.waitForStarted()) {

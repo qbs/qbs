@@ -195,6 +195,7 @@ private slots:
     void zipInvalid();
 
 private:
+    QMap<QString, QString> findJdkTools(int *status);
     QString findArchiver(const QString &fileName, int *status = nullptr);
 
     QByteArray m_qbsStderr;
