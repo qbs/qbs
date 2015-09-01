@@ -115,7 +115,7 @@ private:
     ProductContext *m_productContext;
     ModuleContext *m_moduleContext;
     QMap<QString, ResolvedProductPtr> m_productsByName;
-    QHash<QString, QList<ResolvedProductPtr> > m_productsByType;
+    QHash<FileTag, QList<ResolvedProductPtr> > m_productsByType;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
     const SetupProjectParameters &m_setupParams;

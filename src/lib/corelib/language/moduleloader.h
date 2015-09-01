@@ -31,6 +31,7 @@
 #ifndef QBS_MODULELOADER_H
 #define QBS_MODULELOADER_H
 
+#include "filetags.h"
 #include "forward_decls.h"
 #include "itempool.h"
 #include <logging/logger.h>
@@ -71,7 +72,7 @@ struct ModuleLoaderResult
     {
         struct Dependency
         {
-            QStringList productTypes;
+            FileTags productTypes;
             QString name;
             QString profile; // "*" <=> Match all profiles.
             bool limitToSubProject;

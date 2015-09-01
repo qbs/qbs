@@ -393,7 +393,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 
     m_productsByName.insert(product->uniqueName(), product);
     foreach (const FileTag &t, product->fileTags)
-        m_productsByType[t.toString()] << product;
+        m_productsByType[t] << product;
 
     m_productContext = 0;
     if (m_progressObserver)
@@ -850,7 +850,7 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
         const ModuleLoaderResult::ProductInfo::Dependency &dependency = dependencies.at(i);
         QBS_CHECK(dependency.name.isEmpty() != dependency.productTypes.isEmpty());
         if (!dependency.productTypes.isEmpty()) {
-            foreach (const QString &tag, dependency.productTypes) {
+            foreach (const FileTag &tag, dependency.productTypes) {
                 const QList<ResolvedProductPtr> productsForTag = m_productsByType.value(tag);
                 foreach (const ResolvedProductPtr &p, productsForTag) {
                     if (p == product || !p->enabled

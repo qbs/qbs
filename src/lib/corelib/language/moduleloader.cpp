@@ -710,7 +710,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         return;
     }
     bool productTypesIsSet;
-    const QStringList productTypes = m_evaluator->stringListValue(dependsItem,
+    const FileTags productTypes = m_evaluator->fileTagsValue(dependsItem,
             QLatin1String("productTypes"), &productTypesIsSet);
     bool nameIsSet;
     const QString name
