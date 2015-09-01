@@ -50,12 +50,13 @@ public:
 
 private:
     Item::PropertyMap dfs(const Item::Module &m, Item::PropertyMap props);
-    void pushScalarProperties(Item::PropertyMap *dst, Item *srcItem);
     void mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap &src);
-    void pullListProperties(Item::PropertyMap *dst, Item *instance);
     void appendPrototypeValueToNextChain(Item *moduleProto, const QString &propertyName,
             const ValuePtr &sv);
     static ValuePtr lastInNextChain(const ValuePtr &v);
+
+    enum PropertiesType { ScalarProperties, ListProperties };
+    void insertProperties(Item::PropertyMap *dst, Item *srcItem, PropertiesType type);
 
     const Logger &m_logger;
     Item * const m_rootItem;

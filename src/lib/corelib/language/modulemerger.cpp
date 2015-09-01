@@ -75,7 +75,7 @@ Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap pro
         if (dep.name == m_moduleName) {
             --numberOfOutprops;
             moduleInstance = dep.item;
-            pushScalarProperties(&props, moduleInstance);
+            insertProperties(&props, moduleInstance, ScalarProperties);
             break;
         }
     }
@@ -94,36 +94,9 @@ Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap pro
     }
 
     if (moduleInstance)
-        pullListProperties(&props, moduleInstance);
+        insertProperties(&props, moduleInstance, ListProperties);
 
     return props;
-}
-
-void ModuleMerger::pushScalarProperties(Item::PropertyMap *dst, Item *srcItem)
-{
-    Item *origSrcItem = srcItem;
-    do {
-        if (!m_seenInstancesTopDown.contains(srcItem)) {
-            m_seenInstancesTopDown.insert(srcItem);
-            for (auto it = srcItem->properties().constBegin();
-                 it != srcItem->properties().constEnd(); ++it) {
-                const ValuePtr &srcVal = it.value();
-                if (srcVal->type() != Value::JSSourceValueType)
-                    continue;
-                const PropertyDeclaration srcDecl = srcItem->propertyDeclaration(it.key());
-                if (!srcDecl.isValid() || !srcDecl.isScalar())
-                    continue;
-                ValuePtr &v = (*dst)[it.key()];
-                if (v)
-                    continue;
-                ValuePtr clonedVal = srcVal->clone();
-                m_decls[clonedVal] = srcDecl;
-                clonedVal->setDefiningItem(origSrcItem);
-                v = clonedVal;
-            }
-        }
-        srcItem = srcItem->prototype();
-    } while (srcItem && srcItem->type() == ItemType::ModuleInstance);
 }
 
 void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap &src)
@@ -162,24 +135,28 @@ void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap
     }
 }
 
-void ModuleMerger::pullListProperties(Item::PropertyMap *dst, Item *instance)
+void ModuleMerger::insertProperties(Item::PropertyMap *dst, Item *srcItem, PropertiesType type)
 {
-    Item *origInstance = instance;
+    QSet<const Item *> &seenInstances
+            = type == ScalarProperties ? m_seenInstancesTopDown : m_seenInstancesBottomUp;
+    Item *origSrcItem = srcItem;
     do {
-        if (!m_seenInstancesBottomUp.contains(instance)) {
-            m_seenInstancesBottomUp.insert(instance);
-            for (Item::PropertyMap::const_iterator it = instance->properties().constBegin();
-                 it != instance->properties().constEnd(); ++it) {
+        if (!seenInstances.contains(srcItem)) {
+            seenInstances.insert(srcItem);
+            for (Item::PropertyMap::const_iterator it = srcItem->properties().constBegin();
+                 it != srcItem->properties().constEnd(); ++it) {
                 const ValuePtr &srcVal = it.value();
                 if (srcVal->type() != Value::JSSourceValueType)
                     continue;
-                const PropertyDeclaration srcDecl = instance->propertyDeclaration(it.key());
-                if (!srcDecl.isValid() || srcDecl.isScalar())
+                const PropertyDeclaration srcDecl = srcItem->propertyDeclaration(it.key());
+                if (!srcDecl.isValid() || srcDecl.isScalar() != (type == ScalarProperties))
+                    continue;
+                ValuePtr &v = (*dst)[it.key()];
+                if (v && type == ScalarProperties)
                     continue;
                 ValuePtr clonedVal = srcVal->clone();
                 m_decls[clonedVal] = srcDecl;
-                clonedVal->setDefiningItem(origInstance);
-                ValuePtr &v = (*dst)[it.key()];
+                clonedVal->setDefiningItem(origSrcItem);
                 if (v) {
                     QBS_CHECK(!clonedVal->next());
                     clonedVal->setNext(v);
@@ -187,8 +164,8 @@ void ModuleMerger::pullListProperties(Item::PropertyMap *dst, Item *instance)
                 v = clonedVal;
             }
         }
-        instance = instance->prototype();
-    } while (instance && instance->type() == ItemType::ModuleInstance);
+        srcItem = srcItem->prototype();
+    } while (srcItem && srcItem->type() == ItemType::ModuleInstance);
 }
 
 void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QString &propertyName,
