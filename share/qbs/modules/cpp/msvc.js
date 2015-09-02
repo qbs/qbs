@@ -185,6 +185,21 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         args.push('/INCREMENTAL:NO')
     }
 
+    switch (product.moduleProperty("qbs", "architecture")) {
+    case "x86":
+        args.push("/MACHINE:X86");
+        break;
+    case "x86_64":
+        args.push("/MACHINE:X64");
+        break;
+    case "ia64":
+        args.push("/MACHINE:IA64");
+        break;
+    case "armv7":
+        args.push("/MACHINE:ARM");
+        break;
+    }
+
     var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
     var subsystemSwitch = undefined;
     if (minimumWindowsVersion || product.consoleApplication !== undefined) {
