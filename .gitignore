@@ -23,6 +23,8 @@ qrc_*.cpp
 ui_*.h
 
 Makefile*
+debug/
+release/
 /tests/auto/blackbox/testWorkDir
 /tests/auto/blackbox/tst_blackbox
 /tests/auto/buildgraph/tst_buildgraph
@@ -30,6 +32,7 @@ Makefile*
 /tests/auto/tools/tst_tools
 
 *.app/
+*_resource.rc
 bin/*
 doc/html/*
 /lib

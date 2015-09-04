@@ -99,10 +99,23 @@ public:
     {
     }
 
-    void visitProduct(const ResolvedProductConstPtr &product)
+    void visitProduct(const ResolvedProductPtr &product)
     {
         m_product = product;
         ArtifactVisitor::visitProduct(product);
+        auto it = product->buildData->rescuableArtifactData.begin();
+        while (it != product->buildData->rescuableArtifactData.end()) {
+            // TODO: This does not respect CleanOptions::cleanType(), because the information
+            // about whether an artifact is a target artifact is not stored in the RAD structure.
+            // Rather than add it there, we should get rid of the CleanType altogether, as it
+            // makes little sense.
+            Artifact tmp;
+            tmp.product = product;
+            tmp.setFilePath(it.key());
+            tmp.setTimestamp(it.value().timeStamp);
+            removeArtifactFromDisk(&tmp, m_options.dryRun(), m_logger);
+            it = product->buildData->rescuableArtifactData.erase(it);
+        }
     }
 
     const QSet<QString> &directories() const { return m_directories; }

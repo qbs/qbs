@@ -646,6 +646,22 @@ void TestBlackbox::clean()
     foreach (const QString &symLink, symlinks)
         QVERIFY2(!symlinkExists(symLink), qPrintable(symLink));
 
+    // Remove all, with a forced re-resolve in between.
+    // This checks that rescuable artifacts are also removed.
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "cpp.optimization:none")), 0);
+    QVERIFY(regularFileExists(appObjectFilePath));
+    QVERIFY(regularFileExists(appExeFilePath));
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList() << "cpp.optimization:fast")), 0);
+    QVERIFY(regularFileExists(appObjectFilePath));
+    QVERIFY(regularFileExists(appExeFilePath));
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"), QStringList("--all-artifacts"))), 0);
+    QVERIFY(!QFile(appObjectFilePath).exists());
+    QVERIFY(!QFile(appExeFilePath).exists());
+    QVERIFY(!QFile(depObjectFilePath).exists());
+    QVERIFY(!QFile(depLibFilePath).exists());
+    foreach (const QString &symLink, symlinks)
+        QVERIFY2(!symlinkExists(symLink), qPrintable(symLink));
+
     // Dry run.
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
@@ -2995,6 +3011,11 @@ void TestBlackbox::groupsInModules()
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("compile rock.coal => rock.diamond"));
     QVERIFY(m_qbsStdout.contains("compile chunk.coal => chunk.diamond"));
+    QVERIFY(m_qbsStdout.contains("compiling helper2.c"));
+    QVERIFY(!m_qbsStdout.contains("compiling helper3.c"));
+    QVERIFY(m_qbsStdout.contains("compiling helper4.c"));
+    QVERIFY(m_qbsStdout.contains("compiling helper5.c"));
+    QVERIFY(!m_qbsStdout.contains("compiling helper6.c"));
 
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compile rock.coal => rock.diamond"));

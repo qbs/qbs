@@ -520,6 +520,7 @@ void ModuleLoader::handleProduct(ProductContext *productContext)
     dependsContext.productDependencies = &productContext->info.usedProducts;
     resolveDependencies(&dependsContext, item);
     addTransitiveDependencies(productContext);
+    copyGroupsFromModulesToProduct(productContext->item);
     checkItemCondition(item);
 
     foreach (Item *child, item->children()) {
@@ -1627,6 +1628,30 @@ Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &r
     }
     module->setProperty(QLatin1String("present"), VariantValue::create(false));
     return module;
+}
+
+void ModuleLoader::copyGroupsFromModuleToProduct(Item *productItem, const Item *modulePrototype)
+{
+    for (int i = 0; i < modulePrototype->children().count(); ++i) {
+        Item * const child = modulePrototype->children().at(i);
+        if (child->typeName() == QLatin1String("Group"))
+            Item::addChild(productItem, child->clone());
+    }
+}
+
+void ModuleLoader::copyGroupsFromModulesToProduct(Item *productItem)
+{
+    foreach (const Item::Module &module, productItem->modules()) {
+        Item *prototype = module.item;
+        bool modulePassedValidation;
+        while ((modulePassedValidation = prototype->isPresentModule()
+                && !prototype->delayedError().hasError())
+                && prototype->prototype()) {
+            prototype = prototype->prototype();
+        }
+        if (modulePassedValidation)
+            copyGroupsFromModuleToProduct(productItem, prototype);
+    }
 }
 
 QString ModuleLoaderResult::ProductInfo::Dependency::uniqueName() const
