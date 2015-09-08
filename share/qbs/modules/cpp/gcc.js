@@ -558,8 +558,10 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     var pchOutput = output.fileTags.contains(compilerInfo.tag + "_pch");
 
     var args = compilerFlags(product, input, output);
+    var wrapperArgsLength = 0;
     var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");
     if (wrapperArgs && wrapperArgs.length > 0) {
+        wrapperArgsLength = wrapperArgs.length;
         args.unshift(compilerPath);
         compilerPath = wrapperArgs.shift();
         args = wrapperArgs.concat(args);
@@ -570,6 +572,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     if (pchOutput)
         cmd.description += ' (' + compilerInfo.tag + ')';
     cmd.highlight = "compiler";
+    cmd.responseFileArgumentIndex = wrapperArgsLength;
     cmd.responseFileUsagePrefix = '@';
     return cmd;
 }

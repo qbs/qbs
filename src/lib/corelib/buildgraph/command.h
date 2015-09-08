@@ -107,6 +107,7 @@ public:
     QString stdoutFilterFunction() const { return m_stdoutFilterFunction; }
     QString stderrFilterFunction() const { return m_stderrFilterFunction; }
     int responseFileThreshold() const { return m_responseFileThreshold; }
+    int responseFileArgumentIndex() const { return m_responseFileArgumentIndex; }
     QString responseFileUsagePrefix() const { return m_responseFileUsagePrefix; }
     QProcessEnvironment environment() const { return m_environment; }
 
@@ -125,6 +126,7 @@ private:
     QString m_stdoutFilterFunction;
     QString m_stderrFilterFunction;
     int m_responseFileThreshold; // When to use response files? In bytes of (program name + arguments).
+    int m_responseFileArgumentIndex;
     QString m_responseFileUsagePrefix;
     QProcessEnvironment m_environment;
 };

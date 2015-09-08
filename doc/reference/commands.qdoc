@@ -160,6 +160,13 @@
             the maximum length of the command line and will only work with programs that explicitly
             support it.
     \row
+        \li \c responseFileArgumentIndex
+        \li int
+        \li 0
+        \li Index of the first argument to include in the response file. For example this may be
+            used in conjunction with a compiler wrapper where the first argument (the path to the
+            compiler) must be included on the raw command line.
+    \row
         \li \c responseFileUsagePrefix
         \li string
         \li empty

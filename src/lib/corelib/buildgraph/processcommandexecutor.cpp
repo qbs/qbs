@@ -129,13 +129,14 @@ void ProcessCommandExecutor::doStart()
                                  .arg(responseFile.fileName())));
                 return;
             }
-            for (int i = 0; i < cmd->arguments().count(); ++i) {
+            for (int i = cmd->responseFileArgumentIndex(); i < cmd->arguments().count(); ++i) {
                 responseFile.write(cmd->arguments().at(i).toLocal8Bit());
                 responseFile.write("\n");
             }
             responseFile.close();
             m_responseFileName = responseFile.fileName();
-            arguments.clear();
+            arguments = arguments.mid(0,
+                                      std::min(cmd->responseFileArgumentIndex(), arguments.size()));
             arguments += QDir::toNativeSeparators(cmd->responseFileUsagePrefix()
                     + responseFile.fileName());
         }

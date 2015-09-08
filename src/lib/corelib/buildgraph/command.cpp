@@ -152,6 +152,8 @@ static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
                     engine->toScriptValue(commandPrototype->stderrFilterFunction()));
     cmd.setProperty(QLatin1String("responseFileThreshold"),
                     engine->toScriptValue(commandPrototype->responseFileThreshold()));
+    cmd.setProperty(QLatin1String("responseFileArgumentIndex"),
+                    engine->toScriptValue(commandPrototype->responseFileArgumentIndex()));
     cmd.setProperty(QLatin1String("responseFileUsagePrefix"),
                     engine->toScriptValue(commandPrototype->responseFileUsagePrefix()));
     cmd.setProperty(QLatin1String("environment"),
@@ -170,6 +172,7 @@ void ProcessCommand::setupForJavaScript(QScriptValue targetObject)
 ProcessCommand::ProcessCommand()
     : m_maxExitCode(0)
     , m_responseFileThreshold(HostOsInfo::isWindowsHost() ? 32000 : -1)
+    , m_responseFileArgumentIndex(0)
 {
 }
 
@@ -198,6 +201,7 @@ bool ProcessCommand::equals(const AbstractCommand *otherAbstractCommand) const
             && m_stdoutFilterFunction == other->m_stdoutFilterFunction
             && m_stderrFilterFunction == other->m_stderrFilterFunction
             && m_responseFileThreshold == other->m_responseFileThreshold
+            && m_responseFileArgumentIndex == other->m_responseFileArgumentIndex
             && m_responseFileUsagePrefix == other->m_responseFileUsagePrefix
             && m_environment == other->m_environment;
 }
@@ -225,6 +229,8 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
         m_stderrFilterFunction = stderrFilterFunction.toString();
     m_responseFileThreshold = scriptValue->property(QLatin1String("responseFileThreshold"))
             .toInt32();
+    m_responseFileArgumentIndex = scriptValue->property(QLatin1String("responseFileArgumentIndex"))
+            .toInt32();
     m_responseFileUsagePrefix = scriptValue->property(QLatin1String("responseFileUsagePrefix"))
             .toString();
     QStringList envList = scriptValue->property(QLatin1String("environment")).toVariant()
@@ -239,6 +245,7 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
             << QLatin1String("stdoutFilterFunction")
             << QLatin1String("stderrFilterFunction")
             << QLatin1String("responseFileThreshold")
+            << QLatin1String("responseFileArgumentIndex")
             << QLatin1String("responseFileUsagePrefix")
             << QLatin1String("environment");
     applyCommandProperties(scriptValue);
@@ -254,7 +261,7 @@ void ProcessCommand::load(PersistentPool &pool)
     m_stdoutFilterFunction = pool.idLoadString();
     m_stderrFilterFunction = pool.idLoadString();
     m_responseFileUsagePrefix = pool.idLoadString();
-    pool.stream() >> m_maxExitCode >> m_responseFileThreshold;
+    pool.stream() >> m_maxExitCode >> m_responseFileThreshold >> m_responseFileArgumentIndex;
     getEnvironmentFromList(envList);
 }
 
@@ -268,7 +275,7 @@ void ProcessCommand::store(PersistentPool &pool) const
     pool.storeString(m_stdoutFilterFunction);
     pool.storeString(m_stderrFilterFunction);
     pool.storeString(m_responseFileUsagePrefix);
-    pool.stream() << m_maxExitCode << m_responseFileThreshold;
+    pool.stream() << m_maxExitCode << m_responseFileThreshold << m_responseFileArgumentIndex;
 }
 
 static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine *engine)
