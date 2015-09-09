@@ -122,6 +122,10 @@ static QStringList targetOSList(const QString &applePlatformName)
         targetOS << QStringLiteral("ios");
     } else if (applePlatformName == QStringLiteral("iphonesimulator")) {
         targetOS << QStringLiteral("ios") << QStringLiteral("ios-simulator");
+    } else if (applePlatformName == QStringLiteral("appletvos")) {
+        targetOS << QStringLiteral("tvos");
+    } else if (applePlatformName == QStringLiteral("appletvsimulator")) {
+        targetOS << QStringLiteral("tvos") << QStringLiteral("tvos-simulator");
     } else if (applePlatformName == QStringLiteral("watchos")) {
         targetOS << QStringLiteral("watchos");
     } else if (applePlatformName == QStringLiteral("watchsimulator")) {
@@ -137,12 +141,17 @@ static QStringList archList(const QString &applePlatformName)
     QStringList archs;
     if (applePlatformName == QStringLiteral("macosx")
             || applePlatformName == QStringLiteral("iphonesimulator")
+            || applePlatformName == QStringLiteral("appletvsimulator")
             || applePlatformName == QStringLiteral("watchsimulator")) {
-        archs << QStringLiteral("x86");
+        if (applePlatformName != QStringLiteral("appletvsimulator"))
+            archs << QStringLiteral("x86");
         if (applePlatformName != QStringLiteral("watchsimulator"))
             archs << QStringLiteral("x86_64");
-    } else if (applePlatformName == QStringLiteral("iphoneos")) {
-        archs << QStringLiteral("armv7") << QStringLiteral("arm64");
+    } else if (applePlatformName == QStringLiteral("iphoneos")
+               || applePlatformName == QStringLiteral("appletvos")) {
+        if (applePlatformName != QStringLiteral("appletvos"))
+            archs << QStringLiteral("armv7");
+        archs << QStringLiteral("arm64");
     } else if (applePlatformName == QStringLiteral("watchos")) {
         archs << QStringLiteral("armv7k");
     }
@@ -171,6 +180,8 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
     platforms << QStringLiteral("macosx")
               << QStringLiteral("iphoneos")
               << QStringLiteral("iphonesimulator")
+              << QStringLiteral("appletvos")
+              << QStringLiteral("appletvsimulator")
               << QStringLiteral("watchos")
               << QStringLiteral("watchsimulator");
     for (const QString &platform : platforms) {

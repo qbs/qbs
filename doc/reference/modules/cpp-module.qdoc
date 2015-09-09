@@ -462,6 +462,14 @@
         \li A version number in the format [major].[minor] indicating the earliest version of
             Apple watchOS that the product should run on.
             If undefined, compiler defaults will be used.
+    \row
+        \li minimumTvosVersion
+        \li \c{string}
+        \li 1.5
+        \li undefined, but may be set by generated profiles
+        \li A version number in the format [major].[minor] indicating the earliest version of
+            Apple tvOS that the product should run on.
+            If undefined, compiler defaults will be used.
     \endtable
 
     \section1 Properties Specific to Unix Platforms

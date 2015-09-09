@@ -42,6 +42,10 @@ function applePlatformDirectoryName(targetOSList, version, throwOnError) {
         return "iPhoneOS" + version;
     else if (targetOSList.contains("osx"))
         return "MacOSX" + version;
+    else if (targetOSList.contains("tvos-simulator"))
+        return "AppleTVSimulator" + version;
+    else if (targetOSList.contains("tvos"))
+        return "AppleTVOS" + version;
     else if (targetOSList.contains("watchos-simulator"))
         return "WatchSimulator" + version;
     else if (targetOSList.contains("watchos"))

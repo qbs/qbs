@@ -97,6 +97,14 @@ Module {
                         defaults will be used."
     }
 
+    property string minimumTvosVersion
+    PropertyOptions {
+        name: "minimumTvosVersion"
+        description: "a version number in the format [major].[minor] indicating the earliest \
+                        version of tvOS that the product should run on. if undefined, compiler \
+                        defaults will be used."
+    }
+
     property string minimumAndroidVersion
     PropertyOptions {
         name: "minimumAndroidVersion"

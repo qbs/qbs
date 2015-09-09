@@ -58,6 +58,8 @@ function targetDevices(targetOS) {
         return ["mac"];
     if (targetOS.contains("ios"))
         return ["iphone", "ipad"];
+    if (targetOS.contains("tvos"))
+        return ["tv"];
     if (targetOS.contains("watchos"))
         return ["watch"];
 }
@@ -73,7 +75,6 @@ function targetedDeviceFamily(deviceNames) {
 
 /**
   * Returns the most appropriate Apple platform name given a targetOS list.
-  * Possible platform names include macosx, iphoneos, and iphonesimulator.
   */
 function applePlatformName(targetOSList) {
     if (targetOSList.contains("ios-simulator"))
@@ -82,6 +83,10 @@ function applePlatformName(targetOSList) {
         return "iphoneos";
     else if (targetOSList.contains("osx"))
         return "macosx";
+    else if (targetOSList.contains("tvos-simulator"))
+        return "appletvsimulator";
+    else if (targetOSList.contains("tvos"))
+        return "appletvos";
     else if (targetOSList.contains("watchos-simulator"))
         return "watchsimulator";
     else if (targetOSList.contains("watchos"))
