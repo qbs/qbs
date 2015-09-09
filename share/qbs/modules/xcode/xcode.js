@@ -42,10 +42,10 @@ function applePlatformDirectoryName(targetOSList, version, throwOnError) {
         return "iPhoneOS" + version;
     else if (targetOSList.contains("osx"))
         return "MacOSX" + version;
-    else if (targetOSList.contains("watchos"))
-        return "WatchOS" + version;
     else if (targetOSList.contains("watchos-simulator"))
         return "WatchSimulator" + version;
+    else if (targetOSList.contains("watchos"))
+        return "WatchOS" + version;
     if (throwOnError || throwOnError === undefined)
         throw("No Apple platform corresponds to target OS list: " + targetOSList);
 }

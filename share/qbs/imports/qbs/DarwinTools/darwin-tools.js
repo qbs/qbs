@@ -82,6 +82,10 @@ function applePlatformName(targetOSList) {
         return "iphoneos";
     else if (targetOSList.contains("osx"))
         return "macosx";
+    else if (targetOSList.contains("watchos-simulator"))
+        return "watchsimulator";
+    else if (targetOSList.contains("watchos"))
+        return "watchos";
     throw("No Apple platform corresponds to target OS list: " + targetOSList);
 }
 
