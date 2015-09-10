@@ -45,7 +45,7 @@ Module {
                                 || product.type.contains("dynamiclibrary")
                                 || product.type.contains("loadablemodule"))
                             && !product.consoleApplication
-    property bool isShallow: qbs.targetOS.contains("ios") && product.type.contains("application")
+    property bool isShallow: !qbs.targetOS.contains("osx") && product.type.contains("application")
 
     property string identifierPrefix: "org.example"
     property string identifier: [identifierPrefix, qbs.rfc1034Identifier(product.targetName)].join(".")
@@ -102,8 +102,7 @@ Module {
     property string infoPlistFormat: {
         if (qbs.targetOS.contains("osx"))
             return infoPlistFile ? "same-as-input" : "xml1";
-        else if (qbs.targetOS.contains("ios"))
-            return "binary1";
+        return "binary1";
     }
 
     property string localizedResourcesFolderSuffix: ".lproj"

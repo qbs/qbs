@@ -71,26 +71,38 @@ UnixGCC {
                 dict["LSMinimumSystemVersion"] = minimumOsxVersion;
         }
 
-        if (qbs.targetOS.contains("ios")) {
+        if (qbs.targetOS.contains("ios") || qbs.targetOS.contains("tvos")) {
             dict["LSRequiresIPhoneOS"] = true;
 
-            // architectures supported, to support iPhone 3G for example one has to add
-            // armv6 to the list and also compile for it (with Xcode 4.4.1 or earlier)
-            if (!qbs.targetOS.contains("ios-simulator"))
-                dict["UIRequiredDeviceCapabilities"] = [ "armv7" ];
+            if (qbs.targetOS.contains("ios") && !qbs.targetOS.contains("ios-simulator"))
+                dict["UIRequiredDeviceCapabilities"] = ["armv7"];
 
+            if (qbs.targetOS.contains("tvos") && !qbs.targetOS.contains("tvos-simulator"))
+                dict["UIRequiredDeviceCapabilities"] = ["arm64"];
+        }
+
+        var targetDevices = DarwinTools.targetedDeviceFamily(xcode.targetDevices);
+        if (qbs.targetOS.contains("ios") && xcode.present)
+            dict["UIDeviceFamily"] = targetDevices;
+
+        if (qbs.targetOS.contains("ios") || qbs.targetOS.contains("watchos")) {
             var orientations = [
                 "UIInterfaceOrientationPortrait",
+                "UIInterfaceOrientationPortraitUpsideDown",
                 "UIInterfaceOrientationLandscapeLeft",
                 "UIInterfaceOrientationLandscapeRight"
             ];
 
-            dict["UISupportedInterfaceOrientations"] = orientations;
-            orientations.splice(1, 0, "UIInterfaceOrientationPortraitUpsideDown");
-            dict["UISupportedInterfaceOrientations~ipad"] = orientations;
+            if (targetDevices.contains("ipad"))
+                dict["UISupportedInterfaceOrientations~ipad"] = orientations;
 
-            if (xcode.present)
-                dict["UIDeviceFamily"] = DarwinTools.targetedDeviceFamily(xcode.targetDevices)
+            if (targetDevices.contains("watch"))
+                dict["UISupportedInterfaceOrientations"] = orientations.slice(0, 2);
+
+            if (targetDevices.contains("iphone")) {
+                orientations.splice(1, 1);
+                dict["UISupportedInterfaceOrientations"] = orientations;
+            }
         }
 
         return dict;
