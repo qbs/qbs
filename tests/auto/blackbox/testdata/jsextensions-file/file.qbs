@@ -16,7 +16,7 @@ Product {
             cmd.sourceCode = function() {
                 var origPath = FileInfo.joinPaths(product.sourceDirectory, "original.txt");
                 var copyPath = FileInfo.joinPaths(product.sourceDirectory, "copy.txt");
-                print("copy path: "+copyPath);
+                console.info("copy path: "+copyPath);
                 var original = new TextFile(origPath, TextFile.WriteOnly);
                 original.close();
                 File.copy(origPath, copyPath);

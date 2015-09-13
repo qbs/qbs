@@ -623,5 +623,51 @@ QScriptValue EvaluatorScriptClass::js_shellQuote(QScriptContext *context, QScrip
     return engine->toScriptValue(shellQuote(program, args, hostOs));
 }
 
+QScriptValue EvaluatorScriptClass::js_consoleError(QScriptContext *context, QScriptEngine *engine,
+                                                   Logger *logger)
+{
+    if (Q_UNLIKELY(context->argumentCount() != 1))
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("error expects 1 argument"));
+    logger->qbsLog(LoggerError) << context->argument(0).toString();
+    return engine->undefinedValue();
+}
+
+QScriptValue EvaluatorScriptClass::js_consoleWarn(QScriptContext *context, QScriptEngine *engine,
+                                                  Logger *logger)
+{
+    if (Q_UNLIKELY(context->argumentCount() != 1))
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("error expects 1 argument"));
+    logger->qbsWarning() << context->argument(0).toString();
+    return engine->undefinedValue();
+}
+
+QScriptValue EvaluatorScriptClass::js_consoleInfo(QScriptContext *context, QScriptEngine *engine,
+                                                  Logger *logger)
+{
+    if (Q_UNLIKELY(context->argumentCount() != 1))
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("error expects 1 argument"));
+    logger->qbsInfo() << context->argument(0).toString();
+    return engine->undefinedValue();
+}
+
+QScriptValue EvaluatorScriptClass::js_consoleDebug(QScriptContext *context, QScriptEngine *engine,
+                                                   Logger *logger)
+{
+    if (Q_UNLIKELY(context->argumentCount() != 1))
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("error expects 1 argument"));
+    logger->qbsDebug() << context->argument(0).toString();
+    return engine->undefinedValue();
+}
+
+QScriptValue EvaluatorScriptClass::js_consoleLog(QScriptContext *context, QScriptEngine *engine,
+                                                   Logger *logger)
+{
+    return js_consoleDebug(context, engine, logger);
+}
+
 } // namespace Internal
 } // namespace qbs

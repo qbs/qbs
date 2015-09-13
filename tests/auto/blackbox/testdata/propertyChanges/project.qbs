@@ -37,7 +37,7 @@ Project {
             prepare: {
                 var cmd = new JavaScriptCommand();
                 cmd.silent = true;
-                cmd.sourceCode = function() { print(product.fileContentPrefix); }
+                cmd.sourceCode = function() { console.info(product.fileContentPrefix); }
                 return cmd;
             }
         }

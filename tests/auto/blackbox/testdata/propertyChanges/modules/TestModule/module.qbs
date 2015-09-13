@@ -19,7 +19,7 @@ Module {
             cmd.highlight = "codegen";
             cmd.description = "Making output from input";
             cmd.sourceCode = function() {
-            // print('Change in source code');
+            // console.info('Change in source code');
             File.copy(input.filePath, output.filePath);
             }
             return cmd;

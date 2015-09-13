@@ -168,7 +168,7 @@ function linkerFlags(product, inputs, output) {
                 args = args.concat(escapeLinkerFlags(product, ["--major-os-version", major]));
                 args = args.concat(escapeLinkerFlags(product, ["--minor-os-version", minor]));
             } else {
-                print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
+                console.warn('Unknown Windows version "' + minimumWindowsVersion + '"');
             }
         }
     }
@@ -476,7 +476,7 @@ function compilerFlags(product, input, output) {
             for (i in versionDefs)
                 args.push('-D' + versionDefs[i] + '=' + hexVersion);
         } else {
-            print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
+            console.warn('Unknown Windows version "' + minimumWindowsVersion + '"');
         }
     }
 

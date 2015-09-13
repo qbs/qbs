@@ -800,7 +800,7 @@ void TestLanguage::identifierSearch_data()
                                   "Product {\n"
                                   "    name: {\n"
                                   "        var foo = 'bar';\n"
-                                  "        print(foo);\n"
+                                  "        console.info(foo);\n"
                                   "        return foo;\n"
                                   "    }\n"
                                   "}\n");
@@ -808,7 +808,7 @@ void TestLanguage::identifierSearch_data()
                                   "Product {\n"
                                   "    name: {\n"
                                   "        var foo = 'zort';\n"
-                                  "        print(narf + foo);\n"
+                                  "        console.info(narf + foo);\n"
                                   "        return foo;\n"
                                   "    }\n"
                                   "}\n");
@@ -816,7 +816,7 @@ void TestLanguage::identifierSearch_data()
                                   "Product {\n"
                                   "    name: {\n"
                                   "        var foo = 'narf';\n"
-                                  "        print(zort + foo);\n"
+                                  "        console.info(zort + foo);\n"
                                   "        return foo;\n"
                                   "    }\n"
                                   "}\n");

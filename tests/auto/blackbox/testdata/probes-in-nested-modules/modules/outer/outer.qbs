@@ -8,7 +8,7 @@ Module {
         property string barz
         property string named: product.name
         configure: {
-            print("running second probe " + named);
+            console.info("running second probe " + named);
             barz = "goodbye";
             found = true;
         }

@@ -10,7 +10,7 @@ Module {
         property bool useAlt: alt
         property string named: product.name
         configure: {
-            print("running probe " + named);
+            console.info("running probe " + named);
             baz = useAlt ? "hahaha" : "hello";
             found = true;
         }

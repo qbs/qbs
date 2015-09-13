@@ -173,7 +173,7 @@ function dumpProperty(key, value, level) {
     var indent = "";
     for (var k = 0; k < level; ++k)
         indent += "  ";
-    print(indent + key + ": " + value);
+    console.info(indent + key + ": " + value);
 }
 
 function traverseObject(obj, func, level) {
@@ -197,7 +197,7 @@ function traverseObject(obj, func, level) {
 function dumpObject(obj, description) {
     if (!description)
         description = "object dump";
-    print("+++++++++ " + description + " +++++++++");
+    console.info("+++++++++ " + description + " +++++++++");
     traverseObject(obj, dumpProperty);
 }
 

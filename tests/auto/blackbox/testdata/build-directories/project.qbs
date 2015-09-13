@@ -13,7 +13,7 @@ Project {
                 var cmd = new JavaScriptCommand();
                 cmd.silent = true;
                 cmd.sourceCode = function() {
-                    print(product.buildDirectory);
+                    console.info(product.buildDirectory);
                 }
                 return cmd;
             }
@@ -33,9 +33,9 @@ Project {
                 var cmd = new JavaScriptCommand();
                 cmd.silent = true;
                 cmd.sourceCode = function() {
-                    print(product.buildDirectory);
-                    print(project.buildDirectory);
-                    print(project.sourceDirectory);
+                    console.info(product.buildDirectory);
+                    console.info(project.buildDirectory);
+                    console.info(project.sourceDirectory);
                 }
                 return cmd;
             }

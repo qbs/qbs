@@ -70,6 +70,17 @@ public:
     static QScriptValue js_getHash(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_shellQuote(QScriptContext *context, QScriptEngine *engine);
 
+    static QScriptValue js_consoleError(QScriptContext *context, QScriptEngine *engine,
+                                        Logger *logger);
+    static QScriptValue js_consoleWarn(QScriptContext *context, QScriptEngine *engine,
+                                       Logger *logger);
+    static QScriptValue js_consoleInfo(QScriptContext *context, QScriptEngine *engine,
+                                       Logger *logger);
+    static QScriptValue js_consoleDebug(QScriptContext *context, QScriptEngine *engine,
+                                        Logger *logger);
+    static QScriptValue js_consoleLog(QScriptContext *context, QScriptEngine *engine,
+                                      Logger *logger);
+
 private:
     QueryFlags queryItemProperty(const EvaluationData *data,
                                  const QString &name,

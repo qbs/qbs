@@ -1,17 +1,36 @@
 import qbs
+import qbs.TextFile
 
 Product {
     Depends { name: "java"; required: false }
-    Probe {
-        configure: {
-            if (java.present) {
-                var tools = {
-                    "javac": java.compilerFilePath,
-                    "java": java.interpreterFilePath,
-                    "jar": java.jarFilePath
-                };
-                print(JSON.stringify(tools, undefined, 4));
-            }
+    type: ["json"]
+    Rule {
+        inputs: ["qbs"]
+        Artifact {
+            filePath: ["jdk.json"]
+            fileTags: ["json"]
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = output.filePath;
+            cmd.sourceCode = function() {
+                var tools = {};
+                if (product.moduleProperty("java", "present")) {
+                    tools["javac"] = product.moduleProperty("java", "compilerFilePath");
+                    tools["java"] = product.moduleProperty("java", "interpreterFilePath");
+                    tools["jar"] = product.moduleProperty("java", "jarFilePath");
+                }
+
+                var tf;
+                try {
+                    tf = new TextFile(output.filePath, TextFile.WriteOnly);
+                    tf.writeLine(JSON.stringify(tools, undefined, 4));
+                } finally {
+                    if (tf)
+                        tf.close();
+                }
+            };
+            return cmd;
         }
     }
 }

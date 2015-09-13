@@ -42,7 +42,7 @@ Project {
                 cmd.description = "Gathering text files";
                 cmd.sourceCode = function() {
                     for (i in inputs.txt)
-                        print("\t" + inputs.txt[i].filePath);
+                        console.info(inputs.txt[i].filePath);
                 };
                 return cmd;
             }

@@ -12,8 +12,8 @@ Module {
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.sourceCode = function() {
-                print("listProp = "
-                      + JSON.stringify(product.moduleProperty("lower", "listProp")));
+                console.info("listProp = "
+                             + JSON.stringify(product.moduleProperty("lower", "listProp")));
             };
             var prop = product.moduleProperty("lowerlevel", "prop");
             cmd.silent = true;

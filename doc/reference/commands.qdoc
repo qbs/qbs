@@ -59,8 +59,8 @@
         var cmd = new JavaScriptCommand();
         cmd.apology = "Sorry.";
         cmd.sourceCode = function() {
-            print("I'm a rather pointless command.");
-            print(apology);
+            console.info("I'm a rather pointless command.");
+            console.info(apology);
         };
     \endcode
 

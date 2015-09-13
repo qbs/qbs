@@ -7,16 +7,16 @@ Project {
         Depends { name: "xcode" }
 
         consoleApplication: {
-            print("Developer directory: " + xcode.developerPath);
-            print("SDK: " + xcode.sdk);
-            print("Target devices: " + xcode.targetDevices.join(", "));
-            print("SDK name: " + xcode.sdkName);
-            print("SDK version: " + xcode.sdkVersion);
-            print("Latest SDK name: " + xcode.latestSdkName);
-            print("Latest SDK version: " + xcode.latestSdkVersion);
-            print("Available SDK names: " + xcode.availableSdkNames.join(", "));
-            print("Available SDK versions: " + xcode.availableSdkVersions.join(", "));
-            print("Actual SDK list: " + project.sdks.join(", "));
+            console.info("Developer directory: " + xcode.developerPath);
+            console.info("SDK: " + xcode.sdk);
+            console.info("Target devices: " + xcode.targetDevices.join(", "));
+            console.info("SDK name: " + xcode.sdkName);
+            console.info("SDK version: " + xcode.sdkVersion);
+            console.info("Latest SDK name: " + xcode.latestSdkName);
+            console.info("Latest SDK version: " + xcode.latestSdkVersion);
+            console.info("Available SDK names: " + xcode.availableSdkNames.join(", "));
+            console.info("Available SDK versions: " + xcode.availableSdkVersions.join(", "));
+            console.info("Actual SDK list: " + project.sdks.join(", "));
 
             var msg = "Unexpected SDK list [" + xcode.availableSdkVersions.join(", ") + "]";
             var testArraysEqual = function(a, b) {

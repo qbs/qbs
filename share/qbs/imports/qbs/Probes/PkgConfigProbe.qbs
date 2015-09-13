@@ -69,7 +69,7 @@ Probe {
                     else
                         libs = libs.split(/\s/);
                     found = true;
-                    print("PkgConfigProbe: found library " + name);
+                    console.info("PkgConfigProbe: found library " + name);
                     return;
                 }
             }

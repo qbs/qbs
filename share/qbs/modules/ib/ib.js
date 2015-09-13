@@ -278,7 +278,7 @@ function ibtoolVersion(ibtool) {
     try {
         process = new Process();
         if (process.exec(ibtool, ["--version", "--output-format", "xml1"], true) !== 0)
-            print(process.readStdErr());
+            console.error(process.readStdErr());
 
         var propertyList = new PropertyList();
         try {

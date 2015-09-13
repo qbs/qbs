@@ -14,7 +14,7 @@ Module {
             cmd.silent = true;
             cmd.sourceCode = function() {
                 var listProp = input.moduleProperty("lower", "listProp");
-                print("listProp: " + JSON.stringify(listProp));
+                console.info("listProp: " + JSON.stringify(listProp));
             }
             return [cmd];
         }

@@ -15,7 +15,7 @@ Project {
                 filePath: input.completeBaseName + ".cow",
                 fileTags: ["cow"]
             }]
-            prepare: { print("The cow feeds on grass."); }
+            prepare: { console.info("The cow feeds on grass."); }
         }
         Rule {
             inputs: ["cow"]
@@ -23,7 +23,7 @@ Project {
                 filePath: input.completeBaseName + ".cow_pat"
                 fileTags: ["cow_pat"]
             }
-            prepare: { print("The cow pat falls out of the cow."); }
+            prepare: { console.info("The cow pat falls out of the cow."); }
         }
         Rule {
             inputs: ["cow_pat"]
@@ -31,7 +31,7 @@ Project {
                 filePath: input.completeBaseName + ".fertilizer"
                 fileTags: ["fertilizer"]
             }
-            prepare: { print("The cow pat is used as fertilizer."); }
+            prepare: { console.info("The cow pat is used as fertilizer."); }
         }
         Rule {
             inputs: ["fertilizer"]
@@ -40,7 +40,7 @@ Project {
                 filePath: input.completeBaseName + ".grass",
                 fileTags: ["grass"]
             }]
-            prepare: { print("The fertilizer lets the grass grow."); }
+            prepare: { console.info("The fertilizer lets the grass grow."); }
         }
     }
 }

@@ -131,4 +131,55 @@
     String.endsWith(s: string): boolean
     \endcode
     Returns \c{true} if the string ends with the substring \c{s}. Returns \c{false} otherwise.
+
+
+    \section1 Console API
+
+    \QBS provides a subset of the non-standard Console API available in most ECMAScript runtimes.
+
+    The output of each of these functions will only be displayed if the logging level is at least
+    the level which the function outputs at. Logging levels from lowest to highest are:
+    'error', 'warning', 'info', 'debug', and 'trace'. The default is 'info'.
+
+    \warning The contents of this section are subject to change in order to align with future
+    \l{https://www.w3.org/2011/08/browser-testing-charter.html}{standardization}
+    \l{https://github.com/DeveloperToolsWG/console-object/blob/master/api.md}{processes}.
+
+    \section2 console.debug
+    \code
+    console.debug(s: string): void
+    \endcode
+    This method is an alias for \c{console.log()}.
+
+    \section2 console.error
+    \code
+    console.error(s: string): void
+    \endcode
+    Logs an \c{error} level message.
+    Outputs to stderr when the logger output is a terminal.
+    The string will be prefixed with \c{"ERROR: "} and colored red when the logger output is a
+    color-capable terminal.
+
+    \section2 console.info
+    \code
+    console.info(s: string): void
+    \endcode
+    Logs an \c{info} level message.
+    Outputs to stdout when the logger output is a terminal.
+
+    \section2 console.log
+    \code
+    console.log(s: string): void
+    \endcode
+    Logs a \c{debug} level message.
+    Outputs to stderr when the logger output is a terminal.
+
+    \section2 console.warn
+    \code
+    console.warn(s: string): void
+    \endcode
+    Logs a \c{warning} level message.
+    Outputs to stderr when the logger output is a terminal.
+    The string will be prefixed with \c{"WARNING: "} and colored yellow when the logger output is a
+    color-capable terminal.
 */

@@ -130,6 +130,7 @@ private:
     void extendJavaScriptBuiltins();
     void installFunction(const QString &name, QScriptValue *functionValue, FunctionSignature f, QScriptValue *targetObject);
     void installQbsFunction(const QString &name, FunctionSignature f);
+    void installConsoleFunction(const QString &name, FunctionWithArgSignature f);
     void installImportFunctions();
     void uninstallImportFunctions();
     QScriptValue importFile(const QString &filePath, const QScriptValue &scope,
@@ -176,6 +177,7 @@ private:
     QScriptValue m_loadFileFunction;
     QScriptValue m_loadExtensionFunction;
     QScriptValue m_qbsObject;
+    QScriptValue m_consoleObject;
     QScriptValue m_cancelationError;
     QList<QVariantMap *> m_ownedVariantMaps;
 };

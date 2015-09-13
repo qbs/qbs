@@ -24,7 +24,7 @@ Project {
                 var cmd = new JavaScriptCommand();
                 cmd.silent = true;
                 cmd.sourceCode = function() {
-                    print("prop: " + project.prop);
+                    console.info("prop: " + project.prop);
                 }
                 return [cmd];
             }

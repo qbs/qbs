@@ -118,10 +118,10 @@ function tscArguments(product, inputs) {
 
 function outputArtifacts(product, inputs) {
     if (!supportsModernFeatures(product)) {
-        print("WARNING: Qbs does not properly support TypeScript versions prior to 1.5 due to " +
-              "severe limitations in dependency tracking. This is TypeScript version " +
-              ModUtils.moduleProperty(product, "version") + ". It is strongly recommended that " +
-              "you upgrade TypeScript, or continue at your own risk.");
+        console.warn("Qbs does not properly support TypeScript versions prior to 1.5 due to " +
+                     "severe limitations in dependency tracking. This is TypeScript version " +
+                     ModUtils.moduleProperty(product, "version") + ". It is strongly recommended " +
+                     "that you upgrade TypeScript, or continue at your own risk.");
         return legacyOutputArtifacts(product, inputs);
     }
 

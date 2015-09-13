@@ -99,7 +99,7 @@ function applePlatformName(targetOSList) {
   */
 function rfc1034(inStr) {
     // ### Remove in Qbs 1.5
-    print("WARNING: DarwinTools.rfc1034 is deprecated; use qbs.rfc1034Identifier instead");
+    console.warn("DarwinTools.rfc1034 is deprecated; use qbs.rfc1034Identifier instead");
     return qbs.rfc1034Identifier(inStr);
 }
 
@@ -195,7 +195,7 @@ function expandPlistEnvironmentVariables(obj, env, warn) {
                 if (undefined === varValue) {
                     // skip replacement
                     if (warn)
-                        print("Warning undefined variable ",varName, " in variable expansion");
+                        console.warn("undefined variable " + varName + " in variable expansion");
                 } else {
                     changes = true;
                     varValue = String(varValue);

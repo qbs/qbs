@@ -530,6 +530,23 @@ void ScriptEngine::installQbsBuiltins()
                        EvaluatorScriptClass::js_getHash);
     installQbsFunction(QLatin1String("shellQuote"),
                        EvaluatorScriptClass::js_shellQuote);
+
+    globalObject().setProperty(QLatin1String("console"), m_consoleObject = newObject());
+    installConsoleFunction(QLatin1String("debug"),
+                           reinterpret_cast<FunctionWithArgSignature>(
+                               EvaluatorScriptClass::js_consoleDebug));
+    installConsoleFunction(QLatin1String("error"),
+                           reinterpret_cast<FunctionWithArgSignature>(
+                               EvaluatorScriptClass::js_consoleError));
+    installConsoleFunction(QLatin1String("info"),
+                           reinterpret_cast<FunctionWithArgSignature>(
+                               EvaluatorScriptClass::js_consoleInfo));
+    installConsoleFunction(QLatin1String("log"),
+                           reinterpret_cast<FunctionWithArgSignature>(
+                               EvaluatorScriptClass::js_consoleLog));
+    installConsoleFunction(QLatin1String("warn"),
+                           reinterpret_cast<FunctionWithArgSignature>(
+                               EvaluatorScriptClass::js_consoleWarn));
 }
 
 void ScriptEngine::extendJavaScriptBuiltins()
@@ -571,6 +588,11 @@ void ScriptEngine::installQbsFunction(const QString &name, FunctionSignature f)
 {
     QScriptValue functionValue;
     installFunction(name, &functionValue, f, &m_qbsObject);
+}
+
+void ScriptEngine::installConsoleFunction(const QString &name, FunctionWithArgSignature f)
+{
+    m_consoleObject.setProperty(name, newFunction(f, &m_logger));
 }
 
 void ScriptEngine::installImportFunctions()

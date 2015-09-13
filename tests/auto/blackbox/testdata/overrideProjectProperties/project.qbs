@@ -16,15 +16,15 @@ Project {
             // Provoke a build error if the expected types do not match.
             var wrongFile = "doesnotexist.cpp";
             if (typeof project.someBool != "boolean") {
-                print("someBool has a wrong type: " + typeof project.someBool);
+                console.info("someBool has a wrong type: " + typeof project.someBool);
                 return wrongFile;
             }
             if (typeof project.someInt != "number") {
-                print("someInt has a wrong type: " + typeof project.someInt);
+                console.info("someInt has a wrong type: " + typeof project.someInt);
                 return wrongFile;
             }
             if (typeof project.someStringList != "object") {
-                print("someStringList has a wrong type: " + typeof project.someStringList);
+                console.info("someStringList has a wrong type: " + typeof project.someStringList);
                 return wrongFile;
             }
 

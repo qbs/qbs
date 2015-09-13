@@ -78,8 +78,8 @@ function sdkInfoList(sdksPath) {
 
             var plist = propertyList.toObject();
             if (!checkPlist(plist)) {
-                print("WARNING: Skipping corrupted SDK installation: "
-                      + FileInfo.joinPaths(sdksPath, sdks[i]));
+                console.warn("Skipping corrupted SDK installation: "
+                             + FileInfo.joinPaths(sdksPath, sdks[i]));
                 continue;
             }
 
@@ -114,7 +114,7 @@ function findSigningIdentities(security, searchString) {
         try {
             process = new Process();
             if (process.exec(security, ["find-identity", "-p", "codesigning", "-v"], true) !== 0)
-                print(process.readStdErr());
+                console.error(process.readStdErr());
 
             var lines = process.readStdOut().split("\n");
             for (var i in lines) {
@@ -143,7 +143,7 @@ function readProvisioningProfileData(path) {
     try {
         process = new Process();
         if (process.exec("openssl", ["smime", "-verify", "-noverify", "-inform", "DER", "-in", path], true) !== 0)
-            print(process.readStdErr());
+            console.error(process.readStdErr());
 
         var propertyList = new PropertyList();
         try {

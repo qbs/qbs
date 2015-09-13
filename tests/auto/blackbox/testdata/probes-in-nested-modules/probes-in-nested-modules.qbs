@@ -6,9 +6,9 @@ Project {
         Depends { name: "outer" }
         inner.alt: true
         type: {
-            print("product " + name + ", inner.something = " + inner.something);
-            print("product " + name + ", outer.something = " + outer.something);
-            print("product " + name + ", outer.somethingElse = " + outer.somethingElse);
+            console.info("product " + name + ", inner.something = " + inner.something);
+            console.info("product " + name + ", outer.something = " + outer.something);
+            console.info("product " + name + ", outer.somethingElse = " + outer.somethingElse);
             return ["foo"];
         }
     }
@@ -18,7 +18,7 @@ Project {
         Depends { name: "inner" }
         inner.alt: true
         type: {
-            print("product " + name + ", inner.something = " + inner.something);
+            console.info("product " + name + ", inner.something = " + inner.something);
             return ["foo"];
         }
     }
@@ -28,7 +28,7 @@ Project {
         Depends { name: "inner" }
         inner.alt: false
         type: {
-            print("product " + name + ", inner.something = " + inner.something);
+            console.info("product " + name + ", inner.something = " + inner.something);
             return ["foo"];
         }
     }
