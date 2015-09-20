@@ -406,7 +406,8 @@ Module {
         outputFileTags: ["bundle",
             "bundle.symlink.headers", "bundle.symlink.private-headers",
             "bundle.symlink.resources", "bundle.symlink.executable",
-            "bundle.symlink.version", "bundle.hpp", "bundle.resource"]
+            "bundle.symlink.version", "bundle.hpp", "bundle.resource",
+            "bundle.provisioningprofile"]
         outputArtifacts: {
             var i, artifacts = [];
             if (ModUtils.moduleProperty(product, "isBundle")) {
@@ -414,6 +415,18 @@ Module {
                     filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName")),
                     fileTags: ["bundle"]
                 });
+
+                var provisioningProfilePath = product.moduleProperty("xcode",
+                                                                     "provisioningProfilePath");
+                if (provisioningProfilePath) {
+                    var ext = product.moduleProperty("qbs", "targetOS").contains("osx")
+                            ? "provisionprofile"
+                            : "mobileprovision";
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "contentsFolderPath"), "embedded." + ext),
+                        fileTags: ["bundle.provisioningprofile"]
+                    });
+                }
 
                 var packageType = ModUtils.moduleProperty(product, "packageType");
                 if (packageType === "FMWK") {
@@ -539,6 +552,19 @@ Module {
                 cmd = new Command("ln", ["-sf", FileInfo.joinPaths("Versions", "Current", product.targetName),
                                          executables[i].filePath]);
                 cmd.silent = true;
+                commands.push(cmd);
+            }
+
+            var provisioningProfiles = outputs["bundle.provisioningprofile"];
+            for (i in provisioningProfiles) {
+                cmd = new JavaScriptCommand();
+                cmd.description = "copying provisioning profile";
+                cmd.highlight = "filegen";
+                cmd.source = product.moduleProperty("xcode", "provisioningProfilePath");
+                cmd.destination = provisioningProfiles[i].filePath;
+                cmd.sourceCode = function() {
+                    File.copy(source, destination);
+                };
                 commands.push(cmd);
             }
 
