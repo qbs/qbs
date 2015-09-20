@@ -207,7 +207,7 @@ function expandPlistEnvironmentVariables(obj, env, warn) {
                     // avoid recursive substitutions to avoid potentially infinite loops
                     i += varValue.length;
                 }
-                repl = indexOfReplacementStart(syntaxes, value, i + repl.syntax.close.length);
+                repl = indexOfReplacementStart(syntaxes, value, i);
                 i = repl.index;
             }
             if (changes)
