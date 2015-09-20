@@ -176,11 +176,21 @@ Module {
     }
 
     property var buildEnv: {
-        return {
-            "CODESIGN_ALLOCATE": platformPath + "/Developer/usr/bin/codesign_allocate",
+        var env = {
             "DEVELOPER_DIR": developerPath,
             "SDKROOT": sdkPath
         };
+
+        var prefixes = [platformPath + "/Developer", toolchainPath, developerPath];
+        for (var i = 0; i < prefixes.length; ++i) {
+            var codesign_allocate = prefixes[i] + "/usr/bin/codesign_allocate";
+            if (File.exists(codesign_allocate)) {
+                env["CODESIGN_ALLOCATE"] = codesign_allocate;
+                break;
+            }
+        }
+
+        return env;
     }
 
     setupBuildEnvironment: {
