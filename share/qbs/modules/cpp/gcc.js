@@ -762,9 +762,15 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var actualSigningIdentity = product.moduleProperty("xcode", "actualSigningIdentity");
     var codesignDisplayName = product.moduleProperty("xcode", "actualSigningIdentityDisplayName");
     if (actualSigningIdentity && !product.moduleProperty("bundle", "isBundle")) {
-        cmd = new Command(product.moduleProperty("xcode", "codesignPath"),
-                          ["--force", "--sign", actualSigningIdentity,
-                          primaryOutput.filePath]);
+        var args = product.moduleProperty("xcode", "codesignFlags") || [];
+        args.push("--force");
+        args.push("--sign", actualSigningIdentity);
+        for (var j in inputs.xcent) {
+            args.push("--entitlements", inputs.xcent[j].filePath);
+            break; // there should only be one
+        }
+        args.push(primaryOutput.filePath);
+        cmd = new Command(product.moduleProperty("xcode", "codesignPath"), args);
         cmd.description = "codesign "
                 + primaryOutput.fileName
                 + " using " + codesignDisplayName

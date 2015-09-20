@@ -400,8 +400,9 @@ Module {
         condition: qbs.targetOS.contains("darwin")
         multiplex: true
         inputs: ["infoplist", "pkginfo", "hpp",
-                 "icns", "resourcerules",
-                 "compiled_ibdoc", "compiled_assetcatalog"]
+                 "icns", "resourcerules", "xcent",
+                 "compiled_ibdoc", "compiled_assetcatalog",
+                 "xcode.provisioningprofile"]
 
         outputFileTags: ["bundle",
             "bundle.symlink.headers", "bundle.symlink.private-headers",
@@ -416,14 +417,13 @@ Module {
                     fileTags: ["bundle"]
                 });
 
-                var provisioningProfilePath = product.moduleProperty("xcode",
-                                                                     "provisioningProfilePath");
-                if (provisioningProfilePath) {
-                    var ext = product.moduleProperty("qbs", "targetOS").contains("osx")
-                            ? "provisionprofile"
-                            : "mobileprovision";
+                for (i in inputs["xcode.provisioningprofile"]) {
+                    var ext = inputs["xcode.provisioningprofile"][i].fileName.split('.')[1];
                     artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "contentsFolderPath"), "embedded." + ext),
+                        filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                     ModUtils.moduleProperty(product,
+                                                                             "contentsFolderPath"),
+                                                     "embedded." + ext),
                         fileTags: ["bundle.provisioningprofile"]
                     });
                 }
@@ -560,7 +560,7 @@ Module {
                 cmd = new JavaScriptCommand();
                 cmd.description = "copying provisioning profile";
                 cmd.highlight = "filegen";
-                cmd.source = product.moduleProperty("xcode", "provisioningProfilePath");
+                cmd.source = inputs["xcode.provisioningprofile"][i].filePath;
                 cmd.destination = provisioningProfiles[i].filePath;
                 cmd.sourceCode = function() {
                     File.copy(source, destination);
@@ -623,10 +623,16 @@ Module {
                             subpath = subpath.substring(subpath.indexOf(ModUtils.moduleProperty("qbs", "pathSeparator")));
                         }
 
-                        cmd = new Command(product.moduleProperty("xcode", "codesignPath"),
-                                          (product.moduleProperty("xcode", "codesignFlags") || [])
-                                          .concat(["--force", "--sign", actualSigningIdentity,
-                                          bundles[i].filePath + subpath]));
+                        var args = product.moduleProperty("xcode", "codesignFlags") || [];
+                        args.push("--force");
+                        args.push("--sign", actualSigningIdentity);
+                        for (var j in inputs.xcent) {
+                            args.push("--entitlements", inputs.xcent[j].filePath);
+                            break; // there should only be one
+                        }
+                        args.push(bundles[i].filePath + subpath);
+
+                        cmd = new Command(product.moduleProperty("xcode", "codesignPath"), args);
                         cmd.description = "codesign "
                                 + ModUtils.moduleProperty(product, "bundleName")
                                 + " using " + codesignDisplayName

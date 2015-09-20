@@ -1,8 +1,10 @@
 import qbs
+import qbs.BundleTools
 import qbs.File
 import qbs.FileInfo
 import qbs.DarwinTools
 import qbs.ModUtils
+import qbs.PropertyList
 import 'xcode.js' as Utils
 
 Module {
@@ -59,6 +61,8 @@ Module {
         if (_actualSigningIdentity && _actualSigningIdentity.length === 1)
             return _actualSigningIdentity[0][1];
     }
+
+    property path signingEntitlements
 
     property string provisioningProfile
     property path provisioningProfilePath: {
@@ -203,6 +207,91 @@ Module {
             v = new ModUtils.EnvironmentVariable(key);
             v.value = buildEnv[key];
             v.set();
+        }
+    }
+
+    Group {
+        name: "Provisioning Profile"
+        files: xcode.provisioningProfilePath
+            ? [xcode.provisioningProfilePath]
+            : []
+    }
+
+    FileTagger {
+        fileTags: ["xcode.provisioningprofile"]
+        patterns: ["*.mobileprovision", "*.provisionprofile"]
+    }
+
+    Rule {
+        multiplex: true
+        inputs: ["xcode.provisioningprofile"]
+
+        Artifact {
+            filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                         product.targetName + ".xcent")
+            fileTags: ["xcent"]
+        }
+
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "generating entitlements";
+            cmd.highlight = "codegen";
+            cmd.bundleIdentifier = product.moduleProperty("bundle", "identifier");
+            cmd.signingEntitlements = ModUtils.moduleProperty(product, "signingEntitlements");
+            cmd.platformPath = ModUtils.moduleProperty(product, "platformPath");
+            cmd.sdkPath = ModUtils.moduleProperty(product, "sdkPath");
+            cmd.sourceCode = function() {
+                var provData = Utils.readProvisioningProfileData(
+                            inputs["xcode.provisioningprofile"][0].filePath);
+
+                var aggregateEntitlements = {};
+
+                // Start building up an aggregate entitlements plist from the files in the SDKs,
+                // which contain placeholders in the same manner as Info.plist
+                function entitlementsFileContents(path) {
+                    return File.exists(path) ? BundleTools.infoPlistContents(path) : undefined;
+                }
+                var entitlementsSources = [
+                    entitlementsFileContents(FileInfo.joinPaths(platformPath, "Entitlements.plist")),
+                    entitlementsFileContents(FileInfo.joinPaths(sdkPath, "Entitlements.plist")),
+                    entitlementsFileContents(signingEntitlements)
+                ];
+
+                for (var i = 0; i < entitlementsSources.length; ++i) {
+                    var contents = entitlementsSources[i];
+                    for (var key in contents) {
+                        if (contents.hasOwnProperty(key))
+                            aggregateEntitlements[key] = contents[key];
+                    }
+                }
+
+                contents = provData["Entitlements"];
+                for (key in contents) {
+                    if (contents.hasOwnProperty(key) && !aggregateEntitlements.hasOwnProperty(key))
+                        aggregateEntitlements[key] = contents[key];
+                }
+
+                // Expand entitlements variables with data from the provisioning profile
+                var env = {
+                    "AppIdentifierPrefix": provData["ApplicationIdentifierPrefix"] + ".",
+                    "CFBundleIdentifier": bundleIdentifier
+                };
+                DarwinTools.expandPlistEnvironmentVariables(aggregateEntitlements, env, true);
+
+                // Anything with an undefined or otherwise empty value should be removed
+                // Only JSON-formatted plists can have null values, other formats error out
+                // This also follows Xcode behavior
+                DarwinTools.cleanPropertyList(aggregateEntitlements);
+
+                var plist = new PropertyList();
+                try {
+                    plist.readFromObject(aggregateEntitlements);
+                    plist.writeToFile(outputs.xcent[0].filePath, "xml1");
+                } finally {
+                    plist.clear();
+                }
+            };
+            return [cmd];
         }
     }
 }
