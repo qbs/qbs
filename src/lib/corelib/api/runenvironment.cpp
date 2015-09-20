@@ -38,10 +38,12 @@
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
 #include <tools/propertyfinder.h>
+#include <tools/qbsassert.h>
 #include <tools/shellutils.h>
 
 #include <QDir>
@@ -170,7 +172,52 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
     QStringList targetArguments = arguments;
     const QString completeSuffix = QFileInfo(targetBin).completeSuffix();
 
-    if (targetOS.contains(QLatin1String("windows"))) {
+    if (targetOS.contains(QLatin1String("ios"))) {
+        QString bundlePath = d->resolvedProduct->buildDirectory();
+        const bool install = PropertyFinder().propertyValue(
+                    d->resolvedProduct->moduleProperties->value(),
+                    QLatin1String("qbs"),
+                    QLatin1String("install")).toBool();
+        if (install) {
+            bundlePath = d->installOptions.installRoot();
+            const QString installDir = PropertyFinder().propertyValue(
+                        d->resolvedProduct->moduleProperties->value(),
+                        QLatin1String("qbs"),
+                        QLatin1String("installDir")).toString();
+            bundlePath += QLatin1Char('/') + installDir;
+        }
+
+        const QString bundleName = PropertyFinder().propertyValue(
+                    d->resolvedProduct->moduleProperties->value(),
+                    QLatin1String("bundle"),
+                    QLatin1String("bundleName")).toString();
+        bundlePath += QLatin1Char('/') + bundleName;
+
+        QBS_CHECK(targetExecutable.startsWith(bundlePath));
+
+        if (QFileInfo(targetExecutable = findExecutable(QStringList()
+                    << QStringLiteral("iostool"))).isExecutable()) {
+            targetArguments = QStringList()
+                    << QStringLiteral("-run")
+                    << QStringLiteral("-bundle")
+                    << QDir::cleanPath(bundlePath);
+            if (!arguments.isEmpty())
+                targetArguments << QStringLiteral("-extra-args") << arguments;
+        } else if (QFileInfo(targetExecutable = findExecutable(QStringList()
+                    << QStringLiteral("ios-deploy"))).isExecutable()) {
+            targetArguments = QStringList()
+                    << QStringLiteral("--noninteractive")
+                    << QStringLiteral("--bundle")
+                    << QDir::cleanPath(bundlePath);
+            if (!arguments.isEmpty())
+                targetArguments << QStringLiteral("--args") << arguments;
+        } else {
+            d->logger.qbsLog(LoggerError)
+                    << Tr::tr("No suitable iOS deployment tools were found in the environment. "
+                              "Consider installing ios-deploy.");
+            return EXIT_FAILURE;
+        }
+    } else if (targetOS.contains(QLatin1String("windows"))) {
         if (completeSuffix == QLatin1String("msi")) {
             targetExecutable = QLatin1String("msiexec");
             targetArguments.prepend(QDir::toNativeSeparators(targetBin));
