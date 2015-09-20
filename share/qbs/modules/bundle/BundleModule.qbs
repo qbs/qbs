@@ -608,7 +608,8 @@ Module {
                         commands.push(cmd);
                     }
 
-                    if (product.type.contains("application")) {
+                    if (product.type.contains("application")
+                            && product.moduleProperty("qbs", "targetOS").contains("osx")) {
                         cmd = new Command(ModUtils.moduleProperty(product, "lsregisterPath"),
                                           ["-f", bundles[i].filePath]);
                         cmd.description = "register " + ModUtils.moduleProperty(product, "bundleName");
