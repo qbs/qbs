@@ -423,7 +423,7 @@ void TestApi::changeContent()
     qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
     qbs::ProductData product = projectData.allProducts().first();
-    QCOMPARE(product.groups().count(), 8);
+    QVERIFY(product.groups().count() >= 8);
 
     // Error handling: Invalid product.
     qbs::ErrorInfo errorInfo = project.addGroup(qbs::ProductData(), "blubb");
@@ -456,7 +456,7 @@ void TestApi::changeContent()
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
     product = projectData.products().first();
-    QCOMPARE(product.groups().count(), 10);
+    QVERIFY(product.groups().count() >= 10);
     qbs::GroupData group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.h" << "file.cpp");
@@ -466,7 +466,7 @@ void TestApi::changeContent()
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
     product = projectData.products().first();
-    QCOMPARE(product.groups().count(), 10);
+    QVERIFY(product.groups().count() >= 10);
     group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.cpp");
@@ -481,7 +481,7 @@ void TestApi::changeContent()
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
     product = projectData.products().first();
-    QCOMPARE(product.groups().count(), 10);
+    QVERIFY(product.groups().count() >= 10);
     group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.removeFiles(product, group, QStringList() << "file.h");
@@ -563,7 +563,7 @@ void TestApi::changeContent()
     VERIFY_NO_ERROR(errorInfo);
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
-    QCOMPARE(projectData.products().first().groups().count(), 9);
+    QVERIFY(projectData.products().first().groups().count() >= 9);
 
     // Error handling: Try to remove the same group again.
     errorInfo = project.removeGroup(product, group);
@@ -1569,8 +1569,8 @@ void TestApi::sourceFileInBuildDir()
     QCOMPARE(projectData.allProducts().count(), 1);
     const qbs::ProductData product = projectData.allProducts().first();
     QCOMPARE(product.profile(), profileName());
-    QCOMPARE(product.groups().count(), 1);
-    const qbs::GroupData group = product.groups().first();
+    const qbs::GroupData group = findGroup(product, "the group");
+    QVERIFY(group.isValid());
     QCOMPARE(group.allFilePaths().count(), 1);
 }
 

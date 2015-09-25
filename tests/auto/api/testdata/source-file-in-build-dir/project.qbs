@@ -1,5 +1,8 @@
 import qbs
 
 CppApplication {
-    files: "**/*.cpp"
+    Group {
+        name: "the group"
+        files: "**/*.cpp"
+    }
 }
