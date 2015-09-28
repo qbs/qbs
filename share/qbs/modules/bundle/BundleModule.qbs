@@ -401,7 +401,6 @@ Module {
         multiplex: true
         inputs: ["infoplist", "pkginfo", "hpp",
                  "icns", "resourcerules", "xcent",
-                 "application",
                  "compiled_ibdoc", "compiled_assetcatalog",
                  "xcode.provisioningprofile"]
 
