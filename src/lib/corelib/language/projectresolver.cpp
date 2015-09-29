@@ -469,13 +469,12 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
     m_moduleContext = oldModuleContext;
 }
 
-SourceArtifactPtr ProjectResolver::createSourceArtifact(const PropertyMapPtr &properties,
-        const QString &fileName, const FileTags &fileTags,
+SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductConstPtr &rproduct,
+        const PropertyMapPtr &properties, const QString &fileName, const FileTags &fileTags,
         bool overrideTags, QList<SourceArtifactPtr> &artifactList)
 {
     SourceArtifactPtr artifact = SourceArtifactInternal::create();
-    artifact->absoluteFilePath
-            = FileInfo::resolvePath(m_productContext->product->sourceDirectory, fileName);
+    artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
     artifact->absoluteFilePath = QDir::cleanPath(artifact->absoluteFilePath); // Potentially necessary for groups with prefixes.
     artifact->fileTags = fileTags;
     artifact->overrideFileTags = overrideTags;
@@ -577,17 +576,15 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         wildcards->prefix = group->prefix;
         wildcards->patterns = patterns;
         QSet<QString> files = wildcards->expandPatterns(group, m_productContext->product->sourceDirectory);
-        foreach (const QString &fileName, files) {
-            createSourceArtifact(moduleProperties, fileName, group->fileTags, group->overrideTags,
-                                 wildcards->files);
-        }
+        foreach (const QString &fileName, files)
+            createSourceArtifact(m_productContext->product, moduleProperties, fileName,
+                                 group->fileTags, group->overrideTags, wildcards->files);
         group->wildcards = wildcards;
     }
 
-    foreach (const QString &fileName, files) {
-        createSourceArtifact(moduleProperties, fileName, group->fileTags, group->overrideTags,
-                             group->files);
-    }
+    foreach (const QString &fileName, files)
+        createSourceArtifact(m_productContext->product, moduleProperties, fileName,
+                             group->fileTags, group->overrideTags, group->files);
     ErrorInfo fileError;
     if (group->enabled) {
         const ValuePtr filesValue = item->property(QLatin1String("files"));
@@ -960,11 +957,11 @@ void ProjectResolver::postProcess(const ResolvedProductPtr &product,
 void ProjectResolver::applyFileTaggers(const ResolvedProductPtr &product) const
 {
     foreach (const SourceArtifactPtr &artifact, product->allEnabledFiles())
-        applyFileTaggers(artifact, product);
+        applyFileTaggers(artifact, product, m_logger);
 }
 
 void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
-        const ResolvedProductConstPtr &product) const
+        const ResolvedProductConstPtr &product, const Logger &logger)
 {
     if (!artifact->overrideFileTags || artifact->fileTags.isEmpty()) {
         const QString fileName = FileInfo::fileName(artifact->absoluteFilePath);
@@ -972,9 +969,9 @@ void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
         artifact->fileTags.unite(fileTags);
         if (artifact->fileTags.isEmpty())
             artifact->fileTags.insert(unknownFileTag());
-        if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "[PR] adding file tags " << artifact->fileTags
-                                << " to " << fileName;
+        if (logger.traceEnabled())
+            logger.qbsTrace() << "[PR] adding file tags " << artifact->fileTags
+                       << " to " << fileName;
     }
 }
 

@@ -60,6 +60,12 @@ public:
     TopLevelProjectPtr resolve(ModuleLoaderResult &loadResult,
                                const SetupProjectParameters &setupParameters);
 
+    static void applyFileTaggers(const SourceArtifactPtr &artifact,
+            const ResolvedProductConstPtr &product, const Logger &logger);
+    static SourceArtifactPtr createSourceArtifact(const ResolvedProductConstPtr &rproduct,
+            const PropertyMapPtr &properties, const QString &fileName,
+            const FileTags &fileTags, bool overrideTags, QList<SourceArtifactPtr> &artifactList);
+
 private:
     struct ProjectContext
     {
@@ -84,12 +90,6 @@ private:
     {
         ResolvedModulePtr module;
     };
-
-    void applyFileTaggers(const SourceArtifactPtr &artifact,
-                          const ResolvedProductConstPtr &product) const;
-    SourceArtifactPtr createSourceArtifact(const PropertyMapPtr &properties,
-            const QString &fileName, const FileTags &fileTags, bool overrideTags,
-            QList<SourceArtifactPtr> &artifactList);
 
     void checkCancelation() const;
     QString verbatimValue(const ValueConstPtr &value, bool *propertyWasSet = 0) const;
