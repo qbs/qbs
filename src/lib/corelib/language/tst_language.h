@@ -106,6 +106,7 @@ private slots:
     void profileValuesAndOverriddenValues();
     void propertiesBlocks_data();
     void propertiesBlocks();
+    void propertiesBlockInGroup();
     void qbsPropertiesInProjectCondition();
     void defaultValue();
     void defaultValue_data();
