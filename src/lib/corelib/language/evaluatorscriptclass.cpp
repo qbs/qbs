@@ -212,9 +212,14 @@ private:
             }
             setupConvenienceProperty(QLatin1String("base"), &extraScope, baseValue);
         }
-        if (value->sourceUsesOuter() && outerItem)
-            setupConvenienceProperty(QLatin1String("outer"), &extraScope,
-                                     data->evaluator->property(outerItem, *propertyName));
+        if (value->sourceUsesOuter() && outerItem) {
+            const QScriptValue v = data->evaluator->property(outerItem, *propertyName);
+            if (engine->hasErrorOrException(v)) {
+                *result = engine->lastErrorValue(v);
+                return;
+            }
+            setupConvenienceProperty(QLatin1String("outer"), &extraScope, v);
+        }
         if (value->sourceUsesOriginal()) {
             const Item *item = itemOfProperty;
             while (item->isModuleInstance())
