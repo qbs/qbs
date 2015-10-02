@@ -77,18 +77,24 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         args.push('/Wall')
     if (ModUtils.moduleProperty(input, "treatWarningsAsErrors"))
         args.push('/WX')
+    var allIncludePaths = [];
     var includePaths = ModUtils.moduleProperties(input, 'includePaths');
-    for (i in includePaths)
-        args.push('/I' + FileInfo.toWindowsSeparators(includePaths[i]))
+    if (includePaths)
+        allIncludePaths = allIncludePaths.uniqueConcat(includePaths);
     var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
-    for (i in systemIncludePaths)
-        args.push('/I' + FileInfo.toWindowsSeparators(systemIncludePaths[i]))
+    if (systemIncludePaths)
+        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
+    for (i in allIncludePaths)
+        args.push('/I' + FileInfo.toWindowsSeparators(allIncludePaths[i]))
+    var allDefines = [];
     var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
-    for (i in platformDefines)
-        args.push('/D' + platformDefines[i])
+    if (platformDefines)
+        allDefines = allDefines.uniqueConcat(platformDefines);
     var defines = ModUtils.moduleProperties(input, 'defines');
-    for (i in defines)
-        args.push('/D' + defines[i])
+    if (defines)
+        allDefines = allDefines.uniqueConcat(defines);
+    for (i in allDefines)
+        args.push('/D' + allDefines[i])
 
     var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
     if (minimumWindowsVersion) {
@@ -269,6 +275,8 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
     args.push('/OUT:' + linkerOutputNativeFilePath)
     var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
+    if (libraryPaths)
+        libraryPaths = [].uniqueConcat(libraryPaths);
     for (i in libraryPaths) {
         args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
     }

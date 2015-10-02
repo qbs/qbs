@@ -182,10 +182,10 @@ function linkerFlags(product, inputs, output) {
 
     // Flags for library search paths
     if (libraryPaths)
-        args = args.concat(libraryPaths.map(function(path) { return '-L' + path }));
+        args = args.concat([].uniqueConcat(libraryPaths).map(function(path) { return '-L' + path }));
 
     if (linkerScripts)
-        args = args.concat(linkerScripts.map(function(path) { return '-T' + path }));
+        args = args.concat([].uniqueConcat(linkerScripts).map(function(path) { return '-T' + path }));
 
     if (isDarwin && ModUtils.moduleProperty(product, "warningLevel") === "none")
         args.push('-w');
@@ -459,14 +459,16 @@ function compilerFlags(product, input, output) {
     for (i in cppFlags)
         args.push('-Wp,' + cppFlags[i])
 
+    var allDefines = [];
     if (platformDefines)
-        args = args.concat(platformDefines.map(function(define) { return '-D' + define }));
+        allDefines = allDefines.uniqueConcat(platformDefines);
     if (defines)
-        args = args.concat(defines.map(function(define) { return '-D' + define }));
+        allDefines = allDefines.uniqueConcat(defines);
+    args = args.concat(allDefines.map(function(define) { return '-D' + define }));
     if (includePaths)
-        args = args.concat(includePaths.map(function(path) { return '-I' + path }));
+        args = args.concat([].uniqueConcat(includePaths).map(function(path) { return '-I' + path }));
     if (systemIncludePaths)
-        args = args.concat(systemIncludePaths.map(function(path) { return '-isystem' + path }));
+        args = args.concat([].uniqueConcat(systemIncludePaths).map(function(path) { return '-isystem' + path }));
 
     var minimumWindowsVersion = ModUtils.moduleProperty(input, "minimumWindowsVersion");
     if (minimumWindowsVersion && product.moduleProperty("qbs", "targetOS").contains("windows")) {
