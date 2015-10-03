@@ -628,6 +628,8 @@ Module {
                         var args = product.moduleProperty("xcode", "codesignFlags") || [];
                         args.push("--force");
                         args.push("--sign", actualSigningIdentity);
+                        args = args.concat(DarwinTools._codeSignTimestampFlags(product));
+
                         for (var j in inputs.xcent) {
                             args.push("--entitlements", inputs.xcent[j].filePath);
                             break; // there should only be one

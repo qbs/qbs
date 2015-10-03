@@ -30,6 +30,7 @@
 
 var File = loadExtension("qbs.File");
 var FileInfo = loadExtension("qbs.FileInfo");
+var DarwinTools = loadExtension("qbs.DarwinTools");
 var ModUtils = loadExtension("qbs.ModUtils");
 var PathTools = loadExtension("qbs.PathTools");
 var UnixUtils = loadExtension("qbs.UnixUtils");
@@ -764,6 +765,8 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         var args = product.moduleProperty("xcode", "codesignFlags") || [];
         args.push("--force");
         args.push("--sign", actualSigningIdentity);
+        args = args.concat(DarwinTools._codeSignTimestampFlags(product));
+
         for (var j in inputs.xcent) {
             args.push("--entitlements", inputs.xcent[j].filePath);
             break; // there should only be one

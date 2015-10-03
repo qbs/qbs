@@ -62,6 +62,8 @@ Module {
             return _actualSigningIdentity[0][1];
     }
 
+    property string signingTimestamp: "none"
+
     property string provisioningProfile
 
     property string securityName: "security"

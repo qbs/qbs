@@ -120,6 +120,15 @@
         \li 1.5
         \li \c{"~/Library/MobileDevice/Provisioning Profiles"}
         \li Path to directory containing provisioning profiles installed on the system.
+    \row
+        \li signingTimestamp
+        \li string
+        \li 1.5
+        \li \c{"none"}
+        \li URL of the timestamp authority server to be contacted to authenticate code signing.
+            \c{undefined} indicates that a system-specific default should be used, and the empty
+            string indicates the default server provided by Apple. \c{"none"} explicitly disables
+            the use of timestamp services and this should not usually need to be changed.
     \endtable
 
     \section1 Read-only Properties
