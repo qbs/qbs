@@ -77,10 +77,13 @@ void SettingsCreator::migrate()
     oldProfilesDir += QLatin1String("/profiles");
     const QString newProfilesDir = m_newSettingsDir + QLatin1String("/profiles");
     QString errorMessage;
-    if (!copyFileRecursion(oldProfilesDir, newProfilesDir, false, true, &errorMessage))
+    if (QFileInfo(oldProfilesDir).exists()
+            && !copyFileRecursion(oldProfilesDir, newProfilesDir, false, true, &errorMessage)) {
         qWarning() << "Error in settings migration: " << errorMessage;
+    }
     const QString oldSettingsFilePath = oldSettingsDir + QLatin1Char('/') + m_settingsFileName;
-    if (!QFile::copy(oldSettingsFilePath, m_newSettingsFilePath)) {
+    if (QFileInfo(oldSettingsFilePath).exists()
+            && !QFile::copy(oldSettingsFilePath, m_newSettingsFilePath)) {
         qWarning() << "Error in settings migration: Could not copy" << oldSettingsFilePath
                    << "to" << m_newSettingsFilePath;
     }

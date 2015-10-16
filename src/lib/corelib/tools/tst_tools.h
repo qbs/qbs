@@ -61,6 +61,7 @@ private slots:
 private:
     QString setupSettingsDir1();
     QString setupSettingsDir2();
+    QString setupSettingsDir3();
 
     Settings * const m_settings;
     QList<QTemporaryDir *> m_tmpDirs;

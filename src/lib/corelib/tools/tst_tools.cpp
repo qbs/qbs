@@ -145,18 +145,26 @@ void TestTools::testProfiles()
 void TestTools::testSettingsMigration()
 {
     QFETCH(QString, baseDir);
+    QFETCH(bool, hasOldSettings);
     Settings settings(baseDir);
-    QVERIFY(QFileInfo(settings.baseDirectory() + "/qbs/" QBS_VERSION "/profiles/right.txt")
-            .exists());
-    QCOMPARE(settings.value("key").toString(),
-             settings.baseDirectory() + "/qbs/" QBS_VERSION "/profilesright");
+    if (hasOldSettings) {
+        QVERIFY(QFileInfo(settings.baseDirectory() + "/qbs/" QBS_VERSION "/profiles/right.txt")
+                .exists());
+        QCOMPARE(settings.value("key").toString(),
+                 settings.baseDirectory() + "/qbs/" QBS_VERSION "/profilesright");
+    } else {
+        QVERIFY(!QFileInfo(settings.baseDirectory() + "/qbs/" QBS_VERSION "/profiles").exists());
+        QVERIFY(settings.allKeys().isEmpty());
+    }
 }
 
 void TestTools::testSettingsMigration_data()
 {
     QTest::addColumn<QString>("baseDir");
-    QTest::newRow("settings dir with lots of versions") << setupSettingsDir1();
-    QTest::newRow("settings dir with only a fallback") << setupSettingsDir2();
+    QTest::addColumn<bool>("hasOldSettings");
+    QTest::newRow("settings dir with lots of versions") << setupSettingsDir1() << true;
+    QTest::newRow("settings dir with only a fallback") << setupSettingsDir2() << true;
+    QTest::newRow("no previous settings") << setupSettingsDir3() << false;
 }
 
 QString TestTools::setupSettingsDir1()
@@ -215,6 +223,13 @@ QString TestTools::setupSettingsDir2()
     f.open(QIODevice::WriteOnly);
     s.setValue("org/qt-project/qbs/key", profilesDir + "right");
 
+    return baseDir->path();
+}
+
+QString TestTools::setupSettingsDir3()
+{
+    auto * const baseDir = new QTemporaryDir;
+    m_tmpDirs << baseDir;
     return baseDir->path();
 }
 
