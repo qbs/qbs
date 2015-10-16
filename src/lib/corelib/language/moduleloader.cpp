@@ -273,15 +273,15 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     dummyProductContext.project = &projectContext;
     dummyProductContext.moduleProperties = m_parameters.finalBuildConfigurationTree();
     loadBaseModule(&dummyProductContext, item);
+    overrideItemProperties(item, QLatin1String("project"), m_parameters.overriddenValuesTree());
+    const QString projectName = m_evaluator->stringValue(item, QLatin1String("name"));
+    if (!projectName.isEmpty())
+        overrideItemProperties(item, projectName, m_parameters.overriddenValuesTree());
     if (!checkItemCondition(item)) {
         delete p;
         return;
     }
     topLevelProjectContext->projects << &projectContext;
-    overrideItemProperties(item, QLatin1String("project"), m_parameters.overriddenValuesTree());
-    const QString projectName = m_evaluator->stringValue(item, QLatin1String("name"));
-    if (!projectName.isEmpty())
-        overrideItemProperties(item, projectName, m_parameters.overriddenValuesTree());
     m_reader->pushExtraSearchPaths(readExtraSearchPaths(item) << item->file()->dirPath());
     projectContext.searchPathsStack = m_reader->extraSearchPathsStack();
     projectContext.item = item;
