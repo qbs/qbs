@@ -1,4 +1,4 @@
-function qbsVersion() { return "1.4.3"; }
+function qbsVersion() { return "1.4.4"; }
 
 function versionIsAtLeast(actualVersion, expectedVersion)
 {
