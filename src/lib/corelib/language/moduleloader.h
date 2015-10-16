@@ -75,6 +75,7 @@ struct ModuleLoaderResult
             QString name;
             QString profile; // "*" <=> Match all profiles.
             bool limitToSubProject;
+            bool isRequired;
 
             QString uniqueName() const;
         };

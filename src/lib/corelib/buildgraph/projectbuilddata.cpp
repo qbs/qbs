@@ -449,14 +449,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     ProductBuildData::ArtifactSetByFileTag artifactsPerFileTag;
 
     foreach (ResolvedProductPtr dependency, product->dependencies) {
-        if (Q_UNLIKELY(!dependency->enabled)) {
-            ErrorInfo e;
-            e.append(Tr::tr("Product '%1' depends on '%2',")
-                     .arg(product->name, dependency->name), product->location);
-            e.append(Tr::tr("but product '%1' is disabled.").arg(dependency->name),
-                     dependency->location);
-            throw e;
-        }
+        QBS_CHECK(dependency->enabled);
         resolveProductBuildData(dependency);
     }
 

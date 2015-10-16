@@ -254,6 +254,14 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
         for (auto it = projectContext->products.begin(); it != projectContext->products.end(); ++it)
             handleProduct(it);
     }
+    foreach (const Item * const disabledItem, m_disabledItems) {
+        if (disabledItem->type() == ItemType::Product) {
+            const QString name = m_evaluator->stringValue(disabledItem, QStringLiteral("name"));
+            Item * const productModule = m_productModuleCache.value(name);
+            if (productModule)
+                createNonPresentModule(name, QLatin1String("disabled"), productModule);
+        }
+    }
 
     m_reader->clearExtraSearchPathsStack();
     checkItemTypes(projectItem);
@@ -784,6 +792,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
                 dependency.name = moduleName.toString();
                 dependency.profile = QLatin1String("*");
+                dependency.isRequired = isRequired;
                 productResults->append(dependency);
                 continue;
             }
@@ -791,6 +800,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
                 dependency.name = moduleName.toString();
                 dependency.profile = profile;
+                dependency.isRequired = isRequired;
                 productResults->append(dependency);
             }
         }

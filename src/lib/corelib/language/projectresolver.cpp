@@ -904,6 +904,16 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
             const ResolvedProductPtr &usedProduct
                     = m_productsByName.value(dependency.uniqueName());
             QBS_ASSERT(usedProduct, continue);
+            if (!usedProduct->enabled) {
+                if (!dependency.isRequired)
+                    continue;
+                ErrorInfo e;
+                e.append(Tr::tr("Product '%1' depends on '%2',")
+                         .arg(product->name, usedProduct->name), product->location);
+                e.append(Tr::tr("but product '%1' is disabled.").arg(usedProduct->name),
+                             usedProduct->location);
+                throw e;
+            }
             usedProducts << usedProduct;
         }
     }

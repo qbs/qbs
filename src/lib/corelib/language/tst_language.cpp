@@ -1173,6 +1173,51 @@ void TestLanguage::modules()
     QCOMPARE(product->productProperties.value("foo").toString(), expectedProductProperty);
 }
 
+void TestLanguage::nonRequiredProducts()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("non-required-products.qbs"));
+        QFETCH(bool, subProjectEnabled);
+        QFETCH(bool, dependeeEnabled);
+        QVariantMap overriddenValues;
+        if (!subProjectEnabled)
+            overriddenValues.insert("subproject.condition", false);
+        else if (!dependeeEnabled)
+            overriddenValues.insert("dependee.condition", false);
+        params.setOverriddenValues(overriddenValues);
+        const TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(project);
+        const auto products = productsFromProject(project);
+        QCOMPARE(products.count(), 1 + !!subProjectEnabled);
+        const ResolvedProductConstPtr dependee = products.value("dependee");
+        QCOMPARE(subProjectEnabled, !dependee.isNull());
+        if (dependee)
+            QCOMPARE(dependeeEnabled, dependee->enabled);
+        const ResolvedProductConstPtr depender = products.value("depender");
+        QVERIFY(depender);
+        const QStringList defines = PropertyFinder()
+                .propertyValue(depender->moduleProperties->value(), "dummy", "defines")
+                .toStringList();
+        QCOMPARE(subProjectEnabled && dependeeEnabled, defines.contains("WITH_DEPENDEE"));
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::nonRequiredProducts_data()
+{
+    QTest::addColumn<bool>("subProjectEnabled");
+    QTest::addColumn<bool>("dependeeEnabled");
+    QTest::newRow("dependee enabled") << true << true;
+    QTest::newRow("dependee disabled") << true << false;
+    QTest::newRow("sub project disabled") << false << true;
+}
+
 void TestLanguage::outerInGroup()
 {
     bool exceptionCaught = false;

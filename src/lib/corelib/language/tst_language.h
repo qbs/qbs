@@ -100,6 +100,8 @@ private slots:
     void moduleScope();
     void modules_data();
     void modules();
+    void nonRequiredProducts();
+    void nonRequiredProducts_data();
     void outerInGroup();
     void pathProperties();
     void productConditions();
