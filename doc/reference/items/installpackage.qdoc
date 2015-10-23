@@ -69,7 +69,7 @@
             }
         }
 
-        BinaryPackage {
+        InstallPackage {
             archiver.type: "tar"
             name: "tar-package"
             Depends { name: "myapp" }
