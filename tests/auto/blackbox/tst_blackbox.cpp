@@ -843,6 +843,22 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling fileExists.cpp"));
+
+    rmDirR(relativeBuildDir());
+    Settings s((QString()));
+    const Profile profile(profileName(), &s);
+    const QStringList toolchainTypes = profile.value("qbs.toolchain").toStringList();
+    if (!toolchainTypes.contains("gcc"))
+        QSKIP("Need GCC-like compiler to run this test");
+    params.environment = QProcessEnvironment::systemEnvironment();
+    params.environment.insert("INCLUDE_PATH_TEST", "1");
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("hiddenheaderqbs.h"), m_qbsStderr.constData());
+    params.environment.insert("CPLUS_INCLUDE_PATH",
+                              QDir::toNativeSeparators(QDir::currentPath() + "/hidden"));
+    params.expectFailure = false;
+    QCOMPARE(runQbs(params), 0);
 }
 
 void TestBlackbox::trackRemoveFile()
