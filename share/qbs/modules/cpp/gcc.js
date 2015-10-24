@@ -486,11 +486,9 @@ function compilerFlags(product, input, output) {
         var cVersion = ModUtils.moduleProperty(input, "cLanguageVersion");
         if (cVersion) {
             var gccCVersionsMap = {
-                "c89": "c89",
-                "c99": "c99",
                 "c11": "c1x" // Deprecated, but compatible with older gcc versions.
             };
-            args.push("-std=" + gccCVersionsMap[cVersion]);
+            args.push("-std=" + (gccCVersionsMap[cVersion] || cVersion));
         }
     }
 
@@ -498,11 +496,10 @@ function compilerFlags(product, input, output) {
         var cxxVersion = ModUtils.moduleProperty(input, "cxxLanguageVersion");
         if (cxxVersion) {
             var gccCxxVersionsMap = {
-                "c++98": "c++98",
                 "c++11": "c++0x", // Deprecated, but compatible with older gcc versions.
                 "c++14": "c++1y"
             };
-            args.push("-std=" + gccCxxVersionsMap[cxxVersion]);
+            args.push("-std=" + (gccCxxVersionsMap[cxxVersion] || cxxVersion));
         }
 
         var cxxStandardLibrary = product.moduleProperty("cpp", "cxxStandardLibrary");
