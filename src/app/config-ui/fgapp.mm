@@ -27,45 +27,14 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "mainwindow.h"
 
-#include "commandlineparser.h"
+#import <AppKit/AppKit.h>
+#include <ApplicationServices/ApplicationServices.h>
 
-#include <logging/translator.h>
-#include <tools/error.h>
-
-#include <QApplication>
-#include <cstdlib>
-#include <iostream>
-
-using qbs::Internal::Tr;
-
-extern "C" void qt_osx_forceTransformProcessToForegroundApplicationAndActivate();
-
-int main(int argc, char *argv[])
+extern "C" void qt_osx_forceTransformProcessToForegroundApplicationAndActivate()
 {
-    QApplication app(argc, argv);
-
-    CommandLineParser clParser;
-    try {
-        clParser.parse(app.arguments());
-        if (clParser.helpRequested()) {
-            std::cout << qPrintable(clParser.usageString());
-            return EXIT_SUCCESS;
-        }
-    } catch (const qbs::ErrorInfo &error) {
-        std::cerr << qPrintable(error.toString());
-        return EXIT_FAILURE;
-    }
-
-    // Effectively delay the foreground process transformation from QApplication construction to
-    // just before UI is shown - this prevents the application icon from popping up in the Dock
-    // when running `qbs help`, and QCoreApplication::arguments() requires the application object
-    // to be constructed, so it is not easily worked around
-#ifdef Q_OS_OSX
-    qt_osx_forceTransformProcessToForegroundApplicationAndActivate();
-#endif
-    MainWindow mw(clParser.settingsDir());
-    mw.show();
-    return app.exec();
+    ProcessSerialNumber psn;
+    if (GetCurrentProcess(&psn) == noErr)
+        TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+    [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
 }

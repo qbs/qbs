@@ -8,5 +8,7 @@
     <string>6.0</string>
     <key>CFBundleName</key>
     <string>Qbs Settings</string>
+    <key>LSUIElement</key>
+    <string>1</string>
 </dict>
 </plist>
