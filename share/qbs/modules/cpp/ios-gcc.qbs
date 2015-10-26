@@ -86,6 +86,7 @@ DarwinGCC {
     }
 
     Rule {
+        condition: !product.moduleProperty("qbs", "targetOS").contains("ios-simulator")
         inputsFromDependencies: ["bundle"]
 
         Artifact {
@@ -94,26 +95,8 @@ DarwinGCC {
         }
 
         prepare: {
-            var signingIdentity = product.moduleProperty("xcode", "actualSigningIdentity");
-            var signingIdentityDisplay = product.moduleProperty("xcode",
-                                                                "actualSigningIdentityDisplayName");
-            if (!signingIdentity)
-                throw "The name of a valid signing identity must be set using " +
-                        "xcode.signingIdentity in order to build an IPA package.";
-
-            var provisioningProfilePath = product.moduleProperty("xcode",
-                                                                 "provisioningProfilePath");
-            if (!provisioningProfilePath)
-                throw "The path to a provisioning profile must be set using " +
-                        "xcode.provisioningProfilePath in order to build an IPA package.";
-
-            var args = [input.filePath,
-                        "-o", output.filePath,
-                        "--sign", signingIdentity,
-                        "--embed", provisioningProfilePath];
-
-            var cmd = new Command("PackageApplication", args);
-            cmd.description = "creating ipa, signing with " + signingIdentityDisplay;
+            var cmd = new Command("PackageApplication", [input.filePath, "-o", output.filePath]);
+            cmd.description = "creating ipa";
             cmd.highlight = "codegen";
             return cmd;
         }
