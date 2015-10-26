@@ -155,6 +155,10 @@ Module {
     // private properties
     readonly property bool isShallowContents: product.type.contains("inapppurchase")
 
+    readonly property var extraEnv: ({
+        "PRODUCT_BUNDLE_IDENTIFIER": identifier
+    })
+
     readonly property var qmakeEnv: {
         return {
             "BUNDLEIDENTIFIER": identifier,
@@ -208,6 +212,7 @@ Module {
             cmd.infoPlist = ModUtils.moduleProperty(product, "infoPlist") || {};
             cmd.processInfoPlist = ModUtils.moduleProperty(product, "processInfoPlist");
             cmd.infoPlistFormat = ModUtils.moduleProperty(product, "infoPlistFormat");
+            cmd.extraEnv = ModUtils.moduleProperty(product, "extraEnv");
             cmd.qmakeEnv = ModUtils.moduleProperty(product, "qmakeEnv");
 
             cmd.buildEnv = product.moduleProperty("cpp", "buildEnv");
@@ -306,6 +311,9 @@ Module {
                         "PLATFORM_PRODUCT_BUILD_VERSION": platformInfo["ProductBuildVersion"],
                     }
                     env["MAC_OS_X_PRODUCT_BUILD_VERSION"] = osBuildVersion;
+
+                    for (key in extraEnv)
+                        env[key] = extraEnv[key];
 
                     for (key in buildEnv)
                         env[key] = buildEnv[key];

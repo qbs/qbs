@@ -113,6 +113,7 @@ UnixGCC {
     // private properties
     readonly property var buildEnv: {
         var env = {
+            "ARCHS_STANDARD": targetArch, // TODO: this will be affected by multi-arch support
             "EXECUTABLE_NAME": product.targetName,
             "LANG": "en_US.US-ASCII",
             "PRODUCT_NAME": product.name
