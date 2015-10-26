@@ -884,6 +884,22 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling fileExists.cpp"));
+
+    rmDirR(relativeBuildDir());
+    Settings s((QString()));
+    const Profile profile(profileName(), &s);
+    const QStringList toolchainTypes = profile.value("qbs.toolchain").toStringList();
+    if (!toolchainTypes.contains("gcc"))
+        QSKIP("Need GCC-like compiler to run this test");
+    params.environment = QProcessEnvironment::systemEnvironment();
+    params.environment.insert("INCLUDE_PATH_TEST", "1");
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("hiddenheaderqbs.h"), m_qbsStderr.constData());
+    params.environment.insert("CPLUS_INCLUDE_PATH",
+                              QDir::toNativeSeparators(QDir::currentPath() + "/hidden"));
+    params.expectFailure = false;
+    QCOMPARE(runQbs(params), 0);
 }
 
 void TestBlackbox::trackRemoveFile()
@@ -1712,15 +1728,17 @@ void TestBlackbox::java()
     process.setProcessEnvironment(processEnvironmentWithCurrentDirectoryInLibraryPath());
     process.start(HostOsInfo::appendExecutableSuffix(jdkTools["java"]),
             QStringList() << "-jar" << "jar_file.jar");
-    QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
-    QVERIFY2(process.exitCode() == 0, process.readAllStandardError().constData());
-    const QByteArray stdOut = process.readAllStandardOutput();
-    QVERIFY2(stdOut.contains("Driving!"), stdOut.constData());
-    QVERIFY2(stdOut.contains("Flying!"), stdOut.constData());
-    QVERIFY2(stdOut.contains("Flying (this is a space ship)!"), stdOut.constData());
-    QVERIFY2(stdOut.contains("Sailing!"), stdOut.constData());
-    QVERIFY2(stdOut.contains("Native code performing complex internal combustion process ("),
-             stdOut.constData());
+    if (process.waitForStarted()) {
+        QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
+        QVERIFY2(process.exitCode() == 0, process.readAllStandardError().constData());
+        const QByteArray stdOut = process.readAllStandardOutput();
+        QVERIFY2(stdOut.contains("Driving!"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Flying!"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Flying (this is a space ship)!"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Sailing!"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Native code performing complex internal combustion process ("),
+                 stdOut.constData());
+    }
 
     process.start("unzip", QStringList() << "-p" << "jar_file.jar");
     if (process.waitForStarted()) {

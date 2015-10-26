@@ -1443,6 +1443,31 @@ void TestLanguage::propertiesBlocks()
     }
 }
 
+void TestLanguage::propertiesBlockInGroup()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("properties-block-in-group.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QCOMPARE(project->allProducts().count(), 1);
+        const ResolvedProductConstPtr product = project->allProducts().first();
+        const auto groupIt = std::find_if(product->groups.constBegin(), product->groups.constEnd(),
+                [](const GroupConstPtr &g) { return g->name == "the group"; });
+        QVERIFY(groupIt != product->groups.constEnd());
+        const QVariantMap propertyMap = (*groupIt)->properties->value();
+        const QVariantList value = PropertyFinder().propertyValues(propertyMap, "dummy", "defines");
+        QStringList stringListValue;
+        std::transform(value.constBegin(), value.constEnd(), std::back_inserter(stringListValue),
+                       [](const QVariant &v) { return v.toString(); });
+        QCOMPARE(stringListValue, QStringList() << "BASEDEF" << "FEATURE_ENABLED");
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::qbsPropertiesInProjectCondition()
 {
     bool exceptionCaught = false;

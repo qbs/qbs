@@ -187,13 +187,15 @@ private:
             }
             if (cr.toBool()) {
                 // condition is true, let's use the value of this alternative
-                if (alternative->value->sourceUsesOuter()) {
+                if (alternative->value->sourceUsesOuter() && !outerItem) {
                     // Clone value but without alternatives.
                     JSSourceValuePtr outerValue = JSSourceValue::create();
                     outerValue->setFile(value->file());
                     outerValue->setHasFunctionForm(value->hasFunctionForm());
                     outerValue->setSourceCode(value->sourceCode());
                     outerValue->setBaseValue(value->baseValue());
+                    if (value->sourceUsesBase())
+                        outerValue->setSourceUsesBaseFlag();
                     outerValue->setLocation(value->line(), value->column());
                     outerItem = Item::create(data->item->pool());
                     outerItem->setProperty(propertyName->toString(), outerValue);
@@ -213,9 +215,14 @@ private:
             }
             setupConvenienceProperty(QLatin1String("base"), &extraScope, baseValue);
         }
-        if (value->sourceUsesOuter() && outerItem)
-            setupConvenienceProperty(QLatin1String("outer"), &extraScope,
-                                     data->evaluator->property(outerItem, *propertyName));
+        if (value->sourceUsesOuter() && outerItem) {
+            const QScriptValue v = data->evaluator->property(outerItem, *propertyName);
+            if (engine->hasErrorOrException(v)) {
+                *result = engine->lastErrorValue(v);
+                return;
+            }
+            setupConvenienceProperty(QLatin1String("outer"), &extraScope, v);
+        }
         if (value->sourceUsesOriginal()) {
             const Item *item = itemOfProperty;
             while (item->type() == ItemType::ModuleInstance)

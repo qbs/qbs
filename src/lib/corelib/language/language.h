@@ -460,7 +460,13 @@ public:
 
     QString buildDirectory; // Not saved
     QProcessEnvironment environment;
-    QHash<QString, QString> usedEnvironment; // Environment variables requested by the project while resolving.
+
+    // Environment variables requested by the project while resolving.
+    // TODO: This information is currently not used. Remove in 1.5 or use elaborate change tracking
+    //       logic where rules declare the environment variables that could influence their
+    //       behavior.
+    QHash<QString, QString> usedEnvironment;
+
     QHash<QString, QString> canonicalFilePathResults; // Results of calls to "File.canonicalFilePath()."
     QHash<QString, bool> fileExistsResults; // Results of calls to "File.exists()".
     QHash<QPair<QString, quint32>, QStringList> directoryEntriesResults; // Results of calls to "File.directoryEntries()".

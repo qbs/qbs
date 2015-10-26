@@ -38,16 +38,15 @@ import qbs
 
 Project {
     // A code generator that outputs a "Hello World" C++ program.
-    Product {
+    CppApplication {
         name: "hwgen"
-        Depends { name: "cpp" }
         files: ["hwgen.cpp"]
+        bundle.isBundle: false
     }
 
     // Generate and build a hello-world application.
-    Product {
+    CppApplication {
         name: "hello-world"
-        Depends { name: "cpp" }
         Depends { name: "hwgen" }
         Rule {
             inputs: ["qbs"]     // needed to trigger this rule
