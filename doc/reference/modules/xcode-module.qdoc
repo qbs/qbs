@@ -115,14 +115,6 @@
         \li Default
         \li Description
     \row
-        \li provisioningProfilePath
-        \li path
-        \li 1.5
-        \li determined by \c{xcode.provisioningProfilesPath} and \c{xcode.provisioningProfile}
-        \li Path of the provisioning profile to embed in the product. Generally you should not set
-            this property and instead use \c{xcode.provisioningProfile} to automatically
-            determine the provisioning profile's path based on its name or UUID.
-    \row
         \li provisioningProfilesPath
         \li path
         \li 1.5

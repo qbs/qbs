@@ -410,7 +410,7 @@ Module {
         inputs: ["infoplist", "pkginfo", "hpp",
                  "icns", "resourcerules", "xcent",
                  "compiled_ibdoc", "compiled_assetcatalog",
-                 "xcode.provisioningprofile"]
+                 "xcode.provisioningprofile.main"]
 
         outputFileTags: ["bundle",
             "bundle.symlink.headers", "bundle.symlink.private-headers",
@@ -425,8 +425,8 @@ Module {
                     fileTags: ["bundle"]
                 });
 
-                for (i in inputs["xcode.provisioningprofile"]) {
-                    var ext = inputs["xcode.provisioningprofile"][i].fileName.split('.')[1];
+                for (i in inputs["xcode.provisioningprofile.main"]) {
+                    var ext = inputs["xcode.provisioningprofile.main"][i].fileName.split('.')[1];
                     artifacts.push({
                         filePath: FileInfo.joinPaths(product.destinationDirectory,
                                                      ModUtils.moduleProperty(product,
@@ -568,7 +568,7 @@ Module {
                 cmd = new JavaScriptCommand();
                 cmd.description = "copying provisioning profile";
                 cmd.highlight = "filegen";
-                cmd.source = inputs["xcode.provisioningprofile"][i].filePath;
+                cmd.source = inputs["xcode.provisioningprofile.main"][i].filePath;
                 cmd.destination = provisioningProfiles[i].filePath;
                 cmd.sourceCode = function() {
                     File.copy(source, destination);

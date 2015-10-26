@@ -65,16 +65,6 @@ Module {
     property path signingEntitlements
 
     property string provisioningProfile
-    property path provisioningProfilePath: {
-        var files = _availableProvisioningProfiles;
-        for (var i in files) {
-            var data = Utils.readProvisioningProfileData(files[i]);
-            if (data["UUID"] === provisioningProfile ||
-                data["Name"] === provisioningProfile) {
-                return files[i];
-            }
-        }
-    }
 
     property string securityName: "security"
     property string securityPath: securityName
@@ -136,16 +126,6 @@ Module {
             if (DarwinTools.applePlatformName(qbs.targetOS) === sdk)
                 return _availableSdks[_availableSdks.length - 1];
         }
-    }
-
-    readonly property pathList _availableProvisioningProfiles: {
-        var profiles = File.directoryEntries(provisioningProfilesPath,
-                                             File.Files | File.NoDotAndDotDot);
-        return profiles.map(function (s) {
-            return FileInfo.joinPaths(provisioningProfilesPath, s);
-        }).filter(function (s) {
-            return s.endsWith(".mobileprovision") || s.endsWith(".provisionprofile");
-        });
     }
 
     qbs.sysroot: sdkPath
@@ -211,10 +191,9 @@ Module {
     }
 
     Group {
-        name: "Provisioning Profile"
-        files: xcode.provisioningProfilePath
-            ? [xcode.provisioningProfilePath]
-            : []
+        name: "Provisioning Profiles"
+        prefix: xcode.provisioningProfilesPath + "/"
+        files: ["*.mobileprovision", "*.provisionprofile"]
     }
 
     FileTagger {
@@ -223,8 +202,99 @@ Module {
     }
 
     Rule {
-        multiplex: true
         inputs: ["xcode.provisioningprofile"]
+
+        Artifact {
+            filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                         "provisioning-profiles",
+                                         input.fileName + ".xml")
+            fileTags: ["xcode.provisioningprofile.data"]
+        }
+
+        prepare: {
+            var cmds = [];
+
+            var cmd = new Command("openssl", ["smime", "-verify", "-noverify", "-inform", "DER",
+                                  "-in", input.filePath, "-out", output.filePath]);
+            cmd.silent = true;
+            cmd.stderrFilterFunction = function (output) {
+                return output.replace("Verification successful\n", "");
+            };
+            cmds.push(cmd);
+
+            cmd = new JavaScriptCommand();
+            cmd.silent = true;
+            cmd.inputFilePath = input.filePath;
+            cmd.outputFilePath = output.filePath;
+            cmd.sourceCode = function() {
+                var propertyList = new PropertyList();
+                try {
+                    propertyList.readFromFile(outputFilePath);
+                    propertyList.readFromObject({
+                        data: propertyList.toObject(),
+                        fileName: FileInfo.fileName(inputFilePath),
+                        filePath: inputFilePath
+                    });
+                    propertyList.writeToFile(outputFilePath, "xml1");
+                } finally {
+                    propertyList.clear();
+                }
+            };
+            cmds.push(cmd);
+
+            return cmds;
+        }
+    }
+
+    Rule {
+        multiplex: true
+        inputs: ["xcode.provisioningprofile.data"]
+        outputFileTags: ["xcode.provisioningprofile.main", "xcode.provisioningprofile.data.main"]
+
+        outputArtifacts: {
+            var artifacts = [];
+            for (var i = 0; i < inputs["xcode.provisioningprofile.data"].length; ++i) {
+                var dataFile = inputs["xcode.provisioningprofile.data"][i].filePath;
+                var query = product.moduleProperty("xcode", "provisioningProfile");
+                var obj = Utils.provisioningProfilePlistContents(dataFile);
+                if (obj.data && (obj.data.UUID === query || obj.data.Name === query)) {
+                    console.log("Using provisioning profile: " + obj.filePath);
+
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, obj.fileName),
+                        fileTags: ["xcode.provisioningprofile.main", obj.filePath]
+                    });
+
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, obj.fileName + ".xml"),
+                        fileTags: ["xcode.provisioningprofile.data.main", dataFile]
+                    });
+                }
+            }
+            return artifacts;
+        }
+
+        prepare: {
+            var cmds = [];
+            for (var tag in outputs) {
+                for (var i = 0; i < outputs[tag].length; ++i) {
+                    var output = outputs[tag][i];
+                    var cmd = new JavaScriptCommand();
+                    cmd.silent = true;
+                    cmd.inputFilePath = output.fileTags.filter(function(f) { return f.startsWith('/'); })[0] // QBS-754
+                    cmd.outputFilePath = output.filePath;
+                    cmd.sourceCode = function() {
+                        File.copy(inputFilePath, outputFilePath);
+                    };
+                    cmds.push(cmd);
+                }
+            }
+            return cmds;
+        }
+    }
+
+    Rule {
+        inputs: ["xcode.provisioningprofile.data.main"]
 
         Artifact {
             filePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -241,8 +311,9 @@ Module {
             cmd.platformPath = ModUtils.moduleProperty(product, "platformPath");
             cmd.sdkPath = ModUtils.moduleProperty(product, "sdkPath");
             cmd.sourceCode = function() {
-                var provData = Utils.readProvisioningProfileData(
-                            inputs["xcode.provisioningprofile"][0].filePath);
+                var provData = Utils.provisioningProfilePlistContents(input.filePath);
+                if (provData)
+                    provData = provData.data;
 
                 var aggregateEntitlements = {};
 

@@ -138,21 +138,15 @@ function findSigningIdentities(security, searchString) {
     return identities;
 }
 
-function readProvisioningProfileData(path) {
-    var process;
-    try {
-        process = new Process();
-        if (process.exec("openssl", ["smime", "-verify", "-noverify", "-inform", "DER", "-in", path], true) !== 0)
-            console.error(process.readStdErr());
+function provisioningProfilePlistContents(filePath) {
+    if (filePath === undefined)
+        return undefined;
 
-        var propertyList = new PropertyList();
-        try {
-            propertyList.readFromString(process.readStdOut());
-            return propertyList.toObject();
-        } finally {
-            propertyList.clear();
-        }
+    var plist = new PropertyList();
+    try {
+        plist.readFromFile(filePath);
+        return plist.toObject();
     } finally {
-        process.close();
+        plist.clear();
     }
 }
