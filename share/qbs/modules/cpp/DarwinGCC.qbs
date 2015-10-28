@@ -81,27 +81,29 @@ UnixGCC {
                 dict["UIRequiredDeviceCapabilities"] = ["arm64"];
         }
 
-        var targetDevices = DarwinTools.targetedDeviceFamily(xcode.targetDevices);
-        if (qbs.targetOS.contains("ios") && xcode.present)
-            dict["UIDeviceFamily"] = targetDevices;
+        if (xcode.present) {
+            var targetDevices = DarwinTools.targetedDeviceFamily(xcode.targetDevices);
+            if (qbs.targetOS.contains("ios"))
+                dict["UIDeviceFamily"] = targetDevices;
 
-        if (qbs.targetOS.contains("ios") || qbs.targetOS.contains("watchos")) {
-            var orientations = [
-                "UIInterfaceOrientationPortrait",
-                "UIInterfaceOrientationPortraitUpsideDown",
-                "UIInterfaceOrientationLandscapeLeft",
-                "UIInterfaceOrientationLandscapeRight"
-            ];
+            if (qbs.targetOS.contains("ios") || qbs.targetOS.contains("watchos")) {
+                var orientations = [
+                    "UIInterfaceOrientationPortrait",
+                    "UIInterfaceOrientationPortraitUpsideDown",
+                    "UIInterfaceOrientationLandscapeLeft",
+                    "UIInterfaceOrientationLandscapeRight"
+                ];
 
-            if (targetDevices.contains("ipad"))
-                dict["UISupportedInterfaceOrientations~ipad"] = orientations;
+                if (targetDevices.contains("ipad"))
+                    dict["UISupportedInterfaceOrientations~ipad"] = orientations;
 
-            if (targetDevices.contains("watch"))
-                dict["UISupportedInterfaceOrientations"] = orientations.slice(0, 2);
+                if (targetDevices.contains("watch"))
+                    dict["UISupportedInterfaceOrientations"] = orientations.slice(0, 2);
 
-            if (targetDevices.contains("iphone")) {
-                orientations.splice(1, 1);
-                dict["UISupportedInterfaceOrientations"] = orientations;
+                if (targetDevices.contains("iphone")) {
+                    orientations.splice(1, 1);
+                    dict["UISupportedInterfaceOrientations"] = orientations;
+                }
             }
         }
 
