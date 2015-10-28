@@ -213,7 +213,8 @@ static Profile createGccProfile(const QString &compilerFilePath, Settings *setti
                                       .toString());
     toolPathSetup.apply(QLatin1String("ar"), QLatin1String("cpp.archiverPath"));
     toolPathSetup.apply(QLatin1String("nm"), QLatin1String("cpp.nmPath"));
-    if (HostOsInfo::isOsxHost())
+    if (profile.value(QStringLiteral("qbs.targetOS"))
+            .toStringList().contains(QStringLiteral("darwin")))
         toolPathSetup.apply(QLatin1String("dsymutil"), QLatin1String("cpp.dsymutilPath"));
     else
         toolPathSetup.apply(QLatin1String("objcopy"), QLatin1String("cpp.objcopyPath"));
