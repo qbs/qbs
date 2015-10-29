@@ -174,8 +174,8 @@ function linkerFlags(product, inputs, output) {
         }
     }
 
-    if (inputs.infoplist)
-        args.push("-sectcreate", "__TEXT", "__info_plist", inputs.infoplist[0].filePath);
+    if (inputs.aggregate_infoplist)
+        args.push("-sectcreate", "__TEXT", "__info_plist", inputs.aggregate_infoplist[0].filePath);
 
     var stdlib = product.moduleProperty("cpp", "cxxStandardLibrary");
     if (stdlib && product.moduleProperty("qbs", "toolchain").contains("clang"))

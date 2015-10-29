@@ -1777,7 +1777,7 @@ void TestLanguage::wildcards()
         QVERIFY(product);
         GroupPtr group;
         if (useGroup) {
-            QCOMPARE(product->groups.count(), 2);
+            QCOMPARE(product->groups.count(), 3);
             foreach (const GroupPtr &rg, product->groups) {
                 if (rg->name == groupName) {
                     group = rg;
@@ -1785,7 +1785,7 @@ void TestLanguage::wildcards()
                 }
             }
         } else {
-            QCOMPARE(product->groups.count(), 1);
+            QCOMPARE(product->groups.count(), 2);
             group = product->groups.first();
         }
         QVERIFY(group);

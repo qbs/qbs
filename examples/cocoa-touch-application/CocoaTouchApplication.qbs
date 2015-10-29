@@ -45,6 +45,7 @@ CppApplication {
 
     cpp.precompiledHeader: "CocoaTouchApplication/CocoaTouchApplication-Prefix.pch"
 
+    // TODO: Remove in 1.6
     bundle.infoPlistFile: "CocoaTouchApplication/CocoaTouchApplication-Info.plist"
 
     cpp.frameworks: [ "UIKit", "Foundation", "CoreGraphics" ]
@@ -54,6 +55,7 @@ CppApplication {
         files: [
             "AppDelegate.h",
             "AppDelegate.m",
+            //"CocoaTouchApplication-Info.plist",
             "CocoaTouchApplication-Prefix.pch",
             "Default-568h@2x.png",
             "Default.png",

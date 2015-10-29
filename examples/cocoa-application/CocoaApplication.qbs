@@ -45,6 +45,7 @@ CppApplication {
 
     cpp.precompiledHeader: "CocoaApplication/CocoaApplication-Prefix.pch"
 
+    // TODO: Remove in 1.6
     bundle.infoPlistFile: "CocoaApplication/CocoaApplication-Info.plist"
 
     cpp.frameworks: ["Cocoa"]
@@ -54,6 +55,7 @@ CppApplication {
         files: [
             "AppDelegate.h",
             "AppDelegate.m",
+            //"CocoaApplication-Info.plist",
             "CocoaApplication-Prefix.pch",
             "main.m"
         ]

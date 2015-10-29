@@ -20,7 +20,7 @@ Project {
         }
 
         Group {
-            fileTagsFilter: ["infoplist"]
+            fileTagsFilter: ["aggregate_infoplist"]
             qbs.install: install && bundle.isBundle && !bundle.embedInfoPlist
             qbs.installDir: FileInfo.joinPaths(installDir, FileInfo.path(bundle.infoPlistPath))
         }
@@ -49,7 +49,7 @@ Project {
         }
 
         Group {
-            fileTagsFilter: ["infoplist"]
+            fileTagsFilter: ["aggregate_infoplist"]
             qbs.install: install && bundle.isBundle && !bundle.embedInfoPlist
             qbs.installDir: FileInfo.joinPaths(installDir, FileInfo.path(bundle.infoPlistPath))
         }

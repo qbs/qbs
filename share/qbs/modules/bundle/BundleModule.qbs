@@ -95,15 +95,10 @@ Module {
     property pathList privateHeaders
     property pathList resources
 
-    property path infoPlistFile
     property var infoPlist
     property bool processInfoPlist: true
     property bool embedInfoPlist: product.type.contains("application") && !isBundle
-    property string infoPlistFormat: {
-        if (qbs.targetOS.contains("osx"))
-            return infoPlistFile ? "same-as-input" : "xml1";
-        return "binary1";
-    }
+    property string infoPlistFormat: qbs.targetOS.contains("osx") ? "same-as-input" : "binary1"
 
     property string localizedResourcesFolderSuffix: ".lproj"
 
@@ -186,18 +181,27 @@ Module {
         };
     }
 
+    FileTagger {
+        fileTags: ["infoplist"]
+        patterns: ["Info.plist", "*-Info.plist"]
+    }
+
+    // TODO: Remove in 1.6 (deprecated, backwards compatibility)
+    property path infoPlistFile
+    Group { name: "Info.plist"; files: bundle.infoPlistFile ? [bundle.infoPlistFile] : [] }
+
     Rule {
         condition: qbs.targetOS.contains("darwin")
         multiplex: true
-        inputs: ["qbs", "partial_infoplist"]
+        inputs: ["qbs", "infoplist", "partial_infoplist"]
 
-        outputFileTags: ["infoplist"]
+        outputFileTags: ["aggregate_infoplist"]
         outputArtifacts: {
             var artifacts = [];
             if (ModUtils.moduleProperty(product, "isBundle") || ModUtils.moduleProperty(product, "embedInfoPlist")) {
                 artifacts.push({
                     filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "infoPlistPath")),
-                    fileTags: ["infoplist"]
+                    fileTags: ["aggregate_infoplist"]
                 });
             }
             return artifacts;
@@ -207,8 +211,8 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating Info.plist for " + product.name;
             cmd.highlight = "codegen";
+            cmd.infoPlistFiles = inputs.infoplist;
             cmd.partialInfoPlistFiles = inputs.partial_infoplist;
-            cmd.infoPlistFile = ModUtils.moduleProperty(product, "infoPlistFile");
             cmd.infoPlist = ModUtils.moduleProperty(product, "infoPlist") || {};
             cmd.processInfoPlist = ModUtils.moduleProperty(product, "processInfoPlist");
             cmd.infoPlistFormat = ModUtils.moduleProperty(product, "infoPlistFormat");
@@ -233,7 +237,14 @@ Module {
 
                 // Contains the combination of default, file, and in-source keys and values
                 // Start out with the contents of this file as the "base", if given
-                var aggregatePlist = BundleTools.infoPlistContents(infoPlistFile) || {};
+                var aggregatePlist = {};
+                for (i in infoPlistFiles) {
+                    aggregatePlist = BundleTools.infoPlistContents(infoPlistFiles[i].filePath);
+                    infoPlistFormat = (infoPlistFormat === "same-as-input")
+                            ? BundleTools.infoPlistFormat(infoPlistFiles[i].filePath)
+                            : "xml1";
+                    break;
+                }
 
                 // Add local key-value pairs (overrides equivalent keys specified in the file if
                 // one was given)
@@ -337,8 +348,8 @@ Module {
                 // This also follows Xcode behavior
                 DarwinTools.cleanPropertyList(aggregatePlist);
 
-                if (infoPlistFormat === "same-as-input" && infoPlistFile)
-                    infoPlistFormat = BundleTools.infoPlistFormat(infoPlistFile);
+                if (infoPlistFormat === "same-as-input")
+                    infoPlistFormat = "xml1";
 
                 var validFormats = [ "xml1", "binary1", "json" ];
                 if (!validFormats.contains(infoPlistFormat))
@@ -349,7 +360,7 @@ Module {
                 plist = new PropertyList();
                 try {
                     plist.readFromObject(aggregatePlist);
-                    plist.writeToFile(outputs.infoplist[0].filePath, infoPlistFormat);
+                    plist.writeToFile(outputs.aggregate_infoplist[0].filePath, infoPlistFormat);
                 } finally {
                     plist.clear();
                 }
@@ -361,7 +372,7 @@ Module {
     Rule {
         condition: qbs.targetOS.contains("darwin")
         multiplex: true
-        inputs: ["infoplist"]
+        inputs: ["aggregate_infoplist"]
 
         outputFileTags: ["pkginfo"]
         outputArtifacts: {
@@ -380,7 +391,7 @@ Module {
             cmd.description = "generating PkgInfo for " + product.name;
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
-                var infoPlist = BundleTools.infoPlistContents(inputs.infoplist[0].filePath);
+                var infoPlist = BundleTools.infoPlistContents(inputs.aggregate_infoplist[0].filePath);
 
                 var pkgType = infoPlist['CFBundlePackageType'];
                 if (!pkgType)
@@ -401,7 +412,7 @@ Module {
     Rule {
         condition: qbs.targetOS.contains("darwin")
         multiplex: true
-        inputs: ["infoplist", "pkginfo", "hpp",
+        inputs: ["aggregate_infoplist", "pkginfo", "hpp",
                  "icns", "resourcerules", "xcent",
                  "compiled_ibdoc", "compiled_assetcatalog",
                  "xcode.provisioningprofile.main"]

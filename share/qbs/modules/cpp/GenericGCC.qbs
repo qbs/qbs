@@ -252,7 +252,7 @@ CppModule {
             if (product.type.contains("application") &&
                 product.moduleProperty("qbs", "targetOS").contains("darwin") &&
                 product.moduleProperty("bundle", "embedInfoPlist"))
-                tags.push("infoplist");
+                tags.push("aggregate_infoplist");
             return tags;
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
@@ -297,7 +297,7 @@ CppModule {
             if (product.type.contains("application") &&
                 product.moduleProperty("qbs", "targetOS").contains("darwin") &&
                 product.moduleProperty("bundle", "embedInfoPlist"))
-                tags.push("infoplist");
+                tags.push("aggregate_infoplist");
             return tags;
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]

@@ -152,23 +152,13 @@
         \li List of resources to copy to a bundle's Resources subdirectory. Files will automatically
             be copied into lproj subdirectories corresponding to the input files' paths.
     \row
-        \li infoPlistFile
-        \li \c{path}
-        \li 1.4
-        \li \c{undefined}
-        \li Path to the Info.plist file used by the bundle.
-            The contents of this file will be aggregated with the values in \c{infoPlist}.
-            If \c{infoPlistFile} and \c{infoPlist} contain the same key, the latter will take
-            precedence, but may also be overridden during postprocessing (see \c{processInfoPlist}).
-            If undefined, will not be taken into account.
-    \row
         \li infoPlist
         \li \c{object}
         \li 1.4
         \li \c{undefined}
         \li Dictionary of key-value pairs to add to the bundle's Info.plist.
-            The contents of this property will be aggregated with the values from \c{infoPlistFile}.
-            If \c{infoPlist} and \c{infoPlistFile} contain the same key, the former will take
+            The contents of this property will be aggregated with the values from any plist files.
+            If \c{infoPlist} and any plist files contain the same key, the former will take
             precedence, but may also be overridden during postprocessing (see \c{processInfoPlist}).
             If undefined, will not be taken into account.
     \row
@@ -178,8 +168,8 @@
         \li \c{true}
         \li Whether to perform post-processing on the aggregated Info.plist contents.
             If this property is \c{true}, various post-processing operations will be applied to the
-            bundle's property list dictionary after it has been aggregated from the contents of the
-            file specified by the \c{infoPlistFile} property and the \c{infoPlist} property.
+            bundle's property list dictionary after it has been aggregated from the contents of any
+            plist files on disk, and the \c{infoPlist} property.
             First, values from a list of defaults will be added to the dictionary if they were not
             already present. Then, values from the AdditionalInfo key of the platform SDK's
             Info.plist file will be added to the dictionary if they were not already present, as
@@ -198,8 +188,8 @@
         \li \c{string}
         \li 1.4
         \li \c{"binary1"} for iOS;
-            \c{"same-as-input"} or \c{"xml1"} for OS X depending on whether \c{infoPlistFile} is
-            specified; undefined for all other operating systems.
+            \c{"same-as-input"} or \c{"xml1"} for OS X depending on whether a plist file is used;
+            \c{undefined} for all other operating systems.
         \li The file format to write the product's resulting Info.plist in.
             Possible values: \c{"xml1"}, \c{"binary1"}, \c{"json"}, \c{"same-as-input"}
     \endtable
