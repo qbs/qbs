@@ -252,12 +252,6 @@ Module {
                             aggregatePlist[key] = defaultValues[key];
                     }
 
-                    var defaultValues = product.moduleProperty("cpp", "defaultInfoPlist");
-                    for (key in defaultValues) {
-                        if (defaultValues.hasOwnProperty(key) && !(key in aggregatePlist))
-                            aggregatePlist[key] = defaultValues[key];
-                    }
-
                     // Add keys from platform's Info.plist if not already present
                     var platformInfo = {};
                     var sdkSettings = {};
