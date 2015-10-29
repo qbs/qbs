@@ -62,8 +62,6 @@ Module {
             return _actualSigningIdentity[0][1];
     }
 
-    property path signingEntitlements
-
     property string provisioningProfile
 
     property string securityName: "security"
@@ -197,6 +195,11 @@ Module {
     }
 
     FileTagger {
+        fileTags: ["xcode.entitlements"]
+        patterns: ["*.entitlements"]
+    }
+
+    FileTagger {
         fileTags: ["xcode.provisioningprofile"]
         patterns: ["*.mobileprovision", "*.provisionprofile"]
     }
@@ -294,7 +297,7 @@ Module {
     }
 
     Rule {
-        inputs: ["xcode.provisioningprofile.data.main"]
+        inputs: ["xcode.entitlements", "xcode.provisioningprofile.data.main"]
 
         Artifact {
             filePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -307,10 +310,11 @@ Module {
             cmd.description = "generating entitlements";
             cmd.highlight = "codegen";
             cmd.bundleIdentifier = product.moduleProperty("bundle", "identifier");
-            cmd.signingEntitlements = ModUtils.moduleProperty(product, "signingEntitlements");
+            cmd.signingEntitlements = inputs["xcode.entitlements"].map(function (a) { return a.filePath; });
             cmd.platformPath = ModUtils.moduleProperty(product, "platformPath");
             cmd.sdkPath = ModUtils.moduleProperty(product, "sdkPath");
             cmd.sourceCode = function() {
+                var i;
                 var provData = Utils.provisioningProfilePlistContents(input.filePath);
                 if (provData)
                     provData = provData.data;
@@ -324,11 +328,14 @@ Module {
                 }
                 var entitlementsSources = [
                     entitlementsFileContents(FileInfo.joinPaths(platformPath, "Entitlements.plist")),
-                    entitlementsFileContents(FileInfo.joinPaths(sdkPath, "Entitlements.plist")),
-                    entitlementsFileContents(signingEntitlements)
+                    entitlementsFileContents(FileInfo.joinPaths(sdkPath, "Entitlements.plist"))
                 ];
 
-                for (var i = 0; i < entitlementsSources.length; ++i) {
+                for (i = 0; i < signingEntitlements.length; ++i) {
+                    entitlementsSources.push(entitlementsFileContents(signingEntitlements[i]));
+                }
+
+                for (i = 0; i < entitlementsSources.length; ++i) {
                     var contents = entitlementsSources[i];
                     for (var key in contents) {
                         if (contents.hasOwnProperty(key))
