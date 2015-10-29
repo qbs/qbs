@@ -299,12 +299,6 @@
         \li undefined
         \li Additional flags for the linker.
     \row
-        \li linkerScripts
-        \li \c{pathList}
-        \li 1.2
-        \li \c{undefined}
-        \li List of linker script files.
-    \row
         \li assemblerName
         \li \c{string}
         \li 1.5

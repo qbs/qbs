@@ -134,7 +134,15 @@ Module {
     property pathList libraryPaths
     property pathList frameworkPaths
     property pathList systemFrameworkPaths
+
+    // TODO: Remove in 1.6 (deprecated, backwards compatibility)
     property pathList linkerScripts
+    Group {
+        name: "qbs_cpp_linkerscript"
+        files: cpp.linkerScripts || []
+        fileTags: ["linkerscript"]
+    }
+
     property string assemblerName
     property string assemblerPath: assemblerName
     property string compilerName

@@ -68,7 +68,6 @@ function linkerFlags(product, inputs, output) {
     var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
     var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
     var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
-    var linkerScripts = ModUtils.moduleProperties(product, 'linkerScripts');
     var frameworks = ModUtils.moduleProperties(product, 'frameworks');
     var weakFrameworks = ModUtils.moduleProperties(product, 'weakFrameworks');
     var rpaths = (product.moduleProperty("cpp", "useRPaths") !== false)
@@ -185,8 +184,9 @@ function linkerFlags(product, inputs, output) {
     if (libraryPaths)
         args = args.concat([].uniqueConcat(libraryPaths).map(function(path) { return '-L' + path }));
 
-    if (linkerScripts)
-        args = args.concat([].uniqueConcat(linkerScripts).map(function(path) { return '-T' + path }));
+    var linkerScripts = inputs.linkerscript
+            ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
+    args = args.concat([].uniqueConcat(linkerScripts).map(function(path) { return '-T' + path }));
 
     if (isDarwin && ModUtils.moduleProperty(product, "warningLevel") === "none")
         args.push('-w');
