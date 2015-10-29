@@ -335,7 +335,15 @@ void BuildGraphLoader::trackProjectChanges()
 
 bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const
 {
-    if (m_environment != restoredProject->environment) {
+    QProcessEnvironment oldEnv = restoredProject->environment;
+    QProcessEnvironment newEnv = m_environment;
+
+    // HACK. Valgrind screws up our null-build benchmarker otherwise.
+    // TODO: Think about a (module-provided) whitelist.
+    oldEnv.remove(QLatin1String("LD_PRELOAD"));
+    newEnv.remove(QLatin1String("LD_PRELOAD"));
+
+    if (oldEnv != newEnv) {
         m_logger.qbsDebug() << "Set of environment variables changed. Must re-resolve project.";
         m_logger.qbsTrace() << "old: " << restoredProject->environment.toStringList() << "\nnew:"
                             << m_environment.toStringList();
