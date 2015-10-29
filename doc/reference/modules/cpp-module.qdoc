@@ -230,6 +230,12 @@
         \li undefined
         \li The patch level component of the compiler version.
     \row
+        \li assemblerFlags
+        \li \c{stringList}
+        \li 1.5
+        \li undefined
+        \li Additional flags for the assembler.
+    \row
         \li cppFlags
         \li \c{stringList}
         \li 1.0
@@ -298,6 +304,18 @@
         \li 1.2
         \li \c{undefined}
         \li List of linker script files.
+    \row
+        \li assemblerName
+        \li \c{string}
+        \li 1.5
+        \li determined by qbs-setup-toolchains
+        \li Name of the assembler binary. This is set in the build profile.
+    \row
+        \li assemblerPath
+        \li \c{string}
+        \li 1.5
+        \li determined by qbs-setup-toolchains
+        \li Full path of the assembler binary. This is set in the build profile.
     \row
         \li compilerName
         \li \c{string}

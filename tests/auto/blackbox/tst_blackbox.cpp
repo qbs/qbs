@@ -2574,7 +2574,7 @@ void TestBlackbox::assembly()
     bool haveMSVC = profile.value("qbs.toolchain").toStringList().contains("msvc");
     QDir::setCurrent(testDataDir + "/assembly");
     QVERIFY(runQbs() == 0);
-    QCOMPARE((bool)m_qbsStdout.contains("compiling testa.s"), haveGcc);
+    QCOMPARE((bool)m_qbsStdout.contains("assembling testa.s"), haveGcc);
     QCOMPARE((bool)m_qbsStdout.contains("compiling testb.S"), haveGcc);
     QCOMPARE((bool)m_qbsStdout.contains("compiling testc.sx"), haveGcc);
     QCOMPARE((bool)m_qbsStdout.contains("creating libtesta.a"), haveGcc);

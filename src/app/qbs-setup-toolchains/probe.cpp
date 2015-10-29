@@ -212,6 +212,7 @@ static Profile createGccProfile(const QString &compilerFilePath, Settings *setti
                                       profile.value(QStringLiteral("cpp.toolchainPrefix"))
                                       .toString());
     toolPathSetup.apply(QLatin1String("ar"), QLatin1String("cpp.archiverPath"));
+    toolPathSetup.apply(QLatin1String("as"), QLatin1String("cpp.assemblerPath"));
     toolPathSetup.apply(QLatin1String("nm"), QLatin1String("cpp.nmPath"));
     if (profile.value(QStringLiteral("qbs.targetOS"))
             .toStringList().contains(QStringLiteral("darwin")))

@@ -263,7 +263,7 @@ function configFlags(config) {
     return args;
 }
 
-function languageTagFromFileExtension(fileName) {
+function languageTagFromFileExtension(toolchain, fileName) {
     var i = fileName.lastIndexOf('.');
     if (i === -1)
         return;
@@ -277,13 +277,14 @@ function languageTagFromFileExtension(fileName) {
         "m"     : "objc",
         "mm"    : "objcpp",
         "s"     : "asm",
-        "S"     : "asm_cpp",
-        "sx"    : "asm_cpp"
+        "S"     : "asm_cpp"
     };
+    if (!toolchain.contains("clang"))
+        m["sx"] = "asm_cpp"; // clang does NOT recognize .sx
     return m[fileName.substring(i + 1)];
 }
 
-function effectiveCompilerInfo(input, output) {
+function effectiveCompilerInfo(toolchain, input, output) {
     var compilerPath, language;
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
 
@@ -293,7 +294,7 @@ function effectiveCompilerInfo(input, output) {
     var compilerPathByLanguage = ModUtils.moduleProperty(input, "compilerPathByLanguage");
     if (compilerPathByLanguage)
         compilerPath = compilerPathByLanguage[tag];
-    if (!compilerPath || tag !== languageTagFromFileExtension(input.fileName))
+    if (!compilerPath || tag !== languageTagFromFileExtension(toolchain, input.fileName))
         language = languageName(tag) + (pchOutput ? '-header' : '');
     if (!compilerPath)
         // fall back to main compiler
@@ -331,10 +332,11 @@ function compilerFlags(product, input, output) {
 
     // Determine which C-language we're compiling
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
-    if (!["c", "cpp", "objc", "objcpp", "asm", "asm_cpp"].contains(tag))
+    if (!["c", "cpp", "objc", "objcpp", "asm_cpp"].contains(tag))
         throw ("unsupported source language: " + tag);
 
-    var compilerInfo = effectiveCompilerInfo(input, output);
+    var compilerInfo = effectiveCompilerInfo(product.moduleProperty("qbs", "toolchain"),
+                                             input, output);
 
     var args = additionalCompilerAndLinkerFlags(product);
 
@@ -552,8 +554,60 @@ function languageName(fileTag) {
         return 'assembler-with-cpp';
 }
 
+function prepareAssembler(project, product, inputs, outputs, input, output) {
+    var assemblerPath = ModUtils.moduleProperty(product, "assemblerPath");
+
+    var includePaths = ModUtils.moduleProperties(input, 'includePaths');
+    var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
+
+    var args = [];
+    if (haveTargetOption(product)) {
+        args.push("-target", product.moduleProperty("cpp", "target"));
+    } else {
+        var arch = product.moduleProperty("cpp", "targetArch");
+        if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
+            args.push("-arch", arch);
+        else if (arch === 'x86_64')
+            args.push('--64');
+        else if (arch === 'i386')
+            args.push('--32');
+    }
+
+    if (ModUtils.moduleProperty(input, "debugInformation"))
+        args.push('-g');
+
+    var warnings = ModUtils.moduleProperty(input, "warningLevel")
+    if (warnings === 'none')
+        args.push('-W');
+
+    var tag = "asm";
+    if (tag !== languageTagFromFileExtension(product.moduleProperty("qbs", "toolchain"),
+                                             input.fileName))
+        // Only push '-x language' if we have to.
+        args.push("-x", languageName(tag));
+
+    args = args.concat(ModUtils.moduleProperties(input, 'platformFlags', tag),
+                       ModUtils.moduleProperties(input, 'flags', tag));
+
+    var allIncludePaths = [];
+    if (systemIncludePaths)
+        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
+    if (includePaths)
+        allIncludePaths = allIncludePaths.uniqueConcat(includePaths);
+    args = args.concat(allIncludePaths.map(function(path) { return '-I' + path }));
+
+    args.push("-o", output.filePath);
+    args.push(input.filePath);
+
+    var cmd = new Command(assemblerPath, args);
+    cmd.description = "assembling " + input.fileName;
+    cmd.highlight = "compiler";
+    return cmd;
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output) {
-    var compilerInfo = effectiveCompilerInfo(input, output);
+    var compilerInfo = effectiveCompilerInfo(product.moduleProperty("qbs", "toolchain"),
+                                             input, output);
     var compilerPath = compilerInfo.path;
     var pchOutput = output.fileTags.contains(compilerInfo.tag + "_pch");
 

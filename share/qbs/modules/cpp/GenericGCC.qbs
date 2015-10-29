@@ -56,6 +56,7 @@ CppModule {
     property stringList transitiveSOs
     property string toolchainPrefix
     property path toolchainInstallPath
+    assemblerName: 'as'
     compilerName: cxxCompilerName
     linkerName: cxxCompilerName
     property string archiverName: 'ar'
@@ -95,15 +96,15 @@ CppModule {
                                      + (qbs.toolchain.contains("clang") ? "clang++" : "g++")
                                      + executableSuffix
 
-    compilerPathByLanguage: {
-        return {
-            "c": toolchainPathPrefix + cCompilerName,
-            "cpp": toolchainPathPrefix + cxxCompilerName,
-            "objc": toolchainPathPrefix + cCompilerName,
-            "objcpp": toolchainPathPrefix + cxxCompilerName
-        };
-    }
+    compilerPathByLanguage: ({
+        "c": toolchainPathPrefix + cCompilerName,
+        "cpp": toolchainPathPrefix + cxxCompilerName,
+        "objc": toolchainPathPrefix + cCompilerName,
+        "objcpp": toolchainPathPrefix + cxxCompilerName,
+        "asm_cpp": toolchainPathPrefix + cCompilerName
+    })
 
+    assemblerPath: toolchainPathPrefix + assemblerName
     compilerPath: toolchainPathPrefix + compilerName
     linkerPath: toolchainPathPrefix + linkerName
     property path archiverPath: { return toolchainPathPrefix + archiverName }
@@ -335,17 +336,31 @@ CppModule {
 
     Rule {
         id: compiler
-        inputs: ["cpp", "c", "objcpp", "objc", "asm", "asm_cpp"]
+        inputs: ["cpp", "c", "objcpp", "objc", "asm_cpp"]
         auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"]
 
         Artifact {
             fileTags: ["obj"]
-            filePath: ".obj/" + qbs.getHash(input.baseDir) + "/" + input.fileName + ".o"
+            filePath: FileInfo.joinPaths(".obj", qbs.getHash(input.baseDir), input.fileName + ".o")
         }
 
         prepare: {
             return Gcc.prepareCompiler.apply(this, arguments);
+        }
+    }
+
+    Rule {
+        id: assembler
+        inputs: ["asm"]
+
+        Artifact {
+            fileTags: ["obj"]
+            filePath: FileInfo.joinPaths(".obj", qbs.getHash(input.baseDir), input.fileName + ".o")
+        }
+
+        prepare: {
+            return Gcc.prepareAssembler.apply(this, arguments);
         }
     }
 

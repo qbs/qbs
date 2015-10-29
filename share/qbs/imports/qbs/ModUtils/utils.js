@@ -93,6 +93,11 @@ function languagePropertyName(propertyName, fileTag) {
     if (!fileTag)
         fileTag = "common";
 
+    var asm = {
+        "flags": "assemblerFlags",
+        "platformFlags": "platformAssemblerFlags"
+    };
+
     var map = {
         "c": {
             "flags": "cFlags",
@@ -118,7 +123,9 @@ function languagePropertyName(propertyName, fileTag) {
             "flags": "commonCompilerFlags",
             "platformFlags": "platformCommonCompilerFlags",
             "precompiledHeader": "precompiledHeader"
-        }
+        },
+        "asm": asm,
+        "asm_cpp": asm
     };
 
     var lang = map[fileTag];

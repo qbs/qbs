@@ -54,7 +54,7 @@ CppModule {
     compilerDefines: ['_WIN32']
     warningLevel: "default"
     compilerName: "cl.exe"
-    property string assemblerName: {
+    assemblerName: {
         switch (qbs.architecture) {
         case "armv7":
             return "armasm.exe";
@@ -330,7 +330,9 @@ CppModule {
                         FileInfo.toWindowsSeparators(input.filePath)];
             if (ModUtils.moduleProperty(product, "debugInformation"))
                 args.push("/Zi");
-            var cmd = new Command(ModUtils.moduleProperty(product, "assemblerName"), args);
+            args = args.concat(ModUtils.moduleProperties(input, 'platformFlags', 'asm'),
+                               ModUtils.moduleProperties(input, 'flags', 'asm'));
+            var cmd = new Command(ModUtils.moduleProperty(product, "assemblerPath"), args);
             cmd.description = "assembling " + input.fileName;
             cmd.inputFileName = input.fileName;
             cmd.stdoutFilterFunction = function(output) {

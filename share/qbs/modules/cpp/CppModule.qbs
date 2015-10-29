@@ -135,6 +135,8 @@ Module {
     property pathList frameworkPaths
     property pathList systemFrameworkPaths
     property pathList linkerScripts
+    property string assemblerName
+    property string assemblerPath: assemblerName
     property string compilerName
     property string compilerPath: compilerName
     property var compilerPathByLanguage
@@ -157,6 +159,12 @@ Module {
     property stringList weakFrameworks // list of weakly-linked frameworks, will be linked with '-weak_framework <name>'
     property stringList rpaths
     property bool useRPaths: true
+
+    property stringList assemblerFlags
+    PropertyOptions {
+        name: "assemblerFlags"
+        description: "additional flags for the assembler"
+    }
 
     property stringList cppFlags
     PropertyOptions {
@@ -248,6 +256,7 @@ Module {
 
     // Platform properties. Those are intended to be set by the toolchain setup
     // and are prepended to the corresponding user properties.
+    property stringList platformAssemblerFlags
     property stringList platformCommonCompilerFlags
     property stringList platformCFlags
     property stringList platformCxxFlags
