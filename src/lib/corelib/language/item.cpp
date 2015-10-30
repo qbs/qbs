@@ -161,6 +161,7 @@ PropertyDeclaration Item::propertyDeclaration(const QString &name) const
 void Item::addModule(const Item::Module &module)
 {
     const auto it = std::lower_bound(m_modules.begin(), m_modules.end(), module);
+    QBS_CHECK(it == m_modules.end() || (module.name != it->name && module.item != it->item));
     m_modules.insert(it, module);
 }
 

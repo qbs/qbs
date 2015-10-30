@@ -6,6 +6,7 @@ Project {
         name: "myapp"
         Depends { name: "mylib" }
         Depends { name: "dummy" }
+        Depends { name: "qbs" }
         dummy.defines: ["BUILD_" + product.name.toUpperCase()]
         dummy.includePaths: ["./app"]
     }
@@ -17,18 +18,21 @@ Project {
 
     Application {
         name: "A"
+        Depends { name: "qbs" }
         Depends { name: "B" }
     }
     StaticLibrary {
         name: "B"
         Export {
             Depends { name: "C" }
+            Depends { name: "qbs" }
         }
     }
     StaticLibrary {
         name: "C"
         Export {
             Depends { name: "D" }
+            Depends { name: "qbs" }
         }
     }
     StaticLibrary {
@@ -38,6 +42,7 @@ Project {
     Application {
         name: "myapp2"
         Depends { name: "productWithInheritedExportItem" }
+        Depends { name: "qbs" }
     }
     ProductWithInheritedExportItem {
         name: "productWithInheritedExportItem"

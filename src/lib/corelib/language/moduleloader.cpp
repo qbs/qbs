@@ -753,6 +753,10 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
     QList<QualifiedId> moduleNames;
     const QualifiedId nameParts = QualifiedId::fromString(name);
     if (submodules.isEmpty()) {
+        // Ignore explicit dependencies on the base module, which has already been loaded.
+        if (name == QStringLiteral("qbs"))
+            return;
+
         moduleNames << nameParts;
     } else {
         foreach (const QString &submodule, submodules)
