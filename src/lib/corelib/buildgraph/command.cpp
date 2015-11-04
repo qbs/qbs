@@ -34,6 +34,7 @@
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
 
+#include <QFile>
 #include <QScriptEngine>
 #include <QScriptValueIterator>
 #include <QSet>
@@ -156,6 +157,10 @@ static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
                     engine->toScriptValue(commandPrototype->responseFileArgumentIndex()));
     cmd.setProperty(QLatin1String("responseFileUsagePrefix"),
                     engine->toScriptValue(commandPrototype->responseFileUsagePrefix()));
+    cmd.setProperty(QLatin1String("stdoutFilePath"),
+                    engine->toScriptValue(commandPrototype->stdoutFilePath()));
+    cmd.setProperty(QLatin1String("stderrFilePath"),
+                    engine->toScriptValue(commandPrototype->stderrFilePath()));
     cmd.setProperty(QLatin1String("environment"),
                     engine->toScriptValue(commandPrototype->environment().toStringList()));
     return cmd;
@@ -203,6 +208,8 @@ bool ProcessCommand::equals(const AbstractCommand *otherAbstractCommand) const
             && m_responseFileThreshold == other->m_responseFileThreshold
             && m_responseFileArgumentIndex == other->m_responseFileArgumentIndex
             && m_responseFileUsagePrefix == other->m_responseFileUsagePrefix
+            && m_stdoutFilePath == other->m_stdoutFilePath
+            && m_stderrFilePath == other->m_stderrFilePath
             && m_environment == other->m_environment;
 }
 
@@ -236,6 +243,8 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
     QStringList envList = scriptValue->property(QLatin1String("environment")).toVariant()
             .toStringList();
     getEnvironmentFromList(envList);
+    m_stdoutFilePath = scriptValue->property(QLatin1String("stdoutFilePath")).toString();
+    m_stderrFilePath = scriptValue->property(QLatin1String("stderrFilePath")).toString();
 
     m_predefinedProperties
             << QLatin1String("program")
@@ -247,8 +256,34 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
             << QLatin1String("responseFileThreshold")
             << QLatin1String("responseFileArgumentIndex")
             << QLatin1String("responseFileUsagePrefix")
-            << QLatin1String("environment");
+            << QLatin1String("environment")
+            << QLatin1String("stdoutFilePath")
+            << QLatin1String("stderrFilePath");
     applyCommandProperties(scriptValue);
+}
+
+static QProcess::ProcessError saveToFile(const QString &filePath, const QByteArray &content)
+{
+    QBS_ASSERT(!filePath.isEmpty(), return QProcess::WriteError);
+
+    QFile f(filePath);
+    if (!f.open(QIODevice::WriteOnly))
+        return QProcess::WriteError;
+
+    if (f.write(content) != content.size())
+        return QProcess::WriteError;
+    f.close();
+    return f.error() == QFileDevice::NoError ? QProcess::UnknownError : QProcess::WriteError;
+}
+
+QProcess::ProcessError ProcessCommand::saveStdout(const QByteArray &content) const
+{
+    return saveToFile(m_stdoutFilePath, content);
+}
+
+QProcess::ProcessError ProcessCommand::saveStderr(const QByteArray &content) const
+{
+    return saveToFile(m_stderrFilePath, content);
 }
 
 void ProcessCommand::load(PersistentPool &pool)
@@ -262,6 +297,8 @@ void ProcessCommand::load(PersistentPool &pool)
     m_stderrFilterFunction = pool.idLoadString();
     m_responseFileUsagePrefix = pool.idLoadString();
     pool.stream() >> m_maxExitCode >> m_responseFileThreshold >> m_responseFileArgumentIndex;
+    m_stdoutFilePath = pool.idLoadString();
+    m_stderrFilePath = pool.idLoadString();
     getEnvironmentFromList(envList);
 }
 
@@ -276,6 +313,8 @@ void ProcessCommand::store(PersistentPool &pool) const
     pool.storeString(m_stderrFilterFunction);
     pool.storeString(m_responseFileUsagePrefix);
     pool.stream() << m_maxExitCode << m_responseFileThreshold << m_responseFileArgumentIndex;
+    pool.storeString(m_stdoutFilePath);
+    pool.storeString(m_stderrFilePath);
 }
 
 static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine *engine)

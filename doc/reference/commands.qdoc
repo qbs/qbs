@@ -191,6 +191,18 @@
         \li string
         \li empty
         \li The program's working directory.
+    \row
+        \li \c stdoutFilePath
+        \li string
+        \li undefined
+        \li Redirects the filtered standard output content to \c stdoutFilePath. If \c stdoutFilePath is undefined,
+            the filtered standard output is forwarded to \QBS, possibly to be printed to the console.
+    \row
+        \li \c stderrFilePath
+        \li string
+        \li undefined
+        \li Redirects the filtered standard error output content to \c stderrFilePath. If \c stderrFilePath is undefined,
+            the filtered standard error output is forwarded to \QBS, possibly to be printed to the console.
     \endtable
 
     \section2 JavaScriptCommand Properties

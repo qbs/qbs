@@ -110,6 +110,11 @@ public:
     int responseFileArgumentIndex() const { return m_responseFileArgumentIndex; }
     QString responseFileUsagePrefix() const { return m_responseFileUsagePrefix; }
     QProcessEnvironment environment() const { return m_environment; }
+    QString stdoutFilePath() const { return m_stdoutFilePath; }
+    QString stderrFilePath() const { return m_stderrFilePath; }
+
+    QProcess::ProcessError saveStdout(const QByteArray &content) const;
+    QProcess::ProcessError saveStderr(const QByteArray &content) const;
 
 private:
     ProcessCommand();
@@ -129,6 +134,8 @@ private:
     int m_responseFileArgumentIndex;
     QString m_responseFileUsagePrefix;
     QProcessEnvironment m_environment;
+    QString m_stdoutFilePath;
+    QString m_stderrFilePath;
 };
 
 class JavaScriptCommand : public AbstractCommand

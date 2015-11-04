@@ -208,19 +208,38 @@ void ProcessCommandExecutor::sendProcessOutput()
     result.d->error = m_process.error();
     QString errorString = m_process.errorString();
 
-    QString tmp = filterProcessOutput(m_process.readAllStandardOutput(),
-                                      processCommand()->stdoutFilterFunction());
-    if (!tmp.isEmpty()) {
-        if (tmp.endsWith(QLatin1Char('\n')))
-            tmp.chop(1);
-        result.d->stdOut = tmp.split(QLatin1Char('\n'));
+    QByteArray content = m_process.readAllStandardOutput();
+    QString tmp;
+    if (!processCommand()->stdoutFilterFunction().isEmpty())
+        tmp = filterProcessOutput(content, processCommand()->stdoutFilterFunction());
+
+    if (!processCommand()->stdoutFilePath().isEmpty()) {
+        result.d->error = processCommand()->saveStdout(tmp.isEmpty() ? content : tmp.toLocal8Bit());
+    } else {
+        if (tmp.isEmpty())
+            tmp = QString::fromLocal8Bit(content);
+        if (!tmp.isEmpty()) {
+            if (tmp.endsWith(QLatin1Char('\n')))
+                tmp.chop(1);
+            result.d->stdOut = tmp.split(QLatin1Char('\n'));
+        }
     }
-    tmp = filterProcessOutput(m_process.readAllStandardError(),
-                              processCommand()->stderrFilterFunction());
-    if (!tmp.isEmpty()) {
-        if (tmp.endsWith(QLatin1Char('\n')))
-            tmp.chop(1);
-        result.d->stdErr = tmp.split(QLatin1Char('\n'));
+
+    tmp.clear();
+    content = m_process.readAllStandardError();
+    if (!processCommand()->stderrFilterFunction().isEmpty())
+        tmp = filterProcessOutput(content, processCommand()->stderrFilterFunction());
+
+    if (!processCommand()->stderrFilePath().isEmpty()) {
+        result.d->error = processCommand()->saveStderr(tmp.isEmpty() ? content : tmp.toLocal8Bit());
+    } else {
+        if (tmp.isEmpty())
+            tmp = QString::fromLocal8Bit(content);
+        if (!tmp.isEmpty()) {
+            if (tmp.endsWith(QLatin1Char('\n')))
+                tmp.chop(1);
+            result.d->stdErr = tmp.split(QLatin1Char('\n'));
+        }
     }
     const bool processError = result.error() != QProcess::UnknownError;
     const bool failureExit = quint32(m_process.exitCode())

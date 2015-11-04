@@ -45,9 +45,11 @@
 #include <QStringList>
 #include <QTest>
 #include <QTimer>
+#include <QVector>
 
 #include <algorithm>
 #include <functional>
+#include <utility>
 
 #define VERIFY_NO_ERROR(errorInfo) \
     QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()))
@@ -84,9 +86,11 @@ class ProcessResultReceiver : public QObject
     Q_OBJECT
 public:
     QString output;
+    QVector<qbs::ProcessResult> results;
 
 private slots:
     void handleProcessResult(const qbs::ProcessResult &result) {
+        results << result;
         output += result.stdErr().join(QLatin1Char('\n'));
         output += result.stdOut().join(QLatin1Char('\n'));
     }
@@ -1300,6 +1304,60 @@ void TestApi::objC()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("objc/objc.qbs");
     VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::processResult()
+{
+    removeBuildDir(defaultSetupParameters("process-result/process-result.qbs"));
+    QFETCH(int, expectedExitCode);
+    QFETCH(bool, redirectStdout);
+    QFETCH(bool, redirectStderr);
+    const QVariantMap overridden({ std::make_pair("app-caller.argument", expectedExitCode),
+                                   std::make_pair("app-caller.redirectStdout", redirectStdout),
+                                   std::make_pair("app-caller.redirectStderr", redirectStderr) });
+    ProcessResultReceiver resultReceiver;
+    const qbs::ErrorInfo errorInfo = doBuildProject("process-result/process-result.qbs",
+            nullptr, &resultReceiver, nullptr, qbs::BuildOptions(), overridden);
+    QCOMPARE(expectedExitCode != 0, errorInfo.hasError());
+    QVERIFY(resultReceiver.results.count() > 1);
+    const qbs::ProcessResult &result = resultReceiver.results.last();
+    QVERIFY2(result.executableFilePath().contains("app"), qPrintable(result.executableFilePath()));
+    QCOMPARE(expectedExitCode, result.exitCode());
+    QCOMPARE(expectedExitCode == 0, result.success());
+    QCOMPARE(result.error(), QProcess::UnknownError);
+    struct CheckParams {
+        CheckParams(bool r, const QString &f, const QByteArray &c, const QStringList &co)
+            : redirect(r), fileName(f), expectedContent(c), consoleOutput(co) {}
+        bool redirect;
+        QString fileName;
+        QByteArray expectedContent;
+        const QStringList consoleOutput;
+    };
+    const QVector<CheckParams> checkParams({
+        CheckParams(redirectStdout, "stdout.txt", "stdout", result.stdOut()),
+        CheckParams(redirectStderr, "stderr.txt", "stderr", result.stdErr())
+    });
+    foreach (const CheckParams &p, checkParams) {
+        QFile f(relativeProductBuildDir("app-caller") + '/' + p.fileName);
+        QCOMPARE(f.exists(), p.redirect);
+        if (p.redirect) {
+            QVERIFY2(f.open(QIODevice::ReadOnly), qPrintable(f.errorString()));
+            QCOMPARE(f.readAll(), p.expectedContent);
+            QCOMPARE(p.consoleOutput, QStringList());
+        } else {
+            QCOMPARE(p.consoleOutput.join("").toLocal8Bit(), p.expectedContent);
+        }
+    }
+}
+
+void TestApi::processResult_data()
+{
+    QTest::addColumn<int>("expectedExitCode");
+    QTest::addColumn<bool>("redirectStdout");
+    QTest::addColumn<bool>("redirectStderr");
+    QTest::newRow("success, no redirection") << 0 << false << false;
+    QTest::newRow("success, stdout redirection") << 0 << true << false;
+    QTest::newRow("failure, stderr redirection") << 1 << false << true;
 }
 
 void TestApi::projectInvalidation()
