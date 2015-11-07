@@ -1,6 +1,6 @@
-import Animals = require("animals");
-import Foo = require("foo");
-import Extra = require("woosh/extra");
+import Animals = require("./animals");
+import Foo = require("./foo");
+import Extra = require("./woosh/extra");
 
 function main() {
     var mammals: Animals.Mammal[] = [];

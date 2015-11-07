@@ -54,6 +54,12 @@ Module {
     }
 
     property path toolchainInstallPath: tsc.path
+    property path toolchainLibInstallPath: {
+        if (versionMajor > 1 || (versionMajor === 1 && versionMinor >= 6))
+            return FileInfo.joinPaths(tsc.path, "..", "lib");
+        return tsc.path;
+    }
+
     property string version: tsc.version ? tsc.version[2] : undefined
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
@@ -156,7 +162,7 @@ Module {
         name: "io.qt.qbs.internal.typescript-helper"
         files: [
             FileInfo.joinPaths(path, "qbs-tsc-scan", "qbs-tsc-scan.ts"),
-            FileInfo.joinPaths(typescript.toolchainInstallPath, "typescript.d.ts")
+            FileInfo.joinPaths(typescript.toolchainLibInstallPath, "typescript.d.ts")
         ]
         fileTags: ["typescript.typescript-internal"]
     }
