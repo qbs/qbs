@@ -69,7 +69,7 @@ function targetDevices(targetOS) {
   */
 function targetedDeviceFamily(deviceNames) {
     return deviceNames.map(function (deviceName) {
-        return DarwinTools.appleDeviceNumber(deviceName);
+        return appleDeviceNumber(deviceName);
     }).join(",");
 }
 
@@ -92,15 +92,6 @@ function applePlatformName(targetOSList) {
     else if (targetOSList.contains("watchos"))
         return "watchos";
     throw("No Apple platform corresponds to target OS list: " + targetOSList);
-}
-
-/**
-  * Replace characters unsafe for use in a domain name with a '-' character (RFC 1034).
-  */
-function rfc1034(inStr) {
-    // ### Remove in Qbs 1.5
-    console.warn("DarwinTools.rfc1034 is deprecated; use qbs.rfc1034Identifier instead");
-    return qbs.rfc1034Identifier(inStr);
 }
 
 /**
