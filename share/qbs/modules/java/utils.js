@@ -32,6 +32,7 @@ var File = loadExtension("qbs.File");
 var FileInfo = loadExtension("qbs.FileInfo");
 var ModUtils = loadExtension("qbs.ModUtils");
 var Process = loadExtension("qbs.Process");
+var TextFile = loadExtension("qbs.TextFile");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
 function is64bitProcess() {

@@ -33,6 +33,7 @@ var FileInfo = loadExtension("qbs.FileInfo");
 var DarwinTools = loadExtension("qbs.DarwinTools");
 var ModUtils = loadExtension("qbs.ModUtils");
 var PathTools = loadExtension("qbs.PathTools");
+var Process = loadExtension("qbs.Process");
 var UnixUtils = loadExtension("qbs.UnixUtils");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 

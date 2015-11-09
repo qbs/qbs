@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var FileInfo = loadExtension("qbs.FileInfo");
 var ModUtils = loadExtension("qbs.ModUtils");
 var Process = loadExtension("qbs.Process");
 
