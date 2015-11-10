@@ -67,6 +67,7 @@ public:
 
     QString command;
     QStringList arguments;
+    QString buildDirectory;
     QProcessEnvironment environment;
     bool expectFailure;
     bool useProfile;
@@ -197,6 +198,8 @@ private slots:
 
 private:
     QMap<QString, QString> findJdkTools(int *status);
+    QMap<QString, QString> findNodejs(int *status);
+    QMap<QString, QString> findTypeScript(int *status);
     QString findArchiver(const QString &fileName, int *status = nullptr);
 
     QByteArray m_qbsStderr;

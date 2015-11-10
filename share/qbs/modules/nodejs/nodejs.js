@@ -28,10 +28,14 @@
 **
 ****************************************************************************/
 
-import qbs 1.0
+var Process = loadExtension("qbs.Process");
 
-PathProbe {
-    nameSuffixes: qbs.hostOS.contains("windows") ? [".com", ".exe", ".bat", ".cmd"] : undefined
-    platformPaths: undefined
-    platformEnvironmentPaths: [ "PATH" ]
+function findLocation(packageManagerFilePath, location) {
+    var p = new Process();
+    try {
+        p.exec(packageManagerFilePath, [location, "-g"]);
+        return p.readStdOut().trim();
+    } finally {
+        p.close();
+    }
 }

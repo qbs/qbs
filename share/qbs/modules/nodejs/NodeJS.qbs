@@ -45,16 +45,33 @@ Module {
         pathPrefixes: [toolchainInstallPath]
     }
 
+    Probes.NpmProbe {
+        id: npm
+        pathPrefixes: [toolchainInstallPath]
+    }
+
     property path applicationFile
     PropertyOptions {
         name: "applicationFile"
         description: "file whose corresponding output will be executed when running the Node.js app"
     }
 
-    property path toolchainInstallPath: nodejs.path
+    property path toolchainInstallPath: {
+        if (nodejs.path && npm.path && nodejs.path !== npm.path)
+            throw("node and npm binaries do not belong to the same installation ("
+                  + nodejs.path + " vs " + npm.path + ")");
+        return nodejs.path || npm.path;
+    }
 
     property path interpreterFileName: nodejs.fileName
     property path interpreterFilePath: nodejs.filePath
+
+    property path packageManagerFileName: npm.fileName
+    property path packageManagerFilePath: npm.filePath
+
+    property path packageManagerBinPath: npm.npmBin
+    property path packageManagerRootPath: npm.npmRoot
+    property path packageManagerPrefixPath: npm.npmPrefix
 
     // private properties
     readonly property path compiledIntermediateDir: FileInfo.joinPaths(product.buildDirectory,
@@ -82,6 +99,11 @@ Module {
         validator.setRequiredProperty("toolchainInstallPath", toolchainInstallPath);
         validator.setRequiredProperty("interpreterFileName", interpreterFileName);
         validator.setRequiredProperty("interpreterFilePath", interpreterFilePath);
+        validator.setRequiredProperty("packageManagerFileName", packageManagerFileName);
+        validator.setRequiredProperty("packageManagerFilePath", packageManagerFilePath);
+        validator.setRequiredProperty("packageManagerBinPath", packageManagerBinPath);
+        validator.setRequiredProperty("packageManagerRootPath", packageManagerRootPath);
+        validator.setRequiredProperty("packageManagerPrefixPath", packageManagerPrefixPath);
         validator.validate();
     }
 

@@ -98,7 +98,8 @@ int TestBlackbox::runQbs(const QbsRunParameters &params)
     if (!params.command.isEmpty())
         args << params.command;
     if (supportsBuildDirectoryOption(params.command)) {
-        args.append(QStringList(QLatin1String("-d")) << QLatin1String("."));
+        args.append(QLatin1String("-d"));
+        args.append(params.buildDirectory.isEmpty() ? QLatin1String(".") : params.buildDirectory);
     }
     args << params.arguments;
     if (params.useProfile)
@@ -226,18 +227,54 @@ static QString findExecutable(const QStringList &fileNames)
 
 QMap<QString, QString> TestBlackbox::findJdkTools(int *status)
 {
-    QDir::setCurrent(testDataDir + "/find-java");
-    const int res = runQbs(QbsRunParameters(QStringList()
-                                            << "-f" << "find-jar.qbs"));
+    QTemporaryDir temp;
+    QDir::setCurrent(testDataDir + "/find");
+    QbsRunParameters params = QStringList() << "-f" << "find-jdk.qbs";
+    params.buildDirectory = temp.path();
+    const int res = runQbs(params);
     if (status)
         *status = res;
-    QFile file(relativeProductBuildDir("find-jar") + "/jdk.json");
+    QFile file(temp.path() + "/" + relativeProductBuildDir("find-jdk") + "/jdk.json");
     file.open(QIODevice::ReadOnly);
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
     return QMap<QString, QString> {
         {"java", QDir::fromNativeSeparators(tools["java"].toString())},
         {"javac", QDir::fromNativeSeparators(tools["javac"].toString())},
         {"jar", QDir::fromNativeSeparators(tools["jar"].toString())}
+    };
+}
+
+QMap<QString, QString> TestBlackbox::findNodejs(int *status)
+{
+    QTemporaryDir temp;
+    QDir::setCurrent(testDataDir + "/find");
+    QbsRunParameters params = QStringList() << "-f" << "find-nodejs.qbs";
+    params.buildDirectory = temp.path();
+    const int res = runQbs(params);
+    if (status)
+        *status = res;
+    QFile file(temp.path() + "/" + relativeProductBuildDir("find-nodejs") + "/nodejs.json");
+    file.open(QIODevice::ReadOnly);
+    const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
+    return QMap<QString, QString> {
+        {"node", QDir::fromNativeSeparators(tools["node"].toString())}
+    };
+}
+
+QMap<QString, QString> TestBlackbox::findTypeScript(int *status)
+{
+    QTemporaryDir temp;
+    QDir::setCurrent(testDataDir + "/find");
+    QbsRunParameters params = QStringList() << "-f" << "find-typescript.qbs";
+    params.buildDirectory = temp.path();
+    const int res = runQbs(params);
+    if (status)
+        *status = res;
+    QFile file(temp.path() + "/" + relativeProductBuildDir("find-typescript") + "/typescript.json");
+    file.open(QIODevice::ReadOnly);
+    const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
+    return QMap<QString, QString> {
+        {"tsc", QDir::fromNativeSeparators(tools["tsc"].toString())}
     };
 }
 
@@ -2738,23 +2775,29 @@ void TestBlackbox::wix()
     }
 }
 
-static bool haveNodeJs()
-{
-    // The Node.js binary is called nodejs on Debian/Ubuntu-family operating systems due to a
-    // conflict with another package containing a binary named node
-    return !findExecutable(QStringList()
-                                      << QLatin1String("nodejs")
-                                      << QLatin1String("node")).isEmpty();
-}
-
 void TestBlackbox::nodejs()
 {
-    if (!haveNodeJs()) {
-        QSKIP("Node.js is not installed");
-        return;
-    }
+    Settings settings((QString()));
+    Profile p(profileName(), &settings);
+
+    int status;
+    findNodejs(&status);
+    QCOMPARE(status, 0);
 
     QDir::setCurrent(testDataDir + QLatin1String("/nodejs"));
+
+    status = runQbs();
+    if (p.value("nodejs.toolchainInstallPath").toString().isEmpty()
+            && status != 0 && m_qbsStderr.contains("toolchainInstallPath")) {
+        QSKIP("nodejs.toolchainInstallPath not set and automatic detection failed");
+    }
+
+    if (p.value("nodejs.packageManagerPrefixPath").toString().isEmpty()
+            && status != 0 && m_qbsStderr.contains("nodejs.packageManagerPrefixPath")) {
+        QSKIP("nodejs.packageManagerFilePath not set and automatic detection failed");
+    }
+
+    QCOMPARE(status, 0);
 
     QbsRunParameters params;
     params.command = QLatin1String("run");
@@ -2765,12 +2808,22 @@ void TestBlackbox::nodejs()
 
 void TestBlackbox::typescript()
 {
-    if (!haveNodeJs()) {
-        QSKIP("node.js is not installed");
-        return;
-    }
+    Settings settings((QString()));
+    Profile p(profileName(), &settings);
+
+    int status;
+    findTypeScript(&status);
+    QCOMPARE(status, 0);
 
     QDir::setCurrent(testDataDir + QLatin1String("/typescript"));
+
+    status = runQbs();
+    if (p.value("typescript.toolchainInstallPath").toString().isEmpty()
+            && status != 0 && m_qbsStderr.contains("toolchainInstallPath")) {
+        QSKIP("typescript.toolchainInstallPath not set and automatic detection failed");
+    }
+
+    QCOMPARE(status, 0);
 
     QbsRunParameters params;
     params.command = QLatin1String("run");

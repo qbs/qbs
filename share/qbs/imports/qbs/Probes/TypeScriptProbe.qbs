@@ -32,57 +32,44 @@ import qbs
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import "path-probe.js" as PathProbeConfigure
 import "../../../modules/typescript/typescript.js" as TypeScript
 
 BinaryProbe {
     id: tsc
     names: ["tsc"]
+    pathPrefixes: [packageManagerBinPath]
 
     // Inputs
-    property path nodejsToolchainInstallPath
+    property path packageManagerBinPath
+    property path packageManagerRootPath
 
     // Outputs
     property var version
 
     configure: {
-        if (!nodejsToolchainInstallPath)
-            throw '"nodejsToolchainInstallPath" must be specified';
-        // HACK: Duplicated from PathProbe.qbs
-        if (!names)
-            throw '"names" must be specified';
-        var _names = ModUtils.concatAll(names);
-        if (nameFilter)
-            _names = _names.map(nameFilter);
-        // FIXME: Suggest how to obtain paths from system
-        var _paths = ModUtils.concatAll(pathPrefixes, platformPaths);
-        // FIXME: Add getenv support
-        var envs = ModUtils.concatAll(platformEnvironmentPaths, environmentPaths);
-        for (var i = 0; i < envs.length; ++i) {
-            var value = qbs.getEnv(envs[i]) || '';
-            if (value.length > 0)
-                _paths = _paths.concat(value.split(qbs.pathListSeparator));
+        if (!condition)
+            return;
+        if (!packageManagerBinPath)
+            throw '"packageManagerBinPath" must be specified';
+        if (!packageManagerRootPath)
+            throw '"packageManagerRootPath" must be specified';
+
+        var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, pathPrefixes,
+                                                  pathSuffixes, platformPaths, environmentPaths,
+                                                  platformEnvironmentPaths, qbs.pathListSeparator);
+        result.version = result.found
+                ? TypeScript.findTscVersion(result.filePath, packageManagerBinPath)
+                : undefined;
+        if (FileInfo.fromNativeSeparators(packageManagerBinPath) !== result.path ||
+                !File.exists(FileInfo.fromNativeSeparators(packageManagerRootPath, "typescript"))) {
+            result = { found: false };
         }
-        var _suffixes = ModUtils.concatAll('', pathSuffixes);
-        for (i = 0; i < _names.length; ++i) {
-            for (var j = 0; j < _paths.length; ++j) {
-                for (var k = 0; k < _suffixes.length; ++k) {
-                    var _filePath = FileInfo.joinPaths(_paths[j], _suffixes[k], _names[i]);
-                    if (File.exists(_filePath)) {
-                        found = true;
-                        filePath = File.canonicalFilePath(_filePath);
-                        fileName = FileInfo.fileName(filePath);
-                        path = FileInfo.path(filePath);
-                        version = TypeScript.findTscVersion(filePath, nodejsToolchainInstallPath);
-                        return;
-                    }
-                }
-            }
-        }
-        found = false;
-        path = undefined;
-        filePath = undefined;
-        fileName = undefined;
-        version = undefined;
-        // HACK: Duplicated from PathProbe.qbs
+
+        found = result.found;
+        path = result.path;
+        filePath = result.filePath;
+        fileName = result.fileName;
+        version = result.version;
     }
 }

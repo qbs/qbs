@@ -28,10 +28,32 @@
 **
 ****************************************************************************/
 
-import qbs 1.0
+import qbs
+import "path-probe.js" as PathProbeConfigure
+import "../../../modules/nodejs/nodejs.js" as NodeJs
 
-PathProbe {
-    nameSuffixes: qbs.hostOS.contains("windows") ? [".com", ".exe", ".bat", ".cmd"] : undefined
-    platformPaths: undefined
-    platformEnvironmentPaths: [ "PATH" ]
+NodeJsProbe {
+    names: ["npm"]
+
+    // Outputs
+    property path npmBin
+    property path npmRoot
+    property path npmPrefix
+
+    configure: {
+        var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, pathPrefixes,
+                                                  pathSuffixes, platformPaths, environmentPaths,
+                                                  platformEnvironmentPaths, qbs.pathListSeparator);
+        result.npmBin = result.found ? NodeJs.findLocation(result.filePath, "bin") : undefined;
+        result.npmRoot = result.found ? NodeJs.findLocation(result.filePath, "root") : undefined;
+        result.npmPrefix = result.found ? NodeJs.findLocation(result.filePath, "prefix") : undefined;
+
+        found = result.found;
+        path = result.path;
+        filePath = result.filePath;
+        fileName = result.fileName;
+        npmBin = result.npmBin;
+        npmRoot = result.npmRoot;
+        npmPrefix = result.npmPrefix;
+    }
 }

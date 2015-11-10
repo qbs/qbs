@@ -37,28 +37,37 @@ import qbs.Process
 import "typescript.js" as TypeScript
 
 Module {
+    // Qbs does NOT support standalone TypeScript installations
+    // (for example, %PROGRAMFILES%\Microsoft SDKs\TypeScript and some Debian and RPM packages),
+    // because they do not include typescript.d.ts, which is necessary for building internal tools.
+    // Only npm-based installations of TypeScript are supported (this is also the most common).
     Depends { name: "nodejs" }
 
     additionalProductTypes: ["compiled_typescript"]
 
     // QBS-833 workaround
-    Probes.NodeJsProbe { id: nodejsProbe; pathPrefixes: [nodejsProbe.toolchainInstallPath] }
+    Probes.NodeJsProbe { id: nodejsProbe; pathPrefixes: [nodejs.toolchainInstallPath] }
     nodejs.toolchainInstallPath: nodejsProbe.path
     nodejs.interpreterFileName: nodejsProbe.fileName
     nodejs.interpreterFilePath: nodejsProbe.filePath
+    Probes.NpmProbe { id: npmProbe; pathPrefixes: [nodejs.toolchainInstallPath] }
+    nodejs.packageManagerFileName: npmProbe.fileName
+    nodejs.packageManagerFilePath: npmProbe.filePath
+    nodejs.packageManagerBinPath: npmProbe.packageManagerBinPath
+    nodejs.packageManagerRootPath: npmProbe.packageManagerRootPath
+    nodejs.packageManagerPrefixPath: npmProbe.packageManagerPrefixPath
 
     Probes.TypeScriptProbe {
         id: tsc
-        pathPrefixes: [toolchainInstallPath]
-        nodejsToolchainInstallPath: nodejs.toolchainInstallPath
+        condition: nodejsProbe.found && npmProbe.found
+        packageManagerBinPath: nodejs.packageManagerBinPath
+        packageManagerRootPath: nodejs.packageManagerRootPath
     }
 
     property path toolchainInstallPath: tsc.path
-    property path toolchainLibInstallPath: {
-        if (versionMajor > 1 || (versionMajor === 1 && versionMinor >= 6))
-            return FileInfo.joinPaths(tsc.path, "..", "lib");
-        return tsc.path;
-    }
+
+    property path toolchainLibDirName: (versionMajor > 1 || (versionMajor === 1 && versionMinor >= 6)) ? "lib" : "bin"
+    property path toolchainLibInstallPath: FileInfo.joinPaths(nodejs.packageManagerRootPath, "typescript", toolchainLibDirName)
 
     property string version: tsc.version ? tsc.version[2] : undefined
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
