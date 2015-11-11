@@ -528,8 +528,6 @@ void ScriptEngine::installQbsBuiltins()
                        EvaluatorScriptClass::js_rfc1034identifier);
     installQbsFunction(QLatin1String("getHash"),
                        EvaluatorScriptClass::js_getHash);
-    installQbsFunction(QLatin1String("shellQuote"),
-                       EvaluatorScriptClass::js_shellQuote);
 
     globalObject().setProperty(QLatin1String("console"), m_consoleObject = newObject());
     installConsoleFunction(QLatin1String("debug"),

@@ -287,7 +287,6 @@ EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Log
     m_canonicalArchitectureBuiltin = scriptEngine->newFunction(js_canonicalArchitecture, 1);
     m_rfc1034identifierBuiltin = scriptEngine->newFunction(js_rfc1034identifier, 1);
     m_getHashBuiltin = scriptEngine->newFunction(js_getHash, 1);
-    m_shellQuoteBuiltin = scriptEngine->newFunction(js_shellQuote, 3);
 }
 
 QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue &object,
@@ -531,8 +530,6 @@ QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin b
         return m_canonicalArchitectureBuiltin;
     case BuiltinValue::Rfc1034IdentifierFunction:
         return m_rfc1034identifierBuiltin;
-    case BuiltinValue::ShellQuoteFunction:
-        return m_shellQuoteBuiltin;
     }
     QBS_ASSERT(!"unhandled builtin", ;);
     return QScriptValue();
@@ -612,22 +609,6 @@ QScriptValue EvaluatorScriptClass::js_getHash(QScriptContext *context, QScriptEn
     const QByteArray hash
             = QCryptographicHash::hash(input, QCryptographicHash::Sha1).toHex().left(16);
     return engine->toScriptValue(QString::fromLatin1(hash));
-}
-
-QScriptValue EvaluatorScriptClass::js_shellQuote(QScriptContext *context, QScriptEngine *engine)
-{
-    if (Q_UNLIKELY(context->argumentCount() < 2)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("shellQuote expects at least 2 arguments"));
-    }
-    const QString program = context->argument(0).toString();
-    const QStringList args = context->argument(1).toVariant().toStringList();
-    HostOsInfo::HostOs hostOs = HostOsInfo::hostOs();
-    if (context->argumentCount() > 2) {
-        hostOs = context->argument(2).toVariant().toStringList().contains(QLatin1String("windows"))
-                ? HostOsInfo::HostOsWindows : HostOsInfo::HostOsOtherUnix;
-    }
-    return engine->toScriptValue(shellQuote(program, args, hostOs));
 }
 
 QScriptValue EvaluatorScriptClass::js_consoleError(QScriptContext *context, QScriptEngine *engine,

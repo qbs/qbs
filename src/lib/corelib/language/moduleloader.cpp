@@ -1244,8 +1244,6 @@ void ModuleLoader::setupBaseModulePrototype(Item *prototype)
                            BuiltinValue::create(BuiltinValue::CanonicalArchitectureFunction));
     prototype->setProperty(QLatin1String("rfc1034Identifier"),
                            BuiltinValue::create(BuiltinValue::Rfc1034IdentifierFunction));
-    prototype->setProperty(QLatin1String("shellQuote"),
-                           BuiltinValue::create(BuiltinValue::ShellQuoteFunction));
     prototype->setProperty(QLatin1String("libexecPath"),
                            VariantValue::create(m_parameters.libexecPath()));
 

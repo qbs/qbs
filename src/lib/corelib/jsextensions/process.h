@@ -81,6 +81,8 @@ public:
 
     Q_INVOKABLE int exitCode() const;
 
+    static QScriptValue js_shellQuote(QScriptContext *context, QScriptEngine *engine);
+
 private:
     Logger logger() const;
     QString findExecutable(const QString &filePath) const;

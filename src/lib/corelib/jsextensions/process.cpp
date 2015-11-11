@@ -34,6 +34,7 @@
 #include <logging/translator.h>
 #include <tools/executablefinder.h>
 #include <tools/hostosinfo.h>
+#include <tools/shellutils.h>
 
 #include <QProcess>
 #include <QScriptEngine>
@@ -49,6 +50,7 @@ void initializeJsExtensionProcess(QScriptValue extensionObject)
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&Process::staticMetaObject, engine->newFunction(&Process::ctor));
     extensionObject.setProperty(QLatin1String("Process"), obj);
+    obj.setProperty(QStringLiteral("shellQuote"), engine->newFunction(Process::js_shellQuote, 3));
 }
 
 QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
@@ -243,6 +245,22 @@ void Process::writeLine(const QString &str)
     if (HostOsInfo::isWindowsHost())
         (*m_textStream) << '\r';
     (*m_textStream) << '\n';
+}
+
+QScriptValue Process::js_shellQuote(QScriptContext *context, QScriptEngine *engine)
+{
+    if (Q_UNLIKELY(context->argumentCount() < 2)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("shellQuote expects at least 2 arguments"));
+    }
+    const QString program = context->argument(0).toString();
+    const QStringList args = context->argument(1).toVariant().toStringList();
+    HostOsInfo::HostOs hostOs = HostOsInfo::hostOs();
+    if (context->argumentCount() > 2) {
+        hostOs = context->argument(2).toVariant().toStringList().contains(QLatin1String("windows"))
+                ? HostOsInfo::HostOsWindows : HostOsInfo::HostOsOtherUnix;
+    }
+    return engine->toScriptValue(shellQuote(program, args, hostOs));
 }
 
 } // namespace Internal

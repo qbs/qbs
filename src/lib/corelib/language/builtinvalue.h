@@ -45,8 +45,7 @@ public:
         GetEnvFunction,
         CurrentEnvFunction,
         CanonicalArchitectureFunction,
-        Rfc1034IdentifierFunction,
-        ShellQuoteFunction
+        Rfc1034IdentifierFunction
     };
 
     static BuiltinValuePtr create(Builtin builtin);
