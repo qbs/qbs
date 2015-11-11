@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs
+import qbs.Environment
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
@@ -67,7 +68,7 @@ Module {
 
     setupRunEnvironment: {
         var v = new ModUtils.EnvironmentVariable("NODE_PATH", qbs.pathListSeparator, qbs.hostOS.contains("windows"));
-        v.prepend(FileInfo.path(getEnv("QBS_RUN_FILE_PATH")));
+        v.prepend(FileInfo.path(Environment.getEnv("QBS_RUN_FILE_PATH")));
         v.set();
     }
 

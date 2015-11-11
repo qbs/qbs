@@ -167,6 +167,8 @@ QbsLibrary {
         name: "jsextensions"
         prefix: name + '/'
         files: [
+            "environmentextension.cpp",
+            "environmentextension.h",
             "file.cpp",
             "file.h",
             "fileinfoextension.cpp",

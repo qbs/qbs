@@ -31,6 +31,7 @@
 #include "jsextensions.h"
 
 #include "domxml.h"
+#include "environmentextension.h"
 #include "file.h"
 #include "fileinfoextension.h"
 #include "process.h"
@@ -67,6 +68,7 @@ bool JsExtensions::hasExtension(const QString &name)
 JsExtensions::InitializerMap JsExtensions::initializers()
 {
     if (m_initializers.isEmpty()) {
+        m_initializers.insert(QLatin1String("Environment"), &initializeJsExtensionEnvironment);
         m_initializers.insert(QLatin1String("File"), &initializeJsExtensionFile);
         m_initializers.insert(QLatin1String("FileInfo"), &initializeJsExtensionFileInfo);
         m_initializers.insert(QLatin1String("Process"), &initializeJsExtensionProcess);

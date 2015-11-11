@@ -527,50 +527,6 @@ QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*, Q
     return result;
 }
 
-static QScriptValue js_getEnv(QScriptContext *context, QScriptEngine *engine)
-{
-    if (Q_UNLIKELY(context->argumentCount() < 1))
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("getEnv expects 1 argument"));
-    QVariant v = engine->property("_qbs_procenv");
-    QProcessEnvironment *procenv = reinterpret_cast<QProcessEnvironment*>(v.value<void*>());
-    return engine->toScriptValue(procenv->value(context->argument(0).toString()));
-}
-
-static QScriptValue js_putEnv(QScriptContext *context, QScriptEngine *engine)
-{
-    if (Q_UNLIKELY(context->argumentCount() < 2))
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("putEnv expects 2 arguments"));
-    QVariant v = engine->property("_qbs_procenv");
-    QProcessEnvironment *procenv = reinterpret_cast<QProcessEnvironment*>(v.value<void*>());
-    procenv->insert(context->argument(0).toString(), context->argument(1).toString());
-    return engine->undefinedValue();
-}
-
-static QScriptValue js_unsetEnv(QScriptContext *context, QScriptEngine *engine)
-{
-    if (Q_UNLIKELY(context->argumentCount() < 1))
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("unsetEnv expects 1 argument"));
-    QVariant v = engine->property("_qbs_procenv");
-    QProcessEnvironment *procenv = reinterpret_cast<QProcessEnvironment*>(v.value<void*>());
-    procenv->remove(context->argument(0).toString());
-    return engine->undefinedValue();
-}
-
-static QScriptValue js_currentEnv(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(context);
-    QVariant v = engine->property("_qbs_procenv");
-    const QProcessEnvironment * const procenv
-            = reinterpret_cast<QProcessEnvironment*>(v.value<void*>());
-    QScriptValue envObject = engine->newObject();
-    foreach (const QString &key, procenv->keys())
-        envObject.setProperty(key, QScriptValue(procenv->value(key)));
-    return envObject;
-}
-
 enum EnvType
 {
     BuildEnv, RunEnv
@@ -636,15 +592,6 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
     }
 
     QScriptValue scope = engine->newObject();
-
-    const QScriptValue getEnvValue = engine->newFunction(js_getEnv, 1);
-    const QScriptValue putEnvValue = engine->newFunction(js_putEnv, 2);
-    const QScriptValue unsetEnvValue = engine->newFunction(js_unsetEnv, 1);
-    const QScriptValue currentEnvValue = engine->newFunction(js_currentEnv, 0);
-    scope.setProperty(QLatin1String("getEnv"), getEnvValue);
-    scope.setProperty(QLatin1String("putEnv"), putEnvValue);
-    scope.setProperty(QLatin1String("unsetEnv"), unsetEnvValue);
-    scope.setProperty(QLatin1String("currentEnv"), currentEnvValue);
 
     QSet<QString> seenModuleNames;
     QList<const ResolvedModule *> topSortedModules = topSortModules(moduleChildren, rootModules, seenModuleNames);

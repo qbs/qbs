@@ -1,6 +1,7 @@
 QT += xml
 
 HEADERS += \
+    $$PWD/environmentextension.h \
     $$PWD/file.h \
     $$PWD/fileinfoextension.h \
     $$PWD/temporarydir.h \
@@ -11,6 +12,7 @@ HEADERS += \
     $$PWD/jsextensions.h
 
 SOURCES += \
+    $$PWD/environmentextension.cpp \
     $$PWD/file.cpp \
     $$PWD/fileinfoextension.cpp \
     $$PWD/temporarydir.cpp \
