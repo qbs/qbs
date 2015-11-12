@@ -28,36 +28,45 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_BUILTINVALUE_H
-#define QBS_BUILTINVALUE_H
+/*!
+    \contentspage index.html
+    \page jsextension-environment.html
+    \ingroup list-of-builtin-services
 
-#include "value.h"
+    \title Environment Service
+    \brief Provides operations on the system environment.
 
-namespace qbs {
-namespace Internal {
+    The \c Environment service offers access to the system environment or process environment.
 
-class BuiltinValue : public Value
-{
-public:
-    enum Builtin
-    {
-    };
+    \section1 Available Operations
 
-    static BuiltinValuePtr create(Builtin builtin);
+    \section2 currentEnv
+    \code
+    Environment.currentEnv(): { [key: string]: string; }
+    \endcode
+    Returns the environment of \QBS in the current context as an object whose properties are
+    the environment variables.
 
-    void apply(ValueHandler *handler) { handler->handle(this); }
-    ValuePtr clone() const;
+    \section2 getEnv
+    \code
+    Environment.getEnv(key: string): string
+    \endcode
+    Tries to find a variable with the given name in the current context's environment and returns
+    its value. If no such variable could be found, \c undefined is returned.
 
-    Builtin builtin() const { return m_builtin; }
-    void setBuiltin(const Builtin &builtin) { m_builtin = builtin; }
+    \section2 putEnv
+    \code
+    Environment.putEnv(key: string, value: string): void
+    \endcode
+    Sets the value of the environment variable with the given name in the build or run environment.
+    This method is only available in the \c Module.setupBuildEnvironment and
+    \c Module.setupRunEnvironment scripts.
 
-private:
-    BuiltinValue(Builtin builtin);
-
-    Builtin m_builtin;
-};
-
-} // namespace Internal
-} // namespace qbs
-
-#endif // QBS_BUILTINVALUE_H
+    \section2 unsetEnv
+    \code
+    Environment.unsetEnv(key: string): void
+    \endcode
+    Unsets the environment variable with the given name from the build or run environment.
+    This method is only available in the \c Module.setupBuildEnvironment and
+    \c Module.setupRunEnvironment scripts.
+*/

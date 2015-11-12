@@ -1,8 +1,9 @@
 import qbs
+import qbs.Environment
 
 Project {
     qbsSearchPaths: {
-        if (!qbs.getEnv("PATH"))
-            throw "qbs.getEnv doesn't seem to work";
+        if (!Environment.getEnv("PATH"))
+            throw "Environment.getEnv doesn't seem to work";
     }
 }

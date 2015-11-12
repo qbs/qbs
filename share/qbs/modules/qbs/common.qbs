@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs 1.0
+import qbs.Environment
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.PathTools
@@ -120,10 +121,10 @@ Module {
     // private properties
     property string windowsRegistryKey: "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion"
     property path windowsSystemRoot: FileInfo.fromWindowsSeparators(Utilities.getNativeSetting(windowsRegistryKey, "SystemRoot"))
-    property path windowsShellPath: FileInfo.fromWindowsSeparators(getEnv("COMSPEC")) || FileInfo.joinPaths(windowsSystemRoot, "System32", "cmd.exe")
+    property path windowsShellPath: FileInfo.fromWindowsSeparators(Environment.getEnv("COMSPEC")) || FileInfo.joinPaths(windowsSystemRoot, "System32", "cmd.exe")
 
     property var commonRunEnvironment: {
-        var env = qbs.currentEnv();
+        var env = Environment.currentEnv();
         if (targetOS.contains("windows")) {
             var newEntry = FileInfo.toWindowsSeparators(FileInfo.joinPaths(installRoot,
                                                                            installPrefix));

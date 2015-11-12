@@ -280,8 +280,6 @@ EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Log
     , m_logger(logger)
     , m_valueCacheEnabled(false)
 {
-    m_getEnvBuiltin = scriptEngine->newFunction(js_getEnv, 1);
-    m_currentEnvBuiltin = scriptEngine->newFunction(js_currentEnv, 0);
 }
 
 QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue &object,
@@ -515,36 +513,9 @@ void EvaluatorScriptClass::setValueCacheEnabled(bool enabled)
 QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin builtin) const
 {
     switch (builtin) {
-    case BuiltinValue::GetEnvFunction:
-        return m_getEnvBuiltin;
-    case BuiltinValue::CurrentEnvFunction:
-        return m_currentEnvBuiltin;
     }
     QBS_ASSERT(!"unhandled builtin", ;);
     return QScriptValue();
-}
-
-QScriptValue EvaluatorScriptClass::js_getEnv(QScriptContext *context, QScriptEngine *engine)
-{
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("getEnv expects 1 argument"));
-    }
-    const QString name = context->argument(0).toString();
-    ScriptEngine * const e = static_cast<ScriptEngine *>(engine);
-    const QString value = e->environment().value(name);
-    e->addEnvironmentVariable(name, value);
-    return value.isNull() ? engine->undefinedValue() : value;
-}
-
-QScriptValue EvaluatorScriptClass::js_currentEnv(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(context);
-    const QProcessEnvironment env = static_cast<ScriptEngine *>(engine)->environment();
-    QScriptValue envObject = engine->newObject();
-    foreach (const QString &key, env.keys())
-        envObject.setProperty(key, QScriptValue(env.value(key)));
-    return envObject;
 }
 
 QScriptValue EvaluatorScriptClass::js_consoleError(QScriptContext *context, QScriptEngine *engine,

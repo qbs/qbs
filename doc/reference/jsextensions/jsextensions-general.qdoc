@@ -42,20 +42,6 @@
 
     \section1 Available Operations
 
-    \section2 qbs.currentEnv
-    \code
-    qbs.currentEnv(): { [key: string]: string; }
-    \endcode
-    Returns the environment of \QBS in the current context as an object whose properties are
-    the environment variables.
-
-    \section2 qbs.getEnv
-    \code
-    qbs.getEnv(key: string): string
-    \endcode
-    Tries to find a variable with the given name in the build environment and returns its value. If
-    no such variable could be found, \c undefined is returned.
-
     \section2 loadFile
     \code
     loadFile(filePath: string): any

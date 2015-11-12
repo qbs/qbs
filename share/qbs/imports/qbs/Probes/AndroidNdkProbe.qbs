@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs
+import qbs.Environment
 import qbs.File
 import qbs.FileInfo
 
@@ -36,7 +37,7 @@ PathProbe {
     // Inputs
     property stringList hostOS: qbs.hostOS
 
-    environmentPaths: qbs.getEnv("ANDROID_NDK_ROOT")
+    environmentPaths: Environment.getEnv("ANDROID_NDK_ROOT")
 
     // Outputs
     property var hostArch

@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs
+import qbs.Environment
 import qbs.File
 import qbs.FileInfo
 import qbs.Process
@@ -39,7 +40,7 @@ PathProbe {
     property stringList hostOS: qbs.hostOS
     property string architecture: qbs.architecture
 
-    environmentPaths: qbs.getEnv("JAVA_HOME")
+    environmentPaths: Environment.getEnv("JAVA_HOME")
     platformPaths: [
         "/usr/lib/jvm/default-java", // Debian/Ubuntu
         "/etc/alternatives/java_sdk_openjdk", // Fedora

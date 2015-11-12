@@ -1256,10 +1256,6 @@ static QStringList hostOS()
 
 void ModuleLoader::setupBaseModulePrototype(Item *prototype)
 {
-    prototype->setProperty(QLatin1String("getEnv"),
-                           BuiltinValue::create(BuiltinValue::GetEnvFunction));
-    prototype->setProperty(QLatin1String("currentEnv"),
-                           BuiltinValue::create(BuiltinValue::CurrentEnvFunction));
     prototype->setProperty(QLatin1String("hostOS"), VariantValue::create(hostOS()));
     prototype->setProperty(QLatin1String("libexecPath"),
                            VariantValue::create(m_parameters.libexecPath()));

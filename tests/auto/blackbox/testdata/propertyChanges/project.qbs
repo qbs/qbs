@@ -1,4 +1,5 @@
 import qbs 1.0
+import qbs.Environment
 import qbs.File
 import qbs.TextFile
 
@@ -18,7 +19,7 @@ Project {
     }
     CppApplication {
         name: "product 3"
-        cpp.defines: qbs.getEnv("QBS_BLACKBOX_DEFINE")
+        cpp.defines: Environment.getEnv("QBS_BLACKBOX_DEFINE")
         files: "source3.cpp"
     }
     DynamicLibrary {

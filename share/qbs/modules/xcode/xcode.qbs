@@ -1,5 +1,6 @@
 import qbs
 import qbs.BundleTools
+import qbs.Environment
 import qbs.File
 import qbs.FileInfo
 import qbs.DarwinTools
@@ -108,7 +109,7 @@ Module {
     }
 
     property path provisioningProfilesPath: {
-        return FileInfo.joinPaths(qbs.getEnv("HOME"), "Library/MobileDevice/Provisioning Profiles");
+        return FileInfo.joinPaths(Environment.getEnv("HOME"), "Library/MobileDevice/Provisioning Profiles");
     }
 
     readonly property var _availableSdks: Utils.sdkInfoList(sdksPath)

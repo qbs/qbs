@@ -82,11 +82,11 @@ QScriptValue EnvironmentExtension::js_ctor(QScriptContext *context, QScriptEngin
 }
 
 static QProcessEnvironment *getProcessEnvironment(QScriptContext *context, QScriptEngine *engine,
-                                                  const QString &func)
+                                                  const QString &func, bool doThrow = true)
 {
     QVariant v = engine->property("_qbs_procenv");
     QProcessEnvironment *procenv = reinterpret_cast<QProcessEnvironment *>(v.value<void *>());
-    if (!procenv)
+    if (!procenv && doThrow)
         throw context->throwError(QScriptContext::UnknownError,
                                   QStringLiteral("%1 can only be called from ").arg(func) +
                                   QStringLiteral("Module.setupBuildEnvironment and ") +
@@ -99,9 +99,21 @@ QScriptValue EnvironmentExtension::js_getEnv(QScriptContext *context, QScriptEng
     if (Q_UNLIKELY(context->argumentCount() != 1))
         return context->throwError(QScriptContext::SyntaxError,
                                    QStringLiteral("getEnv expects 1 argument"));
-    const QProcessEnvironment * const procenv = getProcessEnvironment(context, engine,
-                                                                      QStringLiteral("getEnv"));
-    return engine->toScriptValue(procenv->value(context->argument(0).toString()));
+    const QProcessEnvironment env = static_cast<ScriptEngine *>(engine)->environment();
+    const QProcessEnvironment *procenv = getProcessEnvironment(context, engine,
+                                                               QStringLiteral("getEnv"), false);
+    if (!procenv)
+        procenv = &env;
+
+    const QString name = context->argument(0).toString();
+    const QString value = procenv->value(name);
+
+    // Don't track environment variable access inside environment setup scripts
+    // since change tracking is irrelevant for them
+    if (procenv == &env)
+        static_cast<ScriptEngine *>(engine)->addEnvironmentVariable(name, value);
+
+    return value.isNull() ? engine->undefinedValue() : value;
 }
 
 QScriptValue EnvironmentExtension::js_putEnv(QScriptContext *context, QScriptEngine *engine)
@@ -128,8 +140,11 @@ QScriptValue EnvironmentExtension::js_unsetEnv(QScriptContext *context, QScriptE
 QScriptValue EnvironmentExtension::js_currentEnv(QScriptContext *context, QScriptEngine *engine)
 {
     Q_UNUSED(context);
-    const QProcessEnvironment * const procenv = getProcessEnvironment(context, engine,
-                                                                      QStringLiteral("currentEnv"));
+    const QProcessEnvironment env = static_cast<ScriptEngine *>(engine)->environment();
+    const QProcessEnvironment *procenv = getProcessEnvironment(context, engine,
+                                                               QStringLiteral("currentEnv"), false);
+    if (!procenv)
+        procenv = &env;
     QScriptValue envObject = engine->newObject();
     foreach (const QString &key, procenv->keys())
         envObject.setProperty(key, QScriptValue(procenv->value(key)));

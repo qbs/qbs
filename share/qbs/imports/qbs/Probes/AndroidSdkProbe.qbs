@@ -29,12 +29,13 @@
 ****************************************************************************/
 
 import qbs
+import qbs.Environment
 import qbs.File
 import qbs.FileInfo
 import "../../../modules/Android/sdk/utils.js" as SdkUtils
 
 PathProbe {
-    environmentPaths: qbs.getEnv("ANDROID_HOME")
+    environmentPaths: Environment.getEnv("ANDROID_HOME")
 
     // Outputs
     property var buildToolsVersions

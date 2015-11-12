@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var Environment = loadExtension("qbs.Environment");
 var File = loadExtension("qbs.File");
 var FileInfo = loadExtension("qbs.FileInfo");
 var ModUtils = loadExtension("qbs.ModUtils");
@@ -47,7 +48,7 @@ function configure(names, nameSuffixes, nameFilter, pathPrefixes, pathSuffixes, 
     // FIXME: Add getenv support
     var envs = ModUtils.concatAll(platformEnvironmentPaths, environmentPaths);
     for (var i = 0; i < envs.length; ++i) {
-        var value = qbs.getEnv(envs[i]) || '';
+        var value = Environment.getEnv(envs[i]) || '';
         if (value.length > 0)
             _paths = _paths.concat(value.split(pathListSeparator));
     }

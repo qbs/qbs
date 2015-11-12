@@ -515,7 +515,7 @@ bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restored
                                               const ResolvedProductPtr &newlyResolvedProduct)
 {
     // This check must come first, as it can prevent build data rescuing as a side effect.
-    // TODO: Similar special checks must be done for qbs.getEnv() and File.exists() in
+    // TODO: Similar special checks must be done for Environment.getEnv() and File.exists() in
     // commands (or possibly it could be reasonable to just forbid such "dynamic" constructs
     // within commands).
     if (checkForPropertyChanges(restoredProduct, newlyResolvedProduct))

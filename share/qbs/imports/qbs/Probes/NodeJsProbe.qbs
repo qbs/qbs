@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs
+import qbs.Environment
 import qbs.FileInfo
 
 BinaryProbe {
@@ -36,8 +37,8 @@ BinaryProbe {
     platformPaths: {
         var paths = base;
         if (qbs.hostOS.contains("windows")) {
-            var env32 = qbs.getEnv("PROGRAMFILES(X86)");
-            var env64 = qbs.getEnv("PROGRAMFILES");
+            var env32 = Environment.getEnv("PROGRAMFILES(X86)");
+            var env64 = Environment.getEnv("PROGRAMFILES");
             if (env64 === env32 && env64.endsWith(" (x86)"))
                 env64 = env64.slice(0, -(" (x86)".length)); // QTBUG-3845
             paths.push(FileInfo.joinPaths(env64, "nodejs"));

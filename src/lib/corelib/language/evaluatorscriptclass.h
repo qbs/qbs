@@ -62,9 +62,6 @@ public:
     void setValueCacheEnabled(bool enabled);
     QScriptValue scriptValueForBuiltin(BuiltinValue::Builtin builtin) const;
 
-    static QScriptValue js_getEnv(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_currentEnv(QScriptContext *context, QScriptEngine *engine);
-
     static QScriptValue js_consoleError(QScriptContext *context, QScriptEngine *engine,
                                         Logger *logger);
     static QScriptValue js_consoleWarn(QScriptContext *context, QScriptEngine *engine,
@@ -101,8 +98,6 @@ private:
     QueryResult m_queryResult;
     Logger m_logger;
     bool m_valueCacheEnabled;
-    QScriptValue m_getEnvBuiltin;
-    QScriptValue m_currentEnvBuiltin;
     QStack<JSSourceValue *> m_sourceValueStack;
     QSet<Value *> m_currentNextChain;
 };

@@ -1,3 +1,5 @@
+import qbs.Environment
+
 Product {
-    name: qbs.getEnv("PRODUCT_NAME")
+    name: Environment.getEnv("PRODUCT_NAME")
 }
