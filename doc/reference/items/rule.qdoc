@@ -45,6 +45,8 @@
     As a real-world example of a simplex rule, here is a simplified version
     of \QBS' rule for transforming C++ sources into object files using gcc:
     \code
+    import qbs.ModUtils
+    import qbs.Utilities
     Rule {
         id: compiler
         inputs: ['cpp']
@@ -52,7 +54,7 @@
 
         Artifact {
             fileTags: ['obj']
-            filePath: '.obj/' + qbs.getHash(input.baseDir) + '/' + input.fileName + '.o'
+            filePath: '.obj/' + Utilities.getHash(input.baseDir) + '/' + input.fileName + '.o'
         }
 
         prepare: {

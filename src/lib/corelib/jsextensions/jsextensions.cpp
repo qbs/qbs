@@ -38,6 +38,7 @@
 #include "propertylist.h"
 #include "temporarydir.h"
 #include "textfile.h"
+#include "utilitiesextension.h"
 
 #include <QScriptEngine>
 
@@ -76,6 +77,7 @@ JsExtensions::InitializerMap JsExtensions::initializers()
         m_initializers.insert(QLatin1String("TemporaryDir"), &initializeJsExtensionTemporaryDir);
         m_initializers.insert(QLatin1String("TextFile"), &initializeJsExtensionTextFile);
         m_initializers.insert(QLatin1String("PropertyList"), &initializeJsExtensionPropertyList);
+        m_initializers.insert(QLatin1String("Utilities"), &initializeJsExtensionUtilities);
     }
     return m_initializers;
 }

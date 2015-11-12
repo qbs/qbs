@@ -1233,17 +1233,11 @@ static QStringList hostOS()
 
 void ModuleLoader::setupBaseModulePrototype(Item *prototype)
 {
-    prototype->setProperty(QLatin1String("getNativeSetting"),
-                           BuiltinValue::create(BuiltinValue::GetNativeSettingFunction));
     prototype->setProperty(QLatin1String("getEnv"),
                            BuiltinValue::create(BuiltinValue::GetEnvFunction));
     prototype->setProperty(QLatin1String("currentEnv"),
                            BuiltinValue::create(BuiltinValue::CurrentEnvFunction));
     prototype->setProperty(QLatin1String("hostOS"), VariantValue::create(hostOS()));
-    prototype->setProperty(QLatin1String("canonicalArchitecture"),
-                           BuiltinValue::create(BuiltinValue::CanonicalArchitectureFunction));
-    prototype->setProperty(QLatin1String("rfc1034Identifier"),
-                           BuiltinValue::create(BuiltinValue::Rfc1034IdentifierFunction));
     prototype->setProperty(QLatin1String("libexecPath"),
                            VariantValue::create(m_parameters.libexecPath()));
 

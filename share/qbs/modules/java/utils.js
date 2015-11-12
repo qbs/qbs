@@ -33,13 +33,14 @@ var FileInfo = loadExtension("qbs.FileInfo");
 var ModUtils = loadExtension("qbs.ModUtils");
 var Process = loadExtension("qbs.Process");
 var TextFile = loadExtension("qbs.TextFile");
+var Utilities = loadExtension("qbs.Utilities");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
 function is64bitProcess() {
     var y = jdkRootRegistryKey(true);
     var n = jdkRootRegistryKey(false);
-    y = qbs.getNativeSetting(y + "\\" + qbs.getNativeSetting(y, "CurrentVersion"), "JavaHome");
-    n = qbs.getNativeSetting(n + "\\" + qbs.getNativeSetting(n, "CurrentVersion"), "JavaHome");
+    y = Utilities.getNativeSetting(y + "\\" + Utilities.getNativeSetting(y, "CurrentVersion"), "JavaHome");
+    n = Utilities.getNativeSetting(n + "\\" + Utilities.getNativeSetting(n, "CurrentVersion"), "JavaHome");
     return y !== n;
 }
 
@@ -82,9 +83,9 @@ function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
     if (hostOS.contains("windows")) {
         var rootKey = jdkRootRegistryKey(useWow64Key(arch));
         if (rootKey) {
-            var current = qbs.getNativeSetting(rootKey, "CurrentVersion"); // 1.8 etc.
+            var current = Utilities.getNativeSetting(rootKey, "CurrentVersion"); // 1.8 etc.
             if (current) {
-                var home = qbs.getNativeSetting([rootKey, current].join("\\"), "JavaHome");
+                var home = Utilities.getNativeSetting([rootKey, current].join("\\"), "JavaHome");
                 if (home) {
                     return home;
                 }

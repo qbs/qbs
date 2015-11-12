@@ -28,38 +28,17 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_BUILTINVALUE_H
-#define QBS_BUILTINVALUE_H
+#ifndef QBS_UTILITIESEXTENSION_H
+#define QBS_UTILITIESEXTENSION_H
 
-#include "value.h"
+#include <QScriptValue>
 
 namespace qbs {
 namespace Internal {
 
-class BuiltinValue : public Value
-{
-public:
-    enum Builtin
-    {
-        GetEnvFunction,
-        CurrentEnvFunction
-    };
-
-    static BuiltinValuePtr create(Builtin builtin);
-
-    void apply(ValueHandler *handler) { handler->handle(this); }
-    ValuePtr clone() const;
-
-    Builtin builtin() const { return m_builtin; }
-    void setBuiltin(const Builtin &builtin) { m_builtin = builtin; }
-
-private:
-    BuiltinValue(Builtin builtin);
-
-    Builtin m_builtin;
-};
+void initializeJsExtensionUtilities(QScriptValue extensionObject);
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_BUILTINVALUE_H
+#endif // QBS_UTILITIESEXTENSION_H

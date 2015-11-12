@@ -32,13 +32,14 @@ import qbs
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Utilities
 
 Module {
     condition: qbs.targetOS.contains("windows")
 
-    property path toolchainInstallPath: qbs.getNativeSetting(registryKey, "InstallFolder")
-    property path toolchainInstallRoot: qbs.getNativeSetting(registryKey, "InstallRoot")
-    property string version: qbs.getNativeSetting(registryKey, "ProductVersion")
+    property path toolchainInstallPath: Utilities.getNativeSetting(registryKey, "InstallFolder")
+    property path toolchainInstallRoot: Utilities.getNativeSetting(registryKey, "InstallRoot")
+    property string version: Utilities.getNativeSetting(registryKey, "ProductVersion")
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
     property int versionMinor: versionParts[1]
@@ -130,9 +131,9 @@ Module {
         var keyWoW64 = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\";
 
         for (i in knownVersions) {
-            if (qbs.getNativeSetting(keyNative + knownVersions[i], "ProductVersion"))
+            if (Utilities.getNativeSetting(keyNative + knownVersions[i], "ProductVersion"))
                 return keyNative + knownVersions[i];
-            if (qbs.getNativeSetting(keyWoW64 + knownVersions[i], "ProductVersion"))
+            if (Utilities.getNativeSetting(keyWoW64 + knownVersions[i], "ProductVersion"))
                 return keyWoW64 + knownVersions[i];
         }
     }
@@ -186,7 +187,7 @@ Module {
 
         Artifact {
             fileTags: ["wixobj"]
-            filePath: FileInfo.joinPaths(".obj", qbs.getHash(input.baseDir),
+            filePath: FileInfo.joinPaths(".obj", Utilities.getHash(input.baseDir),
                                          FileInfo.baseName(input.fileName) + ".wixobj")
         }
 

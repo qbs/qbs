@@ -32,18 +32,19 @@ import qbs 1.0
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Utilities
 
 Module {
     condition: qbs.targetOS.contains("windows")
 
-    property path toolchainInstallPath: qbs.getNativeSetting(registryKey)
+    property path toolchainInstallPath: Utilities.getNativeSetting(registryKey)
 
     property string version: (versionMajor !== undefined && versionMinor !== undefined) ? (versionMajor + "." + versionMinor) : undefined
     property var versionParts: [ versionMajor, versionMinor, versionPatch, versionBuild ]
-    property int versionMajor: qbs.getNativeSetting(registryKey, "VersionMajor")
-    property int versionMinor: qbs.getNativeSetting(registryKey, "VersionMinor")
-    property int versionPatch: qbs.getNativeSetting(registryKey, "VersionBuild")
-    property int versionBuild: qbs.getNativeSetting(registryKey, "VersionRevision")
+    property int versionMajor: Utilities.getNativeSetting(registryKey, "VersionMajor")
+    property int versionMinor: Utilities.getNativeSetting(registryKey, "VersionMinor")
+    property int versionPatch: Utilities.getNativeSetting(registryKey, "VersionBuild")
+    property int versionBuild: Utilities.getNativeSetting(registryKey, "VersionRevision")
 
     property string compilerName: "makensis"
     property string compilerPath: compilerName
@@ -94,7 +95,7 @@ Module {
 
         var keys = [ "HKEY_LOCAL_MACHINE\\SOFTWARE\\NSIS", "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\NSIS" ];
         for (var i in keys) {
-            if (qbs.getNativeSetting(keys[i]))
+            if (Utilities.getNativeSetting(keys[i]))
                 return keys[i];
         }
     }

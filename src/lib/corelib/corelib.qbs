@@ -183,6 +183,8 @@ QbsLibrary {
             "temporarydir.h",
             "textfile.cpp",
             "textfile.h",
+            "utilitiesextension.cpp",
+            "utilitiesextension.h",
             "domxml.cpp",
             "domxml.h"
         ]

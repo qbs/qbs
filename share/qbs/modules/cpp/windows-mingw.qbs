@@ -30,6 +30,7 @@
 
 import qbs 1.0
 import qbs.ModUtils
+import qbs.Utilities
 import qbs.WindowsUtils
 
 GenericGCC {
@@ -70,7 +71,7 @@ GenericGCC {
         auxiliaryInputs: ["hpp"]
 
         Artifact {
-            filePath: ".obj/" + qbs.getHash(input.baseDir) + "/" + input.completeBaseName + "_res.o"
+            filePath: ".obj/" + Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + "_res.o"
             fileTags: ["obj"]
         }
 

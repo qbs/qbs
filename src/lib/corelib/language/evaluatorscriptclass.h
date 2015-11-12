@@ -62,12 +62,8 @@ public:
     void setValueCacheEnabled(bool enabled);
     QScriptValue scriptValueForBuiltin(BuiltinValue::Builtin builtin) const;
 
-    static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getEnv(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_currentEnv(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_rfc1034identifier(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_getHash(QScriptContext *context, QScriptEngine *engine);
 
     static QScriptValue js_consoleError(QScriptContext *context, QScriptEngine *engine,
                                         Logger *logger);
@@ -105,12 +101,8 @@ private:
     QueryResult m_queryResult;
     Logger m_logger;
     bool m_valueCacheEnabled;
-    QScriptValue m_getNativeSettingBuiltin;
     QScriptValue m_getEnvBuiltin;
     QScriptValue m_currentEnvBuiltin;
-    QScriptValue m_canonicalArchitectureBuiltin;
-    QScriptValue m_rfc1034identifierBuiltin;
-    QScriptValue m_getHashBuiltin;
     QStack<JSSourceValue *> m_sourceValueStack;
     QSet<Value *> m_currentNextChain;
 };

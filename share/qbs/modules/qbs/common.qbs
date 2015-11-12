@@ -32,6 +32,7 @@ import qbs 1.0
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.PathTools
+import qbs.Utilities
 
 Module {
     property string buildVariant: "debug"
@@ -41,20 +42,20 @@ Module {
     readonly property stringList hostOS: undefined // set internally
     property string hostOSVersion: {
         if (hostOS && hostOS.contains("osx")) {
-            return getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductVersion") ||
-                   getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductVersion");
+            return Utilities.getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductVersion") ||
+                   Utilities.getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductVersion");
         } else if (hostOS && hostOS.contains("windows")) {
-            var version = getNativeSetting(windowsRegistryKey, "CurrentVersion");
+            var version = Utilities.getNativeSetting(windowsRegistryKey, "CurrentVersion");
             return version + "." + hostOSBuildVersion;
         }
     }
 
     property string hostOSBuildVersion: {
         if (hostOS.contains("osx")) {
-            return getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductBuildVersion") ||
-                   getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductBuildVersion");
+            return Utilities.getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductBuildVersion") ||
+                   Utilities.getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductBuildVersion");
         } else if (hostOS.contains("windows")) {
-            return getNativeSetting(windowsRegistryKey, "CurrentBuildNumber");
+            return Utilities.getNativeSetting(windowsRegistryKey, "CurrentBuildNumber");
         }
     }
 
@@ -109,16 +110,16 @@ Module {
         }
 
         validator.addCustomValidator("architecture", architecture, function (value) {
-            return !architecture || architecture === canonicalArchitecture(architecture);
+            return !architecture || architecture === Utilities.canonicalArchitecture(architecture);
         }, "'" + architecture + "' is invalid. You must use the canonical name '" +
-        canonicalArchitecture(architecture) + "'");
+        Utilities.canonicalArchitecture(architecture) + "'");
 
         validator.validate();
     }
 
     // private properties
     property string windowsRegistryKey: "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion"
-    property path windowsSystemRoot: FileInfo.fromWindowsSeparators(getNativeSetting(windowsRegistryKey, "SystemRoot"))
+    property path windowsSystemRoot: FileInfo.fromWindowsSeparators(Utilities.getNativeSetting(windowsRegistryKey, "SystemRoot"))
     property path windowsShellPath: FileInfo.fromWindowsSeparators(getEnv("COMSPEC")) || FileInfo.joinPaths(windowsSystemRoot, "System32", "cmd.exe")
 
     property var commonRunEnvironment: {

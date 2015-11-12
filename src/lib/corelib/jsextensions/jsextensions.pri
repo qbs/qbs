@@ -9,7 +9,8 @@ HEADERS += \
     $$PWD/process.h \
     $$PWD/moduleproperties.h \
     $$PWD/domxml.h \
-    $$PWD/jsextensions.h
+    $$PWD/jsextensions.h \
+    $$PWD/utilitiesextension.h
 
 SOURCES += \
     $$PWD/environmentextension.cpp \
@@ -20,7 +21,8 @@ SOURCES += \
     $$PWD/process.cpp \
     $$PWD/moduleproperties.cpp \
     $$PWD/domxml.cpp \
-    $$PWD/jsextensions.cpp
+    $$PWD/jsextensions.cpp \
+    $$PWD/utilitiesextension.cpp
 
 mac {
     HEADERS += $$PWD/propertylist.h $$PWD/propertylistutils.h

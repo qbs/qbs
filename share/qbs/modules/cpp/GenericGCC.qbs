@@ -34,6 +34,7 @@ import qbs.FileInfo
 import qbs.ModUtils
 import qbs.PathTools
 import qbs.Process
+import qbs.Utilities
 import qbs.UnixUtils
 import qbs.WindowsUtils
 import 'gcc.js' as Gcc
@@ -342,7 +343,7 @@ CppModule {
 
         Artifact {
             fileTags: ["obj"]
-            filePath: FileInfo.joinPaths(".obj", qbs.getHash(input.baseDir), input.fileName + ".o")
+            filePath: FileInfo.joinPaths(".obj", Utilities.getHash(input.baseDir), input.fileName + ".o")
         }
 
         prepare: {
@@ -356,7 +357,7 @@ CppModule {
 
         Artifact {
             fileTags: ["obj"]
-            filePath: FileInfo.joinPaths(".obj", qbs.getHash(input.baseDir), input.fileName + ".o")
+            filePath: FileInfo.joinPaths(".obj", Utilities.getHash(input.baseDir), input.fileName + ".o")
         }
 
         prepare: {

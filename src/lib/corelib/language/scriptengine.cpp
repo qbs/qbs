@@ -516,18 +516,10 @@ private:
 void ScriptEngine::installQbsBuiltins()
 {
     globalObject().setProperty(QLatin1String("qbs"), m_qbsObject = newObject());
-    installQbsFunction(QLatin1String("getNativeSetting"),
-                       EvaluatorScriptClass::js_getNativeSetting);
     installQbsFunction(QLatin1String("getEnv"),
                        EvaluatorScriptClass::js_getEnv);
     installQbsFunction(QLatin1String("currentEnv"),
                        EvaluatorScriptClass::js_currentEnv);
-    installQbsFunction(QLatin1String("canonicalArchitecture"),
-                       EvaluatorScriptClass::js_canonicalArchitecture);
-    installQbsFunction(QLatin1String("rfc1034Identifier"),
-                       EvaluatorScriptClass::js_rfc1034identifier);
-    installQbsFunction(QLatin1String("getHash"),
-                       EvaluatorScriptClass::js_getHash);
 
     globalObject().setProperty(QLatin1String("console"), m_consoleObject = newObject());
     installConsoleFunction(QLatin1String("debug"),

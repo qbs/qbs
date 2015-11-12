@@ -28,38 +28,32 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_BUILTINVALUE_H
-#define QBS_BUILTINVALUE_H
+/*!
+    \contentspage index.html
+    \page jsextension-utilities.html
+    \ingroup list-of-builtin-services
 
-#include "value.h"
+    \title Utilities Service
+    \brief Provides miscellaneous operations.
 
-namespace qbs {
-namespace Internal {
+    The \c Utilities service offers miscellaneous operations.
 
-class BuiltinValue : public Value
-{
-public:
-    enum Builtin
-    {
-        GetEnvFunction,
-        CurrentEnvFunction
-    };
+    \section1 Available Operations
 
-    static BuiltinValuePtr create(Builtin builtin);
+    \section2 getHash
+    \code
+    Utilities.getHash(key: string): string
+    \endcode
+    Calculates a 16-byte hash of the input and returns it.
+    Rules in modules should use this function to find unique locations for output
+    artifacts in the build directory without duplicating the whole directory structure of
+    the respective input file (to deal with the case of two files with the same name in different
+    subdirectories of the same product).
 
-    void apply(ValueHandler *handler) { handler->handle(this); }
-    ValuePtr clone() const;
-
-    Builtin builtin() const { return m_builtin; }
-    void setBuiltin(const Builtin &builtin) { m_builtin = builtin; }
-
-private:
-    BuiltinValue(Builtin builtin);
-
-    Builtin m_builtin;
-};
-
-} // namespace Internal
-} // namespace qbs
-
-#endif // QBS_BUILTINVALUE_H
+    \section2 rfc1034Identifier
+    \code
+    Utilities.rfc1034Identifier(str: string): string
+    \endcode
+    Returns an RFC 1034 compliant identifier based on the given string by replacing each character
+    that is not Latin alphanumeric or \c{.} with \c{-}.
+*/

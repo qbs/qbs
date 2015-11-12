@@ -30,6 +30,7 @@
 
 // base for Cpp modules
 import qbs.ModUtils
+import qbs.Utilities
 
 Module {
     condition: false
@@ -315,9 +316,9 @@ Module {
     validate: {
         var validator = new ModUtils.PropertyValidator("cpp");
         validator.addCustomValidator("architecture", architecture, function (value) {
-            return !architecture || architecture === canonicalArchitecture(architecture);
+            return !architecture || architecture === Utilities.canonicalArchitecture(architecture);
         }, "'" + architecture + "' is invalid. You must use the canonical name '" +
-        canonicalArchitecture(architecture) + "'");
+        Utilities.canonicalArchitecture(architecture) + "'");
         validator.validate();
     }
 

@@ -36,6 +36,7 @@ import qbs.FileInfo
 import qbs.ModUtils
 import qbs.PropertyList
 import qbs.TextFile
+import qbs.Utilities
 
 Module {
     additionalProductTypes: ["bundle"]
@@ -48,7 +49,7 @@ Module {
     property bool isShallow: !qbs.targetOS.contains("osx") && product.type.contains("application")
 
     property string identifierPrefix: "org.example"
-    property string identifier: [identifierPrefix, qbs.rfc1034Identifier(product.targetName)].join(".")
+    property string identifier: [identifierPrefix, Utilities.rfc1034Identifier(product.targetName)].join(".")
 
     property string extension: {
         if (packageType === undefined) {

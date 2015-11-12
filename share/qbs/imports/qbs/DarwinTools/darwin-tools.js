@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 var FileInfo = loadExtension("qbs.FileInfo");
+var Utilities = loadExtension("qbs.Utilities");
 
 /**
   * Returns the numeric identifier corresponding to an Apple device name
@@ -193,7 +194,7 @@ function expandPlistEnvironmentVariables(obj, env, warn) {
                     if (varFormatter !== undefined)
                         varFormatter = varFormatter.toLowerCase();
                     if (varFormatter === "rfc1034identifier")
-                        varValue = qbs.rfc1034Identifier(varValue);
+                        varValue = Utilities.rfc1034Identifier(varValue);
                     value = value.slice(0, i) + varValue + value.slice(j + repl.syntax.close.length);
                     // avoid recursive substitutions to avoid potentially infinite loops
                     i += varValue.length;

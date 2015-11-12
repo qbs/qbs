@@ -34,6 +34,7 @@ import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Probes
 import qbs.TextFile
+import qbs.Utilities
 import "utils.js" as SdkUtils
 
 Module {
@@ -107,7 +108,7 @@ Module {
     Rule {
         inputs: ["android.aidl"]
         Artifact {
-            filePath: FileInfo.joinPaths(qbs.getHash(input.filePath),
+            filePath: FileInfo.joinPaths(Utilities.getHash(input.filePath),
                                          input.completeBaseName + ".java")
             fileTags: ["java.java"]
         }

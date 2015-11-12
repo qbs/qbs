@@ -35,6 +35,7 @@ var ModUtils = loadExtension("qbs.ModUtils");
 var PathTools = loadExtension("qbs.PathTools");
 var Process = loadExtension("qbs.Process");
 var UnixUtils = loadExtension("qbs.UnixUtils");
+var Utilities = loadExtension("qbs.Utilities");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
 function escapeLinkerFlags(product, linkerFlags) {
@@ -396,7 +397,7 @@ function compilerFlags(product, input, output) {
         var toolchain = product.moduleProperty("qbs", "toolchain");
         if (!toolchain.contains("clang")) {
             var hashString = FileInfo.relativePath(project.sourceDirectory, input.filePath);
-            var hash = qbs.getHash(hashString);
+            var hash = Utilities.getHash(hashString);
             args.push("-frandom-seed=0x" + hash.substring(0, 8));
         }
 

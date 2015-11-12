@@ -1,4 +1,5 @@
 import qbs
+import qbs.Utilities
 
 CLIModule {
     condition: qbs.toolchain.contains("dotnet")
@@ -8,7 +9,7 @@ CLIModule {
     vbCompilerName: "vbc"
     fsharpCompilerName: "fsc"
 
-    toolchainInstallPath: qbs.getNativeSetting(registryKey, "InstallPath")
+    toolchainInstallPath: Utilities.getNativeSetting(registryKey, "InstallPath")
 
     // private properties
     property string registryKey: {
@@ -21,7 +22,7 @@ CLIModule {
         ];
         for (var i in keys) {
             var key = keys[i] + "\\v4\\Full";
-            if (qbs.getNativeSetting(key, "InstallPath"))
+            if (Utilities.getNativeSetting(key, "InstallPath"))
                 return key;
         }
     }

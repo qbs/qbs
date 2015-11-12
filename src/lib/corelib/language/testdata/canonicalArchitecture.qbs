@@ -1,3 +1,6 @@
+import qbs
+import qbs.Utilities
+
 Product {
-    name: qbs.canonicalArchitecture("i386")
+    name: Utilities.canonicalArchitecture("i386")
 }

@@ -33,6 +33,7 @@ import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.PathTools
+import qbs.Utilities
 import qbs.WindowsUtils
 import 'msvc.js' as MSVC
 
@@ -98,7 +99,7 @@ CppModule {
             filePath: {
                 var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
                         "cPrecompiledHeader"));
-                return ".obj/" + qbs.getHash(completeBaseName) + '_c.obj'
+                return ".obj/" + Utilities.getHash(completeBaseName) + '_c.obj'
             }
         }
         Artifact {
@@ -119,7 +120,7 @@ CppModule {
             filePath: {
                 var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
                         "cxxPrecompiledHeader"));
-                return ".obj/" + qbs.getHash(completeBaseName) + '_cpp.obj'
+                return ".obj/" + Utilities.getHash(completeBaseName) + '_cpp.obj'
             }
         }
         Artifact {
@@ -139,7 +140,7 @@ CppModule {
 
         Artifact {
             fileTags: ['obj']
-            filePath: ".obj/" + qbs.getHash(input.baseDir) + "/" + input.fileName + ".obj"
+            filePath: ".obj/" + Utilities.getHash(input.baseDir) + "/" + input.fileName + ".obj"
         }
 
         prepare: {
@@ -262,7 +263,7 @@ CppModule {
         auxiliaryInputs: ["hpp"]
 
         Artifact {
-            filePath: ".obj/" + qbs.getHash(input.baseDir) + "/" + input.completeBaseName + ".res"
+            filePath: ".obj/" + Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + ".res"
             fileTags: ["obj"]
         }
 
@@ -321,7 +322,7 @@ CppModule {
     Rule {
         inputs: ["asm"]
         Artifact {
-            filePath: ".obj/" + qbs.getHash(input.baseDir) + "/" + input.completeBaseName + ".obj"
+            filePath: ".obj/" + Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + ".obj"
             fileTags: ["obj"]
         }
         prepare: {

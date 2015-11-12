@@ -44,7 +44,6 @@
 #include <tools/shellutils.h>
 
 #include <QByteArray>
-#include <QCryptographicHash>
 #include <QScriptString>
 #include <QScriptValue>
 #include <QDebug>
@@ -281,12 +280,8 @@ EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Log
     , m_logger(logger)
     , m_valueCacheEnabled(false)
 {
-    m_getNativeSettingBuiltin = scriptEngine->newFunction(js_getNativeSetting, 3);
     m_getEnvBuiltin = scriptEngine->newFunction(js_getEnv, 1);
     m_currentEnvBuiltin = scriptEngine->newFunction(js_currentEnv, 0);
-    m_canonicalArchitectureBuiltin = scriptEngine->newFunction(js_canonicalArchitecture, 1);
-    m_rfc1034identifierBuiltin = scriptEngine->newFunction(js_rfc1034identifier, 1);
-    m_getHashBuiltin = scriptEngine->newFunction(js_getHash, 1);
 }
 
 QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue &object,
@@ -520,39 +515,13 @@ void EvaluatorScriptClass::setValueCacheEnabled(bool enabled)
 QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin builtin) const
 {
     switch (builtin) {
-    case BuiltinValue::GetNativeSettingFunction:
-        return m_getNativeSettingBuiltin;
     case BuiltinValue::GetEnvFunction:
         return m_getEnvBuiltin;
     case BuiltinValue::CurrentEnvFunction:
         return m_currentEnvBuiltin;
-    case BuiltinValue::CanonicalArchitectureFunction:
-        return m_canonicalArchitectureBuiltin;
-    case BuiltinValue::Rfc1034IdentifierFunction:
-        return m_rfc1034identifierBuiltin;
     }
     QBS_ASSERT(!"unhandled builtin", ;);
     return QScriptValue();
-}
-
-QScriptValue EvaluatorScriptClass::js_getNativeSetting(QScriptContext *context, QScriptEngine *engine)
-{
-    if (Q_UNLIKELY(context->argumentCount() < 1 || context->argumentCount() > 3)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("getNativeSetting expects between 1 and 3 arguments"));
-    }
-
-    QString key = context->argumentCount() > 1 ? context->argument(1).toString() : QString();
-
-    // We'll let empty string represent the default registry value
-    if (HostOsInfo::isWindowsHost() && key.isEmpty())
-        key = QLatin1String(".");
-
-    QVariant defaultValue = context->argumentCount() > 2 ? context->argument(2).toVariant() : QVariant();
-
-    QSettings settings(context->argument(0).toString(), QSettings::NativeFormat);
-    QVariant value = settings.value(key, defaultValue);
-    return value.isNull() ? engine->undefinedValue() : engine->toScriptValue(value);
 }
 
 QScriptValue EvaluatorScriptClass::js_getEnv(QScriptContext *context, QScriptEngine *engine)
@@ -576,39 +545,6 @@ QScriptValue EvaluatorScriptClass::js_currentEnv(QScriptContext *context, QScrip
     foreach (const QString &key, env.keys())
         envObject.setProperty(key, QScriptValue(env.value(key)));
     return envObject;
-}
-
-QScriptValue EvaluatorScriptClass::js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine)
-{
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("canonicalArchitecture expects 1 argument"));
-    }
-    const QString architecture = context->argument(0).toString();
-    return engine->toScriptValue(canonicalArchitecture(architecture));
-}
-
-QScriptValue EvaluatorScriptClass::js_rfc1034identifier(QScriptContext *context,
-                                                        QScriptEngine *engine)
-{
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("rfc1034Identifier expects 1 argument"));
-    }
-    const QString identifier = context->argument(0).toString();
-    return engine->toScriptValue(HostOsInfo::rfc1034Identifier(identifier));
-}
-
-QScriptValue EvaluatorScriptClass::js_getHash(QScriptContext *context, QScriptEngine *engine)
-{
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("getHash expects 1 argument"));
-    }
-    const QByteArray input = context->argument(0).toString().toLatin1();
-    const QByteArray hash
-            = QCryptographicHash::hash(input, QCryptographicHash::Sha1).toHex().left(16);
-    return engine->toScriptValue(QString::fromLatin1(hash));
 }
 
 QScriptValue EvaluatorScriptClass::js_consoleError(QScriptContext *context, QScriptEngine *engine,

@@ -30,6 +30,7 @@
 
 import qbs
 import qbs.ModUtils
+import qbs.Utilities
 
 Product {
     name: "autotest-runner"
@@ -46,7 +47,7 @@ Product {
     Rule {
         inputsFromDependencies: "application"
         Artifact {
-            filePath: qbs.getHash(input.filePath) + ".result.dummy" // Will never exist.
+            filePath: Utilities.getHash(input.filePath) + ".result.dummy" // Will never exist.
             fileTags: "autotest-result"
             alwaysUpdated: false
         }
