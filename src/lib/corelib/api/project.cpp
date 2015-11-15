@@ -236,6 +236,7 @@ GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup
 {
     GroupData group;
     group.d->name = resolvedGroup->name;
+    group.d->prefix = resolvedGroup->prefix;
     group.d->location = resolvedGroup->location;
     foreach (const SourceArtifactConstPtr &sa, resolvedGroup->files)
         group.d->sourceArtifacts << createApiSourceArtifact(sa);

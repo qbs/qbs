@@ -44,6 +44,7 @@ public:
     { }
 
     QString name;
+    QString prefix;
     CodeLocation location;
     QList<SourceArtifact> sourceArtifacts;
     QList<SourceArtifact> sourceArtifactsFromWildcards;

@@ -89,6 +89,14 @@ QString GroupData::name() const
 }
 
 /*!
+ * \brief The prefix of the group.
+ */
+QString GroupData::prefix() const
+{
+    return d->prefix;
+}
+
+/*!
  * \brief The files listed in the group item's "files" binding.
  * \note These do not include expanded wildcards.
  * \sa GroupData::sourceArtifactsFromWildcards

@@ -120,6 +120,7 @@ public:
 
     CodeLocation location() const;
     QString name() const;
+    QString prefix() const;
     QList<SourceArtifact> sourceArtifacts() const;
     QList<SourceArtifact> sourceArtifactsFromWildcards() const;
     QList<SourceArtifact> allSourceArtifacts() const;
