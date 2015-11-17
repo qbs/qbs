@@ -58,7 +58,7 @@ signals:
 
 private slots:
     void onProcessError();
-    void onProcessFinished(int exitCode);
+    void onProcessFinished();
 
 private:
     void doSetup();
@@ -68,7 +68,7 @@ private:
 
     void startProcessCommand();
     QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
-    void sendProcessOutput(bool success);
+    void sendProcessOutput();
     void removeResponseFile();
     const ProcessCommand *processCommand() const;
 

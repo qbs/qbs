@@ -62,7 +62,7 @@ ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *pa
     : AbstractCommandExecutor(logger, parent)
 {
     connect(&m_process, SIGNAL(error(QProcess::ProcessError)),  SLOT(onProcessError()));
-    connect(&m_process, SIGNAL(finished(int)), SLOT(onProcessFinished(int)));
+    connect(&m_process, SIGNAL(finished(int)), SLOT(onProcessFinished()));
 }
 
 void ProcessCommandExecutor::doSetup()
@@ -196,7 +196,7 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
     return filteredOutput.toString();
 }
 
-void ProcessCommandExecutor::sendProcessOutput(bool success)
+void ProcessCommandExecutor::sendProcessOutput()
 {
     ProcessResult result;
     result.d->executableFilePath = m_program;
@@ -205,8 +205,8 @@ void ProcessCommandExecutor::sendProcessOutput(bool success)
     if (result.workingDirectory().isEmpty())
         result.d->workingDirectory = QDir::currentPath();
     result.d->exitCode = m_process.exitCode();
-    result.d->exitStatus = m_process.exitStatus();
-    result.d->success = success;
+    result.d->error = m_process.error();
+    QString errorString = m_process.errorString();
 
     QString tmp = filterProcessOutput(m_process.readAllStandardOutput(),
                                       processCommand()->stdoutFilterFunction());
@@ -222,8 +222,20 @@ void ProcessCommandExecutor::sendProcessOutput(bool success)
             tmp.chop(1);
         result.d->stdErr = tmp.split(QLatin1Char('\n'));
     }
-
+    const bool processError = result.error() != QProcess::UnknownError;
+    const bool failureExit = quint32(m_process.exitCode())
+            > quint32(processCommand()->maxExitCode());
+    result.d->success = !processError && !failureExit;
     emit reportProcessResult(result);
+
+    if (Q_UNLIKELY(processError)) {
+        emit finished(ErrorInfo(errorString));
+    } else if (Q_UNLIKELY(failureExit)) {
+        emit finished(ErrorInfo(Tr::tr("Process failed with exit code %1.")
+                                .arg(m_process.exitCode())));
+    } else {
+        emit finished();
+    }
 }
 
 void ProcessCommandExecutor::onProcessError()
@@ -254,20 +266,10 @@ void ProcessCommandExecutor::onProcessError()
     }
 }
 
-void ProcessCommandExecutor::onProcessFinished(int exitCode)
+void ProcessCommandExecutor::onProcessFinished()
 {
     removeResponseFile();
-    const bool crashed = m_process.exitStatus() == QProcess::CrashExit;
-    const bool errorOccurred = crashed
-            || quint32(exitCode) > quint32(processCommand()->maxExitCode());
-    sendProcessOutput(!errorOccurred);
-
-    if (Q_UNLIKELY(crashed))
-        emit finished(ErrorInfo(Tr::tr("Process crashed.")));
-    else if (Q_UNLIKELY(errorOccurred))
-        emit finished(ErrorInfo(Tr::tr("Process failed with exit code %1.").arg(exitCode)));
-    else
-        emit finished();
+    sendProcessOutput();
 }
 
 void ProcessCommandExecutor::doReportCommandDescription()

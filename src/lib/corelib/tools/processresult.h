@@ -57,7 +57,7 @@ public:
     QString executableFilePath() const;
     QStringList arguments() const;
     QString workingDirectory() const;
-    QProcess::ExitStatus exitStatus() const;
+    QProcess::ProcessError error() const;
     int exitCode() const;
     QStringList stdOut() const;
     QStringList stdErr() const;

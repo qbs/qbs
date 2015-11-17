@@ -88,11 +88,12 @@ QString ProcessResult::workingDirectory() const
 }
 
 /*!
- * \brief Returns the exit status of the command.
+ * \brief Returns the error status of the process. If no error occurred, the value
+ *        is \c Process::UnknownError.
  */
-QProcess::ExitStatus ProcessResult::exitStatus() const
+QProcess::ProcessError ProcessResult::error() const
 {
-    return d->exitStatus;
+    return d->error;
 }
 
 /*!

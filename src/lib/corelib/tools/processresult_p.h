@@ -45,7 +45,7 @@ public:
     QStringList arguments;
     QString workingDirectory;
 
-    QProcess::ExitStatus exitStatus;
+    QProcess::ProcessError error;
     int exitCode;
     QStringList stdOut;
     QStringList stdErr;
