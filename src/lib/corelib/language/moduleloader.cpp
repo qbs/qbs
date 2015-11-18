@@ -506,6 +506,19 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     projectContext->products << productContext;
 }
 
+class SearchPathsManager {
+public:
+    SearchPathsManager(ItemReader *itemReader, const QStringList &extraSearchPaths)
+        : m_itemReader(itemReader)
+    {
+        m_itemReader->pushExtraSearchPaths(extraSearchPaths);
+    }
+    ~SearchPathsManager() { m_itemReader->popExtraSearchPaths(); }
+
+private:
+    ItemReader * const m_itemReader;
+};
+
 void ModuleLoader::handleProduct(ProductContext *productContext)
 {
     checkCancelation();
@@ -521,7 +534,7 @@ void ModuleLoader::handleProduct(ProductContext *productContext)
         if (!m_moduleSearchPaths.contains(p) && FileInfo(p).exists())
             extraSearchPaths << p;
     }
-    m_reader->pushExtraSearchPaths(extraSearchPaths);
+    SearchPathsManager searchPathsManager(m_reader, extraSearchPaths);
 
     DependsContext dependsContext;
     dependsContext.product = productContext;
@@ -539,7 +552,6 @@ void ModuleLoader::handleProduct(ProductContext *productContext)
     }
 
     productContext->project->result->productInfos.insert(item, productContext->info);
-    m_reader->popExtraSearchPaths();
 }
 
 void ModuleLoader::initProductProperties(const ProductContext &product)
