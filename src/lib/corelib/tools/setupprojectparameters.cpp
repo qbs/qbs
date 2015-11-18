@@ -54,7 +54,7 @@ public:
         , dryRun(false)
         , logElapsedTime(false)
         , restoreBehavior(SetupProjectParameters::RestoreAndTrackChanges)
-        , propertyCheckingMode(SetupProjectParameters::PropertyCheckingRelaxed)
+        , propertyCheckingMode(ErrorHandlingMode::Relaxed)
         , environment(QProcessEnvironment::systemEnvironment())
     {
     }
@@ -76,7 +76,7 @@ public:
     bool dryRun;
     bool logElapsedTime;
     SetupProjectParameters::RestoreBehavior restoreBehavior;
-    SetupProjectParameters::PropertyCheckingMode propertyCheckingMode;
+    ErrorHandlingMode propertyCheckingMode;
     QProcessEnvironment environment;
 };
 
@@ -542,16 +542,17 @@ void SetupProjectParameters::setRestoreBehavior(SetupProjectParameters::RestoreB
 }
 
 /*!
- * \enum SetupProjectParamaters::PropertyCheckingMode
- * This enum type specifies how \QBS should behave if it encounters unknown properties.
- * \value PropertyCheckingStrict Project resolving will stop with an error message.
- * \value PropertyCheckingRelaxed Project resolving will continue, and a warning will be printed.
+ * \enum ErrorHandlingMode
+ * This enum type specifies how \QBS should behave if errors occur during project resolving.
+ * \value ErrorHandlingMode::Strict Project resolving will stop with an error message.
+ * \value ErrorHandlingMode::Relaxed Project resolving will continue (if possible), and a warning
+ *        will be printed.
  */
 
 /*!
  * Indicates how to handle unknown properties.
  */
-SetupProjectParameters::PropertyCheckingMode SetupProjectParameters::propertyCheckingMode() const
+ErrorHandlingMode SetupProjectParameters::propertyCheckingMode() const
 {
     return d->propertyCheckingMode;
 }
@@ -560,7 +561,7 @@ SetupProjectParameters::PropertyCheckingMode SetupProjectParameters::propertyChe
  * Controls how to handle unknown properties.
  * The default is \c PropertyCheckingRelaxed.
  */
-void SetupProjectParameters::setPropertyCheckingMode(SetupProjectParameters::PropertyCheckingMode mode)
+void SetupProjectParameters::setPropertyCheckingMode(ErrorHandlingMode mode)
 {
     d->propertyCheckingMode = mode;
 }

@@ -45,6 +45,8 @@ class Settings;
 
 namespace Internal { class SetupProjectParametersPrivate; }
 
+enum class ErrorHandlingMode { Strict, Relaxed };
+
 class QBS_EXPORT SetupProjectParameters
 {
 public:
@@ -111,9 +113,8 @@ public:
     RestoreBehavior restoreBehavior() const;
     void setRestoreBehavior(RestoreBehavior behavior);
 
-    enum PropertyCheckingMode { PropertyCheckingStrict, PropertyCheckingRelaxed };
-    PropertyCheckingMode propertyCheckingMode() const;
-    void setPropertyCheckingMode(PropertyCheckingMode mode);
+    ErrorHandlingMode propertyCheckingMode() const;
+    void setPropertyCheckingMode(ErrorHandlingMode mode);
 
 private:
     QSharedDataPointer<Internal::SetupProjectParametersPrivate> d;

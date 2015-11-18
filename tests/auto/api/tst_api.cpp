@@ -1393,7 +1393,7 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &proje
                                                    + QFileInfo(projectFilePath).path());
     setupParams.setProjectFilePath(projectDirPath + QLatin1Char('/')
                                    + QFileInfo(projectFilePath).fileName());
-    setupParams.setPropertyCheckingMode(qbs::SetupProjectParameters::PropertyCheckingStrict);
+    setupParams.setPropertyCheckingMode(qbs::ErrorHandlingMode::Strict);
     QDir::setCurrent(projectDirPath);
     setupParams.setBuildRoot(projectDirPath);
     qbs::Settings settings((QString()));

@@ -148,7 +148,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
 static void handlePropertyError(const ErrorInfo &error, const SetupProjectParameters &params,
                                 Logger logger)
 {
-    if (params.propertyCheckingMode() == SetupProjectParameters::PropertyCheckingStrict)
+    if (params.propertyCheckingMode() == ErrorHandlingMode::Strict)
         throw error;
     logger.printWarning(error);
 }

@@ -72,7 +72,7 @@ TestLanguage::TestLanguage(ILogSink *logSink)
     qsrand(QTime::currentTime().msec());
     qRegisterMetaType<QList<bool> >("QList<bool>");
     defaultParameters.setBuildRoot("/some/build/directory");
-    defaultParameters.setPropertyCheckingMode(SetupProjectParameters::PropertyCheckingStrict);
+    defaultParameters.setPropertyCheckingMode(ErrorHandlingMode::Strict);
 }
 
 TestLanguage::~TestLanguage()
