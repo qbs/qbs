@@ -465,8 +465,8 @@
 
     \section2 Selecting Files by Properties
 
-    The classical (pre-lighthouse) Qt case is that you have a file that is only going to
-    be compiled on a certain platform. This is how you do it:
+    Sometimes you have a file that is only going to be compiled on a certain platform.
+    This is how you do it:
     \code
         Group {
             condition: qbs.targetOS.contains("windows")
