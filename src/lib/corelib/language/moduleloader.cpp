@@ -251,8 +251,22 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
 
     foreach (ProjectContext *projectContext, tlp.projects) {
         m_reader->setExtraSearchPathsStack(projectContext->searchPathsStack);
-        for (auto it = projectContext->products.begin(); it != projectContext->products.end(); ++it)
-            handleProduct(it);
+        for (auto it = projectContext->products.begin(); it != projectContext->products.end();
+             ++it) {
+            try {
+                handleProduct(it);
+            } catch (const ErrorInfo &err) {
+                if (m_parameters.productErrorMode() == ErrorHandlingMode::Strict
+                        || it->name.isEmpty()) {
+                    throw err;
+                }
+                m_logger.printWarning(err);
+                ModuleLoaderResult::ProductInfo pi;
+                pi.hasError = true;
+                it->project->result->productInfos.insert(it->item, pi);
+                m_disabledItems << it->item;
+            }
+        }
     }
     foreach (const Item * const disabledItem, m_disabledItems) {
         if (disabledItem->type() == ItemType::Product) {

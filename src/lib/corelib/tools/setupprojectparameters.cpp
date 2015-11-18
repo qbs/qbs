@@ -55,6 +55,7 @@ public:
         , logElapsedTime(false)
         , restoreBehavior(SetupProjectParameters::RestoreAndTrackChanges)
         , propertyCheckingMode(ErrorHandlingMode::Relaxed)
+        , productErrorMode(ErrorHandlingMode::Strict)
         , environment(QProcessEnvironment::systemEnvironment())
     {
     }
@@ -77,6 +78,7 @@ public:
     bool logElapsedTime;
     SetupProjectParameters::RestoreBehavior restoreBehavior;
     ErrorHandlingMode propertyCheckingMode;
+    ErrorHandlingMode productErrorMode;
     QProcessEnvironment environment;
 };
 
@@ -564,6 +566,24 @@ ErrorHandlingMode SetupProjectParameters::propertyCheckingMode() const
 void SetupProjectParameters::setPropertyCheckingMode(ErrorHandlingMode mode)
 {
     d->propertyCheckingMode = mode;
+}
+
+/*!
+ * \brief Indicates how errors occurring during product resolving are handled.
+ */
+ErrorHandlingMode SetupProjectParameters::productErrorMode() const
+{
+    return d->productErrorMode;
+}
+
+/*!
+ * \brief Specifies whether an error occurring during product resolving should be fatal or not.
+ * \note Not all errors can be ignored; this setting is mainly intended for things such as
+ *       missing dependencies or references to non-existing source files.
+ */
+void SetupProjectParameters::setProductErrorMode(ErrorHandlingMode mode)
+{
+    d->productErrorMode = mode;
 }
 
 } // namespace qbs

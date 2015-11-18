@@ -116,6 +116,9 @@ public:
     ErrorHandlingMode propertyCheckingMode() const;
     void setPropertyCheckingMode(ErrorHandlingMode mode);
 
+    ErrorHandlingMode productErrorMode() const;
+    void setProductErrorMode(ErrorHandlingMode mode);
+
 private:
     QSharedDataPointer<Internal::SetupProjectParametersPrivate> d;
 };

@@ -1530,6 +1530,50 @@ void TestLanguage::qbsPropertiesInProjectCondition()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::relaxedErrorMode()
+{
+    QFETCH(bool, strictMode);
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("relaxed-error-mode/relaxed-error-mode.qbs"));
+        params.setProductErrorMode(strictMode ? ErrorHandlingMode::Strict
+                                              : ErrorHandlingMode::Relaxed);
+        const TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(!strictMode);
+        const auto productMap = productsFromProject(project);
+        const ResolvedProductConstPtr brokenProduct = productMap.value("broken");
+        QVERIFY(!brokenProduct->enabled);
+        QCOMPARE(brokenProduct->allFiles().count(), 0);
+        const ResolvedProductConstPtr dependerRequired = productMap.value("depender required");
+        QVERIFY(!dependerRequired->enabled);
+        QCOMPARE(dependerRequired->allFiles().count(), 1);
+        const ResolvedProductConstPtr dependerNonRequired
+                = productMap.value("depender nonrequired");
+        QVERIFY(dependerNonRequired->enabled);
+        QCOMPARE(dependerNonRequired->allFiles().count(), 1);
+        const ResolvedProductConstPtr recursiveDepender = productMap.value("recursive depender");
+        QVERIFY(!recursiveDepender->enabled);
+        QCOMPARE(recursiveDepender->allFiles().count(), 1);
+        const ResolvedProductConstPtr missingFile = productMap.value("missing file");
+        QVERIFY(missingFile->enabled);
+        QCOMPARE(missingFile->groups.count(), 1);
+        QVERIFY(!missingFile->groups.first()->enabled);
+        const ResolvedProductConstPtr fine = productMap.value("fine");
+        QVERIFY(fine->enabled);
+        QCOMPARE(fine->allFiles().count(), 1);
+    } catch (const ErrorInfo &e) {
+        QVERIFY2(strictMode, qPrintable(e.toString()));
+    }
+}
+
+void TestLanguage::relaxedErrorMode_data()
+{
+    QTest::addColumn<bool>("strictMode");
+
+    QTest::newRow("strict mode") << true;
+    QTest::newRow("relaxed mode") << false;
+}
+
 void TestLanguage::qualifiedId()
 {
     QString str = "foo.bar.baz";

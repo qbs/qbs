@@ -82,6 +82,7 @@ struct ModuleLoaderResult
         };
 
         QList<Dependency> usedProducts;
+        bool hasError = false;
     };
 
     QSharedPointer<ItemPool> itemPool;

@@ -329,6 +329,14 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     product->profile = m_evaluator->stringValue(item, QLatin1String("profile"));
     QBS_CHECK(!product->profile.isEmpty());
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->uniqueName();
+    m_productsByName.insert(product->uniqueName(), product);
+    const ModuleLoaderResult::ProductInfo &pi = m_loadResult.productInfos.value(item);
+    if (pi.hasError) {
+        m_logger.qbsWarning()
+                << Tr::tr("Product '%1' had errors and was disabled.").arg(product->name);
+        product->enabled = false;
+        return;
+    }
 
     product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
     product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
@@ -391,7 +399,6 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     foreach (const ResolvedTransformerPtr &transformer, product->transformers)
         matchArtifactProperties(product, transformer->outputs);
 
-    m_productsByName.insert(product->uniqueName(), product);
     foreach (const FileTag &t, product->fileTags)
         m_productsByType[t] << product;
 
@@ -605,8 +612,12 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
             }
             loc = filesValue->location();
         }
-        if (fileError.hasError())
-            throw ErrorInfo(fileError);
+        if (fileError.hasError()) {
+            if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
+                throw ErrorInfo(fileError);
+            m_logger.printWarning(fileError);
+            group->enabled = false;
+        }
     }
 
     group->name = m_evaluator->stringValue(item, QLatin1String("name"));
@@ -842,7 +853,7 @@ void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext
 }
 
 QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const ResolvedProductConstPtr &product,
-        const ModuleLoaderResult::ProductInfo &productInfo)
+        const ModuleLoaderResult::ProductInfo &productInfo, bool &disabledDependency)
 {
     QList<ModuleLoaderResult::ProductInfo::Dependency> dependencies = productInfo.usedProducts;
     QList<ResolvedProductPtr> usedProducts;
@@ -890,7 +901,9 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
                          .arg(product->name, usedProduct->name), product->location);
                 e.append(Tr::tr("but product '%1' is disabled.").arg(usedProduct->name),
                              usedProduct->location);
-                throw e;
+                if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
+                    throw e;
+                disabledDependency = true;
             }
             usedProducts << usedProduct;
         }
@@ -931,10 +944,34 @@ static bool hasDependencyCycle(QSet<ResolvedProduct *> *checked,
     return false;
 }
 
+using DependencyMap = QHash<ResolvedProduct *, QSet<ResolvedProduct *>>;
+void gatherDependencies(ResolvedProduct *product, DependencyMap &dependencies)
+{
+    if (dependencies.contains(product))
+        return;
+    QSet<ResolvedProduct *> &productDeps = dependencies[product];
+    foreach (const ResolvedProductPtr &dep, product->dependencies) {
+        productDeps << dep.data();
+        gatherDependencies(dep.data(), dependencies);
+        productDeps += dependencies.value(dep.data());
+    }
+}
+
+
+
+static DependencyMap allDependencies(const QList<ResolvedProductPtr> &products)
+{
+    DependencyMap dependencies;
+    foreach (const ResolvedProductPtr &product, products)
+        gatherDependencies(product.data(), dependencies);
+    return dependencies;
+}
+
 void ProjectResolver::resolveProductDependencies(const ProjectContext &projectContext)
 {
     // Resolve all inter-product dependencies.
     QList<ResolvedProductPtr> allProducts = projectContext.project->allProducts();
+    bool disabledDependency = false;
     foreach (const ResolvedProductPtr &rproduct, allProducts) {
         if (!rproduct->enabled)
             continue;
@@ -942,7 +979,7 @@ void ProjectResolver::resolveProductDependencies(const ProjectContext &projectCo
         const ModuleLoaderResult::ProductInfo &productInfo
                 = m_loadResult.productInfos.value(productItem);
         foreach (const ResolvedProductPtr &usedProduct,
-                 getProductDependencies(rproduct, productInfo)) {
+                 getProductDependencies(rproduct, productInfo, disabledDependency)) {
             rproduct->dependencies.insert(usedProduct);
         }
     }
@@ -956,6 +993,28 @@ void ProjectResolver::resolveProductDependencies(const ProjectContext &projectCo
             error.prepend(rproduct->name, rproduct->location);
             error.prepend(Tr::tr("Cyclic dependencies detected."));
             throw error;
+        }
+    }
+
+    // Mark all products as disabled that have a disabled dependency.
+    if (disabledDependency && m_setupParams.productErrorMode() == ErrorHandlingMode::Relaxed) {
+        const DependencyMap allDeps = allDependencies(allProducts);
+        DependencyMap allDepsReversed;
+        for (auto it = allDeps.constBegin(); it != allDeps.constEnd(); ++it) {
+            foreach (ResolvedProduct *dep, it.value())
+                allDepsReversed[dep] << it.key();
+        }
+        for (auto it = allDepsReversed.constBegin(); it != allDepsReversed.constEnd(); ++it) {
+            if (it.key()->enabled)
+                continue;
+            foreach (ResolvedProduct * const dependingProduct, it.value()) {
+                if (dependingProduct->enabled) {
+                    m_logger.qbsWarning() << Tr::tr("Disabling product '%1', because it depends on "
+                                                    "disabled product '%2'.")
+                                             .arg(dependingProduct->name, it.key()->name);
+                    dependingProduct->enabled = false;
+                }
+            }
         }
     }
 }

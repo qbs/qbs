@@ -111,6 +111,8 @@ private slots:
     void propertiesBlocks();
     void propertiesBlockInGroup();
     void qbsPropertiesInProjectCondition();
+    void relaxedErrorMode();
+    void relaxedErrorMode_data();
     void defaultValue();
     void defaultValue_data();
     void qualifiedId();
