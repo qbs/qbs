@@ -139,6 +139,7 @@ private slots:
     void listPropertiesWithOuter();
     void listPropertyOrder();
     void loadableModule();
+    void lrelease();
     void missingProfile();
     void mixedBuildVariants();
     void multipleChanges();

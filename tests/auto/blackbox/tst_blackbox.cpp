@@ -2963,6 +2963,14 @@ void TestBlackbox::loadableModule()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::lrelease()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/lrelease"));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(regularFileExists(relativeProductBuildDir("lrelease-test") + "/de.qm"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("lrelease-test") + "/hu.qm"));
+}
+
 void TestBlackbox::badInterpreter()
 {
     if (!HostOsInfo::isAnyUnixHost())
