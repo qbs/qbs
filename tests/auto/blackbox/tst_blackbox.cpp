@@ -2969,6 +2969,21 @@ void TestBlackbox::lrelease()
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(relativeProductBuildDir("lrelease-test") + "/de.qm"));
     QVERIFY(regularFileExists(relativeProductBuildDir("lrelease-test") + "/hu.qm"));
+
+    QCOMPARE(runQbs(QString("clean")), 0);
+    QbsRunParameters params(QStringList({ "Qt.core.lreleaseMultiplexMode:true"}));
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(regularFileExists(relativeProductBuildDir("lrelease-test") + "/lrelease-test.qm"));
+    QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/de.qm"));
+    QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/hu.qm"));
+
+    QCOMPARE(runQbs(QString("clean")), 0);
+    params.arguments << "Qt.core.qmBaseName:somename";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(regularFileExists(relativeProductBuildDir("lrelease-test") + "/somename.qm"));
+    QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/lrelease-test.qm"));
+    QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/de.qm"));
+    QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/hu.qm"));
 }
 
 void TestBlackbox::badInterpreter()

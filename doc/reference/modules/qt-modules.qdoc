@@ -237,6 +237,12 @@
         \li \c{undefined}
         \li The path in which the Qt libraries are located.
     \row
+        \li lreleaseMultiplexMode
+        \li \c{bool}
+        \li \c{false}
+        \li If this property is \c true, \c lrelease will merge all ts files into one qm file.
+            Otherwise, one qm file will be created for every ts file.
+    \row
         \li lreleaseName
         \li \c{string}
         \li \c{"lrelease"}
@@ -273,6 +279,12 @@
         \li \c{string}
         \li \c{"qdoc3"} for Qt 4, \c{"qdoc"} otherwise
         \li The base name of the \c qdoc tool.
+    \row
+        \li qmBaseName
+        \li \c{string}
+        \li \c{product.targetName}
+        \li The base name of the qm file to be built from the ts files in the product.
+            This property is ignored if \c lreleaseMultiplexMode is \c false.
     \row
         \li qtBuildVariant
         \li \c{string}

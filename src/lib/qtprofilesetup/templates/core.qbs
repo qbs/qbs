@@ -73,7 +73,10 @@ Module {
     // We don't want to resolve them against the source directory
     property string generatedFilesDir: product.buildDirectory + "/GeneratedFiles"
     property string qdocOutputDir: FileInfo.joinPaths(generatedFilesDir, "html")
-    property string qmFilesDir: product.destinationDirectory
+    property string qmDir: product.destinationDirectory
+    property string qmBaseName: product.targetName
+    property string qmFilesDir: qmDir // TODO: Remove in 1.6
+    property bool lreleaseMultiplexMode: false
 
     cpp.defines: {
         var defines = @defines@;
@@ -283,18 +286,26 @@ Module {
 
     Rule {
         inputs: ["ts"]
+        multiplex: ModUtils.moduleProperty(product, "lreleaseMultiplexMode")
 
         Artifact {
-            filePath: FileInfo.joinPaths(ModUtils.moduleProperty(product, "qmFilesDir"),
-                                         input.completeBaseName + ".qm")
+            filePath: FileInfo.joinPaths(ModUtils.moduleProperty(product, "qmDir"),
+                    (ModUtils.moduleProperty(product, "lreleaseMultiplexMode")
+                     ? ModUtils.moduleProperty(product, "qmBaseName")
+                     : input.baseName) + ".qm")
             fileTags: ["qm"]
         }
 
         prepare: {
+            var inputFilePaths;
+            if (ModUtils.moduleProperty(product, "lreleaseMultiplexMode"))
+                inputFilePaths = inputs["ts"].map(function(artifact) { return artifact.filePath; });
+            else
+                inputFilePaths = [input.filePath];
+            var args = ['-silent', '-qm', output.filePath].concat(inputFilePaths);
             var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/'
-                                  + ModUtils.moduleProperty(product, "lreleaseName"),
-                                  ['-silent', input.filePath, '-qm', output.filePath]);
-            cmd.description = 'lrelease ' + input.fileName;
+                                  + ModUtils.moduleProperty(product, "lreleaseName"), args);
+            cmd.description = 'Creating ' + output.fileName;
             cmd.highlight = 'filegen';
             return cmd;
         }
