@@ -88,9 +88,9 @@ static QProcessEnvironment *getProcessEnvironment(QScriptContext *context, QScri
     QProcessEnvironment *procenv = reinterpret_cast<QProcessEnvironment *>(v.value<void *>());
     if (!procenv)
         throw context->throwError(QScriptContext::UnknownError,
-                                  QStringLiteral("%1 can only be called from "
-                                                 "Module.setupBuildEnvironment and "
-                                                 "Module.setupRunEnvironment").arg(func));
+                                  QStringLiteral("%1 can only be called from ").arg(func) +
+                                  QStringLiteral("Module.setupBuildEnvironment and ") +
+                                  QStringLiteral("Module.setupRunEnvironment"));
     return procenv;
 }
 
