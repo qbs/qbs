@@ -1312,9 +1312,10 @@ void TestApi::processResult()
     QFETCH(int, expectedExitCode);
     QFETCH(bool, redirectStdout);
     QFETCH(bool, redirectStderr);
-    const QVariantMap overridden({ std::make_pair("app-caller.argument", expectedExitCode),
-                                   std::make_pair("app-caller.redirectStdout", redirectStdout),
-                                   std::make_pair("app-caller.redirectStderr", redirectStderr) });
+    QVariantMap overridden;
+    overridden.insert("app-caller.argument", expectedExitCode);
+    overridden.insert("app-caller.redirectStdout", redirectStdout);
+    overridden.insert("app-caller.redirectStderr", redirectStderr);
     ProcessResultReceiver resultReceiver;
     const qbs::ErrorInfo errorInfo = doBuildProject("process-result/process-result.qbs",
             nullptr, &resultReceiver, nullptr, qbs::BuildOptions(), overridden);
