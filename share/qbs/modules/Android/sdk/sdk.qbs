@@ -72,13 +72,7 @@ Module {
         return "1.5";
     }
 
-    property path buildToolsDir: {
-        var path = FileInfo.joinPaths(sdkDir, "build-tools", buildToolsVersion);
-        if (buildToolsVersionMajor >= 23)
-            return FileInfo.joinPaths(path, "bin");
-        return path;
-    }
-
+    property path buildToolsDir: FileInfo.joinPaths(sdkDir, "build-tools", buildToolsVersion)
     property path aaptFilePath: FileInfo.joinPaths(buildToolsDir, "aapt")
     property path aidlFilePath: FileInfo.joinPaths(buildToolsDir, "aidl")
     property path dxFilePath: FileInfo.joinPaths(buildToolsDir, "dx")
