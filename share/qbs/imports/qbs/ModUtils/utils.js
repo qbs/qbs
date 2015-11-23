@@ -246,7 +246,7 @@ var EnvironmentVariable = (function () {
         if (!name)
             throw "EnvironmentVariable c'tor needs a name as first argument.";
         this.name = name;
-        this.value = Environment.getEnv(name).toString();
+        this.value = Environment.getEnv(name) || "";
         this.separator = separator || "";
         this.convertPathSeparators = convertPathSeparators || false;
     }
