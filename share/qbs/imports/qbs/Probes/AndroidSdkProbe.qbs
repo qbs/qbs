@@ -36,6 +36,14 @@ import "../../../modules/Android/sdk/utils.js" as SdkUtils
 
 PathProbe {
     environmentPaths: Environment.getEnv("ANDROID_HOME")
+    platformPaths: {
+        if (qbs.hostOS.contains("windows"))
+            return [FileInfo.joinPaths(Environment.getEnv("LOCALAPPDATA"), "Android", "sdk")];
+        if (qbs.hostOS.contains("osx"))
+            return [FileInfo.joinPaths(Environment.getEnv("HOME"), "Library", "Android", "sdk")];
+        if (qbs.hostOS.contains("linux"))
+            return [FileInfo.joinPaths(Environment.getEnv("HOME"), "Android", "Sdk")];
+    }
 
     // Outputs
     property var buildToolsVersions
@@ -44,10 +52,10 @@ PathProbe {
     property string platform
 
     configure: {
-        var i;
-        for (i in environmentPaths) {
-            if (File.exists(FileInfo.joinPaths(environmentPaths[i], "tools", "android"))) {
-                path = environmentPaths[i];
+        var i, allPaths = (environmentPaths || []).concat(platformPaths || []);
+        for (i in allPaths) {
+            if (File.exists(FileInfo.joinPaths(allPaths[i], "tools", "android"))) {
+                path = allPaths[i];
                 buildToolsVersions = SdkUtils.availableBuildToolsVersions(path)
                 buildToolsVersion = buildToolsVersions[buildToolsVersions.length - 1];
                 platforms = SdkUtils.availableSdkPlatforms(path)

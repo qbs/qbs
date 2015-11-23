@@ -36,15 +36,31 @@ import qbs.FileInfo
 PathProbe {
     // Inputs
     property stringList hostOS: qbs.hostOS
+    property path sdkPath
 
     environmentPaths: Environment.getEnv("ANDROID_NDK_ROOT")
+    platformPaths: {
+        var paths = [];
+        if (sdkPath)
+            paths.push(FileInfo.joinPaths(sdkPath, "ndk-bundle"));
+        if (qbs.hostOS.contains("windows"))
+            paths.push(FileInfo.joinPaths(Environment.getEnv("LOCALAPPDATA"),
+                                          "Android", "sdk", "ndk-bundle"));
+        if (qbs.hostOS.contains("osx"))
+            paths.push(FileInfo.joinPaths(Environment.getEnv("HOME"),
+                                          "Library", "Android", "sdk", "ndk-bundle"));
+        if (qbs.hostOS.contains("linux"))
+            paths.push(FileInfo.joinPaths(Environment.getEnv("HOME"),
+                                          "Android", "Sdk", "ndk-bundle"));
+        return paths;
+    }
 
     // Outputs
     property var hostArch
 
     configure: {
-        var i, j;
-        for (i in environmentPaths) {
+        var i, j, allPaths = (environmentPaths || []).concat(platformPaths || []);
+        for (i in allPaths) {
             var platforms = [];
             if (hostOS.contains("windows"))
                 platforms.push("windows-x86_64", "windows");
@@ -53,9 +69,8 @@ PathProbe {
             if (hostOS.contains("linux"))
                 platforms.push("linux-x86_64", "linux-x86");
             for (j in platforms) {
-                if (File.exists(FileInfo.joinPaths(environmentPaths[i], "prebuilt",
-                                                   platforms[j]))) {
-                    path = environmentPaths[i];
+                if (File.exists(FileInfo.joinPaths(allPaths[i], "prebuilt", platforms[j]))) {
+                    path = allPaths[i];
                     hostArch = platforms[j];
                     found = true;
                     return;

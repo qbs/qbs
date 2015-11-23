@@ -225,6 +225,24 @@ static QString findExecutable(const QStringList &fileNames)
     return QString();
 }
 
+QMap<QString, QString> TestBlackbox::findAndroid(int *status)
+{
+    QTemporaryDir temp;
+    QDir::setCurrent(testDataDir + "/find");
+    QbsRunParameters params = QStringList() << "-f" << "find-android.qbs";
+    params.buildDirectory = temp.path();
+    const int res = runQbs(params);
+    if (status)
+        *status = res;
+    QFile file(temp.path() + "/" + relativeProductBuildDir("find-android") + "/android.json");
+    file.open(QIODevice::ReadOnly);
+    const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
+    return QMap<QString, QString> {
+        {"sdk", QDir::fromNativeSeparators(tools["sdk"].toString())},
+        {"ndk", QDir::fromNativeSeparators(tools["ndk"].toString())},
+    };
+}
+
 QMap<QString, QString> TestBlackbox::findJdkTools(int *status)
 {
     QTemporaryDir temp;
@@ -441,10 +459,13 @@ void TestBlackbox::android()
     QFETCH(QStringList, productNames);
     QFETCH(QList<int>, apkFileCounts);
 
+    int status;
+    const auto androidPaths = findAndroid(&status);
+
     QDir::setCurrent(testDataDir + "/android/" + projectDir);
     Settings s((QString()));
     Profile p("qbs_autotests-android", &s);
-    if (!p.exists() || !p.value("Android.sdk.ndkDir").isValid())
+    if (!p.exists() || (status != 0 && !p.value("Android.sdk.ndkDir").isValid()))
         QSKIP("No suitable Android test profile");
     QbsRunParameters params(QStringList("profile:" + p.name())
                             << "Android.ndk.platform:android-21");

@@ -45,6 +45,7 @@ Module {
 
     Probes.AndroidNdkProbe {
         id: ndkProbe
+        sdkPath: sdkProbe.path
         environmentPaths: [ndkDir].concat(base)
     }
 
