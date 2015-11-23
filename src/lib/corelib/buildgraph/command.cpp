@@ -262,30 +262,6 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
     applyCommandProperties(scriptValue);
 }
 
-static QProcess::ProcessError saveToFile(const QString &filePath, const QByteArray &content)
-{
-    QBS_ASSERT(!filePath.isEmpty(), return QProcess::WriteError);
-
-    QFile f(filePath);
-    if (!f.open(QIODevice::WriteOnly))
-        return QProcess::WriteError;
-
-    if (f.write(content) != content.size())
-        return QProcess::WriteError;
-    f.close();
-    return f.error() == QFileDevice::NoError ? QProcess::UnknownError : QProcess::WriteError;
-}
-
-QProcess::ProcessError ProcessCommand::saveStdout(const QByteArray &content) const
-{
-    return saveToFile(m_stdoutFilePath, content);
-}
-
-QProcess::ProcessError ProcessCommand::saveStderr(const QByteArray &content) const
-{
-    return saveToFile(m_stderrFilePath, content);
-}
-
 void ProcessCommand::load(PersistentPool &pool)
 {
     AbstractCommand::load(pool);

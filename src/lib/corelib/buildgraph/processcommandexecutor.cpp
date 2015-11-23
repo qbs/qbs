@@ -196,6 +196,49 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
     return filteredOutput.toString();
 }
 
+static QProcess::ProcessError saveToFile(const QString &filePath, const QByteArray &content)
+{
+    QBS_ASSERT(!filePath.isEmpty(), return QProcess::WriteError);
+
+    QFile f(filePath);
+    if (!f.open(QIODevice::WriteOnly))
+        return QProcess::WriteError;
+
+    if (f.write(content) != content.size())
+        return QProcess::WriteError;
+    f.close();
+    return f.error() == QFileDevice::NoError ? QProcess::UnknownError : QProcess::WriteError;
+}
+
+void ProcessCommandExecutor::getProcessOutput(bool stdOut, ProcessResult &result)
+{
+    QByteArray content;
+    QString filterFunction;
+    QString redirectPath;
+    QStringList *target;
+    if (stdOut) {
+        content = m_process.readAllStandardOutput();
+        filterFunction = processCommand()->stdoutFilterFunction();
+        redirectPath = processCommand()->stdoutFilePath();
+        target = &result.d->stdOut;
+    } else {
+        content = m_process.readAllStandardError();
+        filterFunction = processCommand()->stderrFilterFunction();
+        redirectPath = processCommand()->stderrFilePath();
+        target = &result.d->stdErr;
+    }
+    QString contentString = filterProcessOutput(content, filterFunction);
+    if (!redirectPath.isEmpty()) {
+        const QProcess::ProcessError error = saveToFile(redirectPath, contentString.toLocal8Bit());
+        if (result.error() == QProcess::UnknownError && error != QProcess::UnknownError)
+            result.d->error = error;
+    } else {
+        if (!contentString.isEmpty() && contentString.endsWith(QLatin1Char('\n')))
+            contentString.chop(1);
+        *target = contentString.split(QLatin1Char('\n'));
+    }
+}
+
 void ProcessCommandExecutor::sendProcessOutput()
 {
     ProcessResult result;
@@ -208,39 +251,9 @@ void ProcessCommandExecutor::sendProcessOutput()
     result.d->error = m_process.error();
     QString errorString = m_process.errorString();
 
-    QByteArray content = m_process.readAllStandardOutput();
-    QString tmp;
-    if (!processCommand()->stdoutFilterFunction().isEmpty())
-        tmp = filterProcessOutput(content, processCommand()->stdoutFilterFunction());
+    getProcessOutput(true, result);
+    getProcessOutput(false, result);
 
-    if (!processCommand()->stdoutFilePath().isEmpty()) {
-        result.d->error = processCommand()->saveStdout(tmp.isEmpty() ? content : tmp.toLocal8Bit());
-    } else {
-        if (tmp.isEmpty())
-            tmp = QString::fromLocal8Bit(content);
-        if (!tmp.isEmpty()) {
-            if (tmp.endsWith(QLatin1Char('\n')))
-                tmp.chop(1);
-            result.d->stdOut = tmp.split(QLatin1Char('\n'));
-        }
-    }
-
-    tmp.clear();
-    content = m_process.readAllStandardError();
-    if (!processCommand()->stderrFilterFunction().isEmpty())
-        tmp = filterProcessOutput(content, processCommand()->stderrFilterFunction());
-
-    if (!processCommand()->stderrFilePath().isEmpty()) {
-        result.d->error = processCommand()->saveStderr(tmp.isEmpty() ? content : tmp.toLocal8Bit());
-    } else {
-        if (tmp.isEmpty())
-            tmp = QString::fromLocal8Bit(content);
-        if (!tmp.isEmpty()) {
-            if (tmp.endsWith(QLatin1Char('\n')))
-                tmp.chop(1);
-            result.d->stdErr = tmp.split(QLatin1Char('\n'));
-        }
-    }
     const bool processError = result.error() != QProcess::UnknownError;
     const bool failureExit = quint32(m_process.exitCode())
             > quint32(processCommand()->maxExitCode());

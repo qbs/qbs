@@ -68,6 +68,8 @@ private:
 
     void startProcessCommand();
     QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
+    void getProcessOutput(bool stdOut, ProcessResult &result);
+
     void sendProcessOutput();
     void removeResponseFile();
     const ProcessCommand *processCommand() const;

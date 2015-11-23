@@ -113,9 +113,6 @@ public:
     QString stdoutFilePath() const { return m_stdoutFilePath; }
     QString stderrFilePath() const { return m_stderrFilePath; }
 
-    QProcess::ProcessError saveStdout(const QByteArray &content) const;
-    QProcess::ProcessError saveStderr(const QByteArray &content) const;
-
 private:
     ProcessCommand();
 
