@@ -1681,6 +1681,10 @@ static QProcessEnvironment processEnvironmentWithCurrentDirectoryInLibraryPath()
 
 void TestBlackbox::java()
 {
+#if defined(Q_OS_WIN32) && !defined(Q_OS_WIN64)
+    QSKIP("QTBUG-3845");
+#endif
+
     Settings settings((QString()));
     Profile p(profileName(), &settings);
 
