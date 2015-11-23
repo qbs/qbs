@@ -8,4 +8,10 @@ Module {
         prefix: path + "/"
         files: ["helper2.c"]
     }
+
+    Group {
+        name: "some other file from helper2"
+        prefix: product.sourceDirectory + '/'
+        files: ["someotherfile.txt"]
+    }
 }

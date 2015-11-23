@@ -518,7 +518,7 @@ void ModuleLoader::handleProduct(ProductContext *productContext)
     dependsContext.productDependencies = &productContext->info.usedProducts;
     resolveDependencies(&dependsContext, item);
     addTransitiveDependencies(productContext, productContext->item);
-    copyGroupsFromModulesToProduct(productContext->item);
+    copyGroupsFromModulesToProduct(*productContext);
     checkItemCondition(item);
 
     foreach (Item *child, item->children()) {
@@ -1652,18 +1652,22 @@ Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &r
     return module;
 }
 
-void ModuleLoader::copyGroupsFromModuleToProduct(Item *productItem, const Item *modulePrototype)
+void ModuleLoader::copyGroupsFromModuleToProduct(const ProductContext &productContext,
+                                                 const Item *modulePrototype)
 {
     for (int i = 0; i < modulePrototype->children().count(); ++i) {
         Item * const child = modulePrototype->children().at(i);
-        if (child->typeName() == QLatin1String("Group"))
-            Item::addChild(productItem, child->clone());
+        if (child->typeName() == QLatin1String("Group")) {
+            Item * const clonedGroup = child->clone();
+            clonedGroup->setScope(productContext.scope);
+            Item::addChild(productContext.item, clonedGroup);
+        }
     }
 }
 
-void ModuleLoader::copyGroupsFromModulesToProduct(Item *productItem)
+void ModuleLoader::copyGroupsFromModulesToProduct(const ProductContext &productContext)
 {
-    foreach (const Item::Module &module, productItem->modules()) {
+    foreach (const Item::Module &module, productContext.item->modules()) {
         Item *prototype = module.item;
         bool modulePassedValidation;
         while ((modulePassedValidation = prototype->isPresentModule()
@@ -1672,7 +1676,7 @@ void ModuleLoader::copyGroupsFromModulesToProduct(Item *productItem)
             prototype = prototype->prototype();
         }
         if (modulePassedValidation)
-            copyGroupsFromModuleToProduct(productItem, prototype);
+            copyGroupsFromModuleToProduct(productContext, prototype);
     }
 }
 
