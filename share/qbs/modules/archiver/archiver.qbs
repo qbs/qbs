@@ -38,11 +38,6 @@ Module {
     // This will most likely end up being used on Windows
     Depends { name: "java"; required: false }
 
-    // QBS-833 workaround
-    Probes.JdkProbe { id: jdk; environmentPaths: [java.jdkPath].concat(base) }
-    java.jdkPath: jdk.path
-    java.compilerVersion: jdk.version ? jdk.version[1] : undefined
-
     Probes.BinaryProbe {
         id: zipProbe
         names: ["zip"]

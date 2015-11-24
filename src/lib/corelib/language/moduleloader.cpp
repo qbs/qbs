@@ -36,6 +36,7 @@
 #include "filecontext.h"
 #include "item.h"
 #include "itemreader.h"
+#include "modulemerger.h"
 #include "qualifiedid.h"
 #include "scriptengine.h"
 #include "value.h"
@@ -615,9 +616,46 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
     productContext->project->result->productInfos.insert(item, productContext->info);
 }
 
+// Non-dependencies first.
+static void createSortedModuleList(const Item::Module &parentModule, QVector<Item::Module> &modules)
+{
+    if (modules.contains(parentModule))
+        return;
+    foreach (const Item::Module &dep, parentModule.item->modules())
+        createSortedModuleList(dep, modules);
+    modules << parentModule;
+    return;
+}
+
 void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 {
     Item * const item = productContext->item;
+
+    foreach (const Item::Module &module, item->modules())
+        ModuleMerger(m_logger, item, module.item, module.name).start();
+
+    // Must happen after all modules have been merged, so needs to be a second loop.
+    QVector<Item::Module> sortedModules;
+    foreach (const Item::Module &module, item->modules())
+        createSortedModuleList(module, sortedModules);
+    QBS_CHECK(sortedModules.count() == item->modules().count());
+
+    foreach (const Item::Module &module, sortedModules) {
+        if (!module.item->isPresentModule())
+            continue;
+        resolveProbes(module.item);
+        try {
+            m_evaluator->boolValue(module.item, QLatin1String("validate"));
+        } catch (const ErrorInfo &error) {
+            if (module.required) { // Error will be thrown for enabled products only
+                module.item->setDelayedError(error);
+            } else {
+                createNonPresentModule(module.name.toString(), QLatin1String("failed validation"),
+                                       module.item);
+            }
+        }
+    }
+
     resolveProbes(item);
 
     if (!checkItemCondition(item)) {
@@ -1006,19 +1044,6 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         return 0;
     instantiateModule(productContext, nullptr, item, moduleInstance, modulePrototype,
                       moduleName, *isProductDependency);
-    if (moduleInstance->isPresentModule()) {
-        resolveProbes(moduleInstance);
-        try {
-            m_evaluator->boolValue(moduleInstance, QLatin1String("validate"));
-        } catch (const ErrorInfo &error) {
-            if (isRequired) { // Error will be thrown for enabled products only
-                moduleInstance->setDelayedError(error);
-            } else {
-                return createNonPresentModule(moduleName.toString(),
-                                              QLatin1String("failed validation"), moduleInstance);
-            }
-        }
-    }
     return moduleInstance;
 }
 
@@ -1731,6 +1756,7 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
             if (!dep.item)
                 continue;
             dep.name = module.name;
+            dep.required = module.required;
             ctx->item->addModule(dep);
         }
     }

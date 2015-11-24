@@ -45,12 +45,33 @@ ModuleMerger::ModuleMerger(const Logger &logger, Item *root, Item *moduleToMerge
     , m_mergedModuleItem(moduleToMerge)
     , m_moduleName(moduleName)
 {
+    QBS_CHECK(moduleToMerge->type() == ItemType::ModuleInstance);
+}
+
+void ModuleMerger::replaceItemInValues(QualifiedId moduleName, Item *containerItem, Item *toReplace)
+{
+    QBS_CHECK(!moduleName.isEmpty());
+    QBS_CHECK(containerItem != m_mergedModuleItem);
+    const QString moduleNamePrefix = moduleName.takeFirst();
+    Item::PropertyMap properties = containerItem->properties();
+    for (auto it = properties.begin(); it != properties.end(); ++it) {
+        if (it.key() != moduleNamePrefix)
+            continue;
+        Value * const val = it.value().data();
+        QBS_CHECK(val);
+        QBS_CHECK(val->type() == Value::ItemValueType);
+        ItemValue * const itemVal = static_cast<ItemValue *>(val);
+        if (moduleName.isEmpty()) {
+            QBS_CHECK(itemVal->item() == toReplace);
+            itemVal->setItem(m_mergedModuleItem);
+        } else {
+            replaceItemInValues(moduleName, itemVal->item(), toReplace);
+        }
+    }
 }
 
 void ModuleMerger::start()
 {
-    if (!m_mergedModuleItem->isPresentModule())
-        return;
     Item::Module m;
     m.item = m_rootItem;
     const Item::PropertyMap props = dfs(m, Item::PropertyMap());
@@ -65,6 +86,21 @@ void ModuleMerger::start()
         mergedProps[it.key()] = it.value();
     }
     m_mergedModuleItem->setProperties(mergedProps);
+
+    foreach (Item *moduleInstanceContainer, m_moduleInstanceContainers) {
+        QList<Item::Module> modules;
+        foreach (const Item::Module &dep, moduleInstanceContainer->modules()) {
+            const bool isTheModule = dep.name == m_moduleName;
+            Item::Module m = dep;
+            if (isTheModule && m.item != m_mergedModuleItem) {
+                QBS_CHECK(m.item->type() == ItemType::ModuleInstance);
+                replaceItemInValues(m.name, moduleInstanceContainer, m.item);
+                m.item = m_mergedModuleItem;
+            }
+            modules << m;
+        }
+        moduleInstanceContainer->setModules(modules);
+    }
 }
 
 Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap props)
@@ -76,6 +112,7 @@ Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap pro
             --numberOfOutprops;
             moduleInstance = dep.item;
             insertProperties(&props, moduleInstance, ScalarProperties);
+            m_moduleInstanceContainers << m.item;
             break;
         }
     }

@@ -35,7 +35,6 @@
 #include "filecontext.h"
 #include "item.h"
 #include "language.h"
-#include "modulemerger.h"
 #include "propertymapinternal.h"
 #include "resolvedfilecontext.h"
 #include "scriptengine.h"
@@ -1132,11 +1131,6 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesCont
 
 QVariantMap ProjectResolver::createProductConfig() const
 {
-    foreach (const Item::Module &module, m_productContext->item->modules()) {
-        ModuleMerger merger(m_logger, m_productContext->item, module.item, module.name);
-        merger.start();
-    }
-
     m_evaluator->setCachingEnabled(true);
     QVariantMap cfg = evaluateModuleValues(m_productContext->item);
     cfg = evaluateProperties(m_productContext->item, m_productContext->item, cfg);

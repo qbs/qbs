@@ -162,12 +162,13 @@ public:
     static ItemValuePtr create(Item *item, bool createdByPropertiesBlock = false);
 
     Item *item() const { return m_item; }
+    void setItem(Item *item) { m_item = item; }
 
 private:
     void apply(ValueHandler *handler) override { handler->handle(this); }
     ValuePtr clone() const override;
 
-    Item * const m_item;
+    Item *m_item;
 };
 
 

@@ -3149,7 +3149,6 @@ void TestBlackbox::probesInNestedModules()
     QbsRunParameters params;
     QCOMPARE(runQbs(params), 0);
 
-    QEXPECT_FAIL(0, "ignore for now", Continue);
     QCOMPARE(m_qbsStdout.count("running probe a"), 1);
     QCOMPARE(m_qbsStdout.count("running probe b"), 1);
     QCOMPARE(m_qbsStdout.count("running probe c"), 1);
@@ -3160,7 +3159,6 @@ void TestBlackbox::probesInNestedModules()
     QVERIFY(m_qbsStdout.contains("product c, inner.something = hello"));
 
     QVERIFY(m_qbsStdout.contains("product a, inner.something = hahaha"));
-    QEXPECT_FAIL(0, "QBS-833", Continue);
     QVERIFY(m_qbsStdout.contains("product a, outer.something = hahaha"));
 }
 

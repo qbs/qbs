@@ -45,21 +45,8 @@ Module {
 
     additionalProductTypes: ["compiled_typescript"]
 
-    // QBS-833 workaround
-    Probes.NodeJsProbe { id: nodejsProbe; pathPrefixes: [nodejs.toolchainInstallPath] }
-    nodejs.toolchainInstallPath: nodejsProbe.path
-    nodejs.interpreterFileName: nodejsProbe.fileName
-    nodejs.interpreterFilePath: nodejsProbe.filePath
-    Probes.NpmProbe { id: npmProbe; pathPrefixes: [nodejs.toolchainInstallPath] }
-    nodejs.packageManagerFileName: npmProbe.fileName
-    nodejs.packageManagerFilePath: npmProbe.filePath
-    nodejs.packageManagerBinPath: npmProbe.packageManagerBinPath
-    nodejs.packageManagerRootPath: npmProbe.packageManagerRootPath
-    nodejs.packageManagerPrefixPath: npmProbe.packageManagerPrefixPath
-
     Probes.TypeScriptProbe {
         id: tsc
-        condition: nodejsProbe.found && npmProbe.found
         packageManagerBinPath: nodejs.packageManagerBinPath
         packageManagerRootPath: nodejs.packageManagerRootPath
     }

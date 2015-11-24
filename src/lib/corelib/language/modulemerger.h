@@ -57,6 +57,7 @@ private:
 
     enum PropertiesType { ScalarProperties, ListProperties };
     void insertProperties(Item::PropertyMap *dst, Item *srcItem, PropertiesType type);
+    void replaceItemInValues(QualifiedId moduleName, Item *containerItem, Item *toReplace);
 
     const Logger &m_logger;
     Item * const m_rootItem;
@@ -66,6 +67,7 @@ private:
     QHash<ValuePtr, PropertyDeclaration> m_decls;
     QSet<const Item *> m_seenInstancesTopDown;
     QSet<const Item *> m_seenInstancesBottomUp;
+    QSet<Item *> m_moduleInstanceContainers;
 };
 
 } // namespace Internal

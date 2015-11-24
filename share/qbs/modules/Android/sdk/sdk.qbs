@@ -90,11 +90,6 @@ Module {
     java.runtimeVersion: platformJavaVersion
     java.bootClassPaths: androidJarFilePath
 
-    // QBS-833 workaround
-    Probes.JdkProbe { id: jdk; environmentPaths: [java.jdkPath].concat(base) }
-    java.jdkPath: jdk.path
-    java.compilerVersion: jdk.version ? jdk.version[1] : undefined
-
     FileTagger {
         patterns: ["AndroidManifest.xml"]
         fileTags: ["android.manifest"]
