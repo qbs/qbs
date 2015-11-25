@@ -515,6 +515,10 @@ void TestLanguage::erroneousFiles_data()
             << "TypeError: Result of expression 'cpp.nonexistingproperty'";
     QTest::newRow("misused-inherited-property") << "Binding to non-item property";
     QTest::newRow("undeclared_property_in_Properties_item") << "Item 'blubb' is not declared";
+    QTest::newRow("same-module-prefix1") << "The name of module 'prefix1' is equal to the first "
+                                            "component of the name of module 'prefix1.suffix'";
+    QTest::newRow("same-module-prefix2") << "The name of module 'prefix2' is equal to the first "
+                                            "component of the name of module 'prefix2.suffix'";
 }
 
 void TestLanguage::erroneousFiles()
@@ -1142,13 +1146,13 @@ void TestLanguage::modules_data()
                               << "dummyqt.network")
             << QString("guiProperty,networkProperty");
     QTest::newRow("deep_module_name")
-            << (QStringList() << "qbs" << "dummy" << "dummy.deep.moat")
+            << (QStringList() << "qbs" << "deepdummy.deep.moat" << "dummy")
             << QString("abysmal");
     QTest::newRow("deep_module_name_submodule_syntax1")
-            << (QStringList() << "qbs" << "dummy" << "dummy.deep.moat")
+            << (QStringList() << "qbs" << "deepdummy.deep.moat" << "dummy")
             << QString("abysmal");
     QTest::newRow("deep_module_name_submodule_syntax2")
-            << (QStringList() << "qbs" << "dummy" << "dummy.deep.moat")
+            << (QStringList() << "qbs" << "deepdummy.deep.moat" << "dummy")
             << QString("abysmal");
     QTest::newRow("dummy_twice")
             << (QStringList() << "qbs" << "dummy")

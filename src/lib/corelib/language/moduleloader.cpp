@@ -837,6 +837,14 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
     }
 }
 
+Q_NORETURN static void throwModuleNamePrefixError(const QualifiedId &shortName,
+        const QualifiedId &longName, const CodeLocation &codeLocation)
+{
+    throw ErrorInfo(Tr::tr("The name of module '%1' is equal to the first component of the "
+                           "name of module '%2', which is not allowed")
+                    .arg(shortName.toString(), longName.toString()), codeLocation);
+}
+
 Item *ModuleLoader::moduleInstanceItem(Item *containerItem, const QualifiedId &moduleName)
 {
     QBS_CHECK(!moduleName.isEmpty());
@@ -851,8 +859,16 @@ Item *ModuleLoader::moduleInstanceItem(Item *containerItem, const QualifiedId &m
             instance->setProperty(moduleNameSegment, ItemValue::create(newItem));
             instance = newItem;
         }
-        if (i < moduleName.count() - 1)
-            instance->setType(ItemType::ModulePrefix);
+        if (i < moduleName.count() - 1) {
+            if (instance->type() == ItemType::ModuleInstance) {
+                QualifiedId conflictingName = QStringList(moduleName.mid(0, i + 1));
+                throwModuleNamePrefixError(conflictingName, moduleName, CodeLocation());
+            }
+            if (instance->type() != ItemType::ModulePrefix) {
+                QBS_CHECK(instance->type() == ItemType::Unknown);
+                instance->setType(ItemType::ModulePrefix);
+            }
+        }
     }
     QBS_CHECK(instance != containerItem);
     return instance;
@@ -898,6 +914,13 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         // already handled
         return moduleInstance;
     }
+    if (Q_UNLIKELY(moduleInstance->type() == ItemType::ModulePrefix)) {
+        foreach (const Item::Module &m, item->modules()) {
+            if (m.name.first() == moduleName.first())
+                throwModuleNamePrefixError(moduleName, m.name, dependsItemLocation);
+        }
+    }
+    QBS_CHECK(moduleInstance->type() == ItemType::Unknown);
 
     *isProductDependency = true;
     Item *modulePrototype = loadProductModule(productContext, moduleName.toString());

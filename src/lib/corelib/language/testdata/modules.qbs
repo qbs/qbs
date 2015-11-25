@@ -28,24 +28,24 @@ Project {
     }
     Product {
         name: "deep_module_name"
-        property var foo: dummy.deep.moat.depth
+        property var foo: deepdummy.deep.moat.depth
         Depends {
-            name: "dummy.deep.moat"
+            name: "deepdummy.deep.moat"
         }
     }
     Product {
         name: "deep_module_name_submodule_syntax1"
-        property var foo: dummy.deep.moat.depth
+        property var foo: deepdummy.deep.moat.depth
         Depends {
-            name: "dummy.deep"
+            name: "deepdummy.deep"
             submodules: ["moat"]
         }
     }
     Product {
         name: "deep_module_name_submodule_syntax2"
-        property var foo: dummy.deep.moat.depth
+        property var foo: deepdummy.deep.moat.depth
         Depends {
-            name: "dummy"
+            name: "deepdummy"
             submodules: ["deep.moat"]
         }
     }
