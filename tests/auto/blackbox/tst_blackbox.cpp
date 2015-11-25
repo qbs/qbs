@@ -3140,7 +3140,7 @@ void TestBlackbox::probesInNestedModules()
 
     QVERIFY(m_qbsStdout.contains("product a, inner.something = hahaha"));
     QEXPECT_FAIL(0, "QBS-833", Continue);
-    QVERIFY(m_qbsStdout.contains("product a, outer.something = hello"));
+    QVERIFY(m_qbsStdout.contains("product a, outer.something = hahaha"));
 }
 
 void TestBlackbox::xcode()
