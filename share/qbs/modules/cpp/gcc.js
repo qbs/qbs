@@ -563,17 +563,13 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
     var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
 
     var args = [];
-    if (haveTargetOption(product)) {
-        args.push("-target", product.moduleProperty("cpp", "target"));
-    } else {
-        var arch = product.moduleProperty("cpp", "targetArch");
-        if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
-            args.push("-arch", arch);
-        else if (arch === 'x86_64')
-            args.push('--64');
-        else if (arch === 'i386')
-            args.push('--32');
-    }
+    var arch = product.moduleProperty("cpp", "targetArch");
+    if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
+        args.push("-arch", arch);
+    else if (arch === 'x86_64')
+        args.push('--64');
+    else if (arch === 'i386')
+        args.push('--32');
 
     if (ModUtils.moduleProperty(input, "debugInformation"))
         args.push('-g');
