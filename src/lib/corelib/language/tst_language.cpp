@@ -32,6 +32,8 @@
 
 #include "tst_language.h"
 
+#include "../../../../tests/auto/shared.h"
+
 #include <language/evaluator.h>
 #include <language/filecontext.h>
 #include <language/identifiersearch.h>
@@ -146,7 +148,7 @@ void TestLanguage::initTestCase()
     loader = new Loader(m_engine, m_logger);
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "/../../../share/qbs"));
-    defaultParameters.setTopLevelProfile("qbs_autotests");
+    defaultParameters.setTopLevelProfile(profileName());
     defaultParameters.setBuildVariant("debug");
     defaultParameters.expandBuildConfiguration();
     QVERIFY(QFileInfo(m_wildcardsTestDirPath).isAbsolute());
