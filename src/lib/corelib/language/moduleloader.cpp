@@ -67,6 +67,66 @@ class ModuleLoader::ItemModuleList : public QList<Item::Module> {};
 
 const QString moduleSearchSubDir = QLatin1String("modules");
 
+class ModuleLoader::ProductSortByDependencies
+{
+public:
+    ProductSortByDependencies(TopLevelProjectContext &tlp) : m_tlp(tlp)
+    {
+    }
+
+    void apply()
+    {
+        QHash<QString, ProductContext *> productsMap;
+        QList<ProductContext *> allProducts;
+        for (auto projIt = m_tlp.projects.begin(); projIt != m_tlp.projects.end(); ++projIt) {
+            QVector<ProductContext> &products = (*projIt)->products;
+            for (auto prodIt = products.begin(); prodIt != products.end(); ++prodIt) {
+                allProducts << prodIt;
+                productsMap.insert(prodIt->name, prodIt);
+            }
+        }
+        QSet<ProductContext *> allDependencies;
+        foreach (auto productContext, allProducts) {
+            auto &productDependencies = m_dependencyMap[productContext];
+            foreach (const auto &dep, productContext->info.usedProducts) {
+                if (!dep.productTypes.isEmpty())
+                    continue;
+                QBS_CHECK(!dep.name.isEmpty());
+                ProductContext * const depProduct = productsMap.value(dep.name);
+                QBS_CHECK(depProduct);
+                productDependencies << depProduct;
+                allDependencies << depProduct;
+            }
+        }
+        QSet<ProductContext *> rootProducts = allProducts.toSet() - allDependencies;
+        foreach (ProductContext * const rootProduct, rootProducts)
+            traverse(rootProduct);
+    }
+
+    // No product at position i has dependencies to a product at position j > i.
+    QList<ProductContext *> sortedProducts()
+    {
+        return m_sortedProducts;
+    }
+
+private:
+    void traverse(ModuleLoader::ProductContext *product)
+    {
+        if (m_seenProducts.contains(product))
+            return;
+        m_seenProducts << product;
+        foreach (auto dependency, m_dependencyMap.value(product))
+            traverse(dependency);
+        m_sortedProducts << product;
+    }
+
+    TopLevelProjectContext &m_tlp;
+    QHash<ProductContext *, QVector<ProductContext *>> m_dependencyMap;
+    QSet<ProductContext *> m_seenProducts;
+    QList<ProductContext *> m_sortedProducts;
+};
+
+
 ModuleLoader::ModuleLoader(ScriptEngine *engine,
                            const Logger &logger)
     : m_engine(engine)
@@ -254,7 +314,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
         for (auto it = projectContext->products.begin(); it != projectContext->products.end();
              ++it) {
             try {
-                handleProduct(it);
+                setupProductDependencies(it);
             } catch (const ErrorInfo &err) {
                 if (m_parameters.productErrorMode() == ErrorHandlingMode::Strict
                         || it->name.isEmpty()) {
@@ -268,14 +328,11 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
             }
         }
     }
-    foreach (const Item * const disabledItem, m_disabledItems) {
-        if (disabledItem->type() == ItemType::Product) {
-            const QString name = m_evaluator->stringValue(disabledItem, QStringLiteral("name"));
-            Item * const productModule = m_productModuleCache.value(name);
-            if (productModule)
-                createNonPresentModule(name, QLatin1String("disabled"), productModule);
-        }
-    }
+
+    ProductSortByDependencies productSorter(tlp);
+    productSorter.apply();
+    foreach (ProductContext * const p, productSorter.sortedProducts())
+        handleProduct(p);
 
     m_reader->clearExtraSearchPathsStack();
     checkItemTypes(projectItem);
@@ -533,7 +590,7 @@ private:
     ItemReader * const m_itemReader;
 };
 
-void ModuleLoader::handleProduct(ProductContext *productContext)
+void ModuleLoader::setupProductDependencies(ProductContext *productContext)
 {
     checkCancelation();
     Item *item = productContext->item;
@@ -555,17 +612,26 @@ void ModuleLoader::handleProduct(ProductContext *productContext)
     dependsContext.productDependencies = &productContext->info.usedProducts;
     resolveDependencies(&dependsContext, item);
     addTransitiveDependencies(productContext);
-    copyGroupsFromModulesToProduct(productContext->item);
-    checkItemCondition(item);
+    productContext->project->result->productInfos.insert(item, productContext->info);
+}
+
+void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
+{
+    Item * const item = productContext->item;
+    resolveProbes(item);
+
+    if (!checkItemCondition(item)) {
+        Item * const productModule = m_productModuleCache.value(productContext->name);
+        if (productModule && productModule->isPresentModule())
+            createNonPresentModule(productContext->name, QLatin1String("disabled"), productModule);
+    }
+
+    copyGroupsFromModulesToProduct(item);
 
     foreach (Item *child, item->children()) {
         if (child->type() == ItemType::Group)
             handleGroup(productContext, child);
-        else if (child->type() == ItemType::Probe)
-            resolveProbe(item, child);
     }
-
-    productContext->project->result->productInfos.insert(item, productContext->info);
 }
 
 void ModuleLoader::initProductProperties(const ProductContext &product)

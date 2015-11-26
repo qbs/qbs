@@ -16,4 +16,20 @@ Project {
             name: "dependee"
         }
     }
+
+    Product {
+        name: "p1"
+        condition: p2.present
+        Depends { name: "p2"; required: false }
+    }
+    Product {
+        name: "p2"
+        condition: p3.present
+        Depends { name: "p3"; required: false }
+    }
+    Product {
+        name: "p3"
+        condition: nosuchmodule.present
+        Depends { name: "nosuchmodule"; required: false }
+    }
 }

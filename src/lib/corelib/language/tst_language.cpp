@@ -54,6 +54,7 @@
 #include <tools/settings.h>
 
 #include <QProcessEnvironment>
+#include <QVector>
 
 #include <algorithm>
 
@@ -1196,7 +1197,7 @@ void TestLanguage::nonRequiredProducts()
         const TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(project);
         const auto products = productsFromProject(project);
-        QCOMPARE(products.count(), 1 + !!subProjectEnabled);
+        QCOMPARE(products.count(), 4 + !!subProjectEnabled);
         const ResolvedProductConstPtr dependee = products.value("dependee");
         QCOMPARE(subProjectEnabled, !dependee.isNull());
         if (dependee)
@@ -1207,6 +1208,12 @@ void TestLanguage::nonRequiredProducts()
                 .propertyValue(depender->moduleProperties->value(), "dummy", "defines")
                 .toStringList();
         QCOMPARE(subProjectEnabled && dependeeEnabled, defines.contains("WITH_DEPENDEE"));
+
+        for (const auto &name : QVector<const char *>({ "p3", "p2", "p1"})) {
+             const ResolvedProductConstPtr &product = products.value(name);
+             QVERIFY2(product, name);
+             QVERIFY2(!product->enabled, name);
+        }
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -1338,7 +1345,7 @@ void TestLanguage::productConditions()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 4);
+        QCOMPARE(products.count(), 6);
         ResolvedProductPtr product;
         product = products.value("product_no_condition");
         QVERIFY(product);
@@ -1355,6 +1362,14 @@ void TestLanguage::productConditions()
         product = products.value("product_false_condition");
         QVERIFY(product);
         QVERIFY(!product->enabled);
+
+        product = products.value("product_probe_condition_false");
+        QVERIFY(product);
+        QVERIFY(!product->enabled);
+
+        product = products.value("product_probe_condition_true");
+        QVERIFY(product);
+        QVERIFY(product->enabled);
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;

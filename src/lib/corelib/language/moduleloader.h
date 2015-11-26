@@ -111,6 +111,7 @@ public:
     ModuleLoaderResult load(const SetupProjectParameters &parameters);
 
 private:
+    class ProductSortByDependencies;
     struct ItemCacheValue {
         explicit ItemCacheValue(Item *module = 0, bool enabled = false)
             : module(module), enabled(enabled) {}
@@ -190,6 +191,7 @@ private:
             const QSet<QString> &referencedFilePaths);
     QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);
     void prepareProduct(ProjectContext *projectContext, Item *productItem);
+    void setupProductDependencies(ProductContext *productContext);
     void handleProduct(ProductContext *productContext);
     void initProductProperties(const ProductContext &product);
     void handleSubProject(ProjectContext *projectContext, Item *projectItem,
