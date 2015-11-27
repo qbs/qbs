@@ -33,8 +33,6 @@
 
 extern "C" void qt_osx_forceTransformProcessToForegroundApplicationAndActivate()
 {
-    ProcessSerialNumber psn;
-    if (GetCurrentProcess(&psn) == noErr)
-        TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+    [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
     [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
 }
