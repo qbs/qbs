@@ -118,9 +118,7 @@ void PropertyList::readFromObject(const QScriptValue &value)
 
 void PropertyList::readFromString(const QString &input)
 {
-    Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
-    p->d->readFromData(p->context(), input.toUtf8());
+    readFromData(input.toUtf8());
 }
 
 void PropertyList::readFromFile(const QString &filePath)
@@ -139,6 +137,13 @@ void PropertyList::readFromFile(const QString &filePath)
     } else {
         p->context()->throwError(file.errorString());
     }
+}
+
+void PropertyList::readFromData(const QByteArray &data)
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    p->d->readFromData(p->context(), data);
 }
 
 void PropertyList::writeToFile(const QString &filePath, const QString &plistFormat)

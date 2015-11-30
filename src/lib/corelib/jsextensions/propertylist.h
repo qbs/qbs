@@ -79,6 +79,7 @@ public:
     Q_INVOKABLE void readFromObject(const QScriptValue &value);
     Q_INVOKABLE void readFromString(const QString &input);
     Q_INVOKABLE void readFromFile(const QString &filePath);
+    Q_INVOKABLE void readFromData(const QByteArray &data);
     Q_INVOKABLE void writeToFile(const QString &filePath, const QString &plistFormat);
     Q_INVOKABLE QScriptValue format() const;
     Q_INVOKABLE QScriptValue toObject() const;
