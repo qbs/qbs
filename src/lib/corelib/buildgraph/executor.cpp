@@ -212,12 +212,10 @@ void Executor::doBuild()
     }
 
     doSanityChecks();
+    QBS_CHECK(!m_project->buildData->evaluationContext);
+    m_project->buildData->evaluationContext
+            = RulesEvaluationContextPtr(new RulesEvaluationContext(m_logger));
     m_evalContext = m_project->buildData->evaluationContext;
-    if (!m_evalContext) { // Is null before the first build.
-        m_evalContext = RulesEvaluationContextPtr(new RulesEvaluationContext(m_logger));
-        m_project->buildData->evaluationContext = m_evalContext;
-    }
-
 
     InstallOptions installOptions;
     installOptions.setDryRun(m_buildOptions.dryRun());
