@@ -47,9 +47,7 @@ class EnvironmentExtension : public QObject, QScriptable
 {
     Q_OBJECT
 public:
-    friend void initializeJsExtensionEnvironment(QScriptValue extensionObject);
-
-private:
+    void initializeJsExtensionEnvironment(QScriptValue extensionObject);
     static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getEnv(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_putEnv(QScriptContext *context, QScriptEngine *engine);
@@ -149,6 +147,22 @@ QScriptValue EnvironmentExtension::js_currentEnv(QScriptContext *context, QScrip
     foreach (const QString &key, procenv->keys())
         envObject.setProperty(key, QScriptValue(procenv->value(key)));
     return envObject;
+}
+
+QScriptValue js_getEnvDeprecated(QScriptContext *context, QScriptEngine *qtengine)
+{
+    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    engine->logger().qbsWarning() << QStringLiteral("qbs.getEnv is deprecated and will be \
+removed in Qbs 1.6. Use Environment.getEnv instead.");
+    return EnvironmentExtension::js_getEnv(context, engine);
+}
+
+QScriptValue js_currentEnvDeprecated(QScriptContext *context, QScriptEngine *qtengine)
+{
+    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    engine->logger().qbsWarning() << QStringLiteral("qbs.currentEnv is deprecated and will be \
+removed in Qbs 1.6. Use Environment.currentEnv instead.");
+    return EnvironmentExtension::js_currentEnv(context, engine);
 }
 
 } // namespace Internal

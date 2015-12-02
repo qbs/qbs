@@ -37,6 +37,7 @@
 #include "scriptpropertyobserver.h"
 
 #include <buildgraph/artifact.h>
+#include <jsextensions/environmentextension.h>
 #include <jsextensions/jsextensions.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -516,6 +517,8 @@ private:
 void ScriptEngine::installQbsBuiltins()
 {
     globalObject().setProperty(QLatin1String("qbs"), m_qbsObject = newObject());
+    installQbsFunction(QLatin1String("getEnv"), 1, js_getEnvDeprecated);
+    installQbsFunction(QLatin1String("currentEnv"), 0, js_currentEnvDeprecated);
 
     globalObject().setProperty(QLatin1String("console"), m_consoleObject = newObject());
     installConsoleFunction(QLatin1String("debug"),
@@ -562,18 +565,18 @@ void ScriptEngine::extendJavaScriptBuiltins()
                                QLatin1String("(function(e){return this.slice(-e.length) === e;})"));
 }
 
-void ScriptEngine::installFunction(const QString &name, QScriptValue *functionValue,
+void ScriptEngine::installFunction(const QString &name, int length, QScriptValue *functionValue,
         FunctionSignature f, QScriptValue *targetObject = 0)
 {
     if (!functionValue->isValid())
-        *functionValue = newFunction(f);
+        *functionValue = newFunction(f, length);
     (targetObject ? *targetObject : globalObject()).setProperty(name, *functionValue);
 }
 
-void ScriptEngine::installQbsFunction(const QString &name, FunctionSignature f)
+void ScriptEngine::installQbsFunction(const QString &name, int length, FunctionSignature f)
 {
     QScriptValue functionValue;
-    installFunction(name, &functionValue, f, &m_qbsObject);
+    installFunction(name, length, &functionValue, f, &m_qbsObject);
 }
 
 void ScriptEngine::installConsoleFunction(const QString &name, FunctionWithArgSignature f)
@@ -583,8 +586,8 @@ void ScriptEngine::installConsoleFunction(const QString &name, FunctionWithArgSi
 
 void ScriptEngine::installImportFunctions()
 {
-    installFunction(QLatin1String("loadFile"), &m_loadFileFunction, js_loadFile);
-    installFunction(QLatin1String("loadExtension"), &m_loadExtensionFunction, js_loadExtension);
+    installFunction(QLatin1String("loadFile"), 1, &m_loadFileFunction, js_loadFile);
+    installFunction(QLatin1String("loadExtension"), 1, &m_loadExtensionFunction, js_loadExtension);
 }
 
 void ScriptEngine::uninstallImportFunctions()

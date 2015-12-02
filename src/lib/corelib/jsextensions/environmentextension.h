@@ -33,10 +33,18 @@
 
 #include <QScriptValue>
 
+QT_BEGIN_NAMESPACE
+class QScriptContext;
+class QScriptEngine;
+QT_END_NAMESPACE
+
 namespace qbs {
 namespace Internal {
 
 void initializeJsExtensionEnvironment(QScriptValue extensionObject);
+
+QScriptValue js_getEnvDeprecated(QScriptContext *context, QScriptEngine *engine);
+QScriptValue js_currentEnvDeprecated(QScriptContext *context, QScriptEngine *engine);
 
 } // namespace Internal
 } // namespace qbs

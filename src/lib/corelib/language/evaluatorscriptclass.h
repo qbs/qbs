@@ -98,6 +98,8 @@ private:
     QueryResult m_queryResult;
     Logger m_logger;
     bool m_valueCacheEnabled;
+    QScriptValue m_getEnvBuiltin;
+    QScriptValue m_currentEnvBuiltin;
     QStack<JSSourceValue *> m_sourceValueStack;
     QSet<Value *> m_currentNextChain;
 };

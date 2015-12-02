@@ -128,8 +128,9 @@ private:
 
     void installQbsBuiltins();
     void extendJavaScriptBuiltins();
-    void installFunction(const QString &name, QScriptValue *functionValue, FunctionSignature f, QScriptValue *targetObject);
-    void installQbsFunction(const QString &name, FunctionSignature f);
+    void installFunction(const QString &name, int length, QScriptValue *functionValue,
+                         FunctionSignature f, QScriptValue *targetObject);
+    void installQbsFunction(const QString &name, int length, FunctionSignature f);
     void installConsoleFunction(const QString &name, FunctionWithArgSignature f);
     void installImportFunctions();
     void uninstallImportFunctions();

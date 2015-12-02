@@ -41,6 +41,8 @@ class BuiltinValue : public Value
 public:
     enum Builtin
     {
+        GetEnvFunction,
+        CurrentEnvFunction
     };
 
     static BuiltinValuePtr create(Builtin builtin);

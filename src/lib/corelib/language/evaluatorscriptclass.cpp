@@ -42,6 +42,7 @@
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
 #include <tools/shellutils.h>
+#include <jsextensions/environmentextension.h>
 
 #include <QByteArray>
 #include <QScriptString>
@@ -280,6 +281,8 @@ EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Log
     , m_logger(logger)
     , m_valueCacheEnabled(false)
 {
+    m_getEnvBuiltin = scriptEngine->newFunction(js_getEnvDeprecated, 1);
+    m_currentEnvBuiltin = scriptEngine->newFunction(js_currentEnvDeprecated, 0);
 }
 
 QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue &object,
@@ -513,6 +516,10 @@ void EvaluatorScriptClass::setValueCacheEnabled(bool enabled)
 QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin builtin) const
 {
     switch (builtin) {
+    case BuiltinValue::GetEnvFunction:
+        return m_getEnvBuiltin;
+    case BuiltinValue::CurrentEnvFunction:
+        return m_currentEnvBuiltin;
     }
     QBS_ASSERT(!"unhandled builtin", ;);
     return QScriptValue();
