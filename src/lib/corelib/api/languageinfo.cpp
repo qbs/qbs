@@ -52,7 +52,9 @@ QByteArray LanguageInfo::qmlTypeInfo()
     result.append("Module {\n");
 
     // Individual Components:
-    foreach (const QString &typeName, builtins.allTypeNames()) {
+    auto typeNames = builtins.allTypeNames();
+    typeNames.sort();
+    foreach (const QString &typeName, typeNames) {
         QByteArray utf8TypeName = typeName.toUtf8();
         result.append("    Component {\n");
         result.append(QByteArray("        name: \"") + utf8TypeName + QByteArray("\"\n"));
@@ -65,7 +67,12 @@ QByteArray LanguageInfo::qmlTypeInfo()
 
         Internal::ItemDeclaration itemDecl
                 = builtins.declarationsForType(builtins.typeForName(typeName));
-        foreach (const Internal::PropertyDeclaration &property, itemDecl.properties()) {
+        auto properties = itemDecl.properties();
+        std::sort(std::begin(properties), std::end(properties), []
+                  (const Internal::PropertyDeclaration &a, const Internal::PropertyDeclaration &b) {
+            return a.name() < b.name();
+        });
+        foreach (const Internal::PropertyDeclaration &property, properties) {
             result.append("        Property { name: \"");
             result.append(property.name().toUtf8());
             result.append("\"; ");
