@@ -158,7 +158,8 @@ static PropertyDeclaration buildDirProperty()
 
 static PropertyDeclaration prepareScriptProperty()
 {
-    PropertyDeclaration decl(QLatin1String("prepare"), PropertyDeclaration::Verbatim);
+    PropertyDeclaration decl(QLatin1String("prepare"), PropertyDeclaration::Variant,
+                             PropertyDeclaration::PropertyNotAvailableInConfig);
     decl.setFunctionArgumentNames(
                 QStringList()
                 << QLatin1String("project") << QLatin1String("product")
@@ -263,9 +264,11 @@ void BuiltinDeclarations::addModuleLikeItem(ItemType type)
     item << nameProperty();
     item << conditionProperty();
     item << PropertyDeclaration(QLatin1String("setupBuildEnvironment"),
-                                      PropertyDeclaration::Verbatim);
+                                      PropertyDeclaration::Variant,
+                                      PropertyDeclaration::PropertyNotAvailableInConfig);
     item << PropertyDeclaration(QLatin1String("setupRunEnvironment"),
-                                      PropertyDeclaration::Verbatim);
+                                      PropertyDeclaration::Variant,
+                                      PropertyDeclaration::PropertyNotAvailableInConfig);
     item << PropertyDeclaration(QLatin1String("validate"),
                                       PropertyDeclaration::Boolean,
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
@@ -284,7 +287,8 @@ void BuiltinDeclarations::addProbeItem()
     PropertyDeclaration foundProperty(QLatin1String("found"), PropertyDeclaration::Boolean);
     foundProperty.setInitialValueSource(QLatin1String("false"));
     item << foundProperty;
-    item << PropertyDeclaration(QLatin1String("configure"), PropertyDeclaration::Verbatim);
+    item << PropertyDeclaration(QLatin1String("configure"), PropertyDeclaration::Variant,
+                                PropertyDeclaration::PropertyNotAvailableInConfig);
     insert(item);
 }
 
@@ -364,7 +368,7 @@ void BuiltinDeclarations::addPropertyOptionsItem()
 {
     ItemDeclaration item(ItemType::PropertyOptions);
     item << nameProperty();
-    item << PropertyDeclaration(QLatin1String("allowedValues"), PropertyDeclaration::Verbatim);
+    item << PropertyDeclaration(QLatin1String("allowedValues"), PropertyDeclaration::Variant);
     item << PropertyDeclaration(QLatin1String("description"), PropertyDeclaration::String);
     insert(item);
 }
@@ -382,7 +386,8 @@ void BuiltinDeclarations::addRuleItem()
     item << PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String);
     item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("outputFileTags"), PropertyDeclaration::StringList);
-    decl = PropertyDeclaration(QLatin1String("outputArtifacts"), PropertyDeclaration::Verbatim);
+    decl = PropertyDeclaration(QLatin1String("outputArtifacts"), PropertyDeclaration::Variant,
+                               PropertyDeclaration::PropertyNotAvailableInConfig);
     decl.setFunctionArgumentNames(
                 QStringList()
                 << QLatin1String("project") << QLatin1String("product")
@@ -448,7 +453,8 @@ void BuiltinDeclarations::addScannerItem()
                 << QLatin1String("product")
                 << QLatin1String("input"));
     item << searchPaths;
-    PropertyDeclaration scan(QLatin1String("scan"), PropertyDeclaration::Verbatim);
+    PropertyDeclaration scan(QLatin1String("scan"), PropertyDeclaration::Variant,
+                             PropertyDeclaration::PropertyNotAvailableInConfig);
     scan.setFunctionArgumentNames(
                 QStringList()
                 << QLatin1String("project")

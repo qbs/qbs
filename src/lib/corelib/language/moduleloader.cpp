@@ -1020,8 +1020,6 @@ static QVariant::Type variantType(PropertyDeclaration::Type t)
         return QVariant::StringList;
     case PropertyDeclaration::Variant:
         break;
-    case PropertyDeclaration::Verbatim:
-        return QVariant::String;
     }
     return QVariant::Invalid;
 }

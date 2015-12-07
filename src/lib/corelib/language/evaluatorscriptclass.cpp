@@ -405,7 +405,6 @@ inline void convertToPropertyType(const Item *item, const PropertyDeclaration::T
     switch (t) {
     case PropertyDeclaration::UnknownType:
     case PropertyDeclaration::Variant:
-    case PropertyDeclaration::Verbatim:
         break;
     case PropertyDeclaration::Boolean:
         if (!v.isBool())

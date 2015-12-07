@@ -103,9 +103,6 @@ QByteArray LanguageInfo::qmlTypeInfo()
             case qbs::Internal::PropertyDeclaration::Variant:
                 result.append("type: \"QVariant\"");
                 break;
-            case qbs::Internal::PropertyDeclaration::Verbatim:
-                result.append("type: \"string\"");
-                break;
             }
             result.append(" }\n"); // Property
         }

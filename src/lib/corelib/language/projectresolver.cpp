@@ -1087,9 +1087,7 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesCont
             if (result.contains(it.key()))
                 break;
             const PropertyDeclaration pd = item->propertyDeclaration(it.key());
-            if (pd.type() == PropertyDeclaration::Verbatim
-                || pd.flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
-            {
+            if (pd.flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig)) {
                 break;
             }
 
