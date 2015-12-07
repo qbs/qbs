@@ -61,7 +61,8 @@ QByteArray LanguageInfo::qmlTypeInfo()
         result.append("        exports: [ \"qbs/");
         result.append(utf8TypeName);
         result.append(" ");
-        result.append(builtins.languageVersion().toString().toUtf8());
+        const auto v = builtins.languageVersion();
+        result.append(QString::asprintf("%d.%d", v.majorVersion(), v.minorVersion()).toUtf8());
         result.append("\" ]\n");
         result.append("        prototype: \"QQuickItem\"\n");
 
