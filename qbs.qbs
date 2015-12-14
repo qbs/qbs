@@ -45,6 +45,9 @@ Project {
 
     AutotestRunner {
         Depends { name: "Qt.core" }
+        Depends { name: "qbs resources" }
+        Depends { name: "qbs_cpp_scanner" }
+        Depends { name: "qbs_qt_scanner" }
         environment: {
             var env = base;
             if (qbs.hostOS.contains("windows") && qbs.targetOS.contains("windows")) {
