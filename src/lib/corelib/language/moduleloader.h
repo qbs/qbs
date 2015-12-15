@@ -235,8 +235,9 @@ private:
                                 const QVariantMap &buildConfig);
     void addTransitiveDependencies(ProductContext *ctx);
     Item *createNonPresentModule(const QString &name, const QString &reason, Item *module);
-    void copyGroupsFromModuleToProduct(Item *productItem, const Item *modulePrototype);
-    void copyGroupsFromModulesToProduct(Item *productItem);
+    void copyGroupsFromModuleToProduct(const ProductContext &productContext,
+                                       const Item *modulePrototype);
+    void copyGroupsFromModulesToProduct(const ProductContext &productContext);
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;

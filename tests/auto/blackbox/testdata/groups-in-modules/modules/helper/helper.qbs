@@ -19,6 +19,12 @@ Module {
         files: ["chunk.coal"]
     }
 
+    Group {
+        name: "some other file from helper"
+        prefix: project.sourceDirectory + '/'
+        files: ["someotherfile2.txt"]
+    }
+
     FileTagger {
         patterns: ["*.coal"]
         fileTags: ["coal"]

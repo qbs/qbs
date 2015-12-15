@@ -250,10 +250,13 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
             libFilePath += QString::fromLatin1(simplifiedLine.mid(equalsOffset + 1).trimmed());
             if (isNonStaticQt4OnWindows)
                 libFilePath += QString::number(4); // This is *not* part of QMAKE_PRL_TARGET...
-            if (qtEnv.mkspecName.contains(QLatin1String("msvc")))
-                libFilePath += QLatin1String(".lib");
-            else if (isMingw)
-                libFilePath += QLatin1String(".a");
+            if (qtEnv.qtMajorVersion < 5
+                    || (qtEnv.qtMajorVersion == 5 && qtEnv.qtMinorVersion < 6)) {
+                if (qtEnv.mkspecName.contains(QLatin1String("msvc")))
+                    libFilePath += QLatin1String(".lib");
+                else if (isMingw)
+                    libFilePath += QLatin1String(".a");
+            }
             continue;
         }
         if (!simplifiedLine.startsWith("QMAKE_PRL_LIBS"))

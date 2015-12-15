@@ -421,8 +421,7 @@
     \endcode
 
     A module can implicitly depend on other modules. For example, the \c Qt.core module depends
-    on \c{cpp}. But to set the properties of a module you must explicitly import
-    it.
+    on \c{cpp}. But to set the properties of a module you must make the dependency explicit.
 
     \code
         // THIS DOES NOT WORK
@@ -466,8 +465,8 @@
 
     \section2 Selecting Files by Properties
 
-    The classical (pre-lighthouse) Qt case is that you have a file that is only going to
-    be compiled on a certain platform. This is how you do it:
+    Sometimes you have a file that is only going to be compiled on a certain platform.
+    This is how you do it:
     \code
         Group {
             condition: qbs.targetOS.contains("windows")
