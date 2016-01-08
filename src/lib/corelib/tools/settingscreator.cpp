@@ -83,7 +83,8 @@ void SettingsCreator::migrate()
     }
     const QString oldSettingsFilePath = oldSettingsDir + QLatin1Char('/') + m_settingsFileName;
     if (QFileInfo(oldSettingsFilePath).exists()
-            && !QFile::copy(oldSettingsFilePath, m_newSettingsFilePath)) {
+            && (!QDir::root().mkpath(m_newSettingsDir)
+                || !QFile::copy(oldSettingsFilePath, m_newSettingsFilePath))) {
         qWarning() << "Error in settings migration: Could not copy" << oldSettingsFilePath
                    << "to" << m_newSettingsFilePath;
     }
