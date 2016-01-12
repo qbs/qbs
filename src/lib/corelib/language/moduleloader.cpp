@@ -643,8 +643,8 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
     foreach (const Item::Module &module, sortedModules) {
         if (!module.item->isPresentModule())
             continue;
-        resolveProbes(module.item);
         try {
+            resolveProbes(module.item);
             m_evaluator->boolValue(module.item, QLatin1String("validate"));
         } catch (const ErrorInfo &error) {
             if (module.required) { // Error will be thrown for enabled products only
