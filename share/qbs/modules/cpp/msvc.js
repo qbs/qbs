@@ -176,7 +176,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var linkDLL = (outputs.dynamiclibrary ? true : false)
     var primaryOutput = (linkDLL ? outputs.dynamiclibrary[0] : outputs.application[0])
     var debugInformation = ModUtils.moduleProperty(product, "debugInformation")
-    var generateManifestFiles = !linkDLL && ModUtils.moduleProperty(product, "generateManifestFiles")
+    var generateManifestFiles = !linkDLL && ModUtils.moduleProperty(product, "generateManifestFile")
 
     var args = ['/nologo']
     if (linkDLL) {

@@ -591,6 +591,13 @@
         \li Default
         \li Description
     \row
+        \li generateManifestFile
+        \li \c{bool}
+        \li 1.5.0
+        \li \c{true}
+        \li Specifies whether to auto-generate a manifest file and include it in the binary.
+            Disable this property if you provide your own rc file.
+    \row
         \li windowsApiCharacterSet
         \li \c{string}
         \li 1.0.1

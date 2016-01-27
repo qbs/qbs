@@ -40,7 +40,7 @@ Module {
     property stringList dynamicLibraries // list of names, will be linked with /reference:name
     property stringList netmodules // list of netmodule files, will be linked with /addmodule:name
 
-    property bool generateManifestFiles: true
+    property bool generateManifestFile: true
 
     property string toolchainInstallPath
 

@@ -72,7 +72,8 @@ CppModule {
     runtimeLibrary: "dynamic"
     separateDebugInformation: true
 
-    property bool generateManifestFiles: true
+    property bool generateManifestFile: true
+    property bool generateManifestFiles: generateManifestFile // TODO: Remove in 1.6
     property path toolchainInstallPath
     architecture: qbs.architecture
     staticLibraryPrefix: ""
