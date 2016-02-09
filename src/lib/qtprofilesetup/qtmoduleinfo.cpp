@@ -583,9 +583,11 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
             } else if (key.endsWith(".includes")) {
                 moduleInfo.includePaths = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
                 for (int i = 0; i < moduleInfo.includePaths.count(); ++i) {
-                    moduleInfo.includePaths[i].replace(
-                                QLatin1String("$$QT_MODULE_INCLUDE_BASE"),
-                                qtEnvironment.includePath);
+                    moduleInfo.includePaths[i]
+                            .replace(QLatin1String("$$QT_MODULE_INCLUDE_BASE"),
+                                     qtEnvironment.includePath)
+                            .replace(QLatin1String("$$QT_MODULE_LIB_BASE"),
+                                     qtEnvironment.libraryPath);
                 }
             } else if (key.endsWith(".DEFINES")) {
                 moduleInfo.compilerDefines = QString::fromLocal8Bit(value)
@@ -606,8 +608,8 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
             moduleInfo.hasLibrary = false;
 
         // Fix include paths for OS X and iOS frameworks.
-        // The qt_lib_XXX.pri files contain wrong values.
-        if (moduleInfo.isFramework(qtEnvironment)) {
+        // The qt_lib_XXX.pri files contain wrong values for versions < 5.6.
+        if (!hasV2 && moduleInfo.isFramework(qtEnvironment)) {
             moduleInfo.includePaths.clear();
             QString baseIncDir = moduleInfo.frameworkHeadersPath(qtEnvironment);
             if (moduleInfo.isPrivate) {
