@@ -548,6 +548,8 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
         const QByteArray moduleKeyPrefix = QByteArray(moduleInfo.isPlugin ? "QT_PLUGIN" : "QT")
                 + '.' + moduleInfo.qbsName.toLatin1() + '.';
         moduleInfo.qbsName.replace(QLatin1String("_private"), QLatin1String("-private"));
+        bool hasV2 = false;
+        bool hasModuleEntry = false;
         foreach (const QByteArray &line, getPriFileContentsRecursively(profile, dit.filePath())) {
             const QByteArray simplifiedLine = line.simplified();
             const int firstEqualsOffset = simplifiedLine.indexOf('=');
@@ -559,6 +561,8 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
                 continue;
             if (key.endsWith(".name")) {
                 moduleInfo.name = QString::fromLocal8Bit(value);
+            } else if (key.endsWith(".module")) {
+                hasModuleEntry = true;
             } else if (key.endsWith(".depends")) {
                 moduleInfo.dependencies = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
                 for (int i = 0; i < moduleInfo.dependencies.count(); ++i) {
@@ -573,6 +577,8 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
                         moduleInfo.isStaticLibrary = true;
                     else if (elem == "internal_module")
                         moduleInfo.isPrivate = true;
+                    else if (elem == "v2")
+                        hasV2 = true;
                 }
             } else if (key.endsWith(".includes")) {
                 moduleInfo.includePaths = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
@@ -596,6 +602,8 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
                 moduleInfo.pluginData.className = QString::fromLatin1(value);
             }
         }
+        if (hasV2 && !hasModuleEntry)
+            moduleInfo.hasLibrary = false;
 
         // Fix include paths for OS X and iOS frameworks.
         // The qt_lib_XXX.pri files contain wrong values.
