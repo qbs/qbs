@@ -31,6 +31,7 @@
 #include "languageinfo.h"
 
 #include <language/builtindeclarations.h>
+#include <tools/version.h>
 
 #include <QStringList>
 
@@ -113,6 +114,11 @@ QByteArray LanguageInfo::qmlTypeInfo()
     // Footer:
     result.append("}\n"); // Module
     return result;
+}
+
+QString LanguageInfo::qbsVersion()
+{
+    return Internal::Version::qbsVersion().toString();
 }
 
 } // namespace qbs

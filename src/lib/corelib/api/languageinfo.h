@@ -43,6 +43,8 @@ public:
     LanguageInfo();
 
     QByteArray qmlTypeInfo();
+
+    static QString qbsVersion(); // TODO: Use QVersionNumber once we require Qt 5.6
 };
 
 } // namespace qbs
