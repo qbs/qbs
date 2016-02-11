@@ -59,7 +59,7 @@ Module {
     property bool autoActivateCustomFonts: true
 
     // Asset catalog specific
-    property string actoolName: "actool"
+    property string actoolName: "ictool"
     property string actoolPath: actoolName
     property string appIconName
     property string launchImageName
