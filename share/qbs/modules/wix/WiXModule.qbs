@@ -32,14 +32,19 @@ import qbs
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Probes
 import qbs.Utilities
 
 Module {
     condition: qbs.targetOS.contains("windows")
 
-    property path toolchainInstallPath: Utilities.getNativeSetting(registryKey, "InstallFolder")
-    property path toolchainInstallRoot: Utilities.getNativeSetting(registryKey, "InstallRoot")
-    property string version: Utilities.getNativeSetting(registryKey, "ProductVersion")
+    Probes.WiXProbe {
+        id: wixProbe
+    }
+
+    property path toolchainInstallPath: wixProbe.path
+    property path toolchainInstallRoot: wixProbe.root
+    property string version: wixProbe.version
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
     property int versionMinor: versionParts[1]
@@ -125,19 +130,6 @@ Module {
     property string executableSuffix: ".exe"
     property string windowsInstallerSuffix: ".msi"
 
-    property string registryKey: {
-        var knownVersions = [ "4.0", "3.9", "3.8", "3.7", "3.6", "3.5", "3.0", "2.0" ];
-        var keyNative = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\";
-        var keyWoW64 = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\";
-
-        for (i in knownVersions) {
-            if (Utilities.getNativeSetting(keyNative + knownVersions[i], "ProductVersion"))
-                return keyNative + knownVersions[i];
-            if (Utilities.getNativeSetting(keyWoW64 + knownVersions[i], "ProductVersion"))
-                return keyWoW64 + knownVersions[i];
-        }
-    }
-
     validate: {
         var validator = new ModUtils.PropertyValidator("wix");
         validator.setRequiredProperty("toolchainInstallPath", toolchainInstallPath);
@@ -146,12 +138,16 @@ Module {
         validator.setRequiredProperty("versionMajor", versionMajor);
         validator.setRequiredProperty("versionMinor", versionMinor);
         validator.setRequiredProperty("versionPatch", versionPatch);
-        validator.setRequiredProperty("versionBuild", versionBuild);
-        validator.addVersionValidator("version", version, 4, 4);
+        validator.addVersionValidator("version", version, 3, 4);
         validator.addRangeValidator("versionMajor", versionMajor, 1);
         validator.addRangeValidator("versionMinor", versionMinor, 0);
         validator.addRangeValidator("versionPatch", versionPatch, 0);
-        validator.addRangeValidator("versionBuild", versionBuild, 0);
+
+        if (versionParts && versionParts.length >= 4) {
+            validator.setRequiredProperty("versionBuild", versionBuild);
+            validator.addRangeValidator("versionBuild", versionBuild, 0);
+        }
+
         validator.validate();
     }
 

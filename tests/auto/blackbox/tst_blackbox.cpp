@@ -2737,17 +2737,15 @@ static bool haveWiX(const Profile &profile)
     }
 
     QStringList regKeys;
-    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\")
-            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\");
-
-    const QStringList versions = QStringList() << "4.0" << "3.9" << "3.8" << "3.7"
-                                               << "3.6" << "3.5" << "3.0" << "2.0";
+    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML")
+            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML");
 
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
 
-    foreach (const QString &version, versions) {
-        foreach (const QString &key, regKeys) {
+    foreach (const QString &key, regKeys) {
+        const QStringList versions = QSettings(key, QSettings::NativeFormat).childGroups();
+        foreach (const QString &version, versions) {
             QSettings settings(key + version, QSettings::NativeFormat);
             QString str = settings.value(QLatin1String("InstallRoot")).toString();
             if (!str.isEmpty())
