@@ -2534,7 +2534,7 @@ static bool haveWiX(const Profile &profile)
     regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\")
             << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\");
 
-    const QStringList versions = QStringList() << "4.0" << "3.9" << "3.8" << "3.7"
+    const QStringList versions = QStringList() << "4.0" << "3.10" << "3.9" << "3.8" << "3.7"
                                                << "3.6" << "3.5" << "3.0" << "2.0";
 
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
