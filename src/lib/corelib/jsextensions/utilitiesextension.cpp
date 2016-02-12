@@ -53,6 +53,7 @@ public:
     static QScriptValue js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getHash(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_nativeSettingGroups(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_rfc1034identifier(QScriptContext *context, QScriptEngine *engine);
 };
 
@@ -67,6 +68,8 @@ void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                engine->newFunction(UtilitiesExtension::js_getHash, 1));
     environmentObj.setProperty(QStringLiteral("getNativeSetting"),
                                engine->newFunction(UtilitiesExtension::js_getNativeSetting, 3));
+    environmentObj.setProperty(QStringLiteral("nativeSettingGroups"),
+                               engine->newFunction(UtilitiesExtension::js_nativeSettingGroups, 1));
     environmentObj.setProperty(QStringLiteral("rfc1034Identifier"),
                                engine->newFunction(UtilitiesExtension::js_rfc1034identifier, 1));
     extensionObject.setProperty(QStringLiteral("Utilities"), environmentObj);
@@ -120,6 +123,18 @@ QScriptValue UtilitiesExtension::js_getNativeSetting(QScriptContext *context, QS
     QSettings settings(context->argument(0).toString(), QSettings::NativeFormat);
     QVariant value = settings.value(key, defaultValue);
     return value.isNull() ? engine->undefinedValue() : engine->toScriptValue(value);
+}
+
+QScriptValue UtilitiesExtension::js_nativeSettingGroups(QScriptContext *context,
+                                                        QScriptEngine *engine)
+{
+    if (Q_UNLIKELY(context->argumentCount() != 1)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("nativeSettingGroups expects 1 argument"));
+    }
+
+    QSettings settings(context->argument(0).toString(), QSettings::NativeFormat);
+    return engine->toScriptValue(settings.childGroups());
 }
 
 QScriptValue UtilitiesExtension::js_rfc1034identifier(QScriptContext *context,
