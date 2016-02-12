@@ -861,6 +861,19 @@ void TestBlackbox::trackExternalProductChanges()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::trackGroupConditionChange()
+{
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QDir::setCurrent(testDataDir + "/group-condition-change");
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY(m_qbsStderr.contains("jibbetnich"));
+
+    params.arguments = QStringList("project.kaputt:false");
+    params.expectFailure = false;
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::trackRemoveFile()
 {
     QProcess process;

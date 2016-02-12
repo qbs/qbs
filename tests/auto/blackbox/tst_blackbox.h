@@ -174,6 +174,7 @@ private slots:
     void trackAddMocInclude();
     void trackAddProduct();
     void trackExternalProductChanges();
+    void trackGroupConditionChange();
     void trackRemoveFile();
     void trackRemoveFileTag();
     void trackRemoveProduct();
