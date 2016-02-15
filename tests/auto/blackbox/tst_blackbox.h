@@ -101,6 +101,7 @@ private slots:
     void changeInDisabledProduct();
     void checkProjectFilePath();
     void clean();
+    void concurrentExecutor();
     void dependenciesProperty();
     void dynamicMultiplexRule();
     void dynamicRuleOutputs();

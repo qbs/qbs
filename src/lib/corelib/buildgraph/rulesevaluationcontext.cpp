@@ -58,6 +58,11 @@ RulesEvaluationContext::~RulesEvaluationContext()
     delete m_engine;
 }
 
+bool RulesEvaluationContext::isActive() const
+{
+    return m_initScopeCalls > 0;
+}
+
 void RulesEvaluationContext::initializeObserver(const QString &description, int maximumProgress)
 {
     if (m_observer)

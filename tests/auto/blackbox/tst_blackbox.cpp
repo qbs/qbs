@@ -654,6 +654,13 @@ void TestBlackbox::clean()
         QVERIFY2(symlinkExists(symLink), qPrintable(symLink));
 }
 
+void TestBlackbox::concurrentExecutor()
+{
+    QDir::setCurrent(testDataDir + "/concurrent-executor");
+    QCOMPARE(runQbs(QStringList() << "-j" << "2"), 0);
+    QVERIFY2(!m_qbsStderr.contains("ASSERT"), m_qbsStderr.constData());
+}
+
 void TestBlackbox::renameDependency()
 {
     QDir::setCurrent(testDataDir + "/renameDependency");
