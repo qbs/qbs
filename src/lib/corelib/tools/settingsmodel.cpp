@@ -135,6 +135,14 @@ void SettingsModel::save()
     d->dirty = false;
 }
 
+void SettingsModel::updateSettingsDir(const QString &settingsDir)
+{
+    beginResetModel();
+    d->settings.reset(new qbs::Settings(settingsDir));
+    d->readSettings();
+    endResetModel();
+}
+
 void SettingsModel::addNewKey(const QModelIndex &parent)
 {
     Node *parentNode = d->indexToNode(parent);

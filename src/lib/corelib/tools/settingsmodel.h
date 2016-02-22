@@ -50,6 +50,7 @@ public:
     void setAdditionalProperties(const QVariantMap &properties); // Flat map.
     void reload();
     void save();
+    void updateSettingsDir(const QString &settingsDir);
 
     void addNewKey(const QModelIndex &parent);
     void removeKey(const QModelIndex &index);
