@@ -147,7 +147,7 @@ CppModule {
     Rule {
         id: dynamicLibraryLinker
         multiplex: true
-        inputs: ["obj"]
+        inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
 
         outputFileTags: ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy", "debuginfo"]
@@ -206,7 +206,7 @@ CppModule {
     Rule {
         id: staticLibraryLinker
         multiplex: true
-        inputs: ["obj"]
+        inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["dynamiclibrary", "staticlibrary"]
 
         Artifact {
@@ -248,7 +248,7 @@ CppModule {
         id: loadableModuleLinker
         multiplex: true
         inputs: {
-            var tags = ["obj"];
+            var tags = ["obj", "linkerscript"];
             if (product.type.contains("application") &&
                 product.moduleProperty("qbs", "targetOS").contains("darwin") &&
                 product.moduleProperty("bundle", "embedInfoPlist"))
@@ -293,7 +293,7 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: {
-            var tags = ["obj"];
+            var tags = ["obj", "linkerscript"];
             if (product.type.contains("application") &&
                 product.moduleProperty("qbs", "targetOS").contains("darwin") &&
                 product.moduleProperty("bundle", "embedInfoPlist"))

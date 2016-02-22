@@ -2000,6 +2000,34 @@ void TestBlackbox::ld()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::linkerScripts()
+{
+    Settings settings((QString()));
+    Profile buildProfile(profileName(), &settings);
+    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
+    if (!toolchain.contains("gcc") || !targetOS.contains("linux"))
+        QSKIP("linker script test only applies to Linux ");
+    QDir::setCurrent(testDataDir + "/linkerscripts");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("-qq")
+                                     << ("qbs.installRoot:" + QDir::currentPath()))), 0);
+    const QString output = QString::fromLocal8Bit(m_qbsStderr);
+    QRegExp pattern(".*---(.*)---.*");
+    QVERIFY2(pattern.exactMatch(output), qPrintable(output));
+    QCOMPARE(pattern.captureCount(), 1);
+    const QString nmPath = pattern.capturedTexts().at(1);
+    if (!QFile::exists(nmPath))
+        QSKIP("Cannot check for symbol presence: No nm found.");
+    QProcess nm;
+    nm.start(nmPath, QStringList(QDir::currentPath() + "/liblinkerscripts.so"));
+    QVERIFY(nm.waitForStarted());
+    QVERIFY(nm.waitForFinished());
+    const QByteArray nmOutput = nm.readAllStandardOutput();
+    QCOMPARE(nm.exitCode(), 0);
+    QVERIFY2(nmOutput.contains("TEST_SYMBOL1"), nmOutput.constData());
+    QVERIFY2(nmOutput.contains("TEST_SYMBOL2"), nmOutput.constData());
+}
+
 void TestBlackbox::listPropertiesWithOuter()
 {
     QDir::setCurrent(testDataDir + "/list-properties-with-outer");

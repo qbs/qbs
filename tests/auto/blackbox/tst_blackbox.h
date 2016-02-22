@@ -138,6 +138,7 @@ private slots:
     void jsExtensionsTemporaryDir();
     void jsExtensionsTextFile();
     void ld();
+    void linkerScripts();
     void listPropertiesWithOuter();
     void listPropertyOrder();
     void loadableModule();

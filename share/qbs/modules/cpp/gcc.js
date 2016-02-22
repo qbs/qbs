@@ -188,7 +188,8 @@ function linkerFlags(product, inputs, output) {
 
     var linkerScripts = inputs.linkerscript
             ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
-    args = args.concat([].uniqueConcat(linkerScripts).map(function(path) { return '-T' + path }));
+    args = args.concat(escapeLinkerFlags(product, [].uniqueConcat(linkerScripts)
+                                         .map(function(path) { return '-T' + path })));
 
     if (isDarwin && ModUtils.moduleProperty(product, "warningLevel") === "none")
         args.push('-w');
