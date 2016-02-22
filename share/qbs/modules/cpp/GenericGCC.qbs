@@ -147,7 +147,7 @@ CppModule {
     Rule {
         id: dynamicLibraryLinker
         multiplex: true
-        inputs: ["obj", "linkerscript"]
+        inputs: ["obj", "linkerscript", "versionscript"]
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
 
         outputFileTags: ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy", "debuginfo"]

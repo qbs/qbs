@@ -1,0 +1,2 @@
+void dummyLocal() {}
+void dummyGlobal() {}

@@ -647,6 +647,41 @@ void TestBlackbox::usingsAsSoleInputsNonMultiplexed()
     QVERIFY(regularFileExists(p3BuildDir + "/custom2.out.plus"));
 }
 
+void TestBlackbox::versionScript()
+{
+    Settings settings((QString()));
+    Profile buildProfile(profileName(), &settings);
+    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
+    if (!toolchain.contains("gcc") || !targetOS.contains("linux"))
+        QSKIP("version script test only applies to Linux");
+    QDir::setCurrent(testDataDir + "/versionscript");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("-qq")
+                                     << ("qbs.installRoot:" + QDir::currentPath()))), 0);
+    const QString output = QString::fromLocal8Bit(m_qbsStderr);
+    QRegExp pattern(".*---(.*)---.*");
+    QVERIFY2(pattern.exactMatch(output), qPrintable(output));
+    QCOMPARE(pattern.captureCount(), 1);
+    const QString nmPath = pattern.capturedTexts().at(1);
+    if (!QFile::exists(nmPath))
+        QSKIP("Cannot check for symbol presence: No nm found.");
+    QProcess nm;
+    nm.start(nmPath, QStringList(QDir::currentPath() + "/libversionscript.so"));
+    QVERIFY(nm.waitForStarted());
+    QVERIFY(nm.waitForFinished());
+    const QByteArray allSymbols = nm.readAllStandardOutput();
+    QCOMPARE(nm.exitCode(), 0);
+    QVERIFY2(allSymbols.contains("dummyLocal"), allSymbols.constData());
+    QVERIFY2(allSymbols.contains("dummyGlobal"), allSymbols.constData());
+    nm.start(nmPath, QStringList() << "-g" << QDir::currentPath() + "/libversionscript.so");
+    QVERIFY(nm.waitForStarted());
+    QVERIFY(nm.waitForFinished());
+    const QByteArray globalSymbols = nm.readAllStandardOutput();
+    QCOMPARE(nm.exitCode(), 0);
+    QVERIFY2(!globalSymbols.contains("dummyLocal"), allSymbols.constData());
+    QVERIFY2(globalSymbols.contains("dummyGlobal"), allSymbols.constData());
+}
+
 static bool symlinkExists(const QString &linkFilePath)
 {
     return QFileInfo(linkFilePath).isSymLink();

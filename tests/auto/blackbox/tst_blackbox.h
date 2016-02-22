@@ -191,6 +191,7 @@ private slots:
     void transitiveOptionalDependencies();
     void typescript();
     void usingsAsSoleInputsNonMultiplexed();
+    void versionScript();
     void wildCardsAndRules();
     void wildcardRenaming();
     void wix();

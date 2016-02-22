@@ -191,6 +191,11 @@ function linkerFlags(product, inputs, output) {
     args = args.concat(escapeLinkerFlags(product, [].uniqueConcat(linkerScripts)
                                          .map(function(path) { return '-T' + path })));
 
+    var versionScripts = inputs.versionscript
+            ? inputs.versionscript.map(function(a) { return a.filePath; }) : [];
+    args = args.concat(escapeLinkerFlags(product, [].uniqueConcat(versionScripts)
+                       .map(function(path) { return '--version-script=' + path })));
+
     if (isDarwin && ModUtils.moduleProperty(product, "warningLevel") === "none")
         args.push('-w');
 
