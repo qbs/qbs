@@ -487,8 +487,8 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
             continue;
         }
 
-        if (!sourceArtifactSetsAreEqual(restoredProduct->allFiles(),
-                                        newlyResolvedProduct->allFiles())) {
+        if (!sourceArtifactSetsAreEqual(restoredProduct->allEnabledFiles(),
+                                        newlyResolvedProduct->allEnabledFiles())) {
             m_logger.qbsDebug() << "File list of product '" << restoredProduct->uniqueName()
                                 << "' was changed.";
             if (!changedProducts.contains(restoredProduct))

@@ -61,6 +61,7 @@ public:
 
     ScriptEngine *engine() const { return m_engine; }
     QScriptValue scope() const { return m_scope; }
+    bool isActive() const;
 
     void setObserver(ProgressObserver *observer) { m_observer = observer; }
     ProgressObserver *observer() const { return m_observer; }

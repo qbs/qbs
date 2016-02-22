@@ -59,7 +59,7 @@ Module {
     property bool autoActivateCustomFonts: true
 
     // Asset catalog specific
-    property string actoolName: "actool"
+    property string actoolName: xcode.present ? "actool" : "ictool"
     property string actoolPath: FileInfo.joinPaths(xcode.developerPath, "/usr/bin", actoolName)
     property string appIconName
     property string launchImageName

@@ -42,7 +42,7 @@ UnixGCC {
     targetSystem: "darwin"
     targetAbi: "macho"
 
-    compilerDefines: ["__GNUC__", "__APPLE__"]
+    compilerDefines: ["__GNUC__=4", "__APPLE__"]
     loadableModulePrefix: ""
     loadableModuleSuffix: ".bundle"
     dynamicLibrarySuffix: ".dylib"

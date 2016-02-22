@@ -748,6 +748,13 @@ void TestBlackbox::clean()
         QVERIFY2(symlinkExists(symLink), qPrintable(symLink));
 }
 
+void TestBlackbox::concurrentExecutor()
+{
+    QDir::setCurrent(testDataDir + "/concurrent-executor");
+    QCOMPARE(runQbs(QStringList() << "-j" << "2"), 0);
+    QVERIFY2(!m_qbsStderr.contains("ASSERT"), m_qbsStderr.constData());
+}
+
 void TestBlackbox::renameDependency()
 {
     QDir::setCurrent(testDataDir + "/renameDependency");
@@ -956,6 +963,19 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY2(m_qbsStderr.contains("hiddenheaderqbs.h"), m_qbsStderr.constData());
     params.environment.insert("CPLUS_INCLUDE_PATH",
                               QDir::toNativeSeparators(QDir::currentPath() + "/hidden"));
+    params.expectFailure = false;
+    QCOMPARE(runQbs(params), 0);
+}
+
+void TestBlackbox::trackGroupConditionChange()
+{
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QDir::setCurrent(testDataDir + "/group-condition-change");
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY(m_qbsStderr.contains("jibbetnich"));
+
+    params.arguments = QStringList("project.kaputt:false");
     params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
 }

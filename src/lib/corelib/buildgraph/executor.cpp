@@ -435,6 +435,7 @@ void Executor::buildArtifact(Artifact *artifact)
 
 void Executor::executeRuleNode(RuleNode *ruleNode)
 {
+    QBS_CHECK(!m_evalContext->isActive());
     ArtifactSet changedInputArtifacts;
     if (ruleNode->rule()->isDynamic()) {
         foreach (Artifact *artifact, m_changedSourceArtifacts) {
@@ -891,20 +892,28 @@ void Executor::possiblyInstallArtifact(const Artifact *artifact)
 
 void Executor::onJobFinished(const qbs::ErrorInfo &err)
 {
-    if (err.hasError()) {
-        if (m_buildOptions.keepGoing()) {
-            ErrorInfo fullWarning(err);
-            fullWarning.prepend(Tr::tr("Ignoring the following errors on user request:"));
-            m_logger.printWarning(fullWarning);
-        } else {
-            if (!m_error.hasError())
-                m_error = err; // All but the first one could be due to canceling.
-        }
-    }
-
     try {
         ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
         QBS_CHECK(job);
+        if (m_evalContext->isActive()) {
+            m_logger.qbsDebug() << "Executor job finished while rule execution is pausing. "
+                                   "Delaying slot execution.";
+            QMetaObject::invokeMethod(job, "finished", Qt::QueuedConnection,
+                                      Q_ARG(qbs::ErrorInfo, err));
+            return;
+        }
+
+        if (err.hasError()) {
+            if (m_buildOptions.keepGoing()) {
+                ErrorInfo fullWarning(err);
+                fullWarning.prepend(Tr::tr("Ignoring the following errors on user request:"));
+                m_logger.printWarning(fullWarning);
+            } else {
+                if (!m_error.hasError())
+                    m_error = err; // All but the first one could be due to canceling.
+            }
+        }
+
         finishJob(job, !err.hasError());
     } catch (const ErrorInfo &error) {
         handleError(error);
@@ -914,6 +923,7 @@ void Executor::onJobFinished(const qbs::ErrorInfo &err)
 void Executor::finish()
 {
     QBS_ASSERT(m_state != ExecutorIdle, /* ignore */);
+    QBS_ASSERT(!m_evalContext || !m_evalContext->isActive(), /* ignore */);
 
     QList<ResolvedProductPtr> unbuiltProducts;
     foreach (const ResolvedProductPtr &product, m_productsToBuild) {

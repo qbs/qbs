@@ -109,6 +109,7 @@ private slots:
     void checkProjectFilePath();
     void clean();
     void cli();
+    void concurrentExecutor();
     void dependenciesProperty();
     void dynamicMultiplexRule();
     void dynamicRuleOutputs();
@@ -182,6 +183,7 @@ private slots:
     void trackAddMocInclude();
     void trackAddProduct();
     void trackExternalProductChanges();
+    void trackGroupConditionChange();
     void trackRemoveFile();
     void trackRemoveFileTag();
     void trackRemoveProduct();
