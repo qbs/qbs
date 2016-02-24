@@ -31,7 +31,11 @@
 #ifndef QBS_MSVCINFO_H
 #define QBS_MSVCINFO_H
 
+#include <logging/translator.h>
+#include <tools/error.h>
+
 #include <QDir>
+#include <QFileInfo>
 #include <QHash>
 #include <QProcessEnvironment>
 #include <QStringList>
@@ -46,6 +50,20 @@ public:
 
     typedef QHash<QString, QProcessEnvironment> EnvironmentPerArch;
     EnvironmentPerArch environments;
+
+    MSVC() { }
+
+    MSVC(const QString &clPath)
+    {
+        QDir parentDir = QFileInfo(clPath).dir();
+        QString arch = parentDir.dirName();
+        if (arch == QLatin1String("bin"))
+            arch = QLatin1String("x86");
+        else
+            parentDir.cdUp();
+        architectures << arch;
+        installPath = parentDir.path();
+    }
 
     QString clPath(const QString &arch = QString()) {
         return QDir::cleanPath(

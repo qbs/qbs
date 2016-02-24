@@ -58,9 +58,14 @@ static QTextStream qStderr(stderr);
 
 static QString findExecutable(const QString &fileName)
 {
+    QString fullFileName = fileName;
+    if (HostOsInfo::isWindowsHost()
+            && !fileName.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive)) {
+        fullFileName += QLatin1String(".exe");
+    }
     const QString path = QString::fromLocal8Bit(qgetenv("PATH"));
     foreach (const QString &ppath, path.split(HostOsInfo::pathListSeparator())) {
-        const QString fullPath = ppath + QLatin1Char('/') + fileName;
+        const QString fullPath = ppath + QLatin1Char('/') + fullFileName;
         if (QFileInfo(fullPath).exists())
             return QDir::cleanPath(fullPath);
     }
@@ -305,12 +310,9 @@ void createProfile(const QString &profileName, const QString &toolchainType,
     else
         toolchainTypes = completeToolchainList(toolchainType);
 
-    if (toolchainTypes.contains(QLatin1String("msvc"))) {
-        throw qbs::ErrorInfo(Tr::tr("Cannot create profile: MSVC toolchains can only be created "
-                                    "via the auto-detection mechanism."));
-    }
-
-    if (toolchainTypes.contains(QLatin1String("gcc")))
+    if (toolchainTypes.contains(QLatin1String("msvc")))
+        createMsvcProfile(profileName, compiler.absoluteFilePath(), settings);
+    else if (toolchainTypes.contains(QLatin1String("gcc")))
         createGccProfile(compiler.absoluteFilePath(), settings, toolchainTypes, profileName);
     else
         throw qbs::ErrorInfo(Tr::tr("Cannot create profile: Unknown toolchain type."));

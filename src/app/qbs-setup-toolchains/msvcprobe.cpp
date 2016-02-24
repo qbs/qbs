@@ -38,6 +38,7 @@
 
 #include <logging/translator.h>
 #include <tools/architectures.h>
+#include <tools/error.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
 #include <tools/visualstudioversioninfo.h>
@@ -63,9 +64,11 @@ static void writeEnvironment(Profile &p, const QProcessEnvironment &env)
 }
 
 static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile> &profiles,
-        QString name, const QString &installPath, const QString &architecture)
+        QString name, const QString &installPath, const QString &architecture,
+        bool appendArchToName = true)
 {
-    name.append(QLatin1Char('_') + architecture);
+    if (appendArchToName)
+        name.append(QLatin1Char('_') + architecture);
     qbsInfo() << Tr::tr("Setting up profile '%1'.").arg(name);
     Profile p(name, settings);
     p.removeProfile();
@@ -210,4 +213,18 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
                     msvc.installPath, arch);
         }
     }
+}
+
+void createMsvcProfile(const QString &profileName, const QString &compilerFilePath,
+                       Settings *settings)
+{
+    MSVC msvc(compilerFilePath);
+    VsEnvironmentDetector envdetector(&msvc);
+    if (!envdetector.start())
+        throw qbs::ErrorInfo(Tr::tr("Detecting the build environment failed."));
+    QList<Profile> dummy;
+    addMSVCPlatform(msvc, settings, dummy, profileName, msvc.installPath,
+                    msvc.architectures.first(), false);
+    qbsInfo() << Tr::tr("Profile '%1' created for '%2'.")
+                 .arg(profileName, QDir::toNativeSeparators(compilerFilePath));
 }

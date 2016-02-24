@@ -38,6 +38,9 @@ class Profile;
 class Settings;
 }
 
+void createMsvcProfile(const QString &profileName, const QString &compilerFilePath,
+                       qbs::Settings *settings);
+
 void msvcProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
 #endif // MSVCPROBE_H
