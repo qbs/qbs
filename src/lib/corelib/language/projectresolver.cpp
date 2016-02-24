@@ -891,7 +891,10 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
         } else {
             const ResolvedProductPtr &usedProduct
                     = m_productsByName.value(dependency.uniqueName());
-            QBS_ASSERT(usedProduct, continue);
+            if (!usedProduct) {
+                throw ErrorInfo(Tr::tr("Product '%1' depends on '%2', which does not exist.")
+                                .arg(product->name, dependency.uniqueName()), product->location);
+            }
             if (!usedProduct->enabled) {
                 if (!dependency.isRequired)
                     continue;

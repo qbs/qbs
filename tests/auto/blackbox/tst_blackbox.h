@@ -111,6 +111,7 @@ private slots:
     void cli();
     void concurrentExecutor();
     void dependenciesProperty();
+    void dependencyProfileMismatch();
     void dynamicMultiplexRule();
     void dynamicRuleOutputs();
     void embedInfoPlist();

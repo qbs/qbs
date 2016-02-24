@@ -621,6 +621,21 @@ void TestBlackbox::dependenciesProperty()
     QCOMPARE(product2_cpp.property("defines").toString(), QLatin1String("SMURF"));
 }
 
+void TestBlackbox::dependencyProfileMismatch()
+{
+    QDir::setCurrent(testDataDir + "/dependency-profile-mismatch");
+    qbs::Settings s((QString()));
+    qbs::Internal::TemporaryProfile depProfile("qbs_autotests_profileMismatch", &s);
+    depProfile.p.setValue("qbs.architecture", "x86"); // Profiles must not be empty...
+    s.sync();
+    QbsRunParameters params(QStringList() << ("project.mainProfile:" + profileName())
+                            << ("project.depProfile:" + depProfile.p.name()));
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains(profileName().toLocal8Bit() + "', which does not exist"),
+             m_qbsStderr.constData());
+}
+
 void TestBlackbox::symlinkRemoval()
 {
     if (HostOsInfo::isWindowsHost())
