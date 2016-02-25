@@ -571,6 +571,32 @@ void TestBlackbox::changeInDisabledProduct()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::changeInImportedFile()
+{
+    QDir::setCurrent(testDataDir + "/change-in-imported-file");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStderr.contains("old output"), m_qbsStderr.constData());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    QFile jsFile("prepare.js");
+    QVERIFY2(jsFile.open(QIODevice::ReadWrite), qPrintable(jsFile.errorString()));
+    QByteArray content = jsFile.readAll();
+    content.replace("old output", "new output");
+    jsFile.resize(0);
+    jsFile.write(content);
+    jsFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStderr.contains("new output"), m_qbsStderr.constData());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    QVERIFY2(jsFile.open(QIODevice::ReadWrite), qPrintable(jsFile.errorString()));
+    jsFile.resize(0);
+    jsFile.write(content);
+    jsFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStderr.contains("output"), m_qbsStderr.constData());
+}
+
 void TestBlackbox::dependenciesProperty()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/dependenciesProperty"));

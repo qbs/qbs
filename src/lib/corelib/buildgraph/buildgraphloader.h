@@ -104,6 +104,8 @@ private:
     void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
             FileDependency *filedep, Artifact *artifact);
     bool isConfigCompatible();
+    bool isPrepareScriptUpToDate(const ScriptFunctionConstPtr &script,
+                                 const FileTime &referenceTime);
 
     struct ChildrenInfo {
         ChildrenInfo() {}

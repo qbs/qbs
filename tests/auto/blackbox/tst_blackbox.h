@@ -106,6 +106,7 @@ private slots:
     void changedFiles_data();
     void changedFiles();
     void changeInDisabledProduct();
+    void changeInImportedFile();
     void checkProjectFilePath();
     void clean();
     void cli();

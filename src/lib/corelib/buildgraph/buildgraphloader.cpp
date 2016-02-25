@@ -44,6 +44,7 @@
 #include <language/language.h>
 #include <language/loader.h>
 #include <language/propertymapinternal.h>
+#include <language/resolvedfilecontext.h>
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
@@ -520,12 +521,24 @@ bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restored
     // within commands).
     if (checkForPropertyChanges(restoredProduct, newlyResolvedProduct))
         return true;
-
-    return !transformerListsAreEqual(restoredProduct->transformers,
-                                     newlyResolvedProduct->transformers)
-            || !ruleListsAreEqual(restoredProduct->rules.toList(),
-                                  newlyResolvedProduct->rules.toList())
-            || !dependenciesAreEqual(restoredProduct, newlyResolvedProduct);
+    if (!transformerListsAreEqual(restoredProduct->transformers,
+                                  newlyResolvedProduct->transformers)) {
+        return true;
+    }
+    if (!ruleListsAreEqual(restoredProduct->rules.toList(), newlyResolvedProduct->rules.toList()))
+        return true;
+    if (!dependenciesAreEqual(restoredProduct, newlyResolvedProduct))
+        return true;
+    const FileTime referenceTime = restoredProduct->topLevelProject()->lastResolveTime;
+    foreach (const ResolvedTransformerConstPtr &transformer, newlyResolvedProduct->transformers) {
+        if (!isPrepareScriptUpToDate(transformer->transform, referenceTime))
+            return true;
+    }
+    foreach (const RuleConstPtr &rule, newlyResolvedProduct->rules) {
+        if (!isPrepareScriptUpToDate(rule->prepareScript, referenceTime))
+            return true;
+    }
+    return false;
 }
 
 bool BuildGraphLoader::checkProductForInstallInfoChanges(const ResolvedProductPtr &restoredProduct,
@@ -752,6 +765,21 @@ bool BuildGraphLoader::isConfigCompatible()
                     m_parameters.topLevelProfile());
         if (newConfig != it.value())
             return false;
+    }
+    return true;
+}
+
+bool BuildGraphLoader::isPrepareScriptUpToDate(const ScriptFunctionConstPtr &script,
+                                               const FileTime &referenceTime)
+{
+    foreach (const JsImport &jsImport, script->fileContext->jsImports()) {
+        foreach (const QString &filePath, jsImport.filePaths) {
+            if (FileInfo(filePath).lastModified() > referenceTime) {
+                m_logger.qbsDebug() << "Change in import '" << filePath
+                        << "' potentially influences prepare script, marking as out of date";
+                return false;
+            }
+        }
     }
     return true;
 }
