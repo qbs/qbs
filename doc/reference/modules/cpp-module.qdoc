@@ -617,4 +617,106 @@
             --major-os-version and --minor-os-version for MinGW.
             If undefined, compiler defaults will be used.
     \endtable
+
+    \section1 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"application"}
+        \li n/a
+        \li 1.0.1
+        \li The rule that creates executable files (typically via a linker) attaches this tag
+            to its output artifact.
+    \row
+        \li \c{"asm"}
+        \li \c{*.s} (for GCC-like toolchains), \c{*.asm} (for MSVC)
+        \li 1.1.0
+        \li Source files with this tag serve as inputs to a rule invoking the toolchain's
+            assembler. One object file is generated for each such file.
+    \row
+        \li \c{"asm_cpp"}
+        \li \c{*.S}, \c{*.sx}
+        \li 1.1.0
+        \li Like \c{"asm"}, but for source files that need preprocessing. This tag only has an
+            effect with GCC-like toolchains.
+    \row
+        \li \c{"c"}
+        \li \c{*.c}
+        \li 1.0.1
+        \li Source files with this tag serve as inputs to a rule invoking the toolchain's
+            C compiler. One object file is generated for each such file.
+    \row
+        \li \c{"cpp"}
+        \li \c{*.C}, \c{*.cpp}, \c{*.cxx}, \c{*.c++}, \c{*.cc}
+        \li 1.0.1
+        \li Source files with this tag serve as inputs to a rule invoking the toolchain's
+            C++ compiler. One object file is generated for each such file.
+    \row
+        \li \c{"dynamiclibrary"}
+        \li n/a
+        \li 1.0.1
+        \li The rule that creates dynamic libraries (typically via a linker) attaches this tag
+            to its output artifact.
+    \row
+        \li \c{"hpp"}
+        \li \c{*.h}, \c{*.H}, \c{*.hpp}, \c{*.hxx}, \c{*.h++}
+        \li 1.0.1
+        \li This tag is used for header files (C, C++, Objective-C and Objective-C++). No rule
+            in this module generates output artifacts from such files directly, but the compiler
+            rule will have a dependency on all rules that create such files.
+    \row
+        \li \c{"linkerscript"}
+        \li -
+        \li 1.5.0
+        \li This tag is used for \c ld linker scripts. You can provide such a file if you need
+            to replace the default linker script.
+            This file tag only has an effect with GCC-like toolchains. The linker needs to be
+            \c{ld}-compatible.
+    \row
+        \li \c{"obj"}
+        \li n/a
+        \li 1.0.1
+        \li The rule that creates object files (typically via a compiler) attaches this tag
+            to its output artifacts. Such files are usually intermediate artifacts of the build
+            process and rarely need to be referenced in project files.
+    \row
+        \li \c{"objc"}
+        \li \c{*.m}
+        \li 1.1.0
+        \li Source files with this tag serve as inputs to a rule invoking the toolchain's
+            Objective-C compiler. One object file is generated for each such file.
+    \row
+        \li \c{"objcpp"}
+        \li \c{*.mm}
+        \li 1.1.0
+        \li Source files with this tag serve as inputs to a rule invoking the toolchain's
+            Objective-C++ compiler. One object file is generated for each such file.
+    \row
+        \li \c{"rc"}
+        \li \c{*.rc}
+        \li 1.1.0
+        \li Files with this tag serve as inputs to the Windows resource compiler. One object file
+            is generated for each such file. The tag has no effect on target platforms other than
+            Windows.
+    \row
+        \li \c{"staticlibrary"}
+        \li n/a
+        \li 1.0.1
+        \li The rule that creates static libraries (typically via a linker) attaches this tag
+            to its output artifact.
+    \row
+        \li \c{"versionscript"}
+        \li -
+        \li 1.5.0
+        \li This tag is used for \c ld linker scripts. You can provide such a file if you need
+            fine-grained control over the symbols present in a shared library.
+            This file tag only has an effect with GCC-like toolchains. The linker needs to be
+            \c{ld}-compatible.
+    \endtable
+
 */
