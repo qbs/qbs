@@ -501,12 +501,12 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("conflicting_fileTagsFilter")
             << "Conflicting fileTagsFilter in Group items";
     QTest::newRow("duplicate_sources")
-            << "Duplicate source file '.*main.cpp' "
-               "at .*duplicate_sources.qbs:4:12 and .*duplicate_sources.qbs:6:16.";
+            << "Duplicate source file '.*main.cpp'"
+               ".*duplicate_sources.qbs:4:12.*duplicate_sources.qbs:6:16.";
     QTest::newRow("duplicate_sources_wildcards")
-            << "Duplicate source file '.*duplicate_sources_wildcards.qbs' "
-               "at .*duplicate_sources_wildcards.qbs:4:12 "
-               "and .*duplicate_sources_wildcards.qbs:6:16.";
+            << "Duplicate source file '.*duplicate_sources_wildcards.qbs'"
+               ".*duplicate_sources_wildcards.qbs:4:12"
+               ".*duplicate_sources_wildcards.qbs:6:16.";
     QTest::newRow("oldQbsVersion")
             << "The project requires at least qbs version \\d+\\.\\d+.\\d+, "
                "but this is qbs version " QBS_VERSION ".";

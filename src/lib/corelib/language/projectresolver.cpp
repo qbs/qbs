@@ -605,9 +605,9 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
             }
             CodeLocation &loc = m_productContext->sourceArtifactLocations[a->absoluteFilePath];
             if (loc.isValid()) {
-                fileError.append(Tr::tr("Duplicate source file '%1' at %2 and %3.")
-                                 .arg(a->absoluteFilePath, loc.toString(),
-                                      filesValue->location().toString()));
+                fileError.append(Tr::tr("Duplicate source file '%1'.").arg(a->absoluteFilePath));
+                fileError.append(Tr::tr("First occurrence is here."), loc);
+                fileError.append(Tr::tr("Next occurrence is here."), filesValue->location());
             }
             loc = filesValue->location();
         }
