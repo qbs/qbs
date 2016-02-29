@@ -154,6 +154,7 @@ private slots:
     void nonDefaultProduct();
     void nsis();
     void objcArc();
+    void outputArtifactAutoTagging();
     void overrideProjectProperties();
     void probesInNestedModules();
     void productDependenciesByType();

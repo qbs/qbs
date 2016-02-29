@@ -3126,6 +3126,14 @@ void TestBlackbox::objcArc()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::outputArtifactAutoTagging()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/output-artifact-auto-tagging"));
+
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(regularFileExists(relativeExecutableFilePath("output-artifact-auto-tagging")));
+}
+
 void TestBlackbox::wildCardsAndRules()
 {
     QDir::setCurrent(testDataDir + "/wildcards-and-rules");
