@@ -944,6 +944,39 @@ void TestApi::fileTagsFilterOverride()
     QVERIFY(installableFiles.first().targetFilePath().contains("habicht"));
 }
 
+void TestApi::generatedFilesList()
+{
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("generated-files-list/generated-files-list.qbs");
+    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+                                                                              m_logSink, 0));
+    QVERIFY(waitForFinished(setupJob.data()));
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    qbs::Project project = setupJob->project();
+    const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
+    QVERIFY(waitForFinished(buildJob.data()));
+    const qbs::ProjectData projectData = project.projectData();
+    QCOMPARE(projectData.products().count(), 1);
+    const qbs::ProductData product = projectData.products().first();
+    QString uiFilePath;
+    foreach (const qbs::GroupData &group, product.groups()) {
+        foreach (const qbs::SourceArtifact &a, group.sourceArtifacts()) {
+            if (a.fileTags().contains(QLatin1String("ui"))) {
+                uiFilePath = a.filePath();
+                break;
+            }
+        }
+        if (!uiFilePath.isEmpty())
+            break;
+    }
+    QVERIFY(!uiFilePath.isEmpty());
+    const QStringList directParents = project.generatedFiles(product, uiFilePath, false);
+    QCOMPARE(directParents.count(), 1);
+    QCOMPARE(QFileInfo(directParents.first()).fileName(), QLatin1String("ui_mainwindow.h"));
+    const QStringList allParents = project.generatedFiles(product, uiFilePath, true);
+    QCOMPARE(allParents.count(), 3);
+}
+
 void TestApi::infiniteLoopBuilding()
 {
     QFETCH(QString, projectDirName);

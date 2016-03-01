@@ -82,6 +82,7 @@ private slots:
     void exportWithRecursiveDepends();
     void fileTagger();
     void fileTagsFilterOverride();
+    void generatedFilesList();
     void infiniteLoopBuilding();
     void infiniteLoopBuilding_data();
     void infiniteLoopResolving();

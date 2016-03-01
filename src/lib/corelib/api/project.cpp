@@ -1074,18 +1074,17 @@ void Project::updateTimestamps(const QList<ProductData> &products)
 
 /*!
  * \brief Finds files generated from the given file in the given product.
- * The function returns files generated from the given file and the given product. To do so it will
- * traverse the graph of generated files and the files generated from those files.
- *
- * If an empty list of tags is given, then all directly and indirectly generated files will be
- * returned. If there are tags, then processing will stop once matching files were found.
+ * If \a recursive is \c false, only files generated directly from \a file will be considered,
+ * otherwise the generated files are collected recursively.
+ * If \a tags is not empty, only generated files matching at least one of these tags will
+ * be considered.
  */
 QStringList Project::generatedFiles(const ProductData &product, const QString &file,
-                                    const QStringList &tags) const
+                                    bool recursive, const QStringList &tags) const
 {
     QBS_ASSERT(isValid(), return QStringList());
     const ResolvedProductConstPtr internalProduct = d->internalProduct(product);
-    return internalProduct->generatedFiles(file, FileTags::fromStringList(tags));
+    return internalProduct->generatedFiles(file, recursive, FileTags::fromStringList(tags));
 }
 
 QVariantMap Project::projectConfiguration() const
