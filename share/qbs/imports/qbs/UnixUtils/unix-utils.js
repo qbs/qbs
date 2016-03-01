@@ -48,7 +48,7 @@ function soname(product, outputFileName) {
     var version = product.moduleProperty("cpp", "internalVersion");
     if (version) {
         var major = majorVersion(version);
-        if (major) {
+        if (major !== undefined) {
             return outputFileName.substr(0, outputFileName.length - version.length)
                     + major;
         }
