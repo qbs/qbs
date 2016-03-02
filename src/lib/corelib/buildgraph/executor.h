@@ -130,6 +130,7 @@ private:
     void runTransformer(const TransformerPtr &transformer);
     void finishTransformer(const TransformerPtr &transformer);
     void possiblyInstallArtifact(const Artifact *artifact);
+    void checkForUnbuiltProducts();
 
     bool mustExecuteTransformer(const TransformerPtr &transformer) const;
     bool isUpToDate(Artifact *artifact) const;

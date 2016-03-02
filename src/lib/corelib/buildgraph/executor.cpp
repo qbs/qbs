@@ -846,7 +846,10 @@ void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
             return;
     }
 
-    runTransformer(transformer);
+    if (m_buildOptions.executeRulesOnly())
+        finishTransformer(transformer);
+    else
+        runTransformer(transformer);
 }
 
 void Executor::runTransformer(const TransformerPtr &transformer)
@@ -884,7 +887,7 @@ void Executor::finishTransformer(const TransformerPtr &transformer)
 
 void Executor::possiblyInstallArtifact(const Artifact *artifact)
 {
-    if (m_buildOptions.install()
+    if (m_buildOptions.install() && !m_buildOptions.executeRulesOnly()
             && artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool()) {
             m_productInstaller->copyFile(artifact);
     }
@@ -920,11 +923,10 @@ void Executor::onJobFinished(const qbs::ErrorInfo &err)
     }
 }
 
-void Executor::finish()
+void Executor::checkForUnbuiltProducts()
 {
-    QBS_ASSERT(m_state != ExecutorIdle, /* ignore */);
-    QBS_ASSERT(!m_evalContext || !m_evalContext->isActive(), /* ignore */);
-
+    if (m_buildOptions.executeRulesOnly())
+        return;
     QList<ResolvedProductPtr> unbuiltProducts;
     foreach (const ResolvedProductPtr &product, m_productsToBuild) {
         bool productBuilt = true;
@@ -957,9 +959,18 @@ void Executor::finish()
             m_error.append(errorMessage);
         }
     }
+}
 
-    if (m_explicitlyCanceled)
-        m_error.append(Tr::tr("Build canceled%1.").arg(configString()));
+void Executor::finish()
+{
+    QBS_ASSERT(m_state != ExecutorIdle, /* ignore */);
+    QBS_ASSERT(!m_evalContext || !m_evalContext->isActive(), /* ignore */);
+
+    if (m_explicitlyCanceled) {
+        QString message = Tr::tr(m_buildOptions.executeRulesOnly()
+                                 ? "Rule execution canceled" : "Build canceled");
+        m_error.append(Tr::tr("%1%2.").arg(message, configString()));
+    }
     setState(ExecutorIdle);
     if (m_progressObserver) {
         m_progressObserver->setFinished();

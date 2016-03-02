@@ -82,6 +82,9 @@ public:
     bool removeExistingInstallation() const;
     void setRemoveExistingInstallation(bool removeExisting);
 
+    bool executeRulesOnly() const;
+    void setExecuteRulesOnly(bool onlyRules);
+
 private:
     QSharedDataPointer<Internal::BuildOptionsPrivate> d;
 };

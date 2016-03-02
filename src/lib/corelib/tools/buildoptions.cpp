@@ -41,7 +41,7 @@ public:
     BuildOptionsPrivate()
         : maxJobCount(0), dryRun(false), keepGoing(false), forceTimestampCheck(false),
           logElapsedTime(false), echoMode(defaultCommandEchoMode()), install(true),
-          removeExistingInstallation(false)
+          removeExistingInstallation(false), onlyExecuteRules(false)
     {
     }
 
@@ -56,6 +56,7 @@ public:
     CommandEchoMode echoMode;
     bool install;
     bool removeExistingInstallation;
+    bool onlyExecuteRules;
 };
 
 } // namespace Internal
@@ -306,6 +307,26 @@ bool BuildOptions::removeExistingInstallation() const
 void BuildOptions::setRemoveExistingInstallation(bool removeExisting)
 {
     d->removeExistingInstallation = removeExisting;
+}
+
+/*!
+ * \brief Returns true iff instead of a full build, only the rules of the project will be run.
+ * The default is false.
+ */
+bool BuildOptions::executeRulesOnly() const
+{
+    return d->onlyExecuteRules;
+}
+
+/*!
+ * If \a onlyRules is \c true, then no artifacts are built, but only rules are being executed.
+ * \note If the project contains highly dynamic rules that depend on output artifacts of child
+ *       rules being already present, then the associated build job may fail even though
+ *       the project is perfectly valid. Callers need to take this into consideration.
+ */
+void BuildOptions::setExecuteRulesOnly(bool onlyRules)
+{
+    d->onlyExecuteRules = onlyRules;
 }
 
 

@@ -953,8 +953,11 @@ void TestApi::generatedFilesList()
     QVERIFY(waitForFinished(setupJob.data()));
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
-    const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
+    qbs::BuildOptions options;
+    options.setExecuteRulesOnly(true);
+    const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(options));
     QVERIFY(waitForFinished(buildJob.data()));
+    VERIFY_NO_ERROR(buildJob->error());
     const qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.products().count(), 1);
     const qbs::ProductData product = projectData.products().first();
@@ -972,7 +975,9 @@ void TestApi::generatedFilesList()
     QVERIFY(!uiFilePath.isEmpty());
     const QStringList directParents = project.generatedFiles(product, uiFilePath, false);
     QCOMPARE(directParents.count(), 1);
-    QCOMPARE(QFileInfo(directParents.first()).fileName(), QLatin1String("ui_mainwindow.h"));
+    const QFileInfo uiHeaderFileInfo(directParents.first());
+    QCOMPARE(uiHeaderFileInfo.fileName(), QLatin1String("ui_mainwindow.h"));
+    QVERIFY(!uiHeaderFileInfo.exists());
     const QStringList allParents = project.generatedFiles(product, uiFilePath, true);
     QCOMPARE(allParents.count(), 3);
 }
