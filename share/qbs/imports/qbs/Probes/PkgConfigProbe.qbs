@@ -56,6 +56,8 @@ Probe {
                 args.push(name + ' = ' + exactVersion);
             if (maxVersion !== undefined)
                 args.push(name + ' <= ' + maxVersion);
+            if (qbs.sysroot)
+                p.setEnv("PKG_CONFIG_SYSROOT_DIR", qbs.sysroot);
             if (p.exec(executable, args.concat([ '--cflags' ])) === 0) {
                 cflags = p.readStdOut().trim();
                 if (cflags === "")
