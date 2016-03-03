@@ -39,6 +39,7 @@ Probe {
     property string minVersion
     property string exactVersion
     property string maxVersion
+    property stringList libDirs // Full, non-sysrooted paths, mirroring the environment variable
 
     // Output
     property stringList cflags
@@ -56,8 +57,18 @@ Probe {
                 args.push(name + ' = ' + exactVersion);
             if (maxVersion !== undefined)
                 args.push(name + ' <= ' + maxVersion);
-            if (qbs.sysroot)
+            var libDirsToSet = libDirs;
+            if (qbs.sysroot) {
                 p.setEnv("PKG_CONFIG_SYSROOT_DIR", qbs.sysroot);
+                if (!libDirsToSet) {
+                    libDirsToSet = [
+                        qbs.sysroot + "/usr/lib/pkgconfig",
+                        qbs.sysroot + "/usr/share/pkgconfig"
+                    ];
+                }
+            }
+            if (libDirsToSet)
+                p.setEnv("PKG_CONFIG_LIBDIR", libDirsToSet.join(qbs.pathListSeparator));
             if (p.exec(executable, args.concat([ '--cflags' ])) === 0) {
                 cflags = p.readStdOut().trim();
                 if (cflags === "")
