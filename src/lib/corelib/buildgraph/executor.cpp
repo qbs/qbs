@@ -966,6 +966,7 @@ void Executor::finish()
     QBS_ASSERT(m_state != ExecutorIdle, /* ignore */);
     QBS_ASSERT(!m_evalContext || !m_evalContext->isActive(), /* ignore */);
 
+    checkForUnbuiltProducts();
     if (m_explicitlyCanceled) {
         QString message = Tr::tr(m_buildOptions.executeRulesOnly()
                                  ? "Rule execution canceled" : "Build canceled");
