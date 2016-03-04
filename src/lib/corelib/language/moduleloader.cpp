@@ -689,8 +689,10 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
 
     Item * const propertiesItem = projectItem->child(ItemType::PropertiesInSubProject);
     bool subProjectEnabled = true;
-    if (propertiesItem)
+    if (propertiesItem) {
+        propertiesItem->setScope(projectItem);
         subProjectEnabled = checkItemCondition(propertiesItem);
+    }
     if (!subProjectEnabled)
         return;
 

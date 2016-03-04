@@ -8,7 +8,7 @@ Project {
         inheritProperties: true
         Properties {
             name: "overridden name"
-            condition: true
+            condition: qbs.targetOS.length > 0
             libNameSuffix: "Lib"
         }
     }

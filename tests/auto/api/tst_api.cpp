@@ -1699,7 +1699,7 @@ void TestApi::subProjects()
     f.setFileName(params.buildRoot() + "/subproject2/subproject2.qbs");
     QVERIFY(f.open(QIODevice::ReadWrite));
     contents = f.readAll();
-    contents.replace("condition: true", "condition: false");
+    contents.replace("condition: qbs.targetOS.length > 0", "condition: false");
     f.resize(0);
     f.write(contents);
     f.close();
