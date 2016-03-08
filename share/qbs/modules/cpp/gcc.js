@@ -447,7 +447,7 @@ function compilerFlags(product, input, output) {
                        ModUtils.moduleProperties(input, 'flags', tag));
 
     var pchOutput = output.fileTags.contains(compilerInfo.tag + "_pch");
-    if (!pchOutput && ModUtils.moduleProperty(product, 'precompiledHeader', tag)) {
+    if (!pchOutput && ModUtils.moduleProperty(input, 'precompiledHeader', tag)) {
         var pchFilePath = FileInfo.joinPaths(
             ModUtils.moduleProperty(product, "precompiledHeaderDir"),
             product.name + "_" + tag);

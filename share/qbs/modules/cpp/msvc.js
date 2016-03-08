@@ -125,7 +125,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         args.push("/TC");
 
     // precompiled header file
-    var pch = ModUtils.moduleProperty(product, "precompiledHeader", tag);
+    var pch = ModUtils.moduleProperty(input, "precompiledHeader", tag);
     if (pch) {
         if (pchOutput) {
             // create PCH
