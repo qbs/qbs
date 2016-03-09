@@ -2,6 +2,7 @@ import qbs
 import qbs.File
 
 CppApplication {
+    consoleApplication: true
     Group {
         files: ["broken.cpp.in", "main.cpp.in"]
         fileTags: ["cpp.in"]
