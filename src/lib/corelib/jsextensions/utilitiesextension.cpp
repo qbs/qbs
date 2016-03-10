@@ -35,6 +35,10 @@
 #include <tools/architectures.h>
 #include <tools/fileinfo.h>
 
+#ifdef Q_OS_OSX
+#include <tools/applecodesignutils.h>
+#endif
+
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFileInfo>
@@ -55,6 +59,10 @@ public:
     static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_nativeSettingGroups(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_rfc1034identifier(QScriptContext *context, QScriptEngine *engine);
+
+    static QScriptValue js_smimeMessageContent(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_certificateInfo(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_signingIdentities(QScriptContext *context, QScriptEngine *engine);
 };
 
 void initializeJsExtensionUtilities(QScriptValue extensionObject)
@@ -72,6 +80,12 @@ void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                engine->newFunction(UtilitiesExtension::js_nativeSettingGroups, 1));
     environmentObj.setProperty(QStringLiteral("rfc1034Identifier"),
                                engine->newFunction(UtilitiesExtension::js_rfc1034identifier, 1));
+    environmentObj.setProperty(QStringLiteral("smimeMessageContent"),
+                               engine->newFunction(UtilitiesExtension::js_smimeMessageContent, 1));
+    environmentObj.setProperty(QStringLiteral("certificateInfo"),
+                               engine->newFunction(UtilitiesExtension::js_certificateInfo, 1));
+    environmentObj.setProperty(QStringLiteral("signingIdentities"),
+                               engine->newFunction(UtilitiesExtension::js_signingIdentities, 0));
     extensionObject.setProperty(QStringLiteral("Utilities"), environmentObj);
 }
 
@@ -145,6 +159,69 @@ QScriptValue UtilitiesExtension::js_rfc1034identifier(QScriptContext *context,
                                    QLatin1String("rfc1034Identifier expects 1 argument"));
     const QString identifier = context->argument(0).toString();
     return engine->toScriptValue(HostOsInfo::rfc1034Identifier(identifier));
+}
+
+/**
+ * Reads the contents of the S/MIME message located at \p filePath.
+ * An equivalent command line would be:
+ * \code security cms -D -i <infile> -o <outfile> \endcode
+ * or:
+ * \code openssl smime -verify -noverify -inform DER -in <infile> -out <outfile> \endcode
+ *
+ * \note A provisioning profile is an S/MIME message whose contents are an XML property list,
+ * so this method can be used to read such files.
+ */
+QScriptValue UtilitiesExtension::js_smimeMessageContent(QScriptContext *context,
+                                                        QScriptEngine *engine)
+{
+#ifndef Q_OS_OSX
+    Q_UNUSED(engine);
+    return context->throwError(QScriptContext::UnknownError,
+        QLatin1String("smimeMessageContent is not available on this platform"));
+#else
+    if (Q_UNLIKELY(context->argumentCount() != 1))
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("smimeMessageContent expects 1 argument"));
+
+    const QString filePath = context->argument(0).toString();
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly))
+        return engine->undefinedValue();
+
+    QByteArray content = smimeMessageContent(file.readAll());
+    if (content.isEmpty())
+        return engine->undefinedValue();
+    return engine->toScriptValue(content);
+#endif
+}
+
+QScriptValue UtilitiesExtension::js_certificateInfo(QScriptContext *context,
+                                                    QScriptEngine *engine)
+{
+#ifndef Q_OS_OSX
+    Q_UNUSED(engine);
+    return context->throwError(QScriptContext::UnknownError,
+        QLatin1String("certificateInfo is not available on this platform"));
+#else
+    if (Q_UNLIKELY(context->argumentCount() != 1))
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("certificateInfo expects 1 argument"));
+    return engine->toScriptValue(certificateInfo(context->argument(0).toVariant().toByteArray()));
+#endif
+}
+
+// Rough command line equivalent: security find-identity -p codesigning -v
+QScriptValue UtilitiesExtension::js_signingIdentities(QScriptContext *context,
+                                                      QScriptEngine *engine)
+{
+#ifndef Q_OS_OSX
+    Q_UNUSED(engine);
+    return context->throwError(QScriptContext::UnknownError,
+        QLatin1String("signingIdentities is not available on this platform"));
+#else
+    Q_UNUSED(context);
+    return engine->toScriptValue(identitiesProperties());
+#endif
 }
 
 } // namespace Internal

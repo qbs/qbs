@@ -1,7 +1,7 @@
 TARGET = qbscore
 include(../library.pri)
 
-QT += script
+QT += core-private network script
 qbs_enable_unit_tests:QT += testlib
 qbs_enable_project_file_updates: QT += gui
 

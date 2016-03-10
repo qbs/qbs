@@ -74,6 +74,12 @@ SOURCES += \
     $$PWD/version.cpp \
     $$PWD/visualstudioversioninfo.cpp
 
+osx {
+    HEADERS += $$PWD/applecodesignutils.h
+    SOURCES += $$PWD/applecodesignutils.cpp
+    LIBS += -framework Security
+}
+
 win32 {
     SOURCES += $$PWD/filetime_win.cpp
 }
