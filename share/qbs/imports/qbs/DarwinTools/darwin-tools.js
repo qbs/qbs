@@ -31,38 +31,45 @@
 var FileInfo = loadExtension("qbs.FileInfo");
 var Utilities = loadExtension("qbs.Utilities");
 
+var _deviceMap = {
+    "mac": undefined, // only devices have an ID
+    "iphone": 1,
+    "ipad": 2,
+    "tv": 3,
+    "watch": 4,
+    "car": 5
+};
+
+var _platformMap = {
+    "ios": "iPhone",
+    "osx": "MacOSX",
+    "tvos": "AppleTV",
+    "watchos": "Watch"
+};
+
+var _platformDeviceMap = {
+    "ios": ["iphone", "ipad"],
+    "osx": ["mac"],
+    "tvos": ["tv"],
+    "watchos": ["watch"]
+}
+
 /**
   * Returns the numeric identifier corresponding to an Apple device name
   * (i.e. for use by TARGETED_DEVICE_FAMILY).
   */
 function appleDeviceNumber(deviceName) {
-    if (deviceName === "mac") {
-        return undefined; // only iOS devices have an ID
-    } else if (deviceName === "iphone") {
-        return 1;
-    } else if (deviceName === "ipad") {
-        return 2;
-    } else if (deviceName === "tv") {
-        return 3;
-    } else if (deviceName === "watch") {
-        return 4;
-    } else if (deviceName === "car") {
-        return 5;
-    }
+    return _deviceMap[deviceName];
 }
 
 /**
   * Returns the list of target devices available for the given qbs target OS list.
   */
 function targetDevices(targetOS) {
-    if (targetOS.contains("osx"))
-        return ["mac"];
-    if (targetOS.contains("ios"))
-        return ["iphone", "ipad"];
-    if (targetOS.contains("tvos"))
-        return ["tv"];
-    if (targetOS.contains("watchos"))
-        return ["watch"];
+    for (var key in _platformDeviceMap) {
+        if (targetOS.contains(key))
+            return _platformDeviceMap[key];
+    }
 }
 
 /**
@@ -77,22 +84,26 @@ function targetedDeviceFamily(deviceNames) {
 /**
   * Returns the most appropriate Apple platform name given a targetOS list.
   */
-function applePlatformName(targetOSList) {
-    if (targetOSList.contains("ios-simulator"))
-        return "iphonesimulator";
-    else if (targetOSList.contains("ios"))
-        return "iphoneos";
-    else if (targetOSList.contains("osx"))
-        return "macosx";
-    else if (targetOSList.contains("tvos-simulator"))
-        return "appletvsimulator";
-    else if (targetOSList.contains("tvos"))
-        return "appletvos";
-    else if (targetOSList.contains("watchos-simulator"))
-        return "watchsimulator";
-    else if (targetOSList.contains("watchos"))
-        return "watchos";
-    throw("No Apple platform corresponds to target OS list: " + targetOSList);
+function applePlatformName(targetOSList, platformType) {
+    return applePlatformDirectoryName(targetOSList, platformType).toLowerCase();
+}
+
+/**
+  * Returns the most appropriate Apple platform directory name given a targetOS list and version.
+  */
+function applePlatformDirectoryName(targetOSList, platformType, version, throwOnError) {
+    var suffixMap = {
+        "device": "OS",
+        "simulator": "Simulator"
+    };
+
+    for (var key in _platformMap) {
+        if (targetOSList.contains(key))
+            return _platformMap[key] + (suffixMap[platformType] || "") + (version || "");
+    }
+
+    if (throwOnError || throwOnError === undefined)
+        throw("No Apple platform corresponds to target OS list: " + targetOSList);
 }
 
 /**

@@ -16,6 +16,17 @@ Module {
     property string sdk: DarwinTools.applePlatformName(qbs.targetOS)
     property stringList targetDevices: DarwinTools.targetDevices(qbs.targetOS)
 
+    property string platformType: {
+        if (qbs.targetOS.contains("ios-simulator")
+                || qbs.targetOS.contains("tvos-simulator")
+                || qbs.targetOS.contains("watchos-simulator"))
+            return "simulator";
+        if (qbs.targetOS.contains("ios")
+                || qbs.targetOS.contains("tvos")
+                || qbs.targetOS.contains("watchos"))
+            return "device";
+    }
+
     readonly property string sdkName: {
         if (_sdkSettings) {
             return _sdkSettings["CanonicalName"];
@@ -77,12 +88,12 @@ Module {
     readonly property path toolchainPath: FileInfo.joinPaths(toolchainsPath,
                                                              "XcodeDefault" + ".xctoolchain")
     readonly property path platformPath: FileInfo.joinPaths(platformsPath,
-                                                            Utils.applePlatformDirectoryName(
-                                                                qbs.targetOS)
+                                                            DarwinTools.applePlatformDirectoryName(
+                                                                qbs.targetOS, platformType)
                                                             + ".platform")
     readonly property path sdkPath: FileInfo.joinPaths(sdksPath,
-                                                       Utils.applePlatformDirectoryName(
-                                                           qbs.targetOS, sdkVersion)
+                                                       DarwinTools.applePlatformDirectoryName(
+                                                           qbs.targetOS, platformType, sdkVersion)
                                                        + ".sdk")
 
     // private properties
@@ -153,8 +164,8 @@ Module {
         validator.setRequiredProperty("sdkPath", sdkPath);
         validator.addVersionValidator("sdkVersion", sdkVersion, 2, 2);
         validator.addCustomValidator("sdkName", sdkName, function (value) {
-            return value === Utils.applePlatformDirectoryName(
-                        qbs.targetOS, sdkVersion, false).toLowerCase();
+            return value === DarwinTools.applePlatformDirectoryName(
+                        qbs.targetOS, platformType, sdkVersion, false).toLowerCase();
         }, " is '" + sdkName + "', but target OS is [" + qbs.targetOS.join(",")
         + "] and Xcode SDK version is '" + sdkVersion + "'");
         validator.validate();

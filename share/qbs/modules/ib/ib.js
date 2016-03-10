@@ -67,7 +67,9 @@ function ibtooldArguments(product, inputs, outputs, overrideOutput) {
     }
 
     if (inputs.assetcatalog) {
-        args.push("--platform", DarwinTools.applePlatformName(product.moduleProperty("qbs", "targetOS")));
+        args.push("--platform", DarwinTools.applePlatformName(
+                      product.moduleProperty("qbs", "targetOS"),
+                      product.moduleProperty("xcode", "platformType")));
 
         var appIconName = ModUtils.modulePropertyFromArtifacts(product, inputs.assetcatalog, product.moduleName, "appIconName");
         if (appIconName)

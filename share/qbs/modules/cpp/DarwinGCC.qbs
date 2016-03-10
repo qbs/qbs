@@ -76,11 +76,13 @@ UnixGCC {
         if (qbs.targetOS.contains("ios") || qbs.targetOS.contains("tvos")) {
             dict["LSRequiresIPhoneOS"] = true;
 
-            if (qbs.targetOS.contains("ios") && !qbs.targetOS.contains("ios-simulator"))
-                dict["UIRequiredDeviceCapabilities"] = ["armv7"];
+            if (xcode.platformType === "device") {
+                if (qbs.targetOS.contains("ios"))
+                    dict["UIRequiredDeviceCapabilities"] = ["armv7"];
 
-            if (qbs.targetOS.contains("tvos") && !qbs.targetOS.contains("tvos-simulator"))
-                dict["UIRequiredDeviceCapabilities"] = ["arm64"];
+                if (qbs.targetOS.contains("tvos"))
+                    dict["UIRequiredDeviceCapabilities"] = ["arm64"];
+            }
         }
 
         if (xcode.present) {
