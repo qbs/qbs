@@ -2809,6 +2809,14 @@ void TestBlackbox::nsis()
     QVERIFY(!QFile::exists(defaultInstallRoot + "/you-should-not-see-a-file-with-this-name.exe"));
 }
 
+QString getEmbeddedBinaryPlist(const QString &file)
+{
+    QProcess p;
+    p.start("otool", QStringList() << "-v" << "-X" << "-s" << "__TEXT" << "__info_plist" << file);
+    p.waitForFinished();
+    return QString::fromUtf8(p.readAllStandardOutput()).trimmed();
+}
+
 void TestBlackbox::embedInfoPlist()
 {
     if (!HostOsInfo::isOsxHost())
@@ -2817,12 +2825,20 @@ void TestBlackbox::embedInfoPlist()
     QDir::setCurrent(testDataDir + QLatin1String("/embedInfoPlist"));
 
     QbsRunParameters params;
-    params.command = QLatin1String("run");
     QCOMPARE(runQbs(params), 0);
+
+    QVERIFY(!getEmbeddedBinaryPlist(defaultInstallRoot + "/app").isEmpty());
+    QVERIFY(!getEmbeddedBinaryPlist(defaultInstallRoot + "/liblib.dylib").isEmpty());
+    QVERIFY(!getEmbeddedBinaryPlist(defaultInstallRoot + "/mod.bundle").isEmpty());
 
     params.arguments = QStringList(QLatin1String("bundle.embedInfoPlist:false"));
     params.expectFailure = true;
-    QVERIFY(runQbs(params) != 0);
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+
+    QVERIFY(getEmbeddedBinaryPlist(defaultInstallRoot + "/app").isEmpty());
+    QVERIFY(getEmbeddedBinaryPlist(defaultInstallRoot + "/liblib.dylib").isEmpty());
+    QVERIFY(getEmbeddedBinaryPlist(defaultInstallRoot + "/mod.bundle").isEmpty());
 }
 
 void TestBlackbox::frameworkStructure()
