@@ -364,6 +364,55 @@ CppModule {
         }
     }
 
+    Rule {
+        inputs: ["c_pch_src"]
+        explicitlyDependsOn: ["hpp"]
+        Artifact {
+            filePath: product.name + "_c.gch"
+            fileTags: ["c_pch"]
+        }
+        prepare: {
+            return Gcc.prepareCompiler.apply(this, arguments);
+        }
+    }
+
+    Rule {
+        inputs: ["cpp_pch_src"]
+        explicitlyDependsOn: ["hpp"]
+        Artifact {
+            filePath: product.name + "_cpp.gch"
+            fileTags: ["cpp_pch"]
+        }
+        prepare: {
+            return Gcc.prepareCompiler.apply(this, arguments);
+        }
+    }
+
+    Rule {
+        inputs: ["objc_pch_src"]
+        explicitlyDependsOn: ["hpp"]
+        Artifact {
+            filePath: product.name + "_objc.gch"
+            fileTags: ["objc_pch"]
+        }
+        prepare: {
+            return Gcc.prepareCompiler.apply(this, arguments);
+        }
+    }
+
+    Rule {
+        inputs: ["objcpp_pch_src"]
+        explicitlyDependsOn: ["hpp"]
+        Artifact {
+            filePath: product.name + "_objcpp.gch"
+            fileTags: ["objcpp_pch"]
+        }
+        prepare: {
+            return Gcc.prepareCompiler.apply(this, arguments);
+        }
+    }
+
+    // TODO: Remove in 1.6
     Transformer {
         condition: cPrecompiledHeader !== undefined
         inputs: cPrecompiledHeader

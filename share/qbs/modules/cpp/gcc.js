@@ -447,8 +447,15 @@ function compilerFlags(product, input, output) {
                        ModUtils.moduleProperties(input, 'flags', tag));
 
     var pchOutput = output.fileTags.contains(compilerInfo.tag + "_pch");
+
+    if (!pchOutput && ModUtils.moduleProperty(input, 'usePrecompiledHeader', tag)) {
+        var pchFilePath = FileInfo.joinPaths(product.buildDirectory, product.name + "_" + tag);
+        args.push('-include', pchFilePath);
+    }
+
+    // TODO: Remove in 1.6
     if (!pchOutput && ModUtils.moduleProperty(input, 'precompiledHeader', tag)) {
-        var pchFilePath = FileInfo.joinPaths(
+        pchFilePath = FileInfo.joinPaths(
             ModUtils.moduleProperty(product, "precompiledHeaderDir"),
             product.name + "_" + tag);
         args.push('-include', pchFilePath);

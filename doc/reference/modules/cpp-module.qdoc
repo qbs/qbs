@@ -143,51 +143,6 @@
         \li List of files to automatically include at the beginning of each source file in the
             product.
     \row
-        \li precompiledHeader
-        \li \c{path}
-        \li 1.0
-        \li \c{undefined}
-        \li Name of the header file to be precompiled.
-
-            If you want to use the same precompiled header for all languages (C, C++,
-            Objective-C and Objective-C++), set this property and ensure that the header
-            contains appropriate ifdefs.
-
-            Otherwise, use the \c{cPrecompiledHeader}, \c{cppPrecompiledHeader},
-            \c{objcPrecompiledHeader} and \c{objcppPrecompiledHeader} to specify
-            precompiled headers per-language.
-    \row
-        \li cPrecompiledHeader
-        \li \c{path}
-        \li 1.1
-        \li \c{precompiledHeader}
-        \li Name of the C header file to be precompiled.
-    \row
-        \li cxxPrecompiledHeader
-        \li \c{path}
-        \li 1.1
-        \li \c{precompiledHeader}
-        \li Name of the C++ header file to be precompiled.
-    \row
-        \li objcPrecompiledHeader
-        \li \c{path}
-        \li 1.1
-        \li \c{precompiledHeader}
-        \li Name of the Objective-C header file to be precompiled.
-    \row
-        \li objcxxPrecompiledHeader
-        \li \c{path}
-        \li 1.1
-        \li \c{precompiledHeader}
-        \li Name of the Objective-C++ header file to be precompiled.
-    \row
-        \li precompiledHeaderDir
-        \li \c{path}
-        \li 1.0
-        \li \c{product.buildDirectory}
-        \li The directory that will contain the precompiled header files.
-            Usually you won't need to set this.
-    \row
         \li optimization
         \li \c{string}
         \li 1.0
@@ -199,6 +154,14 @@
         \li 1.0
         \li \c{false}
         \li Warnings will be handled as errors and cause the build to fail.
+    \row
+        \li useCPrecompiledHeader, useCxxPrecompiledHeader, useObjcPrecompiledHeader,
+            useObjcxxPrecompiledHeader
+        \li \c bool
+        \li 1.5
+        \li \c false
+        \li Specifies whether to use a precompiled header for the respective language, if one
+            is present (see \l{Relevant File Tags}{below} for the associated file tags).
     \row
         \li warningLevel
         \li \c{string}
@@ -656,6 +619,13 @@
         \li 1.0.1
         \li Source files with this tag serve as inputs to a rule invoking the toolchain's
             C++ compiler. One object file is generated for each such file.
+    \row
+        \li \\c{"c_pch_src"}, \c{"cpp_pch_src"}, \c{"objc_pch_src"}, \c{"objcpp_pch_src"}
+        \li -
+        \li 1.5
+        \li Files with this tag will be turned into precompiled headers for C, C++, Objective-C
+            and Objective-C++, respectively. There can be only one such file per product and
+            language.
     \row
         \li \c{"dynamiclibrary"}
         \li n/a

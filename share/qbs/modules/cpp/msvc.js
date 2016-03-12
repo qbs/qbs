@@ -125,6 +125,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         args.push("/TC");
 
     // precompiled header file
+    // TODO: Remove in 1.6
     var pch = ModUtils.moduleProperty(input, "precompiledHeader", tag);
     if (pch) {
         if (pchOutput) {
@@ -141,6 +142,33 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
             args.push("/FI" + pchHeaderName);
             args.push("/Yu" + pchHeaderName);
             args.push("/Fp" + pchName);
+        }
+    }
+
+    var commands = [];
+    var usePch = ModUtils.moduleProperty(input, "usePrecompiledHeader", tag);
+    if (usePch) {
+        if (pchOutput) {
+            // create PCH
+            args.push("/Yc");
+            args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.filePath));
+            args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.filePath));
+            args.push(FileInfo.toWindowsSeparators(input.filePath));
+            var copyCmd = new JavaScriptCommand();
+            copyCmd.tag = tag;
+            copyCmd.silent = true;
+            copyCmd.sourceCode = function() {
+                File.copy(input.filePath, outputs[tag + "_pch_copy"]);
+            };
+            commands.push(copyCmd);
+        } else {
+            // use PCH
+            var pchHeaderFilePath = ".obj/" + product.name + '_' + tag + '.pch_copy';
+            var pchFilePath = FileInfo.toWindowsSeparators(product.buildDirectory
+                + "\\.obj\\" + product.name + "_" + tag + ".pch");
+            args.push("/FI" + pchHeaderFilePath);
+            args.push("/Yu" + pchHeaderFilePath);
+            args.push("/Fp" + pchFilePath);
         }
     }
 
@@ -168,7 +196,8 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     cmd.stdoutFilterFunction = function(output) {
         return output.split(inputFileName + "\r\n").join("");
     };
-    return cmd;
+    commands.push(cmd);
+    return commands;
 }
 
 function prepareLinker(project, product, inputs, outputs, input, output) {

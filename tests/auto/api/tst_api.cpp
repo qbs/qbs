@@ -296,8 +296,14 @@ void TestApi::buildProject_data()
     QTest::newRow("link static libs")
             << QString("link-static-lib")
             << relativeExecutableFilePath("HelloWorld");
-    QTest::newRow("precompiled header")
+    QTest::newRow("precompiled header") // TODO: Remove in 1.6
             << QString("precompiled-header")
+            << relativeExecutableFilePath("MyApp");
+    QTest::newRow("precompiled header new")
+            << QString("precompiled-header-new")
+            << relativeExecutableFilePath("MyApp");
+    QTest::newRow("precompiled header dynamic")
+            << QString("precompiled-header-dynamic")
             << relativeExecutableFilePath("MyApp");
     QTest::newRow("lots of dots")
             << QString("lots-of-dots")

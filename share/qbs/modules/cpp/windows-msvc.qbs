@@ -92,6 +92,48 @@ CppModule {
         validator.validate();
     }
 
+    Rule {
+        inputs: ["c_pch_src"]
+        explicitlyDependsOn:  ["hpp"]
+        Artifact {
+            fileTags: ['obj']
+            filePath: ".obj/" + Utilities.getHash(input.completeBaseName) + '_c.obj'
+        }
+        Artifact {
+            fileTags: ['c_pch']
+            filePath: ".obj/" + product.name + '_c.pch'
+        }
+        Artifact {
+            fileTags: ['c_pch_copy']
+            filePath: ".obj/" + product.name + '_c.pch_copy'
+        }
+        prepare: {
+            return MSVC.prepareCompiler.apply(this, arguments);
+        }
+    }
+
+    Rule {
+        inputs: ["cpp_pch_src"]
+        explicitlyDependsOn: ["c_pch", "hpp"]  // to prevent vc--0.pdb conflict
+        Artifact {
+            fileTags: ['obj']
+            filePath: ".obj/" + Utilities.getHash(input.completeBaseName) + '_cpp.obj'
+        }
+        Artifact {
+            fileTags: ['cpp_pch']
+            filePath: ".obj/" + product.name + '_cpp.pch'
+        }
+        Artifact {
+            fileTags: ['cpp_pch_copy']
+            filePath: ".obj/" + product.name + '_cpp.pch_copy'
+        }
+
+        prepare: {
+            return MSVC.prepareCompiler.apply(this, arguments);
+        }
+    }
+
+    // TODO: Remove in 1.6
     Transformer {
         condition: cPrecompiledHeader !== undefined
         inputs: cPrecompiledHeader
