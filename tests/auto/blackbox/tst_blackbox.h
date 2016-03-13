@@ -103,6 +103,7 @@ private slots:
     void assetCatalog_data();
     void badInterpreter();
     void buildDirectories();
+    void bundleStructure();
     void changedFiles_data();
     void changedFiles();
     void changeInDisabledProduct();

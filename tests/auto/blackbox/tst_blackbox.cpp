@@ -520,6 +520,183 @@ void TestBlackbox::buildDirectories()
     QVERIFY2(outputLines.contains(projectDir), m_qbsStdout.constData());
 }
 
+class QFileInfo2 : public QFileInfo {
+public:
+    QFileInfo2(const QString &path) : QFileInfo(path) { }
+    bool isRegularFile() const { return isFile() && !isSymLink(); }
+    bool isRegularDir() const { return isDir() && !isSymLink(); }
+    bool isFileSymLink() const { return isFile() && isSymLink(); }
+    bool isDirSymLink() const { return isDir() && isSymLink(); }
+};
+
+void TestBlackbox::bundleStructure()
+{
+    if (!HostOsInfo::isOsxHost())
+        QSKIP("only applies on OS X");
+
+    QDir::setCurrent(testDataDir + "/bundle-structure");
+    QbsRunParameters params;
+    QCOMPARE(runQbs(params), 0);
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/MacOS").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/MacOS/A").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/PkgInfo").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/Resources").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/Resources/resource.txt").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/B").isFileSymLink());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Headers").isDirSymLink());
+    //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Modules").isDirSymLink());
+    QVERIFY(!QFileInfo2(defaultInstallRoot + "/B.framework/PkgInfo").exists());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/PrivateHeaders").isDirSymLink());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Resources").isDirSymLink());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/B").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Headers").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Headers/dummy.h").isRegularFile());
+    //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Modules").isRegularDir());
+    //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Modules/module.modulemap").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/PrivateHeaders").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/PrivateHeaders/dummy_p.h").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Resources").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Resources/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/Current").isDirSymLink());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/C").isFileSymLink());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Headers").isDirSymLink());
+    //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Modules").isDirSymLink());
+    QVERIFY(!QFileInfo2(defaultInstallRoot + "/C.framework/PkgInfo").exists());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/PrivateHeaders").isDirSymLink());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Resources").isDirSymLink());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/C").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Headers").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Headers/dummy.h").isRegularFile());
+    //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Modules").isRegularDir());
+    //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Modules/module.modulemap").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/PrivateHeaders").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/PrivateHeaders/dummy_p.h").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Resources").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Resources/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/Current").isDirSymLink());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/MacOS").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/MacOS/D").isRegularFile());
+    QVERIFY(!QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/PkgInfo").exists());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/Resources").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/Resources/resource.txt").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/MacOS").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/MacOS/E").isRegularFile());
+    QVERIFY(!QFileInfo2(defaultInstallRoot + "/E.appex/Contents/PkgInfo").exists());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/Resources").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/Resources/resource.txt").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/MacOS").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/MacOS/F").isRegularFile());
+    QVERIFY(!QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/PkgInfo").exists());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/Resources").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/Resources/resource.txt").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/G").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/G/ContentInfo.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/G/Contents/resource.txt").isRegularFile());
+
+    // Coerce shallow bundles - don't set bundle.isShallow directly because we want to test the
+    // automatic detection
+    params.arguments = QStringList()
+            << "qbs.targetOS:ios,darwin,bsd,unix"
+            << "qbs.architecture:arm64";
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/A").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/PkgInfo").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/resource.txt").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/ResourceRules.plist").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/B").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Headers").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Headers/dummy.h").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Info.plist").isRegularFile());
+    //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Modules").isRegularDir());
+    //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Modules/module.modulemap").isRegularFile());
+    QVERIFY(!QFileInfo2(defaultInstallRoot + "/B.framework/PkgInfo").exists());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/PrivateHeaders").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/PrivateHeaders/dummy_p.h").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/resource.txt").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/ResourceRules.plist").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/C").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Headers").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Headers/dummy.h").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Info.plist").isRegularFile());
+    //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Modules").isRegularDir());
+    //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Modules/module.modulemap").isRegularFile());
+    QVERIFY(!QFileInfo2(defaultInstallRoot + "/C.framework/PkgInfo").exists());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/PrivateHeaders").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/PrivateHeaders/dummy_p.h").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/resource.txt").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/ResourceRules.plist").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/D").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Headers").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Headers/dummy.h").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Info.plist").isRegularFile());
+    QVERIFY(!QFileInfo2(defaultInstallRoot + "/D.bundle/PkgInfo").exists());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/PrivateHeaders").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/PrivateHeaders/dummy_p.h").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/resource.txt").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/ResourceRules.plist").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/E").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Headers").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Headers/dummy.h").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Info.plist").isRegularFile());
+    QVERIFY(!QFileInfo2(defaultInstallRoot + "/E.appex/PkgInfo").exists());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/PrivateHeaders").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/PrivateHeaders/dummy_p.h").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/resource.txt").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/ResourceRules.plist").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/F").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Headers").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Headers/dummy.h").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Info.plist").isRegularFile());
+    QVERIFY(!QFileInfo2(defaultInstallRoot + "/F.xpc/PkgInfo").exists());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/PrivateHeaders").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/PrivateHeaders/dummy_p.h").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/resource.txt").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/ResourceRules.plist").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/G").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/G/ContentInfo.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/G/Contents/resource.txt").isRegularFile());
+}
+
 void TestBlackbox::changedFiles_data()
 {
     QTest::addColumn<bool>("useChangedFilesForInitialBuild");
