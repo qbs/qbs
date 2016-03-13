@@ -296,7 +296,8 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
 
     Artifact *outputArtifact = lookupArtifact(m_product, outputPath);
     if (outputArtifact) {
-        if (outputArtifact->transformer && outputArtifact->transformer->rule != m_rule) {
+        const Transformer * const transformer = outputArtifact->transformer.data();
+        if (transformer && transformer->rule != m_rule) {
             QString e = Tr::tr("Conflicting rules for producing %1 %2 \n")
                     .arg(outputArtifact->filePath(),
                          QLatin1Char('[') +
@@ -313,12 +314,24 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
                 .arg(str);
 
             e += QString::fromLatin1("  was already defined in:  %1:%2:%3  %4\n")
-                .arg(outputArtifact->transformer->rule->prepareScript->location.filePath())
-                .arg(outputArtifact->transformer->rule->prepareScript->location.line())
-                .arg(outputArtifact->transformer->rule->prepareScript->location.column())
+                .arg(transformer->rule->prepareScript->location.filePath())
+                .arg(transformer->rule->prepareScript->location.line())
+                .arg(transformer->rule->prepareScript->location.column())
                 .arg(str);
 
             throw ErrorInfo(e);
+        }
+        if (transformer && !m_rule->multiplex && transformer->inputs != inputArtifacts) {
+            QBS_CHECK(inputArtifacts.count() == 1);
+            QBS_CHECK(transformer->inputs.count() == 1);
+            ErrorInfo error(Tr::tr("Conflicting instances of rule '%1':").arg(m_rule->toString()),
+                            m_rule->prepareScript->location);
+            error.append(Tr::tr("Output artifact '%1' is to be produced from input "
+                                "artifacts '%2' and '%3', but the rule is not a multiplex rule.")
+                         .arg(outputArtifact->filePath(),
+                              (*transformer->inputs.begin())->filePath(),
+                              (*inputArtifacts.begin())->filePath()));
+            throw error;
         }
         outputArtifact->clearTimestamp();
         m_invalidatedArtifacts += outputArtifact;

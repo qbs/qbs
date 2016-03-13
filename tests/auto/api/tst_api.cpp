@@ -1680,6 +1680,15 @@ void TestApi::resolveProjectDryRun_data()
     return resolveProject_data();
 }
 
+void TestApi::ruleConflict()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("rule-conflict/rule-conflict.qbs");
+    QVERIFY(errorInfo.hasError());
+    const QString errorString = errorInfo.toString();
+    QVERIFY2(errorString.contains("conflict") && errorString.contains("pch1.h")
+             && errorString.contains("pch2.h"), qPrintable(errorString));
+}
+
 void TestApi::softDependency()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("soft-dependency/project.qbs");

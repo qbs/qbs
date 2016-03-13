@@ -8,6 +8,7 @@ CppApplication {
         fileTags: ["cpp.in"]
     }
     Rule {
+        multiplex: true
         inputs: ["cpp.in"]
         outputFileTags: ["cpp"]
         outputArtifacts: [{ filePath: "main.cpp" }, { filePath: "broken.nomatch" }]

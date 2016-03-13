@@ -115,6 +115,7 @@ private slots:
     void resolveProject_data();
     void resolveProjectDryRun();
     void resolveProjectDryRun_data();
+    void ruleConflict();
     void softDependency();
     void sourceFileInBuildDir();
     void subProjects();
