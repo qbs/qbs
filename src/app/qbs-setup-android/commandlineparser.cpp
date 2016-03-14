@@ -82,9 +82,6 @@ void CommandLineParser::parse(const QStringList &commandLine)
         return;
     }
 
-    if (m_sdkDir.isEmpty())
-        throwError(Tr::tr("No SDK directory supplied."));
-
     switch (m_commandLine.count()) {
     case 0:
         throwError(Tr::tr("No profile name supplied."));
@@ -107,7 +104,7 @@ QString CommandLineParser::usageString() const
 {
     QString s = Tr::tr("This tool creates qbs profiles from Android SDK and NDK installations.\n");
     s += Tr::tr("Usage:\n");
-    s += Tr::tr("    %1 [%2 <settings dir>] [%3 <NDK dir>] %4 <SDK dir> <profile name>\n")
+    s += Tr::tr("    %1 [%2 <settings dir>] [%3 <NDK dir>] [%4 <SDK dir>] <profile name>\n")
             .arg(m_command, settingsDirOption(), ndkDirOption(), sdkDirOption());
     s += Tr::tr("    %1 %2|%3\n").arg(m_command, helpOptionShort(), helpOptionLong());
     s += Tr::tr("If an NDK path is given, additional profiles will be created for each "
