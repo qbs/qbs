@@ -137,6 +137,26 @@ CppModule {
         return versionParts.join('.');
     }
 
+    exceptionHandlingModel: {
+        if (qbs.toolchain.contains("mingw")) {
+            // https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html claims
+            // __USING_SJLJ_EXCEPTIONS__ is defined as 1 when using SJLJ exceptions, but there don't
+            // seem to be defines for the other models, so use the presence of the DLLs for now.
+            var prefix = toolchainInstallPath;
+            if (!qbs.hostOS.contains("windows"))
+                prefix = FileInfo.joinPaths(toolchainInstallPath, "..", "lib", "gcc",
+                                            toolchainPrefix,
+                                            [compilerVersionMajor, compilerVersionMinor].join("."));
+            var models = ["seh", "sjlj", "dw2"];
+            for (var i = 0; i < models.length; ++i) {
+                if (File.exists(FileInfo.joinPaths(prefix, "libgcc_s_" + models[i] + "-1.dll"))) {
+                    return models[i];
+                }
+            }
+        }
+        return base;
+    }
+
     validate: {
         var validator = new ModUtils.PropertyValidator("cpp");
         validator.setRequiredProperty("architecture", architecture,

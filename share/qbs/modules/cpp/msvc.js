@@ -47,8 +47,22 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     // Whether we're compiling a precompiled header or normal source file
     var pchOutput = outputs[tag + "_pch"] ? outputs[tag + "_pch"][0] : undefined;
 
-    // enable unwind semantics
-    args.push("/EHsc")
+    var enableExceptions = ModUtils.moduleProperty(input, "enableExceptions");
+    if (enableExceptions) {
+        var ehModel = ModUtils.moduleProperty(input, "exceptionHandlingModel");
+        switch (ehModel) {
+        case "default":
+            args.push("/EHsc"); // "Yes" in VS
+            break;
+        case "seh":
+            args.push("/EHa"); // "Yes with SEH exceptions" in VS
+            break;
+        case "externc":
+            args.push("/EHs"); // "Yes with Extern C functions" in VS
+            break;
+        }
+    }
+
     // optimization:
     if (optimization === 'small')
         args.push('/Os')

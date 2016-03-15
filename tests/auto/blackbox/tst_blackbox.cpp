@@ -3171,6 +3171,47 @@ void TestBlackbox::embedInfoPlist()
     QVERIFY(getEmbeddedBinaryPlist(defaultInstallRoot + "/mod.bundle").isEmpty());
 }
 
+void TestBlackbox::enableExceptions()
+{
+    QFETCH(QString, file);
+    QFETCH(bool, enable);
+    QFETCH(bool, expectSuccess);
+
+    QDir::setCurrent(testDataDir + QStringLiteral("/enableExceptions"));
+
+    QbsRunParameters params;
+    params.arguments = QStringList() << "-f" << file << (QStringLiteral("cpp.enableExceptions:")
+                                                         + (enable ? "true" : "false"));
+    params.expectFailure = !expectSuccess;
+    rmDirR(relativeBuildDir());
+    if (!params.expectFailure)
+        QCOMPARE(runQbs(params), 0);
+    else
+        QVERIFY(runQbs(params) != 0);
+}
+
+void TestBlackbox::enableExceptions_data()
+{
+    QTest::addColumn<QString>("file");
+    QTest::addColumn<bool>("enable");
+    QTest::addColumn<bool>("expectSuccess");
+
+    QTest::newRow("no exceptions, enabled") << "none.qbs" << true << true;
+    QTest::newRow("no exceptions, disabled") << "none.qbs" << false << true;
+
+    QTest::newRow("C++ exceptions, enabled") << "exceptions.qbs" << true << true;
+    QTest::newRow("C++ exceptions, disabled") << "exceptions.qbs" << false << false;
+
+    if (HostOsInfo::isOsxHost()) {
+        QTest::newRow("Objective-C exceptions, enabled") << "exceptions-objc.qbs" << true << true;
+        QTest::newRow("Objective-C exceptions in Objective-C++ source, enabled") << "exceptions-objcpp.qbs" << true << true;
+        QTest::newRow("C++ exceptions in Objective-C++ source, enabled") << "exceptions-objcpp-cpp.qbs" << true << true;
+        QTest::newRow("Objective-C, disabled") << "exceptions-objc.qbs" << false << false;
+        QTest::newRow("Objective-C exceptions in Objective-C++ source, disabled") << "exceptions-objcpp.qbs" << false << false;
+        QTest::newRow("C++ exceptions in Objective-C++ source, disabled") << "exceptions-objcpp-cpp.qbs" << false << false;
+    }
+}
+
 void TestBlackbox::frameworkStructure()
 {
     if (!HostOsInfo::isOsxHost())

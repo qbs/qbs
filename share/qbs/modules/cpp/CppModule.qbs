@@ -271,6 +271,9 @@ Module {
         description: "version of the C++ standard library to use"
     }
 
+    property bool enableExceptions
+    property string exceptionHandlingModel: "default"
+
     // Platform properties. Those are intended to be set by the toolchain setup
     // and are prepended to the corresponding user properties.
     property stringList platformAssemblerFlags

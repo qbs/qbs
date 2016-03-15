@@ -329,7 +329,20 @@
             toolchain is used.
             \note For MSVC the default value is \c{"dynamic"}.
             \note At the moment this property is only functional for MSVC.
-
+    \row
+        \li enableExceptions
+        \li \c{bool}
+        \li 1.5
+        \li \c{undefined}
+        \li Whether to enable exceptions in C++ code.
+    \row
+        \li exceptionHandlingModel
+        \li \c{string}
+        \li 1.5
+        \li \c{"default"}
+        \li The exception handling model to use. For MSVC, this can be \c{"default"}, \c{"seh"} or
+            \c{"externc"}. For all other compilers, \c{"default"} indicates the default or only
+            exception handling model.
     \row
         \li enableReproducibleBuilds
         \li \c{bool}

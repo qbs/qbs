@@ -77,7 +77,6 @@ Module {
         return cpp.toolchainPrefix + toolchainVersionNumber;
     }
 
-    property bool enableExceptions: appStl !== "system"
     property bool enableRtti: appStl !== "system"
     property bool hardFloat
     property string ndkDir: ndkProbe.path
@@ -206,16 +205,14 @@ Module {
 
     qbs.optimization: cpp.targetAbi === "androideabi" ? "small" : base
 
+    cpp.enableExceptions: appStl !== "system"
+
     cpp.commonCompilerFlags: NdkUtils.commonCompilerFlags(qbs.buildVariant, abi, hardFloat, armMode)
 
     cpp.linkerFlags: NdkUtils.commonLinkerFlags(abi, hardFloat)
 
     cpp.cxxFlags: {
         var flags = [];
-        if (enableExceptions)
-            flags.push("-fexceptions");
-        else
-            flags.push("-fno-exceptions");
         if (enableRtti)
             flags.push("-frtti");
         else

@@ -420,6 +420,18 @@ function compilerFlags(product, input, output) {
         args.push(useArc ? "-fobjc-arc" : "-fno-objc-arc");
     }
 
+    var enableExceptions = ModUtils.moduleProperty(input, "enableExceptions");
+    if (enableExceptions !== undefined) {
+        if (tag === "cpp" || tag === "objcpp")
+            args.push(enableExceptions ? "-fexceptions" : "-fno-exceptions");
+
+        if (tag === "objc" || tag === "objcpp") {
+            args.push(enableExceptions ? "-fobjc-exceptions" : "-fno-objc-exceptions");
+            if (useArc !== undefined)
+                args.push(useArc ? "-fobjc-arc-exceptions" : "-fno-objc-arc-exceptions");
+        }
+    }
+
     var visibility = ModUtils.moduleProperty(input, 'visibility');
     if (!product.type.contains('staticlibrary')
             && !product.moduleProperty("qbs", "toolchain").contains("mingw")) {

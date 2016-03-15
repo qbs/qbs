@@ -120,6 +120,8 @@ private slots:
     void dynamicMultiplexRule();
     void dynamicRuleOutputs();
     void embedInfoPlist();
+    void enableExceptions();
+    void enableExceptions_data();
     void erroneousFiles_data();
     void erroneousFiles();
     void exportRule();
