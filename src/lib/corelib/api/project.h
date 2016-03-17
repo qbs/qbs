@@ -125,7 +125,7 @@ public:
     bool operator==(const Project &other) const { return d.data() == other.d.data(); }
 
     QStringList generatedFiles(const ProductData &product, const QString &file,
-                               const QStringList &tags = QStringList()) const;
+                               bool recursive, const QStringList &tags = QStringList()) const;
 
     QVariantMap projectConfiguration() const;
     QHash<QString, QString> usedEnvironment() const;

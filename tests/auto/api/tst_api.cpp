@@ -296,8 +296,14 @@ void TestApi::buildProject_data()
     QTest::newRow("link static libs")
             << QString("link-static-lib")
             << relativeExecutableFilePath("HelloWorld");
-    QTest::newRow("precompiled header")
+    QTest::newRow("precompiled header") // TODO: Remove in 1.6
             << QString("precompiled-header")
+            << relativeExecutableFilePath("MyApp");
+    QTest::newRow("precompiled header new")
+            << QString("precompiled-header-new")
+            << relativeExecutableFilePath("MyApp");
+    QTest::newRow("precompiled header dynamic")
+            << QString("precompiled-header-dynamic")
             << relativeExecutableFilePath("MyApp");
     QTest::newRow("lots of dots")
             << QString("lots-of-dots")
@@ -387,6 +393,27 @@ void TestApi::buildSingleFile()
     QCOMPARE(receiver.descriptions.count("compiling"), 1);
     QVERIFY2(receiver.descriptions.contains("compiling compiled.cpp"),
              qPrintable(receiver.descriptions));
+}
+
+void TestApi::checkOutputs()
+{
+    QFETCH(bool, check);
+    qbs::SetupProjectParameters params = defaultSetupParameters("/check-outputs/project.qbs");
+    qbs::BuildOptions options;
+    options.setForceOutputCheck(check);
+    removeBuildDir(params);
+    qbs::ErrorInfo errorInfo = doBuildProject("/check-outputs/project.qbs", 0, 0, 0, options);
+    if (check)
+        QVERIFY(errorInfo.hasError());
+    else
+        VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::checkOutputs_data()
+{
+    QTest::addColumn<bool>("check");
+    QTest::newRow("checked outputs") << true;
+    QTest::newRow("unchecked outputs") << false;
 }
 
 qbs::GroupData findGroup(const qbs::ProductData &product, const QString &name)
@@ -942,6 +969,44 @@ void TestApi::fileTagsFilterOverride()
             = project.installableFilesForProduct(product, qbs::InstallOptions());
     QCOMPARE(installableFiles.count(), 1);
     QVERIFY(installableFiles.first().targetFilePath().contains("habicht"));
+}
+
+void TestApi::generatedFilesList()
+{
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("generated-files-list/generated-files-list.qbs");
+    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+                                                                              m_logSink, 0));
+    QVERIFY(waitForFinished(setupJob.data()));
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    qbs::Project project = setupJob->project();
+    qbs::BuildOptions options;
+    options.setExecuteRulesOnly(true);
+    const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(options));
+    QVERIFY(waitForFinished(buildJob.data()));
+    VERIFY_NO_ERROR(buildJob->error());
+    const qbs::ProjectData projectData = project.projectData();
+    QCOMPARE(projectData.products().count(), 1);
+    const qbs::ProductData product = projectData.products().first();
+    QString uiFilePath;
+    foreach (const qbs::GroupData &group, product.groups()) {
+        foreach (const qbs::SourceArtifact &a, group.sourceArtifacts()) {
+            if (a.fileTags().contains(QLatin1String("ui"))) {
+                uiFilePath = a.filePath();
+                break;
+            }
+        }
+        if (!uiFilePath.isEmpty())
+            break;
+    }
+    QVERIFY(!uiFilePath.isEmpty());
+    const QStringList directParents = project.generatedFiles(product, uiFilePath, false);
+    QCOMPARE(directParents.count(), 1);
+    const QFileInfo uiHeaderFileInfo(directParents.first());
+    QCOMPARE(uiHeaderFileInfo.fileName(), QLatin1String("ui_mainwindow.h"));
+    QVERIFY(!uiHeaderFileInfo.exists());
+    const QStringList allParents = project.generatedFiles(product, uiFilePath, true);
+    QCOMPARE(allParents.count(), 3);
 }
 
 void TestApi::infiniteLoopBuilding()
@@ -1661,7 +1726,7 @@ void TestApi::subProjects()
     f.setFileName(params.buildRoot() + "/subproject2/subproject2.qbs");
     QVERIFY(f.open(QIODevice::ReadWrite));
     contents = f.readAll();
-    contents.replace("condition: true", "condition: false");
+    contents.replace("condition: qbs.targetOS.length > 0", "condition: false");
     f.resize(0);
     f.write(contents);
     f.close();

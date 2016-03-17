@@ -122,4 +122,19 @@
         \li The versioned platform name.
     \endtable
 
+    \section1 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Since
+        \li Description
+    \row
+        \li \c{"android.nativelibrary"}
+        \li 1.4.0
+        \li This tag is attached to dynamic libraries that will end up in APK packages.
+            You do not normally need to use the tag explicitly, as it is the default type of the
+            \l {DynamicLibrary Item}{DynamicLibrary} item for Android targets.
+    \endtable
+
 */

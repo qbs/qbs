@@ -63,7 +63,8 @@ void RuleNode::accept(BuildGraphVisitor *visitor)
 
 QString RuleNode::toString() const
 {
-    return QLatin1String("RULE ") + m_rule->toString();
+    return QLatin1String("RULE ") + m_rule->toString() + QLatin1String(" [")
+            + (!product.isNull() ? product->name : QLatin1String("<null>")) + QLatin1Char(']');
 }
 
 void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,

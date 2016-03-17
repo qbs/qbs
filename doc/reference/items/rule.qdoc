@@ -153,7 +153,8 @@
             item.
             Output artifacts can be specified either by \c{Rule.outputArtifacts} or by \c{Artifact}
             items. Use \c{Rule.outputArtifacts} if the set of outputs is not fixed but dependent on
-            the input's content.
+            the input's content. If no file tags are provided, \QBS will apply all
+            \l{FileTagger Item}{file taggers} known in the current context to the output file name.
             The user may set the property \c{explicitlyDependsOn} on artifact objects, which is
             similar to \c{Rule.explicitlyDependsOn}.
     \row

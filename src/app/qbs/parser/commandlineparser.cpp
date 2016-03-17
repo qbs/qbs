@@ -206,6 +206,11 @@ bool CommandLineParser::forceTimestampCheck() const
     return d->optionPool.forceTimestampCheckOption()->enabled();
 }
 
+bool CommandLineParser::forceOutputCheck() const
+{
+    return d->optionPool.forceOutputCheckOption()->enabled();
+}
+
 bool CommandLineParser::dryRun() const
 {
     return d->dryRun();
@@ -506,6 +511,7 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
     buildOptions.setChangedFiles(changedFiles);
     buildOptions.setKeepGoing(optionPool.keepGoingOption()->enabled());
     buildOptions.setForceTimestampCheck(optionPool.forceTimestampCheckOption()->enabled());
+    buildOptions.setForceOutputCheck(optionPool.forceOutputCheckOption()->enabled());
     const JobsOption * jobsOption = optionPool.jobsOption();
     buildOptions.setMaxJobCount(jobsOption->jobCount());
     buildOptions.setLogElapsedTime(logTime);

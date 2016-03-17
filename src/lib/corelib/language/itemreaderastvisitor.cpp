@@ -96,7 +96,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         QBS_CHECK(inheritorItem->type() <= ItemType::LastActualItem);
         item->setType(inheritorItem->type());
     } else {
-        item->setType(BuiltinDeclarations::instance().typeForName(typeName));
+        item->setType(BuiltinDeclarations::instance().typeForName(typeName, item->location()));
         if (item->type() == ItemType::Properties && item->parent()
                 && item->parent()->type() == ItemType::SubProject) {
             item->setType(ItemType::PropertiesInSubProject);

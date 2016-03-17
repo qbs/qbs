@@ -286,7 +286,7 @@ Module {
 
     Rule {
         inputs: ["ts"]
-        multiplex: ModUtils.moduleProperty(product, "lreleaseMultiplexMode")
+        multiplex: lreleaseMultiplexMode
 
         Artifact {
             filePath: FileInfo.joinPaths(ModUtils.moduleProperty(product, "qmDir"),

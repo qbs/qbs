@@ -34,6 +34,7 @@
 #include "itemdeclaration.h"
 #include "itemtype.h"
 
+#include <tools/codelocation.h>
 #include <tools/version.h>
 
 #include <QHash>
@@ -51,7 +52,8 @@ public:
     Version languageVersion() const;
     QStringList allTypeNames() const;
     ItemDeclaration declarationsForType(ItemType type) const;
-    ItemType typeForName(const QString &typeName) const;
+    ItemType typeForName(const QString &typeName,
+                         const CodeLocation location = CodeLocation()) const;
     QString nameForType(ItemType itemType) const;
 
 protected:

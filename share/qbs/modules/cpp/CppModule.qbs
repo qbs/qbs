@@ -45,13 +45,20 @@ Module {
     property bool enableReproducibleBuilds: false
     property bool separateDebugInformation: false
     property pathList prefixHeaders
-    property path precompiledHeader
-    property path cPrecompiledHeader: precompiledHeader
+    property bool useCPrecompiledHeader: false
+    property bool useCxxPrecompiledHeader: false
+    property bool useObjcPrecompiledHeader: false
+    property bool useObjcxxPrecompiledHeader: false
+
+    // TODO: Remove these in 1.6
     property path cxxPrecompiledHeader: precompiledHeader
     // ### default to undefined on non-Apple platforms for now - QBS-346
+    property path precompiledHeader
+    property path cPrecompiledHeader: precompiledHeader
     property path objcPrecompiledHeader: qbs.targetOS.contains("darwin") ? precompiledHeader : undefined
     property path objcxxPrecompiledHeader: qbs.targetOS.contains("darwin") ? precompiledHeader : undefined
     property path precompiledHeaderDir: product.buildDirectory
+
     property stringList defines
     property stringList platformDefines: qbs.enableDebugCode ? [] : ["NDEBUG"]
     property stringList compilerDefines
@@ -167,6 +174,7 @@ Module {
     property stringList frameworks // list of frameworks, will be linked with '-framework <name>'
     property stringList weakFrameworks // list of weakly-linked frameworks, will be linked with '-weak_framework <name>'
     property stringList rpaths
+    property string sonamePrefix
     property bool useRPaths: true
 
     property stringList assemblerFlags

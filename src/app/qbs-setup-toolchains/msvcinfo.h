@@ -56,7 +56,7 @@ public:
     MSVC(const QString &clPath)
     {
         QDir parentDir = QFileInfo(clPath).dir();
-        QString arch = parentDir.dirName();
+        QString arch = parentDir.dirName().toLower();
         if (arch == QLatin1String("bin"))
             arch = QLatin1String("x86");
         else

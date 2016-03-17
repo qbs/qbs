@@ -55,6 +55,7 @@ public:
         InstallRootOptionType, RemoveFirstOptionType, NoBuildOptionType,
         ForceOptionType,
         ForceTimestampCheckOptionType,
+        ForceOutputCheckOptionType,
         BuildNonDefaultOptionType,
         VersionOptionType,
         LogTimeOptionType,
@@ -224,6 +225,13 @@ class ForceOption : public OnOffOption
 };
 
 class ForceTimeStampCheckOption : public OnOffOption
+{
+    QString description(CommandType command) const;
+    QString shortRepresentation() const { return QString(); }
+    QString longRepresentation() const;
+};
+
+class ForceOutputCheckOption : public OnOffOption
 {
     QString description(CommandType command) const;
     QString shortRepresentation() const { return QString(); }

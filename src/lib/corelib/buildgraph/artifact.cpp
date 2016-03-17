@@ -78,7 +78,8 @@ void Artifact::accept(BuildGraphVisitor *visitor)
 
 QString Artifact::toString() const
 {
-    return QLatin1String("ARTIFACT ") + filePath();
+    return QLatin1String("ARTIFACT ") + filePath() + QLatin1String(" [")
+            + (!product.isNull() ? product->name : QLatin1String("<null>")) + QLatin1Char(']');
 }
 
 void Artifact::addFileTag(const FileTag &t)

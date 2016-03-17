@@ -103,27 +103,31 @@ function languagePropertyName(propertyName, fileTag) {
         "c": {
             "flags": "cFlags",
             "platformFlags": "platformCFlags",
-            "precompiledHeader": "cPrecompiledHeader"
+            "precompiledHeader": "cPrecompiledHeader", // TODO: Remove in 1.6
+            "usePrecompiledHeader": "useCPrecompiledHeader"
         },
         "cpp": {
             "flags": "cxxFlags",
             "platformFlags": "platformCxxFlags",
-            "precompiledHeader": "cxxPrecompiledHeader"
+            "precompiledHeader": "cxxPrecompiledHeader", // TODO: Remove in 1.6
+            "usePrecompiledHeader": "useCxxPrecompiledHeader"
         },
         "objc": {
             "flags": "objcFlags",
             "platformFlags": "platformObjcFlags",
-            "precompiledHeader": "objcPrecompiledHeader"
+            "precompiledHeader": "objcPrecompiledHeader", // TODO: Remove in 1.6
+            "usePrecompiledHeader": "useObjcPrecompiledHeader"
         },
         "objcpp": {
             "flags": "objcxxFlags",
             "platformFlags": "platformObjcxxFlags",
-            "precompiledHeader": "objcxxPrecompiledHeader"
+            "precompiledHeader": "objcxxPrecompiledHeader", // TODO: Remove in 1.6
+            "usePrecompiledHeader": "useObjcxxPrecompiledHeader"
         },
         "common": {
             "flags": "commonCompilerFlags",
             "platformFlags": "platformCommonCompilerFlags",
-            "precompiledHeader": "precompiledHeader"
+            "precompiledHeader": "precompiledHeader" // TODO: Remove in 1.6
         },
         "asm": asm,
         "asm_cpp": asm

@@ -143,51 +143,6 @@
         \li List of files to automatically include at the beginning of each source file in the
             product.
     \row
-        \li precompiledHeader
-        \li \c{path}
-        \li 1.0
-        \li \c{undefined}
-        \li Name of the header file to be precompiled.
-
-            If you want to use the same precompiled header for all languages (C, C++,
-            Objective-C and Objective-C++), set this property and ensure that the header
-            contains appropriate ifdefs.
-
-            Otherwise, use the \c{cPrecompiledHeader}, \c{cppPrecompiledHeader},
-            \c{objcPrecompiledHeader} and \c{objcppPrecompiledHeader} to specify
-            precompiled headers per-language.
-    \row
-        \li cPrecompiledHeader
-        \li \c{path}
-        \li 1.1
-        \li \c{precompiledHeader}
-        \li Name of the C header file to be precompiled.
-    \row
-        \li cxxPrecompiledHeader
-        \li \c{path}
-        \li 1.1
-        \li \c{precompiledHeader}
-        \li Name of the C++ header file to be precompiled.
-    \row
-        \li objcPrecompiledHeader
-        \li \c{path}
-        \li 1.1
-        \li \c{precompiledHeader}
-        \li Name of the Objective-C header file to be precompiled.
-    \row
-        \li objcxxPrecompiledHeader
-        \li \c{path}
-        \li 1.1
-        \li \c{precompiledHeader}
-        \li Name of the Objective-C++ header file to be precompiled.
-    \row
-        \li precompiledHeaderDir
-        \li \c{path}
-        \li 1.0
-        \li \c{product.buildDirectory}
-        \li The directory that will contain the precompiled header files.
-            Usually you won't need to set this.
-    \row
         \li optimization
         \li \c{string}
         \li 1.0
@@ -199,6 +154,14 @@
         \li 1.0
         \li \c{false}
         \li Warnings will be handled as errors and cause the build to fail.
+    \row
+        \li useCPrecompiledHeader, useCxxPrecompiledHeader, useObjcPrecompiledHeader,
+            useObjcxxPrecompiledHeader
+        \li \c bool
+        \li 1.5
+        \li \c false
+        \li Specifies whether to use a precompiled header for the respective language, if one
+            is present (see \l{Relevant File Tags}{below} for the associated file tags).
     \row
         \li warningLevel
         \li \c{string}
@@ -435,6 +398,7 @@
         \li The prefix for the internal install name (LC_ID_DYLIB) of a dynamic library on Darwin
             (OS X and iOS). Typically this should be set to \c{"@rpath"} on modern platforms that
             support it, which includes OS X 10.5 and above, and all versions of iOS.
+            \b Deprecated: use \c{cpp.sonamePrefix} instead.
     \row
         \li automaticReferenceCounting
         \li \c{bool}
@@ -566,6 +530,36 @@
         \li \c{undefined}
         \li List of rpaths that are passed to the linker.
     \row
+        \li sonamePrefix
+        \li \c{string}
+        \li 1.5
+        \li \c{undefined}
+        \li If defined, the value of this variable is used as a path to be prepended to
+            the built shared library's \c SONAME identifier. The \c SONAME
+            (\c LC_ID_DYLIB on Apple platforms, \c DT_SONAME on other Unix-like platforms) is the
+            identifier that the dynamic linker will later use to reference the library.
+            In general, this reference may be a library name or full library path.
+
+            On Apple platforms, the path may contain the following placeholders:
+
+            \list
+                \li \b @rpath -
+                    Expands to paths defined by LC_RPATH Mach-O commands in
+                    the current process executable or the referring libraries.
+                \li \b @executable_path -
+                    Expands to the current process executable location.
+                \li \b @loader_path -
+                    Expands to the referring executable or library location.
+            \endlist
+
+            In most cases, using \c @rpath is sufficient and recommended.
+            However, the prefix may be also specified using different placeholders, or
+            an absolute path.
+
+            For more information, see the
+            \l{https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/dyld.1.html}{dyld documentation}
+            on dynamic library install names.
+    \row
         \li useRPaths
         \li \c{bool}
         \li 1.3
@@ -617,4 +611,113 @@
             --major-os-version and --minor-os-version for MinGW.
             If undefined, compiler defaults will be used.
     \endtable
+
+    \section1 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"application"}
+        \li n/a
+        \li 1.0.1
+        \li The rule that creates executable files (typically via a linker) attaches this tag
+            to its output artifact.
+    \row
+        \li \c{"asm"}
+        \li \c{*.s} (for GCC-like toolchains), \c{*.asm} (for MSVC)
+        \li 1.1.0
+        \li Source files with this tag serve as inputs to a rule invoking the toolchain's
+            assembler. One object file is generated for each such file.
+    \row
+        \li \c{"asm_cpp"}
+        \li \c{*.S}, \c{*.sx}
+        \li 1.1.0
+        \li Like \c{"asm"}, but for source files that need preprocessing. This tag only has an
+            effect with GCC-like toolchains.
+    \row
+        \li \c{"c"}
+        \li \c{*.c}
+        \li 1.0.1
+        \li Source files with this tag serve as inputs to a rule invoking the toolchain's
+            C compiler. One object file is generated for each such file.
+    \row
+        \li \c{"cpp"}
+        \li \c{*.C}, \c{*.cpp}, \c{*.cxx}, \c{*.c++}, \c{*.cc}
+        \li 1.0.1
+        \li Source files with this tag serve as inputs to a rule invoking the toolchain's
+            C++ compiler. One object file is generated for each such file.
+    \row
+        \li \\c{"c_pch_src"}, \c{"cpp_pch_src"}, \c{"objc_pch_src"}, \c{"objcpp_pch_src"}
+        \li -
+        \li 1.5
+        \li Files with this tag will be turned into precompiled headers for C, C++, Objective-C
+            and Objective-C++, respectively. There can be only one such file per product and
+            language.
+    \row
+        \li \c{"dynamiclibrary"}
+        \li n/a
+        \li 1.0.1
+        \li The rule that creates dynamic libraries (typically via a linker) attaches this tag
+            to its output artifact.
+    \row
+        \li \c{"hpp"}
+        \li \c{*.h}, \c{*.H}, \c{*.hpp}, \c{*.hxx}, \c{*.h++}
+        \li 1.0.1
+        \li This tag is used for header files (C, C++, Objective-C and Objective-C++). No rule
+            in this module generates output artifacts from such files directly, but the compiler
+            rule will have a dependency on all rules that create such files.
+    \row
+        \li \c{"linkerscript"}
+        \li -
+        \li 1.5.0
+        \li This tag is used for \c ld linker scripts. You can provide such a file if you need
+            to replace the default linker script.
+            This file tag only has an effect with GCC-like toolchains. The linker needs to be
+            \c{ld}-compatible.
+    \row
+        \li \c{"obj"}
+        \li n/a
+        \li 1.0.1
+        \li The rule that creates object files (typically via a compiler) attaches this tag
+            to its output artifacts. Such files are usually intermediate artifacts of the build
+            process and rarely need to be referenced in project files.
+    \row
+        \li \c{"objc"}
+        \li \c{*.m}
+        \li 1.1.0
+        \li Source files with this tag serve as inputs to a rule invoking the toolchain's
+            Objective-C compiler. One object file is generated for each such file.
+    \row
+        \li \c{"objcpp"}
+        \li \c{*.mm}
+        \li 1.1.0
+        \li Source files with this tag serve as inputs to a rule invoking the toolchain's
+            Objective-C++ compiler. One object file is generated for each such file.
+    \row
+        \li \c{"rc"}
+        \li \c{*.rc}
+        \li 1.1.0
+        \li Files with this tag serve as inputs to the Windows resource compiler. One object file
+            is generated for each such file. The tag has no effect on target platforms other than
+            Windows.
+    \row
+        \li \c{"staticlibrary"}
+        \li n/a
+        \li 1.0.1
+        \li The rule that creates static libraries (typically via a linker) attaches this tag
+            to its output artifact.
+    \row
+        \li \c{"versionscript"}
+        \li -
+        \li 1.5.0
+        \li This tag is used for \c ld linker scripts. You can provide such a file if you need
+            fine-grained control over the symbols present in a shared library.
+            This file tag only has an effect with GCC-like toolchains. The linker needs to be
+            \c{ld}-compatible.
+    \endtable
+
 */

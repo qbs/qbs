@@ -70,6 +70,9 @@ public:
     bool forceTimestampCheck() const;
     void setForceTimestampCheck(bool enabled);
 
+    bool forceOutputCheck() const;
+    void setForceOutputCheck(bool enabled);
+
     bool logElapsedTime() const;
     void setLogElapsedTime(bool log);
 
@@ -81,6 +84,9 @@ public:
 
     bool removeExistingInstallation() const;
     void setRemoveExistingInstallation(bool removeExisting);
+
+    bool executeRulesOnly() const;
+    void setExecuteRulesOnly(bool onlyRules);
 
 private:
     QSharedDataPointer<Internal::BuildOptionsPrivate> d;

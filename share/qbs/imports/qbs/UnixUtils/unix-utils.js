@@ -31,27 +31,31 @@
 var FileInfo = loadExtension("qbs.FileInfo");
 
 function soname(product, outputFileName) {
+    var version = product.moduleProperty("cpp", "internalVersion");
     if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
+        // If this is a bundle, ignore the parameter and use the relative path to the bundle binary
+        // For example: qbs.framework/Versions/1/qbs
         if (product.moduleProperty("bundle", "isBundle"))
             outputFileName = product.moduleProperty("bundle", "executablePath");
-        var prefix = product.moduleProperty("cpp", "installNamePrefix");
-        if (prefix)
-            outputFileName = FileInfo.joinPaths(prefix, outputFileName);
-        return outputFileName;
-    }
-
-    function majorVersion(version, defaultValue) {
-        var n = parseInt(version, 10);
-        return isNaN(n) ? defaultValue : n;
-    }
-
-    var version = product.moduleProperty("cpp", "internalVersion");
-    if (version) {
-        var major = majorVersion(version);
-        if (major) {
-            return outputFileName.substr(0, outputFileName.length - version.length)
-                    + major;
+    } else if (version) {
+        function majorVersion(version, defaultValue) {
+            var n = parseInt(version, 10);
+            return isNaN(n) ? defaultValue : n;
         }
+
+        // For non-Darwin platforms, append the shared library major version number to the soname
+        // For example: libqbscore.so.1
+        var major = majorVersion(version);
+        if (major !== undefined)
+            outputFileName = outputFileName.substr(0, outputFileName.length - version.length)
+                    + major;
     }
+
+    // Prepend the soname prefix
+    // For example, @rpath/libqbscore.dylib or /usr/lib/libqbscore.so.1
+    var prefix = product.moduleProperty("cpp", "sonamePrefix");
+    if (prefix)
+        outputFileName = FileInfo.joinPaths(prefix, outputFileName);
+
     return outputFileName;
 }

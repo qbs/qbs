@@ -67,6 +67,8 @@ private slots:
     void changeContent();
 #endif
     void changeDependentLib();
+    void checkOutputs();
+    void checkOutputs_data();
     void commandExtraction();
     void disabledInstallGroup();
     void disabledProduct();
@@ -82,6 +84,7 @@ private slots:
     void exportWithRecursiveDepends();
     void fileTagger();
     void fileTagsFilterOverride();
+    void generatedFilesList();
     void infiniteLoopBuilding();
     void infiniteLoopBuilding_data();
     void infiniteLoopResolving();

@@ -71,24 +71,24 @@ void setupSdk(qbs::Settings *settings, const QString &profileName, const QString
 
     Profile profile(profileName, settings);
     profile.removeProfile();
-    profile.setValue(qls("Android.sdk.sdkDir"), QDir::cleanPath(sdkDirPath));
+    if (!sdkDirPath.isEmpty())
+        profile.setValue(qls("Android.sdk.sdkDir"), QDir::cleanPath(sdkDirPath));
     profile.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux")
                      << qls("unix"));
 }
 
 void setupNdk(qbs::Settings *settings, const QString &profileName, const QString &ndkDirPath)
 {
-    if (ndkDirPath.isEmpty())
-        return;
-
     if (!QDir(ndkDirPath).exists()) {
         throw ErrorInfo(Tr::tr("NDK directory '%1' does not exist.")
                         .arg(QDir::toNativeSeparators(ndkDirPath)));
     }
 
     Profile mainProfile(profileName, settings);
-    mainProfile.setValue(qls("Android.ndk.ndkDir"), QDir::cleanPath(ndkDirPath));
-    mainProfile.setValue(qls("Android.sdk.ndkDir"), QDir::cleanPath(ndkDirPath));
+    if (!ndkDirPath.isEmpty()) {
+        mainProfile.setValue(qls("Android.ndk.ndkDir"), QDir::cleanPath(ndkDirPath));
+        mainProfile.setValue(qls("Android.sdk.ndkDir"), QDir::cleanPath(ndkDirPath));
+    }
     mainProfile.setValue(qls("qbs.toolchain"), QStringList() << qls("gcc"));
     foreach (const QString &arch, expectedArchs()) {
         Profile p(subProfileName(profileName, arch), settings);

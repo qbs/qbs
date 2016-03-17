@@ -59,6 +59,7 @@ public:
     NoBuildOption *noBuildOption() const;
     ForceOption *forceOption() const;
     ForceTimeStampCheckOption *forceTimestampCheckOption() const;
+    ForceOutputCheckOption *forceOutputCheckOption() const;
     BuildNonDefaultOption *buildNonDefaultOption() const;
     VersionOption *versionOption() const;
     LogTimeOption *logTimeOption() const;

@@ -63,6 +63,7 @@ public:
     InstallOptions installOptions(const QString &profile) const;
     bool force() const;
     bool forceTimestampCheck() const;
+    bool forceOutputCheck() const;
     bool dryRun() const;
     bool logTime() const;
     bool withNonDefaultProducts() const;

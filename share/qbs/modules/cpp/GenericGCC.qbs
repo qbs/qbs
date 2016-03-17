@@ -147,7 +147,14 @@ CppModule {
     Rule {
         id: dynamicLibraryLinker
         multiplex: true
-        inputs: ["obj", "linkerscript", "versionscript"]
+        inputs: {
+            var tags = ["obj", "linkerscript", "versionscript"];
+            if (product.type.contains("dynamiclibrary") &&
+                product.moduleProperty("qbs", "targetOS").contains("darwin") &&
+                product.moduleProperty("bundle", "embedInfoPlist"))
+                tags.push("aggregate_infoplist");
+            return tags;
+        }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
 
         outputFileTags: ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy", "debuginfo"]
@@ -249,7 +256,7 @@ CppModule {
         multiplex: true
         inputs: {
             var tags = ["obj", "linkerscript"];
-            if (product.type.contains("application") &&
+            if (product.type.contains("loadablemodule") &&
                 product.moduleProperty("qbs", "targetOS").contains("darwin") &&
                 product.moduleProperty("bundle", "embedInfoPlist"))
                 tags.push("aggregate_infoplist");
@@ -364,6 +371,55 @@ CppModule {
         }
     }
 
+    Rule {
+        inputs: ["c_pch_src"]
+        explicitlyDependsOn: ["hpp"]
+        Artifact {
+            filePath: product.name + "_c.gch"
+            fileTags: ["c_pch"]
+        }
+        prepare: {
+            return Gcc.prepareCompiler.apply(this, arguments);
+        }
+    }
+
+    Rule {
+        inputs: ["cpp_pch_src"]
+        explicitlyDependsOn: ["hpp"]
+        Artifact {
+            filePath: product.name + "_cpp.gch"
+            fileTags: ["cpp_pch"]
+        }
+        prepare: {
+            return Gcc.prepareCompiler.apply(this, arguments);
+        }
+    }
+
+    Rule {
+        inputs: ["objc_pch_src"]
+        explicitlyDependsOn: ["hpp"]
+        Artifact {
+            filePath: product.name + "_objc.gch"
+            fileTags: ["objc_pch"]
+        }
+        prepare: {
+            return Gcc.prepareCompiler.apply(this, arguments);
+        }
+    }
+
+    Rule {
+        inputs: ["objcpp_pch_src"]
+        explicitlyDependsOn: ["hpp"]
+        Artifact {
+            filePath: product.name + "_objcpp.gch"
+            fileTags: ["objcpp_pch"]
+        }
+        prepare: {
+            return Gcc.prepareCompiler.apply(this, arguments);
+        }
+    }
+
+    // TODO: Remove in 1.6
     Transformer {
         condition: cPrecompiledHeader !== undefined
         inputs: cPrecompiledHeader

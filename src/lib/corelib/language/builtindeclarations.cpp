@@ -106,11 +106,12 @@ ItemDeclaration BuiltinDeclarations::declarationsForType(ItemType type) const
     return m_builtins.value(type);
 }
 
-ItemType BuiltinDeclarations::typeForName(const QString &typeName) const
+ItemType BuiltinDeclarations::typeForName(const QString &typeName,
+                                          const CodeLocation location) const
 {
     const auto it = m_typeMap.constFind(typeName);
     if (it == m_typeMap.constEnd())
-        throw ErrorInfo(Tr::tr("Unexpected item type '%1'.").arg(typeName));
+        throw ErrorInfo(Tr::tr("Unexpected item type '%1'.").arg(typeName), location);
     return it.value();
 }
 
