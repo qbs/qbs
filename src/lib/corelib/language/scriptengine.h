@@ -59,9 +59,8 @@ public:
 
     void setLogger(const Logger &logger) { m_logger = logger; }
     const Logger &logger() const { return m_logger; }
-    void import(const FileContextBaseConstPtr &fileCtx, QScriptValue scope,
-            QScriptValue targetObject);
-    void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);
+    void import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject);
+    void import(const JsImport &jsImport, QScriptValue &targetObject);
     void clearImportsCache();
 
     void addPropertyRequestedInScript(const Property &property) {
@@ -136,10 +135,8 @@ private:
     void installConsoleFunction(const QString &name, FunctionWithArgSignature f);
     void installImportFunctions();
     void uninstallImportFunctions();
-    QScriptValue importFile(const QString &filePath, const QScriptValue &scope,
-                            QScriptValue *targetObject = nullptr);
-    void importProgram(const QScriptProgram &program, const QScriptValue &scope,
-                       QScriptValue &targetObject);
+    QScriptValue importFile(const QString &filePath, QScriptValue *targetObject = nullptr);
+    void importProgram(const QScriptProgram &program, QScriptValue &targetObject);
     static QScriptValue js_loadExtension(QScriptContext *context, QScriptEngine *qtengine);
     static QScriptValue js_loadFile(QScriptContext *context, QScriptEngine *qtengine);
 

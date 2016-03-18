@@ -614,7 +614,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
         }
 
         // handle imports
-        engine->import(setupScript->fileContext, scope, scope);
+        engine->import(setupScript->fileContext, scope);
         JsExtensions::setupExtensions(setupScript->fileContext->jsExtensions(), scope);
 
         // expose properties of direct module dependencies

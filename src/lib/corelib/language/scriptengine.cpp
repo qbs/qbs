@@ -100,8 +100,7 @@ ScriptEngine::~ScriptEngine()
     qDeleteAll(m_ownedVariantMaps);
 }
 
-void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue scope,
-        QScriptValue targetObject)
+void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject)
 {
     installImportFunctions();
     m_currentDirPathStack.push(FileInfo::path(fileCtx->filePath()));
@@ -109,7 +108,7 @@ void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue s
 
     const JsImports jsImports = fileCtx->jsImports();
     for (JsImports::const_iterator it = jsImports.begin(); it != jsImports.end(); ++it) {
-        import(*it, scope, targetObject);
+        import(*it, targetObject);
     }
 
     m_currentDirPathStack.pop();
@@ -117,9 +116,8 @@ void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue s
     uninstallImportFunctions();
 }
 
-void ScriptEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject)
+void ScriptEngine::import(const JsImport &jsImport, QScriptValue &targetObject)
 {
-    QBS_ASSERT(!scope.isValid() || scope.isObject(), return);
     QBS_ASSERT(targetObject.isObject(), return);
     QBS_ASSERT(targetObject.engine() == this, return);
 
@@ -134,7 +132,7 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptV
         if (debugJSImports)
             qDebug() << "[ENGINE] " << jsImport.filePaths << " (cache miss)";
         foreach (const QString &filePath, jsImport.filePaths)
-            importFile(filePath, scope, &jsImportValue);
+            importFile(filePath, &jsImportValue);
         m_jsImportCache.insert(jsImport, jsImportValue);
     }
     targetObject.setProperty(jsImport.scopeName, jsImportValue);
@@ -234,8 +232,7 @@ void ScriptEngine::setEnvironment(const QProcessEnvironment &env)
     m_environment = env;
 }
 
-QScriptValue ScriptEngine::importFile(const QString &filePath, const QScriptValue &scope,
-                                      QScriptValue *targetObject)
+QScriptValue ScriptEngine::importFile(const QString &filePath, QScriptValue *targetObject)
 {
     QFile file(filePath);
     if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
@@ -247,13 +244,24 @@ QScriptValue ScriptEngine::importFile(const QString &filePath, const QScriptValu
     if (!targetObject)
         obj = newObject();
     m_currentDirPathStack.push(FileInfo::path(filePath));
-    importProgram(program, scope, targetObject ? *targetObject : obj);
+    importProgram(program, targetObject ? *targetObject : obj);
     m_currentDirPathStack.pop();
     return targetObject ? *targetObject : obj;
 }
 
-void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptValue &scope,
-                               QScriptValue &targetObject)
+static void replaceScopeChain(const QScriptContext *src, QScriptContext *dst)
+{
+    // Remove the empty scope that was added to the context by pushScope.
+    Q_ASSERT(dst->scopeChain().count() == 2);
+    dst->popScope();
+
+    // Push all the scopes (but the global object) from the old context to the new one.
+    const QScriptValueList srcScopes = src->scopeChain();
+    for (int i = srcScopes.count() - 1; --i >= 0;)
+        dst->pushScope(srcScopes.at(i));
+}
+
+void ScriptEngine::importProgram(const QScriptProgram &program, QScriptValue &targetObject)
 {
     QSet<QString> globalPropertyNames;
     {
@@ -264,13 +272,12 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
         }
     }
 
-    pushContext();
-    if (scope.isObject())
-        currentContext()->pushScope(scope);
+    QScriptContext *oldContext = currentContext();
+    QScriptContext *context = pushContext();
+    replaceScopeChain(oldContext, context);
+
     QScriptValue result = evaluate(program);
-    QScriptValue activationObject = currentContext()->activationObject();
-    if (scope.isObject())
-        currentContext()->popScope();
+    QScriptValue activationObject = context->activationObject();
     popContext();
     if (Q_UNLIKELY(hasErrorOrException(result)))
         throw ErrorInfo(tr("Error when importing '%1': %2").arg(program.fileName(), result.toString()));
@@ -395,7 +402,7 @@ QScriptValue ScriptEngine::js_loadExtension(QScriptContext *context, QScriptEngi
                 engine->m_logger.qbsDebug()
                         << "[loadExtension] importing file " << filePath;
             }
-            values << engine->importFile(filePath, QScriptValue());
+            values << engine->importFile(filePath);
         }
     } catch (const ErrorInfo &e) {
         return context->throwError(e.toString());
@@ -422,7 +429,7 @@ QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *q
     try {
         const QString filePath = FileInfo::resolvePath(engine->m_currentDirPathStack.top(),
                                                        relativeFilePath);
-        result = engine->importFile(filePath, QScriptValue());
+        result = engine->importFile(filePath);
     } catch (const ErrorInfo &e) {
         result = context->throwError(e.toString());
     }
