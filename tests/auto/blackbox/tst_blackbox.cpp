@@ -3307,6 +3307,35 @@ void TestBlackbox::enableExceptions_data()
     }
 }
 
+void TestBlackbox::enableRtti()
+{
+    QDir::setCurrent(testDataDir + QStringLiteral("/enableRtti"));
+
+    QbsRunParameters params;
+
+    params.arguments = QStringList() << "cpp.enableRtti:true";
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+
+    if (HostOsInfo::isOsxHost()) {
+        params.arguments = QStringList() << "cpp.enableRtti:true" << "project.treatAsObjcpp:true";
+        rmDirR(relativeBuildDir());
+        QCOMPARE(runQbs(params), 0);
+    }
+
+    params.expectFailure = true;
+
+    params.arguments = QStringList() << "cpp.enableRtti:false";
+    rmDirR(relativeBuildDir());
+    QVERIFY(runQbs(params) != 0);
+
+    if (HostOsInfo::isOsxHost()) {
+        params.arguments = QStringList() << "cpp.enableRtti:false" << "project.treatAsObjcpp:true";
+        rmDirR(relativeBuildDir());
+        QVERIFY(runQbs(params) != 0);
+    }
+}
+
 void TestBlackbox::frameworkStructure()
 {
     if (!HostOsInfo::isOsxHost())

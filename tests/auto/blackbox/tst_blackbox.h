@@ -122,6 +122,7 @@ private slots:
     void embedInfoPlist();
     void enableExceptions();
     void enableExceptions_data();
+    void enableRtti();
     void erroneousFiles_data();
     void erroneousFiles();
     void errorInfo();

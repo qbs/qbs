@@ -274,6 +274,7 @@ Module {
 
     property bool enableExceptions
     property string exceptionHandlingModel: "default"
+    property bool enableRtti
 
     // Platform properties. Those are intended to be set by the toolchain setup
     // and are prepended to the corresponding user properties.

@@ -77,7 +77,6 @@ Module {
         return cpp.toolchainPrefix + toolchainVersionNumber;
     }
 
-    property bool enableRtti: appStl !== "system"
     property bool hardFloat
     property string ndkDir: ndkProbe.path
     property string platform: "android-9"
@@ -206,19 +205,11 @@ Module {
     qbs.optimization: cpp.targetAbi === "androideabi" ? "small" : base
 
     cpp.enableExceptions: appStl !== "system"
+    cpp.enableRtti: appStl !== "system"
 
     cpp.commonCompilerFlags: NdkUtils.commonCompilerFlags(qbs.buildVariant, abi, hardFloat, armMode)
 
     cpp.linkerFlags: NdkUtils.commonLinkerFlags(abi, hardFloat)
-
-    cpp.cxxFlags: {
-        var flags = [];
-        if (enableRtti)
-            flags.push("-frtti");
-        else
-            flags.push("-fno-rtti");
-        return flags;
-    }
 
     cpp.libraryPaths: {
         var prefix = FileInfo.joinPaths(cpp.sysroot, "usr");

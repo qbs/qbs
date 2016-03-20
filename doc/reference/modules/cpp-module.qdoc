@@ -344,6 +344,12 @@
             \c{"externc"}. For all other compilers, \c{"default"} indicates the default or only
             exception handling model.
     \row
+        \li enableRtti
+        \li \c{bool}
+        \li 1.5
+        \li \c{undefined}
+        \li Whether to enable runtime type information in C++ code.
+    \row
         \li enableReproducibleBuilds
         \li \c{bool}
         \li 1.5

@@ -63,6 +63,11 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         }
     }
 
+    var enableRtti = ModUtils.moduleProperty(input, "enableRtti");
+    if (enableRtti !== undefined) {
+        args.push(enableRtti ? "/GR" : "/GR-");
+    }
+
     // optimization:
     if (optimization === 'small')
         args.push('/Os')

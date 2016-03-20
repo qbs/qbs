@@ -97,12 +97,6 @@
         \li undefined
         \li Whether to use the hard floating point variant of the armeabi-v7a ABI.
     \row
-        \li enableRtti
-        \li bool
-        \li 1.4
-        \li \c{appStl !== "system"}
-        \li Whether to enable runtime type information in C++ code.
-    \row
         \li ndkDir
         \li path
         \li 1.4

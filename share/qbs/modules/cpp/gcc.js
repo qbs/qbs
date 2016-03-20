@@ -432,6 +432,11 @@ function compilerFlags(product, input, output) {
         }
     }
 
+    var enableRtti = ModUtils.moduleProperty(input, "enableRtti");
+    if (enableRtti !== undefined && (tag === "cpp" || tag === "objcpp")) {
+        args.push(enableRtti ? "-frtti" : "-fno-rtti");
+    }
+
     var visibility = ModUtils.moduleProperty(input, 'visibility');
     if (!product.type.contains('staticlibrary')
             && !product.moduleProperty("qbs", "toolchain").contains("mingw")) {
