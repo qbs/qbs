@@ -36,6 +36,7 @@
 #include "item.h"
 #include "scriptengine.h"
 #include "propertydeclaration.h"
+#include "value.h"
 #include <tools/architectures.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
@@ -261,11 +262,6 @@ private:
     {
         *result = scriptClass->engine()->toScriptValue(variantValue->value());
     }
-
-    void handle(BuiltinValue *builtinValue)
-    {
-        *result = scriptClass->scriptValueForBuiltin(builtinValue->builtin());
-    }
 };
 
 bool debugProperties = false;
@@ -281,8 +277,6 @@ EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Log
     , m_logger(logger)
     , m_valueCacheEnabled(false)
 {
-    m_getEnvBuiltin = scriptEngine->newFunction(js_getEnvDeprecated, 1);
-    m_currentEnvBuiltin = scriptEngine->newFunction(js_currentEnvDeprecated, 0);
 }
 
 QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue &object,
@@ -510,18 +504,6 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
 void EvaluatorScriptClass::setValueCacheEnabled(bool enabled)
 {
     m_valueCacheEnabled = enabled;
-}
-
-QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin builtin) const
-{
-    switch (builtin) {
-    case BuiltinValue::GetEnvFunction:
-        return m_getEnvBuiltin;
-    case BuiltinValue::CurrentEnvFunction:
-        return m_currentEnvBuiltin;
-    }
-    QBS_ASSERT(!"unhandled builtin", ;);
-    return QScriptValue();
 }
 
 QScriptValue EvaluatorScriptClass::js_consoleError(QScriptContext *context, QScriptEngine *engine,

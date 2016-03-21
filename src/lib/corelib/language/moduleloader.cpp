@@ -31,7 +31,6 @@
 #include "moduleloader.h"
 
 #include "builtindeclarations.h"
-#include "builtinvalue.h"
 #include "evaluator.h"
 #include "filecontext.h"
 #include "item.h"
@@ -300,7 +299,6 @@ private:
     }
 
     void handle(VariantValue *) { /* only created internally - no need to check */ }
-    void handle(BuiltinValue *) { /* only created internally - no need to check */ }
 };
 
 void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *projectItem,
@@ -1347,11 +1345,6 @@ static QStringList hostOS()
 
 void ModuleLoader::setupBaseModulePrototype(Item *prototype)
 {
-    prototype->setProperty(QLatin1String("getEnv"),
-                           BuiltinValue::create(BuiltinValue::GetEnvFunction));
-    prototype->setProperty(QLatin1String("currentEnv"),
-                           BuiltinValue::create(BuiltinValue::CurrentEnvFunction));
-
     prototype->setProperty(QLatin1String("hostOS"), VariantValue::create(hostOS()));
     prototype->setProperty(QLatin1String("libexecPath"),
                            VariantValue::create(m_parameters.libexecPath()));

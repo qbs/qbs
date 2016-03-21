@@ -214,8 +214,6 @@ QbsLibrary {
             "asttools.h",
             "builtindeclarations.cpp",
             "builtindeclarations.h",
-            "builtinvalue.cpp",
-            "builtinvalue.h",
             "deprecationinfo.h",
             "evaluationdata.h",
             "evaluator.cpp",

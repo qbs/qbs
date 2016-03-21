@@ -47,8 +47,7 @@ public:
     {
         JSSourceValueType,
         ItemValueType,
-        VariantValueType,
-        BuiltinValueType
+        VariantValueType
     };
 
     Value(Type t, bool createdByPropertiesBlock);
@@ -80,7 +79,6 @@ public:
     virtual void handle(JSSourceValue *value) = 0;
     virtual void handle(ItemValue *value) = 0;
     virtual void handle(VariantValue *value) = 0;
-    virtual void handle(BuiltinValue *value) = 0;
 };
 
 class JSSourceValue : public Value

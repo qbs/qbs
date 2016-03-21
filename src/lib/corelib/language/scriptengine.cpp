@@ -517,8 +517,6 @@ private:
 void ScriptEngine::installQbsBuiltins()
 {
     globalObject().setProperty(QLatin1String("qbs"), m_qbsObject = newObject());
-    installQbsFunction(QLatin1String("getEnv"), 1, js_getEnvDeprecated);
-    installQbsFunction(QLatin1String("currentEnv"), 0, js_currentEnvDeprecated);
 
     globalObject().setProperty(QLatin1String("console"), m_consoleObject = newObject());
     installConsoleFunction(QLatin1String("debug"),

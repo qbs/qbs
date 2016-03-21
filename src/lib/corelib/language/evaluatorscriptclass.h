@@ -31,13 +31,13 @@
 #ifndef QBS_EVALUATORSCRIPTCLASS_H
 #define QBS_EVALUATORSCRIPTCLASS_H
 
-#include "builtinvalue.h"
 #include "forward_decls.h"
 
 #include <logging/logger.h>
 
 #include <QScriptClass>
 #include <QStack>
+#include <QSet>
 
 QT_BEGIN_NAMESPACE
 class QScriptContext;
@@ -46,6 +46,7 @@ QT_END_NAMESPACE
 namespace qbs {
 namespace Internal {
 class EvaluationData;
+class Item;
 class ScriptEngine;
 
 class EvaluatorScriptClass : public QScriptClass
@@ -60,7 +61,6 @@ public:
                           const QScriptString &name, uint id);
 
     void setValueCacheEnabled(bool enabled);
-    QScriptValue scriptValueForBuiltin(BuiltinValue::Builtin builtin) const;
 
     static QScriptValue js_consoleError(QScriptContext *context, QScriptEngine *engine,
                                         Logger *logger);
@@ -98,8 +98,6 @@ private:
     QueryResult m_queryResult;
     Logger m_logger;
     bool m_valueCacheEnabled;
-    QScriptValue m_getEnvBuiltin;
-    QScriptValue m_currentEnvBuiltin;
     QStack<JSSourceValue *> m_sourceValueStack;
     QSet<Value *> m_currentNextChain;
 };

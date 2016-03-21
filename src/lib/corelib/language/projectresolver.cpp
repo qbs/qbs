@@ -1122,9 +1122,6 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesCont
             result[it.key()] = vvp->value();
             break;
         }
-        case Value::BuiltinValueType:
-            // ignore
-            break;
         }
     }
     return lookupPrototype && propertiesContainer->prototype()

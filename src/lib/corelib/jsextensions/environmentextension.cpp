@@ -149,22 +149,6 @@ QScriptValue EnvironmentExtension::js_currentEnv(QScriptContext *context, QScrip
     return envObject;
 }
 
-QScriptValue js_getEnvDeprecated(QScriptContext *context, QScriptEngine *qtengine)
-{
-    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
-    engine->logger().qbsWarning() << QStringLiteral("qbs.getEnv is deprecated and will be \
-removed in Qbs 1.6. Use Environment.getEnv instead.");
-    return EnvironmentExtension::js_getEnv(context, engine);
-}
-
-QScriptValue js_currentEnvDeprecated(QScriptContext *context, QScriptEngine *qtengine)
-{
-    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
-    engine->logger().qbsWarning() << QStringLiteral("qbs.currentEnv is deprecated and will be \
-removed in Qbs 1.6. Use Environment.currentEnv instead.");
-    return EnvironmentExtension::js_currentEnv(context, engine);
-}
-
 } // namespace Internal
 } // namespace qbs
 

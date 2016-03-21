@@ -36,6 +36,7 @@
 #include "filetags.h"
 #include "item.h"
 #include "scriptengine.h"
+#include "value.h"
 
 #include <jsextensions/jsextensions.h>
 #include <logging/translator.h>

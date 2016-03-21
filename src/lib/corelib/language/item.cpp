@@ -236,7 +236,6 @@ static const char *valueType(const Value *v)
     case Value::JSSourceValueType: return "JS source";
     case Value::ItemValueType: return "Item";
     case Value::VariantValueType: return "Variant";
-    case Value::BuiltinValueType: return "Built-in";
     }
     return ""; // For dumb compilers.
 }
@@ -263,8 +262,6 @@ void Item::dump(int indentation) const
         case Value::VariantValueType:
             qDebug("%svalue: %s", nextIndent.constData(),
                    qPrintable(it.value().staticCast<VariantValue>()->value().toString()));
-            break;
-        case Value::BuiltinValueType:
             break;
         }
     }

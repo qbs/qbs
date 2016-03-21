@@ -51,10 +51,6 @@ class VariantValue;
 typedef QSharedPointer<VariantValue> VariantValuePtr;
 typedef QSharedPointer<const VariantValue> VariantValueConstPtr;
 
-class BuiltinValue;
-typedef QSharedPointer<BuiltinValue> BuiltinValuePtr;
-typedef QSharedPointer<const BuiltinValue> BuiltinValueConstPtr;
-
 class FileContext;
 typedef QSharedPointer<FileContext> FileContextPtr;
 typedef QSharedPointer<const FileContext> FileContextConstPtr;

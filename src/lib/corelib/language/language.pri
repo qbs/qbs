@@ -6,7 +6,6 @@ HEADERS += \
     $$PWD/astpropertiesitemhandler.h \
     $$PWD/asttools.h \
     $$PWD/builtindeclarations.h \
-    $$PWD/builtinvalue.h \
     $$PWD/deprecationinfo.h \
     $$PWD/evaluationdata.h \
     $$PWD/evaluator.h \
@@ -47,7 +46,6 @@ SOURCES += \
     $$PWD/astpropertiesitemhandler.cpp \
     $$PWD/asttools.cpp \
     $$PWD/builtindeclarations.cpp \
-    $$PWD/builtinvalue.cpp \
     $$PWD/evaluator.cpp \
     $$PWD/evaluatorscriptclass.cpp \
     $$PWD/filecontext.cpp \

@@ -43,9 +43,6 @@ namespace Internal {
 
 void initializeJsExtensionEnvironment(QScriptValue extensionObject);
 
-QScriptValue js_getEnvDeprecated(QScriptContext *context, QScriptEngine *engine);
-QScriptValue js_currentEnvDeprecated(QScriptContext *context, QScriptEngine *engine);
-
 } // namespace Internal
 } // namespace qbs
 
