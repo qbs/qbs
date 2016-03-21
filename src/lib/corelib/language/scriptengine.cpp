@@ -30,7 +30,6 @@
 
 #include "scriptengine.h"
 
-#include "evaluatorscriptclass.h"
 #include "filecontextbase.h"
 #include "jsimports.h"
 #include "propertymapinternal.h"
@@ -514,26 +513,62 @@ private:
     QScriptValue m_descriptor;
 };
 
+static QScriptValue js_consoleError(QScriptContext *context, QScriptEngine *engine, Logger *logger)
+{
+    if (Q_UNLIKELY(context->argumentCount() != 1))
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("error expects 1 argument"));
+    logger->qbsLog(LoggerError) << context->argument(0).toString();
+    return engine->undefinedValue();
+}
+
+static QScriptValue js_consoleWarn(QScriptContext *context, QScriptEngine *engine, Logger *logger)
+{
+    if (Q_UNLIKELY(context->argumentCount() != 1))
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("error expects 1 argument"));
+    logger->qbsWarning() << context->argument(0).toString();
+    return engine->undefinedValue();
+}
+
+static QScriptValue js_consoleInfo(QScriptContext *context, QScriptEngine *engine, Logger *logger)
+{
+    if (Q_UNLIKELY(context->argumentCount() != 1))
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("error expects 1 argument"));
+    logger->qbsInfo() << context->argument(0).toString();
+    return engine->undefinedValue();
+}
+
+static QScriptValue js_consoleDebug(QScriptContext *context, QScriptEngine *engine, Logger *logger)
+{
+    if (Q_UNLIKELY(context->argumentCount() != 1))
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("error expects 1 argument"));
+    logger->qbsDebug() << context->argument(0).toString();
+    return engine->undefinedValue();
+}
+
+static QScriptValue js_consoleLog(QScriptContext *context, QScriptEngine *engine, Logger *logger)
+{
+    return js_consoleDebug(context, engine, logger);
+}
+
 void ScriptEngine::installQbsBuiltins()
 {
     globalObject().setProperty(QLatin1String("qbs"), m_qbsObject = newObject());
 
     globalObject().setProperty(QLatin1String("console"), m_consoleObject = newObject());
     installConsoleFunction(QLatin1String("debug"),
-                           reinterpret_cast<FunctionWithArgSignature>(
-                               EvaluatorScriptClass::js_consoleDebug));
+                           reinterpret_cast<FunctionWithArgSignature>(&js_consoleDebug));
     installConsoleFunction(QLatin1String("error"),
-                           reinterpret_cast<FunctionWithArgSignature>(
-                               EvaluatorScriptClass::js_consoleError));
+                           reinterpret_cast<FunctionWithArgSignature>(&js_consoleError));
     installConsoleFunction(QLatin1String("info"),
-                           reinterpret_cast<FunctionWithArgSignature>(
-                               EvaluatorScriptClass::js_consoleInfo));
+                           reinterpret_cast<FunctionWithArgSignature>(&js_consoleInfo));
     installConsoleFunction(QLatin1String("log"),
-                           reinterpret_cast<FunctionWithArgSignature>(
-                               EvaluatorScriptClass::js_consoleLog));
+                           reinterpret_cast<FunctionWithArgSignature>(&js_consoleLog));
     installConsoleFunction(QLatin1String("warn"),
-                           reinterpret_cast<FunctionWithArgSignature>(
-                               EvaluatorScriptClass::js_consoleWarn));
+                           reinterpret_cast<FunctionWithArgSignature>(&js_consoleWarn));
 }
 
 void ScriptEngine::extendJavaScriptBuiltins()

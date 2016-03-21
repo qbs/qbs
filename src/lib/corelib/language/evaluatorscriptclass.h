@@ -62,17 +62,6 @@ public:
 
     void setValueCacheEnabled(bool enabled);
 
-    static QScriptValue js_consoleError(QScriptContext *context, QScriptEngine *engine,
-                                        Logger *logger);
-    static QScriptValue js_consoleWarn(QScriptContext *context, QScriptEngine *engine,
-                                       Logger *logger);
-    static QScriptValue js_consoleInfo(QScriptContext *context, QScriptEngine *engine,
-                                       Logger *logger);
-    static QScriptValue js_consoleDebug(QScriptContext *context, QScriptEngine *engine,
-                                        Logger *logger);
-    static QScriptValue js_consoleLog(QScriptContext *context, QScriptEngine *engine,
-                                      Logger *logger);
-
 private:
     QueryFlags queryItemProperty(const EvaluationData *data,
                                  const QString &name,
