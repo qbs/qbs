@@ -3154,9 +3154,11 @@ void TestBlackbox::typescript()
     QDir::setCurrent(testDataDir + QLatin1String("/typescript"));
 
     status = runQbs();
-    if (p.value("typescript.toolchainInstallPath").toString().isEmpty()
-            && status != 0 && m_qbsStderr.contains("toolchainInstallPath")) {
-        QSKIP("typescript.toolchainInstallPath not set and automatic detection failed");
+    if (p.value("typescript.toolchainInstallPath").toString().isEmpty() && status != 0) {
+        if (m_qbsStderr.contains("typescript.toolchainInstallPath"))
+            QSKIP("typescript.toolchainInstallPath not set and automatic detection failed");
+        if (m_qbsStderr.contains("nodejs.interpreterFilePath"))
+            QSKIP("nodejs.interpreterFilePath not set and automatic detection failed");
     }
 
     QCOMPARE(status, 0);
