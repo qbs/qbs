@@ -47,6 +47,7 @@ Module {
 
     Probes.TypeScriptProbe {
         id: tsc
+        interpreterPath: FileInfo.path(nodejs.interpreterFilePath)
         packageManagerBinPath: nodejs.packageManagerBinPath
         packageManagerRootPath: nodejs.packageManagerRootPath
     }
@@ -78,7 +79,7 @@ Module {
     PropertyOptions {
         name: "targetVersion"
         description: "ECMAScript target version"
-        allowedValues: ["ES3", "ES5"]
+        allowedValues: ["ES3", "ES5", "ES2015"]
     }
 
     property string moduleLoader
@@ -120,6 +121,22 @@ Module {
     }
 
     validate: {
+        var interpreterMessage = "TypeScript requires the Node.js interpreter to be called 'node'.";
+        if (File.exists("/etc/debian_version")) {
+            interpreterMessage += " Did you forget to install the nodejs-legacy package? " +
+                "See https://lists.debian.org/debian-devel-announce/2012/07/msg00002.html " +
+                "for more information.";
+        }
+
+        var preValidator = new ModUtils.PropertyValidator("nodejs");
+        preValidator.addCustomValidator("interpreterFileName", nodejs.interpreterFileName, function (value) {
+            return value === "node" + (qbs.hostOS.contains("windows") ? ".exe" : "");
+        }, interpreterMessage);
+        preValidator.addCustomValidator("interpreterFilePath", nodejs.interpreterFilePath, function (value) {
+            return value.endsWith(nodejs.interpreterFileName);
+        }, interpreterMessage);
+        preValidator.validate();
+
         var validator = new ModUtils.PropertyValidator("typescript");
         validator.setRequiredProperty("toolchainInstallPath", toolchainInstallPath);
         validator.setRequiredProperty("compilerName", compilerName);
@@ -158,7 +175,8 @@ Module {
         name: "io.qt.qbs.internal.typescript-helper"
         files: [
             FileInfo.joinPaths(path, "qbs-tsc-scan", "qbs-tsc-scan.ts"),
-            FileInfo.joinPaths(typescript.toolchainLibInstallPath, "typescript.d.ts")
+            FileInfo.joinPaths(typescript.toolchainLibInstallPath, "typescript.d.ts"),
+            FileInfo.joinPaths(typescript.toolchainLibInstallPath, "..", "package.json")
         ]
         fileTags: ["typescript.typescript-internal"]
     }
@@ -173,6 +191,23 @@ Module {
                 return [];
             return [{
                 filePath: FileInfo.joinPaths(product.buildDirectory,
+                                             ".io.qt.qbs.internal.typescript", "qbs-tsc-scan.ts"),
+                fileTags: ["typescript.typescript-internal.copy"]
+            },
+            {
+                filePath: FileInfo.joinPaths(product.buildDirectory,
+                                             ".io.qt.qbs.internal.typescript",
+                                             "node_modules", "typescript", "lib", "typescript.d.ts"),
+                fileTags: ["typescript.typescript-internal.copy"]
+            },
+            {
+                filePath: FileInfo.joinPaths(product.buildDirectory,
+                                             ".io.qt.qbs.internal.typescript",
+                                             "node_modules", "typescript", "package.json"),
+                fileTags: ["typescript.typescript-internal.copy"]
+            },
+            {
+                filePath: FileInfo.joinPaths(product.buildDirectory,
                                              ".io.qt.qbs.internal.typescript", "qbs-tsc-scan.js"),
                 fileTags: ["typescript.compiled_typescript-internal"]
             }];
@@ -183,11 +218,30 @@ Module {
                 return input.filePath;
             });
 
+            var outputPaths = outputs["typescript.typescript-internal.copy"].map(function (output) {
+                return output.filePath;
+            });
+
+            var sortFunc = function (a, b) {
+                return FileInfo.fileName(a).localeCompare(FileInfo.fileName(b));
+            };
+
+            var jcmd = new JavaScriptCommand();
+            jcmd.silent = true;
+            jcmd.inputPaths = inputPaths.sort(sortFunc);
+            jcmd.outputPaths = outputPaths.sort(sortFunc);
+            jcmd.sourceCode = function() {
+                for (var i = 0; i < inputPaths.length; ++i)
+                    File.copy(inputPaths[i], outputPaths[i]);
+            };
+
+            var outDir = FileInfo.path(
+                        outputs["typescript.compiled_typescript-internal"][0].filePath);
             var args = ["--module", "commonjs",
-                        "--outDir", FileInfo.path(output.filePath)].concat(inputPaths);
+                        "--outDir", outDir].concat(outputPaths.filter(function (f) { return !f.endsWith(".json"); }));
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.silent = true;
-            return [cmd];
+            return [jcmd, cmd];
         }
     }
 

@@ -15,8 +15,7 @@ Project {
         files: [
             "animals.ts",
             "extra.js",
-            "woosh/extra.ts",
-            "main.ts"
+            "woosh/extra.ts"
         ]
     }
 

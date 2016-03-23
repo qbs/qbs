@@ -33,7 +33,7 @@ import qbs.Environment
 import qbs.FileInfo
 
 BinaryProbe {
-    names: ["nodejs", "node"]
+    names: ["node", "nodejs"]
     platformPaths: {
         var paths = base;
         if (qbs.hostOS.contains("windows")) {

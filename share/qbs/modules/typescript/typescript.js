@@ -92,7 +92,7 @@ function tscArguments(product, inputs) {
     args.push("--outDir", product.buildDirectory);
 
     if (ModUtils.moduleProperty(product, "singleFile")) {
-        args.push("--out",
+        args.push(outOption(product),
                   FileInfo.joinPaths(product.destinationDirectory, product.targetName) + ".js");
     }
 
@@ -129,7 +129,10 @@ function outputArtifacts(product, inputs) {
     var process;
     try {
         process = new Process();
-        process.setEnv("NODE_PATH", ModUtils.moduleProperty(product, "toolchainInstallPath"));
+        process.setEnv("NODE_PATH", [
+            ModUtils.moduleProperty(product, "toolchainInstallPath"),
+            product.moduleProperty("nodejs", "packageManagerRootPath")
+        ].join(product.moduleProperty("qbs", "pathListSeparator")));
         process.exec(product.moduleProperty("nodejs", "interpreterFilePath"),
                      [FileInfo.joinPaths(product.buildDirectory,
                                          ".io.qt.qbs.internal.typescript",
@@ -245,6 +248,17 @@ function legacyOutputArtifacts(product, inputs) {
     }
 
     return artifacts;
+}
+
+function outOption(product) {
+    var compilerVersionMajor = ModUtils.moduleProperty(product, "versionMajor");
+    if (compilerVersionMajor === 1) {
+        if (ModUtils.moduleProperty(product, "versionMinor") < 6) {
+            return "--out";
+        }
+    }
+
+    return "--outFile";
 }
 
 function supportsModernFeatures(product) {
