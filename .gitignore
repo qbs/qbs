@@ -1,3 +1,5 @@
+.qmake.cache
+.qmake.stash
 .qbs
 build
 *.dll
@@ -10,6 +12,8 @@ build
 *.pdb
 *.pro.user*
 *.qbs.user*
+*.xcodeproj/
+target_wrapper.sh
 *~
 *.o
 *.lib
