@@ -1478,6 +1478,17 @@ void TestBlackbox::recursiveWildcards()
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file2.txt").exists());
 }
 
+void TestBlackbox::referenceErrorInExport()
+{
+    QDir::setCurrent(testDataDir + "/referenceErrorInExport");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QEXPECT_FAIL(0, "QBS-946", Abort);
+    QVERIFY(m_qbsStderr.contains(
+                "project.qbs:17:31 ReferenceError: Can't find variable: includePaths"));
+}
+
 void TestBlackbox::reproducibleBuild()
 {
     Settings s((QString()));

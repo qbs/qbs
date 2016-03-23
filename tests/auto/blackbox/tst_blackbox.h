@@ -170,6 +170,7 @@ private slots:
     void radAfterIncompleteBuild();
     void recursiveRenaming();
     void recursiveWildcards();
+    void referenceErrorInExport();
     void reproducibleBuild();
     void reproducibleBuild_data();
     void ruleConditions();
