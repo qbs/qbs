@@ -1,7 +1,7 @@
 import qbs
 
 CLIModule {
-    condition: qbs.toolchain.contains("mono")
+    condition: qbs.toolchain && qbs.toolchain.contains("mono")
 
     debugInfoSuffix: ".mdb"
     csharpCompilerName: "mcs"

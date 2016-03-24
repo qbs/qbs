@@ -2,7 +2,7 @@ import qbs
 import qbs.Utilities
 
 CLIModule {
-    condition: qbs.toolchain.contains("dotnet")
+    condition: qbs.toolchain && qbs.toolchain.contains("dotnet")
 
     debugInfoSuffix: ".pdb"
     csharpCompilerName: "csc"
