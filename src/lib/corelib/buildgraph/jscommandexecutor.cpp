@@ -213,8 +213,10 @@ void JsCommandExecutor::onJavaScriptCommandFinished()
     if (!result.success) {
         logger().qbsDebug() << "JS context:\n" << jsCommand()->properties();
         logger().qbsDebug() << "JS code:\n" << jsCommand()->sourceCode();
-        err.append(tr("Error while executing JavaScriptCommand:"), result.errorLocation);
         err.append(result.errorMessage);
+        // ### We don't know the line number of the command's sourceCode property assignment.
+        err.appendBacktrace(QStringLiteral("JavaScriptCommand.sourceCode"));
+        err.appendBacktrace(QStringLiteral("Rule.prepare"), result.errorLocation);
     }
     emit finished(err);
 }

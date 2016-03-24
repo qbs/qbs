@@ -124,6 +124,7 @@ private slots:
     void enableExceptions_data();
     void erroneousFiles_data();
     void erroneousFiles();
+    void errorInfo();
     void exportRule();
     void fileDependencies();
     void frameworkStructure();

@@ -2043,6 +2043,44 @@ void TestBlackbox::erroneousFiles()
     }
 }
 
+void TestBlackbox::errorInfo()
+{
+    QDir::setCurrent(testDataDir + "/error-info");
+    QCOMPARE(runQbs(), 0);
+
+    QbsRunParameters params;
+    params.expectFailure = true;
+
+    params.arguments = QStringList() << "project.fail1:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("/project.qbs:24"), m_qbsStderr);
+
+    params.arguments = QStringList() << "project.fail2:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("/project.qbs:36"), m_qbsStderr);
+
+    params.arguments = QStringList() << "project.fail3:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("/project.qbs:51"), m_qbsStderr);
+
+    params.arguments = QStringList() << "project.fail4:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("/project.qbs:66"), m_qbsStderr);
+
+    params.arguments = QStringList() << "project.fail5:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("/helper.js:4"), m_qbsStderr);
+
+    params.arguments = QStringList() << "project.fail6:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("/helper.js:8"), m_qbsStderr);
+
+    params.arguments = QStringList() << "project.fail7:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("JavaScriptCommand.sourceCode"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("/project.qbs:57"), m_qbsStderr);
+}
+
 void TestBlackbox::exportRule()
 {
     QDir::setCurrent(testDataDir + "/export-rule");

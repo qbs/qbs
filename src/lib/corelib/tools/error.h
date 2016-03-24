@@ -58,8 +58,11 @@ public:
     CodeLocation codeLocation() const;
     QString toString() const;
 
+    bool isBacktraceItem() const;
+
 private:
-    ErrorItem(const QString &description, const CodeLocation &codeLocation);
+    ErrorItem(const QString &description, const CodeLocation &codeLocation,
+              bool isBacktraceItem = false);
 
     class ErrorItemPrivate;
     QExplicitlySharedDataPointer<ErrorItemPrivate> d;
@@ -72,9 +75,11 @@ public:
     ErrorInfo(const ErrorInfo &rhs);
     ErrorInfo(const QString &description, const CodeLocation &location = CodeLocation(),
               bool internalError = false);
+    ErrorInfo(const QString &description, const QStringList &backtrace);
     ErrorInfo &operator=(const ErrorInfo &other);
     ~ErrorInfo();
 
+    void appendBacktrace(const QString &description, const CodeLocation &location = CodeLocation());
     void append(const QString &description, const CodeLocation &location = CodeLocation());
     void prepend(const QString &description, const CodeLocation &location = CodeLocation());
     QList<ErrorItem> items() const;

@@ -96,6 +96,7 @@ public:
     FileTags fileTags;
     bool alwaysUpdated;
     CodeLocation location;
+    CodeLocation filePathLocation;
 
     class Binding
     {

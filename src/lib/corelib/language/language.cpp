@@ -219,6 +219,7 @@ void RuleArtifact::load(PersistentPool &pool)
             >> fileTags
             >> alwaysUpdated;
     location.load(pool);
+    filePathLocation.load(pool);
 
     int i;
     pool.stream() >> i;
@@ -240,6 +241,7 @@ void RuleArtifact::store(PersistentPool &pool) const
             << fileTags
             << alwaysUpdated;
     location.store(pool);
+    filePathLocation.store(pool);
 
     pool.stream() << bindings.count();
     for (int i = bindings.count(); --i >= 0;) {
