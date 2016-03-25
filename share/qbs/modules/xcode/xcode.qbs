@@ -17,13 +17,9 @@ Module {
     property stringList targetDevices: DarwinTools.targetDevices(qbs.targetOS)
 
     property string platformType: {
-        if (qbs.targetOS.contains("ios-simulator")
-                || qbs.targetOS.contains("tvos-simulator")
-                || qbs.targetOS.contains("watchos-simulator"))
+        if (qbs.targetOS.containsAny(["ios-simulator", "tvos-simulator", "watchos-simulator"]))
             return "simulator";
-        if (qbs.targetOS.contains("ios")
-                || qbs.targetOS.contains("tvos")
-                || qbs.targetOS.contains("watchos"))
+        if (qbs.targetOS.containsAny(["ios", "tvos", "watchos"]))
             return "device";
     }
 

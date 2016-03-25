@@ -81,11 +81,9 @@ Module {
 
     additionalProductTypes: ["bundle"]
 
-    property bool isBundle: qbs.targetOS.contains("darwin")
-                            && (product.type.contains("application")
-                                || product.type.contains("dynamiclibrary")
-                                || product.type.contains("loadablemodule"))
-                            && !product.consoleApplication
+    property bool isBundle: !product.consoleApplication && qbs.targetOS.contains("darwin") &&
+        product.type.containsAny(["application", "dynamiclibrary", "loadablemodule"])
+
     readonly property bool isShallow: bundleSettingsProbe.xcodeSettings["SHALLOW_BUNDLE"] === "YES"
 
     property string identifierPrefix: "org.example"
@@ -100,7 +98,7 @@ Module {
             return "XPC!";
         if (product.type.contains("application"))
             return "APPL";
-        if (product.type.contains("dynamiclibrary") || product.type.contains("staticlibrary"))
+        if (product.type.containsAny(["dynamiclibrary", "staticlibrary"]))
             return "FMWK";
         if (product.type.contains("kernelmodule"))
             return "KEXT";

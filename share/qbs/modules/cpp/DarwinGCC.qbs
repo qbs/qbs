@@ -73,7 +73,7 @@ UnixGCC {
                 dict["LSMinimumSystemVersion"] = minimumOsxVersion;
         }
 
-        if (qbs.targetOS.contains("ios") || qbs.targetOS.contains("tvos")) {
+        if (qbs.targetOS.containsAny(["ios", "tvos"])) {
             dict["LSRequiresIPhoneOS"] = true;
 
             if (xcode.platformType === "device") {
@@ -90,7 +90,7 @@ UnixGCC {
             if (qbs.targetOS.contains("ios"))
                 dict["UIDeviceFamily"] = targetDevices;
 
-            if (qbs.targetOS.contains("ios") || qbs.targetOS.contains("watchos")) {
+            if (qbs.targetOS.containsAny(["ios", "watchos"])) {
                 var orientations = [
                     "UIInterfaceOrientationPortrait",
                     "UIInterfaceOrientationPortraitUpsideDown",

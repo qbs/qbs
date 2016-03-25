@@ -98,7 +98,7 @@ function linkerFlags(product, inputs, output) {
     if (output.fileTags.contains("loadablemodule"))
         args.push(isDarwin ? "-bundle" : "-shared");
 
-    if (output.fileTags.contains("dynamiclibrary") || output.fileTags.contains("loadablemodule")) {
+    if (output.fileTags.containsAny(["dynamiclibrary", "loadablemodule"])) {
         if (isDarwin)
             args = args.concat(escapeLinkerFlags(product, ["-headerpad_max_install_names"]));
         else
