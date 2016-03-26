@@ -173,7 +173,9 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool sca
                         opaque->hasPluginMetaDataMacro = true;
                     }
                     if (!scanForDependencies && opaque->hasQObjectMacro
-                        && (opaque->fileType == Opaq::FT_CPP || opaque->hasPluginMetaDataMacro))
+                        && (opaque->hasPluginMetaDataMacro
+                            || opaque->fileType == Opaq::FT_CPP
+                            || opaque->fileType == Opaq::FT_OBJCPP))
                         break;
                 }
             }
@@ -265,6 +267,7 @@ static const char **additionalFileTags(void *opaq, int *size)
         *size = 1;
         switch (opaque->fileType) {
         case Opaq::FT_CPP:
+        case Opaq::FT_OBJCPP:
             return thMocCpp;
         case Opaq::FT_HPP:
             return opaque->hasPluginMetaDataMacro ? thMocPluginHpp : thMocHpp;

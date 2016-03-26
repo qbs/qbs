@@ -701,6 +701,15 @@ ArtifactSet ResolvedProduct::lookupArtifactsByFileTag(const FileTag &tag) const
     return buildData->artifactsByFileTag.value(tag);
 }
 
+ArtifactSet ResolvedProduct::lookupArtifactsByFileTags(const FileTags &tags) const
+{
+    QBS_CHECK(buildData);
+    ArtifactSet set;
+    for (const FileTag &tag : tags)
+        set = set.unite(buildData->artifactsByFileTag.value(tag));
+    return set;
+}
+
 ArtifactSet ResolvedProduct::targetArtifacts() const
 {
     QBS_CHECK(buildData);
