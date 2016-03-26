@@ -462,6 +462,12 @@ void TestBlackbox::android()
     int status;
     const auto androidPaths = findAndroid(&status);
 
+    const auto ndkPath = androidPaths["ndk"];
+    static const QStringList ndkSamplesDirs = QStringList() << "teapot" << "no-native";
+    if (!ndkPath.isEmpty() && !QFileInfo(ndkPath + "/samples").isDir()
+            && ndkSamplesDirs.contains(projectDir))
+        QSKIP("NDK samples directory not present");
+
     QDir::setCurrent(testDataDir + "/android/" + projectDir);
     Settings s((QString()));
     Profile p("qbs_autotests-android", &s);
