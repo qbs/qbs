@@ -107,8 +107,8 @@ CppModule {
     assemblerPath: toolchainPathPrefix + assemblerName
     compilerPath: toolchainPathPrefix + compilerName
     linkerPath: toolchainPathPrefix + linkerName
-    property path archiverPath: { return toolchainPathPrefix + archiverName }
-    property path nmPath: { return toolchainPathPrefix + nmName }
+    property string archiverPath: toolchainPathPrefix + archiverName
+    property string nmPath: toolchainPathPrefix + nmName
     property string objcopyPath: toolchainPathPrefix + objcopyName
     property string stripPath: toolchainPathPrefix + stripName
     property string dsymutilPath: toolchainPathPrefix + dsymutilName
