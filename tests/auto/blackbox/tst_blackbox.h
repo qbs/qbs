@@ -114,6 +114,8 @@ private slots:
     void concurrentExecutor();
     void dependenciesProperty();
     void dependencyProfileMismatch();
+    void deploymentTarget();
+    void deploymentTarget_data();
     void dynamicMultiplexRule();
     void dynamicRuleOutputs();
     void embedInfoPlist();

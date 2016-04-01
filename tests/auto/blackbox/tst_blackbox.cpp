@@ -845,6 +845,48 @@ void TestBlackbox::dependencyProfileMismatch()
              m_qbsStderr.constData());
 }
 
+void TestBlackbox::deploymentTarget()
+{
+    if (!HostOsInfo::isOsxHost())
+        QSKIP("only applies on OS X");
+
+    QFETCH(QString, os);
+    QFETCH(QString, arch);
+    QFETCH(QString, cflags);
+    QFETCH(QString, lflags);
+
+    QDir::setCurrent(testDataDir + "/deploymentTarget");
+
+    QbsRunParameters params;
+    params.arguments = QStringList()
+            << "--command-echo-mode"
+            << "command-line"
+            << "qbs.targetOS:" + os
+            << "qbs.architecture:" + arch;
+
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains(cflags.toLatin1()), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains(lflags.toLatin1()), m_qbsStdout.constData());
+}
+
+void TestBlackbox::deploymentTarget_data()
+{
+    QTest::addColumn<QString>("os");
+    QTest::addColumn<QString>("arch");
+    QTest::addColumn<QString>("cflags");
+    QTest::addColumn<QString>("lflags");
+    QTest::newRow("osx") << "osx,darwin,bsd,unix" << "x86_64"
+                         << "-triple x86_64-apple-macosx10.4.0"
+                         << "-macosx_version_min 10.4.0";
+    QTest::newRow("ios") << "ios,darwin,bsd,unix" << "arm64"
+                         << "-triple arm64-apple-ios5.0.0"
+                         << "-iphoneos_version_min 5.0.0";
+    QTest::newRow("ios-sim") << "ios-simulator,ios,darwin,bsd,unix" << "x86_64"
+                             << "-triple x86_64-apple-ios5.0.0"
+                             << "-ios_simulator_version_min 5.0.0";
+}
+
 void TestBlackbox::symlinkRemoval()
 {
     if (HostOsInfo::isWindowsHost())
