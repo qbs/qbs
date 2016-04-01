@@ -29,7 +29,40 @@
 ****************************************************************************/
 
 var DarwinTools = loadExtension("qbs.DarwinTools");
-var PropertyList = loadExtension("qbs.PropertyList");
+var Process = loadExtension("qbs.Process");
+
+// HACK: Workaround until the PropertyList extension is supported cross-platform
+var PropertyList2 = (function () {
+    function PropertyList2() {
+    }
+    PropertyList2.prototype.readFromFile = function (filePath) {
+        var str;
+        var process = new Process();
+        try {
+            if (process.exec("plutil", ["-convert", "json", "-o", "-", filePath], false) === 0) {
+                str = process.readStdOut();
+            } else {
+                var tf = new TextFile(filePath);
+                try {
+                    str = tf.readAll();
+                } finally {
+                    tf.close();
+                }
+            }
+        } finally {
+            process.close();
+        }
+
+        if (str)
+            this.obj = JSON.parse(str);
+    };
+    PropertyList2.prototype.toObject = function () {
+        return this.obj;
+    };
+    PropertyList2.prototype.clear = function () {
+    };
+    return PropertyList2;
+}());
 
 // Order is significant due to productTypeIdentifier() search path
 var _productTypeIdentifiers = {
@@ -52,16 +85,15 @@ function productTypeIdentifier(productType) {
 }
 
 var XcodeBuildSpecsReader = (function () {
-    function XcodeBuildSpecsReader(developerPath, additionalSettings, useShallowBundles) {
+    function XcodeBuildSpecsReader(specsPath, separator, additionalSettings, useShallowBundles) {
         this._additionalSettings = additionalSettings;
         this._useShallowBundles = useShallowBundles;
         var i;
-        var plist = new PropertyList();
-        var plist2 = new PropertyList();
+        var plist = new PropertyList2();
+        var plist2 = new PropertyList2();
         try {
-            developerPath += "/Platforms/MacOSX.platform/Developer/Library/Xcode/Specifications";
-            plist.readFromFile(developerPath + "/MacOSX Package Types.xcspec");
-            plist2.readFromFile(developerPath + "/MacOSX Product Types.xcspec");
+            plist.readFromFile(specsPath + ["/MacOSX", "Package", "Types.xcspec"].join(separator));
+            plist2.readFromFile(specsPath + ["/MacOSX", "Product", "Types.xcspec"].join(separator));
             this._packageTypes = plist.toObject();
             this._productTypes = plist2.toObject();
             this._types = {};

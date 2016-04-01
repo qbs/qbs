@@ -70,11 +70,25 @@ Module {
         property var xcodeSettings: ({})
 
         configure: {
-            if (xcodeDeveloperPath) {
-                var reader = new Bundle.XcodeBuildSpecsReader(xcodeDeveloperPath,
-                                                              additionalSettings,
-                                                              !qbs.targetOS.contains("osx"));
-                xcodeSettings = reader.expandedSettings(_productTypeIdentifier) || {};
+            var specsPath = path;
+            var specsSeparator = "-";
+            if (xcodeDeveloperPath && _useXcodeBuildSpecs) {
+                specsPath = xcodeDeveloperPath
+                        + "/Platforms/MacOSX.platform/Developer/Library/Xcode/Specifications";
+                specsSeparator = " ";
+            }
+
+            var reader = new Bundle.XcodeBuildSpecsReader(specsPath,
+                                                          specsSeparator,
+                                                          additionalSettings,
+                                                          !qbs.targetOS.contains("osx"));
+            var settings = reader.expandedSettings(_productTypeIdentifier);
+            if (settings) {
+                xcodeSettings = settings;
+                found = true;
+            } else {
+                xcodeSettings = {};
+                found = false;
             }
         }
     }
@@ -163,9 +177,11 @@ Module {
     readonly property string unlocalizedResourcesFolderPath: bundleSettingsProbe.xcodeSettings["UNLOCALIZED_RESOURCES_FOLDER_PATH"]
     readonly property string versionsFolderPath: bundleSettingsProbe.xcodeSettings["VERSIONS_FOLDER_PATH"]
 
+    // private properties
     property string _productTypeIdentifier: Bundle.productTypeIdentifier(product.type)
 
-    // private properties
+    property bool _useXcodeBuildSpecs: true // false to use ONLY the qbs build specs
+
     readonly property var extraEnv: ({
         "PRODUCT_BUNDLE_IDENTIFIER": identifier
     })
@@ -195,6 +211,45 @@ Module {
             CFBundleSignature: signature, // legacy creator code in Mac OS Classic, can be ignored
             CFBundleVersion: product.version || "1.0.0" // build version number, must be 3 octets
         };
+    }
+
+    validate: {
+        if (!bundleSettingsProbe.found) {
+            var error = "Bundle product type " + _productTypeIdentifier + " is not supported.";
+            if ((_productTypeIdentifier || "").startsWith("com.apple.product-type."))
+                error += " You may need to upgrade Xcode.";
+            throw error;
+        }
+
+        var validator = new ModUtils.PropertyValidator("bundle");
+        validator.setRequiredProperty("bundleName", bundleName);
+        validator.setRequiredProperty("infoPlistPath", infoPlistPath);
+        validator.setRequiredProperty("pbdevelopmentPlistPath", pbdevelopmentPlistPath);
+        validator.setRequiredProperty("pkgInfoPath", pkgInfoPath);
+        validator.setRequiredProperty("versionPlistPath", versionPlistPath);
+        validator.setRequiredProperty("executablePath", executablePath);
+        validator.setRequiredProperty("contentsFolderPath", contentsFolderPath);
+        validator.setRequiredProperty("documentationFolderPath", documentationFolderPath);
+        validator.setRequiredProperty("executableFolderPath", executableFolderPath);
+        validator.setRequiredProperty("executablesFolderPath", executablesFolderPath);
+        validator.setRequiredProperty("frameworksFolderPath", frameworksFolderPath);
+        validator.setRequiredProperty("javaFolderPath", javaFolderPath);
+        validator.setRequiredProperty("localizedResourcesFolderPath", localizedResourcesFolderPath);
+        validator.setRequiredProperty("pluginsFolderPath", pluginsFolderPath);
+        validator.setRequiredProperty("privateHeadersFolderPath", privateHeadersFolderPath);
+        validator.setRequiredProperty("publicHeadersFolderPath", publicHeadersFolderPath);
+        validator.setRequiredProperty("scriptsFolderPath", scriptsFolderPath);
+        validator.setRequiredProperty("sharedFrameworksFolderPath", sharedFrameworksFolderPath);
+        validator.setRequiredProperty("sharedSupportFolderPath", sharedSupportFolderPath);
+        validator.setRequiredProperty("unlocalizedResourcesFolderPath", unlocalizedResourcesFolderPath);
+
+        if (packageType === "FMWK") {
+            validator.setRequiredProperty("frameworkVersion", frameworkVersion);
+            validator.setRequiredProperty("versionsFolderPath", versionsFolderPath);
+        }
+
+        // extension and infoStringsPath might not be set
+        return validator.validate();
     }
 
     FileTagger {

@@ -104,6 +104,7 @@ private slots:
     void badInterpreter();
     void buildDirectories();
     void bundleStructure();
+    void bundleStructure_data();
     void changedFiles_data();
     void changedFiles();
     void changeInDisabledProduct();
