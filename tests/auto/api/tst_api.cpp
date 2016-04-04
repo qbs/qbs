@@ -32,6 +32,7 @@
 
 #include "../shared.h"
 
+#include <api/runenvironment.h>
 #include <qbs.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
@@ -826,6 +827,35 @@ void TestApi::enableAndDisableProduct()
     errorInfo = doBuildProject("enable-and-disable-product/project.qbs", &bdr);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(!bdr.descriptions.contains("compiling"));
+}
+
+void TestApi::errorInSetupRunEnvironment()
+{
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("error-in-setup-run-environment/"
+                                     "error-in-setup-run-environment.qbs");
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    const qbs::Project project = job->project();
+    QVERIFY(project.isValid());
+    QCOMPARE(project.projectData().products().count(), 1);
+    const qbs::ProductData product = project.projectData().products().first();
+
+    bool exceptionCaught = false;
+    try {
+        qbs::Settings settings((QString()));
+        qbs::RunEnvironment runEnv = project.getRunEnvironment(product, qbs::InstallOptions(),
+                                                               QProcessEnvironment(), &settings);
+        qbs::ErrorInfo error;
+        const QProcessEnvironment env = runEnv.runEnvironment(&error);
+        QVERIFY(error.hasError());
+        QVERIFY(error.toString().contains("trallala"));
+    } catch (const qbs::ErrorInfo &e) {
+        exceptionCaught = true;
+    }
+    QVERIFY(!exceptionCaught);
 }
 
 static qbs::ErrorInfo forceRuleEvaluation(const qbs::Project project)

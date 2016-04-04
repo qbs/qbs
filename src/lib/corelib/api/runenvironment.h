@@ -41,6 +41,7 @@ class QProcessEnvironment;
 QT_END_NAMESPACE
 
 namespace qbs {
+class ErrorInfo;
 class InstallOptions;
 class Settings;
 
@@ -51,22 +52,29 @@ class ResolvedProduct;
 
 class QBS_EXPORT RunEnvironment
 {
+    friend class CommandLineFrontend;
     friend class Project;
 public:
     ~RunEnvironment();
 
-    // These can throw an Error
-    int runShell();
-    int runTarget(const QString &targetBin, const QStringList &arguments);
+    int runShell(ErrorInfo *error = nullptr);
+    int runTarget(const QString &targetBin, const QStringList &arguments,
+                  ErrorInfo *error = nullptr);
 
-    const QProcessEnvironment runEnvironment() const;
-    const QProcessEnvironment buildEnvironment() const;
+    const QProcessEnvironment runEnvironment(ErrorInfo *error = nullptr) const;
+    const QProcessEnvironment buildEnvironment(ErrorInfo *error = nullptr) const;
 
 private:
     RunEnvironment(const Internal::ResolvedProductPtr &product,
                    const InstallOptions &installOptions,
                    const QProcessEnvironment &environment, Settings *settings,
                    const Internal::Logger &logger);
+
+    int doRunShell();
+    int doRunTarget(const QString &targetBin, const QStringList &arguments);
+
+    const QProcessEnvironment getRunEnvironment() const;
+    const QProcessEnvironment getBuildEnvironment() const;
 
     class RunEnvironmentPrivate;
     RunEnvironmentPrivate * const d;
