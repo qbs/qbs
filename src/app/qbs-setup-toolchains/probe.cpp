@@ -185,8 +185,8 @@ public:
 
 private:
     Profile * const m_profile;
-    const QString &m_compilerDirPath;
-    const QString &m_toolchainPrefix;
+    QString m_compilerDirPath;
+    QString m_toolchainPrefix;
 };
 
 static Profile createGccProfile(const QString &compilerFilePath, Settings *settings,
