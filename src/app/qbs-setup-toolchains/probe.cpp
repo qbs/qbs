@@ -66,7 +66,7 @@ static QString findExecutable(const QString &fileName)
     const QString path = QString::fromLocal8Bit(qgetenv("PATH"));
     foreach (const QString &ppath, path.split(HostOsInfo::pathListSeparator())) {
         const QString fullPath = ppath + QLatin1Char('/') + fullFileName;
-        if (QFileInfo(fullPath).exists())
+        if (QFileInfo::exists(fullPath))
             return QDir::cleanPath(fullPath);
     }
     return QString();
@@ -138,7 +138,7 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
         const QStringList &toolchainTypes, const QString &architecture)
 {
     const QFileInfo cfi(compilerFilePath);
-    const QString compilerName = QFileInfo(compilerFilePath).fileName();
+    const QString compilerName = cfi.fileName();
 
     if (toolchainTypes.contains(QStringLiteral("mingw")))
         profile.setValue(QStringLiteral("qbs.targetOS"), QStringList(QStringLiteral("windows")));
@@ -237,11 +237,12 @@ static void gccProbe(Settings *settings, QList<Profile> &profiles, const QString
 
     const QString crossCompilePrefix = QString::fromLocal8Bit(qgetenv("CROSS_COMPILE"));
     const QString compilerFilePath = findExecutable(crossCompilePrefix + compilerName);
-    if (!QFileInfo(compilerFilePath).exists()) {
+    QFileInfo cfi(compilerFilePath);
+    if (!cfi.exists()) {
         qStderr << Tr::tr("%1 not found.").arg(compilerName) << endl;
         return;
     }
-    const QString profileName = QFileInfo(compilerFilePath).completeBaseName();
+    const QString profileName = cfi.completeBaseName();
     const QStringList toolchainTypes = toolchainTypeFromCompilerName(compilerName);
     profiles << createGccProfile(compilerFilePath, settings, toolchainTypes, profileName);
 }
