@@ -877,14 +877,14 @@ void TestBlackbox::deploymentTarget_data()
     QTest::addColumn<QString>("cflags");
     QTest::addColumn<QString>("lflags");
     QTest::newRow("osx") << "osx,darwin,bsd,unix" << "x86_64"
-                         << "-triple x86_64-apple-macosx10.4.0"
-                         << "-macosx_version_min 10.4.0";
+                         << "-triple x86_64-apple-macosx10.4"
+                         << "-macosx_version_min 10.4";
     QTest::newRow("ios") << "ios,darwin,bsd,unix" << "arm64"
-                         << "-triple arm64-apple-ios5.0.0"
-                         << "-iphoneos_version_min 5.0.0";
+                         << "-triple arm64-apple-ios5.0"
+                         << "-iphoneos_version_min 5.0";
     QTest::newRow("ios-sim") << "ios-simulator,ios,darwin,bsd,unix" << "x86_64"
-                             << "-triple x86_64-apple-ios5.0.0"
-                             << "-ios_simulator_version_min 5.0.0";
+                             << "-triple x86_64-apple-ios5.0"
+                             << "-ios_simulator_version_min 5.0";
 }
 
 void TestBlackbox::symlinkRemoval()
