@@ -10,7 +10,6 @@ defineReplace(stripSrcDir) {
 
 for(data_dir, DATA_DIRS) {
     files = $$files($$PWD/$$data_dir/*, true)
-    win32:files ~= s|\\\\|/|g
     for(file, files):!exists($$file/*):FILES += $$file
 }
 FILES += $$DATA_FILES
