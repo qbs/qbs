@@ -3,19 +3,6 @@ TEMPLATE = aux
 DATA_DIRS = share/qbs/imports share/qbs/modules
 win32:DATA_FILES = $$PWD/bin/ibmsvc.xml $$PWD/bin/ibqbs.bat
 
-defineReplace(cleanPath) {
-    win32:1 ~= s|\\\\|/|g
-    contains(1, ^/.*):pfx = /
-    else:pfx =
-    segs = $$split(1, /)
-    out =
-    for(seg, segs) {
-        equals(seg, ..):out = $$member(out, 0, -2)
-        else:!equals(seg, .):out += $$seg
-    }
-    return($$join(out, /, $$pfx))
-}
-
 # For use in custom compilers which just copy files
 defineReplace(stripSrcDir) {
     return($$relative_path($$absolute_path($$1, $$OUT_PWD), $$_PRO_FILE_PWD_))
