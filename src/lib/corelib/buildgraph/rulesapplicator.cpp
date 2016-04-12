@@ -512,7 +512,7 @@ QString RulesApplicator::resolveOutPath(const QString &path) const
     return result;
 }
 
-RulesEvaluationContextPtr RulesApplicator::evalContext() const
+const RulesEvaluationContextPtr &RulesApplicator::evalContext() const
 {
     return m_product->topLevelProject()->buildData->evaluationContext;
 }

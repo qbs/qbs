@@ -74,7 +74,7 @@ private:
     Artifact *createOutputArtifactFromScriptValue(const QScriptValue &obj,
             const ArtifactSet &inputArtifacts);
     QString resolveOutPath(const QString &path) const;
-    RulesEvaluationContextPtr evalContext() const;
+    const RulesEvaluationContextPtr &evalContext() const;
     ScriptEngine *engine() const;
     QScriptValue scope() const;
 
