@@ -53,8 +53,6 @@ public:
     RulesApplicator(const ResolvedProductPtr &product, const Logger &logger);
     ~RulesApplicator();
 
-    void applyRuleInEvaluationContext(const RuleConstPtr &rule,
-            const ArtifactSet &inputArtifacts);
     const NodeSet &createdArtifacts() const { return m_createdArtifacts; }
     const NodeSet &invalidatedArtifacts() const { return m_invalidatedArtifacts; }
 

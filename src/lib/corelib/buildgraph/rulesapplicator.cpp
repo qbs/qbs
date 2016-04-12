@@ -70,19 +70,14 @@ RulesApplicator::~RulesApplicator()
     delete m_mocScanner;
 }
 
-void RulesApplicator::applyRuleInEvaluationContext(const RuleConstPtr &rule,
-        const ArtifactSet &inputArtifacts)
-{
-    m_createdArtifacts.clear();
-    m_invalidatedArtifacts.clear();
-    RulesEvaluationContext::Scope s(m_product->topLevelProject()->buildData->evaluationContext.data());
-    applyRule(rule, inputArtifacts);
-}
-
 void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts)
 {
     if (inputArtifacts.isEmpty())
         return;
+
+    m_createdArtifacts.clear();
+    m_invalidatedArtifacts.clear();
+    RulesEvaluationContext::Scope s(evalContext().data());
 
     m_rule = rule;
     m_completeInputSet = inputArtifacts;
