@@ -47,7 +47,8 @@ UnixGCC {
     loadableModuleSuffix: ".bundle"
     dynamicLibrarySuffix: ".dylib"
     separateDebugInformation: true
-    debugInfoSuffix: ".dSYM"
+    debugInfoBundleSuffix: ".dSYM"
+    debugInfoSuffix: ".dwarf"
 
     toolchainInstallPath: xcode.present
                           ? FileInfo.joinPaths(xcode.toolchainPath, "usr", "bin") : base

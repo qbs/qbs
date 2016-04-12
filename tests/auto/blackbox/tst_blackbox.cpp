@@ -1157,12 +1157,69 @@ void TestBlackbox::separateDebugInfo()
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
     QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
     if (targetOS.contains("darwin") || (targetOS.isEmpty() && HostOsInfo::isOsxHost())) {
-        QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
+        QVERIFY(directoryExists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("app1")
+            + "/app1.app.dSYM/Contents/Info.plist"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("app1")
+            + "/app1.app.dSYM/Contents/Resources/DWARF/app1"));
+        QCOMPARE(QDir(relativeProductBuildDir("app1")
+            + "/app1.app.dSYM/Contents/Resources/DWARF")
+                .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.app.dSYM"));
-        QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/foo1.framework.dSYM"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("app3") + "/app3.app.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("app3")
+            + "/app3.app/Contents/MacOS/app3.dwarf"));
+        QVERIFY(directoryExists(relativeProductBuildDir("app4") + "/app4.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("app4")
+            + "/app4.dSYM/Contents/Info.plist"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("app4")
+            + "/app4.dSYM/Contents/Resources/DWARF/app4"));
+        QCOMPARE(QDir(relativeProductBuildDir("app4")
+            + "/app4.dSYM/Contents/Resources/DWARF")
+                .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
+        QVERIFY(regularFileExists(relativeProductBuildDir("app5") + "/app5.dwarf"));
+        QVERIFY(directoryExists(relativeProductBuildDir("foo1") + "/foo1.framework.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("foo1")
+            + "/foo1.framework.dSYM/Contents/Info.plist"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("foo1")
+            + "/foo1.framework.dSYM/Contents/Resources/DWARF/foo1"));
+        QCOMPARE(QDir(relativeProductBuildDir("foo1")
+            + "/foo1.framework.dSYM/Contents/Resources/DWARF")
+                .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(!QFile::exists(relativeProductBuildDir("foo2") + "/foo2.framework.dSYM"));
-        QVERIFY(QFile::exists(relativeProductBuildDir("bar1") + "/bar1.bundle.dSYM"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("foo3") + "/foo3.framework.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("foo3")
+            + "/foo3.framework/Versions/A/foo3.dwarf"));
+        QVERIFY(directoryExists(relativeProductBuildDir("foo4") + "/libfoo4.dylib.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("foo4")
+            + "/libfoo4.dylib.dSYM/Contents/Info.plist"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("foo4")
+            + "/libfoo4.dylib.dSYM/Contents/Resources/DWARF/libfoo4.dylib"));
+        QCOMPARE(QDir(relativeProductBuildDir("foo4")
+            + "/libfoo4.dylib.dSYM/Contents/Resources/DWARF")
+                .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
+        QVERIFY(regularFileExists(relativeProductBuildDir("foo5") + "/libfoo5.dylib.dwarf"));
+        QVERIFY(directoryExists(relativeProductBuildDir("bar1") + "/bar1.bundle.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("bar1")
+            + "/bar1.bundle.dSYM/Contents/Info.plist"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("bar1")
+            + "/bar1.bundle.dSYM/Contents/Resources/DWARF/bar1"));
+        QCOMPARE(QDir(relativeProductBuildDir("bar1")
+            + "/bar1.bundle.dSYM/Contents/Resources/DWARF")
+                .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(!QFile::exists(relativeProductBuildDir("bar2") + "/bar2.bundle.dSYM"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("bar3") + "/bar3.bundle.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("bar3")
+            + "/bar3.bundle/Contents/MacOS/bar3.dwarf"));
+        QVERIFY(directoryExists(relativeProductBuildDir("bar4") + "/bar4.bundle.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("bar4")
+            + "/bar4.bundle.dSYM/Contents/Info.plist"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("bar4")
+            + "/bar4.bundle.dSYM/Contents/Resources/DWARF/bar4.bundle"));
+        QCOMPARE(QDir(relativeProductBuildDir("bar4")
+            + "/bar4.bundle.dSYM/Contents/Resources/DWARF")
+                .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
+        QVERIFY(regularFileExists(relativeProductBuildDir("bar5") + "/bar5.bundle.dwarf"));
     } else if (toolchain.contains("gcc")) {
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.debug"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.debug"));
