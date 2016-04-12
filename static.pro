@@ -22,8 +22,7 @@ OTHER_FILES += $$FILES
         copy2build.output = $${QBS_RESOURCES_BUILD_DIR}/${QMAKE_FUNC_FILE_IN_stripSrcDir}
     else: \
         copy2build.output = ${QMAKE_FUNC_FILE_IN_stripSrcDir}
-    win32:copy2build.commands = $$QMAKE_COPY \"${QMAKE_FILE_IN}\" \"${QMAKE_FILE_OUT}\"
-    unix:copy2build.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
+    copy2build.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
     copy2build.name = COPY ${QMAKE_FILE_IN}
     copy2build.CONFIG += no_link target_predeps
     QMAKE_EXTRA_COMPILERS += copy2build
