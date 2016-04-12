@@ -1620,6 +1620,16 @@ void TestBlackbox::overrideProjectProperties()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::probeInExportedModule()
+{
+    QDir::setCurrent(testDataDir + "/probe-in-exported-module");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << QLatin1String("-f")
+                                     << QLatin1String("probe-in-exported-module.qbs"))), 0);
+    QVERIFY2(m_qbsStdout.contains("found: true"), m_qbsStdout.constData());
+    QEXPECT_FAIL(0, "QBS-955", Abort);
+    QVERIFY2(m_qbsStdout.contains("prop: yes"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::productProperties()
 {
     QDir::setCurrent(testDataDir + "/productproperties");
