@@ -856,3 +856,24 @@ function concatLibsFromArtifacts(libs, artifacts)
     deps.reverse();
     return concatLibs(deps, libs);
 }
+
+function debugInfoArtifacts(product) {
+    var artifacts = [];
+    if (product.moduleProperty("cpp", "separateDebugInformation")) {
+        artifacts.push({
+            filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
+            fileTags: ["debuginfo"]
+        });
+        if (PathTools.debugInfoIsBundle(product)) {
+            artifacts.push({
+                filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoBundlePath(product)),
+                fileTags: ["debuginfo_bundle"]
+            });
+            artifacts.push({
+                filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoPlistFilePath(product)),
+                fileTags: ["debuginfo_plist"]
+            });
+        }
+    }
+    return artifacts;
+}

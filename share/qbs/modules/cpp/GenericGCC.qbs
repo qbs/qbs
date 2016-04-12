@@ -186,23 +186,7 @@ CppModule {
                     artifacts.push(symlink);
                 }
             }
-            if (ModUtils.moduleProperty(product, "separateDebugInformation")) {
-                artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
-                    fileTags: ["debuginfo"]
-                });
-                if (PathTools.debugInfoIsBundle(product)) {
-                    artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoBundlePath(product)),
-                        fileTags: ["debuginfo_bundle"]
-                    });
-                    artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoPlistFilePath(product)),
-                        fileTags: ["debuginfo_plist"]
-                    });
-                }
-            }
-            return artifacts;
+            return artifacts.concat(Gcc.debugInfoArtifacts(product));
         }
 
         prepare: {
@@ -271,24 +255,7 @@ CppModule {
                                              PathTools.loadableModuleFilePath(product)),
                 fileTags: ["loadablemodule"]
             }
-            var artifacts = [app];
-            if (ModUtils.moduleProperty(product, "separateDebugInformation")) {
-                artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
-                    fileTags: ["debuginfo"]
-                });
-                if (PathTools.debugInfoIsBundle(product)) {
-                    artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoBundlePath(product)),
-                        fileTags: ["debuginfo_bundle"]
-                    });
-                    artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoPlistFilePath(product)),
-                        fileTags: ["debuginfo_plist"]
-                    });
-                }
-            }
-            return artifacts;
+            return [app].concat(Gcc.debugInfoArtifacts(product));
         }
 
         prepare: {
@@ -316,24 +283,7 @@ CppModule {
                                              PathTools.applicationFilePath(product)),
                 fileTags: ["application"]
             }
-            var artifacts = [app];
-            if (ModUtils.moduleProperty(product, "separateDebugInformation")) {
-                artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
-                    fileTags: ["debuginfo"]
-                });
-                if (PathTools.debugInfoIsBundle(product)) {
-                    artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoBundlePath(product)),
-                        fileTags: ["debuginfo_bundle"]
-                    });
-                    artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoPlistFilePath(product)),
-                        fileTags: ["debuginfo_plist"]
-                    });
-                }
-            }
-            return artifacts;
+            return [app].concat(Gcc.debugInfoArtifacts(product));
         }
 
         prepare: {
