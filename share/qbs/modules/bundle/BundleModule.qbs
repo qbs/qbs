@@ -45,6 +45,7 @@ Module {
 
     Probe {
         id: bundleSettingsProbe
+        condition: qbs.targetOS.contains("darwin")
 
         property string xcodeDeveloperPath: xcode.developerPath
 
@@ -70,6 +71,8 @@ Module {
         property var xcodeSettings: ({})
 
         configure: {
+            if (!qbs.targetOS.contains("darwin")) // TODO: Remove when probe conditions are working
+                return;
             var specsPath = path;
             var specsSeparator = "-";
             if (xcodeDeveloperPath && _useXcodeBuildSpecs) {
@@ -214,6 +217,8 @@ Module {
     }
 
     validate: {
+        if (!qbs.targetOS.contains("darwin"))
+            return;
         if (!bundleSettingsProbe.found) {
             var error = "Bundle product type " + _productTypeIdentifier + " is not supported.";
             if ((_productTypeIdentifier || "").startsWith("com.apple.product-type."))
