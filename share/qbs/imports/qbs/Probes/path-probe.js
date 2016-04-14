@@ -39,7 +39,7 @@ function configure(names, nameSuffixes, nameFilter, pathPrefixes, pathSuffixes, 
         throw '"names" must be specified';
     var _names = ModUtils.concatAll(names);
     if (nameFilter)
-        _names = _names.map(nameFilter);
+        _names = _names.map(function(n) { return nameFilter(n); });
     _names = ModUtils.concatAll.apply(undefined, _names.map(function(name) {
         return (nameSuffixes || [""]).map(function(suffix) { return name + suffix; });
     }));
@@ -53,8 +53,8 @@ function configure(names, nameSuffixes, nameFilter, pathPrefixes, pathSuffixes, 
             _paths = _paths.concat(value.split(pathListSeparator));
     }
     var _suffixes = ModUtils.concatAll('', pathSuffixes);
-    _paths = _paths.map(FileInfo.fromNativeSeparators);
-    _suffixes = _suffixes.map(FileInfo.fromNativeSeparators);
+    _paths = _paths.map(function(p) { return FileInfo.fromNativeSeparators(p); });
+    _suffixes = _suffixes.map(function(p) { return FileInfo.fromNativeSeparators(p); });
     for (i = 0; i < _names.length; ++i) {
         for (var j = 0; j < _paths.length; ++j) {
             for (var k = 0; k < _suffixes.length; ++k) {

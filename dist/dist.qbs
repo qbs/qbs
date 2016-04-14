@@ -49,7 +49,7 @@ Product {
             cmd.binaryFilePaths = inputs.installable.filter(function (artifact) {
                 return artifact.fileTags.contains("application")
                         || artifact.fileTags.contains("dynamiclibrary");
-            }).map(ModUtils.artifactInstalledFilePath);
+            }).map(function(a) { return ModUtils.artifactInstalledFilePath(a); });
             cmd.sourceCode = function () {
                 var out;
                 var process;
@@ -90,7 +90,9 @@ Product {
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
-            cmd.inputFilePaths = inputs.installable.map(ModUtils.artifactInstalledFilePath);
+            cmd.inputFilePaths = inputs.installable.map(function(a) {
+                return ModUtils.artifactInstalledFilePath(a);
+            });
             cmd.outputFilePath = output.filePath;
             cmd.installRoot = product.moduleProperty("qbs", "installRoot");
             cmd.sourceCode = function() {

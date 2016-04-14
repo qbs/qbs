@@ -119,7 +119,8 @@ function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
                 return FileInfo.joinPaths(searchPaths[i], "bin", tool);
             }
 
-            if (requiredTools.map(fullToolPath).every(File.exists)) {
+            if (requiredTools.map(function(p) { return fullToolPath(p); })
+                    .every(function(p) { return File.exists(p); })) {
                 return searchPaths[i];
             }
         }

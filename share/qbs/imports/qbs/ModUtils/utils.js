@@ -452,7 +452,8 @@ var BlackboxOutputArtifactTracker = (function () {
                                            "/B", "/S", "/A:-D"], true);
             else
                 proc.exec("find", [dir, "-type", "f"], true);
-            return proc.readStdOut().trim().split(/\r?\n/).map(FileInfo.fromWindowsSeparators);
+            return proc.readStdOut().trim().split(/\r?\n/).map(
+                        function(p) { return FileInfo.fromWindowsSeparators(p); });
         }
         finally {
             if (proc)
