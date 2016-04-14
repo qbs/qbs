@@ -63,8 +63,15 @@ function configure(names, nameSuffixes, nameFilter, pathPrefixes, pathSuffixes, 
                     return {
                         found: true,
                         filePath: _filePath,
-                        fileName: FileInfo.fileName(_filePath),
-                        path: FileInfo.path(_filePath)
+
+                        // Manually specify the path components that constitute _filePath rather
+                        // than using the FileInfo.path and FileInfo.fileName functions because we
+                        // want to break _filePath into its constituent parts based on the input
+                        // originally given by the user. For example, the FileInfo functions would
+                        // produce a different result if any of the items in the names property
+                        // contained more than a single path component.
+                        fileName: _names[i],
+                        path: FileInfo.joinPaths(_paths[j], _suffixes[k]),
                     }
                 }
             }

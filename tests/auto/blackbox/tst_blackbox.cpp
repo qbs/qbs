@@ -1691,6 +1691,19 @@ void TestBlackbox::overrideProjectProperties()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::probeProperties()
+{
+    QDir::setCurrent(testDataDir + "/probeProperties");
+    const QByteArray dir = QDir::cleanPath(testDataDir).toLatin1() + "/probeProperties";
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("probe1.fileName=bin/tool"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe1.path=" + dir), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe1.filePath=" + dir + "/bin/tool"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe2.fileName=tool"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe2.path=" + dir + "/bin"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe2.filePath=" + dir + "/bin/tool"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::probeInExportedModule()
 {
     QDir::setCurrent(testDataDir + "/probe-in-exported-module");

@@ -160,6 +160,7 @@ private slots:
     void objcArc();
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
+    void probeProperties();
     void probeInExportedModule();
     void probesInNestedModules();
     void productDependenciesByType();
