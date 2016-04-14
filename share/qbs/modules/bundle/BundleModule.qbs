@@ -71,8 +71,6 @@ Module {
         property var xcodeSettings: ({})
 
         configure: {
-            if (!qbs.targetOS.contains("darwin")) // TODO: Remove when probe conditions are working
-                return;
             var specsPath = path;
             var specsSeparator = "-";
             if (xcodeDeveloperPath && _useXcodeBuildSpecs) {

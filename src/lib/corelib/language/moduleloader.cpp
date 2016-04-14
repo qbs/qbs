@@ -1533,6 +1533,7 @@ void ModuleLoader::resolveProbes(Item *item)
 
 void ModuleLoader::resolveProbe(Item *parent, Item *probe)
 {
+    m_logger.qbsTrace() << "Resolving Probe at " << probe->location().toString();
     const JSSourceValueConstPtr configureScript = probe->sourceProperty(QLatin1String("configure"));
     if (Q_UNLIKELY(!configureScript))
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
@@ -1551,9 +1552,15 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
     m_engine->currentContext()->pushScope(scope);
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
-    QScriptValue sv = m_engine->evaluate(configureScript->sourceCodeForEvaluation());
-    if (Q_UNLIKELY(m_engine->hasErrorOrException(sv)))
-        throw ErrorInfo(m_engine->lastErrorString(sv), configureScript->location());
+    const bool runProbe = m_evaluator->boolValue(probe, QLatin1String("condition"));
+    ErrorInfo evalError;
+    if (runProbe) {
+        QScriptValue sv = m_engine->evaluate(configureScript->sourceCodeForEvaluation());
+        if (Q_UNLIKELY(m_engine->hasErrorOrException(sv)))
+            evalError = ErrorInfo(m_engine->lastErrorString(sv), configureScript->location());
+    } else {
+        m_logger.qbsDebug() << "Probe disabled; skipping";
+    }
     foreach (const ProbeProperty &b, probeBindings) {
         const QVariant newValue = scope.property(b.first).toVariant();
         if (newValue != b.second.toVariant())
@@ -1562,6 +1569,8 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
     m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
+    if (evalError.hasError())
+        throw evalError;
 }
 
 void ModuleLoader::checkCancelation() const

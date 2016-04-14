@@ -1595,6 +1595,31 @@ void TestLanguage::relaxedErrorMode_data()
     QTest::newRow("relaxed mode") << false;
 }
 
+void TestLanguage::throwingProbe()
+{
+    QFETCH(bool, enableProbe);
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("throwing-probe.qbs"));
+        QVariantMap properties;
+        properties.insert(QLatin1String("theProduct.enableProbe"), enableProbe);
+        params.setOverriddenValues(properties);
+        const TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(project);
+        QVERIFY(!enableProbe);
+    } catch (const ErrorInfo &e) {
+        QVERIFY2(enableProbe, qPrintable(e.toString()));
+    }
+}
+
+void TestLanguage::throwingProbe_data()
+{
+    QTest::addColumn<bool>("enableProbe");
+
+    QTest::newRow("enabled probe") << true;
+    QTest::newRow("disabled probe") << false;
+}
+
 void TestLanguage::qualifiedId()
 {
     QString str = "foo.bar.baz";
