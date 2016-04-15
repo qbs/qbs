@@ -827,7 +827,7 @@ void TestBlackbox::changeInImportedFile()
 {
     QDir::setCurrent(testDataDir + "/change-in-imported-file");
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStderr.contains("old output"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("old output"), m_qbsStdout.constData());
 
     WAIT_FOR_NEW_TIMESTAMP();
     QFile jsFile("prepare.js");
@@ -838,7 +838,7 @@ void TestBlackbox::changeInImportedFile()
     jsFile.write(content);
     jsFile.close();
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStderr.contains("new output"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("new output"), m_qbsStdout.constData());
 
     WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY2(jsFile.open(QIODevice::ReadWrite), qPrintable(jsFile.errorString()));
@@ -846,7 +846,7 @@ void TestBlackbox::changeInImportedFile()
     jsFile.write(content);
     jsFile.close();
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(!m_qbsStderr.contains("output"), m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("output"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::dependenciesProperty()
@@ -993,7 +993,7 @@ void TestBlackbox::versionScript()
     QDir::setCurrent(testDataDir + "/versionscript");
     QCOMPARE(runQbs(QbsRunParameters(QStringList("-qq")
                                      << ("qbs.installRoot:" + QDir::currentPath()))), 0);
-    const QString output = QString::fromLocal8Bit(m_qbsStderr);
+    const QString output = QString::fromLocal8Bit(m_qbsStdout);
     QRegExp pattern(".*---(.*)---.*");
     QVERIFY2(pattern.exactMatch(output), qPrintable(output));
     QCOMPARE(pattern.captureCount(), 1);
@@ -2510,7 +2510,7 @@ void TestBlackbox::linkerScripts()
     QDir::setCurrent(testDataDir + "/linkerscripts");
     QCOMPARE(runQbs(QbsRunParameters(QStringList("-qq")
                                      << ("qbs.installRoot:" + QDir::currentPath()))), 0);
-    const QString output = QString::fromLocal8Bit(m_qbsStderr);
+    const QString output = QString::fromLocal8Bit(m_qbsStdout);
     QRegExp pattern(".*---(.*)---.*");
     QVERIFY2(pattern.exactMatch(output), qPrintable(output));
     QCOMPARE(pattern.captureCount(), 1);

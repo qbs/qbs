@@ -1,3 +1,3 @@
 function prepare(cmd) {
-    cmd.sourceCode = function() { print("old output"); };
+    cmd.sourceCode = function() { console.info("old output"); };
 }
