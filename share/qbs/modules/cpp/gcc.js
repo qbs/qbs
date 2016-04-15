@@ -721,24 +721,25 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
             ]));
             cmd.description = "generating dSYM for " + product.name;
             commands.push(cmd);
+
+            cmd = new Command(ModUtils.moduleProperty(product, "stripPath"),
+                              ["-S", primaryOutput.filePath]);
+            cmd.silent = true;
+            commands.push(cmd);
         } else {
-            cmd = new Command(ModUtils.moduleProperty(product, "objcopyPath"), [
-                                  "--only-keep-debug", primaryOutput.filePath,
-                                  outputs.debuginfo[0].filePath
-                              ]);
+            var objcopy = ModUtils.moduleProperty(product, "objcopyPath");
+
+            cmd = new Command(objcopy, ["--only-keep-debug", primaryOutput.filePath,
+                                        outputs.debuginfo[0].filePath]);
             cmd.silent = true;
             commands.push(cmd);
 
-            cmd = new Command(ModUtils.moduleProperty(product, "stripPath"), [
-                                  "--strip-debug", primaryOutput.filePath
-                              ]);
+            cmd = new Command(objcopy, ["--strip-debug", primaryOutput.filePath]);
             cmd.silent = true;
             commands.push(cmd);
 
-            cmd = new Command(ModUtils.moduleProperty(product, "objcopyPath"), [
-                                  "--add-gnu-debuglink=" + outputs.debuginfo[0].filePath,
-                                  primaryOutput.filePath
-                              ]);
+            cmd = new Command(objcopy, ["--add-gnu-debuglink=" + outputs.debuginfo[0].filePath,
+                                        primaryOutput.filePath]);
             cmd.silent = true;
             commands.push(cmd);
         }
