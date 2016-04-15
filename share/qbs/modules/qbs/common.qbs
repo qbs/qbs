@@ -122,14 +122,17 @@ Module {
     property string windowsRegistryKey: "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion"
     property path windowsSystemRoot: FileInfo.fromWindowsSeparators(Utilities.getNativeSetting(windowsRegistryKey, "SystemRoot"))
     property path windowsShellPath: FileInfo.fromWindowsSeparators(Environment.getEnv("COMSPEC")) || FileInfo.joinPaths(windowsSystemRoot, "System32", "cmd.exe")
+    property string windowsPathVariable: hostOS.contains("windows") ? "PATH" : "WINEPATH"
 
     property var commonRunEnvironment: {
         var env = Environment.currentEnv();
         if (targetOS.contains("windows")) {
             var newEntry = FileInfo.toWindowsSeparators(FileInfo.joinPaths(installRoot,
                                                                            installPrefix));
-            env["PATH"] = PathTools.prependOrSetPath(newEntry, env["PATH"], qbs.pathListSeparator);
-        } else if (hostOS.contains("darwin") && targetOS.contains("darwin")) {
+            env[windowsPathVariable] = PathTools.prependOrSetPath(newEntry,
+                                                                  env[windowsPathVariable],
+                                                                  qbs.pathListSeparator);
+        } else if (hostOS.contains("osx") && targetOS.contains("osx")) {
             env["DYLD_FRAMEWORK_PATH"] = PathTools.prependOrSetPath([
                 FileInfo.joinPaths(installRoot, installPrefix, "Library", "Frameworks"),
                 FileInfo.joinPaths(installRoot, installPrefix, "lib"),
@@ -140,9 +143,6 @@ Module {
                 FileInfo.joinPaths(installRoot, installPrefix, "Library", "Frameworks"),
                 FileInfo.joinPaths(installRoot, installPrefix)
             ].join(pathListSeparator), env["DYLD_LIBRARY_PATH"], qbs.pathListSeparator);
-            if (targetOS.contains("ios-simulator") && sysroot)
-                env["DYLD_ROOT_PATH"] = PathTools.prependOrSetPath(sysroot, env["DYLD_ROOT_PATH"],
-                                                                   qbs.pathListSeparator);
         } else if (hostOS.contains("unix") && targetOS.contains("unix")) {
             env["LD_LIBRARY_PATH"] = PathTools.prependOrSetPath(
                 FileInfo.joinPaths(installRoot, installPrefix, "lib"), env["LD_LIBRARY_PATH"],
