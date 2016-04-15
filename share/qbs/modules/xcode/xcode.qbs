@@ -202,6 +202,7 @@ Module {
         name: "Provisioning Profiles"
         prefix: xcode.provisioningProfilesPath + "/"
         files: ["*.mobileprovision", "*.provisionprofile"]
+        fileTags: [] // HACK: provisioning profile handling is not yet ready and can break autotests
     }
 
     FileTagger {

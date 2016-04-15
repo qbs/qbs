@@ -59,12 +59,6 @@
             directory of the Xcode installation at its default location in /Applications.
             Corresponds to the \c DEVELOPER_DIR environment variable.
     \row
-        \li provisioningProfile
-        \li string
-        \li 1.5
-        \li \c undefined
-        \li Name or UUID of the provisioning profile to embed in the product.
-    \row
         \li sdk
         \li string
         \li 1.5
@@ -75,26 +69,6 @@
             available for that platform will be used. The default is the latest SDK available in the
             Xcode installation for the current platform.
     \row
-        \li signingIdentity
-        \li string
-        \li 1.5
-        \li \c undefined
-        \li Search string used to find the certificate to sign the product. This does not have to be
-            a full certificate name like "Mac Developer: John Doe (XXXXXXXXXX)", and can instead be
-            a partial string like "Mac Developer".
-            The search string should generally be one of the following:
-            \list
-                \li 3rd Party Mac Developer Application
-                \li 3rd Party Mac Developer Installer
-                \li Developer ID Application
-                \li Developer ID Installer
-                \li iPhone Developer
-                \li iPhone Distribution
-                \li Mac Developer
-            \endlist
-            See \l{https://developer.apple.com/library/mac/documentation/IDEs/Conceptual/AppDistributionGuide/MaintainingCertificates/MaintainingCertificates.html#//apple_ref/doc/uid/TP40012582-CH31-SW41}{Maintaining Your Signing Identities and Certificates}
-            for complete documentation on the existing certificate types.
-    \row
         \li targetDevices
         \li stringList
         \li 1.5
@@ -103,32 +77,6 @@
             should always be "mac", "watch", and "tv", respectively. For iOS, this can be one or
             both of "iphone" and "ipad". The default is the list of all device types supported by
             the current platform.
-    \endtable
-
-    \section1 Advanced Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li provisioningProfilesPath
-        \li path
-        \li 1.5
-        \li \c{"~/Library/MobileDevice/Provisioning Profiles"}
-        \li Path to directory containing provisioning profiles installed on the system.
-    \row
-        \li signingTimestamp
-        \li string
-        \li 1.5
-        \li \c{"none"}
-        \li URL of the timestamp authority server to be contacted to authenticate code signing.
-            \c{undefined} indicates that a system-specific default should be used, and the empty
-            string indicates the default server provided by Apple. \c{"none"} explicitly disables
-            the use of timestamp services and this should not usually need to be changed.
     \endtable
 
     \section1 Read-only Properties
