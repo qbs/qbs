@@ -327,14 +327,12 @@ void TestBlackbox::sevenZip()
     const QString outputFile = relativeProductBuildDir("archivable") + "/archivable.7z";
     QVERIFY2(regularFileExists(outputFile), qPrintable(outputFile));
     QProcess listContents;
-    listContents.start(binary, QStringList() << "t" << outputFile);
+    listContents.start(binary, QStringList() << "l" << outputFile);
     QVERIFY2(listContents.waitForStarted(), qPrintable(listContents.errorString()));
     QVERIFY2(listContents.waitForFinished(), qPrintable(listContents.errorString()));
     QVERIFY2(listContents.exitCode() == 0, listContents.readAllStandardError().constData());
     const QByteArray output = listContents.readAllStandardOutput();
-    if (output.count("Testing") != 2)
-        qDebug("%s", output.constData());
-    QCOMPARE(output.count("Testing"), 2);
+    QVERIFY2(output.contains("2 files"), output.constData());
     QVERIFY2(output.contains("test.txt"), output.constData());
     QVERIFY2(output.contains("archivable.qbs"), output.constData());
 }
