@@ -13,7 +13,7 @@ Module {
                qbs.toolchain && qbs.toolchain.contains("xcode")
 
     property path developerPath: "/Applications/Xcode.app/Contents/Developer"
-    property string sdk: DarwinTools.applePlatformName(qbs.targetOS)
+    property string sdk: DarwinTools.applePlatformName(qbs.targetOS, platformType)
     property stringList targetDevices: DarwinTools.targetDevices(qbs.targetOS)
 
     property string platformType: {
@@ -131,7 +131,7 @@ Module {
             }
 
             // Latest SDK available for the platform
-            if (DarwinTools.applePlatformName(qbs.targetOS) === sdk)
+            if (DarwinTools.applePlatformName(qbs.targetOS, platformType) === sdk)
                 return _availableSdks[_availableSdks.length - 1];
         }
     }
@@ -162,8 +162,11 @@ Module {
         validator.addCustomValidator("sdkName", sdkName, function (value) {
             return value === DarwinTools.applePlatformDirectoryName(
                         qbs.targetOS, platformType, sdkVersion, false).toLowerCase();
-        }, " is '" + sdkName + "', but target OS is [" + qbs.targetOS.join(",")
+        }, "is '" + sdkName + "', but target OS is [" + qbs.targetOS.join(",")
         + "] and Xcode SDK version is '" + sdkVersion + "'");
+        validator.addCustomValidator("sdk", sdk, function (value) {
+            return value === sdkName || (value + sdkVersion) === sdkName;
+        }, "is '" + sdk + "', but canonical SDK name is '" + sdkName + "'");
         validator.validate();
     }
 
