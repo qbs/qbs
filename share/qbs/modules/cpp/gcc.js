@@ -82,7 +82,7 @@ function linkerFlags(product, inputs, output) {
 
         if (isDarwin) {
             var internalVersion = product.moduleProperty("cpp", "internalVersion");
-            if (internalVersion)
+            if (internalVersion && isNumericProductVersion(internalVersion))
                 args.push("-current_version", internalVersion);
 
             args = args.concat(escapeLinkerFlags(product, [
@@ -894,4 +894,8 @@ function debugInfoArtifacts(product) {
         }
     }
     return artifacts;
+}
+
+function isNumericProductVersion(version) {
+    return version && version.match(/^([0-9]+\.){0,3}[0-9]+$/);
 }

@@ -122,10 +122,15 @@ CppModule {
         if (product.version === undefined)
             return undefined;
 
-        if (typeof product.version !== "string"
-                || !product.version.match(/^([0-9]+\.){0,3}[0-9]+$/))
+        if (!Gcc.isNumericProductVersion(product.version)) {
+            // Dynamic library version numbers like "A" or "B" are common on Apple platforms, so
+            // don't restrict the product version to a componentized version number here.
+            if (qbs.targetOS.contains("darwin"))
+                return product.version;
+
             throw("product.version must be a string in the format x[.y[.z[.w]] "
-                + "where each component is an integer");
+                  + "where each component is an integer");
+        }
 
         var maxVersionParts = 3;
         var versionParts = product.version.split('.').slice(0, maxVersionParts);
@@ -195,7 +200,8 @@ CppModule {
             var artifacts = [lib, libCopy];
 
             if (ModUtils.moduleProperty(product, "shouldCreateSymlinks") && !product.moduleProperty("bundle", "isBundle")) {
-                for (var i = 0; i < 3; ++i) {
+                var maxVersionParts = Gcc.isNumericProductVersion(product.version) ? 3 : 1;
+                for (var i = 0; i < maxVersionParts; ++i) {
                     var symlink = {
                         filePath: product.destinationDirectory + "/"
                                   + PathTools.dynamicLibraryFileName(product, undefined, i),
