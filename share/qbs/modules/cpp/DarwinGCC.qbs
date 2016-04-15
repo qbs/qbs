@@ -36,7 +36,7 @@ import qbs.ModUtils
 UnixGCC {
     condition: false
 
-    Depends { name: "xcode"; required: false }
+    Depends { name: "xcode"; required: qbs.toolchain && qbs.toolchain.contains("xcode") }
 
     targetVendor: "apple"
     targetSystem: "darwin"
