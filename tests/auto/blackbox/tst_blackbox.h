@@ -103,6 +103,8 @@ private slots:
     void assetCatalog_data();
     void badInterpreter();
     void buildDirectories();
+    void bundleStructure();
+    void bundleStructure_data();
     void changedFiles_data();
     void changedFiles();
     void changeInDisabledProduct();
@@ -113,11 +115,17 @@ private slots:
     void concurrentExecutor();
     void dependenciesProperty();
     void dependencyProfileMismatch();
+    void deploymentTarget();
+    void deploymentTarget_data();
     void dynamicMultiplexRule();
     void dynamicRuleOutputs();
     void embedInfoPlist();
+    void enableExceptions();
+    void enableExceptions_data();
+    void enableRtti();
     void erroneousFiles_data();
     void erroneousFiles();
+    void errorInfo();
     void exportRule();
     void fileDependencies();
     void frameworkStructure();
@@ -156,6 +164,8 @@ private slots:
     void objcArc();
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
+    void probeProperties();
+    void probeInExportedModule();
     void probesInNestedModules();
     void productDependenciesByType();
     void productProperties();
@@ -169,6 +179,7 @@ private slots:
     void radAfterIncompleteBuild();
     void recursiveRenaming();
     void recursiveWildcards();
+    void referenceErrorInExport();
     void reproducibleBuild();
     void reproducibleBuild_data();
     void ruleConditions();

@@ -20,6 +20,7 @@ Project {
         files: ["foo.cpp"]
         cpp.separateDebugInformation: true
     }
+
     CppApplication {
         name: "app2"
         type: ["application"]
@@ -38,5 +39,77 @@ Project {
         name: "bar2"
         files: ["foo.cpp"]
         cpp.separateDebugInformation: false
+    }
+
+    CppApplication {
+        name: "app3"
+        type: ["application"]
+        files: ["main.cpp"]
+        cpp.separateDebugInformation: true
+        cpp.dsymutilFlags: ["--flat"]
+    }
+    DynamicLibrary {
+        Depends { name: "cpp" }
+        name: "foo3"
+        type: ["dynamiclibrary"]
+        files: ["foo.cpp"]
+        cpp.separateDebugInformation: true
+        cpp.dsymutilFlags: ["--flat"]
+    }
+    LoadableModule {
+        Depends { name: "cpp" }
+        name: "bar3"
+        files: ["foo.cpp"]
+        cpp.separateDebugInformation: true
+        cpp.dsymutilFlags: ["--flat"]
+    }
+
+    CppApplication {
+        name: "app4"
+        type: ["application"]
+        files: ["main.cpp"]
+        bundle.isBundle: false
+        cpp.separateDebugInformation: true
+    }
+    DynamicLibrary {
+        Depends { name: "cpp" }
+        name: "foo4"
+        type: ["dynamiclibrary"]
+        files: ["foo.cpp"]
+        bundle.isBundle: false
+        cpp.separateDebugInformation: true
+    }
+    LoadableModule {
+        Depends { name: "cpp" }
+        name: "bar4"
+        files: ["foo.cpp"]
+        bundle.isBundle: false
+        cpp.separateDebugInformation: true
+    }
+
+    CppApplication {
+        name: "app5"
+        type: ["application"]
+        files: ["main.cpp"]
+        bundle.isBundle: false
+        cpp.separateDebugInformation: true
+        cpp.dsymutilFlags: ["--flat"]
+    }
+    DynamicLibrary {
+        Depends { name: "cpp" }
+        name: "foo5"
+        type: ["dynamiclibrary"]
+        files: ["foo.cpp"]
+        bundle.isBundle: false
+        cpp.separateDebugInformation: true
+        cpp.dsymutilFlags: ["--flat"]
+    }
+    LoadableModule {
+        Depends { name: "cpp" }
+        name: "bar5"
+        files: ["foo.cpp"]
+        bundle.isBundle: false
+        cpp.separateDebugInformation: true
+        cpp.dsymutilFlags: ["--flat"]
     }
 }

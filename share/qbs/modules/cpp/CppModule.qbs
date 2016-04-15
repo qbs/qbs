@@ -168,6 +168,7 @@ Module {
     property string loadableModuleSuffix
     property string executableSuffix
     property string debugInfoSuffix
+    property string debugInfoBundleSuffix
     property bool createSymlinks: true
     property stringList dynamicLibraries // list of names, will be linked with -lname
     property stringList staticLibraries // list of static library files
@@ -270,6 +271,10 @@ Module {
         allowedValues: ["libstdc++", "libc++"]
         description: "version of the C++ standard library to use"
     }
+
+    property bool enableExceptions
+    property string exceptionHandlingModel: "default"
+    property bool enableRtti
 
     // Platform properties. Those are intended to be set by the toolchain setup
     // and are prepended to the corresponding user properties.

@@ -112,7 +112,9 @@ public:
             const QScriptValue &context);
     void registerOwnedVariantMap(QVariantMap *vm) { m_ownedVariantMaps.append(vm); }
 
-
+    QStringList uncaughtExceptionBacktraceOrEmpty() const {
+        return hasUncaughtException() ? uncaughtExceptionBacktrace() : QStringList();
+    }
     bool hasErrorOrException(const QScriptValue &v) const {
         return v.isError() || hasUncaughtException();
     }

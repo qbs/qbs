@@ -69,12 +69,11 @@
             whether it should actually be built as a bundle.
     \row
         \li isShallow
-        \li \c{bool}
+        \li \c{bool} (read only)
         \li 1.4
-        \li \c{true} for iOS applications
+        \li \c{false} on OS X, otherwise \c{true}
         \li Whether the bundle directory tree is "shallow", i.e. whether it lacks a Contents
-            subdirectory. This is the default for iOS applications and should normally never be
-            changed.
+            subdirectory. This is the default on all platforms other than OS X.
     \row
         \li identifierPrefix
         \li \c{string}
@@ -111,6 +110,14 @@
             in the bundle's Info.plist as the value for the CFBundlePackageType key.
             This property should almost never need to be changed, though specifying an
             alternative package type for custom bundles is allowed.
+    \row
+        \li generatePackageInfo
+        \li \c{bool}
+        \li 1.5
+        \li \c{true} for applications, otherwise \c{false}
+        \li Whether to generate a PkgInfo file for the bundle.
+            This property should almost never need to be changed, though enabling it when specifying
+            an alternative package type for custom bundles using \c{packageType} is allowed.
     \row
         \li signature
         \li \c{string}
@@ -207,10 +214,13 @@
     \row
         \li infoPlistPath
         \li 1.4
-        \li Path that the Info.plist file will be written to. If \c{embedInfoPlist} is \c{true},
-            this will point to a file in a temporary directory.
+        \li Path that the Info.plist file will be written to.
     \row
-        \li infoPlistPath
+        \li infoStringsPath
+        \li 1.5
+        \li Path that the InfoPlist.strings file will be written to.
+    \row
+        \li pkgInfoPath
         \li 1.4
         \li Path that the PkgInfo file will be written to.
     \row
@@ -221,6 +231,14 @@
         \li executablePath
         \li 1.4
         \li Path that the main executable file will be written to.
+    \row
+        \li contentsFolderPath
+        \li 1.4
+        \li Path of the bundle's Contents subdirectory.
+    \row
+        \li documentationFolderPath
+        \li 1.5
+        \li Path of the directory where documentation will be written.
     \row
         \li executableFolderPath
         \li 1.4
@@ -235,6 +253,14 @@
         \li frameworksFolderPath
         \li 1.4
         \li Path of the directory where internal frameworks will be copied.
+    \row
+        \li javaFolderPath
+        \li 1.5
+        \li Path of the directory where Java content will be written.
+    \row
+        \li localizedResourcesFolderPath
+        \li 1.5
+        \li Path of the directory where localized resource files will be copied.
     \row
         \li pluginsFolderPath
         \li 1.4
@@ -265,8 +291,9 @@
         \li Path of the directory where non-localized resource files will be copied.
             This is the same as the base resources path.
     \row
-        \li contentsFolderPath
-        \li 1.4
-        \li Path of the bundle's Contents subdirectory.
+        \li versionsFolderPath
+        \li 1.5
+        \li Path of the bundle's Versions subdirectory.
+            This is only relevant for (non-shallow) framework bundles.
     \endtable
 */

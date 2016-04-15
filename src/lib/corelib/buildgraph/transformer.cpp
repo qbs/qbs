@@ -208,7 +208,9 @@ void Transformer::createCommands(const ScriptFunctionConstPtr &script,
 {
     ScriptEngine * const engine = evalContext->engine();
     if (!script->scriptFunction.isValid() || script->scriptFunction.engine() != engine) {
-        script->scriptFunction = engine->evaluate(script->sourceCode);
+        script->scriptFunction = engine->evaluate(script->sourceCode,
+                                                  script->location.filePath(),
+                                                  script->location.line());
         if (Q_UNLIKELY(!script->scriptFunction.isFunction()))
             throw ErrorInfo(Tr::tr("Invalid prepare script."), script->location);
     }
@@ -217,11 +219,15 @@ void Transformer::createCommands(const ScriptFunctionConstPtr &script,
     propertiesRequestedInPrepareScript = engine->propertiesRequestedInScript();
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
     engine->clearRequestedProperties();
-    if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue)))
-        throw ErrorInfo(Tr::tr("evaluating prepare script: ")
-                        + engine->lastErrorString(scriptValue),
-                    CodeLocation(script->location.filePath(),
-                                 script->location.line() + engine->uncaughtExceptionLineNumber() - 1));
+    if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue))) {
+        ErrorInfo errorInfo(engine->lastErrorString(scriptValue),
+                            engine->uncaughtExceptionBacktraceOrEmpty());
+        if (rule)
+            errorInfo.append(QStringLiteral("Rule.prepare"), script->location);
+        else
+            errorInfo.append(QStringLiteral("Transformer.prepare"), script->location);
+        throw errorInfo;
+    }
 
     commands.clear();
     if (scriptValue.isArray()) {

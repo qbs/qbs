@@ -3,7 +3,7 @@ import QbsFunctions
 
 QbsLibrary {
     Depends { name: "cpp" }
-    Depends { name: "Qt"; submodules: ["script", "xml"] }
+    Depends { name: "Qt"; submodules: ["core-private", "network", "script", "xml"] }
     Depends { condition: project.enableProjectFileUpdates; name: "Qt.gui" }
     Depends { condition: project.enableUnitTests; name: "Qt.test" }
     name: "qbscore"
@@ -31,7 +31,7 @@ QbsLibrary {
 
     Properties {
         condition: qbs.targetOS.contains("darwin")
-        cpp.frameworks: "Foundation"
+        cpp.frameworks: ["Foundation", "Security"]
     }
 
     Group {
@@ -406,6 +406,15 @@ QbsLibrary {
         prefix: "tools/"
         files: [
             "filetime_win.cpp"
+        ]
+    }
+    Group {
+        condition: qbs.targetOS.contains("osx")
+        name: "tools (OS X)"
+        prefix: "tools/"
+        files: [
+            "applecodesignutils.cpp",
+            "applecodesignutils.h"
         ]
     }
     Group {

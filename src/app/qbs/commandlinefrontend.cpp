@@ -416,7 +416,7 @@ int CommandLineFrontend::runShell()
     RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
             m_parser.installOptions(m_projects.first().profile()),
             QProcessEnvironment::systemEnvironment(), m_settings);
-    return runEnvironment.runShell();
+    return runEnvironment.doRunShell();
 }
 
 BuildOptions CommandLineFrontend::buildOptions(const Project &project) const
@@ -513,7 +513,7 @@ int CommandLineFrontend::runTarget()
     RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
             m_parser.installOptions(m_projects.first().profile()),
             QProcessEnvironment::systemEnvironment(), m_settings);
-    return runEnvironment.runTarget(executableFilePath, m_parser.runArgs());
+    return runEnvironment.doRunTarget(executableFilePath, m_parser.runArgs());
 }
 
 void CommandLineFrontend::updateTimestamps()

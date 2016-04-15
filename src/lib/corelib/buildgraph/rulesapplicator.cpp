@@ -70,19 +70,14 @@ RulesApplicator::~RulesApplicator()
     delete m_mocScanner;
 }
 
-void RulesApplicator::applyRuleInEvaluationContext(const RuleConstPtr &rule,
-        const ArtifactSet &inputArtifacts)
-{
-    m_createdArtifacts.clear();
-    m_invalidatedArtifacts.clear();
-    RulesEvaluationContext::Scope s(m_product->topLevelProject()->buildData->evaluationContext.data());
-    applyRule(rule, inputArtifacts);
-}
-
 void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts)
 {
     if (inputArtifacts.isEmpty())
         return;
+
+    m_createdArtifacts.clear();
+    m_invalidatedArtifacts.clear();
+    RulesEvaluationContext::Scope s(evalContext().data());
 
     m_rule = rule;
     m_completeInputSet = inputArtifacts;
@@ -270,11 +265,14 @@ Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
         const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts,
         QSet<QString> *outputFilePaths)
 {
-    QScriptValue scriptValue = engine()->evaluate(ruleArtifact->filePath);
+    QScriptValue scriptValue = engine()->evaluate(ruleArtifact->filePath,
+                                                  ruleArtifact->filePathLocation.filePath(),
+                                                  ruleArtifact->filePathLocation.line());
     if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
-        throw ErrorInfo(Tr::tr("Error in Rule.Artifact fileName at %1: %2")
-                        .arg(ruleArtifact->location.toString(),
-                             engine()->lastErrorString(scriptValue)));
+        ErrorInfo errorInfo(engine()->lastErrorString(scriptValue),
+                            engine()->uncaughtExceptionBacktraceOrEmpty());
+        errorInfo.append(QStringLiteral("Artifact.filePath"), ruleArtifact->filePathLocation);
+        throw errorInfo;
     }
     QString outputPath = FileInfo::resolvePath(m_product->buildDirectory(), scriptValue.toString());
     if (Q_UNLIKELY(outputFilePaths->contains(outputPath))) {
@@ -377,14 +375,20 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
         const QScriptValueList &args)
 {
     QList<Artifact *> lst;
-    QScriptValue fun = engine()->evaluate(m_rule->outputArtifactsScript->sourceCode);
+    QScriptValue fun = engine()->evaluate(m_rule->outputArtifactsScript->sourceCode,
+                                          m_rule->outputArtifactsScript->location.filePath(),
+                                          m_rule->outputArtifactsScript->location.line());
     if (!fun.isFunction())
         throw ErrorInfo(QLatin1String("Function expected."),
                         m_rule->outputArtifactsScript->location);
     QScriptValue res = fun.call(QScriptValue(), args);
-    if (res.isError() || engine()->hasUncaughtException())
-        throw ErrorInfo(Tr::tr("Error while calling Rule.outputArtifacts: %1").arg(res.toString()),
-                        m_rule->outputArtifactsScript->location);
+    if (engine()->hasErrorOrException(res)) {
+        ErrorInfo errorInfo(engine()->lastErrorString(res),
+                            engine()->uncaughtExceptionBacktraceOrEmpty());
+        errorInfo.append(QStringLiteral("Rule.outputArtifacts"),
+                         m_rule->outputArtifactsScript->location);
+        throw errorInfo;
+    }
     if (!res.isArray())
         throw ErrorInfo(Tr::tr("Rule.outputArtifacts must return an array of objects."),
                         m_rule->outputArtifactsScript->location);
@@ -525,7 +529,7 @@ QString RulesApplicator::resolveOutPath(const QString &path) const
     return result;
 }
 
-RulesEvaluationContextPtr RulesApplicator::evalContext() const
+const RulesEvaluationContextPtr &RulesApplicator::evalContext() const
 {
     return m_product->topLevelProject()->buildData->evaluationContext;
 }

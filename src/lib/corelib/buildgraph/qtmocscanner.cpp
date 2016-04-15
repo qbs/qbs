@@ -67,6 +67,15 @@ QtMocScanner::~QtMocScanner()
     delete m_scanResultCache;
 }
 
+ScannerPlugin *QtMocScanner::scannerPluginForFileTags(const FileTags &ft)
+{
+    if (ft.contains("objcpp"))
+        return m_objcppScanner;
+    if (ft.contains("cpp"))
+        return m_cppScanner;
+    return m_hppScanner;
+}
+
 static ScanResultCache::Result runScanner(ScannerPlugin *scanner, const Artifact *artifact,
         ScanResultCache *scanResultCache)
 {
@@ -118,9 +127,13 @@ void QtMocScanner::findIncludedMocCppFiles()
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[QtMocScanner] looking for included moc_XXX.cpp files";
 
-    foreach (Artifact *artifact, m_product->lookupArtifactsByFileTag("cpp")) {
+    static const FileTags mocCppTags = FileTags::fromStringList(QStringList()
+                                                                << QStringLiteral("cpp")
+                                                                << QStringLiteral("objcpp"));
+    foreach (Artifact *artifact, m_product->lookupArtifactsByFileTags(mocCppTags)) {
         const ScanResultCache::Result scanResult
-                = runScanner(m_cppScanner, artifact, m_scanResultCache);
+                = runScanner(scannerPluginForFileTags(artifact->fileTags()),
+                             artifact, m_scanResultCache);
         foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
             QString includedFileName = dependency.fileName();
             if (includedFileName.startsWith(QLatin1String("moc_"))
@@ -158,6 +171,10 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
         if (scanners.count() != 1)
             return scannerCountError(engine, scanners.count(), QLatin1String("cpp"));
         m_cppScanner = scanners.first();
+        scanners = ScannerPluginManager::scannersForFileTag("objcpp");
+        if (scanners.count() != 1)
+            return scannerCountError(engine, scanners.count(), QLatin1String("objcpp"));
+        m_objcppScanner = scanners.first();
         scanners = ScannerPluginManager::scannersForFileTag("hpp");
         if (scanners.count() != 1)
             return scannerCountError(engine, scanners.count(), QLatin1String("hpp"));
@@ -174,7 +191,8 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
     bool hasPluginMetaDataMacro = false;
     const bool isHeaderFile = artifact->fileTags().contains("hpp");
 
-    ScannerPlugin * const scanner = isHeaderFile ? m_hppScanner : m_cppScanner;
+    ScannerPlugin * const scanner = scannerPluginForFileTags(artifact->fileTags());
+
     const ScanResultCache::Result scanResult = runScanner(scanner, artifact, m_scanResultCache);
     if (!scanResult.additionalFileTags.isEmpty()) {
         if (isHeaderFile) {

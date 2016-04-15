@@ -33,27 +33,6 @@ var FileInfo = loadExtension("qbs.FileInfo");
 var Process = loadExtension("qbs.Process");
 var PropertyList = loadExtension("qbs.PropertyList");
 
-function applePlatformDirectoryName(targetOSList, version, throwOnError) {
-    if (!version)
-        version = "";
-    if (targetOSList.contains("ios-simulator"))
-        return "iPhoneSimulator" + version;
-    else if (targetOSList.contains("ios"))
-        return "iPhoneOS" + version;
-    else if (targetOSList.contains("osx"))
-        return "MacOSX" + version;
-    else if (targetOSList.contains("tvos-simulator"))
-        return "AppleTVSimulator" + version;
-    else if (targetOSList.contains("tvos"))
-        return "AppleTVOS" + version;
-    else if (targetOSList.contains("watchos-simulator"))
-        return "WatchSimulator" + version;
-    else if (targetOSList.contains("watchos"))
-        return "WatchOS" + version;
-    if (throwOnError || throwOnError === undefined)
-        throw("No Apple platform corresponds to target OS list: " + targetOSList);
-}
-
 function sdkInfoList(sdksPath) {
     var sdkInfo = [];
     var sdks = File.directoryEntries(sdksPath, File.Dirs | File.NoDotAndDotDot);

@@ -239,19 +239,20 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
         if (simplifiedLine.startsWith("QMAKE_PRL_TARGET")) {
             const bool isMingw = qtEnv.mkspecName.startsWith(QLatin1String("win"))
                     && qtEnv.mkspecName.contains(QLatin1String("g++"));
+            const bool isQtVersionBefore56 = qtEnv.qtMajorVersion < 5
+                    || (qtEnv.qtMajorVersion == 5 && qtEnv.qtMinorVersion < 6);
             libFilePath = libDir;
 
             // QMAKE_PRL_TARGET has a "lib" prefix, except for mingw.
             // Of course, the exception has an exception too: For static libs, mingw *does*
             // have the "lib" prefix. TODO: Shoot the people responsible for this.
-            if (isMingw && !isStaticLibrary)
+            if (isQtVersionBefore56 && isMingw && !isStaticLibrary)
                 libFilePath += QLatin1String("lib");
 
             libFilePath += QString::fromLatin1(simplifiedLine.mid(equalsOffset + 1).trimmed());
             if (isNonStaticQt4OnWindows)
                 libFilePath += QString::number(4); // This is *not* part of QMAKE_PRL_TARGET...
-            if (qtEnv.qtMajorVersion < 5
-                    || (qtEnv.qtMajorVersion == 5 && qtEnv.qtMinorVersion < 6)) {
+            if (isQtVersionBefore56) {
                 if (qtEnv.mkspecName.contains(QLatin1String("msvc")))
                     libFilePath += QLatin1String(".lib");
                 else if (isMingw)

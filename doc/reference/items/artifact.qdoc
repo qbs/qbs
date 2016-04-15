@@ -37,7 +37,8 @@
     \title Artifact Item
     \brief Describes a file produced by a \c Rule or \c Transformer.
 
-    An \c Artifact represents a single file produced by a \c Rule or \c Transformer.
+    An \c Artifact represents a single file produced by a \l{Rule Item}{Rule} or
+    \l{Transformer Item}{Transformer}.
 
     For example, if a rule produces three files, it needs to contain three Artifact items.
 

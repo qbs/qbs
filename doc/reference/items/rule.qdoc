@@ -149,8 +149,8 @@
             \code
             outputArtifacts: [{filePath: "myfile.txt", fileTags: ["foo", "bar"]}]
             \endcode
-            For a description of the possible properties, see the documentation of the Artifact
-            item.
+            For a description of the possible properties, see the documentation of the
+            \l{Artifact item}.
             Output artifacts can be specified either by \c{Rule.outputArtifacts} or by \c{Artifact}
             items. Use \c{Rule.outputArtifacts} if the set of outputs is not fixed but dependent on
             the input's content. If no file tags are provided, \QBS will apply all

@@ -92,7 +92,52 @@ RunEnvironment::~RunEnvironment()
     delete d;
 }
 
-int RunEnvironment::runShell()
+int RunEnvironment::runShell(ErrorInfo *error)
+{
+    try {
+        return doRunShell();
+    } catch (const ErrorInfo &e) {
+        if (error)
+            *error = e;
+        return -1;
+    }
+}
+
+int RunEnvironment::runTarget(const QString &targetBin, const QStringList &arguments,
+                              ErrorInfo *error)
+{
+    try {
+        return doRunTarget(targetBin, arguments);
+    } catch (const ErrorInfo &e) {
+        if (error)
+            *error = e;
+        return -1;
+    }
+}
+
+const QProcessEnvironment RunEnvironment::runEnvironment(ErrorInfo *error) const
+{
+    try {
+        return getRunEnvironment();
+    } catch (const ErrorInfo &e) {
+        if (error)
+            *error = e;
+        return QProcessEnvironment();
+    }
+}
+
+const QProcessEnvironment RunEnvironment::buildEnvironment(ErrorInfo *error) const
+{
+    try {
+        return getBuildEnvironment();
+    } catch (const ErrorInfo &e) {
+        if (error)
+            *error = e;
+        return QProcessEnvironment();
+    }
+}
+
+int RunEnvironment::doRunShell()
 {
     d->resolvedProduct->setupBuildEnvironment(&d->engine, d->environment);
 
@@ -156,7 +201,7 @@ static QString findExecutable(const QStringList &fileNames)
     return QString();
 }
 
-int RunEnvironment::runTarget(const QString &targetBin, const QStringList &arguments)
+int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arguments)
 {
     const QStringList targetOS = PropertyFinder().propertyValue(
                 d->resolvedProduct->moduleProperties->value(),
@@ -287,13 +332,13 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
     return process.exitCode();
 }
 
-const QProcessEnvironment RunEnvironment::runEnvironment() const
+const QProcessEnvironment RunEnvironment::getRunEnvironment() const
 {
     d->resolvedProduct->setupRunEnvironment(&d->engine, d->environment);
     return d->resolvedProduct->runEnvironment;
 }
 
-const QProcessEnvironment RunEnvironment::buildEnvironment() const
+const QProcessEnvironment RunEnvironment::getBuildEnvironment() const
 {
     d->resolvedProduct->setupBuildEnvironment(&d->engine, d->environment);
     return d->resolvedProduct->buildEnvironment;

@@ -47,7 +47,8 @@ UnixGCC {
     loadableModuleSuffix: ".bundle"
     dynamicLibrarySuffix: ".dylib"
     separateDebugInformation: true
-    debugInfoSuffix: ".dSYM"
+    debugInfoBundleSuffix: ".dSYM"
+    debugInfoSuffix: ".dwarf"
 
     toolchainInstallPath: xcode.present
                           ? FileInfo.joinPaths(xcode.toolchainPath, "usr", "bin") : base
@@ -73,14 +74,16 @@ UnixGCC {
                 dict["LSMinimumSystemVersion"] = minimumOsxVersion;
         }
 
-        if (qbs.targetOS.contains("ios") || qbs.targetOS.contains("tvos")) {
+        if (qbs.targetOS.containsAny(["ios", "tvos"])) {
             dict["LSRequiresIPhoneOS"] = true;
 
-            if (qbs.targetOS.contains("ios") && !qbs.targetOS.contains("ios-simulator"))
-                dict["UIRequiredDeviceCapabilities"] = ["armv7"];
+            if (xcode.platformType === "device") {
+                if (qbs.targetOS.contains("ios"))
+                    dict["UIRequiredDeviceCapabilities"] = ["armv7"];
 
-            if (qbs.targetOS.contains("tvos") && !qbs.targetOS.contains("tvos-simulator"))
-                dict["UIRequiredDeviceCapabilities"] = ["arm64"];
+                if (qbs.targetOS.contains("tvos"))
+                    dict["UIRequiredDeviceCapabilities"] = ["arm64"];
+            }
         }
 
         if (xcode.present) {
@@ -88,7 +91,7 @@ UnixGCC {
             if (qbs.targetOS.contains("ios"))
                 dict["UIDeviceFamily"] = targetDevices;
 
-            if (qbs.targetOS.contains("ios") || qbs.targetOS.contains("watchos")) {
+            if (qbs.targetOS.containsAny(["ios", "watchos"])) {
                 var orientations = [
                     "UIInterfaceOrientationPortrait",
                     "UIInterfaceOrientationPortraitUpsideDown",

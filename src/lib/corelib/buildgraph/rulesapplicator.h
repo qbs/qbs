@@ -53,8 +53,6 @@ public:
     RulesApplicator(const ResolvedProductPtr &product, const Logger &logger);
     ~RulesApplicator();
 
-    void applyRuleInEvaluationContext(const RuleConstPtr &rule,
-            const ArtifactSet &inputArtifacts);
     const NodeSet &createdArtifacts() const { return m_createdArtifacts; }
     const NodeSet &invalidatedArtifacts() const { return m_invalidatedArtifacts; }
 
@@ -74,7 +72,7 @@ private:
     Artifact *createOutputArtifactFromScriptValue(const QScriptValue &obj,
             const ArtifactSet &inputArtifacts);
     QString resolveOutPath(const QString &path) const;
-    RulesEvaluationContextPtr evalContext() const;
+    const RulesEvaluationContextPtr &evalContext() const;
     ScriptEngine *engine() const;
     QScriptValue scope() const;
 

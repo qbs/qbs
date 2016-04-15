@@ -128,15 +128,14 @@ void PropertyList::readFromFile(const QString &filePath)
 
     QFile file(filePath);
     if (file.open(QIODevice::ReadOnly)) {
-        QByteArray data = file.readAll();
-        if (!data.isEmpty()) {
+        const QByteArray data = file.readAll();
+        if (file.error() == QFile::NoError) {
             p->d->readFromData(p->context(), data);
-        } else {
-            p->context()->throwError(file.errorString());
+            return;
         }
-    } else {
-        p->context()->throwError(file.errorString());
     }
+
+    p->context()->throwError(QStringLiteral("%1: %2").arg(filePath).arg(file.errorString()));
 }
 
 void PropertyList::readFromData(const QByteArray &data)
@@ -151,17 +150,15 @@ void PropertyList::writeToFile(const QString &filePath, const QString &plistForm
     Q_ASSERT(thisObject().engine() == engine());
     PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
 
+    QFile file(filePath);
     QByteArray data = p->d->writeToData(p->context(), plistFormat);
     if (Q_LIKELY(!data.isEmpty())) {
-        QFile file(filePath);
-        if (file.open(QIODevice::WriteOnly)) {
-            if (Q_UNLIKELY(file.write(data) != data.size())) {
-                p->context()->throwError(file.errorString());
-            }
-        } else {
-            p->context()->throwError(file.errorString());
+        if (file.open(QIODevice::WriteOnly) && file.write(data) == data.size()) {
+            return;
         }
     }
+
+    p->context()->throwError(QStringLiteral("%1: %2").arg(filePath).arg(file.errorString()));
 }
 
 QScriptValue PropertyList::format() const
@@ -300,7 +297,7 @@ QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QStri
         id obj = QPropertyListUtils::toPropertyList(propertyListObject);
         if (!obj) {
             context->throwError(QLatin1String("error converting property list"));
-            return 0;
+            return QByteArray();
         }
 
         if (format == QLatin1String("json") || format == QLatin1String("json-pretty") ||

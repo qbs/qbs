@@ -8,11 +8,11 @@ Project {
 
         Depends { name: "Qt.core" }
 
-        files : [ "object.cpp" ]
+        files: ["object.cpp", "object.h"]
 
         Group {
-            files : [ "object.h" ]
-            fileTags: [ "hpp" ]
+            condition: qbs.targetOS.contains("darwin")
+            files: ["object2.mm", "object2.h"]
         }
     }
 }

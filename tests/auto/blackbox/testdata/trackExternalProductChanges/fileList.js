@@ -1,4 +1,4 @@
 function fileList() { return []; }
 
-function filesFromFs(qbs) { return File.exists(path + "/fileExists.cpp") ? ["fileExists.cpp"] : []; }
+function filesFromFs(path) { return File.exists(path + "/fileExists.cpp") ? ["fileExists.cpp"] : []; }
 

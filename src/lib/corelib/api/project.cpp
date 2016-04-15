@@ -72,6 +72,7 @@
 #include <QMutexLocker>
 #include <QRegExp>
 #include <QSharedData>
+#include <QtDebug>
 
 namespace qbs {
 namespace Internal {
@@ -1010,16 +1011,20 @@ QList<InstallableFile> Project::installableFilesForProduct(const ProductData &pr
     foreach (const GroupConstPtr &group, internalProduct->groups) {
         foreach (const SourceArtifactConstPtr &artifact, group->allFiles()) {
             InstallableFile f;
-            const QString &targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
+            try {
+                const QString &targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
                     internalProduct->sourceDirectory,
                     artifact->absoluteFilePath, artifact->properties, mutableOptions);
-            if (targetFilePath.isEmpty())
-                continue;
-            f.d->sourceFilePath = artifact->absoluteFilePath;
-            f.d->fileTags = artifact->fileTags.toStringList();
-            f.d->targetFilePath = targetFilePath;
-            f.d->isValid = true;
-            installableFiles << f;
+                if (targetFilePath.isEmpty())
+                    continue;
+                f.d->sourceFilePath = artifact->absoluteFilePath;
+                f.d->fileTags = artifact->fileTags.toStringList();
+                f.d->targetFilePath = targetFilePath;
+                f.d->isValid = true;
+                installableFiles << f;
+            } catch (const ErrorInfo &e) {
+                qDebug() << e.toString();
+            }
         }
     }
     if (internalProduct->enabled) {
@@ -1028,17 +1033,21 @@ QList<InstallableFile> Project::installableFilesForProduct(const ProductData &pr
                  ArtifactSet::fromNodeSet(internalProduct->buildData->nodes)) {
             if (artifact->artifactType == Artifact::SourceFile)
                 continue;
-            InstallableFile f;
-            const QString &targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
-                    internalProduct->sourceDirectory,
-                    artifact->filePath(), artifact->properties, mutableOptions);
-            if (targetFilePath.isEmpty())
-                continue;
-            f.d->sourceFilePath = artifact->filePath();
-            f.d->fileTags = artifact->fileTags().toStringList();
-            f.d->targetFilePath = targetFilePath;
-            f.d->isValid = true;
-            installableFiles << f;
+            try {
+                InstallableFile f;
+                const QString &targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
+                        internalProduct->sourceDirectory, artifact->filePath(),
+                        artifact->properties, mutableOptions);
+                if (targetFilePath.isEmpty())
+                    continue;
+                f.d->sourceFilePath = artifact->filePath();
+                f.d->fileTags = artifact->fileTags().toStringList();
+                f.d->targetFilePath = targetFilePath;
+                f.d->isValid = true;
+                installableFiles << f;
+            } catch (const ErrorInfo &e) {
+                qDebug() << e.toString();
+            }
         }
     }
     qSort(installableFiles);

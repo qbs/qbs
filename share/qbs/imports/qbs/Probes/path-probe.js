@@ -39,7 +39,7 @@ function configure(names, nameSuffixes, nameFilter, pathPrefixes, pathSuffixes, 
         throw '"names" must be specified';
     var _names = ModUtils.concatAll(names);
     if (nameFilter)
-        _names = _names.map(nameFilter);
+        _names = _names.map(function(n) { return nameFilter(n); });
     _names = ModUtils.concatAll.apply(undefined, _names.map(function(name) {
         return (nameSuffixes || [""]).map(function(suffix) { return name + suffix; });
     }));
@@ -53,8 +53,8 @@ function configure(names, nameSuffixes, nameFilter, pathPrefixes, pathSuffixes, 
             _paths = _paths.concat(value.split(pathListSeparator));
     }
     var _suffixes = ModUtils.concatAll('', pathSuffixes);
-    _paths = _paths.map(FileInfo.fromNativeSeparators);
-    _suffixes = _suffixes.map(FileInfo.fromNativeSeparators);
+    _paths = _paths.map(function(p) { return FileInfo.fromNativeSeparators(p); });
+    _suffixes = _suffixes.map(function(p) { return FileInfo.fromNativeSeparators(p); });
     for (i = 0; i < _names.length; ++i) {
         for (var j = 0; j < _paths.length; ++j) {
             for (var k = 0; k < _suffixes.length; ++k) {
@@ -63,8 +63,15 @@ function configure(names, nameSuffixes, nameFilter, pathPrefixes, pathSuffixes, 
                     return {
                         found: true,
                         filePath: _filePath,
-                        fileName: FileInfo.fileName(_filePath),
-                        path: FileInfo.path(_filePath)
+
+                        // Manually specify the path components that constitute _filePath rather
+                        // than using the FileInfo.path and FileInfo.fileName functions because we
+                        // want to break _filePath into its constituent parts based on the input
+                        // originally given by the user. For example, the FileInfo functions would
+                        // produce a different result if any of the items in the names property
+                        // contained more than a single path component.
+                        fileName: _names[i],
+                        path: FileInfo.joinPaths(_paths[j], _suffixes[k]),
                     }
                 }
             }

@@ -41,6 +41,7 @@ BinaryProbe {
     pathPrefixes: [packageManagerBinPath]
 
     // Inputs
+    property path interpreterPath
     property path packageManagerBinPath
     property path packageManagerRootPath
 
@@ -50,6 +51,8 @@ BinaryProbe {
     configure: {
         if (!condition)
             return;
+        if (!interpreterPath)
+            throw '"interpreterPath" must be specified';
         if (!packageManagerBinPath)
             throw '"packageManagerBinPath" must be specified';
         if (!packageManagerRootPath)
@@ -59,7 +62,7 @@ BinaryProbe {
                                                   pathSuffixes, platformPaths, environmentPaths,
                                                   platformEnvironmentPaths, qbs.pathListSeparator);
         result.version = result.found
-                ? TypeScript.findTscVersion(result.filePath, packageManagerBinPath)
+                ? TypeScript.findTscVersion(result.filePath, interpreterPath)
                 : undefined;
         if (FileInfo.fromNativeSeparators(packageManagerBinPath) !== result.path ||
                 !File.exists(FileInfo.fromNativeSeparators(packageManagerRootPath, "typescript"))) {

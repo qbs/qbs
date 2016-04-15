@@ -30,6 +30,7 @@
 
 #include "error.h"
 
+#include <QRegularExpression>
 #include <QSharedData>
 #include <QStringList>
 
@@ -40,6 +41,7 @@ class ErrorItem::ErrorItemPrivate : public QSharedData
 public:
     QString description;
     CodeLocation codeLocation;
+    bool isBacktraceItem = false;
 };
 
 /*!
@@ -53,11 +55,13 @@ ErrorItem::ErrorItem() : d(new ErrorItemPrivate)
 {
 }
 
-ErrorItem::ErrorItem(const QString &description, const CodeLocation &codeLocation)
+ErrorItem::ErrorItem(const QString &description, const CodeLocation &codeLocation,
+                     bool isBacktraceItem)
     : d(new ErrorItemPrivate)
 {
     d->description = description;
     d->codeLocation = codeLocation;
+    d->isBacktraceItem = isBacktraceItem;
 }
 
 ErrorItem::ErrorItem(const ErrorItem &rhs) : d(rhs.d)
@@ -82,6 +86,11 @@ QString ErrorItem::description() const
 CodeLocation ErrorItem::codeLocation() const
 {
     return d->codeLocation;
+}
+
+bool ErrorItem::isBacktraceItem() const
+{
+    return d->isBacktraceItem;
 }
 
 /*!
@@ -138,6 +147,23 @@ ErrorInfo::ErrorInfo(const QString &description, const CodeLocation &location, b
     d->internalError = internalError;
 }
 
+ErrorInfo::ErrorInfo(const QString &description, const QStringList &backtrace)
+    : d(new ErrorInfoPrivate)
+{
+    append(description);
+    for (const QString &traceLine : backtrace) {
+        QRegularExpression regexp(
+                    QStringLiteral("^(?<message>.+) at (?<file>.+):(?<line>\\-?[0-9]+)$"));
+        QRegularExpressionMatch match = regexp.match(traceLine);
+        if (match.hasMatch()) {
+            const CodeLocation location(match.captured(QStringLiteral("file")),
+                                        match.captured(QStringLiteral("line")).toInt());
+            appendBacktrace(match.captured(QStringLiteral("message")), location);
+        }
+    }
+}
+
+
 ErrorInfo &ErrorInfo::operator =(const ErrorInfo &other)
 {
     d = other.d;
@@ -146,6 +172,11 @@ ErrorInfo &ErrorInfo::operator =(const ErrorInfo &other)
 
 ErrorInfo::~ErrorInfo()
 {
+}
+
+void ErrorInfo::appendBacktrace(const QString &description, const CodeLocation &location)
+{
+    d->items.append(ErrorItem(description, location, true));
 }
 
 void ErrorInfo::append(const QString &description, const CodeLocation &location)
@@ -181,8 +212,19 @@ void ErrorInfo::clear()
 QString ErrorInfo::toString() const
 {
     QStringList lines;
-    foreach (const ErrorItem &e, d->items)
-        lines.append(e.toString());
+    foreach (const ErrorItem &e, d->items) {
+        if (e.isBacktraceItem()) {
+            QString line;
+            if (!e.description().isEmpty())
+                line.append(QStringLiteral(" at %1").arg(e.description()));
+            if (e.codeLocation().isValid())
+                line.append(QStringLiteral(" in %1").arg(e.codeLocation().toString()));
+            if (!line.isEmpty())
+                lines.append(QStringLiteral("\t") + line);
+        } else {
+            lines.append(e.toString());
+        }
+    }
     return lines.join(QLatin1Char('\n'));
 }
 

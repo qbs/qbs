@@ -576,6 +576,12 @@ void ScriptEngine::extendJavaScriptBuiltins()
     JSTypeExtender arrayExtender(this, QLatin1String("Array"));
     arrayExtender.addFunction(QLatin1String("contains"),
         QLatin1String("(function(e){return this.indexOf(e) !== -1;})"));
+    arrayExtender.addFunction(QLatin1String("containsAll"),
+        QLatin1String("(function(e){var $this = this;"
+                        "return e.every(function (v) { return $this.contains(v) });})"));
+    arrayExtender.addFunction(QLatin1String("containsAny"),
+        QLatin1String("(function(e){var $this = this;"
+                        "return e.some(function (v) { return $this.contains(v) });})"));
     arrayExtender.addFunction(QLatin1String("uniqueConcat"),
         QLatin1String("(function(other){"
                         "var r = this.concat();"

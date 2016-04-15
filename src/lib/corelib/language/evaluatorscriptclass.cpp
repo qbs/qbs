@@ -394,7 +394,7 @@ static QString overriddenSourceDirectory(const Item *item)
 inline void convertToPropertyType(const Item *item, const PropertyDeclaration::Type t,
         QScriptValue &v)
 {
-    if (v.isUndefined())
+    if (v.isUndefined() || v.isError())
         return;
     switch (t) {
     case PropertyDeclaration::UnknownType:

@@ -31,10 +31,20 @@
 import qbs
 
 XPCService {
+    Depends { name: "xcode" }
+
     type: base.concat(["applicationextension"])
 
     cpp.entryPoint: "_NSExtensionMain"
-    cpp.frameworks: base.concat(["/System/Library/PrivateFrameworks/PlugInKit.framework"])
+    cpp.frameworks: {
+        var frameworks = base.concat(["Foundation"]);
+        if (qbs.targetOS.contains("osx") && parseInt(xcode.sdkVersion.split(".")[1], 10) < 11 ||
+            qbs.targetOS.contains("ios") && parseInt(xcode.sdkVersion.split(".")[0], 10) < 9) {
+            frameworks = base.concat(["/System/Library/PrivateFrameworks/PlugInKit.framework"]);
+        }
+        return frameworks;
+    }
+
     cpp.requireAppExtensionSafeApi: true
 
     xpcServiceType: undefined

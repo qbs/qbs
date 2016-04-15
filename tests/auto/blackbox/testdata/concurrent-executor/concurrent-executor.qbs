@@ -27,7 +27,7 @@ Product {
                 cmd.createFile = i == 9;
                 cmd.sourceCode = function() {
                     if (createFile) {
-                        print("Creating file");
+                        console.info("Creating file");
                         var file = new TextFile(output.filePath, TextFile.WriteOnly);
                         file.close();
                     }

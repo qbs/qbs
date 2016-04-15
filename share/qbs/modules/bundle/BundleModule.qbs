@@ -31,43 +31,80 @@
 import qbs
 import qbs.BundleTools
 import qbs.DarwinTools
+import qbs.Environment
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.PropertyList
 import qbs.TextFile
 import qbs.Utilities
+import "bundle.js" as Bundle
 
 Module {
+    Depends { name: "xcode"; required: false; }
+
+    Probe {
+        id: bundleSettingsProbe
+        condition: qbs.targetOS.contains("darwin")
+
+        property string xcodeDeveloperPath: xcode.developerPath
+
+        // Note that we include several settings pointing to properties which reference the output
+        // of this probe (WRAPPER_NAME, WRAPPER_EXTENSION, etc.). This is to ensure that derived
+        // properties take into account the value of these settings if the user customized them.
+        property var additionalSettings: ({
+            "DEVELOPMENT_LANGUAGE": "English",
+            "EXECUTABLE_VARIANT_SUFFIX": "", // e.g. _debug, _profile
+            "FRAMEWORK_VERSION": frameworkVersion,
+            "GENERATE_PKGINFO_FILE": generatePackageInfo !== undefined
+                                     ? (generatePackageInfo ? "YES" : "NO")
+                                     : undefined,
+            "PRODUCT_NAME": product.targetName,
+            "LOCAL_APPS_DIR": Environment.getEnv("HOME") + "/Applications",
+            "LOCAL_LIBRARY_DIR": Environment.getEnv("HOME") + "/Library",
+            "TARGET_BUILD_DIR": product.buildDirectory,
+            "WRAPPER_NAME": bundleName,
+            "WRAPPER_EXTENSION": extension
+        })
+
+        // Outputs
+        property var xcodeSettings: ({})
+
+        configure: {
+            var specsPath = path;
+            var specsSeparator = "-";
+            if (xcodeDeveloperPath && _useXcodeBuildSpecs) {
+                specsPath = xcodeDeveloperPath
+                        + "/Platforms/MacOSX.platform/Developer/Library/Xcode/Specifications";
+                specsSeparator = " ";
+            }
+
+            var reader = new Bundle.XcodeBuildSpecsReader(specsPath,
+                                                          specsSeparator,
+                                                          additionalSettings,
+                                                          !qbs.targetOS.contains("osx"));
+            var settings = reader.expandedSettings(_productTypeIdentifier);
+            if (settings) {
+                xcodeSettings = settings;
+                found = true;
+            } else {
+                xcodeSettings = {};
+                found = false;
+            }
+        }
+    }
+
     additionalProductTypes: ["bundle"]
 
-    property bool isBundle: qbs.targetOS.contains("darwin")
-                            && (product.type.contains("application")
-                                || product.type.contains("dynamiclibrary")
-                                || product.type.contains("loadablemodule"))
-                            && !product.consoleApplication
-    property bool isShallow: !qbs.targetOS.contains("osx") && product.type.contains("application")
+    property bool isBundle: !product.consoleApplication && qbs.targetOS.contains("darwin") &&
+        product.type.containsAny(["application", "dynamiclibrary", "loadablemodule"])
+
+    readonly property bool isShallow: bundleSettingsProbe.xcodeSettings["SHALLOW_BUNDLE"] === "YES"
 
     property string identifierPrefix: "org.example"
     property string identifier: [identifierPrefix, Utilities.rfc1034Identifier(product.targetName)].join(".")
 
-    property string extension: {
-        if (packageType === undefined) {
-            return "";
-        } else if (packageType === "APPL") {
-            return "app";
-        } else if (packageType === "XPC!") {
-            if (product.type.contains("applicationextension"))
-                return "appex";
-            return "xpc";
-        } else if (packageType === "FMWK") {
-            return "framework";
-        } else{
-            return "bundle";
-        }
-
-        // Also: kext, prefPane, qlgenerator, saver, mdimporter, or a custom extension
-    }
+    property string extension: bundleSettingsProbe.xcodeSettings["WRAPPER_EXTENSION"]
 
     property string packageType: {
         if (product.type.contains("inapppurchase"))
@@ -76,20 +113,27 @@ Module {
             return "XPC!";
         if (product.type.contains("application"))
             return "APPL";
-        if (product.type.contains("dynamiclibrary") || product.type.contains("staticlibrary"))
+        if (product.type.containsAny(["dynamiclibrary", "staticlibrary"]))
             return "FMWK";
+        if (product.type.contains("kernelmodule"))
+            return "KEXT";
         return "BNDL";
     }
 
     property string signature: "????" // legacy creator code in Mac OS Classic (CFBundleSignature), can be ignored
 
-    property string bundleName: product.targetName + (extension ? ("." + extension) : "")
+    property string bundleName: bundleSettingsProbe.xcodeSettings["WRAPPER_NAME"]
 
     property string frameworkVersion: {
-        if (packageType === "FMWK") {
-            var n = parseInt(product.version, 10);
-            return isNaN(n) ? 'A' : String(n);
-        }
+        var n = parseInt(product.version, 10);
+        return isNaN(n) ? bundleSettingsProbe.xcodeSettings["FRAMEWORK_VERSION"] : String(n);
+    }
+
+    property bool generatePackageInfo: {
+        // Make sure to return undefined as default to indicate "not set"
+        var genPkgInfo = bundleSettingsProbe.xcodeSettings["GENERATE_PKGINFO_FILE"];
+        if (genPkgInfo)
+            return genPkgInfo === "YES";
     }
 
     property pathList publicHeaders
@@ -110,46 +154,34 @@ Module {
                                         "/Versions/A/Support", lsregisterName);
 
     // all paths are relative to the directory containing the bundle
-    readonly property string infoPlistPath: {
-        var path;
-        if (!isBundle)
-            path = FileInfo.joinPaths(".tmp", product.name);
-        else if (packageType === "FMWK")
-            path = unlocalizedResourcesFolderPath;
-        else if (product.type.contains("inapppurchase"))
-            path = bundleName;
-        else
-            path = contentsFolderPath;
+    readonly property string infoPlistPath: bundleSettingsProbe.xcodeSettings["INFOPLIST_PATH"]
+    readonly property string infoStringsPath: bundleSettingsProbe.xcodeSettings["INFOSTRINGS_PATH"]
+    readonly property string pbdevelopmentPlistPath: bundleSettingsProbe.xcodeSettings["PBDEVELOPMENTPLIST_PATH"]
+    readonly property string pkgInfoPath: bundleSettingsProbe.xcodeSettings["PKGINFO_PATH"]
+    readonly property string versionPlistPath: bundleSettingsProbe.xcodeSettings["VERSIONPLIST_PATH"]
 
-        return FileInfo.joinPaths(path, product.type.contains("inapppurchase") ? "ContentInfo.plist" : "Info.plist");
-    }
+    readonly property string executablePath: bundleSettingsProbe.xcodeSettings["EXECUTABLE_PATH"]
 
-    readonly property string pkgInfoPath: FileInfo.joinPaths(packageType === "FMWK" ? bundleName : contentsFolderPath, "PkgInfo")
-    readonly property string versionPlistPath: FileInfo.joinPaths(packageType === "FMWK" ? unlocalizedResourcesFolderPath : contentsFolderPath, "version.plist")
-
-    readonly property string executablePath: FileInfo.joinPaths(executableFolderPath, product.targetName)
-
-    readonly property string executableFolderPath: (!isShallow && packageType !== "FMWK" && !isShallowContents) ? FileInfo.joinPaths(contentsFolderPath, "MacOS") : contentsFolderPath
-    readonly property string executablesFolderPath: packageType === "FMWK" ? unlocalizedResourcesFolderPath : FileInfo.joinPaths(contentsFolderPath, !isShallowContents ? "Executables" : "")
-    readonly property string frameworksFolderPath: FileInfo.joinPaths(contentsFolderPath, !isShallowContents ? "Frameworks" : "")
-    readonly property string pluginsFolderPath: packageType === "FMWK" ? unlocalizedResourcesFolderPath : FileInfo.joinPaths(contentsFolderPath, !isShallowContents ? "PlugIns" : "")
-    readonly property string privateHeadersFolderPath: FileInfo.joinPaths(contentsFolderPath, !isShallowContents ? "PrivateHeaders" : "")
-    readonly property string publicHeadersFolderPath: FileInfo.joinPaths(contentsFolderPath, !isShallowContents ? "Headers" : "")
-    readonly property string scriptsFolderPath: FileInfo.joinPaths(unlocalizedResourcesFolderPath, "Scripts")
-    readonly property string sharedFrameworksFolderPath: FileInfo.joinPaths(contentsFolderPath, !isShallowContents ? "SharedFrameworks" : "")
-    readonly property string sharedSupportFolderPath: packageType === "FMWK" ? unlocalizedResourcesFolderPath : FileInfo.joinPaths(contentsFolderPath, !isShallowContents ? "SharedSupport" : "")
-    readonly property string unlocalizedResourcesFolderPath: isShallow ? contentsFolderPath : FileInfo.joinPaths(contentsFolderPath, !isShallowContents ? "Resources" : "")
-
-    readonly property string contentsFolderPath: {
-        if (packageType === "FMWK")
-            return FileInfo.joinPaths(bundleName, "Versions", frameworkVersion);
-        else if (!isShallow)
-            return FileInfo.joinPaths(bundleName, "Contents");
-        return bundleName;
-    }
+    readonly property string contentsFolderPath: bundleSettingsProbe.xcodeSettings["CONTENTS_FOLDER_PATH"]
+    readonly property string documentationFolderPath: bundleSettingsProbe.xcodeSettings["DOCUMENTATION_FOLDER_PATH"]
+    readonly property string executableFolderPath: bundleSettingsProbe.xcodeSettings["EXECUTABLE_FOLDER_PATH"]
+    readonly property string executablesFolderPath: bundleSettingsProbe.xcodeSettings["EXECUTABLES_FOLDER_PATH"]
+    readonly property string frameworksFolderPath: bundleSettingsProbe.xcodeSettings["FRAMEWORKS_FOLDER_PATH"]
+    readonly property string javaFolderPath: bundleSettingsProbe.xcodeSettings["JAVA_FOLDER_PATH"]
+    readonly property string localizedResourcesFolderPath: bundleSettingsProbe.xcodeSettings["LOCALIZED_RESOURCES_FOLDER_PATH"]
+    readonly property string pluginsFolderPath: bundleSettingsProbe.xcodeSettings["PLUGINS_FOLDER_PATH"]
+    readonly property string privateHeadersFolderPath: bundleSettingsProbe.xcodeSettings["PRIVATE_HEADERS_FOLDER_PATH"]
+    readonly property string publicHeadersFolderPath: bundleSettingsProbe.xcodeSettings["PUBLIC_HEADERS_FOLDER_PATH"]
+    readonly property string scriptsFolderPath: bundleSettingsProbe.xcodeSettings["SCRIPTS_FOLDER_PATH"]
+    readonly property string sharedFrameworksFolderPath: bundleSettingsProbe.xcodeSettings["SHARED_FRAMEWORKS_FOLDER_PATH"]
+    readonly property string sharedSupportFolderPath: bundleSettingsProbe.xcodeSettings["SHARED_SUPPORT_FOLDER_PATH"]
+    readonly property string unlocalizedResourcesFolderPath: bundleSettingsProbe.xcodeSettings["UNLOCALIZED_RESOURCES_FOLDER_PATH"]
+    readonly property string versionsFolderPath: bundleSettingsProbe.xcodeSettings["VERSIONS_FOLDER_PATH"]
 
     // private properties
-    readonly property bool isShallowContents: product.type.contains("inapppurchase")
+    property string _productTypeIdentifier: Bundle.productTypeIdentifier(product.type)
+
+    property bool _useXcodeBuildSpecs: true // false to use ONLY the qbs build specs
 
     readonly property var extraEnv: ({
         "PRODUCT_BUNDLE_IDENTIFIER": identifier
@@ -182,6 +214,47 @@ Module {
         };
     }
 
+    validate: {
+        if (!qbs.targetOS.contains("darwin"))
+            return;
+        if (!bundleSettingsProbe.found) {
+            var error = "Bundle product type " + _productTypeIdentifier + " is not supported.";
+            if ((_productTypeIdentifier || "").startsWith("com.apple.product-type."))
+                error += " You may need to upgrade Xcode.";
+            throw error;
+        }
+
+        var validator = new ModUtils.PropertyValidator("bundle");
+        validator.setRequiredProperty("bundleName", bundleName);
+        validator.setRequiredProperty("infoPlistPath", infoPlistPath);
+        validator.setRequiredProperty("pbdevelopmentPlistPath", pbdevelopmentPlistPath);
+        validator.setRequiredProperty("pkgInfoPath", pkgInfoPath);
+        validator.setRequiredProperty("versionPlistPath", versionPlistPath);
+        validator.setRequiredProperty("executablePath", executablePath);
+        validator.setRequiredProperty("contentsFolderPath", contentsFolderPath);
+        validator.setRequiredProperty("documentationFolderPath", documentationFolderPath);
+        validator.setRequiredProperty("executableFolderPath", executableFolderPath);
+        validator.setRequiredProperty("executablesFolderPath", executablesFolderPath);
+        validator.setRequiredProperty("frameworksFolderPath", frameworksFolderPath);
+        validator.setRequiredProperty("javaFolderPath", javaFolderPath);
+        validator.setRequiredProperty("localizedResourcesFolderPath", localizedResourcesFolderPath);
+        validator.setRequiredProperty("pluginsFolderPath", pluginsFolderPath);
+        validator.setRequiredProperty("privateHeadersFolderPath", privateHeadersFolderPath);
+        validator.setRequiredProperty("publicHeadersFolderPath", publicHeadersFolderPath);
+        validator.setRequiredProperty("scriptsFolderPath", scriptsFolderPath);
+        validator.setRequiredProperty("sharedFrameworksFolderPath", sharedFrameworksFolderPath);
+        validator.setRequiredProperty("sharedSupportFolderPath", sharedSupportFolderPath);
+        validator.setRequiredProperty("unlocalizedResourcesFolderPath", unlocalizedResourcesFolderPath);
+
+        if (packageType === "FMWK") {
+            validator.setRequiredProperty("frameworkVersion", frameworkVersion);
+            validator.setRequiredProperty("versionsFolderPath", versionsFolderPath);
+        }
+
+        // extension and infoStringsPath might not be set
+        return validator.validate();
+    }
+
     FileTagger {
         fileTags: ["infoplist"]
         patterns: ["Info.plist", "*-Info.plist"]
@@ -199,9 +272,13 @@ Module {
         outputFileTags: ["aggregate_infoplist"]
         outputArtifacts: {
             var artifacts = [];
-            if (ModUtils.moduleProperty(product, "isBundle") || ModUtils.moduleProperty(product, "embedInfoPlist")) {
+            var embed = ModUtils.moduleProperty(product, "embedInfoPlist");
+            if (ModUtils.moduleProperty(product, "isBundle") || embed) {
                 artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "infoPlistPath")),
+                    filePath: FileInfo.joinPaths(
+                                  product.destinationDirectory, embed
+                                      ? product.name + "-Info.plist"
+                                      : ModUtils.moduleProperty(product, "infoPlistPath")),
                     fileTags: ["aggregate_infoplist"]
                 });
             }
@@ -378,7 +455,7 @@ Module {
         outputFileTags: ["pkginfo"]
         outputArtifacts: {
             var artifacts = [];
-            if (ModUtils.moduleProperty(product, "isBundle")) {
+            if (ModUtils.moduleProperty(product, "isBundle") && ModUtils.moduleProperty(product, "generatePackageInfo")) {
                 artifacts.push({
                     filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "pkgInfoPath")),
                     fileTags: ["pkginfo"]
@@ -443,7 +520,8 @@ Module {
                 }
 
                 var packageType = ModUtils.moduleProperty(product, "packageType");
-                if (packageType === "FMWK") {
+                var isShallow = ModUtils.moduleProperty(product, "isShallow");
+                if (packageType === "FMWK" && !isShallow) {
                     var publicHeaders = ModUtils.moduleProperties(product, "publicHeaders");
                     if (publicHeaders && publicHeaders.length) {
                         artifacts.push({
@@ -471,7 +549,7 @@ Module {
                     });
 
                     artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName"), "Versions", "Current"),
+                        filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "versionsFolderPath"), "Current"),
                         fileTags: ["bundle.symlink.version"]
                     });
                 }

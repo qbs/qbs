@@ -86,9 +86,6 @@ void RulesEvaluationContext::initScope()
     if (m_initScopeCalls++ > 0)
         return;
 
-    m_engine->setProperty("lastSetupProject", QVariant());
-    m_engine->setProperty("lastSetupProduct", QVariant());
-
     m_engine->clearImportsCache();
     m_engine->pushContext();
     m_scope = m_engine->newObject();

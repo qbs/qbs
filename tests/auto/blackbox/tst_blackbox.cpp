@@ -327,14 +327,12 @@ void TestBlackbox::sevenZip()
     const QString outputFile = relativeProductBuildDir("archivable") + "/archivable.7z";
     QVERIFY2(regularFileExists(outputFile), qPrintable(outputFile));
     QProcess listContents;
-    listContents.start(binary, QStringList() << "t" << outputFile);
+    listContents.start(binary, QStringList() << "l" << outputFile);
     QVERIFY2(listContents.waitForStarted(), qPrintable(listContents.errorString()));
     QVERIFY2(listContents.waitForFinished(), qPrintable(listContents.errorString()));
     QVERIFY2(listContents.exitCode() == 0, listContents.readAllStandardError().constData());
     const QByteArray output = listContents.readAllStandardOutput();
-    if (output.count("Testing") != 2)
-        qDebug("%s", output.constData());
-    QCOMPARE(output.count("Testing"), 2);
+    QVERIFY2(output.contains("2 files"), output.constData());
     QVERIFY2(output.contains("test.txt"), output.constData());
     QVERIFY2(output.contains("archivable.qbs"), output.constData());
 }
@@ -462,6 +460,12 @@ void TestBlackbox::android()
     int status;
     const auto androidPaths = findAndroid(&status);
 
+    const auto ndkPath = androidPaths["ndk"];
+    static const QStringList ndkSamplesDirs = QStringList() << "teapot" << "no-native";
+    if (!ndkPath.isEmpty() && !QFileInfo(ndkPath + "/samples").isDir()
+            && ndkSamplesDirs.contains(projectDir))
+        QSKIP("NDK samples directory not present");
+
     QDir::setCurrent(testDataDir + "/android/" + projectDir);
     Settings s((QString()));
     Profile p("qbs_autotests-android", &s);
@@ -520,6 +524,254 @@ void TestBlackbox::buildDirectories()
     QVERIFY2(outputLines.contains(projectDir), m_qbsStdout.constData());
 }
 
+class QFileInfo2 : public QFileInfo {
+public:
+    QFileInfo2(const QString &path) : QFileInfo(path) { }
+    bool isRegularFile() const { return isFile() && !isSymLink(); }
+    bool isRegularDir() const { return isDir() && !isSymLink(); }
+    bool isFileSymLink() const { return isFile() && isSymLink(); }
+    bool isDirSymLink() const { return isDir() && isSymLink(); }
+};
+
+void TestBlackbox::bundleStructure()
+{
+    if (!HostOsInfo::isOsxHost())
+        QSKIP("only applies on OS X");
+
+    QFETCH(QString, productName);
+    QFETCH(QString, productTypeIdentifier);
+    QFETCH(bool, isShallow);
+
+    QDir::setCurrent(testDataDir + "/bundle-structure");
+    QbsRunParameters params;
+    params.arguments << "project.buildableProducts:" + productName;
+    if (isShallow) {
+        // Coerce shallow bundles - don't set bundle.isShallow directly because we want to test the
+        // automatic detection
+        params.arguments
+                << "qbs.targetOS:ios,darwin,bsd,unix"
+                << "qbs.architecture:arm64";
+    }
+
+    if (productName == "ABadApple" || productName == "ABadThirdParty")
+        params.expectFailure = true;
+
+    rmDirR(relativeBuildDir());
+    const int status = runQbs(params);
+    if (status != 0) {
+        QVERIFY2(m_qbsStderr.contains("Bundle product type "
+                                      + productTypeIdentifier.toLatin1()
+                                      + " is not supported."),
+                 m_qbsStderr.constData());
+        return;
+    }
+
+    QCOMPARE(status, 0);
+
+    if (!isShallow) {
+        if (productName == "A") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/Info.plist").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/MacOS").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/MacOS/A").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/PkgInfo").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/Resources").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/Resources/resource.txt").isRegularFile());
+        }
+
+        if (productName == "B") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/B").isFileSymLink());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Headers").isDirSymLink());
+            //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Modules").isDirSymLink());
+            QVERIFY(!QFileInfo2(defaultInstallRoot + "/B.framework/PkgInfo").exists());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/PrivateHeaders").isDirSymLink());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Resources").isDirSymLink());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/B").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Headers").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Headers/dummy.h").isRegularFile());
+            //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Modules").isRegularDir());
+            //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Modules/module.modulemap").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/PrivateHeaders").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/PrivateHeaders/dummy_p.h").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Resources").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Resources/Info.plist").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/Current").isDirSymLink());
+        }
+
+        if (productName == "C") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/C").isFileSymLink());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Headers").isDirSymLink());
+            //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Modules").isDirSymLink());
+            QVERIFY(!QFileInfo2(defaultInstallRoot + "/C.framework/PkgInfo").exists());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/PrivateHeaders").isDirSymLink());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Resources").isDirSymLink());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/C").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Headers").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Headers/dummy.h").isRegularFile());
+            //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Modules").isRegularDir());
+            //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Modules/module.modulemap").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/PrivateHeaders").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/PrivateHeaders/dummy_p.h").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Resources").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Resources/Info.plist").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/Current").isDirSymLink());
+        }
+
+        if (productName == "D") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/Info.plist").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/MacOS").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/MacOS/D").isRegularFile());
+            QVERIFY(!QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/PkgInfo").exists());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/Resources").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/Resources/resource.txt").isRegularFile());
+        }
+
+        if (productName == "E") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/Info.plist").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/MacOS").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/MacOS/E").isRegularFile());
+            QVERIFY(!QFileInfo2(defaultInstallRoot + "/E.appex/Contents/PkgInfo").exists());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/Resources").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/Resources/resource.txt").isRegularFile());
+        }
+
+        if (productName == "F") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/Info.plist").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/MacOS").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/MacOS/F").isRegularFile());
+            QVERIFY(!QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/PkgInfo").exists());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/Resources").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/Resources/resource.txt").isRegularFile());
+        }
+
+        if (productName == "G") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/G").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/G/ContentInfo.plist").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/G/Contents/resource.txt").isRegularFile());
+        }
+    } else {
+        if (productName == "A") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/A").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Info.plist").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/PkgInfo").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/resource.txt").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/ResourceRules.plist").isRegularFile());
+        }
+
+        if (productName == "B") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/B").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Headers").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Headers/dummy.h").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Info.plist").isRegularFile());
+            //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Modules").isRegularDir());
+            //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Modules/module.modulemap").isRegularFile());
+            QVERIFY(!QFileInfo2(defaultInstallRoot + "/B.framework/PkgInfo").exists());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/PrivateHeaders").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/PrivateHeaders/dummy_p.h").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/resource.txt").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/ResourceRules.plist").isRegularFile());
+        }
+
+        if (productName == "C") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/C").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Headers").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Headers/dummy.h").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Info.plist").isRegularFile());
+            //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Modules").isRegularDir());
+            //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Modules/module.modulemap").isRegularFile());
+            QVERIFY(!QFileInfo2(defaultInstallRoot + "/C.framework/PkgInfo").exists());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/PrivateHeaders").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/PrivateHeaders/dummy_p.h").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/resource.txt").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/ResourceRules.plist").isRegularFile());
+        }
+
+        if (productName == "D") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/D").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Headers").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Headers/dummy.h").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Info.plist").isRegularFile());
+            QVERIFY(!QFileInfo2(defaultInstallRoot + "/D.bundle/PkgInfo").exists());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/PrivateHeaders").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/PrivateHeaders/dummy_p.h").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/resource.txt").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/ResourceRules.plist").isRegularFile());
+        }
+
+        if (productName == "E") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/E").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Headers").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Headers/dummy.h").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Info.plist").isRegularFile());
+            QVERIFY(!QFileInfo2(defaultInstallRoot + "/E.appex/PkgInfo").exists());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/PrivateHeaders").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/PrivateHeaders/dummy_p.h").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/resource.txt").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/ResourceRules.plist").isRegularFile());
+        }
+
+        if (productName == "F") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/F").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Headers").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Headers/dummy.h").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Info.plist").isRegularFile());
+            QVERIFY(!QFileInfo2(defaultInstallRoot + "/F.xpc/PkgInfo").exists());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/PrivateHeaders").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/PrivateHeaders/dummy_p.h").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/resource.txt").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/ResourceRules.plist").isRegularFile());
+        }
+
+        if (productName == "G") {
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/G").isRegularDir());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/G/ContentInfo.plist").isRegularFile());
+            QVERIFY(QFileInfo2(defaultInstallRoot + "/G/Contents/resource.txt").isRegularFile());
+        }
+    }
+}
+
+void TestBlackbox::bundleStructure_data()
+{
+    QTest::addColumn<QString>("productName");
+    QTest::addColumn<QString>("productTypeIdentifier");
+    QTest::addColumn<bool>("isShallow");
+
+    const auto addRows = [](bool isShallow) {
+        const QString s = (isShallow ? " shallow" : "");
+        QTest::newRow(("A" + s).toLatin1()) << "A" << "com.apple.product-type.application" << isShallow;
+        QTest::newRow(("ABadApple" + s).toLatin1()) << "ABadApple" << "com.apple.product-type.will.never.exist.ever.guaranteed" << isShallow;
+        QTest::newRow(("ABadThirdParty" + s).toLatin1()) << "ABadThirdParty" << "org.special.third.party.non.existent.product.type" << isShallow;
+        QTest::newRow(("B" + s).toLatin1()) << "B" << "com.apple.product-type.framework" << isShallow;
+        QTest::newRow(("C" + s).toLatin1()) << "C" << "com.apple.product-type.framework.static" << isShallow;
+        QTest::newRow(("D" + s).toLatin1()) << "D" << "com.apple.product-type.bundle" << isShallow;
+        QTest::newRow(("E" + s).toLatin1()) << "E" << "com.apple.product-type.app-extension" << isShallow;
+        QTest::newRow(("F" + s).toLatin1()) << "F" << "com.apple.product-type.xpc-service" << isShallow;
+        QTest::newRow(("G" + s).toLatin1()) << "G" << "com.apple.product-type.in-app-purchase-content" << isShallow;
+    };
+
+    addRows(true);
+    addRows(false);
+}
+
 void TestBlackbox::changedFiles_data()
 {
     QTest::addColumn<bool>("useChangedFilesForInitialBuild");
@@ -575,7 +827,7 @@ void TestBlackbox::changeInImportedFile()
 {
     QDir::setCurrent(testDataDir + "/change-in-imported-file");
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStderr.contains("old output"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("old output"), m_qbsStdout.constData());
 
     WAIT_FOR_NEW_TIMESTAMP();
     QFile jsFile("prepare.js");
@@ -586,7 +838,7 @@ void TestBlackbox::changeInImportedFile()
     jsFile.write(content);
     jsFile.close();
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStderr.contains("new output"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("new output"), m_qbsStdout.constData());
 
     WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY2(jsFile.open(QIODevice::ReadWrite), qPrintable(jsFile.errorString()));
@@ -594,7 +846,7 @@ void TestBlackbox::changeInImportedFile()
     jsFile.write(content);
     jsFile.close();
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(!m_qbsStderr.contains("output"), m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("output"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::dependenciesProperty()
@@ -662,6 +914,48 @@ void TestBlackbox::dependencyProfileMismatch()
              m_qbsStderr.constData());
 }
 
+void TestBlackbox::deploymentTarget()
+{
+    if (!HostOsInfo::isOsxHost())
+        QSKIP("only applies on OS X");
+
+    QFETCH(QString, os);
+    QFETCH(QString, arch);
+    QFETCH(QString, cflags);
+    QFETCH(QString, lflags);
+
+    QDir::setCurrent(testDataDir + "/deploymentTarget");
+
+    QbsRunParameters params;
+    params.arguments = QStringList()
+            << "--command-echo-mode"
+            << "command-line"
+            << "qbs.targetOS:" + os
+            << "qbs.architecture:" + arch;
+
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains(cflags.toLatin1()), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains(lflags.toLatin1()), m_qbsStdout.constData());
+}
+
+void TestBlackbox::deploymentTarget_data()
+{
+    QTest::addColumn<QString>("os");
+    QTest::addColumn<QString>("arch");
+    QTest::addColumn<QString>("cflags");
+    QTest::addColumn<QString>("lflags");
+    QTest::newRow("osx") << "osx,darwin,bsd,unix" << "x86_64"
+                         << "-triple x86_64-apple-macosx10.4"
+                         << "-macosx_version_min 10.4";
+    QTest::newRow("ios") << "ios,darwin,bsd,unix" << "arm64"
+                         << "-triple arm64-apple-ios5.0"
+                         << "-iphoneos_version_min 5.0";
+    QTest::newRow("ios-sim") << "ios-simulator,ios,darwin,bsd,unix" << "x86_64"
+                             << "-triple x86_64-apple-ios5.0"
+                             << "-ios_simulator_version_min 5.0";
+}
+
 void TestBlackbox::symlinkRemoval()
 {
     if (HostOsInfo::isWindowsHost())
@@ -699,7 +993,7 @@ void TestBlackbox::versionScript()
     QDir::setCurrent(testDataDir + "/versionscript");
     QCOMPARE(runQbs(QbsRunParameters(QStringList("-qq")
                                      << ("qbs.installRoot:" + QDir::currentPath()))), 0);
-    const QString output = QString::fromLocal8Bit(m_qbsStderr);
+    const QString output = QString::fromLocal8Bit(m_qbsStdout);
     QRegExp pattern(".*---(.*)---.*");
     QVERIFY2(pattern.exactMatch(output), qPrintable(output));
     QCOMPARE(pattern.captureCount(), 1);
@@ -861,12 +1155,69 @@ void TestBlackbox::separateDebugInfo()
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
     QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
     if (targetOS.contains("darwin") || (targetOS.isEmpty() && HostOsInfo::isOsxHost())) {
-        QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
+        QVERIFY(directoryExists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("app1")
+            + "/app1.app.dSYM/Contents/Info.plist"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("app1")
+            + "/app1.app.dSYM/Contents/Resources/DWARF/app1"));
+        QCOMPARE(QDir(relativeProductBuildDir("app1")
+            + "/app1.app.dSYM/Contents/Resources/DWARF")
+                .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.app.dSYM"));
-        QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/foo1.framework.dSYM"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("app3") + "/app3.app.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("app3")
+            + "/app3.app/Contents/MacOS/app3.dwarf"));
+        QVERIFY(directoryExists(relativeProductBuildDir("app4") + "/app4.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("app4")
+            + "/app4.dSYM/Contents/Info.plist"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("app4")
+            + "/app4.dSYM/Contents/Resources/DWARF/app4"));
+        QCOMPARE(QDir(relativeProductBuildDir("app4")
+            + "/app4.dSYM/Contents/Resources/DWARF")
+                .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
+        QVERIFY(regularFileExists(relativeProductBuildDir("app5") + "/app5.dwarf"));
+        QVERIFY(directoryExists(relativeProductBuildDir("foo1") + "/foo1.framework.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("foo1")
+            + "/foo1.framework.dSYM/Contents/Info.plist"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("foo1")
+            + "/foo1.framework.dSYM/Contents/Resources/DWARF/foo1"));
+        QCOMPARE(QDir(relativeProductBuildDir("foo1")
+            + "/foo1.framework.dSYM/Contents/Resources/DWARF")
+                .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(!QFile::exists(relativeProductBuildDir("foo2") + "/foo2.framework.dSYM"));
-        QVERIFY(QFile::exists(relativeProductBuildDir("bar1") + "/bar1.bundle.dSYM"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("foo3") + "/foo3.framework.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("foo3")
+            + "/foo3.framework/Versions/A/foo3.dwarf"));
+        QVERIFY(directoryExists(relativeProductBuildDir("foo4") + "/libfoo4.dylib.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("foo4")
+            + "/libfoo4.dylib.dSYM/Contents/Info.plist"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("foo4")
+            + "/libfoo4.dylib.dSYM/Contents/Resources/DWARF/libfoo4.dylib"));
+        QCOMPARE(QDir(relativeProductBuildDir("foo4")
+            + "/libfoo4.dylib.dSYM/Contents/Resources/DWARF")
+                .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
+        QVERIFY(regularFileExists(relativeProductBuildDir("foo5") + "/libfoo5.dylib.dwarf"));
+        QVERIFY(directoryExists(relativeProductBuildDir("bar1") + "/bar1.bundle.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("bar1")
+            + "/bar1.bundle.dSYM/Contents/Info.plist"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("bar1")
+            + "/bar1.bundle.dSYM/Contents/Resources/DWARF/bar1"));
+        QCOMPARE(QDir(relativeProductBuildDir("bar1")
+            + "/bar1.bundle.dSYM/Contents/Resources/DWARF")
+                .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(!QFile::exists(relativeProductBuildDir("bar2") + "/bar2.bundle.dSYM"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("bar3") + "/bar3.bundle.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("bar3")
+            + "/bar3.bundle/Contents/MacOS/bar3.dwarf"));
+        QVERIFY(directoryExists(relativeProductBuildDir("bar4") + "/bar4.bundle.dSYM"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("bar4")
+            + "/bar4.bundle.dSYM/Contents/Info.plist"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("bar4")
+            + "/bar4.bundle.dSYM/Contents/Resources/DWARF/bar4.bundle"));
+        QCOMPARE(QDir(relativeProductBuildDir("bar4")
+            + "/bar4.bundle.dSYM/Contents/Resources/DWARF")
+                .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
+        QVERIFY(regularFileExists(relativeProductBuildDir("bar5") + "/bar5.bundle.dwarf"));
     } else if (toolchain.contains("gcc")) {
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.debug"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.debug"));
@@ -1301,6 +1652,17 @@ void TestBlackbox::recursiveWildcards()
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file2.txt").exists());
 }
 
+void TestBlackbox::referenceErrorInExport()
+{
+    QDir::setCurrent(testDataDir + "/referenceErrorInExport");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QEXPECT_FAIL(0, "QBS-946", Abort);
+    QVERIFY(m_qbsStderr.contains(
+                "project.qbs:17:31 ReferenceError: Can't find variable: includePaths"));
+}
+
 void TestBlackbox::reproducibleBuild()
 {
     Settings s((QString()));
@@ -1382,6 +1744,29 @@ void TestBlackbox::overrideProjectProperties()
             << QLatin1String("project.linkSuccessfully:true");
     params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
+}
+
+void TestBlackbox::probeProperties()
+{
+    QDir::setCurrent(testDataDir + "/probeProperties");
+    const QByteArray dir = QDir::cleanPath(testDataDir).toLatin1() + "/probeProperties";
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("probe1.fileName=bin/tool"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe1.path=" + dir), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe1.filePath=" + dir + "/bin/tool"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe2.fileName=tool"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe2.path=" + dir + "/bin"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe2.filePath=" + dir + "/bin/tool"), m_qbsStdout.constData());
+}
+
+void TestBlackbox::probeInExportedModule()
+{
+    QDir::setCurrent(testDataDir + "/probe-in-exported-module");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << QLatin1String("-f")
+                                     << QLatin1String("probe-in-exported-module.qbs"))), 0);
+    QVERIFY2(m_qbsStdout.contains("found: true"), m_qbsStdout.constData());
+    QEXPECT_FAIL(0, "QBS-955", Abort);
+    QVERIFY2(m_qbsStdout.contains("prop: yes"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::productProperties()
@@ -1711,6 +2096,44 @@ void TestBlackbox::erroneousFiles()
         qDebug() << "Expected: " << errorMessage;
         QFAIL("Unexpected error message.");
     }
+}
+
+void TestBlackbox::errorInfo()
+{
+    QDir::setCurrent(testDataDir + "/error-info");
+    QCOMPARE(runQbs(), 0);
+
+    QbsRunParameters params;
+    params.expectFailure = true;
+
+    params.arguments = QStringList() << "project.fail1:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:24"), m_qbsStderr);
+
+    params.arguments = QStringList() << "project.fail2:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:36"), m_qbsStderr);
+
+    params.arguments = QStringList() << "project.fail3:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:51"), m_qbsStderr);
+
+    params.arguments = QStringList() << "project.fail4:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:66"), m_qbsStderr);
+
+    params.arguments = QStringList() << "project.fail5:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("helper.js:4"), m_qbsStderr);
+
+    params.arguments = QStringList() << "project.fail6:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("helper.js:8"), m_qbsStderr);
+
+    params.arguments = QStringList() << "project.fail7:true";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("JavaScriptCommand.sourceCode"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:57"), m_qbsStderr);
 }
 
 void TestBlackbox::exportRule()
@@ -2087,7 +2510,7 @@ void TestBlackbox::linkerScripts()
     QDir::setCurrent(testDataDir + "/linkerscripts");
     QCOMPARE(runQbs(QbsRunParameters(QStringList("-qq")
                                      << ("qbs.installRoot:" + QDir::currentPath()))), 0);
-    const QString output = QString::fromLocal8Bit(m_qbsStderr);
+    const QString output = QString::fromLocal8Bit(m_qbsStdout);
     QRegExp pattern(".*---(.*)---.*");
     QVERIFY2(pattern.exactMatch(output), qPrintable(output));
     QCOMPARE(pattern.captureCount(), 1);
@@ -2760,12 +3183,12 @@ void TestBlackbox::assembly()
     bool haveMSVC = profile.value("qbs.toolchain").toStringList().contains("msvc");
     QDir::setCurrent(testDataDir + "/assembly");
     QVERIFY(runQbs() == 0);
-    QCOMPARE((bool)m_qbsStdout.contains("assembling testa.s"), haveGcc);
-    QCOMPARE((bool)m_qbsStdout.contains("compiling testb.S"), haveGcc);
-    QCOMPARE((bool)m_qbsStdout.contains("compiling testc.sx"), haveGcc);
-    QCOMPARE((bool)m_qbsStdout.contains("creating libtesta.a"), haveGcc);
-    QCOMPARE((bool)m_qbsStdout.contains("creating libtestb.a"), haveGcc);
-    QCOMPARE((bool)m_qbsStdout.contains("creating libtestc.a"), haveGcc);
+    QCOMPARE(m_qbsStdout.contains("assembling testa.s"), haveGcc);
+    QCOMPARE(m_qbsStdout.contains("compiling testb.S"), haveGcc);
+    QCOMPARE(m_qbsStdout.contains("compiling testc.sx"), haveGcc);
+    QCOMPARE(m_qbsStdout.contains("creating libtesta.a"), haveGcc);
+    QCOMPARE(m_qbsStdout.contains("creating libtestb.a"), haveGcc);
+    QCOMPARE(m_qbsStdout.contains("creating libtestc.a"), haveGcc);
     QCOMPARE(m_qbsStdout.contains("creating testd.lib"), haveMSVC);
 }
 
@@ -2839,6 +3262,76 @@ void TestBlackbox::embedInfoPlist()
     QVERIFY(getEmbeddedBinaryPlist(defaultInstallRoot + "/app").isEmpty());
     QVERIFY(getEmbeddedBinaryPlist(defaultInstallRoot + "/liblib.dylib").isEmpty());
     QVERIFY(getEmbeddedBinaryPlist(defaultInstallRoot + "/mod.bundle").isEmpty());
+}
+
+void TestBlackbox::enableExceptions()
+{
+    QFETCH(QString, file);
+    QFETCH(bool, enable);
+    QFETCH(bool, expectSuccess);
+
+    QDir::setCurrent(testDataDir + QStringLiteral("/enableExceptions"));
+
+    QbsRunParameters params;
+    params.arguments = QStringList() << "-f" << file << (QStringLiteral("cpp.enableExceptions:")
+                                                         + (enable ? "true" : "false"));
+    params.expectFailure = !expectSuccess;
+    rmDirR(relativeBuildDir());
+    if (!params.expectFailure)
+        QCOMPARE(runQbs(params), 0);
+    else
+        QVERIFY(runQbs(params) != 0);
+}
+
+void TestBlackbox::enableExceptions_data()
+{
+    QTest::addColumn<QString>("file");
+    QTest::addColumn<bool>("enable");
+    QTest::addColumn<bool>("expectSuccess");
+
+    QTest::newRow("no exceptions, enabled") << "none.qbs" << true << true;
+    QTest::newRow("no exceptions, disabled") << "none.qbs" << false << true;
+
+    QTest::newRow("C++ exceptions, enabled") << "exceptions.qbs" << true << true;
+    QTest::newRow("C++ exceptions, disabled") << "exceptions.qbs" << false << false;
+
+    if (HostOsInfo::isOsxHost()) {
+        QTest::newRow("Objective-C exceptions, enabled") << "exceptions-objc.qbs" << true << true;
+        QTest::newRow("Objective-C exceptions in Objective-C++ source, enabled") << "exceptions-objcpp.qbs" << true << true;
+        QTest::newRow("C++ exceptions in Objective-C++ source, enabled") << "exceptions-objcpp-cpp.qbs" << true << true;
+        QTest::newRow("Objective-C, disabled") << "exceptions-objc.qbs" << false << false;
+        QTest::newRow("Objective-C exceptions in Objective-C++ source, disabled") << "exceptions-objcpp.qbs" << false << false;
+        QTest::newRow("C++ exceptions in Objective-C++ source, disabled") << "exceptions-objcpp-cpp.qbs" << false << false;
+    }
+}
+
+void TestBlackbox::enableRtti()
+{
+    QDir::setCurrent(testDataDir + QStringLiteral("/enableRtti"));
+
+    QbsRunParameters params;
+
+    params.arguments = QStringList() << "cpp.enableRtti:true";
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+
+    if (HostOsInfo::isOsxHost()) {
+        params.arguments = QStringList() << "cpp.enableRtti:true" << "project.treatAsObjcpp:true";
+        rmDirR(relativeBuildDir());
+        QCOMPARE(runQbs(params), 0);
+    }
+
+    params.expectFailure = true;
+
+    params.arguments = QStringList() << "cpp.enableRtti:false";
+    rmDirR(relativeBuildDir());
+    QVERIFY(runQbs(params) != 0);
+
+    if (HostOsInfo::isOsxHost()) {
+        params.arguments = QStringList() << "cpp.enableRtti:false" << "project.treatAsObjcpp:true";
+        rmDirR(relativeBuildDir());
+        QVERIFY(runQbs(params) != 0);
+    }
 }
 
 void TestBlackbox::frameworkStructure()
@@ -2977,9 +3470,11 @@ void TestBlackbox::typescript()
     QDir::setCurrent(testDataDir + QLatin1String("/typescript"));
 
     status = runQbs();
-    if (p.value("typescript.toolchainInstallPath").toString().isEmpty()
-            && status != 0 && m_qbsStderr.contains("toolchainInstallPath")) {
-        QSKIP("typescript.toolchainInstallPath not set and automatic detection failed");
+    if (p.value("typescript.toolchainInstallPath").toString().isEmpty() && status != 0) {
+        if (m_qbsStderr.contains("typescript.toolchainInstallPath"))
+            QSKIP("typescript.toolchainInstallPath not set and automatic detection failed");
+        if (m_qbsStderr.contains("nodejs.interpreterFilePath"))
+            QSKIP("nodejs.interpreterFilePath not set and automatic detection failed");
     }
 
     QCOMPARE(status, 0);

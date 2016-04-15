@@ -126,22 +126,21 @@ function debugInfoIsBundle(product) {
 function debugInfoFileName(product) {
     var suffix = "";
 
-    // For bundled dSYMs, the suffix appears on the bundle name, not the actual debug info file
+    // For dSYM bundles, the DWARF debug info file has no suffix
     if (!product.moduleProperty("qbs", "targetOS").contains("darwin")
             || !debugInfoIsBundle(product))
         suffix = product.moduleProperty("cpp", "debugInfoSuffix");
 
-    if (product.moduleProperty("bundle", "isBundle")) {
-        if (!debugInfoIsBundle(product))
-            return product.moduleProperty("bundle", "bundleName") + suffix;
-    } else if (product.type.contains("application"))
-        return applicationFileName(product) + suffix;
-    else if (product.type.contains("dynamiclibrary"))
-        return dynamicLibraryFileName(product) + suffix;
-    else if (product.type.contains("loadablemodule"))
-        return loadableModuleFileName(product) + suffix;
-    else if (product.type.contains("staticlibrary"))
-        return staticLibraryFileName(product) + suffix;
+    if (!product.moduleProperty("bundle", "isBundle")) {
+        if (product.type.contains("application"))
+            return applicationFileName(product) + suffix;
+        else if (product.type.contains("dynamiclibrary"))
+            return dynamicLibraryFileName(product) + suffix;
+        else if (product.type.contains("loadablemodule"))
+            return loadableModuleFileName(product) + suffix;
+        else if (product.type.contains("staticlibrary"))
+            return staticLibraryFileName(product) + suffix;
+    }
 
     return product.targetName + suffix;
 }
@@ -149,7 +148,7 @@ function debugInfoFileName(product) {
 function debugInfoBundlePath(product) {
     if (!debugInfoIsBundle(product))
         return undefined;
-    var suffix = product.moduleProperty("cpp", "debugInfoSuffix");
+    var suffix = product.moduleProperty("cpp", "debugInfoBundleSuffix");
     if (product.moduleProperty("qbs", "targetOS").contains("darwin")
             && product.moduleProperty("bundle", "isBundle"))
         return product.moduleProperty("bundle", "bundleName") + suffix;
@@ -161,6 +160,8 @@ function debugInfoFilePath(product) {
     if (product.moduleProperty("qbs", "targetOS").contains("darwin") && debugInfoIsBundle(product)) {
         return FileInfo.joinPaths(debugInfoBundlePath(product), "Contents", "Resources", "DWARF",
                                   name);
+    } else if (product.moduleProperty("bundle", "isBundle")) {
+        return FileInfo.joinPaths(product.moduleProperty("bundle", "executableFolderPath"), name);
     }
 
     return name;

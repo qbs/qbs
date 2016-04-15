@@ -79,6 +79,7 @@ private slots:
     void emptyFileTagList();
     void emptySubmodulesList();
     void enableAndDisableProduct();
+    void errorInSetupRunEnvironment();
     void explicitlyDependsOn();
     void exportSimple();
     void exportWithRecursiveDepends();

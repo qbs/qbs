@@ -82,7 +82,7 @@ function linkerFlags(product, inputs, output) {
 
         if (isDarwin) {
             var internalVersion = product.moduleProperty("cpp", "internalVersion");
-            if (internalVersion)
+            if (internalVersion && isNumericProductVersion(internalVersion))
                 args.push("-current_version", internalVersion);
 
             args = args.concat(escapeLinkerFlags(product, [
@@ -98,7 +98,7 @@ function linkerFlags(product, inputs, output) {
     if (output.fileTags.contains("loadablemodule"))
         args.push(isDarwin ? "-bundle" : "-shared");
 
-    if (output.fileTags.contains("dynamiclibrary") || output.fileTags.contains("loadablemodule")) {
+    if (output.fileTags.containsAny(["dynamiclibrary", "loadablemodule"])) {
         if (isDarwin)
             args = args.concat(escapeLinkerFlags(product, ["-headerpad_max_install_names"]));
         else
@@ -420,6 +420,23 @@ function compilerFlags(product, input, output) {
         args.push(useArc ? "-fobjc-arc" : "-fno-objc-arc");
     }
 
+    var enableExceptions = ModUtils.moduleProperty(input, "enableExceptions");
+    if (enableExceptions !== undefined) {
+        if (tag === "cpp" || tag === "objcpp")
+            args.push(enableExceptions ? "-fexceptions" : "-fno-exceptions");
+
+        if (tag === "objc" || tag === "objcpp") {
+            args.push(enableExceptions ? "-fobjc-exceptions" : "-fno-objc-exceptions");
+            if (useArc !== undefined)
+                args.push(useArc ? "-fobjc-arc-exceptions" : "-fno-objc-arc-exceptions");
+        }
+    }
+
+    var enableRtti = ModUtils.moduleProperty(input, "enableRtti");
+    if (enableRtti !== undefined && (tag === "cpp" || tag === "objcpp")) {
+        args.push(enableRtti ? "-frtti" : "-fno-rtti");
+    }
+
     var visibility = ModUtils.moduleProperty(input, 'visibility');
     if (!product.type.contains('staticlibrary')
             && !product.moduleProperty("qbs", "toolchain").contains("mingw")) {
@@ -704,24 +721,25 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
             ]));
             cmd.description = "generating dSYM for " + product.name;
             commands.push(cmd);
+
+            cmd = new Command(ModUtils.moduleProperty(product, "stripPath"),
+                              ["-S", primaryOutput.filePath]);
+            cmd.silent = true;
+            commands.push(cmd);
         } else {
-            cmd = new Command(ModUtils.moduleProperty(product, "objcopyPath"), [
-                                  "--only-keep-debug", primaryOutput.filePath,
-                                  outputs.debuginfo[0].filePath
-                              ]);
+            var objcopy = ModUtils.moduleProperty(product, "objcopyPath");
+
+            cmd = new Command(objcopy, ["--only-keep-debug", primaryOutput.filePath,
+                                        outputs.debuginfo[0].filePath]);
             cmd.silent = true;
             commands.push(cmd);
 
-            cmd = new Command(ModUtils.moduleProperty(product, "stripPath"), [
-                                  "--strip-debug", primaryOutput.filePath
-                              ]);
+            cmd = new Command(objcopy, ["--strip-debug", primaryOutput.filePath]);
             cmd.silent = true;
             commands.push(cmd);
 
-            cmd = new Command(ModUtils.moduleProperty(product, "objcopyPath"), [
-                                  "--add-gnu-debuglink=" + outputs.debuginfo[0].filePath,
-                                  primaryOutput.filePath
-                              ]);
+            cmd = new Command(objcopy, ["--add-gnu-debuglink=" + outputs.debuginfo[0].filePath,
+                                        primaryOutput.filePath]);
             cmd.silent = true;
             commands.push(cmd);
         }
@@ -855,4 +873,29 @@ function concatLibsFromArtifacts(libs, artifacts)
     var deps = artifacts.map(function (a) { return a.filePath; });
     deps.reverse();
     return concatLibs(deps, libs);
+}
+
+function debugInfoArtifacts(product) {
+    var artifacts = [];
+    if (product.moduleProperty("cpp", "separateDebugInformation")) {
+        artifacts.push({
+            filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
+            fileTags: ["debuginfo"]
+        });
+        if (PathTools.debugInfoIsBundle(product)) {
+            artifacts.push({
+                filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoBundlePath(product)),
+                fileTags: ["debuginfo_bundle"]
+            });
+            artifacts.push({
+                filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoPlistFilePath(product)),
+                fileTags: ["debuginfo_plist"]
+            });
+        }
+    }
+    return artifacts;
+}
+
+function isNumericProductVersion(version) {
+    return version && version.match(/^([0-9]+\.){0,3}[0-9]+$/);
 }

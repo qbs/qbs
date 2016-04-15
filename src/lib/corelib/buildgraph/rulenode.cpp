@@ -125,7 +125,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
     }
     if (!inputs.isEmpty()) {
         RulesApplicator applicator(product, logger);
-        applicator.applyRuleInEvaluationContext(m_rule, inputs);
+        applicator.applyRule(m_rule, inputs);
         result->createdNodes = applicator.createdArtifacts();
         result->invalidatedNodes = applicator.invalidatedArtifacts();
         m_oldInputArtifacts.unite(inputs);

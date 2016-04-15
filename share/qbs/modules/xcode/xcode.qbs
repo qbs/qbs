@@ -10,11 +10,18 @@ import 'xcode.js' as Utils
 
 Module {
     condition: qbs.hostOS.contains("darwin") && qbs.targetOS.contains("darwin") &&
-               qbs.toolchain.contains("xcode")
+               qbs.toolchain && qbs.toolchain.contains("xcode")
 
     property path developerPath: "/Applications/Xcode.app/Contents/Developer"
     property string sdk: DarwinTools.applePlatformName(qbs.targetOS)
     property stringList targetDevices: DarwinTools.targetDevices(qbs.targetOS)
+
+    property string platformType: {
+        if (qbs.targetOS.containsAny(["ios-simulator", "tvos-simulator", "watchos-simulator"]))
+            return "simulator";
+        if (qbs.targetOS.containsAny(["ios", "tvos", "watchos"]))
+            return "device";
+    }
 
     readonly property string sdkName: {
         if (_sdkSettings) {
@@ -77,12 +84,12 @@ Module {
     readonly property path toolchainPath: FileInfo.joinPaths(toolchainsPath,
                                                              "XcodeDefault" + ".xctoolchain")
     readonly property path platformPath: FileInfo.joinPaths(platformsPath,
-                                                            Utils.applePlatformDirectoryName(
-                                                                qbs.targetOS)
+                                                            DarwinTools.applePlatformDirectoryName(
+                                                                qbs.targetOS, platformType)
                                                             + ".platform")
     readonly property path sdkPath: FileInfo.joinPaths(sdksPath,
-                                                       Utils.applePlatformDirectoryName(
-                                                           qbs.targetOS, sdkVersion)
+                                                       DarwinTools.applePlatformDirectoryName(
+                                                           qbs.targetOS, platformType, sdkVersion)
                                                        + ".sdk")
 
     // private properties
@@ -153,8 +160,8 @@ Module {
         validator.setRequiredProperty("sdkPath", sdkPath);
         validator.addVersionValidator("sdkVersion", sdkVersion, 2, 2);
         validator.addCustomValidator("sdkName", sdkName, function (value) {
-            return value === Utils.applePlatformDirectoryName(
-                        qbs.targetOS, sdkVersion, false).toLowerCase();
+            return value === DarwinTools.applePlatformDirectoryName(
+                        qbs.targetOS, platformType, sdkVersion, false).toLowerCase();
         }, " is '" + sdkName + "', but target OS is [" + qbs.targetOS.join(",")
         + "] and Xcode SDK version is '" + sdkVersion + "'");
         validator.validate();
@@ -195,6 +202,7 @@ Module {
         name: "Provisioning Profiles"
         prefix: xcode.provisioningProfilesPath + "/"
         files: ["*.mobileprovision", "*.provisionprofile"]
+        fileTags: [] // HACK: provisioning profile handling is not yet ready and can break autotests
     }
 
     FileTagger {

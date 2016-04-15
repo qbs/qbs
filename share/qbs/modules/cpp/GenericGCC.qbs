@@ -107,8 +107,8 @@ CppModule {
     assemblerPath: toolchainPathPrefix + assemblerName
     compilerPath: toolchainPathPrefix + compilerName
     linkerPath: toolchainPathPrefix + linkerName
-    property path archiverPath: { return toolchainPathPrefix + archiverName }
-    property path nmPath: { return toolchainPathPrefix + nmName }
+    property string archiverPath: toolchainPathPrefix + archiverName
+    property string nmPath: toolchainPathPrefix + nmName
     property string objcopyPath: toolchainPathPrefix + objcopyName
     property string stripPath: toolchainPathPrefix + stripName
     property string dsymutilPath: toolchainPathPrefix + dsymutilName
@@ -122,10 +122,15 @@ CppModule {
         if (product.version === undefined)
             return undefined;
 
-        if (typeof product.version !== "string"
-                || !product.version.match(/^([0-9]+\.){0,3}[0-9]+$/))
+        if (!Gcc.isNumericProductVersion(product.version)) {
+            // Dynamic library version numbers like "A" or "B" are common on Apple platforms, so
+            // don't restrict the product version to a componentized version number here.
+            if (qbs.targetOS.contains("darwin"))
+                return product.version;
+
             throw("product.version must be a string in the format x[.y[.z[.w]] "
-                + "where each component is an integer");
+                  + "where each component is an integer");
+        }
 
         var maxVersionParts = 3;
         var versionParts = product.version.split('.').slice(0, maxVersionParts);
@@ -135,6 +140,26 @@ CppModule {
             versionParts.push("0");
 
         return versionParts.join('.');
+    }
+
+    exceptionHandlingModel: {
+        if (qbs.toolchain.contains("mingw")) {
+            // https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html claims
+            // __USING_SJLJ_EXCEPTIONS__ is defined as 1 when using SJLJ exceptions, but there don't
+            // seem to be defines for the other models, so use the presence of the DLLs for now.
+            var prefix = toolchainInstallPath;
+            if (!qbs.hostOS.contains("windows"))
+                prefix = FileInfo.joinPaths(toolchainInstallPath, "..", "lib", "gcc",
+                                            toolchainPrefix,
+                                            [compilerVersionMajor, compilerVersionMinor].join("."));
+            var models = ["seh", "sjlj", "dw2"];
+            for (var i = 0; i < models.length; ++i) {
+                if (File.exists(FileInfo.joinPaths(prefix, "libgcc_s_" + models[i] + "-1.dll"))) {
+                    return models[i];
+                }
+            }
+        }
+        return base;
     }
 
     validate: {
@@ -175,7 +200,8 @@ CppModule {
             var artifacts = [lib, libCopy];
 
             if (ModUtils.moduleProperty(product, "shouldCreateSymlinks") && !product.moduleProperty("bundle", "isBundle")) {
-                for (var i = 0; i < 3; ++i) {
+                var maxVersionParts = Gcc.isNumericProductVersion(product.version) ? 3 : 1;
+                for (var i = 0; i < maxVersionParts; ++i) {
                     var symlink = {
                         filePath: product.destinationDirectory + "/"
                                   + PathTools.dynamicLibraryFileName(product, undefined, i),
@@ -186,23 +212,7 @@ CppModule {
                     artifacts.push(symlink);
                 }
             }
-            if (ModUtils.moduleProperty(product, "separateDebugInformation")) {
-                artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
-                    fileTags: ["debuginfo"]
-                });
-                if (PathTools.debugInfoIsBundle(product)) {
-                    artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoBundlePath(product)),
-                        fileTags: ["debuginfo_bundle"]
-                    });
-                    artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoPlistFilePath(product)),
-                        fileTags: ["debuginfo_plist"]
-                    });
-                }
-            }
-            return artifacts;
+            return artifacts.concat(Gcc.debugInfoArtifacts(product));
         }
 
         prepare: {
@@ -271,24 +281,7 @@ CppModule {
                                              PathTools.loadableModuleFilePath(product)),
                 fileTags: ["loadablemodule"]
             }
-            var artifacts = [app];
-            if (ModUtils.moduleProperty(product, "separateDebugInformation")) {
-                artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
-                    fileTags: ["debuginfo"]
-                });
-                if (PathTools.debugInfoIsBundle(product)) {
-                    artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoBundlePath(product)),
-                        fileTags: ["debuginfo_bundle"]
-                    });
-                    artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoPlistFilePath(product)),
-                        fileTags: ["debuginfo_plist"]
-                    });
-                }
-            }
-            return artifacts;
+            return [app].concat(Gcc.debugInfoArtifacts(product));
         }
 
         prepare: {
@@ -316,24 +309,7 @@ CppModule {
                                              PathTools.applicationFilePath(product)),
                 fileTags: ["application"]
             }
-            var artifacts = [app];
-            if (ModUtils.moduleProperty(product, "separateDebugInformation")) {
-                artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
-                    fileTags: ["debuginfo"]
-                });
-                if (PathTools.debugInfoIsBundle(product)) {
-                    artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoBundlePath(product)),
-                        fileTags: ["debuginfo_bundle"]
-                    });
-                    artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoPlistFilePath(product)),
-                        fileTags: ["debuginfo_plist"]
-                    });
-                }
-            }
-            return artifacts;
+            return [app].concat(Gcc.debugInfoArtifacts(product));
         }
 
         prepare: {

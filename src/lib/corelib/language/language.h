@@ -96,6 +96,7 @@ public:
     FileTags fileTags;
     bool alwaysUpdated;
     CodeLocation location;
+    CodeLocation filePathLocation;
 
     class Binding
     {
@@ -388,6 +389,7 @@ public:
     void unmarkForReapplication(const RuleConstPtr &rule);
     bool isMarkedForReapplication(const RuleConstPtr &rule) const;
     ArtifactSet lookupArtifactsByFileTag(const FileTag &tag) const;
+    ArtifactSet lookupArtifactsByFileTags(const FileTags &tags) const;
     ArtifactSet targetArtifacts() const;
 
     TopLevelProject *topLevelProject() const;
