@@ -251,6 +251,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
         } else if (QFileInfo(targetExecutable = findExecutable(QStringList()
                     << QStringLiteral("ios-deploy"))).isExecutable()) {
             targetArguments = QStringList()
+                    << QStringLiteral("--no-wifi")
                     << QStringLiteral("--noninteractive")
                     << QStringLiteral("--bundle")
                     << QDir::cleanPath(bundlePath);
