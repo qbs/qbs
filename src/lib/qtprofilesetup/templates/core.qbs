@@ -75,7 +75,6 @@ Module {
     property string qdocOutputDir: FileInfo.joinPaths(generatedFilesDir, "html")
     property string qmDir: product.destinationDirectory
     property string qmBaseName: product.targetName
-    property string qmFilesDir: qmDir // TODO: Remove in 1.6
     property bool lreleaseMultiplexMode: false
 
     cpp.defines: {

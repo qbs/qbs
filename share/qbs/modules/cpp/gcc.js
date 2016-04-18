@@ -470,14 +470,6 @@ function compilerFlags(product, input, output) {
         args.push('-include', pchFilePath);
     }
 
-    // TODO: Remove in 1.6
-    if (!pchOutput && ModUtils.moduleProperty(input, 'precompiledHeader', tag)) {
-        pchFilePath = FileInfo.joinPaths(
-            ModUtils.moduleProperty(product, "precompiledHeaderDir"),
-            product.name + "_" + tag);
-        args.push('-include', pchFilePath);
-    }
-
     var positionIndependentCode = input.moduleProperty('cpp', 'positionIndependentCode')
     if (effectiveType === EffectiveTypeEnum.LIB) {
         if (positionIndependentCode !== false && !product.moduleProperty("qbs", "toolchain").contains("mingw"))

@@ -54,8 +54,6 @@ UnixGCC {
                           ? FileInfo.joinPaths(xcode.toolchainPath, "usr", "bin") : base
     sysroot: xcode.present ? xcode.sdkPath : base
 
-    sonamePrefix: installNamePrefix // TODO: Remove in 1.6 (deprecated, backwards compatibility)
-
     setupBuildEnvironment: {
         for (var key in buildEnv) {
             v = new ModUtils.EnvironmentVariable(key);

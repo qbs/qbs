@@ -143,27 +143,6 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     else if (tag === "c")
         args.push("/TC");
 
-    // precompiled header file
-    // TODO: Remove in 1.6
-    var pch = ModUtils.moduleProperty(input, "precompiledHeader", tag);
-    if (pch) {
-        if (pchOutput) {
-            // create PCH
-            args.push("/Yc");
-            args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.filePath));
-            args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.filePath));
-            args.push(FileInfo.toWindowsSeparators(input.filePath));
-        } else {
-            // use PCH
-            var pchHeaderName = FileInfo.toWindowsSeparators(pch);
-            var pchName = FileInfo.toWindowsSeparators(ModUtils.moduleProperty(product, "precompiledHeaderDir")
-                + "\\.obj\\" + product.name + "_" + tag + ".pch");
-            args.push("/FI" + pchHeaderName);
-            args.push("/Yu" + pchHeaderName);
-            args.push("/Fp" + pchName);
-        }
-    }
-
     var commands = [];
     var usePch = ModUtils.moduleProperty(input, "usePrecompiledHeader", tag);
     if (usePch) {

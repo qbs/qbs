@@ -1912,7 +1912,7 @@ void TestLanguage::wildcards()
         QVERIFY(product);
         GroupPtr group;
         if (useGroup) {
-            QCOMPARE(product->groups.count(), HostOsInfo::isOsxHost() ? 4 : 3);
+            QCOMPARE(product->groups.count(), HostOsInfo::isOsxHost() ? 3 : 2);
             foreach (const GroupPtr &rg, product->groups) {
                 if (rg->name == groupName) {
                     group = rg;
@@ -1920,7 +1920,7 @@ void TestLanguage::wildcards()
                 }
             }
         } else {
-            QCOMPARE(product->groups.count(), HostOsInfo::isOsxHost() ? 3 : 2);
+            QCOMPARE(product->groups.count(), HostOsInfo::isOsxHost() ? 2 : 1);
             group = product->groups.first();
         }
         QVERIFY(group);

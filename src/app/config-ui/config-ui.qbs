@@ -15,7 +15,10 @@ QbsApp {
 
     Group {
         condition: qbs.targetOS.contains("osx")
-        files: ["fgapp.mm"]
+        files: [
+            "fgapp.mm",
+            "Info.plist"
+        ]
     }
 
     Properties {
@@ -25,5 +28,4 @@ QbsApp {
 
     Depends { name: "bundle" }
     bundle.isBundle: false
-    bundle.infoPlistFile: "Info.plist"
 }

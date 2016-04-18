@@ -260,10 +260,6 @@ Module {
         patterns: ["Info.plist", "*-Info.plist"]
     }
 
-    // TODO: Remove in 1.6 (deprecated, backwards compatibility)
-    property path infoPlistFile
-    Group { name: "Info.plist"; files: bundle.infoPlistFile ? [bundle.infoPlistFile] : [] }
-
     Rule {
         condition: qbs.targetOS.contains("darwin")
         multiplex: true

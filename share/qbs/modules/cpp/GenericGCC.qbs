@@ -395,55 +395,6 @@ CppModule {
         }
     }
 
-    // TODO: Remove in 1.6
-    Transformer {
-        condition: cPrecompiledHeader !== undefined
-        inputs: cPrecompiledHeader
-        Artifact {
-            filePath: product.name + "_c.gch"
-            fileTags: "c_pch"
-        }
-        prepare: {
-            return Gcc.prepareCompiler.apply(this, arguments);
-        }
-    }
-
-    Transformer {
-        condition: cxxPrecompiledHeader !== undefined
-        inputs: cxxPrecompiledHeader
-        Artifact {
-            filePath: product.name + "_cpp.gch"
-            fileTags: "cpp_pch"
-        }
-        prepare: {
-            return Gcc.prepareCompiler.apply(this, arguments);
-        }
-    }
-
-    Transformer {
-        condition: objcPrecompiledHeader !== undefined
-        inputs: objcPrecompiledHeader
-        Artifact {
-            filePath: product.name + "_objc.gch"
-            fileTags: "objc_pch"
-        }
-        prepare: {
-            return Gcc.prepareCompiler.apply(this, arguments);
-        }
-    }
-
-    Transformer {
-        condition: objcxxPrecompiledHeader !== undefined
-        inputs: objcxxPrecompiledHeader
-        Artifact {
-            filePath: product.name + "_objcpp.gch"
-            fileTags: "objcpp_pch"
-        }
-        prepare: {
-            return Gcc.prepareCompiler.apply(this, arguments);
-        }
-    }
-
     FileTagger {
         patterns: "*.s"
         fileTags: ["asm"]

@@ -73,7 +73,6 @@ CppModule {
     separateDebugInformation: true
 
     property bool generateManifestFile: true
-    property bool generateManifestFiles: generateManifestFile // TODO: Remove in 1.6
     property path toolchainInstallPath
     architecture: qbs.architecture
     staticLibraryPrefix: ""
@@ -128,48 +127,6 @@ CppModule {
             filePath: ".obj/" + product.name + '_cpp.pch_copy'
         }
 
-        prepare: {
-            return MSVC.prepareCompiler.apply(this, arguments);
-        }
-    }
-
-    // TODO: Remove in 1.6
-    Transformer {
-        condition: cPrecompiledHeader !== undefined
-        inputs: cPrecompiledHeader
-        Artifact {
-            fileTags: ['obj']
-            filePath: {
-                var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
-                        "cPrecompiledHeader"));
-                return ".obj/" + Utilities.getHash(completeBaseName) + '_c.obj'
-            }
-        }
-        Artifact {
-            fileTags: ['c_pch']
-            filePath: ".obj/" + product.name + '_c.pch'
-        }
-        prepare: {
-            return MSVC.prepareCompiler.apply(this, arguments);
-        }
-    }
-
-    Transformer {
-        condition: cxxPrecompiledHeader !== undefined
-        inputs: cxxPrecompiledHeader
-        explicitlyDependsOn: ["c_pch"]  // to prevent vc--0.pdb conflict
-        Artifact {
-            fileTags: ['obj']
-            filePath: {
-                var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
-                        "cxxPrecompiledHeader"));
-                return ".obj/" + Utilities.getHash(completeBaseName) + '_cpp.obj'
-            }
-        }
-        Artifact {
-            fileTags: ['cpp_pch']
-            filePath: ".obj/" + product.name + '_cpp.pch'
-        }
         prepare: {
             return MSVC.prepareCompiler.apply(this, arguments);
         }

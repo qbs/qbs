@@ -50,15 +50,6 @@ Module {
     property bool useObjcPrecompiledHeader: false
     property bool useObjcxxPrecompiledHeader: false
 
-    // TODO: Remove these in 1.6
-    property path cxxPrecompiledHeader: precompiledHeader
-    // ### default to undefined on non-Apple platforms for now - QBS-346
-    property path precompiledHeader
-    property path cPrecompiledHeader: precompiledHeader
-    property path objcPrecompiledHeader: qbs.targetOS.contains("darwin") ? precompiledHeader : undefined
-    property path objcxxPrecompiledHeader: qbs.targetOS.contains("darwin") ? precompiledHeader : undefined
-    property path precompiledHeaderDir: product.buildDirectory
-
     property stringList defines
     property stringList platformDefines: qbs.enableDebugCode ? [] : ["NDEBUG"]
     property stringList compilerDefines
@@ -130,26 +121,11 @@ Module {
                         be set."
     }
 
-    property string installNamePrefix
-    PropertyOptions {
-        name: "installNamePrefix"
-        description: "The prefix for the internal install name (LC_ID_DYLIB) of a dynamic library \
-                      on Darwin (OS X and iOS)."
-    }
-
     property pathList includePaths
     property pathList systemIncludePaths
     property pathList libraryPaths
     property pathList frameworkPaths
     property pathList systemFrameworkPaths
-
-    // TODO: Remove in 1.6 (deprecated, backwards compatibility)
-    property pathList linkerScripts
-    Group {
-        name: "qbs_cpp_linkerscript"
-        files: cpp.linkerScripts || []
-        fileTags: ["linkerscript"]
-    }
 
     property string assemblerName
     property string assemblerPath: assemblerName

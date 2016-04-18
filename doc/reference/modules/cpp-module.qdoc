@@ -410,15 +410,6 @@
         \li List of frameworks to be weakly linked.
             If the framework is part of your project, consider using a Depends item instead.
     \row
-        \li installNamePrefix
-        \li \c{string}
-        \li 1.0
-        \li \c{undefined}
-        \li The prefix for the internal install name (LC_ID_DYLIB) of a dynamic library on Darwin
-            (OS X and iOS). Typically this should be set to \c{"@rpath"} on modern platforms that
-            support it, which includes OS X 10.5 and above, and all versions of iOS.
-            \b Deprecated: use \c{cpp.sonamePrefix} instead.
-    \row
         \li automaticReferenceCounting
         \li \c{bool}
         \li 1.4
