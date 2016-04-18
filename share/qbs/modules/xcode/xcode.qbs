@@ -131,7 +131,7 @@ Module {
             }
 
             // Latest SDK available for the platform
-            if (DarwinTools.applePlatformName(qbs.targetOS) === sdk)
+            if (DarwinTools.applePlatformName(qbs.targetOS, platformType) === sdk)
                 return _availableSdks[_availableSdks.length - 1];
         }
     }
