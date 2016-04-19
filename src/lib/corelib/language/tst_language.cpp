@@ -1595,6 +1595,32 @@ void TestLanguage::relaxedErrorMode_data()
     QTest::newRow("relaxed mode") << false;
 }
 
+void TestLanguage::requiredAndNonRequiredDependencies()
+{
+    QFETCH(QString, projectFile);
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        const QString projectFilePath = "required-and-nonrequired-dependencies/" + projectFile;
+        params.setProjectFilePath(testProject(projectFilePath.toLocal8Bit()));
+        loader->loadProject(params);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        QVERIFY2(e.toString().contains("validation error!"), qPrintable(e.toString()));
+    }
+    QVERIFY(exceptionCaught);
+}
+
+void TestLanguage::requiredAndNonRequiredDependencies_data()
+{
+    QTest::addColumn<QString>("projectFile");
+
+    QTest::newRow("same file") << "direct-dependencies.qbs";
+    QTest::newRow("dependency via module") << "dependency-via-module.qbs";
+    QTest::newRow("dependency via export") << "dependency-via-export.qbs";
+    QTest::newRow("more indirection") << "complicated.qbs";
+}
+
 void TestLanguage::throwingProbe()
 {
     QFETCH(bool, enableProbe);

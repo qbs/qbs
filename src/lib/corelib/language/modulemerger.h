@@ -44,8 +44,7 @@ namespace Internal {
 
 class ModuleMerger {
 public:
-    ModuleMerger(const Logger &logger, Item *root, Item *moduleToMerge,
-            const QualifiedId &moduleName);
+    ModuleMerger(const Logger &logger, Item *root, Item::Module &moduleToMerge);
     void start();
 
 private:
@@ -61,13 +60,13 @@ private:
 
     const Logger &m_logger;
     Item * const m_rootItem;
-    Item *m_mergedModuleItem;
+    Item::Module &m_mergedModule;
     Item *m_clonedModulePrototype = nullptr;
-    const QualifiedId m_moduleName;
     QHash<ValuePtr, PropertyDeclaration> m_decls;
     QSet<const Item *> m_seenInstancesTopDown;
     QSet<const Item *> m_seenInstancesBottomUp;
     QSet<Item *> m_moduleInstanceContainers;
+    bool m_required;
 };
 
 } // namespace Internal

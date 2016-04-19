@@ -631,8 +631,13 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 {
     Item * const item = productContext->item;
 
-    foreach (const Item::Module &module, item->modules())
-        ModuleMerger(m_logger, item, module.item, module.name).start();
+    Item::Modules mergedModules;
+    foreach (const Item::Module &module, item->modules()) {
+        Item::Module mergedModule = module;
+        ModuleMerger(m_logger, item, mergedModule).start();
+        mergedModules << mergedModule;
+    }
+    item->setModules(mergedModules);
 
     // Must happen after all modules have been merged, so needs to be a second loop.
     QVector<Item::Module> sortedModules;
@@ -899,13 +904,16 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
     foreach (const QualifiedId &moduleName, moduleNames) {
         // Don't load the same module twice. Duplicate Depends statements can easily
         // happen due to inheritance.
-        const auto it = std::find_if(moduleResults->constBegin(), moduleResults->constEnd(),
-                [moduleName](const Item::Module &m) { return m.name == moduleName; });
-        if (it != moduleResults->constEnd())
-            continue;
-
         const bool isRequired
                 = m_evaluator->boolValue(dependsItem, QLatin1String("required"));
+        const auto it = std::find_if(moduleResults->begin(), moduleResults->end(),
+                [moduleName](const Item::Module &m) { return m.name == moduleName; });
+        if (it != moduleResults->end()) {
+            if (isRequired)
+                it->required = true;
+            continue;
+        }
+
         Item *moduleItem = loadModule(dependsContext->product, parentItem, dependsItem->location(),
                                       dependsItem->id(), moduleName, isRequired, &result.isProduct);
         if (!moduleItem) {
