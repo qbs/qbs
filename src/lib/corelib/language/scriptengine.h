@@ -58,7 +58,7 @@ public:
     ~ScriptEngine();
 
     void setLogger(const Logger &logger) { m_logger = logger; }
-    const Logger &logger() const { return m_logger; }
+    Logger logger() const { return m_logger; }
     void import(const FileContextBaseConstPtr &fileCtx, QScriptValue scope,
             QScriptValue targetObject);
     void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);

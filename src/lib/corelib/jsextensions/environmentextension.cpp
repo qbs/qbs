@@ -32,7 +32,9 @@
 
 #include <language/scriptengine.h>
 #include <logging/translator.h>
+#include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/qbsassert.h>
 
 #include <QDir>
 #include <QFileInfo>
@@ -149,20 +151,35 @@ QScriptValue EnvironmentExtension::js_currentEnv(QScriptContext *context, QScrip
     return envObject;
 }
 
+static void printDeprecationWarning(const QString &message, const QScriptContext *context,
+                                    QScriptEngine *engine)
+{
+    ErrorInfo fullError(message, context->backtrace());
+    ErrorInfo error;
+    if (fullError.items().count() == 1) {
+        error = fullError;
+    } else {
+        QBS_CHECK(fullError.items().count() >= 2);
+        error.append(fullError.items().first().description(),
+                     fullError.items().at(1).codeLocation());
+    }
+    static_cast<ScriptEngine *>(engine)->logger().printWarning(error);
+}
+
 QScriptValue js_getEnvDeprecated(QScriptContext *context, QScriptEngine *qtengine)
 {
-    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
-    engine->logger().qbsWarning() << QStringLiteral("qbs.getEnv is deprecated and will be \
-removed in Qbs 1.6. Use Environment.getEnv instead.");
-    return EnvironmentExtension::js_getEnv(context, engine);
+    const QString message = Tr::tr("qbs.getEnv is deprecated and will be removed in Qbs 1.6. "
+                                   "Use Environment.getEnv instead.");
+    printDeprecationWarning(message, context, qtengine);
+    return EnvironmentExtension::js_getEnv(context, qtengine);
 }
 
 QScriptValue js_currentEnvDeprecated(QScriptContext *context, QScriptEngine *qtengine)
 {
-    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
-    engine->logger().qbsWarning() << QStringLiteral("qbs.currentEnv is deprecated and will be \
-removed in Qbs 1.6. Use Environment.currentEnv instead.");
-    return EnvironmentExtension::js_currentEnv(context, engine);
+    const QString message = Tr::tr("qbs.currentEnv is deprecated and will be removed in Qbs 1.6. "
+                                   "Use Environment.currentEnv instead.");
+    printDeprecationWarning(message, context, qtengine);
+    return EnvironmentExtension::js_currentEnv(context, qtengine);
 }
 
 } // namespace Internal
