@@ -113,6 +113,7 @@ private slots:
     void clean();
     void cli();
     void concurrentExecutor();
+    void conflictingArtifacts();
     void dependenciesProperty();
     void dependencyProfileMismatch();
     void deploymentTarget();

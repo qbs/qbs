@@ -1125,6 +1125,15 @@ void TestBlackbox::concurrentExecutor()
     QVERIFY2(!m_qbsStderr.contains("ASSERT"), m_qbsStderr.constData());
 }
 
+void TestBlackbox::conflictingArtifacts()
+{
+    QDir::setCurrent(testDataDir + "/conflicting-artifacts");
+    QbsRunParameters params(QStringList() << "-n");
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("Conflicting artifacts"), m_qbsStderr.constData());
+}
+
 void TestBlackbox::renameDependency()
 {
     QDir::setCurrent(testDataDir + "/renameDependency");
