@@ -852,7 +852,7 @@ void TestApi::errorInSetupRunEnvironment()
         const QProcessEnvironment env = runEnv.runEnvironment(&error);
         QVERIFY(error.hasError());
         QVERIFY(error.toString().contains("trallala"));
-    } catch (const qbs::ErrorInfo &e) {
+    } catch (const qbs::ErrorInfo &) {
         exceptionCaught = true;
     }
     QVERIFY(!exceptionCaught);
