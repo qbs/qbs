@@ -34,6 +34,7 @@
 #include <logging/translator.h>
 #include <tools/architectures.h>
 #include <tools/fileinfo.h>
+#include <tools/toolchains.h>
 
 #ifdef Q_OS_OSX
 #include <tools/applecodesignutils.h>
@@ -55,6 +56,7 @@ class UtilitiesExtension : public QObject, QScriptable
 public:
     static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_canonicalToolchain(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getHash(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_nativeSettingGroups(QScriptContext *context, QScriptEngine *engine);
@@ -72,6 +74,8 @@ void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                              engine->newFunction(&UtilitiesExtension::js_ctor));
     environmentObj.setProperty(QStringLiteral("canonicalArchitecture"),
                                engine->newFunction(UtilitiesExtension::js_canonicalArchitecture, 1));
+    environmentObj.setProperty(QStringLiteral("canonicalToolchain"),
+                               engine->newFunction(UtilitiesExtension::js_canonicalToolchain));
     environmentObj.setProperty(QStringLiteral("getHash"),
                                engine->newFunction(UtilitiesExtension::js_getHash, 1));
     environmentObj.setProperty(QStringLiteral("getNativeSetting"),
@@ -105,6 +109,15 @@ QScriptValue UtilitiesExtension::js_canonicalArchitecture(QScriptContext *contex
                                    QLatin1String("canonicalArchitecture expects 1 argument"));
     const QString architecture = context->argument(0).toString();
     return engine->toScriptValue(canonicalArchitecture(architecture));
+}
+
+QScriptValue UtilitiesExtension::js_canonicalToolchain(QScriptContext *context,
+                                                       QScriptEngine *engine)
+{
+    QStringList toolchain;
+    for (int i = 0; i < context->argumentCount(); ++i)
+        toolchain << context->argument(i).toString();
+    return engine->toScriptValue(canonicalToolchain(toolchain));
 }
 
 QScriptValue UtilitiesExtension::js_getHash(QScriptContext *context, QScriptEngine *engine)

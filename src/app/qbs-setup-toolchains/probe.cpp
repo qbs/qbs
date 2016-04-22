@@ -40,6 +40,7 @@
 #include <tools/profile.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
+#include <tools/toolchains.h>
 
 #include <QDir>
 #include <QFileInfo>
@@ -97,26 +98,14 @@ static QStringList validMinGWMachines()
             << QLatin1String("i586-mingw32msvc") << QLatin1String("amd64-mingw32msvc");
 }
 
-static QStringList completeToolchainList(const QString &toolchainName)
-{
-    QStringList toolchains(toolchainName);
-    if (toolchainName == QLatin1String("clang"))
-        toolchains << completeToolchainList(QLatin1String("llvm"));
-    else if (toolchainName == QLatin1String("llvm") ||
-             toolchainName == QLatin1String("mingw")) {
-        toolchains << completeToolchainList(QLatin1String("gcc"));
-    }
-    return toolchains;
-}
-
 static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
 {
     if (compilerName == QLatin1String("cl.exe"))
-        return completeToolchainList(QLatin1String("msvc"));
+        return canonicalToolchain(QLatin1String("msvc"));
     foreach (const QString &type, (QStringList() << QLatin1String("clang") << QLatin1String("llvm")
                                                  << QLatin1String("mingw") << QLatin1String("gcc")))
         if (compilerName.contains(type))
-            return completeToolchainList(type);
+            return canonicalToolchain(type);
     return QStringList();
 }
 
@@ -264,7 +253,7 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
                 = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
         if (!gccPath.isEmpty())
             profiles << createGccProfile(gccPath, settings,
-                                         completeToolchainList(QLatin1String("mingw")));
+                                         canonicalToolchain(QLatin1String("mingw")));
     }
 }
 
@@ -309,7 +298,7 @@ void createProfile(const QString &profileName, const QString &toolchainType,
     if (toolchainType.isEmpty())
         toolchainTypes = toolchainTypeFromCompilerName(compiler.fileName());
     else
-        toolchainTypes = completeToolchainList(toolchainType);
+        toolchainTypes = canonicalToolchain(toolchainType);
 
     if (toolchainTypes.contains(QLatin1String("msvc")))
         createMsvcProfile(profileName, compiler.absoluteFilePath(), settings);

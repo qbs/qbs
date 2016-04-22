@@ -63,6 +63,7 @@ private slots:
     void buildProjectDryRun();
     void buildProjectDryRun_data();
     void buildSingleFile();
+    void canonicalToolchainList();
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     void changeContent();
 #endif

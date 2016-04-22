@@ -71,7 +71,7 @@ Module {
     property string nullDevice: hostOS.contains("windows") ? "NUL" : "/dev/null"
     property path shellPath: hostOS.contains("windows") ? windowsShellPath : "/bin/sh"
     property string profile
-    property stringList toolchain
+    property stringList toolchain: []
     property string architecture
     property bool install: false
     property path installSourceBase
@@ -114,6 +114,35 @@ Module {
             return !architecture || architecture === Utilities.canonicalArchitecture(architecture);
         }, "'" + architecture + "' is invalid. You must use the canonical name '" +
         Utilities.canonicalArchitecture(architecture) + "'");
+
+        validator.addCustomValidator("toolchain", toolchain, function (value) {
+            if (toolchain === undefined)
+                return false; // cannot have null toolchain, empty is valid... for now
+            var canonical = Utilities.canonicalToolchain.apply(this, toolchain);
+            for (var i = 0; i < Math.max(canonical.length, toolchain.length); ++i) {
+                if (canonical[i] !== toolchain[i])
+                    return false;
+            }
+            return true;
+        }, "'" + toolchain + "' is invalid. You must use the canonical list '" +
+        Utilities.canonicalToolchain.apply(this, toolchain) + "'");
+
+        validator.addCustomValidator("toolchain", toolchain, function (value) {
+            // None of the pairs listed here may appear in the same toolchain list.
+            // Note that this check is applied AFTER canonicalization, so for example
+            // {"clang", "msvc"} need not be checked, since a toolchain containing clang is
+            // guaranteed to also contain gcc.
+            var pairs = [
+                ["gcc", "msvc"],
+                ["llvm", "mingw"]
+            ];
+            var canonical = Utilities.canonicalToolchain.apply(this, value);
+            for (var i = 0; i < pairs.length; ++i) {
+                if (canonical.contains(pairs[i][0]) && canonical.contains(pairs[i][1]))
+                    return false;
+            }
+            return true;
+        }, "'" + toolchain + "' contains one or more mutually exclusive toolchain types.");
 
         validator.validate();
     }

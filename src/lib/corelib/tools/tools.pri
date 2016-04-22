@@ -27,6 +27,7 @@ HEADERS += \
     $$PWD/projectgeneratormanager.h \
     $$PWD/propertyfinder.h \
     $$PWD/shellutils.h \
+    $$PWD/toolchains.h \
     $$PWD/hostosinfo.h \
     $$PWD/buildoptions.h \
     $$PWD/installoptions.h \
@@ -71,6 +72,7 @@ SOURCES += \
     $$PWD/qbsassert.cpp \
     $$PWD/qttools.cpp \
     $$PWD/settingscreator.cpp \
+    $$PWD/toolchains.cpp \
     $$PWD/version.cpp \
     $$PWD/visualstudioversioninfo.cpp
 
@@ -110,7 +112,8 @@ qbs_enable_unit_tests {
         $$PWD/generateoptions.h \
         $$PWD/generatorpluginmanager.h \
         $$PWD/installoptions.h \
-        $$PWD/setupprojectparameters.h
+        $$PWD/setupprojectparameters.h \
+        $$PWD/toolchains.h
     tools_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/tools
     INSTALLS += tools_headers
 }

@@ -36,6 +36,7 @@
 #include <qbs.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/toolchains.h>
 
 #include <QCoreApplication>
 #include <QDir>
@@ -391,6 +392,96 @@ void TestApi::buildSingleFile()
     QCOMPARE(receiver.descriptions.count("compiling"), 1);
     QVERIFY2(receiver.descriptions.contains("compiling compiled.cpp"),
              qPrintable(receiver.descriptions));
+}
+
+void TestApi::canonicalToolchainList()
+{
+    // All the known toolchain lists should be equal
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"xcode", "clang", "llvm", "gcc"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"clang", "llvm", "gcc"})),
+             QStringList({"clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"llvm", "gcc"})),
+             QStringList({"llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"mingw", "gcc"})),
+             QStringList({"mingw", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"gcc"})),
+             QStringList({"gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"msvc"})),
+             QStringList({"msvc"}));
+
+    // Single names should canonicalize to the known lists
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"xcode"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"clang"})),
+             QStringList({"clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"llvm"})),
+             QStringList({"llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"mingw"})),
+             QStringList({"mingw", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"gcc"})),
+             QStringList({"gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"msvc"})),
+             QStringList({"msvc"}));
+
+    // Missing some in the middle
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"xcode", "llvm", "gcc"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"xcode", "clang", "gcc"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"xcode", "gcc"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"clang", "llvm"})),
+             QStringList({"clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"clang", "gcc"})),
+             QStringList({"clang", "llvm", "gcc"}));
+
+    // Sorted wrong, missing some in the middle
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"gcc", "llvm", "clang", "xcode"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"clang", "gcc", "llvm", "xcode"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"llvm", "clang", "xcode", "gcc"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"gcc", "llvm", "clang"})),
+             QStringList({"clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"gcc", "clang", "xcode"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"gcc", "llvm"})),
+             QStringList({"llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"gcc", "mingw"})),
+             QStringList({"mingw", "gcc"}));
+
+    // Duplicates
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"gcc", "llvm", "clang", "xcode", "xcode",
+                                                  "xcode"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"clang", "gcc", "llvm", "clang", "xcode"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"llvm", "clang", "clang", "xcode", "xcode",
+                                                  "gcc"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"llvm", "clang", "gcc", "llvm", "clang"})),
+             QStringList({"clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"xcode", "gcc", "clang", "gcc", "clang",
+                                                  "xcode"})),
+             QStringList({"xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"llvm", "gcc", "llvm", "llvm"})),
+             QStringList({"llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"gcc", "gcc", "gcc", "mingw"})),
+             QStringList({"mingw", "gcc"}));
+
+    // Custom insanity
+    QCOMPARE(qbs::canonicalToolchain(
+                 QStringList({"crazy", "gcc", "llvm", "clang", "xcode", "insane"})),
+             QStringList({"crazy", "insane", "xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(
+                 QStringList({"crazy", "gcc", "llvm", "clang", "xcode", "insane", "crazy"})),
+             QStringList({"crazy", "insane", "xcode", "clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(
+                 QStringList({"crazy", "insane", "gcc", "trade", "llvm", "clang", "xcode",
+                              "insane", "mark", "crazy"})),
+             QStringList({"crazy", "insane", "trade", "mark", "xcode", "clang", "llvm", "gcc"}));
 }
 
 void TestApi::checkOutputs()

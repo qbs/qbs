@@ -369,6 +369,7 @@ QbsLibrary {
             "setupprojectparameters.cpp",
             "shellutils.cpp",
             "shellutils.h",
+            "toolchains.cpp",
             "version.cpp",
             "version.h",
             "visualstudioversioninfo.cpp",
@@ -396,6 +397,7 @@ QbsLibrary {
             "settings.h",
             "settingsmodel.h",
             "setupprojectparameters.h",
+            "toolchains.h",
         ]
         qbs.install: project.installApiHeaders
         qbs.installDir: headerInstallPrefix + "/tools"

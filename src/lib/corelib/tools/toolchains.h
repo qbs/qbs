@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of the Qt Build Suite.
@@ -27,27 +27,17 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_H
-#define QBS_H
+#ifndef QBS_TOOLCHAINS_H
+#define QBS_TOOLCHAINS_H
 
-#include "api/jobs.h"
-#include "api/languageinfo.h"
-#include "api/project.h"
-#include "api/projectdata.h"
-#include "api/rulecommand.h"
-#include "logging/ilogsink.h"
-#include "tools/architectures.h"
-#include "tools/buildoptions.h"
-#include "tools/cleanoptions.h"
-#include "tools/error.h"
-#include "tools/generateoptions.h"
-#include "tools/installoptions.h"
-#include "tools/preferences.h"
-#include "tools/profile.h"
-#include "tools/processresult.h"
-#include "tools/settings.h"
-#include "tools/settingsmodel.h"
-#include "tools/setupprojectparameters.h"
-#include "tools/toolchains.h"
+#include "qbs_export.h"
+#include <QStringList>
 
-#endif // QBS_H
+namespace qbs {
+
+QBS_EXPORT QStringList canonicalToolchain(const QStringList &toolchain);
+QBS_EXPORT QStringList canonicalToolchain(const QString &toolchainName);
+
+} // namespace qbs
+
+#endif // Include guard.
