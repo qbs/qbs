@@ -56,12 +56,7 @@ CppModule {
         preferredMachineType: machineType
     }
 
-    // HACK: Preserve the original architecture set by the user if the probe fails on Android.
-    // The probe will always fail because the compiler path is set in the higher level module
-    // (which itself requires the architecture in order to determine) and thus creates a circular
-    // dependency. We could theoretically still enable the warning for clang (since the architecture
-    // is only part of the path for gcc) if the compiler path were visible from the cpp module here.
-    qbs.architecture: !qbs.targetOS.contains("android") ? gccProbe.architecture : original
+    qbs.architecture: gccProbe.found ? gccProbe.architecture : original
 
     property string target: [targetArch, targetVendor, targetSystem, targetAbi].join("-")
     property string targetArch: qbs.architecture === "x86" ? "i386" : qbs.architecture
@@ -188,8 +183,7 @@ CppModule {
         } else {
             // This is a warning and not an error on the rare chance some new architecture comes
             // about which qbs does not know about the macros of. But it *might* still work.
-            // HACK: Ignore warning on Android. See note on qbs.architecture binding above.
-            if (architecture && !qbs.targetOS.contains("android"))
+            if (architecture)
                 console.warn("Unknown architecture '" + architecture + "' " +
                              "may not be supported by this compiler.");
         }

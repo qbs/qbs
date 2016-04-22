@@ -38,11 +38,9 @@ Product {
     property bool isForAndroid: qbs.targetOS.contains("android")
     property stringList architectures: isForAndroid ? ["armv5te"] : undefined
 
-    Depends { name: "Android.ndk"; condition: isForAndroid }
     Depends { name: "bundle" }
-    Depends { name: "cpp"; condition: isForAndroid }
 
-    profiles: isForAndroid
+    profiles: architectures
         ? architectures.map(function(arch) { return project.profile + '-' + arch; })
         : [project.profile]
 }

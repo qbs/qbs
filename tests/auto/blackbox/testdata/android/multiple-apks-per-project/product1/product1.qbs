@@ -2,6 +2,8 @@ import qbs
 
 Project {
     DynamicLibrary {
+        Depends { name: "Android.ndk" }
+        Depends { name: "cpp" }
         name: "p1lib1"
         files: ["src/main/jni/lib1.cpp"]
         Android.ndk.appStl: "stlport_shared"
@@ -10,6 +12,8 @@ Project {
     }
 
     DynamicLibrary {
+        Depends { name: "Android.ndk" }
+        Depends { name: "cpp" }
         name: "p1lib2"
         files: ["src/main/jni/lib2.cpp"]
         Android.ndk.appStl: "stlport_shared"

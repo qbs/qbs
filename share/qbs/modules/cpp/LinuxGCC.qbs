@@ -31,7 +31,7 @@
 import qbs 1.0
 
 UnixGCC {
-    condition: qbs.targetOS.contains('linux') &&
+    condition: qbs.targetOS.contains('linux') && !qbs.targetOS.contains("android") &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
     rpaths: ['$ORIGIN']
 

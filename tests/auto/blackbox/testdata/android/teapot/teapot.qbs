@@ -5,6 +5,7 @@ Project {
     StaticLibrary {
         architectures: project.architectures
         name: "native-glue"
+        Depends { name: "cpp" }
         Group {
             id: glue_sources
             prefix: Android.ndk.ndkDir + "/sources/android/native_app_glue/"
@@ -21,6 +22,8 @@ Project {
     StaticLibrary {
         architectures: project.architectures
         name: "ndk-helper"
+        Depends { name: "Android.ndk" }
+        Depends { name: "cpp" }
         Depends { name: "native-glue" }
 
         Group {
@@ -40,6 +43,7 @@ Project {
     StaticLibrary {
         architectures: project.architectures
         name: "cpufeatures"
+        Depends { name: "cpp" }
         Group {
             id: cpufeatures_sources
             prefix: Android.ndk.ndkDir + "/sources/android/cpufeatures/"
@@ -56,6 +60,8 @@ Project {
     DynamicLibrary {
         name: "TeapotNativeActivity"
         architectures: project.architectures
+        Depends { name: "Android.ndk" }
+        Depends { name: "cpp" }
         Depends { name: "cpufeatures" }
         Depends { name: "native-glue" }
         Depends { name: "ndk-helper" }
