@@ -104,11 +104,15 @@ QScriptValue UtilitiesExtension::js_ctor(QScriptContext *context, QScriptEngine 
 QScriptValue UtilitiesExtension::js_canonicalArchitecture(QScriptContext *context,
                                                           QScriptEngine *engine)
 {
-    if (Q_UNLIKELY(context->argumentCount() != 1))
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("canonicalArchitecture expects 1 argument"));
-    const QString architecture = context->argument(0).toString();
-    return engine->toScriptValue(canonicalArchitecture(architecture));
+    const QScriptValue value = context->argument(0);
+    if (value.isUndefined() || value.isNull())
+        return value;
+
+    if (context->argumentCount() == 1 && value.isString())
+        return engine->toScriptValue(canonicalArchitecture(value.toString()));
+
+    return context->throwError(QScriptContext::SyntaxError,
+        QStringLiteral("canonicalArchitecture expects one argument of type string"));
 }
 
 QScriptValue UtilitiesExtension::js_canonicalToolchain(QScriptContext *context,

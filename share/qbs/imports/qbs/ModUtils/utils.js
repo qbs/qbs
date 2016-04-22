@@ -33,6 +33,7 @@ var File = loadExtension("qbs.File");
 var FileInfo = loadExtension("qbs.FileInfo");
 var Process = loadExtension("qbs.Process");
 var TemporaryDir = loadExtension("qbs.TemporaryDir");
+var Utilities = loadExtension("qbs.Utilities");
 
 function artifactInstalledFilePath(artifact, product) {
     var relativeInstallDir = artifact.moduleProperty("qbs", "installDir");
@@ -470,3 +471,69 @@ var BlackboxOutputArtifactTracker = (function () {
     };
     return BlackboxOutputArtifactTracker;
 })();
+
+function guessArchitecture(m) {
+    function hasAnyOf(m, tokens) {
+        for (var i = 0; i < tokens.length; ++i) {
+            if (m[tokens[i]] !== undefined)
+                return true;
+        }
+    }
+
+    var architecture;
+    if (m) {
+        // based on the search algorithm from qprocessordetection.h in qtbase
+        if (hasAnyOf(m, ["__arm__", "__TARGET_ARCH_ARM", "_M_ARM", "__aarch64__"])) {
+            if (hasAnyOf(m, ["__aarch64__"])) {
+                architecture = "arm64";
+            } else {
+                architecture = "arm";
+
+                var foundSubarch = false;
+                for (var i = 7; i >= 4; --i) {
+                    var codes = ["zk", "tej", "te", "t2"].concat([].concat.apply([],
+                        new Array(26)).map(function(_, i) { return String.fromCharCode(122 - i); }));
+                    for (var j = 0; j < codes.length; ++j) {
+                        if (m["__ARM_ARCH_" + i + codes[j].toUpperCase() + "__"] !== undefined) {
+                            architecture += "v" + i + codes[j].toLowerCase();
+                            foundSubarch = true;
+                            break;
+                        }
+                    }
+
+                    if (i === 7 && m["_ARM_ARCH_7"] !== undefined) {
+                        architecture += "v7";
+                        foundSubarch = true;
+                    }
+
+                    if (foundSubarch)
+                        break;
+                }
+            }
+        } else if (hasAnyOf(m, ["__i386", "__i386__", "_M_IX86"])) {
+            architecture = "x86";
+        } else if (hasAnyOf(m, ["__x86_64", "__x86_64__", "__amd64", "_M_X64"])) {
+            architecture = "x86_64";
+        } else if (hasAnyOf(m, ["__ia64", "__ia64__", "_M_IA64"])) {
+            architecture = "ia64";
+        } else if (hasAnyOf(m, ["__mips", "__mips__", "_M_MRX000"])) {
+            architecture = "mips";
+            if (hasAnyOf(m, ["_MIPS_ARCH_MIPS64", "__mips64"]))
+                architecture += "64";
+        } else if (hasAnyOf(m, ["__ppc__", "__ppc", "__powerpc__",
+                                "_ARCH_COM", "_ARCH_PWR", "_ARCH_PPC", "_M_MPPC", "_M_PPC"])) {
+            architecture = "ppc";
+            if (hasAnyOf(m, ["__ppc64__", "__powerpc64__", "__64BIT__"]))
+                architecture += "64";
+        } else if (hasAnyOf(m, ["__s390__"])) {
+            if (hasAnyOf(m, ["__s390x__"]))
+                architecture = "s390x";
+        } else if (hasAnyOf(m, ["__sparc__"])) {
+            architecture = "sparc";
+            if (hasAnyOf(m, ["__sparc64__"]))
+                architecture += "64";
+        }
+    }
+
+    return Utilities.canonicalArchitecture(architecture);
+}

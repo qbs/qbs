@@ -360,6 +360,10 @@ function compilerFlags(product, input, output) {
         else if (arch === 'i386')
             args.push('-m32');
 
+        var march = product.moduleProperty("cpp", "machineType");
+        if (march)
+            args.push("-march=" + march);
+
         var minimumDarwinVersion = ModUtils.moduleProperty(product, "minimumDarwinVersion");
         if (minimumDarwinVersion) {
             var flag = ModUtils.moduleProperty(product, "minimumDarwinVersionCompilerFlag");

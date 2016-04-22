@@ -48,10 +48,10 @@ static QStringList expectedArchs()
 {
     return QStringList()
             << QStringLiteral("arm64")
-            << QStringLiteral("armv5")
-            << QStringLiteral("armv7")
-            << QStringLiteral("mipsel")
-            << QStringLiteral("mips64el")
+            << QStringLiteral("armv5te")
+            << QStringLiteral("armv7a")
+            << QStringLiteral("mips")
+            << QStringLiteral("mips64")
             << QStringLiteral("x86")
             << QStringLiteral("x86_64");
 }

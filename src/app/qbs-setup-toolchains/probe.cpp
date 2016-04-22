@@ -124,7 +124,7 @@ static QStringList standardCompilerFileNames()
 }
 
 static void setCommonProperties(Profile &profile, const QString &compilerFilePath,
-        const QStringList &toolchainTypes, const QString &architecture)
+        const QStringList &toolchainTypes)
 {
     const QFileInfo cfi(compilerFilePath);
     const QString compilerName = cfi.fileName();
@@ -138,7 +138,6 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
 
     profile.setValue(QLatin1String("cpp.toolchainInstallPath"), cfi.absolutePath());
     profile.setValue(QLatin1String("qbs.toolchain"), toolchainTypes);
-    profile.setValue(QLatin1String("qbs.architecture"), canonicalArchitecture(architecture));
     setCompilerVersion(compilerFilePath, toolchainTypes, profile);
 
     const QString suffix = compilerName.right(compilerName.size() - prefix.size());
@@ -183,21 +182,17 @@ static Profile createGccProfile(const QString &compilerFilePath, Settings *setti
                                 const QString &profileName = QString())
 {
     const QString machineName = gccMachineName(compilerFilePath);
-    const QStringList compilerTriplet = machineName.split(QLatin1Char('-'));
 
     if (toolchainTypes.contains(QLatin1String("mingw"))) {
         if (!validMinGWMachines().contains(machineName)) {
             throw ErrorInfo(Tr::tr("Detected gcc platform '%1' is not supported.")
                     .arg(machineName));
         }
-    } else if (compilerTriplet.count() < 2) {
-        throw qbs::ErrorInfo(Tr::tr("Architecture of compiler for platform '%1' at '%2' not understood.")
-                             .arg(machineName, compilerFilePath));
     }
 
     Profile profile(!profileName.isEmpty() ? profileName : machineName, settings);
     profile.removeProfile();
-    setCommonProperties(profile, compilerFilePath, toolchainTypes, compilerTriplet.first());
+    setCommonProperties(profile, compilerFilePath, toolchainTypes);
 
     // Check whether auxiliary tools reside within the toolchain's install path.
     // This might not be the case when using icecc or another compiler wrapper.

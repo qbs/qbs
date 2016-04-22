@@ -29,23 +29,36 @@
 ****************************************************************************/
 
 function abiNameToDirName(abiName) {
-    if (abiName.startsWith("armeabi"))
+    switch (abiName) {
+    case "armeabi":
+    case "armeabi-v7a":
         return "arm";
-    if (abiName.startsWith("arm64"))
+    case "arm64-v8a":
         return "arm64";
-    return abiName;
+    default:
+        return abiName;
+    }
 }
 
 function androidAbi(arch) {
-    if (arch === "x86" || arch === "x86_64")
+    switch (arch) {
+    case "arm64":
+        return "arm64-v8a";
+    case "armv5":
+    case "armv5te":
+        return "armeabi";
+    case "armv7":
+    case "armv7a":
+        return "armeabi-v7a";
+    case "mips":
+    case "mipsel":
+        return "mips";
+    case "mips64":
+    case "mips64el":
+        return "mips64";
+    default:
         return arch;
-    return {
-        "arm64": "arm64-v8a",
-        "armv5": "armeabi",
-        "armv7": "armeabi-v7a",
-        "mipsel": "mips",
-        "mips64el": "mips64"
-    }[arch];
+    }
 }
 
 function commonCompilerFlags(buildVariant, abi, hardFloat, armMode) {
@@ -67,10 +80,10 @@ function commonCompilerFlags(buildVariant, abi, hardFloat, armMode) {
         flags.push("-fpic", "-fstack-protector", "-finline-limit=64");
 
         if (abi === "armeabi")
-            flags.push("-march=armv5te", "-mtune=xscale", "-msoft-float");
+            flags.push("-mtune=xscale", "-msoft-float");
 
         if (abi === "armeabi-v7a") {
-            flags.push("-march=armv7-a", "-mfpu=vfpv3-d16");
+            flags.push("-mfpu=vfpv3-d16");
             flags.push(hardFloat ? "-mhard-float" : "-mfloat-abi=softfp");
         }
 
@@ -102,7 +115,7 @@ function commonLinkerFlags(abi, hardFloat) {
     var flags = ["-no-canonical-prefixes", "-Wl,-z,noexecstack", "-Wl,-z,relro", "-Wl,-z,now"];
 
     if (abi === "armeabi-v7a") {
-        flags.push("-march=armv7-a", "-Wl,--fix-cortex-a8");
+        flags.push("-Wl,--fix-cortex-a8");
         if (hardFloat)
             flags.push("-Wl,-no-warn-mismatch");
     }

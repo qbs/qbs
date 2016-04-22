@@ -1,7 +1,7 @@
 import qbs
 
 Project {
-    property stringList architectures: ["arm64", "armv7", "x86_64", "mipsel"]
+    property stringList architectures: ["arm64", "armv7a", "x86_64", "mips"]
     StaticLibrary {
         architectures: project.architectures
         name: "native-glue"

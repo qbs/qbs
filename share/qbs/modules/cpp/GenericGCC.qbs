@@ -52,7 +52,16 @@ CppModule {
     Probes.GccProbe {
         id: gccProbe
         compilerFilePath: compilerPath
+        preferredArchitecture: targetArch
+        preferredMachineType: machineType
     }
+
+    // HACK: Preserve the original architecture set by the user if the probe fails on Android.
+    // The probe will always fail because the compiler path is set in the higher level module
+    // (which itself requires the architecture in order to determine) and thus creates a circular
+    // dependency. We could theoretically still enable the warning for clang (since the architecture
+    // is only part of the path for gcc) if the compiler path were visible from the cpp module here.
+    qbs.architecture: !qbs.targetOS.contains("android") ? gccProbe.architecture : original
 
     property string target: [targetArch, targetVendor, targetSystem, targetAbi].join("-")
     property string targetArch: qbs.architecture === "x86" ? "i386" : qbs.architecture
@@ -172,6 +181,47 @@ CppModule {
         var validator = new ModUtils.PropertyValidator("cpp");
         validator.setRequiredProperty("architecture", architecture,
                                       "you might want to re-run 'qbs-setup-toolchains'");
+        if (gccProbe.architecture) {
+            validator.addCustomValidator("architecture", architecture, function (value) {
+                return Utilities.canonicalArchitecture(architecture) === Utilities.canonicalArchitecture(gccProbe.architecture);
+            }, "'" + architecture + "' differs from the architecture produced by this compiler (" +
+            gccProbe.architecture +")");
+        } else {
+            // This is a warning and not an error on the rare chance some new architecture comes
+            // about which qbs does not know about the macros of. But it *might* still work.
+            // HACK: Ignore warning on Android. See note on qbs.architecture binding above.
+            if (architecture && !qbs.targetOS.contains("android"))
+                console.warn("Unknown architecture '" + architecture + "' " +
+                             "may not be supported by this compiler.");
+        }
+
+        var validateFlagsFunction = function (value) {
+            if (value) {
+                for (var i = 0; i < value.length; ++i) {
+                    if (["-target", "-triple", "-arch"].contains(value[i])
+                            || value[i].startsWith("-march="))
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        var msg = "'-target', '-triple', '-arch' and '-march' cannot appear in flags; set qbs.architecture instead";
+        validator.addCustomValidator("assemblerFlags", assemblerFlags, validateFlagsFunction, msg);
+        validator.addCustomValidator("cppFlags", cppFlags, validateFlagsFunction, msg);
+        validator.addCustomValidator("cFlags", cFlags, validateFlagsFunction, msg);
+        validator.addCustomValidator("cxxFlags", cxxFlags, validateFlagsFunction, msg);
+        validator.addCustomValidator("objcFlags", objcFlags, validateFlagsFunction, msg);
+        validator.addCustomValidator("objcxxFlags", objcxxFlags, validateFlagsFunction, msg);
+        validator.addCustomValidator("commonCompilerFlags", commonCompilerFlags, validateFlagsFunction, msg);
+        validator.addCustomValidator("platformAssemblerFlags", platformAssemblerFlags, validateFlagsFunction, msg);
+        //validator.addCustomValidator("platformCppFlags", platformCppFlags, validateFlagsFunction, msg);
+        validator.addCustomValidator("platformCFlags", platformCFlags, validateFlagsFunction, msg);
+        validator.addCustomValidator("platformCxxFlags", platformCxxFlags, validateFlagsFunction, msg);
+        validator.addCustomValidator("platformObjcFlags", platformObjcFlags, validateFlagsFunction, msg);
+        validator.addCustomValidator("platformObjcxxFlags", platformObjcxxFlags, validateFlagsFunction, msg);
+        validator.addCustomValidator("platformCommonCompilerFlags", platformCommonCompilerFlags, validateFlagsFunction, msg);
+
         validator.validate();
     }
 

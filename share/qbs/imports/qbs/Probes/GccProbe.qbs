@@ -35,14 +35,36 @@ import "../../../modules/cpp/gcc.js" as Gcc
 PathProbe {
     // Inputs
     property string compilerFilePath
+    property string preferredArchitecture
+    property string preferredMachineType
     property stringList flags: []
 
+    property bool _haveArchFlag: qbs.targetOS.contains("darwin")
     property string _nullDevice: qbs.nullDevice
+
+    // Outputs
+    property string architecture
 
     configure: {
         var args = flags;
+        if (_haveArchFlag) {
+            if (preferredArchitecture)
+                args.push("-arch", preferredArchitecture);
+        } else {
+            if (preferredArchitecture === "i386")
+                args.push("-m32");
+            else if (preferredArchitecture === "x86_64")
+                args.push("-m64");
+
+            if (preferredMachineType)
+                args.push("-march=" + preferredMachineType);
+        }
 
         var macros = Gcc.dumpMacros(compilerFilePath, args, _nullDevice);
         found = !!macros;
+
+        // We have to dump the compiler's macros; -dumpmachine is not suitable because it is not
+        // always complete (for example, the subarch is not included for arm architectures).
+        architecture = ModUtils.guessArchitecture(macros) || preferredArchitecture;
     }
 }

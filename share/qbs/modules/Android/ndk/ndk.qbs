@@ -183,7 +183,7 @@ Module {
 
     property string gdbserverFileName: "gdbserver"
 
-    property string armMode: abi.startsWith("armeabi")
+    property string armMode: abi && abi.startsWith("armeabi")
             ? (qbs.buildVariant === "debug" ? "arm" : "thumb")
             : undefined;
     PropertyOptions {
@@ -198,8 +198,19 @@ Module {
     cpp.toolchainPrefix: {
         if (qbs.toolchain && qbs.toolchain.contains("clang"))
             return undefined;
-        return [cpp.targetAbi === "androideabi" ? "arm" : cpp.targetArch,
-                                                  cpp.targetSystem, cpp.targetAbi].join("-") + "-";
+        var targetArch = cpp.targetArch;
+        if (cpp.targetAbi === "androideabi")
+            targetArch = "arm";
+        if (qbs.architecture === "mips" || qbs.architecture === "mips64")
+            targetArch += "el";
+        return [targetArch, cpp.targetSystem, cpp.targetAbi].join("-") + "-";
+    }
+
+    cpp.machineType: {
+        if (abi === "armeabi")
+            return "armv5te";
+        if (abi === "armeabi-v7a")
+            return "armv7-a";
     }
 
     qbs.optimization: cpp.targetAbi === "androideabi" ? "small" : base
