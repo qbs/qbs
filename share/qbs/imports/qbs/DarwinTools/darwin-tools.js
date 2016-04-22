@@ -260,19 +260,3 @@ function cleanPropertyList(plist) {
             cleanPropertyList(plist[key]);
     }
 }
-
-function _codeSignTimestampFlags(product) {
-    // If signingTimestamp is undefined, do not specify the flag at all -
-    // this uses the system-specific default behavior
-    var signingTimestamp = product.moduleProperty("xcode", "signingTimestamp");
-    if (signingTimestamp !== undefined) {
-        // If signingTimestamp is an empty string, specify the flag but do
-        // not specify a value - this uses a default Apple-provided server
-        var flag = "--timestamp";
-        if (signingTimestamp)
-            flag += "=" + signingTimestamp;
-        return [flag];
-    }
-
-    return [];
-}

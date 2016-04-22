@@ -2173,7 +2173,7 @@ void TestBlackbox::trackExternalProductChanges()
     const QStringList toolchainTypes = profileToolchain(profile);
     if (!toolchainTypes.contains("gcc"))
         QSKIP("Need GCC-like compiler to run this test");
-    params.environment = QProcessEnvironment::systemEnvironment();
+    params.environment = QbsRunParameters::defaultEnvironment();
     params.environment.insert("INCLUDE_PATH_TEST", "1");
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
@@ -6054,7 +6054,7 @@ void TestBlackbox::qbsSession()
     QJsonObject overriddenValues;
     overriddenValues.insert("products.theLib.cpp.cxxLanguageVersion", "c++17");
     resolveMessage.insert("overridden-properties", overriddenValues);
-    resolveMessage.insert("environment", envToJson(QProcessEnvironment::systemEnvironment()));
+    resolveMessage.insert("environment", envToJson(QbsRunParameters::defaultEnvironment()));
     resolveMessage.insert("data-mode", "only-if-changed");
     resolveMessage.insert("log-time", true);
     resolveMessage.insert("module-properties",

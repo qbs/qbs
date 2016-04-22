@@ -48,6 +48,7 @@ Probe {
     // Outputs
     property var architectureSettings
     property var availableSdks
+    property var platformSettings
     property string xcodeVersion
 
     configure: {
@@ -97,6 +98,8 @@ Probe {
         });
 
         availableSdks = Xcode.sdkInfoList(sdksPath);
+        var platformInfoPlist = FileInfo.joinPaths(platformPath, "Info.plist");
+        platformSettings = Xcode.platformInfo(platformInfoPlist);
         found = !!xcodeVersion;
     }
 }

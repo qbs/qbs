@@ -60,7 +60,14 @@ public:
         expectCrash = false;
         profile = profileName();
         settingsDir = settings()->baseDirectory();
-        environment = QProcessEnvironment::systemEnvironment();
+        environment = defaultEnvironment();
+    }
+
+    static QProcessEnvironment defaultEnvironment()
+    {
+        auto result = QProcessEnvironment::systemEnvironment();
+        result.insert(QStringLiteral("QBS_AUTOTEST_CODE_SIGNING_REQUIRED"), QStringLiteral("0"));
+        return result;
     }
 
     QString command;

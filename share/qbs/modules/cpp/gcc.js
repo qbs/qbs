@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var Codesign = require("../codesign/codesign.js");
 var Cpp = require("cpp.js");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
@@ -1384,28 +1385,8 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         }
     }
 
-    if (product.xcode && product.bundle) {
-        var actualSigningIdentity = product.xcode.actualSigningIdentity;
-        var codesignDisplayName = product.xcode.actualSigningIdentityDisplayName;
-        if (actualSigningIdentity && !product.bundle.isBundle) {
-            args = product.xcode.codesignFlags || [];
-            args.push("--force");
-            args.push("--sign", actualSigningIdentity);
-            args = args.concat(DarwinTools._codeSignTimestampFlags(product));
-
-            for (var j in inputs.xcent) {
-                args.push("--entitlements", inputs.xcent[j].filePath);
-                break; // there should only be one
-            }
-            args.push(primaryOutput.filePath);
-            cmd = new Command(product.xcode.codesignPath, args);
-            cmd.description = "codesign "
-                    + primaryOutput.fileName
-                    + " using " + codesignDisplayName
-                    + " (" + actualSigningIdentity + ")";
-            commands.push(cmd);
-        }
-    }
+    Array.prototype.push.apply(
+                commands, Codesign.prepareSign(project, product, inputs, outputs, input, output));
 
     return commands;
 }

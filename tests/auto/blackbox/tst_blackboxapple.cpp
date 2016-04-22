@@ -140,6 +140,39 @@ static QString findFatLibrary(const QString &dir, const QString &libraryName)
     return {};
 }
 
+enum class CodeSignResult { Failed = 0, Signed, Unsigned };
+using CodeSignData = QMap<QByteArray, QByteArray>;
+static std::pair<CodeSignResult, CodeSignData> parseCodeSignOutput(const QByteArray &output)
+{
+    CodeSignData data;
+    if (output.contains("code object is not signed at all"))
+        return {CodeSignResult::Unsigned, data};
+    const auto lines = output.split('\n');
+    for (const auto &line: lines) {
+        if (line.isEmpty()
+                || line.startsWith("CodeDirectory")
+                || line.startsWith("Sealed Resources")
+                || line.startsWith("Internal requirements")) {
+            continue;
+        }
+        const int index = line.indexOf('=');
+        if (index == -1)
+            return {CodeSignResult::Failed, {}};
+        data[line.mid(0, index)] = line.mid(index + 1);
+    }
+    return {CodeSignResult::Signed, data};
+}
+
+static std::pair<CodeSignResult, CodeSignData> getCodeSignInfo(const QString &path)
+{
+    QProcess codesign;
+    codesign.start("codesign", { QStringLiteral("-dv"), path });
+    if (!codesign.waitForStarted() || !codesign.waitForFinished())
+        return {CodeSignResult::Failed, {}};
+    const auto output = codesign.readAllStandardError();
+    return parseCodeSignOutput(output);
+}
+
 TestBlackboxApple::TestBlackboxApple()
     : TestBlackboxBase (SRCDIR "/testdata-apple", "blackbox-apple")
 {
@@ -678,6 +711,72 @@ void TestBlackboxApple::bundleStructure_data()
     QTest::newRow("E") << "E" << "com.apple.product-type.app-extension";
     QTest::newRow("F") << "F" << "com.apple.product-type.xpc-service";
     QTest::newRow("G") << "G" << "com.apple.product-type.in-app-purchase-content";
+}
+
+void TestBlackboxApple::codesign()
+{
+    QFETCH(bool, isBundle);
+    QFETCH(bool, enableSigning);
+
+    QDir::setCurrent(testDataDir + "/codesign");
+    QbsRunParameters params(QStringList{"qbs.installPrefix:''"});
+    params.arguments
+            << QStringLiteral("project.isBundle:%1").arg(isBundle ? "true" : "false");
+    params.arguments
+            << QStringLiteral("project.enableSigning:%1").arg(enableSigning ? "true" : "false");
+
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+
+    const auto appName = isBundle ? QStringLiteral("A.app") : QStringLiteral("A");
+    const auto appPath = defaultInstallRoot + "/" + appName;
+    QVERIFY(QFileInfo(appPath).exists());
+    auto codeSignInfo = getCodeSignInfo(appPath);
+    QVERIFY(codeSignInfo.first != CodeSignResult::Failed);
+    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, enableSigning);
+    QCOMPARE(codeSignInfo.second.isEmpty(), !enableSigning);
+    if (!codeSignInfo.second.isEmpty()) {
+        QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Executable")));
+        QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
+        QCOMPARE(codeSignInfo.second.value(QByteArrayLiteral("Signature")), "adhoc");
+    }
+
+    const auto libName = isBundle ? QStringLiteral("B.framework") : QStringLiteral("libB.dylib");
+    const auto libPath = defaultInstallRoot + "/" + libName;
+    QVERIFY(QFileInfo(libPath).exists());
+    codeSignInfo = getCodeSignInfo(libPath);
+    QVERIFY(codeSignInfo.first != CodeSignResult::Failed);
+    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, enableSigning);
+    QCOMPARE(codeSignInfo.second.isEmpty(), !enableSigning);
+    if (!codeSignInfo.second.isEmpty()) {
+        QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Executable")));
+        QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
+        QCOMPARE(codeSignInfo.second.value(QByteArrayLiteral("Signature")), "adhoc");
+    }
+
+    const auto pluginPath = defaultInstallRoot + "/" + QStringLiteral("C.bundle");
+    QVERIFY(QFileInfo(pluginPath).exists());
+    QVERIFY(QFileInfo(pluginPath).isDir() == isBundle);
+    codeSignInfo = getCodeSignInfo(pluginPath);
+    QVERIFY(codeSignInfo.first != CodeSignResult::Failed);
+    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, enableSigning);
+    QCOMPARE(codeSignInfo.second.isEmpty(), !enableSigning);
+    if (!codeSignInfo.second.isEmpty()) {
+        QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Executable")));
+        QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
+        QCOMPARE(codeSignInfo.second.value(QByteArrayLiteral("Signature")), "adhoc");
+    }
+}
+
+void TestBlackboxApple::codesign_data()
+{
+    QTest::addColumn<bool>("isBundle");
+    QTest::addColumn<bool>("enableSigning");
+
+    QTest::newRow("bundle, unsigned") << true << false;
+    QTest::newRow("standalone, unsigned") << false << false;
+    QTest::newRow("bundle, signed") << true << true;
+    QTest::newRow("standalone, signed") << false << true;
 }
 
 void TestBlackboxApple::deploymentTarget()

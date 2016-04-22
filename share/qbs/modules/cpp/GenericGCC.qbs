@@ -44,6 +44,8 @@ CppModule {
     condition: qbs.toolchain && qbs.toolchain.contains("gcc")
     priority: -100
 
+    Depends { name: "codesign" }
+
     Probes.GccBinaryProbe {
         id: compilerPathProbe
         condition: !toolchainInstallPath && !_skipAllChecks
@@ -400,12 +402,15 @@ CppModule {
             "bundle.input",
             "dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_symbols", "debuginfo_dll",
             "debuginfo_bundle","dynamiclibrary_import", "debuginfo_plist",
+            "codesign.signed_artifact",
         ]
         outputArtifacts: {
             var artifacts = [{
                 filePath: product.destinationDirectory + "/"
                           + PathTools.dynamicLibraryFilePath(product),
-                fileTags: ["bundle.input", "dynamiclibrary"],
+                fileTags: ["bundle.input", "dynamiclibrary"]
+                        .concat(product.codesign.enableCodeSigning
+                                ? ["codesign.signed_artifact"] : []),
                 bundle: {
                     _bundleFilePath: product.destinationDirectory + "/"
                                      + PathTools.bundleExecutableFilePath(product)
@@ -510,12 +515,14 @@ CppModule {
         inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
 
         outputFileTags: ["bundle.input", "loadablemodule", "debuginfo_loadablemodule",
-                         "debuginfo_bundle","debuginfo_plist"]
+                         "debuginfo_bundle", "debuginfo_plist", "codesign.signed_artifact"]
         outputArtifacts: {
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
                                              PathTools.loadableModuleFilePath(product)),
-                fileTags: ["bundle.input", "loadablemodule"],
+                fileTags: ["bundle.input", "loadablemodule"]
+                        .concat(product.codesign.enableCodeSigning
+                                ? ["codesign.signed_artifact"] : []),
                 bundle: {
                     _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
                                                         PathTools.bundleExecutableFilePath(product))
@@ -547,13 +554,14 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
 
-        outputFileTags: ["bundle.input", "application", "debuginfo_app","debuginfo_bundle",
-                         "debuginfo_plist", "mem_map"]
+        outputFileTags: ["bundle.input", "application", "debuginfo_app", "debuginfo_bundle",
+                         "debuginfo_plist", "mem_map", "codesign.signed_artifact"]
         outputArtifacts: {
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
                                              PathTools.applicationFilePath(product)),
-                fileTags: ["bundle.input", "application"],
+                fileTags: ["bundle.input", "application"].concat(
+                    product.codesign.enableCodeSigning ? ["codesign.signed_artifact"] : []),
                 bundle: {
                     _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
                                                         PathTools.bundleExecutableFilePath(product))

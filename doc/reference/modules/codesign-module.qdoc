@@ -1,0 +1,246 @@
+/****************************************************************************
+**
+** Copyright (C) 2018 The Qt Company Ltd.
+** Copyright (C) 2021 Ivan Komissarov (abbapoh@gmail.com)
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \qmltype codesign
+    \inqmlmodule QbsModules
+    \since Qbs 1.19
+
+    \brief Provides code signing support.
+
+    The \c codesign module contains properties and rules for code signing on Apple platforms.
+
+    \section2 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"codesign.entitlements"}
+        \li \c{*.entitlements}
+        \li 1.19.0
+        \li \l{https://developer.apple.com/documentation/bundleresources/entitlements}{Xcode entitlements}
+    \row
+        \li \c{"codesign.provisioningprofile"}
+        \li \c{*.mobileprovision, *.provisionprofile}
+        \li 1.19.0
+        \li Xcode provisioning profiles
+    \row
+        \li \c{"codesign.signed_artifact"}
+        \li n/a
+        \li 1.19.0
+        \li This tag is attached to all signed artifacts such as applications or libraries
+    \endtable
+*/
+
+/*!
+    \qmlproperty string codesign::codesignFlags
+
+    Additional flags passed to the \c{codesign} tool.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c{undefined}
+
+    \appleproperty
+*/
+
+/*!
+    \qmlproperty string codesign::codesignName
+
+    The name of the \c{codesign} binary.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c{"codesign"}
+
+    \appleproperty
+*/
+
+/*!
+    \qmlproperty string codesign::codesignPath
+
+    Path to the \c{codesign} tool.
+
+    \since Qbs 1.19
+
+    \defaultvalue Determined automatically
+
+    \appleproperty
+*/
+
+/*!
+    \qmlproperty bool codesign::enableCodeSigning
+
+    Whether to actually perform code signing.
+
+    \since Qbs 1.19
+    \defaultvalue \c false
+*/
+
+/*!
+    \qmlproperty string codesign::provisioningProfile
+
+    Name or UUID of the provisioning profile to embed in the product.
+    Typically this should be left blank to allow \QBS to use automatic provisioning.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c undefined
+
+    \appleproperty
+*/
+
+/*!
+    \qmlproperty path codesign::provisioningProfilesPath
+
+    Path to directory containing provisioning profiles installed on the system.
+    This should not normally need to be changed.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c{"~/Library/MobileDevice/Provisioning Profiles"}
+
+    \appleproperty
+*/
+
+/*!
+    \qmlproperty string codesign::signingIdentity
+
+    Search string used to find the certificate to sign the product. This does not have to be
+    a full certificate name like "Mac Developer: John Doe (XXXXXXXXXX)", and can instead be
+    a partial string like "Mac Developer" or the certificate's SHA1 fingerprint.
+    The search string should generally be one of the following:
+    \list
+        \li 3rd Party Mac Developer Application
+        \li 3rd Party Mac Developer Installer
+        \li Developer ID Application
+        \li Developer ID Installer
+        \li iPhone Developer
+        \li iPhone Distribution
+        \li Mac Developer
+    \endlist
+
+    It is also possible to use the special \c "-" value to use the ad-hoc signing.
+
+    See \l{https://developer.apple.com/library/mac/documentation/IDEs/Conceptual/AppDistributionGuide/MaintainingCertificates/MaintainingCertificates.html#//apple_ref/doc/uid/TP40012582-CH31-SW41}{Maintaining Your Signing Identities and Certificates}
+    for complete documentation on the existing certificate types.
+    In general you should use \l{codesign::signingType}{signingType} instead.
+
+    \since Qbs 1.19
+
+    \defaultvalue Determined by \l{codesign::signingType}{signingType}
+
+    \appleproperty
+*/
+
+/*!
+    \qmlproperty string codesign::signingTimestamp
+
+    URL of the timestamp authority server to be contacted to authenticate code signing.
+    \c{undefined} indicates that a system-specific default should be used, and the empty
+    string indicates the default server provided by Apple. \c{"none"} explicitly disables
+    the use of timestamp services and this should not usually need to be changed.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c{"none"}
+
+    \appleproperty
+*/
+
+/*!
+    \qmlproperty string codesign::signingType
+
+    Type of code signing to use. This should generally be used in preference to an explicit
+    signing identity like "Mac Developer: John Doe (XXXXXXXXXX)" since it is not user
+    specific and can be set in a project file.
+    Possible values include: \c{"app-store"}, \c{"apple-id"}, \c{"ad-hoc"}, which sign for
+    the App Store or Mac App Store, Developer ID, and Ad-hoc code signing, respectively.
+
+    \section1 Relation between the signingType and signingIdentity
+
+    The following table shows how the signingIdentity's default value is calculated.
+
+    \table
+    \header
+        \li \c qbs.targetOS
+        \li \c codesign.signingType
+        \li \c qbs.buildVariant
+        \li \c codesign.signingIdentity
+    \row
+        \li {1, 4} \c "macos"
+        \li \c "ad-hoc"
+        \li any
+        \li \c "-"
+    \row
+        \li {1, 2} \c "app-store"
+        \li \c "debug", \c "profiling"
+        \li \c "Mac Developer"
+    \row
+        \li \c "release"
+        \li \c "3rd Party Mac Developer Application"
+    \row
+        \li \c "apple-id"
+        \li any
+        \li \c "Developer ID Application"
+    \row
+        \li {1, 2} \c "ios", \c "tvos", \c "watchos"
+        \li {1, 2} \c "app-store"
+        \li \c "debug", \c "profiling"
+        \li \c "iPhone Developer"
+    \row
+        \li \c "release"
+        \li \c "iPhone Distribution"
+    \endtable
+
+    \since Qbs 1.19
+
+    \defaultvalue Determined automatically
+
+    \appleproperty
+*/
+
+/*!
+    \qmlproperty string codesign::teamIdentifier
+
+    Human readable name or 10-digit identifier of the Apple development team that the
+    signing identity belongs to. This is used to disambiguate between multiple certificates
+    of the same type in different teams. Typically this can be left blank if the development
+    machine is only signed in to a single development team, and should be set in a profile
+    otherwise.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c undefined
+
+    \appleproperty
+*/

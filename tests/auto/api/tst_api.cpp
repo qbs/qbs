@@ -2507,7 +2507,9 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &proje
     }
 
     qbs::SetupProjectParameters setupParams;
-    setupParams.setEnvironment(QProcessEnvironment::systemEnvironment());
+    auto environment = QProcessEnvironment::systemEnvironment();
+    environment.insert("QBS_AUTOTEST_CODE_SIGNING_REQUIRED", "0");
+    setupParams.setEnvironment(environment);
     setupParams.setProjectFilePath(projectFilePath);
     setupParams.setPropertyCheckingMode(qbs::ErrorHandlingMode::Strict);
     setupParams.setOverrideBuildGraphData(true);

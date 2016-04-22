@@ -93,6 +93,16 @@ var XcodeArchSpecsReader = (function () {
     return XcodeArchSpecsReader;
 }());
 
+function platformInfo(platformInfoPlist) {
+    var propertyList = new PropertyList();
+    try {
+        propertyList.readFromFile(platformInfoPlist);
+        return propertyList.toObject();
+    } finally {
+        propertyList.clear();
+    }
+}
+
 function sdkInfoList(sdksPath) {
     var sdkInfo = [];
     var sdks = File.directoryEntries(sdksPath, File.Dirs | File.NoDotAndDotDot);
@@ -179,6 +189,17 @@ function provisioningProfilePlistContents(filePath) {
     } finally {
         plist.clear();
     }
+}
+
+function boolFromSdkOrPlatform(varName, sdkProps, platformProps, defaultValue) {
+    var values = [(sdkProps || {})[varName], (platformProps || {})[varName]];
+    for (var i = 0; i < values.length; ++i) {
+        if (values[i] === "YES")
+            return true;
+        if (values[i] === "NO")
+            return false;
+    }
+    return defaultValue;
 }
 
 function archsSpecsPath(version, targetOS, platformType, platformPath, devicePlatformPath) {

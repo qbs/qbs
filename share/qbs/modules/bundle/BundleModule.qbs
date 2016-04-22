@@ -38,9 +38,11 @@ import qbs.PropertyList
 import qbs.TextFile
 import qbs.Utilities
 import "bundle.js" as Bundle
+import "../codesign/codesign.js" as Codesign
 
 Module {
     Depends { name: "xcode"; required: false; }
+    Depends { name: "codesign"; required: false; }
 
     Probe {
         id: bundleSettingsProbe
@@ -510,9 +512,9 @@ Module {
         multiplex: true
         inputs: ["bundle.input",
                  "aggregate_infoplist", "pkginfo", "hpp",
-                 "icns", "xcent",
+                 "icns", "codesign.xcent",
                  "compiled_ibdoc", "compiled_assetcatalog",
-                 "xcode.provisioningprofile.main"]
+                 "codesign.embedded_provisioningprofile"]
 
         // Make sure the inputs of this rule are only those rules which produce outputs compatible
         // with the type of the bundle being produced.
@@ -540,13 +542,13 @@ Module {
                     });
                 }
 
-                for (i in inputs["xcode.provisioningprofile.main"]) {
-                    var ext = inputs["xcode.provisioningprofile.main"][i].fileName.split('.')[1];
+                var provprofiles = inputs["codesign.embedded_provisioningprofile"];
+                for (i in provprofiles) {
                     artifacts.push({
                         filePath: FileInfo.joinPaths(product.destinationDirectory,
                                                      ModUtils.moduleProperty(product,
                                                                              "contentsFolderPath"),
-                                                     "embedded." + ext),
+                                                     provprofiles[i].fileName),
                         fileTags: ["bundle.provisioningprofile", "bundle.content"]
                     });
                 }
@@ -613,8 +615,8 @@ Module {
                 for (var i = 0; i < artifacts.length; ++i)
                     artifacts[i].bundle = { wrapperPath: wrapperPath };
 
-                if (product.qbs.hostOS.contains("darwin") && product.xcode
-                        && product.xcode.signingIdentity) {
+                if (product.qbs.hostOS.contains("darwin") && product.codesign
+                        && product.codesign.enableCodeSigning) {
                     artifacts.push({
                         filePath: FileInfo.joinPaths(product.bundle.contentsFolderPath, "_CodeSignature/CodeResources"),
                         fileTags: ["bundle.code-signature", "bundle.content"]
@@ -706,18 +708,21 @@ Module {
                 commands.push(cmd);
             }
 
-            var provisioningProfiles = outputs["bundle.provisioningprofile"];
-            for (i in provisioningProfiles) {
-                cmd = new JavaScriptCommand();
-                cmd.description = "copying provisioning profile";
-                cmd.highlight = "filegen";
-                cmd.source = inputs["xcode.provisioningprofile.main"][i].filePath;
-                cmd.destination = provisioningProfiles[i].filePath;
-                cmd.sourceCode = function() {
-                    File.copy(source, destination);
-                };
+            cmd = new JavaScriptCommand();
+            cmd.description = "copying provisioning profile";
+            cmd.highlight = "filegen";
+            cmd.sources = (inputs["codesign.embedded_provisioningprofile"] || [])
+                .map(function(artifact) { return artifact.filePath; });
+            cmd.destination = (outputs["bundle.provisioningprofile"] || [])
+                .map(function(artifact) { return artifact.filePath; });
+            cmd.sourceCode = function() {
+                var i;
+                for (var i in sources) {
+                    File.copy(sources[i], destination[i]);
+                }
+            };
+            if (cmd.sources && cmd.sources.length)
                 commands.push(cmd);
-            }
 
             cmd = new JavaScriptCommand();
             cmd.description = "copying public headers";
@@ -762,34 +767,8 @@ Module {
                 commands.push(cmd);
 
             if (product.moduleProperty("qbs", "hostOS").contains("darwin")) {
-                var actualSigningIdentity = product.moduleProperty("xcode", "actualSigningIdentity");
-                var codesignDisplayName = product.moduleProperty("xcode", "actualSigningIdentityDisplayName");
-                if (actualSigningIdentity) {
-                    var args = product.moduleProperty("xcode", "codesignFlags") || [];
-                    args.push("--force");
-                    args.push("--sign", actualSigningIdentity);
-                    args = args.concat(DarwinTools._codeSignTimestampFlags(product));
-
-                    for (var j in inputs.xcent) {
-                        args.push("--entitlements", inputs.xcent[j].filePath);
-                        break; // there should only be one
-                    }
-
-                    // If this is a framework, we need to sign its versioned directory
-                    if (bundleType === "framework") {
-                        args.push(product.bundle.contentsFolderPath);
-                    } else {
-                        args.push(product.bundle.bundleName);
-                    }
-
-                    cmd = new Command(product.moduleProperty("xcode", "codesignPath"), args);
-                    cmd.workingDirectory = product.destinationDirectory;
-                    cmd.description = "codesign "
-                            + ModUtils.moduleProperty(product, "bundleName")
-                            + " using " + codesignDisplayName
-                            + " (" + actualSigningIdentity + ")";
-                    commands.push(cmd);
-                }
+                Array.prototype.push.apply(commands, Codesign.prepareSign(
+                                               project, product, inputs, outputs, input, output));
 
                 if (bundleType === "application"
                         && product.moduleProperty("qbs", "targetOS").contains("macos")) {
