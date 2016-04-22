@@ -92,56 +92,6 @@ static QByteArray runProcess(const QString &exeFilePath, const QStringList &args
     return process.readAllStandardOutput().trimmed();
 }
 
-static Version getGccVersion(const QString &compilerFilePath, const QStringList &qbsToolchain)
-{
-    QByteArray majorKey;
-    QByteArray minorKey;
-    QByteArray patchKey;
-    if (qbsToolchain.contains(QLatin1String("clang"))) {
-        majorKey = "__clang_major__";
-        minorKey = "__clang_minor__";
-        patchKey = "__clang_patchlevel__";
-    } else {
-        majorKey = "__GNUC__";
-        minorKey = "__GNUC_MINOR__";
-        patchKey = "__GNUC_PATCHLEVEL__";
-    }
-    QTemporaryFile dummyFile;
-    if (!dummyFile.open())
-        throw ErrorInfo(mkStr("Could not create temporary file (%1)").arg(dummyFile.errorString()));
-    dummyFile.close();
-    const QStringList compilerArgs = QStringList() << QLatin1String("-E") << QLatin1String("-dM")
-                                                   << QLatin1String("-x") << QLatin1String("c")
-                                                   << QLatin1String("-c") << dummyFile.fileName();
-    const QByteArray compilerOutput = runProcess(compilerFilePath, compilerArgs);
-    if (compilerOutput.isEmpty())
-        throw ErrorInfo(mkStr("Could not extract version from compiler output."));
-    const QList<QByteArray> lines = compilerOutput.split('\n');
-    QList<QByteArray> keyParts = QList<QByteArray>() << majorKey << minorKey << patchKey;
-    QStringList versionParts = QStringList() << QString() << QString() << QString();
-    int partsFound = 0;
-    foreach (const QByteArray &line, lines) {
-        for (int i = 0; i < keyParts.count() && partsFound < keyParts.count(); ++i) {
-            QString &versionPart = versionParts[i];
-            if (!versionPart.isEmpty())
-                continue;
-            const QByteArray cleanLine = line.simplified();
-            const QByteArray keyPart = "#define " + keyParts.at(i) + ' ';
-            if (!cleanLine.startsWith(keyPart))
-                continue;
-            versionPart = QString::fromLatin1(cleanLine.mid(keyPart.count()));
-            ++partsFound;
-        }
-    }
-    if (partsFound < keyParts.count())
-        throw ErrorInfo(mkStr("Failed to extract version from compiler output."));
-    const Version version = Version::fromString(versionParts.at(0) + QLatin1Char('.')
-            + versionParts.at(1)  + QLatin1Char('.') + versionParts.at(2));
-    if (!version.isValid())
-        throw ErrorInfo(mkStr("Failed to extract version from compiler output."));
-    return version;
-}
-
 class DummyFile {
 public:
     DummyFile(const QString &fp) : filePath(fp) { }
@@ -205,15 +155,13 @@ void setCompilerVersion(const QString &compilerFilePath, const QStringList &qbsT
                         Profile &profile, const QProcessEnvironment &compilerEnv)
 {
     try {
-        Version version;
-        if (qbsToolchain.contains(QLatin1String("gcc")))
-            version = getGccVersion(compilerFilePath, qbsToolchain);
-        else if (qbsToolchain.contains(QLatin1String("msvc")))
-            version = getMsvcVersion(compilerFilePath, compilerEnv);
-        if (version.isValid()) {
-            profile.setValue(QLatin1String("cpp.compilerVersionMajor"), version.majorVersion());
-            profile.setValue(QLatin1String("cpp.compilerVersionMinor"), version.minorVersion());
-            profile.setValue(QLatin1String("cpp.compilerVersionPatch"), version.patchLevel());
+        if (qbsToolchain.contains(QLatin1String("msvc"))) {
+            const Version version = getMsvcVersion(compilerFilePath, compilerEnv);
+            if (version.isValid()) {
+                profile.setValue(QLatin1String("cpp.compilerVersionMajor"), version.majorVersion());
+                profile.setValue(QLatin1String("cpp.compilerVersionMinor"), version.minorVersion());
+                profile.setValue(QLatin1String("cpp.compilerVersionPatch"), version.patchLevel());
+            }
         }
     } catch (const ErrorInfo &e) {
         qDebug("Warning: Failed to retrieve compiler version: %s", qPrintable(e.toString()));

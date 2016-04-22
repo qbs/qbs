@@ -58,6 +58,10 @@ CppModule {
 
     qbs.architecture: gccProbe.found ? gccProbe.architecture : original
 
+    compilerVersionMajor: gccProbe.versionMajor
+    compilerVersionMinor: gccProbe.versionMinor
+    compilerVersionPatch: gccProbe.versionPatch
+
     property string target: [targetArch, targetVendor, targetSystem, targetAbi].join("-")
     property string targetArch: qbs.architecture === "x86" ? "i386" : qbs.architecture
     property string targetVendor: "unknown"
@@ -214,6 +218,15 @@ CppModule {
         validator.addCustomValidator("platformObjcFlags", platformObjcFlags, validateFlagsFunction, msg);
         validator.addCustomValidator("platformObjcxxFlags", platformObjcxxFlags, validateFlagsFunction, msg);
         validator.addCustomValidator("platformCommonCompilerFlags", platformCommonCompilerFlags, validateFlagsFunction, msg);
+
+        validator.setRequiredProperty("compilerVersion", compilerVersion);
+        validator.setRequiredProperty("compilerVersionMajor", compilerVersionMajor);
+        validator.setRequiredProperty("compilerVersionMinor", compilerVersionMinor);
+        validator.setRequiredProperty("compilerVersionPatch", compilerVersionPatch);
+        validator.addVersionValidator("compilerVersion", compilerVersion, 3, 3);
+        validator.addRangeValidator("compilerVersionMajor", compilerVersionMajor, 1);
+        validator.addRangeValidator("compilerVersionMinor", compilerVersionMinor, 0);
+        validator.addRangeValidator("compilerVersionPatch", compilerVersionPatch, 0);
 
         validator.validate();
     }

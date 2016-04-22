@@ -34,6 +34,8 @@ import qbs.Utilities
 
 Module {
     condition: false
+    property string compilerVersion:
+        [compilerVersionMajor, compilerVersionMinor, compilerVersionPatch].join(".")
     property int compilerVersionMajor
     property int compilerVersionMinor
     property int compilerVersionPatch

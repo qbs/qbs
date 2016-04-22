@@ -41,9 +41,13 @@ PathProbe {
 
     property bool _haveArchFlag: qbs.targetOS.contains("darwin")
     property string _nullDevice: qbs.nullDevice
+    property string _toolchain: qbs.toolchain
 
     // Outputs
     property string architecture
+    property int versionMajor
+    property int versionMinor
+    property int versionPatch
 
     configure: {
         var args = flags;
@@ -66,5 +70,15 @@ PathProbe {
         // We have to dump the compiler's macros; -dumpmachine is not suitable because it is not
         // always complete (for example, the subarch is not included for arm architectures).
         architecture = ModUtils.guessArchitecture(macros) || preferredArchitecture;
+
+        if (_toolchain.contains("clang")) {
+            versionMajor = macros["__clang_major__"];
+            versionMinor = macros["__clang_minor__"];
+            versionPatch = macros["__clang_patchlevel__"];
+        } else {
+            versionMajor = macros["__GNUC__"];
+            versionMinor = macros["__GNUC_MINOR__"];
+            versionPatch = macros["__GNUC_PATCHLEVEL__"];
+        }
     }
 }
