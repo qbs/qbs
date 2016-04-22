@@ -33,6 +33,7 @@ import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.PathTools
+import qbs.Probes
 import qbs.Process
 import qbs.Utilities
 import qbs.UnixUtils
@@ -46,6 +47,11 @@ CppModule {
         if (cxxLanguageVersion && qbs.toolchain.contains("clang")) {
             return cxxLanguageVersion !== "c++98" ? "libc++" : "libstdc++";
         }
+    }
+
+    Probes.GccProbe {
+        id: gccProbe
+        compilerFilePath: compilerPath
     }
 
     property string target: [targetArch, targetVendor, targetSystem, targetAbi].join("-")

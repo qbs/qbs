@@ -891,3 +891,18 @@ function debugInfoArtifacts(product) {
 function isNumericProductVersion(version) {
     return version && version.match(/^([0-9]+\.){0,3}[0-9]+$/);
 }
+
+function dumpMacros(compilerFilePath, args, nullDevice) {
+    var p = new Process();
+    try {
+        p.exec(compilerFilePath, (args || []).concat(["-dM", "-E", "-x", "c", nullDevice]));
+        var map = {};
+        p.readStdOut().trim().split("\n").map(function (line) {
+            var parts = line.split(" ", 3);
+            map[parts[1]] = parts[2];
+        });
+        return map;
+    } finally {
+        p.close();
+    }
+}
