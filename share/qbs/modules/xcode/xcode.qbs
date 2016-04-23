@@ -144,7 +144,7 @@ Module {
         }
 
         if (!_sdkSettings) {
-            throw "There is no matching SDK available for ' + sdk + '.";
+            throw "There is no matching SDK available for " + sdk + ".";
         }
 
         var validator = new ModUtils.PropertyValidator("xcode");
