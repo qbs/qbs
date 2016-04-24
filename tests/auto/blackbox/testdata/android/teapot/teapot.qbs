@@ -62,7 +62,7 @@ Project {
 
         Group {
             name: "C++ sources"
-            prefix: Android.ndk.ndkDir + "/samples/Teapot/jni/"
+            prefix: Android.ndk.ndkDir + "/samples/Teapot/app/src/main/jni/"
             files: [
                 "TeapotNativeActivity.cpp",
                 "TeapotRenderer.cpp",
@@ -80,8 +80,7 @@ Project {
 
     AndroidApk {
         name: "com.sample.teapot"
-        sourceSetDir: Android.sdk.ndkDir + "/samples/Teapot"
-        legacyLayout: true
+        sourceSetDir: Android.sdk.ndkDir + "/samples/Teapot/app/src/main"
         Depends { productTypes: ["android.nativelibrary"] }
     }
 }
