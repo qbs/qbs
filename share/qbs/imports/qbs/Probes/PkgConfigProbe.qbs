@@ -44,6 +44,7 @@ Probe {
     // Output
     property stringList cflags
     property stringList libs
+    property string modversion
 
     configure: {
         if (!name)
@@ -81,9 +82,12 @@ Probe {
                         libs = undefined;
                     else
                         libs = libs.split(/\s/);
-                    found = true;
-                    console.info("PkgConfigProbe: found library " + name);
-                    return;
+                    if (p.exec(executable, args.concat([ '--modversion' ])) === 0) {
+                        modversion = p.readStdOut().trim();
+                        found = true;
+                        console.info("PkgConfigProbe: found library " + name);
+                        return;
+                    }
                 }
             }
             found = false;
