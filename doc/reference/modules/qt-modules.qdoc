@@ -373,6 +373,31 @@
         \li The base name of the \c uic tool. Set this if your system uses a name such as "uic-qt4".
     \endtable
 
+    \section1 dbus Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li xml2cppName
+        \li \c{string}
+        \li \c{"qdbusxml2cpp"}
+        \li The base name of the \c qdbusxml2cpp tool. Set this if your system uses a different name.
+    \row
+        \li xml2CppHeaderFlags
+        \li \c{stringList}
+        \li empty list
+        \li Additional flags when running the \c qdbusxml2cpp tool to create header files.
+    \row
+        \li xml2CppSourceFlags
+        \li \c{stringList}
+        \li empty list
+        \li Additional flags when running the \c qdbusxml2cpp tool to create source files.
+    \endtable
+
     \section1 quick Properties
 
     \table

@@ -1138,6 +1138,18 @@ void TestBlackbox::conflictingArtifacts()
     QVERIFY2(m_qbsStderr.contains("Conflicting artifacts"), m_qbsStderr.constData());
 }
 
+void TestBlackbox::dbusAdaptors()
+{
+    QDir::setCurrent(testDataDir + "/dbus-adaptors");
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::dbusInterfaces()
+{
+    QDir::setCurrent(testDataDir + "/dbus-interfaces");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::renameDependency()
 {
     QDir::setCurrent(testDataDir + "/renameDependency");

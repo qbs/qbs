@@ -9,5 +9,7 @@
         <file>templates/plugin.qbs</file>
         <file>templates/qdoc.js</file>
         <file>templates/QtPlugin.qbs</file>
+        <file>templates/dbus.js</file>
+        <file>templates/dbus.qbs</file>
     </qresource>
 </RCC>
