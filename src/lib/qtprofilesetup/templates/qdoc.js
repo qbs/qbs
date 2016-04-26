@@ -43,8 +43,9 @@ function qdocArgs(product, input, outputDir) {
     return args;
 }
 
+var _qdocDefaultFileTag = "qdoc-output";
 function qdocFileTaggers() {
-    var t = "qdoc-output";
+    var t = _qdocDefaultFileTag;
     return {
         ".qhp": [t, "qhp"],
         ".qhp.sha1": [t, "qhp-sha1"],
@@ -59,6 +60,7 @@ function outputArtifacts(product, input) {
     var tracker = new ModUtils.BlackboxOutputArtifactTracker();
     tracker.hostOS = product.moduleProperty("qbs", "hostOS");
     tracker.shellPath = product.moduleProperty("qbs", "shellPath");
+    tracker.defaultFileTags = [_qdocDefaultFileTag];
     tracker.fileTaggers = qdocFileTaggers();
     tracker.command = FileInfo.joinPaths(ModUtils.moduleProperty(product, "binPath"),
                                          ModUtils.moduleProperty(product, "qdocName"));

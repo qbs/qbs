@@ -412,7 +412,7 @@ var BlackboxOutputArtifactTracker = (function () {
             if (this.fileTaggers) {
                 var files = this.findFiles(fakeOutputDirectory.path());
                 for (var i = 0; i < files.length; ++i)
-                    artifacts.push(this.createArtifact(files[i]));
+                    artifacts.push(this.createArtifact(fakeOutputDirectory.path(), files[i]));
             }
             if (this.processStdOutFunction)
                 artifacts = artifacts.concat(this.processStdOutFunction(process.readStdOut()));
@@ -426,7 +426,7 @@ var BlackboxOutputArtifactTracker = (function () {
                 fakeOutputDirectory.remove();
         }
     };
-    BlackboxOutputArtifactTracker.prototype.createArtifact = function (filePath) {
+    BlackboxOutputArtifactTracker.prototype.createArtifact = function (root, filePath) {
         for (var ext in this.fileTaggers) {
             if (filePath.endsWith(ext)) {
                 return {
@@ -435,11 +435,18 @@ var BlackboxOutputArtifactTracker = (function () {
                 };
             }
         }
-        if (!this.allowUntaggedFiles)
-            throw "could not tag file " + filePath;
+        if (!this.defaultFileTags) {
+            var relFilePath = (filePath.startsWith(root + '/') || filePath.startsWith(root + '\\'))
+                    ? filePath.substring(root.length + 1)
+                    : filePath;
+            throw "BlackboxOutputArtifactTracker: no matching file taggers for path '"
+                    + relFilePath + "'. Set defaultFileTags to an array of file tags to "
+                    + "apply to files not tagged by the fileTaggers map, which was:\n"
+                    + JSON.stringify(this.fileTaggers, undefined, 4);
+        }
         return {
             filePath: filePath,
-            fileTags: []
+            fileTags: this.defaultFileTags
         };
     };
     // TODO: Use File.directoryEntries
