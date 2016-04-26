@@ -235,7 +235,8 @@ QMap<QString, QString> TestBlackbox::findAndroid(int *status)
     if (status)
         *status = res;
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-android") + "/android.json");
-    file.open(QIODevice::ReadOnly);
+    if (!file.open(QIODevice::ReadOnly))
+        return QMap<QString, QString> { };
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
     return QMap<QString, QString> {
         {"sdk", QDir::fromNativeSeparators(tools["sdk"].toString())},
@@ -253,7 +254,8 @@ QMap<QString, QString> TestBlackbox::findJdkTools(int *status)
     if (status)
         *status = res;
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-jdk") + "/jdk.json");
-    file.open(QIODevice::ReadOnly);
+    if (!file.open(QIODevice::ReadOnly))
+        return QMap<QString, QString> { };
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
     return QMap<QString, QString> {
         {"java", QDir::fromNativeSeparators(tools["java"].toString())},
@@ -272,7 +274,8 @@ QMap<QString, QString> TestBlackbox::findNodejs(int *status)
     if (status)
         *status = res;
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-nodejs") + "/nodejs.json");
-    file.open(QIODevice::ReadOnly);
+    if (!file.open(QIODevice::ReadOnly))
+        return QMap<QString, QString> { };
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
     return QMap<QString, QString> {
         {"node", QDir::fromNativeSeparators(tools["node"].toString())}
@@ -289,7 +292,8 @@ QMap<QString, QString> TestBlackbox::findTypeScript(int *status)
     if (status)
         *status = res;
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-typescript") + "/typescript.json");
-    file.open(QIODevice::ReadOnly);
+    if (!file.open(QIODevice::ReadOnly))
+        return QMap<QString, QString> { };
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
     return QMap<QString, QString> {
         {"tsc", QDir::fromNativeSeparators(tools["tsc"].toString())}
