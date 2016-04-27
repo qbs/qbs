@@ -181,4 +181,32 @@
         \li If this property is enabled, the compiler will abort where it would normally emit
             a warning.
     \endtable
+
+    \section1 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"java.class"}
+        \li -
+        \li 1.4
+        \li This tag is attached to the output artifacts of the rule that runs the
+            \c javac tool.
+    \row
+        \li \c{"java.jar"}
+        \li -
+        \li 1.4
+        \li This tag is attached to the output artifacts of the rule that runs the
+            \c jar tool.
+    \row
+        \li \c{"java.java"}
+        \li \c{*.java}
+        \li 1.4
+        \li Source files with this tag serve as inputs to the rule running the \c javac tool.
+    \endtable
+
 */
