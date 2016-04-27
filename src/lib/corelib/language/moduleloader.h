@@ -251,6 +251,7 @@ private:
     ModuleItemCache m_modulePrototypeItemCache;
     QHash<Item *, QSet<QString> > m_validItemPropertyNamesPerItem;
     QSet<Item *> m_disabledItems;
+    QStack<bool> m_requiredChain;
     SetupProjectParameters m_parameters;
     Version m_qbsVersion;
 };
