@@ -27,21 +27,26 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+
+var FileInfo = loadExtension("qbs.FileInfo");
+
 function createCommands(product, input, outputs, option)
 {
     var exe = ModUtils.moduleProperty(product, "binPath") + '/'
             + ModUtils.moduleProperty(product, "xml2cppName");
     var hppOutput = outputs["hpp"][0];
     var hppArgs = ModUtils.moduleProperty(product, "xml2CppHeaderFlags");
-    hppArgs.push(option, hppOutput.filePath + ':', input.filePath);
+    hppArgs.push(option, hppOutput.fileName + ':', input.filePath); // Can't use filePath on Windows
     var hppCmd = new Command(exe, hppArgs)
     hppCmd.description = "qdbusxml2cpp " + input.fileName + " -> " + hppOutput.fileName;
     hppCmd.highlight = "codegen";
+    hppCmd.workingDirectory = FileInfo.path(hppOutput.filePath);
     var cppOutput = outputs["cpp"][0];
     var cppArgs = ModUtils.moduleProperty(product, "xml2CppSourceFlags");
-    cppArgs.push("-i", hppOutput.filePath, option, ':' + cppOutput.filePath, input.filePath);
+    cppArgs.push("-i", hppOutput.filePath, option, ':' + cppOutput.fileName, input.filePath);
     var cppCmd = new Command(exe, cppArgs)
     cppCmd.description = "qdbusxml2cpp " + input.fileName + " -> " + cppOutput.fileName;
     cppCmd.highlight = "codegen";
+    cppCmd.workingDirectory = FileInfo.path(hppOutput.filePath);
     return [hppCmd, cppCmd];
 }
