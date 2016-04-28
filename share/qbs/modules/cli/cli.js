@@ -168,9 +168,7 @@ function prepareCompiler(product, inputs, output) {
         args.push("/resource:" + pathFunction(inputs["cli.resources"][i].filePath));
 
     // Additional compiler flags
-    var allFlags = (platformCompilerFlags || []).concat(compilerFlags || []);
-    if (allFlags.length > 0)
-        args.push(allFlags[i]);
+    args = args.concat((platformCompilerFlags || []).concat(compilerFlags || []));
 
     args.push("/out:" + pathFunction(output.filePath));
 
