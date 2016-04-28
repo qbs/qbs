@@ -131,8 +131,9 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue &targetObject)
     } else {
         if (debugJSImports)
             qDebug() << "[ENGINE] " << jsImport.filePaths << " (cache miss)";
+        jsImportValue = newObject();
         foreach (const QString &filePath, jsImport.filePaths)
-            importFile(filePath, &jsImportValue);
+            importFile(filePath, jsImportValue);
         m_jsImportCache.insert(jsImport, jsImportValue);
     }
     targetObject.setProperty(jsImport.scopeName, jsImportValue);
@@ -232,7 +233,7 @@ void ScriptEngine::setEnvironment(const QProcessEnvironment &env)
     m_environment = env;
 }
 
-QScriptValue ScriptEngine::importFile(const QString &filePath, QScriptValue *targetObject)
+void ScriptEngine::importFile(const QString &filePath, QScriptValue &targetObject)
 {
     QFile file(filePath);
     if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
@@ -240,13 +241,9 @@ QScriptValue ScriptEngine::importFile(const QString &filePath, QScriptValue *tar
     const QString sourceCode = QTextStream(&file).readAll();
     file.close();
     QScriptProgram program(sourceCode, filePath);
-    QScriptValue obj;
-    if (!targetObject)
-        obj = newObject();
     m_currentDirPathStack.push(FileInfo::path(filePath));
-    importProgram(program, targetObject ? *targetObject : obj);
+    importProgram(program, targetObject);
     m_currentDirPathStack.pop();
-    return targetObject ? *targetObject : obj;
 }
 
 static void replaceScopeChain(const QScriptContext *src, QScriptContext *dst)
@@ -263,6 +260,10 @@ static void replaceScopeChain(const QScriptContext *src, QScriptContext *dst)
 
 void ScriptEngine::importProgram(const QScriptProgram &program, QScriptValue &targetObject)
 {
+    Q_ASSERT(targetObject.isObject());
+    // The targetObject doesn't get overwritten but enhanced by the contents of the .js file.
+    // This is necessary for library imports that consist of multiple js files.
+
     QSet<QString> globalPropertyNames;
     {
         QScriptValueIterator it(globalObject());
@@ -281,12 +282,6 @@ void ScriptEngine::importProgram(const QScriptProgram &program, QScriptValue &ta
     popContext();
     if (Q_UNLIKELY(hasErrorOrException(result)))
         throw ErrorInfo(tr("Error when importing '%1': %2").arg(program.fileName(), result.toString()));
-
-    // If targetObject is already an object, it doesn't get overwritten but enhanced by the
-    // contents of the .js file.
-    // This is necessary for library imports that consist of multiple js files.
-    if (!targetObject.isObject())
-        targetObject = newObject();
 
     // Copy every property of the activation object to the target object.
     // We do not just save a reference to the activation object, because QScriptEngine contains
@@ -402,7 +397,9 @@ QScriptValue ScriptEngine::js_loadExtension(QScriptContext *context, QScriptEngi
                 engine->m_logger.qbsDebug()
                         << "[loadExtension] importing file " << filePath;
             }
-            values << engine->importFile(filePath);
+            QScriptValue obj = engine->newObject();
+            engine->importFile(filePath, obj);
+            values << obj;
         }
     } catch (const ErrorInfo &e) {
         return context->throwError(e.toString());
@@ -429,7 +426,8 @@ QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *q
     try {
         const QString filePath = FileInfo::resolvePath(engine->m_currentDirPathStack.top(),
                                                        relativeFilePath);
-        result = engine->importFile(filePath);
+        result = engine->newObject();
+        engine->importFile(filePath, result);
     } catch (const ErrorInfo &e) {
         result = context->throwError(e.toString());
     }

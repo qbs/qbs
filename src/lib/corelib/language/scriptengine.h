@@ -135,7 +135,7 @@ private:
     void installConsoleFunction(const QString &name, FunctionWithArgSignature f);
     void installImportFunctions();
     void uninstallImportFunctions();
-    QScriptValue importFile(const QString &filePath, QScriptValue *targetObject = nullptr);
+    void importFile(const QString &filePath, QScriptValue &targetObject);
     void importProgram(const QScriptProgram &program, QScriptValue &targetObject);
     static QScriptValue js_loadExtension(QScriptContext *context, QScriptEngine *qtengine);
     static QScriptValue js_loadFile(QScriptContext *context, QScriptEngine *qtengine);
