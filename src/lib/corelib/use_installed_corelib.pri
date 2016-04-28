@@ -20,7 +20,7 @@ win32 {
     CONFIG(release, debug|release) {
         QBSCORELIB = qbscore$$QBSCORELIBSUFFIX
     }
-    win32-msvc* {
+    msvc {
         LIBS += /LIBPATH:$$QBSLIBDIR
         QBSCORELIB = $${QBSCORELIB}.lib
         LIBS += Shell32.lib
