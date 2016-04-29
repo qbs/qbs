@@ -114,6 +114,7 @@ private slots:
     void cli();
     void concurrentExecutor();
     void conflictingArtifacts();
+    void dbusAdaptorInvalid();
     void dbusAdaptors();
     void dbusInterfaces();
     void dependenciesProperty();

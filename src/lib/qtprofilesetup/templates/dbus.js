@@ -30,6 +30,15 @@
 
 var FileInfo = loadExtension("qbs.FileInfo");
 
+function outputFileName(input, suffix)
+{
+    var parts = input.fileName.split('.').filter(function(s) { return s.length > 0; });
+    if (parts.length === 0)
+        throw "Cannot run qdbusxml2cpp on '" + input.filePath + "': Unsuitable file name.";
+    var outputBaseName = parts.length === 1 ? parts[0] : parts[parts.length - 2];
+    return outputBaseName.toLowerCase() + suffix;
+}
+
 function createCommands(product, input, outputs, option)
 {
     var exe = ModUtils.moduleProperty(product, "binPath") + '/'

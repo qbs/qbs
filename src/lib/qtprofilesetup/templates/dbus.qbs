@@ -15,11 +15,11 @@ QtModule {
         inputs: ["qt.dbus.adaptor"]
 
         Artifact {
-            filePath: "GeneratedFiles/" + input.completeBaseName + "_adaptor.h"
+            filePath: "GeneratedFiles/" + DBus.outputFileName(input, "_adaptor.h")
             fileTags: ["hpp"]
         }
         Artifact {
-            filePath: "GeneratedFiles/" + input.completeBaseName + "_adaptor.cpp"
+            filePath: "GeneratedFiles/" + DBus.outputFileName(input, "_adaptor.cpp")
             fileTags: ["cpp"]
         }
 
@@ -32,11 +32,11 @@ QtModule {
         inputs: ["qt.dbus.interface"]
 
         Artifact {
-            filePath: "GeneratedFiles/" + input.completeBaseName + "_interface.h"
+            filePath: "GeneratedFiles/" + DBus.outputFileName(input, "_interface.h")
             fileTags: ["hpp"]
         }
         Artifact {
-            filePath: "GeneratedFiles/" + input.completeBaseName + "_interface.cpp"
+            filePath: "GeneratedFiles/" + DBus.outputFileName(input, "_interface.cpp")
             fileTags: ["cpp"]
         }
 

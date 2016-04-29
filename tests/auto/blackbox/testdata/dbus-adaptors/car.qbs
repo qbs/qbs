@@ -13,7 +13,7 @@ CppApplication {
 
     Group {
         name: "DBUS Adaptor"
-        files: ["car.xml"]
+        files: ["THIS.IS.A.STRANGE.FILENAME.CAR.XML"]
         fileTags: ["qt.dbus.adaptor"]
     }
 }
