@@ -136,7 +136,8 @@ private:
     void installImportFunctions();
     void uninstallImportFunctions();
     void importFile(const QString &filePath, QScriptValue &targetObject);
-    void importProgram(const QScriptProgram &program, QScriptValue &targetObject);
+    void importSourceCode(const QString &sourceCode, const QString &filePath,
+            QScriptValue &targetObject);
     static QScriptValue js_loadExtension(QScriptContext *context, QScriptEngine *qtengine);
     static QScriptValue js_loadFile(QScriptContext *context, QScriptEngine *qtengine);
 

@@ -46,7 +46,6 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
-#include <QScriptProgram>
 #include <QScriptValueIterator>
 #include <QSet>
 #include <QTextStream>
@@ -240,9 +239,8 @@ void ScriptEngine::importFile(const QString &filePath, QScriptValue &targetObjec
         throw ErrorInfo(tr("Cannot open '%1'.").arg(filePath));
     const QString sourceCode = QTextStream(&file).readAll();
     file.close();
-    QScriptProgram program(sourceCode, filePath);
     m_currentDirPathStack.push(FileInfo::path(filePath));
-    importProgram(program, targetObject);
+    importSourceCode(sourceCode, filePath, targetObject);
     m_currentDirPathStack.pop();
 }
 
@@ -258,7 +256,8 @@ static void replaceScopeChain(const QScriptContext *src, QScriptContext *dst)
         dst->pushScope(srcScopes.at(i));
 }
 
-void ScriptEngine::importProgram(const QScriptProgram &program, QScriptValue &targetObject)
+void ScriptEngine::importSourceCode(const QString &sourceCode, const QString &filePath,
+        QScriptValue &targetObject)
 {
     Q_ASSERT(targetObject.isObject());
     // The targetObject doesn't get overwritten but enhanced by the contents of the .js file.
@@ -277,11 +276,11 @@ void ScriptEngine::importProgram(const QScriptProgram &program, QScriptValue &ta
     QScriptContext *context = pushContext();
     replaceScopeChain(oldContext, context);
 
-    QScriptValue result = evaluate(program);
+    QScriptValue result = evaluate(sourceCode, filePath);
     QScriptValue activationObject = context->activationObject();
     popContext();
     if (Q_UNLIKELY(hasErrorOrException(result)))
-        throw ErrorInfo(tr("Error when importing '%1': %2").arg(program.fileName(), result.toString()));
+        throw ErrorInfo(tr("Error when importing '%1': %2").arg(filePath, result.toString()));
 
     // Copy every property of the activation object to the target object.
     // We do not just save a reference to the activation object, because QScriptEngine contains
