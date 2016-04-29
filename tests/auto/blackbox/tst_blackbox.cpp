@@ -3542,6 +3542,12 @@ void TestBlackbox::iconsetApp()
     QVERIFY(regularFileExists(relativeProductBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
 }
 
+void TestBlackbox::importingProduct()
+{
+    QDir::setCurrent(testDataDir + "/importing-product");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::infoPlist()
 {
     if (!HostOsInfo::isOsxHost())

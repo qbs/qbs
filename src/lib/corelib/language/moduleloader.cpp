@@ -1469,7 +1469,13 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
         Item *exportScope =  Item::create(moduleInstance->pool());
         exportScope->setFile(instanceScope->file());
         exportScope->setScope(instanceScope);
+
+        // TODO: For consistency with modules, it should be the other way around, i.e.
+        //       "exportingProduct" and just "product".
         exportScope->setProperty(QLatin1String("product"), ItemValue::create(exportingProduct));
+        exportScope->setProperty(QLatin1String("importingProduct"),
+                                 ItemValue::create(productContext->item));
+
         exportScope->setProperty(QLatin1String("project"),
                                  ItemValue::create(exportingProduct->parent()));
 
