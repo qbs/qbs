@@ -32,6 +32,8 @@ import qbs
 import qbs.DarwinTools
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.PropertyList
+import qbs.TextFile
 
 UnixGCC {
     condition: false
@@ -143,4 +145,31 @@ UnixGCC {
     property string minimumDarwinVersion
     property string minimumDarwinVersionCompilerFlag
     property string minimumDarwinVersionLinkerFlag
+
+    Rule {
+        condition: qbs.targetOS.contains("darwin")
+        inputs: ["qbs"]
+
+        Artifact {
+            filePath: product.name + "-cpp-Info.plist"
+            fileTags: ["partial_infoplist"]
+        }
+
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.silent = true;
+            cmd.inputData = ModUtils.moduleProperty(product, "defaultInfoPlist");
+            cmd.outputFilePath = output.filePath;
+            cmd.sourceCode = function() {
+                var plist = new PropertyList();
+                try {
+                    plist.readFromObject(inputData);
+                    plist.writeToFile(outputFilePath, "xml1");
+                } finally {
+                    plist.clear();
+                }
+            };
+            return [cmd];
+        }
+    }
 }

@@ -3542,6 +3542,22 @@ void TestBlackbox::iconsetApp()
     QVERIFY(regularFileExists(relativeProductBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
 }
 
+void TestBlackbox::infoPlist()
+{
+    QDir::setCurrent(testDataDir + "/infoplist");
+
+    QbsRunParameters params;
+    params.arguments = QStringList() << "-f" << "infoplist.qbs";
+    QCOMPARE(runQbs(params), 0);
+
+    QFile infoplist(relativeProductBuildDir("infoplist") + "/infoplist.app/Contents/Info.plist");
+    QVERIFY(infoplist.open(QIODevice::ReadOnly));
+    const QByteArray fileContents = infoplist.readAll();
+    QVERIFY2(fileContents.contains("<key>LSMinimumSystemVersion</key>"), fileContents.constData());
+    QVERIFY2(fileContents.contains("<string>10.7</string>"), fileContents.constData());
+    QVERIFY2(fileContents.contains("<key>NSPrincipalClass</key>"), fileContents.constData());
+}
+
 void TestBlackbox::assetCatalog()
 {
     QFETCH(bool, flatten);
