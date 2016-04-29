@@ -745,6 +745,16 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
                 it != valueItem->properties().constEnd(); ++it)
             mergeProperty(subItem, it.key(), it.value());
     } else {
+        // If the property already exists set up the base value.
+        if (value->type() == Value::JSSourceValueType) {
+            const ValuePtr baseValue = dst->property(name);
+            if (baseValue) {
+                QBS_CHECK(baseValue->type() == Value::JSSourceValueType);
+                const JSSourceValuePtr jsBaseValue = baseValue->clone().staticCast<JSSourceValue>();
+                JSSourceValue *jsValue = static_cast<JSSourceValue *>(value.data());
+                jsValue->setBaseValue(jsBaseValue);
+            }
+        }
         dst->setProperty(name, value);
     }
 }
@@ -1467,8 +1477,11 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
              it != moduleInstance->properties().end(); ++it) {
             if (it.value()->type() != Value::JSSourceValueType)
                 continue;
-            const JSSourceValuePtr v = it.value().staticCast<JSSourceValue>();
-            v->setExportScope(exportScope);
+            JSSourceValuePtr v = it.value().staticCast<JSSourceValue>();
+            do {
+                v->setExportScope(exportScope);
+                v = v->baseValue();
+            } while (v);
         }
 
         PropertyDeclaration pd(QLatin1String("_qbs_sourceDir"), PropertyDeclaration::String,

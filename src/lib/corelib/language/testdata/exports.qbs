@@ -47,6 +47,7 @@ Project {
     ProductWithInheritedExportItem {
         name: "productWithInheritedExportItem"
         Export {
+            dummy.cFlags: base.concat("PRODUCT_" + product.name.toUpperCase())
             dummy.cxxFlags: ["-bar"]
         }
     }

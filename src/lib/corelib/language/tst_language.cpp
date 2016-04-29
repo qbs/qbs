@@ -598,6 +598,11 @@ void TestLanguage::exports()
 
         product = products.value("myapp2");
         QVERIFY(product);
+        propertyName = QStringList() << "modules" << "dummy" << "cFlags";
+        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        QCOMPARE(propertyValue.toStringList(), QStringList()
+                 << "BASE_PRODUCTWITHINHERITEDEXPORTITEM"
+                 << "PRODUCT_PRODUCTWITHINHERITEDEXPORTITEM");
         propertyName = QStringList() << "modules" << "dummy" << "cxxFlags";
         propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "-bar");
