@@ -1146,7 +1146,8 @@ void TestBlackbox::dbusAdaptorInvalid()
     QbsRunParameters params;
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("Unsuitable"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.contains("Unsuitable") || m_qbsStderr.contains("'Qt.dbus' not found"),
+             m_qbsStderr.constData());
 }
 
 void TestBlackbox::dbusAdaptors()
