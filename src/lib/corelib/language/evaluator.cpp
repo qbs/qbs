@@ -178,13 +178,31 @@ void Evaluator::handleEvaluationError(const Item *item, const QString &name,
 {
     if (Q_LIKELY(!m_scriptEngine->hasErrorOrException(scriptValue)))
         return;
-    const ValueConstPtr value = item->property(name);
-    CodeLocation location = value ? value->location() : CodeLocation();
-    if (m_scriptEngine->hasUncaughtException()) {
-        throw ErrorInfo(m_scriptEngine->uncaughtException().toString(),
-                CodeLocation(location.filePath(), m_scriptEngine->uncaughtExceptionLineNumber()));
+    QString message;
+    QString filePath;
+    int line = -1;
+    const QScriptValue value = scriptValue.isError() ? scriptValue
+                                                     : m_scriptEngine->uncaughtException();
+    if (value.isError()) {
+        QScriptValue v = value.property(QStringLiteral("message"));
+        if (v.isString())
+            message = v.toString();
+        v = value.property(QStringLiteral("fileName"));
+        if (v.isString())
+            filePath = v.toString();
+        v = value.property(QStringLiteral("lineNumber"));
+        if (v.isNumber())
+            line = v.toInt32();
+    } else {
+        message = value.toString();
+        const ValueConstPtr value = item->property(name);
+        if (value) {
+            const CodeLocation location = value->location();
+            filePath = location.filePath();
+            line = location.line();
+        }
     }
-    throw ErrorInfo(scriptValue.toString(), location);
+    throw ErrorInfo(message, CodeLocation(filePath, line, -1, false));
 }
 
 bool Evaluator::evaluateProperty(QScriptValue *result, const Item *item, const QString &name,
