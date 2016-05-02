@@ -11,6 +11,7 @@ Project {
     property bool fail7: false
 
     Product {
+        name: "myproduct"
         type: ["foo", "bar"]
 
         Rule {

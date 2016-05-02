@@ -2133,19 +2133,19 @@ void TestBlackbox::errorInfo()
 
     params.arguments = QStringList() << "project.fail1:true";
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:24"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:25"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail2:true";
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:36"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:37"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail3:true";
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:51"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:52"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail4:true";
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:66"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:67"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail5:true";
     QVERIFY(runQbs(params) != 0);
@@ -2158,7 +2158,7 @@ void TestBlackbox::errorInfo()
     params.arguments = QStringList() << "project.fail7:true";
     QVERIFY(runQbs(params) != 0);
     QVERIFY2(m_qbsStderr.contains("JavaScriptCommand.sourceCode"), m_qbsStderr);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:57"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:58"), m_qbsStderr);
 }
 
 void TestBlackbox::exportRule()
