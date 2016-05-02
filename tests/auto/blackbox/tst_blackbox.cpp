@@ -3544,6 +3544,9 @@ void TestBlackbox::iconsetApp()
 
 void TestBlackbox::infoPlist()
 {
+    if (!HostOsInfo::isOsxHost())
+        QSKIP("only applies on OS X");
+
     QDir::setCurrent(testDataDir + "/infoplist");
 
     QbsRunParameters params;
