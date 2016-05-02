@@ -48,6 +48,7 @@ namespace qbs {
 namespace Internal {
 class Artifact;
 class JsImport;
+class ScriptImporter;
 class ScriptPropertyObserver;
 
 class ScriptEngine : public QScriptEngine
@@ -136,8 +137,6 @@ private:
     void installImportFunctions();
     void uninstallImportFunctions();
     void importFile(const QString &filePath, QScriptValue &targetObject);
-    void importSourceCode(const QString &sourceCode, const QString &filePath,
-            QScriptValue &targetObject);
     static QScriptValue js_loadExtension(QScriptContext *context, QScriptEngine *qtengine);
     static QScriptValue js_loadFile(QScriptContext *context, QScriptEngine *qtengine);
 
@@ -159,6 +158,7 @@ private:
     friend bool operator==(const PropertyCacheKey &lhs, const PropertyCacheKey &rhs);
     friend uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed);
 
+    ScriptImporter *m_scriptImporter;
     QHash<JsImport, QScriptValue> m_jsImportCache;
     bool m_propertyCacheEnabled;
     QHash<PropertyCacheKey, QVariant> m_propertyCache;

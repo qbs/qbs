@@ -37,6 +37,7 @@ HEADERS += \
     $$PWD/qualifiedid.h \
     $$PWD/resolvedfilecontext.h \
     $$PWD/scriptengine.h \
+    $$PWD/scriptimporter.h \
     $$PWD/scriptpropertyobserver.h \
     $$PWD/value.h
 
@@ -70,6 +71,7 @@ SOURCES += \
     $$PWD/qualifiedid.cpp \
     $$PWD/resolvedfilecontext.cpp \
     $$PWD/scriptengine.cpp \
+    $$PWD/scriptimporter.cpp \
     $$PWD/value.cpp
 
 qbs_enable_unit_tests {

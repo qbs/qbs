@@ -87,7 +87,6 @@ void RulesEvaluationContext::initScope()
     if (m_initScopeCalls++ > 0)
         return;
 
-    m_engine->clearImportsCache();
     m_scope = m_engine->newObject();
     m_scope.setPrototype(m_prepareScriptScope);
     m_engine->setGlobalObject(m_scope);

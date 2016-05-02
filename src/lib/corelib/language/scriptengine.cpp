@@ -33,6 +33,7 @@
 #include "filecontextbase.h"
 #include "jsimports.h"
 #include "propertymapinternal.h"
+#include "scriptimporter.h"
 #include "scriptpropertyobserver.h"
 
 #include <buildgraph/artifact.h>
@@ -79,7 +80,8 @@ uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed = 0)
 }
 
 ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
-    : QScriptEngine(parent), m_propertyCacheEnabled(true), m_logger(logger)
+    : QScriptEngine(parent), m_scriptImporter(new ScriptImporter(this)),
+      m_propertyCacheEnabled(true), m_logger(logger)
 {
     setProcessEventsInterval(1000); // For the cancelation mechanism to work.
     m_cancelationError = currentContext()->throwValue(tr("Execution canceled"));
@@ -97,6 +99,7 @@ ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
 ScriptEngine::~ScriptEngine()
 {
     qDeleteAll(m_ownedVariantMaps);
+    delete (m_scriptImporter);
 }
 
 void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject)
@@ -240,78 +243,8 @@ void ScriptEngine::importFile(const QString &filePath, QScriptValue &targetObjec
     const QString sourceCode = QTextStream(&file).readAll();
     file.close();
     m_currentDirPathStack.push(FileInfo::path(filePath));
-    importSourceCode(sourceCode, filePath, targetObject);
+    m_scriptImporter->importSourceCode(sourceCode, filePath, targetObject);
     m_currentDirPathStack.pop();
-}
-
-static void replaceScopeChain(const QScriptContext *src, QScriptContext *dst)
-{
-    // Remove the empty scope that was added to the context by pushScope.
-    Q_ASSERT(dst->scopeChain().count() == 2);
-    dst->popScope();
-
-    // Push all the scopes (but the global object) from the old context to the new one.
-    const QScriptValueList srcScopes = src->scopeChain();
-    for (int i = srcScopes.count() - 1; --i >= 0;)
-        dst->pushScope(srcScopes.at(i));
-}
-
-void ScriptEngine::importSourceCode(const QString &sourceCode, const QString &filePath,
-        QScriptValue &targetObject)
-{
-    Q_ASSERT(targetObject.isObject());
-    // The targetObject doesn't get overwritten but enhanced by the contents of the .js file.
-    // This is necessary for library imports that consist of multiple js files.
-
-    QSet<QString> globalPropertyNames;
-    {
-        QScriptValueIterator it(globalObject());
-        while (it.hasNext()) {
-            it.next();
-            globalPropertyNames += it.name();
-        }
-    }
-
-    QScriptContext *oldContext = currentContext();
-    QScriptContext *context = pushContext();
-    replaceScopeChain(oldContext, context);
-
-    QScriptValue result = evaluate(sourceCode, filePath);
-    QScriptValue activationObject = context->activationObject();
-    popContext();
-    if (Q_UNLIKELY(hasErrorOrException(result)))
-        throw ErrorInfo(tr("Error when importing '%1': %2").arg(filePath, result.toString()));
-
-    // Copy every property of the activation object to the target object.
-    // We do not just save a reference to the activation object, because QScriptEngine contains
-    // special magic for activation objects that leads to unanticipated results.
-    {
-        QScriptValueIterator it(activationObject);
-        while (it.hasNext()) {
-            it.next();
-            if (debugJSImports)
-                qDebug() << "[ENGINE] Copying property " << it.name();
-            targetObject.setProperty(it.name(), it.value());
-        }
-    }
-
-    // Copy new global properties to the target object and remove them from
-    // the global object. This is to support direct variable assignments
-    // without the 'var' keyword in JavaScript files.
-    QScriptValueIterator it(globalObject());
-    while (it.hasNext()) {
-        it.next();
-        if (globalPropertyNames.contains(it.name()))
-            continue;
-
-        if (debugJSImports) {
-            qDebug() << "[ENGINE] inserting global property "
-                     << it.name() << " " << it.value().toString();
-        }
-
-        targetObject.setProperty(it.name(), it.value());
-        it.remove();
-    }
 }
 
 static QString findExtensionDir(const QStringList &searchPaths, const QString &extensionPath)

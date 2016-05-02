@@ -268,6 +268,8 @@ QbsLibrary {
             "resolvedfilecontext.h",
             "scriptengine.cpp",
             "scriptengine.h",
+            "scriptimporter.cpp",
+            "scriptimporter.h",
             "scriptpropertyobserver.h",
             "value.cpp",
             "value.h",
