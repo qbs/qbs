@@ -1138,18 +1138,6 @@ void TestBlackbox::conflictingArtifacts()
     QVERIFY2(m_qbsStderr.contains("Conflicting artifacts"), m_qbsStderr.constData());
 }
 
-void TestBlackbox::dbusAdaptorInvalid()
-{
-    if (HostOsInfo::isWindowsHost())
-        QSKIP("Test applies only on Unix hosts.");
-    QDir::setCurrent(testDataDir + "/dbus-adaptor-invalid");
-    QbsRunParameters params;
-    params.expectFailure = true;
-    QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("Unsuitable") || m_qbsStderr.contains("'Qt.dbus' not found"),
-             m_qbsStderr.constData());
-}
-
 void TestBlackbox::dbusAdaptors()
 {
     QDir::setCurrent(testDataDir + "/dbus-adaptors");
