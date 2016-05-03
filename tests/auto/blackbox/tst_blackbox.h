@@ -113,6 +113,9 @@ private slots:
     void clean();
     void cli();
     void concurrentExecutor();
+    void conflictingArtifacts();
+    void dbusAdaptors();
+    void dbusInterfaces();
     void dependenciesProperty();
     void dependencyProfileMismatch();
     void deploymentTarget();
@@ -132,6 +135,7 @@ private slots:
     void groupsInModules();
     void iconset();
     void iconsetApp();
+    void infoPlist();
     void inputsFromDependencies();
     void installable();
     void installedApp();

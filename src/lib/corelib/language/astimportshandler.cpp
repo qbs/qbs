@@ -141,9 +141,10 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
 
         QFileInfo fi(filePath);
         if (Q_UNLIKELY(!fi.exists()))
-            throw ErrorInfo(Tr::tr("Cannot find imported file %0.").arg(filePath),
-                        CodeLocation(m_file->filePath(), import->fileNameToken.startLine,
-                                     import->fileNameToken.startColumn));
+            throw ErrorInfo(Tr::tr("Cannot find imported file %0.")
+                            .arg(QDir::toNativeSeparators(filePath)),
+                            CodeLocation(m_file->filePath(), import->fileNameToken.startLine,
+                                         import->fileNameToken.startColumn));
         filePath = fi.canonicalFilePath();
         if (fi.isDir()) {
             collectPrototypesAndJsCollections(filePath, as,

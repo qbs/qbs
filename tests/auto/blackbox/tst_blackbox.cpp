@@ -235,7 +235,8 @@ QMap<QString, QString> TestBlackbox::findAndroid(int *status)
     if (status)
         *status = res;
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-android") + "/android.json");
-    file.open(QIODevice::ReadOnly);
+    if (!file.open(QIODevice::ReadOnly))
+        return QMap<QString, QString> { };
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
     return QMap<QString, QString> {
         {"sdk", QDir::fromNativeSeparators(tools["sdk"].toString())},
@@ -253,7 +254,8 @@ QMap<QString, QString> TestBlackbox::findJdkTools(int *status)
     if (status)
         *status = res;
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-jdk") + "/jdk.json");
-    file.open(QIODevice::ReadOnly);
+    if (!file.open(QIODevice::ReadOnly))
+        return QMap<QString, QString> { };
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
     return QMap<QString, QString> {
         {"java", QDir::fromNativeSeparators(tools["java"].toString())},
@@ -272,7 +274,8 @@ QMap<QString, QString> TestBlackbox::findNodejs(int *status)
     if (status)
         *status = res;
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-nodejs") + "/nodejs.json");
-    file.open(QIODevice::ReadOnly);
+    if (!file.open(QIODevice::ReadOnly))
+        return QMap<QString, QString> { };
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
     return QMap<QString, QString> {
         {"node", QDir::fromNativeSeparators(tools["node"].toString())}
@@ -289,7 +292,8 @@ QMap<QString, QString> TestBlackbox::findTypeScript(int *status)
     if (status)
         *status = res;
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-typescript") + "/typescript.json");
-    file.open(QIODevice::ReadOnly);
+    if (!file.open(QIODevice::ReadOnly))
+        return QMap<QString, QString> { };
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
     return QMap<QString, QString> {
         {"tsc", QDir::fromNativeSeparators(tools["tsc"].toString())}
@@ -1123,6 +1127,27 @@ void TestBlackbox::concurrentExecutor()
     QDir::setCurrent(testDataDir + "/concurrent-executor");
     QCOMPARE(runQbs(QStringList() << "-j" << "2"), 0);
     QVERIFY2(!m_qbsStderr.contains("ASSERT"), m_qbsStderr.constData());
+}
+
+void TestBlackbox::conflictingArtifacts()
+{
+    QDir::setCurrent(testDataDir + "/conflicting-artifacts");
+    QbsRunParameters params(QStringList() << "-n");
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("Conflicting artifacts"), m_qbsStderr.constData());
+}
+
+void TestBlackbox::dbusAdaptors()
+{
+    QDir::setCurrent(testDataDir + "/dbus-adaptors");
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::dbusInterfaces()
+{
+    QDir::setCurrent(testDataDir + "/dbus-interfaces");
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackbox::renameDependency()
@@ -2108,19 +2133,19 @@ void TestBlackbox::errorInfo()
 
     params.arguments = QStringList() << "project.fail1:true";
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:24"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:25"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail2:true";
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:36"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:37"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail3:true";
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:51"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:52"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail4:true";
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:66"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:67"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail5:true";
     QVERIFY(runQbs(params) != 0);
@@ -2133,7 +2158,7 @@ void TestBlackbox::errorInfo()
     params.arguments = QStringList() << "project.fail7:true";
     QVERIFY(runQbs(params) != 0);
     QVERIFY2(m_qbsStderr.contains("JavaScriptCommand.sourceCode"), m_qbsStderr);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:57"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("project.qbs:58"), m_qbsStderr);
 }
 
 void TestBlackbox::exportRule()
@@ -3515,6 +3540,25 @@ void TestBlackbox::iconsetApp()
     QCOMPARE(runQbs(params), 0);
 
     QVERIFY(regularFileExists(relativeProductBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
+}
+
+void TestBlackbox::infoPlist()
+{
+    if (!HostOsInfo::isOsxHost())
+        QSKIP("only applies on OS X");
+
+    QDir::setCurrent(testDataDir + "/infoplist");
+
+    QbsRunParameters params;
+    params.arguments = QStringList() << "-f" << "infoplist.qbs";
+    QCOMPARE(runQbs(params), 0);
+
+    QFile infoplist(relativeProductBuildDir("infoplist") + "/infoplist.app/Contents/Info.plist");
+    QVERIFY(infoplist.open(QIODevice::ReadOnly));
+    const QByteArray fileContents = infoplist.readAll();
+    QVERIFY2(fileContents.contains("<key>LSMinimumSystemVersion</key>"), fileContents.constData());
+    QVERIFY2(fileContents.contains("<string>10.7</string>"), fileContents.constData());
+    QVERIFY2(fileContents.contains("<key>NSPrincipalClass</key>"), fileContents.constData());
 }
 
 void TestBlackbox::assetCatalog()

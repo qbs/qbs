@@ -213,6 +213,10 @@ static void createModules(Profile &profile, Settings *settings,
                              &allFiles);
         } else if (module.qbsName == QLatin1String("gui")) {
             moduleTemplateFileName = QLatin1String("gui.qbs");
+        } else if (module.qbsName == QLatin1String("dbus")) {
+            moduleTemplateFileName = QLatin1String("dbus.qbs");
+            copyTemplateFile(QLatin1String("dbus.js"), qbsQtModuleDir, profile, qtEnvironment,
+                             &allFiles);
         } else if (module.qbsName == QLatin1String("phonon")) {
             moduleTemplateFileName = QLatin1String("phonon.qbs");
         } else if (module.isPlugin) {

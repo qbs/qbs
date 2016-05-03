@@ -629,8 +629,13 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 {
     Item * const item = productContext->item;
 
-    foreach (const Item::Module &module, item->modules())
-        ModuleMerger(m_logger, item, module.item, module.name).start();
+    Item::Modules mergedModules;
+    foreach (const Item::Module &module, item->modules()) {
+        Item::Module mergedModule = module;
+        ModuleMerger(m_logger, item, mergedModule).start();
+        mergedModules << mergedModule;
+    }
+    item->setModules(mergedModules);
 
     // Must happen after all modules have been merged, so needs to be a second loop.
     QVector<Item::Module> sortedModules;
@@ -738,6 +743,16 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
                 it != valueItem->properties().constEnd(); ++it)
             mergeProperty(subItem, it.key(), it.value());
     } else {
+        // If the property already exists set up the base value.
+        if (value->type() == Value::JSSourceValueType) {
+            const ValuePtr baseValue = dst->property(name);
+            if (baseValue) {
+                QBS_CHECK(baseValue->type() == Value::JSSourceValueType);
+                const JSSourceValuePtr jsBaseValue = baseValue->clone().staticCast<JSSourceValue>();
+                JSSourceValue *jsValue = static_cast<JSSourceValue *>(value.data());
+                jsValue->setBaseValue(jsBaseValue);
+            }
+        }
         dst->setProperty(name, value);
     }
 }
@@ -829,6 +844,21 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     dependsContext->productDependencies->append(productDependencies);
 }
 
+class RequiredChainManager
+{
+public:
+    RequiredChainManager(QStack<bool> &requiredChain, bool required)
+        : m_requiredChain(requiredChain)
+    {
+        m_requiredChain.push(required);
+    }
+
+    ~RequiredChainManager() { m_requiredChain.pop(); }
+
+private:
+    QStack<bool> &m_requiredChain;
+};
+
 void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *parentItem,
         Item *dependsItem, ItemModuleList *moduleResults,
         ProductDependencyResults *productResults)
@@ -895,15 +925,23 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
 
     Item::Module result;
     foreach (const QualifiedId &moduleName, moduleNames) {
+        bool isRequired = m_evaluator->boolValue(dependsItem, QLatin1String("required"));
+        for (int i = m_requiredChain.count() - 1; i >= 0 && isRequired; --i) {
+            if (!m_requiredChain.at(i))
+                isRequired = false;
+        }
         // Don't load the same module twice. Duplicate Depends statements can easily
         // happen due to inheritance.
-        const auto it = std::find_if(moduleResults->constBegin(), moduleResults->constEnd(),
+        const auto it = std::find_if(moduleResults->begin(), moduleResults->end(),
                 [moduleName](const Item::Module &m) { return m.name == moduleName; });
-        if (it != moduleResults->constEnd())
+        if (it != moduleResults->end()) {
+            if (isRequired)
+                it->required = true;
             continue;
+        }
 
-        const bool isRequired
-                = m_evaluator->boolValue(dependsItem, QLatin1String("required"));
+        RequiredChainManager requiredChainManager(m_requiredChain, isRequired);
+
         Item *moduleItem = loadModule(dependsContext->product, parentItem, dependsItem->location(),
                                       dependsItem->id(), moduleName, isRequired, &result.isProduct);
         if (!moduleItem) {
@@ -1432,8 +1470,11 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
              it != moduleInstance->properties().end(); ++it) {
             if (it.value()->type() != Value::JSSourceValueType)
                 continue;
-            const JSSourceValuePtr v = it.value().staticCast<JSSourceValue>();
-            v->setExportScope(exportScope);
+            JSSourceValuePtr v = it.value().staticCast<JSSourceValue>();
+            do {
+                v->setExportScope(exportScope);
+                v = v->baseValue();
+            } while (v);
         }
 
         PropertyDeclaration pd(QLatin1String("_qbs_sourceDir"), PropertyDeclaration::String,

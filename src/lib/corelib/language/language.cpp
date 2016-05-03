@@ -339,7 +339,9 @@ QString Rule::toString() const
 {
     QStringList outputTagsSorted = collectedOutputFileTags().toStringList();
     outputTagsSorted.sort();
-    QStringList inputTagsSorted = inputs.toStringList();
+    FileTags inputTags = inputs;
+    inputTags.unite(inputsFromDependencies);
+    QStringList inputTagsSorted = inputTags.toStringList();
     inputTagsSorted.sort();
     return QLatin1Char('[') + outputTagsSorted.join(QLatin1Char(','))
             + QLatin1String("][")

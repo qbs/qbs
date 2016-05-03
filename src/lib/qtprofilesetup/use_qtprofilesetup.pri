@@ -27,7 +27,7 @@ win32 {
     CONFIG(release, debug|release) {
         QBSQTPROFILELIB = $${LIBNAME}$${QBSQTPROFILELIBSUFFIX}
     }
-    win32-msvc* {
+    msvc {
         LIBS += /LIBPATH:$$QBSLIBDIR
         QBSQTPROFILELIB = $${QBSQTPROFILELIB}.lib
         LIBS += Shell32.lib

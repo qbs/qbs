@@ -598,6 +598,11 @@ void TestLanguage::exports()
 
         product = products.value("myapp2");
         QVERIFY(product);
+        propertyName = QStringList() << "modules" << "dummy" << "cFlags";
+        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        QCOMPARE(propertyValue.toStringList(), QStringList()
+                 << "BASE_PRODUCTWITHINHERITEDEXPORTITEM"
+                 << "PRODUCT_PRODUCTWITHINHERITEDEXPORTITEM");
         propertyName = QStringList() << "modules" << "dummy" << "cxxFlags";
         propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "-bar");
@@ -1593,6 +1598,38 @@ void TestLanguage::relaxedErrorMode_data()
 
     QTest::newRow("strict mode") << true;
     QTest::newRow("relaxed mode") << false;
+}
+
+void TestLanguage::requiredAndNonRequiredDependencies()
+{
+    QFETCH(QString, projectFile);
+    QFETCH(bool, exceptionExpected);
+    try {
+        SetupProjectParameters params = defaultParameters;
+        const QString projectFilePath = "required-and-nonrequired-dependencies/" + projectFile;
+        params.setProjectFilePath(testProject(projectFilePath.toLocal8Bit()));
+        const TopLevelProjectConstPtr project = loader->loadProject(params);
+        QVERIFY(project);
+        QVERIFY(!exceptionExpected);
+    } catch (const ErrorInfo &e) {
+        QVERIFY(exceptionExpected);
+        QVERIFY2(e.toString().contains("validation error!"), qPrintable(e.toString()));
+    }
+}
+
+void TestLanguage::requiredAndNonRequiredDependencies_data()
+{
+    QTest::addColumn<QString>("projectFile");
+    QTest::addColumn<bool>("exceptionExpected");
+
+    QTest::newRow("same file") << "direct-dependencies.qbs" << true;
+    QTest::newRow("dependency via module") << "dependency-via-module.qbs" << true;
+    QTest::newRow("dependency via export") << "dependency-via-export.qbs" << true;
+    QTest::newRow("more indirection") << "complicated.qbs" << true;
+    QTest::newRow("required chain (module)") << "required-chain-module.qbs" << false;
+    QTest::newRow("required chain (export)") << "required-chain-export.qbs" << false;
+    QTest::newRow("required chain (export indirect)") << "required-chain-export-indirect.qbs"
+                                                      << false;
 }
 
 void TestLanguage::throwingProbe()

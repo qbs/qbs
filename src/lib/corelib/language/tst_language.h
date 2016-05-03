@@ -113,6 +113,8 @@ private slots:
     void qbsPropertiesInProjectCondition();
     void relaxedErrorMode();
     void relaxedErrorMode_data();
+    void requiredAndNonRequiredDependencies();
+    void requiredAndNonRequiredDependencies_data();
     void throwingProbe();
     void throwingProbe_data();
     void defaultValue();

@@ -80,10 +80,17 @@
 
             For more information on the properties you can specify, see
             \l{core Properties}.
+
+            For more information on the relevant file tags, see
+            \l {core File Tags}.
     \row
         \li dbus
         \li Qt D-Bus
-        \li
+        \li For more information on the properties you can specify, see
+            \l{dbus Properties}.
+
+            For more information on the relevant file tags, see
+            \l {dbus File Tags}.
     \row
         \li declarative
         \li Qt Quick 1
@@ -100,7 +107,11 @@
     \row
         \li gui
         \li Qt GUI
-        \li For more information, see \l {gui Properties}.
+        \li For more information on the properties you can specify,
+            see \l {gui Properties}.
+
+            For more information on the relevant file tags, see
+            \l {gui File Tags}.
     \row
         \li help
         \li Qt Help
@@ -182,10 +193,14 @@
         \li
     \endtable
 
-    \section1 core Properties
+    \section1 Module Properties
 
-    As opposed to most other \c Qt modules, \c core defines a number of properties that can be
-    interesting to users. Some of them only need to be defined if the respective installation
+    The following sections describe the properties of Qt modules that can be
+    interesting to users.
+
+    \section2 core Properties
+
+    Some of the following properties only need to be defined if the respective installation
     of Qt was built in some unusual way, for instance by setting non-default \c configure flags.
 
     \table
@@ -332,7 +347,32 @@
         \li The Qt patch level.
     \endtable
 
-    \section1 declarative Properties
+    \section2 dbus Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li xml2cppName
+        \li \c{string}
+        \li \c{"qdbusxml2cpp"}
+        \li The base name of the \c qdbusxml2cpp tool. Set this if your system uses a different name.
+    \row
+        \li xml2CppHeaderFlags
+        \li \c{stringList}
+        \li empty list
+        \li Additional flags when running the \c qdbusxml2cpp tool to create header files.
+    \row
+        \li xml2CppSourceFlags
+        \li \c{stringList}
+        \li empty list
+        \li Additional flags when running the \c qdbusxml2cpp tool to create source files.
+    \endtable
+
+    \section2 declarative Properties
 
     \table
     \header
@@ -358,7 +398,7 @@
             This property is undefined for Qt4.
     \endtable
 
-    \section1 gui Properties
+    \section2 gui Properties
 
     \table
     \header
@@ -373,7 +413,7 @@
         \li The base name of the \c uic tool. Set this if your system uses a name such as "uic-qt4".
     \endtable
 
-    \section1 quick Properties
+    \section2 quick Properties
 
     \table
     \header
@@ -397,5 +437,114 @@
         \li set by \c{qbs-setup-qt}
         \li The absolute path to the directory where Qt's QML files are installed.
             This property is undefined for Qt4.
+
+    \endtable
+
+    \section1 Relevant File Tags
+
+    The following sections describe the file tags that are relevant for the Qt
+    modules.
+
+    \section2 core File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"qch"}
+        \li n/a
+        \li 1.1
+        \li This tag is attached to the output artifacts of the rule that runs the
+            \c qhelpgenerator tool.
+    \row
+        \li \c{"qdoc"}
+        \li \c{*.qdoc}
+        \li 1.1
+        \li Source files with this tag trigger a re-execution of the rule running the \c qdoc
+            tool when their timestamp changes.
+    \row
+        \li \c{"qdocconf"}
+        \li \c{*.qdocconf}
+        \li 1.1
+        \li Source files with this tag trigger a re-execution of the rule running the \c qdoc
+            tool when their timestamp changes.
+    \row
+        \li \c{"qdocconf-main"}
+        \li -
+        \li 1.1
+        \li Source files with this tag serve as inputs to the rule running the \c qdoc tool.
+    \row
+        \li \c{"qdoc-output"}
+        \li n/a
+        \li 1.5
+        \li Use this tag to match all \c qdoc outputs, for instance in a \l{Group Item}{Group}
+            using the \c fileTagsFilter property.
+    \row
+        \li \c{"qhp"}
+        \li \c{*.qhp}
+        \li 1.1
+        \li Files with this tag serve as inputs to the rule running the \c qhelpgenerator tool.
+            Such files are created by \c qdoc, but can also appear as source files.
+    \row
+        \li \c{"qm"}
+        \li n/a
+        \li 1.1
+        \li This tag is attached to the output artifacts of the rule that runs the \c lrelease tool.
+    \row
+        \li \c{"qrc"}
+        \li \c{*.qrc}
+        \li 1.0
+        \li Files with this tag serve as inputs to the rule running the \c rcc tool.
+    \row
+        \li \c{"qt_plugin_metadata"}
+        \li -
+        \li 1.0
+        \li Source files with this tag trigger a re-execution of the rule running the \c moc
+            tool when their timestamp changes.
+    \row
+        \li \c{"ts"}
+        \li \c{*.ts}
+        \li 1.0
+        \li Files with this tag serve as inputs to the rule running the \c lrelease tool.
+    \endtable
+
+    \section2 dbus File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"qt.dbus.adaptor"}
+        \li -
+        \li 1.5
+        \li Source files with this tag serve as inputs to the rule running the \c qdbusxml2cpp tool,
+            which will create an adaptor class.
+    \row
+        \li \c{"qt.dbus.interface"}
+        \li -
+        \li 1.5
+        \li Source files with this tag serve as inputs to the rule running the \c qdbusxml2cpp tool,
+            which will create an interface class.
+    \endtable
+
+    \section2 gui File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"ui"}
+        \li \c{*.ui}
+        \li 1.0
+        \li Source files with this tag serve as inputs to the rule running the \c uic tool.
     \endtable
 */

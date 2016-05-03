@@ -38,20 +38,19 @@
 namespace qbs {
 namespace Internal {
 
-ModuleMerger::ModuleMerger(const Logger &logger, Item *root, Item *moduleToMerge,
-        const QualifiedId &moduleName)
+ModuleMerger::ModuleMerger(const Logger &logger, Item *root, Item::Module &moduleToMerge)
     : m_logger(logger)
     , m_rootItem(root)
-    , m_mergedModuleItem(moduleToMerge)
-    , m_moduleName(moduleName)
+    , m_mergedModule(moduleToMerge)
+    , m_required(moduleToMerge.required)
 {
-    QBS_CHECK(moduleToMerge->type() == ItemType::ModuleInstance);
+    QBS_CHECK(moduleToMerge.item->type() == ItemType::ModuleInstance);
 }
 
 void ModuleMerger::replaceItemInValues(QualifiedId moduleName, Item *containerItem, Item *toReplace)
 {
     QBS_CHECK(!moduleName.isEmpty());
-    QBS_CHECK(containerItem != m_mergedModuleItem);
+    QBS_CHECK(containerItem != m_mergedModule.item);
     const QString moduleNamePrefix = moduleName.takeFirst();
     Item::PropertyMap properties = containerItem->properties();
     for (auto it = properties.begin(); it != properties.end(); ++it) {
@@ -63,7 +62,7 @@ void ModuleMerger::replaceItemInValues(QualifiedId moduleName, Item *containerIt
         ItemValue * const itemVal = static_cast<ItemValue *>(val);
         if (moduleName.isEmpty()) {
             QBS_CHECK(itemVal->item() == toReplace);
-            itemVal->setItem(m_mergedModuleItem);
+            itemVal->setItem(m_mergedModule.item);
         } else {
             replaceItemInValues(moduleName, itemVal->item(), toReplace);
         }
@@ -75,9 +74,11 @@ void ModuleMerger::start()
     Item::Module m;
     m.item = m_rootItem;
     const Item::PropertyMap props = dfs(m, Item::PropertyMap());
-    Item::PropertyMap mergedProps = m_mergedModuleItem->properties();
+    if (m_required)
+        m_mergedModule.required = true;
+    Item::PropertyMap mergedProps = m_mergedModule.item->properties();
 
-    Item *moduleProto = m_mergedModuleItem->prototype();
+    Item *moduleProto = m_mergedModule.item->prototype();
     while (moduleProto->prototype())
         moduleProto = moduleProto->prototype();
 
@@ -85,17 +86,19 @@ void ModuleMerger::start()
         appendPrototypeValueToNextChain(moduleProto, it.key(), it.value());
         mergedProps[it.key()] = it.value();
     }
-    m_mergedModuleItem->setProperties(mergedProps);
+    m_mergedModule.item->setProperties(mergedProps);
 
     foreach (Item *moduleInstanceContainer, m_moduleInstanceContainers) {
         QList<Item::Module> modules;
         foreach (const Item::Module &dep, moduleInstanceContainer->modules()) {
-            const bool isTheModule = dep.name == m_moduleName;
+            const bool isTheModule = dep.name == m_mergedModule.name;
             Item::Module m = dep;
-            if (isTheModule && m.item != m_mergedModuleItem) {
+            if (isTheModule && m.item != m_mergedModule.item) {
                 QBS_CHECK(m.item->type() == ItemType::ModuleInstance);
                 replaceItemInValues(m.name, moduleInstanceContainer, m.item);
-                m.item = m_mergedModuleItem;
+                m.item = m_mergedModule.item;
+                if (m_required)
+                    m.required = true;
             }
             modules << m;
         }
@@ -108,11 +111,13 @@ Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap pro
     Item *moduleInstance = 0;
     int numberOfOutprops = m.item->modules().count();
     foreach (const Item::Module &dep, m.item->modules()) {
-        if (dep.name == m_moduleName) {
+        if (dep.name == m_mergedModule.name) {
             --numberOfOutprops;
             moduleInstance = dep.item;
             insertProperties(&props, moduleInstance, ScalarProperties);
             m_moduleInstanceContainers << m.item;
+            if (dep.required)
+                m_required = true;
             break;
         }
     }
@@ -208,7 +213,7 @@ void ModuleMerger::insertProperties(Item::PropertyMap *dst, Item *srcItem, Prope
 void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QString &propertyName,
         const ValuePtr &sv)
 {
-    const PropertyDeclaration pd = m_mergedModuleItem->propertyDeclaration(propertyName);
+    const PropertyDeclaration pd = m_mergedModule.item->propertyDeclaration(propertyName);
     if (pd.isScalar())
         return;
     ValuePtr protoValue = moduleProto->property(propertyName);
@@ -217,8 +222,8 @@ void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QStr
         m_clonedModulePrototype = moduleProto->clone();
         Item * const scope = Item::create(m_clonedModulePrototype->pool());
         scope->setFile(m_clonedModulePrototype->file());
-        m_mergedModuleItem->scope()->copyProperty(QLatin1String("project"), scope);
-        m_mergedModuleItem->scope()->copyProperty(QLatin1String("product"), scope);
+        m_mergedModule.item->scope()->copyProperty(QLatin1String("project"), scope);
+        m_mergedModule.item->scope()->copyProperty(QLatin1String("product"), scope);
         m_clonedModulePrototype->setScope(scope);
     }
     const ValuePtr clonedValue = protoValue->clone();

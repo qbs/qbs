@@ -1,6 +1,5 @@
 import qbs
 import qbs.Environment
-import qbs.File
 import "fileList.js" as FileList
 
 CppApplication {
