@@ -10,5 +10,6 @@ Product {
             res.push("_SCL_SECURE_NO_WARNINGS");
         return res;
     }
+    cpp.enableExceptions: true
     condition: QbsFunctions.versionIsAtLeast(Qt.core.version, minimumQtVersion)
 }
