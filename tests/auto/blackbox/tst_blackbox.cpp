@@ -2613,6 +2613,18 @@ void TestBlackbox::nestedProperties()
     QVERIFY2(m_qbsStdout.contains("value in higherlevel"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::newOutputArtifact()
+{
+    QDir::setCurrent(testDataDir + "/new-output-artifact");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(regularFileExists(relativeBuildDir() + "/install-root/output_98.out"));
+    const QString the100thArtifact = relativeBuildDir() + "/install-root/output_99.out";
+    QVERIFY(!regularFileExists(the100thArtifact));
+    QbsRunParameters params(QStringList() << "theProduct.artifactCount:100");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(regularFileExists(the100thArtifact));
+}
+
 void TestBlackbox::nonBrokenFilesInBrokenProduct()
 {
     QDir::setCurrent(testDataDir + "/non-broken-files-in-broken-product");

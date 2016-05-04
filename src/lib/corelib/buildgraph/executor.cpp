@@ -392,13 +392,8 @@ bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
             hasAlwaysUpdatedArtifacts = true;
         else if (!m_buildOptions.forceTimestampCheck())
             continue;
-        const bool upToDate = isUpToDate(artifact);
-
-        // The invariant is that all output artifacts of a transformer have the same
-        // "virtual" timestamp. However, if the user requested that on-disk timestamps be evaluated,
-        // they can differ and the oldest output file of the transformer decides.
-        if (!upToDate || !m_buildOptions.forceTimestampCheck())
-            return !upToDate;
+        if (!isUpToDate(artifact))
+            return true;
     }
 
     // If all artifacts in a transformer have "alwaysUpdated" set to false, that transformer

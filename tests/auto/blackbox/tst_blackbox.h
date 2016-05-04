@@ -162,6 +162,7 @@ private slots:
     void mixedBuildVariants();
     void multipleChanges();
     void nestedProperties();
+    void newOutputArtifact();
     void nodejs();
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();
