@@ -27,6 +27,9 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+
+var ModUtils = loadExtension("qbs.ModUtils");
+
 function args(product, input, outputFileName)
 {
     var defines = product.moduleProperty("cpp", "compilerDefines");

@@ -135,6 +135,7 @@ private slots:
     void groupsInModules();
     void iconset();
     void iconsetApp();
+    void importingProduct();
     void infoPlist();
     void inputsFromDependencies();
     void installable();
@@ -161,6 +162,7 @@ private slots:
     void mixedBuildVariants();
     void multipleChanges();
     void nestedProperties();
+    void newOutputArtifact();
     void nodejs();
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();

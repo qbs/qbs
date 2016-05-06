@@ -66,5 +66,6 @@
     get the include paths and preprocessor macros via A's Export item.
 
     In contrast to Module items, \c{product} within Export items refers to the product which defines
-    the Export item.
+    the Export item. Use the \c{importingProduct} variable to refer to the product that
+    pulls in the resulting module.
 */
