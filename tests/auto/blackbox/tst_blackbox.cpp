@@ -3058,6 +3058,22 @@ void TestBlackbox::subProfileChangeTracking()
     QVERIFY(m_qbsStdout.contains("main2.cpp"));
 }
 
+void TestBlackbox::successiveChanges()
+{
+    QDir::setCurrent(testDataDir + "/successive-changes");
+    QCOMPARE(runQbs(), 0);
+
+    QbsRunParameters params(QStringList() << "theProduct.type:output,blubb");
+    QCOMPARE(runQbs(params), 0);
+
+    params.arguments << "project.version:2";
+    QCOMPARE(runQbs(params), 0);
+    QFile output(relativeProductBuildDir("theProduct") + "/output.out");
+    QVERIFY2(output.open(QIODevice::ReadOnly), qPrintable(output.errorString()));
+    const QByteArray version = output.readAll();
+    QCOMPARE(version.constData(), "2");
+}
+
 void TestBlackbox::installedApp()
 {
     QDir::setCurrent(testDataDir + "/installed_artifact");

@@ -256,6 +256,7 @@ QbsLibrary {
             "preparescriptobserver.h",
             "projectresolver.cpp",
             "projectresolver.h",
+            "property.cpp",
             "property.h",
             "propertydeclaration.cpp",
             "propertydeclaration.h",

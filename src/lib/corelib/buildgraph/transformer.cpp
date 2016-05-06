@@ -247,60 +247,16 @@ void Transformer::createCommands(const ScriptFunctionConstPtr &script,
     }
 }
 
-static void restorePropertyList(PersistentPool &pool, PropertySet &list)
-{
-    int count;
-    pool.stream() >> count;
-    list.reserve(count);
-    while (--count >= 0) {
-        Property p;
-        p.moduleName = pool.idLoadString();
-        p.propertyName = pool.idLoadString();
-        int k;
-        pool.stream() >> p.value >> k;
-        p.kind = static_cast<Property::Kind>(k);
-        list += p;
-    }
-}
-
 void Transformer::load(PersistentPool &pool)
 {
     rule = pool.idLoadS<Rule>();
     pool.loadContainer(inputs);
     pool.loadContainer(outputs);
-    restorePropertyList(pool, propertiesRequestedInPrepareScript);
-    restorePropertyList(pool, propertiesRequestedInCommands);
-    int count;
-    pool.stream() >> count;
-    propertiesRequestedFromArtifactInPrepareScript.reserve(count);
-    while (--count >= 0) {
-        const QString artifactName = pool.idLoadString();
-        int listCount;
-        pool.stream() >> listCount;
-        PropertySet list;
-        list.reserve(listCount);
-        while (--listCount >= 0) {
-            Property p;
-            p.moduleName = pool.idLoadString();
-            p.propertyName = pool.idLoadString();
-            pool.stream() >> p.value;
-            p.kind = Property::PropertyInModule;
-            list += p;
-        }
-        propertiesRequestedFromArtifactInPrepareScript.insert(artifactName, list);
-    }
+    propertiesRequestedInPrepareScript = restorePropertySet(pool);
+    propertiesRequestedInCommands = restorePropertySet(pool);
+    propertiesRequestedFromArtifactInPrepareScript = restorePropertyHash(pool);
     commands = loadCommandList(pool);
     pool.stream() >> alwaysRun;
-}
-
-static void storePropertyList(PersistentPool &pool, const PropertySet &list)
-{
-    pool.stream() << list.count();
-    foreach (const Property &p, list) {
-        pool.storeString(p.moduleName);
-        pool.storeString(p.propertyName);
-        pool.stream() << p.value << static_cast<int>(p.kind);
-    }
 }
 
 void Transformer::store(PersistentPool &pool) const
@@ -308,20 +264,9 @@ void Transformer::store(PersistentPool &pool) const
     pool.store(rule);
     pool.storeContainer(inputs);
     pool.storeContainer(outputs);
-    storePropertyList(pool, propertiesRequestedInPrepareScript);
-    storePropertyList(pool, propertiesRequestedInCommands);
-    pool.stream() << propertiesRequestedFromArtifactInPrepareScript.count();
-    for (QHash<QString, PropertySet>::ConstIterator it = propertiesRequestedFromArtifactInPrepareScript.constBegin();
-         it != propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {
-        pool.storeString(it.key());
-        const PropertySet &properties = it.value();
-        pool.stream() << properties.count();
-        foreach (const Property &p, properties) {
-            pool.storeString(p.moduleName);
-            pool.storeString(p.propertyName);
-            pool.stream() << p.value; // kind is always PropertyInModule
-        }
-    }
+    storePropertySet(pool, propertiesRequestedInPrepareScript);
+    storePropertySet(pool, propertiesRequestedInCommands);
+    storePropertyHash(pool, propertiesRequestedFromArtifactInPrepareScript);
     storeCommandList(commands, pool);
     pool.stream() << alwaysRun;
 }

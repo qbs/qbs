@@ -56,6 +56,9 @@ void RescuableArtifactData::load(PersistentPool &pool)
         children << cd;
     }
 
+    propertiesRequestedInPrepareScript = restorePropertySet(pool);
+    propertiesRequestedInCommands = restorePropertySet(pool);
+    propertiesRequestedFromArtifactInPrepareScript = restorePropertyHash(pool);
     commands = loadCommandList(pool);
 }
 
@@ -71,6 +74,9 @@ void RescuableArtifactData::store(PersistentPool &pool) const
         pool.stream() << cd.addedByScanner;
     }
 
+    storePropertySet(pool, propertiesRequestedInPrepareScript);
+    storePropertySet(pool, propertiesRequestedInCommands);
+    storePropertyHash(pool, propertiesRequestedFromArtifactInPrepareScript);
     storeCommandList(commands, pool);
 }
 

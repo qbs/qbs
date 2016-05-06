@@ -33,6 +33,7 @@
 
 #include "forward_decls.h"
 
+#include <language/property.h>
 #include <tools/filetime.h>
 
 #include <QHash>
@@ -64,7 +65,13 @@ public:
 
     FileTime timeStamp;
     QList<ChildData> children;
+
+    // Per-Transformer data
     QList<AbstractCommandPtr> commands;
+    PropertySet propertiesRequestedInPrepareScript;
+    PropertySet propertiesRequestedInCommands;
+    PropertyHash propertiesRequestedFromArtifactInPrepareScript;
+
 };
 typedef QHash<QString, RescuableArtifactData> AllRescuableArtifactData;
 

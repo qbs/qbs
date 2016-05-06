@@ -858,6 +858,12 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
             RescuableArtifactData rad;
             rad.timeStamp = oldArtifact->timestamp();
             rad.commands = oldArtifact->transformer->commands;
+            rad.propertiesRequestedInPrepareScript
+                    = oldArtifact->transformer->propertiesRequestedInPrepareScript;
+            rad.propertiesRequestedInCommands
+                    = oldArtifact->transformer->propertiesRequestedInCommands;
+            rad.propertiesRequestedFromArtifactInPrepareScript
+                    = oldArtifact->transformer->propertiesRequestedFromArtifactInPrepareScript;
             const ChildrenInfo &childrenInfo = childLists.value(oldArtifact);
             foreach (Artifact * const child, childrenInfo.children) {
                 rad.children << RescuableArtifactData::ChildData(child->product->name,

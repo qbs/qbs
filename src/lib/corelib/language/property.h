@@ -36,6 +36,7 @@
 
 namespace qbs {
 namespace Internal {
+class PersistentPool;
 
 class Property
 {
@@ -74,6 +75,12 @@ inline uint qHash(const Property &p)
 }
 
 typedef QSet<Property> PropertySet;
+typedef QHash<QString, PropertySet> PropertyHash;
+
+void storePropertySet(PersistentPool &pool, const PropertySet &list);
+PropertySet restorePropertySet(PersistentPool &pool);
+void storePropertyHash(PersistentPool &pool, const PropertyHash &propertyHash);
+PropertyHash restorePropertyHash(PersistentPool &pool);
 
 } // namespace Internal
 } // namespace qbs

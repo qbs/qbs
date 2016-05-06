@@ -191,6 +191,7 @@ private slots:
     void ruleConditions();
     void ruleCycle();
     void subProfileChangeTracking();
+    void successiveChanges();
     void symlinkRemoval();
     void renameDependency();
     void separateDebugInfo();

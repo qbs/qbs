@@ -64,6 +64,7 @@ SOURCES += \
     $$PWD/modulemerger.cpp \
     $$PWD/preparescriptobserver.cpp \
     $$PWD/projectresolver.cpp \
+    $$PWD/property.cpp \
     $$PWD/propertydeclaration.cpp \
     $$PWD/propertymapinternal.cpp \
     $$PWD/qualifiedid.cpp \
