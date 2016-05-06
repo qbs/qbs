@@ -156,12 +156,37 @@ QString ProjectBuildData::deriveBuildGraphFilePath(const QString &buildDir, cons
     return buildDir + QLatin1Char('/') + projectId + QLatin1String(".bg");
 }
 
+static QString productNameForErrorMessage(const ResolvedProduct *product)
+{
+    return product->profile == product->topLevelProject()->profile()
+            ? product->name : product->uniqueName();
+}
+
 void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)
 {
     QList<FileResourceBase *> &lst
             = m_artifactLookupTable[fileres->fileName()][fileres->dirPath()];
-    if (!lst.contains(fileres))
-        lst.append(fileres);
+    const auto * const artifact = dynamic_cast<Artifact *>(fileres);
+    if (artifact && artifact->artifactType == Artifact::Generated) {
+        foreach (const auto *file, lst) {
+            const auto * const otherArtifact = dynamic_cast<const Artifact *>(file);
+            if (otherArtifact) {
+                ErrorInfo error;
+                error.append(Tr::tr("Conflicting artifacts for file path '%1'.")
+                             .arg(artifact->filePath()));
+                error.append(Tr::tr("The first artifact comes from product '%1'.")
+                             .arg(productNameForErrorMessage(otherArtifact->product.data())),
+                             otherArtifact->product->location);
+                error.append(Tr::tr("The second artifact comes from product '%1'.")
+                             .arg(productNameForErrorMessage(artifact->product.data())),
+                             otherArtifact->product->location);
+                // FIXME: We leak the artifact object here. Use managed pointers in the allocating code.
+                throw error;
+            }
+        }
+    }
+    QBS_CHECK(!lst.contains(fileres));
+    lst.append(fileres);
 }
 
 void ProjectBuildData::removeFromLookupTable(FileResourceBase *fileres)

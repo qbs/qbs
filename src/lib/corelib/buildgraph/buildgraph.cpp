@@ -410,40 +410,16 @@ Artifact *createArtifact(const ResolvedProductPtr &product,
     return artifact;
 }
 
-static QString productNameForErrorMessage(const ResolvedProduct *product)
-{
-    return product->profile == product->topLevelProject()->profile()
-            ? product->name : product->uniqueName();
-}
-
-static void checkForConflictingArtifacts(const ResolvedProduct *product, Artifact *artifact)
-{
-    foreach (const ResolvedProductConstPtr &otherProduct, product->project->allProducts()) {
-        if (otherProduct == product || !lookupArtifact(otherProduct, artifact->filePath()))
-            continue;
-        ErrorInfo error;
-        error.append(Tr::tr("Conflicting artifacts for file path '%1'.").arg(artifact->filePath()));
-        error.append(Tr::tr("The first artifact comes from product '%1'.")
-                     .arg(productNameForErrorMessage(otherProduct.data())), otherProduct->location);
-        error.append(Tr::tr("The second artifact comes from product '%1'.")
-                     .arg(productNameForErrorMessage(product)), product->location);
-        throw error;
-    }
-
-}
-
 void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const Logger &logger)
 {
     QBS_CHECK(!artifact->product);
     QBS_CHECK(!artifact->filePath().isEmpty());
     QBS_CHECK(!product->buildData->nodes.contains(artifact));
-    if (artifact->artifactType == Artifact::Generated)
-        checkForConflictingArtifacts(product.data(), artifact);
-    product->buildData->nodes.insert(artifact);
-    addArtifactToSet(artifact, product->buildData->artifactsByFileTag);
     artifact->product = product;
     product->topLevelProject()->buildData->insertIntoLookupTable(artifact);
     product->topLevelProject()->buildData->isDirty = true;
+    product->buildData->nodes.insert(artifact);
+    addArtifactToSet(artifact, product->buildData->artifactsByFileTag);
 
     if (logger.traceEnabled()) {
         logger.qbsTrace() << QString::fromLocal8Bit("[BG] insert artifact '%1'")
