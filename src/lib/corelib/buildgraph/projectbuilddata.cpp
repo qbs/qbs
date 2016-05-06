@@ -180,7 +180,6 @@ void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)
                 error.append(Tr::tr("The second artifact comes from product '%1'.")
                              .arg(productNameForErrorMessage(artifact->product.data())),
                              otherArtifact->product->location);
-                // FIXME: We leak the artifact object here. Use managed pointers in the allocating code.
                 throw error;
             }
         }

@@ -53,6 +53,7 @@
 
 #include <QDir>
 #include <QQueue>
+#include <QScopedPointer>
 #include <QScriptValueIterator>
 
 namespace qbs {
@@ -334,11 +335,12 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         outputArtifact->clearTimestamp();
         m_invalidatedArtifacts += outputArtifact;
     } else {
-        outputArtifact = new Artifact;
-        outputArtifact->artifactType = Artifact::Generated;
-        outputArtifact->setFilePath(outputPath);
-        insertArtifact(m_product, outputArtifact, m_logger);
-        m_createdArtifacts += outputArtifact;
+        QScopedPointer<Artifact> newArtifact(new Artifact);
+        newArtifact->artifactType = Artifact::Generated;
+        newArtifact->setFilePath(outputPath);
+        insertArtifact(m_product, newArtifact.data(), m_logger);
+        m_createdArtifacts += newArtifact.data();
+        outputArtifact = newArtifact.take();
     }
 
     outputArtifact->setFileTags(
