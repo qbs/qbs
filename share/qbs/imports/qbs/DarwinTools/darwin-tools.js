@@ -199,6 +199,7 @@ function expandPlistEnvironmentVariables(obj, env, warn) {
                     // skip replacement
                     if (warn)
                         console.warn("undefined variable " + varName + " in variable expansion");
+                    i = j + repl.syntax.close.length;
                 } else {
                     changes = true;
                     varValue = String(varValue);
