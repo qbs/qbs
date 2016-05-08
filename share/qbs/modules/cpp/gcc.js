@@ -115,9 +115,10 @@ function linkerFlags(product, inputs, output) {
             args = args.concat(escapeLinkerFlags(product, ["--as-needed"]));
     }
 
-    var arch = product.moduleProperty("cpp", "targetArch");
-    if (isDarwin)
-        args.push("-arch", arch);
+    if (haveTargetOption(product))
+        args.push("-target", product.moduleProperty("cpp", "target"));
+    else if (isDarwin)
+        args.push("-arch", product.moduleProperty("cpp", "targetArch"));
 
     var minimumDarwinVersion = ModUtils.moduleProperty(product, "minimumDarwinVersion");
     if (minimumDarwinVersion) {

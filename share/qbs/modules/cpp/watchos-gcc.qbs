@@ -32,8 +32,7 @@
 import qbs
 
 DarwinGCC {
-    condition: qbs.hostOS.contains('osx') &&
-               qbs.targetOS.contains('watchos') &&
+    condition: qbs.targetOS.contains('watchos') &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
 
     targetSystem: "watchos" + (minimumWatchosVersion || "")

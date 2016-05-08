@@ -9,7 +9,7 @@ import qbs.PropertyList
 import 'xcode.js' as Utils
 
 Module {
-    condition: qbs.hostOS.contains("darwin") && qbs.targetOS.contains("darwin") &&
+    condition: qbs.targetOS.contains("darwin") &&
                qbs.toolchain && qbs.toolchain.contains("xcode")
 
     property path developerPath: "/Applications/Xcode.app/Contents/Developer"

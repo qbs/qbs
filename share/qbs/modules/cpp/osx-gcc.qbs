@@ -32,8 +32,7 @@ import qbs 1.0
 import qbs.ModUtils
 
 DarwinGCC {
-    condition: qbs.hostOS.contains('osx') &&
-               qbs.targetOS.contains('osx') &&
+    condition: qbs.targetOS.contains('osx') &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
 
     targetSystem: "macosx" + (minimumOsxVersion || "")
