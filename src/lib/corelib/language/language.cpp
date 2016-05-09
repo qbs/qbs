@@ -371,6 +371,11 @@ bool Rule::isDynamic() const
     return outputArtifactsScript->isValid();
 }
 
+bool Rule::requiresInputs() const
+{
+    return !inputs.isEmpty() || !inputsFromDependencies.isEmpty();
+}
+
 void Rule::load(PersistentPool &pool)
 {
     name = pool.idLoadString();

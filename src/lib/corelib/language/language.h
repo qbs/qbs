@@ -284,6 +284,7 @@ public:
     FileTags staticOutputFileTags() const;
     FileTags collectedOutputFileTags() const;
     bool isDynamic() const;
+    bool requiresInputs() const;
 private:
     Rule() : multiplex(false), alwaysRun(false), ruleGraphId(-1) {}
 

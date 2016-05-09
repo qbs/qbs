@@ -73,7 +73,8 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
     ArtifactSet allCompatibleInputs = currentInputArtifacts();
     const ArtifactSet addedInputs = allCompatibleInputs - m_oldInputArtifacts;
     const ArtifactSet removedInputs = m_oldInputArtifacts - allCompatibleInputs;
-    result->upToDate = changedInputs.isEmpty() && addedInputs.isEmpty() && removedInputs.isEmpty();
+    result->upToDate = changedInputs.isEmpty() && addedInputs.isEmpty() && removedInputs.isEmpty()
+            && m_rule->requiresInputs();
 
     if (logger.traceEnabled()) {
         logger.qbsTrace()
@@ -123,7 +124,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         }
         RulesApplicator::handleRemovedRuleOutputs(inputs, outputArtifactsToRemove, logger);
     }
-    if (!inputs.isEmpty()) {
+    if (!inputs.isEmpty() || !m_rule->requiresInputs()) {
         RulesApplicator applicator(product, logger);
         applicator.applyRule(m_rule, inputs);
         result->createdNodes = applicator.createdArtifacts();

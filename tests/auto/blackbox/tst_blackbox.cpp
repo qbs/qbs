@@ -1745,6 +1745,21 @@ void TestBlackbox::ruleCycle()
     QVERIFY(m_qbsStderr.contains("Cycle detected in rule dependencies"));
 }
 
+void TestBlackbox::ruleWithNoInputs()
+{
+    QDir::setCurrent(testDataDir + "/rule-with-no-inputs");
+    QVERIFY2(runQbs() == 0, m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
+    QVERIFY2(runQbs() == 0, m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
+    QbsRunParameters params(QStringList() << "theProduct.version:1");
+    QVERIFY2(runQbs(params) == 0, m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
+    params.arguments = QStringList() << "theProduct.version:2";
+    QVERIFY2(runQbs(params) == 0, m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::overrideProjectProperties()
 {
     QDir::setCurrent(testDataDir + "/overrideProjectProperties");

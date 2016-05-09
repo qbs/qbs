@@ -190,6 +190,7 @@ private slots:
     void reproducibleBuild_data();
     void ruleConditions();
     void ruleCycle();
+    void ruleWithNoInputs();
     void subProfileChangeTracking();
     void successiveChanges();
     void symlinkRemoval();

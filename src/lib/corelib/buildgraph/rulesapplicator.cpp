@@ -73,7 +73,7 @@ RulesApplicator::~RulesApplicator()
 
 void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts)
 {
-    if (inputArtifacts.isEmpty())
+    if (inputArtifacts.isEmpty() && rule->requiresInputs())
         return;
 
     m_createdArtifacts.clear();
@@ -333,7 +333,8 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
                               (*inputArtifacts.begin())->filePath()));
             throw error;
         }
-        outputArtifact->clearTimestamp();
+        if (m_rule->requiresInputs())
+            outputArtifact->clearTimestamp();
         m_invalidatedArtifacts += outputArtifact;
     } else {
         QScopedPointer<Artifact> newArtifact(new Artifact);

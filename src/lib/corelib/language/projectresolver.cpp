@@ -712,6 +712,14 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     rule->explicitlyDependsOn
             = m_evaluator->fileTagsValue(item, QLatin1String("explicitlyDependsOn"));
     rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
+    if (!rule->multiplex && !rule->requiresInputs()) {
+        const QString message = Tr::tr("Rule has no inputs, but is not a multiplex rule.");
+        ErrorInfo error(message, item->location());
+        if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
+            throw error;
+        m_logger.printWarning(error);
+        return;
+    }
     if (m_productContext)
         m_productContext->product->rules += rule;
     else
