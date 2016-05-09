@@ -49,6 +49,7 @@ RulesEvaluationContext::RulesEvaluationContext(const Logger &logger)
     : m_engine(new ScriptEngine(logger)), m_observer(0), m_initScopeCalls(0)
 {
     m_prepareScriptScope = m_engine->newObject();
+    m_prepareScriptScope.setPrototype(m_engine->globalObject());
     ProcessCommand::setupForJavaScript(m_prepareScriptScope);
     JavaScriptCommand::setupForJavaScript(m_prepareScriptScope);
 }
@@ -87,10 +88,9 @@ void RulesEvaluationContext::initScope()
         return;
 
     m_engine->clearImportsCache();
-    m_engine->pushContext();
     m_scope = m_engine->newObject();
     m_scope.setPrototype(m_prepareScriptScope);
-    m_engine->currentContext()->pushScope(m_scope);
+    m_engine->setGlobalObject(m_scope);
 }
 
 void RulesEvaluationContext::cleanupScope()
@@ -100,8 +100,7 @@ void RulesEvaluationContext::cleanupScope()
         return;
 
     m_scope = QScriptValue();
-    m_engine->currentContext()->popScope();
-    m_engine->popContext();
+    m_engine->setGlobalObject(m_prepareScriptScope.prototype());
 }
 
 RulesEvaluationContext::Scope::Scope(RulesEvaluationContext *evalContext)

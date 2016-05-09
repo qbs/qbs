@@ -87,6 +87,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
         m_mocScanner = new QtMocScanner(m_product, scope(), m_logger);
     }
     QScriptValue prepareScriptContext = engine()->newObject();
+    prepareScriptContext.setPrototype(engine()->globalObject());
     PrepareScriptObserver observer(engine());
     setupScriptEngineForFile(engine(), m_rule->prepareScript->fileContext, scope());
     setupScriptEngineForProduct(engine(), m_product, m_rule->module, prepareScriptContext, &observer);
@@ -207,7 +208,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     // change the transformer outputs according to the bindings in Artifact
     QScriptValue scriptValue;
     if (!ruleArtifactArtifactMap.isEmpty())
-        engine()->currentContext()->pushScope(prepareScriptContext);
+        engine()->setGlobalObject(prepareScriptContext);
     for (int i = ruleArtifactArtifactMap.count(); --i >= 0;) {
         const RuleArtifact *ra = ruleArtifactArtifactMap.at(i).first;
         if (ra->bindings.isEmpty())
@@ -239,7 +240,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         outputArtifact->properties->setValue(outputArtifactConfig);
     }
     if (!ruleArtifactArtifactMap.isEmpty())
-        engine()->currentContext()->popScope();
+        engine()->setGlobalObject(prepareScriptContext.prototype());
 
     m_transformer->setupOutputs(engine(), prepareScriptContext);
     m_transformer->createCommands(m_rule->prepareScript, evalContext(),

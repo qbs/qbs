@@ -131,6 +131,7 @@ UserDependencyScanner::UserDependencyScanner(const ResolvedScannerConstPtr &scan
 {
     m_engine->setProcessEventsInterval(-1); // QBS-782
     m_global = m_engine->newObject();
+    m_global.setPrototype(m_engine->globalObject());
     setupScriptEngineForFile(m_engine, m_scanner->scanScript->fileContext, m_global);
 }
 
@@ -184,8 +185,7 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunc
     args.append(m_global.property(QString::fromLatin1("product")));
     args.append(artifactConfig);
 
-    QScriptContext *ctx = m_engine->currentContext();
-    ctx->pushScope(m_global);
+    m_engine->setGlobalObject(m_global);
     QScriptValue &function = script->scriptFunction;
     if (!function.isValid() || function.engine() != m_engine) {
         function = m_engine->evaluate(script->sourceCode);
@@ -193,7 +193,7 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunc
             throw ErrorInfo(Tr::tr("Invalid scan script."), script->location);
     }
     QScriptValue result = function.call(QScriptValue(), args);
-    ctx->popScope();
+    m_engine->setGlobalObject(m_global.prototype());
     m_engine->clearRequestedProperties();
     if (Q_UNLIKELY(m_engine->hasErrorOrException(result))) {
         QString msg = Tr::tr("evaluating scan script: ") + m_engine->lastErrorString(result);

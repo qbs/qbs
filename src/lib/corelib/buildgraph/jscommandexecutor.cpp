@@ -101,6 +101,7 @@ private:
         m_result.errorMessage.clear();
         ScriptEngine * const scriptEngine = provideScriptEngine();
         QScriptValue scope = scriptEngine->newObject();
+        scope.setPrototype(scriptEngine->globalObject());
         PrepareScriptObserver observer(scriptEngine);
         setupScriptEngineForFile(scriptEngine, transformer->rule->prepareScript->fileContext, scope);
         setupScriptEngineForProduct(scriptEngine, transformer->product(), transformer->rule->module, scope,
@@ -113,10 +114,9 @@ private:
             scope.setProperty(it.key(), scriptEngine->toScriptValue(it.value()));
         }
 
-        QScriptContext *ctx = scriptEngine->currentContext();
-        ctx->pushScope(scope);
+        scriptEngine->setGlobalObject(scope);
         scriptEngine->evaluate(cmd->sourceCode());
-        ctx->popScope();
+        scriptEngine->setGlobalObject(scope.prototype());
         transformer->propertiesRequestedInCommands
                 += scriptEngine->propertiesRequestedInScript();
         scriptEngine->clearRequestedProperties();

@@ -167,17 +167,17 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
         return output;
 
     QScriptValue scope = scriptEngine()->newObject();
+    scope.setPrototype(scriptEngine()->globalObject());
     for (QVariantMap::const_iterator it = command()->properties().constBegin();
             it != command()->properties().constEnd(); ++it) {
         scope.setProperty(it.key(), scriptEngine()->toScriptValue(it.value()));
     }
 
-    ScriptContextScopePusher scopePusher(scriptEngine()->currentContext(), scope);
-    Q_UNUSED(scopePusher);
-
+    scriptEngine()->setGlobalObject(scope);
     QScriptValue filterFunction = scriptEngine()->evaluate(QLatin1String("var f = ")
                                                            + filterFunctionSource
                                                            + QLatin1String("; f"));
+    scriptEngine()->setGlobalObject(scope.prototype());
     if (!filterFunction.isFunction()) {
         logger().printWarning(ErrorInfo(Tr::tr("Error in filter function: %1.\n%2")
                          .arg(filterFunctionSource, filterFunction.toString())));
