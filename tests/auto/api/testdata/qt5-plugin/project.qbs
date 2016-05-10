@@ -14,9 +14,14 @@ DynamicLibrary {
         files: [
             "echoplugin.h",
             "echoplugin.cpp",
-            "echoplugin.json.source"
         ]
     }
+    Group {
+        condition: Qt.core.versionMajor >= 5
+        files: ["echoplugin.json.source"]
+        fileTags: ["json_in"]
+    }
+
     Group {
         condition: Qt.core.versionMajor < 5
         files: "echoplugin_dummy.cpp"
@@ -24,9 +29,9 @@ DynamicLibrary {
 
     cpp.includePaths: buildDirectory
 
-    Transformer {
+    Rule {
         condition: Qt.core.versionMajor >= 5
-        inputs: ["echoplugin.json.source"]
+        inputs: ["json_in"]
         Artifact {
             filePath: "echoplugin.json"
             fileTags: ["qt_plugin_metadata"]

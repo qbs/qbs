@@ -9,12 +9,17 @@ Project {
         name: "HelloWorld"
         type: "application"
         consoleApplication: true
-        files: ["main.cpp"]
+
+        Group {
+            files: ["main.cpp"]
+            fileTags: ["main"]
+        }
 
         Depends { name: "cpp" }
 
-        Transformer {
+        Rule {
             // no inputs -> just a generator
+            multiplex: true
             Artifact {
                 filePath: "foo.txt"
                 fileTags: "text"
@@ -35,7 +40,8 @@ Project {
             }
         }
 
-        Transformer {
+        Rule {
+            multiplex: true
             // no inputs -> just a generator
             Artifact {
                 filePath: "foo.xml"
@@ -60,8 +66,8 @@ Project {
             }
         }
 
-        Transformer {
-            inputs: ["main.cpp"]    // will be taken from the source dir
+        Rule {
+            inputs: ["main"]
             Artifact {
                 filePath: "bar.txt"
                 fileTags: "text"

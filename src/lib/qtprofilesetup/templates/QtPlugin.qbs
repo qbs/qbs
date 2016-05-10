@@ -7,8 +7,9 @@ QtModule {
 
     property string className
 
-    Transformer {
+    Rule {
         condition: isStaticLibrary
+        multiplex: true
         Artifact {
             filePath: product.targetName + "_qt_plugin_import_"
                       + parent.parent.qtModuleName + ".cpp"

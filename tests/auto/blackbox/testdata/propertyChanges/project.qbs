@@ -31,10 +31,12 @@ Project {
 
     Product {
         name: "generated text file"
+        type: ["my_output"]
         property string fileContentPrefix: "prefix 1"
 
-        Transformer {
-            Artifact { filePath: "nothing" }
+        Rule {
+            multiplex: true
+            Artifact { filePath: "nothing"; fileTags: ["my_output"] }
             prepare: {
                 var cmd = new JavaScriptCommand();
                 cmd.silent = true;
@@ -43,8 +45,9 @@ Project {
             }
         }
 
-        Transformer {
-            Artifact { filePath: "generated.txt" }
+        Rule {
+            multiplex: true
+            Artifact { filePath: "generated.txt"; fileTags: ["my_output"]  }
             prepare: {
                 var cmd = new JavaScriptCommand();
                 cmd.description = "generating " + output.filePath;

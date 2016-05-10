@@ -5,7 +5,8 @@ import qbs.TextFile
 
 Product {
     type: ["dummy"]
-    Transformer {
+    Rule {
+        multiplex: true
         Artifact {
             filePath: "dummy.txt"
             fileTags: ["dummy"]

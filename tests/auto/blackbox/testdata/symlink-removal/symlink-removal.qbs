@@ -3,7 +3,8 @@ import qbs.File
 
 Product {
     type: "removal"
-    Transformer {
+    Rule {
+        multiplex: true
         Artifact {
             filePath: "dummy"
             fileTags: product.type

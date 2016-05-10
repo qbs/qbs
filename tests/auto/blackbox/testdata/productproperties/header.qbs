@@ -7,7 +7,8 @@ Product {
     files: "blubb_header.h.in"
     property string blubbProp: project.blubbProp
 
-    Transformer {
+    Rule {
+        multiplex: true
         Artifact {
             filePath: "blubb_header.h"
             fileTags: "hpp"

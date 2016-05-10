@@ -35,12 +35,11 @@
     \page commands.html
 
     \title Command and JavaScriptCommand
-    \brief Types of commands to be used in rules and transformers
+    \brief Types of commands to be used in rules
 
     A \e command is what \QBS executes at build time. It is represented in the language by an object
     of type \c Command, which runs a process, or \c JavaScriptCommand, which executes arbitrary
-    JavaScript code. A command is always created in the prepare script of a \c Rule or
-    \c Transformer.
+    JavaScript code. A command is always created in the prepare script of a \c Rule.
 
     \section1 Command
 
@@ -69,7 +68,7 @@
     \c outputs are available. As the example shows, arbitrary properties can be set on the command
     object and then used within the source code. This technique is typically used to forward values
     from the prepare script to the command.
-    The \l{Transformer Item} documentation shows a \c JavaScriptCommand in context.
+    The \l{Rule Item} documentation shows a \c JavaScriptCommand in context.
 
     \section1 Properties
 

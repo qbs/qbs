@@ -428,6 +428,7 @@ void BuiltinDeclarations::addSubprojectItem()
 void BuiltinDeclarations::addTransformerItem()
 {
     ItemDeclaration item(ItemType::Transformer);
+    item.setDeprecationInfo(DeprecationInfo(Version(1, 7), Tr::tr("Use the 'Rule' item instead.")));
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
             << ItemType::Artifact);
     item << conditionProperty();

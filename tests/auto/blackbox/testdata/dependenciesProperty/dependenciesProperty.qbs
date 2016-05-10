@@ -7,7 +7,8 @@ Project {
         type: "deps"
         name: "product1"
         Depends { name: "product2" }
-        Transformer {
+        Rule {
+            multiplex: true
             Artifact {
                 fileTags: ["deps"]
                 filePath: product.name + '.deps'

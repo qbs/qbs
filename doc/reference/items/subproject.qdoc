@@ -31,7 +31,7 @@
     \contentspage list-of-items.html
     \previouspage staticlibrary-item.html
     \page subproject-item.html
-    \nextpage transformer-item.html
+    \nextpage xpcservice-item.html
     \ingroup list-of-items
 
     \title SubProject Item

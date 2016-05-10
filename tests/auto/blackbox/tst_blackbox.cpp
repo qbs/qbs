@@ -430,6 +430,7 @@ void TestBlackbox::alwaysRun()
     rmDirR(relativeBuildDir());
     QbsRunParameters params("build", QStringList() << "-f" << projectFile);
     QCOMPARE(runQbs(params), 0);
+    QVERIFY(projectFile.contains("transformer") == m_qbsStderr.contains("deprecated"));
     QVERIFY(m_qbsStdout.contains("yo"));
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("yo"));
@@ -3009,6 +3010,7 @@ void TestBlackbox::radAfterIncompleteBuild()
     // Step 1: Have a directory where a file used to be.
     QbsRunParameters params(QStringList() << "-f" << projectFileName);
     QCOMPARE(runQbs(params), 0);
+    QVERIFY(projectFileName.contains("transformer") == m_qbsStderr.contains("deprecated"));
     WAIT_FOR_NEW_TIMESTAMP();
     QFile projectFile(projectFileName);
     QVERIFY(projectFile.open(QIODevice::ReadWrite));

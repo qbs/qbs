@@ -42,6 +42,39 @@
     one or more artifacts (e.g. C++ linker).
     A \e {simplex rule} creates one transformer per matching input file
     (e.g. C++ compiler).
+    For instance, the following rule transforms text files:
+    \code
+    Rule {
+        inputs: ["txt_input"]
+        Artifact {
+            filePath: "output.txt"
+            fileTags: "txt_output"
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "Processing '" + input.filePath + "'";
+            cmd.highlight = "codegen";
+            cmd.sourceCode = function() {
+                var file = new TextFile(input.filePath);
+                var content = file.readAll();
+                file.close()
+                content = content.replace(/\r\n/g, "\n");
+                file = new TextFile(output.filePath, TextFile.WriteOnly);
+                file.write(content);
+                file.close();
+            }
+            return cmd;
+        }
+    }
+    \endcode
+    This example exhibits some interesting features of rules:
+    \list
+        \li If there is only one input file, the property \c input is available as syntactic sugar
+            for \c inputs[0].
+        \li The filenames of the output artifacts are available as \c outputs. If there is only one
+            of these, it can be referred to it as \c output.
+    \endlist
+
     As a real-world example of a simplex rule, here is a simplified version
     of \QBS' rule for transforming C++ sources into object files using gcc:
     \code
@@ -114,8 +147,8 @@
         \li auxiliaryInputs
         \li string list
         \li undefined
-        \li A list of file tags. This rule will be dependent on every other rule and
-            transformer that produces artifacts that are compatible with \a{auxiliaryInputs}.
+        \li A list of file tags. This rule will be dependent on every other rule
+            that produces artifacts that are compatible with \a{auxiliaryInputs}.
             Unlike \a{inputs}, the property \a{auxiliaryInputs} has no effect on the content of the
             \a{inputs} variable in the \a{prepare} script.
     \row

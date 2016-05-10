@@ -4,7 +4,8 @@ Project {
     Product {
         name: "p1"
         type: "blubb1"
-        Transformer {
+        Rule {
+            multiplex: true
             Artifact {
                 filePath: "dummy1.txt"
                 fileTags: product.type

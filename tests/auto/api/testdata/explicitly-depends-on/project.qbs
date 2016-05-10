@@ -8,7 +8,8 @@ Product {
         patterns: "*.txt"
         fileTags: ["txt"]
     }
-    Transformer {
+    Rule {
+        multiplex: true
         explicitlyDependsOn: "txt"
         Artifact {
             filePath: "test.mytype"

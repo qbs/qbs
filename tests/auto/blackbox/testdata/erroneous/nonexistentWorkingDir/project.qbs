@@ -2,7 +2,9 @@ import qbs
 
 Application {
     name: "kaputt"
-    Transformer {
+    type: ["nutritious"]
+    Rule {
+        multiplex: true
         Artifact {
             filePath: "Stulle"
             fileTags: ["nutritious"]

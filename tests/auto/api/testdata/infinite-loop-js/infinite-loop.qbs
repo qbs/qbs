@@ -2,7 +2,8 @@ import qbs
 
 Product {
     type: "mytype"
-    Transformer {
+    Rule {
+        multiplex: true
         Artifact {
             filePath: "output.txt"
             fileTags: "mytype"

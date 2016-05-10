@@ -3,13 +3,15 @@ import qbs.TextFile
 
 Product {
     name: "install-test"
+    type: ["text"]
     Group {
         qbs.install: true
         qbs.installDir: "textfiles"
         fileTagsFilter: "text"
     }
 
-    Transformer {
+    Rule {
+        multiplex: true
         Artifact {
             filePath: "HelloWorld.txt"
             fileTags: ["text"]

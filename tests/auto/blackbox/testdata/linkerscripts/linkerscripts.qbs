@@ -10,7 +10,8 @@ DynamicLibrary {
         fileTags: ["linkerscript"]
     }
 
-    Transformer {
+    Rule {
+        multiplex: true
         outputs: ["custom"]
         Artifact {
             filePath: "dummy.txt"
