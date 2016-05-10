@@ -31,6 +31,7 @@
 #ifndef QBS_ITEMDECLARATION_H
 #define QBS_ITEMDECLARATION_H
 
+#include "deprecationinfo.h"
 #include "itemtype.h"
 #include "propertydeclaration.h"
 
@@ -51,6 +52,9 @@ public:
     void setProperties(const Properties &props) { m_properties = props; }
     const Properties &properties() const { return m_properties; }
 
+    void setDeprecationInfo(const DeprecationInfo &di) { m_deprecationInfo = di; }
+    DeprecationInfo deprecationInfo() const { return m_deprecationInfo; }
+
     ItemDeclaration &operator<<(const PropertyDeclaration &decl);
 
     typedef QSet<ItemType> TypeNames;
@@ -62,6 +66,7 @@ private:
     ItemType m_type;
     Properties m_properties;
     TypeNames m_allowedChildTypes;
+    DeprecationInfo m_deprecationInfo;
 };
 
 } // namespace Internal

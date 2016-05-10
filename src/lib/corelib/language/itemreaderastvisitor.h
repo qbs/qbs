@@ -32,6 +32,7 @@
 #define QBS_ITEMREADERASTVISITOR_H
 
 #include "forward_decls.h"
+#include "itemtype.h"
 
 #include <logging/logger.h>
 #include <parser/qmljsastvisitor_p.h>
@@ -68,6 +69,8 @@ private:
             const QbsQmlJS::AST::SourceLocation &sourceLocation);
     Item *targetItemForBinding(const QStringList &binding, const JSSourceValueConstPtr &value);
     static void inheritItem(Item *dst, const Item *src);
+    void checkDeprecationStatus(ItemType itemType, const QString &itemName,
+                                const CodeLocation &itemLocation);
 
     ItemReaderVisitorState &m_visitorState;
     const FileContextPtr m_file;

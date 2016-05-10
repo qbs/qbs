@@ -96,7 +96,10 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         QBS_CHECK(inheritorItem->type() <= ItemType::LastActualItem);
         item->setType(inheritorItem->type());
     } else {
-        item->setType(BuiltinDeclarations::instance().typeForName(typeName, item->location()));
+        const ItemType itemType
+                = BuiltinDeclarations::instance().typeForName(typeName, item->location());
+        checkDeprecationStatus(itemType, typeName, item->location());
+        item->setType(itemType);
         if (item->type() == ItemType::Properties && item->parent()
                 && item->parent()->type() == ItemType::SubProject) {
             item->setType(ItemType::PropertiesInSubProject);
@@ -318,6 +321,30 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
          it != src->propertyDeclarations().constEnd(); ++it) {
         dst->setPropertyDeclaration(it.key(), it.value());
     }
+}
+
+void ItemReaderASTVisitor::checkDeprecationStatus(ItemType itemType, const QString &itemName,
+                                                  const CodeLocation &itemLocation)
+{
+    const ItemDeclaration itemDecl = BuiltinDeclarations::instance().declarationsForType(itemType);
+    const DeprecationInfo &di = itemDecl.deprecationInfo();
+    if (!di.isValid())
+        return;
+    if (di.removalVersion() <= Version::qbsVersion()) {
+        QString message = Tr::tr("The item '%1' cannot be used anymore. "
+                "It was removed in qbs %2.")
+                .arg(itemName, di.removalVersion().toString());
+        ErrorInfo error(message, itemLocation);
+        if (!di.additionalUserInfo().isEmpty())
+            error.append(di.additionalUserInfo());
+        throw error;
+    }
+    QString warning = Tr::tr("The item '%1' is deprecated and will be removed in "
+                             "qbs %2.").arg(itemName, di.removalVersion().toString());
+    ErrorInfo error(warning, itemLocation);
+    if (!di.additionalUserInfo().isEmpty())
+        error.append(di.additionalUserInfo());
+    m_logger.printWarning(error);
 }
 
 } // namespace Internal
