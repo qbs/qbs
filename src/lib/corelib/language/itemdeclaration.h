@@ -44,7 +44,6 @@ class ItemDeclaration
 {
 public:
     ItemDeclaration(ItemType type = ItemType::Unknown);
-    ItemDeclaration(const ItemDeclaration &other);
 
     ItemType type() const { return m_type; }
 

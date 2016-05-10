@@ -38,13 +38,6 @@ ItemDeclaration::ItemDeclaration(ItemType type)
 {
 }
 
-ItemDeclaration::ItemDeclaration(const qbs::Internal::ItemDeclaration &other)
-    : m_type(other.m_type)
-    , m_properties(other.m_properties)
-    , m_allowedChildTypes(other.m_allowedChildTypes)
-{
-}
-
 ItemDeclaration &ItemDeclaration::operator<<(const PropertyDeclaration &decl)
 {
     m_properties.append(decl);
