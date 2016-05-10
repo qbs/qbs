@@ -139,5 +139,17 @@ QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name)
         return getConfigProperty(cfg.value(name.first()).toMap(), name.mid(1));
 }
 
+TemporaryGlobalObjectSetter::TemporaryGlobalObjectSetter(const QScriptValue &object)
+{
+    QScriptEngine *engine = object.engine();
+    m_oldGlobalObject = engine->globalObject();
+    engine->setGlobalObject(object);
+}
+
+TemporaryGlobalObjectSetter::~TemporaryGlobalObjectSetter()
+{
+    m_oldGlobalObject.engine()->setGlobalObject(m_oldGlobalObject);
+}
+
 } // namespace Internal
 } // namespace qbs

@@ -173,11 +173,10 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
         scope.setProperty(it.key(), scriptEngine()->toScriptValue(it.value()));
     }
 
-    scriptEngine()->setGlobalObject(scope);
+    TemporaryGlobalObjectSetter tgos(scope);
     QScriptValue filterFunction = scriptEngine()->evaluate(QLatin1String("var f = ")
                                                            + filterFunctionSource
                                                            + QLatin1String("; f"));
-    scriptEngine()->setGlobalObject(scope.prototype());
     if (!filterFunction.isFunction()) {
         logger().printWarning(ErrorInfo(Tr::tr("Error in filter function: %1.\n%2")
                          .arg(filterFunctionSource, filterFunction.toString())));

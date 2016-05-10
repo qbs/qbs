@@ -83,6 +83,16 @@ T *attachedPointer(const QScriptValue &scriptValue)
     return reinterpret_cast<T *>(ptr);
 }
 
+class TemporaryGlobalObjectSetter
+{
+public:
+    TemporaryGlobalObjectSetter(const QScriptValue &object);
+    ~TemporaryGlobalObjectSetter();
+
+private:
+    QScriptValue m_oldGlobalObject;
+};
+
 } // namespace Internal
 } // namespace qbs
 
