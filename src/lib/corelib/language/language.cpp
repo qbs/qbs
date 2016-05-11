@@ -48,6 +48,7 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
+#include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 
 #include <QCryptographicHash>
@@ -601,6 +602,8 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
     }
 
     QScriptValue scope = engine->newObject();
+    scope.setPrototype(engine->globalObject());
+    TemporaryGlobalObjectSetter tgos(scope);
 
     QSet<QString> seenModuleNames;
     QList<const ResolvedModule *> topSortedModules = topSortModules(moduleChildren, rootModules, seenModuleNames);
@@ -641,10 +644,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
         for (QVariantMap::const_iterator it = moduleCfg.constBegin(); it != moduleCfg.constEnd(); ++it)
             scope.setProperty(it.key(), engine->toScriptValue(it.value()));
 
-        QScriptContext *ctx = engine->currentContext();
-        ctx->pushScope(scope);
         scriptValue = engine->evaluate(setupScript->sourceCode + QLatin1String("()"));
-        ctx->popScope();
         if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue))) {
             QString envTypeStr = (envType == BuildEnv
                                   ? QLatin1String("build") : QLatin1String("run"));
