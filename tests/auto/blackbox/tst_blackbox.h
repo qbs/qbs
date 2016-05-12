@@ -188,6 +188,7 @@ private slots:
     void referenceErrorInExport();
     void reproducibleBuild();
     void reproducibleBuild_data();
+    void responseFiles();
     void ruleConditions();
     void ruleCycle();
     void subProfileChangeTracking();

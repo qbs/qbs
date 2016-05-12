@@ -1726,6 +1726,22 @@ void TestBlackbox::reproducibleBuild_data()
     QTest::newRow("reproducible build") << true;
 }
 
+void TestBlackbox::responseFiles()
+{
+    QDir::setCurrent(testDataDir + "/response-files");
+    QbsRunParameters params;
+    params.command = "install";
+    params.arguments << "--install-root" << "installed";
+    QCOMPARE(runQbs(params), 0);
+    QFile file("installed/response-file-content.txt");
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const QList<QByteArray> expected = {"foo", "\"with space\"", "bar", ""};
+    QList<QByteArray> lines = file.readAll().split('\n');
+    for (int i = 0; i < lines.count(); ++i)
+        lines[i] = lines.at(i).trimmed();
+    QCOMPARE(lines, expected);
+}
+
 void TestBlackbox::ruleConditions()
 {
     QDir::setCurrent(testDataDir + "/ruleConditions");
