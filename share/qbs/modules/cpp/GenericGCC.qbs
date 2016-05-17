@@ -69,7 +69,6 @@ CppModule {
     property string targetSystem: "unknown"
     property string targetAbi: "unknown"
 
-    property stringList transitiveSOs
     property string toolchainPrefix
     property path toolchainInstallPath
     assemblerName: 'as'
@@ -251,7 +250,6 @@ CppModule {
                           + PathTools.dynamicLibraryFilePath(product),
                 fileTags: ["dynamiclibrary_copy"],
                 alwaysUpdated: false,
-                cpp: { transitiveSOs: Gcc.collectTransitiveSos(inputs) }
             };
             var artifacts = [lib, libCopy];
 

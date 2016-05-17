@@ -134,18 +134,6 @@ function linkerFlags(product, inputs, output) {
     for (i in rpaths)
         args = args.concat(escapeLinkerFlags(product, ["-rpath", rpaths[i]]));
 
-    if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
-        var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product,
-                                                                   inputs.dynamiclibrary_copy, 'cpp', 'transitiveSOs')
-        var uniqueSOs = [].uniqueConcat(transitiveSOs)
-        for (i in uniqueSOs) {
-            // The real library is located one level up.
-            args = args.concat(escapeLinkerFlags(product, [
-                                                     "-rpath-link=" +
-                                                     FileInfo.path(FileInfo.path(uniqueSOs[i]))]));
-        }
-    }
-
     if (product.moduleProperty("cpp", "entryPoint"))
         args = args.concat(escapeLinkerFlags(product, ["-e", product.moduleProperty("cpp", "entryPoint")]));
 
@@ -673,19 +661,6 @@ function concatLibs(libs, deplibs) {
     addLibs(deplibs);
     addLibs(libs);
     return r;
-}
-
-function collectTransitiveSos(inputs)
-{
-    var result = [];
-    for (var i in inputs.dynamiclibrary_copy) {
-        var lib = inputs.dynamiclibrary_copy[i];
-        var impliedLibs = ModUtils.moduleProperties(lib, 'transitiveSOs');
-        var libsToAdd = [lib.filePath].concat(impliedLibs);
-        result = result.concat(libsToAdd);
-    }
-    result = concatLibs([], result);
-    return result;
 }
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
