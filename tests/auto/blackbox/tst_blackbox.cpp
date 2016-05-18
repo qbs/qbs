@@ -3589,7 +3589,6 @@ void TestBlackbox::iconsetApp()
 void TestBlackbox::importingProduct()
 {
     QDir::setCurrent(testDataDir + "/importing-product");
-    QEXPECT_FAIL(0, "QBS-977", Abort);
     QCOMPARE(runQbs(), 0);
 }
 

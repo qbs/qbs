@@ -1425,7 +1425,7 @@ static void copyPropertiesFromExportItem(const Item *src, Item *dst)
         if (it.value()->type() != Value::JSSourceValueType)
             continue;
         QBS_CHECK(!dst->hasOwnProperty(it.key()));
-        dst->setProperty(it.key(), it.value());
+        dst->setProperty(it.key(), it.value()->clone());
     }
 }
 
