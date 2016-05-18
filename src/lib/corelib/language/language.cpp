@@ -749,7 +749,7 @@ QString ResolvedProduct::uniqueName() const
 static QStringList findGeneratedFiles(const Artifact *base, bool recursive, const FileTags &tags)
 {
     QStringList result;
-    foreach (const Artifact *parent, base->parentArtifacts()) {
+    for (const Artifact *parent : base->parentArtifacts()) {
         if (tags.isEmpty() || parent->fileTags().matches(tags))
             result << parent->filePath();
         if (recursive)
@@ -765,7 +765,7 @@ QStringList ResolvedProduct::generatedFiles(const QString &baseFile, bool recurs
     if (!data)
         return QStringList();
 
-    foreach (const Artifact *art, ArtifactSet::fromNodeSet(data->nodes)) {
+    for (const Artifact *art : filterByType<Artifact>(data->nodes)) {
         if (art->filePath() == baseFile)
             return findGeneratedFiles(art, recursive, tags);
     }

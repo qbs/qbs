@@ -65,7 +65,7 @@ Artifact::Artifact()
 
 Artifact::~Artifact()
 {
-    foreach (Artifact *p, parentArtifacts())
+    for (Artifact *p : parentArtifacts())
         p->childrenAddedByScanner.remove(this);
 }
 
@@ -117,14 +117,14 @@ void Artifact::initialize()
     oldDataPossiblyPresent = true;
 }
 
-ArtifactSet Artifact::parentArtifacts() const
+const TypeFilter<Artifact> Artifact::parentArtifacts() const
 {
-    return ArtifactSet::fromNodeSet(parents);
+    return TypeFilter<Artifact>(parents);
 }
 
-ArtifactSet Artifact::childArtifacts() const
+const TypeFilter<Artifact> Artifact::childArtifacts() const
 {
-    return ArtifactSet::fromNodeSet(children);
+    return TypeFilter<Artifact>(children);
 }
 
 void Artifact::onChildDisconnected(BuildGraphNode *child)

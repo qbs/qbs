@@ -50,7 +50,7 @@ class ProductBuildData : public PersistentObject
 public:
     ~ProductBuildData();
 
-    ArtifactSet rootArtifacts() const;
+    const TypeFilter<Artifact> rootArtifacts() const;
     NodeSet nodes;
     NodeSet roots;
 

@@ -1029,8 +1029,7 @@ QList<InstallableFile> Project::installableFilesForProduct(const ProductData &pr
     }
     if (internalProduct->enabled) {
         QBS_CHECK(internalProduct->buildData);
-        foreach (const Artifact * const artifact,
-                 ArtifactSet::fromNodeSet(internalProduct->buildData->nodes)) {
+        for (const Artifact *artifact : filterByType<Artifact>(internalProduct->buildData->nodes)) {
             if (artifact->artifactType == Artifact::SourceFile)
                 continue;
             try {

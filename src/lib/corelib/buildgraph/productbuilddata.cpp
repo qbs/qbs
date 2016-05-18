@@ -46,9 +46,9 @@ ProductBuildData::~ProductBuildData()
     qDeleteAll(nodes);
 }
 
-ArtifactSet ProductBuildData::rootArtifacts() const
+const TypeFilter<Artifact> ProductBuildData::rootArtifacts() const
 {
-    return ArtifactSet::fromNodeSet(roots);
+    return TypeFilter<Artifact>(roots);
 }
 
 static void loadArtifactSetByFileTag(PersistentPool &pool,

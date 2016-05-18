@@ -88,7 +88,7 @@ void ProductInstaller::install()
     QList<const Artifact *> artifactsToInstall;
     foreach (const ResolvedProductConstPtr &product, m_products) {
         QBS_CHECK(product->buildData);
-        foreach (const Artifact *artifact, ArtifactSet::fromNodeSet(product->buildData->nodes)) {
+        for (const Artifact *artifact : filterByType<Artifact>(product->buildData->nodes)) {
             if (artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
                 artifactsToInstall += artifact;
         }

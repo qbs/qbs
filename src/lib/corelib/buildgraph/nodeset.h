@@ -125,6 +125,70 @@ private:
     QSharedDataPointer<NodeSetData> d;
 };
 
+template <class T>
+class TypeFilter
+{
+    const NodeSet &m_nodes;
+public:
+    TypeFilter(const NodeSet &nodes)
+        : m_nodes(nodes)
+    {
+    }
+
+    class const_iterator : public std::iterator<std::forward_iterator_tag, T *>
+    {
+        const NodeSet &m_nodes;
+        NodeSet::const_iterator m_it;
+    public:
+        const_iterator(const NodeSet &nodes, const NodeSet::const_iterator &it)
+            : m_nodes(nodes), m_it(it)
+        {
+            while (m_it != m_nodes.constEnd() && dynamic_cast<T *>(*m_it) == 0)
+                ++m_it;
+        }
+
+        bool operator==(const const_iterator &rhs)
+        {
+            return m_it == rhs.m_it;
+        }
+
+        bool operator!=(const const_iterator &rhs)
+        {
+            return !(*this == rhs);
+        }
+
+        const_iterator &operator++()
+        {
+            for (;;) {
+                ++m_it;
+                if (m_it == m_nodes.constEnd() || dynamic_cast<T *>(*m_it))
+                    return *this;
+            }
+        }
+
+        T *operator*() const
+        {
+            return static_cast<T *>(*m_it);
+        }
+    };
+
+    const_iterator begin() const
+    {
+        return const_iterator(m_nodes, m_nodes.constBegin());
+    }
+
+    const_iterator end() const
+    {
+        return const_iterator(m_nodes, m_nodes.constEnd());
+    }
+};
+
+template <class T>
+const TypeFilter<T> filterByType(const NodeSet &nodes)
+{
+    return TypeFilter<T>(nodes);
+}
+
 } // namespace Internal
 } // namespace qbs
 

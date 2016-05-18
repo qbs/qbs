@@ -241,13 +241,14 @@ void connect(BuildGraphNode *p, BuildGraphNode *c)
 {
     QBS_CHECK(p != c);
     if (Artifact *ac = dynamic_cast<Artifact *>(c)) {
-        foreach (const Artifact * const child, ArtifactSet::fromNodeSet(p->children))
+        for (const Artifact *child : filterByType<Artifact>(p->children)) {
             if (child != ac && child->filePath() == ac->filePath()) {
                 throw ErrorInfo(QString::fromLocal8Bit("%1 already has a child artifact %2 as "
                                                        "different object.").arg(p->toString(),
                                                                                 ac->filePath()),
                                 CodeLocation(), true);
             }
+        }
     }
     p->children.insert(c);
     c->parents.insert(p);
@@ -480,7 +481,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
             QBS_CHECK(output->transformer == transformer);
             transformerOutputChildren.unite(ArtifactSet::fromNodeSet(output->children));
             QSet<QString> childFilePaths;
-            foreach (const Artifact * const a, ArtifactSet::fromNodeSet(output->children)) {
+            for (const Artifact *a : filterByType<Artifact>(output->children)) {
                 if (childFilePaths.contains(a->filePath())) {
                     throw ErrorInfo(QString::fromLocal8Bit("There is more than one artifact for "
                         "file '%1' in the child list for output '%2'.")

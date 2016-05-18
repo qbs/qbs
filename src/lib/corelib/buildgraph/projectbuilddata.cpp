@@ -267,7 +267,7 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
     if (removedArtifacts)
         removedArtifacts->insert(artifact);
 
-    foreach (Artifact *parent, ArtifactSet::fromNodeSet(artifact->parents)) {
+    for (Artifact *parent : filterByType<Artifact>(artifact->parents)) {
         bool removeParent = false;
         disconnect(parent, artifact, logger);
         if (parent->children.isEmpty()) {

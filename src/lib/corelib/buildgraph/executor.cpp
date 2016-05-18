@@ -347,7 +347,7 @@ bool Executor::isUpToDate(Artifact *artifact) const
         return false;
     }
 
-    foreach (Artifact *childArtifact, ArtifactSet::fromNodeSet(artifact->children)) {
+    for (Artifact *childArtifact : filterByType<Artifact>(artifact->children)) {
         QBS_CHECK(childArtifact->timestamp().isValid());
         if (m_doDebug) {
             m_logger.qbsDebug() << "[UTD] child timestamp "
@@ -439,8 +439,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
             if (ruleNode->rule()->acceptsAsInput(artifact))
                 changedInputArtifacts += artifact;
         }
-        foreach (Artifact *artifact,
-                ArtifactSet::fromNodeSet(ruleNode->product->buildData->nodes)) {
+        for (Artifact *artifact : filterByType<Artifact>(ruleNode->product->buildData->nodes)) {
             if (artifact->artifactType == Artifact::SourceFile)
                 continue;
             if (artifact->timestampRetrieved && !isUpToDate(artifact)
@@ -743,8 +742,9 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         }
 
         if (canRescue) {
+            const TypeFilter<Artifact> childArtifacts(artifact->children);
             const int newChildCount = childrenToConnect.count()
-                    + ArtifactSet::fromNodeSet(artifact->children).count();
+                    + std::distance(childArtifacts.begin(), childArtifacts.end());
             QBS_CHECK(newChildCount >= rad.children.count());
             if (newChildCount > rad.children.count()) {
                 canRescue = false;
@@ -1046,7 +1046,7 @@ void Executor::prepareAllNodes()
     }
     foreach (const ResolvedProductPtr &product, m_productsToBuild) {
         QBS_CHECK(product->buildData);
-        foreach (Artifact * const artifact, ArtifactSet::fromNodeSet(product->buildData->nodes))
+        for (Artifact * const artifact : filterByType<Artifact>(product->buildData->nodes))
             prepareArtifact(artifact);
     }
 }

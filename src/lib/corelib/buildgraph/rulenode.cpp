@@ -106,7 +106,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
     if (!removedInputs.isEmpty()) {
         ArtifactSet outputArtifactsToRemove;
         foreach (Artifact *artifact, removedInputs) {
-            foreach (Artifact *parent, ArtifactSet::fromNodeSet(artifact->parents)) {
+            for (Artifact *parent : filterByType<Artifact>(artifact->parents)) {
                 if (parent->transformer->rule != m_rule) {
                     // parent was not created by our rule.
                     continue;
@@ -166,7 +166,7 @@ ArtifactSet RuleNode::currentInputArtifacts() const
             continue;
         if (m_rule->inputsFromDependencies.isEmpty())
             continue;
-        foreach (Artifact * const a, ArtifactSet::fromNodeSet(dep->buildData->nodes)) {
+        for (Artifact * const a : filterByType<Artifact>(dep->buildData->nodes)) {
             if (a->fileTags().matches(m_rule->inputsFromDependencies))
                 s += a;
         }

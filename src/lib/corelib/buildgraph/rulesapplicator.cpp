@@ -120,7 +120,7 @@ void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts
     }
     // parents of removed artifacts must update their transformers
     foreach (Artifact *removedArtifact, artifactsToRemove) {
-        foreach (Artifact *parent, removedArtifact->parentArtifacts())
+        for (Artifact *parent : removedArtifact->parentArtifacts())
             parent->product->registerArtifactWithChangedInputs(parent);
     }
     EmptyDirectoriesRemover(project, logger).removeEmptyParentDirectories(artifactsToRemove);
@@ -254,7 +254,7 @@ ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputA
 {
     ArtifactSet result;
     foreach (Artifact *a, inputArtifacts) {
-        foreach (Artifact *p, a->parentArtifacts()) {
+        for (Artifact *p : a->parentArtifacts()) {
             QBS_CHECK(p->transformer);
             if (p->transformer->rule == m_rule && p->transformer->inputs.contains(a))
                 result += p;

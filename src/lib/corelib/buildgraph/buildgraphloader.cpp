@@ -252,8 +252,7 @@ void BuildGraphLoader::trackProjectChanges()
 
             // If the product gets temporarily removed, its artifacts will get disconnected
             // and this structural information will no longer be directly available from them.
-            foreach (const Artifact * const a,
-                     ArtifactSet::fromNodeSet(product->buildData->nodes)) {
+            for (const Artifact *a : filterByType<Artifact>(product->buildData->nodes)) {
                 childLists.insert(a, ChildrenInfo(ArtifactSet::fromNodeSet(a->children),
                                                   a->childrenAddedByScanner));
             }
@@ -591,7 +590,7 @@ bool BuildGraphLoader::checkTransformersForPropertyChanges(const ResolvedProduct
 {
     bool transformerChanges = false;
     QSet<TransformerConstPtr> seenTransformers;
-    foreach (Artifact *artifact, ArtifactSet::fromNodeSet(restoredProduct->buildData->nodes)) {
+    for (Artifact *artifact : filterByType<Artifact>(restoredProduct->buildData->nodes)) {
         const TransformerPtr transformer = artifact->transformer;
         if (!transformer || seenTransformers.contains(transformer))
             continue;
@@ -739,7 +738,7 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
     foreach (const ResolvedProductPtr &product, fileDepProduct->topLevelProject()->allProducts()) {
         if (!product->buildData)
             continue;
-        foreach (Artifact *artifactInProduct, ArtifactSet::fromNodeSet(product->buildData->nodes)) {
+        for (Artifact *artifactInProduct : filterByType<Artifact>(product->buildData->nodes)) {
             if (artifactInProduct->fileDependencies.contains(filedep)) {
                 artifactInProduct->fileDependencies.remove(filedep);
                 loggedConnect(artifactInProduct, artifact, m_logger);
@@ -805,8 +804,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
     // FIXME: This complete block could go away if Transformers were also to create their
     // output artifacts at build time.
     QList<Artifact *> oldArtifactsCreatedByTransformers;
-    foreach (Artifact *artifact,
-             ArtifactSet::fromNodeSet(newlyResolvedProduct->buildData->nodes)) {
+    for (Artifact *artifact : filterByType<Artifact>(newlyResolvedProduct->buildData->nodes)) {
         if (!artifact->transformer)
             continue;
         if (m_logger.traceEnabled()) {
@@ -847,8 +845,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
     }
 
     // This is needed for artifacts created by rules, which happens later in the executor.
-    foreach (Artifact * const oldArtifact,
-             ArtifactSet::fromNodeSet(restoredProduct->buildData->nodes)) {
+    for (Artifact * const oldArtifact : filterByType<Artifact>(restoredProduct->buildData->nodes)) {
         if (!oldArtifact->transformer)
             continue;
         if (oldArtifactsCreatedByTransformers.contains(oldArtifact))

@@ -87,8 +87,8 @@ public:
     bool oldDataPossiblyPresent : 1;
 
     void initialize();
-    ArtifactSet parentArtifacts() const;
-    ArtifactSet childArtifacts() const;
+    const TypeFilter<Artifact> parentArtifacts() const;
+    const TypeFilter<Artifact> childArtifacts() const;
     void onChildDisconnected(BuildGraphNode *child);
 
 private:
