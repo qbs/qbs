@@ -93,6 +93,7 @@ CppModule {
     }
 
     Rule {
+        condition: useCPrecompiledHeader
         inputs: ["c_pch_src"]
         explicitlyDependsOn:  ["hpp"]
         Artifact {
@@ -113,6 +114,7 @@ CppModule {
     }
 
     Rule {
+        condition: useCxxPrecompiledHeader
         inputs: ["cpp_pch_src"]
         explicitlyDependsOn: ["c_pch", "hpp"]  // to prevent vc--0.pdb conflict
         Artifact {
