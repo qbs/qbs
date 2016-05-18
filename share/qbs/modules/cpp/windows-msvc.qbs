@@ -52,7 +52,7 @@ CppModule {
             flags.push("/FS");
         return flags;
     }
-    compilerDefines: ['_WIN32']
+    compilerDefines: ['_WIN32', MSVC.compilerVersionDefine(module)]
     warningLevel: "default"
     compilerName: "cl.exe"
     assemblerName: {

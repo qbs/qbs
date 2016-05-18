@@ -33,6 +33,15 @@ var FileInfo = loadExtension("qbs.FileInfo");
 var ModUtils = loadExtension("qbs.ModUtils");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
+function compilerVersionDefine(cpp) {
+    var result = '_MSC_VER=' + cpp.compilerVersionMajor;
+    var s = cpp.compilerVersionMinor.toString();
+    while (s.length < 2)
+        s = '0' + s;
+    result += s;
+    return result;
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output) {
     var i;
     var optimization = ModUtils.moduleProperty(input, "optimization")

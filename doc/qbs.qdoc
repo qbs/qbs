@@ -300,7 +300,8 @@
 
     \QBS project files are written using a QML dialect.
     A very simple C++ hello world project looks like this:
-    \code ---helloworld.qbs---
+    \code
+        ---helloworld.qbs---
         import qbs 1.0
 
         Application {
