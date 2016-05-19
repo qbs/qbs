@@ -1129,6 +1129,19 @@ void TestBlackbox::concurrentExecutor()
     QVERIFY2(!m_qbsStderr.contains("ASSERT"), m_qbsStderr.constData());
 }
 
+void TestBlackbox::conditionalExport()
+{
+    QDir::setCurrent(testDataDir + "/conditional-export");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("missing define"), m_qbsStderr.constData());
+
+    params.expectFailure = false;
+    params.arguments << "project.enableExport:true";
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::conflictingArtifacts()
 {
     QDir::setCurrent(testDataDir + "/conflicting-artifacts");

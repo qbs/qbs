@@ -113,6 +113,7 @@ private slots:
     void clean();
     void cli();
     void concurrentExecutor();
+    void conditionalExport();
     void conflictingArtifacts();
     void dbusAdaptors();
     void dbusInterfaces();

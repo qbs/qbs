@@ -759,6 +759,32 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
     }
 }
 
+bool ModuleLoader::checkExportItemCondition(Item *exportItem, const ProductContext &productContext)
+{
+    class ScopeHandler {
+    public:
+        ScopeHandler(Item *exportItem, const ProductContext &productContext, Item **cachedScopeItem)
+            : m_exportItem(exportItem)
+        {
+            if (!*cachedScopeItem)
+                *cachedScopeItem = Item::create(exportItem->pool());
+            Item * const scope = *cachedScopeItem;
+            QBS_CHECK(productContext.item->file());
+            scope->setFile(productContext.item->file());
+            scope->setScope(productContext.item);
+            productContext.project->scope->copyProperty(QLatin1String("project"), scope);
+            productContext.scope->copyProperty(QLatin1String("product"), scope);
+            QBS_CHECK(!exportItem->scope());
+            exportItem->setScope(scope);
+        }
+        ~ScopeHandler() { m_exportItem->setScope(nullptr); }
+
+    private:
+        Item * const m_exportItem;
+    } scopeHandler(exportItem, productContext, &m_tempScopeItem);
+    return checkItemCondition(exportItem);
+}
+
 void ModuleLoader::mergeExportItems(const ProductContext &productContext)
 {
     QVector<Item *> exportItems;
@@ -786,6 +812,8 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
         if (Q_UNLIKELY(filesWithExportItem.contains(exportItem->file())))
             throw ErrorInfo(Tr::tr("Multiple Export items in one product are prohibited."),
                         exportItem->location());
+        if (!checkExportItemCondition(exportItem, productContext))
+            continue;
         filesWithExportItem += exportItem->file();
         foreach (Item *child, exportItem->children())
             Item::addChild(merged, child);
