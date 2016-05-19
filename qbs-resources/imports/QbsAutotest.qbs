@@ -7,6 +7,7 @@ QtApplication {
     name: "tst_" + testName
     Depends { name: "Qt.test" }
     Depends { name: "qbscore" }
+    Depends { name: "qbsbuildconfig" }
     cpp.includePaths: "../../../src"
     cpp.cxxLanguageVersion: "c++11"
     destinationDirectory: "bin"

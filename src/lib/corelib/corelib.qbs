@@ -4,15 +4,15 @@ import QbsFunctions
 QbsLibrary {
     Depends { name: "cpp" }
     Depends { name: "Qt"; submodules: ["core-private", "network", "script", "xml"] }
-    Depends { condition: project.enableProjectFileUpdates; name: "Qt.gui" }
-    Depends { condition: project.enableUnitTests; name: "Qt.test" }
+    Depends { condition: qbsbuildconfig.enableProjectFileUpdates; name: "Qt.gui" }
+    Depends { condition: qbsbuildconfig.enableUnitTests; name: "Qt.test" }
     name: "qbscore"
     cpp.includePaths: base.concat([
         ".",
         "../.." // for the plugin headers
     ])
     property stringList projectFileUpdateDefines:
-        project.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : []
+        qbsbuildconfig.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : []
     cpp.defines: base.concat([
         "QBS_VERSION=\"" + version + "\"",
         "QT_CREATOR", "QML_BUILD_STATIC_LIB",   // needed for QmlJS
@@ -37,12 +37,12 @@ QbsLibrary {
     Group {
         name: product.name
         files: ["qbs.h"]
-        qbs.install: project.installApiHeaders
+        qbs.install: qbsbuildconfig.installApiHeaders
         qbs.installDir: headerInstallPrefix
     }
     Group {
         name: "project file updating"
-        condition: project.enableProjectFileUpdates
+        condition: qbsbuildconfig.enableProjectFileUpdates
         prefix: "api/"
         files: [
             "changeset.cpp",
@@ -74,7 +74,7 @@ QbsLibrary {
     }
     Group {
         name: "public api headers"
-        qbs.install: project.installApiHeaders
+        qbs.install: qbsbuildconfig.installApiHeaders
         qbs.installDir: headerInstallPrefix + "/api"
         prefix: "api/"
         files: [
@@ -159,7 +159,7 @@ QbsLibrary {
     }
     Group {
         name: "public buildgraph headers"
-        qbs.install: project.installApiHeaders
+        qbs.install: qbsbuildconfig.installApiHeaders
         qbs.installDir: headerInstallPrefix + "/buildgraph"
         files: "buildgraph/forward_decls.h"
     }
@@ -277,7 +277,7 @@ QbsLibrary {
     }
     Group {
         name: "public language headers"
-        qbs.install: project.installApiHeaders
+        qbs.install: qbsbuildconfig.installApiHeaders
         qbs.installDir: headerInstallPrefix + "/language"
         files: "language/forward_decls.h"
     }
@@ -293,7 +293,7 @@ QbsLibrary {
     }
     Group {
         name: "public logging headers"
-        qbs.install: project.installApiHeaders
+        qbs.install: qbsbuildconfig.installApiHeaders
         qbs.installDir: headerInstallPrefix + "/logging"
         files: "logging/ilogsink.h"
     }
@@ -402,7 +402,7 @@ QbsLibrary {
             "setupprojectparameters.h",
             "toolchains.h",
         ]
-        qbs.install: project.installApiHeaders
+        qbs.install: qbsbuildconfig.installApiHeaders
         qbs.installDir: headerInstallPrefix + "/tools"
     }
     Group {
@@ -436,11 +436,11 @@ QbsLibrary {
             "use_installed_corelib.pri",
             "../../../qbs_version.pri"
         ]
-        qbs.install: project.installApiHeaders
+        qbs.install: qbsbuildconfig.installApiHeaders
         qbs.installDir: headerInstallPrefix
     }
     Group {
-        condition: project.enableUnitTests
+        condition: qbsbuildconfig.enableUnitTests
         name: "tests"
         cpp.defines: outer.filter(function(def) { return def !== "QT_NO_CAST_FROM_ASCII"; })
         files: [

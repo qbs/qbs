@@ -13,7 +13,7 @@ QbsProduct {
     Group {
         fileTagsFilter: product.type
         qbs.install: true
-        qbs.installDir: project.appInstallDir
+        qbs.installDir: qbsbuildconfig.appInstallDir
     }
     Group {
         name: "logging"

@@ -2,6 +2,7 @@ import qbs
 import QbsFunctions
 
 Product {
+    Depends { name: "qbsbuildconfig" }
     Depends { name: "Qt.core" }
     property string minimumQtVersion: "5.4.0"
     cpp.defines: {

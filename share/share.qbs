@@ -5,12 +5,13 @@ import qbs.FileInfo
 Product {
     name: "qbs resources"
     type: ["copied qbs resources"]
+    Depends { name: "qbsbuildconfig" }
     Group {
         name: "Modules and imports"
         files: ["qbs/**/*"]
         fileTags: ["qbs resources"]
         qbs.install: true
-        qbs.installDir: project.resourcesInstallDir + "/share"
+        qbs.installDir: qbsbuildconfig.resourcesInstallDir + "/share"
         qbs.installSourceBase: "."
     }
 
@@ -19,14 +20,15 @@ Product {
         files: ["../examples/**/*"]
         fileTags: []
         qbs.install: true
-        qbs.installDir: project.resourcesInstallDir + "/share/qbs"
+        qbs.installDir: qbsbuildconfig.resourcesInstallDir + "/share/qbs"
         qbs.installSourceBase: ".."
     }
 
     Rule {
         inputs: ["qbs resources"]
         Artifact {
-            filePath: FileInfo.joinPaths(project.buildDirectory, project.resourcesInstallDir,
+            filePath: FileInfo.joinPaths(project.buildDirectory,
+                     product.moduleProperty("qbsbuildconfig", "resourcesInstallDir"),
                     "share", FileInfo.relativePath(product.sourceDirectory, input.filePath))
             fileTags: ["copied qbs resources"]
         }

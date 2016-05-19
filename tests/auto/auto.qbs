@@ -5,12 +5,9 @@ Project {
     references: [
         "api/api.qbs",
         "blackbox/blackbox.qbs",
-        "cmdlineparser/cmdlineparser.qbs"
-    ].concat(unitTests)
-
-    property pathList unitTests: enableUnitTests ? [
         "buildgraph/buildgraph.qbs",
+        "cmdlineparser/cmdlineparser.qbs",
         "language/language.qbs",
-        "tools/tools.qbs"
-    ] : []
+        "tools/tools.qbs",
+    ]
 }
