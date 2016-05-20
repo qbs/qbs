@@ -251,7 +251,8 @@ private:
         if (value->item()->type() != ItemType::ModuleInstance
                 && value->item()->type() != ItemType::ModulePrefix
                 && m_parentItem->file()
-                && !m_parentItem->file()->idScope()->hasProperty(m_currentName)
+                && (!m_parentItem->file()->idScope()
+                    || !m_parentItem->file()->idScope()->hasProperty(m_currentName))
                 && !value->createdByPropertiesBlock()) {
             const ErrorInfo error(Tr::tr("Item '%1' is not declared. "
                                          "Did you forget to add a Depends item?").arg(m_currentName),
@@ -349,6 +350,10 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     auto &projectContext = *p;
     projectContext.topLevelProject = topLevelProjectContext;
     projectContext.result = loadResult;
+    ItemValuePtr itemValue = ItemValue::create(projectItem);
+    projectContext.scope = Item::create(m_pool);
+    projectContext.scope->setFile(projectItem->file());
+    projectContext.scope->setProperty(QLatin1String("project"), itemValue);
     ProductContext dummyProductContext;
     dummyProductContext.project = &projectContext;
     dummyProductContext.moduleProperties = m_parameters.finalBuildConfigurationTree();
@@ -367,10 +372,6 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
                                    << projectItem->file()->dirPath());
     projectContext.searchPathsStack = m_reader->extraSearchPathsStack();
     projectContext.item = projectItem;
-    ItemValuePtr itemValue = ItemValue::create(projectItem);
-    projectContext.scope = Item::create(m_pool);
-    projectContext.scope->setFile(projectItem->file());
-    projectContext.scope->setProperty(QLatin1String("project"), itemValue);
 
     const QString minVersionStr
             = m_evaluator->stringValue(projectItem, QLatin1String("minimumQbsVersion"),
@@ -566,13 +567,14 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     productContext.project = projectContext;
     initProductProperties(productContext);
 
-    mergeExportItems(productContext);
-
     ItemValuePtr itemValue = ItemValue::create(productItem);
     productContext.scope = Item::create(m_pool);
     productContext.scope->setProperty(QLatin1String("product"), itemValue);
     productContext.scope->setFile(productItem->file());
     productContext.scope->setScope(productContext.project->scope);
+
+    mergeExportItems(productContext);
+
     setScopeForDescendants(productItem, productContext.scope);
 
     projectContext->products << productContext;
@@ -1473,8 +1475,12 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     QBS_CHECK(instanceScope->file());
     moduleScope->setFile(instanceScope->file());
     moduleScope->setScope(instanceScope);
+    QBS_CHECK(productContext->project->scope);
     productContext->project->scope->copyProperty(QLatin1String("project"), moduleScope);
-    productContext->scope->copyProperty(QLatin1String("product"), moduleScope);
+    if (productContext->scope)
+        productContext->scope->copyProperty(QLatin1String("product"), moduleScope);
+    else
+        QBS_CHECK(moduleName.toString() == QLatin1String("qbs")); // Dummy product.
 
     if (isProduct) {
         exportingProduct = 0;

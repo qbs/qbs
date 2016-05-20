@@ -102,10 +102,12 @@ Item *Item::clone() const
 
 bool Item::hasProperty(const QString &name) const
 {
-    for (const Item *item = this; item; item = item->m_prototype)
+    const Item *item = this;
+    do {
         if (item->m_properties.contains(name))
             return true;
-
+        item = item->m_prototype;
+    } while (item);
     return false;
 }
 
@@ -117,9 +119,12 @@ bool Item::hasOwnProperty(const QString &name) const
 ValuePtr Item::property(const QString &name) const
 {
     ValuePtr value;
-    for (const Item *item = this; item; item = item->m_prototype)
+    const Item *item = this;
+    do {
         if ((value = item->m_properties.value(name)))
             break;
+        item = item->m_prototype;
+    } while (item);
     return value;
 }
 
