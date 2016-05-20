@@ -272,8 +272,18 @@ Module {
         description: "version of the C++ standard library to use"
     }
 
-    property bool enableExceptions
+    property bool enableExceptions: true
+    PropertyOptions {
+        name: "enableExceptions"
+        description: "enable/disable exception handling (enabled by default)"
+    }
+
     property string exceptionHandlingModel: "default"
+    PropertyOptions {
+        name: "exceptionHandlingModel"
+        description: "the kind of exception handling to be used by the compiler"
+    }
+
     property bool enableRtti
 
     // Platform properties. Those are intended to be set by the toolchain setup
