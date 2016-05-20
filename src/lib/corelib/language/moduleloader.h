@@ -75,8 +75,8 @@ struct ModuleLoaderResult
             FileTags productTypes;
             QString name;
             QString profile; // "*" <=> Match all profiles.
-            bool limitToSubProject;
-            bool isRequired;
+            bool limitToSubProject = false;
+            bool isRequired = true;
 
             QString uniqueName() const;
         };
