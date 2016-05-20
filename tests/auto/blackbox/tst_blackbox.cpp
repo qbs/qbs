@@ -37,6 +37,7 @@
 #include <tools/installoptions.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
+#include <tools/shellutils.h>
 #include <tools/version.h>
 
 #include <QLocale>
@@ -1748,7 +1749,8 @@ void TestBlackbox::responseFiles()
     QCOMPARE(runQbs(params), 0);
     QFile file("installed/response-file-content.txt");
     QVERIFY(file.open(QIODevice::ReadOnly));
-    const QList<QByteArray> expected = {"foo", "\"with space\"", "bar", ""};
+    const QList<QByteArray> expected = QList<QByteArray>()
+            << "foo" <<  qbs::Internal::shellQuote("with space").toUtf8() << "bar" << "";
     QList<QByteArray> lines = file.readAll().split('\n');
     for (int i = 0; i < lines.count(); ++i)
         lines[i] = lines.at(i).trimmed();
