@@ -267,7 +267,10 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
     if (removedArtifacts)
         removedArtifacts->insert(artifact);
 
-    for (Artifact *parent : filterByType<Artifact>(artifact->parents)) {
+    // Iterate over a copy of the artifact's parents, because we'll change
+    // artifact->parents with the disconnect call.
+    const NodeSet parentsCopy = artifact->parents;
+    for (Artifact *parent : filterByType<Artifact>(parentsCopy)) {
         bool removeParent = false;
         disconnect(parent, artifact, logger);
         if (parent->children.isEmpty()) {
