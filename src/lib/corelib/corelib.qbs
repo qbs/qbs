@@ -21,7 +21,7 @@ QbsLibrary {
 
     Properties {
         condition: qbs.targetOS.contains("windows")
-        cpp.dynamicLibraries: base.concat(["Psapi"])
+        cpp.dynamicLibraries: base.concat(["Psapi", "shell32"])
     }
     cpp.dynamicLibraries: base
 
@@ -339,6 +339,8 @@ QbsLibrary {
             "id.cpp",
             "id.h",
             "installoptions.cpp",
+            "msvcinfo.cpp",
+            "msvcinfo.h",
             "persistence.cpp",
             "persistence.h",
             "persistentobject.h",
@@ -373,6 +375,8 @@ QbsLibrary {
             "version.h",
             "visualstudioversioninfo.cpp",
             "visualstudioversioninfo.h",
+            "vsenvironmentdetector.cpp",
+            "vsenvironmentdetector.h",
             "weakpointer.h"
         ]
     }

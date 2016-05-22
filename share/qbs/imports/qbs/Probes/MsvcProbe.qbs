@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -28,32 +28,42 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_VSENVIRONMENTDETECTOR_H
-#define QBS_VSENVIRONMENTDETECTOR_H
+import qbs
+import qbs.ModUtils
+import qbs.Utilities
 
-#include <QStringList>
+PathProbe {
+    // Inputs
+    property string compilerFilePath
+    property string preferredArchitecture
 
-QT_BEGIN_NAMESPACE
-class QIODevice;
-QT_END_NAMESPACE
+    // Outputs
+    property string architecture
+    property int versionMajor
+    property int versionMinor
+    property int versionPatch
+    property var buildEnv
 
-class MSVC;
+    configure: {
+        var info = Utilities.msvcCompilerInfo(compilerFilePath);
+        found = !!info && !!info.macros && !!info.buildEnvironment;
 
-class VsEnvironmentDetector
-{
-public:
-    VsEnvironmentDetector(MSVC *msvc);
+        var macros = info.macros;
+        architecture = ModUtils.guessArchitecture(macros);
 
-    bool start();
-    QString errorString() const { return m_errorString; }
+        var ver = macros["_MSC_FULL_VER"];
 
-private:
-    void writeBatchFile(QIODevice *device, const QString &vcvarsallbat) const;
-    void parseBatOutput(const QByteArray &output);
+        versionMajor = parseInt(ver.substr(0, 2), 10);
+        versionMinor = parseInt(ver.substr(2, 2), 10);
+        versionPatch = parseInt(ver.substr(4), 10);
 
-    MSVC *m_msvc;
-    const QString m_windowsSystemDirPath;
-    QString m_errorString;
-};
+        buildEnv = info.buildEnvironment;
 
-#endif // QBS_VSENVIRONMENTDETECTOR_H
+        if (preferredArchitecture && Utilities.canonicalArchitecture(preferredArchitecture)
+                !== Utilities.canonicalArchitecture(architecture)) {
+            throw "'" + preferredArchitecture +
+                    "' differs from the architecture produced by this compiler (" +
+                        architecture + ")";
+        }
+    }
+}

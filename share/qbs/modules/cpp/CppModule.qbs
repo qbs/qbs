@@ -329,6 +329,14 @@ Module {
             return !architecture || architecture === Utilities.canonicalArchitecture(architecture);
         }, "'" + architecture + "' is invalid. You must use the canonical name '" +
         Utilities.canonicalArchitecture(architecture) + "'");
+        validator.setRequiredProperty("compilerVersion", compilerVersion);
+        validator.setRequiredProperty("compilerVersionMajor", compilerVersionMajor);
+        validator.setRequiredProperty("compilerVersionMinor", compilerVersionMinor);
+        validator.setRequiredProperty("compilerVersionPatch", compilerVersionPatch);
+        validator.addVersionValidator("compilerVersion", compilerVersion, 3, 3);
+        validator.addRangeValidator("compilerVersionMajor", compilerVersionMajor, 1);
+        validator.addRangeValidator("compilerVersionMinor", compilerVersionMinor, 0);
+        validator.addRangeValidator("compilerVersionPatch", compilerVersionPatch, 0);
         if (minimumWindowsVersion) {
             validator.addVersionValidator("minimumWindowsVersion", minimumWindowsVersion, 2, 2);
             validator.addCustomValidator("minimumWindowsVersion", minimumWindowsVersion, function (v) {

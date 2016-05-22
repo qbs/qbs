@@ -21,7 +21,7 @@ include(logging/logging.pri)
 include(parser/parser.pri)
 include(tools/tools.pri)
 
-win32:LIBS += -lpsapi
+win32:LIBS += -lpsapi -lshell32
 
 HEADERS += \
     qbs.h

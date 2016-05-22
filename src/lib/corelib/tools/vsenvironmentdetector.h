@@ -27,21 +27,41 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_COMPILERVERSION_H
-#define QBS_COMPILERVERSION_H
 
-#include <QtGlobal>
-#include <QProcessEnvironment>
+#ifndef QBS_VSENVIRONMENTDETECTOR_H
+#define QBS_VSENVIRONMENTDETECTOR_H
 
-namespace qbs { class Profile; }
+#include "qbs_export.h"
+
+#include <QStringList>
 
 QT_BEGIN_NAMESPACE
-class QString;
-class QStringList;
+class QIODevice;
 QT_END_NAMESPACE
 
-void setCompilerVersion(const QString &compilerFilePath, const QStringList &qbsToolchain,
-                        qbs::Profile &profile,
-                        const QProcessEnvironment &compilerEnv = QProcessEnvironment());
+namespace qbs {
+namespace Internal {
 
-#endif // Include guard
+class MSVC;
+
+class QBS_EXPORT VsEnvironmentDetector
+{
+public:
+    VsEnvironmentDetector(MSVC *msvc);
+
+    bool start();
+    QString errorString() const { return m_errorString; }
+
+private:
+    void writeBatchFile(QIODevice *device, const QString &vcvarsallbat) const;
+    void parseBatOutput(const QByteArray &output);
+
+    MSVC *m_msvc;
+    const QString m_windowsSystemDirPath;
+    QString m_errorString;
+};
+
+} // namespace Internal
+} // namespace qbs
+
+#endif // QBS_VSENVIRONMENTDETECTOR_H

@@ -13,6 +13,7 @@ HEADERS += \
     $$PWD/filetime.h \
     $$PWD/generateoptions.h \
     $$PWD/id.h \
+    $$PWD/msvcinfo.h \
     $$PWD/persistence.h \
     $$PWD/scannerpluginmanager.h \
     $$PWD/scripttools.h \
@@ -40,7 +41,8 @@ HEADERS += \
     $$PWD/qttools.h \
     $$PWD/settingscreator.h \
     $$PWD/version.h \
-    $$PWD/visualstudioversioninfo.h
+    $$PWD/visualstudioversioninfo.h \
+    $$PWD/vsenvironmentdetector.h
 
 SOURCES += \
     $$PWD/architectures.cpp \
@@ -52,6 +54,7 @@ SOURCES += \
     $$PWD/fileinfo.cpp \
     $$PWD/generateoptions.cpp \
     $$PWD/id.cpp \
+    $$PWD/msvcinfo.cpp \
     $$PWD/persistence.cpp \
     $$PWD/scannerpluginmanager.cpp \
     $$PWD/scripttools.cpp \
@@ -74,7 +77,8 @@ SOURCES += \
     $$PWD/settingscreator.cpp \
     $$PWD/toolchains.cpp \
     $$PWD/version.cpp \
-    $$PWD/visualstudioversioninfo.cpp
+    $$PWD/visualstudioversioninfo.cpp \
+    $$PWD/vsenvironmentdetector.cpp
 
 osx {
     HEADERS += $$PWD/applecodesignutils.h

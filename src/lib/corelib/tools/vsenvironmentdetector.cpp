@@ -45,7 +45,8 @@
 #include <ShlObj.h>
 #endif
 
-using qbs::Internal::Tr;
+namespace qbs {
+namespace Internal {
 
 static QString windowsSystem32Path()
 {
@@ -185,3 +186,6 @@ void VsEnvironmentDetector::parseBatOutput(const QByteArray &output)
         }
     }
 }
+
+} // namespace Internal
+} // namespace qbs

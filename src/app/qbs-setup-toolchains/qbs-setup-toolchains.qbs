@@ -6,18 +6,12 @@ QbsApp {
     files: [
         "commandlineparser.cpp",
         "commandlineparser.h",
-        "compilerversion.cpp",
-        "compilerversion.h",
         "main.cpp",
-        "msvcinfo.h",
         "msvcprobe.cpp",
         "msvcprobe.h",
         "probe.cpp",
         "probe.h",
-        "vsenvironmentdetector.cpp",
-        "vsenvironmentdetector.h",
         "xcodeprobe.cpp",
-        "xcodeprobe.h"
+        "xcodeprobe.h",
     ]
 }
-

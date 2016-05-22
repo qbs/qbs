@@ -29,7 +29,6 @@
 ****************************************************************************/
 #include "probe.h"
 
-#include "compilerversion.h"
 #include "msvcprobe.h"
 #include "xcodeprobe.h"
 
@@ -140,7 +139,6 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
 
     profile.setValue(QLatin1String("cpp.toolchainInstallPath"), cfi.absolutePath());
     profile.setValue(QLatin1String("qbs.toolchain"), toolchainTypes);
-    setCompilerVersion(compilerFilePath, toolchainTypes, profile);
 
     const QString suffix = compilerName.right(compilerName.size() - prefix.size());
     if (!standardCompilerFileNames().contains(suffix))

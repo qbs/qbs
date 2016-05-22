@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -27,11 +27,13 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "compilerversion.h"
+
+#include "msvcinfo.h"
 
 #include <tools/error.h>
 #include <tools/profile.h>
 #include <tools/version.h>
+#include <tools/vsenvironmentdetector.h>
 
 #include <QByteArray>
 #include <QDir>
@@ -39,6 +41,10 @@
 #include <QScopedPointer>
 #include <QStringList>
 #include <QTemporaryFile>
+
+#ifdef Q_OS_WIN
+#include <qt_windows.h>
+#endif
 
 using namespace qbs;
 using namespace qbs::Internal;
@@ -69,7 +75,8 @@ private:
 };
 
 static QByteArray runProcess(const QString &exeFilePath, const QStringList &args,
-                             const QProcessEnvironment &env = QProcessEnvironment())
+                             const QProcessEnvironment &env = QProcessEnvironment(),
+                             bool allowFailure = false)
 {
     TemporaryEnvChanger envChanger(env);
     QProcess process;
@@ -78,7 +85,7 @@ static QByteArray runProcess(const QString &exeFilePath, const QStringList &args
             || process.exitStatus() != QProcess::NormalExit) {
         throw ErrorInfo(mkStr("Could not run %1 (%2)").arg(exeFilePath, process.errorString()));
     }
-    if (process.exitCode() != 0) {
+    if (process.exitCode() != 0 && !allowFailure) {
         ErrorInfo e(mkStr("Process '%1' failed with exit code %2.")
                     .arg(exeFilePath).arg(process.exitCode()));
         const QByteArray stdErr = process.readAllStandardError();
@@ -99,8 +106,28 @@ public:
     const QString filePath;
 };
 
-static Version getMsvcVersion(const QString &compilerFilePath,
-                              const QProcessEnvironment &compilerEnv)
+static QStringList parseCommandLine(const QString &commandLine)
+{
+    QStringList list;
+#ifdef Q_OS_WIN
+    wchar_t *buf = new wchar_t[commandLine.size() + 1];
+    buf[commandLine.toWCharArray(buf)] = 0;
+    int argCount = 0;
+    LPWSTR *args = CommandLineToArgvW(buf, &argCount);
+    if (!args)
+        throw ErrorInfo(mkStr("Could not parse command line arguments: ") + commandLine);
+    for (int i = 0; i < argCount; ++i)
+        list.append(QString::fromWCharArray(args[i]));
+    delete[] buf;
+#else
+    Q_UNUSED(commandLine);
+#endif
+    return list;
+}
+
+static QVariantMap getMsvcDefines(const QString &hostCompilerFilePath,
+                                  const QString &compilerFilePath,
+                                  const QProcessEnvironment &compilerEnv)
 {
     const QScopedPointer<QTemporaryFile> dummyFile(
                 new QTemporaryFile(QDir::tempPath() + QLatin1String("/qbs_dummy")));
@@ -108,8 +135,10 @@ static Version getMsvcVersion(const QString &compilerFilePath,
         throw ErrorInfo(mkStr("Could not create temporary file (%1)")
                         .arg(dummyFile->errorString()));
     }
-    const QByteArray magicPrefix = "int version = ";
-    dummyFile->write(magicPrefix + "_MSC_FULL_VER\r\n");
+    dummyFile->write("#include <stdio.h>\n");
+    dummyFile->write("#include <stdlib.h>\n");
+    dummyFile->write("int main(void) { char *p = getenv(\"MSC_CMD_FLAGS\");"
+                     "if (p) printf(\"%s\", p); return EXIT_FAILURE; }\n");
     dummyFile->close();
 
     // We cannot use the temporary file itself, as Qt has a lock on it
@@ -121,49 +150,57 @@ static Version getMsvcVersion(const QString &compilerFilePath,
                         .arg(nativeDummyFilePath));
     }
     DummyFile actualDummyFile(actualDummyFilePath);
-    const QString preprocessedFilePath = nativeDummyFilePath + QLatin1String(".i");
-    const QStringList compilerArgs = QStringList() << QLatin1String("/nologo")
-            << QLatin1String("/P") << nativeDummyFilePath
-            << (QLatin1String("/Fi") + preprocessedFilePath);
-    runProcess(compilerFilePath, compilerArgs, compilerEnv);
-    QFile preprocessedFile(preprocessedFilePath);
-    if (!preprocessedFile.open(QIODevice::ReadOnly)) {
-        throw ErrorInfo(mkStr("Cannot read preprocessed file '%1' (%2)")
-                        .arg(preprocessedFilePath, preprocessedFile.errorString()));
+    const QString qbsClFrontend = nativeDummyFilePath + QStringLiteral(".exe");
+
+    // The host compiler is the x86 compiler, which will execute on any edition of Windows
+    // for which host compilers have been released so far (x86, x86_64, ia64)
+    MSVC msvc2(hostCompilerFilePath);
+    VsEnvironmentDetector envdetector(&msvc2);
+    if (!envdetector.start())
+        throw ErrorInfo(QStringLiteral("Detecting the MSVC build environment failed: ")
+                        + envdetector.errorString());
+    runProcess(hostCompilerFilePath, QStringList()
+               << QStringLiteral("/nologo")
+               << QStringLiteral("/TC")
+               << nativeDummyFilePath
+               << QStringLiteral("/link")
+               << (QStringLiteral("/out:") + qbsClFrontend), msvc2.environments[QString()]);
+
+    QStringList out = QString::fromLocal8Bit(runProcess(compilerFilePath, QStringList()
+               << QStringLiteral("/nologo")
+               << QStringLiteral("/B1")
+               << qbsClFrontend
+               << QStringLiteral("/c")
+               << QStringLiteral("/TC")
+               << QStringLiteral("NUL"), compilerEnv, true)).split(QStringLiteral("\r\n"));
+
+    if (out.size() != 2)
+        throw ErrorInfo(QStringLiteral("Unexpected compiler frontend output: ")
+                        + out.join(QLatin1Char('\n')));
+
+    if (out.first() == QStringLiteral("NUL"))
+        out.removeFirst();
+
+    QVariantMap map;
+    const QStringList args = parseCommandLine(out.first());
+    for (const QString &arg : args) {
+        if (!arg.startsWith(QStringLiteral("-D")))
+            continue;
+        int idx = arg.indexOf(QLatin1Char('='), 2);
+        if (idx > 2)
+            map.insert(arg.mid(2, idx - 2), arg.mid(idx + 1));
+        else
+            map.insert(arg.mid(2), QVariant());
     }
-    QString versionString;
-    foreach (const QByteArray &line, preprocessedFile.readAll().split('\n')) {
-        const QByteArray cleanLine = line.trimmed();
-        if (cleanLine.startsWith(magicPrefix)) {
-            versionString = QString::fromLocal8Bit(cleanLine.mid(magicPrefix.count()));
-            break;
-        }
-    }
-    if (versionString.isEmpty())
-        throw ErrorInfo(mkStr("No version number found in preprocessed file."));
-    if (versionString.count() < 5)
-        throw ErrorInfo(mkStr("Version number '%1' not understood.").arg(versionString));
-    versionString.insert(2, QLatin1Char('.')).insert(5, QLatin1Char('.'));
-    const Version version = Version::fromString(versionString);
-    if (!version.isValid())
-        throw ErrorInfo(mkStr("Invalid version string '%1'.").arg(versionString));
-    return version;
+
+    return map;
 }
 
-
-void setCompilerVersion(const QString &compilerFilePath, const QStringList &qbsToolchain,
-                        Profile &profile, const QProcessEnvironment &compilerEnv)
+QVariantMap MSVC::compilerDefines(const QString &compilerFilePath) const
 {
-    try {
-        if (qbsToolchain.contains(QLatin1String("msvc"))) {
-            const Version version = getMsvcVersion(compilerFilePath, compilerEnv);
-            if (version.isValid()) {
-                profile.setValue(QLatin1String("cpp.compilerVersionMajor"), version.majorVersion());
-                profile.setValue(QLatin1String("cpp.compilerVersionMinor"), version.minorVersion());
-                profile.setValue(QLatin1String("cpp.compilerVersionPatch"), version.patchLevel());
-            }
-        }
-    } catch (const ErrorInfo &e) {
-        qDebug("Warning: Failed to retrieve compiler version: %s", qPrintable(e.toString()));
-    }
+    // Should never happen
+    if (architectures.size() != 1)
+        throw ErrorInfo(mkStr("Unexpected number of architectures"));
+
+    return getMsvcDefines(clPath(), compilerFilePath, environments[architectures.first()]);
 }

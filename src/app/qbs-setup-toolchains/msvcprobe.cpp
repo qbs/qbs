@@ -30,18 +30,17 @@
 
 #include "msvcprobe.h"
 
-#include "compilerversion.h"
-#include "msvcinfo.h"
 #include "probe.h"
-#include "vsenvironmentdetector.h"
 #include "../shared/logging/consolelogger.h"
 
 #include <logging/translator.h>
 #include <tools/architectures.h>
 #include <tools/error.h>
+#include <tools/msvcinfo.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
 #include <tools/visualstudioversioninfo.h>
+#include <tools/vsenvironmentdetector.h>
 
 #include <QDir>
 #include <QFileInfo>
@@ -50,6 +49,7 @@
 #include <QVector>
 
 using namespace qbs;
+using namespace qbs::Internal;
 using Internal::Tr;
 
 QT_BEGIN_NAMESPACE
@@ -57,46 +57,67 @@ Q_DECLARE_TYPEINFO(WinSDK, Q_MOVABLE_TYPE);
 Q_DECLARE_TYPEINFO(MSVC, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 
-static void writeEnvironment(Profile &p, const QProcessEnvironment &env)
+// Not necessary but helps setup-qt automatically associate base profiles
+static void setQtHelperProperties(Profile &p, const QString &architecture,
+                                  const QString &compilerFilePath)
 {
-    foreach (const QString &name, env.keys())
-        p.setValue(QLatin1String("buildEnvironment.") + name, env.value(name));
+    MSVC msvc(compilerFilePath);
+    VsEnvironmentDetector envdetector(&msvc);
+    if (!envdetector.start()) {
+        qbsWarning() << (QStringLiteral("Detecting the MSVC build environment failed: ")
+                         + envdetector.errorString());
+        return;
+    }
+
+    QString targetArch = architecture.split(QLatin1Char('_')).last();
+    if (targetArch.isEmpty())
+        targetArch = QStringLiteral("x86");
+    if (targetArch == QStringLiteral("arm"))
+        targetArch = QStringLiteral("armv7");
+
+    p.setValue(QStringLiteral("qbs.architecture"), canonicalArchitecture(targetArch));
+    p.setValue(QStringLiteral("cpp.compilerVersionMajor"),
+               msvc.compilerDefines(compilerFilePath)[QStringLiteral("_MSC_FULL_VER")]
+            .toString().mid(0, 2).toInt());
 }
 
-static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile> &profiles,
+static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles,
         QString name, const QString &installPath, const QString &architecture,
         bool appendArchToName = true)
 {
-    if (appendArchToName)
-        name.append(QLatin1Char('_') + architecture);
+    QStringList toolchainInstallPath = QStringList() << installPath;
+    if (!architecture.isEmpty()) {
+        toolchainInstallPath.append(architecture);
+        if (appendArchToName)
+            name.append(QLatin1Char('-') + architecture);
+    }
     qbsInfo() << Tr::tr("Setting up profile '%1'.").arg(name);
     Profile p(name, settings);
     p.removeProfile();
     p.setValue(QLatin1String("qbs.targetOS"), QStringList(QLatin1String("windows")));
-    p.setValue(QLatin1String("cpp.toolchainInstallPath"), installPath);
     p.setValue(QLatin1String("qbs.toolchain"), QStringList(QLatin1String("msvc")));
-    p.setValue(QLatin1String("qbs.architecture"), canonicalArchitecture(architecture));
-    const QProcessEnvironment compilerEnvironment = msvc.environments.value(architecture);
-    setCompilerVersion(installPath + QLatin1String("/cl.exe"), QStringList(QLatin1String("msvc")),
-                       p, compilerEnvironment);
-    writeEnvironment(p, compilerEnvironment);
+    p.setValue(QLatin1String("cpp.toolchainInstallPath"),
+               toolchainInstallPath.join(QDir::separator()));
+    setQtHelperProperties(p, architecture,
+                          toolchainInstallPath.join(QDir::separator()) + QLatin1String("/cl.exe"));
     profiles << p;
 }
 
 static void findSupportedArchitectures(MSVC *msvc)
 {
-    if (QFile::exists(msvc->clPath())
-            || QFile::exists(msvc->clPath(QLatin1String("amd64_x86"))))
-        msvc->architectures += QLatin1String("x86");
-    if (QFile::exists(msvc->clPath(QLatin1String("amd64")))
-            || QFile::exists(msvc->clPath(QLatin1String("x86_amd64"))))
-        msvc->architectures += QLatin1String("x86_64");
-    if (QFile::exists(msvc->clPath(QLatin1String("ia64")))
-            || QFile::exists(msvc->clPath(QLatin1String("x86_ia64"))))
-        msvc->architectures += QLatin1String("ia64");
-    if (QFile::exists(msvc->clPath(QLatin1String("x86_arm")))
-            || QFile::exists(msvc->clPath(QLatin1String("amd64_arm"))))
-        msvc->architectures += QLatin1String("armv7");
+    static const QStringList knownArchitectures = QStringList()
+            << QString() // x86_x86
+            << QStringLiteral("amd64_x86")
+            << QStringLiteral("amd64")
+            << QStringLiteral("x86_amd64")
+            << QStringLiteral("ia64")
+            << QStringLiteral("x86_ia64")
+            << QStringLiteral("x86_arm")
+            << QStringLiteral("amd64_arm");
+    for (const QString &knownArchitecture : knownArchitectures) {
+        if (QFile::exists(msvc->clPath(knownArchitecture)))
+            msvc->architectures += knownArchitecture;
+    }
 }
 
 static QString wow6432Key()
@@ -177,14 +198,6 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
         if (!QFileInfo(vcvars32bat).isFile())
             continue;
 
-        VsEnvironmentDetector envdetector(&msvc);
-        if (!envdetector.start()) {
-            qbsError() << "  "
-                       << Tr::tr("Detecting the build environment from '%1' failed.").arg(
-                              vcvars32bat);
-            continue;
-        }
-
         msvcs += msvc;
     }
 
@@ -202,14 +215,14 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
 
     foreach (const WinSDK &sdk, winSDKs) {
         foreach (const QString &arch, sdk.architectures) {
-            addMSVCPlatform(sdk, settings, profiles, QLatin1String("WinSDK") + sdk.version,
+            addMSVCPlatform(settings, profiles, QLatin1String("WinSDK") + sdk.version,
                     sdk.installPath + QLatin1String("\\bin"), arch);
         }
     }
 
     foreach (const MSVC &msvc, msvcs) {
         foreach (const QString &arch, msvc.architectures) {
-            addMSVCPlatform(msvc, settings, profiles, QLatin1String("MSVC") + msvc.version,
+            addMSVCPlatform(settings, profiles, QLatin1String("MSVC") + msvc.version,
                     msvc.installPath, arch);
         }
     }
@@ -219,11 +232,8 @@ void createMsvcProfile(const QString &profileName, const QString &compilerFilePa
                        Settings *settings)
 {
     MSVC msvc(compilerFilePath);
-    VsEnvironmentDetector envdetector(&msvc);
-    if (!envdetector.start())
-        throw qbs::ErrorInfo(Tr::tr("Detecting the build environment failed."));
     QList<Profile> dummy;
-    addMSVCPlatform(msvc, settings, dummy, profileName, msvc.installPath,
+    addMSVCPlatform(settings, dummy, profileName, msvc.installPath,
                     msvc.architectures.first(), false);
     qbsInfo() << Tr::tr("Profile '%1' created for '%2'.")
                  .arg(profileName, QDir::toNativeSeparators(compilerFilePath));

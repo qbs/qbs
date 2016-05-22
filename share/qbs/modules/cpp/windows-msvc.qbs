@@ -33,6 +33,7 @@ import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.PathTools
+import qbs.Probes
 import qbs.Utilities
 import qbs.WindowsUtils
 import 'msvc.js' as MSVC
@@ -43,6 +44,18 @@ CppModule {
                qbs.toolchain && qbs.toolchain.contains('msvc')
 
     id: module
+
+    Probes.MsvcProbe {
+        id: msvcProbe
+        compilerFilePath: compilerPath
+        preferredArchitecture: qbs.architecture
+    }
+
+    qbs.architecture: msvcProbe.found ? msvcProbe.architecture : original
+
+    compilerVersionMajor: msvcProbe.versionMajor
+    compilerVersionMinor: msvcProbe.versionMinor
+    compilerVersionPatch: msvcProbe.versionPatch
 
     windowsApiCharacterSet: "unicode"
     platformDefines: base.concat(WindowsUtils.characterSetDefines(windowsApiCharacterSet))
@@ -55,6 +68,7 @@ CppModule {
     compilerDefines: ['_WIN32', MSVC.compilerVersionDefine(module)]
     warningLevel: "default"
     compilerName: "cl.exe"
+    compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
     assemblerName: {
         switch (qbs.architecture) {
         case "armv7":
@@ -84,6 +98,16 @@ CppModule {
     debugInfoSuffix: ".pdb"
     property string dynamicLibraryImportSuffix: ".lib"
     imageFormat: "pe"
+
+    property var buildEnv: msvcProbe.buildEnv
+
+    setupBuildEnvironment: {
+        for (var key in buildEnv) {
+            var v = new ModUtils.EnvironmentVariable(key);
+            v.value = buildEnv[key];
+            v.set();
+        }
+    }
 
     Rule {
         condition: useCPrecompiledHeader

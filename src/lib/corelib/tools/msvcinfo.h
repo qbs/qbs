@@ -40,6 +40,11 @@
 #include <QProcessEnvironment>
 #include <QStringList>
 
+namespace qbs {
+namespace Internal {
+
+class Version;
+
 class MSVC
 {
 public:
@@ -58,20 +63,22 @@ public:
         QDir parentDir = QFileInfo(clPath).dir();
         QString arch = parentDir.dirName().toLower();
         if (arch == QLatin1String("bin"))
-            arch = QLatin1String("x86");
+            arch = QString(); // x86
         else
             parentDir.cdUp();
         architectures << arch;
         installPath = parentDir.path();
     }
 
-    QString clPath(const QString &arch = QString()) {
+    QString clPath(const QString &arch = QString()) const {
         return QDir::cleanPath(
                     installPath + QLatin1Char('/') +
                     pathPrefix + QLatin1Char('/') +
                     arch + QLatin1Char('/') +
                     QLatin1String("cl.exe"));
     }
+
+    QBS_EXPORT QVariantMap compilerDefines(const QString &compilerFilePath) const;
 };
 
 class WinSDK : public MSVC
@@ -84,5 +91,8 @@ public:
         pathPrefix = QLatin1String("bin");
     }
 };
+
+} // namespace Internal
+} // namespace qbs
 
 #endif // QBS_MSVCINFO_H

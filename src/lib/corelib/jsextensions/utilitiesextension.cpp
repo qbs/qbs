@@ -40,6 +40,11 @@
 #include <tools/applecodesignutils.h>
 #endif
 
+#ifdef Q_OS_WIN
+#include <tools/msvcinfo.h>
+#include <tools/vsenvironmentdetector.h>
+#endif
+
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFileInfo>
@@ -65,6 +70,7 @@ public:
     static QScriptValue js_smimeMessageContent(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_certificateInfo(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_signingIdentities(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_msvcCompilerInfo(QScriptContext *context, QScriptEngine *engine);
 };
 
 void initializeJsExtensionUtilities(QScriptValue extensionObject)
@@ -90,6 +96,8 @@ void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                engine->newFunction(UtilitiesExtension::js_certificateInfo, 1));
     environmentObj.setProperty(QStringLiteral("signingIdentities"),
                                engine->newFunction(UtilitiesExtension::js_signingIdentities, 0));
+    environmentObj.setProperty(QStringLiteral("msvcCompilerInfo"),
+                               engine->newFunction(UtilitiesExtension::js_msvcCompilerInfo, 1));
     extensionObject.setProperty(QStringLiteral("Utilities"), environmentObj);
 }
 
@@ -238,6 +246,43 @@ QScriptValue UtilitiesExtension::js_signingIdentities(QScriptContext *context,
 #else
     Q_UNUSED(context);
     return engine->toScriptValue(identitiesProperties());
+#endif
+}
+
+QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QScriptEngine *engine)
+{
+#ifndef Q_OS_WIN
+    Q_UNUSED(engine);
+    return context->throwError(QScriptContext::UnknownError,
+        QLatin1String("msvcCompilerInfo is not available on this platform"));
+#else
+    if (Q_UNLIKELY(context->argumentCount() != 1))
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("msvcCompilerInfo expects 1 argument"));
+
+    const QString compilerFilePath = context->argument(0).toString();
+    MSVC msvc(compilerFilePath);
+    VsEnvironmentDetector envdetector(&msvc);
+    if (!envdetector.start())
+        return context->throwError(QScriptContext::UnknownError,
+                                   QStringLiteral("Detecting the MSVC build environment failed: ")
+                                   + envdetector.errorString());
+
+    try {
+        const auto env = msvc.environments[msvc.architectures.first()];
+
+        QVariantMap envMap;
+        for (const QString &key : env.keys())
+            envMap.insert(key, env.value(key));
+
+        return engine->toScriptValue(QVariantMap {
+            {QStringLiteral("buildEnvironment"), envMap},
+            {QStringLiteral("macros"), msvc.compilerDefines(compilerFilePath)},
+        });
+    } catch (const qbs::ErrorInfo &info) {
+        return context->throwError(QScriptContext::UnknownError,
+                                   info.toString());
+    }
 #endif
 }
 

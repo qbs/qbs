@@ -515,7 +515,7 @@ function guessArchitecture(m) {
             }
         } else if (hasAnyOf(m, ["__i386", "__i386__", "_M_IX86"])) {
             architecture = "x86";
-        } else if (hasAnyOf(m, ["__x86_64", "__x86_64__", "__amd64", "_M_X64"])) {
+        } else if (hasAnyOf(m, ["__x86_64", "__x86_64__", "__amd64", "_M_X64", "_M_AMD64"])) {
             architecture = "x86_64";
         } else if (hasAnyOf(m, ["__ia64", "__ia64__", "_M_IA64"])) {
             architecture = "ia64";
