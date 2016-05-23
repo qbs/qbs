@@ -36,6 +36,8 @@
  * \value CommandEchoModeSilent Indicates that no output will be printed.
  * \value CommandEchoModeSummary Indicates that descriptions will be printed.
  * \value CommandEchoModeCommandLine Indidcates that full command line invocations will be printed.
+ * \value CommandEchoModeCommandLineWithEnvironment Indidcates that full command line invocations,
+ * including environment variables, will be printed.
  */
 
 namespace qbs {
@@ -54,6 +56,8 @@ QString commandEchoModeName(CommandEchoMode mode)
         return QLatin1String("summary");
     case CommandEchoModeCommandLine:
         return QLatin1String("command-line");
+    case CommandEchoModeCommandLineWithEnvironment:
+        return QLatin1String("command-line-with-environment");
     default:
         break;
     }

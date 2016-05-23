@@ -72,6 +72,12 @@ void ProcessCommandExecutor::doSetup()
                                              transformer()->product()->buildEnvironment, logger())
             .findExecutable(cmd->program(), cmd->workingDir());
 
+    QProcessEnvironment env = m_buildEnvironment;
+    const QProcessEnvironment &additionalVariables = cmd->environment();
+    foreach (const QString &key, additionalVariables.keys())
+        env.insert(key, additionalVariables.value(key));
+    m_commandEnvironment = env;
+
     m_program = program;
     m_arguments = cmd->arguments();
     m_shellInvocation = shellQuote(QDir::toNativeSeparators(m_program), m_arguments);
@@ -83,11 +89,7 @@ void ProcessCommandExecutor::doStart()
 
     const ProcessCommand * const cmd = processCommand();
 
-    QProcessEnvironment env = m_buildEnvironment;
-    const QProcessEnvironment &additionalVariables = cmd->environment();
-    foreach (const QString &key, additionalVariables.keys())
-        env.insert(key, additionalVariables.value(key));
-    m_process.setProcessEnvironment(env);
+    m_process.setProcessEnvironment(m_commandEnvironment);
 
     QStringList arguments = m_arguments;
 
@@ -144,6 +146,7 @@ void ProcessCommandExecutor::doStart()
 
     logger().qbsDebug() << "[EXEC] Running external process; full command line is: "
                         << m_shellInvocation;
+    const QProcessEnvironment &additionalVariables = cmd->environment();
     logger().qbsTrace() << "[EXEC] Additional environment:" << additionalVariables.toStringList();
     m_process.setWorkingDirectory(workingDir);
     m_process.start(m_program, arguments);
@@ -303,13 +306,32 @@ void ProcessCommandExecutor::onProcessFinished()
     sendProcessOutput();
 }
 
+static QString environmentVariableString(const QString &key, const QString &value)
+{
+    QString str;
+    if (HostOsInfo::isAnyUnixHost())
+        str += QStringLiteral("export ");
+    if (HostOsInfo::isWindowsHost())
+        str += QStringLiteral("set ");
+    return str + shellQuote(key + QLatin1Char('=') + value) + QLatin1Char('\n');
+}
+
 void ProcessCommandExecutor::doReportCommandDescription()
 {
-    if (m_echoMode == CommandEchoModeCommandLine) {
+    if (m_echoMode == CommandEchoModeCommandLine ||
+            m_echoMode == CommandEchoModeCommandLineWithEnvironment) {
+        QString fullInvocation;
+        if (m_echoMode == CommandEchoModeCommandLineWithEnvironment) {
+            QStringList keys = m_commandEnvironment.keys();
+            keys.sort();
+            for (const QString &key : keys)
+                fullInvocation += environmentVariableString(key, m_commandEnvironment.value(key));
+        }
+        fullInvocation += m_shellInvocation;
         emit reportCommandDescription(command()->highlight(),
                                       !command()->extendedDescription().isEmpty()
                                           ? command()->extendedDescription()
-                                          : m_shellInvocation);
+                                          : fullInvocation);
         return;
     }
 

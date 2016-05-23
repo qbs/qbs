@@ -168,7 +168,9 @@ JsCommandExecutor::~JsCommandExecutor()
 
 void JsCommandExecutor::doReportCommandDescription()
 {
-    if (m_echoMode == CommandEchoModeCommandLine && !command()->extendedDescription().isEmpty()) {
+    if ((m_echoMode == CommandEchoModeCommandLine
+         || m_echoMode == CommandEchoModeCommandLineWithEnvironment)
+            && !command()->extendedDescription().isEmpty()) {
         emit reportCommandDescription(command()->highlight(), command()->extendedDescription());
         return;
     }

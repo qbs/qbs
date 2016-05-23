@@ -81,6 +81,7 @@ private:
 
     QProcess m_process;
     QProcessEnvironment m_buildEnvironment;
+    QProcessEnvironment m_commandEnvironment;
     QString m_responseFileName;
 };
 
