@@ -180,6 +180,7 @@ Module {
                                   JavaUtils.javacArguments(product, inputs,
                                                            JavaUtils.helperOverrideArgs(product,
                                                                                         "javac")));
+            cmd.ignoreDryRun = true;
             cmd.silent = true;
             return [cmd];
         }

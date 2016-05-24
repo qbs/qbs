@@ -192,7 +192,7 @@ void JsCommandExecutor::doStart()
     QBS_ASSERT(!m_running, return);
     m_thread->start();
 
-    if (dryRun()) {
+    if (dryRun() && !command()->ignoreDryRun()) {
         QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
         return;
     }

@@ -46,6 +46,7 @@ AbstractCommand::AbstractCommand()
     : m_description(defaultDescription()),
       m_extendedDescription(defaultExtendedDescription()),
       m_highlight(defaultHighLight()),
+      m_ignoreDryRun(defaultIgnoreDryRun()),
       m_silent(defaultIsSilent())
 {
 }
@@ -60,6 +61,7 @@ bool AbstractCommand::equals(const AbstractCommand *other) const
             && m_description == other->m_description
             && m_extendedDescription == other->m_extendedDescription
             && m_highlight == other->m_highlight
+            && m_ignoreDryRun == other->m_ignoreDryRun
             && m_silent == other->m_silent
             && m_properties == other->m_properties;
 }
@@ -69,6 +71,7 @@ void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const
     m_description = scriptValue->property(QLatin1String("description")).toString();
     m_extendedDescription = scriptValue->property(QLatin1String("extendedDescription")).toString();
     m_highlight = scriptValue->property(QLatin1String("highlight")).toString();
+    m_ignoreDryRun = scriptValue->property(QLatin1String("ignoreDryRun")).toBool();
     m_silent = scriptValue->property(QLatin1String("silent")).toBool();
     m_codeLocation = codeLocation;
 
@@ -76,6 +79,7 @@ void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const
             << QLatin1String("description")
             << QLatin1String("extendedDescription")
             << QLatin1String("highlight")
+            << QLatin1String("ignoreDryRun")
             << QLatin1String("silent");
 }
 
@@ -84,6 +88,7 @@ void AbstractCommand::load(PersistentPool &pool)
     m_description = pool.idLoadString();
     m_extendedDescription = pool.idLoadString();
     m_highlight = pool.idLoadString();
+    pool.stream() >> m_ignoreDryRun;
     pool.stream() >> m_silent;
     m_codeLocation.load(pool);
     m_properties = pool.loadVariantMap();
@@ -94,6 +99,7 @@ void AbstractCommand::store(PersistentPool &pool) const
     pool.storeString(m_description);
     pool.storeString(m_extendedDescription);
     pool.storeString(m_highlight);
+    pool.stream() << m_ignoreDryRun;
     pool.stream() << m_silent;
     m_codeLocation.store(pool);
     pool.store(m_properties);
@@ -120,6 +126,8 @@ static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engin
                     engine->toScriptValue(AbstractCommand::defaultExtendedDescription()));
     cmd.setProperty(QLatin1String("highlight"),
                     engine->toScriptValue(AbstractCommand::defaultHighLight()));
+    cmd.setProperty(QLatin1String("ignoreDryRun"),
+                    engine->toScriptValue(AbstractCommand::defaultIgnoreDryRun()));
     cmd.setProperty(QLatin1String("silent"),
                     engine->toScriptValue(AbstractCommand::defaultIsSilent()));
     return cmd;
@@ -163,6 +171,8 @@ static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
                     engine->toScriptValue(commandPrototype->stderrFilePath()));
     cmd.setProperty(QLatin1String("environment"),
                     engine->toScriptValue(commandPrototype->environment().toStringList()));
+    cmd.setProperty(QLatin1String("ignoreDryRun"),
+                    engine->toScriptValue(commandPrototype->ignoreDryRun()));
     return cmd;
 }
 

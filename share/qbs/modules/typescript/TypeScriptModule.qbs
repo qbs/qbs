@@ -227,6 +227,7 @@ Module {
             };
 
             var jcmd = new JavaScriptCommand();
+            jcmd.ignoreDryRun = true;
             jcmd.silent = true;
             jcmd.inputPaths = inputPaths.sort(sortFunc);
             jcmd.outputPaths = outputPaths.sort(sortFunc);
@@ -240,6 +241,7 @@ Module {
             var args = ["--module", "commonjs",
                         "--outDir", outDir].concat(outputPaths.filter(function (f) { return !f.endsWith(".json"); }));
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
+            cmd.ignoreDryRun = true;
             cmd.silent = true;
             return [jcmd, cmd];
         }

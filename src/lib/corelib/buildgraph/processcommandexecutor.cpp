@@ -93,7 +93,7 @@ void ProcessCommandExecutor::doStart()
 
     QStringList arguments = m_arguments;
 
-    if (dryRun()) {
+    if (dryRun() && !cmd->ignoreDryRun()) {
         QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
         return;
     }
