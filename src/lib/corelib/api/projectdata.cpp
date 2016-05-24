@@ -737,8 +737,10 @@ PropertyMap::~PropertyMap()
 
 PropertyMap &PropertyMap::operator =(const PropertyMap &other)
 {
-    delete d;
-    d = new Internal::PropertyMapPrivate(*other.d);
+    if (this != &other) {
+        delete d;
+        d = new Internal::PropertyMapPrivate(*other.d);
+    }
     return *this;
 }
 
