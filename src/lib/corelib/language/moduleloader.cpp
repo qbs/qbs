@@ -1103,7 +1103,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         QStringList moduleSearchPaths;
         foreach (const QString &searchPath, m_reader->searchPaths())
             addExtraModuleSearchPath(moduleSearchPaths, searchPath);
-        bool cacheHit;
+        bool cacheHit = false;
         modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
                 moduleName, moduleSearchPaths, isRequired, &cacheHit);
         static const QualifiedId baseModuleId = QualifiedId(QLatin1String("qbs"));
