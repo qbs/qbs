@@ -169,7 +169,7 @@ function javacArguments(product, inputs, overrides) {
     var i;
     var outputDir = getModuleProperty(product, "classFilesDir", overrides);
     var classPaths = [outputDir];
-    var additionalClassPaths = getModuleProperty(product, "additionalClassPaths", overrides);
+    var additionalClassPaths = getModuleProperties(product, "additionalClassPaths", overrides);
     if (additionalClassPaths)
         classPaths = classPaths.concat(additionalClassPaths);
     for (i in inputs["java.jar"])
@@ -197,7 +197,7 @@ function javacArguments(product, inputs, overrides) {
         args.push("-nowarn");
     if (getModuleProperty(product, "warningsAsErrors", overrides))
         args.push("-Werror");
-    var otherFlags = getModuleProperty(product, "additionalCompilerFlags", overrides);
+    var otherFlags = getModuleProperties(product, "additionalCompilerFlags", overrides);
     if (otherFlags)
         args = args.concat(otherFlags);
     for (i in inputs["java.java"])
@@ -220,14 +220,14 @@ function helperFullyQualifiedNames(type) {
         "io/qt/qbs/ArtifactListWriter",
         "io/qt/qbs/ArtifactListXmlWriter",
         "io/qt/qbs/tools/JavaCompilerScannerTool",
+        "io/qt/qbs/tools/utils/ArtifactProcessor",
+        "io/qt/qbs/tools/utils/ArtifactScanner",
         "io/qt/qbs/tools/utils/JavaCompilerOptions",
         "io/qt/qbs/tools/utils/JavaCompilerScanner",
         "io/qt/qbs/tools/utils/JavaCompilerScanner$1",
         "io/qt/qbs/tools/utils/NullFileObject",
         "io/qt/qbs/tools/utils/NullFileObject$1",
         "io/qt/qbs/tools/utils/NullFileObject$2",
-        "io/qt/qbs/tools/utils/NullFileObject$3",
-        "io/qt/qbs/tools/utils/NullFileObject$4"
     ];
     if (type === "java") {
         return names.filter(function (name) {
@@ -239,6 +239,7 @@ function helperFullyQualifiedNames(type) {
 }
 
 function helperOutputArtifacts(product) {
+    File.makePath(ModUtils.moduleProperty(product, "internalClassFilesDir"));
     return helperFullyQualifiedNames("class").map(function (name) {
         return {
             filePath: FileInfo.joinPaths(ModUtils.moduleProperty(product, "internalClassFilesDir"),
@@ -262,6 +263,12 @@ function helperOverrideArgs(product, tool) {
 
         // Build the helper tool's class files separately from the actual product's class files
         overrides["classFilesDir"] = ModUtils.moduleProperty(product, "internalClassFilesDir");
+
+        // Add tools.jar to the classpath as required for the tree scanner API on JDK 7+
+        var toolsJarPath = ModUtils.moduleProperty(product, "toolsJarPath");
+        if (toolsJarPath)
+            overrides["additionalClassPaths"] = [toolsJarPath].concat(
+                        ModUtils.moduleProperties(product, "additionalClassPaths"));
     }
 
     // Inject the current JDK's runtime classes into the boot class path when building/running the
@@ -286,8 +293,15 @@ function outputArtifacts(product, inputs) {
         process = new Process();
         process.setWorkingDirectory(
                     FileInfo.joinPaths(ModUtils.moduleProperty(product, "internalClassFilesDir")));
-        process.exec(ModUtils.moduleProperty(product, "interpreterFilePath"),
-                     ["io/qt/qbs/tools/JavaCompilerScannerTool", "--output-format", "json"]
+
+        var sep = product.moduleProperty("qbs", "pathListSeparator");
+        var toolsJarPath = ModUtils.moduleProperty(product, "toolsJarPath");
+        var javaArgs = [
+            "-classpath", process.workingDirectory() + (toolsJarPath ? (sep + toolsJarPath) : ""),
+            "io/qt/qbs/tools/JavaCompilerScannerTool",
+            "--output-format", "json",
+        ];
+        process.exec(ModUtils.moduleProperty(product, "interpreterFilePath"), javaArgs
                      .concat(javacArguments(product, inputs, helperOverrideArgs(product))), true);
         return JSON.parse(process.readStdOut());
     } finally {

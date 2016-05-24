@@ -30,33 +30,22 @@
 
 package io.qt.qbs.tools.utils;
 
-import io.qt.qbs.Artifact;
-import io.qt.qbs.ArtifactListJsonWriter;
-import io.qt.qbs.ArtifactListTextWriter;
-import io.qt.qbs.ArtifactListWriter;
-import io.qt.qbs.ArtifactListXmlWriter;
+import io.qt.qbs.*;
 
+import javax.tools.*;
+import javax.tools.JavaCompiler.CompilationTask;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.tools.FileObject;
-import javax.tools.ForwardingJavaFileManager;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
+import java.util.*;
 
 public class JavaCompilerScanner {
     private static final String humanReadableTextFormat = "human-readable-text";
     private static final String jsonFormat = "json";
     private static final String xmlFormat = "xml1";
 
+    private Set<String> compilationOutputFilePaths = new HashSet<String>();
+    private Set<String> parsedOutputFilePaths = new HashSet<String>();
     private List<Artifact> artifacts = new ArrayList<Artifact>();
     private String outputFormat = humanReadableTextFormat;
 
@@ -81,6 +70,17 @@ public class JavaCompilerScanner {
         return this.artifacts;
     }
 
+    private void addArtifact(Artifact a) {
+        for (int i = 0; i < this.artifacts.size(); ++i) {
+            if (this.artifacts.get(i).getFilePath().equals(a.getFilePath())) {
+                return;
+            }
+        }
+
+        this.artifacts.add(a);
+        this.parsedOutputFilePaths.add(a.getFilePath());
+    }
+
     public int run(List<String> compilerArguments) {
         artifacts.clear();
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -88,34 +88,24 @@ public class JavaCompilerScanner {
                 .getStandardFileManager(null, null, null);
         JavaFileManager fileManager = new ForwardingJavaFileManager<StandardJavaFileManager>(
                 standardFileManager) {
+            @Override
             public JavaFileObject getJavaFileForOutput(
                     JavaFileManager.Location location, String className,
                     JavaFileObject.Kind kind, FileObject sibling)
                     throws IOException {
                 JavaFileObject o = super.getJavaFileForOutput(location,
                         className, kind, sibling);
-                Artifact artifact = new Artifact(new File(o.toUri()
-                        .getSchemeSpecificPart()).toString());
-                if (kind.equals(JavaFileObject.Kind.CLASS)) {
-                    artifact.addFileTag("java.class");
-                } else if (kind.equals(JavaFileObject.Kind.SOURCE)) {
-                    artifact.addFileTag("java.java");
-                }
-                artifacts.add(artifact);
+                compilationOutputFilePaths.add(new File(o.toUri().getSchemeSpecificPart()).toString());
                 return new NullFileObject(o);
             }
 
+            @Override
             public FileObject getFileForOutput(
                     JavaFileManager.Location location, String packageName,
                     String relativeName, FileObject sibling) throws IOException {
                 FileObject o = super.getFileForOutput(location, packageName,
                         relativeName, sibling);
-                Artifact artifact = new Artifact(new File(o.toUri()
-                        .getSchemeSpecificPart()).toString());
-                if (o.getName().endsWith(".h")) {
-                    artifact.addFileTag("hpp");
-                }
-                artifacts.add(artifact);
+                compilationOutputFilePaths.add(new File(o.toUri().getSchemeSpecificPart()).toString());
                 return new NullFileObject(o);
             }
         };
@@ -123,17 +113,75 @@ public class JavaCompilerScanner {
         final JavaCompilerOptions options = JavaCompilerOptions
                 .parse(compiler, standardFileManager, compilerArguments
                         .toArray(new String[compilerArguments.size()]));
-        return compiler.getTask(
+
+        final ArtifactScanner scanner = new ArtifactScanner(options.getSourceVersion());
+        final ArtifactProcessor processor = new ArtifactProcessor(scanner);
+
+        final CompilationTask task = compiler.getTask(
                 null,
                 fileManager,
                 null,
                 options.getRecognizedOptions(),
                 options.getClassNames(),
                 standardFileManager.getJavaFileObjectsFromFiles(options
-                        .getFiles())).call() ? 0 : 1;
+                        .getFiles()));
+        task.setProcessors(Arrays.asList(processor));
+        task.call(); // exit code is not relevant, we have to ignore compilation errors sometimes
+
+        final Set<String> binaryNames = scanner.getBinaryNames();
+        final Iterator<String> it = binaryNames.iterator();
+        while (it.hasNext()) {
+            final String className = it.next();
+            Artifact a = new Artifact(options.getClassFilesDir().replace('/', File.separatorChar)
+                    + File.separatorChar + className.replace('.', File.separatorChar) + ".class");
+            a.addFileTag("java.class");
+            addArtifact(a);
+        }
+
+        final Set<String> nativeHeaderBinaryNames = scanner.getNativeHeaderBinaryNames();
+        final Iterator<String> it2 = nativeHeaderBinaryNames.iterator();
+        while (it2.hasNext()) {
+            final String className = it2.next();
+            Artifact a = new Artifact(options.getHeaderFilesDir().replace('/', File.separatorChar)
+                    + File.separatorChar + className.replace('.', '_').replace('$', '_') + ".h");
+            a.addFileTag("hpp");
+            addArtifact(a);
+        }
+
+        // We can't simply compare both lists for equality because if compilation stopped due to an error,
+        // only a partial list of artifacts may have been generated so far. If the parsed outputs contains file
+        // paths it should not, qbs' --check-outputs option should catch that.
+        if (!parsedOutputFilePaths.containsAll(compilationOutputFilePaths)) {
+            ArrayList<String> parsedOutputFilePathsArray = new ArrayList<String>(parsedOutputFilePaths);
+            Collections.sort(parsedOutputFilePathsArray);
+            ArrayList<String> compilationOutputFilePathsArray = new ArrayList<String>(compilationOutputFilePaths);
+            Collections.sort(compilationOutputFilePathsArray);
+
+            throw new RuntimeException("The set of output files determined by source code parsing:\n\n"
+                    + join("\n", parsedOutputFilePathsArray) + "\n\n"
+                    + "is missing some files that would be produced by the compiler:\n\n"
+                    + join("\n", compilationOutputFilePathsArray) + "\n");
+        }
+
+        return !parsedOutputFilePaths.isEmpty() ? 0 : 1;
     }
 
     public void write(OutputStream outputStream) throws IOException {
         getOutputFormatters().get(outputFormat).write(artifacts, outputStream);
+    }
+
+    // Java 8 has String.join but the helper tool must build with Java 6.
+    private static String join(CharSequence delimiter, Iterable<? extends CharSequence> elements) {
+        StringBuilder sb = new StringBuilder();
+        for (Iterator<? extends CharSequence> it = elements.iterator(); it.hasNext(); ) {
+            sb.append(it.next());
+            sb.append(delimiter);
+        }
+
+        // Remove the last delimiter
+        if (sb.length() > 0)
+            sb.replace(sb.length() - delimiter.length(), sb.length(), "");
+
+        return sb.toString();
     }
 }

@@ -30,17 +30,12 @@
 
 package io.qt.qbs.tools.utils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Writer;
-import java.net.URI;
-
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
+import java.io.*;
+import java.net.URI;
 
 /**
  * Represents a FileObject that discards its output when written.
@@ -64,12 +59,7 @@ public class NullFileObject implements FileObject, JavaFileObject {
 
     @Override
     public InputStream openInputStream() throws IOException {
-        return new InputStream() {
-            @Override
-            public int read() throws IOException {
-                return -1;
-            }
-        };
+        return obj.openInputStream();
     }
 
     @Override
@@ -83,16 +73,7 @@ public class NullFileObject implements FileObject, JavaFileObject {
 
     @Override
     public Reader openReader(boolean ignoreEncodingErrors) throws IOException {
-        return new Reader() {
-            @Override
-            public int read(char[] cbuf, int off, int len) throws IOException {
-                return -1;
-            }
-
-            @Override
-            public void close() throws IOException {
-            }
-        };
+        return obj.openReader(ignoreEncodingErrors);
     }
 
     @Override
@@ -125,7 +106,7 @@ public class NullFileObject implements FileObject, JavaFileObject {
 
     @Override
     public boolean delete() {
-        return obj.delete();
+        return true;
     }
 
     @Override

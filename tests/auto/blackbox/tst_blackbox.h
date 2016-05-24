@@ -148,6 +148,7 @@ private slots:
     void installPackage();
     void installTree();
     void java();
+    void javaDependencyTracking();
     void jsExtensionsFile();
     void jsExtensionsFileInfo();
     void jsExtensionsProcess();

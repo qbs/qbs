@@ -25,6 +25,11 @@ Project {
             "Vehicle.java", "Vehicles.java"
         ]
 
+        Group {
+            condition: java.compilerVersionMinor >= 8
+            files: ["Car8.java", "HelloWorld8.java"]
+        }
+
         Export {
             Depends { name: "java" }
             java.manifestClassPath: [product.targetName + ".jar"]
@@ -49,6 +54,12 @@ Project {
     JavaJarFile {
         name: "car_jar"
         files: ["Car.java", "Vehicle.java"]
+
+        Group {
+            condition: java.compilerVersionMinor >= 8
+            files: ["Car8.java"]
+        }
+
         property stringList cppIncludePaths: {
             var paths = java.jdkIncludePaths;
             if (java.compilerVersionMinor >= 8) {

@@ -1,8 +1,8 @@
-class Car implements Vehicle
+class Car8 implements Vehicle
 {
     private InternalCombustionEngine engine;
 
-    public Car() {
+    public Car8() {
         engine = new InternalCombustionEngine();
     }
 
@@ -18,6 +18,11 @@ class Car implements Vehicle
 
         public class ChemicalReaction {
             public native void occur();
+
+            public class Atoms {
+                @java.lang.annotation.Native
+                public int hydrogenAtomCount;
+            }
         }
     }
 }

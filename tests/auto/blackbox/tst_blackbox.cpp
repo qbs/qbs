@@ -2452,6 +2452,91 @@ void TestBlackbox::java()
     }
 }
 
+static QString dpkgArch(const QString &prefix = QString())
+{
+    QProcess dpkg;
+    dpkg.start("/usr/bin/dpkg", QStringList() << "--print-architecture");
+    dpkg.waitForFinished();
+    if (dpkg.exitStatus() == QProcess::NormalExit && dpkg.exitCode() == 0)
+        return prefix + QString::fromLocal8Bit(dpkg.readAllStandardOutput().trimmed());
+    return QString();
+}
+
+void TestBlackbox::javaDependencyTracking() {
+    Settings settings((QString()));
+    Profile p(profileName(), &settings);
+
+    auto getSpecificJdkVersion = [](const QString &jdkVersion) {
+        if (HostOsInfo::isOsxHost()) {
+            QProcess java_home;
+            java_home.start("/usr/libexec/java_home", QStringList() << "--version" << jdkVersion);
+            java_home.waitForFinished();
+            if (java_home.exitStatus() == QProcess::NormalExit && java_home.exitCode() == 0)
+                return QString::fromLocal8Bit(java_home.readAllStandardOutput().trimmed());
+        } else if (HostOsInfo::isWindowsHost()) {
+            QSettings settings("HKEY_LOCAL_MACHINE\\SOFTWARE\\JavaSoft\\Java Development Kit\\"
+                               + jdkVersion, QSettings::NativeFormat);
+            return settings.value("JavaHome").toString();
+        } else {
+            QString minorVersion = jdkVersion;
+            if (minorVersion.startsWith("1."))
+                minorVersion.remove(0, 2);
+
+            const QStringList searchPaths = {
+                "/usr/lib/jvm/java-" + minorVersion + "-openjdk" + dpkgArch("-"), // Debian
+                "/usr/lib/jvm/java-" + minorVersion + "-openjdk", // Arch
+                "/usr/lib/jvm/jre-1." + minorVersion + ".0-openjdk", // Fedora
+            };
+            for (const QString &searchPath : searchPaths) {
+                if (QFile::exists(searchPath + "/bin/javac"))
+                    return searchPath;
+            }
+        }
+
+        return QString();
+    };
+
+    auto runQbsTest = [&](const QString &jdkPath, const QString &javaVersion,
+            const QString &arg) {
+        QDir::setCurrent(testDataDir + "/java");
+        QbsRunParameters rp;
+        rp.arguments.append(arg);
+        if (!jdkPath.isEmpty())
+            rp.arguments << ("java.jdkPath:" + jdkPath);
+        if (!javaVersion.isEmpty())
+            rp.arguments << ("java.languageVersion:" + javaVersion);
+        rmDirR(relativeBuildDir(p.name()));
+        QCOMPARE(runQbs(rp), 0);
+    };
+
+    static const auto knownJdkVersions = QStringList() << "1.6" << "1.7" << "1.8" << "1.9"
+                                                       << QString(); // default JDK;
+    QStringList seenJdkVersions;
+    for (const auto &jdkVersion : knownJdkVersions) {
+        QString specificJdkPath = getSpecificJdkVersion(jdkVersion);
+        if (jdkVersion.isEmpty() || !specificJdkPath.isEmpty()) {
+            const auto jdkPath = jdkVersion.isEmpty() ? jdkVersion : specificJdkPath;
+
+            if (!jdkVersion.isEmpty())
+                seenJdkVersions << jdkVersion;
+
+            if (!seenJdkVersions.isEmpty()) {
+                const auto javaVersions = QStringList()
+                    << knownJdkVersions.mid(0, knownJdkVersions.indexOf(seenJdkVersions.last()) + 1)
+                    << QString(); // also test with no explicitly specified source version
+
+                for (const auto &currentJavaVersion : javaVersions) {
+                    runQbsTest(jdkPath, currentJavaVersion, "--check-outputs");
+                    runQbsTest(jdkPath, currentJavaVersion, "--dry-run");
+                }
+            }
+        }
+    }
+
+    if (seenJdkVersions.isEmpty())
+        QSKIP("No JDKs installed");
+}
+
 void TestBlackbox::cli()
 {
     QDir::setCurrent(testDataDir + "/cli");

@@ -133,6 +133,11 @@ Module {
         return FileInfo.joinPaths(jdkPath, "jre", "lib", "rt.jar");
     }
 
+    property path toolsJarPath: {
+        if (compilerVersionMajor > 1 || (compilerVersionMajor === 1 && compilerVersionMinor >= 7))
+            return FileInfo.joinPaths(jdkPath, "lib", "tools.jar");
+    }
+
     validate: {
         var validator = new ModUtils.PropertyValidator("java");
         validator.setRequiredProperty("jdkPath", jdkPath);

@@ -30,25 +30,38 @@
 
 package io.qt.qbs.tools.utils;
 
+import javax.lang.model.SourceVersion;
+import javax.tools.JavaCompiler;
+import javax.tools.StandardJavaFileManager;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.lang.model.SourceVersion;
-import javax.tools.JavaCompiler;
-import javax.tools.StandardJavaFileManager;
-
 public class JavaCompilerOptions {
     private final List<String> recognizedOptions;
     private final List<String> classNames;
     private final List<File> files;
+    private String classFilesDir;
+    private String headerFilesDir;
+    private SourceVersion sourceVersion;
 
-    private JavaCompilerOptions(List<String> recognizedOptions,
-            List<String> classNames, List<File> files) {
+    public String getClassFilesDir() {
+        return classFilesDir;
+    }
+
+    public String getHeaderFilesDir() {
+        return headerFilesDir;
+    }
+
+    private JavaCompilerOptions(List<String> recognizedOptions, List<String> classNames, List<File> files,
+                                String classFilesDir, String headerFilesDir, SourceVersion sourceVersion) {
         this.recognizedOptions = recognizedOptions;
         this.classNames = classNames;
         this.files = files;
+        this.classFilesDir = classFilesDir;
+        this.headerFilesDir = headerFilesDir;
+        this.sourceVersion = sourceVersion;
     }
 
     public static JavaCompilerOptions parse(JavaCompiler compiler,
@@ -56,6 +69,10 @@ public class JavaCompilerOptions {
         List<String> recognizedOptions = new ArrayList<String>();
         List<String> classNames = new ArrayList<String>();
         List<File> files = new ArrayList<File>();
+        String classFilesDir = null;
+        String headerFilesDir = null;
+        String sourceVersionString = null;
+        int sourceVersion = SourceVersion.latest().ordinal();
 
         for (int i = 0; i < arguments.length; ++i) {
             int argumentCount = compiler.isSupportedOption(arguments[i]);
@@ -63,6 +80,35 @@ public class JavaCompilerOptions {
                 argumentCount = fileManager.isSupportedOption(arguments[i]);
 
             if (argumentCount >= 0) {
+                if (arguments[i].equals("-d") && argumentCount == 1)
+                    classFilesDir = arguments[i + 1];
+
+                if (arguments[i].equals("-h") && argumentCount == 1)
+                    headerFilesDir = arguments[i + 1];
+
+                if (arguments[i].equals("-source") && argumentCount == 1) {
+                    String a = arguments[i + 1];
+                    if (a.equals("1.0"))
+                        sourceVersion = 0;
+                    else if (a.equals("1.1"))
+                        sourceVersion = 1;
+                    else if (a.equals("1.2"))
+                        sourceVersion = 2;
+                    else if (a.equals("1.3"))
+                        sourceVersion = 3;
+                    else if (a.equals("1.4"))
+                        sourceVersion = 4;
+                    else if (a.equals("1.5") || a.equals("5"))
+                        sourceVersion = 5;
+                    else if (a.equals("1.6") || a.equals("6"))
+                        sourceVersion = 6;
+                    else if (a.equals("1.7") || a.equals("7"))
+                        sourceVersion = 7;
+                    else if (a.equals("1.8") || a.equals("8"))
+                        sourceVersion = 8;
+                    sourceVersionString = a;
+                }
+
                 for (int j = 0; j < argumentCount + 1; ++j) {
                     if (i + j >= arguments.length) {
                         throw new IllegalArgumentException(arguments[i]);
@@ -83,7 +129,11 @@ public class JavaCompilerOptions {
             }
         }
 
-        return new JavaCompilerOptions(recognizedOptions, classNames, files);
+        if (sourceVersion >= SourceVersion.values().length)
+            throw new RuntimeException("invalid source release: " + sourceVersionString);
+
+        return new JavaCompilerOptions(recognizedOptions, classNames, files, classFilesDir, headerFilesDir,
+                SourceVersion.values()[sourceVersion]);
     }
 
     public List<String> getRecognizedOptions() {
@@ -96,5 +146,9 @@ public class JavaCompilerOptions {
 
     public List<String> getClassNames() {
         return Collections.unmodifiableList(classNames);
+    }
+
+    public SourceVersion getSourceVersion() {
+        return sourceVersion;
     }
 }
