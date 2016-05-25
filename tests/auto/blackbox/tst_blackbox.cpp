@@ -2199,6 +2199,16 @@ void TestBlackbox::exportRule()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::exportToOutsideSearchPath()
+{
+    QDir::setCurrent(testDataDir + "/export-to-outside-searchpath");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("Module 'aModule' not found when setting up transitive "
+            "dependencies for product 'theProduct'"), m_qbsStderr.constData());
+}
+
 void TestBlackbox::fileDependencies()
 {
     QDir::setCurrent(testDataDir + "/fileDependencies");

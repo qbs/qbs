@@ -131,6 +131,7 @@ private slots:
     void erroneousFiles();
     void errorInfo();
     void exportRule();
+    void exportToOutsideSearchPath();
     void fileDependencies();
     void frameworkStructure();
     void groupsInModules();

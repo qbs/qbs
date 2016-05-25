@@ -1845,8 +1845,12 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
             Item::Module dep;
             dep.item = loadModule(ctx, ctx->item, ctx->item->location(), QString(), module.name,
                                   module.required, &dep.isProduct);
-            if (!dep.item)
-                continue;
+            if (!dep.item) {
+                throw ErrorInfo(Tr::tr("Module '%1' not found when setting up transitive "
+                                       "dependencies for product '%2'.").arg(module.name.toString(),
+                                                                             ctx->name),
+                                ctx->item->location());
+            }
             dep.name = module.name;
             dep.required = module.required;
             ctx->item->addModule(dep);
