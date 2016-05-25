@@ -162,13 +162,6 @@ CppModule {
         return base;
     }
 
-    validate: {
-        var validator = new ModUtils.PropertyValidator("cpp");
-        validator.setRequiredProperty("architecture", architecture,
-                                      "you might want to re-run 'qbs-setup-toolchains'");
-        validator.validate();
-    }
-
     Rule {
         id: dynamicLibraryLinker
         multiplex: true

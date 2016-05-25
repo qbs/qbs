@@ -133,8 +133,6 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
             for (i in versionDefs) {
                 args.push('/D' + versionDefs[i] + '=' + hexVersion);
             }
-        } else {
-            console.warn('Unknown Windows version "' + minimumWindowsVersion + '"');
         }
     }
 
@@ -278,8 +276,6 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         if (subsystemVersion) {
             subsystemSwitch += ',' + subsystemVersion;
             args.push('/OSVERSION:' + subsystemVersion);
-        } else {
-            console.warn('Unknown Windows version "' + minimumWindowsVersion + '"');
         }
     }
 
