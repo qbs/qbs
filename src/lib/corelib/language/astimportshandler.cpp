@@ -101,11 +101,14 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
             if (JsExtensions::hasExtension(extensionName)) {
                 if (Q_UNLIKELY(!import->importId.isNull())) {
                     throw ErrorInfo(Tr::tr("Import of built-in extension '%1' "
-                                           "must not have 'as' specifier.").arg(extensionName));
+                                           "must not have 'as' specifier.").arg(extensionName),
+                                    toCodeLocation(m_file->filePath(), import->asToken));
                 }
                 if (Q_UNLIKELY(m_file->jsExtensions().contains(extensionName))) {
-                    m_logger.printWarning(Tr::tr("Built-in extension '%1' already "
-                                                 "imported.").arg(extensionName));
+                    m_logger.printWarning(ErrorInfo(Tr::tr("Built-in extension '%1' already "
+                                                           "imported.").arg(extensionName),
+                                                    toCodeLocation(m_file->filePath(),
+                                                                   import->importToken)));
                 } else {
                     m_file->addJsExtension(extensionName);
                 }
@@ -132,7 +135,8 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
                         toCodeLocation(m_file->filePath(), import->importIdToken));
         }
         if (Q_UNLIKELY(JsExtensions::hasExtension(as)))
-            throw ErrorInfo(Tr::tr("Cannot reuse the name of built-in extension '%1'.").arg(as));
+            throw ErrorInfo(Tr::tr("Cannot reuse the name of built-in extension '%1'.").arg(as),
+                            toCodeLocation(m_file->filePath(), import->importIdToken));
         m_importAsNames.insert(as);
     }
 
