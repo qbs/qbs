@@ -1802,6 +1802,46 @@ void TestBlackbox::overrideProjectProperties()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::pkgConfigProbe()
+{
+    const QString exe = findExecutable(QStringList() << "pkg-config");
+    if (exe.isEmpty())
+        QSKIP("This test requires the pkg-config tool");
+
+    QDir::setCurrent(testDataDir + "/pkg-config-probe");
+
+    QFETCH(QString, packageName);
+    QFETCH(QString, found);
+    QFETCH(QString, libs);
+    QFETCH(QString, cflags);
+    QFETCH(QString, version);
+
+    QbsRunParameters params(QStringList() << ("theProduct.packageName:" + packageName));
+    QCOMPARE(runQbs(params), 0);
+    const QString stdOut = m_qbsStdout;
+    QVERIFY2(stdOut.contains("found: " + found), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("libs: " + libs), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("cflags: " + cflags), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("version: " + version), m_qbsStdout.constData());
+}
+
+void TestBlackbox::pkgConfigProbe_data()
+{
+    QTest::addColumn<QString>("packageName");
+    QTest::addColumn<QString>("found");
+    QTest::addColumn<QString>("libs");
+    QTest::addColumn<QString>("cflags");
+    QTest::addColumn<QString>("version");
+
+    QTest::newRow("existing package")
+            << "dummy" << "true" << "[\"-Ldummydir\",\"-ldummy\"]" << "[]" << "0.0.1";
+
+    // Note: The array values should be "undefined", but we lose that information when
+    //       converting to QVariants in the ProjectResolver.
+    QTest::newRow("non-existing package")
+            << "dummy2" << "false" << "[]" << "[]" << "undefined";
+}
+
 void TestBlackbox::probeProperties()
 {
     QDir::setCurrent(testDataDir + "/probeProperties");
