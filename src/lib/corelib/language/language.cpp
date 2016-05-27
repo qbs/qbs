@@ -1184,7 +1184,16 @@ template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
 
 QString keyFromElem(const SourceArtifactPtr &sa) { return sa->absoluteFilePath; }
 QString keyFromElem(const ResolvedTransformerPtr &t) { return t->transform->sourceCode; }
-QString keyFromElem(const RulePtr &r) { return r->toString(); }
+QString keyFromElem(const RulePtr &r) {
+    QString key = r->toString() + r->prepareScript->sourceCode;
+    if (r->outputArtifactsScript)
+        key += r->outputArtifactsScript->sourceCode;
+    foreach (const auto &a, r->artifacts) {
+        key += a->filePath;
+    }
+    return key;
+}
+
 QString keyFromElem(const ArtifactPropertiesPtr &ap)
 {
     QStringList lst = ap->fileTagsFilter().toStringList();
