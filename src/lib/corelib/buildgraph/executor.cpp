@@ -506,7 +506,8 @@ void Executor::finishJob(ExecutorJob *job, bool success)
         foreach (Artifact *artifact, transformer->outputs) {
             if (artifact->alwaysUpdated) {
                 artifact->setTimestamp(FileTime::currentTime());
-                if (m_buildOptions.forceOutputCheck() && !FileInfo(artifact->filePath()).exists()) {
+                if (m_buildOptions.forceOutputCheck()
+                        && !m_buildOptions.dryRun() && !FileInfo(artifact->filePath()).exists()) {
                     if (transformer->rule) {
                         if (!transformer->rule->name.isEmpty()) {
                             throw ErrorInfo(tr("Rule '%1' declares artifact '%2', "
