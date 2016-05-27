@@ -1,0 +1,39 @@
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <string>
+
+using namespace std;
+
+int main(int argc, char *argv[])
+{
+    if (argc < 3) {
+        cerr << "cat-response-file: not enough arguments: " << argc - 1 << endl;
+        return 1;
+    }
+    if (strlen(argv[2]) < 2) {
+        cerr << "cat-response-file: second argument is too short: " << argv[2] << endl;
+        return 2;
+    }
+    if (argv[2][0] != '@') {
+        cerr << "cat-response-file: second argument does not start with @: " << argv[2] << endl;
+        return 3;
+    }
+    ifstream inf(argv[2] + 1);
+    if (!inf.is_open()) {
+        cerr << "cat-response-file: cannot open input file " << argv[2] + 1 << endl;
+        return 4;
+    }
+    ofstream ouf(argv[1]);
+    if (!ouf.is_open()) {
+        cerr << "cat-response-file: cannot open output file " << argv[1] << endl;
+        return 5;
+    }
+    string line;
+    while (getline(inf, line))
+        ouf << line << endl;
+    inf.close();
+    ouf.close();
+    return 0;
+}
+

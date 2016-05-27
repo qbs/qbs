@@ -11,6 +11,7 @@ TEMPLATE = lib
 
 CONFIG += depend_includepath
 CONFIG += shared
+CONFIG += c++11
 unix: CONFIG += plugin
 
 !isEmpty(QBS_PLUGINS_INSTALL_DIR): \

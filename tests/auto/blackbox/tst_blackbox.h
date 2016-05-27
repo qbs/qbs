@@ -113,6 +113,7 @@ private slots:
     void clean();
     void cli();
     void concurrentExecutor();
+    void conditionalExport();
     void conflictingArtifacts();
     void dbusAdaptors();
     void dbusInterfaces();
@@ -130,6 +131,7 @@ private slots:
     void erroneousFiles();
     void errorInfo();
     void exportRule();
+    void exportToOutsideSearchPath();
     void fileDependencies();
     void frameworkStructure();
     void groupsInModules();
@@ -170,6 +172,8 @@ private slots:
     void objcArc();
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
+    void pkgConfigProbe();
+    void pkgConfigProbe_data();
     void probeProperties();
     void probeInExportedModule();
     void probesInNestedModules();
@@ -188,6 +192,7 @@ private slots:
     void referenceErrorInExport();
     void reproducibleBuild();
     void reproducibleBuild_data();
+    void responseFiles();
     void ruleConditions();
     void ruleCycle();
     void ruleWithNoInputs();

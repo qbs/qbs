@@ -37,6 +37,7 @@
 #include <tools/installoptions.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
+#include <tools/shellutils.h>
 #include <tools/version.h>
 
 #include <QLocale>
@@ -1130,6 +1131,19 @@ void TestBlackbox::concurrentExecutor()
     QVERIFY2(!m_qbsStderr.contains("ASSERT"), m_qbsStderr.constData());
 }
 
+void TestBlackbox::conditionalExport()
+{
+    QDir::setCurrent(testDataDir + "/conditional-export");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("missing define"), m_qbsStderr.constData());
+
+    params.expectFailure = false;
+    params.arguments << "project.enableExport:true";
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::conflictingArtifacts()
 {
     QDir::setCurrent(testDataDir + "/conflicting-artifacts");
@@ -1727,6 +1741,23 @@ void TestBlackbox::reproducibleBuild_data()
     QTest::newRow("reproducible build") << true;
 }
 
+void TestBlackbox::responseFiles()
+{
+    QDir::setCurrent(testDataDir + "/response-files");
+    QbsRunParameters params;
+    params.command = "install";
+    params.arguments << "--install-root" << "installed";
+    QCOMPARE(runQbs(params), 0);
+    QFile file("installed/response-file-content.txt");
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const QList<QByteArray> expected = QList<QByteArray>()
+            << "foo" <<  qbs::Internal::shellQuote("with space").toUtf8() << "bar" << "";
+    QList<QByteArray> lines = file.readAll().split('\n');
+    for (int i = 0; i < lines.count(); ++i)
+        lines[i] = lines.at(i).trimmed();
+    QCOMPARE(lines, expected);
+}
+
 void TestBlackbox::ruleConditions()
 {
     QDir::setCurrent(testDataDir + "/ruleConditions");
@@ -1785,6 +1816,46 @@ void TestBlackbox::overrideProjectProperties()
             << QLatin1String("project.linkSuccessfully:true");
     params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
+}
+
+void TestBlackbox::pkgConfigProbe()
+{
+    const QString exe = findExecutable(QStringList() << "pkg-config");
+    if (exe.isEmpty())
+        QSKIP("This test requires the pkg-config tool");
+
+    QDir::setCurrent(testDataDir + "/pkg-config-probe");
+
+    QFETCH(QString, packageName);
+    QFETCH(QString, found);
+    QFETCH(QString, libs);
+    QFETCH(QString, cflags);
+    QFETCH(QString, version);
+
+    QbsRunParameters params(QStringList() << ("theProduct.packageName:" + packageName));
+    QCOMPARE(runQbs(params), 0);
+    const QString stdOut = m_qbsStdout;
+    QVERIFY2(stdOut.contains("found: " + found), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("libs: " + libs), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("cflags: " + cflags), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("version: " + version), m_qbsStdout.constData());
+}
+
+void TestBlackbox::pkgConfigProbe_data()
+{
+    QTest::addColumn<QString>("packageName");
+    QTest::addColumn<QString>("found");
+    QTest::addColumn<QString>("libs");
+    QTest::addColumn<QString>("cflags");
+    QTest::addColumn<QString>("version");
+
+    QTest::newRow("existing package")
+            << "dummy" << "true" << "[\"-Ldummydir\",\"-ldummy\"]" << "[]" << "0.0.1";
+
+    // Note: The array values should be "undefined", but we lose that information when
+    //       converting to QVariants in the ProjectResolver.
+    QTest::newRow("non-existing package")
+            << "dummy2" << "false" << "[]" << "[]" << "undefined";
 }
 
 void TestBlackbox::probeProperties()
@@ -2182,6 +2253,16 @@ void TestBlackbox::exportRule()
     QDir::setCurrent(testDataDir + "/export-rule");
     QbsRunParameters params;
     QCOMPARE(runQbs(params), 0);
+}
+
+void TestBlackbox::exportToOutsideSearchPath()
+{
+    QDir::setCurrent(testDataDir + "/export-to-outside-searchpath");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("Module 'aModule' not found when setting up transitive "
+            "dependencies for product 'theProduct'"), m_qbsStderr.constData());
 }
 
 void TestBlackbox::fileDependencies()

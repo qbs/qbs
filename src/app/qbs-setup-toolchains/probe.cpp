@@ -106,6 +106,8 @@ static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
                                                  << QLatin1String("mingw") << QLatin1String("gcc")))
         if (compilerName.contains(type))
             return canonicalToolchain(type);
+    if (compilerName == QLatin1String("g++"))
+        return canonicalToolchain(QLatin1String("gcc"));
     return QStringList();
 }
 

@@ -333,7 +333,7 @@
         \li enableExceptions
         \li \c{bool}
         \li 1.5
-        \li \c{undefined}
+        \li \c{true}
         \li Whether to enable exceptions in C++ code.
     \row
         \li exceptionHandlingModel

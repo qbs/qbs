@@ -26,6 +26,7 @@ int d()
 #elif defined(WITH_SETUPAPI)
     CABINET_INFO ci;
     ci.SetId = 0;
+    SetupIterateCabinet(L"invalid-file-path", 0, NULL, NULL);
     return ci.SetId;
 #else
     return 0;

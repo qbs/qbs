@@ -3,6 +3,7 @@ import qbs 1.0
 DynamicLibrary {
     Depends { name: "cpp" }
     Depends { name: "Qt.core" }
+    cpp.cxxLanguageVersion: "c++11"
     destinationDirectory: project.libDirName + "/qbs/plugins"
     Group {
         fileTagsFilter: ["dynamiclibrary"]

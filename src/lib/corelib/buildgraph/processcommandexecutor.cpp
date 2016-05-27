@@ -132,7 +132,7 @@ void ProcessCommandExecutor::doStart()
                 return;
             }
             for (int i = cmd->responseFileArgumentIndex(); i < cmd->arguments().count(); ++i) {
-                responseFile.write(cmd->arguments().at(i).toLocal8Bit());
+                responseFile.write(qbs::Internal::shellQuote(cmd->arguments().at(i)).toLocal8Bit());
                 responseFile.write("\n");
             }
             responseFile.close();

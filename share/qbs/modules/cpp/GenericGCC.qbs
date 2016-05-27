@@ -409,6 +409,7 @@ CppModule {
     }
 
     Rule {
+        condition: useCPrecompiledHeader
         inputs: ["c_pch_src"]
         explicitlyDependsOn: ["hpp"]
         Artifact {
@@ -421,6 +422,7 @@ CppModule {
     }
 
     Rule {
+        condition: useCxxPrecompiledHeader
         inputs: ["cpp_pch_src"]
         explicitlyDependsOn: ["hpp"]
         Artifact {
@@ -433,6 +435,7 @@ CppModule {
     }
 
     Rule {
+        condition: useObjcPrecompiledHeader
         inputs: ["objc_pch_src"]
         explicitlyDependsOn: ["hpp"]
         Artifact {
@@ -445,6 +448,7 @@ CppModule {
     }
 
     Rule {
+        condition: useObjcxxPrecompiledHeader
         inputs: ["objcpp_pch_src"]
         explicitlyDependsOn: ["hpp"]
         Artifact {

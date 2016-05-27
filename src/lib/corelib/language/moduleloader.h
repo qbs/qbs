@@ -75,8 +75,8 @@ struct ModuleLoaderResult
             FileTags productTypes;
             QString name;
             QString profile; // "*" <=> Match all profiles.
-            bool limitToSubProject;
-            bool isRequired;
+            bool limitToSubProject = false;
+            bool isRequired = true;
 
             QString uniqueName() const;
         };
@@ -238,6 +238,7 @@ private:
     void copyGroupsFromModuleToProduct(const ProductContext &productContext,
                                        const Item *modulePrototype);
     void copyGroupsFromModulesToProduct(const ProductContext &productContext);
+    bool checkExportItemCondition(Item *exportItem, const ProductContext &productContext);
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;
@@ -254,6 +255,7 @@ private:
     QStack<bool> m_requiredChain;
     SetupProjectParameters m_parameters;
     Version m_qbsVersion;
+    Item *m_tempScopeItem = nullptr;
 };
 
 } // namespace Internal
