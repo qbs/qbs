@@ -322,7 +322,10 @@ var PropertyValidator = (function () {
         this.addCustomValidator(propertyName, propertyValue, function (value) {
             if (typeof value !== "string")
                 return false;
-            return value && value.match("^[0-9]+(\\.[0-9]+){" + ((minComponents - 1) || 0) + "," + ((maxComponents - 1) || "") + "}" + (!allowSuffixes ? "$" : "")) !== null;
+            var comps = "";
+            if ((maxComponents - minComponents) > 0)
+                comps = "(\\.[0-9]+){" + ((minComponents - 1) || 0) + "," + ((maxComponents - 1) || "") + "}";
+            return value && value.match("^[0-9]+" + comps + (!allowSuffixes ? "$" : "")) !== null;
         }, "must be a version number with " + (minComponents === maxComponents
                 ? minComponents : (minComponents + " to " + maxComponents))
                   + (minComponents === maxComponents && minComponents === 1
