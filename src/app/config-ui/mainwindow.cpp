@@ -49,9 +49,9 @@ MainWindow::MainWindow(const QString &settingsDir, QWidget *parent)
     m_model = new qbs::SettingsModel(settingsDir, this);
     ui->treeView->setModel(m_model);
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->treeView, SIGNAL(expanded(QModelIndex)), SLOT(adjustColumns()));
-    connect(ui->treeView, SIGNAL(customContextMenuRequested(QPoint)),
-            SLOT(provideContextMenu(QPoint)));
+    connect(ui->treeView, &QTreeView::expanded, this, &MainWindow::adjustColumns);
+    connect(ui->treeView, &QWidget::customContextMenuRequested,
+            this, &MainWindow::provideContextMenu);
     adjustColumns();
 
     QMenu * const fileMenu = menuBar()->addMenu(tr("&File"));
@@ -59,20 +59,20 @@ MainWindow::MainWindow(const QString &settingsDir, QWidget *parent)
 
     QAction * const reloadAction = new QAction(tr("&Reload"), this);
     reloadAction->setShortcut(QKeySequence::Refresh);
-    connect(reloadAction, SIGNAL(triggered()), SLOT(reloadSettings()));
+    connect(reloadAction, &QAction::triggered, this, &MainWindow::reloadSettings);
     QAction * const saveAction = new QAction(tr("&Save"), this);
     saveAction->setShortcut(QKeySequence::Save);
-    connect(saveAction, SIGNAL(triggered()), SLOT(saveSettings()));
+    connect(saveAction, &QAction::triggered, this, &MainWindow::saveSettings);
     QAction * const expandAllAction = new QAction(tr("&Expand All"), this);
     expandAllAction->setShortcut(Qt::CTRL | Qt::Key_E);
-    connect(expandAllAction, SIGNAL(triggered()), SLOT(expandAll()));
+    connect(expandAllAction, &QAction::triggered, this, &MainWindow::expandAll);
     QAction * const collapseAllAction = new QAction(tr("C&ollapse All"), this);
     collapseAllAction->setShortcut(Qt::CTRL | Qt::Key_O);
-    connect(collapseAllAction, SIGNAL(triggered()), SLOT(collapseAll()));
+    connect(collapseAllAction, &QAction::triggered, this, &MainWindow::collapseAll);
     QAction * const exitAction = new QAction(tr("E&xit"), this);
     exitAction->setShortcut(QKeySequence::Quit);
     exitAction->setMenuRole(QAction::QuitRole);
-    connect(exitAction, SIGNAL(triggered()), SLOT(exit()));
+    connect(exitAction, &QAction::triggered, this, &MainWindow::exit);
 
     fileMenu->addAction(reloadAction);
     fileMenu->addAction(saveAction);

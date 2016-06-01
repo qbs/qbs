@@ -52,10 +52,9 @@ public:
 signals:
     void startRequested(const JavaScriptCommand *cmd, Transformer *transformer);
 
-private slots:
+private:
     void onJavaScriptCommandFinished();
 
-private:
     void doReportCommandDescription();
     void doStart();
     void cancel();

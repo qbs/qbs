@@ -49,7 +49,7 @@ public:
 
     bool eventFilter(QObject *watched, QEvent *event);
 
-private slots:
+private:
     void adjustColumns();
     void expandAll();
     void collapseAll();
@@ -58,7 +58,6 @@ private slots:
     void exit();
     void provideContextMenu(const QPoint &pos);
 
-private:
     Ui::MainWindow *ui;
     qbs::SettingsModel *m_model;
 };

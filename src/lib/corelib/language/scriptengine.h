@@ -126,7 +126,7 @@ public:
     void cancel();
 
 private:
-    Q_INVOKABLE void abort();
+    void abort();
 
     void installQbsBuiltins();
     void extendJavaScriptBuiltins();

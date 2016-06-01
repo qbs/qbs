@@ -34,7 +34,7 @@
 #include <language/language.h>
 #include <tools/qbsassert.h>
 
-#include <QMetaObject>
+#include <QTimer>
 
 namespace qbs {
 using namespace Internal;
@@ -106,13 +106,13 @@ AbstractJob::AbstractJob(InternalJob *internalJob, QObject *parent)
     : QObject(parent), m_internalJob(internalJob)
 {
     m_internalJob->setParent(this);
-    connect(m_internalJob, SIGNAL(newTaskStarted(QString,int,Internal::InternalJob*)),
-            SLOT(handleTaskStarted(QString,int)), Qt::QueuedConnection);
-    connect(m_internalJob, SIGNAL(totalEffortChanged(int,Internal::InternalJob*)),
-            SLOT(handleTotalEffortChanged(int)));
-    connect(m_internalJob, SIGNAL(taskProgress(int,Internal::InternalJob*)),
-            SLOT(handleTaskProgress(int)), Qt::QueuedConnection);
-    connect(m_internalJob, SIGNAL(finished(Internal::InternalJob*)), SLOT(handleFinished()));
+    connect(m_internalJob, &InternalJob::newTaskStarted,
+            this, &AbstractJob::handleTaskStarted, Qt::QueuedConnection);
+    connect(m_internalJob, &InternalJob::totalEffortChanged,
+            this, &AbstractJob::handleTotalEffortChanged);
+    connect(m_internalJob, &InternalJob::taskProgress,
+            this, &AbstractJob::handleTaskProgress, Qt::QueuedConnection);
+    connect(m_internalJob, &InternalJob::finished, this, &AbstractJob::handleFinished);
     m_state = StateRunning;
 }
 
@@ -122,8 +122,7 @@ bool AbstractJob::lockProject(const TopLevelProjectPtr &project)
     // synchronously.
     if (project->locked) {
         internalJob()->setError(tr("Cannot start a job while another one is in progress."));
-        QMetaObject::invokeMethod(this, "finished", Qt::QueuedConnection, Q_ARG(bool, false),
-                                  Q_ARG(qbs::AbstractJob *, this));
+        QTimer::singleShot(0, this, [this] { emit finished(false, this); });
         return false;
     }
     project->locked = true;
@@ -293,10 +292,10 @@ BuildJob::BuildJob(const Logger &logger, QObject *parent)
     : AbstractJob(new InternalBuildJob(logger), parent)
 {
     InternalBuildJob *job = static_cast<InternalBuildJob *>(internalJob());
-    connect(job, SIGNAL(reportCommandDescription(QString,QString)),
-            this, SIGNAL(reportCommandDescription(QString,QString)));
-    connect(job, SIGNAL(reportProcessResult(qbs::ProcessResult)),
-            this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
+    connect(job, &BuildGraphTouchingJob::reportCommandDescription,
+            this, &BuildJob::reportCommandDescription);
+    connect(job, &BuildGraphTouchingJob::reportProcessResult,
+            this, &BuildJob::reportProcessResult);
 }
 
 void BuildJob::build(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,

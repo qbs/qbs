@@ -79,13 +79,12 @@ signals:
     void taskProgress(int newProgressValue, qbs::AbstractJob *job);
     void finished(bool success, qbs::AbstractJob *job);
 
-private slots:
+private:
     void handleTaskStarted(const QString &description, int maximumProgressValue);
     void handleTotalEffortChanged(int totalEffort);
     void handleTaskProgress(int newProgressValue);
     void handleFinished();
 
-private:
     void unlockProject();
     virtual void finish() { }
 

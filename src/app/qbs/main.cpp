@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
         ConsoleLogger::instance().setSettings(&settings);
         CommandLineFrontend clFrontend(parser, &settings);
         app.setCommandLineFrontend(&clFrontend);
-        QTimer::singleShot(0, &clFrontend, SLOT(start()));
+        QTimer::singleShot(0, &clFrontend, &CommandLineFrontend::start);
         return app.exec();
     } catch (const ErrorInfo &error) {
         qbsError() << error.toString();

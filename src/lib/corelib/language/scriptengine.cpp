@@ -50,6 +50,7 @@
 #include <QScriptValueIterator>
 #include <QSet>
 #include <QTextStream>
+#include <QTimer>
 
 namespace qbs {
 namespace Internal {
@@ -416,7 +417,7 @@ QScriptValueList ScriptEngine::argumentList(const QStringList &argumentNames,
 
 void ScriptEngine::cancel()
 {
-    QMetaObject::invokeMethod(this, "abort", Qt::QueuedConnection);
+    QTimer::singleShot(0, this, [this] { abort(); });
 }
 
 void ScriptEngine::abort()

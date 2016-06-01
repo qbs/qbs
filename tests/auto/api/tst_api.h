@@ -41,7 +41,10 @@ class ErrorInfo;
 class SetupProjectParameters;
 }
 
+class BuildDescriptionReceiver;
 class LogSink;
+class ProcessResultReceiver;
+class TaskReceiver;
 
 class TestApi : public QObject
 {
@@ -130,9 +133,9 @@ private slots:
 private:
     qbs::SetupProjectParameters defaultSetupParameters(const QString &projectFilePath) const;
     qbs::ErrorInfo doBuildProject(const QString &projectFilePath,
-                                  QObject *buildDescriptionReceiver = 0,
-                                  QObject *procResultReceiver = 0,
-                                  QObject *taskReceiver = 0,
+                                  BuildDescriptionReceiver *buildDescriptionReceiver = 0,
+                                  ProcessResultReceiver *procResultReceiver = 0,
+                                  TaskReceiver *taskReceiver = 0,
                                   const qbs::BuildOptions &options = qbs::BuildOptions(),
                                   const QVariantMap overriddenValues = QVariantMap());
 

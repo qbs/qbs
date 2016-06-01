@@ -58,9 +58,9 @@ public:
     ~CommandLineFrontend();
 
     void cancel();
-
-private slots:
     void start();
+
+private:
     void handleCommandDescriptionReport(const QString &highlight, const QString &message);
     void handleJobFinished(bool success, qbs::AbstractJob *job);
     void handleNewTaskStarted(const QString &description, int totalEffort);
@@ -69,7 +69,6 @@ private slots:
     void handleProcessResultReport(const qbs::ProcessResult &result);
     void checkCancelStatus();
 
-private:
     typedef QHash<Project, QList<ProductData> > ProductMap;
     ProductMap productsToUse() const;
 

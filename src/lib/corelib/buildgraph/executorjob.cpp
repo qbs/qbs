@@ -49,16 +49,16 @@ ExecutorJob::ExecutorJob(const Logger &logger, QObject *parent)
     , m_processCommandExecutor(new ProcessCommandExecutor(logger, this))
     , m_jsCommandExecutor(new JsCommandExecutor(logger, this))
 {
-    connect(m_processCommandExecutor, SIGNAL(reportCommandDescription(QString,QString)),
-            this, SIGNAL(reportCommandDescription(QString,QString)));
-    connect(m_processCommandExecutor, SIGNAL(reportProcessResult(qbs::ProcessResult)),
-            this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
-    connect(m_processCommandExecutor, SIGNAL(finished(qbs::ErrorInfo)),
-            this, SLOT(onCommandFinished(qbs::ErrorInfo)));
-    connect(m_jsCommandExecutor, SIGNAL(reportCommandDescription(QString,QString)),
-            this, SIGNAL(reportCommandDescription(QString,QString)));
-    connect(m_jsCommandExecutor, SIGNAL(finished(qbs::ErrorInfo)),
-            this, SLOT(onCommandFinished(qbs::ErrorInfo)));
+    connect(m_processCommandExecutor, &AbstractCommandExecutor::reportCommandDescription,
+            this, &ExecutorJob::reportCommandDescription);
+    connect(m_processCommandExecutor, &ProcessCommandExecutor::reportProcessResult,
+            this, &ExecutorJob::reportProcessResult);
+    connect(m_processCommandExecutor, &AbstractCommandExecutor::finished,
+            this, &ExecutorJob::onCommandFinished);
+    connect(m_jsCommandExecutor, &AbstractCommandExecutor::reportCommandDescription,
+            this, &ExecutorJob::reportCommandDescription);
+    connect(m_jsCommandExecutor, &AbstractCommandExecutor::finished,
+            this, &ExecutorJob::onCommandFinished);
     reset();
 }
 

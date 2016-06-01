@@ -157,21 +157,21 @@ InternalJobThreadWrapper::InternalJobThreadWrapper(InternalJob *synchronousJob, 
 {
     synchronousJob->shareObserverWith(this);
     m_job->moveToThread(&m_thread);
-    connect(m_job, SIGNAL(finished(Internal::InternalJob*)), SLOT(handleFinished()));
-    connect(m_job, SIGNAL(newTaskStarted(QString,int,Internal::InternalJob*)),
-            SIGNAL(newTaskStarted(QString,int,Internal::InternalJob*)));
-    connect(m_job, SIGNAL(taskProgress(int,Internal::InternalJob*)),
-            SIGNAL(taskProgress(int,Internal::InternalJob*)));
-    connect(m_job, SIGNAL(totalEffortChanged(int,Internal::InternalJob*)),
-            SIGNAL(totalEffortChanged(int,Internal::InternalJob*)));
-    m_job->connect(this, SIGNAL(startRequested()), SLOT(start()));
+    connect(m_job, &InternalJob::finished, this, &InternalJobThreadWrapper::handleFinished);
+    connect(m_job, &InternalJob::newTaskStarted,
+            this, &InternalJob::newTaskStarted);
+    connect(m_job, &InternalJob::taskProgress,
+            this, &InternalJob::taskProgress);
+    connect(m_job, &InternalJob::totalEffortChanged,
+            this, &InternalJob::totalEffortChanged);
+    connect(this, &InternalJobThreadWrapper::startRequested, m_job, &InternalJob::start);
 }
 
 InternalJobThreadWrapper::~InternalJobThreadWrapper()
 {
     if (m_running) {
         QEventLoop loop;
-        loop.connect(m_job, SIGNAL(finished(Internal::InternalJob*)), SLOT(quit()));
+        connect(m_job, &InternalJob::finished, &loop, &QEventLoop::quit);
         cancel();
         loop.exec();
     }
@@ -355,15 +355,15 @@ void InternalBuildJob::build(const TopLevelProjectPtr &project,
 
     QThread * const executorThread = new QThread(this);
     m_executor->moveToThread(executorThread);
-    connect(m_executor, SIGNAL(reportCommandDescription(QString,QString)),
-            this, SIGNAL(reportCommandDescription(QString,QString)));
-    connect(m_executor, SIGNAL(reportProcessResult(qbs::ProcessResult)),
-            this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
+    connect(m_executor, &Executor::reportCommandDescription,
+            this, &BuildGraphTouchingJob::reportCommandDescription);
+    connect(m_executor, &Executor::reportProcessResult,
+            this, &BuildGraphTouchingJob::reportProcessResult);
 
-    connect(executorThread, SIGNAL(started()), m_executor, SLOT(build()));
-    connect(m_executor, SIGNAL(finished()), SLOT(handleFinished()));
-    connect(m_executor, SIGNAL(destroyed()), executorThread, SLOT(quit()));
-    connect(executorThread, SIGNAL(finished()), this, SLOT(emitFinished()));
+    connect(executorThread, &QThread::started, m_executor, &Executor::build);
+    connect(m_executor, &Executor::finished, this, &InternalBuildJob::handleFinished);
+    connect(m_executor, &QObject::destroyed, executorThread, &QThread::quit);
+    connect(executorThread, &QThread::finished, this, &InternalBuildJob::emitFinished);
     executorThread->start();
 }
 

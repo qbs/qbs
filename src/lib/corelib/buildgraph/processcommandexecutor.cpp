@@ -61,8 +61,10 @@ namespace Internal {
 ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *parent)
     : AbstractCommandExecutor(logger, parent)
 {
-    connect(&m_process, SIGNAL(error(QProcess::ProcessError)),  SLOT(onProcessError()));
-    connect(&m_process, SIGNAL(finished(int)), SLOT(onProcessFinished()));
+    connect(&m_process, static_cast<void (QProcess::*)(QProcess::ProcessError)>(&QProcess::error),
+            this, &ProcessCommandExecutor::onProcessError);
+    connect(&m_process, static_cast<void (QProcess::*)(int)>(&QProcess::finished),
+            this, &ProcessCommandExecutor::onProcessFinished);
 }
 
 void ProcessCommandExecutor::doSetup()
@@ -94,7 +96,7 @@ void ProcessCommandExecutor::doStart()
     QStringList arguments = m_arguments;
 
     if (dryRun() && !cmd->ignoreDryRun()) {
-        QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
+        QTimer::singleShot(0, this, [this] { emit finished(); }); // Don't call back on the caller.
         return;
     }
 
@@ -155,7 +157,7 @@ void ProcessCommandExecutor::doStart()
 void ProcessCommandExecutor::cancel()
 {
     // We don't want this command to be reported as failing, since we explicitly terminated it.
-    disconnect(this, SIGNAL(reportProcessResult(qbs::ProcessResult)), 0, 0);
+    disconnect(this, &ProcessCommandExecutor::reportProcessResult, 0, 0);
 
     m_process.terminate();
     if (!m_process.waitForFinished(1000))

@@ -56,11 +56,10 @@ public:
 signals:
     void reportProcessResult(const qbs::ProcessResult &result);
 
-private slots:
+private:
     void onProcessError();
     void onProcessFinished();
 
-private:
     void doSetup();
     void doReportCommandDescription();
     void doStart();

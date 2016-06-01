@@ -82,7 +82,7 @@ Executor::Executor(const Logger &logger, QObject *parent)
     m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
     m_cancelationTimer->setSingleShot(false);
     m_cancelationTimer->setInterval(1000);
-    connect(m_cancelationTimer, SIGNAL(timeout()), SLOT(checkForCancellation()));
+    connect(m_cancelationTimer, &QTimer::timeout, this, &Executor::checkForCancellation);
 }
 
 Executor::~Executor()
@@ -207,7 +207,7 @@ void Executor::doBuild()
 
     if (m_productsToBuild.isEmpty()) {
         m_logger.qbsTrace() << "No products to build, finishing.";
-        QTimer::singleShot(0, this, SLOT(finish())); // Don't call back on the caller.
+        QTimer::singleShot(0, this, &Executor::finish); // Don't call back on the caller.
         return;
     }
 
@@ -236,7 +236,7 @@ void Executor::doBuild()
     initLeaves();
     if (!scheduleJobs()) {
         m_logger.qbsTrace() << "Nothing to do at all, finishing.";
-        QTimer::singleShot(0, this, SLOT(finish())); // Don't call back on the caller.
+        QTimer::singleShot(0, this, &Executor::finish); // Don't call back on the caller.
     }
     if (m_progressObserver)
         m_cancelationTimer->start();
@@ -685,12 +685,12 @@ void Executor::addExecutorJobs()
         job->setDryRun(m_buildOptions.dryRun());
         job->setEchoMode(m_buildOptions.echoMode());
         m_availableJobs.append(job);
-        connect(job, SIGNAL(reportCommandDescription(QString,QString)),
-                this, SIGNAL(reportCommandDescription(QString,QString)), Qt::QueuedConnection);
-        connect(job, SIGNAL(reportProcessResult(qbs::ProcessResult)),
-                this, SIGNAL(reportProcessResult(qbs::ProcessResult)), Qt::QueuedConnection);
-        connect(job, SIGNAL(finished(qbs::ErrorInfo)),
-                this, SLOT(onJobFinished(qbs::ErrorInfo)), Qt::QueuedConnection);
+        connect(job, &ExecutorJob::reportCommandDescription,
+                this, &Executor::reportCommandDescription, Qt::QueuedConnection);
+        connect(job, &ExecutorJob::reportProcessResult,
+                this, &Executor::reportProcessResult, Qt::QueuedConnection);
+        connect(job, &ExecutorJob::finished,
+                this, &Executor::onJobFinished, Qt::QueuedConnection);
     }
 }
 
@@ -919,8 +919,7 @@ void Executor::onJobFinished(const qbs::ErrorInfo &err)
         if (m_evalContext->isActive()) {
             m_logger.qbsDebug() << "Executor job finished while rule execution is pausing. "
                                    "Delaying slot execution.";
-            QMetaObject::invokeMethod(job, "finished", Qt::QueuedConnection,
-                                      Q_ARG(qbs::ErrorInfo, err));
+            QTimer::singleShot(0, job, [job, err] { job->finished(err); });
             return;
         }
 

@@ -62,6 +62,7 @@ public:
     ~InternalJob();
 
     void cancel();
+    virtual void start() {}
     ErrorInfo error() const { return m_error; }
     void setError(const ErrorInfo &error) { m_error = error; }
 
@@ -98,16 +99,15 @@ public:
     InternalJobThreadWrapper(InternalJob *synchronousJob, QObject *parent = 0);
     ~InternalJobThreadWrapper();
 
-    void start();
+    void start() override;
     InternalJob *synchronousJob() const { return m_job; }
 
 signals:
     void startRequested();
 
-private slots:
+private:
     void handleFinished();
 
-private:
     QThread m_thread;
     InternalJob *m_job;
     bool m_running;
@@ -125,10 +125,8 @@ public:
 
     TopLevelProjectPtr project() const;
 
-private slots:
-    void start();
-
 private:
+    void start() override;
     void resolveProjectFromScratch(Internal::ScriptEngine *engine);
     void resolveBuildDataFromScratch(const RulesEvaluationContextPtr &evalContext);
     BuildGraphLoadResult restoreProject(const RulesEvaluationContextPtr &evalContext);
@@ -175,11 +173,10 @@ public:
     void build(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                const BuildOptions &buildOptions);
 
-private slots:
+private:
     void handleFinished();
     void emitFinished();
 
-private:
     Executor *m_executor;
 };
 
@@ -193,10 +190,9 @@ public:
     void init(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
             const CleanOptions &options);
 
-private slots:
-    void start();
-
 private:
+    void start() override;
+
     CleanOptions m_options;
 };
 
@@ -211,10 +207,9 @@ public:
     void init(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
             const InstallOptions &options);
 
-private slots:
-    void start();
-
 private:
+    void start() override;
+
     TopLevelProjectPtr m_project;
     QList<ResolvedProductPtr> m_products;
     InstallOptions m_options;

@@ -68,11 +68,10 @@ signals:
     void reportProcessResult(const qbs::ProcessResult &result);
     void finished(const qbs::ErrorInfo &error = ErrorInfo()); // !hasError() <=> command successful
 
-private slots:
+private:
     void runNextCommand();
     void onCommandFinished(const qbs::ErrorInfo &err);
 
-private:
     void setFinished();
     void reset();
 

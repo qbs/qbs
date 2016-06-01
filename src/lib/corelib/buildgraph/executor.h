@@ -63,10 +63,9 @@ class Executor : public QObject, private BuildGraphVisitor
 {
     Q_OBJECT
 
-public slots:
+public:
     void build();
 
-public:
     Executor(const Logger &logger, QObject *parent = 0);
     ~Executor();
 
@@ -83,12 +82,11 @@ signals:
 
     void finished();
 
-private slots:
+private:
     void onJobFinished(const qbs::ErrorInfo &err);
     void finish();
     void checkForCancellation();
 
-private:
     // BuildGraphVisitor implementation
     bool visit(Artifact *artifact);
     bool visit(RuleNode *ruleNode);

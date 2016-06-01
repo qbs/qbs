@@ -77,7 +77,6 @@ class BuildDescriptionReceiver : public QObject
 public:
     QString descriptions;
 
-private slots:
     void handleDescription(const QString &, const QString &description) {
         descriptions += description;
     }
@@ -90,7 +89,6 @@ public:
     QString output;
     QVector<qbs::ProcessResult> results;
 
-private slots:
     void handleProcessResult(const qbs::ProcessResult &result) {
         results << result;
         output += result.stdErr().join(QLatin1Char('\n'));
@@ -104,7 +102,6 @@ class TaskReceiver : public QObject
 public:
     QString taskDescriptions;
 
-private slots:
     void handleTaskStart(const QString &task) { taskDescriptions += task; }
 };
 
@@ -123,10 +120,10 @@ static bool waitForFinished(qbs::AbstractJob *job, int timeout = 0)
     if (job->state() == qbs::AbstractJob::StateFinished)
         return true;
     QEventLoop loop;
-    QObject::connect(job, SIGNAL(finished(bool,qbs::AbstractJob*)), &loop, SLOT(quit()));
+    QObject::connect(job, &qbs::AbstractJob::finished, &loop, &QEventLoop::quit);
     if (timeout > 0) {
         QTimer timer;
-        QObject::connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+        QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
         timer.setSingleShot(true);
         timer.start(timeout);
         loop.exec();
@@ -385,8 +382,8 @@ void TestApi::buildSingleFile()
     m_logSink->setLogLevel(qbs::LoggerMaxLevel);
     QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(options));
     BuildDescriptionReceiver receiver;
-    connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)), &receiver,
-            SLOT(handleDescription(QString,QString)));
+    connect(buildJob.data(), &qbs::BuildJob::reportCommandDescription, &receiver,
+            &BuildDescriptionReceiver::handleDescription);
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QCOMPARE(receiver.descriptions.count("compiling"), 1);
@@ -727,8 +724,8 @@ void TestApi::changeContent()
     BuildDescriptionReceiver rcvr;
     QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions, defaultProducts(),
                                                                     this));
-    connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)), &rcvr,
-            SLOT(handleDescription(QString,QString)));
+    connect(buildJob.data(), &qbs::BuildJob::reportCommandDescription,
+            &rcvr, &BuildDescriptionReceiver::handleDescription);
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QVERIFY(rcvr.descriptions.contains("compiling file.cpp"));
@@ -757,8 +754,8 @@ void TestApi::changeContent()
 
     // Now try building again and check if the newly resolved product behaves the same way.
     buildJob.reset(project.buildAllProducts(buildOptions, defaultProducts(), this));
-    connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)), &rcvr,
-            SLOT(handleDescription(QString,QString)));
+    connect(buildJob.data(), &qbs::BuildJob::reportCommandDescription,
+            &rcvr, &BuildDescriptionReceiver::handleDescription);
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QVERIFY(rcvr.descriptions.contains("compiling file.cpp"));
@@ -796,8 +793,8 @@ void TestApi::changeContent()
     projectData = project.projectData();
     rcvr.descriptions.clear();
     buildJob.reset(project.buildAllProducts(buildOptions, defaultProducts(), this));
-    connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)), &rcvr,
-            SLOT(handleDescription(QString,QString)));
+    connect(buildJob.data(), &qbs::BuildJob::reportCommandDescription,
+            &rcvr, &BuildDescriptionReceiver::handleDescription);
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QVERIFY(rcvr.descriptions.contains("compiling main.cpp"));
@@ -1138,7 +1135,7 @@ void TestApi::infiniteLoopBuilding()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
-    QTimer::singleShot(1000, buildJob.data(), SLOT(cancel()));
+    QTimer::singleShot(1000, buildJob.data(), &qbs::AbstractJob::cancel);
     QVERIFY(waitForFinished(buildJob.data(), 600000));
 }
 
@@ -1155,7 +1152,7 @@ void TestApi::infiniteLoopResolving()
             = defaultSetupParameters("infinite-loop-resolving/project.qbs");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
-    QTimer::singleShot(1000, setupJob.data(), SLOT(cancel()));
+    QTimer::singleShot(1000, setupJob.data(), &qbs::AbstractJob::cancel);
     QVERIFY(waitForFinished(setupJob.data(), 600000));
     QVERIFY2(setupJob->error().toString().toLower().contains("cancel"),
              qPrintable(setupJob->error().toString()));
@@ -1957,9 +1954,10 @@ void TestApi::uic()
 }
 
 
-qbs::ErrorInfo TestApi::doBuildProject(const QString &projectFilePath,
-        QObject *buildDescriptionReceiver, QObject *procResultReceiver, QObject *taskReceiver,
-        const qbs::BuildOptions &options, const QVariantMap overriddenValues)
+qbs::ErrorInfo TestApi::doBuildProject(
+    const QString &projectFilePath, BuildDescriptionReceiver *buildDescriptionReceiver,
+    ProcessResultReceiver *procResultReceiver, TaskReceiver *taskReceiver,
+    const qbs::BuildOptions &options, const QVariantMap overriddenValues)
 {
     qbs::SetupProjectParameters params = defaultSetupParameters(projectFilePath);
     params.setOverriddenValues(overriddenValues);
@@ -1967,20 +1965,20 @@ qbs::ErrorInfo TestApi::doBuildProject(const QString &projectFilePath,
     const QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
                                                                                     m_logSink, 0));
     if (taskReceiver) {
-        connect(setupJob.data(), SIGNAL(taskStarted(QString,int,qbs::AbstractJob*)), taskReceiver,
-                SLOT(handleTaskStart(QString)));
+        connect(setupJob.data(), &qbs::AbstractJob::taskStarted,
+                taskReceiver, &TaskReceiver::handleTaskStart);
     }
     waitForFinished(setupJob.data());
     if (setupJob->error().hasError())
         return setupJob->error();
     const QScopedPointer<qbs::BuildJob> buildJob(setupJob->project().buildAllProducts(options));
     if (buildDescriptionReceiver) {
-        connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)),
-                buildDescriptionReceiver, SLOT(handleDescription(QString,QString)));
+        connect(buildJob.data(), &qbs::BuildJob::reportCommandDescription,
+                buildDescriptionReceiver, &BuildDescriptionReceiver::handleDescription);
     }
     if (procResultReceiver) {
-        connect(buildJob.data(), SIGNAL(reportProcessResult(qbs::ProcessResult)),
-                procResultReceiver, SLOT(handleProcessResult(qbs::ProcessResult)));
+        connect(buildJob.data(), &qbs::BuildJob::reportProcessResult,
+                procResultReceiver, &ProcessResultReceiver::handleProcessResult);
     }
     waitForFinished(buildJob.data());
     return buildJob->error();

@@ -44,7 +44,6 @@
 #include <tools/qbsassert.h>
 
 #include <QEventLoop>
-#include <QMetaObject>
 #include <QThread>
 #include <QTimer>
 
@@ -73,7 +72,7 @@ public:
         return m_result;
     }
 
-    Q_INVOKABLE void cancel()
+    void cancel()
     {
         QBS_ASSERT(m_scriptEngine, return);
         m_scriptEngine->abortEvaluation();
@@ -82,7 +81,7 @@ public:
 signals:
     void finished();
 
-public slots:
+public:
     void start(const JavaScriptCommand *cmd, Transformer *transformer)
     {
         try {
@@ -153,9 +152,10 @@ JsCommandExecutor::JsCommandExecutor(const Logger &logger, QObject *parent)
     , m_running(false)
 {
     m_objectInThread->moveToThread(m_thread);
-    connect(m_objectInThread, SIGNAL(finished()), this, SLOT(onJavaScriptCommandFinished()));
-    connect(this, SIGNAL(startRequested(const JavaScriptCommand*,Transformer*)),
-            m_objectInThread, SLOT(start(const JavaScriptCommand*,Transformer*)));
+    connect(m_objectInThread, &JsCommandExecutorThreadObject::finished,
+            this, &JsCommandExecutor::onJavaScriptCommandFinished);
+    connect(this, &JsCommandExecutor::startRequested,
+            m_objectInThread, &JsCommandExecutorThreadObject::start);
 }
 
 JsCommandExecutor::~JsCommandExecutor()
@@ -183,7 +183,7 @@ void JsCommandExecutor::waitForFinished()
     if (!m_running)
         return;
     QEventLoop loop;
-    loop.connect(m_objectInThread, SIGNAL(finished()), SLOT(quit()));
+    connect(m_objectInThread, &JsCommandExecutorThreadObject::finished, &loop, &QEventLoop::quit);
     loop.exec();
 }
 
@@ -193,7 +193,7 @@ void JsCommandExecutor::doStart()
     m_thread->start();
 
     if (dryRun() && !command()->ignoreDryRun()) {
-        QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
+        QTimer::singleShot(0, this, [this] { emit finished(); }); // Don't call back on the caller.
         return;
     }
 
@@ -204,7 +204,7 @@ void JsCommandExecutor::doStart()
 void JsCommandExecutor::cancel()
 {
     if (!dryRun())
-        QMetaObject::invokeMethod(m_objectInThread, "cancel", Qt::QueuedConnection);
+        QTimer::singleShot(0, m_objectInThread, [this] { m_objectInThread->cancel(); });
 }
 
 void JsCommandExecutor::onJavaScriptCommandFinished()

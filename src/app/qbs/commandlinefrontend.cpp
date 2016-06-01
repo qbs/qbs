@@ -44,7 +44,6 @@
 
 #include <QDir>
 #include <QFile>
-#include <QMetaObject>
 #include <QProcessEnvironment>
 #include <QTimer>
 
@@ -190,7 +189,7 @@ void CommandLineFrontend::start()
         // experimentally found to be acceptable.
         // Note that this polling approach is not problematic here, since we are doing work anyway,
         // so there's no danger of waking up the processor for no reason.
-        connect(m_cancelTimer, SIGNAL(timeout()), SLOT(checkCancelStatus()));
+        connect(m_cancelTimer, &QTimer::timeout, this, &CommandLineFrontend::checkCancelStatus);
         m_cancelTimer->start(2000);
     } catch (const ErrorInfo &error) {
         qbsError() << error.toString();
@@ -549,23 +548,23 @@ void CommandLineFrontend::connectBuildJob(AbstractJob *job)
     if (!bjob)
         return;
 
-    connect(bjob, SIGNAL(reportCommandDescription(QString,QString)),
-            this, SLOT(handleCommandDescriptionReport(QString,QString)));
-    connect(bjob, SIGNAL(reportProcessResult(qbs::ProcessResult)),
-            this, SLOT(handleProcessResultReport(qbs::ProcessResult)));
+    connect(bjob, &BuildJob::reportCommandDescription,
+            this, &CommandLineFrontend::handleCommandDescriptionReport);
+    connect(bjob, &BuildJob::reportProcessResult,
+            this, &CommandLineFrontend::handleProcessResultReport);
 }
 
 void CommandLineFrontend::connectJob(AbstractJob *job)
 {
-    connect(job, SIGNAL(finished(bool,qbs::AbstractJob*)),
-            SLOT(handleJobFinished(bool,qbs::AbstractJob*)));
-    connect(job, SIGNAL(taskStarted(QString,int,qbs::AbstractJob*)),
-            SLOT(handleNewTaskStarted(QString,int)));
-    connect(job, SIGNAL(totalEffortChanged(int,qbs::AbstractJob*)),
-            SLOT(handleTotalEffortChanged(int)));
+    connect(job, &AbstractJob::finished,
+            this, &CommandLineFrontend::handleJobFinished);
+    connect(job, &AbstractJob::taskStarted,
+            this, &CommandLineFrontend::handleNewTaskStarted);
+    connect(job, &AbstractJob::totalEffortChanged,
+            this, &CommandLineFrontend::handleTotalEffortChanged);
     if (m_parser.showProgress()) {
-        connect(job, SIGNAL(taskProgress(int,qbs::AbstractJob*)),
-                SLOT(handleTaskProgress(int,qbs::AbstractJob*)));
+        connect(job, &AbstractJob::taskProgress,
+                this, &CommandLineFrontend::handleTaskProgress);
     }
 }
 

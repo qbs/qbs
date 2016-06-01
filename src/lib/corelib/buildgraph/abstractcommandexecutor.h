@@ -57,7 +57,6 @@ public:
 
     virtual void cancel() = 0;
 
-public slots:
     void start(Transformer *transformer, const AbstractCommand *cmd);
 
 signals:
