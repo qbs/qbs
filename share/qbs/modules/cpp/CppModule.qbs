@@ -354,7 +354,7 @@ Module {
         }
         validator.validate();
 
-        if (!WindowsUtils.isValidWindowsVersion(minimumWindowsVersion)) {
+        if (minimumWindowsVersion && !WindowsUtils.isValidWindowsVersion(minimumWindowsVersion)) {
             console.warn("Unknown Windows version '" + minimumWindowsVersion
                 + "'; expected one of: "
                 + WindowsUtils.knownWindowsVersions().map(function (a) {
