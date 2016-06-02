@@ -36,7 +36,7 @@
 
 
 /*!
-    \contentspage{index.html}{Qt Build Suite}
+    \contentspage{index.html}{Qbs}
     \page index.html
     \nextpage overview.html
 
@@ -44,12 +44,12 @@
 
     \section1 Version \qbsversion
 
-    Qt Build Suite (\QBS) is a tool that helps simplify the build process for
+    \QBS is a tool that helps simplify the build process for
     developing projects across multiple platforms. \QBS can be used for any
-    software project, whether it is written in Qt or not.
+    software project, regardless of programming language, toolkit, or libraries used.
 
     \QBS is an all-in-one tool that generates a build graph from a high-level
-    project description (like qmake or cmake) and additionally undertakes the
+    project description (like qmake or CMake) and additionally undertakes the
     task of executing the commands in the low-level build graph (like make).
 
     \note Please report bugs and suggestions to the

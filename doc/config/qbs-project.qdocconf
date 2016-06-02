@@ -3,8 +3,8 @@ include($QT_INSTALL_DOCS/global/qt-cpp-defines.qdocconf)
 include($QT_INSTALL_DOCS/global/compat.qdocconf)
 include($QT_INSTALL_DOCS/global/fileextensions.qdocconf)
 
-project     = "Qt Build Suite"
-description = "QBS Manual"
+project     = "Qbs"
+description = "Qbs Manual"
 
 headerdirs =
 sourcedirs = $SRCDIR
@@ -20,9 +20,9 @@ qhp.projects            = Qbs
 qhp.Qbs.file             = qbs.qhp
 qhp.Qbs.namespace        = org.qt-project.qbs.$QBS_VERSION_TAG
 qhp.Qbs.virtualFolder    = doc
-qhp.Qbs.indexTitle       = Qt Build Suite
+qhp.Qbs.indexTitle       = Qbs
 qhp.Qbs.filterAttributes = qbs $QBS_VERSION
-qhp.Qbs.customFilters.Qbs.name = Qt Build Suite $QBS_VERSION
+qhp.Qbs.customFilters.Qbs.name = Qbs $QBS_VERSION
 qhp.Qbs.customFilters.Qbs.filterAttributes = qbs $QBS_VERSION
 qhp.Qbs.indexRoot        =
 
@@ -36,4 +36,4 @@ macro.see                       = "\\sa"
 macro.function                  = "\\fn"
 
 navigation.homepage = "Qbs Manual"
-buildversion        = "Qt Build Suite $QBS_VERSION"
+buildversion        = "Qbs $QBS_VERSION"
