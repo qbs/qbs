@@ -3,7 +3,7 @@ import QbsFunctions
 
 Product {
     Depends { name: "Qt.core" }
-    property string minimumQtVersion: "5.1.0"
+    property string minimumQtVersion: "5.4.0"
     cpp.defines: {
         var res = ["QT_NO_CAST_FROM_ASCII", "QT_NO_PROCESS_COMBINED_ARGUMENT_START"];
         if (qbs.toolchain.contains("msvc"))

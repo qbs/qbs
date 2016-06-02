@@ -240,7 +240,7 @@ void PropertyListPrivate::readFromData(QScriptContext *context, QByteArray data)
                 respondsToSelector:@selector(propertyListWithData:options:format:error:)]) {
             error = nil;
             errorString = nil;
-            plist = [NSPropertyListSerialization propertyListWithData:QByteArray_toNSData(data)
+            plist = [NSPropertyListSerialization propertyListWithData:data.toNSData()
                                                               options:0
                                                                format:&format error:&error];
             if (Q_UNLIKELY(!plist)) {
@@ -251,7 +251,7 @@ void PropertyListPrivate::readFromData(QScriptContext *context, QByteArray data)
         {
             error = nil;
             errorString = nil;
-            plist = [NSPropertyListSerialization propertyListFromData:QByteArray_toNSData(data)
+            plist = [NSPropertyListSerialization propertyListFromData:data.toNSData()
                                                      mutabilityOption:NSPropertyListImmutable
                                                                format:&format
                                                      errorDescription:&errorString];
@@ -262,7 +262,7 @@ void PropertyListPrivate::readFromData(QScriptContext *context, QByteArray data)
         if (!plist && NSClassFromString(@"NSJSONSerialization")) {
             error = nil;
             errorString = nil;
-            plist = [NSJSONSerialization JSONObjectWithData:QByteArray_toNSData(data)
+            plist = [NSJSONSerialization JSONObjectWithData:data.toNSData()
                                                     options:0
                                                       error:&error];
             if (Q_UNLIKELY(!plist)) {
@@ -274,7 +274,7 @@ void PropertyListPrivate::readFromData(QScriptContext *context, QByteArray data)
 #endif
 
         if (Q_UNLIKELY(!plist)) {
-            context->throwError(QString_fromNSString(errorString));
+            context->throwError(QString::fromNSString(errorString));
         } else {
             QVariant obj = QPropertyListUtils::fromPropertyList(plist);
             if (!obj.isNull()) {
@@ -351,10 +351,10 @@ QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QStri
         }
 
         if (Q_UNLIKELY(!data)) {
-            context->throwError(QString_fromNSString(errorString));
+            context->throwError(QString::fromNSString(errorString));
         }
 
-        return QByteArray_fromNSData(data);
+        return QByteArray::fromNSData(data);
     }
 }
 

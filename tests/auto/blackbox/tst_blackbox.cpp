@@ -2573,12 +2573,10 @@ void TestBlackbox::jsExtensionsPropertyList()
     QByteArray file1Contents = file1.readAll();
     QCOMPARE(file3.readAll(), file1Contents);
     //QCOMPARE(file1Contents, file2.readAll()); // keys don't have guaranteed order
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QJsonParseError err1, err2;
     QCOMPARE(QJsonDocument::fromJson(file1Contents, &err1),
              QJsonDocument::fromJson(file2.readAll(), &err2));
     QVERIFY(err1.error == QJsonParseError::NoError && err2.error == QJsonParseError::NoError);
-#endif
     QFile file4("test.openstep.plist");
     QVERIFY(file4.exists());
     QFile file5("test3.json");

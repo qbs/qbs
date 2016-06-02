@@ -118,13 +118,7 @@
 
     \title System Requirements
 
-    To build \QBS from the source, you need the following:
-
-    \list
-
-        \li  Qt >= 5.1.0
-
-    \endlist
+    To build \QBS from the source, you need Qt 5.4.0, or later
 
 */
 

@@ -71,9 +71,9 @@ static QVariant fromObject(id obj)
     } else if ([obj isKindOfClass:[NSArray class]]) {
         value = fromArray(obj);
     } else if ([obj isKindOfClass:[NSString class]]) {
-        value = QString_fromNSString(obj);
+        value = QString::fromNSString(obj);
     } else if ([obj isKindOfClass:[NSData class]]) {
-        value = QByteArray_fromNSData(obj);
+        value = QByteArray::fromNSData(obj);
     } else if ([obj isKindOfClass:[NSDate class]]) {
         value = QDateTime_fromNSDate(obj);
     } else if ([obj isKindOfClass:[NSNumber class]]) {
@@ -116,7 +116,7 @@ static QVariantMap fromDictionary(NSDictionary *dict)
 {
     QVariantMap map;
     for (NSString *key in dict)
-        map[QString_fromNSString(key)] = fromObject([dict objectForKey:key]);
+        map[QString::fromNSString(key)] = fromObject([dict objectForKey:key]);
     return map;
 }
 
@@ -146,9 +146,9 @@ static id toObject(const QVariant &variant)
     } else if (variant.type() == QVariant::List) {
         return toArray(variant.toList());
     } else if (variant.type() == QVariant::String) {
-        return QString_toNSString(variant.toString());
+        return variant.toString().toNSString();
     } else if (variant.type() == QVariant::ByteArray) {
-        return QByteArray_toNSData(variant.toByteArray());
+        return variant.toByteArray().toNSData();
     } else if (variant.type() == QVariant::Date ||
                variant.type() == QVariant::DateTime) {
         return QDateTime_toNSDate(variant.toDateTime());
@@ -178,7 +178,7 @@ static NSDictionary *toDictionary(const QVariantMap &map)
     QMapIterator<QString, QVariant> i(map);
     while (i.hasNext()) {
         i.next();
-        [dict setObject:toObject(i.value()) forKey:QString_toNSString(i.key())];
+        [dict setObject:toObject(i.value()) forKey:i.key().toNSString()];
     }
     return [NSDictionary dictionaryWithDictionary:dict];
 }
