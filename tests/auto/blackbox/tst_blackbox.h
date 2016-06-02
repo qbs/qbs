@@ -160,6 +160,7 @@ private slots:
     void listPropertyOrder();
     void loadableModule();
     void lrelease();
+    void missingDependency();
     void missingProfile();
     void mixedBuildVariants();
     void multipleChanges();

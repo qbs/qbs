@@ -131,6 +131,7 @@ private:
     void finishTransformer(const TransformerPtr &transformer);
     void possiblyInstallArtifact(const Artifact *artifact);
     void checkForUnbuiltProducts();
+    bool checkNodeProduct(BuildGraphNode *node);
 
     bool mustExecuteTransformer(const TransformerPtr &transformer) const;
     bool isUpToDate(Artifact *artifact) const;

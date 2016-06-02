@@ -3880,6 +3880,21 @@ void TestBlackbox::lrelease()
     QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/hu.qm"));
 }
 
+void TestBlackbox::missingDependency()
+{
+    QDir::setCurrent(testDataDir + "/missing-dependency");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments << "-p" << "theApp";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(!m_qbsStderr.contains("ASSERT"), m_qbsStderr.constData());
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "-p" << "theDep")), 0);
+    params.expectFailure = false;
+    params.arguments << "-vv";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStderr.contains("false positive"));
+}
+
 void TestBlackbox::badInterpreter()
 {
     if (!HostOsInfo::isAnyUnixHost())
