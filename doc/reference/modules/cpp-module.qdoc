@@ -93,13 +93,6 @@
         \li List of preprocessor macros that are used for all projects that are built for the
             current target platform. User project files usually do not set this property.
     \row
-        \li compilerDefines
-        \li \c{stringList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of preprocessor macros that are used for all projects that are using the current
-            toolchain. User project files usually do not set this property.
-    \row
         \li includePaths
         \li \c{pathList}
         \li 1.0
@@ -620,6 +613,48 @@
             /OSVERSION for MSVC or --major-subsystem-version, --minor-subsystem-version,
             --major-os-version and --minor-os-version for MinGW.
             If undefined, compiler defaults will be used.
+    \endtable
+
+    \section1 Advanced Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Since
+        \li Default
+        \li Description
+    \row
+        \li compilerDefines
+        \li \c{stringList}
+        \li 1.0
+        \li \c{undefined}
+        \li List of preprocessor macros that are used for all projects that are using the current
+            toolchain. User project files usually do not set this property.
+    \row
+        \li compilerIncludePaths
+        \li \c{pathList}
+        \li 1.6
+        \li determined automatically
+        \li List of #include search paths that are used for all projects that are using the current
+            toolchain. Determined automatically by probing the compiler.
+            User project files usually do not set this property.
+    \row
+        \li compilerFrameworkPaths
+        \li \c{pathList}
+        \li 1.6
+        \li determined automatically
+        \li List of framework search paths that are used for all projects that are using the current
+            toolchain. Determined automatically by probing the compiler.
+            User project files usually do not set this property.
+    \row
+        \li compilerLibraryPaths
+        \li \c{pathList}
+        \li 1.6
+        \li determined automatically
+        \li List of library search paths that are used for all projects that are using the current
+            toolchain. Determined automatically by probing the compiler.
+            User project files usually do not set this property.
     \endtable
 
     \section1 Relevant File Tags

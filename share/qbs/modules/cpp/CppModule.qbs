@@ -126,9 +126,12 @@ Module {
 
     property pathList includePaths
     property pathList systemIncludePaths
+    property pathList compilerIncludePaths
     property pathList libraryPaths
+    property pathList compilerLibraryPaths
     property pathList frameworkPaths
     property pathList systemFrameworkPaths
+    property pathList compilerFrameworkPaths
 
     property string assemblerName
     property string assemblerPath: assemblerName

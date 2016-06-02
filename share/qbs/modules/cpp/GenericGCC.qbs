@@ -62,6 +62,10 @@ CppModule {
     compilerVersionMinor: gccProbe.versionMinor
     compilerVersionPatch: gccProbe.versionPatch
 
+    compilerIncludePaths: gccProbe.includePaths
+    compilerFrameworkPaths: gccProbe.frameworkPaths
+    compilerLibraryPaths: gccProbe.libraryPaths
+
     property string target: [targetArch, targetVendor, targetSystem, targetAbi].join("-")
     property string targetArch: qbs.architecture === "x86" ? "i386" : qbs.architecture
     property string targetVendor: "unknown"
@@ -227,6 +231,10 @@ CppModule {
         validator.addRangeValidator("compilerVersionMajor", compilerVersionMajor, 1);
         validator.addRangeValidator("compilerVersionMinor", compilerVersionMinor, 0);
         validator.addRangeValidator("compilerVersionPatch", compilerVersionPatch, 0);
+
+        validator.setRequiredProperty("compilerIncludePaths", compilerIncludePaths);
+        validator.setRequiredProperty("compilerFrameworkPaths", compilerFrameworkPaths);
+        validator.setRequiredProperty("compilerLibraryPaths", compilerLibraryPaths);
 
         validator.validate();
     }

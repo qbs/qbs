@@ -42,12 +42,18 @@ PathProbe {
     property bool _haveArchFlag: qbs.targetOS.contains("darwin")
     property string _nullDevice: qbs.nullDevice
     property string _toolchain: qbs.toolchain
+    property string _pathListSeparator: qbs.pathListSeparator
+    property string _targetOS: qbs.targetOS
+    property string _sysroot: qbs.sysroot
 
     // Outputs
     property string architecture
     property int versionMajor
     property int versionMinor
     property int versionPatch
+    property stringList includePaths
+    property stringList libraryPaths
+    property stringList frameworkPaths
 
     configure: {
         var args = flags;
@@ -65,7 +71,13 @@ PathProbe {
         }
 
         var macros = Gcc.dumpMacros(compilerFilePath, args, _nullDevice);
-        found = !!macros;
+        var defaultPaths = Gcc.dumpDefaultPaths(compilerFilePath, args, _nullDevice,
+                                                _pathListSeparator, _targetOS, _sysroot);
+        found = !!macros && !!defaultPaths;
+
+        includePaths = defaultPaths.includePaths;
+        libraryPaths = defaultPaths.libraryPaths;
+        frameworkPaths = defaultPaths.frameworkPaths;
 
         // We have to dump the compiler's macros; -dumpmachine is not suitable because it is not
         // always complete (for example, the subarch is not included for arm architectures).

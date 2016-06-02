@@ -884,6 +884,7 @@ function isNumericProductVersion(version) {
 function dumpMacros(compilerFilePath, args, nullDevice) {
     var p = new Process();
     try {
+        p.setEnv("LC_ALL", "C");
         p.exec(compilerFilePath, (args || []).concat(["-dM", "-E", "-x", "c", nullDevice]));
         var map = {};
         p.readStdOut().trim().split("\n").map(function (line) {
@@ -891,6 +892,64 @@ function dumpMacros(compilerFilePath, args, nullDevice) {
             map[parts[1]] = parts[2];
         });
         return map;
+    } finally {
+        p.close();
+    }
+}
+
+function dumpDefaultPaths(compilerFilePath, args, nullDevice, pathListSeparator, targetOS,
+                          sysroot) {
+    var p = new Process();
+    try {
+        p.setEnv("LC_ALL", "C");
+        args = args || [];
+        if (sysroot) {
+            if (targetOS.contains("darwin"))
+                args.push("-isysroot", sysroot);
+            else
+                args.push("--sysroot=" + sysroot);
+        }
+        p.exec(compilerFilePath, args.concat(["-v", "-E", "-x", "c++", nullDevice]));
+        var suffix = " (framework directory)";
+        var includePaths = [];
+        var libraryPaths = [];
+        var frameworkPaths = [];
+        var addIncludes = false;
+        var lines = p.readStdErr().trim().split("\n").map(function (line) { return line.trim(); });
+        for (var i = 0; i < lines.length; ++i) {
+            var line = lines[i];
+            var prefix = "LIBRARY_PATH=";
+            if (line.startsWith(prefix)) {
+                libraryPaths = libraryPaths.concat(line.substr(prefix.length)
+                                                   .split(pathListSeparator));
+            } else if (line === "#include <...> search starts here:") {
+                addIncludes = true;
+            } else if (line === "End of search list.") {
+                addIncludes = false;
+            } else if (addIncludes) {
+                if (line.endsWith(suffix))
+                    frameworkPaths.push(line.substr(0, line.length - suffix.length));
+                else
+                    includePaths.push(line);
+            }
+        }
+
+        sysroot = sysroot || "";
+
+        if (includePaths.length === 0)
+            includePaths.push(sysroot + "/usr/include", sysroot + "/usr/local/include");
+
+        if (libraryPaths.length === 0)
+            libraryPaths.push(sysroot + "/lib", sysroot + "/usr/lib");
+
+        if (frameworkPaths.length === 0)
+            frameworkPaths.push(sysroot + "/System/Library/Frameworks");
+
+        return {
+            "includePaths": includePaths,
+            "libraryPaths": libraryPaths,
+            "frameworkPaths": frameworkPaths
+        };
     } finally {
         p.close();
     }
