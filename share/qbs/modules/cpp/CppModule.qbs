@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
-** This file is part of the Qt Build Suite.
+** This file is part of Qbs.
 **
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
@@ -31,6 +31,7 @@
 // base for Cpp modules
 import qbs.ModUtils
 import qbs.Utilities
+import qbs.WindowsUtils
 
 Module {
     condition: false
@@ -320,11 +321,28 @@ Module {
 
     validate: {
         var validator = new ModUtils.PropertyValidator("cpp");
+        validator.setRequiredProperty("architecture", architecture,
+                                      "you might want to re-run 'qbs-setup-toolchains'");
         validator.addCustomValidator("architecture", architecture, function (value) {
             return !architecture || architecture === Utilities.canonicalArchitecture(architecture);
         }, "'" + architecture + "' is invalid. You must use the canonical name '" +
         Utilities.canonicalArchitecture(architecture) + "'");
+        if (minimumWindowsVersion) {
+            validator.addVersionValidator("minimumWindowsVersion", minimumWindowsVersion, 2, 2);
+            validator.addCustomValidator("minimumWindowsVersion", minimumWindowsVersion, function (v) {
+                return !v || v === WindowsUtils.canonicalizeVersion(v);
+            }, "'" + minimumWindowsVersion + "' is invalid. Did you mean '" +
+            WindowsUtils.canonicalizeVersion(minimumWindowsVersion) + "'?");
+        }
         validator.validate();
+
+        if (minimumWindowsVersion && !WindowsUtils.isValidWindowsVersion(minimumWindowsVersion)) {
+            console.warn("Unknown Windows version '" + minimumWindowsVersion
+                + "'; expected one of: "
+                + WindowsUtils.knownWindowsVersions().map(function (a) {
+                    return '"' + a + '"'; }).join(", ")
+                + ". See https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832.aspx");
+        }
     }
 
     setupRunEnvironment: {

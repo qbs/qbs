@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
-** This file is part of the Qt Build Suite.
+** This file is part of Qbs.
 **
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
@@ -226,6 +226,7 @@ TopLevelProjectPtr InternalSetupProjectJob::project() const
 
 void InternalSetupProjectJob::start()
 {
+    const TopLevelProjectConstPtr existingProject = m_existingProject;
     BuildGraphLocker *bgLocker = m_existingProject ? m_existingProject->bgLocker : 0;
     try {
         const ErrorInfo err = m_parameters.expandBuildConfiguration();
@@ -249,7 +250,9 @@ void InternalSetupProjectJob::start()
     } catch (const ErrorInfo &error) {
         m_newProject.clear();
         setError(error);
-        if (!m_existingProject)
+
+        // Delete the build graph locker if and only if we allocated it here.
+        if (!existingProject)
             delete bgLocker;
     }
     emit finished(this);

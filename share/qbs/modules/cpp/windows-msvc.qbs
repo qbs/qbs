@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
-** This file is part of the Qt Build Suite.
+** This file is part of Qbs.
 **
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
@@ -83,13 +83,6 @@ CppModule {
     executableSuffix: ".exe"
     debugInfoSuffix: ".pdb"
     property string dynamicLibraryImportSuffix: ".lib"
-
-    validate: {
-        var validator = new ModUtils.PropertyValidator("cpp");
-        validator.setRequiredProperty("architecture", architecture,
-                                      "you might want to re-run 'qbs-setup-toolchains'");
-        validator.validate();
-    }
 
     Rule {
         condition: useCPrecompiledHeader

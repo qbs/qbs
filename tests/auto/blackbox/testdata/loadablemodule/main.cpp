@@ -4,7 +4,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
-** This file is part of the examples of the Qt Build Suite.
+** This file is part of the examples of Qbs.
 **
 ** You may use this file under the terms of the BSD license as follows:
 **

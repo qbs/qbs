@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
-** This file is part of the Qt Build Suite.
+** This file is part of Qbs.
 **
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
@@ -251,11 +251,44 @@ void TestApi::buildGraphLocking()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     const qbs::Project project = setupJob->project();
     Q_UNUSED(project);
+
+    // Case 1: Setting up a competing project from scratch.
     setupJob.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
     QVERIFY(setupJob->error().hasError());
     QVERIFY2(setupJob->error().toString().contains("lock"),
              qPrintable(setupJob->error().toString()));
+
+    // Case 2: Setting up a non-competing project and then making it competing.
+    qbs::SetupProjectParameters setupParams2 = setupParams;
+    setupParams2.setBuildRoot(setupParams.buildRoot() + "/2");
+    setupJob.reset(qbs::Project().setupProject(setupParams2, m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    const QString buildDirName = profileName() + '-' + setupParams2.buildVariant();
+    const QString lockFile = setupParams2.buildRoot() + '/' + buildDirName + '/' + buildDirName
+            + ".bg.lock";
+    QVERIFY2(QFileInfo(lockFile).isFile(), qPrintable(lockFile));
+    qbs::Project project2 = setupJob->project();
+    QVERIFY(project2.isValid());
+    setupJob.reset(project2.setupProject(setupParams, m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY(setupJob->error().hasError());
+    QVERIFY2(setupJob->error().toString().contains("lock"),
+             qPrintable(setupJob->error().toString()));
+    QVERIFY2(QFileInfo(lockFile).isFile(), qPrintable(lockFile));
+
+    // Case 3: Changing the build directory of an existing project to something con-competing.
+    qbs::SetupProjectParameters setupParams3 = setupParams2;
+    setupParams3.setBuildRoot(setupParams.buildRoot() + "/3");
+    setupJob.reset(qbs::Project().setupProject(setupParams3, m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    project2 = qbs::Project();
+    QVERIFY2(!QFileInfo(lockFile).exists(), qPrintable(lockFile));
+    const QString newLockFile = setupParams3.buildRoot() + '/' + buildDirName + '/'
+            + buildDirName + ".bg.lock";
+    QVERIFY2(QFileInfo(newLockFile).isFile(), qPrintable(newLockFile));
 }
 
 void TestApi::buildProject()

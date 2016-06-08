@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
-** This file is part of the Qt Build Suite.
+** This file is part of Qbs.
 **
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
@@ -37,9 +37,26 @@ function characterSetDefines(charset) {
     return defines;
 }
 
-function isValidWindowsVersion(systemVersion) {
+function canonicalizeVersion(version) {
+    switch (version) {
+    case "7":
+        return "6.1";
+    case "8":
+        return "6.2";
+    case "8.1":
+        return "6.3";
+    default:
+        return version;
+    }
+}
+
+function knownWindowsVersions() {
     // Add new Windows versions to this list when they are released
-    var realVersions = [ '10.0', '6.3', '6.2', '6.1', '6.0', '5.2', '5.1', '5.0', '4.0' ];
+    return ['10.0', '6.3', '6.2', '6.1', '6.0', '5.2', '5.1', '5.0', '4.0'];
+}
+
+function isValidWindowsVersion(systemVersion) {
+    var realVersions = knownWindowsVersions();
     for (i in realVersions)
         if (systemVersion === realVersions[i])
             return true;
@@ -48,18 +65,20 @@ function isValidWindowsVersion(systemVersion) {
 }
 
 function getWindowsVersionInFormat(systemVersion, format) {
-    if (!isValidWindowsVersion(systemVersion))
+    if (!systemVersion)
         return undefined;
 
-    var major = parseInt(systemVersion.split('.')[0]);
-    var minor = parseInt(systemVersion.split('.')[1]);
+    var major = parseInt(systemVersion.split('.')[0], 10);
+    var minor = parseInt(systemVersion.split('.')[1], 10);
 
-    if (format === 'hex') {
-        return '0x' + major + (minor < 10 ? '0' : '') + minor;
-    } else if (format === 'subsystem') {
-        // http://msdn.microsoft.com/en-us/library/fcc1zstk.aspx
+    switch (format) {
+    case "hex":
+        // https://msdn.microsoft.com/en-us/library/6sehtctf.aspx
+        return "0x" + ("0000" + ((major << 8) | minor).toString(16)).slice(-4);
+    case "subsystem":
+        // https://msdn.microsoft.com/en-us/library/fcc1zstk.aspx
         return major + '.' + (minor < 10 ? '0' : '') + minor;
-    } else {
+    default:
         throw ("Unrecognized Windows version format " + format + ". Must be in {hex, subsystem}.");
     }
 }

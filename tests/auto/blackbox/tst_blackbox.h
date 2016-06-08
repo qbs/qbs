@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
-** This file is part of the Qt Build Suite.
+** This file is part of Qbs.
 **
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
@@ -160,6 +160,7 @@ private slots:
     void listPropertyOrder();
     void loadableModule();
     void lrelease();
+    void missingDependency();
     void missingProfile();
     void mixedBuildVariants();
     void multipleChanges();

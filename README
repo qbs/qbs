@@ -1,5 +1,5 @@
-Qt Build Suite
-==============
+Qbs
+===
 Qbs is a cross-platform build tool.
 The project's homepage is http://wiki.qt.io/qbs
 
@@ -22,7 +22,7 @@ Prerequisites:
 
 The installed toolchains have to match the one Qt was compiled with.
 
-You can build qbs with
+You can build Qbs with
 
     cd $SOURCE_DIRECTORY
     qmake -r

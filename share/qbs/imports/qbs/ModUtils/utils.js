@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
-** This file is part of the Qt Build Suite.
+** This file is part of Qbs.
 **
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
@@ -319,7 +319,10 @@ var PropertyValidator = (function () {
             if (typeof value !== "string")
                 return false;
             return value && value.match("^[0-9]+(\\.[0-9]+){" + ((minComponents - 1) || 0) + "," + ((maxComponents - 1) || "") + "}" + (!allowSuffixes ? "$" : "")) !== null;
-        }, "must be a version number with " + minComponents + " to " + maxComponents + " components");
+        }, "must be a version number with " + (minComponents === maxComponents
+                ? minComponents : (minComponents + " to " + maxComponents))
+                  + (minComponents === maxComponents && minComponents === 1
+                     ? " component" : " components"));
     };
 
     PropertyValidator.prototype.addCustomValidator = function (propertyName, propertyValue, validator, message) {

@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
-** This file is part of the Qt Build Suite.
+** This file is part of Qbs.
 **
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
@@ -167,8 +167,6 @@ function linkerFlags(product, inputs, output) {
                 args = args.concat(escapeLinkerFlags(product, ["--minor-subsystem-version", minor]));
                 args = args.concat(escapeLinkerFlags(product, ["--major-os-version", major]));
                 args = args.concat(escapeLinkerFlags(product, ["--minor-os-version", minor]));
-            } else {
-                console.warn('Unknown Windows version "' + minimumWindowsVersion + '"');
             }
         }
     }
@@ -506,8 +504,6 @@ function compilerFlags(product, input, output) {
             var versionDefs = [ 'WINVER', '_WIN32_WINNT', '_WIN32_WINDOWS' ];
             for (i in versionDefs)
                 args.push('-D' + versionDefs[i] + '=' + hexVersion);
-        } else {
-            console.warn('Unknown Windows version "' + minimumWindowsVersion + '"');
         }
     }
 

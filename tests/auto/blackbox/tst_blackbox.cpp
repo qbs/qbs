@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
-** This file is part of the Qt Build Suite.
+** This file is part of Qbs.
 **
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
@@ -3909,6 +3909,21 @@ void TestBlackbox::lrelease()
     QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/lrelease-test.qm"));
     QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/de.qm"));
     QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/hu.qm"));
+}
+
+void TestBlackbox::missingDependency()
+{
+    QDir::setCurrent(testDataDir + "/missing-dependency");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments << "-p" << "theApp";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(!m_qbsStderr.contains("ASSERT"), m_qbsStderr.constData());
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "-p" << "theDep")), 0);
+    params.expectFailure = false;
+    params.arguments << "-vv";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStderr.contains("false positive"));
 }
 
 void TestBlackbox::badInterpreter()

@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
-** This file is part of the Qt Build Suite.
+** This file is part of Qbs.
 **
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
@@ -408,6 +408,9 @@ void Executor::buildArtifact(Artifact *artifact)
 
     QBS_CHECK(artifact->buildState == BuildGraphNode::Buildable);
 
+    if (artifact->artifactType != Artifact::SourceFile && !checkNodeProduct(artifact))
+        return;
+
     // skip artifacts without transformer
     if (artifact->artifactType != Artifact::Generated) {
         // For source artifacts, that were not reachable when initializing the build, we must
@@ -430,6 +433,9 @@ void Executor::buildArtifact(Artifact *artifact)
 
 void Executor::executeRuleNode(RuleNode *ruleNode)
 {
+    if (!checkNodeProduct(ruleNode))
+        return;
+
     QBS_CHECK(!m_evalContext->isActive());
     ArtifactSet changedInputArtifacts;
     if (ruleNode->rule()->isDynamic()) {
@@ -978,6 +984,20 @@ void Executor::checkForUnbuiltProducts()
     }
 }
 
+bool Executor::checkNodeProduct(BuildGraphNode *node)
+{
+    if (m_productsToBuild.contains(node->product))
+        return true;
+
+    // TODO: Turn this into a warning once we have a reliable C++ scanner.
+    m_logger.qbsTrace() << "Ignoring node " << node->toString() << ", which belongs to a "
+                            "product that is not part of the list of products to build. "
+                            "Possible reasons are an erroneous project design or a false "
+                            "positive from a dependency scanner.";
+    finishNode(node);
+    return false;
+}
+
 void Executor::finish()
 {
     QBS_ASSERT(m_state != ExecutorIdle, /* ignore */);
@@ -1013,8 +1033,6 @@ void Executor::checkForCancellation()
 bool Executor::visit(Artifact *artifact)
 {
     QBS_CHECK(artifact->buildState != BuildGraphNode::Untouched);
-    QBS_CHECK(artifact->artifactType == Artifact::SourceFile
-              || m_productsToBuild.contains(artifact->product));
     buildArtifact(artifact);
     return false;
 }
@@ -1022,7 +1040,6 @@ bool Executor::visit(Artifact *artifact)
 bool Executor::visit(RuleNode *ruleNode)
 {
     QBS_CHECK(ruleNode->buildState != BuildGraphNode::Untouched);
-    QBS_CHECK(m_productsToBuild.contains(ruleNode->product));
     executeRuleNode(ruleNode);
     return false;
 }
