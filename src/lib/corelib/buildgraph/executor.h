@@ -161,6 +161,7 @@ private:
     FileTags m_activeFileTags;
     QTimer * const m_cancelationTimer;
     QStringList m_artifactsRemovedFromDisk;
+    bool m_partialBuild;
     const bool m_doTrace;
     const bool m_doDebug;
 };

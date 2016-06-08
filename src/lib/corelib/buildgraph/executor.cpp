@@ -135,6 +135,7 @@ void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
 void Executor::build()
 {
     try {
+        m_partialBuild = m_productsToBuild.count() != m_project->allProducts().count();
         doBuild();
     } catch (const ErrorInfo &e) {
         handleError(e);
@@ -986,7 +987,7 @@ void Executor::checkForUnbuiltProducts()
 
 bool Executor::checkNodeProduct(BuildGraphNode *node)
 {
-    if (m_productsToBuild.contains(node->product))
+    if (!m_partialBuild || m_productsToBuild.contains(node->product))
         return true;
 
     // TODO: Turn this into a warning once we have a reliable C++ scanner.
