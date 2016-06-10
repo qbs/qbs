@@ -203,6 +203,7 @@ private slots:
     void sevenZip();
     void tar();
     void toolLookup();
+    void topLevelSearchPath();
     void track_qobject_change();
     void track_qrc();
     void trackAddFile();

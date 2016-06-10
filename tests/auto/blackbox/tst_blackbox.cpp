@@ -3272,6 +3272,18 @@ void TestBlackbox::toolLookup()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::topLevelSearchPath()
+{
+    QDir::setCurrent(testDataDir + "/toplevel-searchpath");
+
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("MyProduct"), m_qbsStderr.constData());
+    params.arguments << ("project.qbsSearchPaths:" + QDir::currentPath() + "/qbs-resources");
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::checkProjectFilePath()
 {
     QDir::setCurrent(testDataDir + "/project_filepath_check");
