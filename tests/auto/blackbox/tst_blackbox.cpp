@@ -2466,7 +2466,7 @@ void TestBlackbox::javaDependencyTracking() {
     Settings settings((QString()));
     Profile p(profileName(), &settings);
 
-    auto getSpecificJdkVersion = [](const QString &jdkVersion) {
+    auto getSpecificJdkVersion = [](const QString &jdkVersion) -> QString {
         if (HostOsInfo::isOsxHost()) {
             QProcess java_home;
             java_home.start("/usr/libexec/java_home", QStringList() << "--version" << jdkVersion);
