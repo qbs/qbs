@@ -499,7 +499,7 @@ public:
 
     static TopLevelProjectPtr create() { return TopLevelProjectPtr(new TopLevelProject); }
 
-    static QString deriveId(const QString &profile, const QVariantMap &config);
+    static QString deriveId(const QVariantMap &config);
     static QString deriveBuildDirectory(const QString &buildRoot, const QString &id);
 
     QString buildDirectory; // Not saved

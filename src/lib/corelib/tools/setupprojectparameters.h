@@ -59,9 +59,8 @@ public:
     QString topLevelProfile() const;
     void setTopLevelProfile(const QString &profile);
 
-    // TODO: It seems weird that we special-case the build variant. Can we get rid of this?
-    QString buildVariant() const;
-    void setBuildVariant(const QString &buildVariant);
+    QString configurationName() const;
+    void setConfigurationName(const QString &configurationName);
 
     QString projectFilePath() const;
     void setProjectFilePath(const QString &projectFilePath);
@@ -86,14 +85,13 @@ public:
     QVariantMap overriddenValuesTree() const;
 
     static QVariantMap expandedBuildConfiguration(const QString &settingsBaseDir,
-            const QString &profileName, const QString &buildVariant, ErrorInfo *errorInfo = 0);
+            const QString &profileName, const QString &configurationName, ErrorInfo *errorInfo = 0);
     ErrorInfo expandBuildConfiguration();
     QVariantMap buildConfiguration() const;
     QVariantMap buildConfigurationTree() const;
 
     static QVariantMap finalBuildConfigurationTree(const QVariantMap &buildConfig,
-            const QVariantMap &overriddenValues, const QString &buildRoot,
-            const QString &topLevelProfile);
+            const QVariantMap &overriddenValues, const QString &buildRoot);
     QVariantMap finalBuildConfigurationTree() const;
 
     bool ignoreDifferentProjectFilePath() const;

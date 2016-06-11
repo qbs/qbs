@@ -520,14 +520,13 @@
             "ios", "android", "blackberry", "qnx", etc.
     \endtable
 
-    You can set these properties on the command line or by using a profile. The property \a
-    qbs.buildVariant is handled in a special way.
+    You can set these properties on the command line or by using a profile.
 
     \code
     $ qbs                   # qbs.buildVariant:debug, profile:<default profile>
     $ qbs release           # qbs.buildVariant:release, profile:<default profile>
     $ qbs profile:Maemo     # qbs.buildVariant:debug, profile:Maemo
-    $ qbs debug release     # builds two variants of the project
+    $ qbs debug release     # builds two configurations of the project
     \endcode
 
     To select files by build variant:

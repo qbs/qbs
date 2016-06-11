@@ -50,6 +50,12 @@
         \li Default
         \li Description
     \row
+        \li configurationName
+        \li \c{string}
+        \li 1.6
+        \li \c{"default"}
+        \li Contains the name of the current build configuration.
+    \row
         \li buildVariant
         \li \c{string}
         \li 1.0

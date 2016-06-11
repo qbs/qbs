@@ -941,14 +941,12 @@ TopLevelProject::~TopLevelProject()
     delete bgLocker;
 }
 
-QString TopLevelProject::deriveId(const QString &profile, const QVariantMap &config)
+QString TopLevelProject::deriveId(const QVariantMap &config)
 {
     const QVariantMap qbsProperties = config.value(QLatin1String("qbs")).toMap();
-    const QString buildVariant = qbsProperties.value(QLatin1String("buildVariant")).toString();
-    QString prefix = profile;
-    if (prefix.isEmpty())
-        prefix = QLatin1String("no-profile");
-    return prefix + QLatin1Char('-') + buildVariant;
+    const QString configurationName = qbsProperties.value(QLatin1String("configurationName"))
+            .toString();
+    return configurationName;
 }
 
 QString TopLevelProject::deriveBuildDirectory(const QString &buildRoot, const QString &id)
@@ -959,7 +957,7 @@ QString TopLevelProject::deriveBuildDirectory(const QString &buildRoot, const QS
 void TopLevelProject::setBuildConfiguration(const QVariantMap &config)
 {
     m_buildConfiguration = config;
-    m_id = deriveId(profile(), config);
+    m_id = deriveId(config);
 }
 
 QString TopLevelProject::profile() const

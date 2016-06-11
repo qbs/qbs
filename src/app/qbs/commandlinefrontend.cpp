@@ -140,7 +140,7 @@ void CommandLineFrontend::start()
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
             QVariantMap userConfig = buildConfig;
-            const QString buildVariantKey = QLatin1String("qbs.buildVariant");
+            const QString configurationKey = QLatin1String("qbs.configurationName");
             const QString profileKey = QLatin1String("qbs.profile");
             const QString installRootKey = QLatin1String("qbs.installRoot");
             QString installRoot = userConfig.value(installRootKey).toString();
@@ -148,7 +148,7 @@ void CommandLineFrontend::start()
                 installRoot.prepend(QLatin1Char('/')).prepend(QDir::currentPath());
                 userConfig.insert(installRootKey, installRoot);
             }
-            const QString buildVariant = userConfig.take(buildVariantKey).toString();
+            const QString configurationName = userConfig.take(configurationKey).toString();
             QString profileName = userConfig.take(profileKey).toString();
             if (profileName.isEmpty())
                 profileName = m_settings->defaultProfile();
@@ -166,7 +166,7 @@ void CommandLineFrontend::start()
             params.setLibexecPath(QDir::cleanPath(QCoreApplication::applicationDirPath()
                     + QLatin1String("/" QBS_RELATIVE_LIBEXEC_PATH)));
             params.setTopLevelProfile(profileName);
-            params.setBuildVariant(buildVariant);
+            params.setConfigurationName(configurationName);
             params.setBuildRoot(buildDirectory(profileName));
             params.setOverriddenValues(userConfig);
             SetupProjectJob * const job = Project().setupProject(params,

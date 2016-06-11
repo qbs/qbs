@@ -150,7 +150,7 @@ void TestLanguage::initTestCase()
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "/../../../share/qbs"));
     defaultParameters.setTopLevelProfile(profileName());
-    defaultParameters.setBuildVariant("debug");
+    defaultParameters.setConfigurationName("default");
     defaultParameters.expandBuildConfiguration();
     QVERIFY(QFileInfo(m_wildcardsTestDirPath).isAbsolute());
 }
@@ -1014,7 +1014,7 @@ void TestLanguage::jsExtensions()
 
 void TestLanguage::jsImportUsedInMultipleScopes_data()
 {
-    QTest::addColumn<QString>("buildVariant");
+    QTest::addColumn<QString>("configurationName");
     QTest::addColumn<QString>("expectedProductName");
     QTest::newRow("debug") << QString("debug") << QString("MyProduct_debug");
     QTest::newRow("release") << QString("release") << QString("MyProduct");
@@ -1022,14 +1022,14 @@ void TestLanguage::jsImportUsedInMultipleScopes_data()
 
 void TestLanguage::jsImportUsedInMultipleScopes()
 {
-    QFETCH(QString, buildVariant);
+    QFETCH(QString, configurationName);
     QFETCH(QString, expectedProductName);
 
     bool exceptionCaught = false;
     try {
         SetupProjectParameters params = defaultParameters;
         params.setProjectFilePath(testProject("jsimportsinmultiplescopes.qbs"));
-        params.setBuildVariant(buildVariant);
+        params.setConfigurationName(configurationName);
         params.expandBuildConfiguration();
         TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(project);

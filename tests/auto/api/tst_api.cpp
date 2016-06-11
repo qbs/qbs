@@ -109,8 +109,7 @@ public:
 static void removeBuildDir(const qbs::SetupProjectParameters &params)
 {
     QString message;
-    const QString dir = params.buildRoot() + '/' + params.topLevelProfile()
-            + '-' + params.buildVariant();
+    const QString dir = params.buildRoot() + '/' + params.configurationName();
     if (!qbs::Internal::removeDirectoryWithContents(dir, &message))
         qFatal("Could not remove build dir: %s", qPrintable(message));
 }
@@ -265,7 +264,7 @@ void TestApi::buildGraphLocking()
     setupJob.reset(qbs::Project().setupProject(setupParams2, m_logSink, 0));
     waitForFinished(setupJob.data());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
-    const QString buildDirName = profileName() + '-' + setupParams2.buildVariant();
+    const QString buildDirName = relativeBuildDir(setupParams2.configurationName());
     const QString lockFile = setupParams2.buildRoot() + '/' + buildDirName + '/' + buildDirName
             + ".bg.lock";
     QVERIFY2(QFileInfo(lockFile).isFile(), qPrintable(lockFile));
@@ -1681,7 +1680,7 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &proje
     setupParams.setLibexecPath(QDir::cleanPath(QCoreApplication::applicationDirPath()
             + QLatin1String("/" QBS_RELATIVE_LIBEXEC_PATH)));
     setupParams.setTopLevelProfile(profileName());
-    setupParams.setBuildVariant(QLatin1String("debug"));
+    setupParams.setConfigurationName(QStringLiteral("default"));
     return setupParams;
 }
 

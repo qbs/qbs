@@ -36,7 +36,16 @@ import qbs.PathTools
 import qbs.Utilities
 
 Module {
-    property string buildVariant: "debug"
+    readonly property string configurationName: "default"
+    property string buildVariant: {
+        switch (configurationName.toLowerCase()) {
+        case "release":
+            return "release";
+        default:
+            return "debug";
+        }
+    }
+
     property bool enableDebugCode: buildVariant == "debug"
     property bool debugInformation: (buildVariant == "debug")
     property string optimization: (buildVariant == "debug" ? "none" : "fast")

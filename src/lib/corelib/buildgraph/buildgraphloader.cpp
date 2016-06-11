@@ -113,8 +113,7 @@ BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingPr
 
 void BuildGraphLoader::loadBuildGraphFromDisk()
 {
-    const QString projectId = TopLevelProject::deriveId(m_parameters.topLevelProfile(),
-                                                        m_parameters.finalBuildConfigurationTree());
+    const QString projectId = TopLevelProject::deriveId(m_parameters.finalBuildConfigurationTree());
     const QString buildDir
             = TopLevelProject::deriveBuildDirectory(m_parameters.buildRoot(), projectId);
     const QString buildGraphFilePath
@@ -774,10 +773,9 @@ bool BuildGraphLoader::isConfigCompatible()
     for (QVariantMap::ConstIterator it = restoredProject->profileConfigs.constBegin();
          it != restoredProject->profileConfigs.constEnd(); ++it) {
         const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
-                    m_parameters.settingsDirectory(), it.key(), m_parameters.buildVariant());
+                    m_parameters.settingsDirectory(), it.key(), m_parameters.configurationName());
         const QVariantMap newConfig = SetupProjectParameters::finalBuildConfigurationTree(
-                    buildConfig, m_parameters.overriddenValues(), m_parameters.buildRoot(),
-                    m_parameters.topLevelProfile());
+                    buildConfig, m_parameters.overriddenValues(), m_parameters.buildRoot());
         if (newConfig != it.value())
             return false;
     }

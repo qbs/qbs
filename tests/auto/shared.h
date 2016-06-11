@@ -43,10 +43,9 @@
 #include <QtTest>
 
 inline QString profileName() { return QLatin1String("qbs_autotests"); }
-inline QString relativeBuildDir(const QString &pName = QString())
+inline QString relativeBuildDir(const QString &configurationName = QString())
 {
-    const QString actualProfileName = pName.isEmpty() ? profileName() : pName;
-    return actualProfileName + QLatin1String("-debug");
+    return !configurationName.isEmpty() ? configurationName : QLatin1String("default");
 }
 
 inline QString relativeBuildGraphFilePath() {
@@ -72,14 +71,13 @@ inline QString uniqueProductName(const QString &productName, const QString &_pro
 }
 
 inline QString relativeProductBuildDir(const QString &productName,
-                                       const QString &productProfileName = QString(),
-                                       const QString &topLevelProfileName = QString())
+                                       const QString &productProfileName = QString())
 {
     const QString fullName = uniqueProductName(productName, productProfileName);
     QString dirName = qbs::Internal::HostOsInfo::rfc1034Identifier(fullName);
     const QByteArray hash = QCryptographicHash::hash(fullName.toUtf8(), QCryptographicHash::Sha1);
     dirName.append('.').append(hash.toHex().left(8));
-    return relativeBuildDir(topLevelProfileName) + '/' + dirName;
+    return relativeBuildDir() + '/' + dirName;
 }
 
 inline QString relativeExecutableFilePath(const QString &productName)

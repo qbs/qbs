@@ -484,7 +484,7 @@ void TestBlackbox::android()
     for (int i = 0; i < productNames.count(); ++i) {
         const QString productName = productNames.at(i);
         QVERIFY(m_qbsStdout.contains("Creating " + productName.toLocal8Bit() + ".apk"));
-        const QString apkFilePath = relativeProductBuildDir(productName, p.name(), p.name())
+        const QString apkFilePath = relativeProductBuildDir(productName, p.name())
                 + '/' + productName + ".apk";
         QVERIFY2(regularFileExists(apkFilePath), qPrintable(apkFilePath));
         const QString jarFilePath = findExecutable(QStringList("jar"));
@@ -2608,7 +2608,7 @@ void TestBlackbox::javaDependencyTracking() {
             rp.arguments << ("java.jdkPath:" + jdkPath);
         if (!javaVersion.isEmpty())
             rp.arguments << ("java.languageVersion:" + javaVersion);
-        rmDirR(relativeBuildDir(p.name()));
+        rmDirR(relativeBuildDir());
         QCOMPARE(runQbs(rp), 0);
     };
 
@@ -2660,13 +2660,13 @@ void TestBlackbox::cli()
         QSKIP("cli.toolchainInstallPath not set and automatic detection failed");
 
     QCOMPARE(status, 0);
-    rmDirR(relativeBuildDir(p.name()));
+    rmDirR(relativeBuildDir());
 
     QbsRunParameters params2(QStringList() << "-f" << "fshello.qbs"
                              << "profile:" + p.name());
     params2.useProfile = false;
     QCOMPARE(runQbs(params2), 0);
-    rmDirR(relativeBuildDir(p.name()));
+    rmDirR(relativeBuildDir());
 }
 
 void TestBlackbox::jsExtensionsFile()

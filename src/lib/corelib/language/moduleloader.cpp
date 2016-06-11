@@ -216,8 +216,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     root = wrapInProjectIfNecessary(root);
 
     const QString buildDirectory = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(),
-            TopLevelProject::deriveId(parameters.topLevelProfile(),
-                                      parameters.finalBuildConfigurationTree()));
+            TopLevelProject::deriveId(parameters.finalBuildConfigurationTree()));
     root->setProperty(QLatin1String("sourceDirectory"),
                       VariantValue::create(QFileInfo(root->file()->filePath()).absolutePath()));
     root->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDirectory));
@@ -576,10 +575,9 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     if (it == projectContext->result->profileConfigs.constEnd()) {
         const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
                     m_parameters.settingsDirectory(), productContext.profileName,
-                    m_parameters.buildVariant());
+                    m_parameters.configurationName());
         productContext.moduleProperties = SetupProjectParameters::finalBuildConfigurationTree(
-                    buildConfig, m_parameters.overriddenValues(), m_parameters.buildRoot(),
-                    m_parameters.topLevelProfile());
+                    buildConfig, m_parameters.overriddenValues(), m_parameters.buildRoot());
         projectContext->result->profileConfigs.insert(productContext.profileName,
                                                       productContext.moduleProperties);
     } else {
@@ -1698,8 +1696,7 @@ void ModuleLoader::checkCancelation() const
 {
     if (m_progressObserver && m_progressObserver->canceled()) {
         throw ErrorInfo(Tr::tr("Project resolving canceled for configuration %1.")
-                    .arg(TopLevelProject::deriveId(m_parameters.topLevelProfile(),
-                                                   m_parameters.finalBuildConfigurationTree())));
+                    .arg(TopLevelProject::deriveId(m_parameters.finalBuildConfigurationTree())));
     }
 }
 

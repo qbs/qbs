@@ -146,8 +146,7 @@ void ProjectResolver::checkCancelation() const
 {
     if (m_progressObserver && m_progressObserver->canceled()) {
         throw ErrorInfo(Tr::tr("Project resolving canceled for configuration %1.")
-                    .arg(TopLevelProject::deriveId(m_setupParams.topLevelProfile(),
-                                                   m_setupParams.finalBuildConfigurationTree())));
+                    .arg(TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree())));
     }
 }
 
@@ -209,8 +208,7 @@ TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
         m_progressObserver->setMaximum(m_loadResult.productInfos.count());
     const TopLevelProjectPtr project = TopLevelProject::create();
     project->buildDirectory = TopLevelProject::deriveBuildDirectory(m_setupParams.buildRoot(),
-            TopLevelProject::deriveId(m_setupParams.topLevelProfile(),
-                                      m_setupParams.finalBuildConfigurationTree()));
+            TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree()));
     project->buildSystemFiles = m_loadResult.qbsFiles;
     project->profileConfigs = m_loadResult.profileConfigs;
     ProjectContext projectContext;

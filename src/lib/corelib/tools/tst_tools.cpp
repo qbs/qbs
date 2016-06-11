@@ -248,7 +248,7 @@ void TestTools::testBuildConfigMerging()
     overrideMap.insert(QLatin1String("qbs.installRoot"), QLatin1String("/blubb"));
     SetupProjectParameters params;
     params.setTopLevelProfile(profile.name());
-    params.setBuildVariant(QLatin1String("debug"));
+    params.setConfigurationName(QLatin1String("debug"));
     params.setOverriddenValues(overrideMap);
     const ErrorInfo error = params.expandBuildConfiguration();
     QVERIFY2(!error.hasError(), qPrintable(error.toString()));
@@ -260,7 +260,7 @@ void TestTools::testBuildConfigMerging()
     QCOMPARE(finalQbsMap.count(), 4);
     QCOMPARE(finalQbsMap.value(QLatin1String("toolchain")).toString(),
              QString::fromLatin1("clang"));
-    QCOMPARE(finalQbsMap.value(QLatin1String("buildVariant")).toString(),
+    QCOMPARE(finalQbsMap.value(QLatin1String("configurationName")).toString(),
              QString::fromLatin1("debug"));
     QCOMPARE(finalQbsMap.value(QLatin1String("architecture")).toString(),
              QString::fromLatin1("Jean-Claude Pillemann"));

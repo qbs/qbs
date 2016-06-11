@@ -63,7 +63,7 @@ public:
 
     QString projectFilePath;
     QString topLevelProfile;
-    QString buildVariant;
+    QString configurationName;
     QString buildRoot;
     QStringList searchPaths;
     QStringList pluginPaths;
@@ -123,22 +123,22 @@ void SetupProjectParameters::setTopLevelProfile(const QString &profile)
 }
 
 /*!
- * \brief Returns the build variant for building the project.
+ * Returns the name of the current project build configuration.
  */
-QString SetupProjectParameters::buildVariant() const
+QString SetupProjectParameters::configurationName() const
 {
-    return d->buildVariant;
+    return d->configurationName;
 }
 
 /*!
- * \brief Sets the build variant for building the project.
- * \param buildVariant "debug" or "release"
+ * Sets the name of the current project build configuration to an arbitrary user-specified name,
+ * \a configurationName.
  */
-void SetupProjectParameters::setBuildVariant(const QString &buildVariant)
+void SetupProjectParameters::setConfigurationName(const QString &configurationName)
 {
     d->buildConfigurationTree.clear();
     d->finalBuildConfigTree.clear();
-    d->buildVariant = buildVariant;
+    d->configurationName = configurationName;
 }
 
 /*!
@@ -323,7 +323,7 @@ QVariantMap SetupProjectParameters::buildConfigurationTree() const
 }
 
 static QVariantMap expandedBuildConfigurationInternal(const QString &settingsBaseDir,
-        const QString &profileName, const QString &buildVariant)
+        const QString &profileName, const QString &configurationName)
 {
     Settings settings(settingsBaseDir);
     QVariantMap buildConfig;
@@ -344,23 +344,19 @@ static QVariantMap expandedBuildConfigurationInternal(const QString &settingsBas
         }
     }
 
-    // (2) Build Variant.
-    if (buildVariant.isEmpty())
-        throw ErrorInfo(Internal::Tr::tr("No build variant set."));
-    if (buildVariant != QLatin1String("debug") && buildVariant != QLatin1String("release")) {
-        throw ErrorInfo(Internal::Tr::tr("Invalid build variant '%1'. Must be 'debug' or "
-                                         "'release'.").arg(buildVariant));
-    }
-    buildConfig.insert(QLatin1String("qbs.buildVariant"), buildVariant);
+    // (2) Build configuration name.
+    if (configurationName.isEmpty())
+        throw ErrorInfo(Internal::Tr::tr("No build configuration name set."));
+    buildConfig.insert(QLatin1String("qbs.configurationName"), configurationName);
     return buildConfig;
 }
 
 
 QVariantMap SetupProjectParameters::expandedBuildConfiguration(const QString &settingsBaseDir,
-        const QString &profileName, const QString &buildVariant, ErrorInfo *errorInfo)
+        const QString &profileName, const QString &configurationName, ErrorInfo *errorInfo)
 {
     try {
-        return expandedBuildConfigurationInternal(settingsBaseDir, profileName, buildVariant);
+        return expandedBuildConfigurationInternal(settingsBaseDir, profileName, configurationName);
     } catch (const ErrorInfo &err) {
         if (errorInfo)
             *errorInfo = err;
@@ -383,7 +379,7 @@ ErrorInfo SetupProjectParameters::expandBuildConfiguration()
 {
     ErrorInfo err;
     QVariantMap expandedConfig = expandedBuildConfiguration(d->settingsBaseDir, topLevelProfile(),
-                                                            buildVariant(), &err);
+                                                            configurationName(), &err);
     if (err.hasError())
         return err;
     if (d->buildConfiguration != expandedConfig) {
@@ -394,8 +390,7 @@ ErrorInfo SetupProjectParameters::expandBuildConfiguration()
 }
 
 QVariantMap SetupProjectParameters::finalBuildConfigurationTree(const QVariantMap &buildConfig,
-        const QVariantMap &overriddenValues, const QString &buildRoot,
-        const QString &topLevelProfile)
+        const QVariantMap &overriddenValues, const QString &buildRoot)
 {
     QVariantMap flatBuildConfig = buildConfig;
     for (QVariantMap::ConstIterator it = overriddenValues.constBegin();
@@ -406,8 +401,8 @@ QVariantMap SetupProjectParameters::finalBuildConfigurationTree(const QVariantMa
     const QString installRootKey = QLatin1String("qbs.installRoot");
     QString installRoot = flatBuildConfig.value(installRootKey).toString();
     if (installRoot.isEmpty()) {
-        installRoot = buildRoot + QLatin1Char('/') + topLevelProfile + QLatin1Char('-')
-                + flatBuildConfig.value(QLatin1String("qbs.buildVariant")).toString()
+        installRoot = buildRoot + QLatin1Char('/')
+                + flatBuildConfig.value(QLatin1String("qbs.configurationName")).toString()
                 + QLatin1Char('/') + InstallOptions::defaultInstallRoot();
         flatBuildConfig.insert(installRootKey, installRoot);
     }
@@ -424,7 +419,7 @@ QVariantMap SetupProjectParameters::finalBuildConfigurationTree() const
 {
     if (d->finalBuildConfigTree.isEmpty()) {
         d->finalBuildConfigTree = finalBuildConfigurationTree(buildConfiguration(),
-                overriddenValues(), buildRoot(), topLevelProfile());
+                overriddenValues(), buildRoot());
     }
     return d->finalBuildConfigTree;
 }

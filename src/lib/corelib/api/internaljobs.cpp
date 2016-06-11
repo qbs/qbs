@@ -232,8 +232,8 @@ void InternalSetupProjectJob::start()
         const ErrorInfo err = m_parameters.expandBuildConfiguration();
         if (err.hasError())
             throw err;
-        const QString projectId = TopLevelProject::deriveId(m_parameters.topLevelProfile(),
-                m_parameters.finalBuildConfigurationTree());
+        const QString projectId = TopLevelProject::deriveId(
+                    m_parameters.finalBuildConfigurationTree());
         const QString buildDir
                 = TopLevelProject::deriveBuildDirectory(m_parameters.buildRoot(), projectId);
         if (m_existingProject && m_existingProject->buildDirectory != buildDir)
