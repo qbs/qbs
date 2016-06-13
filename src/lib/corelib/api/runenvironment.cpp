@@ -335,12 +335,16 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
 
 const QProcessEnvironment RunEnvironment::getRunEnvironment() const
 {
+    if (!d->resolvedProduct)
+        return d->environment;
     d->resolvedProduct->setupRunEnvironment(&d->engine, d->environment);
     return d->resolvedProduct->runEnvironment;
 }
 
 const QProcessEnvironment RunEnvironment::getBuildEnvironment() const
 {
+    if (!d->resolvedProduct)
+        return d->environment;
     d->resolvedProduct->setupBuildEnvironment(&d->engine, d->environment);
     return d->resolvedProduct->buildEnvironment;
 }
