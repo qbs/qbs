@@ -420,7 +420,7 @@ void TestBlackbox::zipInvalid()
                             << "archiver.command:/bin/something");
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("Unknown zip tool 'something'"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.contains("unrecognized archive tool: 'something'"), m_qbsStderr.constData());
 }
 
 void TestBlackbox::alwaysRun()

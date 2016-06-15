@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs
+import qbs.Environment
 import qbs.File
 import qbs.FileInfo
 import qbs.Probes
@@ -39,8 +40,30 @@ Module {
     Depends { name: "java"; required: false }
 
     Probes.BinaryProbe {
+        id: tarProbe
+        names: ["tar"]
+    }
+
+    Probes.BinaryProbe {
         id: zipProbe
         names: ["zip"]
+    }
+
+    Probes.BinaryProbe {
+        id: sevenZipProbe
+        names: ["7z"]
+        platformPaths: {
+            var paths = base;
+            if (qbs.hostOS.contains("windows")) {
+                var env32 = Environment.getEnv("PROGRAMFILES(X86)");
+                var env64 = Environment.getEnv("PROGRAMFILES");
+                if (env64 === env32 && env64.endsWith(" (x86)"))
+                    env64 = env64.slice(0, -(" (x86)".length)); // QTBUG-3845
+                paths.push(FileInfo.joinPaths(env64, "7-Zip"));
+                paths.push(FileInfo.joinPaths(env32, "7-Zip"));
+            }
+            return paths;
+        }
     }
 
     property string type
@@ -63,14 +86,20 @@ Module {
     }
     property string command: {
         if (type === "7zip")
-            return "7z";
-        if (type === "tar")
-            return "tar";
+            return sevenZipProbe.filePath;
+        if (type === "tar") {
+            if (tarProbe.found)
+                return tarProbe.filePath;
+            if (sevenZipProbe.found)
+                return sevenZipProbe.filePath;
+        }
         if (type === "zip") {
-            // Prefer zip (probably Info-Zip) and fall back to jar when it's not available
+            // Prefer zip (probably Info-Zip) and fall back to 7z or jar when it's not available
             // (as is the likely case on Windows)
             if (zipProbe.found)
                 return zipProbe.filePath;
+            if (sevenZipProbe.found)
+                return sevenZipProbe.filePath;
             if (java.present)
                 return java.jarFilePath;
         }
@@ -119,12 +148,13 @@ Module {
 
         prepare: {
             var binary = product.moduleProperty("archiver", "command");
+            var binaryName = FileInfo.baseName(binary);
             var args = [];
             var commands = [];
             var type = product.moduleProperty("archiver", "type");
             var compression = product.moduleProperty("archiver", "compressionType");
             var compressionLevel = product.moduleProperty("archiver", "compressionLevel");
-            if (type === "7zip") {
+            if (binaryName === "7z") {
                 var rmCommand = new JavaScriptCommand();
                 rmCommand.silent = true;
                 rmCommand.sourceCode = function() {
@@ -133,12 +163,31 @@ Module {
                 };
                 commands.push(rmCommand);
                 args.push("a", "-y", "-mmt=on");
+                switch (type) {
+                case "7zip":
+                    args.push("-t7z");
+                    break;
+                case "zip":
+                    args.push("-tzip");
+                    break;
+                case "tar":
+                    if (compression === "gz")
+                        args.push("-tgzip");
+                    else if (compression === "bz2")
+                        args.push("-tbzip2");
+                    else
+                        args.push("-ttar");
+                    break;
+                default:
+                    throw "7zip: unrecognized archive type: '" + type + "'";
+                }
+
                 if (compressionLevel)
                     args.push("-mx" + compressionLevel);
                 args = args.concat(product.moduleProperty("archiver", "flags"));
                 args.push(output.filePath);
                 args.push("@" + input.filePath);
-            } else if (type === "tar") {
+            } else if (binaryName === "tar" && type === "tar") {
                 args.push("-c");
                 if (compression === "gz")
                     args.push("-z");
@@ -150,34 +199,34 @@ Module {
                     args.push("-J");
                 args.push("-f", output.filePath, "-T", input.filePath);
                 args = args.concat(product.moduleProperty("archiver", "flags"));
-            } else if (type === "zip") {
-                var binaryName = FileInfo.baseName(binary);
-                if (binaryName === "jar") {
-                    if (compression === "none" || compressionLevel === "0")
-                        args.push("-0");
+            } else if (binaryName === "jar" && type === "zip") {
+                if (compression === "none" || compressionLevel === "0")
+                    args.push("-0");
 
-                    args.push("-cfM", output.filePath, "@" + input.filePath);
-                } else if (binaryName === "zip") {
-                    // The "zip" program included with most Linux and Unix distributions
-                    // (including OS X) is Info-ZIP's Zip, so this should be fairly portable.
-                    if (compression === "none") {
-                        args.push("-0");
-                    } else {
-                        compression = compression === "bz2" ? "bzip2" : compression;
-                        if (["store", "deflate", "bzip2"].contains(compression))
-                            args.push("-Z", compression);
-
-                        if (compressionLevel)
-                            args.push("-" + compressionLevel);
-                    }
-
-                    args.push("-r", output.filePath, ".", "-i@" + input.filePath);
+                args.push("-cfM", output.filePath, "@" + input.filePath);
+                args = args.concat(product.moduleProperty("archiver", "flags"));
+            } else if (binaryName === "zip" && type === "zip") {
+                // The "zip" program included with most Linux and Unix distributions
+                // (including OS X) is Info-ZIP's Zip, so this should be fairly portable.
+                if (compression === "none") {
+                    args.push("-0");
                 } else {
-                    throw "Unknown zip tool '" + binaryName + "'";
+                    compression = compression === "bz2" ? "bzip2" : compression;
+                    if (["store", "deflate", "bzip2"].contains(compression))
+                        args.push("-Z", compression);
+
+                    if (compressionLevel)
+                        args.push("-" + compressionLevel);
                 }
 
+                args.push("-r", output.filePath, ".", "-i@" + input.filePath);
                 args = args.concat(product.moduleProperty("archiver", "flags"));
+            } else if (["tar", "zip", "jar"].contains(binaryName)) {
+                throw binaryName + ": unrecognized archive type: '" + type + "'";
+            } else {
+                throw "unrecognized archive tool: '" + binaryName + "'";
             }
+
             var archiverCommand = new Command(binary, args);
             archiverCommand.description = "Creating archive file " + output.fileName;
             archiverCommand.highlight = "linker";
