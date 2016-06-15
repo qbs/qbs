@@ -87,6 +87,45 @@ private:
     FileTags m_fileTags;
 };
 
+class Probe : public PersistentObject
+{
+public:
+    static ProbePtr create() { return ProbePtr(new Probe); }
+    static ProbeConstPtr create(const CodeLocation &location, bool condition,
+                                const QString &configureScript, const QVariantMap &properties,
+                                const QVariantMap &initialProperties)
+    {
+        return ProbeConstPtr(new Probe(location, condition, configureScript, properties,
+                                       initialProperties));
+    }
+
+    const CodeLocation &location() const { return m_location; }
+    bool condition() const { return m_condition; }
+    const QString &configureScript() const { return m_configureScript; }
+    const QVariantMap &properties() const { return m_properties; }
+    const QVariantMap &initialProperties() const { return m_initialProperties; }
+
+private:
+    Probe() {}
+    Probe(const CodeLocation &location, bool condition, const QString &configureScript,
+          const QVariantMap &properties, const QVariantMap &initialProperties)
+        : m_location(location)
+        , m_configureScript(configureScript)
+        , m_properties(properties)
+        , m_initialProperties(initialProperties)
+        , m_condition(condition)
+    {}
+
+    void load(PersistentPool &pool) override;
+    void store(PersistentPool &pool) const override;
+
+    CodeLocation m_location;
+    QString m_configureScript;
+    QVariantMap m_properties;
+    QVariantMap m_initialProperties;
+    bool m_condition;
+};
+
 class RuleArtifact : public PersistentObject
 {
 public:
@@ -373,6 +412,7 @@ public:
     QList<ResolvedTransformerPtr> transformers;
     QList<ResolvedScannerConstPtr> scanners;
     QList<GroupPtr> groups;
+    QList<ProbeConstPtr> probes;
     QList<ArtifactPropertiesPtr> artifactProperties;
     QScopedPointer<ProductBuildData> buildData;
 

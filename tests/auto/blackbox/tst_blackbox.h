@@ -176,6 +176,7 @@ private slots:
     void overrideProjectProperties();
     void pkgConfigProbe();
     void pkgConfigProbe_data();
+    void probeChangeTracking();
     void probeProperties();
     void probeInExportedModule();
     void probesInNestedModules();

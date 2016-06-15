@@ -50,6 +50,7 @@ public:
 
     void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);
+    void setOldProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes);
     TopLevelProjectPtr loadProject(const SetupProjectParameters &parameters);
 
 private:
@@ -57,6 +58,7 @@ private:
     ProgressObserver *m_progressObserver;
     ScriptEngine * const m_engine;
     QStringList m_searchPaths;
+    QHash<QString, QList<ProbeConstPtr>> m_oldProbes;
 };
 
 } // namespace Internal

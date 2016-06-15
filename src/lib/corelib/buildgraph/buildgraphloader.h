@@ -73,6 +73,7 @@ private:
     void loadBuildGraphFromDisk();
     void checkBuildGraphCompatibility(const TopLevelProjectConstPtr &project);
     void trackProjectChanges();
+    bool probeExecutionForced(const QList<ResolvedProductPtr> &restoredProducts) const;
     bool hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasCanonicalFilePathResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileExistsResultChanged(const TopLevelProjectConstPtr &restoredProject) const;

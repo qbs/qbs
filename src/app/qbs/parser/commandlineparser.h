@@ -65,6 +65,7 @@ public:
     bool forceTimestampCheck() const;
     bool forceOutputCheck() const;
     bool dryRun() const;
+    bool forceProbesExecution() const;
     bool logTime() const;
     bool withNonDefaultProducts() const;
     bool buildBeforeInstalling() const;

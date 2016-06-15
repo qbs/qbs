@@ -48,6 +48,7 @@ public:
         JobsOptionType,
         KeepGoingOptionType,
         DryRunOptionType,
+        ForceProbesOptionType,
         ShowProgressOptionType,
         ChangedFilesOptionType,
         ProductsOptionType,
@@ -199,6 +200,13 @@ class DryRunOption : public OnOffOption
 {
     QString description(CommandType command) const;
     QString shortRepresentation() const;
+    QString longRepresentation() const;
+};
+
+class ForceProbesOption : public OnOffOption
+{
+    QString description(CommandType command) const;
+    QString shortRepresentation() const { return QString(); }
     QString longRepresentation() const;
 };
 

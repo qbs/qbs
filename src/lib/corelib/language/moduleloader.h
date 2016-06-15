@@ -81,6 +81,7 @@ struct ModuleLoaderResult
             QString uniqueName() const;
         };
 
+        QList<ProbeConstPtr> probes;
         QList<Dependency> usedProducts;
         bool hasError = false;
     };
@@ -106,6 +107,7 @@ public:
 
     void setProgressObserver(ProgressObserver *progressObserver);
     void setSearchPaths(const QStringList &searchPaths);
+    void setOldProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes);
     Evaluator *evaluator() const { return m_evaluator; }
 
     ModuleLoaderResult load(const SetupProjectParameters &parameters);
@@ -220,8 +222,8 @@ private:
             const QualifiedId &moduleName, bool isProduct);
     void createChildInstances(ProductContext *productContext, Item *instance,
                               Item *prototype, QHash<Item *, Item *> *prototypeInstanceMap) const;
-    void resolveProbes(Item *item);
-    void resolveProbe(Item *parent, Item *probe);
+    void resolveProbes(ProductContext *productContext, Item *item);
+    void resolveProbe(ProductContext *productContext, Item *parent, Item *probe);
     void checkCancelation() const;
     bool checkItemCondition(Item *item);
     void checkItemTypes(Item *item);
@@ -239,6 +241,9 @@ private:
                                        const Item *modulePrototype);
     void copyGroupsFromModulesToProduct(const ProductContext &productContext);
     bool checkExportItemCondition(Item *exportItem, const ProductContext &productContext);
+    ProbeConstPtr findOldProbe(const QString &product, bool condition,
+                               const QVariantMap &initialProperties,
+                               const QString &sourceCode) const;
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;
@@ -253,6 +258,7 @@ private:
     QHash<Item *, QSet<QString> > m_validItemPropertyNamesPerItem;
     QSet<Item *> m_disabledItems;
     QStack<bool> m_requiredChain;
+    QHash<QString, QList<ProbeConstPtr>> m_oldProbes;
     SetupProjectParameters m_parameters;
     Version m_qbsVersion;
     Item *m_tempScopeItem = nullptr;

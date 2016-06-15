@@ -216,6 +216,11 @@ bool CommandLineParser::dryRun() const
     return d->dryRun();
 }
 
+bool CommandLineParser::forceProbesExecution() const
+{
+    return d->optionPool.forceProbesOption()->enabled();
+}
+
 bool CommandLineParser::logTime() const
 {
     return d->logTime;

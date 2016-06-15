@@ -53,6 +53,7 @@ public:
         : ignoreDifferentProjectFilePath(false)
         , dryRun(false)
         , logElapsedTime(false)
+        , forceProbeExecution(false)
         , restoreBehavior(SetupProjectParameters::RestoreAndTrackChanges)
         , propertyCheckingMode(ErrorHandlingMode::Relaxed)
         , productErrorMode(ErrorHandlingMode::Strict)
@@ -76,6 +77,7 @@ public:
     bool ignoreDifferentProjectFilePath;
     bool dryRun;
     bool logElapsedTime;
+    bool forceProbeExecution;
     SetupProjectParameters::RestoreBehavior restoreBehavior;
     ErrorHandlingMode propertyCheckingMode;
     ErrorHandlingMode productErrorMode;
@@ -480,6 +482,24 @@ bool SetupProjectParameters::logElapsedTime() const
 void SetupProjectParameters::setLogElapsedTime(bool logElapsedTime)
 {
     d->logElapsedTime = logElapsedTime;
+}
+
+
+/*!
+ * \brief Returns true iff probes should be re-run.
+ */
+bool SetupProjectParameters::forceProbeExecution() const
+{
+    return d->forceProbeExecution;
+}
+
+/*!
+ * Controls whether to re-run probes even if they do not appear to be outdated.
+ * This option only has an effect if \c restoreBehavior() is \c RestoreAndTrackChanges.
+ */
+void SetupProjectParameters::setForceProbeExecution(bool force)
+{
+    d->forceProbeExecution = force;
 }
 
 /*!

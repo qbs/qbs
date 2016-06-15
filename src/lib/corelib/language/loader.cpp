@@ -75,6 +75,11 @@ void Loader::setSearchPaths(const QStringList &_searchPaths)
     m_searchPaths = searchPaths;
 }
 
+void Loader::setOldProbes(const QHash<QString, QList<ProbeConstPtr> > &oldProbes)
+{
+    m_oldProbes = oldProbes;
+}
+
 TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
 {
     QBS_CHECK(QFileInfo(parameters.projectFilePath()).isAbsolute());
@@ -107,6 +112,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     ModuleLoader moduleLoader(m_engine, m_logger);
     moduleLoader.setProgressObserver(m_progressObserver);
     moduleLoader.setSearchPaths(m_searchPaths);
+    moduleLoader.setOldProbes(m_oldProbes);
     const ModuleLoaderResult loadResult = moduleLoader.load(parameters);
     ProjectResolver resolver(moduleLoader.evaluator(), loadResult, parameters, m_logger);
     resolver.setProgressObserver(m_progressObserver);

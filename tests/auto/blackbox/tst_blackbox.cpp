@@ -1858,6 +1858,100 @@ void TestBlackbox::pkgConfigProbe_data()
             << "dummy2" << "false" << "[]" << "[]" << "undefined";
 }
 
+void TestBlackbox::probeChangeTracking()
+{
+    QDir::setCurrent(testDataDir + "/probe-change-tracking");
+
+    // Probe disabled.
+    QbsRunParameters params;
+    params.arguments = QStringList("theProduct.runProbe:false");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!m_qbsStdout.contains("running probe"));
+
+    // Probe newly enabled.
+    params.arguments = QStringList("theProduct.runProbe:true");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("running probe"));
+
+    // Re-resolving with unchanged probe.
+    WAIT_FOR_NEW_TIMESTAMP();
+    QFile projectFile("probe-change-tracking.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray content = projectFile.readAll();
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("Resolving"));
+    QVERIFY(!m_qbsStdout.contains("running probe"));
+
+    // Re-resolving with changed configure script.
+    WAIT_FOR_NEW_TIMESTAMP();
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    content = projectFile.readAll();
+    content.replace("console.info", " console.info");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("Resolving"));
+    QVERIFY(m_qbsStdout.contains("running probe"));
+
+    // Re-resolving with added property.
+    WAIT_FOR_NEW_TIMESTAMP();
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    content = projectFile.readAll();
+    content.replace("condition: product.runProbe",
+                    "condition: product.runProbe\nproperty string something: 'x'");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("Resolving"));
+    QVERIFY(m_qbsStdout.contains("running probe"));
+
+    // Re-resolving with changed property.
+    WAIT_FOR_NEW_TIMESTAMP();
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    content = projectFile.readAll();
+    content.replace("'x'", "'y'");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("Resolving"));
+    QVERIFY(m_qbsStdout.contains("running probe"));
+
+    // Re-resolving with removed property.
+    WAIT_FOR_NEW_TIMESTAMP();
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    content = projectFile.readAll();
+    content.replace("property string something: 'y'", "");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("Resolving"));
+    QVERIFY(m_qbsStdout.contains("running probe"));
+
+    // Re-resolving with unchanged probe again.
+    WAIT_FOR_NEW_TIMESTAMP();
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    content = projectFile.readAll();
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("Resolving"));
+    QVERIFY(!m_qbsStdout.contains("running probe"));
+
+    // Enforcing re-running via command-line option.
+    params.arguments.prepend("--force-probe-execution");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("Resolving"));
+    QVERIFY(m_qbsStdout.contains("running probe"));
+}
+
 void TestBlackbox::probeProperties()
 {
     QDir::setCurrent(testDataDir + "/probeProperties");

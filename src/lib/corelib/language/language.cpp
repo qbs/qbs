@@ -105,6 +105,26 @@ void FileTagger::store(PersistentPool &pool) const
     pool.stream() << m_fileTags;
 }
 
+
+void Probe::load(PersistentPool &pool)
+{
+    m_location.load(pool);
+    pool.stream() >> m_condition;
+    m_configureScript = pool.idLoadString();
+    m_properties = pool.loadVariantMap();
+    m_initialProperties = pool.loadVariantMap();
+}
+
+void Probe::store(PersistentPool &pool) const
+{
+    m_location.store(pool);
+    pool.stream() << condition();
+    pool.storeString(m_configureScript);
+    pool.store(m_properties);
+    pool.store(m_initialProperties);
+}
+
+
 /*!
  * \class SourceArtifact
  * \brief The \c SourceArtifact class represents a source file.
@@ -493,6 +513,7 @@ void ResolvedProduct::load(PersistentPool &pool)
     pool.loadContainerS(scanners);
     pool.loadContainerS(groups);
     pool.loadContainerS(artifactProperties);
+    pool.loadContainerS(probes);
     buildData.reset(pool.idLoad<ProductBuildData>());
 }
 
@@ -517,6 +538,7 @@ void ResolvedProduct::store(PersistentPool &pool) const
     pool.storeContainer(scanners);
     pool.storeContainer(groups);
     pool.storeContainer(artifactProperties);
+    pool.storeContainer(probes);
     pool.store(buildData.data());
 }
 

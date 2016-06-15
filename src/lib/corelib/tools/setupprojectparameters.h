@@ -105,6 +105,9 @@ public:
     bool logElapsedTime() const;
     void setLogElapsedTime(bool logElapsedTime);
 
+    bool forceProbeExecution() const;
+    void setForceProbeExecution(bool force);
+
     QProcessEnvironment environment() const;
     void setEnvironment(const QProcessEnvironment &env);
     QProcessEnvironment adjustedEnvironment() const;

@@ -266,6 +266,20 @@ QString DryRunOption::longRepresentation() const
     return QLatin1String("--dry-run");
 }
 
+QString ForceProbesOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1\n"
+            "\tForce re-execution of all Probe items' configure scripts, rather than using the\n"
+            "\tcached data.\n")
+            .arg(longRepresentation());
+}
+
+QString ForceProbesOption::longRepresentation() const
+{
+    return QLatin1String("--force-probe-execution");
+}
+
 QString NoInstallOption::description(CommandType command) const
 {
     Q_UNUSED(command);

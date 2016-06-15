@@ -65,6 +65,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::DryRunOptionType:
             option = new DryRunOption;
             break;
+        case CommandLineOption::ForceProbesOptionType:
+            option = new ForceProbesOption;
+            break;
         case CommandLineOption::ShowProgressOptionType:
             option = new ShowProgressOption;
             break;
@@ -153,6 +156,11 @@ ShowProgressOption *CommandLineOptionPool::showProgressOption() const
 DryRunOption *CommandLineOptionPool::dryRunOption() const
 {
     return static_cast<DryRunOption *>(getOption(CommandLineOption::DryRunOptionType));
+}
+
+ForceProbesOption *CommandLineOptionPool::forceProbesOption() const
+{
+    return static_cast<ForceProbesOption *>(getOption(CommandLineOption::ForceProbesOptionType));
 }
 
 ChangedFilesOption *CommandLineOptionPool::changedFilesOption() const

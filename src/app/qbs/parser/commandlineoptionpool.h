@@ -49,6 +49,7 @@ public:
     QuietOption *quietOption() const;
     ShowProgressOption *showProgressOption() const;
     DryRunOption *dryRunOption() const;
+    ForceProbesOption *forceProbesOption() const;
     ChangedFilesOption *changedFilesOption() const;
     KeepGoingOption *keepGoingOption() const;
     JobsOption *jobsOption() const;

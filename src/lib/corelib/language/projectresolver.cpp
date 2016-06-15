@@ -352,6 +352,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
                     product->destinationDirectory);
     }
     product->location = item->location();
+    product->probes = pi.probes;
     product->productProperties = createProductConfig();
     product->productProperties.insert(destDirKey, product->destinationDirectory);
     QVariantMap moduleProperties;

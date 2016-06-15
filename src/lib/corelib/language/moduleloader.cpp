@@ -35,6 +35,7 @@
 #include "filecontext.h"
 #include "item.h"
 #include "itemreader.h"
+#include "language.h"
 #include "modulemerger.h"
 #include "qualifiedid.h"
 #include "scriptengine.h"
@@ -168,6 +169,11 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
         foreach (const QString &path, m_moduleSearchPaths)
             m_logger.qbsTrace() << "    " << path;
     }
+}
+
+void ModuleLoader::setOldProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes)
+{
+    m_oldProbes = oldProbes;
 }
 
 ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
@@ -321,9 +327,8 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
                     throw err;
                 }
                 m_logger.printWarning(err);
-                ModuleLoaderResult::ProductInfo pi;
-                pi.hasError = true;
-                it->project->result->productInfos.insert(it->item, pi);
+                it->info.hasError = true;
+                it->project->result->productInfos.insert(it->item, it->info);
                 m_disabledItems << it->item;
             }
         }
@@ -649,7 +654,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
         if (!module.item->isPresentModule())
             continue;
         try {
-            resolveProbes(module.item);
+            resolveProbes(productContext, module.item);
             m_evaluator->boolValue(module.item, QLatin1String("validate"));
         } catch (const ErrorInfo &error) {
             if (module.required) { // Error will be thrown for enabled products only
@@ -661,7 +666,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
         }
     }
 
-    resolveProbes(item);
+    resolveProbes(productContext, item);
 
     if (!checkItemCondition(item)) {
         Item * const productModule = m_productModuleCache.value(productContext->name);
@@ -675,6 +680,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
         if (child->type() == ItemType::Group)
             handleGroup(productContext, child);
     }
+    productContext->project->result->productInfos.insert(item, productContext->info);
 }
 
 void ModuleLoader::initProductProperties(const ProductContext &product)
@@ -783,6 +789,26 @@ bool ModuleLoader::checkExportItemCondition(Item *exportItem, const ProductConte
         Item * const m_exportItem;
     } scopeHandler(exportItem, productContext, &m_tempScopeItem);
     return checkItemCondition(exportItem);
+}
+
+ProbeConstPtr ModuleLoader::findOldProbe(const QString &product,
+                                         bool condition,
+                                         const QVariantMap &initialProperties,
+                                         const QString &sourceCode) const
+{
+    if (m_parameters.forceProbeExecution())
+        return ProbeConstPtr();
+    foreach (const ProbeConstPtr &oldProbe, m_oldProbes.value(product)) {
+        if (oldProbe->condition() != condition)
+            continue;
+        if (oldProbe->configureScript() != sourceCode)
+            continue;
+        if (oldProbe->initialProperties() != initialProperties)
+            continue;
+        return oldProbe;
+    }
+
+    return ProbeConstPtr();
 }
 
 void ModuleLoader::mergeExportItems(const ProductContext &productContext)
@@ -1598,14 +1624,14 @@ void ModuleLoader::createChildInstances(ProductContext *productContext, Item *in
     }
 }
 
-void ModuleLoader::resolveProbes(Item *item)
+void ModuleLoader::resolveProbes(ProductContext *productContext, Item *item)
 {
     foreach (Item *child, item->children())
         if (child->type() == ItemType::Probe)
-            resolveProbe(item, child);
+            resolveProbe(productContext, item, child);
 }
 
-void ModuleLoader::resolveProbe(Item *parent, Item *probe)
+void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, Item *probe)
 {
     m_logger.qbsTrace() << "Resolving Probe at " << probe->location().toString();
     const JSSourceValueConstPtr configureScript = probe->sourceProperty(QLatin1String("configure"));
@@ -1613,11 +1639,15 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
     typedef QPair<QString, QScriptValue> ProbeProperty;
     QList<ProbeProperty> probeBindings;
+    QVariantMap initialProperties;
     for (Item *obj = probe; obj; obj = obj->prototype()) {
         foreach (const QString &name, obj->properties().keys()) {
             if (name == QLatin1String("configure"))
                 continue;
-            probeBindings += ProbeProperty(name, m_evaluator->value(probe, name));
+            const QScriptValue value = m_evaluator->value(probe, name);
+            probeBindings += ProbeProperty(name, value);
+            if (name != QLatin1String("condition"))
+                initialProperties.insert(name, value.toVariant());
         }
     }
     QScriptValue scope = m_engine->newObject();
@@ -1626,20 +1656,31 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
     m_engine->currentContext()->pushScope(scope);
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
-    const bool runProbe = m_evaluator->boolValue(probe, QLatin1String("condition"));
+    const bool condition = m_evaluator->boolValue(probe, QLatin1String("condition"));
+    ProbeConstPtr resolvedProbe = findOldProbe(productContext->name, condition, initialProperties,
+                                               configureScript->sourceCode().toString());
     ErrorInfo evalError;
-    if (runProbe) {
+    if (!condition) {
+        m_logger.qbsDebug() << "Probe disabled; skipping";
+    } else if (!resolvedProbe) {
         QScriptValue sv = m_engine->evaluate(configureScript->sourceCodeForEvaluation());
         if (Q_UNLIKELY(m_engine->hasErrorOrException(sv)))
             evalError = ErrorInfo(m_engine->lastErrorString(sv), configureScript->location());
-    } else {
-        m_logger.qbsDebug() << "Probe disabled; skipping";
     }
+    QVariantMap properties;
     foreach (const ProbeProperty &b, probeBindings) {
-        const QVariant newValue = scope.property(b.first).toVariant();
+        const QVariant newValue = resolvedProbe
+                ? resolvedProbe->properties().value(b.first) : scope.property(b.first).toVariant();
         if (newValue != b.second.toVariant())
             probe->setProperty(b.first, VariantValue::create(newValue));
+        if (!resolvedProbe)
+            properties.insert(b.first, newValue);
     }
+    if (!resolvedProbe) {
+        resolvedProbe = Probe::create(probe->location(), condition,
+                configureScript->sourceCode().toString(), properties, initialProperties);
+    }
+    productContext->info.probes << resolvedProbe;
     m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
