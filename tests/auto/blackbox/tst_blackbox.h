@@ -147,6 +147,7 @@ private slots:
     void installedTransformerOutput();
     void installPackage();
     void installTree();
+    void invalidCommandProperty();
     void java();
     void jsExtensionsFile();
     void jsExtensionsFileInfo();

@@ -2353,6 +2353,15 @@ void TestBlackbox::installTree()
     QVERIFY(QFile::exists(installRoot + "content/subdir2/baz.txt"));
 }
 
+void TestBlackbox::invalidCommandProperty()
+{
+    QDir::setCurrent(testDataDir + "/invalid-command-property");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("unsuitable"), m_qbsStderr.constData());
+}
+
 static QProcessEnvironment processEnvironmentWithCurrentDirectoryInLibraryPath()
 {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
