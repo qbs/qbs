@@ -23,6 +23,23 @@ Product {
     Depends { name: "archiver" }
     Depends { name: "Qt.core" }
 
+    property stringList windeployqtArgs: [
+        "--no-svg",
+        "--no-system-d3d-compiler",
+        "--no-angle",
+        "--no-opengl-sw",
+        "--no-compiler-runtime",
+    ]
+
+    // List of path prefixes to be excluded from the generated archive
+    property stringList excludedPathPrefixes: [
+        "bin/icudt",
+        "bin/icuin",
+        "bin/icuuc",
+        "bin/iconengines/",
+        "bin/imageformats/",
+    ]
+
     condition: qbs.targetOS.contains("windows")
     builtByDefault: false
     type: ["archiver.archive"]
@@ -46,10 +63,14 @@ Product {
             cmd.description = "windeployqt";
             cmd.outputFilePath = output.filePath;
             cmd.installRoot = product.moduleProperty("qbs", "installRoot");
+            cmd.windeployqtArgs = product.windeployqtArgs;
             cmd.binaryFilePaths = inputs.installable.filter(function (artifact) {
                 return artifact.fileTags.contains("application")
                         || artifact.fileTags.contains("dynamiclibrary");
             }).map(function(a) { return ModUtils.artifactInstalledFilePath(a); });
+            cmd.extendedDescription = FileInfo.joinPaths(
+                        product.moduleProperty("Qt.core", "binPath"), "windeployqt") + ".exe " +
+                    ["--json"].concat(cmd.windeployqtArgs).concat(cmd.binaryFilePaths).join(" ");
             cmd.sourceCode = function () {
                 var out;
                 var process;
@@ -57,7 +78,7 @@ Product {
                     process = new Process();
                     process.exec(FileInfo.joinPaths(product.moduleProperty("Qt.core", "binPath"),
                                                     "windeployqt"), ["--json"]
-                                 .concat(binaryFilePaths), true);
+                                 .concat(windeployqtArgs).concat(binaryFilePaths), true);
                     out = process.readStdOut();
                 } finally {
                     if (process)
@@ -90,6 +111,7 @@ Product {
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
+            cmd.excludedPathPrefixes = product.excludedPathPrefixes;
             cmd.inputFilePaths = inputs.installable.map(function(a) {
                 return ModUtils.artifactInstalledFilePath(a);
             });
@@ -119,8 +141,19 @@ Product {
 
                 try {
                     tf = new TextFile(outputFilePath, TextFile.ReadWrite);
-                    for (var i = 0; i < inputFilePaths.length; ++i)
-                        tf.writeLine(FileInfo.relativePath(installRoot, inputFilePaths[i]));
+                    for (var i = 0; i < inputFilePaths.length; ++i) {
+                        var ignore = false;
+                        var relativePath = FileInfo.relativePath(installRoot, inputFilePaths[i]);
+                        for (var j = 0; j < excludedPathPrefixes.length; ++j) {
+                            if (relativePath.startsWith(excludedPathPrefixes[j])) {
+                                ignore = true;
+                                break;
+                            }
+                        }
+
+                        if (!ignore)
+                            tf.writeLine(relativePath);
+                    }
                 } finally {
                     if (tf)
                         tf.close();

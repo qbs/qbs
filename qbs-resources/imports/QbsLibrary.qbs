@@ -19,6 +19,12 @@ QbsProduct {
         qbs.install: true
         qbs.installDir: qbsbuildconfig.libInstallDir
     }
+    Group {
+        fileTagsFilter: ["dynamiclibrary_import"]
+        qbs.install: true
+        qbs.installDir: qbsbuildconfig.importLibInstallDir
+    }
+
     Export {
         Depends { name: "cpp" }
         Depends { name: "Qt"; submodules: ["core"] }

@@ -6,6 +6,16 @@ Product {
     name: "qbs resources"
     type: ["copied qbs resources"]
     Depends { name: "qbsbuildconfig" }
+
+    Group {
+        name: "Incredibuild"
+        prefix: "../bin/"
+        files: ["ibmsvc.xml", "ibqbs.bat"]
+        fileTags: []
+        qbs.install: qbs.targetOS.contains("windows")
+        qbs.installDir: qbsbuildconfig.appInstallDir
+    }
+
     Group {
         name: "Modules and imports"
         files: ["qbs/**/*"]
