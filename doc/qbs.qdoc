@@ -558,6 +558,48 @@
         cpp.optimization: qbs.buildVariant == "debug" ? "none" : "fast"
     \endcode
 
+    \section1 Property Types
+
+    While properties in \QBS generally work the same way as in QML, the set of possible property
+    types has been adapted to reflect the specific needs of a build tool. The supported types
+    are as follows:
+
+    \table
+    \header
+        \li Property type
+        \li Example
+        \li Description
+    \row
+        \li \c bool
+        \li \c{property bool someBoolean: false}
+        \li The usual boolean values.
+    \row
+        \li \c int
+        \li \c{property int theAnswer: 42}
+        \li Integral numbers.
+    \row
+        \li \c path
+        \li \c{property path aFile: "file.txt"}
+        \li File paths resolved relative to the directory the product they are associated with
+            is located in.
+    \row
+        \li \c pathList
+        \li \c{property pathList twoFiles: ["file1.txt", "./file2.txt"]}
+        \li A list of \c path values.
+    \row
+        \li \c string
+        \li \c{property string parentalAdvisory: "explicit lyrics"}
+        \li JavaScript strings.
+    \row
+        \li \c stringList
+        \li \c{property stringList realWorldExample: ["no", "not really"]}
+        \li A list of JavaScript strings.
+    \row
+        \li \c var
+        \li \c{property var aMap: ({ key1: "value1", key2: "value2" })}
+        \li Generic data, as in QML.
+    \endtable
+
 
     \section1 File Tags and Taggers
 
