@@ -633,8 +633,10 @@
     \QBS applies a \e rule to a pool of artifacts (in the beginning it is just the set of
     source files of the project) and chooses the ones that match the input file
     tags specified by the rule. Then it creates output artifacts in the build graph that have other
-    filenames and file tags. It also creates a script that transforms the input artifact into the
-    output artifact.
+    filenames and file tags. It also creates a script that transforms the input artifacts into the
+    output artifacts. Artifacts created by one rule can (and typically do) serve as inputs to
+    another rule. In this way, rules are connected to one another via their input and output
+    file tags.
 
     For examples of rules, see the share/qbs/modules directory in the \QBS
     repository.

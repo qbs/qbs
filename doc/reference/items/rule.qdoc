@@ -89,6 +89,34 @@
     }
     \endcode
 
+    It is important to know that when figuring out which rules to execute, \QBS starts at the
+    product type and then looks for a way to produce artifacts with matching file tags from
+    source files, using a chain of rules that are connected by their respective input and output
+    tags. For instance, consider this simple C++ project:
+    \code
+    Product {
+        type: ["application"]
+        Depends { name: "cpp" }
+        files: ["main.cpp"]
+    }
+    \endcode
+    Here's how this product is built:
+    \list 1
+        \li \QBS looks for a rule that can produce artifacts with the file tag
+            \c{"application"}. Such a rule is found in the \c cpp module (namely, the rule that
+            invokes the linker).
+        \li Since the rule found in the previous step takes inputs of type \c{"obj"}, \QBS now
+            looks for a rule that produces artifacts of that type. Again, such a rule is found in
+            the \c cpp module (the rule that runs the compiler).
+        \li The rule found in the previous step takes inputs of type \c{"cpp"}. No rule is found
+            that creates such artifacts, but we do have a source file with a matching type (because
+            the \c cpp module contains a \l{FileTagger item}{FileTagger} which attached that type
+            to \c{"main.cpp"} due to its file extension).
+        \li Now that there is a chain of rules leading from a source file tag to the product type,
+            the commands of these rules are executed one after the other until we end up with
+            our executable.
+    \endlist
+
     \section1 Rule Properties
 
     \table
