@@ -23,13 +23,18 @@ Product {
     Depends { name: "archiver" }
     Depends { name: "Qt.core" }
 
+    readonly property bool hasQt56: {
+        if (Qt.core.versionMajor === 5)
+            return Qt.core.versionMinor >= 6;
+        return Qt.core.versionMajor > 5;
+    }
+
     property stringList windeployqtArgs: [
         "--no-svg",
         "--no-system-d3d-compiler",
         "--no-angle",
-        "--no-opengl-sw",
         "--no-compiler-runtime",
-    ]
+    ].concat(hasQt56 ? ["--no-opengl-sw"] : [])
 
     // List of path prefixes to be excluded from the generated archive
     property stringList excludedPathPrefixes: [
