@@ -44,6 +44,7 @@ Module {
     property bool treatWarningsAsErrors : false
     property string architecture: qbs.architecture
     property string machineType // undocumented
+    property string imageFormat // undocumented
     property string optimization: qbs.optimization
     property bool debugInformation: qbs.debugInformation
     property bool enableReproducibleBuilds: false

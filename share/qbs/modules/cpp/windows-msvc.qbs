@@ -83,6 +83,7 @@ CppModule {
     executableSuffix: ".exe"
     debugInfoSuffix: ".pdb"
     property string dynamicLibraryImportSuffix: ".lib"
+    imageFormat: "pe"
 
     Rule {
         condition: useCPrecompiledHeader

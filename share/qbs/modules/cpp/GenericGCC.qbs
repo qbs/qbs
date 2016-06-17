@@ -132,7 +132,7 @@ CppModule {
     property stringList dsymutilFlags
 
     readonly property bool shouldCreateSymlinks: {
-        return createSymlinks && internalVersion && qbs.targetOS.contains("unix");
+        return createSymlinks && internalVersion && ["macho", "elf"].contains(cpp.imageFormat);
     }
 
     readonly property string internalVersion: {
@@ -142,7 +142,7 @@ CppModule {
         if (!Gcc.isNumericProductVersion(product.version)) {
             // Dynamic library version numbers like "A" or "B" are common on Apple platforms, so
             // don't restrict the product version to a componentized version number here.
-            if (qbs.targetOS.contains("darwin"))
+            if (cpp.imageFormat === "macho")
                 return product.version;
 
             throw("product.version must be a string in the format x[.y[.z[.w]] "

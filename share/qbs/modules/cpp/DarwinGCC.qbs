@@ -43,6 +43,7 @@ UnixGCC {
     targetVendor: "apple"
     targetSystem: "darwin"
     targetAbi: "macho"
+    imageFormat: "macho"
 
     compilerDefines: ["__GNUC__=4", "__APPLE__"]
     loadableModulePrefix: ""

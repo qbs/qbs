@@ -88,9 +88,9 @@ function dynamicLibraryFileName(product, version, maxParts) {
     // Start with prefix + name (i.e. libqbs, qbs)
     var fileName = product.moduleProperty("cpp", "dynamicLibraryPrefix") + product.targetName;
 
-    // For Darwin platforms, append the version number if there is one (i.e. libqbs.1.0.0)
-    var targetOS = product.moduleProperty("qbs", "targetOS");
-    if (version && targetOS.contains("darwin")) {
+    // For Mach-O images, append the version number if there is one (i.e. libqbs.1.0.0)
+    var imageFormat = product.moduleProperty("cpp", "imageFormat");
+    if (version && imageFormat === "macho") {
         fileName += "." + version;
         version = undefined;
     }
@@ -98,8 +98,8 @@ function dynamicLibraryFileName(product, version, maxParts) {
     // Append the suffix (i.e. libqbs.1.0.0.dylib, libqbs.so, qbs.dll)
     fileName += product.moduleProperty("cpp", "dynamicLibrarySuffix");
 
-    // For non-Darwin Unix platforms, append the version number if there is one (i.e. libqbs.so.1.0.0)
-    if (version && targetOS.contains("unix") && !targetOS.contains("darwin"))
+    // For ELF images, append the version number if there is one (i.e. libqbs.so.1.0.0)
+    if (version && imageFormat === "elf")
         fileName += "." + version;
 
     return fileName;
