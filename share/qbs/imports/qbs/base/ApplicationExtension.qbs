@@ -38,7 +38,7 @@ XPCService {
     cpp.entryPoint: "_NSExtensionMain"
     cpp.frameworks: {
         var frameworks = base.concat(["Foundation"]);
-        if (qbs.targetOS.contains("osx") && parseInt(xcode.sdkVersion.split(".")[1], 10) < 11 ||
+        if (qbs.targetOS.contains("macos") && parseInt(xcode.sdkVersion.split(".")[1], 10) < 11 ||
             qbs.targetOS.contains("ios") && parseInt(xcode.sdkVersion.split(".")[0], 10) < 9) {
             frameworks = base.concat(["/System/Library/PrivateFrameworks/PlugInKit.framework"]);
         }

@@ -40,7 +40,7 @@ import qbs 1.0
 
 CppApplication {
     Depends { condition: product.condition; name: "ib" }
-    condition: qbs.targetOS.contains("osx")
+    condition: qbs.targetOS.contains("macos")
     name: "Cocoa Application"
 
     cpp.precompiledHeader: "CocoaApplication/CocoaApplication-Prefix.pch"

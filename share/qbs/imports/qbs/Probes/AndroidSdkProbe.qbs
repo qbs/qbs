@@ -39,7 +39,7 @@ PathProbe {
     platformPaths: {
         if (qbs.hostOS.contains("windows"))
             return [FileInfo.joinPaths(Environment.getEnv("LOCALAPPDATA"), "Android", "sdk")];
-        if (qbs.hostOS.contains("osx"))
+        if (qbs.hostOS.contains("macos"))
             return [FileInfo.joinPaths(Environment.getEnv("HOME"), "Library", "Android", "sdk")];
         if (qbs.hostOS.contains("linux"))
             return [FileInfo.joinPaths(Environment.getEnv("HOME"), "Android", "Sdk")];

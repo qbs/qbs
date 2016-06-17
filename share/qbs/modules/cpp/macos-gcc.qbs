@@ -32,13 +32,13 @@ import qbs 1.0
 import qbs.ModUtils
 
 DarwinGCC {
-    condition: qbs.hostOS.contains('osx') &&
-               qbs.targetOS.contains('osx') &&
+    condition: qbs.hostOS.contains('macos') &&
+               qbs.targetOS.contains('macos') &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
 
-    targetSystem: "macosx" + (minimumOsxVersion || "")
+    targetSystem: "macosx" + (minimumMacosVersion || "")
 
-    minimumDarwinVersion: minimumOsxVersion
+    minimumDarwinVersion: minimumMacosVersion
     minimumDarwinVersionCompilerFlag: "-mmacosx-version-min"
     minimumDarwinVersionLinkerFlag: "-macosx_version_min"
 }

@@ -14,12 +14,12 @@ QbsApp {
     ]
 
     Group {
-        condition: qbs.targetOS.contains("osx")
+        condition: qbs.targetOS.contains("macos")
         files: ["fgapp.mm"]
     }
 
     Properties {
-        condition: qbs.targetOS.contains("osx")
+        condition: qbs.targetOS.contains("macos")
         cpp.frameworks: ["ApplicationServices", "Cocoa"]
     }
 

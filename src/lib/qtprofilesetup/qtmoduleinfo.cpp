@@ -608,7 +608,7 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
         if (hasV2 && !hasModuleEntry)
             moduleInfo.hasLibrary = false;
 
-        // Fix include paths for OS X and iOS frameworks.
+        // Fix include paths for Apple frameworks.
         // The qt_lib_XXX.pri files contain wrong values for versions < 5.6.
         if (!hasV2 && moduleInfo.isFramework(qtEnvironment)) {
             moduleInfo.includePaths.clear();

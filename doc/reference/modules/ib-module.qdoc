@@ -40,7 +40,7 @@
     The \c ib module contains properties and rules for building Interface Builder documents,
     storyboards, asset catalogs, and icon sets.
 
-    This module is only available on OS X and iOS.
+    This module is only available on Apple platforms.
 
     \section1 General Properties
 

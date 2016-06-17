@@ -31,7 +31,7 @@
 import qbs
 
 DarwinGCC {
-    condition: qbs.hostOS.contains('osx') &&
+    condition: qbs.hostOS.contains('macos') &&
                qbs.targetOS.contains('tvos') &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
 

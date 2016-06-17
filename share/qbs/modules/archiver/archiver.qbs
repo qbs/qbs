@@ -159,7 +159,7 @@ Module {
                     args.push("-cfM", output.filePath, "@" + input.filePath);
                 } else if (binaryName === "zip") {
                     // The "zip" program included with most Linux and Unix distributions
-                    // (including OS X) is Info-ZIP's Zip, so this should be fairly portable.
+                    // (including macOS) is Info-ZIP's Zip, so this should be fairly portable.
                     if (compression === "none") {
                         args.push("-0");
                     } else {

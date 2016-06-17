@@ -69,11 +69,11 @@ UnixGCC {
     property var defaultInfoPlist: {
         var dict = {};
 
-        if (qbs.targetOS.contains("osx")) {
+        if (qbs.targetOS.contains("macos")) {
             dict["NSPrincipalClass"] = "NSApplication"; // needed for Retina display support
 
-            if (minimumOsxVersion)
-                dict["LSMinimumSystemVersion"] = minimumOsxVersion;
+            if (minimumMacosVersion)
+                dict["LSMinimumSystemVersion"] = minimumMacosVersion;
         }
 
         if (qbs.targetOS.containsAny(["ios", "tvos"])) {
@@ -130,8 +130,8 @@ UnixGCC {
         // because this indicates the default deployment target for that OS
         if (qbs.targetOS.contains("ios"))
             env["IPHONEOS_DEPLOYMENT_TARGET"] = minimumIosVersion || "";
-        if (qbs.targetOS.contains("osx"))
-            env["MACOSX_DEPLOYMENT_TARGET"] = minimumOsxVersion || "";
+        if (qbs.targetOS.contains("macos"))
+            env["MACOSX_DEPLOYMENT_TARGET"] = minimumMacosVersion || "";
         if (qbs.targetOS.contains("watchos"))
             env["WATCHOS_DEPLOYMENT_TARGET"] = minimumWatchosVersion || "";
         if (qbs.targetOS.contains("tvos"))

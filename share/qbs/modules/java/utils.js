@@ -95,7 +95,7 @@ function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
         return undefined;
     }
 
-    if (hostOS.contains("osx")) {
+    if (hostOS.contains("macos")) {
         var p = new Process();
         try {
             // We filter by architecture here so that we'll get a compatible JVM for JNI use.

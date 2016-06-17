@@ -93,7 +93,7 @@ QVariantMap certificateInfo(const QByteArray &data)
 
 QVariantMap identitiesProperties()
 {
-    // Apple documentation states that the Sec* family of functions are not thread-safe on OS X
+    // Apple documentation states that the Sec* family of functions are not thread-safe on macOS
     // https://developer.apple.com/library/mac/documentation/Security/Reference/certifkeytrustservices/
     static QMutex securityMutex;
     QMutexLocker locker(&securityMutex);

@@ -83,10 +83,12 @@ Module {
     }
 
     property string minimumOsxVersion
+
+    property string minimumMacosVersion: minimumOsxVersion
     PropertyOptions {
-        name: "minimumOsxVersion"
+        name: "minimumMacosVersion"
         description: "a version number in the format [major].[minor] indicating the earliest \
-                        version of OS X that the product should run on. passes -mmacosx-version-min=<version> \
+                        version of macOS that the product should run on. passes -mmacosx-version-min=<version> \
                         to the compiler. if undefined, compiler defaults will be used."
     }
 
@@ -135,7 +137,7 @@ Module {
     PropertyOptions {
         name: "installNamePrefix"
         description: "The prefix for the internal install name (LC_ID_DYLIB) of a dynamic library \
-                      on Darwin (OS X and iOS)."
+                      on Darwin (macOS and iOS)."
     }
 
     property pathList includePaths
@@ -297,7 +299,7 @@ Module {
     property stringList platformObjcxxFlags
     property stringList platformLinkerFlags
 
-    // OS X and iOS properties
+    // Apple platforms properties
     property bool automaticReferenceCounting
     PropertyOptions {
         name: "automaticReferenceCounting"

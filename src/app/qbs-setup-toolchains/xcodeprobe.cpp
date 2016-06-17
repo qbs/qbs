@@ -117,7 +117,7 @@ static QStringList targetOSList(const QString &applePlatformName)
 {
     QStringList targetOS;
     if (applePlatformName == QStringLiteral("macosx")) {
-        targetOS << QStringLiteral("osx");
+        targetOS << QStringLiteral("macos");
     } else if (applePlatformName == QStringLiteral("iphoneos")) {
         targetOS << QStringLiteral("ios");
     } else if (applePlatformName == QStringLiteral("iphonesimulator")) {

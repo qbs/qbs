@@ -82,7 +82,7 @@ Module {
             var reader = new Bundle.XcodeBuildSpecsReader(specsPath,
                                                           specsSeparator,
                                                           additionalSettings,
-                                                          !qbs.targetOS.contains("osx"));
+                                                          !qbs.targetOS.contains("macos"));
             var settings = reader.expandedSettings(_productTypeIdentifier);
             if (settings) {
                 xcodeSettings = settings;
@@ -143,7 +143,7 @@ Module {
     property var infoPlist
     property bool processInfoPlist: true
     property bool embedInfoPlist: product.type.contains("application") && !isBundle
-    property string infoPlistFormat: qbs.targetOS.contains("osx") ? "same-as-input" : "binary1"
+    property string infoPlistFormat: qbs.targetOS.contains("macos") ? "same-as-input" : "binary1"
 
     property string localizedResourcesFolderSuffix: ".lproj"
 
@@ -735,7 +735,7 @@ Module {
                     }
 
                     if (product.type.contains("application")
-                            && product.moduleProperty("qbs", "targetOS").contains("osx")) {
+                            && product.moduleProperty("qbs", "targetOS").contains("macos")) {
                         cmd = new Command(ModUtils.moduleProperty(product, "lsregisterPath"),
                                           ["-f", bundles[i].filePath]);
                         cmd.description = "register " + ModUtils.moduleProperty(product, "bundleName");

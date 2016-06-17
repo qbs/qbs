@@ -50,7 +50,7 @@ Project {
             cpp.defines: ["WITH_SETUPAPI"]
         }
         Properties {
-            condition: qbs.targetOS.contains("osx")
+            condition: qbs.targetOS.contains("macos")
             cpp.defines: ["WITH_LEX_YACC"]
         }
         Properties {
@@ -65,7 +65,7 @@ Project {
                 cpp.staticLibraries: ["pthread"]
             }
             Properties {
-                condition: qbs.targetOS.contains("osx")
+                condition: qbs.targetOS.contains("macos")
                 cpp.staticLibraries: ["l", "y"]
             }
             Properties {

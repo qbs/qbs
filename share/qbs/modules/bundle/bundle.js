@@ -135,7 +135,7 @@ var XcodeBuildSpecsReader = (function () {
                 if (typesObject["BasedOn"]) {
                     // We'll only do the auto shallow substitution for wrapper package types...
                     // this ensures that in-app purchase content bundles are non-shallow on both
-                    // OS X and iOS, for example (which matches Xcode behavior)
+                    // macOS and iOS, for example (which matches Xcode behavior)
                     var isWrapper = false;
                     if (typesObject["ProductReference"]) {
                         var fileType = typesObject["ProductReference"]["FileType"];

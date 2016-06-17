@@ -35,8 +35,8 @@
     \ingroup list-of-items
 
     \title XPCService Item
-    \brief Represents a product that is an OS X or iOS XPC service.
+    \brief Represents a product that is a macOS, iOS, tvOS, or watchOS XPC service.
 
     An \c XPCService item is a convenience item based on \c Application that
-    sets some properties required for OS X and iOS XPC services.
+    sets some properties required for macOS, iOS, tvOS, or watchOS XPC services.
 */

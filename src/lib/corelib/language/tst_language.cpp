@@ -664,7 +664,7 @@ void TestLanguage::getNativeSetting()
         project = loader->loadProject(defaultParameters);
 
         QString expectedProductName;
-        if (HostOsInfo::isOsxHost())
+        if (HostOsInfo::isMacosHost())
             expectedProductName = QLatin1String("Mac OS X");
         else if (HostOsInfo::isWindowsHost())
             expectedProductName = QLatin1String("Windows");
@@ -1949,7 +1949,7 @@ void TestLanguage::wildcards()
         QVERIFY(product);
         GroupPtr group;
         if (useGroup) {
-            QCOMPARE(product->groups.count(), HostOsInfo::isOsxHost() ? 4 : 3);
+            QCOMPARE(product->groups.count(), HostOsInfo::isMacosHost() ? 4 : 3);
             foreach (const GroupPtr &rg, product->groups) {
                 if (rg->name == groupName) {
                     group = rg;
@@ -1957,7 +1957,7 @@ void TestLanguage::wildcards()
                 }
             }
         } else {
-            QCOMPARE(product->groups.count(), HostOsInfo::isOsxHost() ? 3 : 2);
+            QCOMPARE(product->groups.count(), HostOsInfo::isMacosHost() ? 3 : 2);
             group = product->groups.first();
         }
         QVERIFY(group);

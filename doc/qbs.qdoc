@@ -514,7 +514,7 @@
         \li stringlist
         \li platform-dependent
         \li The host operating system.
-            May contain "windows", "linux", "osx", "darwin", "unix", etc.
+            May contain "windows", "linux", "macos", "darwin", "unix", etc.
             \note Do not confuse this with the \c{qbs.targetOS} property, which represents the
             operating system on which the binaries produced by \QBS will run.
     \row
@@ -522,7 +522,7 @@
         \li stringlist
         \li platform-dependent
         \li The target operating system.
-            May contain "windows", "linux", "osx", "darwin", "unix",
+            May contain "windows", "linux", "macos", "darwin", "unix",
             "ios", "android", "blackberry", "qnx", etc.
     \endtable
 

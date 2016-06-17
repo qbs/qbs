@@ -54,18 +54,18 @@ using qbs::Internal::removeDirectoryWithContents;
 using qbs::Profile;
 using qbs::Settings;
 
-class OsXTarHealer {
+class MacosTarHealer {
 public:
-    OsXTarHealer() {
-        if (HostOsInfo::hostOs() == HostOsInfo::HostOsOsx) {
-            // work around absurd tar behavior on OS X
+    MacosTarHealer() {
+        if (HostOsInfo::hostOs() == HostOsInfo::HostOsMacos) {
+            // work around absurd tar behavior on macOS
             qputenv("COPY_EXTENDED_ATTRIBUTES_DISABLE", "true");
             qputenv("COPYFILE_DISABLE", "true");
         }
     }
 
-    ~OsXTarHealer() {
-        if (HostOsInfo::hostOs() == HostOsInfo::HostOsOsx) {
+    ~MacosTarHealer() {
+        if (HostOsInfo::hostOs() == HostOsInfo::HostOsMacos) {
             qunsetenv("COPY_EXTENDED_ATTRIBUTES_DISABLE");
             qunsetenv("COPYFILE_DISABLE");
         }
@@ -346,7 +346,7 @@ void TestBlackbox::tar()
 {
     if (HostOsInfo::hostOs() == HostOsInfo::HostOsWindows)
         QSKIP("Beware of the msys tar");
-    OsXTarHealer tarHealer;
+    MacosTarHealer tarHealer;
     QDir::setCurrent(testDataDir + "/archiver");
     QString binary = findArchiver("tar");
     if (binary.isEmpty())
@@ -540,8 +540,8 @@ public:
 
 void TestBlackbox::bundleStructure()
 {
-    if (!HostOsInfo::isOsxHost())
-        QSKIP("only applies on OS X");
+    if (!HostOsInfo::isMacosHost())
+        QSKIP("only applies on macOS");
 
     QFETCH(QString, productName);
     QFETCH(QString, productTypeIdentifier);
@@ -921,8 +921,8 @@ void TestBlackbox::dependencyProfileMismatch()
 
 void TestBlackbox::deploymentTarget()
 {
-    if (!HostOsInfo::isOsxHost())
-        QSKIP("only applies on OS X");
+    if (!HostOsInfo::isMacosHost())
+        QSKIP("only applies on macOS");
 
     QFETCH(QString, os);
     QFETCH(QString, arch);
@@ -950,7 +950,7 @@ void TestBlackbox::deploymentTarget_data()
     QTest::addColumn<QString>("arch");
     QTest::addColumn<QString>("cflags");
     QTest::addColumn<QString>("lflags");
-    QTest::newRow("osx") << "osx,darwin,bsd,unix" << "x86_64"
+    QTest::newRow("macos") << "macos,darwin,bsd,unix" << "x86_64"
                          << "-triple x86_64-apple-macosx10.4"
                          << "-macosx_version_min 10.4";
     QTest::newRow("ios") << "ios,darwin,bsd,unix" << "arm64"
@@ -1038,7 +1038,7 @@ void TestBlackbox::clean()
             + '/' + QBS_HOST_DYNAMICLIB_PREFIX + "dep";
     QString depLibFilePath;
     QStringList symlinks;
-    if (qbs::Internal::HostOsInfo::isOsxHost()) {
+    if (qbs::Internal::HostOsInfo::isMacosHost()) {
         depLibFilePath = depLibBase + ".1.1.0" + QBS_HOST_DYNAMICLIB_SUFFIX;
         symlinks << depLibBase + ".1.1" + QBS_HOST_DYNAMICLIB_SUFFIX
                  << depLibBase + ".1"  + QBS_HOST_DYNAMICLIB_SUFFIX
@@ -1193,7 +1193,7 @@ void TestBlackbox::separateDebugInfo()
     Profile buildProfile(profileName(), &settings);
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
     QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
-    if (targetOS.contains("darwin") || (targetOS.isEmpty() && HostOsInfo::isOsxHost())) {
+    if (targetOS.contains("darwin") || (targetOS.isEmpty() && HostOsInfo::isMacosHost())) {
         QVERIFY(directoryExists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
         QVERIFY(regularFileExists(relativeProductBuildDir("app1")
             + "/app1.app.dSYM/Contents/Info.plist"));
@@ -2104,8 +2104,8 @@ void TestBlackbox::propertyChanges()
 
 void TestBlackbox::qobjectInObjectiveCpp()
 {
-    if (!HostOsInfo::isOsxHost())
-        QSKIP("only applies on OS X");
+    if (!HostOsInfo::isMacosHost())
+        QSKIP("only applies on macOS");
     const QString testDir = testDataDir + "/qobject-in-mm";
     QDir::setCurrent(testDir);
     QCOMPARE(runQbs(), 0);
@@ -2309,7 +2309,7 @@ void TestBlackbox::installPackage()
     QString binary = findArchiver("tar");
     if (binary.isEmpty())
         QSKIP("tar not found");
-    OsXTarHealer tarHealer;
+    MacosTarHealer tarHealer;
     QDir::setCurrent(testDataDir + "/installpackage");
     QCOMPARE(runQbs(), 0);
     const QString tarFilePath = relativeProductBuildDir("tar-package") + "/tar-package.tar.gz";
@@ -2548,8 +2548,8 @@ void TestBlackbox::jsExtensionsProcess()
 
 void TestBlackbox::jsExtensionsPropertyList()
 {
-    if (!HostOsInfo::isOsxHost())
-        QSKIP("temporarily only applies on OS X");
+    if (!HostOsInfo::isMacosHost())
+        QSKIP("temporarily only applies on macOS");
 
     QDir::setCurrent(testDataDir + "/jsextensions-propertylist");
     QbsRunParameters params(QStringList() << "-nf" << "propertylist.qbs");
@@ -3413,8 +3413,8 @@ QString getEmbeddedBinaryPlist(const QString &file)
 
 void TestBlackbox::embedInfoPlist()
 {
-    if (!HostOsInfo::isOsxHost())
-        QSKIP("only applies on OS X");
+    if (!HostOsInfo::isMacosHost())
+        QSKIP("only applies on macOS");
 
     QDir::setCurrent(testDataDir + QLatin1String("/embedInfoPlist"));
 
@@ -3466,7 +3466,7 @@ void TestBlackbox::enableExceptions_data()
     QTest::newRow("C++ exceptions, enabled") << "exceptions.qbs" << true << true;
     QTest::newRow("C++ exceptions, disabled") << "exceptions.qbs" << false << false;
 
-    if (HostOsInfo::isOsxHost()) {
+    if (HostOsInfo::isMacosHost()) {
         QTest::newRow("Objective-C exceptions, enabled") << "exceptions-objc.qbs" << true << true;
         QTest::newRow("Objective-C exceptions in Objective-C++ source, enabled") << "exceptions-objcpp.qbs" << true << true;
         QTest::newRow("C++ exceptions in Objective-C++ source, enabled") << "exceptions-objcpp-cpp.qbs" << true << true;
@@ -3486,7 +3486,7 @@ void TestBlackbox::enableRtti()
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(params), 0);
 
-    if (HostOsInfo::isOsxHost()) {
+    if (HostOsInfo::isMacosHost()) {
         params.arguments = QStringList() << "cpp.enableRtti:true" << "project.treatAsObjcpp:true";
         rmDirR(relativeBuildDir());
         QCOMPARE(runQbs(params), 0);
@@ -3498,7 +3498,7 @@ void TestBlackbox::enableRtti()
     rmDirR(relativeBuildDir());
     QVERIFY(runQbs(params) != 0);
 
-    if (HostOsInfo::isOsxHost()) {
+    if (HostOsInfo::isMacosHost()) {
         params.arguments = QStringList() << "cpp.enableRtti:false" << "project.treatAsObjcpp:true";
         rmDirR(relativeBuildDir());
         QVERIFY(runQbs(params) != 0);
@@ -3507,8 +3507,8 @@ void TestBlackbox::enableRtti()
 
 void TestBlackbox::frameworkStructure()
 {
-    if (!HostOsInfo::isOsxHost())
-        QSKIP("only applies on OS X");
+    if (!HostOsInfo::isMacosHost())
+        QSKIP("only applies on macOS");
 
     QDir::setCurrent(testDataDir + QLatin1String("/frameworkStructure"));
 
@@ -3662,8 +3662,8 @@ void TestBlackbox::typescript()
 
 void TestBlackbox::iconset()
 {
-    if (!HostOsInfo::isOsxHost() || !isXcodeProfile(profileName()))
-        QSKIP("only applies on OS X with Xcode based profiles");
+    if (!HostOsInfo::isMacosHost() || !isXcodeProfile(profileName()))
+        QSKIP("only applies on macOS with Xcode based profiles");
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/iconset"));
 
@@ -3676,8 +3676,8 @@ void TestBlackbox::iconset()
 
 void TestBlackbox::iconsetApp()
 {
-    if (!HostOsInfo::isOsxHost() || !isXcodeProfile(profileName()))
-        QSKIP("only applies on OS X with Xcode based profiles");
+    if (!HostOsInfo::isMacosHost() || !isXcodeProfile(profileName()))
+        QSKIP("only applies on macOS with Xcode based profiles");
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/iconsetapp"));
 
@@ -3696,8 +3696,8 @@ void TestBlackbox::importingProduct()
 
 void TestBlackbox::infoPlist()
 {
-    if (!HostOsInfo::isOsxHost())
-        QSKIP("only applies on OS X");
+    if (!HostOsInfo::isMacosHost())
+        QSKIP("only applies on macOS");
 
     QDir::setCurrent(testDataDir + "/infoplist");
 
@@ -3717,11 +3717,11 @@ void TestBlackbox::assetCatalog()
 {
     QFETCH(bool, flatten);
 
-    if (!HostOsInfo::isOsxHost() || !isXcodeProfile(profileName()))
-        QSKIP("only applies on OS X with Xcode based profiles");
+    if (!HostOsInfo::isMacosHost() || !isXcodeProfile(profileName()))
+        QSKIP("only applies on macOS with Xcode based profiles");
 
     if (HostOsInfo::hostOsVersion() < qbs::Internal::Version(10, 9))
-        QSKIP("This test needs at least OS X 10.9.");
+        QSKIP("This test needs at least macOS 10.9.");
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/assetcatalog"));
 
@@ -3741,11 +3741,11 @@ void TestBlackbox::assetCatalog()
     // empty asset catalogs must still produce output
     QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
 
-    // should not produce a CAR since minimumOsxVersion will be < 10.9
+    // should not produce a CAR since minimumMacosVersion will be < 10.9
     QVERIFY(!regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
 
     rmDirR(relativeBuildDir());
-    params.arguments.append("cpp.minimumOsxVersion:10.9"); // force CAR generation
+    params.arguments.append("cpp.minimumMacosVersion:10.9"); // force CAR generation
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
@@ -3825,7 +3825,7 @@ void TestBlackbox::assetCatalog_data()
 
 void TestBlackbox::objcArc()
 {
-    if (!HostOsInfo::isOsxHost())
+    if (!HostOsInfo::isMacosHost())
         QSKIP("only applies on platforms supporting Objective-C");
 
     QDir::setCurrent(testDataDir + QLatin1String("/objc-arc"));
@@ -4016,8 +4016,8 @@ void TestBlackbox::probesInNestedModules()
 
 void TestBlackbox::xcode()
 {
-    if (!HostOsInfo::isOsxHost() || !isXcodeProfile(profileName()))
-        QSKIP("only applies on OS X with Xcode based profiles");
+    if (!HostOsInfo::isMacosHost() || !isXcodeProfile(profileName()))
+        QSKIP("only applies on macOS with Xcode based profiles");
 
     QProcess xcodeSelect;
     xcodeSelect.start("xcode-select", QStringList() << "--print-path");

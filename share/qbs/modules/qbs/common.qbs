@@ -42,7 +42,7 @@ Module {
     property string optimization: (buildVariant == "debug" ? "none" : "fast")
     readonly property stringList hostOS: undefined // set internally
     property string hostOSVersion: {
-        if (hostOS && hostOS.contains("osx")) {
+        if (hostOS && hostOS.contains("macos")) {
             return Utilities.getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductVersion") ||
                    Utilities.getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductVersion");
         } else if (hostOS && hostOS.contains("windows")) {
@@ -52,7 +52,7 @@ Module {
     }
 
     property string hostOSBuildVersion: {
-        if (hostOS.contains("osx")) {
+        if (hostOS.contains("macos")) {
             return Utilities.getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductBuildVersion") ||
                    Utilities.getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductBuildVersion");
         } else if (hostOS.contains("windows")) {
@@ -96,7 +96,13 @@ Module {
         var validator = new ModUtils.PropertyValidator("qbs");
         validator.setRequiredProperty("hostOS", hostOS);
         validator.setRequiredProperty("targetOS", targetOS);
-        if (hostOS && (hostOS.contains("windows") || hostOS.contains("osx"))) {
+        validator.addCustomValidator("targetOS", targetOS, function (value) {
+            if (!value || (value.contains("osx") && !value.contains("macos")))
+                return false;
+            return true;
+        }, "the value 'osx' has been replaced by 'macos'; use that instead and update "
+            + "hostOS and targetOS condition checks in your project accordingly");
+        if (hostOS && (hostOS.contains("windows") || hostOS.contains("macos"))) {
             validator.setRequiredProperty("hostOSVersion", hostOSVersion,
                                           "could not detect host operating system version; " +
                                           "verify that system files and registry keys have not " +

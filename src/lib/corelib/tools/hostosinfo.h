@@ -61,7 +61,7 @@ class QBS_EXPORT HostOsInfo // Exported for use by command-line tools.
 {
 public:
     // Add more as needed.
-    enum HostOs { HostOsWindows, HostOsLinux, HostOsOsx, HostOsOtherUnix, HostOsOther };
+    enum HostOs { HostOsWindows, HostOsLinux, HostOsMacos, HostOsOtherUnix, HostOsOther };
 
     static inline HostOs hostOs();
 
@@ -75,7 +75,7 @@ public:
                              QLatin1Char('.') +
                              settings.value(QStringLiteral("CurrentBuildNumber")).toString());
             Q_ASSERT(v.isValid());
-        } else if (HostOsInfo::isOsxHost()) {
+        } else if (HostOsInfo::isMacosHost()) {
             QSettings settings(QStringLiteral("/System/Library/CoreServices/SystemVersion.plist"),
                                QSettings::NativeFormat);
             v = v.fromString(settings.value(QStringLiteral("ProductVersion")).toString());
@@ -86,7 +86,7 @@ public:
 
     static bool isWindowsHost() { return hostOs() == HostOsWindows; }
     static bool isLinuxHost() { return hostOs() == HostOsLinux; }
-    static bool isOsxHost() { return hostOs() == HostOsOsx; }
+    static bool isMacosHost() { return hostOs() == HostOsMacos; }
     static inline bool isAnyUnixHost();
     static inline QString rfc1034Identifier(const QString &str);
 
@@ -113,7 +113,7 @@ public:
     {
         if (isWindowsHost())
             return QStringLiteral("PATH");
-        if (isOsxHost())
+        if (isMacosHost())
             return QStringLiteral("DYLD_LIBRARY_PATH");
         return QStringLiteral("LD_LIBRARY_PATH");
     }
@@ -125,7 +125,7 @@ public:
 
     static Qt::KeyboardModifier controlModifier()
     {
-        return isOsxHost() ? Qt::MetaModifier : Qt::ControlModifier;
+        return isMacosHost() ? Qt::MetaModifier : Qt::ControlModifier;
     }
 };
 
@@ -136,7 +136,7 @@ HostOsInfo::HostOs HostOsInfo::hostOs()
 #elif defined(Q_OS_LINUX)
     return HostOsLinux;
 #elif defined(Q_OS_DARWIN)
-    return HostOsOsx;
+    return HostOsMacos;
 #elif defined(Q_OS_UNIX)
     return HostOsOtherUnix;
 #else
