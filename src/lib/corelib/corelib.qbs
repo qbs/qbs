@@ -23,10 +23,6 @@ QbsLibrary {
         condition: qbs.targetOS.contains("windows")
         cpp.dynamicLibraries: base.concat(["Psapi"])
     }
-    Properties {
-        condition: qbs.targetOS.contains("freebsd")
-        cpp.dynamicLibraries: base.concat(["util"])
-    }
     cpp.dynamicLibraries: base
 
     Properties {

@@ -41,9 +41,13 @@
 #   include <unistd.h>
 #   include <cstdio>
 #elif defined(Q_OS_BSD4)
-#   include <libutil.h>
-#   include <sys/types.h>
+# include <QFile>
+# if !defined(Q_OS_NETBSD)
 #   include <sys/user.h>
+# endif
+#   include <sys/cdefs.h>
+#   include <sys/param.h>
+#   include <sys/sysctl.h>
 #else
 #   error Missing implementation of processNameByPid for this platform.
 #endif
@@ -82,13 +86,35 @@ QString processNameByPid(qint64 pid)
     readlink(exePath, buf, sizeof(buf));
     return FileInfo::fileName(QString::fromUtf8(buf));
 #elif defined(Q_OS_BSD4)
-    kinfo_proc *proc = kinfo_getproc(pid);
-    if (!proc)
+# if defined(Q_OS_NETBSD)
+    struct kinfo_proc2 kp;
+    int mib[6] = { CTL_KERN, KERN_PROC2, KERN_PROC_PID, (int)pid, sizeof(struct kinfo_proc2), 1 };
+# elif defined(Q_OS_OPENBSD)
+    struct kinfo_proc kp;
+    int mib[6] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, (int)pid, sizeof(struct kinfo_proc), 1 };
+# else
+    struct kinfo_proc kp;
+    int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, (int)pid };
+# endif
+    size_t len = sizeof(kp);
+    u_int mib_len = sizeof(mib)/sizeof(u_int);
+
+    if (sysctl(mib, mib_len, &kp, &len, NULL, 0) < 0)
         return QString();
-    QString name = QString::fromUtf8(proc->ki_comm);
-    free(proc);
+
+# if defined(Q_OS_OPENBSD) || defined(Q_OS_NETBSD)
+    if (kp.p_pid != pid)
+        return QString();
+    QString name = QFile::decodeName(kp.p_comm);
+# else
+    if (kp.ki_pid != pid)
+        return QString();
+    QString name = QFile::decodeName(kp.ki_comm);
+# endif
     return name;
+
 #else
+    Q_UNUSED(pid);
     return QString();
 #endif
 }

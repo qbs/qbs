@@ -615,11 +615,16 @@ bool Executor::transformerHasMatchingOutputTags(const TransformerConstPtr &trans
         return true; // No filtering requested.
 
     foreach (Artifact * const output, transformer->outputs) {
-        if (m_activeFileTags.matches(output->fileTags()))
+        if (artifactHasMatchingOutputTags(output))
             return true;
     }
 
     return false;
+}
+
+bool Executor::artifactHasMatchingOutputTags(const Artifact *artifact) const
+{
+    return m_activeFileTags.matches(artifact->fileTags());
 }
 
 bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &transformer) const
@@ -913,6 +918,7 @@ void Executor::finishTransformer(const TransformerPtr &transformer)
 void Executor::possiblyInstallArtifact(const Artifact *artifact)
 {
     if (m_buildOptions.install() && !m_buildOptions.executeRulesOnly()
+            && (m_activeFileTags.isEmpty() || artifactHasMatchingOutputTags(artifact))
             && artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool()) {
             m_productInstaller->copyFile(artifact);
     }

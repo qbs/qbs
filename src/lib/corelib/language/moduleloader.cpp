@@ -127,6 +127,18 @@ private:
     QList<ProductContext *> m_sortedProducts;
 };
 
+class SearchPathsManager {
+public:
+    SearchPathsManager(ItemReader *itemReader, const QStringList &extraSearchPaths)
+        : m_itemReader(itemReader)
+    {
+        m_itemReader->pushExtraSearchPaths(extraSearchPaths);
+    }
+    ~SearchPathsManager() { m_itemReader->popExtraSearchPaths(); }
+
+private:
+    ItemReader * const m_itemReader;
+};
 
 ModuleLoader::ModuleLoader(ScriptEngine *engine,
                            const Logger &logger)
@@ -190,9 +202,16 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_pool = result.itemPool.data();
     m_reader->setPool(m_pool);
 
-    Item *root = m_reader->readFile(parameters.projectFilePath());
-    if (!root)
-        return ModuleLoaderResult();
+    const QStringList topLevelSearchPaths = parameters.finalBuildConfigurationTree()
+            .value(QLatin1String("project")).toMap()
+            .value(QLatin1String("qbsSearchPaths")).toStringList();
+    Item *root;
+    {
+        SearchPathsManager searchPathsManager(m_reader, topLevelSearchPaths);
+        root = m_reader->readFile(parameters.projectFilePath());
+        if (!root)
+            return ModuleLoaderResult();
+    }
 
     root = wrapInProjectIfNecessary(root);
 
@@ -582,19 +601,6 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
 
     projectContext->products << productContext;
 }
-
-class SearchPathsManager {
-public:
-    SearchPathsManager(ItemReader *itemReader, const QStringList &extraSearchPaths)
-        : m_itemReader(itemReader)
-    {
-        m_itemReader->pushExtraSearchPaths(extraSearchPaths);
-    }
-    ~SearchPathsManager() { m_itemReader->popExtraSearchPaths(); }
-
-private:
-    ItemReader * const m_itemReader;
-};
 
 void ModuleLoader::setupProductDependencies(ProductContext *productContext)
 {

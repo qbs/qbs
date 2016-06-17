@@ -137,6 +137,7 @@ private:
     FileTime recursiveFileTime(const QString &filePath) const;
     QString configString() const;
     bool transformerHasMatchingOutputTags(const TransformerConstPtr &transformer) const;
+    bool artifactHasMatchingOutputTags(const Artifact *artifact) const;
     bool transformerHasMatchingInputFiles(const TransformerConstPtr &transformer) const;
 
     typedef QHash<ExecutorJob *, TransformerPtr> JobMap;

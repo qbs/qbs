@@ -147,6 +147,7 @@ private slots:
     void installedTransformerOutput();
     void installPackage();
     void installTree();
+    void invalidCommandProperty();
     void java();
     void javaDependencyTracking();
     void jsExtensionsFile();
@@ -207,6 +208,7 @@ private slots:
     void sevenZip();
     void tar();
     void toolLookup();
+    void topLevelSearchPath();
     void track_qobject_change();
     void track_qrc();
     void trackAddFile();

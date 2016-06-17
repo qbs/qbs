@@ -1,0 +1,3 @@
+import qbs
+
+MyProduct { }

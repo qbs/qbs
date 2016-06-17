@@ -319,9 +319,15 @@
 
     The \a name is the name of the product. In this case it is also the
     name of the produced executable (on Windows, the ".exe" extension is added by default).
+
     In the property \a files, we specify the source files for our product.
     Unlike QML, the right-hand side can be either a string or a string list.
     A single string is converted to a stringlist containing just one element.
+    So we could have also written
+
+    \code
+    files: [ "main.cpp" ]
+    \endcode
 
     \a Depends adds the dependency to the module \l{Module cpp}{cpp}. This is necessary to let \QBS know that
     we have a C++ project and want to compile main.cpp with a C++ compiler. For more information
@@ -621,8 +627,10 @@
     \QBS applies a \e rule to a pool of artifacts (in the beginning it is just the set of
     source files of the project) and chooses the ones that match the input file
     tags specified by the rule. Then it creates output artifacts in the build graph that have other
-    filenames and file tags. It also creates a script that transforms the input artifact into the
-    output artifact.
+    filenames and file tags. It also creates a script that transforms the input artifacts into the
+    output artifacts. Artifacts created by one rule can (and typically do) serve as inputs to
+    another rule. In this way, rules are connected to one another via their input and output
+    file tags.
 
     For examples of rules, see the share/qbs/modules directory in the \QBS
     repository.

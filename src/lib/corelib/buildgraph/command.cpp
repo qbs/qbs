@@ -30,6 +30,7 @@
 
 #include "command.h"
 #include <logging/translator.h>
+#include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
@@ -112,7 +113,12 @@ void AbstractCommand::applyCommandProperties(const QScriptValue *scriptValue)
         it.next();
         if (m_predefinedProperties.contains(it.name()))
             continue;
-        m_properties.insert(it.name(), it.value().toVariant());
+        const QVariant value = it.value().toVariant();
+        if (QMetaType::Type(value.type()) == QMetaType::QObjectStar) {
+            throw ErrorInfo(Tr::tr("Property '%1' has a type unsuitable for storing in a command "
+                                   "object.").arg(it.name()), m_codeLocation);
+        }
+        m_properties.insert(it.name(), value);
     }
 }
 
