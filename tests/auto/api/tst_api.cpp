@@ -414,7 +414,6 @@ void TestApi::buildSingleFile()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     qbs::BuildOptions options;
-    options.setDryRun(true);
     options.setFilesToConsider(QStringList(setupParams.buildRoot() + "/compiled.cpp"));
     options.setActiveFileTags(QStringList("obj"));
     m_logSink->setLogLevel(qbs::LoggerMaxLevel);
