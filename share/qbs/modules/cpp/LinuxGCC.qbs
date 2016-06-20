@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs 1.0
+import qbs.Process
 
 UnixGCC {
     condition: qbs.targetOS.contains('linux') && !qbs.targetOS.contains("android") &&
@@ -38,4 +39,29 @@ UnixGCC {
     targetVendor: "pc"
     targetSystem: "linux"
     targetAbi: "gnu"
+
+    Probe {
+        id: runPathsProbe
+        condition: qbs.targetOS === qbs.hostOS
+        property stringList systemRunPaths: []
+        configure: {
+            var ldconfig = new Process();
+            try {
+                var success = ldconfig.exec("ldconfig", ["-vNX"]);
+                if (success === -1)
+                    return;
+                var line;
+                do {
+                    line = ldconfig.readLine();
+                    if (line.charAt(0) === '/')
+                        systemRunPaths.push(line.slice(0, line.length - 1));
+                } while (line && line.length > 0)
+                found = true;
+            } finally {
+                ldconfig.close();
+            }
+        }
+    }
+
+    systemRunPaths: runPathsProbe.found ? runPathsProbe.systemRunPaths : base
 }

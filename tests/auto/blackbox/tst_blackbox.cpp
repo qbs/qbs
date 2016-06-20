@@ -2342,6 +2342,48 @@ void TestBlackbox::errorInfo()
     QVERIFY2(m_qbsStderr.contains("project.qbs:58"), m_qbsStderr);
 }
 
+void TestBlackbox::systemRunPaths()
+{
+    Settings settings((QString()));
+    const Profile buildProfile(profileName(), &settings);
+    const QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
+    if (targetOS.contains("windows")
+            || (!targetOS.contains("unix") && !qbs::Internal::HostOsInfo::isAnyUnixHost())) {
+        QSKIP("only applies on Unix");
+    }
+    const QString lddFilePath = findExecutable(QStringList() << "ldd");
+    if (lddFilePath.isEmpty())
+        QSKIP("ldd not found");
+    QDir::setCurrent(testDataDir + "/system-run-paths");
+    QFETCH(bool, setRunPaths);
+    QbsRunParameters params;
+    params.arguments << QString("project.setRunPaths:") + (setRunPaths ? "true" : "false");
+    QCOMPARE(runQbs(params), 0);
+    QProcess ldd;
+    ldd.start(lddFilePath, QStringList() << relativeExecutableFilePath("app"));
+    QVERIFY2(ldd.waitForStarted(), qPrintable(ldd.errorString()));
+    QVERIFY2(ldd.waitForFinished(), qPrintable(ldd.errorString()));
+    QVERIFY2(ldd.exitCode() == 0, ldd.readAllStandardError().constData());
+    const QByteArray output = ldd.readAllStandardOutput();
+    const QList<QByteArray> outputLines = output.split('\n');
+    QByteArray libLine;
+    foreach (const auto &line, outputLines) {
+        if (line.contains("theLib")) {
+            libLine = line;
+            break;
+        }
+    }
+    QVERIFY2(!libLine.isEmpty(), output.constData());
+    QVERIFY2(setRunPaths == libLine.contains("not found"), libLine.constData());
+}
+
+void TestBlackbox::systemRunPaths_data()
+{
+    QTest::addColumn<bool>("setRunPaths");
+    QTest::newRow("do not set system run paths") << false;
+    QTest::newRow("do set system run paths") << true;
+}
+
 void TestBlackbox::exportRule()
 {
     QDir::setCurrent(testDataDir + "/export-rule");

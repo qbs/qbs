@@ -41,5 +41,6 @@ GenericGCC {
     loadableModuleSuffix: ""
     executableSuffix: ""
     debugInfoSuffix: ".debug"
+    systemRunPaths: ["/lib", "/usr/lib"]
 }
 

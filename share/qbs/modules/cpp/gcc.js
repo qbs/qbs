@@ -74,6 +74,7 @@ function linkerFlags(product, inputs, output) {
     var weakFrameworks = ModUtils.moduleProperties(product, 'weakFrameworks');
     var rpaths = (product.moduleProperty("cpp", "useRPaths") !== false)
             ? ModUtils.moduleProperties(product, 'rpaths') : undefined;
+    var systemRunPaths = product.moduleProperties("cpp", "systemRunPaths") || [];
     var isDarwin = product.moduleProperty("qbs", "targetOS").contains("darwin");
     var i, args = additionalCompilerAndLinkerFlags(product);
 
@@ -142,8 +143,10 @@ function linkerFlags(product, inputs, output) {
                                          ? ["-undefined", unresolvedSymbolsAction]
                                          : ["--unresolved-symbols=" + unresolvedSymbolsAction]));
 
-    for (i in rpaths)
-        args = args.concat(escapeLinkerFlags(product, ["-rpath", rpaths[i]]));
+    for (i in rpaths) {
+        if (systemRunPaths.indexOf(rpaths[i]) === -1)
+            args = args.concat(escapeLinkerFlags(product, ["-rpath", rpaths[i]]));
+    }
 
     if (product.moduleProperty("cpp", "entryPoint"))
         args = args.concat(escapeLinkerFlags(product, ["-e", product.moduleProperty("cpp", "entryPoint")]));

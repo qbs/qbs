@@ -108,6 +108,13 @@
             For header files in those paths warnings will be ignored.
             Relative paths are considered to be relative to the .qbs product file they are used in.
     \row
+        \li systemRunPaths
+        \li \c{stringList}
+        \li 1.6
+        \li Auto-detected for host builds on Linux via \c ldconfig, \c{["/lib", "/usr/lib"]}
+            otherwise on Unix, empty on Windows
+        \li The paths the dynamic linker uses on process start-up to locate dynamic libraries.
+    \row
         \li libraryPaths
         \li \c{pathList}
         \li 1.0
@@ -531,7 +538,8 @@
         \li \c{stringList}
         \li 1.0
         \li \c{undefined}
-        \li List of rpaths that are passed to the linker.
+        \li List of rpaths that are passed to the linker. Paths that also appear in
+            \c systemRunPaths are ignored.
     \row
         \li sonamePrefix
         \li \c{string}

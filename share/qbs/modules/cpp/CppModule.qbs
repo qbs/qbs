@@ -133,6 +133,7 @@ Module {
     property pathList frameworkPaths
     property pathList systemFrameworkPaths
     property pathList compilerFrameworkPaths
+    property stringList systemRunPaths: []
 
     property string assemblerName
     property string assemblerPath: assemblerName
