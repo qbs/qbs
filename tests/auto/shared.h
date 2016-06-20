@@ -152,4 +152,22 @@ inline QString testWorkDir(const QString &testName)
     return dir + testName + "/testWorkDir";
 }
 
+inline qbs::Internal::HostOsInfo::HostOs targetOs()
+{
+    qbs::Settings settings((QString()));
+    const qbs::Profile buildProfile(profileName(), &settings);
+    const QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
+    if (targetOS.contains("windows"))
+        return qbs::Internal::HostOsInfo::HostOsWindows;
+    if (targetOS.contains("linux"))
+        return qbs::Internal::HostOsInfo::HostOsLinux;
+    if (targetOS.contains("osx"))
+        return qbs::Internal::HostOsInfo::HostOsOsx;
+    if (targetOS.contains("unix"))
+        return qbs::Internal::HostOsInfo::HostOsOtherUnix;
+    if (!targetOS.isEmpty())
+        return qbs::Internal::HostOsInfo::HostOsOther;
+    return qbs::Internal::HostOsInfo::hostOs();
+}
+
 #endif // Include guard.

@@ -12,7 +12,6 @@ DynamicLibrary {
 
     Rule {
         multiplex: true
-        outputs: ["custom"]
         Artifact {
             filePath: "dummy.txt"
             fileTags: ["custom"]
@@ -21,7 +20,7 @@ DynamicLibrary {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.sourceCode = function() {
-                console.info("---" + product.moduleProperty("cpp", "nmPath") + "---");
+                console.warn("---" + product.moduleProperty("cpp", "nmPath") + "---");
             }
             return [cmd];
         }

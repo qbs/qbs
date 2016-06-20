@@ -993,13 +993,12 @@ void TestBlackbox::versionScript()
     Settings settings((QString()));
     Profile buildProfile(profileName(), &settings);
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
-    QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
-    if (!toolchain.contains("gcc") || !targetOS.contains("linux"))
+    if (!toolchain.contains("gcc") || targetOs() != HostOsInfo::HostOsLinux)
         QSKIP("version script test only applies to Linux");
     QDir::setCurrent(testDataDir + "/versionscript");
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("-qq")
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("-q")
                                      << ("qbs.installRoot:" + QDir::currentPath()))), 0);
-    const QString output = QString::fromLocal8Bit(m_qbsStdout);
+    const QString output = QString::fromLocal8Bit(m_qbsStderr);
     QRegExp pattern(".*---(.*)---.*");
     QVERIFY2(pattern.exactMatch(output), qPrintable(output));
     QCOMPARE(pattern.captureCount(), 1);
@@ -2346,11 +2345,15 @@ void TestBlackbox::systemRunPaths()
 {
     Settings settings((QString()));
     const Profile buildProfile(profileName(), &settings);
-    const QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
-    if (targetOS.contains("windows")
-            || (!targetOS.contains("unix") && !qbs::Internal::HostOsInfo::isAnyUnixHost())) {
+    switch (targetOs()) {
+    case HostOsInfo::HostOsLinux:
+    case HostOsInfo::HostOsOsx:
+    case HostOsInfo::HostOsOtherUnix:
+        break;
+    default:
         QSKIP("only applies on Unix");
     }
+
     const QString lddFilePath = findExecutable(QStringList() << "ldd");
     if (lddFilePath.isEmpty())
         QSKIP("ldd not found");
@@ -2854,13 +2857,12 @@ void TestBlackbox::linkerScripts()
     Settings settings((QString()));
     Profile buildProfile(profileName(), &settings);
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
-    QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
-    if (!toolchain.contains("gcc") || !targetOS.contains("linux"))
+    if (!toolchain.contains("gcc") || targetOs() != HostOsInfo::HostOsLinux)
         QSKIP("linker script test only applies to Linux ");
     QDir::setCurrent(testDataDir + "/linkerscripts");
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("-qq")
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("-q")
                                      << ("qbs.installRoot:" + QDir::currentPath()))), 0);
-    const QString output = QString::fromLocal8Bit(m_qbsStdout);
+    const QString output = QString::fromLocal8Bit(m_qbsStderr);
     QRegExp pattern(".*---(.*)---.*");
     QVERIFY2(pattern.exactMatch(output), qPrintable(output));
     QCOMPARE(pattern.captureCount(), 1);
@@ -3645,9 +3647,7 @@ void TestBlackbox::nsis()
         return;
     }
 
-    Settings settings((QString()));
-    Profile profile(profileName(), &settings);
-    bool targetIsWindows = profile.value("qbs.targetOS").toStringList().contains("windows");
+    bool targetIsWindows = targetOs() == HostOsInfo::HostOsWindows;
     QDir::setCurrent(testDataDir + "/nsis");
     QVERIFY(runQbs() == 0);
     QCOMPARE((bool)m_qbsStdout.contains("compiling hello.nsi"), targetIsWindows);
