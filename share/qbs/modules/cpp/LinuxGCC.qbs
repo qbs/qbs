@@ -42,9 +42,11 @@ UnixGCC {
 
     Probe {
         id: runPathsProbe
-        condition: qbs.targetOS === qbs.hostOS
+        condition: qbs.targetOS.length === qbs.hostOS.length
+                   && qbs.targetOS.every(function(v, i) { return v === qbs.hostOS[i]; })
         property stringList systemRunPaths: []
         configure: {
+            var paths = [];
             var ldconfig = new Process();
             try {
                 var success = ldconfig.exec("ldconfig", ["-vNX"]);
@@ -54,9 +56,10 @@ UnixGCC {
                 do {
                     line = ldconfig.readLine();
                     if (line.charAt(0) === '/')
-                        systemRunPaths.push(line.slice(0, line.length - 1));
+                        paths.push(line.slice(0, line.length - 1));
                 } while (line && line.length > 0)
                 found = true;
+                systemRunPaths = paths;
             } finally {
                 ldconfig.close();
             }
