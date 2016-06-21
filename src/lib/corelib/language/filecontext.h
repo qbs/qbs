@@ -34,6 +34,8 @@
 #include "filecontextbase.h"
 #include "forward_decls.h"
 
+#include <QString>
+
 namespace qbs {
 namespace Internal {
 class Item;
@@ -44,12 +46,16 @@ class FileContext : public FileContextBase
 public:
     static FileContextPtr create();
 
+    void setContent(const QString &content) { m_content = content; }
+    const QString &content() const { return m_content; }
+
     Item *idScope() const { return m_idScope; }
     void ensureIdScope(ItemPool *itemPool);
 
 private:
     FileContext();
 
+    QString m_content;
     Item *m_idScope;
 };
 

@@ -42,9 +42,6 @@ public:
     void setFilePath(const QString &filePath) { m_filePath = filePath; }
     QString filePath() const { return m_filePath; }
 
-    void setContent(const QString &content) { m_content = content; }
-    const QString &content() const { return m_content; }
-
     void addJsImport(const JsImport &jsImport) { m_jsImports << jsImport; }
     JsImports jsImports() const { return m_jsImports; }
 
@@ -61,7 +58,6 @@ protected:
     FileContextBase(const FileContextBase &other);
 
     QString m_filePath;
-    QString m_content;
     JsImports m_jsImports;
     QStringList m_jsExtensions;
     QStringList m_searchPaths;
