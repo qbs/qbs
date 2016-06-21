@@ -1974,6 +1974,24 @@ void TestBlackbox::probeInExportedModule()
     QVERIFY2(m_qbsStdout.contains("prop: yes"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::probesAndArrayProperties()
+{
+    QDir::setCurrent(testDataDir + "/probes-and-array-properties");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("prop: [\"probe\"]"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    QFile projectFile("probes-and-array-properties.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray content = projectFile.readAll();
+    content.replace("//", "");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL(0, "QBS-987", Abort);
+    QVERIFY2(m_qbsStdout.contains("prop: [\"product\",\"probe\"]"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::productProperties()
 {
     QDir::setCurrent(testDataDir + "/productproperties");

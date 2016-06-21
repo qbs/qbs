@@ -180,6 +180,7 @@ private slots:
     void probeChangeTracking();
     void probeProperties();
     void probeInExportedModule();
+    void probesAndArrayProperties();
     void probesInNestedModules();
     void productDependenciesByType();
     void productProperties();
