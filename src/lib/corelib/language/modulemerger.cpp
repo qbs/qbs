@@ -220,11 +220,7 @@ void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QStr
     QBS_CHECK(protoValue);
     if (!m_clonedModulePrototype) {
         m_clonedModulePrototype = moduleProto->clone();
-        Item * const scope = Item::create(m_clonedModulePrototype->pool());
-        scope->setFile(m_clonedModulePrototype->file());
-        m_mergedModule.item->scope()->copyProperty(QLatin1String("project"), scope);
-        m_mergedModule.item->scope()->copyProperty(QLatin1String("product"), scope);
-        m_clonedModulePrototype->setScope(scope);
+        m_clonedModulePrototype->setScope(m_mergedModule.item->scope());
     }
     const ValuePtr clonedValue = protoValue->clone();
     clonedValue->setDefiningItem(m_clonedModulePrototype);

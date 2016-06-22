@@ -1988,7 +1988,6 @@ void TestBlackbox::probesAndArrayProperties()
     projectFile.write(content);
     projectFile.close();
     QCOMPARE(runQbs(), 0);
-    QEXPECT_FAIL(0, "QBS-987", Abort);
     QVERIFY2(m_qbsStdout.contains("prop: [\"product\",\"probe\"]"), m_qbsStdout.constData());
 }
 
