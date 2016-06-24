@@ -57,6 +57,7 @@ private:
     enum PropertiesType { ScalarProperties, ListProperties };
     void insertProperties(Item::PropertyMap *dst, Item *srcItem, PropertiesType type);
     void replaceItemInValues(QualifiedId moduleName, Item *containerItem, Item *toReplace);
+    void replaceItemInScopes(Item *toReplace);
 
     const Logger &m_logger;
     Item * const m_rootItem;

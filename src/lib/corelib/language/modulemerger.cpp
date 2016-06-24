@@ -69,6 +69,24 @@ void ModuleMerger::replaceItemInValues(QualifiedId moduleName, Item *containerIt
     }
 }
 
+void ModuleMerger::replaceItemInScopes(Item *toReplace)
+{
+    // In insertProperties(), we potentially call setDefiningItem() with the "wrong"
+    // (to-be-replaced) module instance as an argument. If such module instances
+    // are dependencies of other modules, they have the depending module's instance
+    // as their "instance scope", which is the scope of their scope. This function takes
+    // care that the "wrong" definingItem of values in sub-modules still has the "right"
+    // instance scope, namely our merged module instead of some other instance.
+    foreach (const Item::Module &module, toReplace->modules()) {
+        foreach (const ValuePtr &property, module.item->properties()) {
+            if (property->definingItem() && property->definingItem()->scope()
+                    && property->definingItem()->scope()->scope() == toReplace) {
+                property->definingItem()->scope()->setScope(m_mergedModule.item);
+            }
+        }
+    }
+}
+
 void ModuleMerger::start()
 {
     Item::Module m;
@@ -96,6 +114,7 @@ void ModuleMerger::start()
             if (isTheModule && m.item != m_mergedModule.item) {
                 QBS_CHECK(m.item->type() == ItemType::ModuleInstance);
                 replaceItemInValues(m.name, moduleInstanceContainer, m.item);
+                replaceItemInScopes(m.item);
                 m.item = m_mergedModule.item;
                 if (m_required)
                     m.required = true;
