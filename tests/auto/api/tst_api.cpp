@@ -1205,7 +1205,7 @@ void TestApi::inheritQbsSearchPaths()
     projectFile.close();
     errorInfo = doBuildProject(projectFilePath);
     QVERIFY(errorInfo.hasError());
-    QVERIFY2(errorInfo.toString().contains("Product dependency 'bli' not found"),
+    QVERIFY2(errorInfo.toString().contains("Dependency 'bli' not found"),
              qPrintable(errorInfo.toString()));
 
     QVariantMap overriddenValues;
@@ -1743,7 +1743,7 @@ void TestApi::renameProduct()
     f.close();
     errorInfo = doBuildProject("rename-product/rename.qbs");
     QVERIFY(errorInfo.hasError());
-    QVERIFY2(errorInfo.toString().contains("Product dependency 'thelib' not found"),
+    QVERIFY2(errorInfo.toString().contains("Dependency 'thelib' not found"),
              qPrintable(errorInfo.toString()));
 }
 
@@ -1900,7 +1900,7 @@ void TestApi::subProjects()
     f.close();
     errorInfo = doBuildProject("subprojects/toplevelproject.qbs");
     QVERIFY(errorInfo.hasError());
-    QVERIFY2(errorInfo.toString().contains("Product dependency 'testLib' not found"),
+    QVERIFY2(errorInfo.toString().contains("Dependency 'testLib' not found"),
              qPrintable(errorInfo.toString()));
 }
 

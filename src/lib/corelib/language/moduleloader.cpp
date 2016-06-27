@@ -1005,8 +1005,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         Item *moduleItem = loadModule(dependsContext->product, parentItem, dependsItem->location(),
                                       dependsItem->id(), moduleName, isRequired, &result.isProduct);
         if (!moduleItem) {
-            // ### 1.5: change error message to the more generic "Dependency '%1' not found.".
-            throw ErrorInfo(Tr::tr("Product dependency '%1' not found.").arg(moduleName.toString()),
+            throw ErrorInfo(Tr::tr("Dependency '%1' not found.").arg(moduleName.toString()),
                             dependsItem->location());
         }
         if (m_logger.traceEnabled())
