@@ -397,6 +397,13 @@ static QStringList qbsToolchainFromQtMkspec(const QString &mkspec)
     return QStringList();
 }
 
+static const QString msvcPrefix = QLatin1String("win32-msvc");
+
+static bool isMsvcQt(const QtEnvironment &env)
+{
+    return env.mkspecName.startsWith(msvcPrefix);
+}
+
 static int msvcCompilerMajorVersionForYear(int year)
 {
     switch (year)
@@ -418,9 +425,17 @@ static int msvcCompilerMajorVersionForYear(int year)
     }
 }
 
+static int msvcCompilerMajorVersionForYear(const QtEnvironment &env)
+{
+    return isMsvcQt(env)
+            ? msvcCompilerMajorVersionForYear(env.mkspecName.mid(msvcPrefix.size()).toInt())
+            : 0;
+}
+
 enum Match { MatchFull, MatchPartial, MatchNone };
 
-static Match compatibility(const QtEnvironment &env, const Profile &toolchainProfile)
+static Match compatibility(const QtEnvironment &env, const Profile &toolchainProfile,
+                           int msvcCompilerVersionMajor)
 {
     Match match = MatchFull;
 
@@ -448,20 +463,30 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
                                          canonicalArchitecture(toolchainArchitecture)))
         return MatchNone;
 
-    const QString msvcPrefix(QLatin1String("win32-msvc"));
-    if (env.mkspecName.startsWith(msvcPrefix)) {
-        const int compilerVersionMajor = msvcCompilerMajorVersionForYear(
-                    env.mkspecName.mid(msvcPrefix.size()).toInt());
-
+    if (msvcCompilerVersionMajor) {
         // We want to know for sure that MSVC compiler versions match,
         // because it's especially important for this toolchain
-        if (compilerVersionMajor == 0 || compilerVersionMajor !=
+        if (msvcCompilerVersionMajor == 0 || msvcCompilerVersionMajor !=
                 toolchainProfile.value(QLatin1String("cpp.compilerVersionMajor"))) {
             return MatchNone;
         }
     }
 
     return match;
+}
+
+static bool isMsvcCrossCompilerProfile(const QString &profileName)
+{
+    return profileName.contains(QLatin1Char('_'));
+}
+
+static void compressMsvcProfiles(QStringList &profiles)
+{
+    if (std::all_of(profiles.constBegin(), profiles.constEnd(), isMsvcCrossCompilerProfile))
+        return;
+
+    profiles.erase(std::remove_if(profiles.begin(), profiles.end(), isMsvcCrossCompilerProfile),
+                   profiles.end());
 }
 
 void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironment &qtEnvironment,
@@ -487,6 +512,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
 
     QStringList fullMatches;
     QStringList partialMatches;
+    const int msvcCompilerVersionMajor = msvcCompilerMajorVersionForYear(qtEnvironment);
     foreach (const QString &profileName, settings->profiles()) {
         const Profile otherProfile(profileName, settings);
         if (profileName == profile.name()
@@ -494,7 +520,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
                 || isQtProfile(otherProfile))
             continue;
 
-        switch (compatibility(qtEnvironment, otherProfile)) {
+        switch (compatibility(qtEnvironment, otherProfile, msvcCompilerVersionMajor)) {
         case MatchFull:
             fullMatches << profileName;
             break;
@@ -505,6 +531,9 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
             break;
         }
     }
+
+    if (msvcCompilerVersionMajor && fullMatches.size() > 1)
+        compressMsvcProfiles(fullMatches);
 
     QString bestMatch;
     if (fullMatches.count() == 1)
