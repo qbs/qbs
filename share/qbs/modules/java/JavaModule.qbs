@@ -128,7 +128,7 @@ Module {
     property path internalClassFilesDir: FileInfo.joinPaths(product.buildDirectory, ".classes")
 
     property path runtimeJarPath: {
-        if (qbs.hostOS.contains("osx") && compilerVersionMajor === 1 && compilerVersionMinor < 7)
+        if (qbs.hostOS.contains("macos") && compilerVersionMajor === 1 && compilerVersionMinor < 7)
             return FileInfo.joinPaths(jdkPath, "bundle", "Classes", "classes.jar");
         return FileInfo.joinPaths(jdkPath, "jre", "lib", "rt.jar");
     }

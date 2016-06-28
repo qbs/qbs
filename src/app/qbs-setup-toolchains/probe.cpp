@@ -261,7 +261,7 @@ void probe(Settings *settings)
         gccProbe(settings, profiles, QLatin1String("gcc"));
         gccProbe(settings, profiles, QLatin1String("clang"));
 
-        if (HostOsInfo::isOsxHost()) {
+        if (HostOsInfo::isMacosHost()) {
             xcodeProbe(settings, profiles);
         }
     }

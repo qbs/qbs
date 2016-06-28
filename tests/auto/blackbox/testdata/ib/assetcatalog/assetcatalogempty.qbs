@@ -11,7 +11,7 @@ Project {
                 filez.push("empty.xcassets/empty.iconset");
             else
                 filez.push("empty.xcassets");
-            if (qbs.hostOSVersionMinor >= 10) // need OS X 10.10 to build SBs
+            if (qbs.hostOSVersionMinor >= 10) // need macOS 10.10 to build SBs
                 filez.push("Storyboard.storyboard");
             return filez;
         }

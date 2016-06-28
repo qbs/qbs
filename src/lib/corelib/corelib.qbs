@@ -414,8 +414,8 @@ QbsLibrary {
         ]
     }
     Group {
-        condition: qbs.targetOS.contains("osx")
-        name: "tools (OS X)"
+        condition: qbs.targetOS.contains("macos")
+        name: "tools (macOS)"
         prefix: "tools/"
         files: [
             "applecodesignutils.cpp",

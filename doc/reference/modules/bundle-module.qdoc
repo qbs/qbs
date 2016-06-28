@@ -71,9 +71,9 @@
         \li isShallow
         \li \c{bool} (read only)
         \li 1.4
-        \li \c{false} on OS X, otherwise \c{true}
+        \li \c{false} on macOS, otherwise \c{true}
         \li Whether the bundle directory tree is "shallow", i.e. whether it lacks a Contents
-            subdirectory. This is the default on all platforms other than OS X.
+            subdirectory. This is the default on all platforms other than macOS.
     \row
         \li identifierPrefix
         \li \c{string}
@@ -195,7 +195,7 @@
         \li \c{string}
         \li 1.4
         \li \c{"binary1"} for iOS;
-            \c{"same-as-input"} or \c{"xml1"} for OS X depending on whether a plist file is used;
+            \c{"same-as-input"} or \c{"xml1"} for macOS depending on whether a plist file is used;
             \c{undefined} for all other operating systems.
         \li The file format to write the product's resulting Info.plist in.
             Possible values: \c{"xml1"}, \c{"binary1"}, \c{"json"}, \c{"same-as-input"}

@@ -78,10 +78,12 @@ Module {
     }
 
     property string minimumOsxVersion
+
+    property string minimumMacosVersion: minimumOsxVersion
     PropertyOptions {
-        name: "minimumOsxVersion"
+        name: "minimumMacosVersion"
         description: "a version number in the format [major].[minor] indicating the earliest \
-                        version of OS X that the product should run on. passes -mmacosx-version-min=<version> \
+                        version of macOS that the product should run on. passes -mmacosx-version-min=<version> \
                         to the compiler. if undefined, compiler defaults will be used."
     }
 
@@ -281,7 +283,7 @@ Module {
     property stringList platformObjcxxFlags
     property stringList platformLinkerFlags
 
-    // OS X and iOS properties
+    // Apple platforms properties
     property bool automaticReferenceCounting
     PropertyOptions {
         name: "automaticReferenceCounting"

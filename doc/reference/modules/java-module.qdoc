@@ -132,7 +132,7 @@
             \list
             \li \c JAVA_HOME environment variable (all platforms)
             \li Registry (Windows)
-            \li \c java_home tool (OS X)
+            \li \c java_home tool (macOS)
             \li Known JDK paths (other Unix platforms)
             \endlist
     \row

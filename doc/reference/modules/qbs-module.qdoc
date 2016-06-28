@@ -107,7 +107,7 @@
             \c{"irix"},
             \c{"linux"},
             \c{"lynx"},
-            \c{"osx"},
+            \c{"macos"},
             \c{"msdos"},
             \c{"nacl"},
             \c{"netbsd"},

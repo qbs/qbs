@@ -1370,8 +1370,8 @@ static QStringList hostOS()
 #if defined(Q_OS_LYNX)
     hostSystem << QLatin1String("lynx");
 #endif
-#if defined(Q_OS_OSX)
-    hostSystem << QLatin1String("osx");
+#if defined(Q_OS_MACOS) || defined(Q_OS_OSX)
+    hostSystem << QLatin1String("macos") << QLatin1String("osx");
 #endif
 #if defined(Q_OS_MSDOS)
     hostSystem << QLatin1String("msdos");

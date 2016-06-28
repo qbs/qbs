@@ -9,7 +9,7 @@ CLIModule {
     fsharpCompilerName: "fsharpc"
 
     toolchainInstallPath: {
-        if (qbs.hostOS.contains("osx"))
+        if (qbs.hostOS.contains("macos"))
             return "/Library/Frameworks/Mono.framework/Commands";
     }
 }

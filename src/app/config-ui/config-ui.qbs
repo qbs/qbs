@@ -14,7 +14,7 @@ QbsApp {
     ]
 
     Group {
-        condition: qbs.targetOS.contains("osx")
+        condition: qbs.targetOS.contains("macos")
         files: [
             "fgapp.mm",
             "Info.plist"
@@ -22,7 +22,7 @@ QbsApp {
     }
 
     Properties {
-        condition: qbs.targetOS.contains("osx")
+        condition: qbs.targetOS.contains("macos")
         cpp.frameworks: ["ApplicationServices", "Cocoa"]
     }
 

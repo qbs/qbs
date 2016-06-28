@@ -40,7 +40,7 @@
 
 using qbs::Internal::Tr;
 
-extern "C" void qt_osx_forceTransformProcessToForegroundApplicationAndActivate();
+extern "C" void qt_macos_forceTransformProcessToForegroundApplicationAndActivate();
 
 int main(int argc, char *argv[])
 {
@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
     // just before UI is shown - this prevents the application icon from popping up in the Dock
     // when running `qbs help`, and QCoreApplication::arguments() requires the application object
     // to be constructed, so it is not easily worked around
-#ifdef Q_OS_OSX
-    qt_osx_forceTransformProcessToForegroundApplicationAndActivate();
+#if defined(Q_OS_MACOS) || defined(Q_OS_OSX)
+    qt_macos_forceTransformProcessToForegroundApplicationAndActivate();
 #endif
     MainWindow mw(clParser.settingsDir());
     mw.show();

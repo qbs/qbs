@@ -42,14 +42,14 @@ var _deviceMap = {
 
 var _platformMap = {
     "ios": "iPhone",
-    "osx": "MacOSX",
+    "macos": "MacOSX",
     "tvos": "AppleTV",
     "watchos": "Watch"
 };
 
 var _platformDeviceMap = {
     "ios": ["iphone", "ipad"],
-    "osx": ["mac"],
+    "macos": ["mac"],
     "tvos": ["tv"],
     "watchos": ["watch"]
 }

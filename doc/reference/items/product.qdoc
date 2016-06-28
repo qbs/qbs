@@ -147,7 +147,7 @@
             \li linker-dependent
             \li If true, a console application is generated. If false, a GUI application is generated.
                 Only takes effect on Windows.
-                This property also influences the default application type on OS X and iOS.
+                This property also influences the default application type on Apple platforms.
                 If true, an application bundle is generated. If false, a normal executable is
                 generated.
         \row
@@ -162,7 +162,7 @@
             \li string
             \li undefined
             \li The version number of the product. Used in shared library filenames and generated
-                Info.plist files in OS X and iOS application and framework bundles, for example.
+                Info.plist files in Apple application and framework bundles, for example.
     \endtable
 
     The following properties are automatically set by \QBS and cannot be changed by the user:

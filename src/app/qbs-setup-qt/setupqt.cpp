@@ -289,7 +289,7 @@ static bool isToolchainProfile(const Profile &profile)
     QSet<QString> expected = QSet<QString>()
             << QLatin1String("qbs.toolchain")
             << QLatin1String("qbs.architecture");
-    if (HostOsInfo::isOsxHost())
+    if (HostOsInfo::isMacosHost())
         expected.insert(QLatin1String("qbs.targetOS")); // match only Xcode profiles
     return QSet<QString>(actual).unite(expected) == actual;
 }
@@ -344,7 +344,7 @@ static QStringList qbsTargetOsFromQtMkspec(const QString &mkspec)
         return QStringList() << QLatin1String("lynx") << QLatin1String("unix");
     if (mkspec.startsWith(QLatin1String("macx-")))
         return QStringList() << (mkspec.startsWith(QLatin1String("macx-ios-"))
-                                 ? QLatin1String("ios") : QLatin1String("osx"))
+                                 ? QLatin1String("ios") : QLatin1String("macos"))
                              << QLatin1String("darwin") << QLatin1String("bsd")
                              << QLatin1String("unix");
     if (mkspec.startsWith(QLatin1String("nacl-")) || mkspec.startsWith(QLatin1String("nacl64-")))

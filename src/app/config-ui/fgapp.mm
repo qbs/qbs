@@ -31,7 +31,7 @@
 #import <AppKit/AppKit.h>
 #include <ApplicationServices/ApplicationServices.h>
 
-extern "C" void qt_osx_forceTransformProcessToForegroundApplicationAndActivate()
+extern "C" void qt_macos_forceTransformProcessToForegroundApplicationAndActivate()
 {
     [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
     [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];

@@ -20,7 +20,7 @@ Project {
         files: "main.cpp"
         consoleApplication: true
         cpp.minimumWindowsVersion: undefined
-        cpp.minimumOsxVersion: undefined
+        cpp.minimumMacosVersion: undefined
         cpp.minimumIosVersion: undefined
         cpp.minimumAndroidVersion: undefined
 
@@ -34,7 +34,7 @@ Project {
     // when the application is run its output should confirm
     // that the given values took effect
     QtApplication {
-        condition: qbs.targetOS.contains("windows") || qbs.targetOS.contains("osx")
+        condition: qbs.targetOS.contains("windows") || qbs.targetOS.contains("macos")
         name: "specific"
         files: "main.cpp"
         consoleApplication: true
@@ -45,9 +45,9 @@ Project {
         }
 
         Properties {
-            condition: qbs.targetOS.contains("osx")
+            condition: qbs.targetOS.contains("macos")
             cpp.frameworks: "Foundation"
-            cpp.minimumOsxVersion: "10.6"
+            cpp.minimumMacosVersion: "10.6"
         }
     }
 
@@ -62,15 +62,15 @@ Project {
         cpp.minimumWindowsVersion: "5.3"
     }
 
-    // just to make sure three-digit minimum versions work on OS X
+    // just to make sure three-digit minimum versions work on macOS
     // this only affects the value of __MAC_OS_X_VERSION_MIN_REQUIRED,
     // not the actual LC_VERSION_MIN_MACOSX command which is limited to two
     QtApplication {
-        condition: qbs.targetOS.contains("osx")
+        condition: qbs.targetOS.contains("macos")
         name: "macappstore"
         files: "main.cpp"
         consoleApplication: true
         cpp.frameworks: "Foundation"
-        cpp.minimumOsxVersion: "10.6.8"
+        cpp.minimumMacosVersion: "10.6.8"
     }
 }
