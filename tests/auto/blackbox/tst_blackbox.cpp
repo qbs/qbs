@@ -4195,14 +4195,18 @@ void TestBlackbox::badInterpreter()
     QbsRunParameters params("run");
     params.expectFailure = true;
 
+    const QRegExp reNoSuchFileOrDir("bad interpreter:.* No such file or directory");
+    const QRegExp rePermissionDenied("bad interpreter:.* Permission denied");
+
     params.arguments = QStringList() << "-p" << "script-interp-missing";
     QCOMPARE(runQbs(params), 1);
-    QVERIFY(m_qbsStderr.contains("bad interpreter: No such file or directory"));
+    QString strerr = QString::fromLocal8Bit(m_qbsStderr);
+    QVERIFY(strerr.contains(reNoSuchFileOrDir));
 
     params.arguments = QStringList() << "-p" << "script-interp-noexec";
     QCOMPARE(runQbs(params), 1);
-    QVERIFY(m_qbsStderr.contains("bad interpreter: Permission denied")
-            || m_qbsStderr.contains("bad interpreter: No such file or directory"));
+    strerr = QString::fromLocal8Bit(m_qbsStderr);
+    QVERIFY(strerr.contains(reNoSuchFileOrDir) || strerr.contains(rePermissionDenied));
 
     params.arguments = QStringList() << "-p" << "script-noexec";
     QCOMPARE(runQbs(params), 1);
