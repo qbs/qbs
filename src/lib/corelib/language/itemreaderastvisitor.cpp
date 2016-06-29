@@ -296,6 +296,8 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
             v = it.value();
             continue;
         }
+        if (v->type() == Value::ItemValueType && it.value()->type() != Value::ItemValueType)
+            throw ErrorInfo(Tr::tr("Binding to non-item property."), v->location());
         if (v->type() != it.value()->type())
             continue;
         switch (v->type()) {

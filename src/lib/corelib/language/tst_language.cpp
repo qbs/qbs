@@ -537,7 +537,6 @@ void TestLanguage::erroneousFiles()
         }
         return;
     }
-    QEXPECT_FAIL("misused-inherited-property", "QBS-847", Continue);
     QEXPECT_FAIL("undeclared_property_in_Properties_item", "Too expensive to check", Continue);
     QVERIFY(!"No error thrown on invalid input.");
 }
