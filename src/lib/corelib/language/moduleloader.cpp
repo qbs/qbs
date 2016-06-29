@@ -102,6 +102,13 @@ public:
         QSet<ProductContext *> rootProducts = allProducts.toSet() - allDependencies;
         foreach (ProductContext * const rootProduct, rootProducts)
             traverse(rootProduct);
+        if (m_sortedProducts.count() < allProducts.count()) {
+            foreach (auto * const product, allProducts) {
+                QList<ModuleLoader::ProductContext *> path;
+                findCycle(product, path);
+            }
+        }
+        QBS_CHECK(m_sortedProducts.count() == allProducts.count());
     }
 
     // No product at position i has dependencies to a product at position j > i.
@@ -119,6 +126,22 @@ private:
         foreach (auto dependency, m_dependencyMap.value(product))
             traverse(dependency);
         m_sortedProducts << product;
+    }
+
+    void findCycle(ModuleLoader::ProductContext *product,
+                   QList<ModuleLoader::ProductContext *> &path)
+    {
+        if (path.contains(product)) {
+            ErrorInfo error(Tr::tr("Cyclic dependencies detected."));
+            foreach (const auto * const p, path)
+                error.append(p->name, p->item->location());
+            error.append(product->name, product->item->location());
+            throw error;
+        }
+        path << product;
+        foreach (auto * const dep, m_dependencyMap.value(product))
+            findCycle(dep, path);
+        path.removeLast();
     }
 
     TopLevelProjectContext &m_tlp;
