@@ -107,7 +107,7 @@ void ModuleMerger::start()
     m_mergedModule.item->setProperties(mergedProps);
 
     foreach (Item *moduleInstanceContainer, m_moduleInstanceContainers) {
-        QList<Item::Module> modules;
+        Item::Modules modules;
         foreach (const Item::Module &dep, moduleInstanceContainer->modules()) {
             const bool isTheModule = dep.name == m_mergedModule.name;
             Item::Module m = dep;
