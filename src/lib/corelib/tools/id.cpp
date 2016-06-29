@@ -162,14 +162,6 @@ Id::Id(const QByteArray &name)
    : m_id(theId(name))
 {}
 
-///*!
-//    \overload
-//    \deprecated
-//*/
-//Id::Id(const QString &name)
-//   : m_id(theId(name.toUtf8()))
-//{}
-
 /*!
   Returns an internal representation of the id.
 */
@@ -192,38 +184,6 @@ QByteArray Id::name() const
 QString Id::toString() const
 {
     return QString::fromUtf8(stringFromId.value(m_id).str);
-}
-
-/*!
-  Creates an id from a string representation.
-
-  This should not be used to handle a persistent version
-  of the Id, use \c{fromSetting()} instead.
-
-  \deprecated
-
-  \sa toString(), fromSetting()
-*/
-
-Id Id::fromString(const QString &name)
-{
-    return Id(theId(name.toUtf8()));
-}
-
-/*!
-  Creates an id from a string representation.
-
-  This should not be used to handle a persistent version
-  of the Id, use \c{fromSetting()} instead.
-
-  \deprecated
-
-  \sa toString(), fromSetting()
-*/
-
-Id Id::fromName(const QByteArray &name)
-{
-    return Id(theId(name));
 }
 
 /*!
