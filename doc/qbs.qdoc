@@ -506,6 +506,7 @@
     \row    \li qbs_no_man_install  \li Exclude the man page from installation.
     \row    \li qbs_enable_project_file_updates \li Enable API for updating project files. This
                                         implies a dependency to the Qt GUI module.
+    \row    \li qbs_use_bundled_qtscript        \li Use the bundled QtScript library.
     \endtable
 
     \section1 Using Docker

@@ -5,8 +5,9 @@ HEADERS = tst_language.h
 
 include(../auto.pri)
 include(../../../src/app/shared/logging/logging.pri)
+include(../../../src/lib/bundledlibs.pri)
 
-QT += script
+!qbs_use_bundled_qtscript: QT += script
 
 DATA_DIRS = testdata
 
@@ -17,3 +18,8 @@ for(data_dir, DATA_DIRS) {
 }
 
 OTHER_FILES += $$FILES
+
+qbs_use_bundled_qtscript {
+    CONFIG += qbs_do_not_link_bundled_qtscript
+    include(../../../src/lib/scriptengine/use_scriptengine.pri)
+}

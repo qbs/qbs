@@ -1,5 +1,12 @@
 TARGET = qbscore
 include(../library.pri)
+include(../bundledlibs.pri)
+
+qbs_use_bundled_qtscript {
+    include(../scriptengine/use_scriptengine.pri)
+} else {
+    QT += script
+}
 
 isEmpty(QBS_RELATIVE_LIBEXEC_PATH) {
     win32:QBS_RELATIVE_LIBEXEC_PATH=../bin
@@ -7,7 +14,7 @@ isEmpty(QBS_RELATIVE_LIBEXEC_PATH) {
 }
 DEFINES += QBS_RELATIVE_LIBEXEC_PATH=\\\"$${QBS_RELATIVE_LIBEXEC_PATH}\\\"
 
-QT += core-private network script
+QT += core-private network
 qbs_enable_project_file_updates: QT += gui
 
 INCLUDEPATH += $$PWD

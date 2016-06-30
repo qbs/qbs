@@ -1,4 +1,5 @@
 requires(!cross_compile)
+include(src/lib/bundledlibs.pri)
 
 defineTest(minQtVersion) {
     maj = $$1
@@ -40,6 +41,11 @@ CONFIG(shared, static|shared): src_plugins.depends = corelib
 tests.depends = static_res
 static_res.file = static-res.pro
 static_res.depends = src_app src_libexec src_plugins static.pro
+qbs_use_bundled_qtscript {
+    scriptenginelib.file = src/lib/scriptengine/scriptengine.pro
+    corelib.depends = scriptenginelib
+    SUBDIRS += scriptenginelib
+}
 SUBDIRS += \
     corelib\
     setupqtprofilelib\

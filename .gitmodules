@@ -1,0 +1,3 @@
+[submodule "qtscript"]
+	path = src/shared/qtscript
+	url = ../../qt/qtscript.git

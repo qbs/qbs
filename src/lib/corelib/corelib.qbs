@@ -4,7 +4,16 @@ import qbs.Utilities
 QbsLibrary {
     Depends { name: "cpp" }
     Depends { name: "bundledqt" }
-    Depends { name: "Qt"; submodules: ["core-private", "network", "script", "xml"] }
+    Depends { name: "Qt"; submodules: ["core-private", "network", "xml"] }
+    Depends {
+        name: "Qt.script"
+        condition: !qbsbuildconfig.useBundledQtScript
+        required: false
+    }
+    Depends {
+        name: "qbsscriptengine"
+        condition: qbsbuildconfig.useBundledQtScript || !Qt.script.present
+    }
     Depends { condition: qbsbuildconfig.enableProjectFileUpdates; name: "Qt.gui" }
     Depends { condition: Qt.core.staticBuild; productTypes: ["qbsplugin"] }
     name: "qbscore"
