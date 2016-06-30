@@ -40,11 +40,12 @@
 #include <tools/shellutils.h>
 #include <tools/version.h>
 
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <QLocale>
 #include <QRegExp>
 #include <QTemporaryFile>
-#include <QScriptEngine>
-#include <QScriptValue>
 
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
@@ -855,54 +856,48 @@ void TestBlackbox::changeInImportedFile()
     QVERIFY2(!m_qbsStdout.contains("output"), m_qbsStdout.constData());
 }
 
+static QJsonObject findByName(const QJsonArray &objects, const QString &name)
+{
+    for (const QJsonValue v : objects) {
+        if (!v.isObject())
+            continue;
+        QJsonObject obj = v.toObject();
+        const QString objName = obj.value(QLatin1String("name")).toString();
+        if (objName == name)
+            return obj;
+    }
+    return QJsonObject();
+}
+
 void TestBlackbox::dependenciesProperty()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/dependenciesProperty"));
     QCOMPARE(runQbs(), 0);
     QFile depsFile(relativeProductBuildDir("product1") + QLatin1String("/product1.deps"));
     QVERIFY(depsFile.open(QFile::ReadOnly));
-    QString deps = QString::fromLatin1(depsFile.readAll());
-    QVERIFY(!deps.isEmpty());
-    QScriptEngine scriptEngine;
-    QScriptValue scriptValue = scriptEngine.evaluate(deps);
-    QScriptValue product2;
-    QScriptValue qbs;
-    int c = scriptValue.property(QLatin1String("length")).toInt32();
-    QCOMPARE(c, 2);
-    for (int i = 0; i < c; ++i) {
-        QScriptValue dep = scriptValue.property(i);
-        QString name = dep.property(QLatin1String("name")).toVariant().toString();
-        if (name == QLatin1String("product2"))
-            product2 = dep;
-        else if (name == QLatin1String("qbs"))
-            qbs = dep;
+
+    QJsonParseError jsonerror;
+    QJsonDocument jsondoc = QJsonDocument::fromJson(depsFile.readAll(), &jsonerror);
+    if (jsonerror.error != QJsonParseError::NoError) {
+        qDebug() << jsonerror.errorString();
+        QFAIL("JSON parsing failed.");
     }
-    QVERIFY(qbs.isObject());
-    QVERIFY(product2.isObject());
-    QCOMPARE(product2.property(QLatin1String("type")).toString(), QLatin1String("application"));
-    QCOMPARE(product2.property(QLatin1String("narf")).toString(), QLatin1String("zort"));
-    QScriptValue product2_deps = product2.property(QLatin1String("dependencies"));
-    QVERIFY(product2_deps.isObject());
-    c = product2_deps.property(QLatin1String("length")).toInt32();
-    QScriptValue product2_qbs;
-    QScriptValue product2_cpp;
-    for (int i = 0; i < c; ++i) {
-        QScriptValue dep = product2_deps.property(i);
-        QString name = dep.property(QLatin1String("name")).toVariant().toString();
-        if (name == QLatin1String("cpp"))
-            product2_cpp = dep;
-        else if (name == QLatin1String("qbs"))
-            product2_qbs = dep;
-        else if (name == QLatin1String("")) // non-loaded xcode module
-            --c;
-    }
-    if (isXcodeProfile(profileName()))
-        QCOMPARE(c, 3);
-    else
-        QCOMPARE(c, 2);
-    QVERIFY(product2_qbs.isObject());
-    QVERIFY(product2_cpp.isObject());
-    QCOMPARE(product2_cpp.property("defines").toString(), QLatin1String("SMURF"));
+    QVERIFY(jsondoc.isArray());
+    QJsonArray dependencies = jsondoc.array();
+    QCOMPARE(dependencies.size(), 2);
+    QJsonObject product2 = findByName(dependencies, QStringLiteral("product2"));
+    QJsonArray product2_type = product2.value(QLatin1String("type")).toArray();
+    QCOMPARE(product2_type.size(), 1);
+    QCOMPARE(product2_type.first().toString(), QLatin1String("application"));
+    QCOMPARE(product2.value(QLatin1String("narf")).toString(), QLatin1String("zort"));
+    QJsonArray product2_deps = product2.value(QLatin1String("dependencies")).toArray();
+    QVERIFY(!product2_deps.isEmpty());
+    QJsonObject product2_qbs = findByName(product2_deps, QStringLiteral("qbs"));
+    QVERIFY(!product2_qbs.isEmpty());
+    QJsonObject product2_cpp = findByName(product2_deps, QStringLiteral("cpp"));
+    QJsonArray product2_cpp_defines = product2_cpp.value(QLatin1String("defines")).toArray();
+    QCOMPARE(product2_cpp_defines.size(), 1);
+    QCOMPARE(product2_cpp_defines.first().toString(), QLatin1String("SMURF"));
 }
 
 void TestBlackbox::dependencyProfileMismatch()
