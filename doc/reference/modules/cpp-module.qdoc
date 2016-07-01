@@ -38,7 +38,7 @@
     \brief Provides C/C++ support.
 
     The \c cpp module contains the properties and rules for toolchains of the C/C++ family.
-    On OS X this includes support for Objective-C/C++.
+    On Apple platforms this includes support for Objective-C/C++.
 
     \section1 General Properties
 
@@ -421,7 +421,7 @@
         \li \c{bool}
         \li 1.4
         \li \c{undefined}
-        \li Whether to enforce the use of only app-extension-safe APIs on OS X and iOS. This is
+        \li Whether to enforce the use of only app-extension-safe APIs on Apple platforms. This is
             necessary for building Application Extensions in OS X Yosemite and iOS 8 and above. If
             \c{undefined}, uses the compiler and linker defaults (probably \c{false}).
     \row
@@ -437,7 +437,13 @@
         \li \c{string}
         \li 1.0.1
         \li undefined, but may be set by generated profiles
-        \li A version number in the format [major].[minor] indicating the earliest version of OS X
+        \li Deprecated in \QBS 1.5.2. Use \c minimumMacosVersion instead.
+    \row
+        \li minimumMacosVersion
+        \li \c{string}
+        \li 1.5.2
+        \li undefined, but may be set by generated profiles
+        \li A version number in the format [major].[minor] indicating the earliest version of macOS
             that the product should run on. Passes -mmacosx-version-min=<version> to the compiler.
             If undefined, compiler defaults will be used.
     \row

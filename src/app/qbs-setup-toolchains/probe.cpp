@@ -37,7 +37,6 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
-#include <tools/scripttools.h>
 #include <tools/settings.h>
 #include <tools/toolchains.h>
 
@@ -261,7 +260,7 @@ void probe(Settings *settings)
         gccProbe(settings, profiles, QLatin1String("gcc"));
         gccProbe(settings, profiles, QLatin1String("clang"));
 
-        if (HostOsInfo::isOsxHost()) {
+        if (HostOsInfo::isMacosHost()) {
             xcodeProbe(settings, profiles);
         }
     }

@@ -39,7 +39,7 @@
     The \c PropertyList service allows you to read and write property list files in
     all formats supported by the Core Foundation API: XML, binary, JSON, and OpenStep (read-only).
 
-    This service is only available on Darwin platforms such as OS X and iOS.
+    This service is only available on Darwin platforms such as iOS, macOS, tvOS, and watchOS.
 
     \section1 Available operations
 

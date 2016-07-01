@@ -88,7 +88,7 @@
         \li A list of environment variables that are added to the run environment.
             They are provided as a list of strings in the form "varName=value".
             By default, DYLD_LIBRARY_PATH, DYLD_FRAMEWORK_PATH, and DYLD_ROOT_PATH
-            are set on OS X and iOS, or an empty list for other platforms.
+            are set on macOS, or an empty list for other platforms.
     \row
         \li limitToSubProject
         \li bool

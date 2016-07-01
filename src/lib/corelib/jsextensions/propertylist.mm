@@ -322,7 +322,7 @@ QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QStri
 #endif
             else {
                 errorString = @"JSON serialization of property lists is not "
-                              @"supported on this version of OS X";
+                              @"supported on this version of macOS";
             }
         } else if (format == QLatin1String("xml1") || format == QLatin1String("binary1")) {
             const NSPropertyListFormat plistFormat = format == QLatin1String("xml1")

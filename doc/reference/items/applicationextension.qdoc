@@ -36,8 +36,8 @@
     \ingroup list-of-items
 
     \title ApplicationExtension Item
-    \brief Represents a product that is an OS X or iOS Application Extension.
+    \brief Represents a product that is an iOS, macOS, tvOS, or watchOS Application Extension.
 
     An \c ApplicationExtension item is a convenience item based on \c XPCService that
-    sets some properties required for OS X and iOS Application Extensions.
+    sets some properties required for iOS, macOS, tvOS, or watchOS Application Extensions.
 */

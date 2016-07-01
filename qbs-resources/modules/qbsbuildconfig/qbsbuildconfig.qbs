@@ -18,7 +18,7 @@ Module {
             return undefined;
         if (qbs.targetOS.contains("linux"))
             return ["$ORIGIN/../" + libDirName];
-        if (qbs.targetOS.contains("osx"))
+        if (qbs.targetOS.contains("macos"))
             return ["@loader_path/../" + libDirName]
     }
     property string resourcesInstallDir: ""

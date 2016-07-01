@@ -336,7 +336,7 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
 
     // Set the minimum operating system versions appropriate for this Qt version
     const QString windowsVersion = guessMinimumWindowsVersion(qtEnvironment);
-    QString osxVersion, iosVersion, androidVersion;
+    QString macosVersion, iosVersion, androidVersion;
 
     if (!windowsVersion.isEmpty()) {    // Is target OS Windows?
         const Version qtVersion = Version(qtEnvironment.qtMajorVersion,
@@ -347,7 +347,7 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
     } else if (qtEnvironment.mkspecPath.contains(QLatin1String("macx"))) {
         profile.setValue(settingsTemplate.arg(QLatin1String("frameworkBuild")), qtEnvironment.frameworkBuild);
         if (qtEnvironment.qtMajorVersion >= 5) {
-            osxVersion = QLatin1String("10.6");
+            macosVersion = QLatin1String("10.6");
         } else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 6) {
             QDir qconfigDir;
             if (qtEnvironment.frameworkBuild) {
@@ -372,17 +372,17 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
                 } while (!line.isNull());
 
                 if (ts.status() == QTextStream::Ok)
-                    osxVersion = qtCocoaBuild ? QLatin1String("10.5") : QLatin1String("10.4");
+                    macosVersion = qtCocoaBuild ? QLatin1String("10.5") : QLatin1String("10.4");
             }
 
-            if (osxVersion.isEmpty()) {
+            if (macosVersion.isEmpty()) {
                 throw ErrorInfo(Internal::Tr::tr("Error reading qconfig.h; could not determine "
                                                  "whether Qt is using Cocoa or Carbon"));
             }
         }
 
         if (qtEnvironment.qtConfigItems.contains(QLatin1String("c++11")))
-            osxVersion = QLatin1String("10.7");
+            macosVersion = QLatin1String("10.7");
     }
 
     if (qtEnvironment.mkspecPath.contains(QLatin1String("ios")) && qtEnvironment.qtMajorVersion >= 5)
@@ -400,8 +400,8 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
     if (!windowsVersion.isEmpty())
         profile.setValue(QLatin1String("cpp.minimumWindowsVersion"), windowsVersion);
 
-    if (!osxVersion.isEmpty())
-        profile.setValue(QLatin1String("cpp.minimumOsxVersion"), osxVersion);
+    if (!macosVersion.isEmpty())
+        profile.setValue(QLatin1String("cpp.minimumMacosVersion"), macosVersion);
 
     if (!iosVersion.isEmpty())
         profile.setValue(QLatin1String("cpp.minimumIosVersion"), iosVersion);

@@ -476,6 +476,10 @@ void TestLanguage::erroneousFiles_data()
             << "something is wrong";
     QTest::newRow("dependency_cycle")
             << "Cyclic dependencies detected.";
+    QTest::newRow("dependency_cycle2")
+            << "Cyclic dependencies detected.";
+    QTest::newRow("dependency_cycle3")
+            << "Cyclic dependencies detected.";
     QTest::newRow("references_cycle")
             << "Cycle detected while referencing file 'references_cycle.qbs'.";
     QTest::newRow("subproject_cycle")
@@ -537,7 +541,6 @@ void TestLanguage::erroneousFiles()
         }
         return;
     }
-    QEXPECT_FAIL("misused-inherited-property", "QBS-847", Continue);
     QEXPECT_FAIL("undeclared_property_in_Properties_item", "Too expensive to check", Continue);
     QVERIFY(!"No error thrown on invalid input.");
 }
@@ -664,7 +667,7 @@ void TestLanguage::getNativeSetting()
         project = loader->loadProject(defaultParameters);
 
         QString expectedProductName;
-        if (HostOsInfo::isOsxHost())
+        if (HostOsInfo::isMacosHost())
             expectedProductName = QLatin1String("Mac OS X");
         else if (HostOsInfo::isWindowsHost())
             expectedProductName = QLatin1String("Windows");
@@ -1949,7 +1952,7 @@ void TestLanguage::wildcards()
         QVERIFY(product);
         GroupPtr group;
         if (useGroup) {
-            QCOMPARE(product->groups.count(), HostOsInfo::isOsxHost() ? 3 : 2);
+            QCOMPARE(product->groups.count(), HostOsInfo::isMacosHost() ? 3 : 2);
             foreach (const GroupPtr &rg, product->groups) {
                 if (rg->name == groupName) {
                     group = rg;
@@ -1957,7 +1960,7 @@ void TestLanguage::wildcards()
                 }
             }
         } else {
-            QCOMPARE(product->groups.count(), HostOsInfo::isOsxHost() ? 2 : 1);
+            QCOMPARE(product->groups.count(), HostOsInfo::isMacosHost() ? 2 : 1);
             group = product->groups.first();
         }
         QVERIFY(group);

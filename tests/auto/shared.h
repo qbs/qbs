@@ -161,8 +161,8 @@ inline qbs::Internal::HostOsInfo::HostOs targetOs()
         return qbs::Internal::HostOsInfo::HostOsWindows;
     if (targetOS.contains("linux"))
         return qbs::Internal::HostOsInfo::HostOsLinux;
-    if (targetOS.contains("osx"))
-        return qbs::Internal::HostOsInfo::HostOsOsx;
+    if (targetOS.contains("macos"))
+        return qbs::Internal::HostOsInfo::HostOsMacos;
     if (targetOS.contains("unix"))
         return qbs::Internal::HostOsInfo::HostOsOtherUnix;
     if (!targetOS.isEmpty())

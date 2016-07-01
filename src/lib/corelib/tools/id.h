@@ -46,7 +46,6 @@ public:
     Id() : m_id(0) {}
     Id(int uid) : m_id(uid) {}
     Id(const char *name);
-//    explicit Id(const QString &name);
     explicit Id(const QByteArray &name);
 
     Id withSuffix(int suffix) const;
@@ -66,8 +65,6 @@ public:
     bool alphabeticallyBefore(Id other) const;
     int uniqueIdentifier() const { return m_id; }
     static Id fromUniqueIdentifier(int uid) { return Id(uid); }
-    static Id fromString(const QString &str); // FIXME: avoid.
-    static Id fromName(const QByteArray &ba); // FIXME: avoid.
     static Id fromSetting(const QVariant &variant); // Good to use.
     static void registerId(int uid, const char *name);
 

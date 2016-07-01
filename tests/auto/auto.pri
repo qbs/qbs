@@ -3,7 +3,7 @@ DESTDIR = ../../../bin
 DEFINES += SRCDIR=\\\"$$_PRO_FILE_PWD_\\\"
 INCLUDEPATH += $$PWD/../../src
 
-QT = core script testlib
+QT = core testlib
 CONFIG += depend_includepath testcase console
 CONFIG -= app_bundle
 CONFIG += c++11

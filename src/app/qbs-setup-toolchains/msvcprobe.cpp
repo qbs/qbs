@@ -76,9 +76,14 @@ static void setQtHelperProperties(Profile &p, const QString &architecture,
         targetArch = QStringLiteral("armv7");
 
     p.setValue(QStringLiteral("qbs.architecture"), canonicalArchitecture(targetArch));
-    p.setValue(QStringLiteral("cpp.compilerVersionMajor"),
-               msvc.compilerDefines(compilerFilePath)[QStringLiteral("_MSC_FULL_VER")]
-            .toString().mid(0, 2).toInt());
+    try {
+        const QVariantMap defines = msvc.compilerDefines(compilerFilePath);
+        p.setValue(QStringLiteral("cpp.compilerVersionMajor"),
+                   defines[QStringLiteral("_MSC_FULL_VER")].toString().mid(0, 2).toInt());
+    } catch (const ErrorInfo &error) {
+        p.removeProfile();
+        qDebug("Warning: Failed to retrieve compiler defines: %s", qPrintable(error.toString()));
+    }
 }
 
 static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles,
