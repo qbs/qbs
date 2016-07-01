@@ -37,7 +37,6 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
-#include <tools/scripttools.h>
 #include <tools/settings.h>
 #include <tools/toolchains.h>
 
