@@ -72,6 +72,18 @@ private:
     int m_build;
 };
 
+class VersionRange
+{
+public:
+    VersionRange() = default;
+    VersionRange(const Version &minVersion, const Version &maxVersion);
+
+    Version minimum;
+    Version maximum; // exclusive
+
+    VersionRange &narrowDown(const VersionRange &other);
+};
+
 QBS_EXPORT int compare(const Version &lhs, const Version &rhs);
 inline bool operator==(const Version &lhs, const Version &rhs) { return compare(lhs, rhs) == 0; }
 inline bool operator!=(const Version &lhs, const Version &rhs) { return !operator==(lhs, rhs); }

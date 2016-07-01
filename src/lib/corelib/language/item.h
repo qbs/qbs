@@ -39,6 +39,7 @@
 #include <parser/qmljsmemorypool_p.h>
 #include <tools/codelocation.h>
 #include <tools/error.h>
+#include <tools/version.h>
 
 #include <QList>
 #include <QMap>
@@ -70,6 +71,7 @@ public:
         Item *item;
         bool isProduct;
         bool required;
+        VersionRange versionRange;
     };
     typedef QList<Module> Modules;
     typedef QMap<QString, PropertyDeclaration> PropertyDeclarationMap;

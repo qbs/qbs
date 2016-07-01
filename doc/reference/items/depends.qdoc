@@ -46,6 +46,7 @@
         Depends { name: "cpp" }
         Depends {
             name: "awesome_module"
+            versionAtLeast: "2.0"
             required: false
         }
         Depends {
@@ -76,6 +77,20 @@
         \li bool
         \li true
         \li Determines whether the dependency will actually be applied.
+    \row
+        \li versionAtLeast
+        \li string
+        \li undefined
+        \li The minimum value that the dependency's \c version property needs to have. If the
+            actual version is lower than that, loading the dependency will fail.
+            The value consists of integers separated by dots.
+    \row
+        \li versionBelow
+        \li string
+        \li undefined
+        \li A value that the dependency's \c version property must be lower than. If the
+            actual version is equal to or higher than that, loading the dependency will fail.
+            The value consists of integers separated by dots.
     \row
         \li productTypes
         \li stringList

@@ -226,6 +226,8 @@ private slots:
     void transitiveOptionalDependencies();
     void typescript();
     void usingsAsSoleInputsNonMultiplexed();
+    void versionCheck();
+    void versionCheck_data();
     void versionScript();
     void wildCardsAndRules();
     void wildcardRenaming();

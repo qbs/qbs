@@ -983,6 +983,43 @@ void TestBlackbox::usingsAsSoleInputsNonMultiplexed()
     QVERIFY(regularFileExists(p3BuildDir + "/custom2.out.plus"));
 }
 
+void TestBlackbox::versionCheck()
+{
+    QDir::setCurrent(testDataDir + "/versioncheck");
+    QFETCH(QString, requestedMinVersion);
+    QFETCH(QString, requestedMaxVersion);
+    QFETCH(QString, actualVersion);
+    QFETCH(QString, errorMessage);
+    QbsRunParameters params;
+    params.expectFailure = !errorMessage.isEmpty();
+    params.arguments << "-n" << ("versioncheck.requestedMinVersion:" + requestedMinVersion)
+                     << ("versioncheck.requestedMaxVersion:" + requestedMaxVersion)
+                     << ("lower.version:" + actualVersion);
+    QCOMPARE(runQbs(params) == 0, errorMessage.isEmpty());
+    if (params.expectFailure)
+        QVERIFY2(QString(m_qbsStderr).contains(errorMessage), m_qbsStderr.constData());
+}
+
+void TestBlackbox::versionCheck_data()
+{
+    QTest::addColumn<QString>("requestedMinVersion");
+    QTest::addColumn<QString>("requestedMaxVersion");
+    QTest::addColumn<QString>("actualVersion");
+    QTest::addColumn<QString>("errorMessage");
+
+    QTest::newRow("ok1") << "1.0" << "1.1" << "1.0" << QString();
+    QTest::newRow("ok2") << "1.0" << "2.0.1" << "2.0" << QString();
+    QTest::newRow("ok3") << "1.0" << "2.5" << "1.5" << QString();
+    QTest::newRow("ok3") << "1.0" << "2.0" << "1.99" << QString();
+    QTest::newRow("bad1") << "2.0" << "2.1" << "1.5" << "needs to be at least";
+    QTest::newRow("bad2") << "2.0" << "3.0" << "1.5" << "needs to be at least";
+    QTest::newRow("bad3") << "2.0" << "3.0" << "3.5" << "needs to be lower than";
+    QTest::newRow("bad4") << "2.0" << "3.0" << "3.0" << "needs to be lower than";
+
+    // "bad" because the "higer" module has stronger requirements.
+    QTest::newRow("bad5") << "0.1" << "0.9" << "0.5" << "Impossible version constraint";
+}
+
 void TestBlackbox::versionScript()
 {
     Settings settings((QString()));

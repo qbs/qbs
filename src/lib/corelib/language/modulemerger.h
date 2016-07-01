@@ -35,6 +35,7 @@
 #include "qualifiedid.h"
 
 #include <logging/logger.h>
+#include <tools/version.h>
 
 #include <QHash>
 #include <QSet>
@@ -68,6 +69,7 @@ private:
     QSet<const Item *> m_seenInstancesBottomUp;
     QSet<Item *> m_moduleInstanceContainers;
     bool m_required;
+    VersionRange m_versionRange;
 };
 
 } // namespace Internal
