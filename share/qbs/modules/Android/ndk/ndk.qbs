@@ -66,8 +66,6 @@ Module {
     }
 
     property string hostArch: ndkProbe.hostArch
-
-    property bool hardFloat
     property string ndkDir: ndkProbe.path
     property string platform: "android-9"
 
@@ -140,8 +138,6 @@ Module {
             return toolchainVersion.substr(prefix.length);
         return toolchainVersion;
     }
-
-    property string buildProfile: (abi === "armeabi-v7a" && hardFloat) ? (abi + "-hard") : abi
 
     property string gdbserverFileName: "gdbserver"
 
