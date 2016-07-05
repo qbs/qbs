@@ -56,12 +56,8 @@ Product {
         prepare: {
             var commandFilePath;
             var installed = input.moduleProperty("qbs", "install");
-            if (installed) {
-                commandFilePath = FileInfo.joinPaths(input.moduleProperty("qbs", "installRoot"),
-                                                     input.moduleProperty("qbs", "installPrefix"),
-                                                     input.moduleProperty("qbs", "installDir"),
-                                                     input.fileName);
-            }
+            if (installed)
+                commandFilePath = ModUtils.artifactInstalledFilePath(input);
             if (!commandFilePath || !File.exists(commandFilePath))
                 commandFilePath = input.filePath;
             var fullCommandLine = product.wrapper

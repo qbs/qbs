@@ -35,7 +35,7 @@ var Process = loadExtension("qbs.Process");
 var TemporaryDir = loadExtension("qbs.TemporaryDir");
 var Utilities = loadExtension("qbs.Utilities");
 
-function artifactInstalledFilePath(artifact, product) {
+function artifactInstalledFilePath(artifact) {
     var relativeInstallDir = artifact.moduleProperty("qbs", "installDir");
     var installPrefix = artifact.moduleProperty("qbs", "installPrefix");
     var installSourceBase = artifact.moduleProperty("qbs", "installSourceBase");
