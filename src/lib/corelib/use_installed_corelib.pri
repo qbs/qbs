@@ -1,6 +1,6 @@
 include(qbs_version.pri)
 
-QT += script xml
+QT += xml
 
 QBSLIBDIR=$${PWD}/../../lib
 unix {
