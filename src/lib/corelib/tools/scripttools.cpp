@@ -32,7 +32,6 @@
 
 #include <QDataStream>
 #include <QScriptEngine>
-#include <QScriptValueIterator>
 
 QT_BEGIN_NAMESPACE
 
