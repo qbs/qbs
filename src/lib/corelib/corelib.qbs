@@ -338,6 +338,8 @@ QbsLibrary {
             "hostosinfo.h",
             "id.cpp",
             "id.h",
+            "jsliterals.cpp",
+            "jsliterals.h",
             "installoptions.cpp",
             "msvcinfo.cpp",
             "msvcinfo.h",

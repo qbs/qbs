@@ -29,7 +29,7 @@
 ****************************************************************************/
 #include "settingsmodel.h"
 
-#include <tools/scripttools.h>
+#include <tools/jsliterals.h>
 #include <tools/settings.h>
 
 #ifdef QT_GUI_LIB
@@ -38,6 +38,8 @@
 
 #include <QList>
 #include <QScopedPointer>
+#include <QScriptEngine>
+#include <QScriptValue>
 #include <QString>
 
 namespace qbs {

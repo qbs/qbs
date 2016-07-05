@@ -41,7 +41,7 @@
 #include <parser/qmljslexer_p.h>
 #include <parser/qmljsparser_p.h>
 #include <tools/hostosinfo.h>
-#include <tools/scripttools.h>
+#include <tools/jsliterals.h>
 #include <tools/qbsassert.h>
 
 #include <QFile>

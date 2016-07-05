@@ -47,12 +47,6 @@ QDataStream &operator>> (QDataStream &s, QScriptProgram &script);
 QT_END_NAMESPACE
 
 namespace qbs {
-
-QBS_EXPORT QString toJSLiteral(const bool b);
-QBS_EXPORT QString toJSLiteral(const QString &str);
-QBS_EXPORT QString toJSLiteral(const QStringList &strs);
-QBS_EXPORT QString toJSLiteral(const QVariant &val);
-
 namespace Internal {
 
 template <typename C>

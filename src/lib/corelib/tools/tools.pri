@@ -13,6 +13,7 @@ HEADERS += \
     $$PWD/filetime.h \
     $$PWD/generateoptions.h \
     $$PWD/id.h \
+    $$PWD/jsliterals.h \
     $$PWD/msvcinfo.h \
     $$PWD/persistence.h \
     $$PWD/scannerpluginmanager.h \
@@ -54,6 +55,7 @@ SOURCES += \
     $$PWD/fileinfo.cpp \
     $$PWD/generateoptions.cpp \
     $$PWD/id.cpp \
+    $$PWD/jsliterals.cpp \
     $$PWD/msvcinfo.cpp \
     $$PWD/persistence.cpp \
     $$PWD/scannerpluginmanager.cpp \

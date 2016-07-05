@@ -30,9 +30,9 @@
 
 #include "propertymapinternal.h"
 
+#include <tools/jsliterals.h>
 #include <tools/persistence.h>
 #include <tools/propertyfinder.h>
-#include <tools/scripttools.h>
 
 namespace qbs {
 namespace Internal {
