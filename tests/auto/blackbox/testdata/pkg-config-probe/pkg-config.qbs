@@ -1,38 +1,23 @@
 import qbs
-import qbs.Probes
 
-Product {
-    name: "theProduct"
-    type: ["theType"]
+Project {
+    property string packageBaseName
 
-    property string packageName
+    Product {
+        name: "theProduct1"
+        type: ["theType"]
 
-    property bool probeSuccess: theProbe.found
-    property stringList libs: theProbe.libs
-    property stringList cFlags: theProbe.cflags
-    property string packageVersion: theProbe.modversion
-
-    Probes.PkgConfigProbe {
-        id: theProbe
-        name: product.packageName
-        libDirs: [path]
+        Depends { name: "themodule" }
+        themodule.packageName: project.packageBaseName + "1"
+        themodule.libDir: path + "/dummy1"
     }
 
-    Transformer {
-        Artifact {
-            filePath: "dummy.out"
-            fileTags: product.type
-        }
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.silent = true;
-            cmd.sourceCode = function() {
-                console.info("found: " + product.probeSuccess);
-                console.info("libs: " + JSON.stringify(product.libs));
-                console.info("cflags: " + JSON.stringify(product.cFlags));
-                console.info("version: " + product.packageVersion);
-            }
-            return [cmd];
-        }
+    Product {
+        name: "theProduct2"
+        type: ["theType"]
+
+        Depends { name: "themodule" }
+        themodule.packageName: project.packageBaseName + "2"
+        themodule.libDir: path + "/dummy2"
     }
 }

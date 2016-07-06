@@ -1820,36 +1820,44 @@ void TestBlackbox::pkgConfigProbe()
 
     QDir::setCurrent(testDataDir + "/pkg-config-probe");
 
-    QFETCH(QString, packageName);
-    QFETCH(QString, found);
-    QFETCH(QString, libs);
-    QFETCH(QString, cflags);
-    QFETCH(QString, version);
+    QFETCH(QString, packageBaseName);
+    QFETCH(QStringList, found);
+    QFETCH(QStringList, libs);
+    QFETCH(QStringList, cflags);
+    QFETCH(QStringList, version);
 
-    QbsRunParameters params(QStringList() << ("theProduct.packageName:" + packageName));
+    QbsRunParameters params(QStringList() << ("project.packageBaseName:" + packageBaseName));
     QCOMPARE(runQbs(params), 0);
     const QString stdOut = m_qbsStdout;
-    QVERIFY2(stdOut.contains("found: " + found), m_qbsStdout.constData());
-    QVERIFY2(stdOut.contains("libs: " + libs), m_qbsStdout.constData());
-    QVERIFY2(stdOut.contains("cflags: " + cflags), m_qbsStdout.constData());
-    QVERIFY2(stdOut.contains("version: " + version), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("theProduct1 found: " + found.at(0)), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("theProduct2 found: " + found.at(1)), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("theProduct1 libs: " + libs.at(0)), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("theProduct2 libs: " + libs.at(1)), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("theProduct1 cflags: " + cflags.at(0)), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("theProduct2 cflags: " + cflags.at(1)), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("theProduct1 version: " + version.at(0)), m_qbsStdout.constData());
+    QVERIFY2(stdOut.contains("theProduct2 version: " + version.at(1)), m_qbsStdout.constData());
 }
 
 void TestBlackbox::pkgConfigProbe_data()
 {
-    QTest::addColumn<QString>("packageName");
-    QTest::addColumn<QString>("found");
-    QTest::addColumn<QString>("libs");
-    QTest::addColumn<QString>("cflags");
-    QTest::addColumn<QString>("version");
+    QTest::addColumn<QString>("packageBaseName");
+    QTest::addColumn<QStringList>("found");
+    QTest::addColumn<QStringList>("libs");
+    QTest::addColumn<QStringList>("cflags");
+    QTest::addColumn<QStringList>("version");
 
     QTest::newRow("existing package")
-            << "dummy" << "true" << "[\"-Ldummydir\",\"-ldummy\"]" << "[]" << "0.0.1";
+            << "dummy" << (QStringList() << "true" << "true")
+            << (QStringList() << "[\"-Ldummydir1\",\"-ldummy1\"]"
+                << "[\"-Ldummydir2\",\"-ldummy2\"]")
+            << (QStringList() << "[]" << "[]") << (QStringList() << "0.0.1" << "0.0.2");
 
     // Note: The array values should be "undefined", but we lose that information when
     //       converting to QVariants in the ProjectResolver.
     QTest::newRow("non-existing package")
-            << "dummy2" << "false" << "[]" << "[]" << "undefined";
+            << "blubb" << (QStringList() << "false" << "false") << (QStringList() << "[]" << "[]")
+            << (QStringList() << "[]" << "[]") << (QStringList() << "undefined" << "undefined");
 }
 
 void TestBlackbox::probeChangeTracking()
