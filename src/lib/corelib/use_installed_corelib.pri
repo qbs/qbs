@@ -1,7 +1,5 @@
 include(qbs_version.pri)
 
-QT += xml
-
 QBSLIBDIR=$${PWD}/../../lib
 unix {
     LIBS += -L$$QBSLIBDIR -lqbscore

@@ -5,8 +5,6 @@ isEmpty(QBSLIBDIR) {
     QBSLIBDIR = $$OUT_PWD/../../../$${QBS_LIBRARY_DIRNAME}
 }
 
-QT += xml
-
 unix {
     LIBS += -L$$QBSLIBDIR -lqbscore
 }
