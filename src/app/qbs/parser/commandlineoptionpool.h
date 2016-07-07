@@ -67,6 +67,7 @@ public:
     CommandEchoModeOption *commandEchoModeOption() const;
     SettingsDirOption *settingsDirOption() const;
     GeneratorOption *generatorOption() const;
+    WaitLockOption *waitLockOption() const;
 
 private:
     mutable QHash<CommandLineOption::Type, CommandLineOption *> m_options;

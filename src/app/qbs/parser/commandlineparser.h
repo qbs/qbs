@@ -66,6 +66,7 @@ public:
     bool forceOutputCheck() const;
     bool dryRun() const;
     bool forceProbesExecution() const;
+    bool waitLockBuildGraph() const;
     bool logTime() const;
     bool withNonDefaultProducts() const;
     bool buildBeforeInstalling() const;

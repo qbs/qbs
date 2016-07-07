@@ -54,6 +54,7 @@ public:
         , dryRun(false)
         , logElapsedTime(false)
         , forceProbeExecution(false)
+        , waitLockBuildGraph(false)
         , restoreBehavior(SetupProjectParameters::RestoreAndTrackChanges)
         , propertyCheckingMode(ErrorHandlingMode::Relaxed)
         , productErrorMode(ErrorHandlingMode::Strict)
@@ -78,6 +79,7 @@ public:
     bool dryRun;
     bool logElapsedTime;
     bool forceProbeExecution;
+    bool waitLockBuildGraph;
     SetupProjectParameters::RestoreBehavior restoreBehavior;
     ErrorHandlingMode propertyCheckingMode;
     ErrorHandlingMode productErrorMode;
@@ -495,6 +497,24 @@ bool SetupProjectParameters::forceProbeExecution() const
 void SetupProjectParameters::setForceProbeExecution(bool force)
 {
     d->forceProbeExecution = force;
+}
+
+/*!
+ * \brief Returns true if qbs should wait for the build graph lock to become available,
+ * otherwise qbs will exit immediately if the lock cannot be acquired.
+ */
+bool SetupProjectParameters::waitLockBuildGraph() const
+{
+    return d->waitLockBuildGraph;
+}
+
+/*!
+ * Controls whether to wait indefinitely for the build graph lock to be released.
+ * This allows multiple conflicting qbs processes to be spawned simultaneously.
+ */
+void SetupProjectParameters::setWaitLockBuildGraph(bool wait)
+{
+    d->waitLockBuildGraph = wait;
 }
 
 /*!

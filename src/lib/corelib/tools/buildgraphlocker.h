@@ -40,10 +40,13 @@
 namespace qbs {
 namespace Internal {
 
+class ProgressObserver;
+
 class BuildGraphLocker
 {
 public:
-    explicit BuildGraphLocker(const QString &buildGraphFilePath, const Logger &logger);
+    explicit BuildGraphLocker(const QString &buildGraphFilePath, const Logger &logger,
+                              bool waitIndefinitely, ProgressObserver *observer);
     ~BuildGraphLocker();
 
 private:

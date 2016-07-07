@@ -33,6 +33,7 @@
 #include "error.h"
 #include "hostosinfo.h"
 #include "processutils.h"
+#include "progressobserver.h"
 #include "version.h"
 
 #include <logging/translator.h>
@@ -59,23 +60,35 @@ static bool hasQtBug53392()
     return qtVersion == Version(5, 7, 0) || qtVersion < Version(5, 6, 2);
 }
 
-BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logger &logger)
+static void tryCreateBuildDirectory(const QString &buildDir, const QString &buildGraphFilePath)
+{
+    if (!QDir::root().mkpath(buildDir)) {
+        throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': Failed to create directory.")
+                        .arg(buildGraphFilePath));
+    }
+}
+
+BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logger &logger,
+                                   bool waitIndefinitely, ProgressObserver *observer)
     : m_lockFile(buildGraphFilePath + QLatin1String(".lock"))
     , m_logger(logger)
 {
     const QString buildDir = QFileInfo(buildGraphFilePath).absolutePath();
     rememberCreatedDirectories(buildDir);
-    if (!QDir::root().mkpath(buildDir)) {
-        throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': Failed to create directory.")
-                        .arg(buildGraphFilePath));
-    }
+    if (waitIndefinitely)
+        m_logger.qbsDebug() << "Waiting to acquire lock file...";
     m_lockFile.setStaleLockTime(0);
     int attemptsToGetInfo = 0;
     do {
+        if (observer->canceled())
+            break;
+        tryCreateBuildDirectory(buildDir, buildGraphFilePath);
         if (m_lockFile.tryLock(250))
             return;
         switch (m_lockFile.error()) {
         case QLockFile::LockFailedError: {
+            if (waitIndefinitely)
+                continue;
             qint64 pid;
             QString hostName;
             QString appName;

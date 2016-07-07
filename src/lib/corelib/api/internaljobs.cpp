@@ -241,7 +241,7 @@ void InternalSetupProjectJob::start()
         if (!m_existingProject) {
             bgLocker = new BuildGraphLocker(ProjectBuildData::deriveBuildGraphFilePath(buildDir,
                                                                                        projectId),
-                                            logger());
+                                           logger(), m_parameters.waitLockBuildGraph(), observer());
         }
         execute();
         if (m_existingProject)

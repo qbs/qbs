@@ -106,6 +106,9 @@ public:
     bool forceProbeExecution() const;
     void setForceProbeExecution(bool force);
 
+    bool waitLockBuildGraph() const;
+    void setWaitLockBuildGraph(bool wait);
+
     QProcessEnvironment environment() const;
     void setEnvironment(const QProcessEnvironment &env);
     QProcessEnvironment adjustedEnvironment() const;

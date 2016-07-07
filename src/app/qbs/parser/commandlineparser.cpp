@@ -221,6 +221,11 @@ bool CommandLineParser::forceProbesExecution() const
     return d->optionPool.forceProbesOption()->enabled();
 }
 
+bool CommandLineParser::waitLockBuildGraph() const
+{
+    return d->optionPool.waitLockOption()->enabled();
+}
+
 bool CommandLineParser::logTime() const
 {
     return d->logTime;

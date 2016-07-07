@@ -116,6 +116,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::GeneratorOptionType:
             option = new GeneratorOption;
             break;
+        case CommandLineOption::WaitLockOptionType:
+            option = new WaitLockOption;
+            break;
         default:
             qFatal("Unknown option type %d", type);
         }
@@ -251,6 +254,11 @@ SettingsDirOption *CommandLineOptionPool::settingsDirOption() const
 GeneratorOption *CommandLineOptionPool::generatorOption() const
 {
     return static_cast<GeneratorOption *>(getOption(CommandLineOption::GeneratorOptionType));
+}
+
+WaitLockOption *CommandLineOptionPool::waitLockOption() const
+{
+    return static_cast<WaitLockOption *>(getOption(CommandLineOption::WaitLockOptionType));
 }
 
 } // namespace qbs
