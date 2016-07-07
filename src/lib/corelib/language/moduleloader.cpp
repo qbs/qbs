@@ -401,7 +401,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     ProductContext dummyProductContext;
     dummyProductContext.project = &projectContext;
     dummyProductContext.moduleProperties = m_parameters.finalBuildConfigurationTree();
-    loadBaseModule(&dummyProductContext, projectItem);
+    projectItem->addModule(loadBaseModule(&dummyProductContext, projectItem));
     overrideItemProperties(projectItem, QLatin1String("project"),
                            m_parameters.overriddenValuesTree());
     const QString projectName = m_evaluator->stringValue(projectItem, QLatin1String("name"));
@@ -528,7 +528,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     ValuePtr qbsValue = productItem->property(qbsKey); // Retrieve now to restore later.
     if (qbsValue)
         qbsValue = qbsValue->clone();
-    loadBaseModule(dummyContext, productItem);
+    productItem->addModule(loadBaseModule(dummyContext, productItem));
 
     // Overriding the product item properties must be done here already, because otherwise
     // the "profiles" property would not be overridable.
@@ -661,6 +661,9 @@ static void createSortedModuleList(const Item::Module &parentModule, QVector<Ite
 
 void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 {
+    if (productContext->info.hasError)
+        return;
+
     Item * const item = productContext->item;
 
     Item::Modules mergedModules;
@@ -912,8 +915,7 @@ void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, I
 
 void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *item)
 {
-    loadBaseModule(dependsContext->product, item);
-
+    const Item::Module baseModule = loadBaseModule(dependsContext->product, item);
     // Resolve all Depends items.
     ItemModuleList loadedModules;
     ProductDependencyResults productDependencies;
@@ -921,6 +923,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
         if (child->type() == ItemType::Depends)
             resolveDependsItem(dependsContext, item, child, &loadedModules, &productDependencies);
 
+    item->addModule(baseModule);
     foreach (const Item::Module &module, loadedModules)
         item->addModule(module);
 
@@ -1028,7 +1031,8 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         Item *moduleItem = loadModule(dependsContext->product, parentItem, dependsItem->location(),
                                       dependsItem->id(), moduleName, isRequired, &result.isProduct);
         if (!moduleItem) {
-            throw ErrorInfo(Tr::tr("Dependency '%1' not found.").arg(moduleName.toString()),
+            throw ErrorInfo(Tr::tr("Dependency '%1' not found for product '%2'.")
+                            .arg(moduleName.toString(), dependsContext->product->name),
                             dependsItem->location());
         }
         if (m_logger.traceEnabled())
@@ -1325,7 +1329,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     return module;
 }
 
-void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
+Item::Module ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
 {
     const QualifiedId baseModuleName(QLatin1String("qbs"));
     Item::Module baseModuleDesc;
@@ -1335,7 +1339,7 @@ void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
     QBS_CHECK(!baseModuleDesc.isProduct);
     if (Q_UNLIKELY(!baseModuleDesc.item))
         throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
-    item->addModule(baseModuleDesc);
+    return baseModuleDesc;
 }
 
 static QStringList hostOS()

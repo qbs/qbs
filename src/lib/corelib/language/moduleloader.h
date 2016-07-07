@@ -33,6 +33,7 @@
 
 #include "filetags.h"
 #include "forward_decls.h"
+#include "item.h"
 #include "itempool.h"
 #include <logging/logger.h>
 #include <tools/setupprojectparameters.h>
@@ -215,7 +216,7 @@ private:
             const QStringList &extraSearchPaths, bool isRequired, bool *cacheHit);
     Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
             bool isBaseModule, const QString &filePath, bool *cacheHit, bool *triedToLoad);
-    void loadBaseModule(ProductContext *productContext, Item *item);
+    Item::Module loadBaseModule(ProductContext *productContext, Item *item);
     void setupBaseModulePrototype(Item *prototype);
     void instantiateModule(ProductContext *productContext, Item *exportingProductItem,
             Item *instanceScope, Item *moduleInstance, Item *modulePrototype,
