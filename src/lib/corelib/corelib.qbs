@@ -338,6 +338,8 @@ QbsLibrary {
             "hostosinfo.h",
             "id.cpp",
             "id.h",
+            "jsliterals.cpp",
+            "jsliterals.h",
             "installoptions.cpp",
             "msvcinfo.cpp",
             "msvcinfo.h",
@@ -453,7 +455,7 @@ QbsLibrary {
         ]
     }
     Export {
-        Depends { name: "Qt"; submodules: ["script", "xml"] }
+        Depends { name: "cpp" }
         cpp.defines: product.projectFileUpdateDefines
     }
 }

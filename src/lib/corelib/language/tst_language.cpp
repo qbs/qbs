@@ -49,6 +49,7 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/jsliterals.h>
 #include <tools/profile.h>
 #include <tools/propertyfinder.h>
 #include <tools/settings.h>

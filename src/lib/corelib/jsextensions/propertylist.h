@@ -34,6 +34,11 @@
 
 #include <qglobal.h>
 
+// ### remove when qbs requires qbs 1.6 to build itself
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0) && defined(__APPLE__) && !defined(Q_OS_MAC)
+#define Q_OS_MAC
+#endif
+
 #ifndef Q_OS_MAC
 
 #include <QScriptEngine>

@@ -32,7 +32,6 @@
 
 #include <QDataStream>
 #include <QScriptEngine>
-#include <QScriptValueIterator>
 
 QT_BEGIN_NAMESPACE
 
@@ -58,65 +57,6 @@ QDataStream &operator>> (QDataStream &s, QScriptProgram &script)
 QT_END_NAMESPACE
 
 namespace qbs {
-
-QString toJSLiteral(const bool b)
-{
-    return b ? QLatin1String("true") : QLatin1String("false");
-}
-
-QString toJSLiteral(const QString &str)
-{
-    QString js = str;
-    js.replace(QRegExp(QLatin1String("([\\\\\"])")), QLatin1String("\\\\1"));
-    js.prepend(QLatin1Char('"'));
-    js.append(QLatin1Char('"'));
-    return js;
-}
-
-QString toJSLiteral(const QStringList &strs)
-{
-    QString js = QLatin1String("[");
-    for (int i = 0; i < strs.count(); ++i) {
-        if (i != 0)
-            js.append(QLatin1String(", "));
-        js.append(toJSLiteral(strs.at(i)));
-    }
-    js.append(QLatin1Char(']'));
-    return js;
-}
-
-QString toJSLiteral(const QVariant &val)
-{
-    if (!val.isValid())
-        return QLatin1String("undefined");
-    if (val.type() == QVariant::List || val.type() == QVariant::StringList) {
-        QString res;
-        foreach (const QVariant &child, val.toList()) {
-            if (res.length()) res.append(QLatin1String(", "));
-            res.append(toJSLiteral(child));
-        }
-        res.prepend(QLatin1Char('['));
-        res.append(QLatin1Char(']'));
-        return res;
-    }
-    if (val.type() == QVariant::Map) {
-        const QVariantMap &vm = val.toMap();
-        QString str = QLatin1String("{");
-        for (QVariantMap::const_iterator it = vm.begin(); it != vm.end(); ++it) {
-            if (it != vm.begin())
-                str += QLatin1Char(',');
-            str += toJSLiteral(it.key()) + QLatin1Char(':') + toJSLiteral(it.value());
-        }
-        str += QLatin1Char('}');
-        return str;
-    }
-    if (val.type() == QVariant::Bool)
-        return val.toBool() ? QLatin1String("true") : QLatin1String("false");
-    if (val.canConvert(QVariant::String))
-        return toJSLiteral(val.toString());
-    return QString::fromLatin1("Unconvertible type %1").arg(QLatin1String(val.typeName()));
-}
-
 namespace Internal {
 
 void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value)

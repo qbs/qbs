@@ -1,0 +1,7 @@
+Name: dummy2
+Description: dummy2 package
+Version: 0.0.2
+
+Requires:
+Libs: -Ldummydir2 -ldummy2
+Cflags:

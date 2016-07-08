@@ -197,6 +197,8 @@ void BuiltinDeclarations::addDependsItem()
     PropertyDeclaration requiredDecl(QLatin1String("required"), PropertyDeclaration::Boolean);
     requiredDecl.setInitialValueSource(QLatin1String("true"));
     item << requiredDecl;
+    item << PropertyDeclaration(QLatin1String("versionAtLeast"), PropertyDeclaration::String);
+    item << PropertyDeclaration(QLatin1String("versionBelow"), PropertyDeclaration::String);
     PropertyDeclaration profileDecl(QLatin1String("profiles"), PropertyDeclaration::StringList);
     profileDecl.setInitialValueSource(QLatin1String("[product.profile]"));
     item << profileDecl;
@@ -275,6 +277,7 @@ void BuiltinDeclarations::addModuleLikeItem(ItemType type)
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
     item << PropertyDeclaration(QLatin1String("additionalProductTypes"),
                                       PropertyDeclaration::StringList);
+    item << PropertyDeclaration(QLatin1String("version"), PropertyDeclaration::String);
     PropertyDeclaration presentDecl(QLatin1String("present"), PropertyDeclaration::Boolean);
     presentDecl.setInitialValueSource(QLatin1String("true"));
     item << presentDecl;

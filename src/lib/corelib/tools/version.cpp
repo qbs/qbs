@@ -134,5 +134,19 @@ int compare(const Version &lhs, const Version &rhs)
     return 0;
 }
 
+VersionRange::VersionRange(const Version &minVersion, const Version &maxVersion)
+    : minimum(minVersion), maximum(maxVersion)
+{
+}
+
+VersionRange &VersionRange::narrowDown(const VersionRange &other)
+{
+    if (other.minimum > minimum)
+        minimum = other.minimum;
+    if (other.maximum.isValid() && other.maximum < maximum)
+        maximum = other.maximum;
+    return *this;
+}
+
 } // namespace Internal
 } // namespace qbs

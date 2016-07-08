@@ -65,10 +65,13 @@ public:
 
     void doPrintWarning(const qbs::ErrorInfo &error) {
         qDebug("%s", qPrintable(error.toString()));
+        warnings << error;
     }
     void doPrintMessage(qbs::LoggerLevel, const QString &message, const QString &) {
         output += message;
     }
+
+    QList<qbs::ErrorInfo> warnings;
 };
 
 class BuildDescriptionReceiver : public QObject
@@ -152,6 +155,11 @@ void TestApi::initTestCase()
     QVERIFY2(qbs::Internal::copyFileRecursion(m_sourceDataDir,
                                               m_workingDataDir, false, true, &errorMessage),
              qPrintable(errorMessage));
+}
+
+void TestApi::init()
+{
+    m_logSink->warnings.clear();
 }
 
 void TestApi::addQObjectMacroToCppFile()
@@ -1711,6 +1719,30 @@ void TestApi::references()
     const QString subProjectFileName
             = QFileInfo(topLevelProject.subProjects().first().location().filePath()).fileName();
     QCOMPARE(subProjectFileName, QString("p.qbs"));
+}
+
+void TestApi::relaxedModeRecovery()
+{
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("relaxed-mode-recovery/relaxed-mode-recovery.qbs");
+    setupParams.setProductErrorMode(qbs::ErrorHandlingMode::Relaxed);
+    setupParams.setPropertyCheckingMode(qbs::ErrorHandlingMode::Relaxed);
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    if (m_logSink->warnings.count() != 4) {
+        foreach (const qbs::ErrorInfo &error, m_logSink->warnings)
+            qDebug() << error.toString();
+    }
+    QCOMPARE(m_logSink->warnings.count(), 4);
+    foreach (const qbs::ErrorInfo &error, m_logSink->warnings) {
+        QVERIFY2(!error.toString().contains("ASSERT")
+                 && (error.toString().contains("Dependency 'blubb' not found")
+                     || error.toString().contains("Product 'p1' had errors and was disabled")
+                     || error.toString().contains("Product 'p2' had errors and was disabled")),
+                 qPrintable(error.toString()));
+    }
 }
 
 void TestApi::renameProduct()

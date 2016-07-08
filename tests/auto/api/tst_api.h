@@ -56,6 +56,7 @@ public:
 
 private slots:
     void initTestCase();
+    void init();
 
     void addQObjectMacroToCppFile();
     void addedFilePersistent();
@@ -113,6 +114,7 @@ private slots:
     void propertiesBlocks();
     void rc();
     void references();
+    void relaxedModeRecovery();
     void removeFileDependency();
     void renameProduct();
     void renameTargetArtifact();

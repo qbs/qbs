@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -28,51 +28,22 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_MODULEMERGER_H
-#define QBS_MODULEMERGER_H
+#ifndef QBS_JSLITERALS_H
+#define QBS_JSLITERALS_H
 
-#include "item.h"
-#include "qualifiedid.h"
+#include "qbs_export.h"
 
-#include <logging/logger.h>
-#include <tools/version.h>
-
-#include <QHash>
-#include <QSet>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
 
 namespace qbs {
-namespace Internal {
 
-class ModuleMerger {
-public:
-    ModuleMerger(const Logger &logger, Item *root, Item::Module &moduleToMerge);
-    void start();
+QBS_EXPORT QString toJSLiteral(const bool b);
+QBS_EXPORT QString toJSLiteral(const QString &str);
+QBS_EXPORT QString toJSLiteral(const QStringList &strs);
+QBS_EXPORT QString toJSLiteral(const QVariant &val);
 
-private:
-    Item::PropertyMap dfs(const Item::Module &m, Item::PropertyMap props);
-    void mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap &src);
-    void appendPrototypeValueToNextChain(Item *moduleProto, const QString &propertyName,
-            const ValuePtr &sv);
-    static ValuePtr lastInNextChain(const ValuePtr &v);
-
-    enum PropertiesType { ScalarProperties, ListProperties };
-    void insertProperties(Item::PropertyMap *dst, Item *srcItem, PropertiesType type);
-    void replaceItemInValues(QualifiedId moduleName, Item *containerItem, Item *toReplace);
-    void replaceItemInScopes(Item *toReplace);
-
-    const Logger &m_logger;
-    Item * const m_rootItem;
-    Item::Module &m_mergedModule;
-    Item *m_clonedModulePrototype = nullptr;
-    QHash<ValuePtr, PropertyDeclaration> m_decls;
-    QSet<const Item *> m_seenInstancesTopDown;
-    QSet<const Item *> m_seenInstancesBottomUp;
-    QSet<Item *> m_moduleInstanceContainers;
-    bool m_required;
-    VersionRange m_versionRange;
-};
-
-} // namespace Internal
 } // namespace qbs
 
-#endif // QBS_MODULEMERGER_H
+#endif // QBS_JSLITERALS_H

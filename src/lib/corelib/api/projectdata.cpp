@@ -33,9 +33,9 @@
 #include "propertymap_p.h"
 #include <language/propertymapinternal.h>
 #include <tools/fileinfo.h>
+#include <tools/jsliterals.h>
 #include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>
-#include <tools/scripttools.h>
 
 #include <algorithm>
 

@@ -1,0 +1,7 @@
+Name: dummy1
+Description: dummy1 package
+Version: 0.0.1
+
+Requires:
+Libs: -Ldummydir1 -ldummy1
+Cflags:

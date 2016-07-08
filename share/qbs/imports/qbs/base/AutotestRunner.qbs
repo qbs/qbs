@@ -29,6 +29,8 @@
 ****************************************************************************/
 
 import qbs
+import qbs.File
+import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Utilities
 
@@ -52,8 +54,14 @@ Product {
             alwaysUpdated: false
         }
         prepare: {
+            var commandFilePath;
+            var installed = input.moduleProperty("qbs", "install");
+            if (installed)
+                commandFilePath = ModUtils.artifactInstalledFilePath(input);
+            if (!commandFilePath || !File.exists(commandFilePath))
+                commandFilePath = input.filePath;
             var fullCommandLine = product.wrapper
-                .concat([input.filePath])
+                .concat([commandFilePath])
                 .concat(product.arguments);
             var cmd = new Command(fullCommandLine[0], fullCommandLine.slice(1));
             cmd.description = "Running test " + input.fileName;

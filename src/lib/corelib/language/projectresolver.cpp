@@ -329,8 +329,8 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     m_productsByName.insert(product->uniqueName(), product);
     const ModuleLoaderResult::ProductInfo &pi = m_loadResult.productInfos.value(item);
     if (pi.hasError) {
-        m_logger.qbsWarning()
-                << Tr::tr("Product '%1' had errors and was disabled.").arg(product->name);
+        m_logger.printWarning(ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
+                                        .arg(product->name), item->location()));
         product->enabled = false;
         return;
     }

@@ -43,6 +43,7 @@ ModuleMerger::ModuleMerger(const Logger &logger, Item *root, Item::Module &modul
     , m_rootItem(root)
     , m_mergedModule(moduleToMerge)
     , m_required(moduleToMerge.required)
+    , m_versionRange(moduleToMerge.versionRange)
 {
     QBS_CHECK(moduleToMerge.item->type() == ItemType::ModuleInstance);
 }
@@ -94,6 +95,7 @@ void ModuleMerger::start()
     const Item::PropertyMap props = dfs(m, Item::PropertyMap());
     if (m_required)
         m_mergedModule.required = true;
+    m_mergedModule.versionRange.narrowDown(m_versionRange);
     Item::PropertyMap mergedProps = m_mergedModule.item->properties();
 
     Item *moduleProto = m_mergedModule.item->prototype();
@@ -118,6 +120,7 @@ void ModuleMerger::start()
                 m.item = m_mergedModule.item;
                 if (m_required)
                     m.required = true;
+                m.versionRange.narrowDown(m_versionRange);
             }
             modules << m;
         }
@@ -137,6 +140,7 @@ Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap pro
             m_moduleInstanceContainers << m.item;
             if (dep.required)
                 m_required = true;
+            m_versionRange.narrowDown(dep.versionRange);
             break;
         }
     }

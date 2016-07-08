@@ -401,7 +401,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     ProductContext dummyProductContext;
     dummyProductContext.project = &projectContext;
     dummyProductContext.moduleProperties = m_parameters.finalBuildConfigurationTree();
-    loadBaseModule(&dummyProductContext, projectItem);
+    projectItem->addModule(loadBaseModule(&dummyProductContext, projectItem));
     overrideItemProperties(projectItem, QLatin1String("project"),
                            m_parameters.overriddenValuesTree());
     const QString projectName = m_evaluator->stringValue(projectItem, QLatin1String("name"));
@@ -528,7 +528,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     ValuePtr qbsValue = productItem->property(qbsKey); // Retrieve now to restore later.
     if (qbsValue)
         qbsValue = qbsValue->clone();
-    loadBaseModule(dummyContext, productItem);
+    productItem->addModule(loadBaseModule(dummyContext, productItem));
 
     // Overriding the product item properties must be done here already, because otherwise
     // the "profiles" property would not be overridable.
@@ -661,6 +661,9 @@ static void createSortedModuleList(const Item::Module &parentModule, QVector<Ite
 
 void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 {
+    if (productContext->info.hasError)
+        return;
+
     Item * const item = productContext->item;
 
     Item::Modules mergedModules;
@@ -682,6 +685,31 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
             continue;
         try {
             resolveProbes(productContext, module.item);
+            if (module.versionRange.minimum.isValid()
+                    || module.versionRange.maximum.isValid()) {
+                if (module.versionRange.maximum.isValid()
+                        && module.versionRange.minimum >= module.versionRange.maximum) {
+                    throw ErrorInfo(Tr::tr("Impossible version constraint [%1,%2) set for module "
+                                           "'%3'").arg(module.versionRange.minimum.toString(),
+                                                       module.versionRange.maximum.toString(),
+                                                       module.name.toString()));
+                }
+                const Version moduleVersion = Version::fromString(
+                            m_evaluator->stringValue(module.item, QLatin1String("version")));
+                if (moduleVersion < module.versionRange.minimum) {
+                    throw ErrorInfo(Tr::tr("Module '%1' has version %2, but it needs to be "
+                            "at least %3.").arg(module.name.toString(),
+                                                moduleVersion.toString(),
+                                                module.versionRange.minimum.toString()));
+                }
+                if (module.versionRange.maximum.isValid()
+                        && moduleVersion >= module.versionRange.maximum) {
+                    throw ErrorInfo(Tr::tr("Module '%1' has version %2, but it needs to be "
+                            "lower than %3.").arg(module.name.toString(),
+                                               moduleVersion.toString(),
+                                               module.versionRange.maximum.toString()));
+                }
+            }
             m_evaluator->boolValue(module.item, QLatin1String("validate"));
         } catch (const ErrorInfo &error) {
             if (module.required) { // Error will be thrown for enabled products only
@@ -912,8 +940,7 @@ void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, I
 
 void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *item)
 {
-    loadBaseModule(dependsContext->product, item);
-
+    const Item::Module baseModule = loadBaseModule(dependsContext->product, item);
     // Resolve all Depends items.
     ItemModuleList loadedModules;
     ProductDependencyResults productDependencies;
@@ -921,6 +948,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
         if (child->type() == ItemType::Depends)
             resolveDependsItem(dependsContext, item, child, &loadedModules, &productDependencies);
 
+    item->addModule(baseModule);
     foreach (const Item::Module &module, loadedModules)
         item->addModule(module);
 
@@ -1013,6 +1041,12 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
             if (!m_requiredChain.at(i))
                 isRequired = false;
         }
+        const Version minVersion = Version::fromString(
+                    m_evaluator->stringValue(dependsItem, QLatin1String("versionAtLeast")));
+        const Version maxVersion = Version::fromString(
+                    m_evaluator->stringValue(dependsItem, QLatin1String("versionBelow")));
+        const VersionRange versionRange(minVersion, maxVersion);
+
         // Don't load the same module twice. Duplicate Depends statements can easily
         // happen due to inheritance.
         const auto it = std::find_if(moduleResults->begin(), moduleResults->end(),
@@ -1020,6 +1054,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         if (it != moduleResults->end()) {
             if (isRequired)
                 it->required = true;
+            it->versionRange.narrowDown(versionRange);
             continue;
         }
 
@@ -1028,7 +1063,8 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         Item *moduleItem = loadModule(dependsContext->product, parentItem, dependsItem->location(),
                                       dependsItem->id(), moduleName, isRequired, &result.isProduct);
         if (!moduleItem) {
-            throw ErrorInfo(Tr::tr("Dependency '%1' not found.").arg(moduleName.toString()),
+            throw ErrorInfo(Tr::tr("Dependency '%1' not found for product '%2'.")
+                            .arg(moduleName.toString(), dependsContext->product->name),
                             dependsItem->location());
         }
         if (m_logger.traceEnabled())
@@ -1036,6 +1072,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         result.name = moduleName;
         result.item = moduleItem;
         result.required = isRequired;
+        result.versionRange = versionRange;
         moduleResults->append(result);
         if (result.isProduct) {
             if (m_logger.traceEnabled())
@@ -1325,7 +1362,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     return module;
 }
 
-void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
+Item::Module ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
 {
     const QualifiedId baseModuleName(QLatin1String("qbs"));
     Item::Module baseModuleDesc;
@@ -1335,7 +1372,7 @@ void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
     QBS_CHECK(!baseModuleDesc.isProduct);
     if (Q_UNLIKELY(!baseModuleDesc.item))
         throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
-    item->addModule(baseModuleDesc);
+    return baseModuleDesc;
 }
 
 static QStringList hostOS()
@@ -1863,6 +1900,7 @@ static void collectAllModules(Item *item, QVector<Item::Module> *modules)
             // If a module is required somewhere, it is required in the top-level item.
             if (m.required)
                 it->required = true;
+            it->versionRange.narrowDown(m.versionRange);
             continue;
         }
         modules->append(m);
@@ -1912,6 +1950,7 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
             }
             dep.name = module.name;
             dep.required = module.required;
+            dep.versionRange = module.versionRange;
             ctx->item->addModule(dep);
         }
     }

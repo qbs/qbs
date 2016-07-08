@@ -193,5 +193,11 @@
             \li \c undefined
             \li Script that is run after the module is loaded. It can be used to check property
             values and throw errors in unexpected cases. The return value is ignored.
+        \row
+            \li version
+            \li string
+            \li \c undefined
+            \li The module's version. It consists of integer values separated by dots. You can check
+                for specific values of this property in a \l{Depends item}{Depends} item.
     \endtable
 */
