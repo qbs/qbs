@@ -83,6 +83,31 @@ public:
         m_projects.clear();
     }
 
+    QList<QVariantMap> buildConfigurations() const
+    {
+        return m_buildConfigurations;
+    }
+
+    void addBuildConfiguration(const QVariantMap &configuration)
+    {
+        m_buildConfigurations << configuration;
+    }
+
+    void addBuildConfigurations(const QList<QVariantMap> &configurations)
+    {
+        m_buildConfigurations << configurations;
+    }
+
+    void removeBuildConfiguration(const QVariantMap &configuration)
+    {
+        m_buildConfigurations.removeOne(configuration);
+    }
+
+    void clearBuildConfigurations()
+    {
+        m_buildConfigurations.clear();
+    }
+
 protected:
     ProjectGenerator()
     {
@@ -90,6 +115,7 @@ protected:
 
 private:
     QList<Project> m_projects;
+    QList<QVariantMap> m_buildConfigurations;
 };
 
 } // namespace qbs

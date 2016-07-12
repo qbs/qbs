@@ -498,7 +498,9 @@ void CommandLineFrontend::generate()
 
     generator->clearProjects();
     generator->addProjects(m_projects);
-    generator->generate(m_parser.installOptions(m_projects.first().profile()));
+    generator->clearBuildConfigurations();
+    generator->addBuildConfigurations(m_parser.buildConfigurations());
+    generator->generate(m_parser.installOptions(QString()));
 }
 
 int CommandLineFrontend::runTarget()
