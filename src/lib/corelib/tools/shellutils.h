@@ -41,6 +41,8 @@ namespace Internal {
 
 QBS_EXPORT QString shellInterpreter(const QString &filePath);
 QBS_EXPORT QString shellQuote(const QString &arg, HostOsInfo::HostOs os = HostOsInfo::hostOs());
+QBS_EXPORT QString shellQuote(const QStringList &args,
+                              HostOsInfo::HostOs os = HostOsInfo::hostOs());
 QBS_EXPORT QString shellQuote(const QString &program, const QStringList &args,
                               HostOsInfo::HostOs os = HostOsInfo::hostOs());
 

@@ -142,12 +142,22 @@ QString shellQuote(const QString &arg, HostOsInfo::HostOs os)
     return os == HostOsInfo::HostOsWindows ? shellQuoteWin(arg) : shellQuoteUnix(arg);
 }
 
+QString shellQuote(const QStringList &args, HostOsInfo::HostOs os)
+{
+    QString result;
+    if (!args.isEmpty()) {
+        result += shellQuote(args.at(0), os);
+        for (int i = 1; i < args.size(); ++i)
+            result += QLatin1Char(' ') + shellQuote(args.at(i), os);
+    }
+    return result;
+}
+
 QString shellQuote(const QString &program, const QStringList &args, HostOsInfo::HostOs os)
 {
     QString result = shellQuote(program, os);
-    foreach (const QString &arg, args) {
-        result += QLatin1Char(' ') + shellQuote(arg, os);
-    }
+    if (!args.isEmpty())
+        result += QLatin1Char(' ') + shellQuote(args, os);
     return result;
 }
 
