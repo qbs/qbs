@@ -52,8 +52,11 @@ static bool hasQtBug45497()
 
 static bool hasQtBug53392()
 {
-    return HostOsInfo::isWindowsHost()
-            && Version::fromString(QLatin1String(qVersion())) < Version(5, 6, 2);
+    if (!HostOsInfo::isWindowsHost())
+        return false;
+    const Version qtVersion = Version::fromString(QLatin1String(qVersion()));
+    // The fix is included in 5.6.2 and 5.7.1, but not in 5.7.0.
+    return qtVersion == Version(5, 7, 0) || qtVersion < Version(5, 6, 2);
 }
 
 BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logger &logger)
