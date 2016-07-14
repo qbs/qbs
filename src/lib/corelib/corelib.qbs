@@ -354,6 +354,8 @@ QbsLibrary {
             "executablefinder.h",
             "fileinfo.cpp",
             "fileinfo.h",
+            "filesaver.cpp",
+            "filesaver.h",
             "filetime.h",
             "generateoptions.cpp",
             "hostosinfo.h",

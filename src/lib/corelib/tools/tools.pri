@@ -10,6 +10,7 @@ HEADERS += \
     $$PWD/error.h \
     $$PWD/executablefinder.h \
     $$PWD/fileinfo.h \
+    $$PWD/filesaver.h \
     $$PWD/filetime.h \
     $$PWD/generateoptions.h \
     $$PWD/id.h \
@@ -54,6 +55,7 @@ SOURCES += \
     $$PWD/error.cpp \
     $$PWD/executablefinder.cpp \
     $$PWD/fileinfo.cpp \
+    $$PWD/filesaver.cpp \
     $$PWD/generateoptions.cpp \
     $$PWD/id.cpp \
     $$PWD/jsliterals.cpp \
