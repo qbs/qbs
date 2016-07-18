@@ -2961,6 +2961,35 @@ void TestBlackbox::linkerMode()
         testCondition(lang, [](const QByteArray &lddOutput) { return lddOutput.contains("objc"); });
 }
 
+void TestBlackbox::lexyacc()
+{
+    if (findExecutable(QStringList("lex")).isEmpty()
+            || findExecutable(QStringList("yacc")).isEmpty()) {
+        QSKIP("lex or yacc not present");
+    }
+    QDir::setCurrent(testDataDir + "/lexyacc/one-grammar");
+    QCOMPARE(runQbs(), 0);
+    const QString parserBinary = relativeExecutableFilePath("one-grammar");
+    QProcess p;
+    p.start(parserBinary);
+    QVERIFY2(p.waitForStarted(), qPrintable(p.errorString()));
+    p.write("a && b || c && !d");
+    p.closeWriteChannel();
+    QVERIFY2(p.waitForFinished(), qPrintable(p.errorString()));
+    QVERIFY2(p.exitCode() == 0, p.readAllStandardError().constData());
+    const QByteArray parserOutput = p.readAllStandardOutput();
+    QVERIFY2(parserOutput.contains("OR AND a b AND c NOT d"), parserOutput.constData());
+
+    QDir::setCurrent(testDataDir + "/lexyacc/two-grammars");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+
+    params.expectFailure = false;
+    params.arguments << (QStringList() << "lex_yacc.uniqueSymbolPrefix:true");
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::linkerScripts()
 {
     Settings settings((QString()));

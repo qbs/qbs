@@ -158,6 +158,7 @@ private slots:
     void jsExtensionsTextFile();
     void ld();
     void linkerMode();
+    void lexyacc();
     void linkerScripts();
     void listPropertiesWithOuter();
     void listPropertyOrder();
