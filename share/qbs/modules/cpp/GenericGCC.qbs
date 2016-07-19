@@ -76,13 +76,25 @@ CppModule {
     property path toolchainInstallPath
     assemblerName: 'as'
     compilerName: cxxCompilerName
-    linkerName: cxxCompilerName
+    linkerName: 'ld'
     property string archiverName: 'ar'
     property string nmName: 'nm'
     property string objcopyName: "objcopy"
     property string stripName: "strip"
     property string dsymutilName: "dsymutil"
     property path sysroot: qbs.sysroot
+
+    property string linkerMode: "automatic"
+    PropertyOptions {
+        name: "linkerMode"
+        allowedValues: ["automatic", "manual"]
+        description: "Controls whether to automatically use an appropriate compiler frontend "
+            + "in place of the system linker when linking binaries. The default is \"automatic\", "
+            + "which chooses either the C++ compiler, C compiler, or system linker specified by "
+            + "the linkerName/linkerPath properties, depending on the type of object files "
+            + "present on the linker command line. \"manual\" allows you to explicitly specify "
+            + "the linker using the linkerName/linkerPath properties."
+    }
 
     property string exportedSymbolsCheckMode: "ignore-undefined"
     PropertyOptions {
@@ -295,10 +307,18 @@ CppModule {
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["dynamiclibrary", "staticlibrary"]
 
-        Artifact {
-            filePath: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
-            fileTags: ["staticlibrary"]
-            cpp.staticLibraries: {
+        outputFileTags: ["staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
+        outputArtifacts: {
+            var tags = ["staticlibrary"];
+            for (var i = 0; i < inputs["obj"].length; ++i) {
+                var ft = inputs["obj"][i].fileTags;
+                if (ft.contains("c_obj"))
+                    tags.push("c_staticlibrary");
+                if (ft.contains("cpp_obj"))
+                    tags.push("cpp_staticlibrary");
+            }
+
+            var staticLibraries = function() {
                 var result = [];
                 for (var i in inputs.staticlibrary) {
                     var lib = inputs.staticlibrary[i]
@@ -308,14 +328,22 @@ CppModule {
                 result = Gcc.concatLibs(result,
                                         ModUtils.moduleProperties(product, 'staticLibraries'));
                 return result
-            }
-            cpp.dynamicLibraries: {
+            }();
+
+            var dynamicLibraries = function() {
                 var result = [];
                 for (var i in inputs.dynamiclibrary)
                     result.push(inputs.dynamiclibrary[i].filePath);
                 result = result.concat(ModUtils.moduleProperties(product, 'dynamicLibraries'));
                 return result
-            }
+            }();
+
+            return [{
+                filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                             PathTools.staticLibraryFilePath(product)),
+                fileTags: tags,
+                cpp: { "staticLibraries": staticLibraries, "dynamicLibraries": dynamicLibraries }
+            }];
         }
 
         prepare: {
@@ -392,9 +420,19 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"]
 
-        Artifact {
-            fileTags: ["obj"]
-            filePath: FileInfo.joinPaths(".obj", Utilities.getHash(input.baseDir), input.fileName + ".o")
+        outputFileTags: ["obj", "c_obj", "cpp_obj"]
+        outputArtifacts: {
+            var tags = ["obj"];
+            if (inputs.c || inputs.objc)
+                tags.push("c_obj");
+            if (inputs.cpp || inputs.objcpp)
+                tags.push("cpp_obj");
+            return [{
+                fileTags: tags,
+                filePath: FileInfo.joinPaths(".obj",
+                                             Utilities.getHash(input.baseDir),
+                                             input.fileName + ".o")
+            }];
         }
 
         prepare: {

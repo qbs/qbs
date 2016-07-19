@@ -47,6 +47,8 @@
 #include <QRegExp>
 #include <QTemporaryFile>
 
+#include <functional>
+
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
 using qbs::InstallOptions;
@@ -2906,6 +2908,57 @@ void TestBlackbox::ld()
 {
     QDir::setCurrent(testDataDir + "/ld");
     QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::linkerMode()
+{
+    if (!HostOsInfo::isAnyUnixHost())
+        QSKIP("only applies on Unix");
+
+    QDir::setCurrent(testDataDir + "/linkerMode");
+    QCOMPARE(runQbs(), 0);
+
+    auto testCondition = [&](const QString &lang,
+            const std::function<bool(const QByteArray &)> &condition) {
+        if ((lang == "Objective-C" || lang == "Objective-C++")
+                && HostOsInfo::hostOs() != HostOsInfo::HostOsMacos)
+            return;
+        const QString binary = defaultInstallRoot + "/LinkedProduct-" + lang;
+        QProcess deptool;
+        if (HostOsInfo::hostOs() == HostOsInfo::HostOsMacos)
+            deptool.start("otool", QStringList() << "-L" << binary);
+        else
+            deptool.start("readelf", QStringList() << "-a" << binary);
+        QVERIFY(deptool.waitForStarted());
+        QVERIFY(deptool.waitForFinished());
+        QByteArray deptoolOutput = deptool.readAllStandardOutput();
+        if (HostOsInfo::hostOs() != HostOsInfo::HostOsMacos) {
+            QList<QByteArray> lines = deptoolOutput.split('\n');
+            int sz = lines.size();
+            for (int i = 0; i < sz; ++i) {
+                if (!lines.at(i).contains("(NEEDED)")) {
+                    lines.removeAt(i--);
+                    sz--;
+                }
+            }
+
+            deptoolOutput = lines.join('\n');
+        }
+        QCOMPARE(deptool.exitCode(), 0);
+        QVERIFY2(condition(deptoolOutput), deptoolOutput.constData());
+    };
+
+    const QStringList nocpplangs = QStringList() << "Assembly" << "C" << "Objective-C";
+    for (const QString &lang : nocpplangs)
+        testCondition(lang, [](const QByteArray &lddOutput) { return !lddOutput.contains("c++"); });
+
+    const QStringList cpplangs = QStringList() << "C++" << "Objective-C++";
+    for (const QString &lang : cpplangs)
+        testCondition(lang, [](const QByteArray &lddOutput) { return lddOutput.contains("c++"); });
+
+    const QStringList objclangs = QStringList() << "Objective-C" << "Objective-C++";
+    for (const QString &lang : objclangs)
+        testCondition(lang, [](const QByteArray &lddOutput) { return lddOutput.contains("objc"); });
 }
 
 void TestBlackbox::linkerScripts()
