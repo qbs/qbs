@@ -320,6 +320,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     projectContext->project->products += product;
     productContext.product = product;
     product->name = m_evaluator->stringValue(item, QLatin1String("name"));
+    product->location = item->location();
 
     // product->buildDirectory() isn't valid yet, because the productProperties map is not ready.
     productContext.buildDirectory = m_evaluator->stringValue(item, QLatin1String("buildDirectory"));
@@ -349,7 +350,6 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
                     product->topLevelProject()->buildDirectory,
                     product->destinationDirectory);
     }
-    product->location = item->location();
     product->probes = pi.probes;
     product->productProperties = createProductConfig();
     product->productProperties.insert(destDirKey, product->destinationDirectory);
