@@ -160,6 +160,14 @@ QbsLibrary {
         files: "buildgraph/forward_decls.h"
     }
     Group {
+        name: "Clang Compilation Database generator"
+        prefix: "generators/clangcompilationdb/"
+        files: [
+            "clangcompilationdbgenerator.cpp",
+            "clangcompilationdbgenerator.h"
+        ]
+    }
+    Group {
         name: "jsextensions"
         prefix: name + '/'
         files: [

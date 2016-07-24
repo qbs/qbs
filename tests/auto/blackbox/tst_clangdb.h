@@ -1,7 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Copyright (C) 2015 Jake Petroules.
+** Copyright (C) 2016 Christian Gagneraud.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -29,53 +28,36 @@
 **
 ****************************************************************************/
 
-#include "projectgeneratormanager.h"
+#ifndef QBS_TST_CLANGDB_H
+#define QBS_TST_CLANGDB_H
 
-#include <logging/logger.h>
-#include <logging/translator.h>
-#include <tools/hostosinfo.h>
+#include "tst_blackbox.h"
 
-#include <QCoreApplication>
-#include <QDirIterator>
-#include <QLibrary>
-
-#include "generators/clangcompilationdb/clangcompilationdbgenerator.h"
-
-namespace qbs {
-
-using namespace Internal;
-
-ProjectGeneratorManager::~ProjectGeneratorManager()
+class TestClangDb : public TestBlackboxBase
 {
-    foreach (QLibrary * const lib, m_libs) {
-        lib->unload();
-        delete lib;
-    }
-}
+    Q_OBJECT
 
-ProjectGeneratorManager *ProjectGeneratorManager::instance()
-{
-    static ProjectGeneratorManager generatorPlugin;
-    return &generatorPlugin;
-}
+public:
+    TestClangDb();
+    ~TestClangDb();
 
-ProjectGeneratorManager::ProjectGeneratorManager()
-{
-    QList<QSharedPointer<ProjectGenerator> > generators;
-    generators << QSharedPointer<ProjectGenerator>(new qbs::ClangCompilationDatabaseGenerator());
-    foreach (QSharedPointer<ProjectGenerator> generator, generators) {
-        m_generators[generator->generatorName()] = generator;
-    }
-}
+    const QString projectDir;
+    const QString projectFileName;
+    const QString buildDir;
+    const QString sourceFilePath;
+    const QString dbFilePath;
 
-QStringList ProjectGeneratorManager::loadedGeneratorNames()
-{
-    return instance()->m_generators.keys();
-}
+private slots:
+    void initTestCase();
+    void ensureBuildTreeCreated();
+    void checkCanGenerateDb();
+    void checkDbIsValidJson();
+    void checkDbIsConsistentWithProject();
+    void checkClangDetectsSourceCodeProblems();
 
-QSharedPointer<ProjectGenerator> ProjectGeneratorManager::findGenerator(const QString &generatorName)
-{
-    return instance()->m_generators.value(generatorName);
-}
+private:
+    static int runProcess(const QString &exec, const QStringList &args, QByteArray &stdErr,
+                          QByteArray &stdOut);
+};
 
-} // namespace qbs
+#endif // Include guard.

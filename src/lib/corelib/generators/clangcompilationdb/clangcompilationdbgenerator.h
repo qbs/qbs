@@ -1,7 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Copyright (C) 2015 Jake Petroules.
+** Copyright (C) 2016 Christian Gagneraud.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -29,53 +28,31 @@
 **
 ****************************************************************************/
 
-#include "projectgeneratormanager.h"
+#ifndef QBS_CLANGCOMPILATIONDATABASEGENERATOR_H
+#define QBS_CLANGCOMPILATIONDATABASEGENERATOR_H
 
-#include <logging/logger.h>
-#include <logging/translator.h>
-#include <tools/hostosinfo.h>
-
-#include <QCoreApplication>
-#include <QDirIterator>
-#include <QLibrary>
-
-#include "generators/clangcompilationdb/clangcompilationdbgenerator.h"
+#include <generators/generator.h>
 
 namespace qbs {
 
-using namespace Internal;
+class SourceArtifact;
+class ProjectData;
 
-ProjectGeneratorManager::~ProjectGeneratorManager()
+class ClangCompilationDatabaseGenerator : public ProjectGenerator
 {
-    foreach (QLibrary * const lib, m_libs) {
-        lib->unload();
-        delete lib;
-    }
-}
+public:
+    ClangCompilationDatabaseGenerator();
 
-ProjectGeneratorManager *ProjectGeneratorManager::instance()
-{
-    static ProjectGeneratorManager generatorPlugin;
-    return &generatorPlugin;
-}
-
-ProjectGeneratorManager::ProjectGeneratorManager()
-{
-    QList<QSharedPointer<ProjectGenerator> > generators;
-    generators << QSharedPointer<ProjectGenerator>(new qbs::ClangCompilationDatabaseGenerator());
-    foreach (QSharedPointer<ProjectGenerator> generator, generators) {
-        m_generators[generator->generatorName()] = generator;
-    }
-}
-
-QStringList ProjectGeneratorManager::loadedGeneratorNames()
-{
-    return instance()->m_generators.keys();
-}
-
-QSharedPointer<ProjectGenerator> ProjectGeneratorManager::findGenerator(const QString &generatorName)
-{
-    return instance()->m_generators.value(generatorName);
-}
+private:
+    QString generatorName() const override;
+    void generate(const InstallOptions &installOptions) override;
+    static const QString DefaultDatabaseFileName;
+    QJsonObject createEntry(const QString &filePath, const QString &buildDir,
+                            const RuleCommand &ruleCommand);
+    void writeProjectDatabase(const QString &filePath, const QJsonArray &entries);
+    bool hasValidInputFileTag(const QStringList &fileTags) const;
+};
 
 } // namespace qbs
+
+#endif // QBS_VISUALSTUDIOGENERATOR_H
