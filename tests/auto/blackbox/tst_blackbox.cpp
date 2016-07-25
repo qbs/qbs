@@ -2989,6 +2989,13 @@ void TestBlackbox::multipleChanges()
     QVERIFY(m_qbsStdout.contains("prop: true"));
 }
 
+void TestBlackbox::nestedGroups()
+{
+    QDir::setCurrent(testDataDir + "/nested-groups");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(regularFileExists(relativeExecutableFilePath("nested-groups")));
+}
+
 void TestBlackbox::nestedProperties()
 {
     QDir::setCurrent(testDataDir + "/nested-properties");

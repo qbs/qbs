@@ -733,7 +733,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 
     foreach (Item *child, item->children()) {
         if (child->type() == ItemType::Group)
-            handleGroup(productContext, child);
+            handleGroup(child);
     }
     productContext->project->result->productInfos.insert(item, productContext->info);
 }
@@ -790,11 +790,15 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
                   QSet<QString>(referencedFilePaths) << subProjectFilePath);
 }
 
-void ModuleLoader::handleGroup(ProductContext *productContext, Item *groupItem)
+void ModuleLoader::handleGroup(Item *groupItem)
 {
     checkCancelation();
-    propagateModulesFromProduct(productContext, groupItem);
+    propagateModulesToGroup(groupItem);
     checkItemCondition(groupItem);
+    foreach (Item * const child, groupItem->children()) {
+        if (child->type() == ItemType::Group)
+            handleGroup(child);
+    }
 }
 
 static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
@@ -914,12 +918,12 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
     pmi.exportItem = merged;
 }
 
-void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, Item *groupItem)
+void ModuleLoader::propagateModulesToGroup(Item *groupItem)
 {
     QBS_CHECK(groupItem->type() == ItemType::Group);
-    for (Item::Modules::const_iterator it = productContext->item->modules().constBegin();
-         it != productContext->item->modules().constEnd(); ++it)
-    {
+    Item * const parent = groupItem->parent();
+    QBS_CHECK(parent->type() == ItemType::Group || parent->type() == ItemType::Product);
+    for (auto it = parent->modules().constBegin(); it != parent->modules().constEnd(); ++it) {
         Item::Module m = *it;
         Item *targetItem = moduleInstanceItem(groupItem, m.name);
         targetItem->setPrototype(m.item);
@@ -928,9 +932,9 @@ void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, I
         targetItem->setModules(m.item->modules());
 
         // "parent" should point to the group/artifact parent
-        targetItem->setParent(groupItem->parent());
+        targetItem->setParent(parent);
 
-        // the outer item of a module is the product's instance of it
+        // the outer item of a module is the parent item's (a product or a group) instance of it
         targetItem->setOuterItem(m.item);   // ### Is this always the same as the scope item?
 
         m.item = targetItem;

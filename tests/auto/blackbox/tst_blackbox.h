@@ -166,6 +166,7 @@ private slots:
     void missingProfile();
     void mixedBuildVariants();
     void multipleChanges();
+    void nestedGroups();
     void nestedProperties();
     void newOutputArtifact();
     void nodejs();

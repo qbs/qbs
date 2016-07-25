@@ -199,9 +199,9 @@ private:
     void initProductProperties(const ProductContext &product);
     void handleSubProject(ProjectContext *projectContext, Item *projectItem,
             const QSet<QString> &referencedFilePaths);
-    void handleGroup(ProductContext *productContext, Item *groupItem);
+    void handleGroup(Item *groupItem);
     void mergeExportItems(const ProductContext &productContext);
-    void propagateModulesFromProduct(ProductContext *productContext, Item *groupItem);
+    void propagateModulesToGroup(Item *groupItem);
     void resolveDependencies(DependsContext *dependsContext, Item *item);
     class ItemModuleList;
     void resolveDependsItem(DependsContext *dependsContext, Item *parentItem, Item *dependsItem,

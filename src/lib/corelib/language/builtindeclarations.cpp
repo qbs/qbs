@@ -225,6 +225,7 @@ void BuiltinDeclarations::addFileTaggerItem()
 void BuiltinDeclarations::addGroupItem()
 {
     ItemDeclaration item(ItemType::Group);
+    item.setAllowedChildTypes({ ItemType::Group });
     item << conditionProperty();
     item << PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String,
                                 PropertyDeclaration::PropertyNotAvailableInConfig);

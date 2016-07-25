@@ -84,6 +84,7 @@ struct ProjectResolver::ProductContext
     typedef QPair<ArtifactPropertiesPtr, CodeLocation> ArtifactPropertiesInfo;
     QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
     QHash<QString, CodeLocation> sourceArtifactLocations;
+    GroupConstPtr currentGroup;
 };
 
 struct ProjectResolver::ModuleContext
@@ -512,7 +513,9 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
 {
     Q_UNUSED(projectContext);
     checkCancelation();
-    PropertyMapPtr moduleProperties = m_productContext->product->moduleProperties;
+    PropertyMapPtr moduleProperties = m_productContext->currentGroup
+            ? m_productContext->currentGroup->properties
+            : m_productContext->product->moduleProperties;
     if (isSomeModulePropertySet(item)) {
         moduleProperties = PropertyMapInternal::create();
         m_evaluator->setCachingEnabled(true);
@@ -520,7 +523,9 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         m_evaluator->setCachingEnabled(false);
     }
 
-    const bool isEnabled = m_evaluator->boolValue(item, QLatin1String("condition"));
+    bool isEnabled = m_evaluator->boolValue(item, QLatin1String("condition"));
+    if (m_productContext->currentGroup)
+        isEnabled = isEnabled && m_productContext->currentGroup->enabled;
     QStringList files = m_evaluator->stringListValue(item, QLatin1String("files"));
     const QStringList fileTagsFilter
             = m_evaluator->stringListValue(item, QLatin1String("fileTagsFilter"));
@@ -551,12 +556,6 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         m_productContext->artifactPropertiesPerFilter.insert(fileTagsFilter,
                                 ProductContext::ArtifactPropertiesInfo(aprops, item->location()));
         return;
-    }
-    if (Q_UNLIKELY(files.isEmpty() && !item->hasProperty(QLatin1String("files")))) {
-        // Yield an error if Group without files binding is encountered.
-        // An empty files value is OK but a binding must exist.
-        throw ErrorInfo(Tr::tr("Group without files is not allowed."),
-                    item->location());
     }
     QStringList patterns;
     for (int i = files.count(); --i >= 0;) {
@@ -623,6 +622,21 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         group->name = Tr::tr("Group %1").arg(m_productContext->product->groups.count());
     group->properties = moduleProperties;
     m_productContext->product->groups += group;
+
+    class GroupContextSwitcher {
+    public:
+        GroupContextSwitcher(ProductContext &context, const GroupConstPtr &newGroup)
+            : m_context(context), m_oldGroup(context.currentGroup) {
+            m_context.currentGroup = newGroup;
+        }
+        ~GroupContextSwitcher() { m_context.currentGroup = m_oldGroup; }
+    private:
+        ProductContext &m_context;
+        const GroupConstPtr m_oldGroup;
+    };
+    GroupContextSwitcher groupSwitcher(*m_productContext, group);
+    foreach (Item * const childItem, item->children())
+        resolveGroup(childItem, projectContext);
 }
 
 static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
