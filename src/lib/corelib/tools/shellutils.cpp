@@ -30,6 +30,7 @@
 ****************************************************************************/
 
 #include "shellutils.h"
+#include "pathutils.h"
 #include <QFile>
 #include <QRegExp>
 #include <QTextStream>
@@ -158,6 +159,56 @@ QString shellQuote(const QString &program, const QStringList &args, HostOsInfo::
     QString result = shellQuote(program, os);
     if (!args.isEmpty())
         result += QLatin1Char(' ') + shellQuote(args, os);
+    return result;
+}
+
+void CommandLine::setProgram(const QString &program, bool raw)
+{
+    m_program = program;
+    m_isRawProgram = raw;
+}
+
+void CommandLine::appendArgument(const QString &value)
+{
+    m_arguments.append(value);
+}
+
+void CommandLine::appendArguments(const QList<QString> &args)
+{
+    for (const QString &arg : args)
+        appendArgument(arg);
+}
+
+void CommandLine::appendRawArgument(const QString &value)
+{
+    Argument arg(value);
+    arg.shouldQuote = false;
+    m_arguments.append(arg);
+}
+
+void CommandLine::appendPathArgument(const QString &value)
+{
+    Argument arg(value);
+    arg.isFilePath = true;
+    m_arguments.append(arg);
+}
+
+void CommandLine::clearArguments()
+{
+    m_arguments.clear();
+}
+
+QString CommandLine::toCommandLine(HostOsInfo::HostOs os) const
+{
+    QString result = PathUtils::toNativeSeparators(m_program, os);
+    if (!m_isRawProgram)
+        result = shellQuote(result, os);
+    for (const Argument &arg : m_arguments) {
+        const QString value = arg.isFilePath
+                ? PathUtils::toNativeSeparators(arg.value, os)
+                : arg.value;
+        result += QLatin1Char(' ') + (arg.shouldQuote ? shellQuote(value, os) : value);
+    }
     return result;
 }
 

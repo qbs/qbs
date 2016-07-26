@@ -35,6 +35,7 @@
 #include "qbs_export.h"
 #include "hostosinfo.h"
 #include <QString>
+#include <QVector>
 
 namespace qbs {
 namespace Internal {
@@ -45,6 +46,31 @@ QBS_EXPORT QString shellQuote(const QStringList &args,
                               HostOsInfo::HostOs os = HostOsInfo::hostOs());
 QBS_EXPORT QString shellQuote(const QString &program, const QStringList &args,
                               HostOsInfo::HostOs os = HostOsInfo::hostOs());
+
+class QBS_EXPORT CommandLine
+{
+public:
+    void setProgram(const QString &program, bool raw = false);
+    void appendArgument(const QString &value);
+    void appendArguments(const QList<QString> &args);
+    void appendRawArgument(const QString &value);
+    void appendPathArgument(const QString &value);
+    void clearArguments();
+    QString toCommandLine(HostOsInfo::HostOs os = HostOsInfo::hostOs()) const;
+
+private:
+    struct Argument
+    {
+        Argument(const QString &value = QString()) : value(value) { }
+        QString value;
+        bool isFilePath = false;
+        bool shouldQuote = true;
+    };
+
+    bool m_isRawProgram;
+    QString m_program;
+    QVector<Argument> m_arguments;
+};
 
 } // namespace Internal
 } // namespace qbs
