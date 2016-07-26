@@ -492,7 +492,8 @@ static QString magicSysrootString() { return QLatin1String("@sysroot"); }
 
 QString InstallRootOption::description(CommandType command) const
 {
-    Q_ASSERT(command == InstallCommandType || command == RunCommandType);
+    Q_ASSERT(command == InstallCommandType || command == RunCommandType
+             || command == GenerateCommandType);
     Q_UNUSED(command);
     return Tr::tr("%1 <directory>\n"
                   "\tInstall into the given directory.\n"
