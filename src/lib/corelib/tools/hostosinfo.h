@@ -123,6 +123,11 @@ public:
         return hostOs == HostOsWindows ? QLatin1Char(';') : QLatin1Char(':');
     }
 
+    static QChar pathSeparator(HostOsInfo::HostOs hostOs = HostOsInfo::hostOs())
+    {
+        return hostOs == HostOsWindows ? QLatin1Char('\\') : QLatin1Char('/');
+    }
+
     static Qt::KeyboardModifier controlModifier()
     {
         return isMacosHost() ? Qt::MetaModifier : Qt::ControlModifier;

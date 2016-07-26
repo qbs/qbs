@@ -20,6 +20,7 @@ HEADERS += \
     $$PWD/scripttools.h \
     $$PWD/settings.h \
     $$PWD/settingsmodel.h \
+    $$PWD/pathutils.h \
     $$PWD/preferences.h \
     $$PWD/profile.h \
     $$PWD/processresult.h \

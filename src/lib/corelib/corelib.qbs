@@ -351,6 +351,7 @@ QbsLibrary {
             "installoptions.cpp",
             "msvcinfo.cpp",
             "msvcinfo.h",
+            "pathutils.h",
             "persistence.cpp",
             "persistence.h",
             "persistentobject.h",
