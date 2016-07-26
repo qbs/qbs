@@ -267,7 +267,9 @@
         \li \c{stringList}
         \li 1.0
         \li undefined
-        \li Additional flags for the linker.
+        \li Additional flags for the linker. These flags should \e not be escaped using the -Wl or
+            -Xlinker syntaxes, as \QBS will do this automatically based on the linker being used.
+            See cpp.linkerMode for additional information.
     \row
         \li assemblerName
         \li \c{string}

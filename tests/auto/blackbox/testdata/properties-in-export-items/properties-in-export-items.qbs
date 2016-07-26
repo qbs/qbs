@@ -1,6 +1,8 @@
 import qbs
 
 Project {
+    minimumQbsVersion: "1.6"
+
     Product {
         name: "dep"
         Export {

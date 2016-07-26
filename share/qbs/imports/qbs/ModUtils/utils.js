@@ -35,6 +35,18 @@ var Process = loadExtension("qbs.Process");
 var TemporaryDir = loadExtension("qbs.TemporaryDir");
 var Utilities = loadExtension("qbs.Utilities");
 
+function checkCompatibilityMode(project, minimumQbsVersion, message) {
+    if (Utilities.versionCompare(project.minimumQbsVersion || "1.3", minimumQbsVersion) < 0) {
+        console.warn([message || "",
+                      "This message can be silenced by setting your Project's " +
+                      "minimumQbsVersion to " + minimumQbsVersion +
+                      " (and the new behavior will take effect)."].join(" "));
+        return true;
+    }
+
+    return false;
+}
+
 function artifactInstalledFilePath(artifact) {
     var relativeInstallDir = artifact.moduleProperty("qbs", "installDir");
     var installPrefix = artifact.moduleProperty("qbs", "installPrefix");

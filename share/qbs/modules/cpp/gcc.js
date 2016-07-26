@@ -72,11 +72,14 @@ function useCompilerDriverLinker(product, inputs) {
     return linker === product.moduleProperty("cpp", "compilerPath");
 }
 
-function escapeLinkerFlags(product, inputs, linkerFlags) {
+function escapeLinkerFlags(product, inputs, linkerFlags, allowEscape) {
+    if (allowEscape === undefined)
+        allowEscape = true;
+
     if (!linkerFlags || linkerFlags.length === 0)
         return [];
 
-    if (useCompilerDriverLinker(product, inputs)) {
+    if (useCompilerDriverLinker(product, inputs) && allowEscape) {
         var sep = ",";
         var useXlinker = linkerFlags.some(function (f) { return f.contains(sep); });
         if (useXlinker) {
@@ -97,7 +100,7 @@ function escapeLinkerFlags(product, inputs, linkerFlags) {
     return linkerFlags;
 }
 
-function linkerFlags(product, inputs, output) {
+function linkerFlags(project, product, inputs, output) {
     var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
     var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
     var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
@@ -240,9 +243,22 @@ function linkerFlags(product, inputs, output) {
     if (isDarwin && ModUtils.moduleProperty(product, "warningLevel") === "none")
         args.push('-w');
 
+    var allowEscape = !ModUtils.checkCompatibilityMode(project, "1.6",
+        "Enabling linker flags compatibility mode. cpp.linkerFlags and " +
+        "cpp.platformLinkerFlags escaping is handled automatically beginning in Qbs 1.6. " +
+        "When upgrading to Qbs 1.6, you should only pass raw linker flags to these " +
+        "properties; do not escape them using -Wl or -Xlinker. This allows Qbs to " +
+        "automatically supply the correct linker flags regardless of whether the " +
+        "linker chosen is the compiler driver or system linker (see the documentation for " +
+        "cpp.linkerMode for more information).");
+
     args = args.concat(configFlags(product, useCompilerDriverLinker(product, inputs)));
-    args = args.concat(ModUtils.moduleProperties(product, 'platformLinkerFlags'));
-    args = args.concat(ModUtils.moduleProperties(product, 'linkerFlags'));
+    args = args.concat(escapeLinkerFlags(
+                           product, inputs,
+                           ModUtils.moduleProperties(product, 'platformLinkerFlags'), allowEscape));
+    args = args.concat(escapeLinkerFlags(
+                           product, inputs,
+                           ModUtils.moduleProperties(product, 'linkerFlags'), allowEscape));
 
     args.push("-o", output.filePath);
 
@@ -734,7 +750,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     }
 
     cmd = new Command(effectiveLinkerPath(product, inputs),
-                      linkerFlags(product, inputs, primaryOutput));
+                      linkerFlags(project, product, inputs, primaryOutput));
     cmd.description = 'linking ' + primaryOutput.fileName;
     cmd.highlight = 'linker';
     cmd.responseFileUsagePrefix = '@';
