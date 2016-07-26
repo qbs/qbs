@@ -2,6 +2,7 @@ import qbs
 
 CppApplication {
     Depends { name: "lex_yacc" }
+    consoleApplication: true
     files: [
         "g1.l",
         "g1.y",

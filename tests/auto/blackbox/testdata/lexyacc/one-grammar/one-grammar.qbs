@@ -6,6 +6,7 @@ CppApplication {
     lex_yacc.yaccFlags: ["-l"]
     cpp.includePaths: ["."]
     cpp.cxxLanguageVersion: "c++11"
+    consoleApplication: true
     files: [
         "lexer.l",
         "parser.y",
