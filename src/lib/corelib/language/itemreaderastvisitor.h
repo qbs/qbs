@@ -53,6 +53,7 @@ class ItemReaderASTVisitor : public QbsQmlJS::AST::Visitor
 public:
     ItemReaderASTVisitor(ItemReaderVisitorState &visitorState, const FileContextPtr &file,
                          ItemPool *itemPool, Logger logger);
+    void checkItemTypes() { doCheckItemTypes(rootItem()); }
 
     Item *rootItem() const { return m_item; }
 
@@ -71,6 +72,7 @@ private:
     static void inheritItem(Item *dst, const Item *src);
     void checkDeprecationStatus(ItemType itemType, const QString &itemName,
                                 const CodeLocation &itemLocation);
+    void doCheckItemTypes(const Item *item);
 
     ItemReaderVisitorState &m_visitorState;
     const FileContextPtr m_file;

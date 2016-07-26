@@ -150,6 +150,7 @@ Item *ItemReaderVisitorState::readFile(const QString &filePath, const QStringLis
     cacheValue.setProcessingFlag(true);
     cacheValue.ast()->accept(&astVisitor);
     cacheValue.setProcessingFlag(false);
+    astVisitor.checkItemTypes();
     return astVisitor.rootItem();
 }
 

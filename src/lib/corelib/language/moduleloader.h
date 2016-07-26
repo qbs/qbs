@@ -227,7 +227,6 @@ private:
     void resolveProbe(ProductContext *productContext, Item *parent, Item *probe);
     void checkCancelation() const;
     bool checkItemCondition(Item *item);
-    void checkItemTypes(Item *item);
     QStringList readExtraSearchPaths(Item *item, bool *wasSet = 0);
     void copyProperties(const Item *sourceProject, Item *targetProject);
     Item *wrapInProjectIfNecessary(Item *item);

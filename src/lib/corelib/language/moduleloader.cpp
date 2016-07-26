@@ -381,7 +381,6 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
         handleProduct(p);
 
     m_reader->clearExtraSearchPathsStack();
-    checkItemTypes(projectItem);
     PropertyDeclarationCheck check(m_disabledItems, m_parameters, m_logger);
     check(projectItem);
 }
@@ -1765,22 +1764,6 @@ bool ModuleLoader::checkItemCondition(Item *item)
         return true;
     m_disabledItems += item;
     return false;
-}
-
-void ModuleLoader::checkItemTypes(Item *item)
-{
-    const ItemDeclaration decl = BuiltinDeclarations::instance().declarationsForType(item->type());
-    foreach (Item *child, item->children()) {
-        if (child->type() > ItemType::LastActualItem)
-            continue;
-        checkItemTypes(child);
-        if (!decl.isChildTypeAllowed(child->type()))
-            throw ErrorInfo(Tr::tr("Items of type '%1' cannot contain items of type '%2'.")
-                .arg(item->typeName(), child->typeName()), item->location());
-    }
-
-    foreach (const Item::Module &m, item->modules())
-        checkItemTypes(m.item);
 }
 
 QStringList ModuleLoader::readExtraSearchPaths(Item *item, bool *wasSet)
