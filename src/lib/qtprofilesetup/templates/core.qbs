@@ -18,6 +18,7 @@ Module {
     property path pluginPath
     property path mkspecPath
     property string mocName: "moc"
+    property stringList mocFlags: []
     property string lreleaseName: "lrelease"
     property string qdocName: versionMajor >= 5 ? "qdoc" : "qdoc3"
     property stringList qdocEnvironment

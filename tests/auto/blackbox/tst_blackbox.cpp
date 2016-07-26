@@ -3060,6 +3060,17 @@ void TestBlackbox::mixedBuildVariants()
     }
 }
 
+void TestBlackbox::mocFlags()
+{
+    QDir::setCurrent(testDataDir + "/moc-flags");
+    QCOMPARE(runQbs(), 0);
+    WAIT_FOR_NEW_TIMESTAMP();
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments << "Qt.core.mocFlags:-E";
+    QVERIFY(runQbs(params) != 0);
+}
+
 void TestBlackbox::multipleChanges()
 {
     QDir::setCurrent(testDataDir + "/multiple-changes");

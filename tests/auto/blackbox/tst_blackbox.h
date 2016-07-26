@@ -167,6 +167,7 @@ private slots:
     void missingDependency();
     void missingProfile();
     void mixedBuildVariants();
+    void mocFlags();
     void multipleChanges();
     void nestedProperties();
     void newOutputArtifact();
