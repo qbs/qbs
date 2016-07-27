@@ -181,6 +181,7 @@ private slots:
     void overrideProjectProperties();
     void pkgConfigProbe();
     void pkgConfigProbe_data();
+    void pluginMetaData();
     void probeChangeTracking();
     void probeProperties();
     void probeInExportedModule();

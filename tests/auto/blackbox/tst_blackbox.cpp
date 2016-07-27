@@ -1899,6 +1899,20 @@ void TestBlackbox::pkgConfigProbe_data()
             << (QStringList() << "[]" << "[]") << (QStringList() << "undefined" << "undefined");
 }
 
+void TestBlackbox::pluginMetaData()
+{
+    QDir::setCurrent(testDataDir + "/plugin-meta-data");
+    QCOMPARE(runQbs(), 0);
+    const QString appFilePath = relativeBuildDir() + "/install-root/"
+            + qbs::Internal::HostOsInfo::appendExecutableSuffix("plugin-meta-data");
+    QVERIFY(regularFileExists(appFilePath));
+    QProcess app;
+    app.start(appFilePath);
+    QVERIFY(app.waitForStarted());
+    QVERIFY(app.waitForFinished());
+    QVERIFY2(app.exitCode() == 0, app.readAllStandardError().constData());
+}
+
 void TestBlackbox::probeChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/probe-change-tracking");

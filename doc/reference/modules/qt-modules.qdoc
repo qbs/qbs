@@ -284,6 +284,16 @@
         \li The Qt namespace that can be set at build time via the \c configure script. By default,
             Qt is not built in a namespace.
     \row
+        \li pluginMetaData
+        \li \c{stringList}
+        \li empty
+        \li Additional plugin meta data. The elements of the list are key-value pairs separated
+            by the \c = character. A possible use case is to set the plugin URI when building
+            a static QML plugin:
+            \code
+            Qt.core.pluginMetaData: ["uri=thePlugin"]
+            \endcode
+    \row
         \li pluginPath
         \li \c{path}
         \li \c{undefined}

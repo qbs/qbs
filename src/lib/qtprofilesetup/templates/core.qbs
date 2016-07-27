@@ -31,6 +31,7 @@ Module {
     property int versionPatch: versionParts[2]
     property bool frameworkBuild
     property bool staticBuild
+    property stringList pluginMetaData: []
 
     property stringList availableBuildVariants
     property string qtBuildVariant: {

@@ -46,11 +46,13 @@ function args(product, input, outputFileName)
                 product.moduleProperties("cpp", "systemFrameworkPaths"));
     frameworkPaths = frameworkPaths.uniqueConcat(
                 product.moduleProperties("cpp", "compilerFrameworkPaths"));
+    var pluginMetaData = product.moduleProperties("Qt.core", "pluginMetaData");
     var args = [];
     args = args.concat(
                 defines.map(function(item) { return '-D' + item; }),
                 includePaths.map(function(item) { return '-I' + item; }),
                 frameworkPaths.map(function(item) { return '-F' + item; }),
+                pluginMetaData.map(function(item) { return '-M' + item; }),
                 ModUtils.moduleProperties(product, "mocFlags"),
                 '-o', outputFileName,
                 input.filePath);
