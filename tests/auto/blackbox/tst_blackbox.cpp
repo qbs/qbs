@@ -3978,6 +3978,12 @@ void TestBlackbox::importingProduct()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::importsConflict()
+{
+    QDir::setCurrent(testDataDir + "/imports-conflict");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::infoPlist()
 {
     if (!HostOsInfo::isMacosHost())

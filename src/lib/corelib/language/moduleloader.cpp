@@ -2151,6 +2151,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     QScriptValue scope = m_engine->newObject();
     m_engine->currentContext()->pushScope(m_evaluator->scriptValue(parent));
     m_engine->currentContext()->pushScope(m_evaluator->fileScope(configureScript->file()));
+    m_engine->currentContext()->pushScope(m_evaluator->importScope(configureScript->file()));
     m_engine->currentContext()->pushScope(scope);
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
@@ -2182,6 +2183,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         m_currentProbes[probe->location()] << resolvedProbe;
     }
     productContext->info.probes << resolvedProbe;
+    m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();

@@ -194,8 +194,10 @@ private:
             if (alternative->value->definingItem())
                 pushItemScopes(alternative->value->definingItem());
             engine->currentContext()->pushScope(conditionScope);
+            engine->currentContext()->pushScope(data->evaluator->importScope(value->file()));
             const QScriptValue cr = engine->evaluate(alternative->condition);
             const QScriptValue overrides = engine->evaluate(alternative->overrideListProperties);
+            engine->currentContext()->popScope();
             engine->currentContext()->popScope();
             engine->currentContext()->popScope();
             popScopes();
@@ -267,6 +269,7 @@ private:
         if (value->definingItem())
             pushItemScopes(value->definingItem());
         pushScope(extraScope);
+        pushScope(data->evaluator->importScope(value->file()));
         *result = engine->evaluate(value->sourceCodeForEvaluation(), value->file()->filePath(),
                                    value->line());
         popScopes();
