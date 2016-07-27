@@ -6,7 +6,7 @@ Project {
         name: "LinkedProduct-Assembly"
         files: ["main.s"]
 
-        cpp.linkerFlags: ["-U", "start"]
+        cpp.entryPoint: "_start"
         cpp.dynamicLibraries: qbs.targetOS.contains("darwin") ? ["System"] : ["c"]
 
         Group {
