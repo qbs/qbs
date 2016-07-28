@@ -1,6 +1,7 @@
 import qbs
 
 CppApplication {
+    consoleApplication: true
     Depends { name: "themodule" }
     files: ["main.cpp"]
     Group {
