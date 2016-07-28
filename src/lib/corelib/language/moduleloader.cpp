@@ -865,6 +865,15 @@ ProbeConstPtr ModuleLoader::findOldProbe(const QString &product,
     return ProbeConstPtr();
 }
 
+ProbeConstPtr ModuleLoader::findCurrentProbe(const CodeLocation &location, bool condition,
+                                             const QVariantMap &initialProperties) const
+{
+    const ProbeConstPtr cachedProbe = m_currentProbes.value(location);
+    return cachedProbe && cachedProbe->condition() == condition
+            && cachedProbe->initialProperties() == initialProperties
+                ? cachedProbe : ProbeConstPtr();
+}
+
 void ModuleLoader::mergeExportItems(const ProductContext &productContext)
 {
     QVector<Item *> exportItems;
@@ -1721,6 +1730,8 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     const bool condition = m_evaluator->boolValue(probe, QLatin1String("condition"));
     ProbeConstPtr resolvedProbe = findOldProbe(productContext->name, condition, initialProperties,
                                                configureScript->sourceCode().toString());
+    if (!resolvedProbe)
+        resolvedProbe = findCurrentProbe(probe->location(), condition, initialProperties);
     ErrorInfo evalError;
     if (!condition) {
         m_logger.qbsDebug() << "Probe disabled; skipping";
@@ -1741,6 +1752,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     if (!resolvedProbe) {
         resolvedProbe = Probe::create(probe->location(), condition,
                 configureScript->sourceCode().toString(), properties, initialProperties);
+        m_currentProbes.insert(probe->location(), resolvedProbe);
     }
     productContext->info.probes << resolvedProbe;
     m_engine->currentContext()->popScope();
