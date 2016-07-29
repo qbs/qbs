@@ -162,7 +162,7 @@ const QString &PropertyDeclaration::description() const
     return d->description;
 }
 
-void PropertyDeclaration::setDescripton(const QString &str)
+void PropertyDeclaration::setDescription(const QString &str)
 {
     d->description = str;
 }

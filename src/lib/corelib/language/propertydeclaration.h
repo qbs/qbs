@@ -92,7 +92,7 @@ public:
     void setAllowedValues(const QScriptValue &v);
 
     const QString &description() const;
-    void setDescripton(const QString &str);
+    void setDescription(const QString &str);
 
     const QString &initialValueSource() const;
     void setInitialValueSource(const QString &str);
