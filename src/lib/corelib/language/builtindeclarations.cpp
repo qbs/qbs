@@ -373,6 +373,7 @@ void BuiltinDeclarations::addPropertyOptionsItem()
     item << nameProperty();
     item << PropertyDeclaration(QLatin1String("allowedValues"), PropertyDeclaration::Variant);
     item << PropertyDeclaration(QLatin1String("description"), PropertyDeclaration::String);
+    item << PropertyDeclaration(QLatin1String("removalVersion"), PropertyDeclaration::String);
     insert(item);
 }
 

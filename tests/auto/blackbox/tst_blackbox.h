@@ -66,6 +66,7 @@ private slots:
     void dependencyProfileMismatch();
     void deploymentTarget();
     void deploymentTarget_data();
+    void deprecatedProperty();
     void dynamicMultiplexRule();
     void dynamicRuleOutputs();
     void embedInfoPlist();

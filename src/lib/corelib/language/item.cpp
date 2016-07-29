@@ -200,15 +200,17 @@ void Item::setupForBuiltinType(Logger &logger)
     const BuiltinDeclarations &builtins = BuiltinDeclarations::instance();
     foreach (const PropertyDeclaration &pd, builtins.declarationsForType(type()).properties()) {
         m_propertyDeclarations.insert(pd.name(), pd);
-        ValuePtr &value = m_properties[pd.name()];
+        const ValuePtr value = m_properties.value(pd.name());
         if (!value) {
+            if (pd.isDeprecated())
+                continue;
             JSSourceValuePtr sourceValue = JSSourceValue::create();
             sourceValue->setFile(file());
             static const QString undefinedKeyword = QLatin1String("undefined");
             sourceValue->setSourceCode(pd.initialValueSource().isEmpty()
                                        ? QStringRef(&undefinedKeyword)
                                        : QStringRef(&pd.initialValueSource()));
-            value = sourceValue;
+            m_properties.insert(pd.name(), sourceValue);
         } else if (pd.isDeprecated()) {
             const DeprecationInfo &di = pd.deprecationInfo();
             if (di.removalVersion() <= Version::qbsVersion()) {

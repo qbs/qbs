@@ -733,6 +733,19 @@ void TestBlackbox::deploymentTarget_data()
                              << "-ios_simulator_version_min 5.0";
 }
 
+void TestBlackbox::deprecatedProperty()
+{
+    QDir::setCurrent(testDataDir + "/deprecated-property");
+    QCOMPARE(runQbs(QStringList("-q")), 0);
+    QVERIFY2(m_qbsStderr.contains("deprecated-property.qbs:6:24 The property 'oldProp' is "
+            "deprecated and will be removed in Qbs 99.9.0."), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.contains("deprecated-property.qbs:7:28 The property 'veryOldProp' can no "
+            "longer be used. It was removed in Qbs 1.3.0."), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.count("Use newProp instead.") == 2, m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.count("is deprecated") == 1, m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.count("was removed") == 1, m_qbsStderr.constData());
+}
+
 void TestBlackbox::symlinkRemoval()
 {
     if (HostOsInfo::isWindowsHost())

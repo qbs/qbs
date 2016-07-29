@@ -200,6 +200,8 @@ private:
     void handleSubProject(ProjectContext *projectContext, Item *projectItem,
             const QSet<QString> &referencedFilePaths);
     void handleGroup(Item *groupItem);
+    void handleAllPropertyOptionsItems(Item *item);
+    void handlePropertyOptions(Item *optionsItem);
     void mergeExportItems(const ProductContext &productContext);
     void propagateModulesToGroup(Item *groupItem);
     void resolveDependencies(DependsContext *dependsContext, Item *item);

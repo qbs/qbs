@@ -327,8 +327,32 @@ private:
         m_parentItem = item;
         for (Item::PropertyMap::const_iterator it = item->properties().constBegin();
                 it != item->properties().constEnd(); ++it) {
-            if (item->propertyDeclaration(it.key()).isValid())
+            const PropertyDeclaration decl = item->propertyDeclaration(it.key());
+            if (decl.isValid()) {
+                if (!decl.isDeprecated())
+                    continue;
+                const DeprecationInfo &di = decl.deprecationInfo();
+                QString message;
+                bool warningOnly;
+                if (di.removalVersion() <= Version::qbsVersion()) {
+                    message = Tr::tr("The property '%1' can no longer be used. "
+                                     "It was removed in Qbs %2.")
+                            .arg(decl.name(), di.removalVersion().toString());
+                    warningOnly = false;
+                } else {
+                    message = Tr::tr("The property '%1' is deprecated and will be removed "
+                                     "in Qbs %2.").arg(decl.name(), di.removalVersion().toString());
+                    warningOnly = true;
+                }
+                ErrorInfo error(message, it.value()->location());
+                if (!di.additionalUserInfo().isEmpty())
+                    error.append(di.additionalUserInfo());
+                if (warningOnly)
+                    m_logger.printWarning(error);
+                else
+                    handlePropertyError(error, m_params, m_logger);
                 continue;
+            }
             m_currentName = it.key();
             it.value()->apply(this);
         }
@@ -798,6 +822,37 @@ void ModuleLoader::handleGroup(Item *groupItem)
         if (child->type() == ItemType::Group)
             handleGroup(child);
     }
+}
+
+void ModuleLoader::handleAllPropertyOptionsItems(Item *item)
+{
+    foreach (Item * const child, item->children()) {
+        if (child->type() == ItemType::PropertyOptions)
+            handlePropertyOptions(child);
+    }
+}
+
+void ModuleLoader::handlePropertyOptions(Item *optionsItem)
+{
+    const QString name = m_evaluator->stringValue(optionsItem, QLatin1String("name"));
+    if (name.isEmpty()) {
+        throw ErrorInfo(Tr::tr("PropertyOptions item needs a name property"),
+                        optionsItem->location());
+    }
+    const QString description = m_evaluator->stringValue(optionsItem, QLatin1String("description"));
+    const auto removalVersion = Version::fromString(m_evaluator->stringValue(optionsItem,
+            QLatin1String("removalVersion")));
+    PropertyDeclaration decl = optionsItem->parent()->propertyDeclaration(name);
+    if (!decl.isValid()) {
+        decl.setName(name);
+        decl.setType(PropertyDeclaration::Variant);
+    }
+    decl.setDescription(description);
+    if (removalVersion.isValid()) {
+        DeprecationInfo di(removalVersion, description);
+        decl.setDeprecationInfo(di);
+    }
+    optionsItem->parent()->setPropertyDeclaration(name, decl);
 }
 
 static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
@@ -1334,6 +1389,9 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         *triedToLoad = false;
         return 0;
     }
+
+    handleAllPropertyOptionsItems(module);
+
     if (!isBaseModule) {
         DependsContext dependsContext;
         dependsContext.product = productContext;
