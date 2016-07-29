@@ -1851,6 +1851,21 @@ void TestBlackbox::overrideProjectProperties()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::pchChangeTracking()
+{
+    QDir::setCurrent(testDataDir + "/pch-change-tracking");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling pch.h"));
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("header1.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling pch.h"));
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("header2.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling pch.h"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::pkgConfigProbe()
 {
     const QString exe = findExecutable(QStringList() << "pkg-config");

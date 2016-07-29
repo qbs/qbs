@@ -457,7 +457,7 @@ CppModule {
     Rule {
         condition: useCPrecompiledHeader
         inputs: ["c_pch_src"]
-        explicitlyDependsOn: ["hpp"]
+        auxiliaryInputs: ["hpp"]
         Artifact {
             filePath: product.name + "_c.gch"
             fileTags: ["c_pch"]
@@ -470,7 +470,7 @@ CppModule {
     Rule {
         condition: useCxxPrecompiledHeader
         inputs: ["cpp_pch_src"]
-        explicitlyDependsOn: ["hpp"]
+        auxiliaryInputs: ["hpp"]
         Artifact {
             filePath: product.name + "_cpp.gch"
             fileTags: ["cpp_pch"]
@@ -483,7 +483,7 @@ CppModule {
     Rule {
         condition: useObjcPrecompiledHeader
         inputs: ["objc_pch_src"]
-        explicitlyDependsOn: ["hpp"]
+        auxiliaryInputs: ["hpp"]
         Artifact {
             filePath: product.name + "_objc.gch"
             fileTags: ["objc_pch"]
@@ -496,7 +496,7 @@ CppModule {
     Rule {
         condition: useObjcxxPrecompiledHeader
         inputs: ["objcpp_pch_src"]
-        explicitlyDependsOn: ["hpp"]
+        auxiliaryInputs: ["hpp"]
         Artifact {
             filePath: product.name + "_objcpp.gch"
             fileTags: ["objcpp_pch"]

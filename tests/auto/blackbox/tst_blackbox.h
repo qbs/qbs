@@ -178,6 +178,7 @@ private slots:
     void objcArc();
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
+    void pchChangeTracking();
     void pkgConfigProbe();
     void pkgConfigProbe_data();
     void probeChangeTracking();
