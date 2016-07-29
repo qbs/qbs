@@ -215,6 +215,20 @@ void TestLanguage::builtinFunctionInSearchPathsProperty()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::versionCompare()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters parameters = defaultParameters;
+        parameters.setProjectFilePath(testProject("versionCompare.qbs"));
+        QVERIFY(loader->loadProject(parameters));
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::canonicalArchitecture()
 {
     bool exceptionCaught = false;
