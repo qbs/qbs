@@ -1,0 +1,119 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing
+**
+** This file is part of Qbs.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms and
+** conditions see http://www.qt.io/terms-conditions. For further information
+** use the contact form at http://www.qt.io/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 or version 3 as published by the Free
+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+** LICENSE.LGPLv3 included in the packaging of this file.  Please review the
+** following information to ensure the GNU Lesser General Public License
+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, The Qt Company gives you certain additional
+** rights.  These rights are described in The Qt Company LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page lex_yacc-module.html
+    \ingroup list-of-modules
+
+    \title Module lex_yacc
+    \since 1.6
+    \brief Provides support for the \c lex and \c yacc tools.
+
+    The \c lex_yacc module allows you to create scanners and parsers via the POSIX tools \c lex
+    and \c yacc, respectively. These tools are closely related and share a number of properties,
+    which is why they are represented by a single module.
+
+    \section1 General Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Since
+        \li Default
+        \li Description
+    \row
+        \li lexBinary
+        \li \c{string}
+        \li 1.6
+        \li \c{"lex"}
+        \li The file path of the \c lex tool.
+    \row
+        \li lexFlags
+        \li \c{stringList}
+        \li 1.6
+        \li \c{empty}
+        \li Additional command-line options for the \c lex tool.
+    \row
+        \li outputTag
+        \li \c{string}
+        \li 1.6
+        \li \c{"c"}
+        \li The file tag for the generated scanner and parser sources. Use \c{"cpp"} if you want to
+            use a C++ compiler on them.
+    \row
+        \li uniqueSymbolPrefix
+        \li \c{bool}
+        \li 1.6
+        \li \c{false}
+        \li If this property is \c true, the normal prefix \c yy used for the generated lexer
+            and parser functions will be replaced by the base name of the file provided as input
+            to \c lex and \c yacc, respectively.
+            Enable this property if you want to use more than one lexer or parser in a single
+            product.
+            \note Enabling this property requires associated lexer and scanner source files
+                  to have the same base name. It also assumes a variant of \c lex that supports
+                  the non-POSIX option \c{-P}, such as \c flex.
+    \row
+        \li yaccBinary
+        \li \c{string}
+        \li 1.6
+        \li \c{"yacc"}
+        \li The file path of the \c yacc tool.
+    \row
+        \li yaccFlags
+        \li \c{stringList}
+        \li 1.6
+        \li \c{empty}
+        \li Additional command-line options for the \c yacc tool.
+    \endtable
+
+    \section1 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"lex.input"}
+        \li \c{*.l}
+        \li 1.6
+        \li Source files with this tag serve as inputs to the \c lex tool.
+    \row
+        \li \c{"yacc.input"}
+        \li \c{*.y}
+        \li 1.6
+        \li Source files with this tag serve as inputs to the \c yacc tool.
+    \endtable
+
+*/

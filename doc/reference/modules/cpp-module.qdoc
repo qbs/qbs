@@ -496,6 +496,17 @@
             example because dependent products are linked with an option such as
             \c "--no-undefined", then this property can be set to \c "strict".
     \row
+        \li linkerMode
+        \li \c{string}
+        \li 1.6
+        \li "automatic"
+        \li Controls whether to automatically use an appropriate compiler frontend in place of the
+            system linker when linking binaries. The default is \c{"automatic"}, which chooses
+            either the C++ compiler, C compiler, or system linker specified by the \c{linkerName}
+            and \c{linkerPath} properties, depending on the type of object files present on the
+            linker command line. \c{"manual"} allows you to explicitly specify the linker using the
+            \c{linkerName} and \c{linkerPath} properties.
+    \row
         \li nmName
         \li \c{string}
         \li 1.2

@@ -6,7 +6,7 @@ import qbs.FileInfo
 import qbs.DarwinTools
 import qbs.ModUtils
 import qbs.PropertyList
-import 'xcode.js' as Utils
+import 'xcode.js' as Xcode
 
 Module {
     condition: qbs.targetOS.contains("darwin") &&
@@ -107,7 +107,7 @@ Module {
             return signingIdentity;
         }
 
-        var identities = Utils.findSigningIdentities(securityPath, signingIdentity);
+        var identities = Xcode.findSigningIdentities(securityPath, signingIdentity);
         if (identities && identities.length > 1) {
             throw "Signing identity '" + signingIdentity + "' is ambiguous";
         }
@@ -119,7 +119,7 @@ Module {
         return FileInfo.joinPaths(Environment.getEnv("HOME"), "Library/MobileDevice/Provisioning Profiles");
     }
 
-    readonly property var _availableSdks: Utils.sdkInfoList(sdksPath)
+    readonly property var _availableSdks: Xcode.sdkInfoList(sdksPath)
 
     readonly property var _sdkSettings: {
         if (_availableSdks) {
@@ -273,7 +273,7 @@ Module {
             for (var i = 0; i < inputs["xcode.provisioningprofile.data"].length; ++i) {
                 var dataFile = inputs["xcode.provisioningprofile.data"][i].filePath;
                 var query = product.moduleProperty("xcode", "provisioningProfile");
-                var obj = Utils.provisioningProfilePlistContents(dataFile);
+                var obj = Xcode.provisioningProfilePlistContents(dataFile);
                 if (obj.data && (obj.data.UUID === query || obj.data.Name === query)) {
                     console.log("Using provisioning profile: " + obj.filePath);
 
@@ -329,7 +329,7 @@ Module {
             cmd.sdkPath = ModUtils.moduleProperty(product, "sdkPath");
             cmd.sourceCode = function() {
                 var i;
-                var provData = Utils.provisioningProfilePlistContents(input.filePath);
+                var provData = Xcode.provisioningProfilePlistContents(input.filePath);
                 if (provData)
                     provData = provData.data;
 

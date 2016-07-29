@@ -73,6 +73,8 @@ private:
 QBS_EXPORT bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
 QBS_EXPORT bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2);
 
+inline uint qHash(const CodeLocation &cl) { return qHash(cl.toString()); }
+
 QDebug operator<<(QDebug debug, const CodeLocation &location);
 
 } // namespace qbs

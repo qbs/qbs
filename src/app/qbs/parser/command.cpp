@@ -253,7 +253,8 @@ static QList<CommandLineOption::Type> buildOptions()
             << CommandLineOption::VersionOptionType
             << CommandLineOption::CommandEchoModeOptionType
             << CommandLineOption::NoInstallOptionType
-            << CommandLineOption::RemoveFirstOptionType;
+            << CommandLineOption::RemoveFirstOptionType
+            << CommandLineOption::WaitLockOptionType;
 }
 
 QList<CommandLineOption::Type> BuildCommand::supportedOptions() const
