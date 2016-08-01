@@ -101,7 +101,7 @@ QString GroupData::prefix() const
  * \note These do not include expanded wildcards.
  * \sa GroupData::sourceArtifactsFromWildcards
  */
-QList<SourceArtifact> GroupData::sourceArtifacts() const
+QList<ArtifactData> GroupData::sourceArtifacts() const
 {
     return d->sourceArtifacts;
 }
@@ -109,7 +109,7 @@ QList<SourceArtifact> GroupData::sourceArtifacts() const
 /*!
  * \brief The list of files resulting from expanding all wildcard patterns in the group.
  */
-QList<SourceArtifact> GroupData::sourceArtifactsFromWildcards() const
+QList<ArtifactData> GroupData::sourceArtifactsFromWildcards() const
 {
     return d->sourceArtifactsFromWildcards;
 }
@@ -120,7 +120,7 @@ QList<SourceArtifact> GroupData::sourceArtifactsFromWildcards() const
  * \sa GroupData::sourceArtifacts
  * \sa GroupData::sourceArtifactsFromWildcards
  */
-QList<SourceArtifact> GroupData::allSourceArtifacts() const
+QList<ArtifactData> GroupData::allSourceArtifacts() const
 {
     return sourceArtifacts() + sourceArtifactsFromWildcards();
 }
@@ -156,11 +156,11 @@ bool GroupData::isEnabled() const
  */
 QStringList GroupData::allFilePaths() const
 {
-    const QList<SourceArtifact> &artifacts = allSourceArtifacts();
+    const QList<ArtifactData> &artifacts = allSourceArtifacts();
     QStringList paths;
     paths.reserve(artifacts.count());
     std::transform(artifacts.constBegin(), artifacts.constEnd(), std::back_inserter(paths),
-                          [](const SourceArtifact &sa) { return sa.filePath(); });
+                          [](const ArtifactData &sa) { return sa.filePath(); });
     return paths;
 }
 
@@ -190,32 +190,33 @@ bool operator<(const GroupData &lhs, const GroupData &rhs)
 
 
 /*!
- * \class SourceArtifact
- * \brief The \c SourceArtifact class describes a source file in a product.
+ * \class ArtifactData
+ * The \c ArtifactData class describes a file in a product. It is either a source file
+ * or it gets generated during the build process.
  */
 
-SourceArtifact::SourceArtifact() : d(new Internal::SourceArtifactPrivate)
+ArtifactData::ArtifactData() : d(new Internal::ArtifactDataPrivate)
 {
 }
 
-SourceArtifact::SourceArtifact(const SourceArtifact &other) : d(other.d)
+ArtifactData::ArtifactData(const ArtifactData &other) : d(other.d)
 {
 }
 
-SourceArtifact &SourceArtifact::operator=(const SourceArtifact &other)
+ArtifactData &ArtifactData::operator=(const ArtifactData &other)
 {
     d = other.d;
     return *this;
 }
 
-SourceArtifact::~SourceArtifact()
+ArtifactData::~ArtifactData()
 {
 }
 
 /*!
  * \brief Returns true if and only if this object holds data that was initialized by Qbs.
  */
-bool SourceArtifact::isValid() const
+bool ArtifactData::isValid() const
 {
     return d->isValid;
 }
@@ -223,7 +224,7 @@ bool SourceArtifact::isValid() const
 /*!
  * \brief The full path of this file.
  */
-QString SourceArtifact::filePath() const
+QString ArtifactData::filePath() const
 {
     return d->filePath;
 }
@@ -232,81 +233,21 @@ QString SourceArtifact::filePath() const
  * \brief The tags of this file.
  * Typically, this list will contain just one element.
  */
-QStringList SourceArtifact::fileTags() const
+QStringList ArtifactData::fileTags() const
 {
     return d->fileTags;
 }
 
-bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
+bool ArtifactData::isGenerated() const
 {
-    return sa1.filePath() == sa2.filePath() && sa1.fileTags() == sa2.fileTags();
-}
-
-bool operator!=(const SourceArtifact &sa1, const SourceArtifact &sa2)
-{
-    return !(sa1 == sa2);
-}
-
-bool operator<(const SourceArtifact &sa1, const SourceArtifact &sa2)
-{
-    return sa1.filePath() < sa2.filePath();
-}
-
-
-/*!
- * \class TargetArtifact
- * \brief The \c TargetArtifact class describes a top-level build result of a product.
- * For instance, the target artifact of a product with type "application" is an executable file.
- */
-
-TargetArtifact::TargetArtifact() : d(new Internal::TargetArtifactPrivate)
-{
-}
-
-TargetArtifact::TargetArtifact(const TargetArtifact &other) : d(other.d)
-{
-}
-
-TargetArtifact &TargetArtifact::operator=(const TargetArtifact &other)
-{
-    d = other.d;
-    return *this;
-}
-
-TargetArtifact::~TargetArtifact()
-{
-}
-
-/*!
- * \brief Returns true if and only if this object holds data that was initialized by Qbs.
- */
-bool TargetArtifact::isValid() const
-{
-    return d->isValid;
-}
-
-/*!
- * \brief The full path of this file.
- */
-QString TargetArtifact::filePath() const
-{
-    return d->filePath;
-}
-
-/*!
- * \brief The tags of this file.
- * Typically, this list will contain just one element.
- */
-QStringList TargetArtifact::fileTags() const
-{
-    return d->fileTags;
+    return d->isGenerated;
 }
 
 /*!
  * \brief True if and only if this file is executable,
  * either natively or through an interpreter or shell.
  */
-bool TargetArtifact::isExecutable() const
+bool ArtifactData::isExecutable() const
 {
     return d->fileTags.contains(QLatin1String("application"))
             || d->fileTags.contains(QLatin1String("msi"));
@@ -315,24 +256,25 @@ bool TargetArtifact::isExecutable() const
 /*!
  * \brief The properties of this file.
  */
-PropertyMap TargetArtifact::properties() const
+PropertyMap ArtifactData::properties() const
 {
     return d->properties;
 }
 
-bool operator==(const TargetArtifact &ta1, const TargetArtifact &ta2)
+bool operator==(const ArtifactData &ad1, const ArtifactData &ad2)
 {
-    return ta1.filePath() == ta2.filePath()
-            && ta1.fileTags() == ta2.fileTags()
-            && ta1.properties() == ta2.properties();
+    return ad1.filePath() == ad2.filePath()
+            && ad1.fileTags() == ad2.fileTags()
+            && ad1.isGenerated() == ad2.isGenerated()
+            && ad1.properties() == ad2.properties();
 }
 
-bool operator!=(const TargetArtifact &ta1, const TargetArtifact &ta2)
+bool operator!=(const ArtifactData &ta1, const ArtifactData &ta2)
 {
     return !(ta1 == ta2);
 }
 
-bool operator<(const TargetArtifact &ta1, const TargetArtifact &ta2)
+bool operator<(const ArtifactData &ta1, const ArtifactData &ta2)
 {
     return ta1.filePath() < ta2.filePath();
 }
@@ -509,7 +451,7 @@ CodeLocation ProductData::location() const
 /*!
  * \brief This product's target artifacts.
  */
-QList<TargetArtifact> ProductData::targetArtifacts() const
+QList<ArtifactData> ProductData::targetArtifacts() const
 {
     return d->targetArtifacts;
 }

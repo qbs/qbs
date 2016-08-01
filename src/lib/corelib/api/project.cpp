@@ -253,12 +253,14 @@ GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup
     return group;
 }
 
-SourceArtifact ProjectPrivate::createApiSourceArtifact(const SourceArtifactConstPtr &sa)
+ArtifactData ProjectPrivate::createApiSourceArtifact(const SourceArtifactConstPtr &sa)
 {
-    SourceArtifact saApi;
+    ArtifactData saApi;
     saApi.d->isValid = true;
     saApi.d->filePath = sa->absoluteFilePath;
     saApi.d->fileTags = sa->fileTags.toStringList();
+    saApi.d->isGenerated = false;
+    saApi.d->properties.d->m_map = sa->properties;
     return saApi;
 }
 
@@ -457,8 +459,8 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         }
     }
     doSanityChecks(internalProject, logger);
-    QList<SourceArtifact> sourceArtifacts;
-    QList<SourceArtifact> sourceArtifactsFromWildcards;
+    QList<ArtifactData> sourceArtifacts;
+    QList<ArtifactData> sourceArtifactsFromWildcards;
     foreach (const QString &fp, filesContext.absoluteFilePaths) {
         const SourceArtifactConstPtr sa = addedSourceArtifacts.value(fp);
         QBS_CHECK(sa);
@@ -719,10 +721,11 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         if (resolvedProduct->enabled) {
             QBS_CHECK(resolvedProduct->buildData);
             foreach (const Artifact * const a, resolvedProduct->targetArtifacts()) {
-                TargetArtifact ta;
+                ArtifactData ta;
                 ta.d->filePath = a->filePath();
                 ta.d->fileTags = a->fileTags().toStringList();
                 ta.d->properties.d->m_map = a->properties;
+                ta.d->isGenerated = true;
                 ta.d->isValid = true;
                 product.d->targetArtifacts << ta;
             }
@@ -854,7 +857,7 @@ QString Project::targetExecutable(const ProductData &product,
     QBS_ASSERT(isValid(), return QString());
     if (!product.isEnabled())
         return QString();
-    foreach (const TargetArtifact &ta, product.targetArtifacts()) {
+    foreach (const ArtifactData &ta, product.targetArtifacts()) {
         if (ta.isExecutable()) {
             const QList<InstallableFile> &installables
                     = installableFilesForProduct(product, installOptions);

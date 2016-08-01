@@ -74,7 +74,7 @@ public:
     GroupData findGroupData(const ProductData &product, const QString &groupName) const;
 
     GroupData createGroupDataFromGroup(const GroupPtr &resolvedGroup);
-    SourceArtifact createApiSourceArtifact(const SourceArtifactConstPtr &sa);
+    ArtifactData createApiSourceArtifact(const SourceArtifactConstPtr &sa);
 
     struct GroupUpdateContext {
         QList<ResolvedProductPtr> resolvedProducts;

@@ -1007,8 +1007,9 @@ void TestApi::disabledInstallGroup()
     qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
     qbs::ProductData product = projectData.allProducts().first();
-    const QList<qbs::TargetArtifact> targets = product.targetArtifacts();
+    const QList<qbs::ArtifactData> targets = product.targetArtifacts();
     QCOMPARE(targets.count(), 1);
+    QVERIFY(targets.first().isGenerated());
     QVERIFY(targets.first().isExecutable());
     QList<qbs::InstallableFile> installableFiles
             = project.installableFilesForProduct(product, qbs::InstallOptions());
@@ -1144,7 +1145,8 @@ void TestApi::generatedFilesList()
     const qbs::ProductData product = projectData.products().first();
     QString uiFilePath;
     foreach (const qbs::GroupData &group, product.groups()) {
-        foreach (const qbs::SourceArtifact &a, group.sourceArtifacts()) {
+        foreach (const qbs::ArtifactData &a, group.sourceArtifacts()) {
+            QVERIFY(!a.isGenerated());
             if (a.fileTags().contains(QLatin1String("ui"))) {
                 uiFilePath = a.filePath();
                 break;

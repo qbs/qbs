@@ -42,14 +42,13 @@
 
 namespace qbs {
 namespace Internal {
+class ArtifactDataPrivate;
 class GroupDataPrivate;
 class InstallableFilePrivate;
 class ProductDataPrivate;
 class ProjectPrivate;
 class ProjectDataPrivate;
 class PropertyMapPrivate;
-class SourceArtifactPrivate;
-class TargetArtifactPrivate;
 } // namespace Internal
 
 class PropertyMap;
@@ -85,27 +84,30 @@ private:
     Internal::PropertyMapPrivate *d;
 };
 
-class QBS_EXPORT SourceArtifact
+class QBS_EXPORT ArtifactData
 {
     friend class Internal::ProjectPrivate;
 public:
-    SourceArtifact();
-    SourceArtifact(const SourceArtifact &other);
-    SourceArtifact &operator=(const SourceArtifact &other);
-    ~SourceArtifact();
+    ArtifactData();
+    ArtifactData(const ArtifactData &other);
+    ArtifactData &operator=(const ArtifactData &other);
+    ~ArtifactData();
 
     bool isValid() const;
 
     QString filePath() const;
     QStringList fileTags() const;
+    bool isGenerated() const;
+    bool isExecutable() const;
+    PropertyMap properties() const;
 
 private:
-    QExplicitlySharedDataPointer<Internal::SourceArtifactPrivate> d;
+    QExplicitlySharedDataPointer<Internal::ArtifactDataPrivate> d;
 };
 
-QBS_EXPORT bool operator==(const SourceArtifact &ta1, const SourceArtifact &ta2);
-QBS_EXPORT bool operator!=(const SourceArtifact &ta1, const SourceArtifact &ta2);
-QBS_EXPORT bool operator<(const SourceArtifact &ta1, const SourceArtifact &ta2);
+QBS_EXPORT bool operator==(const ArtifactData &ta1, const ArtifactData &ta2);
+QBS_EXPORT bool operator!=(const ArtifactData &ta1, const ArtifactData &ta2);
+QBS_EXPORT bool operator<(const ArtifactData &ta1, const ArtifactData &ta2);
 
 class QBS_EXPORT GroupData
 {
@@ -121,9 +123,9 @@ public:
     CodeLocation location() const;
     QString name() const;
     QString prefix() const;
-    QList<SourceArtifact> sourceArtifacts() const;
-    QList<SourceArtifact> sourceArtifactsFromWildcards() const;
-    QList<SourceArtifact> allSourceArtifacts() const;
+    QList<ArtifactData> sourceArtifacts() const;
+    QList<ArtifactData> sourceArtifactsFromWildcards() const;
+    QList<ArtifactData> allSourceArtifacts() const;
     PropertyMap properties() const;
     bool isEnabled() const;
     QStringList allFilePaths() const;
@@ -135,30 +137,6 @@ private:
 QBS_EXPORT bool operator==(const GroupData &lhs, const GroupData &rhs);
 QBS_EXPORT bool operator!=(const GroupData &lhs, const GroupData &rhs);
 QBS_EXPORT bool operator<(const GroupData &lhs, const GroupData &rhs);
-
-class QBS_EXPORT TargetArtifact
-{
-    friend class Internal::ProjectPrivate;
-public:
-    TargetArtifact();
-    TargetArtifact(const TargetArtifact &other);
-    TargetArtifact &operator=(const TargetArtifact &other);
-    ~TargetArtifact();
-
-    bool isValid() const;
-
-    QString filePath() const;
-    QStringList fileTags() const;
-    bool isExecutable() const;
-    PropertyMap properties() const;
-
-private:
-    QExplicitlySharedDataPointer<Internal::TargetArtifactPrivate> d;
-};
-
-QBS_EXPORT bool operator==(const TargetArtifact &ta1, const TargetArtifact &ta2);
-QBS_EXPORT bool operator!=(const TargetArtifact &ta1, const TargetArtifact &ta2);
-QBS_EXPORT bool operator<(const TargetArtifact &ta1, const TargetArtifact &ta2);
 
 class QBS_EXPORT InstallableFile
 {
@@ -203,7 +181,7 @@ public:
     QString version() const;
     QString profile() const;
     CodeLocation location() const;
-    QList<TargetArtifact> targetArtifacts() const;
+    QList<ArtifactData> targetArtifacts() const;
     QList<GroupData> groups() const;
     QVariantMap properties() const;
     PropertyMap moduleProperties() const;

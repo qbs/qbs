@@ -37,6 +37,18 @@
 namespace qbs {
 namespace Internal {
 
+class ArtifactDataPrivate : public QSharedData
+{
+public:
+    ArtifactDataPrivate() : isValid(false) {}
+
+    QString filePath;
+    QStringList fileTags;
+    PropertyMap properties;
+    bool isValid;
+    bool isGenerated;
+};
+
 class GroupDataPrivate : public QSharedData
 {
 public:
@@ -46,31 +58,10 @@ public:
     QString name;
     QString prefix;
     CodeLocation location;
-    QList<SourceArtifact> sourceArtifacts;
-    QList<SourceArtifact> sourceArtifactsFromWildcards;
+    QList<ArtifactData> sourceArtifacts;
+    QList<ArtifactData> sourceArtifactsFromWildcards;
     PropertyMap properties;
     bool isEnabled;
-    bool isValid;
-};
-
-class SourceArtifactPrivate : public QSharedData
-{
-public:
-    SourceArtifactPrivate() : isValid(false) {}
-
-    QString filePath;
-    QStringList fileTags;
-    bool isValid;
-};
-
-class TargetArtifactPrivate : public QSharedData
-{
-public:
-    TargetArtifactPrivate() : isValid(false) {}
-
-    QString filePath;
-    QStringList fileTags;
-    PropertyMap properties;
     bool isValid;
 };
 
@@ -101,7 +92,7 @@ public:
     QList<GroupData> groups;
     QVariantMap properties;
     PropertyMap moduleProperties;
-    QList<TargetArtifact> targetArtifacts;
+    QList<ArtifactData> targetArtifacts;
     bool isEnabled;
     bool isRunnable;
     bool isValid;
