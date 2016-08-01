@@ -227,7 +227,6 @@ private:
     void resolveProbe(ProductContext *productContext, Item *parent, Item *probe);
     void checkCancelation() const;
     bool checkItemCondition(Item *item);
-    void checkItemTypes(Item *item);
     QStringList readExtraSearchPaths(Item *item, bool *wasSet = 0);
     void copyProperties(const Item *sourceProject, Item *targetProject);
     Item *wrapInProjectIfNecessary(Item *item);
@@ -245,6 +244,8 @@ private:
     ProbeConstPtr findOldProbe(const QString &product, bool condition,
                                const QVariantMap &initialProperties,
                                const QString &sourceCode) const;
+    ProbeConstPtr findCurrentProbe(const CodeLocation &location, bool condition,
+                                   const QVariantMap &initialProperties) const;
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;
@@ -260,6 +261,7 @@ private:
     QSet<Item *> m_disabledItems;
     QStack<bool> m_requiredChain;
     QHash<QString, QList<ProbeConstPtr>> m_oldProbes;
+    QHash<CodeLocation, ProbeConstPtr> m_currentProbes;
     SetupProjectParameters m_parameters;
     Version m_qbsVersion;
     Item *m_tempScopeItem = nullptr;

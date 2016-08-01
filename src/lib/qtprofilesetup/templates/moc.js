@@ -51,6 +51,7 @@ function args(product, input, outputFileName)
                 defines.map(function(item) { return '-D' + item; }),
                 includePaths.map(function(item) { return '-I' + item; }),
                 frameworkPaths.map(function(item) { return '-F' + item; }),
+                ModUtils.moduleProperties(product, "mocFlags"),
                 '-o', outputFileName,
                 input.filePath);
     return args;

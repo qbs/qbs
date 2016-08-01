@@ -1573,9 +1573,11 @@ void TestLanguage::relaxedErrorMode()
         const auto productMap = productsFromProject(project);
         const ResolvedProductConstPtr brokenProduct = productMap.value("broken");
         QVERIFY(!brokenProduct->enabled);
+        QVERIFY(brokenProduct->location.isValid());
         QCOMPARE(brokenProduct->allFiles().count(), 0);
         const ResolvedProductConstPtr dependerRequired = productMap.value("depender required");
         QVERIFY(!dependerRequired->enabled);
+        QVERIFY(dependerRequired->location.isValid());
         QCOMPARE(dependerRequired->allFiles().count(), 1);
         const ResolvedProductConstPtr dependerNonRequired
                 = productMap.value("depender nonrequired");
@@ -1583,6 +1585,7 @@ void TestLanguage::relaxedErrorMode()
         QCOMPARE(dependerNonRequired->allFiles().count(), 1);
         const ResolvedProductConstPtr recursiveDepender = productMap.value("recursive depender");
         QVERIFY(!recursiveDepender->enabled);
+        QVERIFY(recursiveDepender->location.isValid());
         QCOMPARE(recursiveDepender->allFiles().count(), 1);
         const ResolvedProductConstPtr missingFile = productMap.value("missing file");
         QVERIFY(missingFile->enabled);

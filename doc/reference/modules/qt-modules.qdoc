@@ -268,6 +268,11 @@
         \li \c{undefined}
         \li The path in which the Qt mkspecs are located.
     \row
+        \li mocFlags
+        \li \c{stringList}
+        \li empty
+        \li Additional flags to \c moc. You will rarely need to set this property.
+    \row
         \li mocName
         \li \c{string}
         \li \c{"moc"}

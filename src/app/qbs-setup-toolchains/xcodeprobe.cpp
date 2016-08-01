@@ -165,8 +165,6 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
 
     Profile installationProfile(xcodeName, settings);
     installationProfile.removeProfile();
-    installationProfile.setValue(QStringLiteral("cpp.compilerName"), QStringLiteral("clang++"));
-    installationProfile.setValue(QStringLiteral("cpp.linkerName"), QStringLiteral("clang++"));
     installationProfile.setValue(QStringLiteral("qbs.toolchain"), QStringList()
                                  << QLatin1String("xcode")
                                  << QLatin1String("clang")

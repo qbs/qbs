@@ -47,6 +47,8 @@
 #include <QRegExp>
 #include <QTemporaryFile>
 
+#include <functional>
+
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
 using qbs::InstallOptions;
@@ -2908,6 +2910,86 @@ void TestBlackbox::ld()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::linkerMode()
+{
+    if (!HostOsInfo::isAnyUnixHost())
+        QSKIP("only applies on Unix");
+
+    QDir::setCurrent(testDataDir + "/linkerMode");
+    QCOMPARE(runQbs(), 0);
+
+    auto testCondition = [&](const QString &lang,
+            const std::function<bool(const QByteArray &)> &condition) {
+        if ((lang == "Objective-C" || lang == "Objective-C++")
+                && HostOsInfo::hostOs() != HostOsInfo::HostOsMacos)
+            return;
+        const QString binary = defaultInstallRoot + "/LinkedProduct-" + lang;
+        QProcess deptool;
+        if (HostOsInfo::hostOs() == HostOsInfo::HostOsMacos)
+            deptool.start("otool", QStringList() << "-L" << binary);
+        else
+            deptool.start("readelf", QStringList() << "-a" << binary);
+        QVERIFY(deptool.waitForStarted());
+        QVERIFY(deptool.waitForFinished());
+        QByteArray deptoolOutput = deptool.readAllStandardOutput();
+        if (HostOsInfo::hostOs() != HostOsInfo::HostOsMacos) {
+            QList<QByteArray> lines = deptoolOutput.split('\n');
+            int sz = lines.size();
+            for (int i = 0; i < sz; ++i) {
+                if (!lines.at(i).contains("(NEEDED)")) {
+                    lines.removeAt(i--);
+                    sz--;
+                }
+            }
+
+            deptoolOutput = lines.join('\n');
+        }
+        QCOMPARE(deptool.exitCode(), 0);
+        QVERIFY2(condition(deptoolOutput), deptoolOutput.constData());
+    };
+
+    const QStringList nocpplangs = QStringList() << "Assembly" << "C" << "Objective-C";
+    for (const QString &lang : nocpplangs)
+        testCondition(lang, [](const QByteArray &lddOutput) { return !lddOutput.contains("c++"); });
+
+    const QStringList cpplangs = QStringList() << "C++" << "Objective-C++";
+    for (const QString &lang : cpplangs)
+        testCondition(lang, [](const QByteArray &lddOutput) { return lddOutput.contains("c++"); });
+
+    const QStringList objclangs = QStringList() << "Objective-C" << "Objective-C++";
+    for (const QString &lang : objclangs)
+        testCondition(lang, [](const QByteArray &lddOutput) { return lddOutput.contains("objc"); });
+}
+
+void TestBlackbox::lexyacc()
+{
+    if (findExecutable(QStringList("lex")).isEmpty()
+            || findExecutable(QStringList("yacc")).isEmpty()) {
+        QSKIP("lex or yacc not present");
+    }
+    QDir::setCurrent(testDataDir + "/lexyacc/one-grammar");
+    QCOMPARE(runQbs(), 0);
+    const QString parserBinary = relativeExecutableFilePath("one-grammar");
+    QProcess p;
+    p.start(parserBinary);
+    QVERIFY2(p.waitForStarted(), qPrintable(p.errorString()));
+    p.write("a && b || c && !d");
+    p.closeWriteChannel();
+    QVERIFY2(p.waitForFinished(), qPrintable(p.errorString()));
+    QVERIFY2(p.exitCode() == 0, p.readAllStandardError().constData());
+    const QByteArray parserOutput = p.readAllStandardOutput();
+    QVERIFY2(parserOutput.contains("OR AND a b AND c NOT d"), parserOutput.constData());
+
+    QDir::setCurrent(testDataDir + "/lexyacc/two-grammars");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+
+    params.expectFailure = false;
+    params.arguments << (QStringList() << "lex_yacc.uniqueSymbolPrefix:true");
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::linkerScripts()
 {
     Settings settings((QString()));
@@ -2976,6 +3058,17 @@ void TestBlackbox::mixedBuildVariants()
     } else {
         QCOMPARE(runQbs(), 0);
     }
+}
+
+void TestBlackbox::mocFlags()
+{
+    QDir::setCurrent(testDataDir + "/moc-flags");
+    QCOMPARE(runQbs(), 0);
+    WAIT_FOR_NEW_TIMESTAMP();
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments << "Qt.core.mocFlags:-E";
+    QVERIFY(runQbs(params) != 0);
 }
 
 void TestBlackbox::multipleChanges()

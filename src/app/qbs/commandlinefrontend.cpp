@@ -134,6 +134,7 @@ void CommandLineFrontend::start()
         params.setIgnoreDifferentProjectFilePath(m_parser.force());
         params.setDryRun(m_parser.dryRun());
         params.setForceProbeExecution(m_parser.forceProbesExecution());
+        params.setWaitLockBuildGraph(m_parser.waitLockBuildGraph());
         params.setLogElapsedTime(m_parser.logTime());
         params.setSettingsDirectory(m_settings->baseDirectory());
         if (!m_parser.buildBeforeInstalling() || m_parser.command() == DumpNodesTreeCommandType)

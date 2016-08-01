@@ -62,7 +62,8 @@ public:
         LogTimeOptionType,
         CommandEchoModeOptionType,
         SettingsDirOptionType,
-        GeneratorOptionType
+        GeneratorOptionType,
+        WaitLockOptionType
     };
 
     virtual ~CommandLineOption();
@@ -380,6 +381,14 @@ private:
     void doParse(const QString &representation, QStringList &input);
 
     QString m_settingsDir;
+};
+
+class WaitLockOption : public OnOffOption
+{
+public:
+    QString description(CommandType command) const;
+    QString shortRepresentation() const { return QString(); }
+    QString longRepresentation() const;
 };
 
 } // namespace qbs

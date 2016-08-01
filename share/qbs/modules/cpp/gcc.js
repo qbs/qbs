@@ -38,14 +38,45 @@ var UnixUtils = loadExtension("qbs.UnixUtils");
 var Utilities = loadExtension("qbs.Utilities");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
-function escapeLinkerFlags(product, linkerFlags) {
+function effectiveLinkerPath(product, inputs) {
+    if (product.moduleProperty("cpp", "linkerMode") === "automatic") {
+        var compilers = ModUtils.moduleProperty(product, "compilerPathByLanguage");
+        if (compilers) {
+            if (inputs.cpp_obj || inputs.cpp_staticlibrary) {
+                console.log("Found C++ or Objective-C++ objects, choosing C++ linker for "
+                            + product.name);
+                return compilers["cpp"];
+            }
+
+            if (inputs.c_obj || inputs.c_staticlibrary) {
+                console.log("Found C or Objective-C objects, choosing C linker for "
+                            + product.name);
+                return compilers["c"];
+            }
+        }
+
+        console.log("Found no C-language objects, choosing system linker for "
+                    + product.name);
+    }
+
+    return ModUtils.moduleProperty(product, "linkerPath");
+}
+
+function useCompilerDriverLinker(product, inputs) {
+    var linker = effectiveLinkerPath(product, inputs);
+    var compilers = product.moduleProperty("cpp", "compilerPathByLanguage");
+    if (compilers) {
+        return linker === compilers["cpp"]
+            || linker === compilers["c"];
+    }
+    return linker === product.moduleProperty("cpp", "compilerPath");
+}
+
+function escapeLinkerFlags(product, inputs, linkerFlags) {
     if (!linkerFlags || linkerFlags.length === 0)
         return [];
 
-    var linkerName = product.moduleProperty("cpp", "linkerName") ;
-    var needsEscape = linkerName === product.moduleProperty("cpp", "cxxCompilerName")
-            || linkerName === product.moduleProperty("cpp", "cCompilerName");
-    if (needsEscape) {
+    if (useCompilerDriverLinker(product, inputs)) {
         var sep = ",";
         var useXlinker = linkerFlags.some(function (f) { return f.contains(sep); });
         if (useXlinker) {
@@ -96,11 +127,11 @@ function linkerFlags(product, inputs, output) {
             if (internalVersion && isNumericProductVersion(internalVersion))
                 args.push("-current_version", internalVersion);
 
-            args = args.concat(escapeLinkerFlags(product, [
+            args = args.concat(escapeLinkerFlags(product, inputs, [
                                                      "-install_name",
                                                      UnixUtils.soname(product, output.fileName)]));
         } else {
-            args = args.concat(escapeLinkerFlags(product, [
+            args = args.concat(escapeLinkerFlags(product, inputs, [
                                                      "-soname=" +
                                                      UnixUtils.soname(product, output.fileName)]));
         }
@@ -111,12 +142,14 @@ function linkerFlags(product, inputs, output) {
 
     if (output.fileTags.containsAny(["dynamiclibrary", "loadablemodule"])) {
         if (isDarwin)
-            args = args.concat(escapeLinkerFlags(product, ["-headerpad_max_install_names"]));
+            args = args.concat(escapeLinkerFlags(product, inputs,
+                                                 ["-headerpad_max_install_names"]));
         else
-            args = args.concat(escapeLinkerFlags(product, ["--as-needed"]));
+            args = args.concat(escapeLinkerFlags(product, inputs,
+                                                 ["--as-needed"]));
     }
 
-    if (haveTargetOption(product))
+    if (haveTargetOption(product) && useCompilerDriverLinker(product, inputs))
         args.push("-target", product.moduleProperty("cpp", "target"));
     else if (isDarwin)
         args.push("-arch", product.moduleProperty("cpp", "targetArch"));
@@ -125,13 +158,13 @@ function linkerFlags(product, inputs, output) {
     if (minimumDarwinVersion) {
         var flag = ModUtils.moduleProperty(product, "minimumDarwinVersionLinkerFlag");
         if (flag)
-            args = args.concat(escapeLinkerFlags(product, [flag, minimumDarwinVersion]));
+            args = args.concat(escapeLinkerFlags(product, inputs, [flag, minimumDarwinVersion]));
     }
 
     var sysroot = ModUtils.moduleProperty(product, "sysroot");
     if (sysroot) {
         if (isDarwin)
-            args = args.concat(escapeLinkerFlags(product, ["-syslibroot", sysroot]));
+            args = args.concat(escapeLinkerFlags(product, inputs, ["-syslibroot", sysroot]));
         else
             args.push("--sysroot=" + sysroot); // do not escape, compiler-as-linker also needs it
     }
@@ -139,21 +172,22 @@ function linkerFlags(product, inputs, output) {
     var unresolvedSymbolsAction = isDarwin ? "error" : "ignore-in-shared-libs";
     if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
         unresolvedSymbolsAction = isDarwin ? "suppress" : "ignore-all";
-    args = args.concat(escapeLinkerFlags(product, isDarwin
+    args = args.concat(escapeLinkerFlags(product, inputs, isDarwin
                                          ? ["-undefined", unresolvedSymbolsAction]
                                          : ["--unresolved-symbols=" + unresolvedSymbolsAction]));
 
     for (i in rpaths) {
         if (systemRunPaths.indexOf(rpaths[i]) === -1)
-            args = args.concat(escapeLinkerFlags(product, ["-rpath", rpaths[i]]));
+            args = args.concat(escapeLinkerFlags(product, inputs, ["-rpath", rpaths[i]]));
     }
 
     if (product.moduleProperty("cpp", "entryPoint"))
-        args = args.concat(escapeLinkerFlags(product, ["-e", product.moduleProperty("cpp", "entryPoint")]));
+        args = args.concat(escapeLinkerFlags(product, inputs,
+                                             ["-e", product.moduleProperty("cpp", "entryPoint")]));
 
     if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
         if (product.consoleApplication !== undefined)
-            args = args.concat(escapeLinkerFlags(product, [
+            args = args.concat(escapeLinkerFlags(product, inputs, [
                                                      "-subsystem",
                                                      product.consoleApplication
                                                         ? "console"
@@ -167,10 +201,14 @@ function linkerFlags(product, inputs, output) {
                 var minor = subsystemVersion.split('.')[1];
 
                 // http://sourceware.org/binutils/docs/ld/Options.html
-                args = args.concat(escapeLinkerFlags(product, ["--major-subsystem-version", major]));
-                args = args.concat(escapeLinkerFlags(product, ["--minor-subsystem-version", minor]));
-                args = args.concat(escapeLinkerFlags(product, ["--major-os-version", major]));
-                args = args.concat(escapeLinkerFlags(product, ["--minor-os-version", minor]));
+                args = args.concat(escapeLinkerFlags(product, inputs,
+                                                     ["--major-subsystem-version", major]));
+                args = args.concat(escapeLinkerFlags(product, inputs,
+                                                     ["--minor-subsystem-version", minor]));
+                args = args.concat(escapeLinkerFlags(product, inputs,
+                                                     ["--major-os-version", major]));
+                args = args.concat(escapeLinkerFlags(product, inputs,
+                                                     ["--minor-os-version", minor]));
             }
         }
     }
@@ -178,7 +216,10 @@ function linkerFlags(product, inputs, output) {
     if (inputs.aggregate_infoplist)
         args.push("-sectcreate", "__TEXT", "__info_plist", inputs.aggregate_infoplist[0].filePath);
 
-    var stdlib = product.moduleProperty("cpp", "cxxStandardLibrary");
+    var isLinkingCppObjects = !!(inputs.cpp_obj || inputs.cpp_staticlibrary);
+    var stdlib = isLinkingCppObjects
+            ? product.moduleProperty("cpp", "cxxStandardLibrary")
+            : undefined;
     if (stdlib && product.moduleProperty("qbs", "toolchain").contains("clang"))
         args.push("-stdlib=" + stdlib);
 
@@ -188,12 +229,12 @@ function linkerFlags(product, inputs, output) {
 
     var linkerScripts = inputs.linkerscript
             ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
-    args = args.concat(escapeLinkerFlags(product, [].uniqueConcat(linkerScripts)
+    args = args.concat(escapeLinkerFlags(product, inputs, [].uniqueConcat(linkerScripts)
                                          .map(function(path) { return '-T' + path })));
 
     var versionScripts = inputs.versionscript
             ? inputs.versionscript.map(function(a) { return a.filePath; }) : [];
-    args = args.concat(escapeLinkerFlags(product, [].uniqueConcat(versionScripts)
+    args = args.concat(escapeLinkerFlags(product, inputs, [].uniqueConcat(versionScripts)
                        .map(function(path) { return '--version-script=' + path })));
 
     if (isDarwin && ModUtils.moduleProperty(product, "warningLevel") === "none")
@@ -684,7 +725,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         primaryOutput = outputs.loadablemodule[0];
     }
 
-    cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"),
+    cmd = new Command(effectiveLinkerPath(product, inputs),
                       linkerFlags(product, inputs, primaryOutput));
     cmd.description = 'linking ' + primaryOutput.fileName;
     cmd.highlight = 'linker';

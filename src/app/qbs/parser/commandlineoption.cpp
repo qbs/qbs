@@ -642,4 +642,16 @@ void CommandEchoModeOption::doParse(const QString &representation, QStringList &
     m_echoMode = commandEchoModeFromName(mode);
 }
 
+QString WaitLockOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1\n\tWait indefinitely for other processes to release the build graph lock.\n")
+            .arg(longRepresentation());
+}
+
+QString WaitLockOption::longRepresentation() const
+{
+    return QLatin1String("--wait-lock");
+}
+
 } // namespace qbs

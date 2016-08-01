@@ -138,8 +138,9 @@ QStringList ValgrindRunner::qbsCommandLine(const QString &command, const QString
 QStringList ValgrindRunner::wrapForValgrind(const QStringList &commandLine, const QString &tool,
                                             const QString &outFile) const
 {
-    return QStringList() << "valgrind" << "--smc-check=all" << ("--tool=" + tool)
-                         << ("--" + tool + "-out-file=" + outFile) << commandLine;
+    return QStringList() << "valgrind" << "--smc-check=all" << "--trace-children=yes"
+                         << ("--tool=" + tool) << ("--" + tool + "-out-file=" + outFile)
+                         << commandLine;
 }
 
 QStringList ValgrindRunner::valgrindCommandLine(const QString &qbsCommand, const QString &buildDir,

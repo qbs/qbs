@@ -157,6 +157,8 @@ private slots:
     void jsExtensionsTemporaryDir();
     void jsExtensionsTextFile();
     void ld();
+    void linkerMode();
+    void lexyacc();
     void linkerScripts();
     void listPropertiesWithOuter();
     void listPropertyOrder();
@@ -165,6 +167,7 @@ private slots:
     void missingDependency();
     void missingProfile();
     void mixedBuildVariants();
+    void mocFlags();
     void multipleChanges();
     void nestedGroups();
     void nestedProperties();
