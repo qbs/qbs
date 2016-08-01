@@ -507,8 +507,7 @@ void CommandLineFrontend::generate()
 int CommandLineFrontend::runTarget()
 {
     const ProductData productToRun = getTheOneRunnableProduct();
-    const QString executableFilePath = m_projects.first().targetExecutable(productToRun,
-            m_parser.installOptions(m_projects.first().profile()));
+    const QString executableFilePath = productToRun.targetExecutable();
     if (executableFilePath.isEmpty()) {
         throw ErrorInfo(Tr::tr("Cannot run: Product '%1' is not an application.")
                     .arg(productToRun.name()));

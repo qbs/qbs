@@ -37,6 +37,17 @@
 namespace qbs {
 namespace Internal {
 
+class InstallDataPrivate : public QSharedData
+{
+public:
+    InstallDataPrivate() : isValid(false) {}
+
+    QString installFilePath;
+    QString installRoot;
+    bool isValid;
+    bool isInstallable;
+};
+
 class ArtifactDataPrivate : public QSharedData
 {
 public:
@@ -45,6 +56,7 @@ public:
     QString filePath;
     QStringList fileTags;
     PropertyMap properties;
+    InstallData installData;
     bool isValid;
     bool isGenerated;
 };

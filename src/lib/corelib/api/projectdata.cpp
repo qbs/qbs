@@ -261,6 +261,14 @@ PropertyMap ArtifactData::properties() const
     return d->properties;
 }
 
+/*!
+    \brief The installation-related data of this artifact.
+ */
+InstallData ArtifactData::installData() const
+{
+    return d->installData;
+}
+
 bool operator==(const ArtifactData &ad1, const ArtifactData &ad2)
 {
     return ad1.filePath() == ad2.filePath()
@@ -281,84 +289,90 @@ bool operator<(const ArtifactData &ta1, const ArtifactData &ta2)
 
 
 /*!
- * \class InstallableFile
- * \brief Describes a file that is marked for installation.
+ * \class InstallData
+ * \brief The \c InstallData class provides the installation-related data of an artifact.
  */
 
-InstallableFile::InstallableFile() : d(new Internal::InstallableFilePrivate)
+InstallData::InstallData() : d(new Internal::InstallDataPrivate)
 {
 }
 
-InstallableFile::InstallableFile(const InstallableFile &other) : d(other.d)
+InstallData::InstallData(const InstallData &other) : d(other.d)
 {
 }
 
-InstallableFile &InstallableFile::operator=(const InstallableFile &other)
+InstallData &InstallData::operator=(const InstallData &other)
 {
     d = other.d;
     return *this;
 }
 
-InstallableFile::~InstallableFile()
+InstallData::~InstallData()
 {
 }
 
 /*!
  * \brief Returns true if and only if this object holds data that was initialized by Qbs.
  */
-bool InstallableFile::isValid() const
+bool InstallData::isValid() const
 {
     return d->isValid;
 }
 
 /*!
- * \brief The location of the file from which it will be copied to \c targetFilePath()
- *        on installation.
+  \brief Returns true if and only if \c{qbs.install} is \c true for the artifact.
  */
-QString InstallableFile::sourceFilePath() const
+bool InstallData::isInstallable() const
 {
-    return d->sourceFilePath;
+    QBS_ASSERT(isValid(), return false);
+    return d->isInstallable;
 }
 
 /*!
- * \brief The file path that this file will be copied to on installation.
+  \brief Returns the directory into which the artifact will be installed.
+  \note This is not necessarily the same as \c{qbs.installDir}, because \c{qbs.installSourceBase}
+        might have been used.
  */
-QString InstallableFile::targetFilePath() const
+QString InstallData::installDir() const
 {
-    return d->targetFilePath;
+    QBS_ASSERT(isValid(), return QString());
+    return Internal::FileInfo::path(installFilePath());
 }
 
 /*!
- * \brief The file's tags.
+  \brief Returns the installed file path of the artifact.
  */
-QStringList InstallableFile::fileTags() const
+QString InstallData::installFilePath() const
 {
-    return d->fileTags;
+    QBS_ASSERT(isValid(), return QString());
+    return d->installFilePath;
 }
 
 /*!
- * \brief True if and only if the file is an executable.
+  \brief Returns the value of \c{qbs.installRoot} for the artifact.
  */
-bool InstallableFile::isExecutable() const
+QString InstallData::installRoot() const
 {
-    return d->fileTags.contains(QLatin1String("application"));
+    QBS_ASSERT(isValid(), return QString());
+    return d->installRoot;
 }
 
-bool operator==(const InstallableFile &file1, const InstallableFile &file2)
+/*!
+  \brief Returns the local installation directory of the artifact, that is \c installDir()
+         prepended by \c installRoot().
+ */
+QString InstallData::localInstallDir() const
 {
-    return file1.sourceFilePath() == file2.sourceFilePath()
-            && file1.targetFilePath() == file2.targetFilePath()
-            && file1.fileTags() == file2.fileTags();
+    return installRoot() + QLatin1Char('/') + installDir();
 }
 
-bool operator!=(const InstallableFile &file1, const InstallableFile &file2)
+/*!
+  \brief Returns the local installed file path of the artifact, that is \c installFilePath()
+         prepended by \c installRoot().
+ */
+QString InstallData::localInstallFilePath() const
 {
-    return !(file1 == file2);
-}
-
-bool operator<(const InstallableFile &file1, const InstallableFile &file2)
-{
-    return file1.sourceFilePath() < file2.sourceFilePath();
+    return installRoot() + QLatin1Char('/') + installFilePath();
 }
 
 /*!
@@ -454,6 +468,42 @@ CodeLocation ProductData::location() const
 QList<ArtifactData> ProductData::targetArtifacts() const
 {
     return d->targetArtifacts;
+}
+
+/*!
+ * \brief The list of artifacts in this product that are to be installed.
+ */
+QList<ArtifactData> ProductData::installableArtifacts() const
+{
+    QList<ArtifactData> artifacts;
+    foreach (const GroupData &g, groups()) {
+        foreach (const ArtifactData &a, g.allSourceArtifacts()) {
+            if (a.installData().isInstallable())
+                artifacts << a;
+        }
+    }
+    foreach (const ArtifactData &a, targetArtifacts()) {
+        if (a.installData().isInstallable())
+            artifacts << a;
+    }
+    return artifacts;
+}
+
+/*!
+ * \brief Returns the file path of the executable associated with this product.
+ * If the product is not an application, an empty string is returned.
+ */
+QString ProductData::targetExecutable() const
+{
+    QBS_ASSERT(isValid(), return QString());
+    foreach (const ArtifactData &ta, targetArtifacts()) {
+        if (ta.isExecutable()) {
+            if (ta.installData().isInstallable())
+                return ta.installData().localInstallFilePath();
+            return ta.filePath();
+        }
+    }
+    return QString();
 }
 
 /*!
@@ -629,6 +679,17 @@ QList<ProductData> ProjectData::allProducts() const
     foreach (const ProjectData &pd, subProjects())
         productList << pd.allProducts();
     return productList;
+}
+
+/*!
+ * The artifacts of all products in this project that are to be installed.
+ */
+QList<ArtifactData> ProjectData::installableArtifacts() const
+{
+    QList<ArtifactData> artifacts;
+    foreach (const ProductData &p, allProducts())
+        artifacts << p.installableArtifacts();
+    return artifacts;
 }
 
 bool operator==(const ProjectData &lhs, const ProjectData &rhs)

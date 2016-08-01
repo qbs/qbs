@@ -233,17 +233,24 @@ GroupData ProjectPrivate::findGroupData(const ProductData &product, const QStrin
     return GroupData();
 }
 
-GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup)
+GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup,
+                                                   const ResolvedProductConstPtr &product)
 {
     GroupData group;
     group.d->name = resolvedGroup->name;
     group.d->prefix = resolvedGroup->prefix;
     group.d->location = resolvedGroup->location;
-    foreach (const SourceArtifactConstPtr &sa, resolvedGroup->files)
-        group.d->sourceArtifacts << createApiSourceArtifact(sa);
+    foreach (const SourceArtifactConstPtr &sa, resolvedGroup->files) {
+        ArtifactData artifact = createApiSourceArtifact(sa);
+        setupInstallData(artifact, product);
+        group.d->sourceArtifacts << artifact;
+    }
     if (resolvedGroup->wildcards) {
-        foreach (const SourceArtifactConstPtr &sa, resolvedGroup->wildcards->files)
-            group.d->sourceArtifactsFromWildcards << createApiSourceArtifact(sa);
+        foreach (const SourceArtifactConstPtr &sa, resolvedGroup->wildcards->files) {
+            ArtifactData artifact = createApiSourceArtifact(sa);
+            setupInstallData(artifact, product);
+            group.d->sourceArtifactsFromWildcards << artifact;
+        }
     }
     qSort(group.d->sourceArtifacts);
     qSort(group.d->sourceArtifactsFromWildcards);
@@ -262,6 +269,26 @@ ArtifactData ProjectPrivate::createApiSourceArtifact(const SourceArtifactConstPt
     saApi.d->isGenerated = false;
     saApi.d->properties.d->m_map = sa->properties;
     return saApi;
+}
+
+void ProjectPrivate::setupInstallData(ArtifactData &artifact,
+                                      const ResolvedProductConstPtr &product)
+{
+    artifact.d->installData.d->isValid = true;
+    artifact.d->installData.d->isInstallable = artifact.properties().getModuleProperty(
+                QLatin1String("qbs"), QLatin1String("install")).toBool();
+    if (!artifact.d->installData.d->isInstallable)
+        return;
+    const QString installRoot = artifact.properties().getModuleProperty(
+                QLatin1String("qbs"), QLatin1String("installRoot")).toString();
+    InstallOptions options;
+    options.setInstallRoot(installRoot);
+    QString installFilePath = ProductInstaller::targetFilePath(product->topLevelProject(),
+            product->sourceDirectory, artifact.filePath(), artifact.properties().d->m_map, options);
+    if (!installRoot.isEmpty())
+        installFilePath.remove(0, installRoot.count() + 1);
+    artifact.d->installData.d->installRoot = installRoot;
+    artifact.d->installData.d->installFilePath = installFilePath;
 }
 
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
@@ -304,7 +331,7 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
         resolvedGroup->properties = resolvedProducts[i]->moduleProperties;
         resolvedGroup->overrideTags = false;
         resolvedProducts.at(i)->groups << resolvedGroup;
-        products.at(i).d->groups << createGroupDataFromGroup(resolvedGroup);
+        products.at(i).d->groups << createGroupDataFromGroup(resolvedGroup, resolvedProducts.at(i));
         qSort(products.at(i).d->groups);
     }
 }
@@ -440,36 +467,44 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     updateInternalCodeLocations(internalProject, adder.itemPosition(), adder.lineOffset());
     updateExternalCodeLocations(m_projectData, adder.itemPosition(), adder.lineOffset());
 
-    QHash<QString, SourceArtifactPtr> addedSourceArtifacts;
+    QHash<QString, QPair<SourceArtifactPtr, ResolvedProductPtr>> addedSourceArtifacts;
     for (int i = 0; i < groupContext.resolvedGroups.count(); ++i) {
         const ResolvedProductPtr &resolvedProduct = groupContext.resolvedProducts.at(i);
         const GroupPtr &resolvedGroup = groupContext.resolvedGroups.at(i);
         foreach (const QString &file, filesContext.absoluteFilePaths) {
-             addedSourceArtifacts.insert(file, createSourceArtifact(file, resolvedProduct,
-                    resolvedGroup, resolvedGroup->files, logger));
+            const SourceArtifactPtr sa = createSourceArtifact(file, resolvedProduct, resolvedGroup,
+                                                              resolvedGroup->files, logger);
+            addedSourceArtifacts.insert(file, qMakePair(sa, resolvedProduct));
         }
         foreach (const QString &file, filesContext.absoluteFilePathsFromWildcards) {
             QBS_CHECK(resolvedGroup->wildcards);
-             addedSourceArtifacts.insert(file, createSourceArtifact(file, resolvedProduct,
-                    resolvedGroup, resolvedGroup->wildcards->files, logger));
+            const SourceArtifactPtr sa = createSourceArtifact(file, resolvedProduct, resolvedGroup,
+                    resolvedGroup->wildcards->files, logger);
+            addedSourceArtifacts.insert(file, qMakePair(sa, resolvedProduct));
         }
         if (resolvedProduct->enabled) {
-            foreach (const SourceArtifactConstPtr &sa, addedSourceArtifacts)
-                createArtifact(resolvedProduct, sa, logger);
+            foreach (const auto &pair, addedSourceArtifacts)
+                createArtifact(resolvedProduct, pair.first, logger);
         }
     }
     doSanityChecks(internalProject, logger);
     QList<ArtifactData> sourceArtifacts;
     QList<ArtifactData> sourceArtifactsFromWildcards;
     foreach (const QString &fp, filesContext.absoluteFilePaths) {
-        const SourceArtifactConstPtr sa = addedSourceArtifacts.value(fp);
+        const auto pair = addedSourceArtifacts.value(fp);
+        const SourceArtifactConstPtr sa = pair.first;
         QBS_CHECK(sa);
-        sourceArtifacts << createApiSourceArtifact(sa);
+        ArtifactData artifactData = createApiSourceArtifact(sa);
+        setupInstallData(artifactData, pair.second);
+        sourceArtifacts << artifactData;
     }
     foreach (const QString &fp, filesContext.absoluteFilePathsFromWildcards) {
-        const SourceArtifactConstPtr sa = addedSourceArtifacts.value(fp);
+        const auto pair = addedSourceArtifacts.value(fp);
+        const SourceArtifactConstPtr sa = pair.first;
         QBS_CHECK(sa);
-        sourceArtifactsFromWildcards << createApiSourceArtifact(sa);
+        ArtifactData artifactData = createApiSourceArtifact(sa);
+        setupInstallData(artifactData, pair.second);
+        sourceArtifactsFromWildcards << artifactData;
     }
     foreach (const GroupData &g, groupContext.groups) {
         g.d->sourceArtifacts << sourceArtifacts;
@@ -717,7 +752,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->properties = resolvedProduct->productProperties;
         product.d->moduleProperties.d->m_map = resolvedProduct->moduleProperties;
         foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups)
-            product.d->groups << createGroupDataFromGroup(resolvedGroup);
+            product.d->groups << createGroupDataFromGroup(resolvedGroup, resolvedProduct);
         if (resolvedProduct->enabled) {
             QBS_CHECK(resolvedProduct->buildData);
             foreach (const Artifact * const a, resolvedProduct->targetArtifacts()) {
@@ -727,6 +762,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                 ta.d->properties.d->m_map = a->properties;
                 ta.d->isGenerated = true;
                 ta.d->isValid = true;
+                setupInstallData(ta, resolvedProduct);
                 product.d->targetArtifacts << ta;
             }
         }
@@ -843,32 +879,6 @@ ProjectData Project::projectData() const
 {
     QBS_ASSERT(isValid(), return ProjectData());
     return d->projectData();
-}
-
-/*!
- * \brief Returns the file path of the executable associated with the given product.
- * If the product is not an application, an empty string is returned.
- * The \a installOptions parameter is used to look up the executable in case it is installable;
- * otherwise the parameter is ignored and the returned path will point to where the file is built.
- */
-QString Project::targetExecutable(const ProductData &product,
-                                  const InstallOptions &installOptions) const
-{
-    QBS_ASSERT(isValid(), return QString());
-    if (!product.isEnabled())
-        return QString();
-    foreach (const ArtifactData &ta, product.targetArtifacts()) {
-        if (ta.isExecutable()) {
-            const QList<InstallableFile> &installables
-                    = installableFilesForProduct(product, installOptions);
-            foreach (const InstallableFile &file, installables) {
-                if (file.sourceFilePath() == ta.filePath())
-                    return file.targetFilePath();
-            }
-            return ta.filePath();
-        }
-    }
-    return QString();
 }
 
 RunEnvironment Project::getRunEnvironment(const ProductData &product,
@@ -994,80 +1004,6 @@ InstallJob *Project::installOneProduct(const ProductData &product, const Install
                                        QObject *jobOwner) const
 {
     return installSomeProducts(QList<ProductData>() << product, options, jobOwner);
-}
-
-/*!
- * \brief All files in the product for which "qbs.install" is true.
- * This includes source files as well as generated files.
- */
-QList<InstallableFile> Project::installableFilesForProduct(const ProductData &product,
-                                                           const InstallOptions &options) const
-{
-    QList<InstallableFile> installableFiles;
-    QBS_ASSERT(isValid(), return installableFiles);
-    const ResolvedProductConstPtr internalProduct = d->internalProduct(product);
-    if (!internalProduct)
-        return installableFiles;
-    InstallOptions mutableOptions = options;
-    foreach (const GroupConstPtr &group, internalProduct->groups) {
-        foreach (const SourceArtifactConstPtr &artifact, group->allFiles()) {
-            InstallableFile f;
-            try {
-                const QString &targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
-                    internalProduct->sourceDirectory,
-                    artifact->absoluteFilePath, artifact->properties, mutableOptions);
-                if (targetFilePath.isEmpty())
-                    continue;
-                f.d->sourceFilePath = artifact->absoluteFilePath;
-                f.d->fileTags = artifact->fileTags.toStringList();
-                f.d->targetFilePath = targetFilePath;
-                f.d->isValid = true;
-                installableFiles << f;
-            } catch (const ErrorInfo &e) {
-                qDebug() << e.toString();
-            }
-        }
-    }
-    if (internalProduct->enabled) {
-        QBS_CHECK(internalProduct->buildData);
-        for (const Artifact *artifact : filterByType<Artifact>(internalProduct->buildData->nodes)) {
-            if (artifact->artifactType == Artifact::SourceFile)
-                continue;
-            try {
-                InstallableFile f;
-                const QString &targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
-                        internalProduct->sourceDirectory, artifact->filePath(),
-                        artifact->properties, mutableOptions);
-                if (targetFilePath.isEmpty())
-                    continue;
-                f.d->sourceFilePath = artifact->filePath();
-                f.d->fileTags = artifact->fileTags().toStringList();
-                f.d->targetFilePath = targetFilePath;
-                f.d->isValid = true;
-                installableFiles << f;
-            } catch (const ErrorInfo &e) {
-                qDebug() << e.toString();
-            }
-        }
-    }
-    qSort(installableFiles);
-    return installableFiles;
-}
-
-/*!
- * \brief All files in the project for which "qbs.install" is true.
- * This includes all sub-projects.
- * \sa Project::installableFilesForProduct()
- */
-QList<InstallableFile> Project::installableFilesForProject(const ProjectData &project,
-                                                           const InstallOptions &options) const
-{
-    QList<InstallableFile> installableFiles;
-    QBS_ASSERT(isValid(), return installableFiles);
-    foreach (const ProductData &p, project.allProducts())
-        installableFiles << installableFilesForProduct(p, options);
-    qSort(installableFiles);
-    return installableFiles;
 }
 
 /*!

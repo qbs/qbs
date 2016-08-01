@@ -1011,10 +1011,8 @@ void TestApi::disabledInstallGroup()
     QCOMPARE(targets.count(), 1);
     QVERIFY(targets.first().isGenerated());
     QVERIFY(targets.first().isExecutable());
-    QList<qbs::InstallableFile> installableFiles
-            = project.installableFilesForProduct(product, qbs::InstallOptions());
-    QCOMPARE(installableFiles.count(), 0);
-    QCOMPARE(project.targetExecutable(product, qbs::InstallOptions()), targets.first().filePath());
+    QCOMPARE(projectData.installableArtifacts().count(), 0);
+    QCOMPARE(product.targetExecutable(), targets.first().filePath());
 }
 
 void TestApi::disabledProduct()
@@ -1120,10 +1118,9 @@ void TestApi::fileTagsFilterOverride()
     qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
     const qbs::ProductData product = projectData.allProducts().first();
-    QList<qbs::InstallableFile> installableFiles
-            = project.installableFilesForProduct(product, qbs::InstallOptions());
+    QList<qbs::ArtifactData> installableFiles = product.installableArtifacts();
     QCOMPARE(installableFiles.count(), 1);
-    QVERIFY(installableFiles.first().targetFilePath().contains("habicht"));
+    QVERIFY(installableFiles.first().installData().installFilePath().contains("habicht"));
 }
 
 void TestApi::generatedFilesList()
@@ -1234,6 +1231,9 @@ void TestApi::installableFiles()
 {
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters("installed-artifact/installed_artifact.qbs");
+    QVariantMap overriddenValues;
+    overriddenValues.insert(QLatin1String("qbs.installRoot"), QLatin1String("/tmp"));
+    setupParams.setOverriddenValues(overriddenValues);
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                          m_logSink, 0));
     waitForFinished(job.data());
@@ -1249,23 +1249,21 @@ void TestApi::installableFiles()
         return p.name() == QLatin1String("installedApp");
     });
     QVERIFY(product.isValid());
-    qbs::InstallOptions installOptions;
-    installOptions.setInstallRoot(QLatin1String("/tmp"));
-    QList<qbs::InstallableFile> installableFiles
-            = project.installableFilesForProduct(product, installOptions);
+    QList<qbs::ArtifactData> installableFiles = product.installableArtifacts();
     QCOMPARE(installableFiles.count(), 2);
-    foreach (const qbs::InstallableFile &f,installableFiles) {
-        if (!f.sourceFilePath().endsWith("main.cpp")) {
+    foreach (const qbs::ArtifactData &f,installableFiles) {
+        if (!f.filePath().endsWith("main.cpp")) {
             QVERIFY(f.isExecutable());
             QString expectedTargetFilePath = qbs::Internal::HostOsInfo
                     ::appendExecutableSuffix(QLatin1String("/tmp/usr/bin/installedApp"));
-            QCOMPARE(f.targetFilePath(), expectedTargetFilePath);
-            QCOMPARE(project.targetExecutable(product, installOptions), expectedTargetFilePath);
+            QCOMPARE(f.installData().localInstallFilePath(), expectedTargetFilePath);
+            QCOMPARE(product.targetExecutable(), expectedTargetFilePath);
             break;
         }
     }
 
     setupParams  = defaultSetupParameters("recursive-wildcards/recursive_wildcards.qbs");
+    setupParams.setOverriddenValues(overriddenValues);
     job.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
@@ -1273,12 +1271,14 @@ void TestApi::installableFiles()
     projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
     product = projectData.allProducts().first();
-    installableFiles = project.installableFilesForProduct(product, installOptions);
+    installableFiles = product.installableArtifacts();
     QCOMPARE(installableFiles.count(), 2);
-    foreach (const qbs::InstallableFile &f, installableFiles)
+    foreach (const qbs::ArtifactData &f, installableFiles)
         QVERIFY(!f.isExecutable());
-    QCOMPARE(installableFiles.first().targetFilePath(), QLatin1String("/tmp/dir/file1.txt"));
-    QCOMPARE(installableFiles.last().targetFilePath(), QLatin1String("/tmp/dir/file2.txt"));
+    QCOMPARE(installableFiles.first().installData().localInstallFilePath(),
+             QLatin1String("/tmp/dir/file1.txt"));
+    QCOMPARE(installableFiles.last().installData().localInstallFilePath(),
+             QLatin1String("/tmp/dir/file2.txt"));
 }
 
 void TestApi::isRunnable()

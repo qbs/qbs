@@ -86,8 +86,7 @@ public:
     bool isValid() const;
     QString profile() const;
     ProjectData projectData() const;
-    QString targetExecutable(const ProductData &product,
-                             const InstallOptions &installoptions) const;
+    QString targetExecutable(const ProductData &product) const;
     RunEnvironment getRunEnvironment(const ProductData &product,
             const InstallOptions &installOptions,
             const QProcessEnvironment &environment, Settings *settings) const;
@@ -114,11 +113,6 @@ public:
                                     const InstallOptions &options, QObject *jobOwner = 0) const;
     InstallJob *installOneProduct(const ProductData &product, const InstallOptions &options,
                                   QObject *jobOwner = 0) const;
-
-    QList<InstallableFile> installableFilesForProduct(const ProductData &product,
-                                                      const InstallOptions &options) const;
-    QList<InstallableFile> installableFilesForProject(const ProjectData &project,
-                                                      const InstallOptions &options) const;
 
     void updateTimestamps(const QList<ProductData> &products);
 

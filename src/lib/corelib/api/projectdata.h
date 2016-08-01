@@ -44,7 +44,7 @@ namespace qbs {
 namespace Internal {
 class ArtifactDataPrivate;
 class GroupDataPrivate;
-class InstallableFilePrivate;
+class InstallDataPrivate;
 class ProductDataPrivate;
 class ProjectPrivate;
 class ProjectDataPrivate;
@@ -84,6 +84,8 @@ private:
     Internal::PropertyMapPrivate *d;
 };
 
+class InstallData;
+
 class QBS_EXPORT ArtifactData
 {
     friend class Internal::ProjectPrivate;
@@ -100,9 +102,31 @@ public:
     bool isGenerated() const;
     bool isExecutable() const;
     PropertyMap properties() const;
+    InstallData installData() const;
 
 private:
     QExplicitlySharedDataPointer<Internal::ArtifactDataPrivate> d;
+};
+
+class QBS_EXPORT InstallData
+{
+    friend class Internal::ProjectPrivate;
+public:
+    InstallData();
+    InstallData(const InstallData &other);
+    InstallData &operator=(const InstallData &other);
+    ~InstallData();
+
+    bool isValid() const;
+
+    bool isInstallable() const;
+    QString installDir() const;
+    QString installFilePath() const;
+    QString installRoot() const;
+    QString localInstallDir() const;
+    QString localInstallFilePath() const;
+private:
+    QExplicitlySharedDataPointer<Internal::InstallDataPrivate> d;
 };
 
 QBS_EXPORT bool operator==(const ArtifactData &ta1, const ArtifactData &ta2);
@@ -138,31 +162,6 @@ QBS_EXPORT bool operator==(const GroupData &lhs, const GroupData &rhs);
 QBS_EXPORT bool operator!=(const GroupData &lhs, const GroupData &rhs);
 QBS_EXPORT bool operator<(const GroupData &lhs, const GroupData &rhs);
 
-class QBS_EXPORT InstallableFile
-{
-    friend class Project;
-public:
-    InstallableFile();
-    InstallableFile(const InstallableFile &other);
-    InstallableFile &operator=(const InstallableFile &other);
-    ~InstallableFile();
-
-    bool isValid() const;
-
-    QString sourceFilePath() const;
-    QString targetFilePath() const;
-    QStringList fileTags() const;
-    bool isExecutable() const;
-
-private:
-    QExplicitlySharedDataPointer<Internal::InstallableFilePrivate> d;
-};
-
-QBS_EXPORT bool operator==(const InstallableFile &file1, const InstallableFile &file2);
-QBS_EXPORT bool operator!=(const InstallableFile &file1, const InstallableFile &file2);
-QBS_EXPORT bool operator<(const InstallableFile &file1, const InstallableFile &file2);
-
-
 class QBS_EXPORT ProductData
 {
     friend class Internal::ProjectPrivate;
@@ -182,6 +181,8 @@ public:
     QString profile() const;
     CodeLocation location() const;
     QList<ArtifactData> targetArtifacts() const;
+    QList<ArtifactData> installableArtifacts() const;
+    QString targetExecutable() const;
     QList<GroupData> groups() const;
     QVariantMap properties() const;
     PropertyMap moduleProperties() const;
@@ -214,6 +215,7 @@ public:
     QList<ProductData> products() const;
     QList<ProjectData> subProjects() const;
     QList<ProductData> allProducts() const;
+    QList<ArtifactData> installableArtifacts() const;
 
 private:
     QExplicitlySharedDataPointer<Internal::ProjectDataPrivate> d;

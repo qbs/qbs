@@ -73,8 +73,10 @@ public:
     QList<ProductData> findProductsByName(const QString &name) const;
     GroupData findGroupData(const ProductData &product, const QString &groupName) const;
 
-    GroupData createGroupDataFromGroup(const GroupPtr &resolvedGroup);
+    GroupData createGroupDataFromGroup(const GroupPtr &resolvedGroup,
+                                       const ResolvedProductConstPtr &product);
     ArtifactData createApiSourceArtifact(const SourceArtifactConstPtr &sa);
+    void setupInstallData(ArtifactData &artifact, const ResolvedProductConstPtr &product);
 
     struct GroupUpdateContext {
         QList<ResolvedProductPtr> resolvedProducts;
