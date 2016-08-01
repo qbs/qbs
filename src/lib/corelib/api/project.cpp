@@ -267,6 +267,7 @@ ArtifactData ProjectPrivate::createApiSourceArtifact(const SourceArtifactConstPt
     saApi.d->filePath = sa->absoluteFilePath;
     saApi.d->fileTags = sa->fileTags.toStringList();
     saApi.d->isGenerated = false;
+    saApi.d->isTargetArtifact = false;
     saApi.d->properties.d->m_map = sa->properties;
     return saApi;
 }
@@ -747,6 +748,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                                                         .value(QLatin1String("version")).toString();
         product.d->profile = resolvedProduct->profile;
         product.d->location = resolvedProduct->location;
+        product.d->buildDirectory = resolvedProduct->buildDirectory();
         product.d->isEnabled = resolvedProduct->enabled;
         product.d->isRunnable = productIsRunnable(resolvedProduct);
         product.d->properties = resolvedProduct->productProperties;
@@ -755,22 +757,25 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
             product.d->groups << createGroupDataFromGroup(resolvedGroup, resolvedProduct);
         if (resolvedProduct->enabled) {
             QBS_CHECK(resolvedProduct->buildData);
-            foreach (const Artifact * const a, resolvedProduct->targetArtifacts()) {
+            const ArtifactSet targetArtifacts = resolvedProduct->targetArtifacts();
+            foreach (Artifact * const a,
+                     filterByType<Artifact>(resolvedProduct->buildData->nodes)) {
                 ArtifactData ta;
                 ta.d->filePath = a->filePath();
                 ta.d->fileTags = a->fileTags().toStringList();
                 ta.d->properties.d->m_map = a->properties;
                 ta.d->isGenerated = true;
+                ta.d->isTargetArtifact = targetArtifacts.contains(a);
                 ta.d->isValid = true;
                 setupInstallData(ta, resolvedProduct);
-                product.d->targetArtifacts << ta;
+                product.d->generatedArtifacts << ta;
             }
         }
         foreach (const ResolvedProductPtr &resolvedDependentProduct, resolvedProduct->dependencies)
             product.d->dependencies << resolvedDependentProduct->name;
         qSort(product.d->type);
         qSort(product.d->groups);
-        qSort(product.d->targetArtifacts);
+        qSort(product.d->generatedArtifacts);
         qSort(product.d->dependencies);
         product.d->isValid = true;
         projectData.d->products << product;

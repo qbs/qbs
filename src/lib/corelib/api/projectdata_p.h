@@ -59,6 +59,7 @@ public:
     InstallData installData;
     bool isValid;
     bool isGenerated;
+    bool isTargetArtifact;
 };
 
 class GroupDataPrivate : public QSharedData
@@ -101,10 +102,11 @@ public:
     QString version;
     QString profile;
     CodeLocation location;
+    QString buildDirectory;
     QList<GroupData> groups;
     QVariantMap properties;
     PropertyMap moduleProperties;
-    QList<ArtifactData> targetArtifacts;
+    QList<ArtifactData> generatedArtifacts;
     bool isEnabled;
     bool isRunnable;
     bool isValid;

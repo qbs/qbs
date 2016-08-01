@@ -254,6 +254,15 @@ bool ArtifactData::isExecutable() const
 }
 
 /*!
+ * \brief True if and only if this artifact is a target artifact of its product.
+ */
+bool ArtifactData::isTargetArtifact() const
+{
+    QBS_ASSERT(isValid(), return false);
+    return d->isTargetArtifact;
+}
+
+/*!
  * \brief The properties of this file.
  */
 PropertyMap ArtifactData::properties() const
@@ -463,11 +472,32 @@ CodeLocation ProductData::location() const
 }
 
 /*!
- * \brief This product's target artifacts.
+ * \brief The directory under which the product's generated artifacts are located.
+ */
+QString ProductData::buildDirectory() const
+{
+    return d->buildDirectory;
+}
+
+/*!
+ * \brief All artifacts that are generated when building this product.
+ */
+QList<ArtifactData> ProductData::generatedArtifacts() const
+{
+    return d->generatedArtifacts;
+}
+
+/*!
+  \brief This product's target artifacts.
+  This is a subset of \c generatedArtifacts()
  */
 QList<ArtifactData> ProductData::targetArtifacts() const
 {
-    return d->targetArtifacts;
+    QList<ArtifactData> list;
+    std::copy_if(d->generatedArtifacts.constBegin(), d->generatedArtifacts.constEnd(),
+                 std::back_inserter(list),
+                 [](const ArtifactData &a) { return a.isTargetArtifact(); });
+    return list;
 }
 
 /*!

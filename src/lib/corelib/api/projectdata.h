@@ -100,6 +100,7 @@ public:
     QStringList fileTags() const;
     bool isGenerated() const;
     bool isExecutable() const;
+    bool isTargetArtifact() const;
     PropertyMap properties() const;
     InstallData installData() const;
 
@@ -179,6 +180,8 @@ public:
     QString version() const;
     QString profile() const;
     CodeLocation location() const;
+    QString buildDirectory() const;
+    QList<ArtifactData> generatedArtifacts() const;
     QList<ArtifactData> targetArtifacts() const;
     QList<ArtifactData> installableArtifacts() const;
     QString targetExecutable() const;
