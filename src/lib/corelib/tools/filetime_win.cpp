@@ -79,7 +79,11 @@ FileTime FileTime::oldestTime()
         1601,
         1,
         5,
-        2
+        2,
+        0,
+        0,
+        0,
+        0
     };
     FileTime result;
     FILETIME *const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
