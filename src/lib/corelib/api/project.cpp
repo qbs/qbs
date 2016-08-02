@@ -600,8 +600,6 @@ void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &proje
                 }
             }
         }
-        foreach (const ResolvedTransformerConstPtr &transformer, product->transformers)
-            updateLocationIfNecessary(transformer->transform->location, changeLocation, lineOffset);
         foreach (const ResolvedScannerConstPtr &scanner, product->scanners) {
             updateLocationIfNecessary(scanner->searchPathsScript->location, changeLocation, lineOffset);
             updateLocationIfNecessary(scanner->scanScript->location, changeLocation, lineOffset);

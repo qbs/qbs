@@ -323,8 +323,7 @@ void BuildGraphLoader::trackProjectChanges()
 
     foreach (const ResolvedProductConstPtr &changedProduct, changedProducts) {
         rescueOldBuildData(changedProduct, freshProductsByName.value(changedProduct->uniqueName()),
-                           oldBuildData.data(), childLists,
-                           rescuableArtifactData.value(changedProduct->uniqueName()));
+                           childLists, rescuableArtifactData.value(changedProduct->uniqueName()));
     }
 
     EmptyDirectoriesRemover(m_result.newlyResolvedProject.data(), m_logger)
@@ -535,19 +534,11 @@ bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restored
     // within commands).
     if (checkForPropertyChanges(restoredProduct, newlyResolvedProduct))
         return true;
-    if (!transformerListsAreEqual(restoredProduct->transformers,
-                                  newlyResolvedProduct->transformers)) {
-        return true;
-    }
     if (!ruleListsAreEqual(restoredProduct->rules.toList(), newlyResolvedProduct->rules.toList()))
         return true;
     if (!dependenciesAreEqual(restoredProduct, newlyResolvedProduct))
         return true;
     const FileTime referenceTime = restoredProduct->topLevelProject()->lastResolveTime;
-    foreach (const ResolvedTransformerConstPtr &transformer, newlyResolvedProduct->transformers) {
-        if (!isPrepareScriptUpToDate(transformer->transform, referenceTime))
-            return true;
-    }
     foreach (const RuleConstPtr &rule, newlyResolvedProduct->rules) {
         if (!isPrepareScriptUpToDate(rule->prepareScript, referenceTime))
             return true;
@@ -798,8 +789,8 @@ bool BuildGraphLoader::isPrepareScriptUpToDate(const ScriptFunctionConstPtr &scr
 }
 
 void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
-        const ResolvedProductPtr &newlyResolvedProduct, ProjectBuildData *oldBuildData,
-        const ChildListHash &childLists, const AllRescuableArtifactData &existingRad)
+        const ResolvedProductPtr &newlyResolvedProduct, const ChildListHash &childLists,
+        const AllRescuableArtifactData &existingRad)
 {
     QBS_CHECK(newlyResolvedProduct);
     if (!restoredProduct->enabled || !newlyResolvedProduct->enabled)
@@ -813,56 +804,9 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
     QBS_CHECK(newlyResolvedProduct->buildData->rescuableArtifactData.isEmpty());
     newlyResolvedProduct->buildData->rescuableArtifactData = existingRad;
 
-    // This is needed for artifacts created by manually added transformers, which are
-    // already present in the build graph.
-    // FIXME: This complete block could go away if Transformers were also to create their
-    // output artifacts at build time.
-    QList<Artifact *> oldArtifactsCreatedByTransformers;
-    for (Artifact *artifact : filterByType<Artifact>(newlyResolvedProduct->buildData->nodes)) {
-        if (!artifact->transformer)
-            continue;
-        if (m_logger.traceEnabled()) {
-            m_logger.qbsTrace() << QString::fromLocal8Bit("[BG]    artifact '%1'")
-                                   .arg(artifact->fileName());
-        }
-
-        Artifact * const oldArtifact = lookupArtifact(restoredProduct, oldBuildData,
-                                                      artifact->dirPath(), artifact->fileName(),
-                                                      true);
-        if (!oldArtifact || !oldArtifact->transformer) {
-            if (m_logger.traceEnabled())
-                m_logger.qbsTrace() << QString::fromLocal8Bit("[BG]    no transformer data");
-            continue;
-        }
-        oldArtifactsCreatedByTransformers << oldArtifact;
-        if (!commandListsAreEqual(artifact->transformer->commands,
-                                  oldArtifact->transformer->commands)) {
-            if (m_logger.traceEnabled())
-                m_logger.qbsTrace() << QString::fromLocal8Bit("[BG]    artifact invalidated");
-            removeGeneratedArtifactFromDisk(oldArtifact, m_logger);
-            m_artifactsRemovedFromDisk << oldArtifact->filePath();
-            continue;
-        }
-        artifact->setTimestamp(oldArtifact->timestamp());
-
-        const ChildrenInfo &childrenInfo = childLists.value(oldArtifact);
-        foreach (Artifact * const oldChild, childrenInfo.children) {
-            Artifact * const newChild = lookupArtifact(oldChild->product,
-                    newlyResolvedProduct->topLevelProject()->buildData.data(),
-                    oldChild->filePath(), true);
-            if (!newChild || artifact->children.contains(newChild))
-                    continue;
-            safeConnect(artifact, newChild, m_logger);
-            if (childrenInfo.childrenAddedByScanner.contains(oldChild))
-                artifact->childrenAddedByScanner << newChild;
-        }
-    }
-
     // This is needed for artifacts created by rules, which happens later in the executor.
     for (Artifact * const oldArtifact : filterByType<Artifact>(restoredProduct->buildData->nodes)) {
         if (!oldArtifact->transformer)
-            continue;
-        if (oldArtifactsCreatedByTransformers.contains(oldArtifact))
             continue;
         Artifact * const newArtifact = lookupArtifact(newlyResolvedProduct, oldArtifact, false);
         if (!newArtifact) {

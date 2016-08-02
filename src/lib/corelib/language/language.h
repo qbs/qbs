@@ -334,36 +334,6 @@ bool operator==(const Rule &r1, const Rule &r2);
 inline bool operator!=(const Rule &r1, const Rule &r2) { return !(r1 == r2); }
 bool ruleListsAreEqual(const QList<RulePtr> &l1, const QList<RulePtr> &l2);
 
-// TODO: Remove this and all related code in 1.7.
-class ResolvedTransformer : public PersistentObject
-{
-public:
-    static ResolvedTransformerPtr create()
-    {
-        return ResolvedTransformerPtr(new ResolvedTransformer);
-    }
-
-    ResolvedModuleConstPtr module;
-    QStringList inputs;
-    QList<SourceArtifactPtr> outputs;
-    ScriptFunctionPtr transform;
-    FileTags explicitlyDependsOn;
-    bool alwaysRun;
-
-private:
-    ResolvedTransformer() :alwaysRun(false) {}
-
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
-};
-
-bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2);
-inline bool operator!=(const ResolvedTransformer &t1, const ResolvedTransformer &t2) {
-    return !(t1 == t2);
-}
-bool transformerListsAreEqual(const QList<ResolvedTransformerPtr> &l1,
-                              const QList<ResolvedTransformerPtr> &l2);
-
 class ResolvedScanner : public PersistentObject
 {
 public:
@@ -409,7 +379,6 @@ public:
     QSet<ResolvedProductPtr> dependencies;
     QList<FileTaggerConstPtr> fileTaggers;
     QList<ResolvedModuleConstPtr> modules;
-    QList<ResolvedTransformerPtr> transformers;
     QList<ResolvedScannerConstPtr> scanners;
     QList<GroupPtr> groups;
     QList<ProbeConstPtr> probes;

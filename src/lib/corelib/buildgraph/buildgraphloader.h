@@ -118,7 +118,6 @@ private:
     typedef QHash<const Artifact *, ChildrenInfo> ChildListHash;
     void rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
                             const ResolvedProductPtr &newlyResolvedProduct,
-                            ProjectBuildData *oldBuildData,
                             const ChildListHash &childLists,
                             const AllRescuableArtifactData &existingRad);
 

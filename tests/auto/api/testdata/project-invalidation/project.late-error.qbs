@@ -3,7 +3,8 @@ import qbs
 Product {
     type: "mytype"
 
-    Transformer {
+    Rule {
+        inputs: ["mytype"]
         Artifact {
             filePath: "blubb"
             fileTags: "mytype"

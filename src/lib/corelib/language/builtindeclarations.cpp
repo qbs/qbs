@@ -263,7 +263,6 @@ void BuiltinDeclarations::addModuleLikeItem(ItemType type)
             << ItemType::Rule
             << ItemType::Probe
             << ItemType::PropertyOptions
-            << ItemType::Transformer
             << ItemType::Scanner);
     item << nameProperty();
     item << conditionProperty();
@@ -302,7 +301,6 @@ void BuiltinDeclarations::addProductItem()
     ItemDeclaration item(ItemType::Product);
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
             << ItemType::Depends
-            << ItemType::Transformer
             << ItemType::Group
             << ItemType::FileTagger
             << ItemType::Export

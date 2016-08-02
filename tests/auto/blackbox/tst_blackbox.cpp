@@ -433,8 +433,12 @@ void TestBlackbox::alwaysRun()
     QDir::setCurrent(testDataDir + "/always-run");
     rmDirR(relativeBuildDir());
     QbsRunParameters params("build", QStringList() << "-f" << projectFile);
+    if (projectFile.contains("transformer")) {
+        QVERIFY(runQbs(params) != 0);
+        QVERIFY2(m_qbsStderr.contains("removed"), m_qbsStderr.constData());
+        return;
+    }
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(projectFile.contains("transformer") == m_qbsStderr.contains("deprecated"));
     QVERIFY(m_qbsStdout.contains("yo"));
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("yo"));
@@ -3507,23 +3511,15 @@ void TestBlackbox::properQuoting()
     QCOMPARE(unifiedLineEndings(m_qbsStdout).constData(), expectedOutput);
 }
 
-void TestBlackbox::radAfterIncompleteBuild_data()
-{
-    QTest::addColumn<QString>("projectFileName");
-    QTest::newRow("Project with Rule") << "project_with_rule.qbs";
-    QTest::newRow("Project with Transformer") << "project_with_transformer.qbs";
-}
-
 void TestBlackbox::radAfterIncompleteBuild()
 {
     QDir::setCurrent(testDataDir + "/rad-after-incomplete-build");
     rmDirR(relativeBuildDir());
-    QFETCH(QString, projectFileName);
+    const QString projectFileName = "project_with_rule.qbs";
 
     // Step 1: Have a directory where a file used to be.
     QbsRunParameters params(QStringList() << "-f" << projectFileName);
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(projectFileName.contains("transformer") == m_qbsStderr.contains("deprecated"));
     WAIT_FOR_NEW_TIMESTAMP();
     QFile projectFile(projectFileName);
     QVERIFY(projectFile.open(QIODevice::ReadWrite));

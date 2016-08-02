@@ -382,7 +382,6 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         { ItemType::Depends, &ProjectResolver::ignoreItem },
         { ItemType::Rule, &ProjectResolver::resolveRule },
         { ItemType::FileTagger, &ProjectResolver::resolveFileTagger },
-        { ItemType::Transformer, &ProjectResolver::resolveTransformer },
         { ItemType::Group, &ProjectResolver::resolveGroup },
         { ItemType::Export, &ProjectResolver::ignoreItem },
         { ItemType::Probe, &ProjectResolver::ignoreItem },
@@ -394,9 +393,6 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 
     resolveModules(item, projectContext);
     product->fileTags += productContext.additionalFileTags;
-
-    foreach (const ResolvedTransformerPtr &transformer, product->transformers)
-        matchArtifactProperties(product, transformer->outputs);
 
     foreach (const FileTag &t, product->fileTags)
         m_productsByType[t] << product;
@@ -466,7 +462,6 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
         { ItemType::Group, &ProjectResolver::ignoreItem },
         { ItemType::Rule, &ProjectResolver::resolveRule },
         { ItemType::FileTagger, &ProjectResolver::resolveFileTagger },
-        { ItemType::Transformer, &ProjectResolver::resolveTransformer },
         { ItemType::Scanner, &ProjectResolver::resolveScanner },
         { ItemType::PropertyOptions, &ProjectResolver::ignoreItem },
         { ItemType::Depends, &ProjectResolver::ignoreItem },
@@ -819,43 +814,6 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
             throw ErrorInfo(Tr::tr("A FileTagger pattern must not be empty."), item->location());
     }
     fileTaggers += FileTagger::create(patterns, fileTags);
-}
-
-void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectContext)
-{
-    checkCancelation();
-    if (!m_evaluator->boolValue(item, QLatin1String("condition"))) {
-        m_logger.qbsTrace() << "[PR] transformer condition is false";
-        return;
-    }
-
-    ResolvedTransformerPtr rtrafo = ResolvedTransformer::create();
-    rtrafo->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
-    rtrafo->inputs = m_evaluator->stringListValue(item, QLatin1String("inputs"));
-    for (int i = 0; i < rtrafo->inputs.count(); ++i)
-        rtrafo->inputs[i] = FileInfo::resolvePath(m_productContext->product->sourceDirectory, rtrafo->inputs.at(i));
-    rtrafo->transform = scriptFunctionValue(item, QLatin1String("prepare"));
-    rtrafo->explicitlyDependsOn = m_evaluator->fileTagsValue(item,
-                                                             QLatin1String("explicitlyDependsOn"));
-    rtrafo->alwaysRun = m_evaluator->boolValue(item, QLatin1String("alwaysRun"));
-
-    foreach (const Item *child, item->children()) {
-        if (Q_UNLIKELY(child->type() != ItemType::Artifact))
-            throw ErrorInfo(Tr::tr("Transformer: wrong child type '%0'.").arg(child->typeName()));
-        SourceArtifactPtr artifact = SourceArtifactInternal::create();
-        artifact->properties = m_productContext->product->moduleProperties;
-        QString filePath = m_evaluator->stringValue(child, QLatin1String("filePath"));
-        if (Q_UNLIKELY(filePath.isEmpty()))
-            throw ErrorInfo(Tr::tr("Artifact.filePath must not be empty."));
-        artifact->absoluteFilePath
-                = FileInfo::resolvePath(m_productContext->buildDirectory, filePath);
-        artifact->fileTags = m_evaluator->fileTagsValue(child, QLatin1String("fileTags"));
-        if (artifact->fileTags.isEmpty())
-            artifact->fileTags.insert(unknownFileTag());
-        rtrafo->outputs += artifact;
-    }
-
-    m_productContext->product->transformers += rtrafo;
 }
 
 void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext *projectContext)

@@ -242,7 +242,7 @@ void BuildOptions::setForceTimestampCheck(bool enabled)
 }
 
 /*!
- * \brief Returns true if qbs will test whether rules and transformers actually create their
+ * \brief Returns true if qbs will test whether rules actually create their
  * declared output artifacts.
  * The default is \c false.
  */
@@ -252,7 +252,7 @@ bool BuildOptions::forceOutputCheck() const
 }
 
 /*!
- * \brief Controls whether qbs should test whether rules and transformers actually create their
+ * \brief Controls whether qbs should test whether rules actually create their
  * declared output artifacts. Enabling this may introduce some small I/O overhead during the build.
  */
 void BuildOptions::setForceOutputCheck(bool enabled)

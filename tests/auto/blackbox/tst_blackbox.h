@@ -195,7 +195,6 @@ private slots:
     void qbsVersion();
     void qmlDebugging();
     void qobjectInObjectiveCpp();
-    void radAfterIncompleteBuild_data();
     void radAfterIncompleteBuild();
     void recursiveRenaming();
     void recursiveWildcards();

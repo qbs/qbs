@@ -90,7 +90,6 @@ private:
                                            const QStringList &namePrefix,
                                            QualifiedIdSet *seenBindings);
     void resolveFileTagger(Item *item, ProjectContext *projectContext);
-    void resolveTransformer(Item *item, ProjectContext *projectContext);
     void resolveScanner(Item *item, ProjectContext *projectContext);
     void resolveProductDependencies(const ProjectContext &projectContext);
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;

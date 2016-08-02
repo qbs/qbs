@@ -277,9 +277,8 @@ void RuleArtifact::store(PersistentPool &pool) const
 /*!
  * \class ScriptFunction
  * \brief The \c ScriptFunction class represents the JavaScript code found in the "prepare" binding
- *        of a \c Rule or \c Transformer item in a qbs file.
+ *        of a \c Rule item in a qbs file.
  * \sa Rule
- * \sa ResolvedTransformer
  */
 
 ScriptFunction::ScriptFunction()
@@ -509,7 +508,6 @@ void ResolvedProduct::load(PersistentPool &pool)
     pool.loadContainerS(dependencies);
     pool.loadContainerS(fileTaggers);
     pool.loadContainerS(modules);
-    pool.loadContainerS(transformers);
     pool.loadContainerS(scanners);
     pool.loadContainerS(groups);
     pool.loadContainerS(artifactProperties);
@@ -534,7 +532,6 @@ void ResolvedProduct::store(PersistentPool &pool) const
     pool.storeContainer(dependencies);
     pool.storeContainer(fileTaggers);
     pool.storeContainer(modules);
-    pool.storeContainer(transformers);
     pool.storeContainer(scanners);
     pool.storeContainer(groups);
     pool.storeContainer(artifactProperties);
@@ -1157,27 +1154,6 @@ void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr 
     }
 }
 
-void ResolvedTransformer::load(PersistentPool &pool)
-{
-    module = pool.idLoadS<ResolvedModule>();
-    pool.stream() >> inputs;
-    pool.loadContainerS(outputs);
-    transform = pool.idLoadS<ScriptFunction>();
-    pool.stream() >> explicitlyDependsOn;
-    pool.stream() >> alwaysRun;
-}
-
-void ResolvedTransformer::store(PersistentPool &pool) const
-{
-    pool.store(module);
-    pool.stream() << inputs;
-    pool.storeContainer(outputs);
-    pool.store(transform);
-    pool.stream() << explicitlyDependsOn;
-    pool.stream() << alwaysRun;
-}
-
-
 template<typename T> QMap<QString, T> listToMap(const QList<T> &list)
 {
     QMap<QString, T> map;
@@ -1203,7 +1179,6 @@ template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
 }
 
 QString keyFromElem(const SourceArtifactPtr &sa) { return sa->absoluteFilePath; }
-QString keyFromElem(const ResolvedTransformerPtr &t) { return t->transform->sourceCode; }
 QString keyFromElem(const RulePtr &r) {
     QString key = r->toString() + r->prepareScript->sourceCode;
     if (r->outputArtifactsScript)
@@ -1231,22 +1206,6 @@ bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal 
 
 bool sourceArtifactSetsAreEqual(const QList<SourceArtifactPtr> &l1,
                                  const QList<SourceArtifactPtr> &l2)
-{
-    return listsAreEqual(l1, l2);
-}
-
-bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2)
-{
-    return equals(t1.module.data(), t2.module.data())
-            && t1.inputs.toSet() == t2.inputs.toSet()
-            && sourceArtifactSetsAreEqual(t1.outputs, t2.outputs)
-            && equals(t1.transform.data(), t2.transform.data())
-            && t1.explicitlyDependsOn == t2.explicitlyDependsOn
-            && t1.alwaysRun == t2.alwaysRun;
-}
-
-bool transformerListsAreEqual(const QList<ResolvedTransformerPtr> &l1,
-                              const QList<ResolvedTransformerPtr> &l2)
 {
     return listsAreEqual(l1, l2);
 }

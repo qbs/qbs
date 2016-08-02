@@ -444,7 +444,7 @@ QString ForceOutputCheckOption::description(CommandType command) const
 {
     Q_UNUSED(command);
     return Tr::tr("%1\n\tForce transformer output artifact checks.\n"
-                  "\tVerify that the output artifacts declared by rules and transformers in the\n"
+                  "\tVerify that the output artifacts declared by rules in the\n"
                   "\tproject are actually created.\n").arg(longRepresentation());
 }
 
