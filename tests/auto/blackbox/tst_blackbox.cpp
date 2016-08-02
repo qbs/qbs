@@ -248,6 +248,24 @@ QMap<QString, QString> TestBlackbox::findAndroid(int *status)
     };
 }
 
+QMap<QString, QString> TestBlackbox::findCli(int *status)
+{
+    QTemporaryDir temp;
+    QDir::setCurrent(testDataDir + "/find");
+    QbsRunParameters params = QStringList() << "-f" << "find-cli.qbs";
+    params.buildDirectory = temp.path();
+    const int res = runQbs(params);
+    if (status)
+        *status = res;
+    QFile file(temp.path() + "/" + relativeProductBuildDir("find-cli") + "/cli.json");
+    if (!file.open(QIODevice::ReadOnly))
+        return QMap<QString, QString> { };
+    const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
+    return QMap<QString, QString> {
+        {"path", QDir::fromNativeSeparators(tools["path"].toString())},
+    };
+}
+
 QMap<QString, QString> TestBlackbox::findJdkTools(int *status)
 {
     QTemporaryDir temp;
@@ -2760,7 +2778,9 @@ void TestBlackbox::javaDependencyTracking() {
 
 void TestBlackbox::cli()
 {
-    QDir::setCurrent(testDataDir + "/cli");
+    int status;
+    findCli(&status);
+    QCOMPARE(status, 0);
 
     Settings s((QString()));
     Profile p("qbs_autotests-cli", &s);
@@ -2768,11 +2788,12 @@ void TestBlackbox::cli()
     if (!p.exists() || !(toolchain.contains("dotnet") || toolchain.contains("mono")))
         QSKIP("No suitable Common Language Infrastructure test profile");
 
+    QDir::setCurrent(testDataDir + "/cli");
     QbsRunParameters params(QStringList() << "-f" << "dotnettest.qbs"
                             << "profile:" + p.name());
     params.useProfile = false;
 
-    int status = runQbs(params);
+    status = runQbs(params);
     if (p.value("cli.toolchainInstallPath").toString().isEmpty()
             && status != 0 && m_qbsStderr.contains("toolchainInstallPath"))
         QSKIP("cli.toolchainInstallPath not set and automatic detection failed");

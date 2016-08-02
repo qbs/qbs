@@ -243,6 +243,7 @@ private slots:
 
 private:
     QMap<QString, QString> findAndroid(int *status);
+    QMap<QString, QString> findCli(int *status);
     QMap<QString, QString> findJdkTools(int *status);
     QMap<QString, QString> findNodejs(int *status);
     QMap<QString, QString> findTypeScript(int *status);
