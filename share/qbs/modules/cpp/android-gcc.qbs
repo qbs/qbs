@@ -113,6 +113,8 @@ LinuxGCC {
 
     linkerFlags: NdkUtils.commonLinkerFlags(Android.ndk.abi)
 
+    platformDriverFlags: ["-no-canonical-prefixes"]
+
     libraryPaths: {
         var prefix = FileInfo.joinPaths(sysroot, "usr");
         var paths = [];

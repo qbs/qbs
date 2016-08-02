@@ -62,7 +62,7 @@ function androidAbi(arch) {
 }
 
 function commonCompilerFlags(buildVariant, abi, armMode) {
-    var flags = ["-ffunction-sections", "-funwind-tables", "-no-canonical-prefixes",
+    var flags = ["-ffunction-sections", "-funwind-tables",
                  "-Wa,--noexecstack", "-Werror=format-security"];
 
     if (buildVariant === "debug")
@@ -112,7 +112,7 @@ function commonCompilerFlags(buildVariant, abi, armMode) {
 }
 
 function commonLinkerFlags(abi) {
-    var flags = ["-no-canonical-prefixes", "-Wl,-z,noexecstack", "-Wl,-z,relro", "-Wl,-z,now"];
+    var flags = ["-Wl,-z,noexecstack", "-Wl,-z,relro", "-Wl,-z,now"];
 
     if (abi === "armeabi-v7a") {
         flags.push("-Wl,--fix-cortex-a8");

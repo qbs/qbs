@@ -169,6 +169,13 @@
         \li \c{"all"}
         \li Specifies the warning level for the compiler - \c{"none"} or \c{"all"}.
     \row
+        \li driverFlags
+        \li \c{stringList}
+        \li 1.6
+        \li undefined
+        \li Flags that are added to all compilation and linking commands performed by the compiler
+            driver, independently of the language.
+    \row
         \li commonCompilerFlags
         \li \c{stringList}
         \li 1.0.1

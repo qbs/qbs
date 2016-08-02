@@ -240,7 +240,7 @@ function linkerFlags(product, inputs, output) {
     if (isDarwin && ModUtils.moduleProperty(product, "warningLevel") === "none")
         args.push('-w');
 
-    args = args.concat(configFlags(product));
+    args = args.concat(configFlags(product, useCompilerDriverLinker(product, inputs)));
     args = args.concat(ModUtils.moduleProperties(product, 'platformLinkerFlags'));
     args = args.concat(ModUtils.moduleProperties(product, 'linkerFlags'));
 
@@ -298,8 +298,16 @@ function linkerFlags(product, inputs, output) {
 }
 
 // for compiler AND linker
-function configFlags(config) {
+function configFlags(config, isDriver) {
+    if (isDriver === undefined)
+        isDriver = true;
+
     var args = [];
+
+    if (isDriver) {
+        args = args.concat(ModUtils.moduleProperties(config, 'platformDriverFlags'));
+        args = args.concat(ModUtils.moduleProperties(config, 'driverFlags'));
+    }
 
     var frameworkPaths = ModUtils.moduleProperties(config, 'frameworkPaths');
     if (frameworkPaths)
