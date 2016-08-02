@@ -73,8 +73,8 @@ Module {
 
     // These are deliberately not path types
     // We don't want to resolve them against the source directory
-    property string generatedFilesDir: product.buildDirectory + "/GeneratedFiles"
-    property string qdocOutputDir: FileInfo.joinPaths(generatedFilesDir, "html")
+    property string generatedHeadersDir: product.buildDirectory + "/qt.headers"
+    property string qdocOutputDir: product.buildDirectory + "/qdoc_html"
     property string qmDir: product.destinationDirectory
     property string qmBaseName: product.targetName
     property bool lreleaseMultiplexMode: false
@@ -92,7 +92,7 @@ Module {
     }
     cpp.includePaths: {
         var paths = @includes@;
-        paths.push(mkspecPath, generatedFilesDir);
+        paths.push(mkspecPath, generatedHeadersDir);
         return paths;
     }
     cpp.libraryPaths: {
@@ -246,10 +246,10 @@ Module {
                 return [];
             var artifact = { fileTags: ["unmocable"] };
             if (input.fileTags.contains("hpp")) {
-                artifact.filePath = ModUtils.moduleProperty(product, "generatedFilesDir")
+                artifact.filePath = ModUtils.moduleProperty(product, "generatedHeadersDir")
                         + "/moc_" + input.completeBaseName + ".cpp";
             } else {
-                artifact.filePath = ModUtils.moduleProperty(product, "generatedFilesDir")
+                artifact.filePath = ModUtils.moduleProperty(product, "generatedHeadersDir")
                           + '/' + input.completeBaseName + ".moc";
             }
             artifact.fileTags.push(mocinfo.mustCompile ? "cpp" : "hpp");
@@ -270,8 +270,7 @@ Module {
         inputs: ["qrc"]
 
         Artifact {
-            filePath: ModUtils.moduleProperty(product, "generatedFilesDir")
-                      + "/qrc_" + input.completeBaseName + ".cpp";
+            filePath: "qrc_" + input.completeBaseName + ".cpp"
             fileTags: ["cpp"]
         }
         prepare: {
@@ -336,8 +335,7 @@ Module {
         inputs: "qhp"
 
         Artifact {
-            filePath: ModUtils.moduleProperty(product, "generatedFilesDir")
-                      + '/' + input.completeBaseName + ".qch"
+            filePath: input.completeBaseName + ".qch"
             fileTags: ["qch"]
         }
 

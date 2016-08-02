@@ -56,6 +56,6 @@ function createCommands(product, input, outputs, option)
     var cppCmd = new Command(exe, cppArgs)
     cppCmd.description = "qdbusxml2cpp " + input.fileName + " -> " + cppOutput.fileName;
     cppCmd.highlight = "codegen";
-    cppCmd.workingDirectory = FileInfo.path(hppOutput.filePath);
+    cppCmd.workingDirectory = FileInfo.path(cppOutput.filePath);
     return [hppCmd, cppCmd];
 }
