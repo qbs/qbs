@@ -163,7 +163,7 @@ function javacArguments(product, inputs, overrides) {
     function getModuleProperties(product, propertyName, overrides) {
         if (overrides && overrides[propertyName])
             return overrides[propertyName];
-        return ModUtils.moduleProperties(product, propertyName);
+        return ModUtils.moduleProperty(product, propertyName);
     }
 
     var i;
@@ -268,14 +268,14 @@ function helperOverrideArgs(product, tool) {
         var toolsJarPath = ModUtils.moduleProperty(product, "toolsJarPath");
         if (toolsJarPath)
             overrides["additionalClassPaths"] = [toolsJarPath].concat(
-                        ModUtils.moduleProperties(product, "additionalClassPaths"));
+                        ModUtils.moduleProperty(product, "additionalClassPaths"));
     }
 
     // Inject the current JDK's runtime classes into the boot class path when building/running the
     // dependency scanner. This is normally not necessary but is important for Android platforms
     // where android.jar is the only JAR on the boot classpath and JSR 199 is unavailable.
     overrides["bootClassPaths"] = [ModUtils.moduleProperty(product, "runtimeJarPath")].concat(
-                ModUtils.moduleProperties(product, "bootClassPaths"));
+                ModUtils.moduleProperty(product, "bootClassPaths"));
     return overrides;
 }
 

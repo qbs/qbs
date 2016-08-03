@@ -98,14 +98,14 @@ function escapeLinkerFlags(product, inputs, linkerFlags) {
 }
 
 function linkerFlags(product, inputs, output) {
-    var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
-    var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
+    var libraryPaths = ModUtils.moduleProperty(product, 'libraryPaths');
+    var dynamicLibraries = ModUtils.moduleProperty(product, "dynamicLibraries");
     var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
-    var frameworks = ModUtils.moduleProperties(product, 'frameworks');
-    var weakFrameworks = ModUtils.moduleProperties(product, 'weakFrameworks');
+    var frameworks = ModUtils.moduleProperty(product, 'frameworks');
+    var weakFrameworks = ModUtils.moduleProperty(product, 'weakFrameworks');
     var rpaths = (product.moduleProperty("cpp", "useRPaths") !== false)
-            ? ModUtils.moduleProperties(product, 'rpaths') : undefined;
-    var systemRunPaths = product.moduleProperties("cpp", "systemRunPaths") || [];
+            ? ModUtils.moduleProperty(product, 'rpaths') : undefined;
+    var systemRunPaths = product.moduleProperty("cpp", "systemRunPaths") || [];
     var isDarwin = product.moduleProperty("qbs", "targetOS").contains("darwin");
     var i, args = additionalCompilerAndLinkerFlags(product);
 
@@ -241,8 +241,8 @@ function linkerFlags(product, inputs, output) {
         args.push('-w');
 
     args = args.concat(configFlags(product));
-    args = args.concat(ModUtils.moduleProperties(product, 'platformLinkerFlags'));
-    args = args.concat(ModUtils.moduleProperties(product, 'linkerFlags'));
+    args = args.concat(ModUtils.moduleProperty(product, 'platformLinkerFlags'));
+    args = args.concat(ModUtils.moduleProperty(product, 'linkerFlags'));
 
     args.push("-o", output.filePath);
 
@@ -301,11 +301,11 @@ function linkerFlags(product, inputs, output) {
 function configFlags(config) {
     var args = [];
 
-    var frameworkPaths = ModUtils.moduleProperties(config, 'frameworkPaths');
+    var frameworkPaths = ModUtils.moduleProperty(config, 'frameworkPaths');
     if (frameworkPaths)
         args = args.concat(frameworkPaths.map(function(path) { return '-F' + path }));
 
-    var systemFrameworkPaths = ModUtils.moduleProperties(config, 'systemFrameworkPaths');
+    var systemFrameworkPaths = ModUtils.moduleProperty(config, 'systemFrameworkPaths');
     if (systemFrameworkPaths)
         args = args.concat(systemFrameworkPaths.map(function(path) { return '-iframework' + path }));
 
@@ -358,11 +358,11 @@ function effectiveCompilerInfo(toolchain, input, output) {
 // ### what we actually need here is something like product.usedFileTags
 //     that contains all fileTags that have been used when applying the rules.
 function compilerFlags(product, input, output) {
-    var includePaths = ModUtils.moduleProperties(input, 'includePaths');
-    var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
+    var includePaths = ModUtils.moduleProperty(input, 'includePaths');
+    var systemIncludePaths = ModUtils.moduleProperty(input, 'systemIncludePaths');
 
     var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
-    var defines = ModUtils.moduleProperties(input, 'defines');
+    var defines = ModUtils.moduleProperty(input, 'defines');
 
     var EffectiveTypeEnum = { UNKNOWN: 0, LIB: 1, APP: 2 };
     var effectiveType = EffectiveTypeEnum.UNKNOWN;
@@ -503,10 +503,10 @@ function compilerFlags(product, input, output) {
         // Only push '-x language' if we have to.
         args.push("-x", compilerInfo.language);
 
-    args = args.concat(ModUtils.moduleProperties(input, 'platformFlags'),
-                       ModUtils.moduleProperties(input, 'flags'),
-                       ModUtils.moduleProperties(input, 'platformFlags', tag),
-                       ModUtils.moduleProperties(input, 'flags', tag));
+    args = args.concat(ModUtils.moduleProperty(input, 'platformFlags'),
+                       ModUtils.moduleProperty(input, 'flags'),
+                       ModUtils.moduleProperty(input, 'platformFlags', tag),
+                       ModUtils.moduleProperty(input, 'flags', tag));
 
     var pchOutput = output.fileTags.contains(compilerInfo.tag + "_pch");
 
@@ -527,7 +527,7 @@ function compilerFlags(product, input, output) {
                    Object.getOwnPropertyNames(libTypes).concat(Object.getOwnPropertyNames(appTypes)))
                 + ". But it is " + JSON.stringify(product.type) + '.');
     }
-    var cppFlags = ModUtils.moduleProperties(input, 'cppFlags');
+    var cppFlags = ModUtils.moduleProperty(input, 'cppFlags');
     for (i in cppFlags)
         args.push('-Wp,' + cppFlags[i])
 
@@ -624,8 +624,8 @@ function languageName(fileTag) {
 function prepareAssembler(project, product, inputs, outputs, input, output) {
     var assemblerPath = ModUtils.moduleProperty(product, "assemblerPath");
 
-    var includePaths = ModUtils.moduleProperties(input, 'includePaths');
-    var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
+    var includePaths = ModUtils.moduleProperty(input, 'includePaths');
+    var systemIncludePaths = ModUtils.moduleProperty(input, 'systemIncludePaths');
 
     var args = [];
     var arch = product.moduleProperty("cpp", "targetArch");
@@ -649,8 +649,8 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
         // Only push '-x language' if we have to.
         args.push("-x", languageName(tag));
 
-    args = args.concat(ModUtils.moduleProperties(input, 'platformFlags', tag),
-                       ModUtils.moduleProperties(input, 'flags', tag));
+    args = args.concat(ModUtils.moduleProperty(input, 'platformFlags', tag),
+                       ModUtils.moduleProperty(input, 'flags', tag));
 
     var allIncludePaths = [];
     if (systemIncludePaths)

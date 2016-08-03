@@ -136,14 +136,10 @@ function languagePropertyName(propertyName, fileTag) {
     return lang[propertyName] || propertyName;
 }
 
-function moduleProperties(config, key, langFilter) {
-    return config.moduleProperties(config.moduleName, languagePropertyName(key, langFilter))
-}
-
 function modulePropertiesFromArtifacts(product, artifacts, moduleName, propertyName, langFilter) {
-    var result = product.moduleProperties(moduleName, languagePropertyName(propertyName, langFilter))
+    var result = product.moduleProperty(moduleName, languagePropertyName(propertyName, langFilter))
     for (var i in artifacts)
-        result = result.concat(artifacts[i].moduleProperties(moduleName, languagePropertyName(propertyName, langFilter)))
+        result = result.concat(artifacts[i].moduleProperty(moduleName, languagePropertyName(propertyName, langFilter)))
     return result
 }
 

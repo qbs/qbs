@@ -518,7 +518,7 @@ Module {
                 var packageType = ModUtils.moduleProperty(product, "packageType");
                 var isShallow = ModUtils.moduleProperty(product, "isShallow");
                 if (packageType === "FMWK" && !isShallow) {
-                    var publicHeaders = ModUtils.moduleProperties(product, "publicHeaders");
+                    var publicHeaders = ModUtils.moduleProperty(product, "publicHeaders");
                     if (publicHeaders && publicHeaders.length) {
                         artifacts.push({
                             filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName"), "Headers"),
@@ -526,7 +526,7 @@ Module {
                         });
                     }
 
-                    var privateHeaders = ModUtils.moduleProperties(product, "privateHeaders");
+                    var privateHeaders = ModUtils.moduleProperty(product, "privateHeaders");
                     if (privateHeaders && privateHeaders.length) {
                         artifacts.push({
                             filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName"), "PrivateHeaders"),
@@ -552,7 +552,7 @@ Module {
 
                 var headerTypes = ["public", "private"];
                 for (var h in headerTypes) {
-                    var sources = ModUtils.moduleProperties(product, headerTypes[h] + "Headers");
+                    var sources = ModUtils.moduleProperty(product, headerTypes[h] + "Headers");
                     var destination = FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, headerTypes[h] + "HeadersFolderPath"));
                     for (i in sources) {
                         artifacts.push({
@@ -562,7 +562,7 @@ Module {
                     }
                 }
 
-                sources = ModUtils.moduleProperties(product, "resources");
+                sources = ModUtils.moduleProperty(product, "resources");
                 for (i in sources) {
                     destination = BundleTools.destinationDirectoryForResource(product, {baseDir: FileInfo.path(sources[i]), fileName: FileInfo.fileName(sources[i])});
                     artifacts.push({
@@ -659,7 +659,7 @@ Module {
             cmd = new JavaScriptCommand();
             cmd.description = "copying public headers";
             cmd.highlight = "filegen";
-            cmd.sources = ModUtils.moduleProperties(product, "publicHeaders");
+            cmd.sources = ModUtils.moduleProperty(product, "publicHeaders");
             cmd.destination = FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "publicHeadersFolderPath"));
             cmd.sourceCode = function() {
                 var i;
@@ -673,7 +673,7 @@ Module {
             cmd = new JavaScriptCommand();
             cmd.description = "copying private headers";
             cmd.highlight = "filegen";
-            cmd.sources = ModUtils.moduleProperties(product, "privateHeaders");
+            cmd.sources = ModUtils.moduleProperty(product, "privateHeaders");
             cmd.destination = FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "privateHeadersFolderPath"));
             cmd.sourceCode = function() {
                 var i;
@@ -687,7 +687,7 @@ Module {
             cmd = new JavaScriptCommand();
             cmd.description = "copying resources";
             cmd.highlight = "filegen";
-            cmd.sources = ModUtils.moduleProperties(product, "resources");
+            cmd.sources = ModUtils.moduleProperty(product, "resources");
             cmd.sourceCode = function() {
                 var i;
                 for (var i in sources) {

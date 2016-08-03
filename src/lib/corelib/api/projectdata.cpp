@@ -770,24 +770,14 @@ QVariant PropertyMap::getProperty(const QString &name) const
 }
 
 /*!
- * \brief Returns the values of the given module property.
- * This function is intended for properties of list type, such as "cpp.includes".
- * The values will be gathered both directly from the product/group as well as from the
- * product's module dependencies.
- */
-QVariantList PropertyMap::getModuleProperties(const QString &moduleName,
-                                              const QString &propertyName) const
-{
-    return Internal::PropertyFinder().propertyValues(d->m_map->value(), moduleName, propertyName);
-}
-
-/*!
- * \brief Convenience function for \c PropertyMap::getModuleProperties.
+ * \brief Convenience wrapper around \c PropertyMap::getModuleProperty for properties of list type.
+ *
  */
 QStringList PropertyMap::getModulePropertiesAsStringList(const QString &moduleName,
                                                           const QString &propertyName) const
 {
-    const QVariantList &vl = getModuleProperties(moduleName, propertyName);
+    const QVariantList &vl = Internal::PropertyFinder().propertyValue(d->m_map->value(), moduleName,
+                                                                      propertyName).toList();
     QStringList sl;
     foreach (const QVariant &v, vl) {
         QBS_ASSERT(v.canConvert<QString>(), continue);
@@ -798,9 +788,6 @@ QStringList PropertyMap::getModulePropertiesAsStringList(const QString &moduleNa
 
 /*!
  * \brief Returns the value of the given module property.
- * This function is intended for properties of "integral" type, such as "qbs.targetOS".
- * The property will be looked up first at the product or group itself. If it is not found there,
- * the module dependencies are searched in undefined order.
  */
 QVariant PropertyMap::getModuleProperty(const QString &moduleName,
                                         const QString &propertyName) const

@@ -103,10 +103,10 @@
             }
             if (product.moduleProperty('cpp', 'treatWarningsAsErrors'))
                 args.push('-Werror');
-            var includePaths = product.moduleProperties('cpp', 'includePaths');
+            var includePaths = product.moduleProperty('cpp', 'includePaths');
             for (i in includePaths)
                 args.push('-I' + includePaths[i]);
-            var defines = product.moduleProperties('cpp', 'defines');
+            var defines = product.moduleProperty('cpp', 'defines');
             for (i in defines)
                 args.push('-D' + defines[i]);
             args.push('-c');

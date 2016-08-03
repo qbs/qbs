@@ -78,9 +78,9 @@ GenericGCC {
 
         prepare: {
             var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
-            var defines = ModUtils.moduleProperties(input, 'defines');
-            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
-            var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
+            var defines = ModUtils.moduleProperty(input, 'defines');
+            var includePaths = ModUtils.moduleProperty(input, 'includePaths');
+            var systemIncludePaths = ModUtils.moduleProperty(input, 'systemIncludePaths');
             var args = [];
             var i;
             for (i in platformDefines) {

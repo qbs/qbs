@@ -713,13 +713,8 @@ bool BuildGraphLoader::checkForPropertyChange(const Property &restoredProperty,
         v = newProperties.value(restoredProperty.propertyName);
         break;
     case Property::PropertyInModule:
-        if (restoredProperty.value.type() == QVariant::List) {
-            v = finder.propertyValues(newProperties, restoredProperty.moduleName,
-                                      restoredProperty.propertyName);
-        } else {
-            v = finder.propertyValue(newProperties, restoredProperty.moduleName,
-                                     restoredProperty.propertyName);
-        }
+        v = finder.propertyValue(newProperties, restoredProperty.moduleName,
+                                 restoredProperty.propertyName);
         break;
     }
     if (restoredProperty.value != v) {

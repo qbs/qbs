@@ -73,8 +73,12 @@ void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
 
 QScriptValue ModuleProperties::js_moduleProperties(QScriptContext *context, QScriptEngine *engine)
 {
+    ErrorInfo deprWarning(Tr::tr("The moduleProperties() function is deprecated and will be "
+                                 "removed in a future version of Qbs. Use moduleProperty() "
+                                 "instead."), context->backtrace());
+    static_cast<ScriptEngine *>(engine)->logger().printWarning(deprWarning);
     try {
-        return moduleProperties(context, engine, false);
+        return moduleProperties(context, engine);
     } catch (const ErrorInfo &e) {
         return context->throwError(e.toString());
     }
@@ -83,14 +87,13 @@ QScriptValue ModuleProperties::js_moduleProperties(QScriptContext *context, QScr
 QScriptValue ModuleProperties::js_moduleProperty(QScriptContext *context, QScriptEngine *engine)
 {
     try {
-        return moduleProperties(context, engine, true);
+        return moduleProperties(context, engine);
     } catch (const ErrorInfo &e) {
         return context->throwError(e.toString());
     }
 }
 
-QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScriptEngine *engine,
-                                                bool oneValue)
+QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScriptEngine *engine)
 {
     if (Q_UNLIKELY(context->argumentCount() < 2)) {
         return context->throwError(QScriptContext::SyntaxError,
@@ -128,13 +131,9 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
 
     QVariant value;
     if (qbsEngine->isPropertyCacheEnabled())
-        value = qbsEngine->retrieveFromPropertyCache(moduleName, propertyName, oneValue,
-                                                     properties);
+        value = qbsEngine->retrieveFromPropertyCache(moduleName, propertyName, properties);
     if (!value.isValid()) {
-        if (oneValue)
-            value = PropertyFinder().propertyValue(properties->value(), moduleName, propertyName);
-        else
-            value = PropertyFinder().propertyValues(properties->value(), moduleName, propertyName);
+        value = PropertyFinder().propertyValue(properties->value(), moduleName, propertyName);
         const Property p(moduleName, propertyName, value);
         if (artifact)
             qbsEngine->addPropertyRequestedFromArtifact(artifact, p);
@@ -144,7 +143,7 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
         // Cache the variant value. We must not cache the QScriptValue here, because it's a
         // reference and the user might change the actual object.
         if (qbsEngine->isPropertyCacheEnabled())
-            qbsEngine->addToPropertyCache(moduleName, propertyName, oneValue, properties, value);
+            qbsEngine->addToPropertyCache(moduleName, propertyName, properties, value);
     }
     return engine->toScriptValue(value);
 }

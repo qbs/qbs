@@ -36,13 +36,6 @@
 namespace qbs {
 namespace Internal {
 
-QVariantList PropertyFinder::propertyValues(const QVariantMap &properties,
-        const QString &moduleName, const QString &key)
-{
-    QVariant v = propertyValue(properties, moduleName, key);
-    return v.toList();
-}
-
 QVariant PropertyFinder::propertyValue(const QVariantMap &properties, const QString &moduleName,
                                        const QString &key)
 {

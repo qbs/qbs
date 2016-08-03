@@ -52,8 +52,7 @@ private:
     static QScriptValue js_moduleProperties(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_moduleProperty(QScriptContext *context, QScriptEngine *engine);
 
-    static QScriptValue moduleProperties(QScriptContext *context, QScriptEngine *engine,
-                                         bool oneValue);
+    static QScriptValue moduleProperties(QScriptContext *context, QScriptEngine *engine);
 };
 
 } // namespace Internal

@@ -41,19 +41,19 @@ function args(product, input, outputFileName)
                                                  product, [input], 'cpp', 'systemIncludePaths'));
     includePaths = includePaths.uniqueConcat(ModUtils.modulePropertiesFromArtifacts(
                                                  product, [input], 'cpp', 'compilerIncludePaths'));
-    var frameworkPaths = product.moduleProperties("cpp", "frameworkPaths");
+    var frameworkPaths = product.moduleProperty("cpp", "frameworkPaths");
     frameworkPaths = frameworkPaths.uniqueConcat(
-                product.moduleProperties("cpp", "systemFrameworkPaths"));
+                product.moduleProperty("cpp", "systemFrameworkPaths"));
     frameworkPaths = frameworkPaths.uniqueConcat(
-                product.moduleProperties("cpp", "compilerFrameworkPaths"));
-    var pluginMetaData = product.moduleProperties("Qt.core", "pluginMetaData");
+                product.moduleProperty("cpp", "compilerFrameworkPaths"));
+    var pluginMetaData = product.moduleProperty("Qt.core", "pluginMetaData");
     var args = [];
     args = args.concat(
                 defines.map(function(item) { return '-D' + item; }),
                 includePaths.map(function(item) { return '-I' + item; }),
                 frameworkPaths.map(function(item) { return '-F' + item; }),
                 pluginMetaData.map(function(item) { return '-M' + item; }),
-                ModUtils.moduleProperties(product, "mocFlags"),
+                ModUtils.moduleProperty(product, "mocFlags"),
                 '-o', outputFileName,
                 input.filePath);
     return args;

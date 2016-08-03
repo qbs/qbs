@@ -17,7 +17,7 @@ Module {
             cmd.sourceCode = function() {
                 console.info("scalar prop: " + product.moduleProperty("leaf", "scalarProp"));
                 console.info("list prop: "
-                             + JSON.stringify(product.moduleProperties("leaf", "listProp")));
+                             + JSON.stringify(product.moduleProperty("leaf", "listProp")));
             }
             return [cmd];
         }

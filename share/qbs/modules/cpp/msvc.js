@@ -107,10 +107,10 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     if (ModUtils.moduleProperty(input, "treatWarningsAsErrors"))
         args.push('/WX')
     var allIncludePaths = [];
-    var includePaths = ModUtils.moduleProperties(input, 'includePaths');
+    var includePaths = ModUtils.moduleProperty(input, 'includePaths');
     if (includePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(includePaths);
-    var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
+    var systemIncludePaths = ModUtils.moduleProperty(input, 'systemIncludePaths');
     if (systemIncludePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
     for (i in allIncludePaths)
@@ -119,7 +119,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
     if (platformDefines)
         allDefines = allDefines.uniqueConcat(platformDefines);
-    var defines = ModUtils.moduleProperties(input, 'defines');
+    var defines = ModUtils.moduleProperty(input, 'defines');
     if (defines)
         allDefines = allDefines.uniqueConcat(defines);
     for (i in allDefines)
@@ -177,10 +177,10 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         }
     }
 
-    args = args.concat(ModUtils.moduleProperties(input, 'platformFlags'),
-                       ModUtils.moduleProperties(input, 'flags'),
-                       ModUtils.moduleProperties(input, 'platformFlags', tag),
-                       ModUtils.moduleProperties(input, 'flags', tag));
+    args = args.concat(ModUtils.moduleProperty(input, 'platformFlags'),
+                       ModUtils.moduleProperty(input, 'flags'),
+                       ModUtils.moduleProperty(input, 'platformFlags', tag),
+                       ModUtils.moduleProperty(input, 'flags', tag));
 
     var compilerPath = ModUtils.moduleProperty(product, "compilerPath");
     var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");
@@ -301,20 +301,20 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
     pushLibs(ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary,
                                                     "cpp", "staticLibraries"));
-    pushLibs(ModUtils.moduleProperties(product, "dynamicLibraries"));
+    pushLibs(ModUtils.moduleProperty(product, "dynamicLibraries"));
 
     if (product.moduleProperty("cpp", "entryPoint"))
         args.push("/ENTRY:" + product.moduleProperty("cpp", "entryPoint"));
 
     args.push('/OUT:' + linkerOutputNativeFilePath)
-    var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
+    var libraryPaths = ModUtils.moduleProperty(product, 'libraryPaths');
     if (libraryPaths)
         libraryPaths = [].uniqueConcat(libraryPaths);
     for (i in libraryPaths) {
         args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
     }
-    var linkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags').concat(
-                ModUtils.moduleProperties(product, 'linkerFlags'));
+    var linkerFlags = ModUtils.moduleProperty(product, 'platformLinkerFlags').concat(
+                ModUtils.moduleProperty(product, 'linkerFlags'));
     args = args.concat(linkerFlags);
     if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
         args.push("/FORCE:UNRESOLVED");

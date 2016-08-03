@@ -39,12 +39,8 @@ namespace Internal {
 class PropertyFinder
 {
 public:
-    QVariantList propertyValues(const QVariantMap &properties, const QString &moduleName,
-                              const QString &key);
-
-    // Note that this can still be a list if the property type itself is one.
     QVariant propertyValue(const QVariantMap &properties, const QString &moduleName,
-                         const QString &key);
+                           const QString &key);
 
 private:
     void findModuleValues(const QVariantMap &properties);

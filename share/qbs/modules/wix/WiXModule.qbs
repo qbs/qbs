@@ -223,7 +223,7 @@ Module {
             // using Visual Studio. The only definitions we don't pass are the ones which make no sense at all
             // in QBS, like the solution and project directories since they do not exist.
             if (ModUtils.moduleProperty(input, "visualStudioCompatibility")) {
-                var toolchain = product.moduleProperties("qbs", "toolchain");
+                var toolchain = product.moduleProperty("qbs", "toolchain");
                 var toolchainInstallPath = product.moduleProperty("cpp", "toolchainInstallPath");
                 if (toolchain && toolchain.contains("msvc") && toolchainInstallPath) {
                     var vcDir = toolchainInstallPath.replace(/[\\/]bin$/i, "");
@@ -259,7 +259,7 @@ Module {
                 args.push("-dTargetPath=" + FileInfo.toWindowsSeparators(builtBinaryFilePath));
             }
 
-            var includePaths = ModUtils.moduleProperties(input, "includePaths");
+            var includePaths = ModUtils.moduleProperty(input, "includePaths");
             for (i in includePaths) {
                 args.push("-I" + includePaths[i]);
             }
@@ -288,13 +288,13 @@ Module {
             }
 
             // User-supplied defines
-            var defines = ModUtils.moduleProperties(input, "defines");
+            var defines = ModUtils.moduleProperty(input, "defines");
             for (i in defines) {
                 args.push("-d" + defines[i]);
             }
 
             // User-supplied flags
-            var flags = ModUtils.moduleProperties(input, "compilerFlags");
+            var flags = ModUtils.moduleProperty(input, "compilerFlags");
             for (i in flags) {
                 args.push(flags[i]);
             }
@@ -304,7 +304,7 @@ Module {
             args.push("-arch");
             args.push(arch);
 
-            var extensions = ModUtils.moduleProperties(input, "extensions");
+            var extensions = ModUtils.moduleProperty(input, "extensions");
             for (i in extensions) {
                 args.push("-ext");
                 args.push(extensions[i]);
@@ -404,7 +404,7 @@ Module {
                 args.push("-spdb");
             }
 
-            var extensions = ModUtils.moduleProperties(product, "extensions");
+            var extensions = ModUtils.moduleProperty(product, "extensions");
             for (i in extensions) {
                 args.push("-ext");
                 args.push(extensions[i]);
@@ -416,13 +416,13 @@ Module {
             }
 
             if (product.type.contains("msi")) {
-                var cultures = ModUtils.moduleProperties(product, "cultures");
+                var cultures = ModUtils.moduleProperty(product, "cultures");
                 args.push("-cultures:"
                     + (cultures && cultures.length > 0 ? cultures.join(";") : "null"));
             }
 
             // User-supplied flags
-            var flags = ModUtils.moduleProperties(product, "linkerFlags");
+            var flags = ModUtils.moduleProperty(product, "linkerFlags");
             for (i in flags) {
                 args.push(flags[i]);
             }

@@ -60,8 +60,7 @@ const bool debugJSImports = false;
 bool operator==(const ScriptEngine::PropertyCacheKey &lhs,
         const ScriptEngine::PropertyCacheKey &rhs)
 {
-    return lhs.m_oneValue == rhs.m_oneValue
-            && lhs.m_propertyMap == rhs.m_propertyMap
+    return lhs.m_propertyMap == rhs.m_propertyMap
             && lhs.m_moduleName == rhs.m_moduleName
             && lhs.m_propertyName == rhs.m_propertyName;
 }
@@ -75,9 +74,7 @@ static inline uint combineHash(uint h1, uint h2, uint seed)
 uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed = 0)
 {
     return combineHash(qHash(k.m_moduleName),
-                       combineHash(qHash(k.m_propertyName),
-                                   combineHash(qHash(k.m_oneValue), qHash(k.m_propertyMap),
-                                               seed), seed), seed);
+                       combineHash(qHash(k.m_propertyName), qHash(k.m_propertyMap), seed), seed);
 }
 
 ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
@@ -154,16 +151,15 @@ void ScriptEngine::addPropertyRequestedFromArtifact(const Artifact *artifact,
 }
 
 void ScriptEngine::addToPropertyCache(const QString &moduleName, const QString &propertyName,
-        bool oneValue, const PropertyMapConstPtr &propertyMap, const QVariant &value)
+        const PropertyMapConstPtr &propertyMap, const QVariant &value)
 {
-    m_propertyCache.insert(PropertyCacheKey(moduleName, propertyName, oneValue, propertyMap),
-                           value);
+    m_propertyCache.insert(PropertyCacheKey(moduleName, propertyName, propertyMap), value);
 }
 
 QVariant ScriptEngine::retrieveFromPropertyCache(const QString &moduleName,
-        const QString &propertyName, bool oneValue, const PropertyMapConstPtr &propertyMap)
+        const QString &propertyName, const PropertyMapConstPtr &propertyMap)
 {
-    return m_propertyCache.value(PropertyCacheKey(moduleName, propertyName, oneValue, propertyMap));
+    return m_propertyCache.value(PropertyCacheKey(moduleName, propertyName, propertyMap));
 }
 
 void ScriptEngine::defineProperty(QScriptValue &object, const QString &name,
@@ -574,9 +570,8 @@ void ScriptEngine::uninstallImportFunctions()
 }
 
 ScriptEngine::PropertyCacheKey::PropertyCacheKey(const QString &moduleName,
-        const QString &propertyName, bool oneValue, const PropertyMapConstPtr &propertyMap)
-    : m_moduleName(moduleName), m_propertyName(propertyName), m_oneValue(oneValue),
-      m_propertyMap(propertyMap)
+        const QString &propertyName, const PropertyMapConstPtr &propertyMap)
+    : m_moduleName(moduleName), m_propertyName(propertyName), m_propertyMap(propertyMap)
 {
 }
 

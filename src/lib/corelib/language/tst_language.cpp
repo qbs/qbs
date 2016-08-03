@@ -1085,10 +1085,10 @@ void TestLanguage::moduleProperties()
     const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(product);
-    QVariantList values = PropertyFinder().propertyValues(product->moduleProperties->value(),
+    QVariant values = PropertyFinder().propertyValue(product->moduleProperties->value(),
                                                           "dummy", propertyName);
     QStringList valueStrings;
-    foreach (const QVariant &v, values)
+    foreach (const QVariant &v, values.toList())
         valueStrings += v.toString();
     QEXPECT_FAIL("list_property_depending_on_overridden_property", "QBS-845", Continue);
     QCOMPARE(valueStrings, expectedValues);
@@ -1331,12 +1331,12 @@ void TestLanguage::profileValuesAndOverriddenValues()
         QVERIFY(product);
         PropertyFinder pf;
         QVariantList values;
-        values = pf.propertyValues(product->moduleProperties->value(), "dummy", "cxxFlags");
+        values = pf.propertyValue(product->moduleProperties->value(), "dummy", "cxxFlags").toList();
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.first().toString(), QString("IN_PROFILE"));
-        values = pf.propertyValues(product->moduleProperties->value(), "dummy", "defines");
+        values = pf.propertyValue(product->moduleProperties->value(), "dummy", "defines").toList();
         QCOMPARE(values, QVariantList() << QLatin1String("IN_FILE") << QLatin1String("IN_PROFILE"));
-        values = pf.propertyValues(product->moduleProperties->value(), "dummy", "cFlags");
+        values = pf.propertyValue(product->moduleProperties->value(), "dummy", "cFlags").toList();
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.first().toString(), QString("OVERRIDDEN"));
     } catch (const ErrorInfo &e) {
@@ -1531,7 +1531,8 @@ void TestLanguage::propertiesBlockInGroup()
                 [](const GroupConstPtr &g) { return g->name == "the group"; });
         QVERIFY(groupIt != product->groups.constEnd());
         const QVariantMap propertyMap = (*groupIt)->properties->value();
-        const QVariantList value = PropertyFinder().propertyValues(propertyMap, "dummy", "defines");
+        const QVariantList value
+                = PropertyFinder().propertyValue(propertyMap, "dummy", "defines").toList();
         QStringList stringListValue;
         std::transform(value.constBegin(), value.constEnd(), std::back_inserter(stringListValue),
                        [](const QVariant &v) { return v.toString(); });

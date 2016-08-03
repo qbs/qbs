@@ -72,7 +72,6 @@ public:
     QStringList allProperties() const;
     QVariant getProperty(const QString &name) const;
 
-    QVariantList getModuleProperties(const QString &moduleName, const QString &propertyName) const;
     QStringList getModulePropertiesAsStringList(const QString &moduleName,
                                                  const QString &propertyName) const;
     QVariant getModuleProperty(const QString &moduleName, const QString &propertyName) const;

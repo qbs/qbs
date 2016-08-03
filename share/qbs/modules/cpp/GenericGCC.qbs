@@ -323,10 +323,10 @@ CppModule {
                 for (var i in inputs.staticlibrary) {
                     var lib = inputs.staticlibrary[i]
                     result = Gcc.concatLibs(result, [lib.filePath].concat(
-                                            ModUtils.moduleProperties(lib, 'staticLibraries')));
+                                            ModUtils.moduleProperty(lib, 'staticLibraries')));
                 }
                 result = Gcc.concatLibs(result,
-                                        ModUtils.moduleProperties(product, 'staticLibraries'));
+                                        ModUtils.moduleProperty(product, 'staticLibraries'));
                 return result
             }();
 
@@ -334,7 +334,7 @@ CppModule {
                 var result = [];
                 for (var i in inputs.dynamiclibrary)
                     result.push(inputs.dynamiclibrary[i].filePath);
-                result = result.concat(ModUtils.moduleProperties(product, 'dynamicLibraries'));
+                result = result.concat(ModUtils.moduleProperty(product, 'dynamicLibraries'));
                 return result
             }();
 

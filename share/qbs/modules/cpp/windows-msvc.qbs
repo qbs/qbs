@@ -245,11 +245,11 @@ CppModule {
             fileTags: ["staticlibrary"]
             filePath: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
             cpp.staticLibraries: {
-                var result = ModUtils.moduleProperties(product, 'staticLibraries');
+                var result = ModUtils.moduleProperty(product, 'staticLibraries');
                 for (var i in inputs.staticlibrary) {
                     var lib = inputs.staticlibrary[i]
                     result.push(lib.filePath)
-                    var impliedLibs = ModUtils.moduleProperties(lib, 'staticLibraries')
+                    var impliedLibs = ModUtils.moduleProperty(lib, 'staticLibraries')
                     result = result.uniqueConcat(impliedLibs);
                 }
                 return result
@@ -289,9 +289,9 @@ CppModule {
 
         prepare: {
             var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
-            var defines = ModUtils.moduleProperties(input, 'defines');
-            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
-            var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
+            var defines = ModUtils.moduleProperty(input, 'defines');
+            var includePaths = ModUtils.moduleProperty(input, 'includePaths');
+            var systemIncludePaths = ModUtils.moduleProperty(input, 'systemIncludePaths');
             var args = [];
             var i;
             var hasNoLogo = ModUtils.moduleProperty(product, "compilerVersionMajor") >= 16; // 2010
@@ -351,8 +351,8 @@ CppModule {
                         FileInfo.toWindowsSeparators(input.filePath)];
             if (ModUtils.moduleProperty(product, "debugInformation"))
                 args.push("/Zi");
-            args = args.concat(ModUtils.moduleProperties(input, 'platformFlags', 'asm'),
-                               ModUtils.moduleProperties(input, 'flags', 'asm'));
+            args = args.concat(ModUtils.moduleProperty(input, 'platformFlags', 'asm'),
+                               ModUtils.moduleProperty(input, 'flags', 'asm'));
             var cmd = new Command(ModUtils.moduleProperty(product, "assemblerPath"), args);
             cmd.description = "assembling " + input.fileName;
             cmd.inputFileName = input.fileName;
