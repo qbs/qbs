@@ -111,7 +111,7 @@ void TestBlackboxJava::android_data()
     QTest::addColumn<QString>("projectDir");
     QTest::addColumn<QStringList>("productNames");
     QTest::addColumn<QList<int>>("apkFileCounts");
-    QTest::newRow("teapot") << "teapot" << QStringList("com.sample.teapot") << (QList<int>() << 25);
+    QTest::newRow("teapot") << "teapot" << QStringList("com.sample.teapot") << (QList<int>() << 31);
     QTest::newRow("no native") << "no-native"
             << QStringList("com.example.android.basicmediadecoder") << (QList<int>() << 22);
     QTest::newRow("multiple libs") << "multiple-libs-per-apk" << QStringList("twolibs")
