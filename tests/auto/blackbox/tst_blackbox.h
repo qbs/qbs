@@ -181,6 +181,7 @@ private slots:
     void pchChangeTracking();
     void pkgConfigProbe();
     void pkgConfigProbe_data();
+    void pkgConfigProbeSysroot();
     void probeChangeTracking();
     void probeProperties();
     void probeInExportedModule();

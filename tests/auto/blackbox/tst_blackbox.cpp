@@ -1932,6 +1932,27 @@ void TestBlackbox::pkgConfigProbe_data()
             << (QStringList() << "[]" << "[]") << (QStringList() << "undefined" << "undefined");
 }
 
+void TestBlackbox::pkgConfigProbeSysroot()
+{
+    const QString exe = findExecutable(QStringList() << "pkg-config");
+    if (exe.isEmpty())
+        QSKIP("This test requires the pkg-config tool");
+
+    QDir::setCurrent(testDataDir + "/pkg-config-probe-sysroot");
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("PkgConfigProbe: found library"), 2);
+    const QString outputTemplate = "theProduct%1 libs: [\"-L%2/usr/dummy\",\"-ldummy1\"]";
+    QVERIFY2(m_qbsStdout.contains(outputTemplate
+                                  .arg("1", QDir::currentPath() + "/sysroot1").toLocal8Bit()),
+             m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains(outputTemplate
+                                  .arg("2", QDir::currentPath() + "/sysroot2").toLocal8Bit()),
+             m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains(outputTemplate
+                                  .arg("3", QDir::currentPath() + "/sysroot1").toLocal8Bit()),
+             m_qbsStdout.constData());
+}
+
 void TestBlackbox::probeChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/probe-change-tracking");
