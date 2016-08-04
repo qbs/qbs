@@ -74,6 +74,7 @@ Module {
     // These are deliberately not path types
     // We don't want to resolve them against the source directory
     property string generatedHeadersDir: product.buildDirectory + "/qt.headers"
+    property string generatedFilesDir: generatedHeadersDir // TODO: Remove in 1.8
     property string qdocOutputDir: product.buildDirectory + "/qdoc_html"
     property string qmDir: product.destinationDirectory
     property string qmBaseName: product.targetName
