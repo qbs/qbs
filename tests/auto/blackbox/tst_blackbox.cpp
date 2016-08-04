@@ -34,7 +34,6 @@
 
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
-#include <tools/installoptions.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
 #include <tools/shellutils.h>
@@ -51,9 +50,7 @@
 
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
-using qbs::InstallOptions;
 using qbs::Internal::HostOsInfo;
-using qbs::Internal::removeDirectoryWithContents;
 using qbs::Profile;
 using qbs::Settings;
 
@@ -74,199 +71,6 @@ public:
         }
     }
 };
-
-static QString initQbsExecutableFilePath()
-{
-    QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/qbs");
-    filePath = HostOsInfo::appendExecutableSuffix(QDir::cleanPath(filePath));
-    return filePath;
-}
-
-static bool supportsBuildDirectoryOption(const QString &command) {
-    return !(QStringList() << "help" << "config" << "config-ui" << "qmltypes"
-             << "setup-android" << "setup-qt" << "setup-toolchains").contains(command);
-}
-
-TestBlackbox::TestBlackbox()
-    : testDataDir(testWorkDir(QStringLiteral("blackbox"))),
-      testSourceDir(QDir::cleanPath(SRCDIR "/testdata")),
-      qbsExecutableFilePath(initQbsExecutableFilePath()),
-      defaultInstallRoot(relativeBuildDir() + QLatin1Char('/') + InstallOptions::defaultInstallRoot())
-{
-    QLocale::setDefault(QLocale::c());
-}
-
-int TestBlackbox::runQbs(const QbsRunParameters &params)
-{
-    QStringList args;
-    if (!params.command.isEmpty())
-        args << params.command;
-    if (supportsBuildDirectoryOption(params.command)) {
-        args.append(QLatin1String("-d"));
-        args.append(params.buildDirectory.isEmpty() ? QLatin1String(".") : params.buildDirectory);
-    }
-    args << params.arguments;
-    if (params.useProfile)
-        args.append(QLatin1String("profile:") + profileName());
-    QProcess process;
-    process.setProcessEnvironment(params.environment);
-    process.start(qbsExecutableFilePath, args);
-    const int waitTime = 10 * 60000;
-    if (!process.waitForStarted() || !process.waitForFinished(waitTime)) {
-        m_qbsStderr = process.readAllStandardError();
-        if (!params.expectFailure)
-            qDebug("%s", qPrintable(process.errorString()));
-        return -1;
-    }
-
-    m_qbsStderr = process.readAllStandardError();
-    m_qbsStdout = process.readAllStandardOutput();
-    sanitizeOutput(&m_qbsStderr);
-    sanitizeOutput(&m_qbsStdout);
-    if ((process.exitStatus() != QProcess::NormalExit
-             || process.exitCode() != 0) && !params.expectFailure) {
-        if (!m_qbsStderr.isEmpty())
-            qDebug("%s", m_qbsStderr.constData());
-        if (!m_qbsStdout.isEmpty())
-            qDebug("%s", m_qbsStdout.constData());
-    }
-    return process.exitStatus() == QProcess::NormalExit ? process.exitCode() : -1;
-}
-
-/*!
-  Recursive copy from directory to another.
-  Note that this updates the file stamps on Linux but not on Windows.
-  */
-static void ccp(const QString &sourceDirPath, const QString &targetDirPath)
-{
-    QDir currentDir;
-    QDirIterator dit(sourceDirPath, QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden);
-    while (dit.hasNext()) {
-        dit.next();
-        const QString targetPath = targetDirPath + QLatin1Char('/') + dit.fileName();
-        currentDir.mkpath(targetPath);
-        ccp(dit.filePath(), targetPath);
-    }
-
-    QDirIterator fit(sourceDirPath, QDir::Files | QDir::Hidden);
-    while (fit.hasNext()) {
-        fit.next();
-        const QString targetPath = targetDirPath + QLatin1Char('/') + fit.fileName();
-        QFile::remove(targetPath);  // allowed to fail
-        QVERIFY(QFile::copy(fit.filePath(), targetPath));
-    }
-}
-
-void TestBlackbox::rmDirR(const QString &dir)
-{
-    QString errorMessage;
-    removeDirectoryWithContents(dir, &errorMessage);
-}
-
-QByteArray TestBlackbox::unifiedLineEndings(const QByteArray &ba)
-{
-    if (HostOsInfo::isWindowsHost()) {
-        QByteArray result;
-        result.reserve(ba.size());
-        for (int i = 0; i < ba.size(); ++i) {
-            char c = ba.at(i);
-            if (c != '\r')
-                result.append(c);
-        }
-        return result;
-    } else {
-        return ba;
-    }
-}
-
-void TestBlackbox::sanitizeOutput(QByteArray *ba)
-{
-    if (HostOsInfo::isWindowsHost())
-        ba->replace('\r', "");
-}
-
-void TestBlackbox::initTestCase()
-{
-    QVERIFY(regularFileExists(qbsExecutableFilePath));
-
-    Settings settings((QString()));
-    if (!settings.profiles().contains(profileName()))
-        QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
-                         "' could not be found. Please set it up on your machine."));
-
-    Profile buildProfile(profileName(), &settings);
-    QVariant qtBinPath = buildProfile.value(QLatin1String("Qt.core.binPath"));
-    if (!qtBinPath.isValid())
-        QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
-                         "' is not a valid Qt profile."));
-    if (!QFile::exists(qtBinPath.toString()))
-        QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
-                         "' points to an invalid Qt path."));
-
-    // Initialize the test data directory.
-    QVERIFY(testDataDir != testSourceDir);
-    rmDirR(testDataDir);
-    QDir().mkpath(testDataDir);
-    ccp(testSourceDir, testDataDir);
-}
-
-static QString findExecutable(const QStringList &fileNames)
-{
-    const QStringList path = QString::fromLocal8Bit(qgetenv("PATH"))
-            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
-
-    foreach (const QString &fileName, fileNames) {
-        QFileInfo fi(fileName);
-        if (fi.isAbsolute())
-            return fi.exists() ? fileName : QString();
-        foreach (const QString &ppath, path) {
-            const QString fullPath
-                    = HostOsInfo::appendExecutableSuffix(ppath + QLatin1Char('/') + fileName);
-            if (QFileInfo(fullPath).exists())
-                return QDir::cleanPath(fullPath);
-        }
-    }
-    return QString();
-}
-
-QMap<QString, QString> TestBlackbox::findAndroid(int *status)
-{
-    QTemporaryDir temp;
-    QDir::setCurrent(testDataDir + "/find");
-    QbsRunParameters params = QStringList() << "-f" << "find-android.qbs";
-    params.buildDirectory = temp.path();
-    const int res = runQbs(params);
-    if (status)
-        *status = res;
-    QFile file(temp.path() + "/" + relativeProductBuildDir("find-android") + "/android.json");
-    if (!file.open(QIODevice::ReadOnly))
-        return QMap<QString, QString> { };
-    const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
-    return QMap<QString, QString> {
-        {"sdk", QDir::fromNativeSeparators(tools["sdk"].toString())},
-        {"ndk", QDir::fromNativeSeparators(tools["ndk"].toString())},
-    };
-}
-
-QMap<QString, QString> TestBlackbox::findJdkTools(int *status)
-{
-    QTemporaryDir temp;
-    QDir::setCurrent(testDataDir + "/find");
-    QbsRunParameters params = QStringList() << "-f" << "find-jdk.qbs";
-    params.buildDirectory = temp.path();
-    const int res = runQbs(params);
-    if (status)
-        *status = res;
-    QFile file(temp.path() + "/" + relativeProductBuildDir("find-jdk") + "/jdk.json");
-    if (!file.open(QIODevice::ReadOnly))
-        return QMap<QString, QString> { };
-    const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
-    return QMap<QString, QString> {
-        {"java", QDir::fromNativeSeparators(tools["java"].toString())},
-        {"javac", QDir::fromNativeSeparators(tools["javac"].toString())},
-        {"jar", QDir::fromNativeSeparators(tools["jar"].toString())}
-    };
-}
 
 QMap<QString, QString> TestBlackbox::findNodejs(int *status)
 {
@@ -426,6 +230,10 @@ void TestBlackbox::zipInvalid()
     QVERIFY2(m_qbsStderr.contains("unrecognized archive tool: 'something'"), m_qbsStderr.constData());
 }
 
+TestBlackbox::TestBlackbox() : TestBlackboxBase (SRCDIR "/testdata", "blackbox")
+{
+}
+
 void TestBlackbox::alwaysRun()
 {
     QFETCH(QString, projectFile);
@@ -462,62 +270,6 @@ void TestBlackbox::alwaysRun_data()
     QTest::addColumn<QString>("projectFile");
     QTest::newRow("Transformer") << "transformer.qbs";
     QTest::newRow("Rule") << "rule.qbs";
-}
-
-void TestBlackbox::android()
-{
-    QFETCH(QString, projectDir);
-    QFETCH(QStringList, productNames);
-    QFETCH(QList<int>, apkFileCounts);
-
-    int status;
-    const auto androidPaths = findAndroid(&status);
-
-    const auto ndkPath = androidPaths["ndk"];
-    static const QStringList ndkSamplesDirs = QStringList() << "teapot" << "no-native";
-    if (!ndkPath.isEmpty() && !QFileInfo(ndkPath + "/samples").isDir()
-            && ndkSamplesDirs.contains(projectDir))
-        QSKIP("NDK samples directory not present");
-
-    QDir::setCurrent(testDataDir + "/android/" + projectDir);
-    Settings s((QString()));
-    Profile p("qbs_autotests-android", &s);
-    if (!p.exists() || (status != 0 && !p.value("Android.sdk.ndkDir").isValid()))
-        QSKIP("No suitable Android test profile");
-    QbsRunParameters params(QStringList("profile:" + p.name())
-                            << "Android.ndk.platform:android-21");
-    params.useProfile = false;
-    QCOMPARE(runQbs(params), 0);
-    for (int i = 0; i < productNames.count(); ++i) {
-        const QString productName = productNames.at(i);
-        QVERIFY(m_qbsStdout.contains("Creating " + productName.toLocal8Bit() + ".apk"));
-        const QString apkFilePath = relativeProductBuildDir(productName, p.name())
-                + '/' + productName + ".apk";
-        QVERIFY2(regularFileExists(apkFilePath), qPrintable(apkFilePath));
-        const QString jarFilePath = findExecutable(QStringList("jar"));
-        QVERIFY(!jarFilePath.isEmpty());
-        QProcess jar;
-        jar.start(jarFilePath, QStringList() << "-tf" << apkFilePath);
-        QVERIFY2(jar.waitForStarted(), qPrintable(jar.errorString()));
-        QVERIFY2(jar.waitForFinished(), qPrintable(jar.errorString()));
-        QVERIFY2(jar.exitCode() == 0, qPrintable(jar.readAllStandardError().constData()));
-        QCOMPARE(jar.readAllStandardOutput().trimmed().split('\n').count(), apkFileCounts.at(i));
-    }
-}
-
-void TestBlackbox::android_data()
-{
-    QTest::addColumn<QString>("projectDir");
-    QTest::addColumn<QStringList>("productNames");
-    QTest::addColumn<QList<int>>("apkFileCounts");
-    QTest::newRow("teapot") << "teapot" << QStringList("com.sample.teapot") << (QList<int>() << 25);
-    QTest::newRow("no native") << "no-native"
-            << QStringList("com.example.android.basicmediadecoder") << (QList<int>() << 22);
-    QTest::newRow("multiple libs") << "multiple-libs-per-apk" << QStringList("twolibs")
-                                   << (QList<int>() << 10);
-    QTest::newRow("multiple apks") << "multiple-apks-per-project"
-                                   << (QStringList() << "twolibs1" << "twolibs2")
-                                   << (QList<int>() << 15 << 9);
 }
 
 void TestBlackbox::buildDirectories()
@@ -2591,174 +2343,6 @@ void TestBlackbox::invalidCommandProperty()
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QVERIFY2(m_qbsStderr.contains("unsuitable"), m_qbsStderr.constData());
-}
-
-static QProcessEnvironment processEnvironmentWithCurrentDirectoryInLibraryPath()
-{
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert(HostOsInfo::libraryPathEnvironmentVariable(),
-               (QStringList() << env.value(HostOsInfo::libraryPathEnvironmentVariable()) << ".")
-               .join(HostOsInfo::pathListSeparator()));
-    return env;
-}
-
-void TestBlackbox::java()
-{
-#if defined(Q_OS_WIN32) && !defined(Q_OS_WIN64)
-    QSKIP("QTBUG-3845");
-#endif
-
-    Settings settings((QString()));
-    Profile p(profileName(), &settings);
-
-    int status;
-    const auto jdkTools = findJdkTools(&status);
-    QCOMPARE(status, 0);
-
-    QDir::setCurrent(testDataDir + "/java");
-
-    status = runQbs();
-    if (p.value("java.jdkPath").toString().isEmpty()
-            && status != 0 && m_qbsStderr.contains("jdkPath")) {
-        QSKIP("java.jdkPath not set and automatic detection failed");
-    }
-
-    QCOMPARE(status, 0);
-
-    const QStringList classFiles =
-            QStringList() << "Jet" << "Ship" << "Vehicles";
-    QStringList classFiles1 = QStringList(classFiles) << "io/qt/qbs/HelloWorld" << "NoPackage";
-    for (int i = 0; i < classFiles1.count(); ++i) {
-        QString &classFile = classFiles1[i];
-        classFile = relativeProductBuildDir("class_collection") + "/classes/"
-                + classFile + ".class";
-        QVERIFY2(regularFileExists(classFile), qPrintable(classFile));
-    }
-
-    foreach (const QString &classFile, classFiles) {
-        const QString filePath = relativeProductBuildDir("jar_file") + "/classes/" + classFile
-                + ".class";
-        QVERIFY2(regularFileExists(filePath), qPrintable(filePath));
-    }
-    const QString jarFilePath = relativeProductBuildDir("jar_file") + '/' + "jar_file.jar";
-    QVERIFY2(regularFileExists(jarFilePath), qPrintable(jarFilePath));
-
-    // Now check whether we correctly predicted the class file output paths.
-    QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
-    foreach (const QString &classFile, classFiles1) {
-        QVERIFY2(!regularFileExists(classFile), qPrintable(classFile));
-    }
-
-    // This tests various things: java.manifestClassPath, JNI, etc.
-    QDir::setCurrent(relativeBuildDir() + "/install-root");
-    QProcess process;
-    process.setProcessEnvironment(processEnvironmentWithCurrentDirectoryInLibraryPath());
-    process.start(HostOsInfo::appendExecutableSuffix(jdkTools["java"]),
-            QStringList() << "-jar" << "jar_file.jar");
-    if (process.waitForStarted()) {
-        QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
-        QVERIFY2(process.exitCode() == 0, process.readAllStandardError().constData());
-        const QByteArray stdOut = process.readAllStandardOutput();
-        QVERIFY2(stdOut.contains("Driving!"), stdOut.constData());
-        QVERIFY2(stdOut.contains("Flying!"), stdOut.constData());
-        QVERIFY2(stdOut.contains("Flying (this is a space ship)!"), stdOut.constData());
-        QVERIFY2(stdOut.contains("Sailing!"), stdOut.constData());
-        QVERIFY2(stdOut.contains("Native code performing complex internal combustion process ("),
-                 stdOut.constData());
-    }
-
-    process.start("unzip", QStringList() << "-p" << "jar_file.jar");
-    if (process.waitForStarted()) {
-        QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
-        const QByteArray stdOut = process.readAllStandardOutput();
-        QVERIFY2(stdOut.contains("Class-Path: car_jar.jar random_stuff.jar"), stdOut.constData());
-        QVERIFY2(stdOut.contains("Main-Class: Vehicles"), stdOut.constData());
-    }
-}
-
-static QString dpkgArch(const QString &prefix = QString())
-{
-    QProcess dpkg;
-    dpkg.start("/usr/bin/dpkg", QStringList() << "--print-architecture");
-    dpkg.waitForFinished();
-    if (dpkg.exitStatus() == QProcess::NormalExit && dpkg.exitCode() == 0)
-        return prefix + QString::fromLocal8Bit(dpkg.readAllStandardOutput().trimmed());
-    return QString();
-}
-
-void TestBlackbox::javaDependencyTracking() {
-    Settings settings((QString()));
-    Profile p(profileName(), &settings);
-
-    auto getSpecificJdkVersion = [](const QString &jdkVersion) -> QString {
-        if (HostOsInfo::isMacosHost()) {
-            QProcess java_home;
-            java_home.start("/usr/libexec/java_home", QStringList() << "--version" << jdkVersion);
-            java_home.waitForFinished();
-            if (java_home.exitStatus() == QProcess::NormalExit && java_home.exitCode() == 0)
-                return QString::fromLocal8Bit(java_home.readAllStandardOutput().trimmed());
-        } else if (HostOsInfo::isWindowsHost()) {
-            QSettings settings("HKEY_LOCAL_MACHINE\\SOFTWARE\\JavaSoft\\Java Development Kit\\"
-                               + jdkVersion, QSettings::NativeFormat);
-            return settings.value("JavaHome").toString();
-        } else {
-            QString minorVersion = jdkVersion;
-            if (minorVersion.startsWith("1."))
-                minorVersion.remove(0, 2);
-
-            const QStringList searchPaths = {
-                "/usr/lib/jvm/java-" + minorVersion + "-openjdk" + dpkgArch("-"), // Debian
-                "/usr/lib/jvm/java-" + minorVersion + "-openjdk", // Arch
-                "/usr/lib/jvm/jre-1." + minorVersion + ".0-openjdk", // Fedora
-            };
-            for (const QString &searchPath : searchPaths) {
-                if (QFile::exists(searchPath + "/bin/javac"))
-                    return searchPath;
-            }
-        }
-
-        return QString();
-    };
-
-    auto runQbsTest = [&](const QString &jdkPath, const QString &javaVersion,
-            const QString &arg) {
-        QDir::setCurrent(testDataDir + "/java");
-        QbsRunParameters rp;
-        rp.arguments.append(arg);
-        if (!jdkPath.isEmpty())
-            rp.arguments << ("java.jdkPath:" + jdkPath);
-        if (!javaVersion.isEmpty())
-            rp.arguments << ("java.languageVersion:" + javaVersion);
-        rmDirR(relativeBuildDir());
-        QCOMPARE(runQbs(rp), 0);
-    };
-
-    static const auto knownJdkVersions = QStringList() << "1.6" << "1.7" << "1.8" << "1.9"
-                                                       << QString(); // default JDK;
-    QStringList seenJdkVersions;
-    for (const auto &jdkVersion : knownJdkVersions) {
-        QString specificJdkPath = getSpecificJdkVersion(jdkVersion);
-        if (jdkVersion.isEmpty() || !specificJdkPath.isEmpty()) {
-            const auto jdkPath = jdkVersion.isEmpty() ? jdkVersion : specificJdkPath;
-
-            if (!jdkVersion.isEmpty())
-                seenJdkVersions << jdkVersion;
-
-            if (!seenJdkVersions.isEmpty()) {
-                const auto javaVersions = QStringList()
-                    << knownJdkVersions.mid(0, knownJdkVersions.indexOf(seenJdkVersions.last()) + 1)
-                    << QString(); // also test with no explicitly specified source version
-
-                for (const auto &currentJavaVersion : javaVersions) {
-                    runQbsTest(jdkPath, currentJavaVersion, "--check-outputs");
-                    runQbsTest(jdkPath, currentJavaVersion, "--dry-run");
-                }
-            }
-        }
-    }
-
-    if (seenJdkVersions.isEmpty())
-        QSKIP("No JDKs installed");
 }
 
 void TestBlackbox::cli()

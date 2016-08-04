@@ -31,73 +31,18 @@
 #ifndef TST_BLACKBOX_H
 #define TST_BLACKBOX_H
 
-#include <QCoreApplication>
-#include <QFile>
-#include <QFileInfo>
-#include <QProcess>
-#include <QProcessEnvironment>
-#include <QtTest>
+#include "tst_blackboxbase.h"
 
-class QbsRunParameters
-{
-public:
-    QbsRunParameters()
-    {
-        init();
-    }
-
-    QbsRunParameters(const QString &cmd, const QStringList &args = QStringList())
-        : command(cmd), arguments(args)
-    {
-        init();
-    }
-
-    QbsRunParameters(const QStringList &args)
-        : arguments(args)
-    {
-        init();
-    }
-
-    void init()
-    {
-        expectFailure = false;
-        useProfile = true;
-        environment = QProcessEnvironment::systemEnvironment();
-    }
-
-    QString command;
-    QStringList arguments;
-    QString buildDirectory;
-    QProcessEnvironment environment;
-    bool expectFailure;
-    bool useProfile;
-};
-
-class TestBlackbox : public QObject
+class TestBlackbox : public TestBlackboxBase
 {
     Q_OBJECT
-    const QString testDataDir;
-    const QString testSourceDir;
-    const QString qbsExecutableFilePath;
-    const QString defaultInstallRoot;
 
 public:
     TestBlackbox();
 
-protected:
-    int runQbs(const QbsRunParameters &params = QbsRunParameters());
-    void rmDirR(const QString &dir);
-    static QByteArray unifiedLineEndings(const QByteArray &ba);
-    static void sanitizeOutput(QByteArray *ba);
-
-public slots:
-    void initTestCase();
-
 private slots:
     void alwaysRun();
     void alwaysRun_data();
-    void android();
-    void android_data();
     void assembly();
     void assetCatalog();
     void assetCatalog_data();
@@ -148,8 +93,6 @@ private slots:
     void installPackage();
     void installTree();
     void invalidCommandProperty();
-    void java();
-    void javaDependencyTracking();
     void jsExtensionsFile();
     void jsExtensionsFileInfo();
     void jsExtensionsProcess();
@@ -242,14 +185,9 @@ private slots:
     void zipInvalid();
 
 private:
-    QMap<QString, QString> findAndroid(int *status);
-    QMap<QString, QString> findJdkTools(int *status);
     QMap<QString, QString> findNodejs(int *status);
     QMap<QString, QString> findTypeScript(int *status);
     QString findArchiver(const QString &fileName, int *status = nullptr);
-
-    QByteArray m_qbsStderr;
-    QByteArray m_qbsStdout;
 };
 
 #endif // TST_BLACKBOX_H

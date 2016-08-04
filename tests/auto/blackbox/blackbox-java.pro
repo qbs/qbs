@@ -1,11 +1,11 @@
-TARGET = tst_blackbox
+TARGET = tst_blackbox-java
 
-HEADERS = tst_blackbox.h tst_blackboxbase.h
-SOURCES = tst_blackbox.cpp tst_blackboxbase.cpp
+HEADERS = tst_blackboxjava.h tst_blackboxbase.h
+SOURCES = tst_blackboxjava.cpp tst_blackboxbase.cpp
 
 include(../auto.pri)
 
-DATA_DIRS = testdata ../find
+DATA_DIRS = testdata-java ../find
 
 for(data_dir, DATA_DIRS) {
     files = $$files($$PWD/$$data_dir/*, true)
