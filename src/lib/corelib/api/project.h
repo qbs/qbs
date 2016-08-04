@@ -86,7 +86,6 @@ public:
     bool isValid() const;
     QString profile() const;
     ProjectData projectData() const;
-    QString targetExecutable(const ProductData &product) const;
     RunEnvironment getRunEnvironment(const ProductData &product,
             const InstallOptions &installOptions,
             const QProcessEnvironment &environment, Settings *settings) const;
