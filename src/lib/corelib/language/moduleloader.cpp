@@ -868,10 +868,12 @@ ProbeConstPtr ModuleLoader::findOldProbe(const QString &product,
 ProbeConstPtr ModuleLoader::findCurrentProbe(const CodeLocation &location, bool condition,
                                              const QVariantMap &initialProperties) const
 {
-    const ProbeConstPtr cachedProbe = m_currentProbes.value(location);
-    return cachedProbe && cachedProbe->condition() == condition
-            && cachedProbe->initialProperties() == initialProperties
-                ? cachedProbe : ProbeConstPtr();
+    const QList<ProbeConstPtr> cachedProbes = m_currentProbes.value(location);
+    foreach (const ProbeConstPtr &p, cachedProbes) {
+        if (p->condition() == condition && p->initialProperties() == initialProperties)
+            return p;
+    }
+    return ProbeConstPtr();
 }
 
 void ModuleLoader::mergeExportItems(const ProductContext &productContext)
@@ -1752,7 +1754,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     if (!resolvedProbe) {
         resolvedProbe = Probe::create(probe->location(), condition,
                 configureScript->sourceCode().toString(), properties, initialProperties);
-        m_currentProbes.insert(probe->location(), resolvedProbe);
+        m_currentProbes[probe->location()] << resolvedProbe;
     }
     productContext->info.probes << resolvedProbe;
     m_engine->currentContext()->popScope();

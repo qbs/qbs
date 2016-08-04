@@ -261,7 +261,7 @@ private:
     QSet<Item *> m_disabledItems;
     QStack<bool> m_requiredChain;
     QHash<QString, QList<ProbeConstPtr>> m_oldProbes;
-    QHash<CodeLocation, ProbeConstPtr> m_currentProbes;
+    QHash<CodeLocation, QList<ProbeConstPtr>> m_currentProbes;
     SetupProjectParameters m_parameters;
     Version m_qbsVersion;
     Item *m_tempScopeItem = nullptr;
