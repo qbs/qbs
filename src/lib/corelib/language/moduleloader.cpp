@@ -908,6 +908,17 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
         filesWithExportItem += exportItem->file();
         foreach (Item *child, exportItem->children())
             Item::addChild(merged, child);
+        const Item::PropertyDeclarationMap &decls = exportItem->propertyDeclarations();
+        for (auto it = decls.constBegin(); it != decls.constEnd(); ++it) {
+            const PropertyDeclaration &newDecl = it.value();
+            const PropertyDeclaration &existingDecl = merged->propertyDeclaration(it.key());
+            if (existingDecl.isValid() && existingDecl.type() != newDecl.type()) {
+                ErrorInfo error(Tr::tr("Export item in inherited item redeclares property "
+                        "'%1' with different type.").arg(it.key()), exportItem->location());
+                handlePropertyError(error, m_parameters, m_logger);
+            }
+            merged->setPropertyDeclaration(newDecl.name(), newDecl);
+        }
         for (QMap<QString, ValuePtr>::const_iterator it = exportItem->properties().constBegin();
                 it != exportItem->properties().constEnd(); ++it) {
             mergeProperty(merged, it.key(), it.value());

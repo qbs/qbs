@@ -539,6 +539,8 @@ void TestLanguage::erroneousFiles_data()
                                             "component of the name of module 'prefix1.suffix'";
     QTest::newRow("same-module-prefix2") << "The name of module 'prefix2' is equal to the first "
                                             "component of the name of module 'prefix2.suffix'";
+    QTest::newRow("conflicting-properties-in-export-items")
+            << "Export item in inherited item redeclares property 'theProp' with different type.";
 }
 
 void TestLanguage::erroneousFiles()

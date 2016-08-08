@@ -192,6 +192,7 @@ private slots:
     void propertyChanges();
     void propertyPrecedence();
     void properQuoting();
+    void propertiesInExportItems();
     void qbsVersion();
     void qmlDebugging();
     void qobjectInObjectiveCpp();

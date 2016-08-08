@@ -3543,6 +3543,15 @@ void TestBlackbox::properQuoting()
     QCOMPARE(unifiedLineEndings(m_qbsStdout).constData(), expectedOutput);
 }
 
+void TestBlackbox::propertiesInExportItems()
+{
+    QDir::setCurrent(testDataDir + "/properties-in-export-items");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(regularFileExists(relativeExecutableFilePath("p1")));
+    QVERIFY(regularFileExists(relativeExecutableFilePath("p2")));
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+}
+
 void TestBlackbox::radAfterIncompleteBuild_data()
 {
     QTest::addColumn<QString>("projectFileName");
