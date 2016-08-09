@@ -1108,6 +1108,38 @@ void TestLanguage::moduleProperties()
     QCOMPARE(valueStrings, expectedValues);
 }
 
+void TestLanguage::modulePropertiesInGroups()
+{
+    defaultParameters.setProjectFilePath(testProject("modulepropertiesingroups.qbs"));
+    bool exceptionCaught = false;
+    try {
+        TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        const ResolvedProductPtr product = products.value("grouptest");
+        QVERIFY(product);
+        GroupConstPtr group;
+        foreach (const GroupConstPtr &g, product->groups) {
+            if (g->name == "thegroup") {
+                group = g;
+                break;
+            }
+        }
+        QVERIFY(group);
+        QVariantList values = PropertyFinder().propertyValues(group->properties->value(),
+                                                              "dummy", "cFlags");
+        QStringList valueStrings;
+        foreach (const QVariant &v, values)
+            valueStrings += v.toString();
+        QEXPECT_FAIL(0, "QBS-1005", Continue);
+        QCOMPARE(valueStrings, QStringList("X"));
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::moduleScope()
 {
     class IntPropertyFinder
