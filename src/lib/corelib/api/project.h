@@ -55,7 +55,6 @@ class CleanOptions;
 class ErrorInfo;
 class GroupData;
 class ILogSink;
-class InstallableFile;
 class InstallJob;
 class InstallOptions;
 class ProductData;
