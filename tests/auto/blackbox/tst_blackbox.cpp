@@ -72,6 +72,24 @@ public:
     }
 };
 
+QMap<QString, QString> TestBlackbox::findCli(int *status)
+{
+    QTemporaryDir temp;
+    QDir::setCurrent(testDataDir + "/find");
+    QbsRunParameters params = QStringList() << "-f" << "find-cli.qbs";
+    params.buildDirectory = temp.path();
+    const int res = runQbs(params);
+    if (status)
+        *status = res;
+    QFile file(temp.path() + "/" + relativeProductBuildDir("find-cli") + "/cli.json");
+    if (!file.open(QIODevice::ReadOnly))
+        return QMap<QString, QString> { };
+    const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
+    return QMap<QString, QString> {
+        {"path", QDir::fromNativeSeparators(tools["path"].toString())},
+    };
+}
+
 QMap<QString, QString> TestBlackbox::findNodejs(int *status)
 {
     QTemporaryDir temp;
@@ -1607,6 +1625,21 @@ void TestBlackbox::overrideProjectProperties()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::pchChangeTracking()
+{
+    QDir::setCurrent(testDataDir + "/pch-change-tracking");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling pch.h"));
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("header1.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling pch.h"));
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("header2.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling pch.h"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::pkgConfigProbe()
 {
     const QString exe = findExecutable(QStringList() << "pkg-config");
@@ -1653,6 +1686,27 @@ void TestBlackbox::pkgConfigProbe_data()
     QTest::newRow("non-existing package")
             << "blubb" << (QStringList() << "false" << "false") << (QStringList() << "[]" << "[]")
             << (QStringList() << "[]" << "[]") << (QStringList() << "undefined" << "undefined");
+}
+
+void TestBlackbox::pkgConfigProbeSysroot()
+{
+    const QString exe = findExecutable(QStringList() << "pkg-config");
+    if (exe.isEmpty())
+        QSKIP("This test requires the pkg-config tool");
+
+    QDir::setCurrent(testDataDir + "/pkg-config-probe-sysroot");
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("PkgConfigProbe: found library"), 2);
+    const QString outputTemplate = "theProduct%1 libs: [\"-L%2/usr/dummy\",\"-ldummy1\"]";
+    QVERIFY2(m_qbsStdout.contains(outputTemplate
+                                  .arg("1", QDir::currentPath() + "/sysroot1").toLocal8Bit()),
+             m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains(outputTemplate
+                                  .arg("2", QDir::currentPath() + "/sysroot2").toLocal8Bit()),
+             m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains(outputTemplate
+                                  .arg("3", QDir::currentPath() + "/sysroot1").toLocal8Bit()),
+             m_qbsStdout.constData());
 }
 
 void TestBlackbox::pluginMetaData()
@@ -2347,7 +2401,9 @@ void TestBlackbox::invalidCommandProperty()
 
 void TestBlackbox::cli()
 {
-    QDir::setCurrent(testDataDir + "/cli");
+    int status;
+    findCli(&status);
+    QCOMPARE(status, 0);
 
     Settings s((QString()));
     Profile p("qbs_autotests-cli", &s);
@@ -2355,11 +2411,12 @@ void TestBlackbox::cli()
     if (!p.exists() || !(toolchain.contains("dotnet") || toolchain.contains("mono")))
         QSKIP("No suitable Common Language Infrastructure test profile");
 
+    QDir::setCurrent(testDataDir + "/cli");
     QbsRunParameters params(QStringList() << "-f" << "dotnettest.qbs"
                             << "profile:" + p.name());
     params.useProfile = false;
 
-    int status = runQbs(params);
+    status = runQbs(params);
     if (p.value("cli.toolchainInstallPath").toString().isEmpty()
             && status != 0 && m_qbsStderr.contains("toolchainInstallPath"))
         QSKIP("cli.toolchainInstallPath not set and automatic detection failed");

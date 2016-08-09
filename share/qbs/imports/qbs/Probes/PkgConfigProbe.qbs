@@ -34,6 +34,7 @@ import qbs.FileInfo
 
 Probe {
     // Inputs
+    property string sysroot: qbs.sysroot
     property string executable: 'pkg-config'
     property string name
     property string minVersion
@@ -59,12 +60,12 @@ Probe {
             if (maxVersion !== undefined)
                 args.push(name + ' <= ' + maxVersion);
             var libDirsToSet = libDirs;
-            if (qbs.sysroot) {
-                p.setEnv("PKG_CONFIG_SYSROOT_DIR", qbs.sysroot);
+            if (sysroot) {
+                p.setEnv("PKG_CONFIG_SYSROOT_DIR", sysroot);
                 if (!libDirsToSet) {
                     libDirsToSet = [
-                        qbs.sysroot + "/usr/lib/pkgconfig",
-                        qbs.sysroot + "/usr/share/pkgconfig"
+                        sysroot + "/usr/lib/pkgconfig",
+                        sysroot + "/usr/share/pkgconfig"
                     ];
                 }
             }

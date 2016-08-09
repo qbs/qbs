@@ -91,12 +91,6 @@
             "gabi++_shared", "stlport_static", "stlport_shared", "gnustl_static", "gnustl_shared",
             "c++_static", "c++_shared".
     \row
-        \li hardFloat
-        \li bool
-        \li 1.4.2
-        \li undefined
-        \li Whether to use the hard floating point variant of the armeabi-v7a ABI.
-    \row
         \li ndkDir
         \li path
         \li 1.4

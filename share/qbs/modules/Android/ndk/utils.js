@@ -61,7 +61,7 @@ function androidAbi(arch) {
     }
 }
 
-function commonCompilerFlags(buildVariant, abi, hardFloat, armMode) {
+function commonCompilerFlags(buildVariant, abi, armMode) {
     var flags = ["-ffunction-sections", "-funwind-tables", "-no-canonical-prefixes",
                  "-Wa,--noexecstack", "-Werror=format-security"];
 
@@ -84,7 +84,7 @@ function commonCompilerFlags(buildVariant, abi, hardFloat, armMode) {
 
         if (abi === "armeabi-v7a") {
             flags.push("-mfpu=vfpv3-d16");
-            flags.push(hardFloat ? "-mhard-float" : "-mfloat-abi=softfp");
+            flags.push("-mfloat-abi=softfp");
         }
 
         if (buildVariant === "release")
@@ -111,13 +111,11 @@ function commonCompilerFlags(buildVariant, abi, hardFloat, armMode) {
     return flags;
 }
 
-function commonLinkerFlags(abi, hardFloat) {
+function commonLinkerFlags(abi) {
     var flags = ["-no-canonical-prefixes", "-Wl,-z,noexecstack", "-Wl,-z,relro", "-Wl,-z,now"];
 
     if (abi === "armeabi-v7a") {
         flags.push("-Wl,--fix-cortex-a8");
-        if (hardFloat)
-            flags.push("-Wl,-no-warn-mismatch");
     }
 
     return flags;

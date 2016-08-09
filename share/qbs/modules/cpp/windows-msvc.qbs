@@ -112,7 +112,7 @@ CppModule {
     Rule {
         condition: useCPrecompiledHeader
         inputs: ["c_pch_src"]
-        explicitlyDependsOn:  ["hpp"]
+        auxiliaryInputs: ["hpp"]
         Artifact {
             fileTags: ['obj']
             filePath: ".obj/" + Utilities.getHash(input.completeBaseName) + '_c.obj'
@@ -133,7 +133,8 @@ CppModule {
     Rule {
         condition: useCxxPrecompiledHeader
         inputs: ["cpp_pch_src"]
-        explicitlyDependsOn: ["c_pch", "hpp"]  // to prevent vc--0.pdb conflict
+        explicitlyDependsOn: ["c_pch"]  // to prevent vc--0.pdb conflict
+        auxiliaryInputs: ["hpp"]
         Artifact {
             fileTags: ['obj']
             filePath: ".obj/" + Utilities.getHash(input.completeBaseName) + '_cpp.obj'

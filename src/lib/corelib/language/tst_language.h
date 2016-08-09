@@ -122,6 +122,7 @@ private slots:
     void qualifiedId();
     void recursiveProductDependencies();
     void rfc1034Identifier();
+    void versionCompare();
     void wildcards_data();
     void wildcards();
 };
