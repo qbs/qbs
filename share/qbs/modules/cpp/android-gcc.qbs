@@ -70,7 +70,7 @@ LinuxGCC {
 
     property string stlLibsDir: {
         if (stlBaseDir) {
-            var infix = Android.ndk.buildProfile;
+            var infix = Android.ndk.abi;
             if (Android.ndk.armMode === "thumb")
                 infix = FileInfo.joinPaths(infix, "thumb");
             return FileInfo.joinPaths(stlBaseDir, "libs", infix);
@@ -109,9 +109,9 @@ LinuxGCC {
     enableRtti: Android.ndk.appStl !== "system"
 
     commonCompilerFlags: NdkUtils.commonCompilerFlags(qbs.buildVariant, Android.ndk.abi,
-                                                      Android.ndk.hardFloat, Android.ndk.armMode)
+                                                      Android.ndk.armMode)
 
-    linkerFlags: NdkUtils.commonLinkerFlags(Android.ndk.abi, Android.ndk.hardFloat)
+    linkerFlags: NdkUtils.commonLinkerFlags(Android.ndk.abi)
 
     libraryPaths: {
         var prefix = FileInfo.joinPaths(sysroot, "usr");
@@ -123,17 +123,13 @@ LinuxGCC {
     }
 
     dynamicLibraries: {
-        var libs = ["c"];
-        if (!Android.ndk.hardFloat)
-            libs.push("m");
+        var libs = ["c", "m"];
         if (sharedStlFilePath)
             libs.push(sharedStlFilePath);
         return libs;
     }
     staticLibraries: {
         var libs = ["gcc"];
-        if (Android.ndk.hardFloat)
-            libs.push("m_hard");
         if (staticStlFilePath)
             libs.push(staticStlFilePath);
         return libs;
@@ -148,7 +144,7 @@ LinuxGCC {
             includes.push(FileInfo.joinPaths(stlPortBaseDir, "stlport"));
         } else if (Android.ndk.appStl.startsWith("gnustl")) {
             includes.push(FileInfo.joinPaths(gnuStlBaseDir, "include"));
-            includes.push(FileInfo.joinPaths(gnuStlBaseDir, "libs", Android.ndk.buildProfile, "include"));
+            includes.push(FileInfo.joinPaths(gnuStlBaseDir, "libs", Android.ndk.abi, "include"));
             includes.push(FileInfo.joinPaths(gnuStlBaseDir, "include", "backward"));
         } else if (Android.ndk.appStl.startsWith("c++_")) {
             includes.push(FileInfo.joinPaths(llvmStlBaseDir, "libcxx", "include"));
@@ -156,12 +152,7 @@ LinuxGCC {
         }
         return includes;
     }
-    defines: {
-        var list = ["ANDROID"];
-        if (Android.ndk.hardFloat)
-            list.push("_NDK_MATH_NO_SOFTFP=1");
-        return list;
-    }
+    defines: ["ANDROID"]
     sysroot: FileInfo.joinPaths(Android.ndk.ndkDir, "platforms", Android.ndk.platform,
                                 "arch-" + NdkUtils.abiNameToDirName(Android.ndk.abi))
 

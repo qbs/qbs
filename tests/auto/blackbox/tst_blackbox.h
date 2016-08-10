@@ -122,8 +122,10 @@ private slots:
     void objcArc();
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
+    void pchChangeTracking();
     void pkgConfigProbe();
     void pkgConfigProbe_data();
+    void pkgConfigProbeSysroot();
     void pluginMetaData();
     void probeChangeTracking();
     void probeProperties();
@@ -185,6 +187,7 @@ private slots:
     void zipInvalid();
 
 private:
+    QMap<QString, QString> findCli(int *status);
     QMap<QString, QString> findNodejs(int *status);
     QMap<QString, QString> findTypeScript(int *status);
     QString findArchiver(const QString &fileName, int *status = nullptr);

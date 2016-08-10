@@ -17,5 +17,5 @@ Product {
     }
 
     files: "main.m"
-    cpp.minimumMacosVersion: "10.6"
+    cpp.minimumMacosVersion: "10.7"
 }

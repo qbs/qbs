@@ -303,6 +303,17 @@ ScannerPlugin cppScanner =
     ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
 };
 
+ScannerPlugin pchCppScanner =
+{
+    "include_scanner",
+    "cpp_pch_src",
+    openScannerT<Opaq::FT_HPP>,
+    closeScanner,
+    next,
+    additionalFileTags,
+    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
+};
+
 ScannerPlugin cScanner =
 {
     "include_scanner",
@@ -314,11 +325,33 @@ ScannerPlugin cScanner =
     ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
 };
 
+ScannerPlugin pchCScanner =
+{
+    "include_scanner",
+    "c_pch_src",
+    openScannerT<Opaq::FT_HPP>,
+    closeScanner,
+    next,
+    additionalFileTags,
+    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
+};
+
 ScannerPlugin objcppScanner =
 {
     "include_scanner",
     "objcpp",
     openScannerT<Opaq::FT_OBJCPP>,
+    closeScanner,
+    next,
+    additionalFileTags,
+    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
+};
+
+ScannerPlugin pchObjcppScanner =
+{
+    "include_scanner",
+    "objcpp_pch_src",
+    openScannerT<Opaq::FT_HPP>,
     closeScanner,
     next,
     additionalFileTags,
@@ -336,6 +369,17 @@ ScannerPlugin objcScanner =
     ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
 };
 
+ScannerPlugin pchObjcScanner =
+{
+    "include_scanner",
+    "objc_pch_src",
+    openScannerT<Opaq::FT_HPP>,
+    closeScanner,
+    next,
+    additionalFileTags,
+    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
+};
+
 ScannerPlugin rcScanner =
 {
     "include_scanner",
@@ -347,7 +391,10 @@ ScannerPlugin rcScanner =
     ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
 };
 
-ScannerPlugin *theScanners[] = {&hppScanner, &cppScanner, &cScanner, &objcppScanner, &objcScanner, &rcScanner, NULL};
+ScannerPlugin *theScanners[] = {
+    &hppScanner, &pchCppScanner, &pchCScanner, &pchObjcppScanner, &pchObjcScanner,
+    &cppScanner, &cScanner, &objcppScanner, &objcScanner, &rcScanner, NULL
+};
 
 CPPSCANNER_EXPORT ScannerPlugin **getScanners()
 {

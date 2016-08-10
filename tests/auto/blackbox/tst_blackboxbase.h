@@ -87,9 +87,6 @@ protected:
     static void ccp(const QString &sourceDirPath, const QString &targetDirPath);
     static QString findExecutable(const QStringList &fileNames);
     QMap<QString, QString> findJdkTools(int *status);
-    QMap<QString, QString> findNodejs(int *status);
-    QMap<QString, QString> findTypeScript(int *status);
-    QString findArchiver(const QString &fileName, int *status = nullptr);
 
     const QString testDataDir;
     const QString testSourceDir;

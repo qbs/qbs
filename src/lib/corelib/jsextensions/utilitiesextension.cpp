@@ -35,6 +35,7 @@
 #include <tools/architectures.h>
 #include <tools/fileinfo.h>
 #include <tools/toolchains.h>
+#include <tools/version.h>
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_OSX)
 #include <tools/applecodesignutils.h>
@@ -71,6 +72,8 @@ public:
     static QScriptValue js_certificateInfo(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_signingIdentities(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_msvcCompilerInfo(QScriptContext *context, QScriptEngine *engine);
+
+    static QScriptValue js_versionCompare(QScriptContext *context, QScriptEngine *engine);
 };
 
 void initializeJsExtensionUtilities(QScriptValue extensionObject)
@@ -98,6 +101,8 @@ void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                engine->newFunction(UtilitiesExtension::js_signingIdentities, 0));
     environmentObj.setProperty(QStringLiteral("msvcCompilerInfo"),
                                engine->newFunction(UtilitiesExtension::js_msvcCompilerInfo, 1));
+    environmentObj.setProperty(QStringLiteral("versionCompare"),
+                               engine->newFunction(UtilitiesExtension::js_versionCompare, 2));
     extensionObject.setProperty(QStringLiteral("Utilities"), environmentObj);
 }
 
@@ -284,6 +289,22 @@ QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QS
                                    info.toString());
     }
 #endif
+}
+
+QScriptValue UtilitiesExtension::js_versionCompare(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 2) {
+        const QScriptValue value1 = context->argument(0);
+        const QScriptValue value2 = context->argument(1);
+        if (value1.isString() && value2.isString()) {
+            const auto a = Internal::Version::fromString(value1.toString());
+            const auto b = Internal::Version::fromString(value2.toString());
+            return engine->toScriptValue(Internal::compare(a, b));
+        }
+    }
+
+    return context->throwError(QScriptContext::SyntaxError,
+        QStringLiteral("versionCompare expects two arguments of type string"));
 }
 
 } // namespace Internal
