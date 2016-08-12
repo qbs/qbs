@@ -2,6 +2,7 @@ import qbs 1.0
 import QbsFunctions
 
 QbsLibrary {
+    Depends { name: "visualstudio" }
     Depends { name: "cpp" }
     Depends { name: "Qt"; submodules: ["core-private", "network", "script", "xml"] }
     Depends { condition: qbsbuildconfig.enableProjectFileUpdates; name: "Qt.gui" }
