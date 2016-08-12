@@ -58,11 +58,9 @@ QString ClangCompilationDatabaseGenerator::generatorName() const
     return QStringLiteral("clangdb");
 }
 
-void ClangCompilationDatabaseGenerator::generate(const InstallOptions &installOptions)
+void ClangCompilationDatabaseGenerator::generate()
 {
-    Q_UNUSED(installOptions);
-
-    for (const Project &project : projects()) {
+    for (const Project &project : project().projects.values()) {
         QJsonArray database;
         const ProjectData projectData = project.projectData();
         const QString buildDir = projectData.buildDirectory();

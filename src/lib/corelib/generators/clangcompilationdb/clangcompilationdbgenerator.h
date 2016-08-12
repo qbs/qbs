@@ -45,7 +45,7 @@ public:
 
 private:
     QString generatorName() const override;
-    void generate(const InstallOptions &installOptions) override;
+    void generate() override;
     static const QString DefaultDatabaseFileName;
     QJsonObject createEntry(const QString &filePath, const QString &buildDir,
                             const RuleCommand &ruleCommand);

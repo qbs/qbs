@@ -160,6 +160,19 @@ QbsLibrary {
         files: "buildgraph/forward_decls.h"
     }
     Group {
+        name: "generators"
+        prefix: "generators/"
+        files: [
+            "generatableprojectiterator.cpp",
+            "generatableprojectiterator.h",
+            "generator.cpp",
+            "generator.h",
+            "generatordata.cpp",
+            "generatordata.h",
+            "igeneratableprojectvisitor.h",
+        ]
+    }
+    Group {
         name: "Clang Compilation Database generator"
         prefix: "generators/clangcompilationdb/"
         files: [

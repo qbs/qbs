@@ -1,7 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Copyright (C) 2015 Jake Petroules.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -29,67 +28,27 @@
 **
 ****************************************************************************/
 
-#ifndef GENERATORPLUGIN_H
-#define GENERATORPLUGIN_H
+#ifndef GENERATABLEPROJECTITERATOR_H
+#define GENERATABLEPROJECTITERATOR_H
 
 #include "generatordata.h"
-#include <QList>
-#include <QString>
+#include "igeneratableprojectvisitor.h"
 
 namespace qbs {
 
-class ProjectGeneratorPrivate;
+class GeneratableProjectIterator {
+    GeneratableProject project;
 
-/*!
- * \class ProjectGenerator
- * \brief The \c ProjectGenerator class is an abstract base class for generators which generate
- * arbitrary output given a resolved Qbs project.
- */
-class QBS_EXPORT ProjectGenerator : public QObject
-{
-    Q_OBJECT
-    Q_DISABLE_COPY(ProjectGenerator)
 public:
-    virtual ~ProjectGenerator();
-
-    /*!
-     * Returns the name of the generator used to create the external build system files.
-     */
-    virtual QString generatorName() const = 0;
-
-    virtual void generate() = 0;
-
-    void generate(const QList<Project> &projects,
-                  const QList<QVariantMap> &buildConfigurations,
-                  const InstallOptions &installOptions);
-
-    const GeneratableProject project() const;
-    QFileInfo qbsExecutableFilePath() const;
+    GeneratableProjectIterator(const GeneratableProject &project);
+    void accept(IGeneratableProjectVisitor *visitor);
 
 private:
-    QList<Project> projects() const;
-    QList<QVariantMap> buildConfigurations() const;
-    QVariantMap buildConfiguration(const Project &project) const;
-
-    QStringList buildConfigurationCommandLine(const Project &project) const;
-
-protected:
-    ProjectGenerator();
-
-private:
-    ProjectGeneratorPrivate *d;
+    void accept(const GeneratableProject &project, const GeneratableProjectData &parentProjectData,
+                const GeneratableProjectData &projectData,
+                IGeneratableProjectVisitor *visitor);
 };
 
 } // namespace qbs
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef qbs::ProjectGenerator **(*getGenerators_f)();
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif // GENERATORPLUGIN_H
+#endif // GENERATABLEPROJECTITERATOR_H

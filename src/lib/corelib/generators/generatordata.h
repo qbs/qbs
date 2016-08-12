@@ -1,7 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Copyright (C) 2015 Jake Petroules.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -29,67 +28,44 @@
 **
 ****************************************************************************/
 
-#ifndef GENERATORPLUGIN_H
-#define GENERATORPLUGIN_H
+#ifndef GENERATORDATA_H
+#define GENERATORDATA_H
 
-#include "generatordata.h"
-#include <QList>
-#include <QString>
+#include <QDir>
+#include <QMap>
+#include <api/project.h>
+#include <api/projectdata.h>
 
 namespace qbs {
 
-class ProjectGeneratorPrivate;
+typedef QMap<QString, qbs::Project> GeneratableProjectMap;
+typedef QMap<QString, qbs::ProjectData> GeneratableProjectDataMap;
+typedef QMap<QString, qbs::ProductData> GeneratableProductDataMap;
 
-/*!
- * \class ProjectGenerator
- * \brief The \c ProjectGenerator class is an abstract base class for generators which generate
- * arbitrary output given a resolved Qbs project.
- */
-class QBS_EXPORT ProjectGenerator : public QObject
-{
-    Q_OBJECT
-    Q_DISABLE_COPY(ProjectGenerator)
-public:
-    virtual ~ProjectGenerator();
+struct GeneratableProductData {
+    GeneratableProductDataMap data;
+    QString name() const;
+    QStringList dependencies() const;
+};
 
-    /*!
-     * Returns the name of the generator used to create the external build system files.
-     */
-    virtual QString generatorName() const = 0;
+struct GeneratableProjectData {
+    GeneratableProjectDataMap data;
+    QList<GeneratableProjectData> subProjects;
+    QList<GeneratableProductData> products;
+    QString name() const;
+};
 
-    virtual void generate() = 0;
-
-    void generate(const QList<Project> &projects,
-                  const QList<QVariantMap> &buildConfigurations,
-                  const InstallOptions &installOptions);
-
-    const GeneratableProject project() const;
-    QFileInfo qbsExecutableFilePath() const;
-
-private:
-    QList<Project> projects() const;
-    QList<QVariantMap> buildConfigurations() const;
-    QVariantMap buildConfiguration(const Project &project) const;
-
-    QStringList buildConfigurationCommandLine(const Project &project) const;
-
-protected:
-    ProjectGenerator();
-
-private:
-    ProjectGeneratorPrivate *d;
+struct GeneratableProject : public GeneratableProjectData {
+    GeneratableProjectMap projects;
+    QMap<QString, QVariantMap> buildConfigurations;
+    QMap<QString, QStringList> commandLines;
+    QString installRoot;
+    QDir baseBuildDirectory() const;
+    QFileInfo filePath() const;
+    bool hasMultipleConfigurations() const;
+    QStringList commandLine() const;
 };
 
 } // namespace qbs
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef qbs::ProjectGenerator **(*getGenerators_f)();
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif // GENERATORPLUGIN_H
+#endif // GENERATORDATA_H
