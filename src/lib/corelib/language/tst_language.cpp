@@ -1605,7 +1605,8 @@ void TestLanguage::relaxedErrorMode()
         const ResolvedProductConstPtr missingFile = productMap.value("missing file");
         QVERIFY(missingFile->enabled);
         QCOMPARE(missingFile->groups.count(), 1);
-        QVERIFY(!missingFile->groups.first()->enabled);
+        QVERIFY(missingFile->groups.first()->enabled);
+        QCOMPARE(missingFile->groups.first()->allFiles().count(), 2);
         const ResolvedProductConstPtr fine = productMap.value("fine");
         QVERIFY(fine->enabled);
         QCOMPARE(fine->allFiles().count(), 1);

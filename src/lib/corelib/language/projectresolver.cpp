@@ -474,11 +474,31 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
 }
 
 SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductConstPtr &rproduct,
-        const QString &fileName, const GroupPtr &group, bool wildcard)
+        const QString &fileName, const GroupPtr &group, bool wildcard,
+        const CodeLocation &filesLocation, QHash<QString, CodeLocation> *fileLocations,
+        ErrorInfo *errorInfo)
 {
+    const QString absFilePath
+            = QDir::cleanPath(FileInfo::resolvePath(rproduct->sourceDirectory, fileName));
+    if (!wildcard && !FileInfo(absFilePath).exists()) {
+        if (errorInfo)
+            errorInfo->append(Tr::tr("File '%1' does not exist.").arg(absFilePath), filesLocation);
+        return SourceArtifactPtr();
+    }
+    if (group->enabled && fileLocations) {
+        CodeLocation &loc = (*fileLocations)[absFilePath];
+        if (loc.isValid()) {
+            if (errorInfo) {
+                errorInfo->append(Tr::tr("Duplicate source file '%1'.").arg(absFilePath));
+                errorInfo->append(Tr::tr("First occurrence is here."), loc);
+                errorInfo->append(Tr::tr("Next occurrence is here."), filesLocation);
+            }
+            return SourceArtifactPtr();
+        }
+        loc = filesLocation;
+    }
     SourceArtifactPtr artifact = SourceArtifactInternal::create();
-    artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
-    artifact->absoluteFilePath = QDir::cleanPath(artifact->absoluteFilePath); // Potentially necessary for groups with prefixes.
+    artifact->absoluteFilePath = absFilePath;
     artifact->fileTags = group->fileTags;
     artifact->overrideFileTags = group->overrideTags;
     artifact->properties = group->properties;
@@ -571,6 +591,8 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     if (group->overrideTags && group->fileTags.isEmpty() && fileTagsSet)
         group->fileTags.insert(unknownFileTag());
 
+    const CodeLocation filesLocation = item->property(QLatin1String("files"))->location();
+    ErrorInfo fileError;
     if (!patterns.isEmpty()) {
         SourceWildCards::Ptr wildcards = SourceWildCards::create();
         wildcards->excludePatterns = m_evaluator->stringListValue(item,
@@ -580,36 +602,23 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         group->wildcards = wildcards;
         QSet<QString> files = wildcards->expandPatterns(group, m_productContext->product->sourceDirectory);
         foreach (const QString &fileName, files)
-            createSourceArtifact(m_productContext->product, fileName, group, true);
+            createSourceArtifact(m_productContext->product, fileName, group, true, filesLocation,
+                                 &m_productContext->sourceArtifactLocations, &fileError);
     }
 
-    foreach (const QString &fileName, files)
-        createSourceArtifact(m_productContext->product, fileName, group, false);
-    ErrorInfo fileError;
-    if (group->enabled) {
-        const ValuePtr filesValue = item->property(QLatin1String("files"));
-        foreach (const SourceArtifactConstPtr &a, group->allFiles()) {
-            if (!FileInfo(a->absoluteFilePath).exists()) {
-                fileError.append(Tr::tr("File '%1' does not exist.")
-                                 .arg(a->absoluteFilePath),
-                                 item->property(QLatin1String("files"))->location());
-            }
-            CodeLocation &loc = m_productContext->sourceArtifactLocations[a->absoluteFilePath];
-            if (loc.isValid()) {
-                fileError.append(Tr::tr("Duplicate source file '%1'.").arg(a->absoluteFilePath));
-                fileError.append(Tr::tr("First occurrence is here."), loc);
-                fileError.append(Tr::tr("Next occurrence is here."), filesValue->location());
-            }
-            loc = filesValue->location();
-        }
-        if (fileError.hasError()) {
+    foreach (const QString &fileName, files) {
+        createSourceArtifact(m_productContext->product, fileName, group, false, filesLocation,
+                             &m_productContext->sourceArtifactLocations, &fileError);
+    }
+    if (fileError.hasError()) {
+        if (group->enabled) {
             if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
                 throw ErrorInfo(fileError);
             m_logger.printWarning(fileError);
-            group->enabled = false;
+        } else {
+            m_logger.qbsDebug() << fileError.toString();
         }
     }
-
     group->name = m_evaluator->stringValue(item, QLatin1String("name"));
     if (group->name.isEmpty())
         group->name = Tr::tr("Group %1").arg(m_productContext->product->groups.count());
