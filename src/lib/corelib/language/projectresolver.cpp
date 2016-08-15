@@ -474,16 +474,15 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
 }
 
 SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductConstPtr &rproduct,
-        const PropertyMapPtr &properties, const QString &fileName, const FileTags &fileTags,
-        bool overrideTags, QList<SourceArtifactPtr> &artifactList)
+        const QString &fileName, const GroupPtr &group, bool wildcard)
 {
     SourceArtifactPtr artifact = SourceArtifactInternal::create();
     artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
     artifact->absoluteFilePath = QDir::cleanPath(artifact->absoluteFilePath); // Potentially necessary for groups with prefixes.
-    artifact->fileTags = fileTags;
-    artifact->overrideFileTags = overrideTags;
-    artifact->properties = properties;
-    artifactList += artifact;
+    artifact->fileTags = group->fileTags;
+    artifact->overrideFileTags = group->overrideTags;
+    artifact->properties = group->properties;
+    (wildcard ? group->wildcards->files : group->files) += artifact;
     return artifact;
 }
 
@@ -565,6 +564,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     }
     group->location = item->location();
     group->enabled = isEnabled;
+    group->properties = moduleProperties;
     bool fileTagsSet;
     group->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"), &fileTagsSet);
     group->overrideTags = m_evaluator->boolValue(item, QLatin1String("overrideTags"));
@@ -577,16 +577,14 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
                                                                   QLatin1String("excludeFiles"));
         wildcards->prefix = group->prefix;
         wildcards->patterns = patterns;
+        group->wildcards = wildcards;
         QSet<QString> files = wildcards->expandPatterns(group, m_productContext->product->sourceDirectory);
         foreach (const QString &fileName, files)
-            createSourceArtifact(m_productContext->product, moduleProperties, fileName,
-                                 group->fileTags, group->overrideTags, wildcards->files);
-        group->wildcards = wildcards;
+            createSourceArtifact(m_productContext->product, fileName, group, true);
     }
 
     foreach (const QString &fileName, files)
-        createSourceArtifact(m_productContext->product, moduleProperties, fileName,
-                             group->fileTags, group->overrideTags, group->files);
+        createSourceArtifact(m_productContext->product, fileName, group, false);
     ErrorInfo fileError;
     if (group->enabled) {
         const ValuePtr filesValue = item->property(QLatin1String("files"));
@@ -615,7 +613,6 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     group->name = m_evaluator->stringValue(item, QLatin1String("name"));
     if (group->name.isEmpty())
         group->name = Tr::tr("Group %1").arg(m_productContext->product->groups.count());
-    group->properties = moduleProperties;
     m_productContext->product->groups += group;
 
     class GroupContextSwitcher {

@@ -431,11 +431,10 @@ ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const P
 }
 
 static SourceArtifactPtr createSourceArtifact(const QString &filePath,
-        const ResolvedProductPtr &product, const GroupConstPtr &group,
-        QList<SourceArtifactPtr> &artifactList, Logger &logger)
+        const ResolvedProductPtr &product, const GroupPtr &group, bool wildcard, Logger &logger)
 {
-    const SourceArtifactPtr artifact = ProjectResolver::createSourceArtifact(product,
-            group->properties, filePath, group->fileTags,  group->overrideTags, artifactList);
+    const SourceArtifactPtr artifact
+            = ProjectResolver::createSourceArtifact(product, filePath, group, wildcard);
     ProjectResolver::applyFileTaggers(artifact, product, logger);
     return artifact;
 }
@@ -474,13 +473,13 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         const GroupPtr &resolvedGroup = groupContext.resolvedGroups.at(i);
         foreach (const QString &file, filesContext.absoluteFilePaths) {
             const SourceArtifactPtr sa = createSourceArtifact(file, resolvedProduct, resolvedGroup,
-                                                              resolvedGroup->files, logger);
+                                                              false, logger);
             addedSourceArtifacts.insert(file, qMakePair(sa, resolvedProduct));
         }
         foreach (const QString &file, filesContext.absoluteFilePathsFromWildcards) {
             QBS_CHECK(resolvedGroup->wildcards);
             const SourceArtifactPtr sa = createSourceArtifact(file, resolvedProduct, resolvedGroup,
-                    resolvedGroup->wildcards->files, logger);
+                    true, logger);
             addedSourceArtifacts.insert(file, qMakePair(sa, resolvedProduct));
         }
         if (resolvedProduct->enabled) {
