@@ -1310,12 +1310,19 @@ void TestBlackbox::separateDebugInfo()
                 .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(regularFileExists(relativeProductBuildDir("bar5") + "/bar5.bundle.dwarf"));
     } else if (toolchain.contains("gcc")) {
-        QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.debug"));
-        QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.debug"));
-        QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/libfoo1.so.debug"));
-        QVERIFY(!QFile::exists(relativeProductBuildDir("foo2") + "/libfoo2.so.debug"));
-        QVERIFY(QFile::exists(relativeProductBuildDir("bar1") + "/libbar1.so.debug"));
-        QVERIFY(!QFile::exists(relativeProductBuildDir("bar2") + "/libbar2.so.debug"));
+        const QString exeSuffix = targetOS.contains("windows") ? ".exe" : "";
+        const QString dllPrefix = targetOS.contains("windows") ? "" : "lib";
+        const QString dllSuffix = targetOS.contains("windows") ? ".dll" : ".so";
+        QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1" + exeSuffix + ".debug"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2" + exeSuffix + ".debug"));
+        QVERIFY(QFile::exists(relativeProductBuildDir("foo1")
+                              + '/' + dllPrefix + "foo1" + dllSuffix + ".debug"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("foo2")
+                               + '/' + "foo2" + dllSuffix + ".debug"));
+        QVERIFY(QFile::exists(relativeProductBuildDir("bar1")
+                              + '/' + dllPrefix +  "bar1" + dllSuffix + ".debug"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("bar2")
+                               + '/' + dllPrefix + "bar2" + dllSuffix + ".debug"));
     } else if (toolchain.contains("msvc")) {
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.pdb"));
         QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/foo1.pdb"));
