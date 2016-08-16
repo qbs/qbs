@@ -1142,7 +1142,7 @@ void TestApi::generatedFilesList()
     QCOMPARE(projectData.products().count(), 1);
     const qbs::ProductData product = projectData.products().first();
     QString uiFilePath;
-    QCOMPARE(product.generatedArtifacts().count(), 6);
+    QVERIFY(product.generatedArtifacts().count() >= 6);
     foreach (const qbs::ArtifactData &a, product.generatedArtifacts()) {
         QVERIFY(a.isGenerated());
         QFileInfo fi(a.filePath());
@@ -1153,7 +1153,8 @@ void TestApi::generatedFilesList()
                  || fi.fileName() == "moc_mainwindow.cpp"
                  || fi.fileName() == "moc_mainwindow.cpp"  + objSuffix
                  || fi.fileName() == "ui_mainwindow.h"
-                 || fi.fileName() == HostOsInfo::appendExecutableSuffix("generated-files-list"),
+                 || fi.fileName() == HostOsInfo::appendExecutableSuffix("generated-files-list")
+                 || fi.fileName().endsWith(".plist"),
                  qPrintable(fi.fileName()));
     }
     foreach (const qbs::GroupData &group, product.groups()) {
