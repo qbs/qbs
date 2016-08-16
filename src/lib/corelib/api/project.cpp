@@ -760,6 +760,8 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
             const ArtifactSet targetArtifacts = resolvedProduct->targetArtifacts();
             foreach (Artifact * const a,
                      filterByType<Artifact>(resolvedProduct->buildData->nodes)) {
+                if (a->artifactType != Artifact::Generated)
+                    continue;
                 ArtifactData ta;
                 ta.d->filePath = a->filePath();
                 ta.d->fileTags = a->fileTags().toStringList();

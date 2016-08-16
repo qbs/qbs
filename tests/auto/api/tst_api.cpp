@@ -1142,6 +1142,20 @@ void TestApi::generatedFilesList()
     QCOMPARE(projectData.products().count(), 1);
     const qbs::ProductData product = projectData.products().first();
     QString uiFilePath;
+    QCOMPARE(product.generatedArtifacts().count(), 6);
+    foreach (const qbs::ArtifactData &a, product.generatedArtifacts()) {
+        QVERIFY(a.isGenerated());
+        QFileInfo fi(a.filePath());
+        using qbs::Internal::HostOsInfo;
+        const QString objSuffix = HostOsInfo::isWindowsHost() ? ".obj" : ".o";
+        QVERIFY2(fi.fileName() == "main.cpp" + objSuffix
+                 || fi.fileName() == "mainwindow.cpp" + objSuffix
+                 || fi.fileName() == "moc_mainwindow.cpp"
+                 || fi.fileName() == "moc_mainwindow.cpp"  + objSuffix
+                 || fi.fileName() == "ui_mainwindow.h"
+                 || fi.fileName() == HostOsInfo::appendExecutableSuffix("generated-files-list"),
+                 qPrintable(fi.fileName()));
+    }
     foreach (const qbs::GroupData &group, product.groups()) {
         foreach (const qbs::ArtifactData &a, group.sourceArtifacts()) {
             QVERIFY(!a.isGenerated());
