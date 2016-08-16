@@ -1789,6 +1789,7 @@ void TestBlackbox::reproducibleBuild()
     QVERIFY(object.open(QIODevice::ReadOnly));
     const QByteArray newContents = object.readAll();
     QCOMPARE(oldContents == newContents, reproducible);
+    object.close();
     QCOMPARE(runQbs(cleanParams), 0);
 }
 
