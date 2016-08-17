@@ -80,10 +80,14 @@ void ModuleMerger::replaceItemInScopes(Item *toReplace)
     // instance scope, namely our merged module instead of some other instance.
     foreach (const Item::Module &module, toReplace->modules()) {
         foreach (const ValuePtr &property, module.item->properties()) {
-            if (property->definingItem() && property->definingItem()->scope()
-                    && property->definingItem()->scope()->scope() == toReplace) {
-                property->definingItem()->scope()->setScope(m_mergedModule.item);
-            }
+            ValuePtr v = property;
+            do {
+                if (v->definingItem() && v->definingItem()->scope()
+                        && v->definingItem()->scope()->scope() == toReplace) {
+                    v->definingItem()->scope()->setScope(m_mergedModule.item);
+                }
+                v = v->next();
+            } while (v);
         }
     }
 }

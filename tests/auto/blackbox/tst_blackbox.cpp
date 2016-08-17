@@ -2075,6 +2075,7 @@ void TestBlackbox::probeInExportedModule()
                                      << QLatin1String("probe-in-exported-module.qbs"))), 0);
     QVERIFY2(m_qbsStdout.contains("found: true"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("prop: yes"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("listProp: my,myother"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::probesAndArrayProperties()
