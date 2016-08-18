@@ -35,6 +35,20 @@ var Process = loadExtension("qbs.Process");
 var TemporaryDir = loadExtension("qbs.TemporaryDir");
 var Utilities = loadExtension("qbs.Utilities");
 
+function sanitizedList(list, product, fullPropertyName) {
+    if (!Array.isArray(list))
+        return list;
+    var filterFunc = function(elem) {
+        if (elem.length === 0) {
+            console.warn("Removing empty string from value of property '" + fullPropertyName
+                         + "' in product '" + product.name + "'.");
+            return false;
+        }
+        return true;
+    }
+    return list.filter(filterFunc);
+}
+
 function artifactInstalledFilePath(artifact) {
     var relativeInstallDir = artifact.moduleProperty("qbs", "installDir");
     var installPrefix = artifact.moduleProperty("qbs", "installPrefix");
@@ -140,11 +154,14 @@ function modulePropertiesFromArtifacts(product, artifacts, moduleName, propertyN
     var result = product.moduleProperty(moduleName, languagePropertyName(propertyName, langFilter))
     for (var i in artifacts)
         result = result.concat(artifacts[i].moduleProperty(moduleName, languagePropertyName(propertyName, langFilter)))
-    return result
+    return sanitizedList(result, product, moduleName + "." + propertyName);
 }
 
-function moduleProperty(product, propertyName, langFilter) {
-    return product.moduleProperty(product.moduleName, languagePropertyName(propertyName, langFilter))
+function moduleProperty(product, propertyName, langFilter)
+{
+    return sanitizedList(product.moduleProperty(product.moduleName,
+                                                languagePropertyName(propertyName, langFilter)),
+                         product, product.moduleName + "." + propertyName);
 }
 
 /**

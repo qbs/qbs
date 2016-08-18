@@ -94,6 +94,7 @@ private slots:
     void installPackage();
     void installTree();
     void invalidCommandProperty();
+    void invalidLibraryNames();
     void jsExtensionsFile();
     void jsExtensionsFileInfo();
     void jsExtensionsProcess();

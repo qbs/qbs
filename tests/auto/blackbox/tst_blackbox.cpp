@@ -2412,6 +2412,18 @@ void TestBlackbox::invalidCommandProperty()
     QVERIFY2(m_qbsStderr.contains("unsuitable"), m_qbsStderr.constData());
 }
 
+void TestBlackbox::invalidLibraryNames()
+{
+    QDir::setCurrent(testDataDir + "/invalid-library-names");
+    QCOMPARE(runQbs(), 0);
+    qDebug() << m_qbsStderr;
+    QCOMPARE(m_qbsStderr.count("WARNING"), 4);
+    QCOMPARE(m_qbsStderr.count("WARNING: Removing empty string from value of property "
+                               "'cpp.dynamicLibraries' in product 'invalid-library-names'."), 2);
+    QCOMPARE(m_qbsStderr.count("WARNING: Removing empty string from value of property "
+                               "'cpp.staticLibraries' in product 'invalid-library-names'."), 2);
+}
+
 void TestBlackbox::cli()
 {
     int status;
