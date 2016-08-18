@@ -4187,6 +4187,12 @@ void TestBlackbox::iconsetApp()
     QVERIFY(regularFileExists(relativeProductBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
 }
 
+void TestBlackbox::importInPropertiesCondition()
+{
+    QDir::setCurrent(testDataDir + "/import-in-properties-condition");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::importingProduct()
 {
     QDir::setCurrent(testDataDir + "/importing-product");

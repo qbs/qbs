@@ -177,7 +177,7 @@ private:
                         ? data->item->scope() : data->item;
                 conditionScope = data->evaluator->scriptValue(conditionScopeItem);
                 QBS_ASSERT(conditionScope.isObject(), return);
-                conditionFileScope = data->evaluator->fileScope(conditionScopeItem->file());
+                conditionFileScope = data->evaluator->fileScope(value->file());
             }
             engine->currentContext()->pushScope(conditionFileScope);
             pushItemScopes(conditionScopeItem);

@@ -137,6 +137,7 @@ private slots:
     void groupsInModules();
     void iconset();
     void iconsetApp();
+    void importInPropertiesCondition();
     void importingProduct();
     void infoPlist();
     void inputsFromDependencies();
