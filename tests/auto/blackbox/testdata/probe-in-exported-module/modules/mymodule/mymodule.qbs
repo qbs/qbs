@@ -8,6 +8,7 @@ Module {
     }
     property bool found: theProbe.found
     depmodule.prop: found ? "yes" : "no"
+    depmodule.listProp: theProbe.found ? ["my"] : []
 
     Rule {
         inputs: ["in"]

@@ -2,6 +2,7 @@ import qbs
 
 Product {
     name: "dependee"
+    Depends { name: "myothermodule" }
     Depends { name: "dependency" }
     type: ["out", "dep-out"]
     Group {

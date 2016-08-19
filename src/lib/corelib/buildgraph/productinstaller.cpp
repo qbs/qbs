@@ -202,7 +202,9 @@ void ProductInstaller::copyFile(const Artifact *artifact)
     }
 
     if (m_targetFilePathsMap.contains(targetFilePath)) {
-        handleError(Tr::tr("Cannot install files '%1' and '%2' to the same location '%3'.")
+        handleError(Tr::tr("Cannot install files '%1' and '%2' to the same location '%3'. If you "
+                           "are attempting to install a directory hierarchy, consider using "
+                           "the qbs.installSourceBase property.")
                     .arg(artifact->filePath(), m_targetFilePathsMap[targetFilePath],
                          targetFilePath));
     }

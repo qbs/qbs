@@ -97,6 +97,7 @@ private slots:
     void jsImportUsedInMultipleScopes();
     void moduleProperties_data();
     void moduleProperties();
+    void modulePropertiesInGroups();
     void moduleScope();
     void modules_data();
     void modules();
