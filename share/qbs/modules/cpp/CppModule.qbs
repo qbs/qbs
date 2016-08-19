@@ -212,6 +212,12 @@ Module {
         description: "additional linker flags"
     }
 
+    property stringList driverFlags
+    PropertyOptions {
+        name: "driverFlags"
+        description: "additional compiler driver flags"
+    }
+
     property bool positionIndependentCode
     PropertyOptions {
         name: "positionIndependentCode"
@@ -282,6 +288,7 @@ Module {
     property stringList platformObjcFlags
     property stringList platformObjcxxFlags
     property stringList platformLinkerFlags
+    property stringList platformDriverFlags
 
     // Apple platforms properties
     property bool automaticReferenceCounting

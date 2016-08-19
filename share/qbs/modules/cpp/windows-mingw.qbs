@@ -42,6 +42,7 @@ GenericGCC {
     staticLibrarySuffix: ".a"
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
+    debugInfoSuffix: ".debug"
     imageFormat: "pe"
     windowsApiCharacterSet: "unicode"
     platformDefines: base.concat(WindowsUtils.characterSetDefines(windowsApiCharacterSet))

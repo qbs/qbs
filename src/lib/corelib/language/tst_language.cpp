@@ -539,6 +539,8 @@ void TestLanguage::erroneousFiles_data()
                                             "component of the name of module 'prefix1.suffix'";
     QTest::newRow("same-module-prefix2") << "The name of module 'prefix2' is equal to the first "
                                             "component of the name of module 'prefix2.suffix'";
+    QTest::newRow("conflicting-properties-in-export-items")
+            << "Export item in inherited item redeclares property 'theProp' with different type.";
 }
 
 void TestLanguage::erroneousFiles()
@@ -1106,6 +1108,38 @@ void TestLanguage::moduleProperties()
         valueStrings += v.toString();
     QEXPECT_FAIL("list_property_depending_on_overridden_property", "QBS-845", Continue);
     QCOMPARE(valueStrings, expectedValues);
+}
+
+void TestLanguage::modulePropertiesInGroups()
+{
+    defaultParameters.setProjectFilePath(testProject("modulepropertiesingroups.qbs"));
+    bool exceptionCaught = false;
+    try {
+        TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        const ResolvedProductPtr product = products.value("grouptest");
+        QVERIFY(product);
+        GroupConstPtr group;
+        foreach (const GroupConstPtr &g, product->groups) {
+            if (g->name == "thegroup") {
+                group = g;
+                break;
+            }
+        }
+        QVERIFY(group);
+        QVariantList values = PropertyFinder().propertyValue(group->properties->value(),
+                                                             "dummy", "cFlags").toList();
+        QStringList valueStrings;
+        foreach (const QVariant &v, values)
+            valueStrings += v.toString();
+        QEXPECT_FAIL(0, "QBS-1005", Continue);
+        QCOMPARE(valueStrings, QStringList("X"));
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
 }
 
 void TestLanguage::moduleScope()

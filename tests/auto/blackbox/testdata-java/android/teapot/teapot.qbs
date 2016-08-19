@@ -1,6 +1,7 @@
 import qbs
 
 Project {
+    minimumQbsVersion: qbs.version
     property stringList architectures: ["arm64", "armv7a", "x86", "x86_64", "mips", "mips64"]
     StaticLibrary {
         architectures: project.architectures

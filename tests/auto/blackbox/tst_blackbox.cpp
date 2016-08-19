@@ -1079,12 +1079,19 @@ void TestBlackbox::separateDebugInfo()
                 .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(regularFileExists(relativeProductBuildDir("bar5") + "/bar5.bundle.dwarf"));
     } else if (toolchain.contains("gcc")) {
-        QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.debug"));
-        QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.debug"));
-        QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/libfoo1.so.debug"));
-        QVERIFY(!QFile::exists(relativeProductBuildDir("foo2") + "/libfoo2.so.debug"));
-        QVERIFY(QFile::exists(relativeProductBuildDir("bar1") + "/libbar1.so.debug"));
-        QVERIFY(!QFile::exists(relativeProductBuildDir("bar2") + "/libbar2.so.debug"));
+        const QString exeSuffix = targetOS.contains("windows") ? ".exe" : "";
+        const QString dllPrefix = targetOS.contains("windows") ? "" : "lib";
+        const QString dllSuffix = targetOS.contains("windows") ? ".dll" : ".so";
+        QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1" + exeSuffix + ".debug"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2" + exeSuffix + ".debug"));
+        QVERIFY(QFile::exists(relativeProductBuildDir("foo1")
+                              + '/' + dllPrefix + "foo1" + dllSuffix + ".debug"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("foo2")
+                               + '/' + "foo2" + dllSuffix + ".debug"));
+        QVERIFY(QFile::exists(relativeProductBuildDir("bar1")
+                              + '/' + dllPrefix +  "bar1" + dllSuffix + ".debug"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("bar2")
+                               + '/' + dllPrefix + "bar2" + dllSuffix + ".debug"));
     } else if (toolchain.contains("msvc")) {
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.pdb"));
         QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/foo1.pdb"));
@@ -1551,6 +1558,7 @@ void TestBlackbox::reproducibleBuild()
     QVERIFY(object.open(QIODevice::ReadOnly));
     const QByteArray newContents = object.readAll();
     QCOMPARE(oldContents == newContents, reproducible);
+    object.close();
     QCOMPARE(runQbs(cleanParams), 0);
 }
 
@@ -1850,6 +1858,7 @@ void TestBlackbox::probeInExportedModule()
                                      << QLatin1String("probe-in-exported-module.qbs"))), 0);
     QVERIFY2(m_qbsStdout.contains("found: true"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("prop: yes"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("listProp: my,myother"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::probesAndArrayProperties()
@@ -3175,6 +3184,22 @@ void TestBlackbox::properQuoting()
     const char * const expectedOutput = "whitespaceless\ncontains space\ncontains\ttab\n"
             "backslash\\\nHello World! The magic number is 156.";
     QCOMPARE(unifiedLineEndings(m_qbsStdout).constData(), expectedOutput);
+}
+
+void TestBlackbox::propertiesInExportItems()
+{
+    QDir::setCurrent(testDataDir + "/properties-in-export-items");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(regularFileExists(relativeExecutableFilePath("p1")));
+    QVERIFY(regularFileExists(relativeExecutableFilePath("p2")));
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+}
+
+void TestBlackbox::radAfterIncompleteBuild_data()
+{
+    QTest::addColumn<QString>("projectFileName");
+    QTest::newRow("Project with Rule") << "project_with_rule.qbs";
+    QTest::newRow("Project with Transformer") << "project_with_transformer.qbs";
 }
 
 void TestBlackbox::radAfterIncompleteBuild()

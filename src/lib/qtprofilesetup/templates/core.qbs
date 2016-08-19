@@ -1,6 +1,7 @@
 import qbs 1.0
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Utilities
 import "moc.js" as Moc
 import "qdoc.js" as Qdoc
 
@@ -80,6 +81,7 @@ Module {
     property string qmBaseName: product.targetName
     property bool lreleaseMultiplexMode: false
 
+    cpp.cxxLanguageVersion: Utilities.versionCompare(version, "5.7.0") >= 0 ? "c++11" : original
     cpp.defines: {
         var defines = @defines@;
         // ### QT_NO_DEBUG must be added if the current build variant is derived
