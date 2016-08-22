@@ -53,6 +53,7 @@
 #include <buildgraph/transformer.h>
 #include <language/language.h>
 #include <language/projectresolver.h>
+#include <language/propertymapinternal.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/cleanoptions.h>
@@ -767,6 +768,19 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                 ta.d->properties.d->m_map = a->properties;
                 ta.d->isGenerated = true;
                 ta.d->isTargetArtifact = targetArtifacts.contains(a);
+                ta.d->isValid = true;
+                setupInstallData(ta, resolvedProduct);
+                product.d->generatedArtifacts << ta;
+            }
+            for (auto it = resolvedProduct->buildData->rescuableArtifactData.constBegin();
+                 it != resolvedProduct->buildData->rescuableArtifactData.constEnd(); ++it) {
+                ArtifactData ta;
+                ta.d->filePath = it.key();
+                ta.d->fileTags = it.value().fileTags.toStringList();
+                ta.d->properties.d->m_map = PropertyMapInternal::create();
+                ta.d->properties.d->m_map->setValue(it.value().properties);
+                ta.d->isGenerated = true;
+                ta.d->isTargetArtifact = resolvedProduct->fileTags.matches(it.value().fileTags);
                 ta.d->isValid = true;
                 setupInstallData(ta, resolvedProduct);
                 product.d->generatedArtifacts << ta;

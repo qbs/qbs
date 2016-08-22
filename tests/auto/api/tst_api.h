@@ -105,6 +105,7 @@ private slots:
     void nonexistingProjectPropertyFromCommandLine();
     void nonexistingProjectPropertyFromProduct();
     void objC();
+    void projectDataAfterProductInvalidation();
     void processResult();
     void processResult_data();
     void projectInvalidation();

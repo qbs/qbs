@@ -1544,6 +1544,50 @@ void TestApi::objC()
     VERIFY_NO_ERROR(errorInfo);
 }
 
+void TestApi::projectDataAfterProductInvalidation()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-data-after-"
+            "product-invalidation/project-data-after-product-invalidation.qbs");
+    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+                                                                              m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    qbs::Project project = setupJob->project();
+    QVERIFY(project.isValid());
+    QCOMPARE(project.projectData().products().count(), 1);
+    QVERIFY(project.projectData().products().first().generatedArtifacts().isEmpty());
+    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
+    waitForFinished(buildJob.data());
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    QCOMPARE(project.projectData().products().count(), 1);
+    const qbs::ProductData productAfterBulding = project.projectData().products().first();
+    QVERIFY(!productAfterBulding.generatedArtifacts().isEmpty());
+    QFile projectFile(setupParams.projectFilePath());
+    WAIT_FOR_NEW_TIMESTAMP();
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray content = projectFile.readAll();
+    QVERIFY(!content.isEmpty());
+    content.replace("\"file.cpp", "// \"file.cpp");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.flush();
+    setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    QVERIFY(!project.isValid());
+    project = setupJob->project();
+    QVERIFY(project.isValid());
+    QCOMPARE(project.projectData().products().count(), 1);
+    QVERIFY(project.projectData().products().first().generatedArtifacts()
+            == productAfterBulding.generatedArtifacts());
+    buildJob.reset(project.buildAllProducts(qbs::BuildOptions()));
+    waitForFinished(buildJob.data());
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    QCOMPARE(project.projectData().products().count(), 1);
+    QVERIFY(project.projectData().products().first().generatedArtifacts()
+            != productAfterBulding.generatedArtifacts());
+}
+
 void TestApi::processResult()
 {
     // On Windows, even closed files seem to sometimes block the removal of their parent directories
