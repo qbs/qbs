@@ -592,7 +592,7 @@ bool operator==(const ProductData &lhs, const ProductData &rhs)
             && lhs.profile() == rhs.profile()
             && lhs.location() == rhs.location()
             && lhs.groups() == rhs.groups()
-            && lhs.targetArtifacts() == rhs.targetArtifacts()
+            && lhs.generatedArtifacts() == rhs.generatedArtifacts()
             && lhs.properties() == rhs.properties()
             && lhs.isEnabled() == rhs.isEnabled();
 }
