@@ -44,9 +44,9 @@ QString GeneratableProductData::name() const
         QString oldName = name;
         name = it.value().name();
         if (!oldName.isEmpty() && oldName != name)
-            throw qbs::ErrorInfo(QStringLiteral("Products with different names per-configuration "
-                                                "are not compatible with this generator. Consider "
-                                                "using the targetName property instead."));
+            throw qbs::ErrorInfo(QLatin1String("Products with different names per-configuration "
+                                               "are not compatible with this generator. Consider "
+                                               "using the targetName property instead."));
     }
     return name;
 }
@@ -60,9 +60,9 @@ QStringList GeneratableProductData::dependencies() const
         QStringList oldList = list;
         list = it.value().dependencies();
         if (!oldList.isEmpty() && oldList != list)
-            throw qbs::ErrorInfo(QStringLiteral("Products with different dependency lists "
-                                                "per-configuration are not compatible with this "
-                                                "generator."));
+            throw qbs::ErrorInfo(QLatin1String("Products with different dependency lists "
+                                               "per-configuration are not compatible with this "
+                                               "generator."));
     }
     return list;
 }
@@ -76,8 +76,8 @@ QString GeneratableProjectData::name() const
         QString oldName = name;
         name = it.value().name();
         if (!oldName.isEmpty() && oldName != name)
-            throw qbs::ErrorInfo(QStringLiteral("Projects with different names per-configuration "
-                                                "are not compatible with this generator."));
+            throw qbs::ErrorInfo(QLatin1String("Projects with different names per-configuration "
+                                               "are not compatible with this generator."));
     }
     return name;
 }
