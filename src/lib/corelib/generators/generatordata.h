@@ -38,9 +38,9 @@
 
 namespace qbs {
 
-typedef QMap<QString, qbs::Project> GeneratableProjectMap;
-typedef QMap<QString, qbs::ProjectData> GeneratableProjectDataMap;
-typedef QMap<QString, qbs::ProductData> GeneratableProductDataMap;
+typedef QMap<QString, Project> GeneratableProjectMap;
+typedef QMap<QString, ProjectData> GeneratableProjectDataMap;
+typedef QMap<QString, ProductData> GeneratableProductDataMap;
 
 struct GeneratableProductData {
     GeneratableProductDataMap data;

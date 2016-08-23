@@ -37,6 +37,8 @@ namespace qbs {
 
 class IGeneratableProjectVisitor {
 public:
+    virtual ~IGeneratableProjectVisitor() { }
+
     // Collapsed configurations
     virtual void visitProject(const GeneratableProject &project) {
         Q_UNUSED(project);
@@ -65,27 +67,26 @@ public:
     }
 
     // Expanded configurations
-    virtual void visitProject(const qbs::Project &project,
-                              const QString &configuration) {
+    virtual void visitProject(const Project &project, const QString &configuration) {
         Q_UNUSED(project);
         Q_UNUSED(configuration);
     }
 
-    virtual void visitProjectData(const qbs::ProjectData &parentProjectData,
-                                  const qbs::ProjectData &projectData,
+    virtual void visitProjectData(const ProjectData &parentProjectData,
+                                  const ProjectData &projectData,
                                   const QString &configuration) {
         Q_UNUSED(parentProjectData);
         Q_UNUSED(projectData);
         Q_UNUSED(configuration);
     }
 
-    virtual void visitProjectData(const qbs::ProjectData &projectData,
+    virtual void visitProjectData(const ProjectData &projectData,
                                   const QString &configuration) {
         Q_UNUSED(projectData);
         Q_UNUSED(configuration);
     }
 
-    virtual void visitProduct(const qbs::ProductData &productData,
+    virtual void visitProduct(const ProductData &productData,
                               const QString &configuration) {
         Q_UNUSED(productData);
         Q_UNUSED(configuration);

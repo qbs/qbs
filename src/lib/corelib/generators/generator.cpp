@@ -54,7 +54,7 @@ ProjectGenerator::~ProjectGenerator()
     delete d;
 }
 
-static QString _configurationName(const qbs::Project &project)
+static QString _configurationName(const Project &project)
 {
     return project.projectConfiguration()
             .value(QStringLiteral("qbs")).toMap()
@@ -72,7 +72,7 @@ void ProjectGenerator::generate(const QList<Project> &projects,
 {
     d->projects = projects;
     std::sort(d->projects.begin(), d->projects.end(),
-              [](const qbs::Project &a, const qbs::Project &b) {
+              [](const Project &a, const Project &b) {
                   return _configurationName(a) < _configurationName(b); });
     d->buildConfigurations = buildConfigurations;
     std::sort(d->buildConfigurations.begin(), d->buildConfigurations.end(),
@@ -106,7 +106,7 @@ QStringList ProjectGenerator::buildConfigurationCommandLine(const Project &proje
 
     const QString name = config.take(QStringLiteral("qbs.configurationName")).toString();
     if (name.isEmpty())
-        throw qbs::ErrorInfo(QStringLiteral("Can't find configuration name for project"));
+        throw ErrorInfo(QStringLiteral("Can't find configuration name for project"));
 
     QStringList commandLineParameters;
     commandLineParameters += name;
@@ -123,7 +123,7 @@ QStringList ProjectGenerator::buildConfigurationCommandLine(const Project &proje
 // Count the number of products in the project (singular)
 // Precondition: each project data (i.e. per-configuration project data)
 // has the same number of products.
-static int _productCount(const QList<qbs::ProjectData> &projects)
+static int _productCount(const QList<ProjectData> &projects)
 {
     int count = -1;
     for (const auto &project : projects) {
@@ -134,7 +134,7 @@ static int _productCount(const QList<qbs::ProjectData> &projects)
     return count;
 }
 
-static int _subprojectCount(const QList<qbs::ProjectData> &projects)
+static int _subprojectCount(const QList<ProjectData> &projects)
 {
     int count = -1;
     for (const auto &project : projects) {
@@ -146,11 +146,11 @@ static int _subprojectCount(const QList<qbs::ProjectData> &projects)
 }
 
 static GeneratableProjectData _reduceProjectConfigurations(
-        const QMap<QString, qbs::ProjectData> &map) {
+        const QMap<QString, ProjectData> &map) {
     GeneratableProjectData gproject;
 
     // Add the project's project data for each configuration
-    QMapIterator<QString, qbs::ProjectData> it(map);
+    QMapIterator<QString, ProjectData> it(map);
     while (it.hasNext()) {
         it.next();
         gproject.data.insert(it.key(), it.value());
@@ -161,7 +161,7 @@ static GeneratableProjectData _reduceProjectConfigurations(
         GeneratableProductData prod;
 
         // once for each configuration
-        QMapIterator<QString, qbs::ProjectData> it(map);
+        QMapIterator<QString, ProjectData> it(map);
         while (it.hasNext()) {
             it.next();
             prod.data.insert(it.key(), it.value().products().at(i));
@@ -172,10 +172,10 @@ static GeneratableProjectData _reduceProjectConfigurations(
 
     // Add the project's subprojects...
     for (int i = 0; i < _subprojectCount(map.values()); ++i) {
-        QMap<QString, qbs::ProjectData> subprojectMap;
+        QMap<QString, ProjectData> subprojectMap;
 
         // once for each configuration
-        QMapIterator<QString, qbs::ProjectData> it(map);
+        QMapIterator<QString, ProjectData> it(map);
         while (it.hasNext()) {
             it.next();
             subprojectMap.insert(it.key(), it.value().subProjects().at(i));
@@ -189,7 +189,7 @@ static GeneratableProjectData _reduceProjectConfigurations(
 
 const GeneratableProject ProjectGenerator::project() const
 {
-    QMap<QString, qbs::ProjectData> rootProjects;
+    QMap<QString, ProjectData> rootProjects;
     GeneratableProject proj;
     for (const auto &project : projects()) {
         const QString configurationName = _configurationName(project);

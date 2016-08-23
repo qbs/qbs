@@ -38,15 +38,15 @@ namespace qbs {
 QString GeneratableProductData::name() const
 {
     QString name;
-    QMapIterator<QString, qbs::ProductData> it(data);
+    QMapIterator<QString, ProductData> it(data);
     while (it.hasNext()) {
         it.next();
         QString oldName = name;
         name = it.value().name();
         if (!oldName.isEmpty() && oldName != name)
-            throw qbs::ErrorInfo(QLatin1String("Products with different names per-configuration "
-                                               "are not compatible with this generator. Consider "
-                                               "using the targetName property instead."));
+            throw ErrorInfo(QLatin1String("Products with different names per-configuration "
+                                          "are not compatible with this generator. Consider "
+                                          "using the targetName property instead."));
     }
     return name;
 }
@@ -54,15 +54,15 @@ QString GeneratableProductData::name() const
 QStringList GeneratableProductData::dependencies() const
 {
     QStringList list;
-    QMapIterator<QString, qbs::ProductData> it(data);
+    QMapIterator<QString, ProductData> it(data);
     while (it.hasNext()) {
         it.next();
         QStringList oldList = list;
         list = it.value().dependencies();
         if (!oldList.isEmpty() && oldList != list)
-            throw qbs::ErrorInfo(QLatin1String("Products with different dependency lists "
-                                               "per-configuration are not compatible with this "
-                                               "generator."));
+            throw ErrorInfo(QLatin1String("Products with different dependency lists "
+                                          "per-configuration are not compatible with this "
+                                          "generator."));
     }
     return list;
 }
@@ -70,14 +70,14 @@ QStringList GeneratableProductData::dependencies() const
 QString GeneratableProjectData::name() const
 {
     QString name;
-    QMapIterator<QString, qbs::ProjectData> it(data);
+    QMapIterator<QString, ProjectData> it(data);
     while (it.hasNext()) {
         it.next();
         QString oldName = name;
         name = it.value().name();
         if (!oldName.isEmpty() && oldName != name)
-            throw qbs::ErrorInfo(QLatin1String("Projects with different names per-configuration "
-                                               "are not compatible with this generator."));
+            throw ErrorInfo(QLatin1String("Projects with different names per-configuration "
+                                          "are not compatible with this generator."));
     }
     return name;
 }
@@ -85,7 +85,7 @@ QString GeneratableProjectData::name() const
 QDir GeneratableProject::baseBuildDirectory() const
 {
     QSet<QString> baseBuildDirectory;
-    QMapIterator<QString, qbs::ProjectData> it(data);
+    QMapIterator<QString, ProjectData> it(data);
     while (it.hasNext()) {
         it.next();
         QDir dir(it.value().buildDirectory());
@@ -99,7 +99,7 @@ QDir GeneratableProject::baseBuildDirectory() const
 QFileInfo GeneratableProject::filePath() const
 {
     QSet<QString> filePath;
-    QMapIterator<QString, qbs::ProjectData> it(data);
+    QMapIterator<QString, ProjectData> it(data);
     while (it.hasNext()) {
         it.next();
         filePath.insert(it.value().location().filePath());
