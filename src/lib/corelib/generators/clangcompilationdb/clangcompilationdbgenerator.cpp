@@ -60,9 +60,9 @@ QString ClangCompilationDatabaseGenerator::generatorName() const
 
 void ClangCompilationDatabaseGenerator::generate()
 {
-    for (const Project &project : project().projects.values()) {
+    for (const Project &theProject : project().projects.values()) {
         QJsonArray database;
-        const ProjectData projectData = project.projectData();
+        const ProjectData projectData = theProject.projectData();
         const QString buildDir = projectData.buildDirectory();
 
         for (const ProductData &productData : projectData.allProducts()) {
@@ -73,7 +73,7 @@ void ClangCompilationDatabaseGenerator::generate()
 
                     const QString filePath = sourceArtifact.filePath();
                     ErrorInfo errorInfo;
-                    const RuleCommandList rules = project.ruleCommands(productData, filePath,
+                    const RuleCommandList rules = theProject.ruleCommands(productData, filePath,
                                                                        QStringLiteral("obj"),
                                                                        &errorInfo);
 
