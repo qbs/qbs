@@ -2481,13 +2481,31 @@ void TestBlackbox::invalidCommandProperty()
 void TestBlackbox::invalidLibraryNames()
 {
     QDir::setCurrent(testDataDir + "/invalid-library-names");
-    QCOMPARE(runQbs(), 0);
-    qDebug() << m_qbsStderr;
-    QCOMPARE(m_qbsStderr.count("WARNING"), 4);
-    QCOMPARE(m_qbsStderr.count("WARNING: Removing empty string from value of property "
-                               "'cpp.dynamicLibraries' in product 'invalid-library-names'."), 2);
-    QCOMPARE(m_qbsStderr.count("WARNING: Removing empty string from value of property "
-                               "'cpp.staticLibraries' in product 'invalid-library-names'."), 2);
+    QFETCH(QString, index);
+    QFETCH(bool, success);
+    QFETCH(QStringList, diagnostics);
+    QbsRunParameters params(QStringList("project.valueIndex:" + index));
+    params.expectFailure = !success;
+    QCOMPARE(runQbs(params) == 0, success);
+    foreach (const QString &diag, diagnostics)
+        QVERIFY2(m_qbsStderr.contains(diag.toLocal8Bit()), m_qbsStderr.constData());
+}
+
+void TestBlackbox::invalidLibraryNames_data()
+{
+    QTest::addColumn<QString>("index");
+    QTest::addColumn<bool>("success");
+    QTest::addColumn<QStringList>("diagnostics");
+
+    QTest::newRow("null") << "0" << false << QStringList("is null");
+    QTest::newRow("undefined") << "1" << false << QStringList("is undefined");
+    QTest::newRow("number") << "2" << false << QStringList("does not have string type");
+    QTest::newRow("array") << "3" << false << QStringList("does not have string type");
+    QTest::newRow("empty string") << "4" << true << (QStringList()
+                                  << "WARNING: Removing empty string from value of property "
+                                     "'cpp.dynamicLibraries' in product 'invalid-library-names'."
+                                  << "WARNING: Removing empty string from value of property "
+                                     "'cpp.staticLibraries' in product 'invalid-library-names'.");
 }
 
 void TestBlackbox::invalidExtensionInstantiation()

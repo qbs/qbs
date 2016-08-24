@@ -96,6 +96,7 @@ private slots:
     void invalidExtensionInstantiation();
     void invalidExtensionInstantiation_data();
     void invalidLibraryNames();
+    void invalidLibraryNames_data();
     void jsExtensionsFile();
     void jsExtensionsFileInfo();
     void jsExtensionsProcess();

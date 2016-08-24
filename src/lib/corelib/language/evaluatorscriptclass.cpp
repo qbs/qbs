@@ -46,6 +46,7 @@
 #include "scriptengine.h"
 #include "propertydeclaration.h"
 #include "value.h"
+#include <logging/translator.h>
 #include <tools/architectures.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
@@ -406,12 +407,27 @@ static QString overriddenSourceDirectory(const Item *item)
     return v ? v->value().toString() : QString();
 }
 
-inline void convertToPropertyType(const Item *item, const PropertyDeclaration::Type t,
-        QScriptValue &v)
+static void makeTypeError(const ErrorInfo &error, QScriptValue &v)
+{
+    v = v.engine()->currentContext()->throwError(QScriptContext::TypeError,
+                                                 error.toString());
+}
+
+static void makeTypeError(const PropertyDeclaration &decl, const CodeLocation &location,
+                          QScriptValue &v)
+{
+    const ErrorInfo error(Tr::tr("Value assigned to property '%1' does not have type '%2'.")
+                          .arg(decl.name(), decl.typeString()), location);
+    makeTypeError(error, v);
+}
+
+static void convertToPropertyType(const Item *item, const PropertyDeclaration& decl,
+                                  const CodeLocation &location, QScriptValue &v)
 {
     if (v.isUndefined() || v.isError())
         return;
-    switch (t) {
+    QString srcDir;
+    switch (decl.type()) {
     case PropertyDeclaration::UnknownType:
     case PropertyDeclaration::Variant:
         break;
@@ -421,12 +437,14 @@ inline void convertToPropertyType(const Item *item, const PropertyDeclaration::T
         break;
     case PropertyDeclaration::Integer:
         if (!v.isNumber())
-            v = v.toNumber();
+            makeTypeError(decl, location, v);
         break;
     case PropertyDeclaration::Path:
     {
-        if (!v.isString())
-            v = v.toString();
+        if (!v.isString()) {
+            makeTypeError(decl, location, v);
+            break;
+        }
         const QString srcDir = overriddenSourceDirectory(item);
         if (!srcDir.isEmpty())
             v = v.engine()->toScriptValue(FileInfo::resolvePath(srcDir, v.toString()));
@@ -434,33 +452,46 @@ inline void convertToPropertyType(const Item *item, const PropertyDeclaration::T
     }
     case PropertyDeclaration::String:
         if (!v.isString())
-            v = v.toString();
+            makeTypeError(decl, location, v);
         break;
     case PropertyDeclaration::PathList:
+        srcDir = overriddenSourceDirectory(item);
+        // Fall-through.
+    case PropertyDeclaration::StringList:
     {
         if (!v.isArray()) {
             QScriptValue x = v.engine()->newArray(1);
-            x.setProperty(0, v.isString() ? v : v.toString());
+            x.setProperty(0, v);
             v = x;
         }
-        const QString srcDir = overriddenSourceDirectory(item);
-        if (srcDir.isEmpty())
-            break;
         const quint32 c = v.property(QLatin1String("length")).toUInt32();
         for (quint32 i = 0; i < c; ++i) {
             QScriptValue elem = v.property(i);
+            if (elem.isUndefined()) {
+                ErrorInfo error(Tr::tr("Element at index %1 of list property '%2' is undefined. "
+                                       "String expected.").arg(i).arg(decl.name()), location);
+                makeTypeError(error, v);
+                break;
+            }
+            if (elem.isNull()) {
+                ErrorInfo error(Tr::tr("Element at index %1 of list property '%2' is null. "
+                                       "String expected.").arg(i).arg(decl.name()), location);
+                makeTypeError(error, v);
+                break;
+            }
+            if (!elem.isString()) {
+                ErrorInfo error(Tr::tr("Element at index %1 of list property '%2' does not have "
+                                       "string type.").arg(i).arg(decl.name()), location);
+                makeTypeError(error, v);
+                break;
+            }
+            if (srcDir.isEmpty())
+                continue;
             elem = v.engine()->toScriptValue(FileInfo::resolvePath(srcDir, elem.toString()));
             v.setProperty(i, elem);
         }
         break;
     }
-    case PropertyDeclaration::StringList:
-        if (!v.isArray()) {
-            QScriptValue x = v.engine()->newArray(1);
-            x.setProperty(0, v.isString() ? v : v.toString());
-            v = x;
-        }
-        break;
     }
 }
 
@@ -506,7 +537,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
         converter.start();
 
         const PropertyDeclaration decl = data->item->propertyDeclaration(name.toString());
-        convertToPropertyType(data->item, decl.type(), result);
+        convertToPropertyType(data->item, decl, value->location(), result);
     }
 
     if (debugProperties)

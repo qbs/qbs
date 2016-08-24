@@ -126,6 +126,21 @@ PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QStr
     return PropertyDeclaration::UnknownType;
 }
 
+QString PropertyDeclaration::typeString() const
+{
+    switch (type()) {
+    case Boolean: return QLatin1String("bool");
+    case Integer: return QLatin1String("int");
+    case Path: return QLatin1String("path");
+    case PathList: return QLatin1String("pathList");
+    case String: return QLatin1String("string");
+    case StringList: return QLatin1String("stringList");
+    case Variant: return QLatin1String("variant");
+    case UnknownType: return QLatin1String("unknown");
+    }
+    Q_UNREACHABLE(); // For stupid compilers.
+}
+
 const QString &PropertyDeclaration::name() const
 {
     return d->name;

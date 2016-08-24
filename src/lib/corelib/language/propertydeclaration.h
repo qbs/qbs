@@ -87,6 +87,7 @@ public:
     bool isScalar() const;
 
     static Type propertyTypeFromString(const QString &typeName);
+    QString typeString() const;
 
     const QString &name() const;
     void setName(const QString &name);
