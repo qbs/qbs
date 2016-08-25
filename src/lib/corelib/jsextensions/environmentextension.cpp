@@ -73,10 +73,8 @@ void initializeJsExtensionEnvironment(QScriptValue extensionObject)
 
 QScriptValue EnvironmentExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
 {
-    // Add instance variables here etc., if needed.
-    Q_UNUSED(context);
     Q_UNUSED(engine);
-    return true;
+    return context->throwError(Tr::tr("'Environment' cannot be instantiated."));
 }
 
 static QProcessEnvironment *getProcessEnvironment(QScriptContext *context, QScriptEngine *engine,

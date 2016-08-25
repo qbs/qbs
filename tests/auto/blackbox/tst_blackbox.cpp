@@ -2638,6 +2638,29 @@ void TestBlackbox::invalidCommandProperty()
     QVERIFY2(m_qbsStderr.contains("unsuitable"), m_qbsStderr.constData());
 }
 
+void TestBlackbox::invalidExtensionInstantiation()
+{
+    QDir::setCurrent(testDataDir + "/invalid-extension-instantiation");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments << (QString("theProduct.extension:") + QTest::currentDataTag());
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("invalid-extension-instantiation.qbs:18")
+             && m_qbsStderr.contains('\'' + QByteArray(QTest::currentDataTag())
+                                     + "' cannot be instantiated"),
+             m_qbsStderr.constData());
+}
+
+void TestBlackbox::invalidExtensionInstantiation_data()
+{
+    QTest::addColumn<bool>("dummy");
+
+    QTest::newRow("Environment");
+    QTest::newRow("File");
+    QTest::newRow("FileInfo");
+    QTest::newRow("Utilities");
+}
+
 static QProcessEnvironment processEnvironmentWithCurrentDirectoryInLibraryPath()
 {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();

@@ -148,6 +148,8 @@ private slots:
     void installPackage();
     void installTree();
     void invalidCommandProperty();
+    void invalidExtensionInstantiation();
+    void invalidExtensionInstantiation_data();
     void java();
     void javaDependencyTracking();
     void jsExtensionsFile();
