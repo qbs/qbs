@@ -112,16 +112,6 @@ function linkerFlags(project, product, inputs, output) {
     var isDarwin = product.moduleProperty("qbs", "targetOS").contains("darwin");
     var i, args = additionalCompilerAndLinkerFlags(product);
 
-    // ### QBS-966
-    if (product.moduleProperty("qbs", "targetOS").contains("android")) {
-        var sharedStlFilePath = product.moduleProperty("cpp", "sharedStlFilePath");
-        if (sharedStlFilePath)
-            dynamicLibraries.push(sharedStlFilePath);
-        var staticStlFilePath = product.moduleProperty("cpp", "staticStlFilePath");
-        if (staticStlFilePath)
-            staticLibraries.push(staticStlFilePath);
-    }
-
     if (output.fileTags.contains("dynamiclibrary")) {
         args.push(isDarwin ? "-dynamiclib" : "-shared");
 

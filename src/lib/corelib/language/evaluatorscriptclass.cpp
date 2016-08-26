@@ -243,12 +243,12 @@ private:
 
         pushScope(data->evaluator->fileScope(value->file()));
         pushItemScopes(data->item);
-        if (value->definingItem())
-            pushItemScopes(value->definingItem());
         if (itemOfProperty && itemOfProperty->type() != ItemType::ModuleInstance) {
             // Own properties of module instances must not have the instance itself in the scope.
             pushScope(*object);
         }
+        if (value->definingItem())
+            pushItemScopes(value->definingItem());
         if (value->exportScope())
             pushScope(data->evaluator->scriptValue(value->exportScope()));
         pushScope(extraScope);
