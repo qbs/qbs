@@ -315,6 +315,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     m_productContext = &productContext;
     productContext.item = item;
     ResolvedProductPtr product = ResolvedProduct::create();
+    product->moduleProperties = PropertyMapInternal::create();
     product->project = projectContext->project;
     m_productItemMap.insert(product, item);
     projectContext->project->products += product;
@@ -356,7 +357,6 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     QVariantMap moduleProperties;
     moduleProperties.insert(QLatin1String("modules"),
                             product->productProperties.take(QLatin1String("modules")));
-    product->moduleProperties = PropertyMapInternal::create();
     product->moduleProperties->setValue(moduleProperties);
     ModuleProperties::init(m_evaluator->scriptValue(item), product);
 
