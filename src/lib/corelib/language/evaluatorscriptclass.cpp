@@ -231,13 +231,17 @@ private:
             setupConvenienceProperty(QLatin1String("outer"), &extraScope, v);
         }
         if (value->sourceUsesOriginal()) {
-            const Item *item = itemOfProperty;
-            while (item->type() == ItemType::ModuleInstance)
-                item = item->prototype();
             QScriptValue originalValue;
-            SVConverter converter(scriptClass, object, item->property(*propertyName), item,
-                                  propertyName, data, &originalValue, sourceValueStack);
-            converter.start();
+            if (data->item->propertyDeclaration(propertyName->toString()).isScalar()) {
+                const Item *item = itemOfProperty;
+                while (item->type() == ItemType::ModuleInstance)
+                    item = item->prototype();
+                SVConverter converter(scriptClass, object, item->property(*propertyName), item,
+                                      propertyName, data, &originalValue, sourceValueStack);
+                converter.start();
+            } else {
+                originalValue = engine->newArray(0);
+            }
             setupConvenienceProperty(QLatin1String("original"), &extraScope, originalValue);
         }
 
