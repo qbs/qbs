@@ -2431,6 +2431,29 @@ void TestBlackbox::invalidLibraryNames()
                                "'cpp.staticLibraries' in product 'invalid-library-names'."), 2);
 }
 
+void TestBlackbox::invalidExtensionInstantiation()
+{
+    QDir::setCurrent(testDataDir + "/invalid-extension-instantiation");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments << (QString("theProduct.extension:") + QTest::currentDataTag());
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("invalid-extension-instantiation.qbs:18")
+             && m_qbsStderr.contains('\'' + QByteArray(QTest::currentDataTag())
+                                     + "' cannot be instantiated"),
+             m_qbsStderr.constData());
+}
+
+void TestBlackbox::invalidExtensionInstantiation_data()
+{
+    QTest::addColumn<bool>("dummy");
+
+    QTest::newRow("Environment");
+    QTest::newRow("File");
+    QTest::newRow("FileInfo");
+    QTest::newRow("Utilities");
+}
+
 void TestBlackbox::cli()
 {
     int status;
@@ -3793,6 +3816,12 @@ void TestBlackbox::iconsetApp()
     QCOMPARE(runQbs(params), 0);
 
     QVERIFY(regularFileExists(relativeProductBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
+}
+
+void TestBlackbox::importInPropertiesCondition()
+{
+    QDir::setCurrent(testDataDir + "/import-in-properties-condition");
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackbox::importingProduct()

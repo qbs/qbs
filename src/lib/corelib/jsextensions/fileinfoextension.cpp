@@ -108,10 +108,8 @@ void initializeJsExtensionFileInfo(QScriptValue extensionObject)
 
 QScriptValue FileInfoExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
 {
-    // Add instance variables here etc., if needed.
-    Q_UNUSED(context);
     Q_UNUSED(engine);
-    return true;
+    return context->throwError(Tr::tr("'FileInfo' cannot be instantiated."));
 }
 
 QScriptValue FileInfoExtension::js_path(QScriptContext *context, QScriptEngine *engine)

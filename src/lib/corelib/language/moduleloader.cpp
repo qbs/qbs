@@ -1890,7 +1890,8 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
         // but there are exceptions.
         if (it.key() == QLatin1String("qbsSearchPaths") || it.key() == QLatin1String("profile")
                 || it.key() == QLatin1String("buildDirectory")
-                || it.key() == QLatin1String("sourceDirectory")) {
+                || it.key() == QLatin1String("sourceDirectory")
+                || it.key() == QLatin1String("minimumQbsVersion")) {
             const JSSourceValueConstPtr &v
                     = targetProject->property(it.key()).dynamicCast<const JSSourceValue>();
             QBS_ASSERT(v, continue);

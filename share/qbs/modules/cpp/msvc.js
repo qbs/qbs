@@ -123,7 +123,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     if (defines)
         allDefines = allDefines.uniqueConcat(defines);
     for (i in allDefines)
-        args.push('/D' + allDefines[i])
+        args.push('/D' + allDefines[i].replace(/%/g, "%%"));
 
     var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
     if (minimumWindowsVersion) {

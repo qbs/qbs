@@ -603,6 +603,7 @@ bool operator==(const ProductData &lhs, const ProductData &rhs)
             && lhs.groups() == rhs.groups()
             && lhs.generatedArtifacts() == rhs.generatedArtifacts()
             && lhs.properties() == rhs.properties()
+            && lhs.moduleProperties() == rhs.moduleProperties()
             && lhs.isEnabled() == rhs.isEnabled();
 }
 
