@@ -494,8 +494,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
 
     const QString projectFileDirPath = FileInfo::path(projectItem->file()->filePath());
     const QStringList refs = m_evaluator->stringListValue(projectItem, QLatin1String("references"));
-    typedef QPair<Item *, QString> ItemAndRefPath;
-    QList<ItemAndRefPath> additionalProjectChildren;
+    QList<Item *> additionalProjectChildren;
     foreach (const QString &filePath, refs) {
         QString absReferencePath = FileInfo::resolvePath(projectFileDirPath, filePath);
         if (FileInfo(absReferencePath).isDir()) {
@@ -522,16 +521,11 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         Item *subItem = m_reader->readFile(absReferencePath);
         subItem->setScope(projectContext.scope);
         subItem->setParent(projectContext.item);
-        additionalProjectChildren << qMakePair(subItem, absReferencePath);
-        if (subItem->type() == ItemType::Product) {
-            foreach (Item * const additionalProductItem,
-                     multiplexProductItem(&dummyProductContext, subItem)) {
-                additionalProjectChildren << qMakePair(additionalProductItem, absReferencePath);
-            }
-        }
+        additionalProjectChildren << subItem;
+        if (subItem->type() == ItemType::Product)
+            additionalProjectChildren << multiplexProductItem(&dummyProductContext, subItem);
     }
-    foreach (const ItemAndRefPath &irp, additionalProjectChildren) {
-        Item * const subItem = irp.first;
+    foreach (Item * const subItem, additionalProjectChildren) {
         Item::addChild(projectContext.item, subItem);
         switch (subItem->type()) {
         case ItemType::Product:
@@ -540,7 +534,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         case ItemType::Project:
             copyProperties(projectItem, subItem);
             handleProject(loadResult, topLevelProjectContext, subItem,
-                          QSet<QString>(referencedFilePaths) << irp.second);
+                          QSet<QString>(referencedFilePaths) << subItem->file()->filePath());
             break;
         default:
             throw ErrorInfo(Tr::tr("The top-level item of a file in a \"references\" list must be "
