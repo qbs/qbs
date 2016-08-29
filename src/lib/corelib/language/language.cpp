@@ -811,9 +811,7 @@ QString ResolvedProduct::deriveBuildDirectoryName(const QString &name, const QSt
 
 QString ResolvedProduct::buildDirectory() const
 {
-    const QString result = productProperties.value(QLatin1String("buildDirectory")).toString();
-    QBS_CHECK(!result.isEmpty());
-    return result;
+    return productProperties.value(QLatin1String("buildDirectory")).toString();
 }
 
 bool ResolvedProduct::isInParentProject(const ResolvedProductConstPtr &other) const
