@@ -81,6 +81,7 @@ private slots:
     void groupsInModules();
     void iconset();
     void iconsetApp();
+    void importInPropertiesCondition();
     void importingProduct();
     void infoPlist();
     void inputsFromDependencies();
@@ -92,6 +93,8 @@ private slots:
     void installPackage();
     void installTree();
     void invalidCommandProperty();
+    void invalidExtensionInstantiation();
+    void invalidExtensionInstantiation_data();
     void invalidLibraryNames();
     void jsExtensionsFile();
     void jsExtensionsFileInfo();

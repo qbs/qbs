@@ -107,13 +107,19 @@ private:
     {
         if (!extraScope->isObject())
             *extraScope = scriptClass->engine()->newObject();
-        if (!scriptValue.isValid() || scriptValue.isUndefined()) {
-            // If there's no such value, use an empty array to have the convenience property
-            // still available.
-            extraScope->setProperty(conveniencePropertyName, engine->newArray());
-        } else {
-            extraScope->setProperty(conveniencePropertyName, scriptValue);
+        const PropertyDeclaration::Type type
+                = itemOfProperty->propertyDeclaration(propertyName->toString()).type();
+        const bool isArray = type == PropertyDeclaration::StringList
+                || type == PropertyDeclaration::PathList
+                || type == PropertyDeclaration::Variant;
+        QScriptValue valueToSet = scriptValue;
+        if (isArray) {
+            if (!valueToSet.isValid() || valueToSet.isUndefined())
+                valueToSet = engine->newArray();
+        } else if (!valueToSet.isValid()) {
+            valueToSet = engine->undefinedValue();
         }
+        extraScope->setProperty(conveniencePropertyName, valueToSet);
     }
 
     void pushScope(const QScriptValue &scope)
@@ -180,7 +186,7 @@ private:
                         ? data->item->scope() : data->item;
                 conditionScope = data->evaluator->scriptValue(conditionScopeItem);
                 QBS_ASSERT(conditionScope.isObject(), return);
-                conditionFileScope = data->evaluator->fileScope(conditionScopeItem->file());
+                conditionFileScope = data->evaluator->fileScope(value->file());
             }
             engine->currentContext()->pushScope(conditionFileScope);
             pushItemScopes(conditionScopeItem);

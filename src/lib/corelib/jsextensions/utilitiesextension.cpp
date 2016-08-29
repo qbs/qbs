@@ -117,10 +117,8 @@ void initializeJsExtensionUtilities(QScriptValue extensionObject)
 
 QScriptValue UtilitiesExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
 {
-    // Add instance variables here etc., if needed.
-    Q_UNUSED(context);
     Q_UNUSED(engine);
-    return true;
+    return context->throwError(Tr::tr("'Utilities' cannot be instantiated."));
 }
 
 QScriptValue UtilitiesExtension::js_canonicalArchitecture(QScriptContext *context,

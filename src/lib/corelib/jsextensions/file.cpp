@@ -119,10 +119,8 @@ void initializeJsExtensionFile(QScriptValue extensionObject)
 
 QScriptValue File::js_ctor(QScriptContext *context, QScriptEngine *engine)
 {
-    // Add instance variables here etc., if needed.
-    Q_UNUSED(context);
     Q_UNUSED(engine);
-    return true;
+    return context->throwError(Tr::tr("'File' cannot be instantiated."));
 }
 
 QScriptValue File::js_copy(QScriptContext *context, QScriptEngine *engine)
