@@ -22,6 +22,11 @@ Project {
         }
     }
 
+    Product {
+        name: "qmake project files for qbs"
+        files: ["**/*.pr[io]"]
+    }
+
     AutotestRunner {
         Depends { name: "Qt.core" }
         Depends { name: "qbs resources" }
