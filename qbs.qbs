@@ -1,7 +1,7 @@
 import qbs 1.0
 
 Project {
-    minimumQbsVersion: "1.4"
+    minimumQbsVersion: "1.6"
     qbsSearchPaths: ["qbs-resources"]
     property bool withExamples: false
 
