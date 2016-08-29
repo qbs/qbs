@@ -1730,6 +1730,34 @@ void TestApi::rc()
     QCOMPARE(rcFileWasCompiled, qbs::Internal::HostOsInfo::isWindowsHost());
 }
 
+void TestApi::referencedFileErrors()
+{
+    QFETCH(bool, relaxedMode);
+    qbs::SetupProjectParameters params
+            = defaultSetupParameters("referenced-file-errors/referenced-file-errors.qbs");
+    params.setDryRun(true);
+    params.setProductErrorMode(relaxedMode ? qbs::ErrorHandlingMode::Relaxed
+                                           : qbs::ErrorHandlingMode::Strict);
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(params, m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(job->error().hasError() != relaxedMode, qPrintable(job->error().toString()));
+    const qbs::Project project = job->project();
+    QCOMPARE(project.isValid(), relaxedMode);
+    if (!relaxedMode)
+        return;
+    const QList<qbs::ProductData> products = project.projectData().allProducts();
+    QCOMPARE(products.count(), 5);
+    foreach (const qbs::ProductData &p, products)
+        QCOMPARE(p.isEnabled(), p.name() != "p5");
+}
+
+void TestApi::referencedFileErrors_data()
+{
+    QTest::addColumn<bool>("relaxedMode");
+    QTest::newRow("strict mode") << false;
+    QTest::newRow("relaxed mode") << true;
+}
+
 qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &projectFilePath) const
 {
     qbs::SetupProjectParameters setupParams;

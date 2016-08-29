@@ -208,6 +208,10 @@ private:
     void initProductProperties(const ProductContext &product);
     void handleSubProject(ProjectContext *projectContext, Item *projectItem,
             const QSet<QString> &referencedFilePaths);
+    QList<Item *> loadReferencedFile(const QString &relativePath,
+                                     const CodeLocation &referencingLocation,
+                                     const QSet<QString> &referencedFilePaths,
+                                     ProductContext &dummyContext);
     void handleGroup(Item *groupItem);
     void handleAllPropertyOptionsItems(Item *item);
     void handlePropertyOptions(Item *optionsItem);

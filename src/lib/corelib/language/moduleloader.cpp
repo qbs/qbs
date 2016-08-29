@@ -492,38 +492,19 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         }
     }
 
-    const QString projectFileDirPath = FileInfo::path(projectItem->file()->filePath());
     const QStringList refs = m_evaluator->stringListValue(projectItem, QLatin1String("references"));
+    const CodeLocation referencingLocation
+            = projectItem->property(QLatin1String("references"))->location();
     QList<Item *> additionalProjectChildren;
     foreach (const QString &filePath, refs) {
-        QString absReferencePath = FileInfo::resolvePath(projectFileDirPath, filePath);
-        if (FileInfo(absReferencePath).isDir()) {
-            QString qbsFilePath;
-            QDirIterator dit(absReferencePath, QStringList(QLatin1String("*.qbs")));
-            while (dit.hasNext()) {
-                if (!qbsFilePath.isEmpty()) {
-                    throw ErrorInfo(Tr::tr("Referenced directory '%1' contains more than one "
-                                           "qbs file.").arg(absReferencePath),
-                                    projectItem->property(QLatin1String("references"))->location());
-                }
-                qbsFilePath = dit.next();
-            }
-            if (qbsFilePath.isEmpty()) {
-                throw ErrorInfo(Tr::tr("Referenced directory '%1' does not contain a qbs file.")
-                                .arg(absReferencePath),
-                                projectItem->property(QLatin1String("references"))->location());
-            }
-            absReferencePath = qbsFilePath;
+        try {
+            additionalProjectChildren << loadReferencedFile(filePath, referencingLocation,
+                    referencedFilePaths, dummyProductContext);
+        } catch (const ErrorInfo &error) {
+            if (m_parameters.productErrorMode() == ErrorHandlingMode::Strict)
+                throw;
+            m_logger.printWarning(error);
         }
-        if (referencedFilePaths.contains(absReferencePath))
-            throw ErrorInfo(Tr::tr("Cycle detected while referencing file '%1'.").arg(filePath),
-                            projectItem->property(QLatin1String("references"))->location());
-        Item *subItem = m_reader->readFile(absReferencePath);
-        subItem->setScope(projectContext.scope);
-        subItem->setParent(projectContext.item);
-        additionalProjectChildren << subItem;
-        if (subItem->type() == ItemType::Product)
-            additionalProjectChildren << multiplexProductItem(&dummyProductContext, subItem);
     }
     foreach (Item * const subItem, additionalProjectChildren) {
         Item::addChild(projectContext.item, subItem);
@@ -537,10 +518,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
                           QSet<QString>(referencedFilePaths) << subItem->file()->filePath());
             break;
         default:
-            throw ErrorInfo(Tr::tr("The top-level item of a file in a \"references\" list must be "
-                                   "a Product or a Project, but it is \"%1\".")
-                            .arg(subItem->typeName()),
-                            subItem->location());
+            break;
         }
     }
     m_reader->popExtraSearchPaths();
@@ -788,14 +766,24 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
     if (!subProjectEnabled)
         return;
 
-    const QString projectFileDirPath = FileInfo::path(projectItem->file()->filePath());
-    const QString relativeFilePath
-            = m_evaluator->stringValue(projectItem, QLatin1String("filePath"));
-    QString subProjectFilePath = FileInfo::resolvePath(projectFileDirPath, relativeFilePath);
-    if (referencedFilePaths.contains(subProjectFilePath))
-        throw ErrorInfo(Tr::tr("Cycle detected while loading subproject file '%1'.")
+    Item *loadedItem;
+    QString subProjectFilePath;
+    try {
+        const QString projectFileDirPath = FileInfo::path(projectItem->file()->filePath());
+        const QString relativeFilePath
+                = m_evaluator->stringValue(projectItem, QLatin1String("filePath"));
+        subProjectFilePath = FileInfo::resolvePath(projectFileDirPath, relativeFilePath);
+        if (referencedFilePaths.contains(subProjectFilePath))
+            throw ErrorInfo(Tr::tr("Cycle detected while loading subproject file '%1'.")
                             .arg(relativeFilePath), projectItem->location());
-    Item *loadedItem = m_reader->readFile(subProjectFilePath);
+        loadedItem = m_reader->readFile(subProjectFilePath);
+    } catch (const ErrorInfo &error) {
+        if (m_parameters.productErrorMode() == ErrorHandlingMode::Strict)
+            throw;
+        m_logger.printWarning(error);
+        return;
+    }
+
     loadedItem = wrapInProjectIfNecessary(loadedItem);
     const bool inheritProperties
             = m_evaluator->boolValue(projectItem, QLatin1String("inheritProperties"), true);
@@ -814,6 +802,49 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
     projectItem->setScope(projectContext->scope);
     handleProject(projectContext->result, projectContext->topLevelProject, loadedItem,
                   QSet<QString>(referencedFilePaths) << subProjectFilePath);
+}
+
+QList<Item *> ModuleLoader::loadReferencedFile(const QString &relativePath,
+                                               const CodeLocation &referencingLocation,
+                                               const QSet<QString> &referencedFilePaths,
+                                               ModuleLoader::ProductContext &dummyContext)
+{
+    QString absReferencePath = FileInfo::resolvePath(FileInfo::path(referencingLocation.filePath()),
+                                                     relativePath);
+    if (FileInfo(absReferencePath).isDir()) {
+        QString qbsFilePath;
+        QDirIterator dit(absReferencePath, QStringList(QLatin1String("*.qbs")));
+        while (dit.hasNext()) {
+            if (!qbsFilePath.isEmpty()) {
+                throw ErrorInfo(Tr::tr("Referenced directory '%1' contains more than one "
+                                       "qbs file.").arg(absReferencePath), referencingLocation);
+            }
+            qbsFilePath = dit.next();
+        }
+        if (qbsFilePath.isEmpty()) {
+            throw ErrorInfo(Tr::tr("Referenced directory '%1' does not contain a qbs file.")
+                            .arg(absReferencePath), referencingLocation);
+        }
+        absReferencePath = qbsFilePath;
+    }
+    if (referencedFilePaths.contains(absReferencePath))
+        throw ErrorInfo(Tr::tr("Cycle detected while referencing file '%1'.").arg(relativePath),
+                        referencingLocation);
+    Item * const subItem = m_reader->readFile(absReferencePath);
+    if (subItem->type() != ItemType::Project && subItem->type() != ItemType::Product) {
+        ErrorInfo error(Tr::tr("Item type should be 'Product' or 'Project', but is '%1'.")
+                        .arg(subItem->typeName()));
+        error.append(Tr::tr("Item is defined here."), subItem->location());
+        error.append(Tr::tr("File is referenced here."), referencingLocation);
+        throw  error;
+    }
+    subItem->setScope(dummyContext.project->scope);
+    subItem->setParent(dummyContext.project->item);
+    QList<Item *> loadedItems;
+    loadedItems << subItem;
+    if (subItem->type() == ItemType::Product)
+        loadedItems << multiplexProductItem(&dummyContext, subItem);
+    return loadedItems;
 }
 
 void ModuleLoader::handleGroup(Item *groupItem)

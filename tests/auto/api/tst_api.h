@@ -112,6 +112,8 @@ private slots:
     void projectWithPropertiesItem();
     void propertiesBlocks();
     void rc();
+    void referencedFileErrors();
+    void referencedFileErrors_data();
     void references();
     void relaxedModeRecovery();
     void removeFileDependency();
