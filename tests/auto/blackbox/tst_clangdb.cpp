@@ -139,6 +139,11 @@ void TestClangDb::checkDbIsConsistentWithProject()
     QVERIFY(entry.value("file").isString());
     QVERIFY(entry.value("file").toString() == sourceFilePath);
 
+    qbs::Settings settings((QString()));
+    qbs::Profile profile(profileName(), &settings);
+    if (profile.value("qbs.toolchain").toStringList().contains("msvc"))
+        QSKIP("MSVC command line is not self-contained");
+
     // Validate the compile command itself, this requires a previous build since the command
     // line contains 'deep' path that are creating during Qbs build run
     QByteArray stdErr;
