@@ -37,13 +37,6 @@ class TestClangDb : public TestBlackboxBase
 
 public:
     TestClangDb();
-    ~TestClangDb();
-
-    const QString projectDir;
-    const QString projectFileName;
-    const QString buildDir;
-    const QString sourceFilePath;
-    const QString dbFilePath;
 
 private slots:
     void initTestCase();
@@ -56,6 +49,12 @@ private slots:
 private:
     static int runProcess(const QString &exec, const QStringList &args, QByteArray &stdErr,
                           QByteArray &stdOut);
+
+    const QString projectDir;
+    const QString projectFileName;
+    const QString buildDir;
+    const QString sourceFilePath;
+    const QString dbFilePath;
 };
 
 #endif // Include guard.

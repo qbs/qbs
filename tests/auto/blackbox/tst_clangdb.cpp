@@ -84,10 +84,6 @@ TestClangDb::TestClangDb() : TestBlackboxBase(SRCDIR "/testdata-clangdb", "black
 {
 }
 
-TestClangDb::~TestClangDb()
-{
-}
-
 void TestClangDb::initTestCase()
 {
     TestBlackboxBase::initTestCase();
@@ -145,7 +141,7 @@ void TestClangDb::checkDbIsConsistentWithProject()
         QSKIP("MSVC command line is not self-contained");
 
     // Validate the compile command itself, this requires a previous build since the command
-    // line contains 'deep' path that are creating during Qbs build run
+    // line contains 'deep' path that are created during Qbs build run
     QByteArray stdErr;
     QByteArray stdOut;
     QStringList arguments;
