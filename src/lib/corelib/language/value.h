@@ -102,7 +102,8 @@ class JSSourceValue : public Value
         SourceUsesBase = 0x01,
         SourceUsesOuter = 0x02,
         SourceUsesOriginal = 0x04,
-        HasFunctionForm = 0x08
+        HasFunctionForm = 0x08,
+        ExclusiveListValue = 0x10,
     };
     Q_DECLARE_FLAGS(Flags, Flag)
 
@@ -132,6 +133,8 @@ public:
     bool isInExportItem() const { return m_exportScope; }
     bool hasFunctionForm() const { return m_flags.testFlag(HasFunctionForm); }
     void setHasFunctionForm(bool b);
+    void setIsExclusiveListValue() { m_flags |= ExclusiveListValue; }
+    bool isExclusiveListValue() { return m_flags.testFlag(ExclusiveListValue); }
 
     const JSSourceValuePtr &baseValue() const { return m_baseValue; }
     void setBaseValue(const JSSourceValuePtr &v) { m_baseValue = v; }
@@ -139,6 +142,7 @@ public:
     struct Alternative
     {
         QString condition;
+        QString overrideListProperties;
         JSSourceValuePtr value;
     };
 

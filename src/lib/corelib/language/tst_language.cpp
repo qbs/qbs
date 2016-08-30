@@ -1097,6 +1097,7 @@ void TestLanguage::moduleProperties_data()
     QTest::newRow("list_property_depending_on_overridden_property")
             << "listProp2"
             << (QStringList() << "PRODUCT_STUFF" << "DEFAULT_STUFF" << "EXTRA_STUFF");
+    QTest::newRow("overridden_list_property") << "listProp" << (QStringList() << "PRODUCT_STUFF");
     QTest::newRow("cleanup") << QString() << QStringList();
 }
 

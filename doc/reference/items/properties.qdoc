@@ -102,5 +102,13 @@
             \li bool
             \li none - must be specified
             \li The condition to be used for the other bindings in this item.
+        \row
+            \li overrideListProperties
+            \li bool
+            \li \c false
+            \li List properties set within this item will override the values coming from
+                modules, rather than getting merged with them, which is the default behavior.
+                Use this in the rare case that a module you depend on inserts a value into
+                a list property that is problematic for some product.
     \endtable
 */

@@ -195,6 +195,7 @@ private:
                 pushItemScopes(alternative->value->definingItem());
             engine->currentContext()->pushScope(conditionScope);
             const QScriptValue cr = engine->evaluate(alternative->condition);
+            const QScriptValue overrides = engine->evaluate(alternative->overrideListProperties);
             engine->currentContext()->popScope();
             engine->currentContext()->popScope();
             popScopes();
@@ -217,6 +218,8 @@ private:
                     outerItem = Item::create(data->item->pool());
                     outerItem->setProperty(propertyName->toString(), outerValue);
                 }
+                if (overrides.toBool())
+                    value->setIsExclusiveListValue();
                 value = alternative->value.data();
                 break;
             }
@@ -387,6 +390,11 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
         if (v.isUndefined())
             continue;
         lst << v;
+        if (next->type() == Value::JSSourceValueType
+                && next.staticCast<JSSourceValue>()->isExclusiveListValue()) {
+            lst = lst.mid(lst.length() - 2);
+            break;
+        }
     }
     m_currentNextChain = oldNextChain;
 

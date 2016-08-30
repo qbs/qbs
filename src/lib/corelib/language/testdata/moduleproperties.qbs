@@ -37,4 +37,14 @@ Project {
         dummy.listProp2: ["PRODUCT_STUFF"]
         dummy.controllingProp: true
     }
+
+    Product {
+        name: "overridden_list_property"
+        Depends { name: "dummy" }
+        Properties {
+            condition: true
+            overrideListProperties: true
+            dummy.listProp: ["PRODUCT_STUFF"]
+        }
+    }
 }

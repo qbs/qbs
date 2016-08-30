@@ -76,12 +76,13 @@ void ASTPropertiesItemHandler::setupAlternatives()
 class PropertiesBlockConverter
 {
 public:
-    PropertiesBlockConverter(const QString &condition, Item *propertiesBlockContainer,
-                             const Item *propertiesBlock)
+    PropertiesBlockConverter(const QString &condition, const QString &overrideListProperties,
+                             Item *propertiesBlockContainer, const Item *propertiesBlock)
         : m_propertiesBlockContainer(propertiesBlockContainer)
         , m_propertiesBlock(propertiesBlock)
     {
         m_alternative.condition = condition;
+        m_alternative.overrideListProperties = overrideListProperties;
     }
 
     void apply()
@@ -98,8 +99,11 @@ private:
     {
         for (auto it = inner->properties().constBegin();
                 it != inner->properties().constEnd(); ++it) {
-            if (inner == m_propertiesBlock && it.key() == QLatin1String("condition"))
+            if (inner == m_propertiesBlock
+                    && (it.key() == QLatin1String("condition")
+                        || it.key() == QLatin1String("overrideListProperties"))) {
                 continue;
+            }
             if (it.value()->type() == Value::ItemValueType) {
                 ItemValuePtr outerVal = outer->itemProperty(it.key());
                 if (!outerVal) {
@@ -138,18 +142,44 @@ private:
     }
 };
 
+static QString getPropertyString(const Item *propertiesItem, const QString &name)
+{
+    const ValuePtr value = propertiesItem->property(name);
+    if (!value) {
+        if (name == QLatin1String("condition")) {
+            throw ErrorInfo(Tr::tr("Properties.condition must be provided."),
+                            propertiesItem->location());
+        }
+        return QLatin1String("false");
+    }
+    if (Q_UNLIKELY(value->type() != Value::JSSourceValueType)) {
+        throw ErrorInfo(Tr::tr("Properties.%1 must be a value binding.").arg(name),
+                    propertiesItem->location());
+    }
+    if (name == QLatin1String("overrideListProperties")) {
+        const Item *parent = propertiesItem->parent();
+        while (parent) {
+            if (parent->type() == ItemType::Product)
+                break;
+            parent = parent->parent();
+        }
+        if (!parent) {
+            throw ErrorInfo(Tr::tr("Properties.overrideListProperties can only be set "
+                                   "in a Product item."));
+        }
+
+    }
+    const JSSourceValuePtr srcval = value.staticCast<JSSourceValue>();
+    return srcval->sourceCodeForEvaluation();
+}
+
 void ASTPropertiesItemHandler::handlePropertiesBlock(const Item *propertiesItem)
 {
-    const ValuePtr value = propertiesItem->property(QLatin1String("condition"));
-    if (Q_UNLIKELY(!value))
-        throw ErrorInfo(Tr::tr("Properties.condition must be provided."),
-                    propertiesItem->location());
-    if (Q_UNLIKELY(value->type() != Value::JSSourceValueType))
-        throw ErrorInfo(Tr::tr("Properties.condition must be a value binding."),
-                    propertiesItem->location());
-    const JSSourceValuePtr srcval = value.staticCast<JSSourceValue>();
-    const QString condition = srcval->sourceCodeForEvaluation();
-    PropertiesBlockConverter(condition, m_parentItem, propertiesItem).apply();
+    const QString condition = getPropertyString(propertiesItem, QLatin1String("condition"));
+    const QString overrideListProperties = getPropertyString(propertiesItem,
+            QLatin1String("overrideListProperties"));
+    PropertiesBlockConverter(condition, overrideListProperties, m_parentItem,
+                             propertiesItem).apply();
 }
 
 } // namespace Internal
