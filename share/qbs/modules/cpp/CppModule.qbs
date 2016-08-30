@@ -131,11 +131,14 @@ Module {
 
     property pathList includePaths
     property pathList systemIncludePaths
+    property pathList distributionIncludePaths
     property pathList compilerIncludePaths
     property pathList libraryPaths
+    property pathList distributionLibraryPaths
     property pathList compilerLibraryPaths
     property pathList frameworkPaths
     property pathList systemFrameworkPaths
+    property pathList distributionFrameworkPaths
     property pathList compilerFrameworkPaths
     property stringList systemRunPaths: []
 

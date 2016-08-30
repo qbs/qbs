@@ -68,6 +68,7 @@ static QStringList collectCppIncludePaths(const QVariantMap &modules)
     result
         << cpp.value(QLatin1String("includePaths")).toStringList()
         << cpp.value(QLatin1String("systemIncludePaths")).toStringList()
+        << cpp.value(QLatin1String("distributionIncludePaths")).toStringList()
         << cpp.value(QLatin1String("compilerIncludePaths")).toStringList();
     result.removeDuplicates();
     return result;

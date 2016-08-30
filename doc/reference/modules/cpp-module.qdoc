@@ -699,6 +699,31 @@
         \li List of library search paths that are used for all projects that are using the current
             toolchain. Determined automatically by probing the compiler.
             User project files usually do not set this property.
+    \row
+        \li distributionFrameworkPaths
+        \li \c{pathList}
+        \li 1.8
+        \li \c{undefined}
+        \li List of distribution-specific framework search paths, prioritized after \c{systemFrameworkPaths}.
+            Intended for use by module authors implementing support for new operating systems/distributions.
+            User project files should not set this property.
+    \row
+        \li distributionIncludePaths
+        \li \c{pathList}
+        \li 1.8
+        \li \c{undefined}
+        \li List of distribution-specific include paths that are passed as system include paths to the compiler,
+            prioritized after \c{systemIncludePaths}.
+            Intended for use by module authors implementing support for new operating systems/distributions.
+            User project files should not set this property.
+    \row
+        \li distributionLibraryPaths
+        \li \c{pathList}
+        \li 1.8
+        \li \c{undefined}
+        \li List of distribution-specific library search paths, prioritized after \c{systemLibraryPaths}.
+            Intended for use by module authors implementing support for new operating systems/distributions.
+            User project files should not set this property.
     \endtable
 
     \section1 Relevant File Tags
