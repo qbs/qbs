@@ -1,3 +1,5 @@
+requires(!cross_compile)
+
 defineTest(minQtVersion) {
     maj = $$1
     min = $$2
