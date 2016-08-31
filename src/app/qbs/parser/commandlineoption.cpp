@@ -455,7 +455,6 @@ QString ForceOutputCheckOption::longRepresentation() const
 
 QString BuildNonDefaultOption::description(CommandType command) const
 {
-    Q_ASSERT(command == BuildCommandType || command == InstallCommandType);
     Q_UNUSED(command);
     return Tr::tr("%1\n\tBuild all products, even if their builtByDefault property is false.\n")
             .arg(longRepresentation());
@@ -492,7 +491,6 @@ static QString magicSysrootString() { return QLatin1String("@sysroot"); }
 
 QString InstallRootOption::description(CommandType command) const
 {
-    Q_ASSERT(command == InstallCommandType || command == RunCommandType);
     Q_UNUSED(command);
     return Tr::tr("%1 <directory>\n"
                   "\tInstall into the given directory.\n"
@@ -536,7 +534,6 @@ QString RemoveFirstOption::longRepresentation() const
 
 QString NoBuildOption::description(CommandType command) const
 {
-    Q_ASSERT(command == InstallCommandType || command == RunCommandType);
     Q_UNUSED(command);
     return Tr::tr("%1\n\tDo not build before installing.\n")
             .arg(longRepresentation());
