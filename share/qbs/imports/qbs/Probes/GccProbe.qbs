@@ -41,9 +41,9 @@ PathProbe {
 
     property bool _haveArchFlag: qbs.targetOS.contains("darwin")
     property string _nullDevice: qbs.nullDevice
-    property string _toolchain: qbs.toolchain
+    property stringList _toolchain: qbs.toolchain
     property string _pathListSeparator: qbs.pathListSeparator
-    property string _targetOS: qbs.targetOS
+    property stringList _targetOS: qbs.targetOS
     property string _sysroot: qbs.sysroot
 
     // Outputs
