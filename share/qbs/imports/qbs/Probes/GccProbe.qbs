@@ -84,13 +84,13 @@ PathProbe {
         architecture = ModUtils.guessArchitecture(macros) || preferredArchitecture;
 
         if (_toolchain.contains("clang")) {
-            versionMajor = macros["__clang_major__"];
-            versionMinor = macros["__clang_minor__"];
-            versionPatch = macros["__clang_patchlevel__"];
+            versionMajor = parseInt(macros["__clang_major__"], 10);
+            versionMinor = parseInt(macros["__clang_minor__"], 10);
+            versionPatch = parseInt(macros["__clang_patchlevel__"], 10);
         } else {
-            versionMajor = macros["__GNUC__"];
-            versionMinor = macros["__GNUC_MINOR__"];
-            versionPatch = macros["__GNUC_PATCHLEVEL__"];
+            versionMajor = parseInt(macros["__GNUC__"], 10);
+            versionMinor = parseInt(macros["__GNUC_MINOR__"], 10);
+            versionPatch = parseInt(macros["__GNUC_PATCHLEVEL__"], 10);
         }
     }
 }
