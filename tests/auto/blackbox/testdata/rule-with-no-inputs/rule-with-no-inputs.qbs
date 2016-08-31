@@ -4,7 +4,7 @@ import qbs.TextFile
 Product {
     name: "theProduct"
     type: ["output"]
-    property int version: 1
+    version: "1"
     Rule {
         inputs: []
         multiplex: true

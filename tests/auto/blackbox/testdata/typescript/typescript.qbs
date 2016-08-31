@@ -5,7 +5,7 @@ Project {
         Depends { name: "typescript" }
         Depends { name: "lib" }
 
-        typescript.warningLevel: ["pedantic"]
+        typescript.warningLevel: "pedantic"
         typescript.generateDeclarations: true
         typescript.moduleLoader: "commonjs"
         nodejs.applicationFile: "main.ts"

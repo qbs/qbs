@@ -85,7 +85,7 @@ Project {
     }
     Product {
         name: "condition_refers_to_product_property"
-        property string narf: true
+        property bool narf: true
         property string someString: "SOMETHING"
         Depends { name: "dummy" }
         Properties {
@@ -94,7 +94,7 @@ Project {
             someString: "OVERWRITTEN"
         }
     }
-    property string zort: true
+    property bool zort: true
     Product {
         name: "condition_refers_to_project_property"
         property string someString: "SOMETHING"
