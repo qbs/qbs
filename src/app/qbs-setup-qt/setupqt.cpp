@@ -286,9 +286,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
 static bool isToolchainProfile(const Profile &profile)
 {
     const QSet<QString> actual = profile.allKeys(Profile::KeySelectionRecursive).toSet();
-    QSet<QString> expected = QSet<QString>()
-            << QLatin1String("qbs.toolchain")
-            << QLatin1String("qbs.architecture");
+    QSet<QString> expected = QSet<QString>() << QLatin1String("qbs.toolchain");
     if (HostOsInfo::isMacosHost())
         expected.insert(QLatin1String("qbs.targetOS")); // match only Xcode profiles
     return QSet<QString>(actual).unite(expected) == actual;
