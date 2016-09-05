@@ -170,7 +170,6 @@ BuildOptions CommandLineParser::buildOptions(const QString &profile) const
 
 CleanOptions CommandLineParser::cleanOptions(const QString &profile) const
 {
-    Q_ASSERT(command() == CleanCommandType);
     CleanOptions options;
     options.setDryRun(buildOptions(profile).dryRun());
     options.setKeepGoing(buildOptions(profile).keepGoing());
@@ -180,7 +179,6 @@ CleanOptions CommandLineParser::cleanOptions(const QString &profile) const
 
 GenerateOptions CommandLineParser::generateOptions() const
 {
-    Q_ASSERT(command() == GenerateCommandType);
     GenerateOptions options;
     options.setGeneratorName(d->optionPool.generatorOption()->generatorName());
     return options;
@@ -188,8 +186,6 @@ GenerateOptions CommandLineParser::generateOptions() const
 
 InstallOptions CommandLineParser::installOptions(const QString &profile) const
 {
-    Q_ASSERT(command() == InstallCommandType || command() == RunCommandType
-             || command() == GenerateCommandType);
     InstallOptions options;
     options.setRemoveExistingInstallation(d->optionPool.removeFirstoption()->enabled());
     options.setInstallRoot(d->optionPool.installRootOption()->installRoot());

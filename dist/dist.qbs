@@ -44,6 +44,7 @@ Product {
         "bin/iconengines/",
         "bin/imageformats/",
     ]
+    property bool includeTopLevelDir: false
 
     condition: qbs.targetOS.contains("windows")
     builtByDefault: false
@@ -52,6 +53,10 @@ Product {
     destinationDirectory: project.buildDirectory
 
     archiver.type: "zip"
+    Properties {
+        condition: includeTopLevelDir
+        archiver.workingDirectory: qbs.installRoot + "/.."
+    }
     archiver.workingDirectory: qbs.installRoot
 
     Rule {
@@ -121,7 +126,7 @@ Product {
                 return ModUtils.artifactInstalledFilePath(a);
             });
             cmd.outputFilePath = output.filePath;
-            cmd.installRoot = product.moduleProperty("qbs", "installRoot");
+            cmd.baseDirectory = product.moduleProperty("archiver", "workingDirectory");
             cmd.sourceCode = function() {
                 var tf;
                 for (var i = 0; i < inputs["dependencies.json"].length; ++i) {
@@ -148,7 +153,7 @@ Product {
                     tf = new TextFile(outputFilePath, TextFile.ReadWrite);
                     for (var i = 0; i < inputFilePaths.length; ++i) {
                         var ignore = false;
-                        var relativePath = FileInfo.relativePath(installRoot, inputFilePaths[i]);
+                        var relativePath = FileInfo.relativePath(baseDirectory, inputFilePaths[i]);
                         for (var j = 0; j < excludedPathPrefixes.length; ++j) {
                             if (relativePath.startsWith(excludedPathPrefixes[j])) {
                                 ignore = true;

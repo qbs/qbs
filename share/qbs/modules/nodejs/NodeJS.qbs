@@ -42,12 +42,12 @@ Module {
 
     Probes.NodeJsProbe {
         id: nodejs
-        pathPrefixes: [toolchainInstallPath]
+        pathPrefixes: toolchainInstallPath ? [toolchainInstallPath] : []
     }
 
     Probes.NpmProbe {
         id: npm
-        pathPrefixes: [toolchainInstallPath]
+        pathPrefixes: toolchainInstallPath ? [toolchainInstallPath] : []
     }
 
     property path applicationFile

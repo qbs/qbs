@@ -39,13 +39,18 @@ function args(product, input, outputFileName)
     var includePaths = ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'includePaths');
     includePaths = includePaths.uniqueConcat(ModUtils.modulePropertiesFromArtifacts(
                                                  product, [input], 'cpp', 'systemIncludePaths'));
-    includePaths = includePaths.uniqueConcat(ModUtils.modulePropertiesFromArtifacts(
+    var useCompilerPaths = product.moduleProperty("Qt.core", "versionMajor") >= 5;
+    if (useCompilerPaths) {
+        includePaths = includePaths.uniqueConcat(ModUtils.modulePropertiesFromArtifacts(
                                                  product, [input], 'cpp', 'compilerIncludePaths'));
+    }
     var frameworkPaths = product.moduleProperty("cpp", "frameworkPaths");
     frameworkPaths = frameworkPaths.uniqueConcat(
                 product.moduleProperty("cpp", "systemFrameworkPaths"));
-    frameworkPaths = frameworkPaths.uniqueConcat(
-                product.moduleProperty("cpp", "compilerFrameworkPaths"));
+    if (useCompilerPaths) {
+        frameworkPaths = frameworkPaths.uniqueConcat(
+                    product.moduleProperty("cpp", "compilerFrameworkPaths"));
+    }
     var pluginMetaData = product.moduleProperty("Qt.core", "pluginMetaData");
     var args = [];
     args = args.concat(

@@ -40,7 +40,7 @@ import "utils.js" as JavaUtils
 Module {
     Probes.JdkProbe {
         id: jdk
-        environmentPaths: [jdkPath].concat(base)
+        environmentPaths: (jdkPath ? [jdkPath] : []).concat(base)
     }
 
     property stringList additionalClassPaths
