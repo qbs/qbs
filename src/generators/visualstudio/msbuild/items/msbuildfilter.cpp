@@ -91,7 +91,7 @@ QList<QString> MSBuildFilter::extensions() const
 void MSBuildFilter::setExtensions(const QList<QString> &extensions)
 {
     d->extensions = extensions;
-    d->extensionsMetadata->setValue(extensions.join(
+    d->extensionsMetadata->setValue(QStringList(extensions).join(
                                         Internal::HostOsInfo::pathListSeparator(
                                             Internal::HostOsInfo::HostOsWindows)));
 }
