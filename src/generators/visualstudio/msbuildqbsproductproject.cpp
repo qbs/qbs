@@ -281,13 +281,20 @@ void MSBuildQbsProductProject::addItemDefGroup(const Project &project,
                          debugBuild ? QStringLiteral("false") : QStringLiteral("true"));
 }
 
+// No QSet::intersects until Qt 5.6
+template <class T> bool setIntersects(const QSet<T> &this_, const QSet<T> &other)
+{
+    QSet<T> s = this_;
+    return !s.intersect(other).isEmpty();
+}
+
 static MSBuildFileItem *fileItemForFileTags(const QList<QString> &fileTags,
                                             IMSBuildItemGroup *parent = 0)
 {
     const auto fileTagsSet = fileTags.toSet();
-    if (fileTagsSet.intersects(QSet<QString>() << QStringLiteral("hpp")))
+    if (setIntersects(fileTagsSet, QSet<QString>() << QStringLiteral("hpp")))
         return new MSBuildClInclude(parent);
-    if (fileTagsSet.intersects(QSet<QString>() << QStringLiteral("c") << QStringLiteral("cpp")))
+    if (setIntersects(fileTagsSet, QSet<QString>() << QStringLiteral("c") << QStringLiteral("cpp")))
         return new MSBuildClCompile(parent);
     return new MSBuildNone(parent);
 }
