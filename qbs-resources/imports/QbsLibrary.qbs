@@ -16,12 +16,12 @@ QbsProduct {
     property string headerInstallPrefix: "/include/qbs"
     Group {
         fileTagsFilter: product.type.concat("dynamiclibrary_symlink")
-        qbs.install: true
+        qbs.install: install
         qbs.installDir: qbsbuildconfig.libInstallDir
     }
     Group {
         fileTagsFilter: ["dynamiclibrary_import"]
-        qbs.install: true
+        qbs.install: install
         qbs.installDir: qbsbuildconfig.importLibInstallDir
     }
 

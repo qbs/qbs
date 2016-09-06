@@ -3,6 +3,7 @@ import qbs
 QbsLibrary {
     type: ["staticlibrary"]
     name: "clangcompilationdbgenerator"
+    install: false
 
     cpp.includePaths: base.concat([
         "../..",

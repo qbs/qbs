@@ -3,6 +3,7 @@ import qbs
 QbsLibrary {
     type: ["staticlibrary"]
     name: "visualstudiogenerator"
+    install: false
 
     cpp.includePaths: base.concat([
         "../..",
