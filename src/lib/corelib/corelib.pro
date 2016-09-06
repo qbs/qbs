@@ -21,8 +21,6 @@ include(logging/logging.pri)
 include(parser/parser.pri)
 include(tools/tools.pri)
 
-include(../../generators/visualstudio/visualstudio.pri)
-
 win32:LIBS += -lpsapi -lshell32
 
 HEADERS += \

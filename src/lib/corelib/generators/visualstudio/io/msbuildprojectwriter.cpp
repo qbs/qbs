@@ -30,16 +30,16 @@
 
 #include "msbuildprojectwriter.h"
 
-#include "msbuild/imsbuildnodevisitor.h"
-#include "msbuild/msbuildimport.h"
-#include "msbuild/msbuildimportgroup.h"
-#include "msbuild/msbuilditem.h"
-#include "msbuild/msbuilditemdefinitiongroup.h"
-#include "msbuild/msbuilditemgroup.h"
-#include "msbuild/msbuilditemmetadata.h"
-#include "msbuild/msbuildproject.h"
-#include "msbuild/msbuildproperty.h"
-#include "msbuild/msbuildpropertygroup.h"
+#include "../msbuild/imsbuildnodevisitor.h"
+#include "../msbuild/msbuildimport.h"
+#include "../msbuild/msbuildimportgroup.h"
+#include "../msbuild/msbuilditem.h"
+#include "../msbuild/msbuilditemdefinitiongroup.h"
+#include "../msbuild/msbuilditemgroup.h"
+#include "../msbuild/msbuilditemmetadata.h"
+#include "../msbuild/msbuildproject.h"
+#include "../msbuild/msbuildproperty.h"
+#include "../msbuild/msbuildpropertygroup.h"
 
 #include <QXmlStreamWriter>
 

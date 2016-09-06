@@ -2,7 +2,8 @@ import qbs 1.0
 import QbsFunctions
 
 QbsLibrary {
-    Depends { name: "visualstudio" }
+    Depends { name: "clangcompilationdbgenerator" }
+    Depends { name: "visualstudiogenerator" }
     Depends { name: "cpp" }
     Depends { name: "Qt"; submodules: ["core-private", "network", "script", "xml"] }
     Depends { condition: qbsbuildconfig.enableProjectFileUpdates; name: "Qt.gui" }
@@ -171,14 +172,6 @@ QbsLibrary {
             "generatordata.cpp",
             "generatordata.h",
             "igeneratableprojectvisitor.h",
-        ]
-    }
-    Group {
-        name: "Clang Compilation Database generator"
-        prefix: "generators/clangcompilationdb/"
-        files: [
-            "clangcompilationdbgenerator.cpp",
-            "clangcompilationdbgenerator.h"
         ]
     }
     Group {

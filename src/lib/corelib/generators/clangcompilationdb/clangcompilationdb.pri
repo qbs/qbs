@@ -1,5 +1,5 @@
+HEADERS += \
+    $$PWD/clangcompilationdbgenerator.h
+
 SOURCES += \
     $$PWD/clangcompilationdbgenerator.cpp
-
-HEADERS +=
-    $$PWD/clangcompilationdbgenerator.h

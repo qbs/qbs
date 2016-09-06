@@ -2,11 +2,10 @@ import qbs
 
 QbsLibrary {
     type: ["staticlibrary"]
-    name: "visualstudio"
+    name: "visualstudiogenerator"
 
     cpp.includePaths: base.concat([
-        ".",
-        "../../lib/corelib",
+        "../..",
     ])
 
     Depends { name: "cpp" }

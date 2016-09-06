@@ -49,7 +49,7 @@
 #include <QLibrary>
 
 #include "generators/clangcompilationdb/clangcompilationdbgenerator.h"
-#include "../../generators/visualstudio/visualstudiogenerator.h"
+#include "generators/visualstudio/visualstudiogenerator.h"
 
 namespace qbs {
 
@@ -72,7 +72,7 @@ ProjectGeneratorManager *ProjectGeneratorManager::instance()
 ProjectGeneratorManager::ProjectGeneratorManager()
 {
     QVector<QSharedPointer<ProjectGenerator> > generators;
-    generators << QSharedPointer<ProjectGenerator>(new qbs::ClangCompilationDatabaseGenerator());
+    generators << QSharedPointer<ClangCompilationDatabaseGenerator>::create();
     generators << qbs::VisualStudioGenerator::createGeneratorList();
     foreach (QSharedPointer<ProjectGenerator> generator, generators) {
         m_generators[generator->generatorName()] = generator;

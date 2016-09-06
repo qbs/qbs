@@ -1,7 +1,3 @@
-INCLUDEPATH += \
-    $$PWD \
-    $$PWD/../../lib/corelib
-
 HEADERS += \
     $$PWD/msbuildfiltersproject.h \
     $$PWD/msbuildqbsgenerateproject.h \

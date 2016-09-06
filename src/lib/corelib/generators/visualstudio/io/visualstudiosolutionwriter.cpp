@@ -30,10 +30,10 @@
 
 #include "visualstudiosolutionwriter.h"
 
-#include "solution/visualstudiosolutionfileproject.h"
-#include "solution/visualstudiosolutionfolderproject.h"
-#include "solution/visualstudiosolutionglobalsection.h"
-#include "solution/visualstudiosolution.h"
+#include "../solution/visualstudiosolutionfileproject.h"
+#include "../solution/visualstudiosolutionfolderproject.h"
+#include "../solution/visualstudiosolutionglobalsection.h"
+#include "../solution/visualstudiosolution.h"
 
 #include <tools/hostosinfo.h>
 #include <tools/pathutils.h>
