@@ -67,7 +67,7 @@ QString commandEchoModeName(CommandEchoMode mode)
 CommandEchoMode commandEchoModeFromName(const QString &name)
 {
     CommandEchoMode mode = defaultCommandEchoMode();
-    for (int i = 0; i <= static_cast<int>(CommandEchoModeLast); ++i) {
+    for (int i = 0; i < CommandEchoModeInvalid; ++i) {
         if (commandEchoModeName(static_cast<CommandEchoMode>(i)) == name) {
             mode = static_cast<CommandEchoMode>(i);
             break;
@@ -80,7 +80,7 @@ CommandEchoMode commandEchoModeFromName(const QString &name)
 QStringList allCommandEchoModeStrings()
 {
     QStringList result;
-    for (int i = 0; i <= static_cast<int>(CommandEchoModeLast); ++i)
+    for (int i = 0; i < CommandEchoModeInvalid; ++i)
         result << commandEchoModeName(static_cast<CommandEchoMode>(i));
     return result;
 }

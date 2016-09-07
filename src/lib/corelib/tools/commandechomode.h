@@ -42,7 +42,7 @@ enum CommandEchoMode {
     CommandEchoModeSummary,
     CommandEchoModeCommandLine,
     CommandEchoModeCommandLineWithEnvironment,
-    CommandEchoModeLast = CommandEchoModeCommandLineWithEnvironment
+    CommandEchoModeInvalid,
 };
 
 QBS_EXPORT CommandEchoMode defaultCommandEchoMode();

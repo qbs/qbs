@@ -628,7 +628,7 @@ CommandEchoMode CommandLineParser::CommandLineParserPrivate::echoMode() const
     if (command->type() == GenerateCommandType)
         return CommandEchoModeSilent;
 
-    if (optionPool.commandEchoModeOption()->commandEchoMode() >= 0)
+    if (optionPool.commandEchoModeOption()->commandEchoMode() < CommandEchoModeInvalid)
         return optionPool.commandEchoModeOption()->commandEchoMode();
 
     return defaultCommandEchoMode();
