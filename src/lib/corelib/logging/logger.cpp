@@ -213,6 +213,13 @@ bool Logger::traceEnabled() const
     return m_logSink->willPrint(LoggerTrace);
 }
 
+void Logger::printWarning(const ErrorInfo &warning)
+{
+    if (m_storeWarnings)
+        m_warnings << warning;
+    logSink()->printWarning(warning);
+}
+
 LogWriter Logger::qbsLog(LoggerLevel level, bool force) const
 {
     return LogWriter(m_logSink, level, force);

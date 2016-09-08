@@ -67,6 +67,8 @@
 #include <QMutexLocker>
 #include <QScriptValue>
 
+#include <algorithm>
+
 namespace qbs {
 namespace Internal {
 
@@ -974,7 +976,7 @@ QString TopLevelProject::buildGraphFilePath() const
     return ProjectBuildData::deriveBuildGraphFilePath(buildDirectory, id());
 }
 
-void TopLevelProject::store(const Logger &logger) const
+void TopLevelProject::store(Logger logger) const
 {
     // TODO: Use progress observer here.
 
@@ -1012,6 +1014,13 @@ void TopLevelProject::load(PersistentPool &pool)
     pool.stream() >> profileConfigs;
     pool.stream() >> buildSystemFiles;
     pool.stream() >> lastResolveTime;
+    int warningsCount;
+    pool.stream() >> warningsCount;
+    for (int i = 0; i < warningsCount; ++i) {
+        ErrorInfo e;
+        e.load(pool);
+        warningsEncountered << e;
+    }
     buildData.reset(pool.idLoad<ProjectBuildData>());
     QBS_CHECK(buildData);
     buildData->isDirty = false;
@@ -1033,6 +1042,9 @@ void TopLevelProject::store(PersistentPool &pool) const
     pool.stream() << profileConfigs;
     pool.stream() << buildSystemFiles;
     pool.stream() << lastResolveTime;
+    pool.stream() << warningsEncountered.count();
+    std::for_each(warningsEncountered.constBegin(), warningsEncountered.constEnd(),
+                  [&pool](const ErrorInfo &e) { e.store(pool); });
     pool.store(buildData.data());
 }
 

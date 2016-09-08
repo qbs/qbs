@@ -112,7 +112,7 @@ struct ModuleLoaderResult
 class ModuleLoader
 {
 public:
-    ModuleLoader(ScriptEngine *engine, const Logger &logger);
+    ModuleLoader(ScriptEngine *engine, Logger &logger);
     ~ModuleLoader();
 
     void setProgressObserver(ProgressObserver *progressObserver);
@@ -264,7 +264,7 @@ private:
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;
-    Logger m_logger;
+    Logger &m_logger;
     ProgressObserver *m_progressObserver;
     ItemReader *m_reader;
     Evaluator *m_evaluator;

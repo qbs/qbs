@@ -39,9 +39,14 @@
 
 #include "error.h"
 
+#include "persistence.h"
+
 #include <QRegularExpression>
 #include <QSharedData>
 #include <QStringList>
+
+#include <algorithm>
+#include <functional>
 
 namespace qbs {
 
@@ -100,6 +105,20 @@ CodeLocation ErrorItem::codeLocation() const
 bool ErrorItem::isBacktraceItem() const
 {
     return d->isBacktraceItem;
+}
+
+void ErrorItem::load(Internal::PersistentPool &pool)
+{
+    d->description = pool.idLoadString();
+    d->codeLocation.load(pool);
+    pool.stream() >> d->isBacktraceItem;
+}
+
+void ErrorItem::store(Internal::PersistentPool &pool) const
+{
+    pool.storeString(d->description);
+    d->codeLocation.store(pool);
+    pool.stream() << d->isBacktraceItem;
 }
 
 /*!
@@ -243,6 +262,26 @@ QString ErrorInfo::toString() const
 bool ErrorInfo::isInternalError() const
 {
     return d->internalError;
+}
+
+void ErrorInfo::load(Internal::PersistentPool &pool)
+{
+    int itemCount;
+    pool.stream() >> itemCount;
+    for (int i = 0; i < itemCount; ++i) {
+        ErrorItem e;
+        e.load(pool);
+        d->items << e;
+    }
+    pool.stream() >> d->internalError;
+}
+
+void ErrorInfo::store(Internal::PersistentPool &pool) const
+{
+    pool.stream() << d->items.count();
+    std::for_each(d->items.constBegin(), d->items.constEnd(),
+                  [&pool](const ErrorItem &e) { e.store(pool); });
+    pool.stream() << d->internalError;
 }
 
 } // namespace qbs

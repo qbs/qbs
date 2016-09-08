@@ -40,6 +40,7 @@
 #define QBS_RULESEVALUATIONCONTEXT_H
 
 #include <language/forward_decls.h>
+#include <logging/logger.h>
 
 #include <QHash>
 #include <QScriptProgram>
@@ -48,7 +49,6 @@
 
 namespace qbs {
 namespace Internal {
-class Logger;
 class ProgressObserver;
 class ScriptEngine;
 
@@ -84,6 +84,7 @@ private:
     void initScope();
     void cleanupScope();
 
+    Logger m_logger;
     ScriptEngine * const m_engine;
     ProgressObserver *m_observer;
     unsigned int m_initScopeCalls;

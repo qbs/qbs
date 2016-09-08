@@ -61,7 +61,7 @@ class ScriptEngine;
 class EvaluatorScriptClass : public QScriptClass
 {
 public:
-    EvaluatorScriptClass(ScriptEngine *scriptEngine, const Logger &logger);
+    EvaluatorScriptClass(ScriptEngine *scriptEngine, Logger &logger);
 
     QueryFlags queryProperty(const QScriptValue &object,
                              const QScriptString &name,
@@ -94,7 +94,7 @@ private:
         ValuePtr value;
     };
     QueryResult m_queryResult;
-    Logger m_logger;
+    Logger &m_logger;
     bool m_valueCacheEnabled;
     QStack<JSSourceValue *> m_sourceValueStack;
     QSet<Value *> m_currentNextChain;

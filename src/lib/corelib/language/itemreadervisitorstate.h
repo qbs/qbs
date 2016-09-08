@@ -53,7 +53,7 @@ class ItemPool;
 class ItemReaderVisitorState
 {
 public:
-    ItemReaderVisitorState(Logger logger);
+    ItemReaderVisitorState(Logger &logger);
     ~ItemReaderVisitorState();
 
     QSet<QString> filesRead() const { return m_filesRead; }
@@ -64,7 +64,7 @@ public:
     bool findDirectoryEntries(const QString &dirPath, QStringList *entries) const;
 
 private:
-    Logger m_logger;
+    Logger &m_logger;
     QSet<QString> m_filesRead;
     QHash<QString, QStringList> m_directoryEntries;
 

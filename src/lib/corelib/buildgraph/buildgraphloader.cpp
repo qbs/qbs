@@ -112,8 +112,11 @@ BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingPr
     }
     if (!m_result.loadedProject)
         return m_result;
-    if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
+    if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly) {
+        foreach (const ErrorInfo &e, existingProject->warningsEncountered)
+            m_logger.printWarning(e);
         return m_result;
+    }
     QBS_CHECK(parameters.restoreBehavior() == SetupProjectParameters::RestoreAndTrackChanges);
 
     trackProjectChanges();
@@ -233,8 +236,11 @@ void BuildGraphLoader::trackProjectChanges()
         reResolvingNecessary = true;
     }
 
-    if (!reResolvingNecessary)
+    if (!reResolvingNecessary) {
+        foreach (const ErrorInfo &e, restoredProject->warningsEncountered)
+            m_logger.printWarning(e);
         return;
+    }
 
     restoredProject->buildData->isDirty = true;
     Loader ldr(m_evalContext->engine(), m_logger);

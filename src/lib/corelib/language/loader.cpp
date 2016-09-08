@@ -62,6 +62,7 @@ Loader::Loader(ScriptEngine *engine, const Logger &logger)
     , m_progressObserver(0)
     , m_engine(engine)
 {
+    m_logger.storeWarnings();
 }
 
 void Loader::setProgressObserver(ProgressObserver *observer)
@@ -97,6 +98,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     m_engine->clearExceptions();
     m_engine->clearImportsCache();
     m_engine->clearRequestedProperties();
+    m_logger.clearWarnings();
 
     QTimer cancelationTimer;
 

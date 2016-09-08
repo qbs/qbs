@@ -42,6 +42,8 @@
 
 #include "ilogsink.h"
 
+#include <tools/error.h>
+
 #include <QByteArray>
 #include <QString>
 #include <QStringList>
@@ -104,6 +106,7 @@ QBS_EXPORT LogWriter operator<<(LogWriter w, qint64 n);
 QBS_EXPORT LogWriter operator<<(LogWriter w, bool b);
 QBS_EXPORT LogWriter operator<<(LogWriter w, const MessageTag &tag);
 
+
 class QBS_EXPORT Logger
 {
 public:
@@ -114,7 +117,10 @@ public:
     bool debugEnabled() const;
     bool traceEnabled() const;
 
-    void printWarning(const ErrorInfo &warning) { logSink()->printWarning(warning); }
+    void printWarning(const ErrorInfo &warning);
+    QList<ErrorInfo> warnings() const { return m_warnings; }
+    void clearWarnings() { m_warnings.clear(); }
+    void storeWarnings() { m_storeWarnings = true; }
 
     LogWriter qbsLog(LoggerLevel level, bool force = false) const;
     LogWriter qbsWarning() const { return qbsLog(LoggerWarning); }
@@ -124,6 +130,8 @@ public:
 
 private:
     ILogSink *m_logSink;
+    QList<ErrorInfo> m_warnings;
+    bool m_storeWarnings = false;
 };
 
 

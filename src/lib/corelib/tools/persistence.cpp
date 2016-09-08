@@ -50,9 +50,9 @@
 namespace qbs {
 namespace Internal {
 
-static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-89";
+static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-90";
 
-PersistentPool::PersistentPool(const Logger &logger) : m_logger(logger)
+PersistentPool::PersistentPool(Logger &logger) : m_logger(logger)
 {
     m_stream.setVersion(QDataStream::Qt_4_8);
 }

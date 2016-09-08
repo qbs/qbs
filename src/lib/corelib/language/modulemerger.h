@@ -54,7 +54,7 @@ namespace Internal {
 
 class ModuleMerger {
 public:
-    ModuleMerger(const Logger &logger, Item *root, Item::Module &moduleToMerge);
+    ModuleMerger(Logger &logger, Item *root, Item::Module &moduleToMerge);
     void start();
 
 private:
@@ -69,7 +69,7 @@ private:
     void replaceItemInValues(QualifiedId moduleName, Item *containerItem, Item *toReplace);
     void replaceItemInScopes(Item *toReplace);
 
-    const Logger &m_logger;
+    Logger &m_logger;
     Item * const m_rootItem;
     Item::Module &m_mergedModule;
     Item *m_clonedModulePrototype = nullptr;

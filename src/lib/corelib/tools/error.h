@@ -52,6 +52,7 @@ class QString;
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal { class PersistentPool; }
 class CodeLocation;
 
 class QBS_EXPORT ErrorItem
@@ -68,6 +69,9 @@ public:
     QString toString() const;
 
     bool isBacktraceItem() const;
+
+    void load(Internal::PersistentPool &pool);
+    void store(Internal::PersistentPool &pool) const;
 
 private:
     ErrorItem(const QString &description, const CodeLocation &codeLocation,
@@ -96,6 +100,9 @@ public:
     void clear();
     QString toString() const;
     bool isInternalError() const;
+
+    void load(Internal::PersistentPool &pool);
+    void store(Internal::PersistentPool &pool) const;
 
 private:
     class ErrorInfoPrivate;

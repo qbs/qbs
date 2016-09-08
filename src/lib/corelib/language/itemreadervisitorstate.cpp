@@ -105,7 +105,7 @@ private:
 class ItemReaderVisitorState::ASTCache : public QHash<QString, ASTCacheValue> {};
 
 
-ItemReaderVisitorState::ItemReaderVisitorState(Logger logger)
+ItemReaderVisitorState::ItemReaderVisitorState(Logger &logger)
     : m_logger(logger)
     , m_astCache(new ASTCache)
 {

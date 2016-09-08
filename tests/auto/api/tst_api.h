@@ -123,6 +123,7 @@ private slots:
     void resolveProject_data();
     void resolveProjectDryRun();
     void resolveProjectDryRun_data();
+    void restoredWarnings();
     void ruleConflict();
     void softDependency();
     void sourceFileInBuildDir();

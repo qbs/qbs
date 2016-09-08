@@ -144,7 +144,7 @@ UserDependencyScanner::UserDependencyScanner(const ResolvedScannerConstPtr &scan
         const Logger &logger)
     : m_scanner(scanner),
       m_logger(logger),
-      m_engine(new ScriptEngine(logger)),
+      m_engine(new ScriptEngine(m_logger)),
       m_observer(m_engine),
       m_product(0)
 {

@@ -64,11 +64,10 @@ class ScriptEngine : public QScriptEngine
 {
     Q_OBJECT
 public:
-    ScriptEngine(const Logger &logger, QObject *parent = 0);
+    ScriptEngine(Logger &logger, QObject *parent = 0);
     ~ScriptEngine();
 
-    void setLogger(const Logger &logger) { m_logger = logger; }
-    Logger logger() const { return m_logger; }
+    Logger &logger() const { return m_logger; }
     void import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject);
     void import(const JsImport &jsImport, QScriptValue &targetObject);
     void clearImportsCache();
@@ -172,7 +171,7 @@ private:
     QHash<PropertyCacheKey, QVariant> m_propertyCache;
     PropertySet m_propertiesRequestedInScript;
     QHash<QString, PropertySet> m_propertiesRequestedFromArtifact;
-    Logger m_logger;
+    Logger &m_logger;
     QScriptValue m_definePropertyFunction;
     QScriptValue m_emptyFunction;
     QProcessEnvironment m_environment;

@@ -499,6 +499,7 @@ public:
 
     QSet<QString> buildSystemFiles;
     FileTime lastResolveTime;
+    QList<ErrorInfo> warningsEncountered;
 
     void setBuildConfiguration(const QVariantMap &config);
     const QVariantMap &buildConfiguration() const { return m_buildConfiguration; }
@@ -507,7 +508,7 @@ public:
     QVariantMap profileConfigs;
 
     QString buildGraphFilePath() const;
-    void store(const Logger &logger) const;
+    void store(Logger logger) const;
 
 private:
     TopLevelProject();

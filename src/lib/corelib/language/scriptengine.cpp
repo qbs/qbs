@@ -86,7 +86,7 @@ uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed = 0)
                        combineHash(qHash(k.m_propertyName), qHash(k.m_propertyMap), seed), seed);
 }
 
-ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
+ScriptEngine::ScriptEngine(Logger &logger, QObject *parent)
     : QScriptEngine(parent), m_scriptImporter(new ScriptImporter(this)),
       m_propertyCacheEnabled(true), m_logger(logger)
 {

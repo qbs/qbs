@@ -62,14 +62,14 @@ class ProjectResolver
 {
 public:
     ProjectResolver(Evaluator *evaluator, const ModuleLoaderResult &loadResult,
-                    const SetupProjectParameters &setupParameters, const Logger &logger);
+                    const SetupProjectParameters &setupParameters, Logger &logger);
     ~ProjectResolver();
 
     void setProgressObserver(ProgressObserver *observer);
     TopLevelProjectPtr resolve();
 
     static void applyFileTaggers(const SourceArtifactPtr &artifact,
-            const ResolvedProductConstPtr &product, const Logger &logger);
+            const ResolvedProductConstPtr &product, Logger &logger);
 
     static SourceArtifactPtr createSourceArtifact(const ResolvedProductConstPtr &rproduct,
             const QString &fileName, const GroupPtr &group, bool wildcard,
@@ -119,7 +119,7 @@ private:
             const QList<SourceArtifactPtr> &artifacts);
 
     Evaluator *m_evaluator;
-    Logger m_logger;
+    Logger &m_logger;
     ScriptEngine *m_engine;
     ProgressObserver *m_progressObserver;
     ProductContext *m_productContext;

@@ -55,7 +55,7 @@ namespace qbs {
 namespace Internal {
 
 RulesEvaluationContext::RulesEvaluationContext(const Logger &logger)
-    : m_engine(new ScriptEngine(logger)), m_observer(0), m_initScopeCalls(0)
+    : m_logger(logger), m_engine(new ScriptEngine(m_logger)), m_observer(0), m_initScopeCalls(0)
 {
     m_prepareScriptScope = m_engine->newObject();
     m_prepareScriptScope.setPrototype(m_engine->globalObject());

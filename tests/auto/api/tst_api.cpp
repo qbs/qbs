@@ -1947,6 +1947,55 @@ void TestApi::resolveProjectDryRun_data()
     return resolveProject_data();
 }
 
+void TestApi::restoredWarnings()
+{
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("restored-warnings/restored-warnings.qbs");
+    setupParams.setPropertyCheckingMode(qbs::ErrorHandlingMode::Relaxed);
+    setupParams.setProductErrorMode(qbs::ErrorHandlingMode::Relaxed);
+
+    // Initial resolving: Errors are new.
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    job.reset(nullptr);
+    QCOMPARE(m_logSink->warnings.count(), 2);
+    foreach (const qbs::ErrorInfo &e, m_logSink->warnings) {
+        const QString msg = e.toString();
+        QVERIFY2(msg.contains("Superfluous version")
+                 || msg.contains("Property 'blubb' is not declared"),
+                 qPrintable(msg));
+    }
+    m_logSink->warnings.clear();
+
+    // Re-resolving with no changes: Errors come from the stored build graph.
+    job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    job.reset(nullptr);
+    QCOMPARE(m_logSink->warnings.count(), 2);
+    m_logSink->warnings.clear();
+
+    // Re-resolving with changes: Errors come from the re-resolving, stored ones must be suppressed.
+    QVariantMap overridenValues;
+    overridenValues.insert("theProduct.moreFiles", true);
+    setupParams.setOverriddenValues(overridenValues);
+    job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    job.reset(nullptr);
+    QCOMPARE(m_logSink->warnings.count(), 4); // One more for the additional group
+    foreach (const qbs::ErrorInfo &e, m_logSink->warnings) {
+        const QString msg = e.toString();
+        QVERIFY2(msg.contains("Superfluous version")
+                 || msg.contains("Property 'blubb' is not declared")
+                 || msg.contains("blubb.cpp' does not exist"),
+                 qPrintable(msg));
+    }
+    m_logSink->warnings.clear();
+}
+
 void TestApi::ruleConflict()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("rule-conflict/rule-conflict.qbs");

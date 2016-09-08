@@ -44,7 +44,7 @@
 namespace qbs {
 namespace Internal {
 
-ItemReader::ItemReader(const Logger &logger) : m_visitorState(new ItemReaderVisitorState(logger))
+ItemReader::ItemReader(Logger &logger) : m_visitorState(new ItemReaderVisitorState(logger))
 {
 }
 

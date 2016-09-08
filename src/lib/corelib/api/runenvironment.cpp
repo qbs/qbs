@@ -72,21 +72,21 @@ class RunEnvironment::RunEnvironmentPrivate
 public:
     RunEnvironmentPrivate(const ResolvedProductPtr &product, const InstallOptions &installOptions,
             const QProcessEnvironment &environment, Settings *settings, const Logger &logger)
-        : engine(logger)
-        , resolvedProduct(product)
+        : resolvedProduct(product)
         , installOptions(installOptions)
         , environment(environment)
         , settings(settings)
         , logger(logger)
+        , engine(this->logger)
     {
     }
 
-    ScriptEngine engine;
     const ResolvedProductPtr resolvedProduct;
     InstallOptions installOptions;
     const QProcessEnvironment environment;
     Settings * const settings;
     Logger logger;
+    ScriptEngine engine;
 };
 
 RunEnvironment::RunEnvironment(const ResolvedProductPtr &product,

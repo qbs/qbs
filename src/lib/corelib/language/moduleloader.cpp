@@ -173,7 +173,7 @@ private:
 };
 
 ModuleLoader::ModuleLoader(ScriptEngine *engine,
-                           const Logger &logger)
+                           Logger &logger)
     : m_engine(engine)
     , m_pool(0)
     , m_logger(logger)
@@ -262,7 +262,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
 }
 
 static void handlePropertyError(const ErrorInfo &error, const SetupProjectParameters &params,
-                                Logger logger)
+                                Logger &logger)
 {
     if (params.propertyCheckingMode() == ErrorHandlingMode::Strict)
         throw error;
@@ -275,10 +275,10 @@ class PropertyDeclarationCheck : public ValueHandler
     Item *m_parentItem;
     QString m_currentName;
     SetupProjectParameters m_params;
-    Logger m_logger;
+    Logger &m_logger;
 public:
     PropertyDeclarationCheck(const QSet<Item *> &disabledItems,
-                             const SetupProjectParameters &params, const Logger &logger)
+                             const SetupProjectParameters &params, Logger &logger)
         : m_disabledItems(disabledItems)
         , m_parentItem(0)
         , m_params(params)

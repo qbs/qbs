@@ -55,7 +55,7 @@ namespace Internal {
 class PersistentPool
 {
 public:
-    PersistentPool(const Logger &logger);
+    PersistentPool(Logger &logger);
     ~PersistentPool();
 
     class HeadData
@@ -122,7 +122,7 @@ private:
     QVector<QString> m_stringStorage;
     QHash<QString, int> m_inverseStringStorage;
     PersistentObjectId m_lastStoredStringId;
-    Logger m_logger;
+    Logger &m_logger;
 };
 
 template <typename T> inline T *PersistentPool::idLoad()

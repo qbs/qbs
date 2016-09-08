@@ -66,7 +66,7 @@ class ItemReaderVisitorState;
 class ItemReader
 {
 public:
-    ItemReader(const Logger &logger);
+    ItemReader(Logger &logger);
     ~ItemReader();
 
     void setPool(ItemPool *pool) { m_pool = pool; }

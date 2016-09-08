@@ -103,7 +103,7 @@ struct ProjectResolver::ModuleContext
 
 
 ProjectResolver::ProjectResolver(Evaluator *evaluator, const ModuleLoaderResult &loadResult,
-        const SetupProjectParameters &setupParameters, const Logger &logger)
+        const SetupProjectParameters &setupParameters, Logger &logger)
     : m_evaluator(evaluator)
     , m_logger(logger)
     , m_engine(m_evaluator->engine())
@@ -249,6 +249,7 @@ TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
                 artifact->fileTags += "installable";
         }
     }
+    project->warningsEncountered = m_logger.warnings();
     return project;
 }
 
@@ -1033,7 +1034,7 @@ void ProjectResolver::applyFileTaggers(const ResolvedProductPtr &product) const
 }
 
 void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
-        const ResolvedProductConstPtr &product, const Logger &logger)
+        const ResolvedProductConstPtr &product, Logger &logger)
 {
     if (!artifact->overrideFileTags || artifact->fileTags.isEmpty()) {
         const QString fileName = FileInfo::fileName(artifact->absoluteFilePath);

@@ -61,7 +61,7 @@ class ItemReaderASTVisitor : public QbsQmlJS::AST::Visitor
 {
 public:
     ItemReaderASTVisitor(ItemReaderVisitorState &visitorState, const FileContextPtr &file,
-                         ItemPool *itemPool, Logger logger);
+                         ItemPool *itemPool, Logger &logger);
     void checkItemTypes() { doCheckItemTypes(rootItem()); }
 
     Item *rootItem() const { return m_item; }
@@ -86,7 +86,7 @@ private:
     ItemReaderVisitorState &m_visitorState;
     const FileContextPtr m_file;
     ItemPool * const m_itemPool;
-    Logger m_logger;
+    Logger &m_logger;
     QHash<QStringList, QString> m_typeNameToFile;
     Item *m_item = nullptr;
 };

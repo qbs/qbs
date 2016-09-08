@@ -287,7 +287,7 @@ enum QueryPropertyType
     QPTParentProperty
 };
 
-EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Logger &logger)
+EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, Logger &logger)
     : QScriptClass(scriptEngine)
     , m_logger(logger)
     , m_valueCacheEnabled(false)
