@@ -594,6 +594,12 @@
             \l{https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/dyld.1.html}{dyld documentation}
             on dynamic library install names.
     \row
+        \li soVersion
+        \li \c{string}
+        \li 1.7
+        \li Major part of \c{product.version} if a version is set, otherwise the empty string
+        \li The version to be appended to the soname in ELF shared libraries.
+    \row
         \li useRPaths
         \li \c{bool}
         \li 1.3

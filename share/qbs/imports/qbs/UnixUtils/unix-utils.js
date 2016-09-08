@@ -31,24 +31,22 @@
 var FileInfo = loadExtension("qbs.FileInfo");
 
 function soname(product, outputFileName) {
-    var version = product.moduleProperty("cpp", "internalVersion");
+    var soVersion = product.moduleProperty("cpp", "soVersion");
     if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
         // If this is a bundle, ignore the parameter and use the relative path to the bundle binary
         // For example: qbs.framework/Versions/1/qbs
         if (product.moduleProperty("bundle", "isBundle"))
             outputFileName = product.moduleProperty("bundle", "executablePath");
-    } else if (version) {
-        function majorVersion(version, defaultValue) {
-            var n = parseInt(version, 10);
-            return isNaN(n) ? defaultValue : n;
-        }
-
+    } else if (soVersion) {
         // For non-Darwin platforms, append the shared library major version number to the soname
         // For example: libqbscore.so.1
-        var major = majorVersion(version);
-        if (major !== undefined)
+        var version = product.moduleProperty("cpp", "internalVersion");
+        if (version) {
             outputFileName = outputFileName.substr(0, outputFileName.length - version.length)
-                    + major;
+                    + soVersion;
+        } else {
+            outputFileName += "." + soVersion;
+        }
     }
 
     // Prepend the soname prefix

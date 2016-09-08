@@ -155,6 +155,8 @@ private slots:
     void ruleConditions();
     void ruleCycle();
     void ruleWithNoInputs();
+    void soVersion();
+    void soVersion_data();
     void subProfileChangeTracking();
     void successiveChanges();
     void symlinkRemoval();

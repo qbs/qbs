@@ -173,6 +173,12 @@ CppModule {
 
         return versionParts.join('.');
     }
+    property string soVersion: {
+        var v = internalVersion;
+        if (!Gcc.isNumericProductVersion(v))
+            return "";
+        return v.split('.')[0];
+    }
 
     exceptionHandlingModel: {
         if (qbs.toolchain.contains("mingw")) {

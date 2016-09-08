@@ -1618,6 +1618,65 @@ void TestBlackbox::ruleWithNoInputs()
     QVERIFY2(m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
 }
 
+
+static QString soName(const QString &readElfPath, const QString &libFilePath)
+{
+    QProcess readElf;
+    readElf.start(readElfPath, QStringList() << "-a" << libFilePath);
+    if (!readElf.waitForStarted() || !readElf.waitForFinished() || readElf.exitCode() != 0) {
+        qDebug() << readElf.errorString() << readElf.readAllStandardError();
+        return QString();
+    }
+    const QByteArray output = readElf.readAllStandardOutput();
+    const QByteArray magicString = "Library soname: [";
+    const int magicStringIndex = output.indexOf(magicString);
+    if (magicStringIndex == -1)
+        return QString();
+    const int endIndex = output.indexOf(']', magicStringIndex);
+    if (endIndex == -1)
+        return QString();
+    const int nameIndex = magicStringIndex + magicString.count();
+    const QByteArray theName = output.mid(nameIndex, endIndex - nameIndex);
+    return QString::fromLatin1(theName);
+}
+
+void TestBlackbox::soVersion()
+{
+    const QString readElfPath = findExecutable(QStringList("readelf"));
+    if (readElfPath.isEmpty())
+        QSKIP("No readelf found");
+    QDir::setCurrent(testDataDir + "/soversion");
+
+    QFETCH(QString, soVersion);
+    QFETCH(bool, useVersion);
+    QFETCH(QString, expectedSoName);
+
+    QbsRunParameters params;
+    params.arguments << ("mylib.useVersion:" + QString((useVersion ? "true" : "false")));
+    if (!soVersion.isNull())
+        params.arguments << ("cpp.soVersion:" + soVersion);
+    const QString libFilePath = relativeProductBuildDir("mylib") + "/libmylib.so"
+            + (useVersion ? ".1.2.3" : QString());
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(regularFileExists(libFilePath), qPrintable(libFilePath));
+    QCOMPARE(soName(readElfPath, libFilePath), expectedSoName);
+}
+
+void TestBlackbox::soVersion_data()
+{
+    QTest::addColumn<QString>("soVersion");
+    QTest::addColumn<bool>("useVersion");
+    QTest::addColumn<QString>("expectedSoName");
+
+    QTest::newRow("default") << QString() << true << QString("libmylib.so.1");
+    QTest::newRow("explicit soVersion") << QString("1.2") << true << QString("libmylib.so.1.2");
+    QTest::newRow("empty soVersion") << QString("") << true << QString("libmylib.so.1.2.3");
+    QTest::newRow("no version, explicit soVersion") << QString("5") << false
+                                                    << QString("libmylib.so.5");
+    QTest::newRow("no version, default soVersion") << QString() << false << QString("libmylib.so");
+    QTest::newRow("no version, empty soVersion") << QString("") << false << QString("libmylib.so");
+}
+
 void TestBlackbox::overrideProjectProperties()
 {
     QDir::setCurrent(testDataDir + "/overrideProjectProperties");
