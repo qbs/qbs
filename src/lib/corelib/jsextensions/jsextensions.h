@@ -48,12 +48,6 @@ public:
     static void setupExtensions(const QStringList &names, QScriptValue scope);
     static QScriptValue loadExtension(QScriptEngine *engine, const QString &name);
     static bool hasExtension(const QString &name);
-
-private:
-    typedef QHash<QString, void (*)(QScriptValue)> InitializerMap;
-    static InitializerMap initializers();
-
-    static InitializerMap m_initializers;
 };
 
 } // namespace Internal
