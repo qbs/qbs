@@ -127,6 +127,7 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool sca
     const QLatin1Literal defineLiteral("define");
     const QLatin1Literal qobjectLiteral("Q_OBJECT");
     const QLatin1Literal qgadgetLiteral("Q_GADGET");
+    const QLatin1Literal qnamespaceLiteral("Q_NAMESPACE");
     const QLatin1Literal pluginMetaDataLiteral("Q_PLUGIN_METADATA");
     Opaq *opaque = static_cast<Opaq *>(opaq);
     const TokenComparator tc(opaque->fileContent);
@@ -164,7 +165,8 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool sca
                     // Someone was clever and redefined Q_OBJECT or Q_PLUGIN_METADATA.
                     // Example: iplugin.h in Qt Creator.
                 } else {
-                    if (tc.equals(tk, qobjectLiteral) || tc.equals(tk, qgadgetLiteral))
+                    if (tc.equals(tk, qobjectLiteral) || tc.equals(tk, qgadgetLiteral)  ||
+                        tc.equals(tk, qnamespaceLiteral))
                     {
                         opaque->hasQObjectMacro = true;
                     } else if (opaque->fileType == Opaq::FT_HPP
