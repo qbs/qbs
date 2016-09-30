@@ -51,8 +51,27 @@
 
 #include <QScriptEngine>
 
+#include <utility>
+
 namespace qbs {
 namespace Internal {
+
+typedef QHash<QString, void (*)(QScriptValue)> InitializerMap;
+static InitializerMap initializers()
+{
+    static const InitializerMap theMap = {
+        std::make_pair(QLatin1String("Environment"), &initializeJsExtensionEnvironment),
+        std::make_pair(QLatin1String("File"), &initializeJsExtensionFile),
+        std::make_pair(QLatin1String("FileInfo"), &initializeJsExtensionFileInfo),
+        std::make_pair(QLatin1String("Process"), &initializeJsExtensionProcess),
+        std::make_pair(QLatin1String("Xml"), &initializeJsExtensionXml),
+        std::make_pair(QLatin1String("TemporaryDir"), &initializeJsExtensionTemporaryDir),
+        std::make_pair(QLatin1String("TextFile"), &initializeJsExtensionTextFile),
+        std::make_pair(QLatin1String("PropertyList"), &initializeJsExtensionPropertyList),
+        std::make_pair(QLatin1String("Utilities"), &initializeJsExtensionUtilities)
+    };
+    return theMap;
+}
 
 void JsExtensions::setupExtensions(const QStringList &names, QScriptValue scope)
 {
@@ -74,24 +93,6 @@ bool JsExtensions::hasExtension(const QString &name)
 {
     return initializers().contains(name);
 }
-
-JsExtensions::InitializerMap JsExtensions::initializers()
-{
-    if (m_initializers.isEmpty()) {
-        m_initializers.insert(QLatin1String("Environment"), &initializeJsExtensionEnvironment);
-        m_initializers.insert(QLatin1String("File"), &initializeJsExtensionFile);
-        m_initializers.insert(QLatin1String("FileInfo"), &initializeJsExtensionFileInfo);
-        m_initializers.insert(QLatin1String("Process"), &initializeJsExtensionProcess);
-        m_initializers.insert(QLatin1String("Xml"), &initializeJsExtensionXml);
-        m_initializers.insert(QLatin1String("TemporaryDir"), &initializeJsExtensionTemporaryDir);
-        m_initializers.insert(QLatin1String("TextFile"), &initializeJsExtensionTextFile);
-        m_initializers.insert(QLatin1String("PropertyList"), &initializeJsExtensionPropertyList);
-        m_initializers.insert(QLatin1String("Utilities"), &initializeJsExtensionUtilities);
-    }
-    return m_initializers;
-}
-
-JsExtensions::InitializerMap JsExtensions::m_initializers;
 
 } // namespace Internal
 } // namespace qbs

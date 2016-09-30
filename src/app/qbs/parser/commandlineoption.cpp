@@ -605,7 +605,6 @@ void SettingsDirOption::doParse(const QString &representation, QStringList &inpu
 }
 
 CommandEchoModeOption::CommandEchoModeOption()
-    : m_echoMode(static_cast<CommandEchoMode>(-1))
 {
 }
 

@@ -29,6 +29,8 @@
 ****************************************************************************/
 
 import qbs
+import qbs.FileInfo
+import qbs.ModUtils
 import qbs.TextFile
 
 Product {
@@ -50,15 +52,16 @@ Product {
             cmd.silent = true;
             cmd.sourceCode =function() {
                 var ofile = new TextFile(output.filePath, TextFile.WriteOnly);
-                for (var i = 0; i < inputs["installable"].length; ++i) {
-                    var inp = inputs["installable"][i];
-                    var installedFilePath = inp.moduleProperty("qbs", "installDir")
-                            + '/' + inp.fileName;
-                    while (installedFilePath[0] === '/')
-                        installedFilePath = installedFilePath.substring(1);
-                    ofile.writeLine(installedFilePath);
+                try {
+                    for (var i = 0; i < inputs["installable"].length; ++i) {
+                        var inp = inputs["installable"][i];
+                        var installRoot = inp.moduleProperty("qbs", "installRoot");
+                        var installedFilePath = ModUtils.artifactInstalledFilePath(inp);
+                        ofile.writeLine(FileInfo.relativePath(installRoot, installedFilePath));
+                    }
+                } finally {
+                    ofile.close();
                 }
-                ofile.close();
             };
             return [cmd];
         }

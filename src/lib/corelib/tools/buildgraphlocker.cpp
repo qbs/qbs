@@ -122,7 +122,7 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
             throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1' (reason unknown).")
                             .arg(buildGraphFilePath));
         }
-    } while (++attemptsToGetInfo < 10);
+    } while (++attemptsToGetInfo < 10 || waitIndefinitely);
 
     // This very unlikely case arises if tryLock() repeatedly returns LockFailedError
     // with the subsequent getLockInfo() failing as well.

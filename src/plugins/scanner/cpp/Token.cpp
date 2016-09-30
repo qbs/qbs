@@ -109,6 +109,7 @@ static const char *token_names[] = {
     ("Q_FOREACH"), ("Q_D"), ("Q_Q"),
     ("Q_INVOKABLE"), ("Q_PROPERTY"), ("Q_INTERFACES"), ("Q_ENUMS"), ("Q_FLAGS"),
     ("Q_PRIVATE_SLOT"), ("Q_DECLARE_INTERFACE"), ("Q_OBJECT"), ("Q_GADGET"),
+    ("Q_NAMESPACE"),
 
 };
 

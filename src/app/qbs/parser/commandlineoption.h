@@ -372,7 +372,7 @@ public:
 private:
     void doParse(const QString &representation, QStringList &input);
 
-    CommandEchoMode m_echoMode;
+    CommandEchoMode m_echoMode = CommandEchoModeInvalid;
 };
 
 class SettingsDirOption : public CommandLineOption

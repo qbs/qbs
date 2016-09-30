@@ -677,10 +677,10 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
                        ModUtils.moduleProperty(input, 'flags', tag));
 
     var allIncludePaths = [];
-    if (systemIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
     if (includePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(includePaths);
+    if (systemIncludePaths)
+        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
     args = args.concat(allIncludePaths.map(function(path) { return '-I' + path }));
 
     args.push("-o", output.filePath);

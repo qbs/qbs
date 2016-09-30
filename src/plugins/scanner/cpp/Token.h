@@ -258,7 +258,8 @@ enum Kind {
     T_Q_DECLARE_INTERFACE,
     T_Q_OBJECT,
     T_Q_GADGET,
-    T_LAST_KEYWORD = T_Q_GADGET,
+    T_Q_NAMESPACE,
+    T_LAST_KEYWORD = T_Q_NAMESPACE,
 
     // aliases
     T_OR = T_PIPE_PIPE,
