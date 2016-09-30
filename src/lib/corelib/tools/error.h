@@ -43,13 +43,11 @@
 #include "codelocation.h"
 
 #include <QExplicitlySharedDataPointer>
+#include <QHash>
 #include <QList>
 #include <QMetaType>
 #include <QSharedDataPointer>
-
-QT_BEGIN_NAMESPACE
-class QString;
-QT_END_NAMESPACE
+#include <QString>
 
 namespace qbs {
 namespace Internal { class PersistentPool; }
@@ -108,6 +106,11 @@ private:
     class ErrorInfoPrivate;
     QSharedDataPointer<ErrorInfoPrivate> d;
 };
+
+inline uint qHash(const ErrorInfo &e) { return qHash(e.toString()); }
+inline bool operator==(const ErrorInfo &e1, const ErrorInfo &e2) {
+    return e1.toString() == e2.toString();
+}
 
 } // namespace qbs
 

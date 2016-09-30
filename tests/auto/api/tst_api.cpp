@@ -1960,7 +1960,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(m_logSink->warnings.count(), 2);
+    QCOMPARE(m_logSink->warnings.toSet().count(), 2);
     foreach (const qbs::ErrorInfo &e, m_logSink->warnings) {
         const QString msg = e.toString();
         QVERIFY2(msg.contains("Superfluous version")
@@ -1974,7 +1974,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(m_logSink->warnings.count(), 2);
+    QCOMPARE(m_logSink->warnings.toSet().count(), 2);
     m_logSink->warnings.clear();
 
     // Re-resolving with changes: Errors come from the re-resolving, stored ones must be suppressed.
@@ -1985,7 +1985,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(m_logSink->warnings.count(), 4); // One more for the additional group
+    QCOMPARE(m_logSink->warnings.toSet().count(), 3); // One more for the additional group
     foreach (const qbs::ErrorInfo &e, m_logSink->warnings) {
         const QString msg = e.toString();
         QVERIFY2(msg.contains("Superfluous version")
