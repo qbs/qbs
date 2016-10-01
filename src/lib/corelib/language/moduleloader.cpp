@@ -272,6 +272,7 @@ static void handlePropertyError(const ErrorInfo &error, const SetupProjectParame
 class PropertyDeclarationCheck : public ValueHandler
 {
     const QSet<Item *> &m_disabledItems;
+    QSet<Item *> m_handledItems;
     Item *m_parentItem;
     QString m_currentName;
     SetupProjectParameters m_params;
@@ -321,6 +322,9 @@ private:
 
     void handleItem(Item *item)
     {
+        if (m_handledItems.contains(item))
+            return;
+        m_handledItems.insert(item);
         if (m_disabledItems.contains(item)
                 // TODO: We never checked module prototypes, apparently. Should we?
                 // It's currently not possible because of e.g. things like "cpp.staticLibraries"
