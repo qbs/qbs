@@ -151,6 +151,9 @@ static QVariantMap getMsvcDefines(const QString &hostCompilerFilePath,
     }
     DummyFile actualDummyFile(actualDummyFilePath);
     const QString qbsClFrontend = nativeDummyFilePath + QStringLiteral(".exe");
+    const QString qbsClFrontendObj = nativeDummyFilePath + QStringLiteral(".obj");
+    DummyFile actualQbsClFrontend(qbsClFrontend);
+    DummyFile actualQbsClFrontendObj(qbsClFrontendObj);
 
     // The host compiler is the x86 compiler, which will execute on any edition of Windows
     // for which host compilers have been released so far (x86, x86_64, ia64)
@@ -162,6 +165,7 @@ static QVariantMap getMsvcDefines(const QString &hostCompilerFilePath,
     runProcess(hostCompilerFilePath, QStringList()
                << QStringLiteral("/nologo")
                << QStringLiteral("/TC")
+               << (QStringLiteral("/Fo") + qbsClFrontendObj)
                << nativeDummyFilePath
                << QStringLiteral("/link")
                << (QStringLiteral("/out:") + qbsClFrontend), msvc2.environments[QString()]);
