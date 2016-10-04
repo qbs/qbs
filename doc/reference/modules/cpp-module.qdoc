@@ -322,6 +322,13 @@
         \li determined by qbs-setup-toolchains
         \li Full path of the linker binary. This is set in the build profile.
     \row
+        \li linkerWrapper
+        \li \c{stringList}
+        \li 1.6.2
+        \li \c{undefined}
+        \li Wrapper binary and its arguments for wrapping linker calls.
+            This is useful for linker wrappers as needed by Bullseye Coverage, for example.
+    \row
         \li entryPoint
         \li \c{string}
         \li 1.3

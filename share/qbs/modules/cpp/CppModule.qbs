@@ -146,6 +146,7 @@ Module {
     property stringList compilerWrapper
     property string linkerName
     property string linkerPath: linkerName
+    property stringList linkerWrapper
     property string staticLibraryPrefix
     property string dynamicLibraryPrefix
     property string loadableModulePrefix

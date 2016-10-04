@@ -319,8 +319,15 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
         args.push("/FORCE:UNRESOLVED");
 
+    var linkerPath = product.moduleProperty("cpp", "linkerPath");
+    var wrapperArgs = product.moduleProperty("cpp", "linkerWrapper");
+    if (wrapperArgs && wrapperArgs.length > 0) {
+        args.unshift(linkerPath);
+        linkerPath = wrapperArgs.shift();
+        args = wrapperArgs.concat(args);
+    }
     var commands = [];
-    var cmd = new Command(product.moduleProperty("cpp", "linkerPath"), args)
+    var cmd = new Command(linkerPath, args)
     cmd.description = 'linking ' + primaryOutput.fileName;
     cmd.highlight = 'linker';
     cmd.workingDirectory = FileInfo.path(primaryOutput.filePath)
