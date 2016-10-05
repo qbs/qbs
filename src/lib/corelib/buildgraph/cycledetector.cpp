@@ -57,10 +57,6 @@ CycleDetector::CycleDetector(const Logger &logger)
 
 void CycleDetector::visitProject(const TopLevelProjectConstPtr &project)
 {
-    const QString description = QString::fromLocal8Bit("Cycle detection for project '%1'")
-            .arg(project->name);
-    TimedActivityLogger timeLogger(m_logger, description, QLatin1String("[BG] "), LoggerTrace);
-
     project->accept(this);
 }
 

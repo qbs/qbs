@@ -144,6 +144,8 @@ static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project
 
 TopLevelProjectPtr ProjectResolver::resolve()
 {
+    TimedActivityLogger projectResolverTimer(m_logger, Tr::tr("ProjectResolver"),
+                                             m_setupParams.logElapsedTime());
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[PR] resolving " << m_loadResult.root->file()->filePath();
 

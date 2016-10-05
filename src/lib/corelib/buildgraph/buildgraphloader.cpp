@@ -210,6 +210,8 @@ static void makeChangedProductsListComplete(QList<ResolvedProductPtr> &changedPr
 
 void BuildGraphLoader::trackProjectChanges()
 {
+    TimedActivityLogger trackingTimer(m_logger, Tr::tr("Change tracking"),
+                                      m_parameters.logElapsedTime());
     const TopLevelProjectPtr &restoredProject = m_result.loadedProject;
     QSet<QString> buildSystemFiles = restoredProject->buildSystemFiles;
     QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();

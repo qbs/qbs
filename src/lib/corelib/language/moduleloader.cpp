@@ -222,6 +222,8 @@ void ModuleLoader::setOldProbes(const QHash<QString, QList<ProbeConstPtr>> &oldP
 
 ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
 {
+    TimedActivityLogger moduleLoaderTimer(m_logger, Tr::tr("ModuleLoader"),
+                                          parameters.logElapsedTime());
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] load" << parameters.projectFilePath();
     m_parameters = parameters;

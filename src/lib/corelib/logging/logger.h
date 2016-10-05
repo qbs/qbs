@@ -138,9 +138,7 @@ private:
 class TimedActivityLogger
 {
 public:
-    TimedActivityLogger(const Logger &logger, const QString &activity,
-                        const QString &prefix = QString(), LoggerLevel logLevel = LoggerDebug,
-                        bool alwaysLog = false);
+    TimedActivityLogger(const Logger &logger, const QString &activity, bool enabled);
     void finishActivity();
     ~TimedActivityLogger();
 

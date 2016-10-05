@@ -43,6 +43,8 @@
 
 #include "logger.h"
 
+#include "translator.h"
+
 #include <QByteArray>
 #include <QElapsedTimer>
 #include <QMutex>
@@ -230,27 +232,20 @@ class TimedActivityLogger::TimedActivityLoggerPrivate
 {
 public:
     Logger logger;
-    QString prefix;
     QString activity;
-    LoggerLevel logLevel;
     QElapsedTimer timer;
-    bool alwaysLog;
 };
 
 TimedActivityLogger::TimedActivityLogger(const Logger &logger, const QString &activity,
-        const QString &prefix, LoggerLevel logLevel, bool alwaysLog)
+        bool enabled)
     : d(0)
 {
-    if (!alwaysLog && !logger.logSink()->willPrint(logLevel))
+    if (!enabled)
         return;
     d = new TimedActivityLoggerPrivate;
     d->logger = logger;
-    d->prefix = prefix;
     d->activity = activity;
-    d->logLevel = logLevel;
-    d->alwaysLog = alwaysLog;
-    d->logger.qbsLog(logLevel, alwaysLog) << QString::fromLocal8Bit("%1Starting activity '%2'.")
-            .arg(prefix, activity);
+    d->logger.qbsLog(LoggerInfo) << Tr::tr("Starting activity '%2'.").arg(activity);
     d->timer.start();
 }
 
@@ -272,9 +267,7 @@ void TimedActivityLogger::finishActivity()
         timeString.prepend(QString::fromLocal8Bit("%1m, ").arg(m));
     if (h)
         timeString.prepend(QString::fromLocal8Bit("%1h, ").arg(h));
-    d->logger.qbsLog(d->logLevel, d->alwaysLog)
-            << QString::fromLocal8Bit("%1Activity '%2' took %3.")
-               .arg(d->prefix, d->activity, timeString);
+    d->logger.qbsLog(LoggerInfo) << Tr::tr("Activity '%2' took %3.").arg(d->activity, timeString);
     delete d;
     d = 0;
 }
