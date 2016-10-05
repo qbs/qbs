@@ -41,6 +41,7 @@
 #define QBS_EVALUATORSCRIPTCLASS_H
 
 #include "forward_decls.h"
+#include "qualifiedid.h"
 
 #include <logging/logger.h>
 
@@ -71,6 +72,9 @@ public:
 
     void setValueCacheEnabled(bool enabled);
 
+    PropertyDependencies propertyDependencies() const { return m_propertyDependencies; }
+    void clearPropertyDependencies() { m_propertyDependencies.clear(); }
+
 private:
     QueryFlags queryItemProperty(const EvaluationData *data,
                                  const QString &name,
@@ -98,6 +102,8 @@ private:
     bool m_valueCacheEnabled;
     QStack<JSSourceValue *> m_sourceValueStack;
     QSet<Value *> m_currentNextChain;
+    PropertyDependencies m_propertyDependencies;
+    QStack<QualifiedId> m_requestedProperties;
 };
 
 } // namespace Internal

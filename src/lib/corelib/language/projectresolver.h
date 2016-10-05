@@ -94,6 +94,8 @@ private:
     void resolveModules(const Item *item, ProjectContext *projectContext);
     void resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
                        ProjectContext *projectContext);
+    QVariantMap resolveAdditionalModuleProperties(const Item *group,
+                                                  const QVariantMap &currentValues);
     void resolveGroup(Item *item, ProjectContext *projectContext);
     void resolveRule(Item *item, ProjectContext *projectContext);
     void resolveRuleArtifact(const RulePtr &rule, Item *item);
@@ -107,8 +109,8 @@ private:
     void applyFileTaggers(const ResolvedProductPtr &product) const;
     QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true);
     QVariantMap evaluateProperties(Item *item, bool lookupPrototype = true);
-    QVariantMap evaluateProperties(Item *item, Item *propertiesContainer, const QVariantMap &tmplt,
-            bool lookupPrototype = true);
+    QVariantMap evaluateProperties(const Item *item, const Item *propertiesContainer,
+                                   const QVariantMap &tmplt, bool lookupPrototype = true);
     QVariantMap createProductConfig();
     QString convertPathProperty(const QString &path, const QString &dirPath) const;
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;

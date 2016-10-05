@@ -42,6 +42,7 @@
 
 #include "forward_decls.h"
 #include "itemobserver.h"
+#include "qualifiedid.h"
 
 #include <QHash>
 #include <QScriptValue>
@@ -76,6 +77,9 @@ public:
     QScriptValue fileScope(const FileContextConstPtr &file);
 
     void setCachingEnabled(bool enabled);
+
+    PropertyDependencies propertyDependencies() const;
+    void clearPropertyDependencies();
 
     void handleEvaluationError(const Item *item, const QString &name,
             const QScriptValue &scriptValue);

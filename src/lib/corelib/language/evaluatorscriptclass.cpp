@@ -501,6 +501,43 @@ static void convertToPropertyType(const Item *item, const PropertyDeclaration& d
     }
 }
 
+class PropertyStackManager
+{
+public:
+    PropertyStackManager(const Item *itemOfProperty, const QScriptString &name, const Value *value,
+                         QStack<QualifiedId> &requestedProperties,
+                         PropertyDependencies &propertyDependencies)
+        : m_requestedProperties(requestedProperties)
+    {
+        if (value->type() == Value::JSSourceValueType
+                && (itemOfProperty->type() == ItemType::ModuleInstance
+                    || itemOfProperty->type() == ItemType::Module)) {
+            const VariantValueConstPtr varValue
+                    = itemOfProperty->variantProperty(QLatin1String("name"));
+            // QBS_CHECK(varValue);
+            // TODO: Check why the base module sometimes has no name. Code suggests it has to have one.
+            if (varValue) {
+                m_stackUpdate = true;
+                const QualifiedId fullPropName
+                        = QualifiedId::fromString(varValue->value().toString()) << name.toString();
+                if (!requestedProperties.isEmpty())
+                    propertyDependencies[fullPropName].insert(requestedProperties.top());
+                m_requestedProperties.push(fullPropName);
+            }
+        }
+    }
+
+    ~PropertyStackManager()
+    {
+        if (m_stackUpdate)
+            m_requestedProperties.pop();
+    }
+
+private:
+    QStack<QualifiedId> &m_requestedProperties;
+    bool m_stackUpdate = false;
+};
+
 QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QScriptString &name,
                                             uint id)
 {
@@ -524,6 +561,9 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
 
     if (debugProperties)
         qDebug() << "[SC] property " << name;
+
+    PropertyStackManager propStackmanager(itemOfProperty, name, value.data(),
+                                          m_requestedProperties, m_propertyDependencies);
 
     QScriptValue result;
     if (m_valueCacheEnabled) {

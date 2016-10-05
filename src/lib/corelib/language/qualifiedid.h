@@ -40,7 +40,10 @@
 #ifndef QBS_QUALIFIEDID_H
 #define QBS_QUALIFIEDID_H
 
+#include <QHash>
 #include <QStringList>
+
+#include <set>
 
 namespace qbs {
 namespace Internal {
@@ -57,6 +60,15 @@ public:
 };
 
 bool operator<(const QualifiedId &a, const QualifiedId &b);
+
+class QualifiedIdSet : public std::set<QualifiedId>
+{
+public:
+    typedef std::pair<iterator, bool> InsertResult;
+};
+
+// Values are the properties with a dependency on the key property
+using PropertyDependencies = QHash<QualifiedId, QualifiedIdSet>;
 
 } // namespace Internal
 } // namespace qbs

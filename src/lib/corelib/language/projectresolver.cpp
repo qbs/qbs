@@ -64,7 +64,6 @@
 #include <QQueue>
 
 #include <algorithm>
-#include <set>
 
 namespace qbs {
 namespace Internal {
@@ -328,6 +327,7 @@ void ProjectResolver::resolveSubProject(Item *item, ProjectResolver::ProjectCont
 void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
+    m_evaluator->clearPropertyDependencies();
     ProductContext productContext;
     m_productContext = &productContext;
     productContext.item = item;
@@ -522,21 +522,98 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductCon
     return artifact;
 }
 
-static bool isSomeModulePropertySet(Item *group)
+static QualifiedIdSet propertiesToEvaluate(const QList<QualifiedId> &initialProps,
+                                              const PropertyDependencies &deps)
 {
-    for (QMap<QString, ValuePtr>::const_iterator it = group->properties().constBegin();
-         it != group->properties().constEnd(); ++it)
-    {
-        if (it.value()->type() == Value::ItemValueType) {
-            // An item value is a module value in this case.
-            ItemValuePtr iv = it.value().staticCast<ItemValue>();
-            foreach (ValuePtr ivv, iv->item()->properties()) {
-                if (ivv->type() == Value::JSSourceValueType)
-                    return true;
-            }
+    QList<QualifiedId> remainingProps = initialProps;
+    QualifiedIdSet allProperties;
+    while (!remainingProps.isEmpty()) {
+        const QualifiedId prop = remainingProps.takeFirst();
+        const QualifiedIdSet::InsertResult insertResult = allProperties.insert(prop);
+        if (!insertResult.second)
+            continue;
+        const QualifiedIdSet &directDeps = deps.value(prop);
+        for (auto depIt = directDeps.cbegin(); depIt != directDeps.cend(); ++depIt)
+            remainingProps << *depIt;
+    }
+    return allProperties;
+}
+
+static void gatherAssignedProperties(ItemValue *iv, const QualifiedId &prefix,
+                                     QList<QualifiedId> &properties)
+{
+    const Item::PropertyMap &props = iv->item()->properties();
+    for (auto it = props.cbegin(); it != props.cend(); ++it) {
+        switch (it.value()->type()) {
+        case Value::JSSourceValueType:
+            properties << (QualifiedId(prefix) << it.key());
+            break;
+        case Value::ItemValueType:
+            gatherAssignedProperties(it.value().staticCast<ItemValue>().data(),
+                           QualifiedId(prefix) << it.key(), properties);
+            break;
+        default:
+            break;
         }
     }
-    return false;
+}
+
+class CachingEnabler
+{
+public:
+    CachingEnabler(Evaluator *evaluator) : m_evaluator(evaluator)
+    {
+        m_evaluator->setCachingEnabled(true);
+    }
+
+    ~CachingEnabler() { m_evaluator->setCachingEnabled(false); }
+
+private:
+    Evaluator * const m_evaluator;
+};
+
+QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group,
+                                                               const QVariantMap &currentValues)
+{
+    // Step 1: Gather the properties directly set in the group
+    QList<QualifiedId> propsSetInGroup;
+    for (auto it = group->properties().cbegin(); it != group->properties().cend(); ++it) {
+        if (it.value()->type() == Value::ItemValueType) {
+            gatherAssignedProperties(it.value().staticCast<ItemValue>().data(),
+                                     QualifiedId(it.key()), propsSetInGroup);
+        }
+    }
+    if (propsSetInGroup.isEmpty())
+        return QVariantMap();
+
+    // Step 2: Gather all properties that depend on these properties.
+    const QualifiedIdSet &propsToEval
+            = propertiesToEvaluate(propsSetInGroup, m_evaluator->propertyDependencies());
+
+    // Step 3: Evaluate all these properties and replace their values in the map
+    QVariantMap modulesMap = currentValues.value(QLatin1String("modules")).toMap();
+    QHash<QString, QStringList> propsPerModule;
+    for (auto it = propsToEval.cbegin(); it != propsToEval.cend(); ++it) {
+        const QualifiedId fullPropName = *it;
+        const QString moduleName
+                = QualifiedId(fullPropName.mid(0, fullPropName.count() - 1)).toString();
+        propsPerModule[moduleName] << fullPropName.last();
+    }
+    CachingEnabler cachingEnabler(m_evaluator);
+    for (auto it = group->modules().cbegin(); it != group->modules().cend(); ++it) {
+        const QString &fullModName = it->name.toString();
+        const QStringList propsForModule = propsPerModule.take(fullModName);
+        if (propsForModule.isEmpty())
+            continue;
+        QVariantMap reusableValues = modulesMap.value(fullModName).toMap();
+        for (auto propIt = propsForModule.cbegin(); propIt != propsForModule.cend(); ++propIt)
+            reusableValues.remove(*propIt);
+        modulesMap.insert(fullModName,
+                          evaluateProperties(it->item, it->item, reusableValues, true));
+    }
+    QVariantMap newValues = currentValues;
+    newValues.insert(QLatin1String("modules"), modulesMap);
+    return newValues;
 }
 
 void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
@@ -546,11 +623,11 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     PropertyMapPtr moduleProperties = m_productContext->currentGroup
             ? m_productContext->currentGroup->properties
             : m_productContext->product->moduleProperties;
-    if (isSomeModulePropertySet(item)) {
+    const QVariantMap newModuleProperties
+            = resolveAdditionalModuleProperties(item, moduleProperties->value());
+    if (!newModuleProperties.isEmpty()) {
         moduleProperties = PropertyMapInternal::create();
-        m_evaluator->setCachingEnabled(true);
-        moduleProperties->setValue(evaluateModuleValues(item));
-        m_evaluator->setCachingEnabled(false);
+        moduleProperties->setValue(newModuleProperties);
     }
 
     AccumulatingTimer groupTimer(m_setupParams.logElapsedTime()
@@ -758,12 +835,6 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     else
         projectContext->rules += rule;
 }
-
-class QualifiedIdSet : public std::set<QualifiedId>
-{
-public:
-    typedef std::pair<iterator, bool> InsertResult;
-};
 
 void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
 {
@@ -1092,7 +1163,7 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item, bool lookupPrototype
     return evaluateProperties(item, item, tmplt, lookupPrototype);
 }
 
-QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesContainer,
+QVariantMap ProjectResolver::evaluateProperties(const Item *item, const Item *propertiesContainer,
         const QVariantMap &tmplt, bool lookupPrototype)
 {
     AccumulatingTimer propEvalTimer(m_setupParams.logElapsedTime()
@@ -1161,10 +1232,9 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesCont
 
 QVariantMap ProjectResolver::createProductConfig()
 {
-    m_evaluator->setCachingEnabled(true);
+    CachingEnabler cachingEnabler(m_evaluator);
     QVariantMap cfg = evaluateModuleValues(m_productContext->item);
     cfg = evaluateProperties(m_productContext->item, m_productContext->item, cfg);
-    m_evaluator->setCachingEnabled(false);
     return cfg;
 }
 

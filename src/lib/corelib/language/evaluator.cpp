@@ -242,5 +242,15 @@ void Evaluator::setCachingEnabled(bool enabled)
     m_scriptClass->setValueCacheEnabled(enabled);
 }
 
+PropertyDependencies Evaluator::propertyDependencies() const
+{
+    return m_scriptClass->propertyDependencies();
+}
+
+void Evaluator::clearPropertyDependencies()
+{
+    m_scriptClass->clearPropertyDependencies();
+}
+
 } // namespace Internal
 } // namespace qbs
