@@ -57,6 +57,7 @@
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
+#include <tools/profiling.h>
 #include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>
 

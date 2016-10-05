@@ -370,6 +370,8 @@ QbsLibrary {
             "processutils.cpp",
             "processutils.h",
             "profile.cpp",
+            "profiling.cpp",
+            "profiling.h",
             "progressobserver.cpp",
             "progressobserver.h",
             "projectgeneratormanager.cpp",

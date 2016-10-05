@@ -134,19 +134,6 @@ private:
     bool m_storeWarnings = false;
 };
 
-
-class TimedActivityLogger
-{
-public:
-    TimedActivityLogger(const Logger &logger, const QString &activity, bool enabled);
-    void finishActivity();
-    ~TimedActivityLogger();
-
-private:
-    class TimedActivityLoggerPrivate;
-    TimedActivityLoggerPrivate *d;
-};
-
 } // namespace Internal
 } // namespace qbs
 

@@ -37,63 +37,46 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ITEMREADER_H
-#define QBS_ITEMREADER_H
+#ifndef QBS_PROFILING_H
+#define QBS_PROFILING_H
 
-#include "forward_decls.h"
-#include <logging/logger.h>
+#include <QElapsedTimer>
 
-#include <QSet>
-#include <QStack>
-#include <QStringList>
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
+class Logger;
 
-class Item;
-class ItemPool;
-class ItemReaderVisitorState;
+QString elapsedTimeString(qint64 elapsedTimeInMs);
 
-/*
- * Reads a qbs file and creates a tree of Item objects.
- *
- * In this stage the following steps are performed:
- *    - The QML/JS parser creates the AST.
- *    - The AST is converted to a tree of Item objects.
- *
- * This class is also responsible for the QMLish inheritance semantics.
- */
-class ItemReader
+class TimedActivityLogger
 {
 public:
-    ItemReader(Logger &logger);
-    ~ItemReader();
-
-    void setPool(ItemPool *pool) { m_pool = pool; }
-    void setSearchPaths(const QStringList &searchPaths);
-    void pushExtraSearchPaths(const QStringList &extraSearchPaths);
-    void popExtraSearchPaths();
-    QStack<QStringList> extraSearchPathsStack() const;
-    void setExtraSearchPathsStack(const QStack<QStringList> &s) { m_extraSearchPaths = s; }
-    void clearExtraSearchPathsStack() { m_extraSearchPaths.clear(); }
-    QStringList searchPaths() const;
-
-    Item *readFile(const QString &filePath);
-
-    QSet<QString> filesRead() const;
-
-    void setEnableTiming(bool on);
-    qint64 elapsedTime() const { return m_elapsedTime; }
+    TimedActivityLogger(const Logger &logger, const QString &activity, bool enabled);
+    void finishActivity();
+    ~TimedActivityLogger();
 
 private:
-    ItemPool *m_pool = nullptr;
-    QStringList m_searchPaths;
-    QStack<QStringList> m_extraSearchPaths;
-    ItemReaderVisitorState * const m_visitorState;
-    qint64 m_elapsedTime = -1;
+    class TimedActivityLoggerPrivate;
+    TimedActivityLoggerPrivate *d;
+};
+
+class AccumulatingTimer
+{
+public:
+    AccumulatingTimer(qint64 *elapsedTime);
+    ~AccumulatingTimer();
+    void stop();
+
+private:
+    QElapsedTimer m_timer;
+    qint64 * const m_elapsedTime;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_ITEMREADER_H
+#endif // Header guard

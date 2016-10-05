@@ -53,6 +53,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/profiling.h>
 #include <tools/progressobserver.h>
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
@@ -151,7 +152,10 @@ TopLevelProjectPtr ProjectResolver::resolve()
 
     m_productContext = 0;
     m_moduleContext = 0;
-    return resolveTopLevelProject();
+    m_elapsedTimeModPropEval = m_elapsedTimeAllPropEval = m_elapsedTimeGroups = 0;
+    const TopLevelProjectPtr tlp = resolveTopLevelProject();
+    printProfilingInfo();
+    return tlp;
 }
 
 void ProjectResolver::checkCancelation() const
@@ -549,6 +553,9 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         m_evaluator->setCachingEnabled(false);
     }
 
+    AccumulatingTimer groupTimer(m_setupParams.logElapsedTime()
+                                       ? &m_elapsedTimeGroups : nullptr);
+
     bool isEnabled = m_evaluator->boolValue(item, QLatin1String("condition"));
     if (m_productContext->currentGroup)
         isEnabled = isEnabled && m_productContext->currentGroup->enabled;
@@ -925,6 +932,20 @@ void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
     }
 }
 
+void ProjectResolver::printProfilingInfo()
+{
+    if (!m_setupParams.logElapsedTime())
+        return;
+    m_logger.qbsLog(LoggerInfo, true) << "\t" << Tr::tr("All property evaluation took %1.")
+                                         .arg(elapsedTimeString(m_elapsedTimeAllPropEval));
+    m_logger.qbsLog(LoggerInfo, true) << "\t" << Tr::tr("Module property evaluation took %1.")
+                                         .arg(elapsedTimeString(m_elapsedTimeModPropEval));
+    m_logger.qbsLog(LoggerInfo, true) << "\t"
+                                      << Tr::tr("Resolving groups (without module property "
+                                                "evaluation) took %1.")
+                                         .arg(elapsedTimeString(m_elapsedTimeGroups));
+}
+
 static bool hasDependencyCycle(QSet<ResolvedProduct *> *checked,
                                QSet<ResolvedProduct *> *branch,
                                const ResolvedProductPtr &product,
@@ -1050,8 +1071,10 @@ void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
     }
 }
 
-QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototype) const
+QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototype)
 {
+    AccumulatingTimer modPropEvalTimer(m_setupParams.logElapsedTime()
+                                       ? &m_elapsedTimeModPropEval : nullptr);
     QVariantMap moduleValues;
     foreach (const Item::Module &module, item->modules()) {
         const QString fullName = module.name.toString();
@@ -1063,15 +1086,17 @@ QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototy
     return result;
 }
 
-QVariantMap ProjectResolver::evaluateProperties(Item *item, bool lookupPrototype) const
+QVariantMap ProjectResolver::evaluateProperties(Item *item, bool lookupPrototype)
 {
     const QVariantMap tmplt;
     return evaluateProperties(item, item, tmplt, lookupPrototype);
 }
 
 QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesContainer,
-        const QVariantMap &tmplt, bool lookupPrototype) const
+        const QVariantMap &tmplt, bool lookupPrototype)
 {
+    AccumulatingTimer propEvalTimer(m_setupParams.logElapsedTime()
+                                    ? &m_elapsedTimeAllPropEval : nullptr);
     QVariantMap result = tmplt;
     for (QMap<QString, ValuePtr>::const_iterator it = propertiesContainer->properties().begin();
          it != propertiesContainer->properties().end(); ++it)
@@ -1129,7 +1154,7 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesCont
             : result;
 }
 
-QVariantMap ProjectResolver::createProductConfig() const
+QVariantMap ProjectResolver::createProductConfig()
 {
     m_evaluator->setCachingEnabled(true);
     QVariantMap cfg = evaluateModuleValues(m_productContext->item);

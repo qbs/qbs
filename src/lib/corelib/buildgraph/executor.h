@@ -172,6 +172,9 @@ private:
     QTimer * const m_cancelationTimer;
     QStringList m_artifactsRemovedFromDisk;
     bool m_partialBuild;
+    qint64 m_elapsedTimeRules;
+    qint64 m_elapsedTimeScanners;
+    qint64 m_elapsedTimeInstalling;
     const bool m_doTrace;
     const bool m_doDebug;
 };

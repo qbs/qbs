@@ -58,6 +58,7 @@
 #include <tools/fileinfo.h>
 #include <tools/preferences.h>
 #include <tools/profile.h>
+#include <tools/profiling.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
@@ -231,6 +232,8 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_modulePrototypeItemCache.clear();
     m_disabledItems.clear();
     m_reader->clearExtraSearchPathsStack();
+    m_reader->setEnableTiming(parameters.logElapsedTime());
+    m_elapsedTimeProbes = 0;
 
     ModuleLoaderResult result;
     m_pool = result.itemPool.data();
@@ -260,6 +263,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
                   QSet<QString>() << QDir::cleanPath(parameters.projectFilePath()));
     result.root = root;
     result.qbsFiles = m_reader->filesRead();
+    printProfilingInfo();
     return result;
 }
 
@@ -973,6 +977,18 @@ ProbeConstPtr ModuleLoader::findCurrentProbe(const CodeLocation &location, bool 
             return p;
     }
     return ProbeConstPtr();
+}
+
+void ModuleLoader::printProfilingInfo()
+{
+    if (!m_parameters.logElapsedTime())
+        return;
+    m_logger.qbsLog(LoggerInfo, true) << "\t"
+                                      << Tr::tr("Project file loading and parsing took %1.")
+                                         .arg(elapsedTimeString(m_reader->elapsedTime()));
+    m_logger.qbsLog(LoggerInfo, true) << "\t"
+                                      << Tr::tr("Running Probes took %1.")
+                                         .arg(elapsedTimeString(m_elapsedTimeProbes));
 }
 
 void ModuleLoader::mergeExportItems(const ProductContext &productContext)
@@ -1812,6 +1828,7 @@ void ModuleLoader::createChildInstances(ProductContext *productContext, Item *in
 
 void ModuleLoader::resolveProbes(ProductContext *productContext, Item *item)
 {
+    AccumulatingTimer probesTimer(m_parameters.logElapsedTime() ? &m_elapsedTimeProbes : nullptr);
     foreach (Item *child, item->children())
         if (child->type() == ItemType::Probe)
             resolveProbe(productContext, item, child);

@@ -98,6 +98,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     m_engine->clearExceptions();
     m_engine->clearImportsCache();
     m_engine->clearRequestedProperties();
+    m_engine->enableProfiling(parameters.logElapsedTime());
     m_logger.clearWarnings();
 
     QTimer cancelationTimer;

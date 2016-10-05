@@ -37,63 +37,90 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ITEMREADER_H
-#define QBS_ITEMREADER_H
+#include "profiling.h"
 
-#include "forward_decls.h"
 #include <logging/logger.h>
+#include <logging/translator.h>
 
-#include <QSet>
-#include <QStack>
-#include <QStringList>
+#include <QString>
 
 namespace qbs {
 namespace Internal {
 
-class Item;
-class ItemPool;
-class ItemReaderVisitorState;
-
-/*
- * Reads a qbs file and creates a tree of Item objects.
- *
- * In this stage the following steps are performed:
- *    - The QML/JS parser creates the AST.
- *    - The AST is converted to a tree of Item objects.
- *
- * This class is also responsible for the QMLish inheritance semantics.
- */
-class ItemReader
+class TimedActivityLogger::TimedActivityLoggerPrivate
 {
 public:
-    ItemReader(Logger &logger);
-    ~ItemReader();
-
-    void setPool(ItemPool *pool) { m_pool = pool; }
-    void setSearchPaths(const QStringList &searchPaths);
-    void pushExtraSearchPaths(const QStringList &extraSearchPaths);
-    void popExtraSearchPaths();
-    QStack<QStringList> extraSearchPathsStack() const;
-    void setExtraSearchPathsStack(const QStack<QStringList> &s) { m_extraSearchPaths = s; }
-    void clearExtraSearchPathsStack() { m_extraSearchPaths.clear(); }
-    QStringList searchPaths() const;
-
-    Item *readFile(const QString &filePath);
-
-    QSet<QString> filesRead() const;
-
-    void setEnableTiming(bool on);
-    qint64 elapsedTime() const { return m_elapsedTime; }
-
-private:
-    ItemPool *m_pool = nullptr;
-    QStringList m_searchPaths;
-    QStack<QStringList> m_extraSearchPaths;
-    ItemReaderVisitorState * const m_visitorState;
-    qint64 m_elapsedTime = -1;
+    Logger logger;
+    QString activity;
+    QElapsedTimer timer;
 };
+
+TimedActivityLogger::TimedActivityLogger(const Logger &logger, const QString &activity,
+        bool enabled)
+    : d(0)
+{
+    if (!enabled)
+        return;
+    d = new TimedActivityLoggerPrivate;
+    d->logger = logger;
+    d->activity = activity;
+    d->logger.qbsLog(LoggerInfo, true) << Tr::tr("Starting activity '%2'.").arg(activity);
+    d->timer.start();
+}
+
+void TimedActivityLogger::finishActivity()
+{
+    if (!d)
+        return;
+    const QString timeString = elapsedTimeString(d->timer.elapsed());
+    d->logger.qbsLog(LoggerInfo, true)
+            << Tr::tr("Activity '%2' took %3.").arg(d->activity, timeString);
+    delete d;
+    d = 0;
+}
+
+TimedActivityLogger::~TimedActivityLogger()
+{
+    finishActivity();
+}
+
+AccumulatingTimer::AccumulatingTimer(qint64 *elapsedTime) : m_elapsedTime(elapsedTime)
+{
+    if (elapsedTime)
+        m_timer.start();
+}
+
+AccumulatingTimer::~AccumulatingTimer()
+{
+    stop();
+}
+
+void AccumulatingTimer::stop()
+{
+    if (!m_timer.isValid())
+        return;
+    *m_elapsedTime += m_timer.elapsed();
+    m_timer.invalidate();
+}
+
+QString elapsedTimeString(qint64 elapsedTimeInMs)
+{
+    qint64 ms = elapsedTimeInMs;
+    qint64 s = ms/1000;
+    ms -= s*1000;
+    qint64 m = s/60;
+    s -= m*60;
+    const qint64 h = m/60;
+    m -= h*60;
+    QString timeString = QString::fromLocal8Bit("%1ms").arg(ms);
+    if (h || m || s)
+        timeString.prepend(QString::fromLocal8Bit("%1s, ").arg(s));
+    if (h || m)
+        timeString.prepend(QString::fromLocal8Bit("%1m, ").arg(m));
+    if (h)
+        timeString.prepend(QString::fromLocal8Bit("%1h, ").arg(h));
+    return timeString;
+}
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // QBS_ITEMREADER_H

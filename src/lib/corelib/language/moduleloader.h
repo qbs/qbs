@@ -261,6 +261,7 @@ private:
                                const QString &sourceCode) const;
     ProbeConstPtr findCurrentProbe(const CodeLocation &location, bool condition,
                                    const QVariantMap &initialProperties) const;
+    void printProfilingInfo();
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;
@@ -280,6 +281,7 @@ private:
     SetupProjectParameters m_parameters;
     Version m_qbsVersion;
     Item *m_tempScopeItem = nullptr;
+    qint64 m_elapsedTimeProbes;
 };
 
 } // namespace Internal

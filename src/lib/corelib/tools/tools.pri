@@ -24,6 +24,7 @@ HEADERS += \
     $$PWD/pathutils.h \
     $$PWD/preferences.h \
     $$PWD/profile.h \
+    $$PWD/profiling.h \
     $$PWD/processresult.h \
     $$PWD/processresult_p.h \
     $$PWD/processutils.h \
@@ -69,6 +70,7 @@ SOURCES += \
     $$PWD/processresult.cpp \
     $$PWD/processutils.cpp \
     $$PWD/profile.cpp \
+    $$PWD/profiling.cpp \
     $$PWD/progressobserver.cpp \
     $$PWD/projectgeneratormanager.cpp \
     $$PWD/propertyfinder.cpp \

@@ -54,6 +54,7 @@
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>
 #include <tools/error.h>
+#include <tools/profiling.h>
 #include <tools/progressobserver.h>
 #include <tools/preferences.h>
 #include <tools/qbsassert.h>

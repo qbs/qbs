@@ -41,6 +41,8 @@
 
 #include "itemreadervisitorstate.h"
 
+#include <tools/profiling.h>
+
 namespace qbs {
 namespace Internal {
 
@@ -84,12 +86,18 @@ QStringList ItemReader::searchPaths() const
 
 Item *ItemReader::readFile(const QString &filePath)
 {
+    AccumulatingTimer readFileTimer(m_elapsedTime != -1 ? &m_elapsedTime : nullptr);
     return m_visitorState->readFile(filePath, searchPaths(), m_pool);
 }
 
 QSet<QString> ItemReader::filesRead() const
 {
     return m_visitorState->filesRead();
+}
+
+void ItemReader::setEnableTiming(bool on)
+{
+    m_elapsedTime = on ? 0 : -1;
 }
 
 } // namespace Internal

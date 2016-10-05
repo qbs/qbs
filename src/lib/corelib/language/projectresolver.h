@@ -105,11 +105,11 @@ private:
     void resolveProductDependencies(const ProjectContext &projectContext);
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
-    QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true) const;
-    QVariantMap evaluateProperties(Item *item, bool lookupPrototype = true) const;
+    QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true);
+    QVariantMap evaluateProperties(Item *item, bool lookupPrototype = true);
     QVariantMap evaluateProperties(Item *item, Item *propertiesContainer, const QVariantMap &tmplt,
-            bool lookupPrototype = true) const;
-    QVariantMap createProductConfig() const;
+            bool lookupPrototype = true);
+    QVariantMap createProductConfig();
     QString convertPathProperty(const QString &path, const QString &dirPath) const;
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
@@ -117,6 +117,7 @@ private:
             const ModuleLoaderResult::ProductInfo &productInfo, bool &disabledDependency);
     static void matchArtifactProperties(const ResolvedProductPtr &product,
             const QList<SourceArtifactPtr> &artifacts);
+    void printProfilingInfo();
 
     Evaluator *m_evaluator;
     Logger &m_logger;
@@ -130,6 +131,9 @@ private:
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
     const SetupProjectParameters &m_setupParams;
     const ModuleLoaderResult &m_loadResult;
+    qint64 m_elapsedTimeModPropEval;
+    qint64 m_elapsedTimeAllPropEval;
+    qint64 m_elapsedTimeGroups;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);
     typedef QMap<ItemType, ItemFuncPtr> ItemFuncMap;

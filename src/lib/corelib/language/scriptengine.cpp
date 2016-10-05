@@ -48,8 +48,10 @@
 #include <buildgraph/artifact.h>
 #include <jsextensions/environmentextension.h>
 #include <jsextensions/jsextensions.h>
+#include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/profiling.h>
 #include <tools/qbsassert.h>
 
 #include <QDebug>
@@ -107,6 +109,10 @@ ScriptEngine::~ScriptEngine()
 {
     qDeleteAll(m_ownedVariantMaps);
     delete (m_scriptImporter);
+    if (m_elapsedTimeImporting != -1) {
+        m_logger.qbsLog(LoggerInfo, true) << Tr::tr("Setting up imports took %1.")
+                                             .arg(elapsedTimeString(m_elapsedTimeImporting));
+    }
 }
 
 void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject)
@@ -157,6 +163,11 @@ void ScriptEngine::addPropertyRequestedFromArtifact(const Artifact *artifact,
                                                     const Property &property)
 {
     m_propertiesRequestedFromArtifact[artifact->filePath()] << property;
+}
+
+void ScriptEngine::enableProfiling(bool enable)
+{
+    m_elapsedTimeImporting = enable ? 0 : -1;
 }
 
 void ScriptEngine::addToPropertyCache(const QString &moduleName, const QString &propertyName,
@@ -243,6 +254,7 @@ void ScriptEngine::setEnvironment(const QProcessEnvironment &env)
 
 void ScriptEngine::importFile(const QString &filePath, QScriptValue &targetObject)
 {
+    AccumulatingTimer importTimer(m_elapsedTimeImporting != -1 ? &m_elapsedTimeImporting : nullptr);
     QFile file(filePath);
     if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
         throw ErrorInfo(tr("Cannot open '%1'.").arg(filePath));

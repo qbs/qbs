@@ -85,6 +85,8 @@ public:
         return m_propertiesRequestedFromArtifact;
     }
 
+    void enableProfiling(bool enable);
+
     void setPropertyCacheEnabled(bool enable) { m_propertyCacheEnabled = enable; }
     bool isPropertyCacheEnabled() const { return m_propertyCacheEnabled; }
     void addToPropertyCache(const QString &moduleName, const QString &propertyName,
@@ -188,6 +190,7 @@ private:
     QScriptValue m_consoleObject;
     QScriptValue m_cancelationError;
     QList<QVariantMap *> m_ownedVariantMaps;
+    qint64 m_elapsedTimeImporting = -1;
 };
 
 } // namespace Internal

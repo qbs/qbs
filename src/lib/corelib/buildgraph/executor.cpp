@@ -58,6 +58,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/profiling.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
 
@@ -226,6 +227,9 @@ void Executor::doBuild()
     m_project->buildData->evaluationContext
             = RulesEvaluationContextPtr(new RulesEvaluationContext(m_logger));
     m_evalContext = m_project->buildData->evaluationContext;
+
+    m_elapsedTimeRules = m_elapsedTimeScanners = m_elapsedTimeInstalling = 0;
+    m_evalContext->engine()->enableProfiling(m_buildOptions.logElapsedTime());
 
     InstallOptions installOptions;
     installOptions.setDryRun(m_buildOptions.dryRun());
@@ -443,6 +447,8 @@ void Executor::buildArtifact(Artifact *artifact)
 
 void Executor::executeRuleNode(RuleNode *ruleNode)
 {
+    AccumulatingTimer rulesTimer(m_buildOptions.logElapsedTime() ? &m_elapsedTimeRules : nullptr);
+
     if (!checkNodeProduct(ruleNode))
         return;
 
@@ -880,7 +886,10 @@ void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
         // Scan all input artifacts. If new dependencies were found during scanning, delay
         // execution of this transformer.
         InputArtifactScanner scanner(output, m_inputArtifactScanContext, m_logger);
+        AccumulatingTimer scanTimer(m_buildOptions.logElapsedTime()
+                                    ? &m_elapsedTimeScanners : nullptr);
         scanner.scan();
+        scanTimer.stop();
         if (scanner.newDependencyAdded() && checkForUnbuiltDependencies(output))
             return;
     }
@@ -926,6 +935,9 @@ void Executor::finishTransformer(const TransformerPtr &transformer)
 
 void Executor::possiblyInstallArtifact(const Artifact *artifact)
 {
+    AccumulatingTimer installTimer(m_buildOptions.logElapsedTime()
+                                   ? &m_elapsedTimeInstalling : nullptr);
+
     if (m_buildOptions.install() && !m_buildOptions.executeRulesOnly()
             && (m_activeFileTags.isEmpty() || artifactHasMatchingOutputTags(artifact))
             && artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool()) {
@@ -1033,6 +1045,15 @@ void Executor::finish()
 
     EmptyDirectoriesRemover(m_project.data(), m_logger)
             .removeEmptyParentDirectories(m_artifactsRemovedFromDisk);
+
+    if (m_buildOptions.logElapsedTime()) {
+        m_logger.qbsLog(LoggerInfo, true) << "\t" << Tr::tr("Rule execution took %1.")
+                                             .arg(elapsedTimeString(m_elapsedTimeRules));
+        m_logger.qbsLog(LoggerInfo, true) << "\t" << Tr::tr("Artifact scanning took %1.")
+                                             .arg(elapsedTimeString(m_elapsedTimeScanners));
+        m_logger.qbsLog(LoggerInfo, true) << "\t" << Tr::tr("Installing artifacts took %1.")
+                                             .arg(elapsedTimeString(m_elapsedTimeInstalling));
+    }
 
     emit finished();
 }
