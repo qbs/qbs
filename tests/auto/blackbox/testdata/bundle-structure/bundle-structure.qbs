@@ -3,7 +3,7 @@ import qbs
 Project {
     property stringList bundleFileTags: [
         "aggregate_infoplist", "pkginfo", "hpp",
-        "icns", "resourcerules", "xcent",
+        "icns", "xcent",
         "compiled_ibdoc", "compiled_assetcatalog",
         "bundle.symlink.headers", "bundle.symlink.private-headers",
         "bundle.symlink.resources", "bundle.symlink.executable",

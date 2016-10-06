@@ -62,30 +62,6 @@ DarwinGCC {
 
     Rule {
         condition: !product.moduleProperty("qbs", "targetOS").contains("ios-simulator")
-        multiplex: true
-        inputs: ["qbs"]
-
-        Artifact {
-            filePath: product.destinationDirectory + "/"
-                    + product.moduleProperty("bundle", "contentsFolderPath")
-                    + "/ResourceRules.plist"
-            fileTags: ["resourcerules"]
-        }
-
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.description = "generating ResourceRules";
-            cmd.highlight = "codegen";
-            cmd.sysroot = product.moduleProperty("qbs","sysroot");
-            cmd.sourceCode = function() {
-                File.copy(sysroot + "/ResourceRules.plist", outputs.resourcerules[0].filePath);
-            }
-            return cmd;
-        }
-    }
-
-    Rule {
-        condition: !product.moduleProperty("qbs", "targetOS").contains("ios-simulator")
         inputsFromDependencies: ["bundle"]
 
         Artifact {
