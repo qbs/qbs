@@ -297,7 +297,7 @@ void ProjectPrivate::setupInstallData(ArtifactData &artifact,
     QString installFilePath = ProductInstaller::targetFilePath(product->topLevelProject(),
             product->sourceDirectory, artifact.filePath(), artifact.properties().d->m_map, options);
     if (!installRoot.isEmpty())
-        installFilePath.remove(0, installRoot.count() + 1);
+        installFilePath.remove(0, installRoot.count());
     artifact.d->installData.d->installRoot = installRoot;
     artifact.d->installData.d->installFilePath = installFilePath;
 }

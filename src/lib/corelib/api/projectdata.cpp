@@ -46,6 +46,8 @@
 #include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>
 
+#include <QDir>
+
 #include <algorithm>
 
 namespace qbs {
@@ -381,7 +383,7 @@ QString InstallData::installRoot() const
  */
 QString InstallData::localInstallDir() const
 {
-    return installRoot() + QLatin1Char('/') + installDir();
+    return QDir::cleanPath(installRoot() + QLatin1Char('/') + installDir());
 }
 
 /*!
@@ -390,7 +392,7 @@ QString InstallData::localInstallDir() const
  */
 QString InstallData::localInstallFilePath() const
 {
-    return installRoot() + QLatin1Char('/') + installFilePath();
+    return QDir::cleanPath(installRoot() + QLatin1Char('/') + installFilePath());
 }
 
 /*!
