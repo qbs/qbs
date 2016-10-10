@@ -398,8 +398,14 @@ static QString overriddenSourceDirectory(const Item *item)
 }
 
 inline void convertToPropertyType(const Item *item, const PropertyDeclaration::Type t,
-        QScriptValue &v)
+        Value::Type valueType, QScriptValue &v)
 {
+    if (valueType == Value::VariantValueType && v.isUndefined()
+            && (t == PropertyDeclaration::StringList || t == PropertyDeclaration::PathList)) {
+        v = v.engine()->newArray(); // QTBUG-51237
+        return;
+    }
+
     if (v.isUndefined() || v.isError())
         return;
     switch (t) {
@@ -497,7 +503,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
         converter.start();
 
         const PropertyDeclaration decl = data->item->propertyDeclaration(name.toString());
-        convertToPropertyType(data->item, decl.type(), result);
+        convertToPropertyType(data->item, decl.type(), value->type(), result);
     }
 
     if (debugProperties)

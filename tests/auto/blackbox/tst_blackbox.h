@@ -199,6 +199,7 @@ private slots:
     void qbsVersion();
     void qmlDebugging();
     void qobjectInObjectiveCpp();
+    void qtBug51237();
     void radAfterIncompleteBuild_data();
     void radAfterIncompleteBuild();
     void recursiveRenaming();

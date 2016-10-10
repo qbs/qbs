@@ -2335,6 +2335,26 @@ void TestBlackbox::qobjectInObjectiveCpp()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::qtBug51237()
+{
+    const QString profileName = "profile-qtBug51237";
+    const QString propertyName = "mymodule.theProperty";
+    {
+        Settings settings((QString()));
+        Profile profile(profileName, &settings);
+        profile.setValue(propertyName, QStringList());
+    }
+    Settings settings((QString()));
+    qbs::Internal::TemporaryProfile profile(profileName, &settings);
+    const QVariant propertyValue = profile.p.value(propertyName);
+    QVERIFY(!propertyValue.isValid()); // QTBUG-51237
+    QDir::setCurrent(testDataDir + "/QTBUG-51237");
+    QbsRunParameters params;
+    params.arguments << "profile:" + profileName;
+    params.useProfile = false;
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::dynamicMultiplexRule()
 {
     const QString testDir = testDataDir + "/dynamicMultiplexRule";
