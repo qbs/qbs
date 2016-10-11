@@ -1132,48 +1132,68 @@ void TestLanguage::modulePropertiesInGroups()
         const QVariantMap productProps = product->moduleProperties->value();
         PropertyFinder pf;
 
-        const auto &productListProp1 = pf.propertyValue(productProps, "gmod1", "listProp1")
+        const auto &productGmod1List1 = pf.propertyValue(productProps, "gmod.gmod1", "gmod1_list1")
                 .toStringList();
-        QCOMPARE(productListProp1, QStringList() << "prototype" << "prototype");
-        const auto &productListProp2 = pf.propertyValue(productProps, "gmod1", "listProp2")
+        QCOMPARE(productGmod1List1, QStringList() << "gmod1_list1_proto" << "gmod1_string_proto");
+        const auto &productGmod1List2 = pf.propertyValue(productProps, "gmod.gmod1", "gmod1_list2")
                 .toStringList();
-        QCOMPARE(productListProp2, QStringList() << "product" << "prototype" << "prototype");
-        const int productP0 = pf.propertyValue(productProps, "gmod1", "p0").toInt();
+        QCOMPARE(productGmod1List2, QStringList() << "grouptest" << "gmod1_string_proto"
+                 << "gmod1_list2_proto");
+        const auto &productGmod1List3 = pf.propertyValue(productProps, "gmod.gmod1", "gmod1_list3")
+                .toStringList();
+        QCOMPARE(productGmod1List3, QStringList() << "product" << "gmod1_string_proto");
+        const int productP0 = pf.propertyValue(productProps, "gmod.gmod1", "p0").toInt();
         QCOMPARE(productP0, 1);
-        const int productDepProp = pf.propertyValue(productProps, "gmod1", "depProp").toInt();
+        const int productDepProp = pf.propertyValue(productProps, "gmod.gmod1", "depProp").toInt();
         QCOMPARE(productDepProp, 0);
+        const auto &productGmod2String = pf.propertyValue(productProps, "gmod2", "gmod2_string")
+                .toString();
+        QCOMPARE(productGmod2String, QString("gmod1_string_proto"));
+        const auto &productGmod2List = pf.propertyValue(productProps, "gmod2", "gmod2_list")
+                .toStringList();
+        QCOMPARE(productGmod2List, QStringList() << "gmod1_string_proto" << "commonName_in_gmod1"
+                 << "gmod4_string_proto_gmod3_string_proto"  << "gmod3_string_proto"
+                 << "gmod2_list_proto");
 
         const QVariantMap g1Props = g1->properties->value();
-        const auto &g1ListProp1 = pf.propertyValue(g1Props, "gmod1", "listProp1")
+        const auto &g1Gmod1List1 = pf.propertyValue(g1Props, "gmod.gmod1", "gmod1_list1")
                 .toStringList();
-        QCOMPARE(g1ListProp1, QStringList() << "prototype" << "g1");
-        const auto &g1ListProp2 = pf.propertyValue(g1Props, "gmod1", "listProp2")
+        QCOMPARE(g1Gmod1List1, QStringList() << "gmod1_list1_proto" << "g1");
+        const auto &g1Gmod1List2 = pf.propertyValue(g1Props, "gmod.gmod1", "gmod1_list2")
                 .toStringList();
-        QEXPECT_FAIL(0, "QBS-1005", Continue);
-        QCOMPARE(g1ListProp2, QStringList() << "product" << "g1" << "prototype");
-        const int g1P0 = pf.propertyValue(g1Props, "gmod1", "p0").toInt();
+        QCOMPARE(g1Gmod1List2, QStringList() << "grouptest" << "gmod1_string_proto"
+                 << "gmod1_list2_proto" << "g1");
+        const auto &g1Gmod1List3 = pf.propertyValue(g1Props, "gmod.gmod1", "gmod1_list3")
+                .toStringList();
+        QCOMPARE(g1Gmod1List3, QStringList() << "product" << "g1");
+        const int g1P0 = pf.propertyValue(g1Props, "gmod.gmod1", "p0").toInt();
         QCOMPARE(g1P0, 3);
-        const int g1DepProp = pf.propertyValue(g1Props, "gmod1", "depProp").toInt();
-        QEXPECT_FAIL(0, "QBS-1005", Continue);
+        const int g1DepProp = pf.propertyValue(g1Props, "gmod.gmod1", "depProp").toInt();
         QCOMPARE(g1DepProp, 1);
-        const auto &g1DummyCFlags = pf.propertyValue(g1Props, "dummy", "cFlags")
+        const auto &g1Gmod2String = pf.propertyValue(g1Props, "gmod2", "gmod2_string").toString();
+        QCOMPARE(g1Gmod2String, QString("g1"));
+        const auto &g1Gmod2List = pf.propertyValue(g1Props, "gmod2", "gmod2_list")
                 .toStringList();
-        QEXPECT_FAIL(0, "QBS-1005", Continue);
-        QCOMPARE(g1DummyCFlags, QStringList("X"));
+        QCOMPARE(g1Gmod2List, QStringList() << "g1" << "commonName_in_gmod1" << "g1_gmod4_g1_gmod3"
+                 << "g1_gmod3" << "gmod2_list_proto");
 
         const QVariantMap g2Props = g2->properties->value();
-        const auto &g2ListProp1 = pf.propertyValue(g2Props, "gmod1", "listProp1")
+        const auto &g2Gmod1List1 = pf.propertyValue(g2Props, "gmod.gmod1", "gmod1_list1")
                 .toStringList();
-        QCOMPARE(g2ListProp1, QStringList() << "prototype" << "g2");
-        const auto &g2ListProp2 = pf.propertyValue(g2Props, "gmod1", "listProp2")
+        QCOMPARE(g2Gmod1List1, QStringList() << "gmod1_list1_proto" << "g2");
+        const auto &g2Gmod1List2 = pf.propertyValue(g2Props, "gmod.gmod1", "gmod1_list2")
                 .toStringList();
-        QEXPECT_FAIL(0, "QBS-1005", Continue);
-        QCOMPARE(g2ListProp2, QStringList() << "product" << "g2" << "prototype");
-        const int g2P0 = pf.propertyValue(g2Props, "gmod1", "p0").toInt();
+        QCOMPARE(g2Gmod1List2, QStringList() << "grouptest" << "g2" << "gmod1_list2_proto");
+        const int g2P0 = pf.propertyValue(g2Props, "gmod.gmod1", "p0").toInt();
         QCOMPARE(g2P0, 6);
-        const int g2DepProp = pf.propertyValue(g2Props, "gmod1", "depProp").toInt();
-        QEXPECT_FAIL(0, "QBS-1005", Continue);
+        const int g2DepProp = pf.propertyValue(g2Props, "gmod.gmod1", "depProp").toInt();
         QCOMPARE(g2DepProp, 2);
+        const auto &g2Gmod2String = pf.propertyValue(g2Props, "gmod2", "gmod2_string").toString();
+        QCOMPARE(g2Gmod2String, QString("g2"));
+        const auto &g2Gmod2List = pf.propertyValue(g2Props, "gmod2", "gmod2_list")
+                .toStringList();
+        QCOMPARE(g2Gmod2List, QStringList() << "g2" << "commonName_in_gmod1" << "g2_gmod4_g2_gmod3"
+                 << "g2_gmod3" << "gmod2_list_proto");
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();

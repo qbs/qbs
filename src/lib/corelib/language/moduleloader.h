@@ -199,9 +199,19 @@ private:
     void initProductProperties(const ProductContext &product);
     void handleSubProject(ProjectContext *projectContext, Item *projectItem,
             const QSet<QString> &referencedFilePaths);
-    void handleGroup(ProductContext *productContext, Item *groupItem);
+
+    using ModuleDependencies = QHash<QualifiedId, QualifiedIdSet>;
+    void setupReverseModuleDependencies(const Item::Module &module, ModuleDependencies &deps,
+                                        QualifiedIdSet &seenModules);
+    ModuleDependencies setupReverseModuleDependencies(const Item *product);
+    void handleGroup(ProductContext *productContext, Item *groupItem,
+                     const ModuleDependencies &reverseDepencencies);
+    void propagateModulesFromProduct(ProductContext *productContext, Item *groupItem,
+                                     const ModuleDependencies &reverseDepencencies);
+    void adjustDefiningItemsInGroupModuleInstances(const Item::Module &module,
+                                                   const Item::Modules &dependentModules);
+
     void mergeExportItems(const ProductContext &productContext);
-    void propagateModulesFromProduct(ProductContext *productContext, Item *groupItem);
     void resolveDependencies(DependsContext *dependsContext, Item *item);
     class ItemModuleList;
     void resolveDependsItem(DependsContext *dependsContext, Item *parentItem, Item *dependsItem,
@@ -246,6 +256,8 @@ private:
                                const QString &sourceCode) const;
     ProbeConstPtr findCurrentProbe(const CodeLocation &location, bool condition,
                                    const QVariantMap &initialProperties) const;
+
+    bool isSomeModulePropertySet(const Item *item);
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;

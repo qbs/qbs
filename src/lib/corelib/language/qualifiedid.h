@@ -33,6 +33,8 @@
 
 #include <QStringList>
 
+#include <set>
+
 namespace qbs {
 namespace Internal {
 
@@ -48,6 +50,12 @@ public:
 };
 
 bool operator<(const QualifiedId &a, const QualifiedId &b);
+
+class QualifiedIdSet : public std::set<QualifiedId>
+{
+public:
+    typedef std::pair<iterator, bool> InsertResult;
+};
 
 } // namespace Internal
 } // namespace qbs

@@ -43,6 +43,14 @@ Value::Value(Type t, bool createdByPropertiesBlock)
 {
 }
 
+Value::Value(const Value &other)
+    : m_type(other.m_type),
+      m_definingItem(other.m_definingItem),
+      m_next(other.m_next ? other.m_next->clone() : ValuePtr()),
+      m_createdByPropertiesBlock(other.m_createdByPropertiesBlock)
+{
+}
+
 Value::~Value()
 {
 }

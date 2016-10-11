@@ -54,7 +54,6 @@
 #include <QQueue>
 
 #include <algorithm>
-#include <set>
 
 namespace qbs {
 namespace Internal {
@@ -724,12 +723,6 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     else
         projectContext->rules += rule;
 }
-
-class QualifiedIdSet : public std::set<QualifiedId>
-{
-public:
-    typedef std::pair<iterator, bool> InsertResult;
-};
 
 void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
 {
