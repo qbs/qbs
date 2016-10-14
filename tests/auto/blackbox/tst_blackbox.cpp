@@ -2344,10 +2344,6 @@ void TestBlackbox::qtBug51237()
         Profile profile(profileName, &settings);
         profile.setValue(propertyName, QStringList());
     }
-    Settings settings((QString()));
-    qbs::Internal::TemporaryProfile profile(profileName, &settings);
-    const QVariant propertyValue = profile.p.value(propertyName);
-    QVERIFY(!propertyValue.isValid()); // QTBUG-51237
     QDir::setCurrent(testDataDir + "/QTBUG-51237");
     QbsRunParameters params;
     params.arguments << "profile:" + profileName;
