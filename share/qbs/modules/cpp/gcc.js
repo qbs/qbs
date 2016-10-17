@@ -749,10 +749,22 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         primaryOutput = outputs.loadablemodule[0];
     }
 
-    cmd = new Command(effectiveLinkerPath(product, inputs),
-                      linkerFlags(project, product, inputs, primaryOutput));
+    var linkerPath = effectiveLinkerPath(product, inputs)
+
+    var args = linkerFlags(project, product, inputs, primaryOutput)
+    var wrapperArgsLength = 0;
+    var wrapperArgs = ModUtils.moduleProperty(product, "linkerWrapper");
+    if (wrapperArgs && wrapperArgs.length > 0) {
+        wrapperArgsLength = wrapperArgs.length;
+        args.unshift(linkerPath);
+        linkerPath = wrapperArgs.shift();
+        args = wrapperArgs.concat(args);
+    }
+
+    cmd = new Command(linkerPath, args);
     cmd.description = 'linking ' + primaryOutput.fileName;
     cmd.highlight = 'linker';
+    cmd.responseFileArgumentIndex = wrapperArgsLength;
     cmd.responseFileUsagePrefix = '@';
     commands.push(cmd);
 

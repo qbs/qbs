@@ -450,7 +450,6 @@ void TestBlackbox::bundleStructure()
             QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Info.plist").isRegularFile());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/PkgInfo").isRegularFile());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/resource.txt").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/ResourceRules.plist").isRegularFile());
         }
 
         if (productName == "B") {
@@ -465,7 +464,6 @@ void TestBlackbox::bundleStructure()
             QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/PrivateHeaders").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/PrivateHeaders/dummy_p.h").isRegularFile());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/resource.txt").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/ResourceRules.plist").isRegularFile());
         }
 
         if (productName == "C") {
@@ -480,7 +478,6 @@ void TestBlackbox::bundleStructure()
             QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/PrivateHeaders").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/PrivateHeaders/dummy_p.h").isRegularFile());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/resource.txt").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/ResourceRules.plist").isRegularFile());
         }
 
         if (productName == "D") {
@@ -493,7 +490,6 @@ void TestBlackbox::bundleStructure()
             QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/PrivateHeaders").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/PrivateHeaders/dummy_p.h").isRegularFile());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/resource.txt").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/ResourceRules.plist").isRegularFile());
         }
 
         if (productName == "E") {
@@ -506,7 +502,6 @@ void TestBlackbox::bundleStructure()
             QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/PrivateHeaders").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/PrivateHeaders/dummy_p.h").isRegularFile());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/resource.txt").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/ResourceRules.plist").isRegularFile());
         }
 
         if (productName == "F") {
@@ -519,7 +514,6 @@ void TestBlackbox::bundleStructure()
             QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/PrivateHeaders").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/PrivateHeaders/dummy_p.h").isRegularFile());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/resource.txt").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/ResourceRules.plist").isRegularFile());
         }
 
         if (productName == "G") {
@@ -2179,6 +2173,22 @@ void TestBlackbox::qobjectInObjectiveCpp()
     const QString testDir = testDataDir + "/qobject-in-mm";
     QDir::setCurrent(testDir);
     QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::qtBug51237()
+{
+    const QString profileName = "profile-qtBug51237";
+    const QString propertyName = "mymodule.theProperty";
+    {
+        Settings settings((QString()));
+        Profile profile(profileName, &settings);
+        profile.setValue(propertyName, QStringList());
+    }
+    QDir::setCurrent(testDataDir + "/QTBUG-51237");
+    QbsRunParameters params;
+    params.arguments << "profile:" + profileName;
+    params.useProfile = false;
+    QCOMPARE(runQbs(params), 0);
 }
 
 void TestBlackbox::dynamicMultiplexRule()

@@ -1144,7 +1144,12 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item, Item *propertiesCont
             if (result.contains(it.key()))
                 break;
             VariantValuePtr vvp = it.value().staticCast<VariantValue>();
-            result[it.key()] = vvp->value();
+            QVariant v = vvp->value();
+
+            if (v.isNull() && !item->propertyDeclaration(it.key()).isScalar()) // QTBUG-51237
+                v = QStringList();
+
+            result[it.key()] = v;
             break;
         }
         }

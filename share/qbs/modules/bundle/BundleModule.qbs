@@ -487,7 +487,7 @@ Module {
         condition: qbs.targetOS.contains("darwin")
         multiplex: true
         inputs: ["aggregate_infoplist", "pkginfo", "hpp",
-                 "icns", "resourcerules", "xcent",
+                 "icns", "xcent",
                  "compiled_ibdoc", "compiled_assetcatalog",
                  "xcode.provisioningprofile.main"]
 

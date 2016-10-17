@@ -422,11 +422,17 @@ static void makeTypeError(const PropertyDeclaration &decl, const CodeLocation &l
 }
 
 static void convertToPropertyType(const Item *item, const PropertyDeclaration& decl,
-                                  const CodeLocation &location, QScriptValue &v)
+                                  const Value *value, QScriptValue &v)
 {
+    if (value->type() == Value::VariantValueType && v.isUndefined() && !decl.isScalar()) {
+        v = v.engine()->newArray(); // QTBUG-51237
+        return;
+    }
+
     if (v.isUndefined() || v.isError())
         return;
     QString srcDir;
+    const CodeLocation &location = value->location();
     switch (decl.type()) {
     case PropertyDeclaration::UnknownType:
     case PropertyDeclaration::Variant:
@@ -537,7 +543,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
         converter.start();
 
         const PropertyDeclaration decl = data->item->propertyDeclaration(name.toString());
-        convertToPropertyType(data->item, decl, value->location(), result);
+        convertToPropertyType(data->item, decl, value.data(), result);
     }
 
     if (debugProperties)
