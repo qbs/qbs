@@ -1,6 +1,7 @@
 import qbs 1.0
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.TextFile
 import qbs.Utilities
 import "moc.js" as Moc
 import "qdoc.js" as Qdoc
@@ -265,6 +266,44 @@ Module {
             cmd.description = 'moc ' + input.fileName;
             cmd.highlight = 'codegen';
             return cmd;
+        }
+    }
+
+    property path resourceSourceBase: product.sourceDirectory
+    property string resourcePrefix: "/"
+    Rule {
+        multiplex: true
+        inputs: ["qt.core.resource_data"]
+        Artifact {
+            filePath: "__qbs_auto_" + product.name + ".qrc"
+            fileTags: ["qrc"]
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "generating " + output.fileName;
+            cmd.sourceCode = function() {
+                var qrcFile = new TextFile(output.filePath, TextFile.WriteOnly);
+                try {
+                    qrcFile.writeLine('<!DOCTYPE RCC>');
+                    qrcFile.writeLine('<RCC version="1.0">');
+                    var prefix = inputs["qt.core.resource_data"][0].moduleProperty("Qt.core",
+                                                                              "resourcePrefix");
+                    qrcFile.writeLine('<qresource prefix ="' + prefix + '">');
+                    for (var i = 0; i < inputs["qt.core.resource_data"].length; ++i) {
+                        var inp = inputs["qt.core.resource_data"][i];
+                        var fullResPath = inp.filePath;
+                        var baseDir = inp.moduleProperty("Qt.core", "resourceSourceBase");
+                        var relResPath = FileInfo.relativePath(baseDir, fullResPath);
+                        qrcFile.writeLine('<file alias = "' + relResPath + '">'
+                                          + fullResPath + '</file>');
+                    }
+                    qrcFile.writeLine('</qresource>');
+                    qrcFile.writeLine('</RCC>');
+                } finally {
+                    qrcFile.close();
+                }
+            };
+            return [cmd];
         }
     }
 

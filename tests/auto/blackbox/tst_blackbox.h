@@ -44,6 +44,7 @@ private slots:
     void assembly();
     void assetCatalog();
     void assetCatalog_data();
+    void autoQrc();
     void badInterpreter();
     void buildDirectories();
     void bundleStructure();

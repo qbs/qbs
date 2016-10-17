@@ -335,6 +335,19 @@
         \li \c{empty}
         \li Corresponds to the default value of qmake's \c QT_CONFIG variable.
     \row
+        \li resourceSourceBase
+        \li \c{path}
+        \li \c{product.sourceDirectory}
+        \li For files tagged as \c{qt.core.resource_data}, this property determines which part of
+            their path will end up in the generated \c qrc file.
+    \row
+        \li resourcePrefix
+        \li \c{string}
+        \li \c{"/"}
+        \li For files tagged as \c{qt.core.resource_data}, this property determines the prefix
+            under which they will be available in the generated \c qrc file. The value of this
+            property needs to be the same for all such files in a product.
+    \row
         \li staticBuild
         \li \c{bool}
         \li \c{undefined}
@@ -551,6 +564,11 @@
         \li 1.0
         \li Source files with this tag trigger a re-execution of the rule running the \c moc
             tool when their timestamp changes.
+    \row
+        \li \c{"qt.core.resource_data"}
+        \li -
+        \li 1.7
+        \li Source files with this tag serve as inputs to the rule creating \c qrc files.
     \row
         \li \c{"ts"}
         \li \c{*.ts}

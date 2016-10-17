@@ -4056,6 +4056,14 @@ void TestBlackbox::assetCatalog_data()
     QTest::newRow("unflattened") << false;
 }
 
+void TestBlackbox::autoQrc()
+{
+    QDir::setCurrent(testDataDir + "/auto-qrc");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.simplified().contains("resource data: resource1 resource2"),
+             m_qbsStdout.constData());
+}
+
 void TestBlackbox::objcArc()
 {
     if (!HostOsInfo::isMacosHost())
