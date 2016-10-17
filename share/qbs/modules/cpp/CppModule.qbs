@@ -35,6 +35,7 @@ import qbs.WindowsUtils
 
 Module {
     condition: false
+    version: compilerVersion
     property string compilerVersion:
         [compilerVersionMajor, compilerVersionMinor, compilerVersionPatch].join(".")
     property int compilerVersionMajor

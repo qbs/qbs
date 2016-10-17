@@ -44,7 +44,7 @@ Module {
 
     property path toolchainInstallPath: wixProbe.path
     property path toolchainInstallRoot: wixProbe.root
-    property string version: wixProbe.version
+    version: wixProbe.version
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
     property int versionMinor: versionParts[1]

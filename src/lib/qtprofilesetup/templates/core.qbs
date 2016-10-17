@@ -25,7 +25,6 @@ Module {
     property stringList qdocEnvironment
     property path docPath
     property stringList helpGeneratorArgs: versionMajor >= 5 ? ["-platform", "minimal"] : []
-    property string version
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
     property int versionMinor: versionParts[1]

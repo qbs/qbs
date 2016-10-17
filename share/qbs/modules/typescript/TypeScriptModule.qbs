@@ -57,7 +57,7 @@ Module {
     property path toolchainLibDirName: (versionMajor > 1 || (versionMajor === 1 && versionMinor >= 6)) ? "lib" : "bin"
     property path toolchainLibInstallPath: FileInfo.joinPaths(nodejs.packageManagerRootPath, "typescript", toolchainLibDirName)
 
-    property string version: tsc.version ? tsc.version[2] : undefined
+    version: tsc.version ? tsc.version[2] : undefined
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
     property int versionMinor: versionParts[1]

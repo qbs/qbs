@@ -39,7 +39,7 @@ Module {
 
     property path toolchainInstallPath: Utilities.getNativeSetting(registryKey)
 
-    property string version: (versionMajor !== undefined && versionMinor !== undefined) ? (versionMajor + "." + versionMinor) : undefined
+    version: (versionMajor !== undefined && versionMinor !== undefined) ? (versionMajor + "." + versionMinor) : undefined
     property var versionParts: [ versionMajor, versionMinor, versionPatch, versionBuild ]
     property int versionMajor: Utilities.getNativeSetting(registryKey, "VersionMajor")
     property int versionMinor: Utilities.getNativeSetting(registryKey, "VersionMinor")

@@ -72,6 +72,7 @@ Module {
     property string compiledNibSuffix: ".nib"
     property string compiledStoryboardSuffix: ".storyboardc"
 
+    version: ibtoolVersion
     property string ibtoolVersion: { return Ib.ibtoolVersion(ibtoolPath); }
     property var ibtoolVersionParts: ibtoolVersion ? ibtoolVersion.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int ibtoolVersionMajor: ibtoolVersionParts[0]

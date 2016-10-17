@@ -57,6 +57,7 @@ Module {
 
     property path jdkPath: jdk.path
 
+    version: compilerVersion
     property string compilerVersion: jdk.version ? jdk.version[1] : undefined
     property var compilerVersionParts: compilerVersion ? compilerVersion.split(/[\._]/).map(function(item) { return parseInt(item, 10); }) : []
     property int compilerVersionMajor: compilerVersionParts[0]
