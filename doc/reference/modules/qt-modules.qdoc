@@ -153,6 +153,14 @@
         \li Qt Script
         \li
     \row
+        \li scxml
+        \li Qt Scxml
+        \li For more information on the properties you can specify, see
+            \l{scxml Properties}.
+
+            For more information on the relevant file tags, see
+            \l {scxml File Tags}.
+    \row
         \li sql
         \li Qt SQL
         \li
@@ -452,6 +460,33 @@
 
     \endtable
 
+    \section2 scxml Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li className
+        \li \c{string}
+        \li \c undefined
+        \li The class name of the generated state machine. By default, the compiler will use the
+            \c name attribute of the input file's \c{<scxml>} tag.
+    \row
+        \li namespace
+        \li \c{string}
+        \li \c undefined
+        \li The C++ namespace in which to put the generated class. By default, the compiler will
+            place the class in the global namespace.
+    \row
+        \li qscxmlcName
+        \li \c{string}
+        \li \c{"qscxmlc"}
+        \li The base name of the Qt SCXML compiler. Set this if your system uses a different name.
+    \endtable
+
     \section1 Relevant File Tags
 
     The following sections describe the file tags that are relevant for the Qt
@@ -559,4 +594,21 @@
         \li 1.0
         \li Source files with this tag serve as inputs to the rule running the \c uic tool.
     \endtable
+
+    \section2 scxml File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"qt.scxml.compilable"}
+        \li -
+        \li 1.7
+        \li Source files with this tag serve as inputs to the rule running the Qt SCXML compiler,
+            which will create a C++ class representing a state machine.
+    \endtable
+
 */

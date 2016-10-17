@@ -2191,6 +2191,16 @@ void TestBlackbox::qtBug51237()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::qtScxml()
+{
+    QDir::setCurrent(testDataDir + "/qtscxml");
+    QCOMPARE(runQbs(), 0);
+    if (m_qbsStdout.contains("QtScxml not present"))
+        QSKIP("QtScxml module not present");
+    QVERIFY2(m_qbsStdout.contains("state machine name: qbs_test_machine"),
+             m_qbsStdout.constData());
+}
+
 void TestBlackbox::dynamicMultiplexRule()
 {
     const QString testDir = testDataDir + "/dynamicMultiplexRule";

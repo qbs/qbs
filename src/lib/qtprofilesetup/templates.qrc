@@ -11,5 +11,6 @@
         <file>templates/QtPlugin.qbs</file>
         <file>templates/dbus.js</file>
         <file>templates/dbus.qbs</file>
+        <file>templates/scxml.qbs</file>
     </qresource>
 </RCC>
