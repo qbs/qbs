@@ -263,6 +263,8 @@ private:
                                    const QVariantMap &initialProperties) const;
     void printProfilingInfo();
 
+    void handleProductError(const ErrorInfo &error, ProductContext *productContext);
+
     ScriptEngine *m_engine;
     ItemPool *m_pool;
     Logger &m_logger;

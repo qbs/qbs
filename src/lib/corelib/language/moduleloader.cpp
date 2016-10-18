@@ -406,22 +406,22 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
             try {
                 setupProductDependencies(it);
             } catch (const ErrorInfo &err) {
-                if (m_parameters.productErrorMode() == ErrorHandlingMode::Strict
-                        || it->name.isEmpty()) {
+                if (it->name.isEmpty())
                     throw err;
-                }
-                m_logger.printWarning(err);
-                it->info.hasError = true;
-                it->project->result->productInfos.insert(it->item, it->info);
-                m_disabledItems << it->item;
+                handleProductError(err, it);
             }
         }
     }
 
     ProductSortByDependencies productSorter(tlp);
     productSorter.apply();
-    foreach (ProductContext * const p, productSorter.sortedProducts())
-        handleProduct(p);
+    foreach (ProductContext * const p, productSorter.sortedProducts()) {
+        try {
+            handleProduct(p);
+        } catch (const ErrorInfo &err) {
+            handleProductError(err, p);
+        }
+    }
 
     m_reader->clearExtraSearchPathsStack();
     PropertyDeclarationCheck check(m_disabledItems, m_parameters, m_logger);
@@ -726,8 +726,13 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
             }
             m_evaluator->boolValue(module.item, QLatin1String("validate"));
         } catch (const ErrorInfo &error) {
-            if (module.required) { // Error will be thrown for enabled products only
-                module.item->setDelayedError(error);
+            if (module.required) {
+                try {
+                    handleProductError(error, productContext);
+                } catch (const ErrorInfo &) {
+                    // Error will be thrown for enabled products only
+                    module.item->setDelayedError(error);
+                }
             } else {
                 createNonPresentModule(module.name.toString(), QLatin1String("failed validation"),
                                        module.item);
@@ -2096,6 +2101,18 @@ Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &r
     }
     module->setProperty(QLatin1String("present"), VariantValue::create(false));
     return module;
+}
+
+void ModuleLoader::handleProductError(const ErrorInfo &error,
+                                      ModuleLoader::ProductContext *productContext)
+{
+    if (m_parameters.productErrorMode() == ErrorHandlingMode::Strict)
+        throw error;
+    m_logger.printWarning(error);
+    productContext->info.hasError = true;
+    productContext->project->result->productInfos.insert(productContext->item,
+                                                         productContext->info);
+    m_disabledItems << productContext->item;
 }
 
 void ModuleLoader::copyGroupsFromModuleToProduct(const ProductContext &productContext,
