@@ -90,6 +90,7 @@
       "LIBRARY_FLAG_NOSPACE" : "YES",
       "GCC_INLINES_ARE_PRIVATE_EXTERN" : "YES",
       "CODE_SIGNING_ALLOWED" : "YES",
+      "CODE_SIGNING_REQUIRED" : "NO",
       "EXECUTABLE_EXTENSION" : "dylib",
       "PUBLIC_HEADERS_FOLDER_PATH" : "\/usr\/local\/include",
       "DYLIB_INSTALL_NAME_BASE" : "$(INSTALL_PATH)",
@@ -112,6 +113,7 @@
     "IconNamePrefix" : "TargetLibrary",
     "DefaultBuildProperties" : {
       "STRIP_STYLE" : "debugging",
+      "CLANG_ENABLE_MODULE_DEBUGGING" : "NO",
       "REZ_EXECUTABLE" : "YES",
       "FULL_PRODUCT_NAME" : "$(EXECUTABLE_NAME)",
       "LIBRARY_FLAG_NOSPACE" : "YES",
@@ -201,8 +203,8 @@
     "Class" : "PBXApplicationProductType",
     "Name" : "Application",
     "RunpathSearchPathForEmbeddedFrameworks" : "@executable_path\/..\/Frameworks",
-    "CanEmbedAddressSanitizerLibraries" : "YES",
     "ValidateEmbeddedBinaries" : "YES",
+    "ProvisioningProfileSupported" : "YES",
     "DefaultTargetName" : "Application",
     "DefaultBuildProperties" : {
       "INSTALL_PATH" : "$(LOCAL_APPS_DIR)",
@@ -216,10 +218,12 @@
       "MACH_O_TYPE" : "mh_execute"
     },
     "BasedOn" : "com.apple.product-type.bundle",
+    "ProvisioningProfileRequired" : "NO",
     "PackageTypes" : [
       "com.apple.package-type.wrapper.application"
     ],
     "Type" : "ProductType",
+    "CanEmbedCompilerSanitizerLibraries" : "YES",
     "Identifier" : "com.apple.product-type.application",
     "IconNamePrefix" : "TargetApp"
   },
@@ -251,14 +255,17 @@
     "IconNamePrefix" : "TargetFramework",
     "DefaultTargetName" : "Framework",
     "DefaultBuildProperties" : {
-      "WRAPPER_EXTENSION" : "framework",
-      "DYLIB_INSTALL_NAME_BASE" : "$(INSTALL_PATH)",
-      "STRIP_STYLE" : "debugging",
-      "FRAMEWORK_VERSION" : "A",
-      "CODE_SIGNING_ALLOWED" : "YES",
+      "CODE_SIGNING_REQUIRES_TEAM" : "YES",
       "LD_DYLIB_INSTALL_NAME" : "$(DYLIB_INSTALL_NAME_BASE:standardizepath)\/$(EXECUTABLE_PATH)",
+      "CODE_SIGNING_REQUIRED" : "NO",
+      "CODE_SIGNING_ALLOWED" : "YES",
       "INSTALL_PATH" : "$(LOCAL_LIBRARY_DIR)\/Frameworks",
       "WRAPPER_SUFFIX" : ".$(WRAPPER_EXTENSION)",
+      "WRAPPER_EXTENSION" : "framework",
+      "FRAMEWORK_VERSION" : "A",
+      "ENTITLEMENTS_REQUIRED" : "NO",
+      "STRIP_STYLE" : "debugging",
+      "DYLIB_INSTALL_NAME_BASE" : "$(INSTALL_PATH)",
       "MACH_O_TYPE" : "mh_dylib"
     },
     "PackageTypes" : [
@@ -415,6 +422,7 @@
     "PackageTypes" : [
       "com.apple.package-type.bundle.unit-test"
     ],
+    "CanEmbedCompilerSanitizerLibraries" : "YES",
     "Type" : "ProductType",
     "BasedOn" : "com.apple.product-type.bundle",
     "Name" : "Unit Test Bundle",
@@ -436,6 +444,7 @@
     "PackageTypes" : [
       "com.apple.package-type.bundle.unit-test"
     ],
+    "ProvisioningProfileSupported" : "YES",
     "Type" : "ProductType",
     "BasedOn" : "com.apple.product-type.bundle.unit-test",
     "Name" : "UI Testing Bundle",
@@ -476,7 +485,7 @@
   {
     "IconNamePrefix" : "XPCService",
     "DefaultTargetName" : "XPC Service",
-    "CanEmbedAddressSanitizerLibraries" : "YES",
+    "CanEmbedCompilerSanitizerLibraries" : "YES",
     "DefaultBuildProperties" : {
       "MACH_O_TYPE" : "mh_execute",
       "WRAPPER_EXTENSION" : "xpc"
@@ -509,7 +518,10 @@
     "Class" : "PBXBundleProductType"
   },
   {
-    "IconNamePrefix" : "AppExtension",
+    "Description" : "App Extension",
+    "Class" : "PBXBundleProductType",
+    "Name" : "App Extension",
+    "ProvisioningProfileSupported" : "YES",
     "DefaultTargetName" : "App Extension",
     "DefaultBuildProperties" : {
       "APPLICATION_EXTENSION_API_ONLY" : "YES",
@@ -517,15 +529,43 @@
       "WRAPPER_EXTENSION" : "appex",
       "CODE_SIGNING_ALLOWED" : "YES"
     },
+    "BasedOn" : "com.apple.product-type.pluginkit-plugin",
+    "ProvisioningProfileRequired" : "NO",
     "PackageTypes" : [
       "com.apple.package-type.app-extension"
     ],
     "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.pluginkit-plugin",
-    "Name" : "App Extension",
     "Identifier" : "com.apple.product-type.app-extension",
-    "Description" : "App Extension",
-    "Class" : "PBXBundleProductType"
+    "IconNamePrefix" : "AppExtension"
+  },
+  {
+    "Description" : "Xcode Extension",
+    "Class" : "PBXBundleProductType",
+    "Name" : "Xcode Extension",
+    "ProvisioningProfileSupported" : "YES",
+    "DefaultTargetName" : "Xcode Extension",
+    "DefaultBuildProperties" : {
+      "APPLICATION_EXTENSION_API_ONLY" : "YES",
+      "PRODUCT_SPECIFIC_LDFLAGS" : "-e _XCExtensionMain -lXcodeExtension -weak_framework XcodeKit",
+      "PRODUCT_TYPE_LIBRARY_SEARCH_PATHS" : [
+        "$(inherited)",
+        "$(DEVELOPER_USR_DIR)\/lib"
+      ],
+      "CODE_SIGNING_ALLOWED" : "YES",
+      "WRAPPER_EXTENSION" : "appex",
+      "PRODUCT_TYPE_FRAMEWORK_SEARCH_PATHS" : [
+        "$(inherited)",
+        "$(DEVELOPER_FRAMEWORKS_DIR)"
+      ]
+    },
+    "BasedOn" : "com.apple.product-type.app-extension",
+    "ProvisioningProfileRequired" : "NO",
+    "PackageTypes" : [
+      "com.apple.package-type.app-extension"
+    ],
+    "Type" : "ProductType",
+    "Identifier" : "com.apple.product-type.xcode-extension",
+    "IconNamePrefix" : "XcodeExtension"
   },
   {
     "DefaultTargetName" : "Spotlight",
