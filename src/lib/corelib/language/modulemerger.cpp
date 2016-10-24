@@ -251,13 +251,16 @@ void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QStr
     if (pd.isScalar())
         return;
     if (!m_clonedModulePrototype) {
-        m_clonedModulePrototype = moduleProto->clone();
+        m_clonedModulePrototype = Item::create(moduleProto->pool(), ItemType::Module);
         m_clonedModulePrototype->setScope(m_mergedModule.item);
     }
-    const ValuePtr clonedValue = m_clonedModulePrototype->property(propertyName);
-    QBS_CHECK(clonedValue);
-    clonedValue->setDefiningItem(m_clonedModulePrototype);
+    const ValuePtr &protoValue = moduleProto->property(propertyName);
+    QBS_CHECK(protoValue);
+    const ValuePtr clonedValue = protoValue->clone();
     lastInNextChain(sv)->setNext(clonedValue);
+    clonedValue->setDefiningItem(m_clonedModulePrototype);
+    m_clonedModulePrototype->setPropertyDeclaration(propertyName, pd);
+    m_clonedModulePrototype->setProperty(propertyName, clonedValue);
 }
 
 ValuePtr ModuleMerger::lastInNextChain(const ValuePtr &v)
