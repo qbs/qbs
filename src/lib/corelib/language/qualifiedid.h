@@ -60,6 +60,7 @@ public:
 };
 
 bool operator<(const QualifiedId &a, const QualifiedId &b);
+inline uint qHash(const QualifiedId &qid) { return qHash(qid.toString()); }
 
 class QualifiedIdSet : public std::set<QualifiedId>
 {
