@@ -40,6 +40,10 @@
 
     \section1 Artifact Properties
 
+    \note The code on the right-hand side of these properties has access to the set of input
+    artifacts, that is, it can refer to the \c inputs map and, if the rule is not a multiplex rule,
+    the \c input variable.
+
     \table
     \header
         \li Property
