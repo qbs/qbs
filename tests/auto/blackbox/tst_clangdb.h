@@ -31,6 +31,8 @@
 
 #include "tst_blackbox.h"
 
+#include <tools/version.h>
+
 class TestClangDb : public TestBlackboxBase
 {
     Q_OBJECT
@@ -49,6 +51,7 @@ private slots:
 private:
     static int runProcess(const QString &exec, const QStringList &args, QByteArray &stdErr,
                           QByteArray &stdOut);
+    static qbs::Internal::Version clangVersion();
 
     const QString projectDir;
     const QString projectFileName;

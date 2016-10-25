@@ -46,6 +46,7 @@
 
 using qbs::InstallOptions;
 using qbs::Internal::HostOsInfo;
+using qbs::Internal::Version;
 
 int TestClangDb::runProcess(const QString &exec, const QStringList &args, QByteArray &stdErr,
                             QByteArray &stdOut)
@@ -72,6 +73,17 @@ int TestClangDb::runProcess(const QString &exec, const QStringList &args, QByteA
     }
 
     return process.exitStatus() == QProcess::NormalExit ? process.exitCode() : -1;
+}
+
+Version TestClangDb::clangVersion()
+{
+    QByteArray stdErr;
+    QByteArray stdOut;
+    if (runProcess("clang-check", QStringList("--version"), stdErr, stdOut) != 0)
+        return Version();
+    stdOut.remove(0, stdOut.indexOf("LLVM version ") + 13);
+    stdOut.truncate(stdOut.indexOf('\n'));
+    return Version::fromString(QString::fromLocal8Bit(stdOut));
 }
 
 
@@ -168,6 +180,12 @@ void TestClangDb::checkClangDetectsSourceCodeProblems()
     const QString executable = findExecutable(QStringList("clang-check"));
     if (executable.isEmpty())
         QSKIP("No working clang-check executable found");
+
+    // Older clang versions do not support the "arguments" array in the compilation database.
+    // Should we really want to support them, we would have to fall back to "command" instead.
+    if (clangVersion() < Version(3, 7))
+        QSKIP("This test requires clang-check to be based on at least LLVM 3.7.0.");
+
     arguments = QStringList() << "-analyze" << "-p" << relativeBuildDir() << sourceFilePath;
     QVERIFY(runProcess(executable, arguments, stdErr, stdOut) == 0);
     const QString output = QString::fromLocal8Bit(stdErr);
