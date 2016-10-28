@@ -241,24 +241,28 @@ private:
             setupConvenienceProperty(QLatin1String("outer"), &extraScope, v);
         }
         if (value->sourceUsesOriginal()) {
-            const Item *item = itemOfProperty;
-            while (item->type() == ItemType::ModuleInstance)
-                item = item->prototype();
             QScriptValue originalValue;
-            SVConverter converter(scriptClass, object, item->property(*propertyName), item,
-                                  propertyName, data, &originalValue, sourceValueStack);
-            converter.start();
+            if (data->item->propertyDeclaration(propertyName->toString()).isScalar()) {
+                const Item *item = itemOfProperty;
+                while (item->type() == ItemType::ModuleInstance)
+                    item = item->prototype();
+                SVConverter converter(scriptClass, object, item->property(*propertyName), item,
+                                      propertyName, data, &originalValue, sourceValueStack);
+                converter.start();
+            } else {
+                originalValue = engine->newArray(0);
+            }
             setupConvenienceProperty(QLatin1String("original"), &extraScope, originalValue);
         }
 
         pushScope(data->evaluator->fileScope(value->file()));
         pushItemScopes(data->item);
-        if (value->definingItem())
-            pushItemScopes(value->definingItem());
         if (itemOfProperty && itemOfProperty->type() != ItemType::ModuleInstance) {
             // Own properties of module instances must not have the instance itself in the scope.
             pushScope(*object);
         }
+        if (value->definingItem())
+            pushItemScopes(value->definingItem());
         if (value->exportScope())
             pushScope(data->evaluator->scriptValue(value->exportScope()));
         pushScope(extraScope);
