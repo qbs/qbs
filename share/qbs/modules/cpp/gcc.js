@@ -112,16 +112,6 @@ function linkerFlags(project, product, inputs, output) {
     var isDarwin = product.moduleProperty("qbs", "targetOS").contains("darwin");
     var i, args = additionalCompilerAndLinkerFlags(product);
 
-    // ### QBS-966
-    if (product.moduleProperty("qbs", "targetOS").contains("android")) {
-        var sharedStlFilePath = product.moduleProperty("cpp", "sharedStlFilePath");
-        if (sharedStlFilePath)
-            dynamicLibraries.push(sharedStlFilePath);
-        var staticStlFilePath = product.moduleProperty("cpp", "staticStlFilePath");
-        if (staticStlFilePath)
-            staticLibraries.push(staticStlFilePath);
-    }
-
     if (output.fileTags.contains("dynamiclibrary")) {
         args.push(isDarwin ? "-dynamiclib" : "-shared");
 
@@ -151,11 +141,6 @@ function linkerFlags(project, product, inputs, output) {
             args = args.concat(escapeLinkerFlags(product, inputs,
                                                  ["--as-needed"]));
     }
-
-    if (haveTargetOption(product) && useCompilerDriverLinker(product, inputs))
-        args.push("-target", product.moduleProperty("cpp", "target"));
-    else if (isDarwin)
-        args.push("-arch", product.moduleProperty("cpp", "targetArch"));
 
     var minimumDarwinVersion = ModUtils.moduleProperty(product, "minimumDarwinVersion");
     if (minimumDarwinVersion) {
@@ -325,6 +310,32 @@ function configFlags(config, isDriver) {
         args = args.concat(ModUtils.moduleProperty(config, 'driverFlags'));
     }
 
+    if (haveTargetOption(config) && isDriver) {
+        args.push("-target", config.moduleProperty("cpp", "target"));
+    } else {
+        var arch = config.moduleProperty("cpp", "targetArch");
+        if (config.moduleProperty("qbs", "targetOS").contains("darwin"))
+            args.push("-arch", arch);
+
+        if (isDriver) {
+            if (arch === 'x86_64')
+                args.push('-m64');
+            else if (arch === 'i386')
+                args.push('-m32');
+
+            var march = config.moduleProperty("cpp", "machineType");
+            if (march)
+                args.push("-march=" + march);
+
+            var minimumDarwinVersion = ModUtils.moduleProperty(config, "minimumDarwinVersion");
+            if (minimumDarwinVersion) {
+                var flag = ModUtils.moduleProperty(config, "minimumDarwinVersionCompilerFlag");
+                if (flag)
+                    args.push(flag + "=" + minimumDarwinVersion);
+            }
+        }
+    }
+
     var frameworkPaths = ModUtils.moduleProperty(config, 'frameworkPaths');
     if (frameworkPaths)
         args = args.concat(frameworkPaths.map(function(path) { return '-F' + path }));
@@ -412,30 +423,6 @@ function compilerFlags(product, input, output) {
                                              input, output);
 
     var args = additionalCompilerAndLinkerFlags(product);
-
-    if (haveTargetOption(product)) {
-        args.push("-target", product.moduleProperty("cpp", "target"));
-    } else {
-        var arch = product.moduleProperty("cpp", "targetArch");
-        if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
-            args.push("-arch", arch);
-
-        if (arch === 'x86_64')
-            args.push('-m64');
-        else if (arch === 'i386')
-            args.push('-m32');
-
-        var march = product.moduleProperty("cpp", "machineType");
-        if (march)
-            args.push("-march=" + march);
-
-        var minimumDarwinVersion = ModUtils.moduleProperty(product, "minimumDarwinVersion");
-        if (minimumDarwinVersion) {
-            var flag = ModUtils.moduleProperty(product, "minimumDarwinVersionCompilerFlag");
-            if (flag)
-                args.push(flag + "=" + minimumDarwinVersion);
-        }
-    }
 
     var sysroot = ModUtils.moduleProperty(product, "sysroot");
     if (sysroot) {

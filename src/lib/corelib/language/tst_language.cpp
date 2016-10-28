@@ -422,7 +422,6 @@ void TestLanguage::defaultValue()
         propertyName = QStringList() << "modules" << "lower" << "listProp";
         propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QFETCH(QVariant, expectedListPropValue);
-        QEXPECT_FAIL("controlling property not overwritten", "QBS-845", Continue);
         QCOMPARE(propertyValue.toStringList(), expectedListPropValue.toStringList());
     }
     catch (const ErrorInfo &e) {
@@ -438,13 +437,13 @@ void TestLanguage::defaultValue_data()
     QTest::addColumn<QVariant>("expectedProp2Value");
     QTest::addColumn<QVariant>("expectedListPropValue");
     QTest::newRow("controlling property with random value") << "random" << QVariant("withoutBlubb")
-            << QVariant(QStringList({"other", "other"}));
+            << QVariant(QStringList({"other"}));
     QTest::newRow("controlling property with blubb value") << "blubb" << QVariant("withBlubb")
-            << QVariant(QStringList({"blubb", "other", "blubb", "other"}));
+            << QVariant(QStringList({"blubb", "other"}));
     QTest::newRow("controlling property with egon value") << "egon" << QVariant("withEgon")
             << QVariant(QStringList({"egon", "other"}));
     QTest::newRow("controlling property not overwritten") << "" << QVariant("withBlubb")
-            << QVariant(QStringList({"blubb", "other", "blubb", "other"}));
+            << QVariant(QStringList({"blubb", "other"}));
 }
 
 void TestLanguage::environmentVariable()
@@ -1115,7 +1114,6 @@ void TestLanguage::moduleProperties()
     QStringList valueStrings;
     foreach (const QVariant &v, values.toList())
         valueStrings += v.toString();
-    QEXPECT_FAIL("list_property_depending_on_overridden_property", "QBS-845", Continue);
     QCOMPARE(valueStrings, expectedValues);
 }
 
