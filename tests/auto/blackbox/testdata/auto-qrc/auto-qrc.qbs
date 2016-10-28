@@ -5,16 +5,23 @@ Project {
         name: "app"
         files: ["main.cpp"]
 
-        // TODO: Use two groups with different base dirs once QBS-1005 is fixed.
-        Qt.core.resourceSourceBase: "qrc-base"
-        Qt.core.resourcePrefix: "/thePrefix"
         Group {
             prefix: "qrc-base/"
-            files: [
-                "resource1.txt",
-                "subdir/resource2.txt",
-            ]
+
+            Qt.core.resourcePrefix: "/thePrefix"
+            Qt.core.resourceSourceBase: "qrc-base"
+
+            files: ["resource1.txt"]
             fileTags: ["qt.core.resource_data"]
+
+            Group {
+                prefix: "qrc-base/subdir/"
+
+                Qt.core.resourceSourceBase: "qrc-base/subdir"
+
+                files: ["resource2.txt"]
+                fileTags: ["qt.core.resource_data"]
+            }
         }
     }
 
