@@ -1033,7 +1033,8 @@ void Executor::checkForCancellation()
     QBS_ASSERT(m_progressObserver, return);
     if (m_state == ExecutorRunning && m_progressObserver->canceled()) {
         cancelJobs();
-        m_evalContext->engine()->cancel();
+        if (m_evalContext->isActive())
+            m_evalContext->engine()->cancel();
     }
 }
 
