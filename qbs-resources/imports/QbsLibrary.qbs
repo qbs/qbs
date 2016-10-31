@@ -10,6 +10,8 @@ QbsProduct {
     destinationDirectory: qbs.targetOS.contains("windows") ? "bin" : qbsbuildconfig.libDirName
     cpp.defines: base.concat(type == "staticlibrary" ? ["QBS_STATIC_LIB"] : ["QBS_LIBRARY"])
     cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
+    // ### Uncomment the following line in 1.8
+    //cpp.soVersion: version.replace(/\.\d+$/, '')
     cpp.visibility: "minimal"
     cpp.cxxLanguageVersion: "c++11"
     bundle.isBundle: false

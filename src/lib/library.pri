@@ -25,6 +25,13 @@ qbs_disable_rpath {
 }
 include(../../qbs_version.pri)
 VERSION = $${QBS_VERSION}
+
+linux {
+    # Turn off absurd qmake's soname "logic" and directly add the linker flag.
+    QMAKE_LFLAGS_SONAME =
+    QMAKE_LFLAGS = -Wl,-soname=lib$${TARGET}.so.$${QBS_VERSION_MAJ}.$${QBS_VERSION_MIN}
+}
+
 win32 {
     dlltarget.path = $${QBS_INSTALL_PREFIX}/bin
     INSTALLS += dlltarget
