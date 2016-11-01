@@ -158,9 +158,9 @@ void Artifact::load(PersistentPool &pool)
     pool.loadContainer(fileDependencies);
     properties = pool.idLoadS<PropertyMapInternal>();
     transformer = pool.idLoadS<Transformer>();
+    m_fileTags.load(pool);
     unsigned char c;
     pool.stream()
-            >> m_fileTags
             >> artifactType
             >> c;
     alwaysUpdated = c;
@@ -178,8 +178,8 @@ void Artifact::store(PersistentPool &pool) const
     pool.storeContainer(fileDependencies);
     pool.store(properties);
     pool.store(transformer);
+    m_fileTags.store(pool);
     pool.stream()
-            << m_fileTags
             << artifactType
             << static_cast<unsigned char>(alwaysUpdated)
             << static_cast<unsigned char>(oldDataPossiblyPresent);

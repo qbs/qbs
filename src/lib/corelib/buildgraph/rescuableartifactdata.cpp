@@ -69,7 +69,7 @@ void RescuableArtifactData::load(PersistentPool &pool)
     propertiesRequestedInCommands = restorePropertySet(pool);
     propertiesRequestedFromArtifactInPrepareScript = restorePropertyHash(pool);
     commands = loadCommandList(pool);
-    pool.stream() >> fileTags;
+    fileTags.load(pool);
     properties = pool.loadVariantMap();
 }
 
@@ -89,7 +89,7 @@ void RescuableArtifactData::store(PersistentPool &pool) const
     storePropertySet(pool, propertiesRequestedInCommands);
     storePropertyHash(pool, propertiesRequestedFromArtifactInPrepareScript);
     storeCommandList(commands, pool);
-    pool.stream() << fileTags;
+    fileTags.store(pool);
     pool.store(properties);
 }
 

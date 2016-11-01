@@ -40,6 +40,8 @@
 #include "filetags.h"
 #include <QStringList>
 
+#include <tools/persistence.h>
+
 namespace qbs {
 namespace Internal {
 
@@ -75,6 +77,16 @@ bool FileTags::matches(const FileTags &other) const
     return false;
 }
 
+void FileTags::store(PersistentPool &pool) const
+{
+    pool.storeStringList(toStringList());
+}
+
+void FileTags::load(PersistentPool &pool)
+{
+    *this = fromStringList(pool.idLoadStringList());
+}
+
 LogWriter operator <<(LogWriter w, const FileTags &tags)
 {
     bool firstLoop = true;
@@ -88,28 +100,6 @@ LogWriter operator <<(LogWriter w, const FileTags &tags)
     }
     w.write(')');
     return w;
-}
-
-QDataStream &operator >>(QDataStream &s, FileTags &tags)
-{
-    int i;
-    s >> i;
-    tags.clear();
-    tags.reserve(i);
-    QVariant v;
-    while (--i >= 0) {
-        s >> v;
-        tags += FileTag::fromSetting(v);
-    }
-    return s;
-}
-
-QDataStream &operator <<(QDataStream &s, const FileTags &tags)
-{
-    s << tags.count();
-    foreach (const FileTag &ft, tags)
-        s << ft.toSetting();
-    return s;
 }
 
 } // namespace Internal

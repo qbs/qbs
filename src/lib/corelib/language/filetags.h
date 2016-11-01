@@ -47,6 +47,7 @@
 
 namespace qbs {
 namespace Internal {
+class PersistentPool;
 
 class FileTag : public Id
 {
@@ -76,11 +77,12 @@ public:
     QStringList toStringList() const;
     static FileTags fromStringList(const QStringList &strings);
     bool matches(const FileTags &other) const;
+
+    void store(PersistentPool &pool) const;
+    void load(PersistentPool &pool);
 };
 
 LogWriter operator <<(LogWriter w, const FileTags &tags);
-QDataStream &operator >>(QDataStream &s, FileTags & tags);
-QDataStream &operator <<(QDataStream &s, const FileTags &tags);
 
 } // namespace Internal
 } // namespace qbs

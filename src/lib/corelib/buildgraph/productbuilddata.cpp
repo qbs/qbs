@@ -66,8 +66,7 @@ static void loadArtifactSetByFileTag(PersistentPool &pool,
     int elemCount;
     pool.stream() >> elemCount;
     for (int i = 0; i < elemCount; ++i) {
-        QVariant fileTag;
-        pool.stream() >> fileTag;
+        const QVariant fileTag = pool.loadVariant();
         ArtifactSet artifacts;
         pool.loadContainer(artifacts);
         s.insert(FileTag::fromSetting(fileTag), artifacts);
@@ -104,7 +103,7 @@ static void storeArtifactSetByFileTag(PersistentPool &pool,
     pool.stream() << s.count();
     ProductBuildData::ArtifactSetByFileTag::ConstIterator it;
     for (it = s.constBegin(); it != s.constEnd(); ++it) {
-        pool.stream() << it.key().toSetting();
+        pool.store(it.key().toSetting());
         pool.storeContainer(it.value());
     }
 }
