@@ -70,7 +70,7 @@ void RescuableArtifactData::load(PersistentPool &pool)
     propertiesRequestedFromArtifactInPrepareScript = restorePropertyHash(pool);
     commands = loadCommandList(pool);
     pool.stream() >> fileTags;
-    pool.stream() >> properties;
+    properties = pool.loadVariantMap();
 }
 
 void RescuableArtifactData::store(PersistentPool &pool) const
@@ -89,7 +89,8 @@ void RescuableArtifactData::store(PersistentPool &pool) const
     storePropertySet(pool, propertiesRequestedInCommands);
     storePropertyHash(pool, propertiesRequestedFromArtifactInPrepareScript);
     storeCommandList(commands, pool);
-    pool.stream() << fileTags << properties;
+    pool.stream() << fileTags;
+    pool.store(properties);
 }
 
 } // namespace Internal
