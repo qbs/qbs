@@ -163,9 +163,14 @@ function languagePropertyName(propertyName, fileTag) {
 }
 
 function modulePropertiesFromArtifacts(product, artifacts, moduleName, propertyName, langFilter) {
-    var result = product.moduleProperty(moduleName, languagePropertyName(propertyName, langFilter))
-    for (var i in artifacts)
-        result = result.concat(artifacts[i].moduleProperty(moduleName, languagePropertyName(propertyName, langFilter)))
+    var result = product.moduleProperty(
+                moduleName, languagePropertyName(propertyName, langFilter)) || [];
+    for (var i in artifacts) {
+        var artifactProp = artifacts[i].moduleProperty(
+                    moduleName, languagePropertyName(propertyName, langFilter));
+        if (artifactProp)
+            result = result.concat(artifactProp);
+    }
     return sanitizedList(result, product, moduleName + "." + propertyName);
 }
 
