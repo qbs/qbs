@@ -3476,12 +3476,13 @@ void TestBlackbox::installedApp()
     QCOMPARE(runQbs(QbsRunParameters(QStringList("--no-install"))), 0);
     QCOMPARE(QDir(defaultInstallRoot).entryList(QDir::NoDotAndDotDot).count(), 0);
 
-    // Check --no-build
-    rmDirR(relativeBuildDir());
+    // Check --no-build (with and without an existing build graph)
     QbsRunParameters params("install", QStringList("--no-build"));
+    QCOMPARE(runQbs(params), 0);
+    rmDirR(relativeBuildDir());
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
-    QVERIFY(m_qbsStderr.contains("No build graph"));
+    QVERIFY2(m_qbsStderr.contains("No build graph"), m_qbsStderr.constData());
 }
 
 void TestBlackbox::installDuplicates()

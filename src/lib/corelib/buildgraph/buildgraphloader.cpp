@@ -114,7 +114,7 @@ BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingPr
     if (!m_result.loadedProject)
         return m_result;
     if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly) {
-        foreach (const ErrorInfo &e, existingProject->warningsEncountered)
+        foreach (const ErrorInfo &e, m_result.loadedProject->warningsEncountered)
             m_logger.printWarning(e);
         return m_result;
     }
