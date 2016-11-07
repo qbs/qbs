@@ -229,7 +229,7 @@ void ProjectBuildData::insertFileDependency(FileDependency *dependency)
 static void disconnectArtifactChildren(Artifact *artifact, const Logger &logger)
 {
     if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLocal8Bit("[BG] disconnectChildren: '%1'")
+        logger.qbsTrace() << QString::fromLatin1("[BG] disconnectChildren: '%1'")
                              .arg(relativeArtifactFileName(artifact));
     }
     foreach (BuildGraphNode * const child, artifact->children)
@@ -241,7 +241,7 @@ static void disconnectArtifactChildren(Artifact *artifact, const Logger &logger)
 static void disconnectArtifactParents(Artifact *artifact, const Logger &logger)
 {
     if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLocal8Bit("[BG] disconnectParents: '%1'")
+        logger.qbsTrace() << QString::fromLatin1("[BG] disconnectParents: '%1'")
                              .arg(relativeArtifactFileName(artifact));
     }
     foreach (BuildGraphNode * const parent, artifact->parents) {

@@ -93,7 +93,7 @@ QStringList QbsTool::allToolNames()
 {
     const QString suffix = QLatin1String(QBS_HOST_EXE_SUFFIX);
     QStringList toolFileNames = QDir(qbsBinDir()).entryList(QStringList(toolPrefix()
-            + QString::fromLocal8Bit("*%1").arg(suffix)), QDir::Files, QDir::Name);
+            + QString::fromLatin1("*%1").arg(suffix)), QDir::Files, QDir::Name);
     QStringList toolNames;
     const int prefixLength = toolPrefix().count();
     foreach (const QString &toolFileName, toolFileNames) {

@@ -470,7 +470,7 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
         QString filesString = QLatin1String("[\n");
         foreach (const QString &file, newFilesList) {
             filesString += QString(arrayElemIndentation, QLatin1Char(' '));
-            filesString += QString::fromLocal8Bit("\"%1\",\n").arg(file);
+            filesString += QString::fromLatin1("\"%1\",\n").arg(file);
         }
         filesString += QString(bindingIndentation, QLatin1Char(' '));
         filesString += QLatin1Char(']');

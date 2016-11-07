@@ -750,9 +750,8 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
 {
     if (m_logger.traceEnabled()) {
         m_logger.qbsTrace()
-            << QString::fromLocal8Bit("[BG] replace file dependency '%1' "
-                                      "with artifact of type '%2'")
-                             .arg(filedep->filePath()).arg(artifact->artifactType);
+            << QString::fromLatin1("[BG] replace file dependency '%1' with artifact of type '%2'")
+               .arg(filedep->filePath()).arg(artifact->artifactType);
     }
     foreach (const ResolvedProductPtr &product, fileDepProduct->topLevelProject()->allProducts()) {
         if (!product->buildData)
@@ -810,8 +809,8 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
         return;
 
     if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace() << QString::fromLocal8Bit("[BG] rescue data of "
-                "product '%1'").arg(restoredProduct->uniqueName());
+        m_logger.qbsTrace() << QString::fromLatin1("[BG] rescue data of product '%1'")
+                               .arg(restoredProduct->uniqueName());
     }
     QBS_CHECK(newlyResolvedProduct->buildData);
     QBS_CHECK(newlyResolvedProduct->buildData->rescuableArtifactData.isEmpty());

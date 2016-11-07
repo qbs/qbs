@@ -847,7 +847,7 @@ static QString mapToString(const QVariantMap &map, const QString &prefix)
         if (val.type() == QVariant::Map) {
             stringRep += mapToString(val.value<QVariantMap>(), prefix + key + QLatin1Char('.'));
         } else {
-            stringRep += QString::fromLocal8Bit("%1%2: %3\n")
+            stringRep += QString::fromLatin1("%1%2: %3\n")
                     .arg(prefix, key, toJSLiteral(val));
         }
     }

@@ -203,7 +203,7 @@ static void createModules(Profile &profile, Settings *settings,
     const QList<QtModuleInfo> modules = qtEnvironment.qtMajorVersion < 5
             ? allQt4Modules(qtEnvironment)
             : allQt5Modules(profile, qtEnvironment);
-    const QString profileBaseDir = QString::fromLocal8Bit("%1/profiles/%2")
+    const QString profileBaseDir = QString::fromLatin1("%1/profiles/%2")
             .arg(QFileInfo(settings->fileName()).dir().absolutePath(), profile.name());
     const QString qbsQtModuleBaseDir = profileBaseDir + QLatin1String("/modules/Qt");
     QStringList allFiles;

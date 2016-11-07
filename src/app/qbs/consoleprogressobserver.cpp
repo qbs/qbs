@@ -90,7 +90,7 @@ void ConsoleProgressObserver::eraseCurrentPercentageString()
 
     // (1) Move cursor before the old percentage string.
     // (2) Erase current line content to the right of the cursor.
-    std::cout << QString::fromLocal8Bit("\x1b[%1D").arg(charsToErase).toLocal8Bit().constData();
+    std::cout << QString::fromLatin1("\x1b[%1D").arg(charsToErase).toLocal8Bit().constData();
     std::cout << "\x1b[K";
 }
 
@@ -106,7 +106,7 @@ void ConsoleProgressObserver::updateProgressBarIfNecessary()
 
 void ConsoleProgressObserver::writePercentageString()
 {
-    std::cout << QString::fromLocal8Bit(" %1%").arg(m_percentage).toLocal8Bit().constData();
+    std::cout << QString::fromLatin1(" %1%").arg(m_percentage).toLocal8Bit().constData();
 }
 
 } // namespace qbs

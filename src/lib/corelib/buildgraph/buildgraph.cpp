@@ -252,9 +252,9 @@ void connect(BuildGraphNode *p, BuildGraphNode *c)
     if (Artifact *ac = dynamic_cast<Artifact *>(c)) {
         for (const Artifact *child : filterByType<Artifact>(p->children)) {
             if (child != ac && child->filePath() == ac->filePath()) {
-                throw ErrorInfo(QString::fromLocal8Bit("%1 already has a child artifact %2 as "
-                                                       "different object.").arg(p->toString(),
-                                                                                ac->filePath()),
+                throw ErrorInfo(QString::fromLatin1("%1 already has a child artifact %2 as "
+                                                    "different object.").arg(p->toString(),
+                                                                             ac->filePath()),
                                 CodeLocation(), true);
             }
         }
@@ -268,7 +268,7 @@ void loggedConnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger)
 {
     QBS_CHECK(u != v);
     if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLocal8Bit("[BG] connect '%1' -> '%2'")
+        logger.qbsTrace() << QString::fromLatin1("[BG] connect '%1' -> '%2'")
                              .arg(u->toString(), v->toString());
     }
     connect(u, v);
@@ -308,7 +308,7 @@ bool safeConnect(Artifact *u, Artifact *v, const Logger &logger)
 {
     QBS_CHECK(u != v);
     if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLocal8Bit("[BG] safeConnect: '%1' '%2'")
+        logger.qbsTrace() << QString::fromLatin1("[BG] safeConnect: '%1' '%2'")
                              .arg(relativeArtifactFileName(u), relativeArtifactFileName(v));
     }
 
@@ -326,7 +326,7 @@ bool safeConnect(Artifact *u, Artifact *v, const Logger &logger)
 void disconnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger)
 {
     if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLocal8Bit("[BG] disconnect: '%1' '%2'")
+        logger.qbsTrace() << QString::fromLatin1("[BG] disconnect: '%1' '%2'")
                              .arg(u->toString(), v->toString());
     }
     u->children.remove(v);
@@ -348,7 +348,7 @@ void removeGeneratedArtifactFromDisk(const QString &filePath, const Logger &logg
         return;
     logger.qbsDebug() << "removing " << filePath;
     if (!file.remove())
-        logger.qbsWarning() << QString::fromLocal8Bit("Cannot remove '%1'.").arg(filePath);
+        logger.qbsWarning() << QString::fromLatin1("Cannot remove '%1'.").arg(filePath);
 }
 
 QString relativeArtifactFileName(const Artifact *artifact)
@@ -432,7 +432,7 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
     addArtifactToSet(artifact, product->buildData->artifactsByFileTag);
 
     if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLocal8Bit("[BG] insert artifact '%1'")
+        logger.qbsTrace() << QString::fromLatin1("[BG] insert artifact '%1'")
                              .arg(artifact->filePath());
     }
 }
@@ -492,7 +492,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
             QSet<QString> childFilePaths;
             for (const Artifact *a : filterByType<Artifact>(output->children)) {
                 if (childFilePaths.contains(a->filePath())) {
-                    throw ErrorInfo(QString::fromLocal8Bit("There is more than one artifact for "
+                    throw ErrorInfo(QString::fromLatin1("There is more than one artifact for "
                         "file '%1' in the child list for output '%2'.")
                         .arg(a->filePath(), output->filePath()), CodeLocation(), true);
                 }

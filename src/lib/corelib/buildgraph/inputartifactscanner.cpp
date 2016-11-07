@@ -164,7 +164,7 @@ void InputArtifactScanner::scan()
 
     if (m_logger.traceEnabled()) {
         m_logger.qbsTrace()
-                << QString::fromLocal8Bit("[DEPSCAN] inputs for %1 [%2] in product '%3'")
+                << QString::fromLatin1("[DEPSCAN] inputs for %1 [%2] in product '%3'")
                    .arg(m_artifact->filePath(),
                         m_artifact->fileTags().toStringList().join(QLatin1String(", ")),
                         m_artifact->product->name);
@@ -191,7 +191,7 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
 {
     if (m_logger.traceEnabled()) {
         m_logger.qbsTrace()
-                << QString::fromLocal8Bit("[DEPSCAN] input artifact %1 [%2]")
+                << QString::fromLatin1("[DEPSCAN] input artifact %1 [%2]")
                    .arg(inputArtifact->filePath(),
                         inputArtifact->fileTags().toStringList().join(QLatin1String(", ")));
     }
@@ -250,7 +250,7 @@ void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *sca
         InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache)
 {
     if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN] file %1")
+        m_logger.qbsTrace() << QString::fromLatin1("[DEPSCAN] file %1")
                 .arg(fileToBeScanned->filePath());
     }
 

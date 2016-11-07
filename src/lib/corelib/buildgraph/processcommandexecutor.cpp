@@ -126,7 +126,7 @@ void ProcessCommandExecutor::doStart()
         const int commandLineLength = m_shellInvocation.length();
         if (cmd->responseFileThreshold() >= 0 && commandLineLength > cmd->responseFileThreshold()) {
             if (logger().debugEnabled()) {
-                logger().qbsDebug() << QString::fromLocal8Bit("[EXEC] Using response file. "
+                logger().qbsDebug() << QString::fromLatin1("[EXEC] Using response file. "
                         "Threshold is %1. Command line length %2.")
                         .arg(cmd->responseFileThreshold()).arg(commandLineLength);
             }

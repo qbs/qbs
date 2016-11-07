@@ -434,7 +434,7 @@ void Executor::buildArtifact(Artifact *artifact)
             retrieveSourceFileTimestamp(artifact);
 
         if (m_doDebug)
-            m_logger.qbsDebug() << QString::fromLocal8Bit("[EXEC] artifact type %1. Skipping.")
+            m_logger.qbsDebug() << QString::fromLatin1("[EXEC] artifact type %1. Skipping.")
                                    .arg(toString(artifact->artifactType));
         finishArtifact(artifact);
         return;
@@ -703,8 +703,8 @@ void Executor::handleError(const ErrorInfo &error)
 
 void Executor::addExecutorJobs()
 {
-    m_logger.qbsDebug() << QString::fromLocal8Bit("[EXEC] preparing executor for %1 jobs "
-                                                  "in parallel").arg(m_buildOptions.maxJobCount());
+    m_logger.qbsDebug() << QString::fromLatin1("[EXEC] preparing executor for %1 jobs in parallel")
+                           .arg(m_buildOptions.maxJobCount());
     for (int i = 1; i <= m_buildOptions.maxJobCount(); i++) {
         ExecutorJob *job = new ExecutorJob(m_logger, this);
         job->setMainThreadScriptEngine(m_evalContext->engine());
@@ -739,8 +739,8 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
 
     const RescuableArtifactData &rad = it.value();
     if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace() << QString::fromLocal8Bit("[BG] Attempting to rescue data of "
-                                                      "artifact '%1'").arg(artifact->fileName());
+        m_logger.qbsTrace() << QString::fromLatin1("[BG] Attempting to rescue data of "
+                                                   "artifact '%1'").arg(artifact->fileName());
     }
 
     typedef QPair<Artifact *, bool> ChildArtifactData;

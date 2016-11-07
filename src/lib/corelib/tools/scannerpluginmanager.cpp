@@ -85,7 +85,7 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Log
         filters << QLatin1String("*.so");
 
     foreach (const QString &pluginPath, pluginPaths) {
-        logger.qbsTrace() << QString::fromLocal8Bit("pluginmanager: loading plugins from '%1'.")
+        logger.qbsTrace() << QString::fromLatin1("pluginmanager: loading plugins from '%1'.")
                              .arg(QDir::toNativeSeparators(pluginPath));
         QDirIterator it(pluginPath, filters, QDir::Files);
         while (it.hasNext()) {
@@ -111,8 +111,8 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Log
                 continue;
             }
 
-            logger.qbsTrace() << QString::fromLocal8Bit("pluginmanager: scanner plugin '%1' "
-                    "loaded.").arg(QDir::toNativeSeparators(fileName));
+            logger.qbsTrace() << QString::fromLatin1("pluginmanager: scanner plugin '%1' loaded.")
+                                 .arg(QDir::toNativeSeparators(fileName));
 
             for (int i = 0; plugins[i] != 0; ++i)
                 m_scannerPlugins[FileTag(plugins[i]->fileTag)] += plugins[i];
