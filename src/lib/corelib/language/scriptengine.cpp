@@ -159,6 +159,37 @@ void ScriptEngine::clearImportsCache()
     m_jsImportCache.clear();
 }
 
+void ScriptEngine::checkContext(const QString &operation,
+                                const DubiousContextList &dubiousContexts)
+{
+    for (auto it = dubiousContexts.cbegin(); it != dubiousContexts.cend(); ++it) {
+        const DubiousContext &info = *it;
+        if (info.context != evalContext())
+            continue;
+        QString warning;
+        switch (info.context) {
+        case EvalContext::PropertyEvaluation:
+            warning = Tr::tr("Suspicious use of %1 during property evaluation.").arg(operation);
+            if (info.suggestion == DubiousContext::SuggestMoving)
+                warning += QLatin1Char(' ') + Tr::tr("Should this call be in a Probe instead?");
+            break;
+        case EvalContext::RuleExecution:
+            warning = Tr::tr("Suspicious use of %1 during rule execution.").arg(operation);
+            if (info.suggestion == DubiousContext::SuggestMoving) {
+                warning += QLatin1Char(' ')
+                        + Tr::tr("Should this call be in a JavaScriptCommand instead?");
+            }
+            break;
+        case EvalContext::ProbeExecution:
+        case EvalContext::JsCommand:
+            QBS_ASSERT(false, continue);
+            break;
+        }
+        m_logger.printWarning(ErrorInfo(warning, currentContext()->backtrace()));
+        return;
+    }
+}
+
 void ScriptEngine::addPropertyRequestedFromArtifact(const Artifact *artifact,
                                                     const Property &property)
 {

@@ -165,6 +165,35 @@ void TestBlackbox::sevenZip()
     QVERIFY2(output.contains("archivable.qbs"), output.constData());
 }
 
+void TestBlackbox::suspiciousCalls()
+{
+    const QString projectDir = testDataDir + "/suspicious-calls";
+    QDir::setCurrent(projectDir);
+    rmDirR(relativeBuildDir());
+    QFETCH(QString, projectFile);
+    QbsRunParameters params(QStringList() << "-f" << projectFile);
+    QCOMPARE(runQbs(params), 0);
+    QFETCH(QByteArray, expectedWarning);
+    QVERIFY2(m_qbsStderr.contains(expectedWarning), m_qbsStderr.constData());
+}
+
+void TestBlackbox::suspiciousCalls_data()
+{
+    QTest::addColumn<QString>("projectFile");
+    QTest::addColumn<QByteArray>("expectedWarning");
+    QTest::newRow("File.copy() in Probe") << "copy-probe.qbs" << QByteArray();
+    QTest::newRow("File.copy() during evaluation") << "copy-eval.qbs" << QByteArray("File.copy()");
+    QTest::newRow("File.copy() in prepare script")
+            << "copy-prepare.qbs" << QByteArray("File.copy()");
+    QTest::newRow("File.copy() in command") << "copy-command.qbs" << QByteArray();
+    QTest::newRow("File.directoryEntries() in Probe") << "direntries-probe.qbs" << QByteArray();
+    QTest::newRow("File.directoryEntries() during evaluation")
+            << "direntries-eval.qbs" << QByteArray("File.directoryEntries()");
+    QTest::newRow("File.directoryEntries() in prepare script")
+            << "direntries-prepare.qbs" << QByteArray();
+    QTest::newRow("File.directoryEntries() in command") << "direntries-command.qbs" << QByteArray();
+}
+
 void TestBlackbox::tar()
 {
     if (HostOsInfo::hostOs() == HostOsInfo::HostOsWindows)

@@ -168,6 +168,8 @@ private slots:
     void renameDependency();
     void separateDebugInfo();
     void sevenZip();
+    void suspiciousCalls();
+    void suspiciousCalls_data();
     void systemRunPaths();
     void systemRunPaths_data();
     void tar();

@@ -40,6 +40,8 @@
 
 #include "temporarydir.h"
 
+#include <language/scriptengine.h>
+
 #include <QScriptEngine>
 #include <QScriptValue>
 #include <QTemporaryDir>
@@ -57,6 +59,12 @@ void initializeJsExtensionTemporaryDir(QScriptValue extensionObject)
 
 QScriptValue TemporaryDir::ctor(QScriptContext *context, QScriptEngine *engine)
 {
+    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const DubiousContextList dubiousContexts({
+            DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
+    });
+    se->checkContext(QLatin1String("qbs.TemporaryDir"), dubiousContexts);
+
     TemporaryDir *t = new TemporaryDir(context);
     QScriptValue obj = engine->newQObject(t, QScriptEngine::ScriptOwnership);
     return obj;

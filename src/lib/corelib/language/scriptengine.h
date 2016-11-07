@@ -53,6 +53,8 @@
 #include <QStack>
 #include <QString>
 
+#include <vector>
+
 namespace qbs {
 namespace Internal {
 class Artifact;
@@ -61,6 +63,15 @@ class ScriptImporter;
 class ScriptPropertyObserver;
 
 enum class EvalContext { PropertyEvaluation, ProbeExecution, RuleExecution, JsCommand };
+class DubiousContext
+{
+public:
+    enum Suggestion { NoSuggestion, SuggestMoving };
+    DubiousContext(EvalContext c, Suggestion s = NoSuggestion) : context(c), suggestion(s) { }
+    EvalContext context;
+    Suggestion suggestion;
+};
+using DubiousContextList = std::vector<DubiousContext>;
 
 class ScriptEngine : public QScriptEngine
 {
@@ -76,6 +87,7 @@ public:
 
     void setEvalContext(EvalContext c) { m_evalContext = c; }
     EvalContext evalContext() const { return m_evalContext; }
+    void checkContext(const QString &operation, const DubiousContextList &dubiousContexts);
 
     void addPropertyRequestedInScript(const Property &property) {
         m_propertiesRequestedInScript += property;

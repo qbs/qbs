@@ -40,6 +40,7 @@
 
 #include "propertylist.h"
 
+#include <language/scriptengine.h>
 #include <tools/hostosinfo.h>
 
 #include <QFile>
@@ -80,6 +81,12 @@ void initializeJsExtensionPropertyList(QScriptValue extensionObject)
 
 QScriptValue PropertyList::ctor(QScriptContext *context, QScriptEngine *engine)
 {
+    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const DubiousContextList dubiousContexts({
+            DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
+    });
+    se->checkContext(QLatin1String("qbs.PropertyList"), dubiousContexts);
+
     PropertyList *p = new PropertyList(context);
     QScriptValue obj = engine->newQObject(p, QScriptEngine::ScriptOwnership);
     return obj;

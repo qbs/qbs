@@ -39,6 +39,7 @@
 
 #include "textfile.h"
 
+#include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
 
@@ -83,6 +84,12 @@ QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
     default:
         return context->throwError(Tr::tr("TextFile constructor takes at most three parameters."));
     }
+
+    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const DubiousContextList dubiousContexts({
+            DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
+    });
+    se->checkContext(QLatin1String("qbs.TextFile"), dubiousContexts);
 
     return engine->newQObject(t, QScriptEngine::ScriptOwnership);
 }

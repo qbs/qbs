@@ -73,6 +73,12 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
         return context->throwError(QLatin1String("Process()"));
     }
 
+    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const DubiousContextList dubiousContexts ({
+            DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
+    });
+    se->checkContext(QLatin1String("qbs.Process"), dubiousContexts);
+
     QScriptValue obj = engine->newQObject(t, QScriptEngine::ScriptOwnership);
 
     // Get environment
