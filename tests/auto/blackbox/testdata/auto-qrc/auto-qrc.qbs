@@ -20,7 +20,6 @@ Project {
                 Qt.core.resourceSourceBase: "qrc-base/subdir"
 
                 files: ["resource2.txt"]
-                fileTags: ["qt.core.resource_data"]
             }
         }
     }

@@ -670,8 +670,12 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     bool fileTagsSet;
     group->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"), &fileTagsSet);
     group->overrideTags = m_evaluator->boolValue(item, QLatin1String("overrideTags"));
-    if (group->overrideTags && group->fileTags.isEmpty() && fileTagsSet)
-        group->fileTags.insert(unknownFileTag());
+    if (group->overrideTags && fileTagsSet) {
+        if (group->fileTags.isEmpty() )
+            group->fileTags.insert(unknownFileTag());
+    } else if (m_productContext->currentGroup) {
+        group->fileTags.unite(m_productContext->currentGroup->fileTags);
+    }
 
     const CodeLocation filesLocation = item->property(QLatin1String("files"))->location();
     ErrorInfo fileError;

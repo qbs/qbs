@@ -7,6 +7,8 @@ CppApplication {
     Group {
         cpp.defines: ["REQUIRED_FOR_FILE1", "BREAKS_FILE2"]
 
+        fileTags: ["cpp"]
+
         // This group has no files, and that's okay.
 
         Group {
@@ -27,6 +29,11 @@ CppApplication {
                     condition: true
                     files: ["main2.cpp"]
                 }
+            }
+            Group {
+                name: "no tags"
+                fileTags: []
+                files: ["main3.cpp"]
             }
         }
     }

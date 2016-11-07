@@ -94,8 +94,9 @@
 
      Groups may also appear in modules, which causes the respective sources to be added to the
      products depending on said module.
-     Groups can be nested. In this case, child groups inherit the module properties of their parent
-     group. The condition of a child group gets logically ANDed with the one of its parent group.
+     Groups can be nested. In this case, child groups inherit the module properties and the file
+     tags of their parent group. The condition of a child group gets logically ANDed with the one
+     of its parent group.
 
     \section1 Group Properties
 
@@ -143,10 +144,10 @@
         \li bool
         \li true
         \li Determines how tags on files that are listed both at the top level of
-            a product and a group are handled.
+            a product (or the parent group, if there is one) and a group are handled.
             If this property is true, then the file tags set via the group
-            replace the ones set via the product.
-            If it is false, the "group tags" are added to the "product tags".
+            replace the ones set via the product or parent group.
+            If it is false, the "group tags" are added to the "parent tags".
     \row
         \li excludeFiles
         \li list
