@@ -77,7 +77,7 @@ public:
         , environment(environment)
         , settings(settings)
         , logger(logger)
-        , engine(this->logger)
+        , engine(this->logger, EvalContext::PropertyEvaluation)
     {
     }
 

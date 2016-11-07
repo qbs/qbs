@@ -60,17 +60,22 @@ class JsImport;
 class ScriptImporter;
 class ScriptPropertyObserver;
 
+enum class EvalContext { PropertyEvaluation, ProbeExecution, RuleExecution, JsCommand };
+
 class ScriptEngine : public QScriptEngine
 {
     Q_OBJECT
 public:
-    ScriptEngine(Logger &logger, QObject *parent = 0);
+    ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent = 0);
     ~ScriptEngine();
 
     Logger &logger() const { return m_logger; }
     void import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject);
     void import(const JsImport &jsImport, QScriptValue &targetObject);
     void clearImportsCache();
+
+    void setEvalContext(EvalContext c) { m_evalContext = c; }
+    EvalContext evalContext() const { return m_evalContext; }
 
     void addPropertyRequestedInScript(const Property &property) {
         m_propertiesRequestedInScript += property;
@@ -191,6 +196,23 @@ private:
     QScriptValue m_cancelationError;
     QList<QVariantMap *> m_ownedVariantMaps;
     qint64 m_elapsedTimeImporting = -1;
+    EvalContext m_evalContext;
+};
+
+class EvalContextSwitcher
+{
+public:
+    EvalContextSwitcher(ScriptEngine *engine, EvalContext newContext)
+        : m_engine(engine), m_oldContext(engine->evalContext())
+    {
+        engine->setEvalContext(newContext);
+    }
+
+    ~EvalContextSwitcher() { m_engine->setEvalContext(m_oldContext); }
+
+private:
+    ScriptEngine * const m_engine;
+    const EvalContext m_oldContext;
 };
 
 } // namespace Internal

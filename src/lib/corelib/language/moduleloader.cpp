@@ -1834,6 +1834,7 @@ void ModuleLoader::createChildInstances(ProductContext *productContext, Item *in
 void ModuleLoader::resolveProbes(ProductContext *productContext, Item *item)
 {
     AccumulatingTimer probesTimer(m_parameters.logElapsedTime() ? &m_elapsedTimeProbes : nullptr);
+    EvalContextSwitcher evalContextSwitcher(m_evaluator->engine(), EvalContext::ProbeExecution);
     foreach (Item *child, item->children())
         if (child->type() == ItemType::Probe)
             resolveProbe(productContext, item, child);

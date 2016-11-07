@@ -100,6 +100,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     m_engine->clearRequestedProperties();
     m_engine->enableProfiling(parameters.logElapsedTime());
     m_logger.clearWarnings();
+    EvalContextSwitcher evalContextSwitcher(m_engine, EvalContext::PropertyEvaluation);
 
     QTimer cancelationTimer;
 
