@@ -258,7 +258,9 @@ void ScriptEngine::importFile(const QString &filePath, QScriptValue &targetObjec
     QFile file(filePath);
     if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
         throw ErrorInfo(tr("Cannot open '%1'.").arg(filePath));
-    const QString sourceCode = QTextStream(&file).readAll();
+    QTextStream stream(&file);
+    stream.setCodec("UTF-8");
+    const QString sourceCode = stream.readAll();
     file.close();
     m_currentDirPathStack.push(FileInfo::path(filePath));
     m_scriptImporter->importSourceCode(sourceCode, filePath, targetObject);

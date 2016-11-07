@@ -166,7 +166,7 @@ void ProjectFileUpdater::apply()
     QByteArray rawContent = file.readAll();
     const LineEndingType origLineEndingType = guessLineEndingType(rawContent);
     convertToUnixLineEndings(&rawContent, origLineEndingType);
-    QString content = QString::fromLocal8Bit(rawContent);
+    QString content = QString::fromUtf8(rawContent);
 
     file.close();
     Engine engine;
@@ -191,7 +191,7 @@ void ProjectFileUpdater::apply()
                         .arg(m_projectFile, file.errorString()));
     }
     file.resize(0);
-    rawContent = content.toLocal8Bit();
+    rawContent = content.toUtf8();
     convertFromUnixLineEndings(&rawContent, origLineEndingType);
     file.write(rawContent);
 }

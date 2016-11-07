@@ -130,7 +130,9 @@ Item *ItemReaderVisitorState::readFile(const QString &filePath, const QStringLis
             throw ErrorInfo(Tr::tr("Cannot open '%1'.").arg(filePath));
 
         m_filesRead.insert(filePath);
-        const QString code = QTextStream(&file).readAll();
+        QTextStream stream(&file);
+        stream.setCodec("UTF-8");
+        const QString &code = stream.readAll();
         QbsQmlJS::Lexer lexer(cacheValue.engine());
         lexer.setCode(code, 1);
         QbsQmlJS::Parser parser(cacheValue.engine());

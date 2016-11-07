@@ -286,6 +286,7 @@
     \QBS uses project files (*.qbs) to describe the contents of a project.
     A project contains one or more \l{Product Item}{products}. A product is the target of a build
     process, typically an application, library or maybe a tar ball.
+    \note \QBS source files are assumed to be UTF-8 encoded.
 
     \section1 The Obligatory Hello World Example
 
