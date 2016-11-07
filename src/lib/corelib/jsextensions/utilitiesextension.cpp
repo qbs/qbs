@@ -274,18 +274,16 @@ QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QS
 
     const QString compilerFilePath = context->argument(0).toString();
     MSVC msvc(compilerFilePath);
-    VsEnvironmentDetector envdetector(&msvc);
-    if (!envdetector.start())
+    VsEnvironmentDetector envdetector;
+    if (!envdetector.start(&msvc))
         return context->throwError(QScriptContext::UnknownError,
                                    QStringLiteral("Detecting the MSVC build environment failed: ")
                                    + envdetector.errorString());
 
     try {
-        const auto env = msvc.environments[msvc.architectures.first()];
-
         QVariantMap envMap;
-        for (const QString &key : env.keys())
-            envMap.insert(key, env.value(key));
+        for (const QString &key : msvc.environment.keys())
+            envMap.insert(key, msvc.environment.value(key));
 
         return engine->toScriptValue(QVariantMap {
             {QStringLiteral("buildEnvironment"), envMap},

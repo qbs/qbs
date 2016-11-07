@@ -54,39 +54,37 @@ namespace Internal {
 
 class Version;
 
+/**
+ * Represents one MSVC installation for one specific target architecture.
+ * There are potentially multiple MSVCs in one Visual Studio installation.
+ */
 class MSVC
 {
 public:
     QString version;
-    QString installPath;
+    QString vcInstallPath;
+    QString binPath;
     QString pathPrefix;
-    QStringList architectures;
-
-    typedef QHash<QString, QProcessEnvironment> EnvironmentPerArch;
-    EnvironmentPerArch environments;
+    QString architecture;
+    QProcessEnvironment environment;
 
     MSVC() { }
 
     MSVC(const QString &clPath)
     {
         QDir parentDir = QFileInfo(clPath).dir();
-        QString arch = parentDir.dirName().toLower();
-        if (arch == QLatin1String("bin"))
-            arch = QString(); // x86
+        QString parentDirName = parentDir.dirName().toLower();
+        if (parentDirName == QLatin1String("bin"))
+            parentDirName = QStringLiteral("x86");
         else
             parentDir.cdUp();
-        architectures << arch;
-        installPath = parentDir.path();
+        architecture = parentDirName;
+        vcInstallPath = parentDir.path();
+        binPath = vcInstallPath;
     }
 
-    QString clPath(const QString &arch = QString()) const {
-        return QDir::cleanPath(
-                    installPath + QLatin1Char('/') +
-                    pathPrefix + QLatin1Char('/') +
-                    arch + QLatin1Char('/') +
-                    QLatin1String("cl.exe"));
-    }
-
+    QBS_EXPORT QString binPathForArchitecture(const QString &arch) const;
+    QBS_EXPORT QString clPathForArchitecture(const QString &arch) const;
     QBS_EXPORT QVariantMap compilerDefines(const QString &compilerFilePath) const;
 };
 

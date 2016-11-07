@@ -167,8 +167,8 @@ static QVariantMap getMsvcDefines(const QString &hostCompilerFilePath,
     // The host compiler is the x86 compiler, which will execute on any edition of Windows
     // for which host compilers have been released so far (x86, x86_64, ia64)
     MSVC msvc2(hostCompilerFilePath);
-    VsEnvironmentDetector envdetector(&msvc2);
-    if (!envdetector.start())
+    VsEnvironmentDetector envdetector;
+    if (!envdetector.start(&msvc2))
         throw ErrorInfo(QStringLiteral("Detecting the MSVC build environment failed: ")
                         + envdetector.errorString());
     runProcess(hostCompilerFilePath, QStringList()
@@ -177,7 +177,7 @@ static QVariantMap getMsvcDefines(const QString &hostCompilerFilePath,
                << (QStringLiteral("/Fo") + qbsClFrontendObj)
                << nativeDummyFilePath
                << QStringLiteral("/link")
-               << (QStringLiteral("/out:") + qbsClFrontend), msvc2.environments[QString()]);
+               << (QStringLiteral("/out:") + qbsClFrontend), msvc2.environment);
 
     QStringList out = QString::fromLocal8Bit(runProcess(compilerFilePath, QStringList()
                << QStringLiteral("/nologo")
@@ -209,11 +209,22 @@ static QVariantMap getMsvcDefines(const QString &hostCompilerFilePath,
     return map;
 }
 
+QString MSVC::binPathForArchitecture(const QString &arch) const
+{
+    QString archSubDir;
+    if (arch != QStringLiteral("x86"))
+        archSubDir = arch;
+    return QDir::cleanPath(vcInstallPath + QLatin1Char('/') + pathPrefix + QLatin1Char('/')
+                           + archSubDir);
+}
+
+QString MSVC::clPathForArchitecture(const QString &arch) const
+{
+    return binPathForArchitecture(arch) + QLatin1String("/cl.exe");
+}
+
 QVariantMap MSVC::compilerDefines(const QString &compilerFilePath) const
 {
-    // Should never happen
-    if (architectures.size() != 1)
-        throw ErrorInfo(mkStr("Unexpected number of architectures"));
-
-    return getMsvcDefines(clPath(), compilerFilePath, environments[architectures.first()]);
+    return getMsvcDefines(clPathForArchitecture(QStringLiteral("x86")), compilerFilePath,
+                          environment);
 }

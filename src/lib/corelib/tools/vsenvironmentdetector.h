@@ -41,6 +41,7 @@
 #define QBS_VSENVIRONMENTDETECTOR_H
 
 #include "qbs_export.h"
+#include "msvcinfo.h"
 
 #include <QStringList>
 
@@ -56,16 +57,17 @@ class MSVC;
 class QBS_EXPORT VsEnvironmentDetector
 {
 public:
-    VsEnvironmentDetector(MSVC *msvc);
+    VsEnvironmentDetector();
 
-    bool start();
+    bool start(MSVC *msvc);
+    bool start(QVector<MSVC *> msvcs);
     QString errorString() const { return m_errorString; }
 
 private:
-    void writeBatchFile(QIODevice *device, const QString &vcvarsallbat) const;
-    void parseBatOutput(const QByteArray &output);
+    bool startDetection(const QVector<MSVC *> &compatibleMSVCs);
+    void writeBatchFile(QIODevice *device, const QString &vcvarsallbat, const QVector<MSVC *> &msvcs) const;
+    void parseBatOutput(const QByteArray &output, QVector<MSVC *> msvcs);
 
-    MSVC *m_msvc;
     const QString m_windowsSystemDirPath;
     QString m_errorString;
 };

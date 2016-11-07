@@ -39,7 +39,6 @@
 
 #include "vsenvironmentdetector.h"
 
-#include "msvcinfo.h"
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
 
@@ -67,16 +66,41 @@ static QString windowsSystem32Path()
     return QString();
 }
 
-VsEnvironmentDetector::VsEnvironmentDetector(MSVC *msvc)
-    : m_msvc(msvc)
-    , m_windowsSystemDirPath(windowsSystem32Path())
+VsEnvironmentDetector::VsEnvironmentDetector()
+    : m_windowsSystemDirPath(windowsSystem32Path())
 {
 }
 
-bool VsEnvironmentDetector::start()
+bool VsEnvironmentDetector::start(MSVC *msvc)
 {
-    m_msvc->environments.clear();
-    const QString vcvarsallbat = QDir::cleanPath(m_msvc->installPath
+    return start(QVector<MSVC *>() << msvc);
+}
+
+bool VsEnvironmentDetector::start(QVector<MSVC *> msvcs)
+{
+    std::sort(msvcs.begin(), msvcs.end(), [] (const MSVC *a, const MSVC *b) -> bool {
+        return a->vcInstallPath < b->vcInstallPath;
+    });
+
+    QVector<MSVC *> compatibleMSVCs;
+    QString lastVcInstallPath;
+    foreach (MSVC *msvc, msvcs) {
+        if (lastVcInstallPath != msvc->vcInstallPath) {
+            lastVcInstallPath = msvc->vcInstallPath;
+            if (!compatibleMSVCs.isEmpty()) {
+                startDetection(compatibleMSVCs);
+                compatibleMSVCs.clear();
+            }
+        }
+        compatibleMSVCs.append(msvc);
+    }
+    startDetection(compatibleMSVCs);
+    return true;
+}
+
+bool VsEnvironmentDetector::startDetection(const QVector<MSVC *> &compatibleMSVCs)
+{
+    const QString vcvarsallbat = QDir::cleanPath(compatibleMSVCs.first()->vcInstallPath
                                                      + QLatin1String("/../vcvarsall.bat"));
     if (!QFile::exists(vcvarsallbat)) {
         m_errorString = Tr::tr("Cannot find '%1'.").arg(QDir::toNativeSeparators(vcvarsallbat));
@@ -90,7 +114,7 @@ bool VsEnvironmentDetector::start()
         return false;
     }
 
-    writeBatchFile(&tmpFile, vcvarsallbat);
+    writeBatchFile(&tmpFile, vcvarsallbat, compatibleMSVCs);
     tmpFile.flush();
 
     QProcess process;
@@ -110,8 +134,9 @@ bool VsEnvironmentDetector::start()
         m_errorString = Tr::tr("Failed to detect Visual Studio environment.");
         return false;
     }
-    parseBatOutput(process.readAllStandardOutput());
+    parseBatOutput(process.readAllStandardOutput(), compatibleMSVCs);
     return true;
+
 }
 
 static void batClearVars(QTextStream &s, const QStringList &varnames)
@@ -126,18 +151,17 @@ static void batPrintVars(QTextStream &s, const QStringList &varnames)
         s << "echo " << varname << "=%" << varname << '%' << endl;
 }
 
-static QString vcArchitecture(MSVC *msvc, const QString &targetArch)
+static QString vcArchitecture(const MSVC *msvc)
 {
-    QString vcArch = targetArch;
-    if (targetArch == QLatin1String("armv7"))
+    QString vcArch = msvc->architecture;
+    if (msvc->architecture == QLatin1String("armv7"))
         vcArch = QLatin1String("arm");
-    if (targetArch == QLatin1String("x86_64"))
+    if (msvc->architecture == QLatin1String("x86_64"))
         vcArch = QLatin1String("amd64");
 
-    // Empty string for the native compiler (preferred)
     for (const QString &hostPrefix :
-         QStringList({QString(), QStringLiteral("amd64_"), QStringLiteral("x86_")})) {
-        if (QFile::exists(msvc->clPath(hostPrefix + vcArch))) {
+         QStringList({QStringLiteral("x86"), QStringLiteral("amd64_"), QStringLiteral("x86_")})) {
+        if (QFile::exists(msvc->clPathForArchitecture(hostPrefix + vcArch))) {
             vcArch.prepend(hostPrefix);
             break;
         }
@@ -146,25 +170,26 @@ static QString vcArchitecture(MSVC *msvc, const QString &targetArch)
     return vcArch;
 }
 
-void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcvarsallbat) const
+void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcvarsallbat,
+                                           const QVector<MSVC *> &msvcs) const
 {
     const QStringList varnames = QStringList() << QLatin1String("PATH")
             << QLatin1String("INCLUDE") << QLatin1String("LIB");
     QTextStream s(device);
     s << "@echo off" << endl;
-    foreach (const QString &architecture, m_msvc->architectures) {
-        s << "echo --" << architecture << "--" << endl
+    for (const MSVC *msvc : msvcs) {
+        s << "echo --" << msvc->architecture << "--" << endl
           << "setlocal" << endl;
         batClearVars(s, varnames);
         s << "set PATH=" << m_windowsSystemDirPath << endl; // vcvarsall.bat needs tools from here
-        s << "call \"" << vcvarsallbat << "\" " << vcArchitecture(m_msvc, architecture)
+        s << "call \"" << vcvarsallbat << "\" " << vcArchitecture(msvc)
           << " || exit /b 1" << endl;
         batPrintVars(s, varnames);
         s << "endlocal" << endl;
     }
 }
 
-void VsEnvironmentDetector::parseBatOutput(const QByteArray &output)
+void VsEnvironmentDetector::parseBatOutput(const QByteArray &output, QVector<MSVC *> msvcs)
 {
     QString arch;
     QProcessEnvironment *targetEnv = 0;
@@ -177,7 +202,7 @@ void VsEnvironmentDetector::parseBatOutput(const QByteArray &output)
             line.remove(0, 2);
             line.chop(2);
             arch = QString::fromLocal8Bit(line);
-            targetEnv = &m_msvc->environments[arch];
+            targetEnv = &msvcs.takeFirst()->environment;
         } else {
             int idx = line.indexOf('=');
             if (idx < 0)
