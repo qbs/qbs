@@ -67,32 +67,16 @@ Q_DECLARE_TYPEINFO(MSVC, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 
 // Not necessary but helps setup-qt automatically associate base profiles
-static void setQtHelperProperties(Profile &p, const QString &architecture,
-                                  const QString &compilerFilePath)
+static void setQtHelperProperties(Profile &p, const MSVC *msvc)
 {
-    MSVC msvc(compilerFilePath);
-    VsEnvironmentDetector envdetector;
-    if (!envdetector.start(&msvc)) {
-        qbsWarning() << (QStringLiteral("Detecting the MSVC build environment failed: ")
-                         + envdetector.errorString());
-        return;
-    }
-
-    QString targetArch = architecture.split(QLatin1Char('_')).last();
+    QString targetArch = msvc->architecture.split(QLatin1Char('_')).last();
     if (targetArch.isEmpty())
         targetArch = QStringLiteral("x86");
     if (targetArch == QStringLiteral("arm"))
         targetArch = QStringLiteral("armv7");
 
     p.setValue(QStringLiteral("qbs.architecture"), canonicalArchitecture(targetArch));
-    try {
-        const QVariantMap defines = msvc.compilerDefines(compilerFilePath);
-        p.setValue(QStringLiteral("cpp.compilerVersionMajor"),
-                   defines[QStringLiteral("_MSC_FULL_VER")].toString().mid(0, 2).toInt());
-    } catch (const ErrorInfo &error) {
-        p.removeProfile();
-        qDebug("Warning: Failed to retrieve compiler defines: %s", qPrintable(error.toString()));
-    }
+    p.setValue(QStringLiteral("cpp.compilerVersionMajor"), msvc->compilerVersion.majorVersion());
 }
 
 static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QString name, MSVC *msvc)
@@ -103,7 +87,7 @@ static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QStrin
     p.setValue(QLatin1String("qbs.targetOS"), QStringList(QLatin1String("windows")));
     p.setValue(QLatin1String("qbs.toolchain"), QStringList(QLatin1String("msvc")));
     p.setValue(QLatin1String("cpp.toolchainInstallPath"), msvc->binPath);
-    setQtHelperProperties(p, msvc->architecture, msvc->binPath + QLatin1String("/cl.exe"));
+    setQtHelperProperties(p, msvc);
     profiles << p;
 }
 
@@ -225,18 +209,39 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
         return;
     }
 
+    qbsInfo() << Tr::tr("Detecting build environment...");
+    QVector<MSVC *> msvcPtrs;
+    msvcPtrs.resize(winSDKs.size() + msvcs.size());
+    std::transform(winSDKs.begin(), winSDKs.end(), msvcPtrs.begin(),
+                   [] (WinSDK &sdk) -> MSVC * { return &sdk; });
+    std::transform(msvcs.begin(), msvcs.end(), msvcPtrs.begin() + winSDKs.size(),
+                   [] (MSVC &msvc) -> MSVC * { return &msvc; });
+
+    VsEnvironmentDetector envDetector;
+    envDetector.start(msvcPtrs);
+
     for (int i = 0; i < winSDKs.count(); ++i) {
         WinSDK &sdk = winSDKs[i];
         const QString name = QLatin1String("WinSDK") + sdk.version + QLatin1Char('-')
                 + sdk.architecture;
-        addMSVCPlatform(settings, profiles, name, &sdk);
+        try {
+            sdk.init();
+            addMSVCPlatform(settings, profiles, name, &sdk);
+        } catch (const ErrorInfo &error) {
+            qbsWarning() << Tr::tr("Failed to set up %1: %2").arg(name, error.toString());
+        }
     }
 
     for (int i = 0; i < msvcs.count(); ++i) {
         MSVC &msvc = msvcs[i];
         const QString name = QLatin1String("MSVC") + msvc.version + QLatin1Char('-')
                 + msvc.architecture;
-        addMSVCPlatform(settings, profiles, name, &msvc);
+        try {
+            msvc.init();
+            addMSVCPlatform(settings, profiles, name, &msvc);
+        } catch (const ErrorInfo &error) {
+            qbsWarning() << Tr::tr("Failed to set up %1: %2").arg(name, error.toString());
+        }
     }
 }
 

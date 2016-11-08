@@ -42,6 +42,7 @@
 
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/version.h>
 
 #include <QDir>
 #include <QFileInfo>
@@ -52,8 +53,6 @@
 namespace qbs {
 namespace Internal {
 
-class Version;
-
 /**
  * Represents one MSVC installation for one specific target architecture.
  * There are potentially multiple MSVCs in one Visual Studio installation.
@@ -62,6 +61,7 @@ class MSVC
 {
 public:
     QString version;
+    Version compilerVersion;
     QString vcInstallPath;
     QString binPath;
     QString pathPrefix;
@@ -83,9 +83,13 @@ public:
         binPath = vcInstallPath;
     }
 
+    QBS_EXPORT void init();
     QBS_EXPORT QString binPathForArchitecture(const QString &arch) const;
     QBS_EXPORT QString clPathForArchitecture(const QString &arch) const;
     QBS_EXPORT QVariantMap compilerDefines(const QString &compilerFilePath) const;
+
+private:
+    void determineCompilerVersion();
 };
 
 class WinSDK : public MSVC

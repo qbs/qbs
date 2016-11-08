@@ -41,7 +41,6 @@
 
 #include <tools/error.h>
 #include <tools/profile.h>
-#include <tools/version.h>
 #include <tools/vsenvironmentdetector.h>
 
 #include <QByteArray>
@@ -209,6 +208,11 @@ static QVariantMap getMsvcDefines(const QString &hostCompilerFilePath,
     return map;
 }
 
+void MSVC::init()
+{
+    determineCompilerVersion();
+}
+
 QString MSVC::binPathForArchitecture(const QString &arch) const
 {
     QString archSubDir;
@@ -227,4 +231,31 @@ QVariantMap MSVC::compilerDefines(const QString &compilerFilePath) const
 {
     return getMsvcDefines(clPathForArchitecture(QStringLiteral("x86")), compilerFilePath,
                           environment);
+}
+
+void MSVC::determineCompilerVersion()
+{
+    QString cppFilePath;
+    {
+        QTemporaryFile cppFile(QDir::tempPath() + QLatin1String("/qbsXXXXXX.cpp"));
+        cppFile.setAutoRemove(false);
+        if (!cppFile.open()) {
+            throw ErrorInfo(mkStr("Could not create temporary file (%1)")
+                            .arg(cppFile.errorString()));
+        }
+        cppFilePath = cppFile.fileName();
+        cppFile.write("_MSC_FULL_VER");
+        cppFile.close();
+    }
+    DummyFile fileDeleter(cppFilePath);
+
+    const QByteArray origPath = qgetenv("PATH");
+    qputenv("PATH", environment.value(QStringLiteral("PATH")).toLatin1() + ';' + origPath);
+    QByteArray versionStr = runProcess(
+                binPath + QStringLiteral("/cl.exe"),
+                QStringList() << QStringLiteral("/nologo") << QStringLiteral("/EP")
+                << QDir::toNativeSeparators(cppFilePath));
+    qputenv("PATH", origPath);
+    compilerVersion = Version(versionStr.mid(0, 2).toInt(), versionStr.mid(2, 2).toInt(),
+                              versionStr.mid(4).toInt());
 }
