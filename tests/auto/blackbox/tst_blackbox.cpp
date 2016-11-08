@@ -4295,7 +4295,7 @@ void TestBlackbox::xcode()
     QbsRunParameters params;
     params.arguments = (QStringList()
                         << (QStringLiteral("xcode.developerPath:") + developerPath)
-                        << (QStringLiteral("project.sdks:") + sdkValues.join(",")));
+                        << (QStringLiteral("project.sdks:['") + sdkValues.join("','") + "']"));
     QCOMPARE(runQbs(params), 0);
 }
 
