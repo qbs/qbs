@@ -79,6 +79,7 @@ private slots:
     void exportToOutsideSearchPath();
     void fileDependencies();
     void frameworkStructure();
+    void generatedArtifactAsInputToDynamicRule();
     void groupsInModules();
     void iconset();
     void iconsetApp();
