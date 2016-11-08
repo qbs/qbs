@@ -753,23 +753,24 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
                                                module.versionRange.maximum.toString()));
                 }
             }
-            m_evaluator->boolValue(module.item, QLatin1String("validate"));
         } catch (const ErrorInfo &error) {
-            if (module.required) {
-                try {
-                    handleProductError(error, productContext);
-                } catch (const ErrorInfo &) {
-                    // Error will be thrown for enabled products only
-                    module.item->setDelayedError(error);
-                }
-            } else {
-                createNonPresentModule(module.name.toString(), QLatin1String("failed validation"),
-                                       module.item);
-            }
+            handleModuleSetupError(productContext, module, error);
         }
     }
 
     resolveProbes(productContext, item);
+
+    // Module validation must happen in an extra pass, after all Probes have been resolved.
+    EvalCacheEnabler cacheEnabler(m_evaluator);
+    foreach (const Item::Module &module, sortedModules) {
+        if (!module.item->isPresentModule() || module.item->delayedError().hasError())
+            continue;
+        try {
+            m_evaluator->boolValue(module.item, QLatin1String("validate"));
+        } catch (const ErrorInfo &error) {
+            handleModuleSetupError(productContext, module, error);
+        }
+    }
 
     if (!checkItemCondition(item)) {
         Item * const productModule = m_productModuleCache.value(productContext->name);
@@ -788,6 +789,22 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
         }
     }
     productContext->project->result->productInfos.insert(item, productContext->info);
+}
+
+void ModuleLoader::handleModuleSetupError(ModuleLoader::ProductContext *productContext,
+                                          const Item::Module &module, const ErrorInfo &error)
+{
+    if (module.required) {
+        try {
+            handleProductError(error, productContext);
+        } catch (const ErrorInfo &) {
+            // Error will be thrown for enabled products only
+            module.item->setDelayedError(error);
+        }
+    } else {
+        createNonPresentModule(module.name.toString(), QLatin1String("failed validation"),
+                               module.item);
+    }
 }
 
 void ModuleLoader::initProductProperties(const ProductContext &product)

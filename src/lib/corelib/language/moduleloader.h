@@ -205,6 +205,8 @@ private:
     void prepareProduct(ProjectContext *projectContext, Item *productItem);
     void setupProductDependencies(ProductContext *productContext);
     void handleProduct(ProductContext *productContext);
+    void handleModuleSetupError(ProductContext *productContext, const Item::Module &module,
+                                const ErrorInfo &error);
     void initProductProperties(const ProductContext &product);
     void handleSubProject(ProjectContext *projectContext, Item *projectItem,
             const QSet<QString> &referencedFilePaths);

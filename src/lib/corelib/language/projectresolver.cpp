@@ -558,20 +558,6 @@ static void gatherAssignedProperties(ItemValue *iv, const QualifiedId &prefix,
     }
 }
 
-class CachingEnabler
-{
-public:
-    CachingEnabler(Evaluator *evaluator) : m_evaluator(evaluator)
-    {
-        m_evaluator->setCachingEnabled(true);
-    }
-
-    ~CachingEnabler() { m_evaluator->setCachingEnabled(false); }
-
-private:
-    Evaluator * const m_evaluator;
-};
-
 QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group,
                                                                const QVariantMap &currentValues)
 {
@@ -599,7 +585,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
                 = QualifiedId(fullPropName.mid(0, fullPropName.count() - 1)).toString();
         propsPerModule[moduleName] << fullPropName.last();
     }
-    CachingEnabler cachingEnabler(m_evaluator);
+    EvalCacheEnabler cachingEnabler(m_evaluator);
     for (auto it = group->modules().cbegin(); it != group->modules().cend(); ++it) {
         const QString &fullModName = it->name.toString();
         const QStringList propsForModule = propsPerModule.take(fullModName);
@@ -1232,7 +1218,7 @@ QVariantMap ProjectResolver::evaluateProperties(const Item *item, const Item *pr
 
 QVariantMap ProjectResolver::createProductConfig()
 {
-    CachingEnabler cachingEnabler(m_evaluator);
+    EvalCacheEnabler cachingEnabler(m_evaluator);
     QVariantMap cfg = evaluateModuleValues(m_productContext->item);
     cfg = evaluateProperties(m_productContext->item, m_productContext->item, cfg);
     return cfg;

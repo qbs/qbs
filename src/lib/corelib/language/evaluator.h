@@ -95,6 +95,20 @@ private:
     mutable QHash<FileContextConstPtr, QScriptValue> m_fileScopeMap;
 };
 
+class EvalCacheEnabler
+{
+public:
+    EvalCacheEnabler(Evaluator *evaluator) : m_evaluator(evaluator)
+    {
+        m_evaluator->setCachingEnabled(true);
+    }
+
+    ~EvalCacheEnabler() { m_evaluator->setCachingEnabled(false); }
+
+private:
+    Evaluator * const m_evaluator;
+};
+
 } // namespace Internal
 } // namespace qbs
 
