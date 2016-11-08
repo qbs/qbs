@@ -55,6 +55,7 @@
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
 #include <tools/settings.h>
+#include <tools/settingsmodel.h>
 
 #include <QCoreApplication>
 #include <QDir>
@@ -312,7 +313,8 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
             qbsWarning() << Tr::tr("Refusing to overwrite special property '%1'.")
                             .arg(configurationNameKey);
         } else {
-            currentProperties.insert(property, arg.mid(sepPos + 1));
+            const QString rawString = arg.mid(sepPos + 1);
+            currentProperties.insert(property, representationToSettingsValue(rawString));
         }
     }
     propertiesPerConfiguration << qMakePair(currentConfigurationName, currentProperties);

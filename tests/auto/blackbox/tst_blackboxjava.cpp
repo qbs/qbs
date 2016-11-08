@@ -255,7 +255,7 @@ void TestBlackboxJava::javaDependencyTracking()
         if (!jdkPath.isEmpty())
             rp.arguments << ("java.jdkPath:" + jdkPath);
         if (!javaVersion.isEmpty())
-            rp.arguments << ("java.languageVersion:" + javaVersion);
+            rp.arguments << ("java.languageVersion:'" + javaVersion + "'");
         rmDirR(relativeBuildDir());
         QCOMPARE(runQbs(rp), 0);
     };

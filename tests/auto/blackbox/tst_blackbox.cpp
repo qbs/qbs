@@ -773,9 +773,9 @@ void TestBlackbox::versionCheck()
     QFETCH(QString, errorMessage);
     QbsRunParameters params;
     params.expectFailure = !errorMessage.isEmpty();
-    params.arguments << "-n" << ("versioncheck.requestedMinVersion:" + requestedMinVersion)
-                     << ("versioncheck.requestedMaxVersion:" + requestedMaxVersion)
-                     << ("lower.version:" + actualVersion);
+    params.arguments << "-n" << ("versioncheck.requestedMinVersion:'" + requestedMinVersion + "'")
+                     << ("versioncheck.requestedMaxVersion:'" + requestedMaxVersion + "'")
+                     << ("lower.version:'" + actualVersion + "'");
     QCOMPARE(runQbs(params) == 0, errorMessage.isEmpty());
     if (params.expectFailure)
         QVERIFY2(QString(m_qbsStderr).contains(errorMessage), m_qbsStderr.constData());
