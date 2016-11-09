@@ -5,10 +5,21 @@ import qbs.File
 import qbs.FileInfo
 import qbs.DarwinTools
 import qbs.ModUtils
+import qbs.Probes
 import qbs.PropertyList
 import 'xcode.js' as Xcode
 
 Module {
+    Probe {
+        id: xcodeProbe
+        configure: {
+            availableSdks = Xcode.sdkInfoList(sdksPath);
+            found = true;
+        }
+
+        property var availableSdks
+    }
+
     condition: qbs.targetOS.contains("darwin") &&
                qbs.toolchain && qbs.toolchain.contains("xcode")
 
@@ -119,7 +130,7 @@ Module {
         return FileInfo.joinPaths(Environment.getEnv("HOME"), "Library/MobileDevice/Provisioning Profiles");
     }
 
-    readonly property var _availableSdks: Xcode.sdkInfoList(sdksPath)
+    readonly property var _availableSdks: xcodeProbe.availableSdks
 
     readonly property var _sdkSettings: {
         if (_availableSdks) {
