@@ -464,9 +464,15 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
         for (Artifact *artifact : filterByType<Artifact>(ruleNode->product->buildData->nodes)) {
             if (artifact->artifactType == Artifact::SourceFile)
                 continue;
-            if (artifact->timestampRetrieved && !isUpToDate(artifact)
-                    && ruleNode->rule()->acceptsAsInput(artifact)) {
-                changedInputArtifacts += artifact;
+            if (ruleNode->rule()->acceptsAsInput(artifact)) {
+                for (const Artifact * const parent : artifact->parentArtifacts()) {
+                    if (parent->transformer->rule != ruleNode->rule())
+                        continue;
+                    if (parent->timestamp() < artifact->timestamp()) {
+                        changedInputArtifacts += artifact;
+                        break;
+                    }
+                }
             }
         }
     }
@@ -1063,7 +1069,8 @@ void Executor::checkForCancellation()
     QBS_ASSERT(m_progressObserver, return);
     if (m_state == ExecutorRunning && m_progressObserver->canceled()) {
         cancelJobs();
-        m_evalContext->engine()->cancel();
+        if (m_evalContext->isActive())
+            m_evalContext->engine()->cancel();
     }
 }
 

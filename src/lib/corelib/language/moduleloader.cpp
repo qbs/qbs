@@ -673,6 +673,35 @@ static void createSortedModuleList(const Item::Module &parentModule, QVector<Ite
     return;
 }
 
+template<typename T> bool insertIntoSet(std::set<T> &set, const T &value)
+{
+    const auto insertionResult = set.insert(value);
+    return insertionResult.second;
+}
+
+void ModuleLoader::setupReverseModuleDependencies(const Item::Module &module,
+                                                  ModuleDependencies &deps,
+                                                  QualifiedIdSet &seenModules)
+{
+    if (!insertIntoSet(seenModules, module.name))
+        return;
+    const Item::Modules &modules = module.item->modules();
+    for (auto it = modules.begin(); it != modules.end(); ++it) {
+        deps[it->name].insert(module.name);
+        setupReverseModuleDependencies(*it, deps, seenModules);
+    }
+}
+
+ModuleLoader::ModuleDependencies ModuleLoader::setupReverseModuleDependencies(const Item *product)
+{
+    ModuleDependencies deps;
+    QualifiedIdSet seenModules;
+    const Item::Modules &modules = product->modules();
+    for (auto it = modules.begin(); it != modules.end(); ++it)
+        setupReverseModuleDependencies(*it, deps, seenModules);
+    return deps;
+}
+
 void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 {
     if (productContext->info.hasError)
@@ -750,9 +779,13 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 
     copyGroupsFromModulesToProduct(*productContext);
 
+    ModuleDependencies reverseModuleDeps;
     foreach (Item *child, item->children()) {
-        if (child->type() == ItemType::Group)
-            handleGroup(child);
+        if (child->type() == ItemType::Group) {
+            if (reverseModuleDeps.isEmpty())
+                reverseModuleDeps = setupReverseModuleDependencies(item);
+            handleGroup(child, reverseModuleDeps);
+        }
     }
     productContext->project->result->productInfos.insert(item, productContext->info);
 }
@@ -862,14 +895,14 @@ QList<Item *> ModuleLoader::loadReferencedFile(const QString &relativePath,
     return loadedItems;
 }
 
-void ModuleLoader::handleGroup(Item *groupItem)
+void ModuleLoader::handleGroup(Item *groupItem, const ModuleDependencies &reverseDepencencies)
 {
     checkCancelation();
-    propagateModulesToGroup(groupItem);
+    propagateModulesFromParent(groupItem, reverseDepencencies);
     checkItemCondition(groupItem);
     foreach (Item * const child, groupItem->children()) {
         if (child->type() == ItemType::Group)
-            handleGroup(child);
+            handleGroup(child, reverseDepencencies);
     }
 }
 
@@ -1055,27 +1088,238 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
     pmi.exportItem = merged;
 }
 
-void ModuleLoader::propagateModulesToGroup(Item *groupItem)
+bool ModuleLoader::isSomeModulePropertySet(const Item *item)
+{
+    for (auto it = item->properties().cbegin(); it != item->properties().cend(); ++it) {
+        switch (it.value()->type()) {
+        case Value::JSSourceValueType:
+            if (item->type() == ItemType::ModuleInstance) {
+                if (m_logger.traceEnabled()) {
+                    m_logger.qbsTrace() << "[LDR] scope adaptation for group module items "
+                                           "necessary because of property " << it.key();
+                }
+                return true;
+            }
+            break;
+        case Value::ItemValueType:
+            if (isSomeModulePropertySet(it.value().staticCast<ItemValue>()->item()))
+                return true;
+            break;
+        default:
+            break;
+        }
+    }
+    return false;
+}
+
+void ModuleLoader::propagateModulesFromParent(Item *groupItem,
+                                              const ModuleDependencies &reverseDepencencies)
 {
     QBS_CHECK(groupItem->type() == ItemType::Group);
-    Item * const parent = groupItem->parent();
-    QBS_CHECK(parent->type() == ItemType::Group || parent->type() == ItemType::Product);
-    for (auto it = parent->modules().constBegin(); it != parent->modules().constEnd(); ++it) {
+    QHash<QualifiedId, Item *> moduleInstancesForGroup;
+
+    // Step 1: Instantiate the product's modules for the group.
+    for (Item::Modules::const_iterator it = groupItem->parent()->modules().constBegin();
+         it != groupItem->parent()->modules().constEnd(); ++it)
+    {
         Item::Module m = *it;
         Item *targetItem = moduleInstanceItem(groupItem, m.name);
         targetItem->setPrototype(m.item);
         targetItem->setType(ItemType::ModuleInstance);
-        targetItem->setScope(m.item->scope());
-        targetItem->setModules(m.item->modules());
+
+        Item * const moduleScope = Item::create(targetItem->pool(), ItemType::Scope);
+        moduleScope->setFile(groupItem->file());
+        moduleScope->setProperties(m.item->scope()->properties()); // "project", "product", ids
+        moduleScope->setScope(groupItem);
+        targetItem->setScope(moduleScope);
+
+        targetItem->setFile(m.item->file());
 
         // "parent" should point to the group/artifact parent
-        targetItem->setParent(parent);
+        targetItem->setParent(groupItem->parent());
 
-        // the outer item of a module is the parent item's (a product or a group) instance of it
-        targetItem->setOuterItem(m.item);   // ### Is this always the same as the scope item?
+        targetItem->setOuterItem(m.item);
 
         m.item = targetItem;
         groupItem->addModule(m);
+        moduleInstancesForGroup.insert(m.name, targetItem);
+    }
+
+    // Step 2: Make the inter-module references point to the instances created in step 1.
+    for (auto it = groupItem->modules().cbegin(); it != groupItem->modules().cend(); ++it) {
+        Item::Modules adaptedModules;
+        const Item::Modules &oldModules = it->item->prototype()->modules();
+        for (auto depIt = oldModules.begin(); depIt != oldModules.end(); ++depIt) {
+            Item::Module depMod = *depIt;
+            depMod.item = moduleInstancesForGroup.value(depIt->name);
+            adaptedModules << depMod;
+            if (depMod.name.first() == it->name.first())
+                continue;
+            const ItemValuePtr &modulePrefix = groupItem->itemProperty(depMod.name.first());
+            QBS_CHECK(modulePrefix);
+            it->item->setProperty(depMod.name.first(), modulePrefix);
+        }
+        it->item->setModules(adaptedModules);
+    }
+
+    if (!isSomeModulePropertySet(groupItem))
+        return;
+
+    // Step 3: Adapt defining items in values. This is potentially necessary if module properties
+    //         get assigned on the group level.
+    const Item::Modules &groupModules = groupItem->modules();
+    for (auto modIt = groupModules.begin(); modIt != groupModules.end(); ++modIt) {
+        const QualifiedIdSet &dependents = reverseDepencencies.value(modIt->name);
+        Item::Modules dependentModules;
+        dependentModules.reserve(dependents.size());
+        for (auto depIt = dependents.begin(); depIt != dependents.end(); ++depIt) {
+            Item * const itemOfDependent = moduleInstancesForGroup.value(*depIt);
+            QBS_CHECK(itemOfDependent);
+            Item::Module depMod;
+            depMod.name = *depIt;
+            depMod.item = itemOfDependent;
+            dependentModules << depMod;
+        }
+        adjustDefiningItemsInGroupModuleInstances(*modIt, dependentModules);
+    }
+}
+
+void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module &module,
+        const Item::Modules &dependentModules)
+{
+    // There are three cases:
+    //     a) The defining item is the "main" module instance, i.e. the one instantiated in the
+    //        product directly.
+    //     b) The defining item refers to the module prototype.
+    //     c) The defining item is a different instance of the module, i.e. it was instantiated
+    //        in some other module.
+    // TODO: Needs adjustments for nested groups.
+
+    QHash<Item *, Item *> definingItemReplacements;
+    const Item::PropertyMap &protoProps = module.item->prototype()->properties();
+    for (auto propIt = protoProps.begin(); propIt != protoProps.end(); ++propIt) {
+        const QString &propName = propIt.key();
+
+        // Module properties assigned in the group are not relevant here, as nothing
+        // gets inherited in that case. In particular, setting a list property
+        // overwrites the value from the product's (merged) instance completely,
+        // rather than appending to it (concatenation happens via outer.concat()).
+        if (module.item->properties().contains(propIt.key()))
+            continue;
+
+        if (propIt.value()->type() != Value::JSSourceValueType)
+            continue;
+
+        const PropertyDeclaration &propDecl = module.item->propertyDeclaration(propName);
+        bool hasDefiningItem = false;
+        for (ValuePtr v = propIt.value(); v && !hasDefiningItem; v = v->next())
+            hasDefiningItem = v->definingItem();
+        if (!hasDefiningItem) {
+            QBS_CHECK(propDecl.isScalar());
+            continue;
+        }
+
+        const ValuePtr clonedValue = propIt.value()->clone();
+        for (ValuePtr v = clonedValue; v; v = v->next()) {
+            QBS_CHECK(v->definingItem());
+
+            Item *& replacement = definingItemReplacements[v->definingItem()];
+            if (v->definingItem() == module.item->prototype()) {
+                // Case a)
+                // For values whose defining item is the product's instance, we take its scope
+                // and replace references to module instances with those from the
+                // group's instance. This handles cases like the following:
+                // Product {
+                //    name: "theProduct"
+                //    aModule.listProp: [name, otherModule.stringProp]
+                //    Group { name: "theGroup"; otherModule.stringProp: name }
+                //    ...
+                // }
+                // In the above example, aModule.listProp is set to ["theProduct", "theGroup"]
+                // (plus potential values from the prototype and other module instances,
+                // which are different Value objects in the "next chain").
+                if (!replacement) {
+                    replacement = Item::create(v->definingItem()->pool());
+                    Item * const scope = Item::create(v->definingItem()->pool(), ItemType::Scope);
+                    scope->setProperties(module.item->scope()->properties());
+                    Item * const scopeScope
+                            = Item::create(v->definingItem()->pool(), ItemType::Scope);
+                    scopeScope->setProperties(v->definingItem()->scope()->scope()->properties());
+                    scope->setScope(scopeScope);
+                    replacement->setScope(scope);
+                    const Item::PropertyMap &groupScopeProperties
+                            = module.item->scope()->scope()->properties();
+                    for (auto propIt = groupScopeProperties.begin();
+                         propIt != groupScopeProperties.end(); ++propIt) {
+                        if (propIt.value()->type() == Value::ItemValueType)
+                            scopeScope->setProperty(propIt.key(), propIt.value());
+                    }
+                }
+                replacement->setPropertyDeclaration(propName, propDecl);
+                replacement->setProperty(propName, v);
+            }  else if (v->definingItem()->type() == ItemType::Module) {
+                // Case b)
+                // For values whose defining item is the module prototype, we change the scope to
+                // the group's instance, analogous to what we do in
+                // ModuleMerger::appendPrototypeValueToNextChain().
+                QBS_CHECK(!propDecl.isScalar());
+                QBS_CHECK(!v->next());
+                Item *& replacement = definingItemReplacements[v->definingItem()];
+                if (!replacement) {
+                    replacement = Item::create(v->definingItem()->pool(),
+                                                        ItemType::Module);
+                    replacement->setScope(module.item);
+                }
+                if (m_logger.traceEnabled()) {
+                    m_logger.qbsTrace() << "[LDR] replacing defining item for prototype; module is "
+                            << module.name.toString() << module.item
+                            << ", property is " << propName
+                            << ", old defining item was " << v->definingItem()
+                            << " with scope" << v->definingItem()->scope()
+                            << ", new defining item is" << replacement
+                            << " with scope" << replacement->scope()
+                            << ", value source code is "
+                            << v.staticCast<JSSourceValue>()->sourceCode().toString();
+                }
+                replacement->setPropertyDeclaration(propName, propDecl);
+                replacement->setProperty(propName, v);
+            } else {
+                // Look for instance scopes of other module instances in defining items and
+                // replace the affected values.
+                // This is case c) as introduced above. See ModuleMerger::replaceItemInScopes()
+                // for a detailed explanation.
+
+                QBS_CHECK(v->definingItem()->scope() && v->definingItem()->scope()->scope());
+                bool found = false;
+                for (auto depIt = dependentModules.cbegin(); depIt != dependentModules.cend();
+                     ++depIt) {
+                    const Item::Module &depMod = *depIt;
+                    if (v->definingItem()->scope()->scope() != depMod.item->prototype())
+                        continue;
+
+                    found = true;
+                    Item *& replacement = definingItemReplacements[v->definingItem()];
+                    if (!replacement) {
+                        replacement = Item::create(v->definingItem()->pool());
+                        replacement->setProperties(v->definingItem()->properties());
+                        foreach (const auto &decl, v->definingItem()->propertyDeclarations())
+                            replacement->setPropertyDeclaration(decl.name(), decl);
+                        replacement->setPrototype(v->definingItem()->prototype());
+                        replacement->setScope(Item::create(v->definingItem()->pool()));
+                        replacement->scope()->setScope(depMod.item);
+                    }
+                    if (m_logger.traceEnabled()) {
+                        m_logger.qbsTrace() << "[LDR] reset instance scope of module "
+                                << depMod.name.toString() << " in property "
+                                << propName << " of module " << module.name;
+                    }
+                }
+                QBS_CHECK(found);
+            }
+            QBS_CHECK(replacement);
+            v->setDefiningItem(replacement);
+        }
+        module.item->setProperty(propName, clonedValue);
     }
 }
 

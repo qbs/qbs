@@ -212,11 +212,19 @@ private:
                                      const CodeLocation &referencingLocation,
                                      const QSet<QString> &referencedFilePaths,
                                      ProductContext &dummyContext);
-    void handleGroup(Item *groupItem);
     void handleAllPropertyOptionsItems(Item *item);
     void handlePropertyOptions(Item *optionsItem);
+
+    using ModuleDependencies = QHash<QualifiedId, QualifiedIdSet>;
+    void setupReverseModuleDependencies(const Item::Module &module, ModuleDependencies &deps,
+                                        QualifiedIdSet &seenModules);
+    ModuleDependencies setupReverseModuleDependencies(const Item *product);
+    void handleGroup(Item *groupItem, const ModuleDependencies &reverseDepencencies);
+    void propagateModulesFromParent(Item *groupItem, const ModuleDependencies &reverseDepencencies);
+    void adjustDefiningItemsInGroupModuleInstances(const Item::Module &module,
+                                                   const Item::Modules &dependentModules);
+
     void mergeExportItems(const ProductContext &productContext);
-    void propagateModulesToGroup(Item *groupItem);
     void resolveDependencies(DependsContext *dependsContext, Item *item);
     class ItemModuleList;
     void resolveDependsItem(DependsContext *dependsContext, Item *parentItem, Item *dependsItem,
@@ -264,6 +272,8 @@ private:
     void printProfilingInfo();
 
     void handleProductError(const ErrorInfo &error, ProductContext *productContext);
+
+    bool isSomeModulePropertySet(const Item *item);
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;

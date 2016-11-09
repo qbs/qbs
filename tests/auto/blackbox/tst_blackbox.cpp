@@ -3761,6 +3761,24 @@ void TestBlackbox::frameworkStructure()
     QVERIFY(!directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/PrivateHeaders"));
 }
 
+void TestBlackbox::generatedArtifactAsInputToDynamicRule()
+{
+    QDir::setCurrent(testDataDir + "/generated-artifact-as-input-to-dynamic-rule");
+    QCOMPARE(runQbs(), 0);
+    const QString oldFile = relativeProductBuildDir("p") + "/old.txt";
+    QVERIFY2(regularFileExists(oldFile), qPrintable(oldFile));
+    WAIT_FOR_NEW_TIMESTAMP();
+    QFile inputFile("input.txt");
+    QVERIFY2(inputFile.open(QIODevice::WriteOnly), qPrintable(inputFile.errorString()));
+    inputFile.resize(0);
+    inputFile.write("new.txt");
+    inputFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!regularFileExists(oldFile), qPrintable(oldFile));
+    const QString newFile = relativeProductBuildDir("p") + "/new.txt";
+    QVERIFY2(regularFileExists(newFile), qPrintable(oldFile));
+}
+
 static bool haveWiX(const Profile &profile)
 {
     if (profile.value("wix.toolchainInstallPath").isValid() &&

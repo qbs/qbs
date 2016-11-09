@@ -60,6 +60,7 @@ public:
     };
 
     Value(Type t, bool createdByPropertiesBlock);
+    Value(const Value &other);
     virtual ~Value();
 
     Type type() const { return m_type; }
