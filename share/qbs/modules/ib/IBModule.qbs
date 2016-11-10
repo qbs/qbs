@@ -39,6 +39,16 @@ import 'ib.js' as Ib
 Module {
     Depends { name: "xcode"; required: false }
 
+    Probe {
+        id: ibProbe
+        property string toolPath: ibtoolPath // input
+        property string toolVersion // output
+        configure: {
+            toolVersion = Ib.ibtoolVersion(toolPath);
+            found = true;
+        }
+    }
+
     condition: qbs.hostOS.contains("darwin") && qbs.targetOS.contains("darwin")
 
     property bool warnings: true
@@ -73,7 +83,7 @@ Module {
     property string compiledStoryboardSuffix: ".storyboardc"
 
     version: ibtoolVersion
-    property string ibtoolVersion: { return Ib.ibtoolVersion(ibtoolPath); }
+    property string ibtoolVersion: ibProbe.toolVersion
     property var ibtoolVersionParts: ibtoolVersion ? ibtoolVersion.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int ibtoolVersionMajor: ibtoolVersionParts[0]
     property int ibtoolVersionMinor: ibtoolVersionParts[1]
