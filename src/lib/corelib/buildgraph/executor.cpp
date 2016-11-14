@@ -453,6 +453,8 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
                 for (const Artifact * const parent : artifact->parentArtifacts()) {
                     if (parent->transformer->rule != ruleNode->rule())
                         continue;
+                    if (!parent->alwaysUpdated)
+                        continue;
                     if (parent->timestamp() < artifact->timestamp()) {
                         changedInputArtifacts += artifact;
                         break;
