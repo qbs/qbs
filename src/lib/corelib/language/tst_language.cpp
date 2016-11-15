@@ -578,7 +578,7 @@ void TestLanguage::exports()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 12);
+        QCOMPARE(products.count(), 17);
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(product);
@@ -655,6 +655,16 @@ void TestLanguage::exports()
         QVERIFY(product);
         QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
                                                 "someString").toString(), QString("sub1"));
+
+        product = products.value("libE");
+        QVERIFY(product);
+        propertyName = QStringList() << "modules" << "dummy" << "defines";
+        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        QCOMPARE(propertyValue.toStringList(),
+                 QStringList() << "LIBA" << "LIBB" << "LIBC" << "LIBD");
+        propertyName = QStringList() << "modules" << "dummy" << "productName";
+        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        QCOMPARE(propertyValue.toString(), QString("libE"));
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;

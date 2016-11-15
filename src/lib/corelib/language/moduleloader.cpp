@@ -1935,17 +1935,6 @@ static QList<Item *> collectItemsWithId(Item *item)
     return result;
 }
 
-static void copyPropertiesFromExportItem(const Item *src, Item *dst)
-{
-    const Item::PropertyMap &srcProps = src->properties();
-    for (auto it = srcProps.constBegin(); it != srcProps.constEnd(); ++it) {
-        if (it.value()->type() != Value::JSSourceValueType)
-            continue;
-        QBS_CHECK(!dst->hasOwnProperty(it.key()));
-        dst->setProperty(it.key(), it.value()->clone());
-    }
-}
-
 void ModuleLoader::instantiateModule(ProductContext *productContext, Item *exportingProduct,
         Item *instanceScope, Item *moduleInstance, Item *modulePrototype,
         const QualifiedId &moduleName, bool isProduct)
@@ -1982,34 +1971,14 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     }
 
     if (exportingProduct) {
-        if (!isProduct) {
-            copyPropertiesFromExportItem(modulePrototype, moduleInstance);
-            moduleInstance->setPrototype(modulePrototype->prototype());
-        }
-
-        Item *exportScope =  Item::create(moduleInstance->pool());
-        exportScope->setFile(instanceScope->file());
-        exportScope->setScope(instanceScope);
-
         // TODO: For consistency with modules, it should be the other way around, i.e.
         //       "exportingProduct" and just "product".
-        exportScope->setProperty(QLatin1String("product"), ItemValue::create(exportingProduct));
-        exportScope->setProperty(QLatin1String("importingProduct"),
+        moduleScope->setProperty(QLatin1String("product"), ItemValue::create(exportingProduct));
+        moduleScope->setProperty(QLatin1String("importingProduct"),
                                  ItemValue::create(productContext->item));
 
-        exportScope->setProperty(QLatin1String("project"),
+        moduleScope->setProperty(QLatin1String("project"),
                                  ItemValue::create(exportingProduct->parent()));
-
-        for (auto it = moduleInstance->properties().begin();
-             it != moduleInstance->properties().end(); ++it) {
-            if (it.value()->type() != Value::JSSourceValueType)
-                continue;
-            JSSourceValuePtr v = it.value().staticCast<JSSourceValue>();
-            do {
-                v->setExportScope(exportScope);
-                v = v->baseValue();
-            } while (v);
-        }
 
         PropertyDeclaration pd(QLatin1String("_qbs_sourceDir"), PropertyDeclaration::String,
                                PropertyDeclaration::PropertyNotAvailableInConfig);

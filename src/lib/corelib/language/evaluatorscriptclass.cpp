@@ -266,8 +266,6 @@ private:
         }
         if (value->definingItem())
             pushItemScopes(value->definingItem());
-        if (value->exportScope())
-            pushScope(data->evaluator->scriptValue(value->exportScope()));
         pushScope(extraScope);
         *result = engine->evaluate(value->sourceCodeForEvaluation(), value->file()->filePath(),
                                    value->line());
