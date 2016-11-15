@@ -360,7 +360,7 @@ private:
         if (m_parentItem->type() == ItemType::Artifact)
             return;
 
-        if (value->item()->type() != ItemType::ModuleInstance
+        if ((value->item()->type() != ItemType::ModuleInstance || !value->item()->scope())
                 && value->item()->type() != ItemType::ModulePrefix
                 && m_parentItem->file()
                 && (!m_parentItem->file()->idScope()
@@ -488,7 +488,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     projectContext.topLevelProject = topLevelProjectContext;
     projectContext.result = loadResult;
     ItemValuePtr itemValue = ItemValue::create(projectItem);
-    projectContext.scope = Item::create(m_pool);
+    projectContext.scope = Item::create(m_pool, ItemType::Scope);
     projectContext.scope->setFile(projectItem->file());
     projectContext.scope->setProperty(QLatin1String("project"), itemValue);
     ProductContext dummyProductContext;
@@ -679,7 +679,7 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     initProductProperties(productContext);
 
     ItemValuePtr itemValue = ItemValue::create(productItem);
-    productContext.scope = Item::create(m_pool);
+    productContext.scope = Item::create(m_pool, ItemType::Scope);
     productContext.scope->setProperty(QLatin1String("product"), itemValue);
     productContext.scope->setFile(productItem->file());
     productContext.scope->setScope(productContext.project->scope);
@@ -1024,7 +1024,7 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
 {
     if (value->type() == Value::ItemValueType) {
         Item *valueItem = value.staticCast<ItemValue>()->item();
-        Item *subItem = dst->itemProperty(name, true)->item();
+        Item *subItem = dst->itemProperty(name, valueItem)->item();
         for (QMap<QString, ValuePtr>::const_iterator it = valueItem->properties().constBegin();
                 it != valueItem->properties().constEnd(); ++it)
             mergeProperty(subItem, it.key(), it.value());
@@ -1051,7 +1051,7 @@ bool ModuleLoader::checkExportItemCondition(Item *exportItem, const ProductConte
             : m_exportItem(exportItem)
         {
             if (!*cachedScopeItem)
-                *cachedScopeItem = Item::create(exportItem->pool());
+                *cachedScopeItem = Item::create(exportItem->pool(), ItemType::Scope);
             Item * const scope = *cachedScopeItem;
             QBS_CHECK(productContext.item->file());
             scope->setFile(productContext.item->file());
@@ -1231,7 +1231,6 @@ void ModuleLoader::propagateModulesFromParent(Item *groupItem,
         Item::Module m = *it;
         Item *targetItem = moduleInstanceItem(groupItem, m.name);
         targetItem->setPrototype(m.item);
-        targetItem->setType(ItemType::ModuleInstance);
 
         Item * const moduleScope = Item::create(targetItem->pool(), ItemType::Scope);
         moduleScope->setFile(groupItem->file());
@@ -1371,7 +1370,8 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                 // (plus potential values from the prototype and other module instances,
                 // which are different Value objects in the "next chain").
                 if (!replacement) {
-                    replacement = Item::create(v->definingItem()->pool());
+                    replacement = Item::create(v->definingItem()->pool(),
+                                               v->definingItem()->type());
                     Item * const scope = Item::create(v->definingItem()->pool(), ItemType::Scope);
                     scope->setProperties(module.item->scope()->properties());
                     Item * const scopeScope
@@ -1437,12 +1437,14 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                     found = true;
                     Item *& replacement = definingItemReplacements[v->definingItem()];
                     if (!replacement) {
-                        replacement = Item::create(v->definingItem()->pool());
+                        replacement = Item::create(v->definingItem()->pool(),
+                                                   v->definingItem()->type());
                         replacement->setProperties(v->definingItem()->properties());
                         foreach (const auto &decl, v->definingItem()->propertyDeclarations())
                             replacement->setPropertyDeclaration(decl.name(), decl);
                         replacement->setPrototype(v->definingItem()->prototype());
-                        replacement->setScope(Item::create(v->definingItem()->pool()));
+                        replacement->setScope(Item::create(v->definingItem()->pool(),
+                                                           ItemType::Scope));
                         replacement->scope()->setScope(depMod.item);
                     }
                     QBS_CHECK(!replacement->hasOwnProperty(caseA));
@@ -1639,7 +1641,9 @@ Item *ModuleLoader::moduleInstanceItem(Item *containerItem, const QualifiedId &m
         if (v && v->type() == Value::ItemValueType) {
             instance = v.staticCast<ItemValue>()->item();
         } else {
-            Item *newItem = Item::create(m_pool);
+            const ItemType itemType = i < moduleName.count() - 1 ? ItemType::ModulePrefix
+                                                                 : ItemType::ModuleInstance;
+            Item *newItem = Item::create(m_pool, itemType);
             instance->setProperty(moduleNameSegment, ItemValue::create(newItem));
             instance = newItem;
         }
@@ -1648,10 +1652,7 @@ Item *ModuleLoader::moduleInstanceItem(Item *containerItem, const QualifiedId &m
                 QualifiedId conflictingName = QStringList(moduleName.mid(0, i + 1));
                 throwModuleNamePrefixError(conflictingName, moduleName, CodeLocation());
             }
-            if (instance->type() != ItemType::ModulePrefix) {
-                QBS_CHECK(instance->type() == ItemType::Unknown);
-                instance->setType(ItemType::ModulePrefix);
-            }
+            QBS_CHECK(instance->type() == ItemType::ModulePrefix);
         }
     }
     QBS_CHECK(instance != containerItem);
@@ -1724,17 +1725,16 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
     Item *moduleInstance = moduleId.isEmpty()
             ? moduleInstanceItem(item, moduleName)
             : moduleInstanceItem(item, QStringList(moduleId));
-    if (moduleInstance->type() == ItemType::ModuleInstance) {
-        // already handled
-        return moduleInstance;
-    }
+    if (moduleInstance->scope())
+        return moduleInstance; // already handled
+
     if (Q_UNLIKELY(moduleInstance->type() == ItemType::ModulePrefix)) {
         foreach (const Item::Module &m, item->modules()) {
             if (m.name.first() == moduleName.first())
                 throwModuleNamePrefixError(moduleName, m.name, dependsItemLocation);
         }
     }
-    QBS_CHECK(moduleInstance->type() == ItemType::Unknown);
+    QBS_CHECK(moduleInstance->type() == ItemType::ModuleInstance);
 
     *isProductDependency = true;
     Item *modulePrototype = loadProductModule(productContext, moduleName.toString());
@@ -2092,11 +2092,10 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     moduleInstance->setPrototype(modulePrototype);
     moduleInstance->setFile(modulePrototype->file());
     moduleInstance->setLocation(modulePrototype->location());
-    QBS_CHECK(moduleInstance->type() != ItemType::ModuleInstance);
-    moduleInstance->setType(ItemType::ModuleInstance);
+    QBS_CHECK(moduleInstance->type() == ItemType::ModuleInstance);
 
     // create module scope
-    Item *moduleScope = Item::create(m_pool);
+    Item *moduleScope = Item::create(m_pool, ItemType::Scope);
     QBS_CHECK(instanceScope->file());
     moduleScope->setFile(instanceScope->file());
     moduleScope->setScope(instanceScope);

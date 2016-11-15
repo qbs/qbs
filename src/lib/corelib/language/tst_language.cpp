@@ -1078,10 +1078,10 @@ void TestLanguage::itemPrototype()
     fileContext->setFilePath("/dev/null");
     JSSourceValueCreator sourceValueCreator(fileContext);
     ItemPool pool;
-    Item *proto = Item::create(&pool);
+    Item *proto = Item::create(&pool, ItemType::Product);
     proto->setProperty("x", sourceValueCreator.create("1"));
     proto->setProperty("y", sourceValueCreator.create("1"));
-    Item *item = Item::create(&pool);
+    Item *item = Item::create(&pool, ItemType::Product);
     item->setPrototype(proto);
     item->setProperty("y", sourceValueCreator.create("x + 1"));
     item->setProperty("z", sourceValueCreator.create("2"));
@@ -1101,12 +1101,12 @@ void TestLanguage::itemScope()
     fileContext->setFilePath("/dev/null");
     JSSourceValueCreator sourceValueCreator(fileContext);
     ItemPool pool;
-    Item *scope1 = Item::create(&pool);
+    Item *scope1 = Item::create(&pool, ItemType::Scope);
     scope1->setProperty("x", sourceValueCreator.create("1"));
-    Item *scope2 = Item::create(&pool);
+    Item *scope2 = Item::create(&pool, ItemType::Scope);
     scope2->setScope(scope1);
     scope2->setProperty("y", sourceValueCreator.create("x + 1"));
-    Item *item = Item::create(&pool);
+    Item *item = Item::create(&pool, ItemType::Scope);
     item->setScope(scope2);
     item->setProperty("z", sourceValueCreator.create("x + y"));
 

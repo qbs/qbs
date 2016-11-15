@@ -83,41 +83,38 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
 bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
 {
     const QString typeName = ast->qualifiedTypeNameId->name.toString();
-    Item *item = Item::create(m_itemPool);
-    item->setFile(m_file);
-    item->setLocation(toCodeLocation(ast->qualifiedTypeNameId->identifierToken));
-
-    if (m_item)
-        Item::addChild(m_item, item); // Add this item to the children of the parent item.
-    else
-        m_item = item; // This is the root item.
-
+    const CodeLocation itemLocation = toCodeLocation(ast->qualifiedTypeNameId->identifierToken);
     const Item *inheritorItem = nullptr;
 
     // Inheritance resolving, part 1: Find out our actual type name (needed for setting
     // up children and alternatives).
     const QStringList fullTypeName = toStringList(ast->qualifiedTypeNameId);
     const QString baseTypeFileName = m_typeNameToFile.value(fullTypeName);
+    ItemType itemType;
     if (!baseTypeFileName.isEmpty()) {
         inheritorItem = m_visitorState.readFile(baseTypeFileName, m_file->searchPaths(),
                                                 m_itemPool);
         QBS_CHECK(inheritorItem->type() <= ItemType::LastActualItem);
-        item->setType(inheritorItem->type());
+        itemType = inheritorItem->type();
     } else {
         if (fullTypeName.count() > 1) {
             throw ErrorInfo(Tr::tr("Invalid item '%1'. Did you mean to set a module property?")
-                            .arg(fullTypeName.join(QLatin1Char('.'))),
-                            item->location());
+                            .arg(fullTypeName.join(QLatin1Char('.'))), itemLocation);
         }
-        const ItemType itemType
-                = BuiltinDeclarations::instance().typeForName(typeName, item->location());
-        checkDeprecationStatus(itemType, typeName, item->location());
-        item->setType(itemType);
-        if (item->type() == ItemType::Properties && item->parent()
-                && item->parent()->type() == ItemType::SubProject) {
-            item->setType(ItemType::PropertiesInSubProject);
-        }
+        itemType = BuiltinDeclarations::instance().typeForName(typeName, itemLocation);
+        checkDeprecationStatus(itemType, typeName, itemLocation);
+        if (itemType == ItemType::Properties && m_item && m_item->type() == ItemType::SubProject)
+            itemType = ItemType::PropertiesInSubProject;
     }
+
+    Item *item = Item::create(m_itemPool, itemType);
+    item->setFile(m_file);
+    item->setLocation(itemLocation);
+
+    if (m_item)
+        Item::addChild(m_item, item); // Add this item to the children of the parent item.
+    else
+        m_item = item; // This is the root item.
 
     if (ast->initializer) {
         qSwap(m_item, item);
@@ -270,7 +267,8 @@ Item *ItemReaderASTVisitor::targetItemForBinding(const QStringList &bindingName,
     for (int i = 0; i < c; ++i) {
         ValuePtr v = targetItem->properties().value(bindingName.at(i));
         if (!v) {
-            Item *newItem = Item::create(m_itemPool);
+            const ItemType itemType = i < c - 1 ? ItemType::ModulePrefix : ItemType::ModuleInstance;
+            Item *newItem = Item::create(m_itemPool, itemType);
             v = ItemValue::create(newItem);
             targetItem->setProperty(bindingName.at(i), v);
         }

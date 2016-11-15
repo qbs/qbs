@@ -234,7 +234,7 @@ private:
                     if (value->sourceUsesBase())
                         outerValue->setSourceUsesBaseFlag();
                     outerValue->setLocation(value->line(), value->column());
-                    outerItem = Item::create(data->item->pool());
+                    outerItem = Item::create(data->item->pool(), ItemType::ModuleInstance);
                     outerItem->setProperty(propertyName->toString(), outerValue);
                 }
                 if (overrides.toBool())

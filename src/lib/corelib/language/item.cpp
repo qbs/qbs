@@ -74,9 +74,8 @@ Item *Item::create(ItemPool *pool, ItemType type)
 
 Item *Item::clone() const
 {
-    Item *dup = create(pool());
+    Item *dup = create(pool(), type());
     dup->m_id = m_id;
-    dup->m_type = m_type;
     dup->m_location = m_location;
     dup->m_prototype = m_prototype;
     dup->m_scope = m_scope;
@@ -140,14 +139,14 @@ ValuePtr Item::property(const QString &name) const
     return value;
 }
 
-ItemValuePtr Item::itemProperty(const QString &name, bool create)
+ItemValuePtr Item::itemProperty(const QString &name, const Item *itemTemplate)
 {
     ItemValuePtr result;
     ValuePtr v = property(name);
     if (v && v->type() == Value::ItemValueType) {
         result = v.staticCast<ItemValue>();
-    } else if (create) {
-        result = ItemValue::create(Item::create(m_pool));
+    } else if (itemTemplate) {
+        result = ItemValue::create(Item::create(m_pool, itemTemplate->type()));
         setProperty(name, result);
     }
     return result;

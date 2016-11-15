@@ -83,7 +83,7 @@ public:
     typedef QMap<QString, PropertyDeclaration> PropertyDeclarationMap;
     typedef QMap<QString, ValuePtr> PropertyMap;
 
-    static Item *create(ItemPool *pool, ItemType type = ItemType::Unknown);
+    static Item *create(ItemPool *pool, ItemType type);
     Item *clone() const;
     ItemPool *pool() const { return m_pool; }
 
@@ -111,7 +111,7 @@ public:
     bool hasProperty(const QString &name) const;
     bool hasOwnProperty(const QString &name) const;
     ValuePtr property(const QString &name) const;
-    ItemValuePtr itemProperty(const QString &name, bool create = false);
+    ItemValuePtr itemProperty(const QString &name, const Item *itemTemplate = nullptr);
     JSSourceValuePtr sourceProperty(const QString &name) const;
     VariantValuePtr variantProperty(const QString &name) const;
     void setPropertyObserver(ItemObserver *observer) const;

@@ -107,7 +107,8 @@ private:
             if (it.value()->type() == Value::ItemValueType) {
                 ItemValuePtr outerVal = outer->itemProperty(it.key());
                 if (!outerVal) {
-                    outerVal = ItemValue::create(Item::create(outer->pool()), true);
+                    outerVal = ItemValue::create(Item::create(outer->pool(),
+                                                              ItemType::ModuleInstance), true);
                     outer->setProperty(it.key(), outerVal);
                 }
                 doApply(outerVal->item(), it.value().staticCast<ItemValue>()->item());

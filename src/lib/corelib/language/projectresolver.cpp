@@ -387,11 +387,10 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     QList<Item *> subItems = item->children();
     const ValuePtr filesProperty = item->property(QLatin1String("files"));
     if (filesProperty) {
-        Item *fakeGroup = Item::create(item->pool());
+        Item *fakeGroup = Item::create(item->pool(), ItemType::Group);
         fakeGroup->setFile(item->file());
         fakeGroup->setLocation(item->location());
         fakeGroup->setScope(item);
-        fakeGroup->setType(ItemType::Group);
         fakeGroup->setProperty(QLatin1String("name"), VariantValue::create(product->name));
         fakeGroup->setProperty(QLatin1String("files"), filesProperty);
         fakeGroup->setProperty(QLatin1String("excludeFiles"),
