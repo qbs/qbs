@@ -77,7 +77,6 @@ Item *Item::clone() const
     Item *dup = create(pool());
     dup->m_id = m_id;
     dup->m_type = m_type;
-    dup->m_typeName = m_typeName;
     dup->m_location = m_location;
     dup->m_prototype = m_prototype;
     dup->m_scope = m_scope;
@@ -101,6 +100,17 @@ Item *Item::clone() const
     }
 
     return dup;
+}
+
+QString Item::typeName() const
+{
+    switch (type()) {
+    case ItemType::IdScope: return QLatin1String("[IdScope]");
+    case ItemType::ModuleInstance: return QLatin1String("[ModuleInstance]");
+    case ItemType::ModulePrefix: return QLatin1String("[ModulePrefix]");
+    case ItemType::Scope: return QLatin1String("[Scope]");
+    default: return BuiltinDeclarations::instance().nameForType(type());
+    }
 }
 
 bool Item::hasProperty(const QString &name) const
@@ -253,7 +263,7 @@ static const char *valueType(const Value *v)
 void Item::dump(int indentation) const
 {
     const QByteArray indent(indentation, ' ');
-    qDebug("%stype: %s, pointer value: %p", indent.constData(), qPrintable(m_typeName), this);
+    qDebug("%stype: %s, pointer value: %p", indent.constData(), qPrintable(typeName()), this);
     if (!m_properties.isEmpty())
         qDebug("%sproperties:", indent.constData());
     for (auto it = m_properties.constBegin(); it != m_properties.constEnd(); ++it) {

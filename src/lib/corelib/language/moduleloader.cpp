@@ -2204,7 +2204,6 @@ void ModuleLoader::createChildInstances(ProductContext *productContext, Item *in
         Item *childInstance = Item::create(m_pool, childPrototype->type());
         prototypeInstanceMap->insert(childPrototype, childInstance);
         childInstance->setPrototype(childPrototype);
-        childInstance->setTypeName(childPrototype->typeName());
         childInstance->setFile(childPrototype->file());
         childInstance->setLocation(childPrototype->location());
         childInstance->setScope(productContext->scope);
@@ -2372,7 +2371,6 @@ Item *ModuleLoader::wrapInProjectIfNecessary(Item *item)
         return item;
     Item *prj = Item::create(item->pool(), ItemType::Project);
     Item::addChild(prj, item);
-    prj->setTypeName(QLatin1String("Project"));
     prj->setFile(item->file());
     prj->setLocation(item->location());
     prj->setupForBuiltinType(m_logger);

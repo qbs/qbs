@@ -89,7 +89,6 @@ public:
     ItemPool *pool() const { return m_pool; }
 
     const QString &id() const { return m_id; }
-    const QString &typeName() const { return m_typeName; }
     const CodeLocation &location() const { return m_location; }
     Item *prototype() const { return m_prototype; }
     Item *scope() const { return m_scope; }
@@ -108,6 +107,7 @@ public:
 
     ItemType type() const { return m_type; }
     void setType(ItemType type) { m_type = type; }
+    QString typeName() const;
 
     bool hasProperty(const QString &name) const;
     bool hasOwnProperty(const QString &name) const;
@@ -120,7 +120,6 @@ public:
     void setProperties(const PropertyMap &props) { m_properties = props; }
     void removeProperty(const QString &name);
     void setPropertyDeclaration(const QString &name, const PropertyDeclaration &declaration);
-    void setTypeName(const QString &name) { m_typeName = name; }
     void setLocation(const CodeLocation &location) { m_location = location; }
     void setPrototype(Item *prototype) { m_prototype = prototype; }
     void setFile(const FileContextPtr &file) { m_file = file; }
@@ -140,7 +139,6 @@ private:
     ItemPool *m_pool;
     mutable ItemObserver *m_propertyObserver;
     QString m_id;
-    QString m_typeName;
     CodeLocation m_location;
     Item *m_prototype;
     Item *m_scope;

@@ -85,7 +85,6 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     const QString typeName = ast->qualifiedTypeNameId->name.toString();
     Item *item = Item::create(m_itemPool);
     item->setFile(m_file);
-    item->setTypeName(typeName);
     item->setLocation(toCodeLocation(ast->qualifiedTypeNameId->identifierToken));
 
     if (m_item)
