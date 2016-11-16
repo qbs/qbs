@@ -268,7 +268,7 @@ Module {
             "android.nativelibrary-deployed"
         ]
         Artifact {
-            filePath: product.name + ".apk.unaligned"
+            filePath: product.targetName + ".apk.unaligned"
             fileTags: ["android.apk.unaligned"]
         }
         prepare: {
@@ -291,7 +291,7 @@ Module {
         multiplex: true
         inputs: ["android.apk.unaligned"]
         Artifact {
-            filePath: product.name + ".apk"
+            filePath: product.targetName + ".apk"
             fileTags: ["android.apk"]
         }
         prepare: {
