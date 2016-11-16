@@ -103,7 +103,10 @@ static void resolveWithIncludePath(const QString &includePath,
     }
 
     QString absFilePath = absDirPath + QLatin1Char('/') + dependency.fileName();
-    if (FileInfo::exists(absFilePath))
+
+    // TODO: We probably need a flag that tells us whether directories are allowed.
+    const FileInfo fi(absFilePath);
+    if (fi.exists(absFilePath) && !fi.isDir())
         result->filePath = absFilePath;
 }
 
