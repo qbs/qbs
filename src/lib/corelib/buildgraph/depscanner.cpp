@@ -58,31 +58,19 @@
 namespace qbs {
 namespace Internal {
 
-static void collectCppIncludePaths(const QVariantMap &modules, QSet<QString> *collectedPaths)
+static QStringList collectCppIncludePaths(const QVariantMap &modules)
 {
-    QMapIterator<QString, QVariant> iterator(modules);
-    while (iterator.hasNext()) {
-        iterator.next();
-        const auto properties = iterator.value().toMap();
-        if (iterator.key() == QLatin1String("cpp")) {
-            QVariant includePathsVariant = properties.value(QLatin1String("includePaths"));
-            if (includePathsVariant.isValid())
-                collectedPaths->unite(QSet<QString>::fromList(includePathsVariant.toStringList()));
-            QVariant systemIncludePathsVariant =
-                    properties.value(QLatin1String("systemIncludePaths"));
-            if (systemIncludePathsVariant.isValid())
-                collectedPaths->unite(QSet<QString>::fromList(
-                                          systemIncludePathsVariant.toStringList()));
-            QVariant compilerIncludePathsVariant =
-                    properties.value(QLatin1String("compilerIncludePaths"));
-            if (compilerIncludePathsVariant.isValid())
-                collectedPaths->unite(QSet<QString>::fromList(
-                                          compilerIncludePathsVariant.toStringList()));
-        } else {
-            collectCppIncludePaths(properties.value(QLatin1String("modules")).toMap(),
-                                   collectedPaths);
-        }
-    }
+    QStringList result;
+    const QVariantMap cpp = modules.value(QLatin1String("cpp")).toMap();
+    if (cpp.isEmpty())
+        return result;
+
+    result
+        << cpp.value(QLatin1String("includePaths")).toStringList()
+        << cpp.value(QLatin1String("systemIncludePaths")).toStringList()
+        << cpp.value(QLatin1String("compilerIncludePaths")).toStringList();
+    result.removeDuplicates();
+    return result;
 }
 
 PluginDependencyScanner::PluginDependencyScanner(ScannerPlugin *plugin)
@@ -94,9 +82,7 @@ QStringList PluginDependencyScanner::collectSearchPaths(Artifact *artifact)
 {
     if (m_plugin->flags & ScannerUsesCppIncludePaths) {
         QVariantMap modules = artifact->properties->value().value(QLatin1String("modules")).toMap();
-        QSet<QString> collectedPaths;
-        collectCppIncludePaths(modules, &collectedPaths);
-        return QStringList(collectedPaths.toList());
+        return collectCppIncludePaths(modules);
     } else {
         return QStringList();
     }
