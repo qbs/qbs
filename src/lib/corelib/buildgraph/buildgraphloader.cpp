@@ -236,7 +236,7 @@ void BuildGraphLoader::trackProjectChanges()
     // can make the list of source files in a product change without the respective file
     // having been touched. In such a case, the build data for that product will have to be set up
     // anew.
-    if (probeExecutionForced(allRestoredProducts)
+    if (probeExecutionForced(restoredProject, allRestoredProducts)
             || hasBuildSystemFileChanged(buildSystemFiles, restoredProject->lastResolveTime)
             || hasEnvironmentChanged(restoredProject)
             || hasCanonicalFilePathResultChanged(restoredProject)
@@ -256,10 +256,11 @@ void BuildGraphLoader::trackProjectChanges()
     Loader ldr(m_evalContext->engine(), m_logger);
     ldr.setSearchPaths(m_parameters.searchPaths());
     ldr.setProgressObserver(m_evalContext->observer());
+    ldr.setOldProjectProbes(restoredProject->probes);
     QHash<QString, QList<ProbeConstPtr>> restoredProbes;
     foreach (const auto restoredProduct, allRestoredProducts)
         restoredProbes.insert(restoredProduct->uniqueName(), restoredProduct->probes);
-    ldr.setOldProbes(restoredProbes);
+    ldr.setOldProductProbes(restoredProbes);
     m_result.newlyResolvedProject = ldr.loadProject(m_parameters);
 
     QMap<QString, ResolvedProductPtr> freshProductsByName;
@@ -362,14 +363,21 @@ void BuildGraphLoader::trackProjectChanges()
     doSanityChecks(m_result.newlyResolvedProject, m_logger);
 }
 
-bool BuildGraphLoader::probeExecutionForced(const QList<ResolvedProductPtr> &restoredProducts) const
+bool BuildGraphLoader::probeExecutionForced(
+        const TopLevelProjectConstPtr &restoredProject,
+        const QList<ResolvedProductPtr> &restoredProducts) const
 {
     if (!m_parameters.forceProbeExecution())
         return false;
+
+    if (!restoredProject->probes.isEmpty())
+        return true;
+
     foreach (const auto &p, restoredProducts) {
         if (!p->probes.isEmpty())
             return true;
     }
+
     return false;
 }
 

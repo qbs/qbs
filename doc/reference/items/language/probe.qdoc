@@ -35,9 +35,26 @@
     \title Probe Item
     \brief Locates files outside the project.
 
-    A \c Probe item can appear inside a \l{Product Item} and is run prior to building products in
-    order to locate dependent headers, libraries, and other files outside the project directory
-    whose locations are not known ahead of time. \c Probes are similar to configure scripts.
+    \c Probe items can appear inside \l{Product Item}{products} and \l{Project Item}{projects}.
+    They are run prior to building, for instance to locate dependent headers, libraries, and other
+    files outside the project directory whose locations are not known ahead of time.
+    Probes can be parameterized via their properties and typically store results in
+    properties as well. These results are then retrieved via the Probe's id, which is mandatory:
+    \code
+    Product {
+        Probe {
+            id: valueCalculator
+            property string parameter: "whatever"
+            property int value
+            configure: {
+                value = Utils.calculateValue(parameter); // Expensive operation
+                found = true;
+            }
+        }
+        property int theValue: valueCalculator.value
+    }
+    \endcode
+
     \note Because Probes often invoke external processes, which is relatively expensive compared
           to evaluating normal properties, their results are cached. To force re-evaluation
           of a Probe, you can supply the \c{--force-probe-execution} command-line option.

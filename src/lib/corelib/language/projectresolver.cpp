@@ -226,6 +226,7 @@ TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
             TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree()));
     project->buildSystemFiles = m_loadResult.qbsFiles;
     project->profileConfigs = m_loadResult.profileConfigs;
+    project->probes = m_loadResult.projectProbes;
     ProjectContext projectContext;
     projectContext.project = project;
     resolveProject(m_loadResult.root, &projectContext);
@@ -293,6 +294,7 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
         { ItemType::Project, &ProjectResolver::resolveProject },
         { ItemType::SubProject, &ProjectResolver::resolveSubProject },
         { ItemType::Product, &ProjectResolver::resolveProduct },
+        { ItemType::Probe, &ProjectResolver::ignoreItem },
         { ItemType::FileTagger, &ProjectResolver::resolveFileTagger },
         { ItemType::Rule, &ProjectResolver::resolveRule },
         { ItemType::PropertyOptions, &ProjectResolver::ignoreItem }

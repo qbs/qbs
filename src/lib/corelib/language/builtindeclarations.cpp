@@ -356,6 +356,7 @@ void BuiltinDeclarations::addProjectItem()
             << ItemType::PropertyOptions
             << ItemType::SubProject
             << ItemType::Product
+            << ItemType::Probe
             << ItemType::FileTagger
             << ItemType::Rule);
     item << nameProperty();

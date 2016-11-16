@@ -85,9 +85,14 @@ void Loader::setSearchPaths(const QStringList &_searchPaths)
     m_searchPaths = searchPaths;
 }
 
-void Loader::setOldProbes(const QHash<QString, QList<ProbeConstPtr> > &oldProbes)
+void Loader::setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes)
 {
-    m_oldProbes = oldProbes;
+    m_oldProjectProbes = oldProbes;
+}
+
+void Loader::setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes)
+{
+    m_oldProductProbes = oldProbes;
 }
 
 TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
@@ -124,7 +129,8 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     ModuleLoader moduleLoader(m_engine, m_logger);
     moduleLoader.setProgressObserver(m_progressObserver);
     moduleLoader.setSearchPaths(m_searchPaths);
-    moduleLoader.setOldProbes(m_oldProbes);
+    moduleLoader.setOldProjectProbes(m_oldProjectProbes);
+    moduleLoader.setOldProductProbes(m_oldProductProbes);
     const ModuleLoaderResult loadResult = moduleLoader.load(parameters);
     ProjectResolver resolver(moduleLoader.evaluator(), loadResult, parameters, m_logger);
     resolver.setProgressObserver(m_progressObserver);

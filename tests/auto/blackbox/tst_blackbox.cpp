@@ -1997,16 +1997,20 @@ void TestBlackbox::probeChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/probe-change-tracking");
 
-    // Probe disabled.
+    // Product probe disabled, other probes enabled.
     QbsRunParameters params;
     params.arguments = QStringList("theProduct.runProbe:false");
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(!m_qbsStdout.contains("running probe"));
+    QVERIFY(m_qbsStdout.contains("running tlpProbe"));
+    QVERIFY(m_qbsStdout.contains("running subProbe"));
+    QVERIFY(!m_qbsStdout.contains("running productProbe"));
 
-    // Probe newly enabled.
+    // Product probe newly enabled.
     params.arguments = QStringList("theProduct.runProbe:true");
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(m_qbsStdout.contains("running probe"));
+    QVERIFY(!m_qbsStdout.contains("running tlpProbe"));
+    QVERIFY(!m_qbsStdout.contains("running subProbe"));
+    QVERIFY(m_qbsStdout.contains("running productProbe: 12"));
 
     // Re-resolving with unchanged probe.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -2018,9 +2022,11 @@ void TestBlackbox::probeChangeTracking()
     projectFile.close();
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
-    QVERIFY(!m_qbsStdout.contains("running probe"));
+    QVERIFY(!m_qbsStdout.contains("running tlpProbe"));
+    QVERIFY(!m_qbsStdout.contains("running subProbe"));
+    QVERIFY(!m_qbsStdout.contains("running productProbe"));
 
-    // Re-resolving with changed configure script.
+    // Re-resolving with changed configure scripts.
     WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
     content = projectFile.readAll();
@@ -2030,7 +2036,9 @@ void TestBlackbox::probeChangeTracking()
     projectFile.close();
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
-    QVERIFY(m_qbsStdout.contains("running probe"));
+    QVERIFY(m_qbsStdout.contains("running tlpProbe"));
+    QVERIFY(m_qbsStdout.contains("running subProbe"));
+    QVERIFY(m_qbsStdout.contains("running productProbe: 12"));
 
     // Re-resolving with added property.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -2043,7 +2051,9 @@ void TestBlackbox::probeChangeTracking()
     projectFile.close();
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
-    QVERIFY(m_qbsStdout.contains("running probe"));
+    QVERIFY(!m_qbsStdout.contains("running tlpProbe"));
+    QVERIFY(!m_qbsStdout.contains("running subProbe"));
+    QVERIFY(m_qbsStdout.contains("running productProbe: 12"));
 
     // Re-resolving with changed property.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -2055,7 +2065,9 @@ void TestBlackbox::probeChangeTracking()
     projectFile.close();
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
-    QVERIFY(m_qbsStdout.contains("running probe"));
+    QVERIFY(!m_qbsStdout.contains("running tlpProbe"));
+    QVERIFY(!m_qbsStdout.contains("running subProbe"));
+    QVERIFY(m_qbsStdout.contains("running productProbe: 12"));
 
     // Re-resolving with removed property.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -2067,7 +2079,9 @@ void TestBlackbox::probeChangeTracking()
     projectFile.close();
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
-    QVERIFY(m_qbsStdout.contains("running probe"));
+    QVERIFY(!m_qbsStdout.contains("running tlpProbe"));
+    QVERIFY(!m_qbsStdout.contains("running subProbe"));
+    QVERIFY(m_qbsStdout.contains("running productProbe: 12"));
 
     // Re-resolving with unchanged probe again.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -2078,13 +2092,17 @@ void TestBlackbox::probeChangeTracking()
     projectFile.close();
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
-    QVERIFY(!m_qbsStdout.contains("running probe"));
+    QVERIFY(!m_qbsStdout.contains("running tlpProbe"));
+    QVERIFY(!m_qbsStdout.contains("running subProbe"));
+    QVERIFY(!m_qbsStdout.contains("running productProbe"));
 
     // Enforcing re-running via command-line option.
     params.arguments.prepend("--force-probe-execution");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
-    QVERIFY(m_qbsStdout.contains("running probe"));
+    QVERIFY(m_qbsStdout.contains("running tlpProbe"));
+    QVERIFY(m_qbsStdout.contains("running subProbe"));
+    QVERIFY(m_qbsStdout.contains("running productProbe: 12"));
 }
 
 void TestBlackbox::probeProperties()

@@ -100,15 +100,18 @@ class Probe : public PersistentObject
 {
 public:
     static ProbePtr create() { return ProbePtr(new Probe); }
-    static ProbeConstPtr create(const CodeLocation &location, bool condition,
-                                const QString &configureScript, const QVariantMap &properties,
+    static ProbeConstPtr create(const QString &globalId,
+                                const CodeLocation &location,
+                                bool condition,
+                                const QString &configureScript,
+                                const QVariantMap &properties,
                                 const QVariantMap &initialProperties)
     {
-        return ProbeConstPtr(new Probe(location, condition, configureScript, properties,
+        return ProbeConstPtr(new Probe(globalId, location, condition, configureScript, properties,
                                        initialProperties));
     }
 
-    const CodeLocation &location() const { return m_location; }
+    const QString &globalId() const { return m_globalId; }
     bool condition() const { return m_condition; }
     const QString &configureScript() const { return m_configureScript; }
     const QVariantMap &properties() const { return m_properties; }
@@ -116,9 +119,14 @@ public:
 
 private:
     Probe() {}
-    Probe(const CodeLocation &location, bool condition, const QString &configureScript,
-          const QVariantMap &properties, const QVariantMap &initialProperties)
-        : m_location(location)
+    Probe(const QString &globalId,
+          const CodeLocation &location,
+          bool condition,
+          const QString &configureScript,
+          const QVariantMap &properties,
+          const QVariantMap &initialProperties)
+        : m_globalId(globalId)
+        , m_location(location)
         , m_configureScript(configureScript)
         , m_properties(properties)
         , m_initialProperties(initialProperties)
@@ -128,6 +136,7 @@ private:
     void load(PersistentPool &pool) override;
     void store(PersistentPool &pool) const override;
 
+    QString m_globalId;
     CodeLocation m_location;
     QString m_configureScript;
     QVariantMap m_properties;
@@ -488,6 +497,7 @@ public:
 
     QString buildDirectory; // Not saved
     QProcessEnvironment environment;
+    QList<ProbeConstPtr> probes;
 
     // Environment variables requested by the project while resolving.
     // TODO: This information is currently not used. Remove in 1.5 or use elaborate change tracking

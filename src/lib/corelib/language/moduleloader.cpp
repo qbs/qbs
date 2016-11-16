@@ -78,6 +78,39 @@ class ModuleLoader::ItemModuleList : public QList<Item::Module> {};
 
 const QString moduleSearchSubDir = QLatin1String("modules");
 
+static QString probeGlobalId(Item *probe)
+{
+    QString id;
+
+    for (Item *obj = probe; obj; obj = obj->prototype()) {
+        if (!obj->id().isEmpty()) {
+            id = obj->id();
+            break;
+        }
+    }
+
+    if (id.isEmpty())
+        return QString();
+
+    QBS_CHECK(probe->file());
+    return id + QLatin1Char('_') + probe->file()->filePath();
+}
+
+enum class CompareScript { No, Yes };
+
+static bool probeEqualTo(
+        const ProbeConstPtr &probe,
+        bool condition,
+        const QVariantMap &initialProperties,
+        const QString &configureScript,
+        CompareScript compareScript)
+{
+    return probe->condition() == condition
+            && probe->initialProperties() == initialProperties
+            && (compareScript == CompareScript::No
+                || probe->configureScript() == configureScript);
+}
+
 class ModuleLoader::ProductSortByDependencies
 {
 public:
@@ -216,9 +249,16 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
     }
 }
 
-void ModuleLoader::setOldProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes)
+void ModuleLoader::setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes)
 {
-    m_oldProbes = oldProbes;
+    m_oldProjectProbes.clear();
+    foreach (const ProbeConstPtr& probe, oldProbes)
+        m_oldProjectProbes[probe->globalId()] << probe;
+}
+
+void ModuleLoader::setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes)
+{
+    m_oldProductProbes = oldProbes;
 }
 
 ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
@@ -427,6 +467,8 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
         }
     }
 
+    loadResult->projectProbes = tlp.probes;
+
     m_reader->clearExtraSearchPathsStack();
     PropertyDeclarationCheck check(m_disabledItems, m_parameters, m_logger);
     check(projectItem);
@@ -488,6 +530,9 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
             }
         }
     }
+
+    resolveProbes(&dummyProductContext, projectItem);
+    projectContext.topLevelProject->probes.append(dummyProductContext.info.probes);
 
     foreach (Item *child, projectItem->children()) {
         switch (child->type()) {
@@ -1019,33 +1064,49 @@ bool ModuleLoader::checkExportItemCondition(Item *exportItem, const ProductConte
     return checkItemCondition(exportItem);
 }
 
-ProbeConstPtr ModuleLoader::findOldProbe(const QString &product,
-                                         bool condition,
-                                         const QVariantMap &initialProperties,
-                                         const QString &sourceCode) const
+ProbeConstPtr ModuleLoader::findOldProjectProbe(
+        const QString &globalId,
+        bool condition,
+        const QVariantMap &initialProperties,
+        const QString &sourceCode) const
 {
     if (m_parameters.forceProbeExecution())
         return ProbeConstPtr();
-    foreach (const ProbeConstPtr &oldProbe, m_oldProbes.value(product)) {
-        if (oldProbe->condition() != condition)
-            continue;
-        if (oldProbe->configureScript() != sourceCode)
-            continue;
-        if (oldProbe->initialProperties() != initialProperties)
-            continue;
-        return oldProbe;
+
+    foreach (const ProbeConstPtr &oldProbe, m_oldProjectProbes.value(globalId)) {
+        if (probeEqualTo(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
+            return oldProbe;
     }
 
     return ProbeConstPtr();
 }
 
-ProbeConstPtr ModuleLoader::findCurrentProbe(const CodeLocation &location, bool condition,
-                                             const QVariantMap &initialProperties) const
+ProbeConstPtr ModuleLoader::findOldProductProbe(
+        const QString &productName,
+        bool condition,
+        const QVariantMap &initialProperties,
+        const QString &sourceCode) const
+{
+    if (m_parameters.forceProbeExecution())
+        return ProbeConstPtr();
+
+    foreach (const ProbeConstPtr &oldProbe, m_oldProductProbes.value(productName)) {
+        if (probeEqualTo(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
+            return oldProbe;
+    }
+
+    return ProbeConstPtr();
+}
+
+ProbeConstPtr ModuleLoader::findCurrentProbe(
+        const CodeLocation &location,
+        bool condition,
+        const QVariantMap &initialProperties) const
 {
     const QList<ProbeConstPtr> cachedProbes = m_currentProbes.value(location);
-    foreach (const ProbeConstPtr &p, cachedProbes) {
-        if (p->condition() == condition && p->initialProperties() == initialProperties)
-            return p;
+    foreach (const ProbeConstPtr &probe, cachedProbes) {
+        if (probeEqualTo(probe, condition, initialProperties, QString(), CompareScript::No))
+            return probe;
     }
     return ProbeConstPtr();
 }
@@ -2156,6 +2217,9 @@ void ModuleLoader::resolveProbes(ProductContext *productContext, Item *item)
 void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, Item *probe)
 {
     m_logger.qbsTrace() << "Resolving Probe at " << probe->location().toString();
+    const QString &probeId = probeGlobalId(probe);
+    if (Q_UNLIKELY(probeId.isEmpty()))
+        throw ErrorInfo(Tr::tr("Probe.id must be set."), probe->location());
     const JSSourceValueConstPtr configureScript = probe->sourceProperty(QLatin1String("configure"));
     if (Q_UNLIKELY(!configureScript))
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
@@ -2180,10 +2244,16 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
     const bool condition = m_evaluator->boolValue(probe, QLatin1String("condition"));
-    const QString &uniqueProductName
-            = ResolvedProduct::uniqueName(productContext->name, productContext->profileName);
-    ProbeConstPtr resolvedProbe = findOldProbe(uniqueProductName, condition, initialProperties,
-                                               configureScript->sourceCode().toString());
+    const QString &sourceCode = configureScript->sourceCode().toString();
+    ProbeConstPtr resolvedProbe;
+    if (parent->type() == ItemType::Project) {
+        resolvedProbe = findOldProjectProbe(probeId, condition, initialProperties, sourceCode);
+    } else {
+        const QString &uniqueProductName
+                = ResolvedProduct::uniqueName(productContext->name, productContext->profileName);
+        resolvedProbe
+                = findOldProductProbe(uniqueProductName, condition, initialProperties, sourceCode);
+    }
     if (!resolvedProbe)
         resolvedProbe = findCurrentProbe(probe->location(), condition, initialProperties);
     ErrorInfo evalError;
@@ -2204,8 +2274,8 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
             properties.insert(b.first, newValue);
     }
     if (!resolvedProbe) {
-        resolvedProbe = Probe::create(probe->location(), condition,
-                configureScript->sourceCode().toString(), properties, initialProperties);
+        resolvedProbe = Probe::create(probeId, probe->location(), condition,
+                                      sourceCode, properties, initialProperties);
         m_currentProbes[probe->location()] << resolvedProbe;
     }
     productContext->info.probes << resolvedProbe;

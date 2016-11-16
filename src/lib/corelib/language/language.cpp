@@ -119,6 +119,7 @@ void FileTagger::store(PersistentPool &pool) const
 
 void Probe::load(PersistentPool &pool)
 {
+    pool.load(m_globalId);
     m_location.load(pool);
     pool.load(m_condition);
     pool.load(m_configureScript);
@@ -128,6 +129,7 @@ void Probe::load(PersistentPool &pool)
 
 void Probe::store(PersistentPool &pool) const
 {
+    pool.store(m_globalId);
     m_location.store(pool);
     pool.store(condition());
     pool.store(m_configureScript);
@@ -979,6 +981,7 @@ void TopLevelProject::load(PersistentPool &pool)
     pool.load(directoryEntriesResults);
     pool.load(fileLastModifiedResults);
     pool.load(environment);
+    pool.load(probes);
     pool.load(profileConfigs);
     pool.load(buildSystemFiles);
     pool.load(lastResolveTime);
@@ -998,6 +1001,7 @@ void TopLevelProject::store(PersistentPool &pool) const
     pool.store(directoryEntriesResults);
     pool.store(fileLastModifiedResults);
     pool.store(environment);
+    pool.store(probes);
     pool.store(profileConfigs);
     pool.store(buildSystemFiles);
     pool.store(lastResolveTime);

@@ -99,6 +99,7 @@ struct ModuleLoaderResult
     QSharedPointer<ItemPool> itemPool;
     Item *root;
     QHash<Item *, ProductInfo> productInfos;
+    QList<ProbeConstPtr> projectProbes;
     QSet<QString> qbsFiles;
     QVariantMap profileConfigs;
 };
@@ -117,7 +118,8 @@ public:
 
     void setProgressObserver(ProgressObserver *progressObserver);
     void setSearchPaths(const QStringList &searchPaths);
-    void setOldProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes);
+    void setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes);
+    void setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes);
     Evaluator *evaluator() const { return m_evaluator; }
 
     ModuleLoaderResult load(const SetupProjectParameters &parameters);
@@ -184,6 +186,7 @@ private:
 
         QVector<ProjectContext *> projects;
         QHash<QString, ProductModuleInfo> productModules;
+        QList<ProbeConstPtr> probes;
         QString buildDirectory;
     };
 
@@ -266,9 +269,12 @@ private:
                                        const Item *modulePrototype);
     void copyGroupsFromModulesToProduct(const ProductContext &productContext);
     bool checkExportItemCondition(Item *exportItem, const ProductContext &productContext);
-    ProbeConstPtr findOldProbe(const QString &product, bool condition,
-                               const QVariantMap &initialProperties,
-                               const QString &sourceCode) const;
+    ProbeConstPtr findOldProjectProbe(const QString &globalId, bool condition,
+                                      const QVariantMap &initialProperties,
+                                      const QString &sourceCode) const;
+    ProbeConstPtr findOldProductProbe(const QString &productName, bool condition,
+                                      const QVariantMap &initialProperties,
+                                      const QString &sourceCode) const;
     ProbeConstPtr findCurrentProbe(const CodeLocation &location, bool condition,
                                    const QVariantMap &initialProperties) const;
 
@@ -295,7 +301,8 @@ private:
     class DependsChainManager;
     QStack<DependsChainEntry> m_dependsChain;
 
-    QHash<QString, QList<ProbeConstPtr>> m_oldProbes;
+    QHash<QString, QList<ProbeConstPtr>> m_oldProjectProbes;
+    QHash<QString, QList<ProbeConstPtr>> m_oldProductProbes;
     QHash<CodeLocation, QList<ProbeConstPtr>> m_currentProbes;
     SetupProjectParameters m_parameters;
     Version m_qbsVersion;
