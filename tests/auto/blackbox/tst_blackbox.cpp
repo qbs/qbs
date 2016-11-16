@@ -1666,8 +1666,8 @@ static QString soName(const QString &readElfPath, const QString &libFilePath)
 void TestBlackbox::soVersion()
 {
     const QString readElfPath = findExecutable(QStringList("readelf"));
-    if (readElfPath.isEmpty())
-        QSKIP("No readelf found");
+    if (readElfPath.isEmpty() || readElfPath.endsWith("exe"))
+        QSKIP("soversion test not applicable on this system");
     QDir::setCurrent(testDataDir + "/soversion");
 
     QFETCH(QString, soVersion);
