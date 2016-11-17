@@ -1206,45 +1206,68 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
 {
     // There are three cases:
     //     a) The defining item is the "main" module instance, i.e. the one instantiated in the
-    //        product directly.
-    //     b) The defining item refers to the module prototype.
+    //        product directly (or a parent group).
+    //     b) The defining item refers to the module prototype (or the replacement of it
+    //        created in the module merger [for products] or in this function [for parent groups]).
     //     c) The defining item is a different instance of the module, i.e. it was instantiated
     //        in some other module.
-    // TODO: Needs adjustments for nested groups.
 
     QHash<Item *, Item *> definingItemReplacements;
-    const Item::PropertyMap &protoProps = module.item->prototype()->properties();
-    for (auto propIt = protoProps.begin(); propIt != protoProps.end(); ++propIt) {
-        const QString &propName = propIt.key();
+
+    Item *modulePrototype = module.item->prototype();
+    while (modulePrototype->prototype())
+        modulePrototype = modulePrototype->prototype();
+
+    // TODO: Why are there module instances whose top-level prototype is of type ModuleInstance?
+    // QBS_CHECK(modulePrototype->type() == ItemType::Module);
+
+    const Item::PropertyDeclarationMap &propDecls = modulePrototype->propertyDeclarations();
+    for (const auto &decl : propDecls) {
+        const QString &propName = decl.name();
 
         // Module properties assigned in the group are not relevant here, as nothing
         // gets inherited in that case. In particular, setting a list property
-        // overwrites the value from the product's (merged) instance completely,
+        // overwrites the value from the product's (or parent group's) instance completely,
         // rather than appending to it (concatenation happens via outer.concat()).
-        if (module.item->properties().contains(propIt.key()))
+        ValueConstPtr propValue = module.item->properties().value(propName);
+        if (propValue)
             continue;
 
-        if (propIt.value()->type() != Value::JSSourceValueType)
+        // Find the nearest prototype instance that has the value assigned.
+        // The result is either an instance of a parent group (or the parent group's
+        // parent group and so on) or the instance of the product or the module prototype.
+        // In the latter case, we don't have to do anything.
+        const Item *instanceWithProperty = module.item;
+        int prototypeChainLen = 0;
+        do {
+            instanceWithProperty = instanceWithProperty->prototype();
+            ++prototypeChainLen;
+            propValue = instanceWithProperty->properties().value(propName);
+        } while (!propValue);
+        QBS_CHECK(propValue);
+
+        if (propValue->type() != Value::JSSourceValueType)
             continue;
 
-        const PropertyDeclaration &propDecl = module.item->propertyDeclaration(propName);
         bool hasDefiningItem = false;
-        for (ValuePtr v = propIt.value(); v && !hasDefiningItem; v = v->next())
+        for (ValueConstPtr v = propValue; v && !hasDefiningItem; v = v->next())
             hasDefiningItem = v->definingItem();
         if (!hasDefiningItem) {
-            QBS_CHECK(propDecl.isScalar());
+            QBS_CHECK(decl.isScalar() || instanceWithProperty == modulePrototype);
             continue;
         }
 
-        const ValuePtr clonedValue = propIt.value()->clone();
+        const ValuePtr clonedValue = propValue->clone();
         for (ValuePtr v = clonedValue; v; v = v->next()) {
             QBS_CHECK(v->definingItem());
 
             Item *& replacement = definingItemReplacements[v->definingItem()];
-            if (v->definingItem() == module.item->prototype()) {
+            static const QString caseA = QLatin1String("__group_case_a");
+            if (v->definingItem() == instanceWithProperty
+                    || v->definingItem()->variantProperty(caseA)) {
                 // Case a)
-                // For values whose defining item is the product's instance, we take its scope
-                // and replace references to module instances with those from the
+                // For values whose defining item is the product's (or parent group's) instance,
+                // we take its scope and replace references to module instances with those from the
                 // group's instance. This handles cases like the following:
                 // Product {
                 //    name: "theProduct"
@@ -1272,14 +1295,15 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                             scopeScope->setProperty(propIt.key(), propIt.value());
                     }
                 }
-                replacement->setPropertyDeclaration(propName, propDecl);
+                replacement->setPropertyDeclaration(propName, decl);
                 replacement->setProperty(propName, v);
+                replacement->setProperty(caseA, VariantValue::create(QVariant()));
             }  else if (v->definingItem()->type() == ItemType::Module) {
                 // Case b)
                 // For values whose defining item is the module prototype, we change the scope to
                 // the group's instance, analogous to what we do in
                 // ModuleMerger::appendPrototypeValueToNextChain().
-                QBS_CHECK(!propDecl.isScalar());
+                QBS_CHECK(!decl.isScalar());
                 QBS_CHECK(!v->next());
                 Item *& replacement = definingItemReplacements[v->definingItem()];
                 if (!replacement) {
@@ -1287,6 +1311,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                                                         ItemType::Module);
                     replacement->setScope(module.item);
                 }
+                QBS_CHECK(!replacement->hasOwnProperty(caseA));
                 if (m_logger.traceEnabled()) {
                     m_logger.qbsTrace() << "[LDR] replacing defining item for prototype; module is "
                             << module.name.toString() << module.item
@@ -1298,7 +1323,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                             << ", value source code is "
                             << v.staticCast<JSSourceValue>()->sourceCode().toString();
                 }
-                replacement->setPropertyDeclaration(propName, propDecl);
+                replacement->setPropertyDeclaration(propName, decl);
                 replacement->setProperty(propName, v);
             } else {
                 // Look for instance scopes of other module instances in defining items and
@@ -1311,7 +1336,10 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                 for (auto depIt = dependentModules.cbegin(); depIt != dependentModules.cend();
                      ++depIt) {
                     const Item::Module &depMod = *depIt;
-                    if (v->definingItem()->scope()->scope() != depMod.item->prototype())
+                    const Item *depModPrototype = depMod.item->prototype();
+                    for (int i = 1; i < prototypeChainLen; ++i)
+                        depModPrototype = depModPrototype->prototype();
+                    if (v->definingItem()->scope()->scope() != depModPrototype)
                         continue;
 
                     found = true;
@@ -1325,6 +1353,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                         replacement->setScope(Item::create(v->definingItem()->pool()));
                         replacement->scope()->setScope(depMod.item);
                     }
+                    QBS_CHECK(!replacement->hasOwnProperty(caseA));
                     if (m_logger.traceEnabled()) {
                         m_logger.qbsTrace() << "[LDR] reset instance scope of module "
                                 << depMod.name.toString() << " in property "
