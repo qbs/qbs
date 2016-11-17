@@ -3806,6 +3806,9 @@ void TestBlackbox::generatedArtifactAsInputToDynamicRule()
     QVERIFY2(!regularFileExists(oldFile), qPrintable(oldFile));
     const QString newFile = relativeProductBuildDir("p") + "/new.txt";
     QVERIFY2(regularFileExists(newFile), qPrintable(oldFile));
+    QVERIFY2(m_qbsStdout.contains("generating"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("generating"), m_qbsStdout.constData());
 }
 
 static bool haveWiX(const Profile &profile)
