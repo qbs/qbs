@@ -271,11 +271,11 @@ private:
                                const QString &sourceCode) const;
     ProbeConstPtr findCurrentProbe(const CodeLocation &location, bool condition,
                                    const QVariantMap &initialProperties) const;
+
     void printProfilingInfo();
-
     void handleProductError(const ErrorInfo &error, ProductContext *productContext);
-
     bool isSomeModulePropertySet(const Item *item);
+    Item *loadItemFromFile(const QString &filePath);
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;

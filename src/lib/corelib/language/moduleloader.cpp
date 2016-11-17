@@ -245,7 +245,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     Item *root;
     {
         SearchPathsManager searchPathsManager(m_reader, topLevelSearchPaths);
-        root = m_reader->readFile(parameters.projectFilePath());
+        root = loadItemFromFile(parameters.projectFilePath());
         if (!root)
             return ModuleLoaderResult();
     }
@@ -841,7 +841,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
         if (referencedFilePaths.contains(subProjectFilePath))
             throw ErrorInfo(Tr::tr("Cycle detected while loading subproject file '%1'.")
                             .arg(relativeFilePath), projectItem->location());
-        loadedItem = m_reader->readFile(subProjectFilePath);
+        loadedItem = loadItemFromFile(subProjectFilePath);
     } catch (const ErrorInfo &error) {
         if (m_parameters.productErrorMode() == ErrorHandlingMode::Strict)
             throw;
@@ -895,7 +895,7 @@ QList<Item *> ModuleLoader::loadReferencedFile(const QString &relativePath,
     if (referencedFilePaths.contains(absReferencePath))
         throw ErrorInfo(Tr::tr("Cycle detected while referencing file '%1'.").arg(relativePath),
                         referencingLocation);
-    Item * const subItem = m_reader->readFile(absReferencePath);
+    Item * const subItem = loadItemFromFile(absReferencePath);
     if (subItem->type() != ItemType::Project && subItem->type() != ItemType::Product) {
         ErrorInfo error(Tr::tr("Item type should be 'Product' or 'Project', but is '%1'.")
                         .arg(subItem->typeName()));
@@ -925,10 +925,19 @@ void ModuleLoader::handleGroup(Item *groupItem, const ModuleDependencies &revers
 
 void ModuleLoader::handleAllPropertyOptionsItems(Item *item)
 {
-    foreach (Item * const child, item->children()) {
-        if (child->type() == ItemType::PropertyOptions)
+    QList<Item *> childItems = item->children();
+    auto childIt = childItems.begin();
+    while (childIt != childItems.end()) {
+        Item * const child = *childIt;
+        if (child->type() == ItemType::PropertyOptions) {
             handlePropertyOptions(child);
+            childIt = childItems.erase(childIt);
+        } else {
+            handleAllPropertyOptionsItems(child);
+            ++childIt;
+        }
     }
+    item->setChildren(childItems);
 }
 
 void ModuleLoader::handlePropertyOptions(Item *optionsItem)
@@ -1127,6 +1136,13 @@ bool ModuleLoader::isSomeModulePropertySet(const Item *item)
         }
     }
     return false;
+}
+
+Item *ModuleLoader::loadItemFromFile(const QString &filePath)
+{
+    Item * const item = m_reader->readFile(filePath);
+    handleAllPropertyOptionsItems(item);
+    return item;
 }
 
 void ModuleLoader::propagateModulesFromParent(Item *groupItem,
@@ -1772,7 +1788,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         return cacheValue.enabled ? cacheValue.module : 0;
     }
     *cacheHit = false;
-    Item * const module = m_reader->readFile(filePath);
+    Item * const module = loadItemFromFile(filePath);
     if (module->type() != ItemType::Module) {
         if (m_logger.traceEnabled()) {
             m_logger.qbsTrace() << "[MODLDR] Alleged module " << fullModuleName << " has type '"
@@ -1781,8 +1797,6 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         *triedToLoad = false;
         return 0;
     }
-
-    handleAllPropertyOptionsItems(module);
 
     if (!isBaseModule) {
         DependsContext dependsContext;
