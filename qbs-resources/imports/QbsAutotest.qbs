@@ -5,7 +5,7 @@ QtApplication {
     consoleApplication: true
     property string testName
     name: "tst_" + testName
-    Depends { name: "Qt.test" }
+    Depends { name: "Qt.testlib" }
     Depends { name: "qbscore" }
     Depends { name: "qbsbuildconfig" }
     cpp.includePaths: "../../../src"
