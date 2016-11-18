@@ -485,23 +485,12 @@ var BlackboxOutputArtifactTracker = (function () {
             fileTags: this.defaultFileTags
         };
     };
-    // TODO: Use File.directoryEntries
     BlackboxOutputArtifactTracker.prototype.findFiles = function (dir) {
-        var proc;
-        try {
-            proc = new Process();
-            if (this.hostOS && this.hostOS.contains("windows"))
-                proc.exec(this.shellPath, ["/C", "dir", FileInfo.toWindowsSeparators(dir),
-                                           "/B", "/S", "/A:-D"], true);
-            else
-                proc.exec("find", [dir, "-type", "f"], true);
-            return proc.readStdOut().trim().split(/\r?\n/).map(
-                        function(p) { return FileInfo.fromWindowsSeparators(p); });
-        }
-        finally {
-            if (proc)
-                proc.close();
-        }
+        var fileList = File.directoryEntries(dir, File.Files);
+        var dirList = File.directoryEntries(dir, File.Dirs | File.NoDotDot);
+        for (var i = 0; i < dirList.length; ++i)
+            fileList = fileList.concat(this.findFiles(dirList[i]));
+        return fileList;
     };
     BlackboxOutputArtifactTracker.prototype.fixArtifactPaths = function (artifacts, realBasePath, fakeBasePath) {
         for (var i = 0; i < artifacts.length; ++i)
