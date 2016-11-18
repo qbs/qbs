@@ -6,14 +6,8 @@ Project {
         name: "theDep"
         type: ["genheader"]
 
-        // TODO: Remove in 1.6
-        Group {
-            files: ["theHeader.h.in"]
-            fileTags: ["header.in"]
-        }
-
         Rule {
-            inputs: ["header.in"]
+            multiplex: true
             Artifact {
                 filePath: project.buildDirectory + "/theHeader.h"
                 fileTags: product.type
