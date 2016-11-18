@@ -57,6 +57,7 @@ PathProbe {
 
     // Outputs
     property var hostArch
+    property stringList toolchains: []
 
     configure: {
         var i, j, allPaths = (environmentPaths || []).concat(platformPaths || []);
@@ -72,6 +73,8 @@ PathProbe {
                 if (File.exists(FileInfo.joinPaths(allPaths[i], "prebuilt", platforms[j]))) {
                     path = allPaths[i];
                     hostArch = platforms[j];
+                    toolchains = File.directoryEntries(FileInfo.joinPaths(path, "toolchains"),
+                                                       File.Dirs | File.NoDotAndDotDot);
                     found = true;
                     return;
                 }

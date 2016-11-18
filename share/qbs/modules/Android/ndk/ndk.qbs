@@ -70,9 +70,7 @@ Module {
     property string platform: "android-9"
 
     // Internal properties.
-    property stringList availableToolchains: File.directoryEntries(
-                                                 FileInfo.joinPaths(ndkDir, "toolchains"),
-                                                 File.Dirs | File.NoDotAndDotDot)
+    property stringList availableToolchains: ndkProbe.toolchains
 
     property stringList availableToolchainVersions: {
         var tcs = availableToolchains;
