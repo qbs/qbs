@@ -26,7 +26,7 @@ Product {
 
     Rule {
         inputs: ["mytype.out"]
-        outputFileTags: ["mytype.final"]
+        outputFileTags: ["mytype.final", "dummy"]
         outputArtifacts: {
             var file;
             var inFile = new TextFile(input.filePath, TextFile.ReadOnly);
@@ -37,11 +37,16 @@ Product {
             } finally {
                 inFile.close();
            }
-            return [{ filePath: file, fileTags: ["mytype.final"] }];
+            return [
+                    { filePath: file, fileTags: ["mytype.final"] },
+                    { filePath: "dummy", fileTags: ["dummy"], alwaysUpdated: false }
+            ];
         }
         prepare: {
             var cmd = new JavaScriptCommand();
+            var output = outputs["mytype.final"][0];
             cmd.description = "generating " + output.fileName;
+            cmd.output = output;
             cmd.sourceCode = function() { File.copy(input.filePath, output.filePath); };
             return [cmd];
         }
