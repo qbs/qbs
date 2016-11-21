@@ -7,7 +7,7 @@ Project {
         Depends { name: "thePlugin" }
 
         cpp.cxxLanguageVersion: "c++11"
-        cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path"] : undefined
+        cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path"] : ["$ORIGIN"]
 
         Group {
             fileTagsFilter: product.type

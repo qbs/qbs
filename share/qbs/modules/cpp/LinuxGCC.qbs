@@ -34,7 +34,6 @@ import qbs.Process
 UnixGCC {
     condition: qbs.targetOS.contains('linux') && !qbs.targetOS.contains("android") &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
-    rpaths: ['$ORIGIN']
 
     targetVendor: "pc"
     targetSystem: "linux"
