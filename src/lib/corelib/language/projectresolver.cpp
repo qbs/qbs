@@ -346,15 +346,23 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     QBS_CHECK(!product->profile.isEmpty());
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->uniqueName();
     m_productsByName.insert(product->uniqueName(), product);
+    product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
     const ModuleLoaderResult::ProductInfo &pi = m_loadResult.productInfos.value(item);
-    if (pi.hasError) {
-        m_logger.printWarning(ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
-                                        .arg(product->name), item->location()));
-        product->enabled = false;
+    if (pi.delayedError.hasError()) {
+        if (product->enabled) {
+            switch (m_setupParams.productErrorMode()) {
+            case ErrorHandlingMode::Relaxed:
+                m_logger.printWarning(pi.delayedError);
+                m_logger.printWarning(ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
+                                                .arg(product->name), item->location()));
+                product->enabled = false;
+                break;
+            case ErrorHandlingMode::Strict:
+                throw pi.delayedError;
+            }
+        }
         return;
     }
-
-    product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
     product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
     product->targetName = m_evaluator->stringValue(item, QLatin1String("targetName"));
     product->sourceDirectory = m_evaluator->stringValue(item, QLatin1String("sourceDirectory"));
@@ -447,9 +455,6 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
     checkCancelation();
     if (!m_evaluator->boolValue(item, QLatin1String("present")))
         return;
-
-    if (m_productContext->product->enabled && item->delayedError().hasError())
-        throw item->delayedError();
 
     ModuleContext * const oldModuleContext = m_moduleContext;
     ModuleContext moduleContext;

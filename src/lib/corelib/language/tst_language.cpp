@@ -362,6 +362,44 @@ void TestLanguage::conditionalDepends()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::delayedError()
+{
+    QFETCH(bool, productEnabled);
+    try {
+        QFETCH(QString, projectFileName);
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject(projectFileName.toLatin1()));
+        QVariantMap overriddenValues;
+        overriddenValues.insert("project.enableProduct", productEnabled);
+        params.setOverriddenValues(overriddenValues);
+        project = loader->loadProject(params);
+        QCOMPARE(productEnabled, false);
+        QVERIFY(project);
+        QCOMPARE(project->products.count(), 1);
+        const ResolvedProductConstPtr theProduct = productsFromProject(project).value("theProduct");
+        QVERIFY(theProduct);
+        QCOMPARE(theProduct->enabled, false);
+    } catch (const ErrorInfo &e) {
+        if (!productEnabled)
+            qDebug() << e.toString();
+        QCOMPARE(productEnabled, true);
+    }
+}
+
+void TestLanguage::delayedError_data()
+{
+    QTest::addColumn<QString>("projectFileName");
+    QTest::addColumn<bool>("productEnabled");
+    QTest::newRow("product enabled, module validation error")
+            << "delayed-error/validation.qbs" << true;
+    QTest::newRow("product disabled, module validation error")
+            << "delayed-error/validation.qbs" << false;
+    QTest::newRow("product enabled, module not found")
+            << "delayed-error/nonexisting.qbs" << true;
+    QTest::newRow("product disabled, module not found")
+            << "delayed-error/nonexisting.qbs" << false;
+}
+
 void qbs::Internal::TestLanguage::dependencyOnAllProfiles()
 {
     bool exceptionCaught = false;

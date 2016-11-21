@@ -136,9 +136,6 @@ public:
     void setupForBuiltinType(Logger &logger);
     void copyProperty(const QString &propertyName, Item *target) const;
 
-    void setDelayedError(const ErrorInfo &e) { m_delayedError = e; }
-    ErrorInfo delayedError() const { return m_delayedError; }
-
 private:
     void dump(int indentation) const;
 
@@ -157,7 +154,6 @@ private:
     PropertyDeclarationMap m_propertyDeclarations;
     QList<FunctionDeclaration> m_functions;
     Modules m_modules;
-    ErrorInfo m_delayedError;
     ItemType m_type;
 };
 

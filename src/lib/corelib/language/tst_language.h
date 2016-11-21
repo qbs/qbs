@@ -81,6 +81,8 @@ private slots:
     void builtinFunctionInSearchPathsProperty();
     void canonicalArchitecture();
     void conditionalDepends();
+    void delayedError();
+    void delayedError_data();
     void dependencyOnAllProfiles();
     void derivedSubProject();
     void environmentVariable();

@@ -93,7 +93,7 @@ struct ModuleLoaderResult
 
         QList<ProbeConstPtr> probes;
         QList<Dependency> usedProducts;
-        bool hasError = false;
+        ErrorInfo delayedError;
     };
 
     QSharedPointer<ItemPool> itemPool;

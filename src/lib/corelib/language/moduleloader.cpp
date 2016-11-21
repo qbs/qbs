@@ -708,7 +708,7 @@ ModuleLoader::ModuleDependencies ModuleLoader::setupReverseModuleDependencies(co
 
 void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 {
-    if (productContext->info.hasError)
+    if (productContext->info.delayedError.hasError())
         return;
 
     Item * const item = productContext->item;
@@ -759,6 +759,8 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
             }
         } catch (const ErrorInfo &error) {
             handleModuleSetupError(productContext, module, error);
+            if (productContext->info.delayedError.hasError())
+                return;
         }
     }
 
@@ -767,12 +769,14 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
     // Module validation must happen in an extra pass, after all Probes have been resolved.
     EvalCacheEnabler cacheEnabler(m_evaluator);
     foreach (const Item::Module &module, sortedModules) {
-        if (!module.item->isPresentModule() || module.item->delayedError().hasError())
+        if (!module.item->isPresentModule())
             continue;
         try {
             m_evaluator->boolValue(module.item, QLatin1String("validate"));
         } catch (const ErrorInfo &error) {
             handleModuleSetupError(productContext, module, error);
+            if (productContext->info.delayedError.hasError())
+                return;
         }
     }
 
@@ -799,12 +803,7 @@ void ModuleLoader::handleModuleSetupError(ModuleLoader::ProductContext *productC
                                           const Item::Module &module, const ErrorInfo &error)
 {
     if (module.required) {
-        try {
-            handleProductError(error, productContext);
-        } catch (const ErrorInfo &) {
-            // Error will be thrown for enabled products only
-            module.item->setDelayedError(error);
-        }
+        handleProductError(error, productContext);
     } else {
         createNonPresentModule(module.name.toString(), QLatin1String("failed validation"),
                                module.item);
@@ -2425,10 +2424,9 @@ Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &r
 void ModuleLoader::handleProductError(const ErrorInfo &error,
                                       ModuleLoader::ProductContext *productContext)
 {
-    if (m_parameters.productErrorMode() == ErrorHandlingMode::Strict)
-        throw error;
-    m_logger.printWarning(error);
-    productContext->info.hasError = true;
+    const QList<ErrorItem> &errorItems = error.items();
+    for (auto ei = errorItems.begin(); ei != errorItems.end(); ++ei)
+        productContext->info.delayedError.append(ei->description(), ei->codeLocation());
     productContext->project->result->productInfos.insert(productContext->item,
                                                          productContext->info);
     m_disabledItems << productContext->item;
@@ -2453,11 +2451,8 @@ void ModuleLoader::copyGroupsFromModulesToProduct(const ProductContext &productC
     foreach (const Item::Module &module, productContext.item->modules()) {
         Item *prototype = module.item;
         bool modulePassedValidation;
-        while ((modulePassedValidation = prototype->isPresentModule()
-                && !prototype->delayedError().hasError())
-                && prototype->prototype()) {
+        while ((modulePassedValidation = prototype->isPresentModule()) && prototype->prototype())
             prototype = prototype->prototype();
-        }
         if (modulePassedValidation)
             copyGroupsFromModuleToProduct(productContext, prototype);
     }
