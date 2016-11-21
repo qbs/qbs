@@ -931,6 +931,24 @@ void TestLanguage::idUsage()
     QVERIFY(!exceptionCaught);
 }
 
+void TestLanguage::idUniqueness()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("id-uniqueness.qbs"));
+        loader->loadProject(defaultParameters);
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        const QList<ErrorItem> items = e.items();
+        QCOMPARE(items.count(), 3);
+        QCOMPARE(items.at(0).toString(), QString::fromUtf8("The id 'baseProduct' is not unique."));
+        QVERIFY(items.at(1).toString().contains("id-uniqueness.qbs:6:5 First occurrence is here."));
+        QVERIFY(items.at(2).toString().contains("id-uniqueness.qbs:9:5 Next occurrence is here."));
+    }
+    QVERIFY(exceptionCaught);
+}
+
 void TestLanguage::importCollection()
 {
     bool exceptionCaught = false;

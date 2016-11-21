@@ -97,6 +97,7 @@ private slots:
     void identifierSearch_data();
     void identifierSearch();
     void idUsage();
+    void idUniqueness();
     void importCollection();
     void invalidBindingInDisabledItem();
     void itemPrototype();
