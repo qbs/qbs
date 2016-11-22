@@ -39,7 +39,8 @@ Product {
     property bool automaticSources: true
     property bool legacyLayout: false
 
-    property path sourceSetDir: legacyLayout ? undefined : "src/main"
+    property path sourceSetDir: legacyLayout ? undefined
+                                             : FileInfo.joinPaths(sourceDirectory, "src/main")
     property path resourcesDir: FileInfo.joinPaths(sourceSetDir, "res")
     property path assetsDir: FileInfo.joinPaths(sourceSetDir, "assets")
     property path sourcesDir: FileInfo.joinPaths(sourceSetDir, legacyLayout ? "src" : "java")

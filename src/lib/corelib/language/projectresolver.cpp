@@ -501,8 +501,8 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr
         const CodeLocation &filesLocation, QHash<QString, CodeLocation> *fileLocations,
         ErrorInfo *errorInfo)
 {
-    const QString absFilePath
-            = QDir::cleanPath(FileInfo::resolvePath(rproduct->sourceDirectory, fileName));
+    const QString &baseDir = FileInfo::path(group->location.filePath());
+    const QString absFilePath = QDir::cleanPath(FileInfo::resolvePath(baseDir, fileName));
     if (!wildcard && !FileInfo(absFilePath).exists()) {
         if (errorInfo)
             errorInfo->append(Tr::tr("File '%1' does not exist.").arg(absFilePath), filesLocation);
@@ -686,36 +686,8 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     }
 
     const CodeLocation filesLocation = item->property(QLatin1String("files"))->location();
-
-    // TODO: Remove in 1.8
-    bool emittedRelPathWarning = false;
-    const auto relPathChecker = [this, group, &filesLocation, &emittedRelPathWarning]
-            (const QString &fileName) {
-        if (emittedRelPathWarning)
-            return;
-        if (FileInfo::isAbsolute(fileName))
-            return;
-        if (FileInfo::isAbsolute(group->prefix))
-            return;
-        if (FileInfo::path(filesLocation.filePath())
-                == FileInfo::path(m_productContext->product->location.filePath())) {
-                return;
-        }
-        if (m_groupLocationWarnings.contains(filesLocation))
-            return;
-        const QString warningMessage = Tr::tr("Deprecation warning: Group is not located in the "
-                "same directory as the associated product and references files using a "
-                "relative path. The base directory for resolving such paths will change "
-                "in Qbs 1.8 from the directory of the product to the directory of the group. "
-                "You should probably use an absolute path as the group prefix here.");
-        m_logger.printWarning(ErrorInfo(warningMessage, filesLocation));
-        m_groupLocationWarnings << filesLocation;
-        emittedRelPathWarning = true;
-    };
-
     ErrorInfo fileError;
     if (!patterns.isEmpty()) {
-        std::for_each(patterns.cbegin(), patterns.cend(), relPathChecker);
         SourceWildCards::Ptr wildcards = SourceWildCards::create();
         wildcards->excludePatterns = m_evaluator->stringListValue(item,
                                                                   QLatin1String("excludeFiles"));
@@ -723,7 +695,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         wildcards->patterns = patterns;
         group->wildcards = wildcards;
         QSet<QString> files = wildcards->expandPatterns(group,
-                m_productContext->product->sourceDirectory,
+                FileInfo::path(item->file()->filePath()),
                 projectContext->project->topLevelProject()->buildDirectory);
         foreach (const QString &fileName, files)
             createSourceArtifact(m_productContext->product, fileName, group, true, filesLocation,
@@ -731,7 +703,6 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     }
 
     foreach (const QString &fileName, files) {
-        relPathChecker(fileName);
         createSourceArtifact(m_productContext->product, fileName, group, false, filesLocation,
                              &m_productContext->sourceArtifactLocations, &fileError);
     }

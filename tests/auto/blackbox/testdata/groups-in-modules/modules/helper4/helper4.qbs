@@ -6,7 +6,6 @@ Module {
 
     Group {
         name: "Helper4 Sources"
-        prefix: path + "/"
         files: ["helper4.c"]
     }
 }

@@ -81,7 +81,6 @@ private slots:
     void fileDependencies();
     void frameworkStructure();
     void generatedArtifactAsInputToDynamicRule();
-    void groupLocationWarning();
     void groupsInModules();
     void iconset();
     void iconsetApp();

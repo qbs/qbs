@@ -9,7 +9,6 @@ Module {
 
     Group {
         name: "Helper Sources"
-        prefix: path + "/"
         files: ["diamondc.c"]
     }
 

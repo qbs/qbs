@@ -56,7 +56,11 @@ Module {
         description: "file whose corresponding output will be executed when running the Node.js app"
     }
 
-    Group { name: "Application file"; files: nodejs.applicationFile ? [nodejs.applicationFile] : [] }
+    Group {
+        name: "Application file";
+        prefix: product.sourceDirectory + '/'
+        files: nodejs.applicationFile ? [nodejs.applicationFile] : []
+    }
 
     property path toolchainInstallPath: {
         if (nodejs.path && npm.path && nodejs.path !== npm.path)

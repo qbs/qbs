@@ -9,7 +9,6 @@ Module {
 
     Group {
         name: "Helper5 Sources"
-        prefix: path + "/"
         files: ["helper5.c"]
         cpp.defines: ["COMPILE_FIX"]
     }

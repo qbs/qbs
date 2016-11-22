@@ -117,6 +117,9 @@
         \li list
         \li empty list
         \li The files in the group. Mutually exclusive with fileTagsFilter.
+            Relative paths are resolved using the parent directory of the file
+            that contains the \c Group item. However, if the \c prefix property is set to an
+            absolute path, then that one becomes the base directory.
     \row
         \li prefix
         \li string

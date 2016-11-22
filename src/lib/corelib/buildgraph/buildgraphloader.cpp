@@ -507,10 +507,9 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
                 });
                 if (!reExpansionRequired)
                     continue;
-                const QString &buildDirectory = product->project->topLevelProject()->buildDirectory;
-                const QSet<QString> files
-                        = group->wildcards->expandPatterns(group, product->sourceDirectory,
-                                                           buildDirectory);
+                const QSet<QString> files = group->wildcards->expandPatterns(group,
+                        FileInfo::path(group->location.filePath()),
+                        product->topLevelProject()->buildDirectory);
                 QSet<QString> wcFiles;
                 foreach (const SourceArtifactConstPtr &sourceArtifact, group->wildcards->files)
                     wcFiles += sourceArtifact->absoluteFilePath;

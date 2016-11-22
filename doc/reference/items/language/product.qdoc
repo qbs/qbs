@@ -132,6 +132,8 @@
             \li stringList
             \li empty list
             \li A list of source files. Syntactic sugar to save a \c Group item for simple products.
+                Relative paths are resolved using the parent directory of the project file
+                that sets the property.
         \row
             \li excludeFiles
             \li stringList
