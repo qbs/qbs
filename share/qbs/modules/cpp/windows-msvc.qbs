@@ -103,8 +103,8 @@ CppModule {
 
     setupBuildEnvironment: {
         for (var key in buildEnv) {
-            var v = new ModUtils.EnvironmentVariable(key);
-            v.value = buildEnv[key];
+            var v = new ModUtils.EnvironmentVariable(key, ';');
+            v.prepend(buildEnv[key]);
             v.set();
         }
     }
