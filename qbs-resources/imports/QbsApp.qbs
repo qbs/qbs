@@ -1,4 +1,5 @@
 import qbs
+import qbs.FileInfo
 
 QbsProduct {
     Depends { name: "qbscore" }
@@ -17,7 +18,7 @@ QbsProduct {
     }
     Group {
         name: "logging"
-        prefix: "../shared/logging/"
+        prefix: FileInfo.joinPaths(product.sourceDirectory, "../shared/logging") + '/'
         files: [
             "coloredoutput.cpp",
             "coloredoutput.h",

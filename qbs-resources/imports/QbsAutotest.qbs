@@ -1,4 +1,5 @@
 import qbs
+import qbs.FileInfo
 
 QtApplication {
     type: ["application", "autotest"]
@@ -13,7 +14,7 @@ QtApplication {
     destinationDirectory: "bin"
     Group {
         name: "logging"
-        prefix: "../../../src/app/shared/logging/"
+        prefix: FileInfo.joinPaths(product.sourceDirectory, "../../../src/app/shared/logging") + '/'
         files: [
             "coloredoutput.cpp",
             "coloredoutput.h",
