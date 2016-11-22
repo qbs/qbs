@@ -2351,9 +2351,10 @@ void ModuleLoader::copyGroupsFromModuleToProduct(const ProductContext &productCo
 {
     for (int i = 0; i < modulePrototype->children().count(); ++i) {
         Item * const child = modulePrototype->children().at(i);
-        if (child->typeName() == QLatin1String("Group")) {
+        if (child->type() == ItemType::Group) {
             Item * const clonedGroup = child->clone();
             clonedGroup->setScope(productContext.scope);
+            setScopeForDescendants(clonedGroup, productContext.scope);
             Item::addChild(productContext.item, clonedGroup);
         }
     }
