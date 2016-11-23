@@ -290,6 +290,11 @@ private:
     QHash<Item *, QSet<QString> > m_validItemPropertyNamesPerItem;
     QSet<Item *> m_disabledItems;
     QStack<bool> m_requiredChain;
+
+    using DependsChainEntry = QPair<QualifiedId, CodeLocation>;
+    class DependsChainManager;
+    QStack<DependsChainEntry> m_dependsChain;
+
     QHash<QString, QList<ProbeConstPtr>> m_oldProbes;
     QHash<CodeLocation, QList<ProbeConstPtr>> m_currentProbes;
     SetupProjectParameters m_parameters;

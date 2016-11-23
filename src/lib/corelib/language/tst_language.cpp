@@ -503,6 +503,8 @@ void TestLanguage::erroneousFiles_data()
             << "Cyclic dependencies detected.";
     QTest::newRow("dependency_cycle3")
             << "Cyclic dependencies detected.";
+    QTest::newRow("dependency_cycle4")
+            << "Cyclic dependencies detected.";
     QTest::newRow("references_cycle")
             << "Cycle detected while referencing file 'references_cycle.qbs'.";
     QTest::newRow("subproject_cycle")

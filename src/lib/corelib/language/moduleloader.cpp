@@ -1562,6 +1562,34 @@ Item *ModuleLoader::loadProductModule(ModuleLoader::ProductContext *productConte
     return module;
 }
 
+class ModuleLoader::DependsChainManager
+{
+public:
+    DependsChainManager(QStack<DependsChainEntry> &dependsChain, const QualifiedId &module,
+                        const CodeLocation &dependsLocation)
+        : m_dependsChain(dependsChain)
+    {
+        const bool alreadyInChain = std::any_of(dependsChain.cbegin(), dependsChain.cend(),
+                                                [&module](const DependsChainEntry &e) {
+            return e.first == module;
+        });
+        if (alreadyInChain) {
+            ErrorInfo error;
+            error.append(Tr::tr("Cyclic dependencies detected:"));
+            for (auto e = m_dependsChain.cbegin(); e != m_dependsChain.cend(); ++e)
+                error.append(e->first.toString(), e->second);
+            error.append(module.toString(), dependsLocation);
+            throw error;
+        }
+        m_dependsChain.push(qMakePair(module, dependsLocation));
+    }
+
+    ~DependsChainManager() { m_dependsChain.pop(); }
+
+private:
+    QStack<DependsChainEntry> &m_dependsChain;
+};
+
 Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         const CodeLocation &dependsItemLocation,
         const QString &moduleId, const QualifiedId &moduleName, bool isRequired,
@@ -1569,6 +1597,8 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] loadModule name: " << moduleName << ", id: " << moduleId;
+
+    DependsChainManager dependsChainManager(m_dependsChain, moduleName, dependsItemLocation);
 
     Item *moduleInstance = moduleId.isEmpty()
             ? moduleInstanceItem(item, moduleName)
