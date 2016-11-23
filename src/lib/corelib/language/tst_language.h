@@ -76,6 +76,7 @@ private slots:
     void cleanupTestCase();
 
     void baseProperty();
+    void baseValidation();
     void buildConfigStringListSyntax();
     void builtinFunctionInSearchPathsProperty();
     void canonicalArchitecture();

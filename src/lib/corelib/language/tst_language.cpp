@@ -190,6 +190,19 @@ void TestLanguage::baseProperty()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::baseValidation()
+{
+    qbs::SetupProjectParameters params = defaultParameters;
+    params.setProjectFilePath(testProject("base-validate/base-validate.qbs"));
+    try {
+        project = loader->loadProject(params);
+        QVERIFY2(false, "exception expected");
+    } catch (const qbs::ErrorInfo &e) {
+        QVERIFY2(e.toString().contains("Parent succeeded, child failed."),
+                 qPrintable(e.toString()));
+    }
+}
+
 void TestLanguage::buildConfigStringListSyntax()
 {
     bool exceptionCaught = false;
