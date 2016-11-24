@@ -1,6 +1,6 @@
 import qbs
 
-M {
+MParent {
     condition: true
     validate: {
         var parentResult = base;
