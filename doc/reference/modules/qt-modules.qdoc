@@ -345,8 +345,7 @@
         \li \c{string}
         \li \c{"/"}
         \li For files tagged as \c{qt.core.resource_data}, this property determines the prefix
-            under which they will be available in the generated \c qrc file. The value of this
-            property needs to be the same for all such files in a product.
+            under which they will be available in the generated \c qrc file.
     \row
         \li staticBuild
         \li \c{bool}

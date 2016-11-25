@@ -10,6 +10,9 @@ int main()
     QFile resource2(":/thePrefix/resource2.txt");
     if (!resource2.open(QIODevice::ReadOnly))
         return 2;
+    QFile resource3(":/theOtherPrefix/resource3.txt");
+    if (!resource3.open(QIODevice::ReadOnly))
+        return 3;
     std::cout << "resource data: " << resource1.readAll().constData()
-              << resource2.readAll().constData() << std::endl;
+              << resource2.readAll().constData() << resource3.readAll().constData() << std::endl;
 }
