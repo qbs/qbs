@@ -1,6 +1,7 @@
 import qbs
 
 Project {
+    minimumQbsVersion: "1.6"
     Probe {
         id: tcProbe
         property stringList toolchain: qbs.toolchain

@@ -278,9 +278,9 @@ CppModule {
                 fileTags: ["dynamiclibrary"]
             };
             var libCopy = {
-                // Copy of libfoo for smart re-linking.
-                filePath: product.destinationDirectory + "/.socopy/"
-                          + PathTools.dynamicLibraryFilePath(product),
+                // List of libfoo's public symbols for smart re-linking.
+                filePath: product.destinationDirectory + "/.sosymbols/"
+                          + FileInfo.fileName(PathTools.dynamicLibraryFilePath(product)),
                 fileTags: ["dynamiclibrary_copy"],
                 alwaysUpdated: false,
             };

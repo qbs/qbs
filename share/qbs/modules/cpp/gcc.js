@@ -34,6 +34,7 @@ var DarwinTools = loadExtension("qbs.DarwinTools");
 var ModUtils = loadExtension("qbs.ModUtils");
 var PathTools = loadExtension("qbs.PathTools");
 var Process = loadExtension("qbs.Process");
+var TextFile = loadExtension("qbs.TextFile");
 var UnixUtils = loadExtension("qbs.UnixUtils");
 var Utilities = loadExtension("qbs.Utilities");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
@@ -259,9 +260,13 @@ function linkerFlags(project, product, inputs, output) {
     var staticLibsFromInputs = inputs.staticlibrary
             ? inputs.staticlibrary.map(function(a) { return a.filePath; }) : [];
     staticLibraries = concatLibsFromArtifacts(staticLibraries, inputs.staticlibrary);
+    var filePathGetterSoCopy = function(a) {
+        return FileInfo.joinPaths(FileInfo.path(a.filePath), "..", a.fileName);
+    };
     var dynamicLibsFromInputs = inputs.dynamiclibrary_copy
-            ? inputs.dynamiclibrary_copy.map(function(a) { return a.filePath; }) : [];
-    dynamicLibraries = concatLibsFromArtifacts(dynamicLibraries, inputs.dynamiclibrary_copy);
+            ? inputs.dynamiclibrary_copy.map(filePathGetterSoCopy) : [];
+    dynamicLibraries = concatLibsFromArtifacts(dynamicLibraries, inputs.dynamiclibrary_copy,
+                                               filePathGetterSoCopy);
 
     for (i in frameworks) {
         frameworkExecutablePath = PathTools.frameworkExecutablePath(frameworks[i]);
@@ -744,6 +749,149 @@ function concatLibs(libs, deplibs) {
     return r;
 }
 
+function collectStdoutLines(command, args)
+{
+    var p = new Process();
+    try {
+        p.exec(command, args);
+        return p.readStdOut().split('\n').filter(function (e) { return e; });
+    } finally {
+        p.close();
+    }
+}
+
+function getSymbolInfo(product, inputFile)
+{
+    var result = { };
+    var command = ModUtils.moduleProperty(product, "nmPath");
+    var args = ["-g", "-D", "-P"];
+    try {
+        result.allGlobalSymbols = collectStdoutLines(command, args.concat(inputFile));
+
+        // GNU nm has the "--defined" option but POSIX nm does not, so we have to manually
+        // construct the list of defined symbols by subtracting.
+        var undefinedGlobalSymbols = collectStdoutLines(command, args.concat(["-u", inputFile]));
+        result.definedGlobalSymbols = result.allGlobalSymbols.filter(function(line) {
+            return !undefinedGlobalSymbols.contains(line); });
+        result.success = true;
+    } catch (e) {
+        console.debug("Failed to collect symbols for shared library: nm command '"
+                      + command + "' failed (" + e.toString() + ")");
+        result.success = false;
+    }
+    return result;
+}
+
+function createSymbolFile(filePath, allSymbols, definedSymbols)
+{
+    var file;
+    try {
+        file = new TextFile(filePath, TextFile.WriteOnly);
+        for (var lineNr in allSymbols)
+            file.writeLine(allSymbols[lineNr]);
+        file.writeLine("===");
+        for (lineNr in definedSymbols)
+            file.writeLine(definedSymbols[lineNr]);
+    } finally {
+        if (file)
+            file.close();
+    }
+}
+
+function readSymbolFile(filePath)
+{
+    var result = { success: true, allGlobalSymbols: [], definedGlobalSymbols: [] };
+    var file;
+    try {
+        file = new TextFile(filePath, TextFile.ReadOnly);
+        var prop = "allGlobalSymbols";
+        while (true) {
+            var line = file.readLine();
+            if (!line)
+                break;
+            if (line === "===") {
+                prop = "definedGlobalSymbols";
+                continue;
+            }
+            result[prop].push(line);
+        }
+    } catch (e) {
+        console.debug("Failed to read symbols from '" + filePath + "'");
+        result.success = false;
+    } finally {
+        if (file)
+            file.close();
+    }
+    return result;
+}
+
+function createSymbolCheckingCommand(product, outputs)
+{
+    // Update the symbols file if the list of relevant symbols has changed.
+    cmd = new JavaScriptCommand();
+    cmd.silent = true;
+    cmd.sourceCode = function() {
+        var libFilePath = outputs.dynamiclibrary[0].filePath;
+        var symbolFilePath = outputs.dynamiclibrary_copy[0].filePath;
+
+        // TODO: QBS-1093
+        var getSymbolInfo = Gcc.getSymbolInfo;
+        var createSymbolFile = Gcc.createSymbolFile;
+        var readSymbolFile = Gcc.readSymbolFile;
+
+        if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
+            // mingw's nm tool does not work correctly.
+            createSymbolFile(symbolFilePath, [], []);
+            return;
+        }
+
+        var newNmResult = getSymbolInfo(product, libFilePath);
+        if (!newNmResult.success) {
+            createSymbolFile(symbolFilePath, [], []);
+            return;
+        }
+
+        if (!File.exists(symbolFilePath)) {
+            console.debug("Symbol file '" + symbolFilePath + "' does not yet exist.");
+            createSymbolFile(symbolFilePath, newNmResult.allGlobalSymbols,
+                             newNmResult.definedGlobalSymbols);
+            return;
+        }
+
+        var oldNmResult = readSymbolFile(symbolFilePath);
+        var checkMode = ModUtils.moduleProperty(product, "exportedSymbolsCheckMode");
+        var oldSymbols;
+        var newSymbols;
+        if (checkMode === "strict") {
+            oldSymbols = oldNmResult.allGlobalSymbols;
+            newSymbols = newNmResult.allGlobalSymbols;
+        } else {
+            oldSymbols = oldNmResult.definedGlobalSymbols;
+            newSymbols = newNmResult.definedGlobalSymbols;
+        }
+        if (oldSymbols.length !== newSymbols.length) {
+            console.debug("List of relevant symbols differs for '" + libFilePath + "'.");
+            createSymbolFile(symbolFilePath, newNmResult.allGlobalSymbols,
+                             newNmResult.definedGlobalSymbols);
+            return;
+        }
+        for (var i = 0; i < oldSymbols.length; ++i) {
+            var oldLine = oldSymbols[i];
+            var newLine = newSymbols[i];
+            var oldLineElems = oldLine.split(/\s+/);
+            var newLineElems = newLine.split(/\s+/);
+            if (oldLineElems[0] !== newLineElems[0] // Object name.
+                    || oldLineElems[1] !== newLineElems[1]) { // Object type
+                console.debug("List of relevant symbols differs for '" + libFilePath + "'.");
+                createSymbolFile(symbolFilePath, newNmResult.allGlobalSymbols,
+                                 newNmResult.definedGlobalSymbols);
+                return;
+            }
+        }
+    }
+    return cmd;
+}
+
 function prepareLinker(project, product, inputs, outputs, input, output) {
     var i, primaryOutput, cmd, commands = [];
 
@@ -812,87 +960,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     }
 
     if (outputs.dynamiclibrary) {
-        // Update the copy, if any global symbols have changed.
-        cmd = new JavaScriptCommand();
-        cmd.silent = true;
-        cmd.sourceCode = function() {
-            var sourceFilePath = outputs.dynamiclibrary[0].filePath;
-            var targetFilePath = outputs.dynamiclibrary_copy[0].filePath;
-            if (!File.exists(targetFilePath)) {
-                File.copy(sourceFilePath, targetFilePath);
-                return;
-            }
-            if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
-                // mingw's nm tool does not work correctly.
-                File.copy(sourceFilePath, targetFilePath);
-                return;
-            }
-            var process = new Process();
-            var command = ModUtils.moduleProperty(product, "nmPath");
-            var args = ["-g", "-D", "-P"];
-            if (process.exec(command, args.concat(sourceFilePath), false) !== 0) {
-                // Failure to run the nm tool is not fatal. We just fall back to the
-                // "always relink" behavior.
-                File.copy(sourceFilePath, targetFilePath);
-                return;
-            }
-            var globalSymbolsSource = process.readStdOut();
-            if (process.exec(command, args.concat(targetFilePath), false) !== 0) {
-                File.copy(sourceFilePath, targetFilePath);
-                return;
-            }
-            var globalSymbolsTarget = process.readStdOut();
-
-            var globalSymbolsSourceLines = globalSymbolsSource.split('\n');
-            var globalSymbolsTargetLines = globalSymbolsTarget.split('\n');
-            if (globalSymbolsSourceLines.length !== globalSymbolsTargetLines.length) {
-                var checkMode = ModUtils.moduleProperty(product, "exportedSymbolsCheckMode");
-                if (checkMode === "strict") {
-                    File.copy(sourceFilePath, targetFilePath);
-                    return;
-                }
-
-                // Collect undefined symbols and remove them from the symbol lists.
-                // GNU nm has the "--defined" option for this purpose, but POSIX nm does not.
-                args.push("-u");
-                if (process.exec(command, args.concat(sourceFilePath), false) !== 0) {
-                    File.copy(sourceFilePath, targetFilePath);
-                    return;
-                }
-                var undefinedSymbolsSource = process.readStdOut();
-                if (process.exec(command, args.concat(targetFilePath), false) !== 0) {
-                    File.copy(sourceFilePath, targetFilePath);
-                    return;
-                }
-                var undefinedSymbolsTarget = process.readStdOut();
-                process.close();
-
-                var undefinedSymbolsSourceLines = undefinedSymbolsSource.split('\n');
-                var undefinedSymbolsTargetLines = undefinedSymbolsTarget.split('\n');
-
-                globalSymbolsSourceLines = globalSymbolsSourceLines.filter(function(line) {
-                    return !undefinedSymbolsSourceLines.contains(line); });
-                globalSymbolsTargetLines = globalSymbolsTargetLines.filter(function(line) {
-                    return !undefinedSymbolsTargetLines.contains(line); });
-                if (globalSymbolsSourceLines.length !== globalSymbolsTargetLines.length) {
-                    File.copy(sourceFilePath, targetFilePath);
-                    return;
-                }
-            }
-
-            for (var i = 0; i < globalSymbolsSourceLines.length; ++i) {
-                var sourceLine = globalSymbolsSourceLines[i];
-                var targetLine = globalSymbolsTargetLines[i];
-                var sourceLineElems = sourceLine.split(/\s+/);
-                var targetLineElems = targetLine.split(/\s+/);
-                if (sourceLineElems[0] !== targetLineElems[0] // Object name.
-                        || sourceLineElems[1] !== targetLineElems[1]) { // Object type
-                    File.copy(sourceFilePath, targetFilePath);
-                    return;
-                }
-            }
-        }
-        commands.push(cmd);
+        commands.push(createSymbolCheckingCommand(product, outputs));
 
         // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
         var links = outputs["dynamiclibrary_symlink"];
@@ -932,11 +1000,13 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     return commands;
 }
 
-function concatLibsFromArtifacts(libs, artifacts)
+function concatLibsFromArtifacts(libs, artifacts, filePathGetter)
 {
     if (!artifacts)
         return libs;
-    var deps = artifacts.map(function (a) { return a.filePath; });
+    if (!filePathGetter)
+        filePathGetter = function (a) { return a.filePath; };
+    var deps = artifacts.map(filePathGetter);
     deps.reverse();
     return concatLibs(deps, libs);
 }
