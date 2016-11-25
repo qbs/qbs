@@ -355,6 +355,13 @@ var PropertyValidator = (function () {
                      ? " component" : " components"));
     };
 
+    PropertyValidator.prototype.addFileNameValidator = function (propertyName, propertyValue) {
+        this.addCustomValidator(propertyName, propertyValue, function (value) {
+            return !/[/?<>\\:*|"\u0000-\u001f\u0080-\u009f]/.test(propertyValue)
+                && propertyValue !== "." && propertyValue !== "..";
+        }, "cannot contain reserved or control characters and cannot be \".\" or \"..\"");
+    };
+
     PropertyValidator.prototype.addCustomValidator = function (propertyName, propertyValue, validator, message) {
         this.propertyValidators.push({
             propertyName: propertyName,

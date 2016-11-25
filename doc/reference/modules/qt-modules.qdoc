@@ -347,6 +347,13 @@
         \li For files tagged as \c{qt.core.resource_data}, this property determines the prefix
             under which they will be available in the generated \c qrc file.
     \row
+        \li resourceFileBaseName
+        \li \c{string}
+        \li \c{product.targetName}
+        \li For files tagged as \c{qt.core.resource_data}, this property determines the base name
+            of the generated \c qrc file. If this property needs to be changed, it must be set
+            in the corresponding product rather than in a Group.
+    \row
         \li staticBuild
         \li \c{bool}
         \li \c{undefined}

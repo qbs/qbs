@@ -199,6 +199,8 @@ Module {
         }, " is '" + qtBuildVariant + "', but qbs.buildVariant is '" + qbs.buildVariant
             + "', which is not allowed when using MSVC");
 
+        validator.addFileNameValidator("resourceFileBaseName", resourceFileBaseName);
+
         validator.validate();
     }
 
@@ -278,11 +280,12 @@ Module {
 
     property path resourceSourceBase: product.sourceDirectory
     property string resourcePrefix: "/"
+    property string resourceFileBaseName: product.targetName
     Rule {
         multiplex: true
         inputs: ["qt.core.resource_data"]
         Artifact {
-            filePath: "__qbs_auto_" + product.name + ".qrc"
+            filePath: product.moduleProperty("Qt.core", "resourceFileBaseName") + ".qrc"
             fileTags: ["qrc"]
         }
         prepare: {
