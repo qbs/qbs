@@ -757,10 +757,8 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
         if (!product->buildData)
             continue;
         for (Artifact *artifactInProduct : filterByType<Artifact>(product->buildData->nodes)) {
-            if (artifactInProduct->fileDependencies.contains(filedep)) {
-                artifactInProduct->fileDependencies.remove(filedep);
+            if (artifactInProduct->fileDependencies.removeOne(filedep))
                 loggedConnect(artifactInProduct, artifact, m_logger);
-            }
         }
     }
     fileDepProduct->topLevelProject()->buildData->fileDependencies.remove(filedep);

@@ -78,7 +78,7 @@ public:
     const FileTags &fileTags() const { return m_fileTags; }
 
     ArtifactSet childrenAddedByScanner;
-    QSet<FileDependency *> fileDependencies;
+    QVector<FileDependency *> fileDependencies;
     TransformerPtr transformer;
     PropertyMapPtr properties;
 

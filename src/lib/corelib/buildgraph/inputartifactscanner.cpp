@@ -383,7 +383,8 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         return;
 
     if (fileDependency) {
-        m_artifact->fileDependencies.insert(fileDependency);
+        if (!m_artifact->fileDependencies.contains(fileDependency))
+            m_artifact->fileDependencies << fileDependency;
     } else {
         if (m_artifact->children.contains(artifactDependency))
             return;
