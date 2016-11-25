@@ -120,7 +120,14 @@ BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingPr
     }
     QBS_CHECK(parameters.restoreBehavior() == SetupProjectParameters::RestoreAndTrackChanges);
 
+    if (m_parameters.logElapsedTime())
+        m_wildcardExpansionEffort = 0;
     trackProjectChanges();
+    if (m_parameters.logElapsedTime()) {
+        m_logger.qbsLog(LoggerInfo, true) << "\t"
+                << Tr::tr("Wilcard expansion took %1.")
+                   .arg(elapsedTimeString(m_wildcardExpansionEffort));
+    }
     return m_result;
 }
 
@@ -461,6 +468,8 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
             m_logger.qbsDebug() << "A product was changed, must re-resolve project";
             hasChanged = true;
         } else if (!changedProducts.contains(product)) {
+            AccumulatingTimer wildcardTimer(m_parameters.logElapsedTime()
+                                            ? &m_wildcardExpansionEffort : nullptr);
             foreach (const GroupPtr &group, product->groups) {
                 if (!group->wildcards)
                     continue;
