@@ -43,7 +43,7 @@
         condition: true
         inputs: 'qrc'
         scan: {
-          xml = XmlDomDocument(input.fileName);
+          var xml = new XmlDomDocument(input.filePath);
           dependencies = [];
           // do something with the xml
           return dependencies;

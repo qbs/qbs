@@ -6,7 +6,7 @@ Project {
     Product {
         name: "dep"
         Export {
-            property string theDefine
+            property string theDefine: ""
             Depends { name: "cpp" }
             cpp.defines: [theDefine]
         }
@@ -24,8 +24,8 @@ Project {
         consoleApplication: true
         Depends { name: "dep" }
         Group {
+            dep.theDefine: "P2"
             files: ["main2.cpp"]
         }
-        dep.theDefine: "P2" // TODO: Move to Group when QBS-1005 is fixed.
     }
 }

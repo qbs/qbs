@@ -74,4 +74,32 @@ Project {
             Depends { name: "sub p1" }
         }
     }
+
+    ParentWithExport {
+        name: "libA"
+        Export { Depends { name: "libB" } }
+    }
+
+    ParentWithExport { name: "libB" }
+
+    ParentWithExport {
+        name: "libC"
+        Export { Depends { name: "libA" } }
+    }
+
+    ParentWithExport {
+        name: "libD"
+        Export { Depends { name: "libA" } }
+    }
+
+    Product {
+        name: "libE"
+
+        Depends { name: "libD" }
+        Depends { name: "libC" }
+
+        Group {
+            qbs.install: false
+        }
+    }
 }

@@ -222,7 +222,7 @@ qint64 ValgrindRunner::runMassif(const QString &qbsCommand, const QString &build
                     "there are %2.").arg(QString::fromLocal8Bit(line)).arg(entries.count());
             throw Exception(exceptionStringPattern.arg(details));
         }
-        QByteArray peakMemoryString = entries.at(4);
+        QByteArray peakMemoryString = entries.at(2);
         peakMemoryString.replace(',', QByteArray());
         bool ok;
         qint64 peakMemoryUsage = peakMemoryString.toLongLong(&ok);

@@ -46,6 +46,8 @@ UnixGCC {
     imageFormat: "macho"
 
     compilerDefines: ["__GNUC__=4", "__APPLE__"]
+    cxxStandardLibrary: qbs.toolchain.contains("clang") && cxxLanguageVersion !== "c++98"
+                        ? "libc++" : base
     loadableModulePrefix: ""
     loadableModuleSuffix: ".bundle"
     dynamicLibrarySuffix: ".dylib"

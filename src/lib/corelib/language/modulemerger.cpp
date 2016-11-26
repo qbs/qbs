@@ -198,15 +198,13 @@ void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap
         QBS_CHECK(pd.isValid());
 
         if (pd.isScalar()) {
-            if (dstVal->sourceCode() != srcVal->sourceCode()
-                    && dstVal->isInExportItem() == srcVal->isInExportItem()) {
+            if (dstVal->sourceCode() != srcVal->sourceCode()) {
                 m_logger.qbsWarning() << Tr::tr("Conflicting scalar values at %1 and %2.").arg(
                                              dstVal->location().toString(),
                                              srcVal->location().toString());
                 // TODO: yield error with a hint how to solve the conflict.
             }
-            if (!dstVal->isInExportItem())
-                v = it.value();
+            v = it.value();
         } else {
             lastInNextChain(dstVal)->setNext(srcVal);
         }

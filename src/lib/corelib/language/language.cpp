@@ -1141,7 +1141,8 @@ void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr 
             : QDirIterator::NoIteratorFlags;
     QDir::Filters itFilters = isDir
             ? QDir::Dirs
-            : QDir::Files;
+            : QDir::Files | QDir::System
+              | QDir::Dirs; // This one is needed to get symbolic links to directories
 
     if (isDir && !FileInfo::isPattern(filePattern))
         itFilters |= QDir::Hidden;
@@ -1153,7 +1154,8 @@ void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr 
         const QString filePath = it.next();
         if (isQbsBuildDir(it.fileInfo().dir()))
             continue; // See above.
-        QBS_ASSERT(FileInfo(filePath).isDir() == isDir, break);
+        if (!isDir && it.fileInfo().isDir() && !it.fileInfo().isSymLink())
+            continue;
         if (isDir)
             expandPatterns(result, group, changed_parts, filePath);
         else

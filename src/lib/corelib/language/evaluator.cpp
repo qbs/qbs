@@ -232,6 +232,15 @@ QScriptValue Evaluator::fileScope(const FileContextConstPtr &file)
         result = m_scriptEngine->newObject();
     result.setProperty(QLatin1String("filePath"), file->filePath());
     result.setProperty(QLatin1String("path"), file->dirPath());
+    return result;
+}
+
+QScriptValue Evaluator::importScope(const FileContextConstPtr &file)
+{
+    QScriptValue &result = m_importScopeMap[file];
+    if (result.isObject())
+        return result;
+    result = m_scriptEngine->newObject();
     m_scriptEngine->import(file, result);
     JsExtensions::setupExtensions(file->jsExtensions(), result);
     return result;

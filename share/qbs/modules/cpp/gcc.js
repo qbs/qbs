@@ -291,10 +291,6 @@ function linkerFlags(project, product, inputs, output) {
         }
     }
 
-    if (product.moduleProperty("qbs", "toolchain").contains("clang")
-            && product.moduleProperty("qbs", "targetOS").contains("linux") && stdlib === "libc++")
-        args.push("-lc++abi");
-
     return args;
 }
 

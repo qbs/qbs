@@ -85,6 +85,7 @@ private slots:
     void iconsetApp();
     void importInPropertiesCondition();
     void importingProduct();
+    void importsConflict();
     void infoPlist();
     void inputsFromDependencies();
     void installable();

@@ -1206,45 +1206,68 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
 {
     // There are three cases:
     //     a) The defining item is the "main" module instance, i.e. the one instantiated in the
-    //        product directly.
-    //     b) The defining item refers to the module prototype.
+    //        product directly (or a parent group).
+    //     b) The defining item refers to the module prototype (or the replacement of it
+    //        created in the module merger [for products] or in this function [for parent groups]).
     //     c) The defining item is a different instance of the module, i.e. it was instantiated
     //        in some other module.
-    // TODO: Needs adjustments for nested groups.
 
     QHash<Item *, Item *> definingItemReplacements;
-    const Item::PropertyMap &protoProps = module.item->prototype()->properties();
-    for (auto propIt = protoProps.begin(); propIt != protoProps.end(); ++propIt) {
-        const QString &propName = propIt.key();
+
+    Item *modulePrototype = module.item->prototype();
+    while (modulePrototype->prototype())
+        modulePrototype = modulePrototype->prototype();
+
+    // TODO: Why are there module instances whose top-level prototype is of type ModuleInstance?
+    // QBS_CHECK(modulePrototype->type() == ItemType::Module);
+
+    const Item::PropertyDeclarationMap &propDecls = modulePrototype->propertyDeclarations();
+    for (const auto &decl : propDecls) {
+        const QString &propName = decl.name();
 
         // Module properties assigned in the group are not relevant here, as nothing
         // gets inherited in that case. In particular, setting a list property
-        // overwrites the value from the product's (merged) instance completely,
+        // overwrites the value from the product's (or parent group's) instance completely,
         // rather than appending to it (concatenation happens via outer.concat()).
-        if (module.item->properties().contains(propIt.key()))
+        ValueConstPtr propValue = module.item->properties().value(propName);
+        if (propValue)
             continue;
 
-        if (propIt.value()->type() != Value::JSSourceValueType)
+        // Find the nearest prototype instance that has the value assigned.
+        // The result is either an instance of a parent group (or the parent group's
+        // parent group and so on) or the instance of the product or the module prototype.
+        // In the latter case, we don't have to do anything.
+        const Item *instanceWithProperty = module.item;
+        int prototypeChainLen = 0;
+        do {
+            instanceWithProperty = instanceWithProperty->prototype();
+            ++prototypeChainLen;
+            propValue = instanceWithProperty->properties().value(propName);
+        } while (!propValue);
+        QBS_CHECK(propValue);
+
+        if (propValue->type() != Value::JSSourceValueType)
             continue;
 
-        const PropertyDeclaration &propDecl = module.item->propertyDeclaration(propName);
         bool hasDefiningItem = false;
-        for (ValuePtr v = propIt.value(); v && !hasDefiningItem; v = v->next())
+        for (ValueConstPtr v = propValue; v && !hasDefiningItem; v = v->next())
             hasDefiningItem = v->definingItem();
         if (!hasDefiningItem) {
-            QBS_CHECK(propDecl.isScalar());
+            QBS_CHECK(decl.isScalar() || instanceWithProperty == modulePrototype);
             continue;
         }
 
-        const ValuePtr clonedValue = propIt.value()->clone();
+        const ValuePtr clonedValue = propValue->clone();
         for (ValuePtr v = clonedValue; v; v = v->next()) {
             QBS_CHECK(v->definingItem());
 
             Item *& replacement = definingItemReplacements[v->definingItem()];
-            if (v->definingItem() == module.item->prototype()) {
+            static const QString caseA = QLatin1String("__group_case_a");
+            if (v->definingItem() == instanceWithProperty
+                    || v->definingItem()->variantProperty(caseA)) {
                 // Case a)
-                // For values whose defining item is the product's instance, we take its scope
-                // and replace references to module instances with those from the
+                // For values whose defining item is the product's (or parent group's) instance,
+                // we take its scope and replace references to module instances with those from the
                 // group's instance. This handles cases like the following:
                 // Product {
                 //    name: "theProduct"
@@ -1272,14 +1295,15 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                             scopeScope->setProperty(propIt.key(), propIt.value());
                     }
                 }
-                replacement->setPropertyDeclaration(propName, propDecl);
+                replacement->setPropertyDeclaration(propName, decl);
                 replacement->setProperty(propName, v);
+                replacement->setProperty(caseA, VariantValue::create(QVariant()));
             }  else if (v->definingItem()->type() == ItemType::Module) {
                 // Case b)
                 // For values whose defining item is the module prototype, we change the scope to
                 // the group's instance, analogous to what we do in
                 // ModuleMerger::appendPrototypeValueToNextChain().
-                QBS_CHECK(!propDecl.isScalar());
+                QBS_CHECK(!decl.isScalar());
                 QBS_CHECK(!v->next());
                 Item *& replacement = definingItemReplacements[v->definingItem()];
                 if (!replacement) {
@@ -1287,6 +1311,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                                                         ItemType::Module);
                     replacement->setScope(module.item);
                 }
+                QBS_CHECK(!replacement->hasOwnProperty(caseA));
                 if (m_logger.traceEnabled()) {
                     m_logger.qbsTrace() << "[LDR] replacing defining item for prototype; module is "
                             << module.name.toString() << module.item
@@ -1298,7 +1323,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                             << ", value source code is "
                             << v.staticCast<JSSourceValue>()->sourceCode().toString();
                 }
-                replacement->setPropertyDeclaration(propName, propDecl);
+                replacement->setPropertyDeclaration(propName, decl);
                 replacement->setProperty(propName, v);
             } else {
                 // Look for instance scopes of other module instances in defining items and
@@ -1311,7 +1336,10 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                 for (auto depIt = dependentModules.cbegin(); depIt != dependentModules.cend();
                      ++depIt) {
                     const Item::Module &depMod = *depIt;
-                    if (v->definingItem()->scope()->scope() != depMod.item->prototype())
+                    const Item *depModPrototype = depMod.item->prototype();
+                    for (int i = 1; i < prototypeChainLen; ++i)
+                        depModPrototype = depModPrototype->prototype();
+                    if (v->definingItem()->scope()->scope() != depModPrototype)
                         continue;
 
                     found = true;
@@ -1325,6 +1353,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                         replacement->setScope(Item::create(v->definingItem()->pool()));
                         replacement->scope()->setScope(depMod.item);
                     }
+                    QBS_CHECK(!replacement->hasOwnProperty(caseA));
                     if (m_logger.traceEnabled()) {
                         m_logger.qbsTrace() << "[LDR] reset instance scope of module "
                                 << depMod.name.toString() << " in property "
@@ -1562,6 +1591,34 @@ Item *ModuleLoader::loadProductModule(ModuleLoader::ProductContext *productConte
     return module;
 }
 
+class ModuleLoader::DependsChainManager
+{
+public:
+    DependsChainManager(QStack<DependsChainEntry> &dependsChain, const QualifiedId &module,
+                        const CodeLocation &dependsLocation)
+        : m_dependsChain(dependsChain)
+    {
+        const bool alreadyInChain = std::any_of(dependsChain.cbegin(), dependsChain.cend(),
+                                                [&module](const DependsChainEntry &e) {
+            return e.first == module;
+        });
+        if (alreadyInChain) {
+            ErrorInfo error;
+            error.append(Tr::tr("Cyclic dependencies detected:"));
+            for (auto e = m_dependsChain.cbegin(); e != m_dependsChain.cend(); ++e)
+                error.append(e->first.toString(), e->second);
+            error.append(module.toString(), dependsLocation);
+            throw error;
+        }
+        m_dependsChain.push(qMakePair(module, dependsLocation));
+    }
+
+    ~DependsChainManager() { m_dependsChain.pop(); }
+
+private:
+    QStack<DependsChainEntry> &m_dependsChain;
+};
+
 Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         const CodeLocation &dependsItemLocation,
         const QString &moduleId, const QualifiedId &moduleName, bool isRequired,
@@ -1569,6 +1626,8 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] loadModule name: " << moduleName << ", id: " << moduleId;
+
+    DependsChainManager dependsChainManager(m_dependsChain, moduleName, dependsItemLocation);
 
     Item *moduleInstance = moduleId.isEmpty()
             ? moduleInstanceItem(item, moduleName)
@@ -1935,17 +1994,6 @@ static QList<Item *> collectItemsWithId(Item *item)
     return result;
 }
 
-static void copyPropertiesFromExportItem(const Item *src, Item *dst)
-{
-    const Item::PropertyMap &srcProps = src->properties();
-    for (auto it = srcProps.constBegin(); it != srcProps.constEnd(); ++it) {
-        if (it.value()->type() != Value::JSSourceValueType)
-            continue;
-        QBS_CHECK(!dst->hasOwnProperty(it.key()));
-        dst->setProperty(it.key(), it.value()->clone());
-    }
-}
-
 void ModuleLoader::instantiateModule(ProductContext *productContext, Item *exportingProduct,
         Item *instanceScope, Item *moduleInstance, Item *modulePrototype,
         const QualifiedId &moduleName, bool isProduct)
@@ -1982,34 +2030,14 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     }
 
     if (exportingProduct) {
-        if (!isProduct) {
-            copyPropertiesFromExportItem(modulePrototype, moduleInstance);
-            moduleInstance->setPrototype(modulePrototype->prototype());
-        }
-
-        Item *exportScope =  Item::create(moduleInstance->pool());
-        exportScope->setFile(instanceScope->file());
-        exportScope->setScope(instanceScope);
-
         // TODO: For consistency with modules, it should be the other way around, i.e.
         //       "exportingProduct" and just "product".
-        exportScope->setProperty(QLatin1String("product"), ItemValue::create(exportingProduct));
-        exportScope->setProperty(QLatin1String("importingProduct"),
+        moduleScope->setProperty(QLatin1String("product"), ItemValue::create(exportingProduct));
+        moduleScope->setProperty(QLatin1String("importingProduct"),
                                  ItemValue::create(productContext->item));
 
-        exportScope->setProperty(QLatin1String("project"),
+        moduleScope->setProperty(QLatin1String("project"),
                                  ItemValue::create(exportingProduct->parent()));
-
-        for (auto it = moduleInstance->properties().begin();
-             it != moduleInstance->properties().end(); ++it) {
-            if (it.value()->type() != Value::JSSourceValueType)
-                continue;
-            JSSourceValuePtr v = it.value().staticCast<JSSourceValue>();
-            do {
-                v->setExportScope(exportScope);
-                v = v->baseValue();
-            } while (v);
-        }
 
         PropertyDeclaration pd(QLatin1String("_qbs_sourceDir"), PropertyDeclaration::String,
                                PropertyDeclaration::PropertyNotAvailableInConfig);
@@ -2123,6 +2151,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     QScriptValue scope = m_engine->newObject();
     m_engine->currentContext()->pushScope(m_evaluator->scriptValue(parent));
     m_engine->currentContext()->pushScope(m_evaluator->fileScope(configureScript->file()));
+    m_engine->currentContext()->pushScope(m_evaluator->importScope(configureScript->file()));
     m_engine->currentContext()->pushScope(scope);
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
@@ -2154,6 +2183,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         m_currentProbes[probe->location()] << resolvedProbe;
     }
     productContext->info.probes << resolvedProbe;
+    m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
@@ -2382,9 +2412,10 @@ void ModuleLoader::copyGroupsFromModuleToProduct(const ProductContext &productCo
 {
     for (int i = 0; i < modulePrototype->children().count(); ++i) {
         Item * const child = modulePrototype->children().at(i);
-        if (child->typeName() == QLatin1String("Group")) {
+        if (child->type() == ItemType::Group) {
             Item * const clonedGroup = child->clone();
             clonedGroup->setScope(productContext.scope);
+            setScopeForDescendants(clonedGroup, productContext.scope);
             Item::addChild(productContext.item, clonedGroup);
         }
     }

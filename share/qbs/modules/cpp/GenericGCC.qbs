@@ -43,12 +43,6 @@ import 'gcc.js' as Gcc
 CppModule {
     condition: false
 
-    cxxStandardLibrary: {
-        if (cxxLanguageVersion && qbs.toolchain.contains("clang")) {
-            return cxxLanguageVersion !== "c++98" ? "libc++" : "libstdc++";
-        }
-    }
-
     Probes.GccProbe {
         id: gccProbe
         compilerFilePath: compilerPath

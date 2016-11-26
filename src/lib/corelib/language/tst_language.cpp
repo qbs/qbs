@@ -190,6 +190,19 @@ void TestLanguage::baseProperty()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::baseValidation()
+{
+    qbs::SetupProjectParameters params = defaultParameters;
+    params.setProjectFilePath(testProject("base-validate/base-validate.qbs"));
+    try {
+        project = loader->loadProject(params);
+        QVERIFY2(false, "exception expected");
+    } catch (const qbs::ErrorInfo &e) {
+        QVERIFY2(e.toString().contains("Parent succeeded, child failed."),
+                 qPrintable(e.toString()));
+    }
+}
+
 void TestLanguage::buildConfigStringListSyntax()
 {
     bool exceptionCaught = false;
@@ -503,6 +516,8 @@ void TestLanguage::erroneousFiles_data()
             << "Cyclic dependencies detected.";
     QTest::newRow("dependency_cycle3")
             << "Cyclic dependencies detected.";
+    QTest::newRow("dependency_cycle4")
+            << "Cyclic dependencies detected.";
     QTest::newRow("references_cycle")
             << "Cycle detected while referencing file 'references_cycle.qbs'.";
     QTest::newRow("subproject_cycle")
@@ -578,7 +593,7 @@ void TestLanguage::exports()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 12);
+        QCOMPARE(products.count(), 17);
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(product);
@@ -655,6 +670,16 @@ void TestLanguage::exports()
         QVERIFY(product);
         QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
                                                 "someString").toString(), QString("sub1"));
+
+        product = products.value("libE");
+        QVERIFY(product);
+        propertyName = QStringList() << "modules" << "dummy" << "defines";
+        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        QCOMPARE(propertyValue.toStringList(),
+                 QStringList() << "LIBA" << "LIBB" << "LIBC" << "LIBD");
+        propertyName = QStringList() << "modules" << "dummy" << "productName";
+        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        QCOMPARE(propertyValue.toString(), QString("libE"));
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -921,6 +946,24 @@ void TestLanguage::idUsage()
     QVERIFY(!exceptionCaught);
 }
 
+void TestLanguage::idUniqueness()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("id-uniqueness.qbs"));
+        loader->loadProject(defaultParameters);
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        const QList<ErrorItem> items = e.items();
+        QCOMPARE(items.count(), 3);
+        QCOMPARE(items.at(0).toString(), QString::fromUtf8("The id 'baseProduct' is not unique."));
+        QVERIFY(items.at(1).toString().contains("id-uniqueness.qbs:6:5 First occurrence is here."));
+        QVERIFY(items.at(2).toString().contains("id-uniqueness.qbs:9:5 Next occurrence is here."));
+    }
+    QVERIFY(exceptionCaught);
+}
+
 void TestLanguage::importCollection()
 {
     bool exceptionCaught = false;
@@ -1129,15 +1172,31 @@ void TestLanguage::modulePropertiesInGroups()
         const ResolvedProductPtr product = products.value("grouptest");
         QVERIFY(product);
         GroupConstPtr g1;
+        GroupConstPtr g11;
+        GroupConstPtr g12;
         GroupConstPtr g2;
+        GroupConstPtr g21;
+        GroupConstPtr g211;
         foreach (const GroupConstPtr &g, product->groups) {
             if (g->name == "g1")
                 g1= g;
             else if (g->name == "g2")
                 g2 = g;
+            else if (g->name == "g1.1")
+                g11 = g;
+            else if (g->name == "g1.2")
+                g12 = g;
+            else if (g->name == "g2.1")
+                g21 = g;
+            else if (g->name == "g2.1.1")
+                g211 = g;
         }
         QVERIFY(g1);
         QVERIFY(g2);
+        QVERIFY(g11);
+        QVERIFY(g12);
+        QVERIFY(g21);
+        QVERIFY(g211);
 
         const QVariantMap productProps = product->moduleProperties->value();
         PropertyFinder pf;
@@ -1187,6 +1246,50 @@ void TestLanguage::modulePropertiesInGroups()
         QCOMPARE(g1Gmod2List, QStringList() << "g1" << "commonName_in_gmod1" << "g1_gmod4_g1_gmod3"
                  << "g1_gmod3" << "gmod2_list_proto");
 
+        const QVariantMap g11Props = g11->properties->value();
+        const auto &g11Gmod1List1 = pf.propertyValue(g11Props, "gmod.gmod1", "gmod1_list1")
+                .toStringList();
+        QCOMPARE(g11Gmod1List1, QStringList() << "gmod1_list1_proto" << "g1.1");
+        const auto &g11Gmod1List2 = pf.propertyValue(g11Props, "gmod.gmod1", "gmod1_list2")
+                .toStringList();
+        QCOMPARE(g11Gmod1List2, QStringList() << "grouptest" << "gmod1_string_proto"
+                 << "gmod1_list2_proto" << "g1" << "g1.1");
+        const auto &g11Gmod1List3 = pf.propertyValue(g11Props, "gmod.gmod1", "gmod1_list3")
+                .toStringList();
+        QCOMPARE(g11Gmod1List3, QStringList() << "product" << "g1.1");
+        const int g11P0 = pf.propertyValue(g11Props, "gmod.gmod1", "p0").toInt();
+        QCOMPARE(g11P0, 5);
+        const int g11DepProp = pf.propertyValue(g11Props, "gmod.gmod1", "depProp").toInt();
+        QCOMPARE(g11DepProp, 2);
+        const auto &g11Gmod2String = pf.propertyValue(g11Props, "gmod2", "gmod2_string").toString();
+        QCOMPARE(g11Gmod2String, QString("g1.1"));
+        const auto &g11Gmod2List = pf.propertyValue(g11Props, "gmod2", "gmod2_list")
+                .toStringList();
+        QCOMPARE(g11Gmod2List, QStringList() << "g1.1" << "commonName_in_gmod1"
+                 << "g1.1_gmod4_g1.1_gmod3" << "g1.1_gmod3" << "gmod2_list_proto");
+
+        const QVariantMap g12Props = g12->properties->value();
+        const auto &g12Gmod1List1 = pf.propertyValue(g12Props, "gmod.gmod1", "gmod1_list1")
+                .toStringList();
+        QCOMPARE(g12Gmod1List1, QStringList() << "gmod1_list1_proto" << "g1.2");
+        const auto &g12Gmod1List2 = pf.propertyValue(g12Props, "gmod.gmod1", "gmod1_list2")
+                .toStringList();
+        QCOMPARE(g12Gmod1List2, QStringList() << "grouptest" << "gmod1_string_proto"
+                 << "gmod1_list2_proto" << "g1" << "g1.2");
+        const auto &g12Gmod1List3 = pf.propertyValue(g12Props, "gmod.gmod1", "gmod1_list3")
+                .toStringList();
+        QCOMPARE(g12Gmod1List3, QStringList() << "product" << "g1.2");
+        const int g12P0 = pf.propertyValue(g12Props, "gmod.gmod1", "p0").toInt();
+        QCOMPARE(g12P0, 9);
+        const int g12DepProp = pf.propertyValue(g12Props, "gmod.gmod1", "depProp").toInt();
+        QCOMPARE(g12DepProp, 1);
+        const auto &g12Gmod2String = pf.propertyValue(g12Props, "gmod2", "gmod2_string").toString();
+        QCOMPARE(g12Gmod2String, QString("g1.2"));
+        const auto &g12Gmod2List = pf.propertyValue(g12Props, "gmod2", "gmod2_list")
+                .toStringList();
+        QCOMPARE(g12Gmod2List, QStringList() << "g1.2" << "commonName_in_gmod1"
+                 << "g1_gmod4_g1.2_gmod3" << "g1.2_gmod3" << "gmod2_list_proto");
+
         const QVariantMap g2Props = g2->properties->value();
         const auto &g2Gmod1List1 = pf.propertyValue(g2Props, "gmod.gmod1", "gmod1_list1")
                 .toStringList();
@@ -1204,6 +1307,45 @@ void TestLanguage::modulePropertiesInGroups()
                 .toStringList();
         QCOMPARE(g2Gmod2List, QStringList() << "g2" << "commonName_in_gmod1" << "g2_gmod4_g2_gmod3"
                  << "g2_gmod3" << "gmod2_list_proto");
+
+        const QVariantMap g21Props = g21->properties->value();
+        const auto &g21Gmod1List1 = pf.propertyValue(g21Props, "gmod.gmod1", "gmod1_list1")
+                .toStringList();
+        QCOMPARE(g21Gmod1List1, QStringList() << "gmod1_list1_proto" << "g2");
+        const auto &g21Gmod1List2 = pf.propertyValue(g21Props, "gmod.gmod1", "gmod1_list2")
+                .toStringList();
+        QEXPECT_FAIL(0, "no re-eval when no module props set", Continue);
+        QCOMPARE(g21Gmod1List2, QStringList() << "grouptest" << "g2.1" << "gmod1_list2_proto");
+        const int g21P0 = pf.propertyValue(g21Props, "gmod.gmod1", "p0").toInt();
+        QCOMPARE(g21P0, 6);
+        const int g21DepProp = pf.propertyValue(g21Props, "gmod.gmod1", "depProp").toInt();
+        QCOMPARE(g21DepProp, 2);
+        const auto &g21Gmod2String = pf.propertyValue(g21Props, "gmod2", "gmod2_string").toString();
+        QCOMPARE(g21Gmod2String, QString("g2"));
+        const auto &g21Gmod2List = pf.propertyValue(g21Props, "gmod2", "gmod2_list")
+                .toStringList();
+        QEXPECT_FAIL(0, "no re-eval when no module props set", Continue);
+        QCOMPARE(g21Gmod2List, QStringList() << "g2" << "commonName_in_gmod1"
+                 << "g2.1_gmod4_g2.1_gmod3" << "g2.1_gmod3" << "gmod2_list_proto");
+
+        const QVariantMap g211Props = g211->properties->value();
+        const auto &g211Gmod1List1 = pf.propertyValue(g211Props, "gmod.gmod1", "gmod1_list1")
+                .toStringList();
+        QCOMPARE(g211Gmod1List1, QStringList() << "gmod1_list1_proto" << "g2");
+        const auto &g211Gmod1List2 = pf.propertyValue(g211Props, "gmod.gmod1", "gmod1_list2")
+                .toStringList();
+        QCOMPARE(g211Gmod1List2, QStringList() << "g2.1.1");
+        const int g211P0 = pf.propertyValue(g211Props, "gmod.gmod1", "p0").toInt();
+        QCOMPARE(g211P0, 17);
+        const int g211DepProp = pf.propertyValue(g211Props, "gmod.gmod1", "depProp").toInt();
+        QCOMPARE(g211DepProp, 2);
+        const auto &g211Gmod2String
+                = pf.propertyValue(g211Props, "gmod2", "gmod2_string").toString();
+        QCOMPARE(g211Gmod2String, QString("g2.1.1"));
+        const auto &g211Gmod2List = pf.propertyValue(g211Props, "gmod2", "gmod2_list")
+                .toStringList();
+        QCOMPARE(g211Gmod2List, QStringList() << "g2.1.1" << "commonName_in_gmod1"
+                 << "g2.1.1_gmod4_g2.1.1_gmod3" << "g2.1.1_gmod3" << "gmod2_list_proto");
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();

@@ -7,6 +7,7 @@ Project {
         Depends { name: "thePlugin" }
 
         cpp.cxxLanguageVersion: "c++11"
+        cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path"] : ["$ORIGIN"]
 
         Group {
             fileTagsFilter: product.type
@@ -22,8 +23,10 @@ Project {
         Depends { name: "cpp" }
         Depends { name: "Qt.core" }
 
+        bundle.isBundle: false
         cpp.defines: ["QT_PLUGIN"]
         cpp.cxxLanguageVersion: "c++11"
+        cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
         Qt.core.pluginMetaData: ["theKey=theValue"]
 
         Group {

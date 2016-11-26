@@ -90,7 +90,6 @@ JSSourceValue::JSSourceValue(bool createdByPropertiesBlock)
     : Value(JSSourceValueType, createdByPropertiesBlock)
     , m_line(-1)
     , m_column(-1)
-    , m_exportScope(nullptr)
 {
 }
 
@@ -144,17 +143,6 @@ void JSSourceValue::setDefiningItem(Item *item)
     foreach (const JSSourceValue::Alternative &a, m_alternatives)
         a.value->setDefiningItem(item);
 }
-
-Item *JSSourceValue::exportScope() const
-{
-    return m_exportScope;
-}
-
-void JSSourceValue::setExportScope(Item *extraScope)
-{
-    m_exportScope = extraScope;
-}
-
 
 ItemValue::ItemValue(Item *item, bool createdByPropertiesBlock)
     : Value(ItemValueType, createdByPropertiesBlock)

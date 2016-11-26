@@ -1145,14 +1145,13 @@ void TestApi::generatedFilesList()
         QVERIFY(a.isGenerated());
         QFileInfo fi(a.filePath());
         using qbs::Internal::HostOsInfo;
-        const QString objSuffix = HostOsInfo::isWindowsHost() ? ".obj" : ".o";
-        QVERIFY2(fi.fileName() == "main.cpp" + objSuffix
-                 || fi.fileName() == "mainwindow.cpp" + objSuffix
-                 || fi.fileName() == "moc_mainwindow.cpp"
-                 || fi.fileName() == "moc_mainwindow.cpp"  + objSuffix
-                 || fi.fileName() == "ui_mainwindow.h"
-                 || fi.fileName() == HostOsInfo::appendExecutableSuffix("generated-files-list")
-                 || fi.fileName().endsWith(".plist"),
+        const QStringList possibleFileNames = QStringList()
+                << "main.cpp.o" << "main.cpp.obj"
+                << "mainwindow.cpp.o" << "mainwindow.cpp.obj"
+                << "moc_mainwindow.cpp" << "moc_mainwindow.cpp.o" << "moc_mainwindow.cpp.obj"
+                << "ui_mainwindow.h"
+                << HostOsInfo::appendExecutableSuffix("generated-files-list");
+        QVERIFY2(possibleFileNames.contains(fi.fileName()) || fi.fileName().endsWith(".plist"),
                  qPrintable(fi.fileName()));
     }
     foreach (const qbs::GroupData &group, product.groups()) {

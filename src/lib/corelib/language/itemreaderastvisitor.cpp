@@ -204,6 +204,13 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
             throw ErrorInfo(Tr::tr("id: must be followed by identifier"));
         m_item->m_id = idExp->name.toString();
         m_file->ensureIdScope(m_itemPool);
+        ItemValueConstPtr existingId = m_file->idScope()->itemProperty(m_item->id());
+        if (existingId) {
+            ErrorInfo e(Tr::tr("The id '%1' is not unique.").arg(m_item->id()));
+            e.append(Tr::tr("First occurrence is here."), existingId->item()->location());
+            e.append(Tr::tr("Next occurrence is here."), m_item->location());
+            throw e;
+        }
         m_file->idScope()->setProperty(m_item->id(), ItemValue::create(m_item));
         return false;
     }

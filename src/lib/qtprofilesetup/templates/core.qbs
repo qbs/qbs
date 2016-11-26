@@ -81,6 +81,10 @@ Module {
     property string qmBaseName: product.targetName
     property bool lreleaseMultiplexMode: false
 
+    cpp.entryPoint: qbs.targetOS.containsAny(["ios", "tvos"])
+                        && Utilities.versionCompare(version, "5.6.0") >= 0
+                    ? "_qt_main_wrapper"
+                    : undefined
     cpp.cxxLanguageVersion: Utilities.versionCompare(version, "5.7.0") >= 0 ? "c++11" : original
     cpp.defines: {
         var defines = @defines@;
@@ -88,9 +92,12 @@ Module {
         //     from the build variant "release"
         if (!qbs.debugInformation)
             defines.push("QT_NO_DEBUG");
-        if (qbs.targetOS.contains("ios"))
+        if (qbs.targetOS.containsAny(["ios", "tvos"])) {
             defines = defines.concat(["DARWIN_NO_CARBON", "QT_NO_CORESERVICES", "QT_NO_PRINTER",
-                            "QT_NO_PRINTDIALOG", "main=qtmn"]);
+                            "QT_NO_PRINTDIALOG"]);
+            if (Utilities.versionCompare(version, "5.6.0") < 0)
+                defines.push("main=qtmn");
+        }
         return defines;
     }
     cpp.includePaths: {

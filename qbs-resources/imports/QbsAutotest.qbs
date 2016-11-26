@@ -1,11 +1,12 @@
 import qbs
+import qbs.FileInfo
 
 QtApplication {
     type: ["application", "autotest"]
     consoleApplication: true
     property string testName
     name: "tst_" + testName
-    Depends { name: "Qt.test" }
+    Depends { name: "Qt.testlib" }
     Depends { name: "qbscore" }
     Depends { name: "qbsbuildconfig" }
     cpp.includePaths: "../../../src"
@@ -13,7 +14,7 @@ QtApplication {
     destinationDirectory: "bin"
     Group {
         name: "logging"
-        prefix: "../../../src/app/shared/logging/"
+        prefix: FileInfo.joinPaths(product.sourceDirectory, "../../../src/app/shared/logging") + '/'
         files: [
             "coloredoutput.cpp",
             "coloredoutput.h",

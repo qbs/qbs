@@ -7,7 +7,7 @@ QbsLibrary {
     Depends { name: "cpp" }
     Depends { name: "Qt"; submodules: ["core-private", "network", "script", "xml"] }
     Depends { condition: qbsbuildconfig.enableProjectFileUpdates; name: "Qt.gui" }
-    Depends { condition: qbsbuildconfig.enableUnitTests; name: "Qt.test" }
+    Depends { condition: qbsbuildconfig.enableUnitTests; name: "Qt.testlib" }
     name: "qbscore"
     cpp.includePaths: base.concat([
         ".",

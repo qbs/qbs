@@ -130,7 +130,6 @@ public:
     bool sourceUsesBase() const { return m_flags.testFlag(SourceUsesBase); }
     bool sourceUsesOuter() const { return m_flags.testFlag(SourceUsesOuter); }
     bool sourceUsesOriginal() const { return m_flags.testFlag(SourceUsesOriginal); }
-    bool isInExportItem() const { return m_exportScope; }
     bool hasFunctionForm() const { return m_flags.testFlag(HasFunctionForm); }
     void setHasFunctionForm(bool b);
     void setIsExclusiveListValue() { m_flags |= ExclusiveListValue; }
@@ -152,9 +151,6 @@ public:
 
     void setDefiningItem(Item *item);
 
-    Item *exportScope() const;
-    void setExportScope(Item *exportScope);
-
 private:
     QStringRef m_sourceCode;
     int m_line;
@@ -163,7 +159,6 @@ private:
     Flags m_flags;
     JSSourceValuePtr m_baseValue;
     QList<Alternative> m_alternatives;
-    Item *m_exportScope;
 };
 
 

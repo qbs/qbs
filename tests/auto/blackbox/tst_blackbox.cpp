@@ -1666,8 +1666,8 @@ static QString soName(const QString &readElfPath, const QString &libFilePath)
 void TestBlackbox::soVersion()
 {
     const QString readElfPath = findExecutable(QStringList("readelf"));
-    if (readElfPath.isEmpty())
-        QSKIP("No readelf found");
+    if (readElfPath.isEmpty() || readElfPath.endsWith("exe"))
+        QSKIP("soversion test not applicable on this system");
     QDir::setCurrent(testDataDir + "/soversion");
 
     QFETCH(QString, soVersion);
@@ -3806,6 +3806,9 @@ void TestBlackbox::generatedArtifactAsInputToDynamicRule()
     QVERIFY2(!regularFileExists(oldFile), qPrintable(oldFile));
     const QString newFile = relativeProductBuildDir("p") + "/new.txt";
     QVERIFY2(regularFileExists(newFile), qPrintable(oldFile));
+    QVERIFY2(m_qbsStdout.contains("generating"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("generating"), m_qbsStdout.constData());
 }
 
 static bool haveWiX(const Profile &profile)
@@ -3972,6 +3975,12 @@ void TestBlackbox::importInPropertiesCondition()
 void TestBlackbox::importingProduct()
 {
     QDir::setCurrent(testDataDir + "/importing-product");
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::importsConflict()
+{
+    QDir::setCurrent(testDataDir + "/imports-conflict");
     QCOMPARE(runQbs(), 0);
 }
 

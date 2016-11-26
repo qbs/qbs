@@ -76,6 +76,7 @@ private slots:
     void cleanupTestCase();
 
     void baseProperty();
+    void baseValidation();
     void buildConfigStringListSyntax();
     void builtinFunctionInSearchPathsProperty();
     void canonicalArchitecture();
@@ -97,6 +98,7 @@ private slots:
     void identifierSearch_data();
     void identifierSearch();
     void idUsage();
+    void idUniqueness();
     void importCollection();
     void invalidBindingInDisabledItem();
     void itemPrototype();
