@@ -1188,7 +1188,7 @@ void ModuleLoader::propagateModulesFromParent(Item *groupItem,
     for (auto modIt = groupModules.begin(); modIt != groupModules.end(); ++modIt) {
         const QualifiedIdSet &dependents = reverseDepencencies.value(modIt->name);
         Item::Modules dependentModules;
-        dependentModules.reserve(dependents.size());
+        dependentModules.reserve(int(dependents.size()));
         for (auto depIt = dependents.begin(); depIt != dependents.end(); ++depIt) {
             Item * const itemOfDependent = moduleInstancesForGroup.value(*depIt);
             QBS_CHECK(itemOfDependent);
