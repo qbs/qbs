@@ -4022,6 +4022,55 @@ void TestBlackbox::infoPlist()
     QVERIFY2(fileContents.contains("<key>NSPrincipalClass</key>"), fileContents.constData());
 }
 
+static bool haveInnoSetup(const Profile &profile)
+{
+    if (profile.value("innosetup.toolchainInstallPath").isValid())
+        return true;
+
+    QStringList regKeys;
+    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1")
+            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1");
+
+    QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
+            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+
+    for (const QString &key : regKeys) {
+        QSettings settings(key, QSettings::NativeFormat);
+        QString str = settings.value(QLatin1String("InstallLocation")).toString();
+        if (!str.isEmpty())
+            paths.prepend(str);
+    }
+
+    for (const QString &path : paths) {
+        if (regularFileExists(QDir::fromNativeSeparators(path) +
+                          HostOsInfo::appendExecutableSuffix(QLatin1String("/ISCC"))))
+            return true;
+    }
+
+    return false;
+}
+
+void TestBlackbox::innoSetup()
+{
+    Settings settings((QString()));
+    Profile profile(profileName(), &settings);
+
+    if (!haveInnoSetup(profile)) {
+        QSKIP("Inno Setup is not installed");
+        return;
+    }
+
+    QDir::setCurrent(testDataDir + "/innosetup");
+    QbsRunParameters params;
+    if (!HostOsInfo::isWindowsHost())
+        params.arguments << "qbs.targetOS:windows";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("compiling test.iss"));
+    QVERIFY(m_qbsStdout.contains("compiling Example1.iss"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs.setup.test.exe"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("Example1") + "/Example1.exe"));
+}
+
 void TestBlackbox::assetCatalog()
 {
     QFETCH(bool, flatten);

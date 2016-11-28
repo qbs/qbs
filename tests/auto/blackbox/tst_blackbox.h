@@ -87,6 +87,7 @@ private slots:
     void importingProduct();
     void importsConflict();
     void infoPlist();
+    void innoSetup();
     void inputsFromDependencies();
     void installable();
     void installedApp();
