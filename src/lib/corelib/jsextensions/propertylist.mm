@@ -248,36 +248,14 @@ void PropertyListPrivate::readFromData(QScriptContext *context, QByteArray data)
     @autoreleasepool {
         NSPropertyListFormat format;
         int internalFormat = 0;
-        NSError *error = nil;
         NSString *errorString = nil;
-        id plist = nil;
-
-        if ([NSPropertyListSerialization
-                respondsToSelector:@selector(propertyListWithData:options:format:error:)]) {
-            error = nil;
-            errorString = nil;
-            plist = [NSPropertyListSerialization propertyListWithData:data.toNSData()
-                                                              options:0
-                                                               format:&format error:&error];
-            if (Q_UNLIKELY(!plist)) {
-                errorString = [error localizedDescription];
-            }
-        }
-        else
-        {
-            error = nil;
-            errorString = nil;
-            plist = [NSPropertyListSerialization propertyListFromData:data.toNSData()
-                                                     mutabilityOption:NSPropertyListImmutable
-                                                               format:&format
-                                                     errorDescription:&errorString];
-        }
-        if (plist)
+        id plist = [NSPropertyListSerialization propertyListWithData:data.toNSData()
+                                                             options:0
+                                                              format:&format error:nil];
+        if (plist) {
             internalFormat = format;
-#if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_10_7
-        if (!plist && NSClassFromString(@"NSJSONSerialization")) {
-            error = nil;
-            errorString = nil;
+        } else {
+            NSError *error = nil;
             plist = [NSJSONSerialization JSONObjectWithData:data.toNSData()
                                                     options:0
                                                       error:&error];
@@ -287,7 +265,6 @@ void PropertyListPrivate::readFromData(QScriptContext *context, QByteArray data)
                 internalFormat = QPropertyListJSONFormat;
             }
         }
-#endif
 
         if (Q_UNLIKELY(!plist)) {
             context->throwError(QString::fromNSString(errorString));
@@ -318,27 +295,19 @@ QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QStri
 
         if (format == QLatin1String("json") || format == QLatin1String("json-pretty") ||
             format == QLatin1String("json-compact")) {
-#if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_10_7
-            if (NSClassFromString(@"NSJSONSerialization")) {
-                if ([NSJSONSerialization isValidJSONObject:obj]) {
-                    error = nil;
-                    errorString = nil;
-                    const NSJSONWritingOptions options = format == QLatin1String("json-pretty")
-                            ? NSJSONWritingPrettyPrinted : 0;
-                    data = [NSJSONSerialization dataWithJSONObject:obj
-                                                           options:options
-                                                             error:&error];
-                    if (Q_UNLIKELY(!data)) {
-                        errorString = [error localizedDescription];
-                    }
-                } else {
-                    errorString = @"Property list object cannot be converted to JSON data";
+            if ([NSJSONSerialization isValidJSONObject:obj]) {
+                error = nil;
+                errorString = nil;
+                const NSJSONWritingOptions options = format == QLatin1String("json-pretty")
+                        ? NSJSONWritingPrettyPrinted : 0;
+                data = [NSJSONSerialization dataWithJSONObject:obj
+                                                       options:options
+                                                         error:&error];
+                if (Q_UNLIKELY(!data)) {
+                    errorString = [error localizedDescription];
                 }
-            }
-#endif
-            else {
-                errorString = @"JSON serialization of property lists is not "
-                              @"supported on this version of macOS";
+            } else {
+                errorString = @"Property list object cannot be converted to JSON data";
             }
         } else if (format == QLatin1String("xml1") || format == QLatin1String("binary1")) {
             const NSPropertyListFormat plistFormat = format == QLatin1String("xml1")
@@ -347,19 +316,12 @@ QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QStri
 
             error = nil;
             errorString = nil;
-            if ([NSPropertyListSerialization
-                    respondsToSelector:@selector(dataWithPropertyList:format:options:error:)]) {
-                data = [NSPropertyListSerialization dataWithPropertyList:obj
-                                                                  format:plistFormat
-                                                                 options:0
-                                                                   error:&error];
-                if (Q_UNLIKELY(!data)) {
-                    errorString = [error localizedDescription];
-                }
-            } else {
-                data = [NSPropertyListSerialization dataFromPropertyList:obj
-                                                                  format:plistFormat
-                                                        errorDescription:&errorString];
+            data = [NSPropertyListSerialization dataWithPropertyList:obj
+                                                              format:plistFormat
+                                                             options:0
+                                                               error:&error];
+            if (Q_UNLIKELY(!data)) {
+                errorString = [error localizedDescription];
             }
         } else {
             errorString = [NSString stringWithFormat:@"Property lists cannot be written in the '%s' "
