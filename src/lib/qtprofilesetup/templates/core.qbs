@@ -278,7 +278,7 @@ Module {
         }
     }
 
-    property path resourceSourceBase: product.sourceDirectory
+    property path resourceSourceBase
     property string resourcePrefix: "/"
     property string resourceFileBaseName: product.targetName
     Rule {
@@ -312,8 +312,9 @@ Module {
                             var inp = inputsByPrefix[prefix][i];
                             var fullResPath = inp.filePath;
                             var baseDir = inp.moduleProperty("Qt.core", "resourceSourceBase");
-                            var relResPath = FileInfo.relativePath(baseDir, fullResPath);
-                            qrcFile.writeLine('<file alias = "' + relResPath + '">'
+                            var resAlias = baseDir
+                                ? FileInfo.relativePath(baseDir, fullResPath) : inp.fileName;
+                            qrcFile.writeLine('<file alias="' + resAlias + '">'
                                               + fullResPath + '</file>');
                         }
                         qrcFile.writeLine('</qresource>');

@@ -337,9 +337,10 @@
     \row
         \li resourceSourceBase
         \li \c{path}
-        \li \c{product.sourceDirectory}
+        \li \c{undefined}
         \li For files tagged as \c{qt.core.resource_data}, this property determines which part of
-            their path will end up in the generated \c qrc file.
+            their path will end up in the generated \c qrc file. If this property is set to
+            \c undefined, only the file name is used.
     \row
         \li resourcePrefix
         \li \c{string}
