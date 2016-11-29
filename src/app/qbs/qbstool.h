@@ -37,6 +37,9 @@
 **
 ****************************************************************************/
 
+#ifndef QBS_QBSTOOL_H
+#define QBS_QBSTOOL_H
+
 #include <QStringList>
 
 class QbsTool
@@ -59,3 +62,5 @@ private:
     QString m_stdout;
     QString m_stderr;
 };
+
+#endif // QBS_QBSTOOL_H
