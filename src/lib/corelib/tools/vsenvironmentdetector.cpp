@@ -98,12 +98,34 @@ bool VsEnvironmentDetector::start(QVector<MSVC *> msvcs)
     return true;
 }
 
+QString VsEnvironmentDetector::findVcVarsAllBat(const MSVC &msvc) const
+{
+    // ### We can only rely on MSVC.vcInstallPath being set
+    // when this is called from utilitiesextension.cpp :-(
+    // If we knew the vsInstallPath at this point we could just use that
+    // instead of searching for vcvarsall.bat candidates.
+    QDir dir(msvc.vcInstallPath);
+    for (;;) {
+        if (!dir.cdUp())
+            return QString();
+        if (dir.dirName() == QLatin1String("VC"))
+            break;
+    }
+    const QString vcvarsallbat = QStringLiteral("vcvarsall.bat");
+    QString path = vcvarsallbat;
+    if (dir.exists(path))
+        return dir.absoluteFilePath(path);
+    path = QLatin1String("Auxiliary/Build/") + vcvarsallbat;
+    if (dir.exists(path))
+        return dir.absoluteFilePath(path);
+    return QString();
+}
+
 bool VsEnvironmentDetector::startDetection(const QVector<MSVC *> &compatibleMSVCs)
 {
-    const QString vcvarsallbat = QDir::cleanPath(compatibleMSVCs.first()->vcInstallPath
-                                                     + QLatin1String("/../vcvarsall.bat"));
-    if (!QFile::exists(vcvarsallbat)) {
-        m_errorString = Tr::tr("Cannot find '%1'.").arg(QDir::toNativeSeparators(vcvarsallbat));
+    const QString vcvarsallbat = findVcVarsAllBat(*compatibleMSVCs.first());
+    if (vcvarsallbat.isEmpty()) {
+        m_errorString = Tr::tr("Cannot find 'vcvarsall.bat'.");
         return false;
     }
 

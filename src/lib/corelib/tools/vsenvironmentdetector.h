@@ -64,6 +64,7 @@ public:
     QString errorString() const { return m_errorString; }
 
 private:
+    QString findVcVarsAllBat(const MSVC &msvc) const;
     bool startDetection(const QVector<MSVC *> &compatibleMSVCs);
     void writeBatchFile(QIODevice *device, const QString &vcvarsallbat, const QVector<MSVC *> &msvcs) const;
     void parseBatOutput(const QByteArray &output, QVector<MSVC *> msvcs);

@@ -61,7 +61,9 @@ class MSVC
 {
 public:
     QString version;
+    Version internalVsVersion;
     Version compilerVersion;
+    QString vsInstallPath;
     QString vcInstallPath;
     QString binPath;
     QString pathPrefix;

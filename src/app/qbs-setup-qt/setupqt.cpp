@@ -427,6 +427,8 @@ static Version msvcCompilerVersionForYear(int year)
         return Version(18);
     case 2015:
         return Version(19);
+    case 2017:
+        return Version(19, 1);
     default:
         return Version();
     }
