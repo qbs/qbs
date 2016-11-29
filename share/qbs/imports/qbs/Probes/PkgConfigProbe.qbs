@@ -43,6 +43,7 @@ Probe {
     property string maxVersion
     property bool forStaticBuild: false
     property stringList libDirs // Full, non-sysrooted paths, mirroring the environment variable
+    property string pathListSeparator: qbs.pathListSeparator
 
     // Output
     property stringList cflags // Unmodified --cflags output
@@ -79,7 +80,7 @@ Probe {
                 }
             }
             if (libDirsToSet)
-                p.setEnv("PKG_CONFIG_LIBDIR", libDirsToSet.join(qbs.pathListSeparator));
+                p.setEnv("PKG_CONFIG_LIBDIR", libDirsToSet.join(pathListSeparator));
             if (p.exec(executable, args.concat([ '--cflags' ])) === 0) {
                 cflags = p.readStdOut().trim();
                 cflags = cflags ? cflags.split(/\s/) : [];

@@ -43,7 +43,7 @@ NodeJsProbe {
     configure: {
         var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, pathPrefixes,
                                                   pathSuffixes, platformPaths, environmentPaths,
-                                                  platformEnvironmentPaths, qbs.pathListSeparator);
+                                                  platformEnvironmentPaths, pathListSeparator);
         result.npmBin = result.found ? NodeJs.findLocation(result.filePath, "bin") : undefined;
         result.npmRoot = result.found ? NodeJs.findLocation(result.filePath, "root") : undefined;
         result.npmPrefix = result.found ? NodeJs.findLocation(result.filePath, "prefix") : undefined;

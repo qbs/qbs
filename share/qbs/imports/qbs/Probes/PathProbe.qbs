@@ -41,6 +41,7 @@ Probe {
     property pathList platformPaths: [ '/usr', '/usr/local' ]
     property pathList environmentPaths
     property pathList platformEnvironmentPaths
+    property string pathListSeparator: qbs.pathListSeparator
 
     // Output
     property string path
@@ -50,7 +51,7 @@ Probe {
     configure: {
         var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, pathPrefixes,
                                                   pathSuffixes, platformPaths, environmentPaths,
-                                                  platformEnvironmentPaths, qbs.pathListSeparator);
+                                                  platformEnvironmentPaths, pathListSeparator);
         found = result.found;
         path = result.path;
         filePath = result.filePath;
