@@ -800,6 +800,8 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
                 = rad.propertiesRequestedInCommands;
         artifact->transformer->propertiesRequestedFromArtifactInPrepareScript
                 = rad.propertiesRequestedFromArtifactInPrepareScript;
+        artifact->transformer->propertiesRequestedFromArtifactInCommands
+                = rad.propertiesRequestedFromArtifactInCommands;
         artifact->setTimestamp(rad.timeStamp);
         if (childrenAdded && !childrenToConnect.isEmpty())
             *childrenAdded = true;

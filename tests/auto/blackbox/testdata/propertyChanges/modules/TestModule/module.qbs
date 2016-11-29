@@ -7,6 +7,8 @@ Module {
         fileTags: "test-input"
     }
 
+    property string testProperty
+
     Rule {
         inputs: ['test-input']
         Artifact {
@@ -19,8 +21,9 @@ Module {
             cmd.highlight = "codegen";
             cmd.description = "Making output from input";
             cmd.sourceCode = function() {
-            // console.info('Change in source code');
-            File.copy(input.filePath, output.filePath);
+                // console.info('Change in source code');
+                console.info(input.moduleProperty("TestModule", "testProperty"));
+                File.copy(input.filePath, output.filePath);
             }
             return cmd;
         }

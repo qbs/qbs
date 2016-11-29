@@ -81,6 +81,7 @@ public:
     PropertySet propertiesRequestedInPrepareScript;
     PropertySet propertiesRequestedInCommands;
     PropertyHash propertiesRequestedFromArtifactInPrepareScript;
+    PropertyHash propertiesRequestedFromArtifactInCommands;
 
     // Only needed for API purposes
     FileTags fileTags;
