@@ -8,6 +8,8 @@ QbsLibrary {
     Depends { name: "Qt"; submodules: ["core-private", "network", "script", "xml"] }
     Depends { condition: qbsbuildconfig.enableProjectFileUpdates; name: "Qt.gui" }
     Depends { condition: qbsbuildconfig.enableUnitTests; name: "Qt.testlib" }
+    Depends { condition: Qt.core.staticBuild; name: "qbs_cpp_scanner" }
+    Depends { condition: Qt.core.staticBuild; name: "qbs_qt_scanner" }
     name: "qbscore"
     cpp.includePaths: base.concat([
         ".",

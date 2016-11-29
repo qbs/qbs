@@ -2,7 +2,7 @@ import qbs 1.0
 import "../scannerplugin.qbs" as ScannerPlugin
 
 ScannerPlugin {
-    cpp.defines: ["CPLUSPLUS_NO_PARSER"]
+    cpp.defines: base.concat(["CPLUSPLUS_NO_PARSER"])
     name: "qbs_cpp_scanner"
     files: [
         "../scanner.h",

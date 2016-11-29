@@ -60,6 +60,7 @@ public:
     ~ScannerPluginManager();
     static ScannerPluginManager *instance();
     static QList<ScannerPlugin *> scannersForFileTag(const FileTag &fileTag);
+    void loadPlugins(ScannerPlugin **plugins);
     void loadPlugins(const QStringList &paths, const Logger &logger);
 
 private:

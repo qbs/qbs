@@ -84,6 +84,11 @@
 #include <QSharedData>
 #include <QtDebug>
 
+#ifdef QBS_STATIC_LIB
+extern "C" ScannerPlugin *cppScanners[];
+extern "C" ScannerPlugin *qtScanners[];
+#endif
+
 namespace qbs {
 namespace Internal {
 
@@ -99,13 +104,19 @@ static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
     QStringList pluginPaths;
     foreach (const QString &pluginPath, _pluginPaths) {
         if (!FileInfo::exists(pluginPath)) {
+#ifndef QBS_STATIC_LIB
             logger.qbsWarning() << Tr::tr("Plugin path '%1' does not exist.")
                                     .arg(QDir::toNativeSeparators(pluginPath));
+#endif
         } else {
             pluginPaths << pluginPath;
         }
     }
     ScannerPluginManager::instance()->loadPlugins(pluginPaths, logger);
+#ifdef QBS_STATIC_LIB
+    ScannerPluginManager::instance()->loadPlugins(cppScanners);
+    ScannerPluginManager::instance()->loadPlugins(qtScanners);
+#endif
 
     qRegisterMetaType<ErrorInfo>("qbs::ErrorInfo");
     qRegisterMetaType<ProcessResult>("qbs::ProcessResult");

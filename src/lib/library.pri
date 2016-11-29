@@ -17,6 +17,7 @@ INCLUDEPATH += $${PWD}/../
 contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 win32:CONFIG(debug, debug|release):TARGET = $${TARGET}d
 CONFIG += c++11
+CONFIG += create_prl
 
 qbs_disable_rpath {
     osx:QMAKE_LFLAGS_SONAME = -Wl,-install_name,$$QBS_INSTALL_PREFIX/$$QBS_LIBRARY_DIRNAME/

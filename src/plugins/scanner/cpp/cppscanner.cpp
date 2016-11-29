@@ -403,14 +403,16 @@ ScannerPlugin rcScanner =
     ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
 };
 
-ScannerPlugin *theScanners[] = {
+ScannerPlugin *cppScanners[] = {
     &hppScanner, &pchCppScanner, &pchCScanner, &pchObjcppScanner, &pchObjcScanner,
     &cppScanner, &cScanner, &objcppScanner, &objcScanner, &rcScanner, NULL
 };
 
+#ifndef QBS_STATIC_LIB
 CPPSCANNER_EXPORT ScannerPlugin **getScanners()
 {
-    return theScanners;
+    return cppScanners;
 }
+#endif
 
 } // extern "C"

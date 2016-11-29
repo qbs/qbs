@@ -183,11 +183,13 @@ ScannerPlugin qrcScanner =
     NoScannerFlags
 };
 
-ScannerPlugin *theScanners[] = {&qrcScanner, NULL};
+ScannerPlugin *qtScanners[] = {&qrcScanner, NULL};
 
+#ifndef QBS_STATIC_LIB
 SCANNER_EXPORT ScannerPlugin **getScanners()
 {
-    return theScanners;
+    return qtScanners;
 }
+#endif
 
 } // extern "C"

@@ -73,6 +73,12 @@ QList<ScannerPlugin *> ScannerPluginManager::scannersForFileTag(const FileTag &f
     return instance()->m_scannerPlugins.value(fileTag);
 }
 
+void ScannerPluginManager::loadPlugins(ScannerPlugin **plugins)
+{
+    for (int i = 0; plugins[i] != 0; ++i)
+        m_scannerPlugins[FileTag(plugins[i]->fileTag)] += plugins[i];
+}
+
 void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Logger &logger)
 {
     QStringList filters;
@@ -114,8 +120,7 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Log
             logger.qbsTrace() << QString::fromLatin1("pluginmanager: scanner plugin '%1' loaded.")
                                  .arg(QDir::toNativeSeparators(fileName));
 
-            for (int i = 0; plugins[i] != 0; ++i)
-                m_scannerPlugins[FileTag(plugins[i]->fileTag)] += plugins[i];
+            loadPlugins(plugins);
             m_libs.append(lib.take());
         }
     }

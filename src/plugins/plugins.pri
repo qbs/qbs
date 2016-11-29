@@ -7,11 +7,16 @@ include(../install_prefix.pri)
     destdirPrefix = $$shadowed($$PWD)/../../$${QBS_LIBRARY_DIRNAME}
 }
 DESTDIR = $${destdirPrefix}/qbs/plugins
+CONFIG(static, static|shared) {
+    DEFINES += QBS_STATIC_LIB
+} else {
+    DEFINES += QBS_LIBRARY
+}
 TEMPLATE = lib
 
 CONFIG += depend_includepath
-CONFIG += shared
 CONFIG += c++11
+CONFIG += create_prl
 unix: CONFIG += plugin
 
 !isEmpty(QBS_PLUGINS_INSTALL_DIR): \
