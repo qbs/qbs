@@ -473,10 +473,12 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
     if (msvcCompilerVersion.isValid()) {
         // We want to know for sure that MSVC compiler versions match,
         // because it's especially important for this toolchain
-        if (msvcCompilerVersion != Version::fromString(
-                toolchainProfile.value(QLatin1String("cpp.compilerVersion")).toString())) {
+        const Version fullCompilerVersion = Version::fromString(
+            toolchainProfile.value(QLatin1String("cpp.compilerVersion")).toString());
+        const Version shortCompilerVersion = Version(fullCompilerVersion.majorVersion(),
+                                                     fullCompilerVersion.minorVersion());
+        if (msvcCompilerVersion != shortCompilerVersion)
             return MatchNone;
-        }
     }
 
     return match;
