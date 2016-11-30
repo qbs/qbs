@@ -204,7 +204,8 @@ public:
 
     static Ptr create() { return Ptr(new SourceWildCards); }
 
-    QSet<QString> expandPatterns(const GroupConstPtr &group, const QString &baseDir) const;
+    QSet<QString> expandPatterns(const GroupConstPtr &group, const QString &baseDir,
+                                 const QString &buildDir) const;
 
     // TODO: Use back pointer to Group instead?
     QString prefix;
@@ -217,9 +218,10 @@ private:
     SourceWildCards() {}
 
     QSet<QString> expandPatterns(const GroupConstPtr &group, const QStringList &patterns,
-                                 const QString &baseDir) const;
+                                 const QString &baseDir, const QString &buildDir) const;
     void expandPatterns(QSet<QString> &result, const GroupConstPtr &group,
-                        const QStringList &parts, const QString &baseDir) const;
+                        const QStringList &parts, const QString &baseDir,
+                        const QString &buildDir) const;
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;

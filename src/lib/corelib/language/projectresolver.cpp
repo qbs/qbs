@@ -686,7 +686,9 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         wildcards->prefix = group->prefix;
         wildcards->patterns = patterns;
         group->wildcards = wildcards;
-        QSet<QString> files = wildcards->expandPatterns(group, m_productContext->product->sourceDirectory);
+        QSet<QString> files = wildcards->expandPatterns(group,
+                m_productContext->product->sourceDirectory,
+                projectContext->project->topLevelProject()->buildDirectory);
         foreach (const QString &fileName, files)
             createSourceArtifact(m_productContext->product, fileName, group, true, filesLocation,
                                  &m_productContext->sourceArtifactLocations, &fileError);

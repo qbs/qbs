@@ -2012,8 +2012,11 @@ void TestApi::softDependency()
 
 void TestApi::sourceFileInBuildDir()
 {
+    VERIFY_NO_ERROR(doBuildProject("source-file-in-build-dir/project.qbs"));
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters("source-file-in-build-dir/project.qbs");
+    const QString generatedFile = relativeProductBuildDir("theProduct") + "/generated.cpp";
+    QVERIFY2(regularFileExists(generatedFile), qPrintable(generatedFile));
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());

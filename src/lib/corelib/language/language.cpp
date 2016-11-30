@@ -1067,15 +1067,15 @@ void TopLevelProject::store(PersistentPool &pool) const
  */
 
 QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
-                                              const QString &baseDir) const
+                                              const QString &baseDir, const QString &buildDir) const
 {
-    QSet<QString> files = expandPatterns(group, patterns, baseDir);
-    files -= expandPatterns(group, excludePatterns, baseDir);
+    QSet<QString> files = expandPatterns(group, patterns, baseDir, buildDir);
+    files -= expandPatterns(group, excludePatterns, baseDir, buildDir);
     return files;
 }
 
 QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
-        const QStringList &patterns, const QString &baseDir) const
+        const QStringList &patterns, const QString &baseDir, const QString &buildDir) const
 {
     QSet<QString> files;
     QString expandedPrefix = prefix;
@@ -1094,28 +1094,23 @@ QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
             } else {
                 rootDir = QLatin1Char('/');
             }
-            expandPatterns(files, group, parts, rootDir);
+            expandPatterns(files, group, parts, rootDir, buildDir);
         } else {
-            expandPatterns(files, group, parts, baseDir);
+            expandPatterns(files, group, parts, baseDir, buildDir);
         }
     }
 
     return files;
 }
 
-static bool isQbsBuildDir(const QDir &dir)
-{
-    return dir.exists(dir.dirName() + QLatin1String(".bg"));
-}
-
 void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr &group,
                                      const QStringList &parts,
-                                     const QString &baseDir) const
+                                     const QString &baseDir, const QString &buildDir) const
 {
     // People might build directly in the project source directory. This is okay, since
     // we keep the build data in a "container" directory. However, we must make sure we don't
     // match any generated files therein as source files.
-    if (isQbsBuildDir(baseDir))
+    if (baseDir.startsWith(buildDir))
         return;
 
     QStringList changed_parts = parts;
@@ -1152,12 +1147,12 @@ void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr 
     QDirIterator it(baseDir, QStringList(filePattern), itFilters, itFlags);
     while (it.hasNext()) {
         const QString filePath = it.next();
-        if (isQbsBuildDir(it.fileInfo().dir()))
+        if (it.fileInfo().dir().path().startsWith(buildDir))
             continue; // See above.
         if (!isDir && it.fileInfo().isDir() && !it.fileInfo().isSymLink())
             continue;
         if (isDir)
-            expandPatterns(result, group, changed_parts, filePath);
+            expandPatterns(result, group, changed_parts, filePath, buildDir);
         else
             result += QDir::cleanPath(filePath);
     }
