@@ -260,7 +260,7 @@ function linkerFlags(project, product, inputs, output) {
 
     for (i in frameworks) {
         frameworkExecutablePath = PathTools.frameworkExecutablePath(frameworks[i]);
-        if (File.exists(frameworkExecutablePath))
+        if (FileInfo.isAbsolutePath(frameworkExecutablePath))
             args.push(frameworkExecutablePath);
         else
             args = args.concat(['-framework', frameworks[i]]);
@@ -268,14 +268,15 @@ function linkerFlags(project, product, inputs, output) {
 
     for (i in weakFrameworks) {
         frameworkExecutablePath = PathTools.frameworkExecutablePath(weakFrameworks[i]);
-        if (File.exists(frameworkExecutablePath))
+        if (FileInfo.isAbsolutePath(frameworkExecutablePath))
             args = args.concat(['-weak_library', frameworkExecutablePath]);
         else
             args = args.concat(['-weak_framework', weakFrameworks[i]]);
     }
 
     for (i in staticLibraries) {
-        if (staticLibsFromInputs.contains(staticLibraries[i]) || File.exists(staticLibraries[i])) {
+        if (staticLibsFromInputs.contains(staticLibraries[i]) ||
+                FileInfo.isAbsolutePath(staticLibraries[i])) {
             args.push(staticLibraries[i]);
         } else {
             args.push('-l' + staticLibraries[i]);
@@ -284,7 +285,7 @@ function linkerFlags(project, product, inputs, output) {
 
     for (i in dynamicLibraries) {
         if (dynamicLibsFromInputs.contains(dynamicLibraries[i])
-                || File.exists(dynamicLibraries[i])) {
+                || FileInfo.isAbsolutePath(dynamicLibraries[i])) {
             args.push(dynamicLibraries[i]);
         } else {
             args.push('-l' + dynamicLibraries[i]);
