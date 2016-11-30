@@ -76,7 +76,7 @@ static void setQtHelperProperties(Profile &p, const MSVC *msvc)
         targetArch = QStringLiteral("armv7");
 
     p.setValue(QStringLiteral("qbs.architecture"), canonicalArchitecture(targetArch));
-    p.setValue(QStringLiteral("cpp.compilerVersionMajor"), msvc->compilerVersion.majorVersion());
+    p.setValue(QStringLiteral("cpp.compilerVersion"), msvc->compilerVersion.toString());
 }
 
 static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QString name, MSVC *msvc)
