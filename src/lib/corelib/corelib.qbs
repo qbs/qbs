@@ -350,6 +350,7 @@ QbsLibrary {
             "fileinfo.h",
             "filesaver.cpp",
             "filesaver.h",
+            "filetime.cpp",
             "filetime.h",
             "generateoptions.cpp",
             "hostosinfo.h",
@@ -427,28 +428,12 @@ QbsLibrary {
         qbs.installDir: headerInstallPrefix + "/tools"
     }
     Group {
-        condition: qbs.targetOS.contains("windows")
-        name: "tools (Windows)"
-        prefix: "tools/"
-        files: [
-            "filetime_win.cpp"
-        ]
-    }
-    Group {
         condition: qbs.targetOS.contains("macos")
         name: "tools (macOS)"
         prefix: "tools/"
         files: [
             "applecodesignutils.cpp",
             "applecodesignutils.h"
-        ]
-    }
-    Group {
-        condition: qbs.targetOS.contains("unix")
-        name: "tools (Unix)"
-        prefix: "tools/"
-        files: [
-            "filetime_unix.cpp"
         ]
     }
     Group {

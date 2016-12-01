@@ -57,6 +57,7 @@ SOURCES += \
     $$PWD/executablefinder.cpp \
     $$PWD/fileinfo.cpp \
     $$PWD/filesaver.cpp \
+    $$PWD/filetime.cpp \
     $$PWD/generateoptions.cpp \
     $$PWD/id.cpp \
     $$PWD/jsliterals.cpp \
@@ -90,14 +91,6 @@ osx {
     HEADERS += $$PWD/applecodesignutils.h
     SOURCES += $$PWD/applecodesignutils.cpp
     LIBS += -framework Security
-}
-
-win32 {
-    SOURCES += $$PWD/filetime_win.cpp
-}
-
-unix {
-    SOURCES += $$PWD/filetime_unix.cpp
 }
 
 qbs_enable_unit_tests {

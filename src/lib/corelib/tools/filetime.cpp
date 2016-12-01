@@ -40,26 +40,40 @@
 #include "filetime.h"
 
 #include <QtCore/qstring.h>
+
+#ifdef Q_OS_WIN
 #include <QtCore/qt_windows.h>
+#else
+#include <QtCore/qdatetime.h>
+#include <time.h>
+#endif
 
 namespace qbs {
 namespace Internal {
 
+#ifdef Q_OS_WIN
 template<bool> struct CompileTimeAssert;
 template<> struct CompileTimeAssert<true> {};
+#endif
 
 FileTime::FileTime()
     : m_fileTime(0)
 {
+#ifdef Q_OS_WIN
     static CompileTimeAssert<sizeof(FileTime::InternalType) == sizeof(FILETIME)> internal_type_has_wrong_size;
     Q_UNUSED(internal_type_has_wrong_size);
+#endif
 }
 
 bool FileTime::operator < (const FileTime &rhs) const
 {
+#ifdef Q_OS_WIN
     const FILETIME *const t1 = reinterpret_cast<const FILETIME *>(&m_fileTime);
     const FILETIME *const t2 = reinterpret_cast<const FILETIME *>(&rhs.m_fileTime);
     return CompareFileTime(t1, t2) < 0;
+#else
+    return m_fileTime < rhs.m_fileTime;
+#endif
 }
 
 void FileTime::clear()
@@ -74,16 +88,21 @@ bool FileTime::isValid() const
 
 FileTime FileTime::currentTime()
 {
+#ifdef Q_OS_WIN
     FileTime result;
     SYSTEMTIME st;
     GetSystemTime(&st);
     FILETIME *const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
     SystemTimeToFileTime(&st, ft);
     return result;
+#else
+    return time(0);
+#endif
 }
 
 FileTime FileTime::oldestTime()
 {
+#ifdef Q_OS_WIN
     SYSTEMTIME st = {
         1601,
         1,
@@ -98,10 +117,14 @@ FileTime FileTime::oldestTime()
     FILETIME *const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
     SystemTimeToFileTime(&st, ft);
     return result;
+#else
+    return 1;
+#endif
 }
 
 QString FileTime::toString() const
 {
+#ifdef Q_OS_WIN
     const FILETIME *const ft = reinterpret_cast<const FILETIME *>(&m_fileTime);
     SYSTEMTIME stUTC, stLocal;
     FileTimeToSystemTime(ft, &stUTC);
@@ -110,6 +133,11 @@ QString FileTime::toString() const
             .arg(stLocal.wDay, 2, 10, QLatin1Char('0')).arg(stLocal.wMonth, 2, 10, QLatin1Char('0')).arg(stLocal.wYear)
             .arg(stLocal.wHour, 2, 10, QLatin1Char('0')).arg(stLocal.wMinute, 2, 10, QLatin1Char('0')).arg(stLocal.wSecond, 2, 10, QLatin1Char('0'));
     return result;
+#else
+    QDateTime dt;
+    dt.setTime_t(m_fileTime);
+    return dt.toString();
+#endif
 }
 
 } // namespace Internal
