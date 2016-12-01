@@ -464,8 +464,10 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
             foreach (const GroupPtr &group, product->groups) {
                 if (!group->wildcards)
                     continue;
+                const QString &buildDirectory = product->project->topLevelProject()->buildDirectory;
                 const QSet<QString> files
-                        = group->wildcards->expandPatterns(group, product->sourceDirectory);
+                        = group->wildcards->expandPatterns(group, product->sourceDirectory,
+                                                           buildDirectory);
                 QSet<QString> wcFiles;
                 foreach (const SourceArtifactConstPtr &sourceArtifact, group->wildcards->files)
                     wcFiles += sourceArtifact->absoluteFilePath;
