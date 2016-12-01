@@ -133,6 +133,7 @@ private:
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
     const SetupProjectParameters &m_setupParams;
     const ModuleLoaderResult &m_loadResult;
+    QSet<CodeLocation> m_groupLocationWarnings;
     qint64 m_elapsedTimeModPropEval;
     qint64 m_elapsedTimeAllPropEval;
     qint64 m_elapsedTimeGroups;

@@ -3830,6 +3830,17 @@ void TestBlackbox::generatedArtifactAsInputToDynamicRule()
     QVERIFY2(!m_qbsStdout.contains("generating"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::groupLocationWarning()
+{
+    QDir::setCurrent(testDataDir + "/group-location-warning");
+    QCOMPARE(runQbs(QStringList() << "-f" << "group-location-warning.qbs"), 0);
+    QCOMPARE(m_qbsStderr.count("base directory"), 4);
+    QCOMPARE(m_qbsStderr.count("ParentInOtherDir.qbs"), 1);
+    QCOMPARE(m_qbsStderr.count("AGroupInOtherDir.qbs"), 1);
+    QCOMPARE(m_qbsStderr.count("gm.qbs"), 1);
+    QCOMPARE(m_qbsStderr.count("AndAnotherGroupInOtherDir.qbs"), 1);
+}
+
 static bool haveWiX(const Profile &profile)
 {
     if (profile.value("wix.toolchainInstallPath").isValid() &&
