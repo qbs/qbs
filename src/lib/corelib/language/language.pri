@@ -77,7 +77,6 @@ SOURCES += \
 qbs_enable_unit_tests {
     HEADERS += $$PWD/tst_language.h
     SOURCES += $$PWD/tst_language.cpp
-    OTHER_FILES += $$PWD/testdata/*
 }
 
 !qbs_no_dev_install {
