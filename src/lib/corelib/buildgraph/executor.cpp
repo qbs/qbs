@@ -213,7 +213,29 @@ void Executor::doBuild()
     m_error.clear();
     m_explicitlyCanceled = false;
     m_activeFileTags = FileTags::fromStringList(m_buildOptions.activeFileTags());
+    m_tagsOfFilesToConsider.clear();
+    m_tagsNeededForFilesToConsider.clear();
+    m_productsOfFilesToConsider.clear();
     m_artifactsRemovedFromDisk.clear();
+
+    // TODO: The "filesToConsider" thing is badly designed; we should know exactly which artifact
+    //       it is. Remove this from the BuildOptions class and introduce Project::buildSomeFiles()
+    //       instead.
+    const QStringList &filesToConsider = m_buildOptions.filesToConsider();
+    if (!filesToConsider.isEmpty()) {
+        for (const QString &fileToConsider : filesToConsider) {
+            const QList<FileResourceBase *> &files
+                    = m_project->buildData->lookupFiles(fileToConsider);
+            for (const FileResourceBase * const file : files) {
+                const Artifact * const artifact = dynamic_cast<const Artifact *>(file);
+                if (artifact && m_productsToBuild.contains(artifact->product)) {
+                    m_tagsOfFilesToConsider.unite(artifact->fileTags());
+                    m_productsOfFilesToConsider << artifact->product;
+                }
+            }
+        }
+    }
+
     setState(ExecutorRunning);
 
     if (m_productsToBuild.isEmpty()) {
@@ -647,18 +669,24 @@ bool Executor::transformerHasMatchingOutputTags(const TransformerConstPtr &trans
 
 bool Executor::artifactHasMatchingOutputTags(const Artifact *artifact) const
 {
-    return m_activeFileTags.matches(artifact->fileTags());
+    return m_activeFileTags.matches(artifact->fileTags())
+            || m_tagsNeededForFilesToConsider.matches(artifact->fileTags());
 }
 
 bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &transformer) const
 {
     if (m_buildOptions.filesToConsider().isEmpty())
         return true; // No filtering requested.
-
+    if (!m_productsOfFilesToConsider.contains(transformer->product()))
+        return false;
+    if (transformer->inputs.isEmpty())
+        return true;
     foreach (const Artifact * const input, transformer->inputs) {
         foreach (const QString &filePath, m_buildOptions.filesToConsider()) {
-            if (input->filePath() == filePath)
+            if (input->filePath() == filePath
+                    || input->fileTags().matches(m_tagsNeededForFilesToConsider)) {
                 return true;
+            }
         }
     }
 
@@ -1146,6 +1174,23 @@ void Executor::prepareReachableNodes_impl(BuildGraphNode *node)
 {
     if (node->buildState != BuildGraphNode::Untouched)
         return;
+
+    if (node->type() == BuildGraphNode::RuleNodeType
+            && !m_buildOptions.filesToConsider().isEmpty()
+            && m_productsOfFilesToConsider.contains(node->product)) {
+        const RuleNode * const ruleNode = static_cast<RuleNode *>(node);
+        const Rule * const rule = ruleNode->rule().data();
+        if (rule->inputs.matches(m_tagsOfFilesToConsider)) {
+            FileTags otherInputs = rule->auxiliaryInputs;
+            otherInputs.unite(rule->explicitlyDependsOn).subtract(rule->excludedAuxiliaryInputs);
+            m_tagsNeededForFilesToConsider.unite(otherInputs);
+        } else if (rule->collectedOutputFileTags().matches(m_tagsNeededForFilesToConsider)) {
+            FileTags allInputs = rule->inputs;
+            allInputs.unite(rule->auxiliaryInputs).unite(rule->explicitlyDependsOn)
+                    .subtract(rule->excludedAuxiliaryInputs);
+            m_tagsNeededForFilesToConsider.unite(allInputs);
+        }
+    }
 
     node->buildState = BuildGraphNode::Buildable;
     foreach (BuildGraphNode *child, node->children)

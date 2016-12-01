@@ -169,6 +169,9 @@ private:
     ErrorInfo m_error;
     bool m_explicitlyCanceled;
     FileTags m_activeFileTags;
+    FileTags m_tagsOfFilesToConsider;
+    FileTags m_tagsNeededForFilesToConsider;
+    QList<ResolvedProductPtr> m_productsOfFilesToConsider;
     QTimer * const m_cancelationTimer;
     QStringList m_artifactsRemovedFromDisk;
     bool m_partialBuild;

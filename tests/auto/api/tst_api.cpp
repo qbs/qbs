@@ -423,7 +423,10 @@ void TestApi::buildSingleFile()
             &BuildDescriptionReceiver::handleDescription);
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
-    QCOMPARE(receiver.descriptions.count("compiling"), 1);
+    QCOMPARE(receiver.descriptions.count("compiling"), 2);
+    QCOMPARE(receiver.descriptions.count("precompiling"), 1);
+    QVERIFY2(receiver.descriptions.contains("generating generated.h"),
+             qPrintable(receiver.descriptions));
     QVERIFY2(receiver.descriptions.contains("compiling compiled.cpp"),
              qPrintable(receiver.descriptions));
 }
