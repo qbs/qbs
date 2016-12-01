@@ -42,7 +42,7 @@
 #include "buildgraph.h"
 #include "buildgraphvisitor.h"
 #include "productbuilddata.h"
-#include "command.h"
+#include "rulecommands.h"
 #include "rulegraph.h"
 #include "rulenode.h"
 #include "rulesevaluationcontext.h"

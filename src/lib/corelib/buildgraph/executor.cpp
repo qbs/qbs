@@ -39,7 +39,6 @@
 #include "executor.h"
 
 #include "buildgraph.h"
-#include "command.h"
 #include "emptydirectoriesremover.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
@@ -48,6 +47,7 @@
 #include "inputartifactscanner.h"
 #include "productinstaller.h"
 #include "rescuableartifactdata.h"
+#include "rulecommands.h"
 #include "rulenode.h"
 #include "rulesevaluationcontext.h"
 

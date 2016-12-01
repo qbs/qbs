@@ -39,7 +39,7 @@
 
 #include "rescuableartifactdata.h"
 
-#include "command.h"
+#include "rulecommands.h"
 
 #include <language/propertymapinternal.h>
 

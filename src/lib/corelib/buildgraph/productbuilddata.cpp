@@ -38,8 +38,9 @@
 ****************************************************************************/
 #include "productbuilddata.h"
 
-#include "command.h"
+#include "artifact.h"
 #include "projectbuilddata.h"
+#include "rulecommands.h"
 #include <language/language.h>
 #include <logging/logger.h>
 #include <tools/error.h>

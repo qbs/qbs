@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "command.h"
+#include "rulecommands.h"
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>

@@ -39,10 +39,10 @@
 
 #include "commandlineparser.h"
 
-#include "command.h"
 #include "commandlineoption.h"
 #include "commandlineoptionpool.h"
 #include "commandpool.h"
+#include "parsercommand.h"
 #include "../qbstool.h"
 #include "../../shared/logging/consolelogger.h"
 

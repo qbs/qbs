@@ -40,7 +40,7 @@
 #include "processcommandexecutor.h"
 
 #include "artifact.h"
-#include "command.h"
+#include "rulecommands.h"
 #include "transformer.h"
 
 #include <language/language.h>

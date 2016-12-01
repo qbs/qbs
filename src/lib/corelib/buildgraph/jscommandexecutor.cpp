@@ -41,7 +41,7 @@
 
 #include "artifact.h"
 #include "buildgraph.h"
-#include "command.h"
+#include "rulecommands.h"
 #include "transformer.h"
 
 #include <language/language.h>

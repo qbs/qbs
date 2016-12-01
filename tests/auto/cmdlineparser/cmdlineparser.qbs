@@ -14,8 +14,6 @@ QbsAutotest {
         name: "parser"
         prefix: "../../../src/app/qbs/parser/"
         files: [
-            "command.cpp",
-            "command.h",
             "commandlineoption.cpp",
             "commandlineoption.h",
             "commandlineoptionpool.cpp",
@@ -25,6 +23,8 @@ QbsAutotest {
             "commandpool.cpp",
             "commandpool.h",
             "commandtype.h",
+            "parsercommand.cpp",
+            "parsercommand.h",
         ]
     }
 }

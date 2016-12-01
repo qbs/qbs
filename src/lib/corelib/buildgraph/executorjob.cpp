@@ -40,9 +40,9 @@
 #include "executorjob.h"
 
 #include "artifact.h"
-#include "command.h"
 #include "jscommandexecutor.h"
 #include "processcommandexecutor.h"
+#include "rulecommands.h"
 #include "transformer.h"
 #include <language/language.h>
 #include <tools/error.h>

@@ -8,7 +8,6 @@ SOURCES += \
     $$PWD/buildgraph.cpp \
     $$PWD/buildgraphloader.cpp \
     $$PWD/buildgraphnode.cpp \
-    $$PWD/command.cpp \
     $$PWD/cycledetector.cpp \
     $$PWD/depscanner.cpp \
     $$PWD/emptydirectoriesremover.cpp \
@@ -25,6 +24,7 @@ SOURCES += \
     $$PWD/projectbuilddata.cpp \
     $$PWD/qtmocscanner.cpp \
     $$PWD/rescuableartifactdata.cpp \
+    $$PWD/rulecommands.cpp \
     $$PWD/rulegraph.cpp \
     $$PWD/rulenode.cpp \
     $$PWD/rulesapplicator.cpp \
@@ -42,7 +42,6 @@ HEADERS += \
     $$PWD/buildgraphloader.h \
     $$PWD/buildgraphnode.h \
     $$PWD/buildgraphvisitor.h \
-    $$PWD/command.h \
     $$PWD/cycledetector.h \
     $$PWD/depscanner.h \
     $$PWD/emptydirectoriesremover.h \
@@ -61,6 +60,7 @@ HEADERS += \
     $$PWD/qtmocscanner.h \
     $$PWD/rawscanneddependency.h \
     $$PWD/rescuableartifactdata.h \
+    $$PWD/rulecommands.h \
     $$PWD/rulegraph.h \
     $$PWD/rulenode.h \
     $$PWD/rulesapplicator.h \

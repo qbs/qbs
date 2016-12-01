@@ -38,7 +38,7 @@
 ****************************************************************************/
 #include "commandpool.h"
 
-#include "command.h"
+#include "parsercommand.h"
 
 namespace qbs {
 

@@ -39,11 +39,11 @@
 #include "buildgraphloader.h"
 
 #include "buildgraph.h"
-#include "command.h"
 #include "cycledetector.h"
 #include "emptydirectoriesremover.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
+#include "rulecommands.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
 

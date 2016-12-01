@@ -38,7 +38,8 @@
 ****************************************************************************/
 #include "transformer.h"
 
-#include "command.h"
+#include "artifact.h"
+#include "rulecommands.h"
 #include "rulesevaluationcontext.h"
 #include <jsextensions/moduleproperties.h>
 #include <language/language.h>

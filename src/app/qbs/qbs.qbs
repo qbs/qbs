@@ -30,8 +30,6 @@ QbsApp {
         name: "parser"
         prefix: name + '/'
         files: [
-            "command.cpp",
-            "command.h",
             "commandlineoption.cpp",
             "commandlineoption.h",
             "commandlineoptionpool.cpp",
@@ -41,6 +39,8 @@ QbsApp {
             "commandpool.cpp",
             "commandpool.h",
             "commandtype.h",
+            "parsercommand.cpp",
+            "parsercommand.h",
         ]
     }
 }
