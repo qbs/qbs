@@ -62,10 +62,10 @@
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
 
-#include <QDir>
-#include <QPair>
-#include <QSet>
-#include <QTimer>
+#include <QtCore/qdir.h>
+#include <QtCore/qpair.h>
+#include <QtCore/qset.h>
+#include <QtCore/qtimer.h>
 
 #include <algorithm>
 #include <climits>

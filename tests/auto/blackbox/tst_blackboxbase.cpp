@@ -36,7 +36,9 @@
 #include <tools/profile.h>
 #include <tools/settings.h>
 
-#include <QTemporaryDir>
+#include <QtCore/qdiriterator.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qtemporarydir.h>
 
 using qbs::Internal::HostOsInfo;
 using qbs::Internal::removeDirectoryWithContents;

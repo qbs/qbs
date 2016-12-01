@@ -43,7 +43,7 @@
 #include <language/language.h>
 #include <tools/qbsassert.h>
 
-#include <QTimer>
+#include <QtCore/qtimer.h>
 
 namespace qbs {
 using namespace Internal;

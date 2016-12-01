@@ -31,8 +31,8 @@
 #ifndef VISUALSTUDIOSOLUTION_H
 #define VISUALSTUDIOSOLUTION_H
 
-#include <QObject>
-#include <QScopedPointer>
+#include <QtCore/qobject.h>
+#include <QtCore/qscopedpointer.h>
 
 namespace qbs {
 

@@ -45,9 +45,10 @@
 
 #include <logging/logger.h>
 
-#include <QScriptClass>
-#include <QStack>
-#include <QSet>
+#include <QtCore/qstack.h>
+#include <QtCore/qset.h>
+
+#include <QtScript/qscriptclass.h>
 
 QT_BEGIN_NAMESPACE
 class QScriptContext;

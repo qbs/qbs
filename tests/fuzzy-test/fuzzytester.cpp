@@ -27,11 +27,11 @@
 ****************************************************************************/
 #include "fuzzytester.h"
 
-#include <QDir>
-#include <QElapsedTimer>
-#include <QFile>
-#include <QProcess>
-#include <QSettings>
+#include <QtCore/qdir.h>
+#include <QtCore/qelapsedtimer.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qsettings.h>
 
 #include <algorithm>
 #include <cstdlib>

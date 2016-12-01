@@ -42,7 +42,7 @@
 
 #include "version.h"
 
-#include <QString>
+#include <QtCore/qstring.h>
 
 #include <memory>
 

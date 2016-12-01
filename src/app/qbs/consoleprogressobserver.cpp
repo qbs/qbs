@@ -38,8 +38,8 @@
 ****************************************************************************/
 #include "consoleprogressobserver.h"
 
-#include <QByteArray>
-#include <QString>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qstring.h>
 
 #include <iostream>
 

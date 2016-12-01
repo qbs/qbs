@@ -49,7 +49,7 @@
 #include "textfile.h"
 #include "utilitiesextension.h"
 
-#include <QScriptEngine>
+#include <QtScript/qscriptengine.h>
 
 #include <utility>
 

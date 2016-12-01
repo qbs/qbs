@@ -52,7 +52,7 @@
 #include <tools/qttools.h>
 #include <tools/version.h>
 
-#include <QDirIterator>
+#include <QtCore/qdiriterator.h>
 
 namespace qbs {
 namespace Internal {

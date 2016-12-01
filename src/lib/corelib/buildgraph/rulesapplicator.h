@@ -46,9 +46,10 @@
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 
-#include <QHash>
-#include <QScriptValue>
-#include <QString>
+#include <QtCore/qhash.h>
+#include <QtCore/qstring.h>
+
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

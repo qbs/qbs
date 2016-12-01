@@ -40,8 +40,8 @@
 #ifndef QBS_FILE_H
 #define QBS_FILE_H
 
-#include <QScriptContext>
-#include <QScriptValue>
+#include <QtScript/qscriptcontext.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

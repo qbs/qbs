@@ -48,7 +48,7 @@
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 
-#include <QThread>
+#include <QtCore/qthread.h>
 
 namespace qbs {
 namespace Internal {

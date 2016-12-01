@@ -53,10 +53,10 @@
 #include <tools/qbsassert.h>
 #include <tools/error.h>
 
-#include <QDir>
-#include <QSet>
-#include <QStringList>
-#include <QVariantMap>
+#include <QtCore/qdir.h>
+#include <QtCore/qset.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 namespace Internal {

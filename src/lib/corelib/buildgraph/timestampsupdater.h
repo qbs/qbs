@@ -41,7 +41,7 @@
 
 #include <language/forward_decls.h>
 
-#include <QList>
+#include <QtCore/qlist.h>
 
 namespace qbs {
 namespace Internal {

@@ -44,8 +44,8 @@
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 
-#include <QHash>
-#include <QStringList>
+#include <QtCore/qhash.h>
+#include <QtCore/qstringlist.h>
 
 class ScannerPlugin;
 

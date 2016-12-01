@@ -40,9 +40,10 @@
 #ifndef QBS_TEXTFILE_H
 #define QBS_TEXTFILE_H
 
-#include <QObject>
-#include <QScriptable>
-#include <QVariant>
+#include <QtCore/qobject.h>
+#include <QtCore/qvariant.h>
+
+#include <QtScript/qscriptable.h>
 
 QT_BEGIN_NAMESPACE
 class QFile;

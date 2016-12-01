@@ -45,7 +45,7 @@
 #include <tools/scripttools.h>
 #include <tools/settings.h>
 
-#include <QFileInfo>
+#include <QtCore/qfileinfo.h>
 
 namespace qbs {
 namespace Internal {

@@ -41,7 +41,7 @@
 
 #include "commandlineoption.h"
 
-#include <QHash>
+#include <QtCore/qhash.h>
 
 namespace qbs {
 

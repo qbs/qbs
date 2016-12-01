@@ -58,11 +58,12 @@
 #include <tools/scripttools.h>
 #include <tools/shellutils.h>
 
-#include <QDir>
-#include <QScriptEngine>
-#include <QScriptValue>
-#include <QTemporaryFile>
-#include <QTimer>
+#include <QtCore/qdir.h>
+#include <QtCore/qtemporaryfile.h>
+#include <QtCore/qtimer.h>
+
+#include <QtScript/qscriptengine.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

@@ -44,7 +44,7 @@
 
 #include <logging/translator.h>
 
-#include <QSettings>
+#include <QtCore/qsettings.h>
 
 #include <algorithm>
 

@@ -27,7 +27,7 @@
 ****************************************************************************/
 #include "commandlineparser.h"
 
-#include <QFileInfo>
+#include <QtCore/qfileinfo.h>
 
 #include <cctype>
 

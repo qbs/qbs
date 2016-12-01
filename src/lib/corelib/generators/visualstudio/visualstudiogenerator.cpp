@@ -55,11 +55,11 @@
 #include <tools/shellutils.h>
 #include <tools/visualstudioversioninfo.h>
 
-#include <QCoreApplication>
-#include <QDebug>
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
 
 namespace qbs {
 

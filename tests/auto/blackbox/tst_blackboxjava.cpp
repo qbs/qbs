@@ -33,8 +33,8 @@
 #include <tools/profile.h>
 #include <tools/settings.h>
 
-#include <QJsonDocument>
-#include <QTemporaryDir>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qtemporarydir.h>
 
 using qbs::Internal::HostOsInfo;
 using qbs::Profile;

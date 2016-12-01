@@ -39,8 +39,9 @@
 
 #include "scripttools.h"
 
-#include <QDataStream>
-#include <QScriptEngine>
+#include <QtCore/qdatastream.h>
+
+#include <QtScript/qscriptengine.h>
 
 namespace qbs {
 namespace Internal {

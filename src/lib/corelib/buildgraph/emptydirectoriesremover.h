@@ -41,8 +41,8 @@
 
 #include <logging/logger.h>
 
-#include <QSet>
-#include <QStringList>
+#include <QtCore/qset.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 namespace Internal {

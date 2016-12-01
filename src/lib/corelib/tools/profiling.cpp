@@ -42,7 +42,7 @@
 #include <logging/logger.h>
 #include <logging/translator.h>
 
-#include <QString>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

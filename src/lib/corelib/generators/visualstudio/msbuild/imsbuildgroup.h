@@ -31,8 +31,8 @@
 #ifndef IMSBUILDGROUP_H
 #define IMSBUILDGROUP_H
 
-#include <QObject>
-#include <QScopedPointer>
+#include <QtCore/qobject.h>
+#include <QtCore/qscopedpointer.h>
 
 namespace qbs {
 

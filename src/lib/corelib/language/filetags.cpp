@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "filetags.h"
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 #include <tools/persistence.h>
 

@@ -62,8 +62,8 @@
 #include "qmljsast_p.h"
 #include "qmljsengine_p.h"
 
-#include <QtCore/QList>
-#include <QtCore/QString>
+#include <QtCore/qlist.h>
+#include <QtCore/qstring.h>
 
 namespace QbsQmlJS {
 

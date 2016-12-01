@@ -47,7 +47,7 @@
 #include <logging/logger.h>
 #include <tools/error.h>
 
-#include <QtTest>
+#include <QtTest/qtest.h>
 
 namespace qbs {
 namespace Internal {

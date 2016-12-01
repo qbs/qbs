@@ -43,8 +43,8 @@
 
 #include "qbs_export.h"
 #include "hostosinfo.h"
-#include <QString>
-#include <QVector>
+#include <QtCore/qstring.h>
+#include <QtCore/qvector.h>
 
 namespace qbs {
 namespace Internal {

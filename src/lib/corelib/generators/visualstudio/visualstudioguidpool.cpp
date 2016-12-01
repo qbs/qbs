@@ -30,10 +30,10 @@
 
 #include "visualstudioguidpool.h"
 #include <tools/filesaver.h>
-#include <QFile>
-#include <QJsonDocument>
-#include <QMap>
-#include <QVariant>
+#include <QtCore/qfile.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 

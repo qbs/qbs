@@ -31,7 +31,7 @@
 #ifndef MSBUILDPROJECTWRITER_H
 #define MSBUILDPROJECTWRITER_H
 
-#include <QIODevice>
+#include <QtCore/qiodevice.h>
 
 namespace qbs {
 

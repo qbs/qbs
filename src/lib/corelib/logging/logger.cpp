@@ -43,11 +43,11 @@
 
 #include "logger.h"
 
-#include <QByteArray>
-#include <QElapsedTimer>
-#include <QMutex>
-#include <QSet>
-#include <QVariant>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qelapsedtimer.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qset.h>
+#include <QtCore/qvariant.h>
 
 #include <cstdarg>
 #include <stdio.h>

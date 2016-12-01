@@ -57,11 +57,11 @@
 #include <tools/settings.h>
 #include <tools/settingsmodel.h>
 
-#include <QCoreApplication>
-#include <QDir>
-#include <QMap>
-#include <QPair>
-#include <QTextStream>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qpair.h>
+#include <QtCore/qtextstream.h>
 
 #ifdef Q_OS_UNIX
 #include <unistd.h>

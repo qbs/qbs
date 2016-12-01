@@ -52,11 +52,11 @@
 #include <tools/visualstudioversioninfo.h>
 #include <tools/vsenvironmentdetector.h>
 
-#include <QDir>
-#include <QFileInfo>
-#include <QSettings>
-#include <QStringList>
-#include <QVector>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qsettings.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvector.h>
 
 using namespace qbs;
 using namespace qbs::Internal;

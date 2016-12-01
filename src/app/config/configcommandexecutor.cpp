@@ -44,9 +44,9 @@
 #include <tools/settingsmodel.h>
 #include <tools/error.h>
 
-#include <QDir>
-#include <QFile>
-#include <QTextStream>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qtextstream.h>
 
 #include <cstdio>
 

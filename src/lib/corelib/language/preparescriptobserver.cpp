@@ -42,7 +42,7 @@
 #include "property.h"
 #include "scriptengine.h"
 
-#include <QScriptValue>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

@@ -40,7 +40,7 @@
 #ifndef QBS_PROFILING_H
 #define QBS_PROFILING_H
 
-#include <QElapsedTimer>
+#include <QtCore/qelapsedtimer.h>
 
 QT_BEGIN_NAMESPACE
 class QString;

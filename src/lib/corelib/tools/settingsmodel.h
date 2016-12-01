@@ -42,8 +42,8 @@
 
 #include <tools/qbs_export.h>
 
-#include <QAbstractItemModel>
-#include <QVariantMap>
+#include <QtCore/qabstractitemmodel.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 

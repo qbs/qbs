@@ -49,11 +49,11 @@
 #include <tools/settings.h>
 #include <tools/toolchains.h>
 
-#include <QDir>
-#include <QFileInfo>
-#include <QProcess>
-#include <QStringList>
-#include <QTextStream>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qtextstream.h>
 
 #include <cstdio>
 

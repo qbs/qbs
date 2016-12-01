@@ -32,13 +32,14 @@
 #include <tools/profile.h>
 #include <tools/settings.h>
 
-#include <QCryptographicHash>
-#include <QDateTime>
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
-#include <QTemporaryFile>
-#include <QtTest>
+#include <QtCore/qcryptographichash.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qtemporaryfile.h>
+
+#include <QtTest/qtest.h>
 
 inline QString profileName() { return QLatin1String("qbs_autotests"); }
 inline QString relativeBuildDir(const QString &configurationName = QString())

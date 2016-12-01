@@ -39,8 +39,8 @@
 
 #include "filetime.h"
 
-#include <QDateTime>
-#include <QString>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qstring.h>
 
 #include <time.h>
 

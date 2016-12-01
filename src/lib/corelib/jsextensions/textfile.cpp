@@ -43,10 +43,11 @@
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
 
-#include <QFile>
-#include <QScriptEngine>
-#include <QScriptValue>
-#include <QTextStream>
+#include <QtCore/qfile.h>
+#include <QtCore/qtextstream.h>
+
+#include <QtScript/qscriptengine.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

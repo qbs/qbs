@@ -42,7 +42,7 @@
 
 #include "abstractcommandexecutor.h"
 
-#include <QString>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 class CodeLocation;

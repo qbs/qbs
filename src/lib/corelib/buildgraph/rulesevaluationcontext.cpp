@@ -49,7 +49,7 @@
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
 
-#include <QVariant>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 namespace Internal {

@@ -41,7 +41,7 @@
 
 #include <tools/version.h>
 
-#include <QString>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

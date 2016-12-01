@@ -42,10 +42,10 @@
 #include "fileinfo.h"
 #include "hostosinfo.h"
 
-#include <QDirIterator>
-#include <QFileInfo>
-#include <QSettings>
-#include <QStringList>
+#include <QtCore/qdiriterator.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qsettings.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 namespace Internal {

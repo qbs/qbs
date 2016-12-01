@@ -31,8 +31,8 @@
 #ifndef VISUALSTUDIOSOLUTIONWRITER_H
 #define VISUALSTUDIOSOLUTIONWRITER_H
 
-#include <QIODevice>
-#include <QScopedPointer>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qscopedpointer.h>
 
 namespace qbs {
 

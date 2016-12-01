@@ -41,9 +41,9 @@
 
 #include "persistence.h"
 
-#include <QRegularExpression>
-#include <QSharedData>
-#include <QStringList>
+#include <QtCore/qregularexpression.h>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qstringlist.h>
 
 #include <algorithm>
 #include <functional>

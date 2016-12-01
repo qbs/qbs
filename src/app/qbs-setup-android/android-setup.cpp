@@ -45,8 +45,8 @@
 #include <tools/profile.h>
 #include <tools/version.h>
 
-#include <QDir>
-#include <QString>
+#include <QtCore/qdir.h>
+#include <QtCore/qstring.h>
 
 using namespace qbs;
 using qbs::Internal::Tr;

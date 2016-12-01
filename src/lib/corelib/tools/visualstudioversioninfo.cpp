@@ -40,8 +40,8 @@
 
 #include "visualstudioversioninfo.h"
 #include <tools/qbsassert.h>
-#include <QDebug>
-#include <QtGlobal>
+#include <QtCore/qdebug.h>
+#include <QtCore/qglobal.h>
 
 namespace qbs {
 namespace Internal {

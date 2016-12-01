@@ -44,9 +44,9 @@
 #include <tools/error.h>
 #include <tools/profile.h>
 
-#include <QDirIterator>
-#include <QFile>
-#include <QHash>
+#include <QtCore/qdiriterator.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qhash.h>
 
 namespace qbs {
 namespace Internal {

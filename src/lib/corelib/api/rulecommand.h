@@ -42,8 +42,8 @@
 
 #include <tools/qbs_export.h>
 
-#include <QExplicitlySharedDataPointer>
-#include <QStringList>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 class QProcessEnvironment;

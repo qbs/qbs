@@ -40,8 +40,8 @@
 #ifndef QBS_CHANGESET_H
 #define QBS_CHANGESET_H
 
-#include <QString>
-#include <QList>
+#include <QtCore/qstring.h>
+#include <QtCore/qlist.h>
 
 QT_FORWARD_DECLARE_CLASS(QTextCursor)
 

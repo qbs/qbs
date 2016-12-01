@@ -76,12 +76,10 @@
 #include <tools/setupprojectparameters.h>
 #include <tools/qbsassert.h>
 
-#include <QDir>
-#include <QMutex>
-#include <QMutexLocker>
-#include <QRegExp>
-#include <QSharedData>
-#include <QtDebug>
+#include <QtCore/qdir.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qregexp.h>
+#include <QtCore/qshareddata.h>
 
 #ifdef QBS_STATIC_LIB
 extern "C" ScannerPlugin *cppScanners[];

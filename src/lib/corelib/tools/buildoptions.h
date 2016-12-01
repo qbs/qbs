@@ -43,8 +43,8 @@
 
 #include "commandechomode.h"
 
-#include <QSharedDataPointer>
-#include <QStringList>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 namespace Internal { class BuildOptionsPrivate; }

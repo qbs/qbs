@@ -30,7 +30,7 @@
 
 #include "visualstudiosolutionfolderproject.h"
 
-#include <QFileInfo>
+#include <QtCore/qfileinfo.h>
 
 namespace qbs {
 

@@ -43,8 +43,8 @@
 
 #include "qbs_export.h"
 
-#include <QSet>
-#include <QString>
+#include <QtCore/qset.h>
+#include <QtCore/qstring.h>
 #include <tools/version.h>
 
 namespace qbs {

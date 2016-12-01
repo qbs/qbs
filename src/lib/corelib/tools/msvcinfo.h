@@ -44,11 +44,11 @@
 #include <tools/error.h>
 #include <tools/version.h>
 
-#include <QDir>
-#include <QFileInfo>
-#include <QHash>
-#include <QProcessEnvironment>
-#include <QStringList>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qhash.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 namespace Internal {

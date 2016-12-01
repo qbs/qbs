@@ -60,8 +60,8 @@
 #include <tools/profiling.h>
 #include <tools/qbsassert.h>
 
-#include <QDir>
-#include <QFileInfo>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
 
 #include <algorithm>
 

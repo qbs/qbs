@@ -39,7 +39,7 @@
 #ifndef QBS_WEAKPOINTER_H
 #define QBS_WEAKPOINTER_H
 
-#include <QWeakPointer>
+#include <QtCore/qpointer.h>
 
 namespace qbs {
 namespace Internal {

@@ -41,8 +41,8 @@
 
 #include <tools/settings.h>
 
-#include <QString>
-#include <QStringList>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 class ConfigCommand
 {

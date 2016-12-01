@@ -43,9 +43,9 @@
 #include "forward_decls.h"
 #include <logging/logger.h>
 
-#include <QSet>
-#include <QStack>
-#include <QStringList>
+#include <QtCore/qset.h>
+#include <QtCore/qstack.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 namespace Internal {

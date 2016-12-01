@@ -42,7 +42,7 @@
 
 #include <parser/qmljsmemorypool_p.h>
 
-#include <QList>
+#include <QtCore/qlist.h>
 
 namespace qbs {
 namespace Internal {

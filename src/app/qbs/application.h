@@ -40,7 +40,7 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include <QCoreApplication>
+#include <QtCore/qcoreapplication.h>
 
 namespace qbs {
 class CommandLineFrontend;

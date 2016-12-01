@@ -41,12 +41,13 @@
 #ifndef DOMXML_H
 #define DOMXML_H
 
-#include <QDomDocument>
-#include <QDomNode>
-#include <QObject>
-#include <QScriptValue>
-#include <QScriptable>
-#include <QVariant>
+#include <QtCore/qobject.h>
+#include <QtCore/qvariant.h>
+
+#include <QtScript/qscriptvalue.h>
+#include <QtScript/qscriptable.h>
+
+#include <QtXml/qdom.h>
 
 namespace qbs {
 namespace Internal {

@@ -46,9 +46,9 @@
 #include <tools/codelocation.h>
 #include <tools/version.h>
 
-#include <QHash>
-#include <QMap>
-#include <QString>
+#include <QtCore/qhash.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

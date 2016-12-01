@@ -47,9 +47,10 @@
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
 
-#include <QScriptContext>
-#include <QScriptEngine>
-#include <QDebug>
+#include <QtCore/qdebug.h>
+
+#include <QtScript/qscriptcontext.h>
+#include <QtScript/qscriptengine.h>
 
 namespace qbs {
 namespace Internal {

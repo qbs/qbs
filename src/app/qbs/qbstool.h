@@ -40,7 +40,7 @@
 #ifndef QBS_QBSTOOL_H
 #define QBS_QBSTOOL_H
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 class QbsTool
 {

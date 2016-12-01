@@ -39,7 +39,7 @@
 
 #include "changeset.h"
 
-#include <QTextCursor>
+#include <QtGui/qtextcursor.h>
 
 namespace QbsQmlJS {
 

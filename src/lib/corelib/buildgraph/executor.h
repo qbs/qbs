@@ -50,7 +50,7 @@
 #include <tools/buildoptions.h>
 #include <tools/error.h>
 
-#include <QObject>
+#include <QtCore/qobject.h>
 #include <queue>
 
 QT_BEGIN_NAMESPACE

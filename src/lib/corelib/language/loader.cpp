@@ -50,9 +50,9 @@
 #include <tools/qbsassert.h>
 #include <tools/setupprojectparameters.h>
 
-#include <QDir>
-#include <QObject>
-#include <QTimer>
+#include <QtCore/qdir.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qtimer.h>
 
 namespace qbs {
 namespace Internal {

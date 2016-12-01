@@ -36,16 +36,17 @@
 #include <tools/hostosinfo.h>
 #include <tools/toolchains.h>
 
-#include <QCoreApplication>
-#include <QDir>
-#include <QEventLoop>
-#include <QFile>
-#include <QFileInfo>
-#include <QScopedPointer>
-#include <QStringList>
-#include <QTest>
-#include <QTimer>
-#include <QVector>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qeventloop.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qtimer.h>
+#include <QtCore/qvector.h>
+
+#include <QtTest/qtest.h>
 
 #include <algorithm>
 #include <functional>

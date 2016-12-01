@@ -45,8 +45,8 @@
 #include <language/language.h>
 #include <logging/logger.h>
 
-#include <QObject>
-#include <QStringList>
+#include <QtCore/qobject.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 class BuildJob;

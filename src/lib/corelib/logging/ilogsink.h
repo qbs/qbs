@@ -41,7 +41,7 @@
 
 #include "../tools/qbs_export.h"
 
-#include <QString>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 class ErrorInfo;

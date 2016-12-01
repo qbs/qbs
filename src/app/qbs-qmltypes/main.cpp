@@ -41,8 +41,8 @@
 #include <api/languageinfo.h>
 #include <logging/translator.h>
 
-#include <QCoreApplication>
-#include <QByteArray>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qbytearray.h>
 
 #include <cstdlib>
 #include <iostream>

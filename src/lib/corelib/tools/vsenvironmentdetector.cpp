@@ -42,14 +42,14 @@
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
 
-#include <QDebug>
-#include <QDir>
-#include <QProcess>
-#include <QTemporaryFile>
-#include <QTextStream>
+#include <QtCore/qdebug.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qtemporaryfile.h>
+#include <QtCore/qtextstream.h>
 
 #ifdef Q_OS_WIN
-#include <qt_windows.h>
+#include <QtCore/qt_windows.h>
 #include <ShlObj.h>
 #endif
 

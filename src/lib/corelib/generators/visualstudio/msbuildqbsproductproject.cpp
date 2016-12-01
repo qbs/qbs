@@ -50,8 +50,8 @@
 #include <tools/shellutils.h>
 #include <tools/version.h>
 
-#include <QDir>
-#include <QUuid>
+#include <QtCore/qdir.h>
+#include <QtCore/quuid.h>
 
 namespace qbs {
 

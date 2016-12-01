@@ -44,11 +44,12 @@
 #include <logging/logger.h>
 #include <tools/persistentobject.h>
 
-#include <QHash>
-#include <QList>
-#include <QScriptValue>
-#include <QSet>
-#include <QString>
+#include <QtCore/qhash.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qset.h>
+#include <QtCore/qstring.h>
+
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

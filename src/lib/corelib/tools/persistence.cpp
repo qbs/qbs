@@ -44,8 +44,8 @@
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 
-#include <QDir>
-#include <QScopedPointer>
+#include <QtCore/qdir.h>
+#include <QtCore/qscopedpointer.h>
 
 namespace qbs {
 namespace Internal {

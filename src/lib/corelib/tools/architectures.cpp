@@ -40,9 +40,8 @@
 
 #include "architectures.h"
 
-#include <QMap>
-#include <QMapIterator>
-#include <QStringList>
+#include <QtCore/qmap.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 

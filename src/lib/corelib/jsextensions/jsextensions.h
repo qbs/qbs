@@ -40,8 +40,8 @@
 #ifndef QBS_JSEXTENSIONS_H
 #define QBS_JSEXTENSIONS_H
 
-#include <QHash>
-#include <QStringList>
+#include <QtCore/qhash.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 class QScriptEngine;

@@ -40,8 +40,9 @@
 #ifndef SCRIPTIMPORTER_H
 #define SCRIPTIMPORTER_H
 
-#include <QHash>
-#include <QScriptEngine>
+#include <QtCore/qhash.h>
+
+#include <QtScript/qscriptengine.h>
 
 namespace qbs {
 namespace Internal {

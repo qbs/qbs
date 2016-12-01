@@ -39,9 +39,9 @@
 #ifndef QBS_PROCESSRESULT_P_H
 #define QBS_PROCESSRESULT_P_H
 
-#include <QSharedData>
-#include <QStringList>
-#include <QProcess>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qprocess.h>
 
 namespace qbs {
 namespace Internal {

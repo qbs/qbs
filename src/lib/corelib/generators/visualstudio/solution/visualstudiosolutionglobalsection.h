@@ -31,8 +31,8 @@
 #ifndef VISUALSTUDIOSOLUTIONGLOBALSECTION_H
 #define VISUALSTUDIOSOLUTIONGLOBALSECTION_H
 
-#include <QObject>
-#include <QScopedPointer>
+#include <QtCore/qobject.h>
+#include <QtCore/qscopedpointer.h>
 
 namespace qbs {
 

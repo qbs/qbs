@@ -40,7 +40,7 @@
 #ifndef QBS_SETUP_ANDROID_SDKSETUP_H
 #define QBS_SETUP_ANDROID_SDKSETUP_H
 
-#include <QtGlobal>
+#include <QtCore/qglobal.h>
 
 namespace qbs { class Settings; }
 

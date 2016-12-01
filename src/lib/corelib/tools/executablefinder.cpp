@@ -42,7 +42,7 @@
 #include "fileinfo.h"
 #include "hostosinfo.h"
 
-#include <QDir>
+#include <QtCore/qdir.h>
 
 namespace qbs {
 namespace Internal {

@@ -44,7 +44,7 @@
 
 #include <parser/qmljsastfwd_p.h>
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 namespace QbsQmlJS {
 

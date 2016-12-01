@@ -45,7 +45,7 @@
 #include <logging/ilogsink.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/qbs_export.h>
-#include <QtTest>
+#include <QtTest/qtest.h>
 
 namespace qbs {
 namespace Internal {

@@ -39,9 +39,9 @@
 
 #include "domxml.h"
 
-#include <QFile>
-#include <QScriptEngine>
+#include <QtCore/qfile.h>
 
+#include <QtScript/qscriptengine.h>
 
 namespace qbs {
 namespace Internal {

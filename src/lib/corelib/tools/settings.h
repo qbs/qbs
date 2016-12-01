@@ -42,8 +42,8 @@
 
 #include "qbs_export.h"
 
-#include <QStringList>
-#include <QVariant>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
 
 QT_BEGIN_NAMESPACE
 class QSettings;

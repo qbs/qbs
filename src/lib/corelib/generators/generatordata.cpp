@@ -40,7 +40,7 @@
 #include "generatordata.h"
 #include <tools/error.h>
 
-#include <QDir>
+#include <QtCore/qdir.h>
 
 namespace qbs {
 

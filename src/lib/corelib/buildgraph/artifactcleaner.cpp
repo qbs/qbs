@@ -52,12 +52,12 @@
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
 
-#include <QCoreApplication>
-#include <QDir>
-#include <QDirIterator>
-#include <QFileInfo>
-#include <QSet>
-#include <QString>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qdiriterator.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qset.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

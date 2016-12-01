@@ -62,8 +62,8 @@
 #include <tools/profile.h>
 #include <tools/settings.h>
 
-#include <QProcessEnvironment>
-#include <QVector>
+#include <QtCore/qprocess.h>
+#include <QtCore/qvector.h>
 
 #include <algorithm>
 

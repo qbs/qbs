@@ -46,8 +46,9 @@
 #include <language/property.h>
 #include <tools/persistentobject.h>
 
-#include <QHash>
-#include <QScriptEngine>
+#include <QtCore/qhash.h>
+
+#include <QtScript/qscriptengine.h>
 
 namespace qbs {
 namespace Internal {

@@ -40,9 +40,9 @@
 #include "qmljsengine_p.h"
 #include "qmljsglobal_p.h"
 
-#include <qnumeric.h>
-#include <QHash>
-#include <QDebug>
+#include <QtCore/qnumeric.h>
+#include <QtCore/qhash.h>
+#include <QtCore/qdebug.h>
 
 namespace QbsQmlJS {
 

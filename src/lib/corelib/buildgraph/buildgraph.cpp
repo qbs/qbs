@@ -58,9 +58,9 @@
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
 
 #include <algorithm>
 

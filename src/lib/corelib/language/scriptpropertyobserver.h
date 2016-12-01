@@ -40,7 +40,7 @@
 #ifndef QBS_SCRIPTPROPERTYOBSERVER_H
 #define QBS_SCRIPTPROPERTYOBSERVER_H
 
-#include <QtGlobal>
+#include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
 class QScriptValue;

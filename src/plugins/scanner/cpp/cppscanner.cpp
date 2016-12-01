@@ -50,14 +50,13 @@ using namespace CPlusPlus;
 #include <sys/mman.h>
 #include <unistd.h>
 #else
-#include <QtCore/QFile>
+#include <QtCore/qfile.h>
 #endif
 
-#include <QtCore/QByteArray>
-#include <QtCore/QList>
-#include <QtCore/QScopedPointer>
-#include <QtCore/QString>
-#include <QtCore/QLatin1Literal>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qstring.h>
 
 #include <cstring>
 

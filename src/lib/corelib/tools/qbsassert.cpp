@@ -40,7 +40,7 @@
 #include "qbsassert.h"
 #include "error.h"
 
-#include <QString>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

@@ -46,7 +46,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 
-#include <QScriptEngine>
+#include <QtScript/qscriptengine.h>
 
 namespace qbs {
 namespace Internal {

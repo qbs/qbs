@@ -39,8 +39,8 @@
 
 #include "filetime.h"
 
-#include <QString>
-#include <qt_windows.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qt_windows.h>
 
 namespace qbs {
 namespace Internal {

@@ -28,8 +28,8 @@
 #ifndef QBS_BENCHMARKER_EXCEPTION_H
 #define QBS_BENCHMARKER_EXCEPTION_H
 
-#include <QException>
-#include <QString>
+#include <QtCore/qexception.h>
+#include <QtCore/qstring.h>
 
 namespace qbsBenchmarker {
 

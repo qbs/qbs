@@ -44,9 +44,9 @@
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
 
-#include <QCoreApplication>
-#include <QDirIterator>
-#include <QLibrary>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdiriterator.h>
+#include <QtCore/qlibrary.h>
 
 #include "generators/clangcompilationdb/clangcompilationdbgenerator.h"
 #include "generators/visualstudio/visualstudiogenerator.h"

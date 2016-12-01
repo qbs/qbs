@@ -40,10 +40,10 @@
 #ifndef FILESAVER_H
 #define FILESAVER_H
 
-#include <QBuffer>
-#include <QByteArray>
-#include <QScopedPointer>
-#include <QString>
+#include <QtCore/qbuffer.h>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

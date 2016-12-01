@@ -28,8 +28,8 @@
 #ifndef QBS_FUZZYTESTER_H
 #define QBS_FUZZYTESTER_H
 
-#include <QQueue>
-#include <QStringList>
+#include <QtCore/qqueue.h>
+#include <QtCore/qstringlist.h>
 
 #include <exception>
 

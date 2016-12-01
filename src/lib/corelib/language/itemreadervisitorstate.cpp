@@ -48,11 +48,11 @@
 #include <parser/qmljsparser_p.h>
 #include <tools/error.h>
 
-#include <QExplicitlySharedDataPointer>
-#include <QFile>
-#include <QFileInfo>
-#include <QSharedData>
-#include <QTextStream>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qtextstream.h>
 
 namespace qbs {
 namespace Internal {

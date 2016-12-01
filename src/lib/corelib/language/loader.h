@@ -42,7 +42,7 @@
 #include "forward_decls.h"
 #include <logging/logger.h>
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 class Settings;

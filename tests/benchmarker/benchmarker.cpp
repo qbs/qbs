@@ -31,7 +31,7 @@
 #include "runsupport.h"
 #include "valgrindrunner.h"
 
-#include <QtConcurrent>
+#include <QtConcurrent/qtconcurrentrun.h>
 
 #include <iostream>
 

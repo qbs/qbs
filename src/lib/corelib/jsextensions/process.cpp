@@ -45,11 +45,12 @@
 #include <tools/hostosinfo.h>
 #include <tools/shellutils.h>
 
-#include <QProcess>
-#include <QScriptEngine>
-#include <QScriptValue>
-#include <QTextCodec>
-#include <QTextStream>
+#include <QtCore/qprocess.h>
+#include <QtCore/qtextcodec.h>
+#include <QtCore/qtextstream.h>
+
+#include <QtScript/qscriptengine.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

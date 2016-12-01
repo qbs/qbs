@@ -31,9 +31,9 @@
 #ifndef IMSBUILDPROPERTY_H
 #define IMSBUILDPROPERTY_H
 
-#include <QObject>
-#include <QScopedPointer>
-#include <QVariant>
+#include <QtCore/qobject.h>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 

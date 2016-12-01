@@ -44,8 +44,9 @@
 #include "itemobserver.h"
 #include "qualifiedid.h"
 
-#include <QHash>
-#include <QScriptValue>
+#include <QtCore/qhash.h>
+
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

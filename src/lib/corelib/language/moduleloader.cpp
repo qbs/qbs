@@ -64,10 +64,10 @@
 #include <tools/scripttools.h>
 #include <tools/settings.h>
 
-#include <QDebug>
-#include <QDir>
-#include <QDirIterator>
-#include <QPair>
+#include <QtCore/qdebug.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qdiriterator.h>
+#include <QtCore/qpair.h>
 
 #include <algorithm>
 

@@ -30,7 +30,7 @@
 
 #include "activities.h"
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 namespace qbsBenchmarker {
 

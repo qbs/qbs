@@ -36,9 +36,9 @@
 #include <tools/visualstudioversioninfo.h>
 #include "visualstudioguidpool.h"
 
-#include <QFileInfo>
-#include <QDir>
-#include <QMap>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qmap.h>
 
 namespace qbs {
 

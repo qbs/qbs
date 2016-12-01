@@ -48,9 +48,9 @@
 #include <tools/error.h>
 #include <tools/setupprojectparameters.h>
 
-#include <QList>
-#include <QObject>
-#include <QThread>
+#include <QtCore/qlist.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qthread.h>
 
 namespace qbs {
 class ProcessResult;

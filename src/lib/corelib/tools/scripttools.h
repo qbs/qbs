@@ -42,11 +42,12 @@
 
 #include <tools/qbs_export.h>
 
-#include <QScriptEngine>
-#include <QScriptProgram>
-#include <QScriptValue>
-#include <QStringList>
-#include <QVariantMap>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
+
+#include <QtScript/qscriptengine.h>
+#include <QtScript/qscriptprogram.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

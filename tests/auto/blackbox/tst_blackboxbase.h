@@ -28,9 +28,9 @@
 #ifndef TST_BLACKBOXBASE_H
 #define TST_BLACKBOXBASE_H
 
-#include <QMap>
-#include <QProcessEnvironment>
-#include <QStringList>
+#include <QtCore/qmap.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qstringlist.h>
 
 class QbsRunParameters
 {

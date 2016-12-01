@@ -46,8 +46,6 @@
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 
-//#include <qglobal.h>
-
 namespace qbs {
 namespace Internal {
 

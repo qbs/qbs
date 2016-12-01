@@ -48,8 +48,8 @@
 #include <logging/logger.h>
 #include <tools/setupprojectparameters.h>
 
-#include <QProcessEnvironment>
-#include <QVariantMap>
+#include <QtCore/qprocess.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 

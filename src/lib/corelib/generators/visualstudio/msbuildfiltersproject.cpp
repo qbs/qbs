@@ -37,8 +37,8 @@
 #include "msbuild/items/msbuildfilter.h"
 #include "msbuild/items/msbuildnone.h"
 
-#include <QFileInfo>
-#include <QVector>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qvector.h>
 
 namespace qbs {
 

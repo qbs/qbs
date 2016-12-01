@@ -42,11 +42,11 @@
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
 
-#include <QDataStream>
-#include <QDir>
-#include <QRegExp>
-#include <QSharedData>
-#include <QString>
+#include <QtCore/qdatastream.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qregexp.h>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 

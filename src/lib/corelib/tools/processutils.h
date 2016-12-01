@@ -40,8 +40,8 @@
 #ifndef QBS_PROCESSUTILS_H
 #define QBS_PROCESSUTILS_H
 
-#include <qglobal.h>
-#include <QString>
+#include <QtCore/qglobal.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

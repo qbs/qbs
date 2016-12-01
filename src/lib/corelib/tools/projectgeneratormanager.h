@@ -44,10 +44,10 @@
 #include <language/filetags.h>
 #include <generators/generator.h>
 
-#include <QMap>
-#include <QSharedPointer>
-#include <QString>
-#include <QStringList>
+#include <QtCore/qmap.h>
+#include <QtCore/qsharedpointer.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 class QLibrary;

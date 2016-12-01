@@ -45,7 +45,7 @@
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 #include <initializer_list>
 #include <utility>

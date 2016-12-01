@@ -34,7 +34,7 @@
 
 #include <tools/pathutils.h>
 
-#include <QFileInfo>
+#include <QtCore/qfileinfo.h>
 
 namespace qbs {
 

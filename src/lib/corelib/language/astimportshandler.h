@@ -43,9 +43,9 @@
 
 #include <parser/qmljsastfwd_p.h>
 
-#include <QHash>
-#include <QSet>
-#include <QStringList>
+#include <QtCore/qhash.h>
+#include <QtCore/qset.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 class CodeLocation;

@@ -43,7 +43,7 @@
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 
-#include <QSet>
+#include <QtCore/qset.h>
 
 namespace qbs {
 namespace Internal {

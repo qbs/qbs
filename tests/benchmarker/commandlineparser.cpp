@@ -29,10 +29,10 @@
 
 #include "exception.h"
 
-#include <QCommandLineOption>
-#include <QCommandLineParser>
-#include <QCoreApplication>
-#include <QFileInfo>
+#include <QtCore/qcommandlineoption.h>
+#include <QtCore/qcommandlineparser.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qfileinfo.h>
 
 namespace qbsBenchmarker {
 

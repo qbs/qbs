@@ -29,8 +29,8 @@
 ****************************************************************************/
 
 #include "visualstudiosolutionglobalsection.h"
-#include <QPair>
-#include <QVector>
+#include <QtCore/qpair.h>
+#include <QtCore/qvector.h>
 
 namespace qbs {
 

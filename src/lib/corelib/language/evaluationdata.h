@@ -40,10 +40,11 @@
 #ifndef QBS_EVALUATIONDATA_H
 #define QBS_EVALUATIONDATA_H
 
-#include <QHash>
-#include <QScriptEngine>
-#include <QScriptValue>
-#include <QVariant>
+#include <QtCore/qhash.h>
+#include <QtCore/qvariant.h>
+
+#include <QtScript/qscriptengine.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

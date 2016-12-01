@@ -38,8 +38,8 @@
 ****************************************************************************/
 #include "buildoptions.h"
 
-#include <QSharedData>
-#include <QThread>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qthread.h>
 
 namespace qbs {
 namespace Internal {

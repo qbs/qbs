@@ -45,7 +45,7 @@
 #include <tools/jsliterals.h>
 #include <tools/qbsassert.h>
 
-#include <QDir>
+#include <QtCore/qdir.h>
 
 #include <algorithm>
 

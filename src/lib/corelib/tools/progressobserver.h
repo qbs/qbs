@@ -39,7 +39,7 @@
 #ifndef QBS_PROGRESSOBSERVER_H
 #define QBS_PROGRESSOBSERVER_H
 
-#include <QtGlobal>
+#include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
 class QString;

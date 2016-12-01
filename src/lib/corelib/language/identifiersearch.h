@@ -42,8 +42,8 @@
 
 #include <parser/qmljsastfwd_p.h>
 #include <parser/qmljsastvisitor_p.h>
-#include <QMap>
-#include <QString>
+#include <QtCore/qmap.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

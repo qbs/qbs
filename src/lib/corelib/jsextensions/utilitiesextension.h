@@ -40,7 +40,7 @@
 #ifndef QBS_UTILITIESEXTENSION_H
 #define QBS_UTILITIESEXTENSION_H
 
-#include <QScriptValue>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

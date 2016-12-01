@@ -43,8 +43,8 @@
 
 #include "commandechomode.h"
 
-#include <QStringList>
-#include <QVariant>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 class Settings;

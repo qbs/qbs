@@ -50,17 +50,18 @@
 #include <tools/persistentobject.h>
 #include <tools/weakpointer.h>
 
-#include <QDataStream>
-#include <QHash>
-#include <QMutex>
-#include <QProcessEnvironment>
-#include <QRegExp>
-#include <QScriptValue>
-#include <QScopedPointer>
-#include <QSet>
-#include <QString>
-#include <QStringList>
-#include <QVariant>
+#include <QtCore/qdatastream.h>
+#include <QtCore/qhash.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qregexp.h>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qset.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
+
+#include <QtScript/qscriptvalue.h>
 
 QT_BEGIN_NAMESPACE
 class QScriptEngine;

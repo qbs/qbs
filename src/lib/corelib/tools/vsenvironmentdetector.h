@@ -43,7 +43,7 @@
 #include "qbs_export.h"
 #include "msvcinfo.h"
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 class QIODevice;

@@ -41,7 +41,7 @@
 
 #include <tools/qbs_export.h>
 
-#include <QCoreApplication>
+#include <QtCore/qcoreapplication.h>
 
 namespace qbs {
 namespace Internal {

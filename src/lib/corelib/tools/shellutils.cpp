@@ -40,9 +40,9 @@
 
 #include "shellutils.h"
 #include "pathutils.h"
-#include <QFile>
-#include <QRegExp>
-#include <QTextStream>
+#include <QtCore/qfile.h>
+#include <QtCore/qregexp.h>
+#include <QtCore/qtextstream.h>
 
 namespace qbs {
 namespace Internal {

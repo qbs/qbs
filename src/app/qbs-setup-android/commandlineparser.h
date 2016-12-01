@@ -39,7 +39,7 @@
 #ifndef QBS_SETUP_ANDROID_COMMANDLINEPARSER_H
 #define QBS_SETUP_ANDROID_COMMANDLINEPARSER_H
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 class CommandLineParser
 {

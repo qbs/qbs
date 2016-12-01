@@ -47,10 +47,10 @@
 
 #include <logging/translator.h>
 
-#include <QDir>
-#include <QDirIterator>
-#include <QFileInfo>
-#include <QString>
+#include <QtCore/qdir.h>
+#include <QtCore/qdiriterator.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

@@ -43,12 +43,12 @@
 #include "persistentobject.h"
 #include <logging/logger.h>
 
-#include <QDataStream>
-#include <QProcessEnvironment>
-#include <QSharedPointer>
-#include <QString>
-#include <QVariantMap>
-#include <QVector>
+#include <QtCore/qdatastream.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qsharedpointer.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qvariant.h>
+#include <QtCore/qvector.h>
 
 #include <type_traits>
 

@@ -43,7 +43,7 @@
 #include <language/forward_decls.h>
 #include <tools/qbs_export.h>
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 class QProcessEnvironment;

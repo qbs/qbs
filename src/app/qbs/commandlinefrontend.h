@@ -43,9 +43,9 @@
 #include <api/project.h>
 #include <api/projectdata.h>
 
-#include <QHash>
-#include <QList>
-#include <QObject>
+#include <QtCore/qhash.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 class QTimer;

@@ -60,8 +60,8 @@
 #include <tools/qttools.h>
 #include <tools/setupprojectparameters.h>
 
-#include <QDir>
-#include <QQueue>
+#include <QtCore/qdir.h>
+#include <QtCore/qqueue.h>
 
 #include <algorithm>
 

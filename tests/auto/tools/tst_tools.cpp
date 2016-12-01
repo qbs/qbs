@@ -29,8 +29,9 @@
 #include <tools/settings.h>
 #include <tools/tst_tools.h>
 
-#include <QCoreApplication>
-#include <QTest>
+#include <QtCore/qcoreapplication.h>
+
+#include <QtTest/qtest.h>
 
 int main(int argc, char *argv[])
 {

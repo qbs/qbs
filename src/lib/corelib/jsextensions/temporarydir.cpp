@@ -42,9 +42,10 @@
 
 #include <language/scriptengine.h>
 
-#include <QScriptEngine>
-#include <QScriptValue>
-#include <QTemporaryDir>
+#include <QtCore/qtemporarydir.h>
+
+#include <QtScript/qscriptengine.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

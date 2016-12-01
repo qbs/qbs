@@ -43,7 +43,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 
-#include <QApplication>
+#include <QtWidgets/qapplication.h>
 #include <cstdlib>
 #include <iostream>
 

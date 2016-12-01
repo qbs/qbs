@@ -41,9 +41,9 @@
 
 #include "qbs_export.h"
 
-#include <QString>
-#include <QStringList>
-#include <QVariant>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 class ErrorInfo;

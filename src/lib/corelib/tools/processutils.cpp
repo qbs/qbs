@@ -41,7 +41,7 @@
 
 #if defined(Q_OS_WIN)
 #   define PSAPI_VERSION 1      // To use GetModuleFileNameEx from Psapi.lib on all Win versions.
-#   include <qt_windows.h>
+#   include <QtCore/qt_windows.h>
 #   include <Psapi.h>
 #elif defined(Q_OS_DARWIN)
 #   include <libproc.h>
@@ -50,7 +50,7 @@
 #   include <unistd.h>
 #   include <cstdio>
 #elif defined(Q_OS_BSD4)
-# include <QFile>
+# include <QtCore/qfile.h>
 #   include <sys/cdefs.h>
 #   include <sys/param.h>
 #   include <sys/sysctl.h>

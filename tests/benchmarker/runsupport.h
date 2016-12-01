@@ -28,8 +28,8 @@
 #ifndef QBS_BENCHMARKER_RUNSUPPORT_H
 #define QBS_BENCHMARKER_RUNSUPPORT_H
 
-#include <QtGlobal>
-#include <QString>
+#include <QtCore/qglobal.h>
+#include <QtCore/qstring.h>
 
 QT_BEGIN_NAMESPACE
 class QByteArray;

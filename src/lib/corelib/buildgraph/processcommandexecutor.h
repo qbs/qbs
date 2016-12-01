@@ -42,9 +42,9 @@
 
 #include "abstractcommandexecutor.h"
 
-#include <QProcess>
-#include <QProcessEnvironment>
-#include <QString>
+#include <QtCore/qprocess.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 class ProcessResult;

@@ -41,7 +41,7 @@
 
 #include "configcommand.h"
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 class ConfigCommandLineParser
 {

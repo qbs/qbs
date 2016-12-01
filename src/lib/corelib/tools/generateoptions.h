@@ -42,7 +42,7 @@
 
 #include "qbs_export.h"
 
-#include <QSharedDataPointer>
+#include <QtCore/qshareddata.h>
 
 QT_BEGIN_NAMESPACE
 class QString;

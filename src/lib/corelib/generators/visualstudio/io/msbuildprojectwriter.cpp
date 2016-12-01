@@ -41,7 +41,7 @@
 #include "../msbuild/msbuildproperty.h"
 #include "../msbuild/msbuildpropertygroup.h"
 
-#include <QXmlStreamWriter>
+#include <QtCore/qxmlstream.h>
 
 namespace qbs {
 

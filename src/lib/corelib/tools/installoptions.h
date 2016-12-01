@@ -41,8 +41,8 @@
 
 #include "qbs_export.h"
 
-#include <QSharedDataPointer>
-#include <QString>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 class InstallOptions;

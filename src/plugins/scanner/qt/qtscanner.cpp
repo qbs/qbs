@@ -45,7 +45,7 @@
 
 #include "../scanner.h"
 
-#include <QtGlobal>
+#include <QtCore/qglobal.h>
 
 #ifdef Q_OS_UNIX
 #include <sys/types.h>
@@ -54,12 +54,12 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #else
-#include <QFile>
+#include <QtCore/qfile.h>
 #endif
 
-#include <QScopedPointer>
-#include <QString>
-#include <QXmlStreamReader>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qxmlstream.h>
 
 struct OpaqQrc
 {

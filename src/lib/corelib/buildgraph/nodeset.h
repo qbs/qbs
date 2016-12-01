@@ -40,7 +40,7 @@
 #ifndef QBS_NODESET_H
 #define QBS_NODESET_H
 
-#include <QVector>
+#include <QtCore/qvector.h>
 
 #include <iterator>
 

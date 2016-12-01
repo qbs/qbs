@@ -41,15 +41,16 @@
 #include <tools/jsliterals.h>
 #include <tools/settings.h>
 
+#include <QtCore/qlist.h>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qstring.h>
+
 #ifdef QT_GUI_LIB
-#include <QBrush>
+#include <QtGui/qbrush.h>
 #endif
 
-#include <QList>
-#include <QScopedPointer>
-#include <QScriptEngine>
-#include <QScriptValue>
-#include <QString>
+#include <QtScript/qscriptengine.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

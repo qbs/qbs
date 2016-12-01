@@ -48,11 +48,11 @@
 #include <tools/setupprojectparameters.h>
 #include <tools/version.h>
 
-#include <QMap>
-#include <QSet>
-#include <QStack>
-#include <QStringList>
-#include <QVariantMap>
+#include <QtCore/qmap.h>
+#include <QtCore/qset.h>
+#include <QtCore/qstack.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
 
 QT_BEGIN_NAMESPACE
 class QScriptContext;

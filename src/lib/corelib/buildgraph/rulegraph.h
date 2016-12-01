@@ -43,11 +43,11 @@
 #include <language/filetags.h>
 #include <language/forward_decls.h>
 
-#include <QList>
-#include <QMap>
-#include <QSet>
-#include <QString>
-#include <QVector>
+#include <QtCore/qlist.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qset.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qvector.h>
 
 namespace qbs {
 namespace Internal {

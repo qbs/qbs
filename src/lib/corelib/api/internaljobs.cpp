@@ -59,9 +59,9 @@
 #include <tools/preferences.h>
 #include <tools/qbsassert.h>
 
-#include <QEventLoop>
-#include <QScopedPointer>
-#include <QTimer>
+#include <QtCore/qeventloop.h>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qtimer.h>
 
 namespace qbs {
 namespace Internal {

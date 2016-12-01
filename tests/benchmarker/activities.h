@@ -28,7 +28,7 @@
 #ifndef QBS_BENCHMARKER_ACTIVITY_H
 #define QBS_BENCHMARKER_ACTIVITY_H
 
-#include <QFlags>
+#include <QtCore/qflags.h>
 
 namespace qbsBenchmarker {
 

@@ -45,11 +45,12 @@
 #include <tools/codelocation.h>
 #include <tools/persistentobject.h>
 
-#include <QProcessEnvironment>
-#include <QSet>
-#include <QStringList>
-#include <QVariantMap>
-#include <QScriptValue>
+#include <QtCore/qprocess.h>
+#include <QtCore/qset.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
+
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

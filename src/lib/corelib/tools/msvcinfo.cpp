@@ -42,15 +42,15 @@
 #include <tools/error.h>
 #include <tools/profile.h>
 
-#include <QByteArray>
-#include <QDir>
-#include <QProcess>
-#include <QScopedPointer>
-#include <QStringList>
-#include <QTemporaryFile>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qtemporaryfile.h>
 
 #ifdef Q_OS_WIN
-#include <qt_windows.h>
+#include <QtCore/qt_windows.h>
 #endif
 
 #include <algorithm>

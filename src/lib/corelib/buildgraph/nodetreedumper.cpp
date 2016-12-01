@@ -46,7 +46,7 @@
 #include <language/language.h>
 #include <tools/qbsassert.h>
 
-#include <QIODevice>
+#include <QtCore/qiodevice.h>
 
 namespace qbs {
 namespace Internal {

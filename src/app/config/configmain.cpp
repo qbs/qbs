@@ -44,7 +44,7 @@
 #include <tools/error.h>
 #include <tools/settings.h>
 
-#include <QCoreApplication>
+#include <QtCore/qcoreapplication.h>
 
 #include <cstdlib>
 #include <iostream>

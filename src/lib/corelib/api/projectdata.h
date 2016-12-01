@@ -42,12 +42,12 @@
 #include "../tools/codelocation.h"
 #include "../tools/qbs_export.h"
 
-#include <QExplicitlySharedDataPointer>
-#include <QList>
-#include <QPair>
-#include <QString>
-#include <QStringList>
-#include <QVariantMap>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qpair.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 namespace Internal {

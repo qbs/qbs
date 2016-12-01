@@ -39,7 +39,7 @@
 #ifndef QBS_LANG_FORWARD_DECLS_H
 #define QBS_LANG_FORWARD_DECLS_H
 
-#include <QSharedPointer>
+#include <QtCore/qsharedpointer.h>
 
 namespace qbs {
 namespace Internal {

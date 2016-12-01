@@ -41,7 +41,7 @@
 
 #include "commandtype.h"
 
-#include <QHash>
+#include <QtCore/qhash.h>
 
 namespace qbs {
 class Command;

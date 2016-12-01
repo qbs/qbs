@@ -48,7 +48,7 @@
 #include <sys/stat.h>
 #endif
 
-#include <QString>
+#include <QtCore/qstring.h>
 
 QT_FORWARD_DECLARE_CLASS(QFileInfo)
 

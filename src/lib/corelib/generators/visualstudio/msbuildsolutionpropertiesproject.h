@@ -36,7 +36,7 @@
 #include <generators/generatordata.h>
 #include <tools/visualstudioversioninfo.h>
 
-#include <QFileInfo>
+#include <QtCore/qfileinfo.h>
 
 namespace qbs {
 

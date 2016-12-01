@@ -40,8 +40,8 @@
 #ifndef QBSQTTOOLS_H
 #define QBSQTTOOLS_H
 
-#include <QHash>
-#include <QStringList>
+#include <QtCore/qhash.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 uint qHash(const QStringList &list);

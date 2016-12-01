@@ -39,7 +39,7 @@
 #ifndef CONSOLEPROGRESSOBSERVER_H
 #define CONSOLEPROGRESSOBSERVER_H
 
-#include <QtGlobal>
+#include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
 class QString;

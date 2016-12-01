@@ -40,7 +40,7 @@
 #ifndef XCODEPROBE_H
 #define XCODEPROBE_H
 
-#include <QList>
+#include <QtCore/qlist.h>
 
 namespace qbs {
 class Profile;

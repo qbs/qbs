@@ -54,12 +54,12 @@
 #include <tools/qbsassert.h>
 #include <tools/shellutils.h>
 
-#include <QDir>
-#include <QProcess>
-#include <QProcessEnvironment>
-#include <QScopedPointer>
-#include <QTemporaryFile>
-#include <QVariantMap>
+#include <QtCore/qdir.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qtemporaryfile.h>
+#include <QtCore/qvariant.h>
 
 #include <stdlib.h>
 

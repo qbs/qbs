@@ -30,9 +30,9 @@
 
 #include "activities.h"
 
-#include <QHash>
-#include <QString>
-#include <QTemporaryDir>
+#include <QtCore/qhash.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qtemporarydir.h>
 
 QT_BEGIN_NAMESPACE
 class QStringList;

@@ -41,7 +41,7 @@
 #define QBS_APPLECODESIGNUTILS_H
 
 #include "qbs_export.h"
-#include <QVariantMap>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 namespace Internal {

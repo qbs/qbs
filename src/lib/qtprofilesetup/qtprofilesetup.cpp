@@ -49,13 +49,13 @@
 #include <tools/settings.h>
 #include <tools/version.h>
 
-#include <QDir>
-#include <QDirIterator>
-#include <QFile>
-#include <QFileInfo>
-#include <QLibrary>
-#include <QRegExp>
-#include <QTextStream>
+#include <QtCore/qdir.h>
+#include <QtCore/qdiriterator.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qlibrary.h>
+#include <QtCore/qregexp.h>
+#include <QtCore/qtextstream.h>
 
 namespace qbs {
 using namespace Internal;

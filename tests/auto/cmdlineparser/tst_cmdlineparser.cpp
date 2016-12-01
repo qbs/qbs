@@ -33,9 +33,10 @@
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 
-#include <QDir>
-#include <QTemporaryFile>
-#include <QTest>
+#include <QtCore/qdir.h>
+#include <QtCore/qtemporaryfile.h>
+
+#include <QtTest/qtest.h>
 
 using namespace qbs;
 

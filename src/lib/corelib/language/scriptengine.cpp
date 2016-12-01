@@ -54,14 +54,15 @@
 #include <tools/profiling.h>
 #include <tools/qbsassert.h>
 
-#include <QDebug>
-#include <QDirIterator>
-#include <QFile>
-#include <QFileInfo>
-#include <QScriptValueIterator>
-#include <QSet>
-#include <QTextStream>
-#include <QTimer>
+#include <QtCore/qdebug.h>
+#include <QtCore/qdiriterator.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qset.h>
+#include <QtCore/qtextstream.h>
+#include <QtCore/qtimer.h>
+
+#include <QtScript/qscriptvalueiterator.h>
 
 namespace qbs {
 namespace Internal {

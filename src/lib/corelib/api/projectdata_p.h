@@ -41,7 +41,7 @@
 
 #include "projectdata.h"
 
-#include <QSharedData>
+#include <QtCore/qshareddata.h>
 
 namespace qbs {
 namespace Internal {

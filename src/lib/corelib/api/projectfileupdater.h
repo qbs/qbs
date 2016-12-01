@@ -44,7 +44,7 @@
 #include <tools/error.h>
 #include <tools/codelocation.h>
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 namespace QbsQmlJS { namespace AST { class UiProgram; } }
 

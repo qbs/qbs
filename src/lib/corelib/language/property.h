@@ -39,9 +39,9 @@
 #ifndef QBS_PROPERTY_H
 #define QBS_PROPERTY_H
 
-#include <QSet>
-#include <QString>
-#include <QVariant>
+#include <QtCore/qset.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 namespace Internal {

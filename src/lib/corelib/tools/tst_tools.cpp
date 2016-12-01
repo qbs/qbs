@@ -51,13 +51,14 @@
 #include "setupprojectparameters.h"
 #include "version.h"
 
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
-#include <QSettings>
-#include <QTemporaryDir>
-#include <QTemporaryFile>
-#include <QTest>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qsettings.h>
+#include <QtCore/qtemporarydir.h>
+#include <QtCore/qtemporaryfile.h>
+
+#include <QtTest/qtest.h>
 
 namespace qbs {
 namespace Internal {

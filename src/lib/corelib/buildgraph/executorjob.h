@@ -44,7 +44,7 @@
 #include <tools/commandechomode.h>
 #include <tools/error.h>
 
-#include <QObject>
+#include <QtCore/qobject.h>
 
 namespace qbs {
 class CodeLocation;

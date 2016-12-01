@@ -30,9 +30,9 @@
 
 #include "activities.h"
 
-#include <QList>
-#include <QMutex>
-#include <QString>
+#include <QtCore/qlist.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qstring.h>
 
 QT_BEGIN_NAMESPACE
 class QStringList;

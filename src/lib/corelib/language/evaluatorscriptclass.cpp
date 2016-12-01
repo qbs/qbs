@@ -55,11 +55,12 @@
 #include <tools/shellutils.h>
 #include <jsextensions/environmentextension.h>
 
-#include <QByteArray>
-#include <QScriptString>
-#include <QScriptValue>
-#include <QDebug>
-#include <QSettings>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qsettings.h>
+
+#include <QtScript/qscriptstring.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

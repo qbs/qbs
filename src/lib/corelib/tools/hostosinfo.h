@@ -43,11 +43,11 @@
 #include "qbs_export.h"
 #include "version.h"
 
-#include <QtGlobal>
-#include <QMap>
-#include <QSettings>
-#include <QString>
-#include <QStringList>
+#include <QtCore/qglobal.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qsettings.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 #if defined(Q_OS_WIN)
 #define QBS_HOST_EXE_SUFFIX ".exe"

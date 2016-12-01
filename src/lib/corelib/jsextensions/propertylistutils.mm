@@ -40,10 +40,10 @@
 
 #import <Foundation/Foundation.h>
 #include "propertylistutils.h"
-#include <QByteArray>
-#include <QDateTime>
-#include <QString>
-#include <QVariantMap>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qvariant.h>
 
 static inline QDateTime QDateTime_fromNSDate(const NSDate *date)
 {

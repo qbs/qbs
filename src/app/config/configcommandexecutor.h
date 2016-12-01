@@ -39,7 +39,7 @@
 #ifndef CONFIGCOMMANDEXECUTOR_H
 #define CONFIGCOMMANDEXECUTOR_H
 
-#include <QCoreApplication>
+#include <QtCore/qcoreapplication.h>
 
 namespace qbs { class Settings; }
 

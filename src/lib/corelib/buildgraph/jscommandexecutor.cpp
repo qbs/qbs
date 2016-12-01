@@ -52,9 +52,9 @@
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 
-#include <QEventLoop>
-#include <QThread>
-#include <QTimer>
+#include <QtCore/qeventloop.h>
+#include <QtCore/qthread.h>
+#include <QtCore/qtimer.h>
 
 namespace qbs {
 namespace Internal {

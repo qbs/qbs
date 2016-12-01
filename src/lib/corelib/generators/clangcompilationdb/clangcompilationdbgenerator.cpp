@@ -46,11 +46,11 @@
 #include <tools/installoptions.h>
 #include <tools/shellutils.h>
 
-#include <QDir>
-#include <QFile>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
 
 namespace qbs {
 using namespace Internal;

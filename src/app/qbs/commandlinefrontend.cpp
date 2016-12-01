@@ -51,10 +51,10 @@
 #include <tools/projectgeneratormanager.h>
 #include <tools/shellutils.h>
 
-#include <QDir>
-#include <QFile>
-#include <QProcessEnvironment>
-#include <QTimer>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qtimer.h>
 
 #include <cstdlib>
 #include <cstdio>

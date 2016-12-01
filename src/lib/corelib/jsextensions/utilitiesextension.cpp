@@ -55,12 +55,13 @@
 #include <tools/vsenvironmentdetector.h>
 #endif
 
-#include <QCryptographicHash>
-#include <QDir>
-#include <QFileInfo>
-#include <QRegularExpression>
-#include <QScriptable>
-#include <QScriptEngine>
+#include <QtCore/qcryptographichash.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qregularexpression.h>
+
+#include <QtScript/qscriptable.h>
+#include <QtScript/qscriptengine.h>
 
 namespace qbs {
 namespace Internal {

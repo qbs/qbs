@@ -42,8 +42,9 @@
 #include "forward_decls.h"
 #include <language/forward_decls.h>
 
-#include <QScriptValue>
-#include <QStringList>
+#include <QtCore/qstringlist.h>
+
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

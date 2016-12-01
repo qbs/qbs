@@ -43,10 +43,10 @@
 
 #include <tools/error.h>
 
-#include <QProcessEnvironment>
-#include <QSharedDataPointer>
-#include <QStringList>
-#include <QVariantMap>
+#include <QtCore/qprocess.h>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 

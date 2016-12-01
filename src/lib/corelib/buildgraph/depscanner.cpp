@@ -51,9 +51,10 @@
 #include <plugins/scanner/scanner.h>
 #include <tools/fileinfo.h>
 
-#include <QVariantMap>
-#include <QSet>
-#include <QScriptContext>
+#include <QtCore/qvariant.h>
+#include <QtCore/qset.h>
+
+#include <QtScript/qscriptcontext.h>
 
 namespace qbs {
 namespace Internal {

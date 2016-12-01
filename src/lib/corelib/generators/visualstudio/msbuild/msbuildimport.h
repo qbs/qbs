@@ -30,7 +30,7 @@
 #ifndef MSBUILDIMPORT_H
 #define MSBUILDIMPORT_H
 
-#include <QObject>
+#include <QtCore/qobject.h>
 #include "imsbuildnode.h"
 
 namespace qbs {

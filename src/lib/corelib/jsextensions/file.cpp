@@ -43,10 +43,11 @@
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
 
-#include <QDir>
-#include <QFileInfo>
-#include <QScriptable>
-#include <QScriptEngine>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
+
+#include <QtScript/qscriptable.h>
+#include <QtScript/qscriptengine.h>
 
 namespace qbs {
 namespace Internal {

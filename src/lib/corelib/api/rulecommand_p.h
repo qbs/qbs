@@ -42,8 +42,8 @@
 
 #include "rulecommand.h"
 
-#include <QProcessEnvironment>
-#include <QSharedData>
+#include <QtCore/qprocess.h>
+#include <QtCore/qshareddata.h>
 
 namespace qbs {
 namespace Internal {

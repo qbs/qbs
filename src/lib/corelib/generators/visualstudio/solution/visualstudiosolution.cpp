@@ -35,7 +35,7 @@
 
 #include <tools/visualstudioversioninfo.h>
 
-#include <QMap>
+#include <QtCore/qmap.h>
 
 namespace qbs {
 

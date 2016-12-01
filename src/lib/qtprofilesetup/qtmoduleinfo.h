@@ -39,8 +39,8 @@
 #ifndef QBS_QTMODULEINFO_H
 #define QBS_QTMODULEINFO_H
 
-#include <QSet>
-#include <QStringList>
+#include <QtCore/qset.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 class QtEnvironment;

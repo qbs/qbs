@@ -29,7 +29,7 @@
 #include "commandlineparser.h"
 #include "fuzzytester.h"
 
-#include <QCoreApplication>
+#include <QtCore/qcoreapplication.h>
 
 #include <cstdlib>
 #include <iostream>

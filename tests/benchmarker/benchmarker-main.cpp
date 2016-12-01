@@ -30,7 +30,7 @@
 #include "commandlineparser.h"
 #include "exception.h"
 
-#include <QCoreApplication>
+#include <QtCore/qcoreapplication.h>
 
 #include <cstdlib>
 #include <iostream>

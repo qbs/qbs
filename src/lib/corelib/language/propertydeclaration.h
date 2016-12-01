@@ -40,7 +40,7 @@
 #ifndef QBS_PROPERTYDECLARATION_H
 #define QBS_PROPERTYDECLARATION_H
 
-#include <QSharedDataPointer>
+#include <QtCore/qshareddata.h>
 
 QT_BEGIN_NAMESPACE
 class QScriptValue;

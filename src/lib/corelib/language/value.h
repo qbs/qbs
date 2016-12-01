@@ -42,7 +42,7 @@
 
 #include "forward_decls.h"
 #include <tools/codelocation.h>
-#include <QVariant>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 namespace Internal {

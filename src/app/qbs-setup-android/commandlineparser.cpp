@@ -41,7 +41,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 
-#include <QFileInfo>
+#include <QtCore/qfileinfo.h>
 
 CommandLineParser::CommandLineParser()
 {

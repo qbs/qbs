@@ -60,10 +60,11 @@
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 
-#include <QDir>
-#include <QQueue>
-#include <QScopedPointer>
-#include <QScriptValueIterator>
+#include <QtCore/qdir.h>
+#include <QtCore/qqueue.h>
+#include <QtCore/qscopedpointer.h>
+
+#include <QtScript/qscriptvalueiterator.h>
 
 namespace qbs {
 namespace Internal {

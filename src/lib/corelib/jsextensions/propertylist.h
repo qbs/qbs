@@ -41,7 +41,7 @@
 #ifndef QBS_PROPERTYLIST_H
 #define QBS_PROPERTYLIST_H
 
-#include <qglobal.h>
+#include <QtCore/qglobal.h>
 
 // ### remove when qbs requires qbs 1.6 to build itself
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0) && defined(__APPLE__) && !defined(Q_OS_MAC)
@@ -50,7 +50,7 @@
 
 #ifndef Q_OS_MAC
 
-#include <QScriptEngine>
+#include <QtScript/qscriptengine.h>
 
 namespace qbs {
 namespace Internal {
@@ -68,11 +68,12 @@ void initializeJsExtensionPropertyList(QScriptValue extensionObject)
 
 #else // Q_OS_MAC
 
-#include <QObject>
-#include <QScriptable>
-#include <QScriptValue>
-#include <QString>
-#include <QVariant>
+#include <QtCore/qobject.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qvariant.h>
+
+#include <QtScript/qscriptable.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

@@ -31,7 +31,7 @@
 #ifndef MSBUILDITEM_H
 #define MSBUILDITEM_H
 
-#include <QObject>
+#include <QtCore/qobject.h>
 #include "imsbuildnode.h"
 
 namespace qbs {

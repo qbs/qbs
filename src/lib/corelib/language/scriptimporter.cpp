@@ -45,7 +45,7 @@
 #include <parser/qmljsparser_p.h>
 #include <tools/error.h>
 
-#include <QScriptValueIterator>
+#include <QtScript/qscriptvalueiterator.h>
 
 namespace qbs {
 namespace Internal {

@@ -29,10 +29,10 @@
 
 #include "exception.h"
 
-#include <QByteArray>
-#include <QProcess>
-#include <QString>
-#include <QStringList>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbsBenchmarker {
 

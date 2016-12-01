@@ -40,8 +40,8 @@
 #ifndef GENERATORDATA_H
 #define GENERATORDATA_H
 
-#include <QDir>
-#include <QMap>
+#include <QtCore/qdir.h>
+#include <QtCore/qmap.h>
 #include <api/project.h>
 #include <api/projectdata.h>
 

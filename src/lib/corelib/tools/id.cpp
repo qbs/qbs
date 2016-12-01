@@ -40,9 +40,9 @@
 #include "id.h"
 #include "qbsassert.h"
 
-#include <QByteArray>
-#include <QHash>
-#include <QVector>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qhash.h>
+#include <QtCore/qvector.h>
 
 namespace qbs {
 namespace Internal {

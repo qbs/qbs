@@ -44,10 +44,11 @@
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
 
-#include <QFile>
-#include <QScriptEngine>
-#include <QScriptValueIterator>
-#include <QSet>
+#include <QtCore/qfile.h>
+#include <QtCore/qset.h>
+
+#include <QtScript/qscriptengine.h>
+#include <QtScript/qscriptvalueiterator.h>
 
 namespace qbs {
 namespace Internal {

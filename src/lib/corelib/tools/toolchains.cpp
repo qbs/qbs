@@ -38,8 +38,8 @@
 ****************************************************************************/
 
 #include "toolchains.h"
-#include <QMap>
-#include <QSet>
+#include <QtCore/qmap.h>
+#include <QtCore/qset.h>
 
 namespace qbs {
 

@@ -50,8 +50,8 @@
 #include <tools/error.h>
 #include <tools/version.h>
 
-#include <QList>
-#include <QMap>
+#include <QtCore/qlist.h>
+#include <QtCore/qmap.h>
 
 namespace qbs {
 namespace Internal {

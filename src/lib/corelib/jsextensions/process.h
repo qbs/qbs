@@ -42,10 +42,11 @@
 
 #include <logging/logger.h>
 
-#include <QObject>
-#include <QProcessEnvironment>
-#include <QScriptable>
-#include <QVariant>
+#include <QtCore/qobject.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qvariant.h>
+
+#include <QtScript/qscriptable.h>
 
 QT_BEGIN_NAMESPACE
 class QProcess;

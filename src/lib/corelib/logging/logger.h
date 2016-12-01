@@ -44,9 +44,9 @@
 
 #include <tools/error.h>
 
-#include <QByteArray>
-#include <QString>
-#include <QStringList>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 class QVariant;

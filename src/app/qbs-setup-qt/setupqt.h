@@ -41,8 +41,8 @@
 #define QBS_SETUPQT_H
 
 #include <tools/error.h>
-#include <QCoreApplication>
-#include <QStringList>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 class QtEnvironment;

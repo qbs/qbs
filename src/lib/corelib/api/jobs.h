@@ -44,9 +44,9 @@
 #include "../tools/error.h"
 #include "../tools/qbs_export.h"
 
-#include <QObject>
-#include <QProcess>
-#include <QVariantMap>
+#include <QtCore/qobject.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 class BuildOptions;

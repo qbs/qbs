@@ -47,8 +47,8 @@
 #include <language/property.h>
 #include <tools/filetime.h>
 
-#include <QHash>
-#include <QList>
+#include <QtCore/qhash.h>
+#include <QtCore/qlist.h>
 
 namespace qbs {
 namespace Internal {

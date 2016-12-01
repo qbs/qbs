@@ -40,10 +40,10 @@
 
 #include <tools/hostosinfo.h>
 
-#include <QCoreApplication>
-#include <QDir>
-#include <QFileInfo>
-#include <QProcess>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qprocess.h>
 
 #include <iostream>
 

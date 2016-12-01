@@ -40,7 +40,7 @@
 #ifndef MSVCPROBE_H
 #define MSVCPROBE_H
 
-#include <QList>
+#include <QtCore/qlist.h>
 
 namespace qbs {
 class Profile;

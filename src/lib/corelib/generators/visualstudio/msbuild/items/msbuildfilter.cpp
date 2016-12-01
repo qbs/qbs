@@ -31,7 +31,7 @@
 #include "msbuildfilter.h"
 #include "../msbuilditemmetadata.h"
 #include <tools/hostosinfo.h>
-#include <QUuid>
+#include <QtCore/quuid.h>
 
 namespace qbs {
 

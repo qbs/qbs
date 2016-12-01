@@ -40,8 +40,8 @@
 
 #include "generateoptions.h"
 
-#include <QSharedData>
-#include <QString>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

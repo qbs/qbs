@@ -41,9 +41,9 @@
 
 #include <parser/qmljsast_p.h>
 
-#include <QTextBlock>
-#include <QTextCursor>
-#include <QTextDocument>
+#include <QtGui/qtextobject.h>
+#include <QtGui/qtextcursor.h>
+#include <QtGui/qtextdocument.h>
 
 namespace QbsQmlJS {
 using namespace AST;

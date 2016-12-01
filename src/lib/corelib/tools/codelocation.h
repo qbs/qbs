@@ -42,8 +42,8 @@
 
 #include "qbs_export.h"
 
-#include <QDebug>
-#include <QExplicitlySharedDataPointer>
+#include <QtCore/qdebug.h>
+#include <QtCore/qshareddata.h>
 
 QT_BEGIN_NAMESPACE
 class QDataStream;

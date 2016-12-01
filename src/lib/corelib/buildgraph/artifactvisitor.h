@@ -44,8 +44,8 @@
 #include "buildgraphvisitor.h"
 #include <language/forward_decls.h>
 
-#include <QList>
-#include <QSet>
+#include <QtCore/qlist.h>
+#include <QtCore/qset.h>
 
 namespace qbs {
 namespace Internal {

@@ -43,11 +43,11 @@
 
 #include <qbs.h>
 
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
-#include <QString>
-#include <QRegExp>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qregexp.h>
 
 namespace qbs {
 

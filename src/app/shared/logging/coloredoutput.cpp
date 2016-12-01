@@ -38,9 +38,9 @@
 ****************************************************************************/
 
 #include "coloredoutput.h"
-#include <QtGlobal>
+#include <QtCore/qglobal.h>
 #ifdef Q_OS_WIN32
-# include <qt_windows.h>
+# include <QtCore/qt_windows.h>
 #endif
 
 #include <cstdarg>

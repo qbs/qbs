@@ -60,12 +60,13 @@
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 
-#include <QCryptographicHash>
-#include <QDir>
-#include <QDirIterator>
-#include <QMap>
-#include <QMutexLocker>
-#include <QScriptValue>
+#include <QtCore/qcryptographichash.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qdiriterator.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qmutex.h>
+
+#include <QtScript/qscriptvalue.h>
 
 #include <algorithm>
 

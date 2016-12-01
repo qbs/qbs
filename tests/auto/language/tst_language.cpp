@@ -30,8 +30,9 @@
 
 #include <app/shared/logging/consolelogger.h>
 
-#include <QCoreApplication>
-#include <QTest>
+#include <QtCore/qcoreapplication.h>
+
+#include <QtTest/qtest.h>
 
 int main(int argc, char *argv[])
 {

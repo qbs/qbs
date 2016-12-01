@@ -39,7 +39,7 @@
 #ifndef QBS_BG_FORWARD_DECLS_H
 #define QBS_BG_FORWARD_DECLS_H
 
-#include <QSharedPointer>
+#include <QtCore/qsharedpointer.h>
 
 namespace qbs {
 namespace Internal {

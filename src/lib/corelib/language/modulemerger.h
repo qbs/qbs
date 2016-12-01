@@ -46,8 +46,8 @@
 #include <logging/logger.h>
 #include <tools/version.h>
 
-#include <QHash>
-#include <QSet>
+#include <QtCore/qhash.h>
+#include <QtCore/qset.h>
 
 namespace qbs {
 namespace Internal {

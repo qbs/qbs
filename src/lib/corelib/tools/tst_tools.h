@@ -38,8 +38,8 @@
 ****************************************************************************/
 #include "qbs_export.h"
 
-#include <QList>
-#include <QObject>
+#include <QtCore/qlist.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 class QTemporaryDir;

@@ -45,13 +45,14 @@
 #include <logging/logger.h>
 #include <tools/filetime.h>
 
-#include <QDir>
-#include <QHash>
-#include <QList>
-#include <QProcessEnvironment>
-#include <QScriptEngine>
-#include <QStack>
-#include <QString>
+#include <QtCore/qdir.h>
+#include <QtCore/qhash.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qstack.h>
+#include <QtCore/qstring.h>
+
+#include <QtScript/qscriptengine.h>
 
 #include <vector>
 

@@ -40,7 +40,7 @@
 #ifndef QBS_ENVIRONMENTEXTENSION_H
 #define QBS_ENVIRONMENTEXTENSION_H
 
-#include <QScriptValue>
+#include <QtScript/qscriptvalue.h>
 
 QT_BEGIN_NAMESPACE
 class QScriptContext;

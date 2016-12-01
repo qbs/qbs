@@ -42,9 +42,9 @@
 
 #include <language/filetags.h>
 
-#include <QHash>
-#include <QString>
-#include <QVector>
+#include <QtCore/qhash.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qvector.h>
 
 namespace qbs {
 namespace Internal {

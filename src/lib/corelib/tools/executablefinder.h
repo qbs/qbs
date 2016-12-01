@@ -43,7 +43,7 @@
 #include <language/language.h>
 #include <logging/logger.h>
 
-#include <QProcessEnvironment>
+#include <QtCore/qprocess.h>
 
 namespace qbs {
 namespace Internal {

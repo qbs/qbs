@@ -43,7 +43,7 @@
 #include "buildgraphvisitor.h"
 #include <language/forward_decls.h>
 
-#include <QList>
+#include <QtCore/qlist.h>
 
 QT_BEGIN_NAMESPACE
 class QIODevice;

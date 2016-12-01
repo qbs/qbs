@@ -42,8 +42,8 @@
 #define GENERATORPLUGIN_H
 
 #include "generatordata.h"
-#include <QList>
-#include <QString>
+#include <QtCore/qlist.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 

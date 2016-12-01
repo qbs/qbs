@@ -43,7 +43,7 @@
 #include "filecontextbase.h"
 #include "forward_decls.h"
 
-#include <QString>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

@@ -31,7 +31,7 @@
 #ifndef VISUALSTUDIOSOLUTIONFOLDERPROJECT_H
 #define VISUALSTUDIOSOLUTIONFOLDERPROJECT_H
 
-#include <QObject>
+#include <QtCore/qobject.h>
 #include "ivisualstudiosolutionproject.h"
 
 namespace qbs {

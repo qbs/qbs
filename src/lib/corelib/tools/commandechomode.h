@@ -42,8 +42,8 @@
 #define QBS_COMMANDECHOMODE_H
 
 #include "qbs_export.h"
-#include <QString>
-#include <QStringList>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 

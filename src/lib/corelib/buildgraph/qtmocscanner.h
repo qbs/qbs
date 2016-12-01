@@ -43,9 +43,10 @@
 #include <language/language.h>
 #include <logging/logger.h>
 
-#include <QHash>
-#include <QScriptValue>
-#include <QString>
+#include <QtCore/qhash.h>
+#include <QtCore/qstring.h>
+
+#include <QtScript/qscriptvalue.h>
 
 QT_BEGIN_NAMESPACE
 class QScriptContext;

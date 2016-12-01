@@ -44,8 +44,8 @@
 #include <logging/ilogsink.h>
 #include <tools/qbs_export.h>
 
-#include <QList>
-#include <QObject>
+#include <QtCore/qlist.h>
+#include <QtCore/qobject.h>
 
 namespace qbs {
 namespace Internal {

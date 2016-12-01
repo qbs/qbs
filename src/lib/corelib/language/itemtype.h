@@ -40,7 +40,7 @@
 #ifndef QBS_ITEMTYPE_H
 #define QBS_ITEMTYPE_H
 
-#include <QHash>
+#include <QtCore/qhash.h>
 
 namespace qbs {
 namespace Internal {

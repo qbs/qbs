@@ -39,8 +39,8 @@
 
 #include "version.h"
 
-#include <QRegExp>
-#include <QString>
+#include <QtCore/qregexp.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

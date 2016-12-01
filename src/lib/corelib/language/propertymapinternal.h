@@ -42,7 +42,7 @@
 
 #include "forward_decls.h"
 #include <tools/persistentobject.h>
-#include <QVariantMap>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 namespace Internal {

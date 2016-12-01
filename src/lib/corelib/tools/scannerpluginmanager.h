@@ -43,8 +43,8 @@
 #include <language/filetags.h>
 #include <plugins/scanner/scanner.h>
 
-#include <QHash>
-#include <QString>
+#include <QtCore/qhash.h>
+#include <QtCore/qstring.h>
 
 QT_BEGIN_NAMESPACE
 class QLibrary;

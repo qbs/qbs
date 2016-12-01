@@ -41,15 +41,17 @@
 
 #include <tools/settingsmodel.h>
 
-#include <QAction>
-#include <QKeyEvent>
-#include <QKeySequence>
-#include <QMenu>
-#include <QMenuBar>
-#include <QMessageBox>
-#include <QModelIndex>
-#include <QPoint>
-#include <QString>
+#include <QtCore/qabstractitemmodel.h>
+#include <QtCore/qpoint.h>
+#include <QtCore/qstring.h>
+
+#include <QtGui/qevent.h>
+#include <QtGui/qkeysequence.h>
+
+#include <QtWidgets/qaction.h>
+#include <QtWidgets/qmenu.h>
+#include <QtWidgets/qmenubar.h>
+#include <QtWidgets/qmessagebox.h>
 
 MainWindow::MainWindow(const QString &settingsDir, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)

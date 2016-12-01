@@ -44,8 +44,9 @@
 #include <language/filetags.h>
 #include <language/preparescriptobserver.h>
 
-#include <QStringList>
-#include <QScriptValue>
+#include <QtCore/qstringlist.h>
+
+#include <QtScript/qscriptvalue.h>
 
 class ScannerPlugin;
 

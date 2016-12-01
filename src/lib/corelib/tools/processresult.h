@@ -41,11 +41,11 @@
 
 #include "qbs_export.h"
 
-#include <QExplicitlySharedDataPointer>
-#include <QMetaType>
-#include <QProcess>
-#include <QString>
-#include <QStringList>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qmetatype.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 namespace Internal {

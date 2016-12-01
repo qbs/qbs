@@ -45,8 +45,8 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 
-#include <QMap>
-#include <QSet>
+#include <QtCore/qmap.h>
+#include <QtCore/qset.h>
 
 namespace qbs {
 using namespace Internal;

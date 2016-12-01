@@ -34,15 +34,15 @@
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 
-#include <QDir>
-#include <QFile>
-#include <QRegExp>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qregexp.h>
 
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
 
-#include <QtTest>
+#include <QtTest/qtest.h>
 
 using qbs::InstallOptions;
 using qbs::Internal::HostOsInfo;

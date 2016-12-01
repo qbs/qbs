@@ -42,7 +42,7 @@
 
 #include "../tools/qbs_export.h"
 
-#include <QByteArray>
+#include <QtCore/qbytearray.h>
 
 namespace qbs {
 

@@ -39,7 +39,7 @@
 #ifndef QBS_PROBE_H
 #define QBS_PROBE_H
 
-#include <QtGlobal>
+#include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
 class QString;

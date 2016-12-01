@@ -40,8 +40,8 @@
 #ifndef QBS_QUALIFIEDID_H
 #define QBS_QUALIFIEDID_H
 
-#include <QHash>
-#include <QStringList>
+#include <QtCore/qhash.h>
+#include <QtCore/qstringlist.h>
 
 #include <set>
 

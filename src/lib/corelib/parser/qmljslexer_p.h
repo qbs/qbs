@@ -53,7 +53,7 @@
 
 #include "qmljsglobal_p.h"
 #include "qmljsgrammar_p.h"
-#include <QtCore/QString>
+#include <QtCore/qstring.h>
 
 namespace QbsQmlJS {
 

@@ -40,7 +40,7 @@
 #ifndef QBS_FILEINFOEXTENSION_H
 #define QBS_FILEINFOEXTENSION_H
 
-#include <QScriptValue>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

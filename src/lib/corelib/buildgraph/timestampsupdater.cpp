@@ -48,7 +48,7 @@
 #include <tools/filetime.h>
 #include <tools/qbsassert.h>
 
-#include <QFile>
+#include <QtCore/qfile.h>
 
 namespace qbs {
 namespace Internal {

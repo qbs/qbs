@@ -41,7 +41,7 @@
 #ifndef QPROPERTYLISTUTILS_H
 #define QPROPERTYLISTUTILS_H
 
-#include <QVariant>
+#include <QtCore/qvariant.h>
 #import <Foundation/Foundation.h>
 
 #if !defined(__OBJC__) || !defined(__cplusplus)

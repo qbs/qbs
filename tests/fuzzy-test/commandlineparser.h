@@ -28,7 +28,7 @@
 #ifndef QBS_FUZZYTEST_COMMANDLINEPARSER_H
 #define QBS_FUZZYTEST_COMMANDLINEPARSER_H
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 #include <exception>
 

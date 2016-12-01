@@ -39,7 +39,7 @@
 #ifndef QBS_ARTIFACTCLEANER_H
 #define QBS_ARTIFACTCLEANER_H
 
-#include <QList>
+#include <QtCore/qlist.h>
 
 #include <language/forward_decls.h>
 #include <logging/logger.h>

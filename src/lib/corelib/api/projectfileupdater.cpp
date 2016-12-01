@@ -53,7 +53,7 @@
 #include <tools/jsliterals.h>
 #include <tools/qbsassert.h>
 
-#include <QFile>
+#include <QtCore/qfile.h>
 
 using namespace QbsQmlJS;
 using namespace AST;

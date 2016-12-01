@@ -46,8 +46,8 @@
 #include <language/forward_decls.h>
 #include <tools/persistentobject.h>
 
-#include <QList>
-#include <QSet>
+#include <QtCore/qlist.h>
+#include <QtCore/qset.h>
 
 namespace qbs {
 namespace Internal {

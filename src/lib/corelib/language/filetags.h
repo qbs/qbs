@@ -42,8 +42,8 @@
 
 #include <logging/logger.h>
 #include <tools/id.h>
-#include <QDataStream>
-#include <QSet>
+#include <QtCore/qdatastream.h>
+#include <QtCore/qset.h>
 
 namespace qbs {
 namespace Internal {

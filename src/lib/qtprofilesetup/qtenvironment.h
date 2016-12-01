@@ -41,7 +41,7 @@
 
 #include <tools/qbs_export.h>
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 

@@ -42,17 +42,17 @@
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
 
-#include <QCoreApplication>
-#include <QDateTime>
-#include <QDir>
-#include <QFileInfo>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
 
 #if defined(Q_OS_UNIX)
 #include <errno.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #elif defined(Q_OS_WIN)
-#include <qt_windows.h>
+#include <QtCore/qt_windows.h>
 #endif
 
 namespace qbs {

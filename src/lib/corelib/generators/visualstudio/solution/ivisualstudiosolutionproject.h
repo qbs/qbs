@@ -31,10 +31,10 @@
 #ifndef IVISUALSTUDIOSOLUTIONPROJECT_H
 #define IVISUALSTUDIOSOLUTIONPROJECT_H
 
-#include <QObject>
-#include <QScopedPointer>
-#include <QString>
-#include <QUuid>
+#include <QtCore/qobject.h>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qstring.h>
+#include <QtCore/quuid.h>
 
 namespace qbs {
 

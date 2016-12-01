@@ -43,8 +43,8 @@
 #include <buildgraph/forward_decls.h>
 #include <language/forward_decls.h>
 
-#include <QScriptContext>
-#include <QScriptValue>
+#include <QtScript/qscriptcontext.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {

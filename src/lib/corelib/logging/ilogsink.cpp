@@ -40,8 +40,8 @@
 
 #include <tools/error.h>
 
-#include <QByteArray>
-#include <QMutex>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qmutex.h>
 
 namespace qbs {
 

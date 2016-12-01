@@ -30,12 +30,15 @@
 #include "exception.h"
 #include "runsupport.h"
 
-#include <QBuffer>
-#include <QDir>
-#include <QFile>
-#include <QMutexLocker>
-#include <QStringList>
-#include <QtConcurrent>
+#include <QtCore/qbuffer.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfuture.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qxmlstream.h>
+
+#include <QtConcurrent/qtconcurrentrun.h>
 
 namespace qbsBenchmarker {
 

@@ -42,9 +42,9 @@
 
 #include <logging/logger.h>
 
-#include <QLockFile>
-#include <QQueue>
-#include <QString>
+#include <QtCore/qlockfile.h>
+#include <QtCore/qqueue.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

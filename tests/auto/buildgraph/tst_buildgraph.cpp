@@ -28,8 +28,8 @@
 #include <app/shared/logging/consolelogger.h>
 #include <buildgraph/tst_buildgraph.h>
 
-#include <QCoreApplication>
-#include <QtTest>
+#include <QtCore/qcoreapplication.h>
+#include <QtTest/qtest.h>
 
 int main(int argc, char *argv[])
 {

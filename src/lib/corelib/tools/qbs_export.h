@@ -39,7 +39,7 @@
 #ifndef QBS_EXPORT_H
 #define QBS_EXPORT_H
 
-#include <qglobal.h>
+#include <QtCore/qglobal.h>
 
 #ifdef QBS_STATIC_LIB
 #   define QBS_EXPORT

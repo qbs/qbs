@@ -37,12 +37,13 @@
 #include <tools/shellutils.h>
 #include <tools/version.h>
 
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QLocale>
-#include <QRegExp>
-#include <QTemporaryFile>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
+#include <QtCore/qjsonvalue.h>
+#include <QtCore/qlocale.h>
+#include <QtCore/qregularexpression.h>
+#include <QtCore/qtemporaryfile.h>
 
 #include <functional>
 

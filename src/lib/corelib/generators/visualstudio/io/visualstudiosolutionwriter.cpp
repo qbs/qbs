@@ -39,12 +39,12 @@
 #include <tools/pathutils.h>
 #include <tools/visualstudioversioninfo.h>
 
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
-#include <QTextStream>
-#include <QUuid>
-#include <QVector>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qtextstream.h>
+#include <QtCore/quuid.h>
+#include <QtCore/qvector.h>
 
 namespace qbs {
 

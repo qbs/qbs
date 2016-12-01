@@ -53,7 +53,7 @@
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 
-#include <QDebug>
+#include <QtCore/qdebug.h>
 
 namespace qbs {
 namespace Internal {

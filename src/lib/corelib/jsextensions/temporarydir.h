@@ -41,10 +41,11 @@
 #ifndef QBS_TEMPORARYDIR_H
 #define QBS_TEMPORARYDIR_H
 
-#include <QObject>
-#include <QScriptable>
-#include <QTemporaryDir>
-#include <QVariant>
+#include <QtCore/qobject.h>
+#include <QtCore/qtemporarydir.h>
+#include <QtCore/qvariant.h>
+
+#include <QtScript/qscriptable.h>
 
 namespace qbs {
 namespace Internal {

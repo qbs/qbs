@@ -47,8 +47,8 @@
 #include <language/filetags.h>
 #include <tools/filetime.h>
 
-#include <QSet>
-#include <QString>
+#include <QtCore/qset.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

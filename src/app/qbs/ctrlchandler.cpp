@@ -48,7 +48,7 @@ static void cancel()
 
 #if defined(Q_OS_WIN) && defined(Q_CC_MSVC)
 
-#include <qt_windows.h>
+#include <QtCore/qt_windows.h>
 
 static BOOL WINAPI consoleCtrlHandlerRoutine(__in  DWORD dwCtrlType)
 {

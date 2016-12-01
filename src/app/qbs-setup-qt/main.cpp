@@ -44,9 +44,9 @@
 #include <logging/translator.h>
 #include <tools/settings.h>
 
-#include <QCoreApplication>
-#include <QFileInfo>
-#include <QStringList>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qstringlist.h>
 
 #include <cstdlib>
 #include <iostream>

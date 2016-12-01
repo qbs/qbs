@@ -48,14 +48,13 @@
 #include <tools/settings.h>
 #include <tools/version.h>
 
-#include <QByteArrayMatcher>
-#include <QCoreApplication>
-#include <QDir>
-#include <QFileInfo>
-#include <QProcess>
-#include <QRegExp>
-#include <QStringList>
-#include <QtDebug>
+#include <QtCore/qbytearraymatcher.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qregexp.h>
+#include <QtCore/qstringlist.h>
 
 #include <algorithm>
 

@@ -42,7 +42,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 #include <tools/qbsassert.h>
-#include <QCoreApplication>
+#include <QtCore/qcoreapplication.h>
 
 namespace qbs {
 

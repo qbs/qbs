@@ -36,7 +36,7 @@
 
 #include <tools/hostosinfo.h>
 #include <tools/shellutils.h>
-#include <QUuid>
+#include <QtCore/quuid.h>
 
 namespace qbs {
 

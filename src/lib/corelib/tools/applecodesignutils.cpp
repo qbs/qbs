@@ -38,16 +38,16 @@
 ****************************************************************************/
 
 #include "applecodesignutils.h"
-#include <QByteArray>
-#include <QCryptographicHash>
-#include <QDateTime>
-#include <QSslCertificate>
-#include <QSslCertificateExtension>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qcryptographichash.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qdebug.h>
+
+#include <QtNetwork/qsslcertificate.h>
+#include <QtNetwork/qsslcertificateextension.h>
 
 #include <QtCore/private/qcore_mac_p.h>
 #include <Security/Security.h>
-
-#include <QDebug>
 
 namespace qbs {
 namespace Internal {

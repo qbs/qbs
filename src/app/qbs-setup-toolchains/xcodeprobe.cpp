@@ -47,13 +47,13 @@
 #include <tools/profile.h>
 #include <tools/settings.h>
 
-#include <QStringList>
-#include <QProcess>
-#include <QByteArray>
-#include <QFileInfo>
-#include <QDir>
-#include <QSettings>
-#include <QRegularExpression>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qsettings.h>
+#include <QtCore/qregularexpression.h>
 
 using namespace qbs;
 using Internal::Tr;

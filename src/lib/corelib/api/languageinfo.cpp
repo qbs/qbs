@@ -42,7 +42,7 @@
 #include <language/builtindeclarations.h>
 #include <tools/version.h>
 
-#include <QStringList>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 

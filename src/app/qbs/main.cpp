@@ -45,7 +45,7 @@
 
 #include <qbs.h>
 
-#include <QTimer>
+#include <QtCore/qtimer.h>
 #include <cstdlib>
 
 using namespace qbs;

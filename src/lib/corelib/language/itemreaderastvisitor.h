@@ -46,8 +46,8 @@
 #include <logging/logger.h>
 #include <parser/qmljsastvisitor_p.h>
 
-#include <QHash>
-#include <QStringList>
+#include <QtCore/qhash.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 class CodeLocation;

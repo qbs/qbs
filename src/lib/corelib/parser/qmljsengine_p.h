@@ -55,8 +55,8 @@
 #include "qmljsastfwd_p.h"
 #include "qmljsmemorypool_p.h"
 
-#include <QString>
-#include <QSet>
+#include <QtCore/qstring.h>
+#include <QtCore/qset.h>
 
 namespace QbsQmlJS {
 

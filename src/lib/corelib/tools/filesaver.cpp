@@ -39,8 +39,8 @@
 
 #include "filesaver.h"
 
-#include <QFile>
-#include <QSaveFile>
+#include <QtCore/qfile.h>
+#include <QtCore/qsavefile.h>
 
 namespace qbs {
 namespace Internal {

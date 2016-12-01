@@ -31,8 +31,8 @@
 
 #include <tools/buildoptions.h>
 
-#include <QObject>
-#include <QVariant>
+#include <QtCore/qobject.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 class ErrorInfo;

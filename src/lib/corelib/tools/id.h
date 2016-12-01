@@ -40,9 +40,9 @@
 #ifndef QBS_TOOLS_ID_H
 #define QBS_TOOLS_ID_H
 
-#include <QMetaType>
-#include <QString>
-#include <QVariant>
+#include <QtCore/qmetatype.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 namespace Internal {
