@@ -120,10 +120,10 @@ public:
     const QString filePath;
 };
 
+#ifdef Q_OS_WIN
 static QStringList parseCommandLine(const QString &commandLine)
 {
     QStringList list;
-#ifdef Q_OS_WIN
     wchar_t *buf = new wchar_t[commandLine.size() + 1];
     buf[commandLine.toWCharArray(buf)] = 0;
     int argCount = 0;
@@ -133,11 +133,9 @@ static QStringList parseCommandLine(const QString &commandLine)
     for (int i = 0; i < argCount; ++i)
         list.append(QString::fromWCharArray(args[i]));
     delete[] buf;
-#else
-    Q_UNUSED(commandLine);
-#endif
     return list;
 }
+#endif
 
 static QVariantMap getMsvcDefines(const QString &compilerFilePath,
                                   const QProcessEnvironment &compilerEnv)
