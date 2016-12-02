@@ -564,6 +564,8 @@ void TestLanguage::erroneousFiles_data()
                                             "component of the name of module 'prefix2.suffix'";
     QTest::newRow("conflicting-properties-in-export-items")
             << "Export item in inherited item redeclares property 'theProp' with different type.";
+    QTest::newRow("invalid-property-option")
+            << "PropertyOptions item refers to non-existing property 's0meProp'";
 }
 
 void TestLanguage::erroneousFiles()

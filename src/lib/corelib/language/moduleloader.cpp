@@ -938,6 +938,10 @@ void ModuleLoader::handlePropertyOptions(Item *optionsItem)
         throw ErrorInfo(Tr::tr("PropertyOptions item needs a name property"),
                         optionsItem->location());
     }
+    if (!optionsItem->parent()->hasProperty(name)) {
+        throw ErrorInfo(Tr::tr("PropertyOptions item refers to non-existing property '%1'")
+                        .arg(name), optionsItem->location());
+    }
     const QString description = m_evaluator->stringValue(optionsItem, QLatin1String("description"));
     const auto removalVersion = Version::fromString(m_evaluator->stringValue(optionsItem,
             QLatin1String("removalVersion")));
@@ -1241,6 +1245,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
         int prototypeChainLen = 0;
         do {
             instanceWithProperty = instanceWithProperty->prototype();
+            QBS_CHECK(instanceWithProperty);
             ++prototypeChainLen;
             propValue = instanceWithProperty->properties().value(propName);
         } while (!propValue);
