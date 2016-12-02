@@ -51,7 +51,7 @@ Module {
 
     property string appStl: "system"
     PropertyOptions {
-        name: "stlType"
+        name: "appStl"
         description: "Corresponds to the 'APP_STL' variable in an Android.mk file."
         allowedValues: [
             "system", "gabi++_static", "gabi++_shared", "stlport_static", "stlport_shared",
