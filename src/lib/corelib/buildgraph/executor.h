@@ -113,6 +113,7 @@ private:
     void doBuild();
     void prepareAllNodes();
     void prepareArtifact(Artifact *artifact);
+    void setupForBuildingSelectedFiles(const BuildGraphNode *node);
     void prepareReachableNodes();
     void prepareReachableNodes_impl(BuildGraphNode *node);
     void prepareProducts();

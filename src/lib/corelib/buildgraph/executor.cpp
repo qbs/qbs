@@ -1162,6 +1162,28 @@ void Executor::prepareArtifact(Artifact *artifact)
         fileDependency->clearTimestamp();
 }
 
+void Executor::setupForBuildingSelectedFiles(const BuildGraphNode *node)
+{
+    if (node->type() != BuildGraphNode::RuleNodeType)
+        return;
+    if (m_buildOptions.filesToConsider().isEmpty())
+        return;
+    if (!m_productsOfFilesToConsider.contains(node->product))
+        return;
+    const RuleNode * const ruleNode = static_cast<const RuleNode *>(node);
+    const Rule * const rule = ruleNode->rule().data();
+    if (rule->inputs.matches(m_tagsOfFilesToConsider)) {
+        FileTags otherInputs = rule->auxiliaryInputs;
+        otherInputs.unite(rule->explicitlyDependsOn).subtract(rule->excludedAuxiliaryInputs);
+        m_tagsNeededForFilesToConsider.unite(otherInputs);
+    } else if (rule->collectedOutputFileTags().matches(m_tagsNeededForFilesToConsider)) {
+        FileTags allInputs = rule->inputs;
+        allInputs.unite(rule->auxiliaryInputs).unite(rule->explicitlyDependsOn)
+                .subtract(rule->excludedAuxiliaryInputs);
+        m_tagsNeededForFilesToConsider.unite(allInputs);
+    }
+}
+
 /**
  * Walk the build graph top-down from the roots and for each reachable node N
  *  - mark N as buildable.
@@ -1174,25 +1196,10 @@ void Executor::prepareReachableNodes()
 
 void Executor::prepareReachableNodes_impl(BuildGraphNode *node)
 {
+    setupForBuildingSelectedFiles(node);
+
     if (node->buildState != BuildGraphNode::Untouched)
         return;
-
-    if (node->type() == BuildGraphNode::RuleNodeType
-            && !m_buildOptions.filesToConsider().isEmpty()
-            && m_productsOfFilesToConsider.contains(node->product)) {
-        const RuleNode * const ruleNode = static_cast<RuleNode *>(node);
-        const Rule * const rule = ruleNode->rule().data();
-        if (rule->inputs.matches(m_tagsOfFilesToConsider)) {
-            FileTags otherInputs = rule->auxiliaryInputs;
-            otherInputs.unite(rule->explicitlyDependsOn).subtract(rule->excludedAuxiliaryInputs);
-            m_tagsNeededForFilesToConsider.unite(otherInputs);
-        } else if (rule->collectedOutputFileTags().matches(m_tagsNeededForFilesToConsider)) {
-            FileTags allInputs = rule->inputs;
-            allInputs.unite(rule->auxiliaryInputs).unite(rule->explicitlyDependsOn)
-                    .subtract(rule->excludedAuxiliaryInputs);
-            m_tagsNeededForFilesToConsider.unite(allInputs);
-        }
-    }
 
     node->buildState = BuildGraphNode::Buildable;
     foreach (BuildGraphNode *child, node->children)
