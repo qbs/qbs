@@ -4,5 +4,8 @@ Product {
     name: "ruletest"
     type: "test-output"
     Depends { name: "TestModule" }
-    files: "test.in"
+    Group {
+        files: "test.in"
+        TestModule.testProperty: project.testProperty
+    }
 }

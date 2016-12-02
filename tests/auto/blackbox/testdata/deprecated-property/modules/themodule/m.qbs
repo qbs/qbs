@@ -3,6 +3,7 @@ import qbs
 Module {
     property bool newProp
     property bool oldProp
+    property bool veryOldProp
 
     PropertyOptions {
         name: "newProp"

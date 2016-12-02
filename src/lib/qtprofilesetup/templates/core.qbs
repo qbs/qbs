@@ -199,6 +199,8 @@ Module {
         }, " is '" + qtBuildVariant + "', but qbs.buildVariant is '" + qbs.buildVariant
             + "', which is not allowed when using MSVC");
 
+        validator.addFileNameValidator("resourceFileBaseName", resourceFileBaseName);
+
         validator.validate();
     }
 
@@ -276,13 +278,14 @@ Module {
         }
     }
 
-    property path resourceSourceBase: product.sourceDirectory
+    property path resourceSourceBase
     property string resourcePrefix: "/"
+    property string resourceFileBaseName: product.targetName
     Rule {
         multiplex: true
         inputs: ["qt.core.resource_data"]
         Artifact {
-            filePath: "__qbs_auto_" + product.name + ".qrc"
+            filePath: product.moduleProperty("Qt.core", "resourceFileBaseName") + ".qrc"
             fileTags: ["qrc"]
         }
         prepare: {
@@ -293,18 +296,30 @@ Module {
                 try {
                     qrcFile.writeLine('<!DOCTYPE RCC>');
                     qrcFile.writeLine('<RCC version="1.0">');
-                    var prefix = inputs["qt.core.resource_data"][0].moduleProperty("Qt.core",
-                                                                              "resourcePrefix");
-                    qrcFile.writeLine('<qresource prefix ="' + prefix + '">');
+
+                    var inputsByPrefix = {}
                     for (var i = 0; i < inputs["qt.core.resource_data"].length; ++i) {
                         var inp = inputs["qt.core.resource_data"][i];
-                        var fullResPath = inp.filePath;
-                        var baseDir = inp.moduleProperty("Qt.core", "resourceSourceBase");
-                        var relResPath = FileInfo.relativePath(baseDir, fullResPath);
-                        qrcFile.writeLine('<file alias = "' + relResPath + '">'
-                                          + fullResPath + '</file>');
+                        var prefix = inp.moduleProperty("Qt.core", "resourcePrefix");
+                        var inputsList = inputsByPrefix[prefix] || [];
+                        inputsList.push(inp);
+                        inputsByPrefix[prefix] = inputsList;
                     }
-                    qrcFile.writeLine('</qresource>');
+
+                    for (var prefix in inputsByPrefix) {
+                        qrcFile.writeLine('<qresource prefix="' + prefix + '">');
+                        for (var i = 0; i < inputsByPrefix[prefix].length; ++i) {
+                            var inp = inputsByPrefix[prefix][i];
+                            var fullResPath = inp.filePath;
+                            var baseDir = inp.moduleProperty("Qt.core", "resourceSourceBase");
+                            var resAlias = baseDir
+                                ? FileInfo.relativePath(baseDir, fullResPath) : inp.fileName;
+                            qrcFile.writeLine('<file alias="' + resAlias + '">'
+                                              + fullResPath + '</file>');
+                        }
+                        qrcFile.writeLine('</qresource>');
+                    }
+
                     qrcFile.writeLine('</RCC>');
                 } finally {
                     qrcFile.close();

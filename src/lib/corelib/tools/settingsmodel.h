@@ -37,6 +37,9 @@
 **
 ****************************************************************************/
 
+#ifndef QBS_SETTINGSMODEL_H
+#define QBS_SETTINGSMODEL_H
+
 #include <tools/qbs_export.h>
 
 #include <QAbstractItemModel>
@@ -82,3 +85,5 @@ QBS_EXPORT QString settingsValueToRepresentation(const QVariant &value);
 QBS_EXPORT QVariant representationToSettingsValue(const QString &representation);
 
 } // namespace qbs
+
+#endif // QBS_SETTINGSMODEL_H

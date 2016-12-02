@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QBS_COMMAND_H
-#define QBS_COMMAND_H
+#ifndef QBS_PARSER_COMMAND_H
+#define QBS_PARSER_COMMAND_H
 
 #include "commandlineoption.h"
 #include "commandtype.h"
@@ -231,4 +231,4 @@ private:
 
 } // namespace qbs
 
-#endif // QBS_COMMAND_H
+#endif // QBS_PARSER_COMMAND_H

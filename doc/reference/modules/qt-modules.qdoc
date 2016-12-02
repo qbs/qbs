@@ -337,16 +337,23 @@
     \row
         \li resourceSourceBase
         \li \c{path}
-        \li \c{product.sourceDirectory}
+        \li \c{undefined}
         \li For files tagged as \c{qt.core.resource_data}, this property determines which part of
-            their path will end up in the generated \c qrc file.
+            their path will end up in the generated \c qrc file. If this property is set to
+            \c undefined, only the file name is used.
     \row
         \li resourcePrefix
         \li \c{string}
         \li \c{"/"}
         \li For files tagged as \c{qt.core.resource_data}, this property determines the prefix
-            under which they will be available in the generated \c qrc file. The value of this
-            property needs to be the same for all such files in a product.
+            under which they will be available in the generated \c qrc file.
+    \row
+        \li resourceFileBaseName
+        \li \c{string}
+        \li \c{product.targetName}
+        \li For files tagged as \c{qt.core.resource_data}, this property determines the base name
+            of the generated \c qrc file. If this property needs to be changed, it must be set
+            in the corresponding product rather than in a Group.
     \row
         \li staticBuild
         \li \c{bool}

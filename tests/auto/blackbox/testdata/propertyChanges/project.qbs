@@ -6,6 +6,7 @@ import qbs.TextFile
 Project {
     property var projectDefines: ["blubb2"]
     property string fileContentSuffix: "suffix 1"
+    property string testProperty: "default value"
     CppApplication {
         name: qbs.enableDebugCode ? "product 1.debug" : "product 1.release"
         cpp.defines: ["blubb1"]

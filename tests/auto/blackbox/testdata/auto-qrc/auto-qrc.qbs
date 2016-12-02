@@ -20,6 +20,14 @@ Project {
                 Qt.core.resourceSourceBase: "qrc-base/subdir"
 
                 files: ["resource2.txt"]
+
+                Group {
+                    prefix: "qrc-base/subdir/"
+
+                    Qt.core.resourcePrefix: "/theOtherPrefix"
+
+                    files: ["resource3.txt"]
+                }
             }
         }
     }

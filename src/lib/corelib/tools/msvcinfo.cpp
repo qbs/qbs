@@ -41,7 +41,6 @@
 
 #include <tools/error.h>
 #include <tools/profile.h>
-#include <tools/vsenvironmentdetector.h>
 
 #include <QByteArray>
 #include <QDir>
@@ -53,6 +52,8 @@
 #ifdef Q_OS_WIN
 #include <qt_windows.h>
 #endif
+
+#include <algorithm>
 
 using namespace qbs;
 using namespace qbs::Internal;
@@ -84,15 +85,20 @@ private:
 
 static QByteArray runProcess(const QString &exeFilePath, const QStringList &args,
                              const QProcessEnvironment &env = QProcessEnvironment(),
-                             bool allowFailure = false)
+                             bool allowFailure = false,
+                             const QByteArray &pipeData = QByteArray())
 {
     TemporaryEnvChanger envChanger(env);
     QProcess process;
     process.start(exeFilePath, args);
-    if (!process.waitForStarted() || !process.waitForFinished()
-            || process.exitStatus() != QProcess::NormalExit) {
-        throw ErrorInfo(mkStr("Could not run %1 (%2)").arg(exeFilePath, process.errorString()));
+    if (!process.waitForStarted())
+        throw ErrorInfo(mkStr("Could not start %1 (%2)").arg(exeFilePath, process.errorString()));
+    if (!pipeData.isEmpty()) {
+        process.write(pipeData);
+        process.closeWriteChannel();
     }
+    if (!process.waitForFinished() || process.exitStatus() != QProcess::NormalExit)
+        throw ErrorInfo(mkStr("Could not run %1 (%2)").arg(exeFilePath, process.errorString()));
     if (process.exitCode() != 0 && !allowFailure) {
         ErrorInfo e(mkStr("Process '%1' failed with exit code %2.")
                     .arg(exeFilePath).arg(process.exitCode()));
@@ -114,10 +120,10 @@ public:
     const QString filePath;
 };
 
+#ifdef Q_OS_WIN
 static QStringList parseCommandLine(const QString &commandLine)
 {
     QStringList list;
-#ifdef Q_OS_WIN
     wchar_t *buf = new wchar_t[commandLine.size() + 1];
     buf[commandLine.toWCharArray(buf)] = 0;
     int argCount = 0;
@@ -127,74 +133,34 @@ static QStringList parseCommandLine(const QString &commandLine)
     for (int i = 0; i < argCount; ++i)
         list.append(QString::fromWCharArray(args[i]));
     delete[] buf;
-#else
-    Q_UNUSED(commandLine);
-#endif
     return list;
 }
+#endif
 
-static QVariantMap getMsvcDefines(const QString &hostCompilerFilePath,
-                                  const QString &compilerFilePath,
+static QVariantMap getMsvcDefines(const QString &compilerFilePath,
                                   const QProcessEnvironment &compilerEnv)
 {
-    const QScopedPointer<QTemporaryFile> dummyFile(
-                new QTemporaryFile(QDir::tempPath() + QLatin1String("/qbs_dummy")));
-    if (!dummyFile->open()) {
-        throw ErrorInfo(mkStr("Could not create temporary file (%1)")
-                        .arg(dummyFile->errorString()));
-    }
-    dummyFile->write("#include <stdio.h>\n");
-    dummyFile->write("#include <stdlib.h>\n");
-    dummyFile->write("int main(void) { char *p = getenv(\"MSC_CMD_FLAGS\");"
-                     "if (p) printf(\"%s\", p); return EXIT_FAILURE; }\n");
-    dummyFile->close();
-
-    // We cannot use the temporary file itself, as Qt has a lock on it
-    // even after it was closed, causing a "Permission denied" message from MSVC.
-    const QString actualDummyFilePath = dummyFile->fileName() + QLatin1String(".1");
-    const QString nativeDummyFilePath = QDir::toNativeSeparators(actualDummyFilePath);
-    if (!QFile::copy(dummyFile->fileName(), actualDummyFilePath)) {
-        throw ErrorInfo(mkStr("Could not create source '%1' file for compiler.")
-                        .arg(nativeDummyFilePath));
-    }
-    DummyFile actualDummyFile(actualDummyFilePath);
-    const QString qbsClFrontend = nativeDummyFilePath + QStringLiteral(".exe");
-    const QString qbsClFrontendObj = nativeDummyFilePath + QStringLiteral(".obj");
-    DummyFile actualQbsClFrontend(qbsClFrontend);
-    DummyFile actualQbsClFrontendObj(qbsClFrontendObj);
-
-    // The host compiler is the x86 compiler, which will execute on any edition of Windows
-    // for which host compilers have been released so far (x86, x86_64, ia64)
-    MSVC msvc2(hostCompilerFilePath);
-    VsEnvironmentDetector envdetector;
-    if (!envdetector.start(&msvc2))
-        throw ErrorInfo(QStringLiteral("Detecting the MSVC build environment failed: ")
-                        + envdetector.errorString());
-    runProcess(hostCompilerFilePath, QStringList()
-               << QStringLiteral("/nologo")
-               << QStringLiteral("/TC")
-               << (QStringLiteral("/Fo") + qbsClFrontendObj)
-               << nativeDummyFilePath
-               << QStringLiteral("/link")
-               << (QStringLiteral("/out:") + qbsClFrontend), msvc2.environment);
-
+#ifdef Q_OS_WIN
+    const QByteArray commands("set MSC_CMD_FLAGS\n");
     QStringList out = QString::fromLocal8Bit(runProcess(compilerFilePath, QStringList()
                << QStringLiteral("/nologo")
                << QStringLiteral("/B1")
-               << qbsClFrontend
+               << QString::fromWCharArray(_wgetenv(L"COMSPEC"))
                << QStringLiteral("/c")
                << QStringLiteral("/TC")
-               << QStringLiteral("NUL"), compilerEnv, true)).split(QStringLiteral("\r\n"));
+               << QStringLiteral("NUL"),
+               compilerEnv, true, commands)).split(QLatin1Char('\n'));
 
-    if (out.size() != 2)
+    auto findResult = std::find_if(out.cbegin(), out.cend(), [] (const QString &line) {
+            return line.startsWith(QLatin1String("MSC_CMD_FLAGS="));
+        });
+    if (findResult == out.cend()) {
         throw ErrorInfo(QStringLiteral("Unexpected compiler frontend output: ")
                         + out.join(QLatin1Char('\n')));
-
-    if (out.first() == QStringLiteral("NUL"))
-        out.removeFirst();
+    }
 
     QVariantMap map;
-    const QStringList args = parseCommandLine(out.first());
+    const QStringList args = parseCommandLine(findResult->trimmed());
     for (const QString &arg : args) {
         if (!arg.startsWith(QStringLiteral("-D")))
             continue;
@@ -206,6 +172,11 @@ static QVariantMap getMsvcDefines(const QString &hostCompilerFilePath,
     }
 
     return map;
+#else
+    Q_UNUSED(compilerFilePath);
+    Q_UNUSED(compilerEnv);
+    return QVariantMap();
+#endif
 }
 
 void MSVC::init()
@@ -229,8 +200,7 @@ QString MSVC::clPathForArchitecture(const QString &arch) const
 
 QVariantMap MSVC::compilerDefines(const QString &compilerFilePath) const
 {
-    return getMsvcDefines(clPathForArchitecture(QStringLiteral("x86")), compilerFilePath,
-                          environment);
+    return getMsvcDefines(compilerFilePath, environment);
 }
 
 void MSVC::determineCompilerVersion()

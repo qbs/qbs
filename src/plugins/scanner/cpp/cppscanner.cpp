@@ -129,7 +129,8 @@ public:
     }
 };
 
-static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool scanForDependencies)
+static void scanCppFile(void *opaq, CPlusPlus::Lexer &yylex, bool scanForFileTags,
+                        bool scanForDependencies)
 {
     const QLatin1Literal includeLiteral("include");
     const QLatin1Literal importLiteral("import");
@@ -235,7 +236,7 @@ static Opaq *openScanner(const unsigned short *filePath, Opaq::FileType fileType
         return 0;
 
     opaque->fileContent = reinterpret_cast<char *>(vmap);
-    Lexer lex(opaque->fileContent, opaque->fileContent + mapl);
+    CPlusPlus::Lexer lex(opaque->fileContent, opaque->fileContent + mapl);
     scanCppFile(opaque.data(), lex, flags & ScanForFileTagsFlag, flags & ScanForDependenciesFlag);
     return opaque.take();
 }

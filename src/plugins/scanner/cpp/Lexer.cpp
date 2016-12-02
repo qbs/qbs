@@ -60,7 +60,7 @@
 #include "Lexer.h"
 #include <cctype>
 
-using namespace CPlusPlus;
+namespace CPlusPlus {
 
 Lexer::Lexer(const char *firstChar, const char *lastChar)
     : _state(State_Default),
@@ -668,4 +668,4 @@ void Lexer::scan_helper(Token *tok)
     } // switch
 }
 
-
+}

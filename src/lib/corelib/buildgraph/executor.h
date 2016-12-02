@@ -107,7 +107,8 @@ private:
         bool operator() (const BuildGraphNode *x, const BuildGraphNode *y) const;
     };
 
-    typedef std::priority_queue<Artifact *, std::vector<BuildGraphNode *>, ComparePriority> Leaves;
+    typedef std::priority_queue<BuildGraphNode *, std::vector<BuildGraphNode *>,
+                                ComparePriority> Leaves;
 
     void doBuild();
     void prepareAllNodes();

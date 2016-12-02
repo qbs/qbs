@@ -7,7 +7,7 @@ Supported Platforms
 ===================
 
 Windows XP SP2 or later
-macOS 10.6 or later
+macOS 10.7 or later
 Linux (tested on Debian 6/7 and Ubuntu 13)
 
 Building the sources requires Qt 5.4.0 or later.

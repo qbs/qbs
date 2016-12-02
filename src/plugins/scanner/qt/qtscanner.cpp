@@ -61,7 +61,7 @@
 #include <QString>
 #include <QXmlStreamReader>
 
-struct Opaq
+struct OpaqQrc
 {
 #ifdef Q_OS_UNIX
     int fd;
@@ -73,7 +73,7 @@ struct Opaq
     char *map;
     QXmlStreamReader *xml;
     QByteArray current;
-    Opaq()
+    OpaqQrc()
 #ifdef Q_OS_UNIX
         : fd (0),
 #else
@@ -83,7 +83,7 @@ struct Opaq
           xml(0)
     {}
 
-    ~Opaq()
+    ~OpaqQrc()
     {
 #ifdef Q_OS_UNIX
         if (map)
@@ -97,10 +97,10 @@ struct Opaq
     }
 };
 
-static void *openScanner(const unsigned short *filePath, int flags)
+static void *openScannerQrc(const unsigned short *filePath, int flags)
 {
     Q_UNUSED(flags);
-    QScopedPointer<Opaq> opaque(new Opaq);
+    QScopedPointer<OpaqQrc> opaque(new OpaqQrc);
 
 #ifdef Q_OS_UNIX
     QString filePathS = QString::fromUtf16(filePath);
@@ -135,15 +135,15 @@ static void *openScanner(const unsigned short *filePath, int flags)
     return static_cast<void *>(opaque.take());
 }
 
-static void closeScanner(void *ptr)
+static void closeScannerQrc(void *ptr)
 {
-    Opaq *opaque = static_cast<Opaq *>(ptr);
+    OpaqQrc *opaque = static_cast<OpaqQrc *>(ptr);
     delete opaque;
 }
 
 static const char *nextQrc(void *opaq, int *size, int *flags)
 {
-    Opaq *o= static_cast<Opaq *>(opaq);
+    OpaqQrc *o= static_cast<OpaqQrc *>(opaq);
     while (!o->xml->atEnd()) {
         o->xml->readNext();
         switch (o->xml->tokenType()) {
@@ -164,7 +164,7 @@ static const char *nextQrc(void *opaq, int *size, int *flags)
     return 0;
 }
 
-static const char **additionalFileTags(void *, int *size)
+static const char **additionalFileTagsQrc(void *, int *size)
 {
     *size = 0;
     return 0;
@@ -176,10 +176,10 @@ ScannerPlugin qrcScanner =
 {
     "qt_qrc_scanner",
     "qrc",
-    openScanner,
-    closeScanner,
+    openScannerQrc,
+    closeScannerQrc,
     nextQrc,
-    additionalFileTags,
+    additionalFileTagsQrc,
     NoScannerFlags
 };
 

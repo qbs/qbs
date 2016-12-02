@@ -120,7 +120,14 @@ BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingPr
     }
     QBS_CHECK(parameters.restoreBehavior() == SetupProjectParameters::RestoreAndTrackChanges);
 
+    if (m_parameters.logElapsedTime())
+        m_wildcardExpansionEffort = 0;
     trackProjectChanges();
+    if (m_parameters.logElapsedTime()) {
+        m_logger.qbsLog(LoggerInfo, true) << "\t"
+                << Tr::tr("Wilcard expansion took %1.")
+                   .arg(elapsedTimeString(m_wildcardExpansionEffort));
+    }
     return m_result;
 }
 
@@ -461,6 +468,8 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
             m_logger.qbsDebug() << "A product was changed, must re-resolve project";
             hasChanged = true;
         } else if (!changedProducts.contains(product)) {
+            AccumulatingTimer wildcardTimer(m_parameters.logElapsedTime()
+                                            ? &m_wildcardExpansionEffort : nullptr);
             foreach (const GroupPtr &group, product->groups) {
                 if (!group->wildcards)
                     continue;
@@ -687,17 +696,37 @@ static QVariantMap propertyMapByKind(const ResolvedProductConstPtr &product, Pro
     return QVariantMap();
 }
 
+static void invalidateTransformer(const TransformerPtr &transformer)
+{
+    const JavaScriptCommandPtr &pseudoCommand = JavaScriptCommand::create();
+    pseudoCommand->setSourceCode(QLatin1String("random stuff that will cause "
+                                               "commandsEqual() to fail"));
+    transformer->commands << pseudoCommand;
+}
+
 bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTrafo,
         const ResolvedProductPtr &freshProduct)
 {
     // This check must come first, as it can prevent build data rescuing.
     foreach (const Property &property, restoredTrafo->propertiesRequestedInCommands) {
         if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property.kind))) {
-            const JavaScriptCommandPtr &pseudoCommand = JavaScriptCommand::create();
-            pseudoCommand->setSourceCode(QLatin1String("random stuff that will cause "
-                                                       "commandsEqual() to fail"));
-            restoredTrafo->commands << pseudoCommand;
+            invalidateTransformer(restoredTrafo);
             return true;
+        }
+    }
+
+    QMap<QString, SourceArtifactConstPtr> artifactMap;
+    for (auto it = restoredTrafo->propertiesRequestedFromArtifactInCommands.cbegin();
+         it != restoredTrafo->propertiesRequestedFromArtifactInCommands.cend(); ++it) {
+        const SourceArtifactConstPtr artifact
+                = findSourceArtifact(freshProduct, it.key(), artifactMap);
+        if (!artifact)
+            continue;
+        foreach (const Property &property, it.value()) {
+            if (checkForPropertyChange(property, artifact->properties->value())) {
+                invalidateTransformer(restoredTrafo);
+                return true;
+            }
         }
     }
 
@@ -706,7 +735,6 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
             return true;
     }
 
-    QMap<QString, SourceArtifactConstPtr> artifactMap;
     for (QHash<QString, PropertySet>::ConstIterator it =
          restoredTrafo->propertiesRequestedFromArtifactInPrepareScript.constBegin();
          it != restoredTrafo->propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {
@@ -833,6 +861,8 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
                     = oldArtifact->transformer->propertiesRequestedInCommands;
             rad.propertiesRequestedFromArtifactInPrepareScript
                     = oldArtifact->transformer->propertiesRequestedFromArtifactInPrepareScript;
+            rad.propertiesRequestedFromArtifactInCommands
+                    = oldArtifact->transformer->propertiesRequestedFromArtifactInCommands;
             const ChildrenInfo &childrenInfo = childLists.value(oldArtifact);
             foreach (Artifact * const child, childrenInfo.children) {
                 rad.children << RescuableArtifactData::ChildData(child->product->name,

@@ -118,6 +118,8 @@ int VisualStudioVersionInfo::marketingVersion() const
         return 2013;
     case 14:
         return 2015;
+    case 15:
+        return 2017;
     default:
         qWarning() << QStringLiteral("unrecognized Visual Studio version: ")
                    << m_version.toString();

@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_COMMAND_H
-#define QBS_COMMAND_H
+#ifndef QBS_BUILDGRAPH_COMMAND_H
+#define QBS_BUILDGRAPH_COMMAND_H
 
 #include "forward_decls.h"
 
@@ -177,4 +177,4 @@ bool commandListsAreEqual(const QList<AbstractCommandPtr> &l1, const QList<Abstr
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_COMMAND_H
+#endif // QBS_BUILDGRAPH_COMMAND_H
