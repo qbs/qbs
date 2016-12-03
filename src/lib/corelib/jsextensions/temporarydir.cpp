@@ -38,25 +38,43 @@
 **
 ****************************************************************************/
 
-#include "temporarydir.h"
+#include "jsextensions_p.h"
 
 #include <language/scriptengine.h>
 
+#include <QtCore/qobject.h>
 #include <QtCore/qtemporarydir.h>
+#include <QtCore/qvariant.h>
 
+#include <QtScript/qscriptable.h>
 #include <QtScript/qscriptengine.h>
 #include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {
 
-void initializeJsExtensionTemporaryDir(QScriptValue extensionObject)
+class TemporaryDir : public QObject, public QScriptable
+{
+    Q_OBJECT
+public:
+    static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
+    TemporaryDir(QScriptContext *context);
+    Q_INVOKABLE bool isValid() const;
+    Q_INVOKABLE QString path() const;
+    Q_INVOKABLE bool remove();
+private:
+    QTemporaryDir dir;
+};
+
+static void initializeJsExtensionTemporaryDir(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&TemporaryDir::staticMetaObject,
                                               engine->newFunction(&TemporaryDir::ctor));
     extensionObject.setProperty(QLatin1String("TemporaryDir"), obj);
 }
+
+QBS_JSEXTENSION_REGISTER(TemporaryDir, &initializeJsExtensionTemporaryDir)
 
 QScriptValue TemporaryDir::ctor(QScriptContext *context, QScriptEngine *engine)
 {
@@ -94,3 +112,5 @@ bool TemporaryDir::remove()
 
 } // namespace Internal
 } // namespace qbs
+
+#include "temporarydir.moc"

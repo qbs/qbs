@@ -37,28 +37,62 @@
 **
 ****************************************************************************/
 
-#include "textfile.h"
+#include "jsextensions_p.h"
 
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
 
 #include <QtCore/qfile.h>
+#include <QtCore/qobject.h>
 #include <QtCore/qtextstream.h>
+#include <QtCore/qvariant.h>
 
+#include <QtScript/qscriptable.h>
 #include <QtScript/qscriptengine.h>
 #include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {
 
-void initializeJsExtensionTextFile(QScriptValue extensionObject)
+class TextFile : public QObject, public QScriptable
+{
+    Q_OBJECT
+    Q_ENUMS(OpenMode)
+public:
+    enum OpenMode { ReadOnly, WriteOnly, ReadWrite };
+
+    static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
+    ~TextFile();
+
+    Q_INVOKABLE void close();
+    Q_INVOKABLE void setCodec(const QString &codec);
+    Q_INVOKABLE QString readLine();
+    Q_INVOKABLE QString readAll();
+    Q_INVOKABLE bool atEof() const;
+    Q_INVOKABLE void truncate();
+    Q_INVOKABLE void write(const QString &str);
+    Q_INVOKABLE void writeLine(const QString &str);
+
+private:
+    TextFile(QScriptContext *context, const QString &filePath, OpenMode mode = ReadOnly,
+             const QString &codec = QLatin1String("UTF8"));
+
+    bool checkForClosed() const;
+
+    QFile *m_file;
+    QTextStream *m_stream;
+};
+
+static void initializeJsExtensionTextFile(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&TextFile::staticMetaObject,
                                               engine->newFunction(&TextFile::ctor));
     extensionObject.setProperty(QLatin1String("TextFile"), obj);
 }
+
+QBS_JSEXTENSION_REGISTER(TextFile, &initializeJsExtensionTextFile)
 
 QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
 {
@@ -204,3 +238,7 @@ bool TextFile::checkForClosed() const
 
 } // namespace Internal
 } // namespace qbs
+
+Q_DECLARE_METATYPE(qbs::Internal::TextFile *)
+
+#include "textfile.moc"

@@ -38,14 +38,18 @@
 **
 ****************************************************************************/
 
-#include "propertylist.h"
+#include "jsextensions_p.h"
 
 #include <language/scriptengine.h>
 #include <tools/hostosinfo.h>
 
 #include <QtCore/qfile.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qstring.h>
 #include <QtCore/qtextstream.h>
+#include <QtCore/qvariant.h>
 
+#include <QtScript/qscriptable.h>
 #include <QtScript/qscriptengine.h>
 #include <QtScript/qscriptvalue.h>
 
@@ -60,6 +64,31 @@ enum {
 namespace qbs {
 namespace Internal {
 
+class PropertyListPrivate;
+
+class PropertyList : public QObject, public QScriptable
+{
+    Q_OBJECT
+public:
+    static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
+    PropertyList(QScriptContext *context);
+    ~PropertyList();
+    Q_INVOKABLE bool isEmpty() const;
+    Q_INVOKABLE void clear();
+    Q_INVOKABLE void readFromObject(const QScriptValue &value);
+    Q_INVOKABLE void readFromString(const QString &input);
+    Q_INVOKABLE void readFromFile(const QString &filePath);
+    Q_INVOKABLE void readFromData(const QByteArray &data);
+    Q_INVOKABLE void writeToFile(const QString &filePath, const QString &plistFormat);
+    Q_INVOKABLE QScriptValue format() const;
+    Q_INVOKABLE QScriptValue toObject() const;
+    Q_INVOKABLE QString toString(const QString &plistFormat) const;
+    Q_INVOKABLE QString toXMLString() const;
+    Q_INVOKABLE QString toJSON(const QString &style = QString()) const;
+private:
+    PropertyListPrivate *d;
+};
+
 class PropertyListPrivate
 {
 public:
@@ -72,13 +101,15 @@ public:
     QByteArray writeToData(QScriptContext *context, const QString &format);
 };
 
-void initializeJsExtensionPropertyList(QScriptValue extensionObject)
+static void initializeJsExtensionPropertyList(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&PropertyList::staticMetaObject,
                                               engine->newFunction(&PropertyList::ctor));
     extensionObject.setProperty(QLatin1String("PropertyList"), obj);
 }
+
+QBS_JSEXTENSION_REGISTER(PropertyList, &initializeJsExtensionPropertyList)
 
 QScriptValue PropertyList::ctor(QScriptContext *context, QScriptEngine *engine)
 {
@@ -339,3 +370,7 @@ QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QStri
 
 } // namespace Internal
 } // namespace qbs
+
+Q_DECLARE_METATYPE(qbs::Internal::PropertyList *)
+
+#include "propertylist.moc"

@@ -53,7 +53,6 @@
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
 #include <tools/shellutils.h>
-#include <jsextensions/environmentextension.h>
 
 #include <QtCore/qbytearray.h>
 #include <QtCore/qdebug.h>

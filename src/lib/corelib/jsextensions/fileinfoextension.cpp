@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "fileinfoextension.h"
+#include "jsextensions_p.h"
 
 #include <language/scriptengine.h>
 #include <logging/translator.h>
@@ -57,9 +57,6 @@ class FileInfoExtension : public QObject, QScriptable
 {
     Q_OBJECT
 public:
-    friend void initializeJsExtensionFileInfo(QScriptValue extensionObject);
-
-private:
     static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_path(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_fileName(QScriptContext *context, QScriptEngine *engine);
@@ -75,7 +72,7 @@ private:
     static QScriptValue js_joinPaths(QScriptContext *context, QScriptEngine *engine);
 };
 
-void initializeJsExtensionFileInfo(QScriptValue extensionObject)
+static void initializeJsExtensionFileInfo(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue fileInfoObj = engine->newQMetaObject(&FileInfoExtension::staticMetaObject,
@@ -106,6 +103,8 @@ void initializeJsExtensionFileInfo(QScriptValue extensionObject)
                             engine->newFunction(FileInfoExtension::js_joinPaths));
     extensionObject.setProperty(QLatin1String("FileInfo"), fileInfoObj);
 }
+
+QBS_JSEXTENSION_REGISTER(FileInfo, &initializeJsExtensionFileInfo)
 
 QScriptValue FileInfoExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
 {

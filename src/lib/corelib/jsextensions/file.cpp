@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "file.h"
+#include "jsextensions_p.h"
 
 #include <language/scriptengine.h>
 #include <logging/translator.h>
@@ -86,9 +86,6 @@ public:
     Q_DECLARE_FLAGS(Filters, Filter)
     Q_ENUMS(Filter)
 
-    friend void initializeJsExtensionFile(QScriptValue extensionObject);
-
-private:
     static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_copy(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_exists(QScriptContext *context, QScriptEngine *engine);
@@ -100,7 +97,7 @@ private:
     static QScriptValue js_canonicalFilePath(QScriptContext *context, QScriptEngine *engine);
 };
 
-void initializeJsExtensionFile(QScriptValue extensionObject)
+static void initializeJsExtensionFile(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue fileObj = engine->newQMetaObject(&File::staticMetaObject,
@@ -117,6 +114,8 @@ void initializeJsExtensionFile(QScriptValue extensionObject)
                         engine->newFunction(File::js_canonicalFilePath));
     extensionObject.setProperty(QLatin1String("File"), fileObj);
 }
+
+QBS_JSEXTENSION_REGISTER(File, &initializeJsExtensionFile)
 
 QScriptValue File::js_ctor(QScriptContext *context, QScriptEngine *engine)
 {

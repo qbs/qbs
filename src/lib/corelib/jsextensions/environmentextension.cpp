@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "environmentextension.h"
+#include "jsextensions_p.h"
 
 #include <language/scriptengine.h>
 #include <logging/translator.h>
@@ -65,7 +65,7 @@ public:
     static QScriptValue js_currentEnv(QScriptContext *context, QScriptEngine *engine);
 };
 
-void initializeJsExtensionEnvironment(QScriptValue extensionObject)
+static void initializeJsExtensionEnvironment(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue environmentObj = engine->newQMetaObject(&EnvironmentExtension::staticMetaObject,
@@ -80,6 +80,8 @@ void initializeJsExtensionEnvironment(QScriptValue extensionObject)
                                engine->newFunction(EnvironmentExtension::js_currentEnv, 0));
     extensionObject.setProperty(QStringLiteral("Environment"), environmentObj);
 }
+
+QBS_JSEXTENSION_REGISTER(Environment, &initializeJsExtensionEnvironment)
 
 QScriptValue EnvironmentExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
 {

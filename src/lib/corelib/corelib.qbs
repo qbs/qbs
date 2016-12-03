@@ -180,25 +180,26 @@ QbsLibrary {
         prefix: name + '/'
         files: [
             "environmentextension.cpp",
-            "environmentextension.h",
             "file.cpp",
-            "file.h",
             "fileinfoextension.cpp",
-            "fileinfoextension.h",
             "jsextensions.cpp",
             "jsextensions.h",
+            "jsextensions_p.h",
             "moduleproperties.cpp",
             "moduleproperties.h",
             "process.cpp",
-            "process.h",
             "temporarydir.cpp",
-            "temporarydir.h",
             "textfile.cpp",
-            "textfile.h",
             "utilitiesextension.cpp",
-            "utilitiesextension.h",
             "domxml.cpp",
-            "domxml.h"
+        ]
+    }
+    Group {
+        name: "jsextensions (Non-Darwin-specific)"
+        prefix: "jsextensions/"
+        condition: !qbs.targetOS.contains("darwin")
+        files: [
+            "propertylist.cpp",
         ]
     }
     Group {
@@ -206,10 +207,9 @@ QbsLibrary {
         prefix: "jsextensions/"
         condition: qbs.targetOS.contains("darwin")
         files: [
-            "propertylist.h",
             "propertylist.mm",
             "propertylistutils.h",
-            "propertylistutils.mm"
+            "propertylistutils.mm",
         ]
     }
     Group {

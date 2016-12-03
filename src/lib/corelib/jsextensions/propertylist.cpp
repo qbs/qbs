@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2015 Petroules Corporation.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,22 +38,21 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ENVIRONMENTEXTENSION_H
-#define QBS_ENVIRONMENTEXTENSION_H
+#include "jsextensions_p.h"
 
-#include <QtScript/qscriptvalue.h>
-
-QT_BEGIN_NAMESPACE
-class QScriptContext;
-class QScriptEngine;
-QT_END_NAMESPACE
+#include <QtScript/qscriptengine.h>
 
 namespace qbs {
 namespace Internal {
 
-void initializeJsExtensionEnvironment(QScriptValue extensionObject);
+static void initializeJsExtensionPropertyList(QScriptValue extensionObject)
+{
+    QScriptEngine *engine = extensionObject.engine();
+    QScriptValue obj = engine->newObject(); // provide a fake object
+    extensionObject.setProperty(QLatin1String("PropertyList"), obj);
+}
+
+QBS_JSEXTENSION_REGISTER(PropertyList, &initializeJsExtensionPropertyList)
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // QBS_ENVIRONMENTEXTENSION_H

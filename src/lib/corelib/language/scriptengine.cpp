@@ -46,7 +46,6 @@
 #include "scriptpropertyobserver.h"
 
 #include <buildgraph/artifact.h>
-#include <jsextensions/environmentextension.h>
 #include <jsextensions/jsextensions.h>
 #include <logging/translator.h>
 #include <tools/error.h>

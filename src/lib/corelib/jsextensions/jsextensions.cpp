@@ -38,16 +38,7 @@
 ****************************************************************************/
 
 #include "jsextensions.h"
-
-#include "domxml.h"
-#include "environmentextension.h"
-#include "file.h"
-#include "fileinfoextension.h"
-#include "process.h"
-#include "propertylist.h"
-#include "temporarydir.h"
-#include "textfile.h"
-#include "utilitiesextension.h"
+#include "jsextensions_p.h"
 
 #include <QtScript/qscriptengine.h>
 
@@ -56,20 +47,9 @@
 namespace qbs {
 namespace Internal {
 
-typedef QHash<QString, void (*)(QScriptValue)> InitializerMap;
-static InitializerMap initializers()
+InitializerMap &initializers()
 {
-    static const InitializerMap theMap = {
-        std::make_pair(QLatin1String("Environment"), &initializeJsExtensionEnvironment),
-        std::make_pair(QLatin1String("File"), &initializeJsExtensionFile),
-        std::make_pair(QLatin1String("FileInfo"), &initializeJsExtensionFileInfo),
-        std::make_pair(QLatin1String("Process"), &initializeJsExtensionProcess),
-        std::make_pair(QLatin1String("Xml"), &initializeJsExtensionXml),
-        std::make_pair(QLatin1String("TemporaryDir"), &initializeJsExtensionTemporaryDir),
-        std::make_pair(QLatin1String("TextFile"), &initializeJsExtensionTextFile),
-        std::make_pair(QLatin1String("PropertyList"), &initializeJsExtensionPropertyList),
-        std::make_pair(QLatin1String("Utilities"), &initializeJsExtensionUtilities)
-    };
+    static InitializerMap theMap;
     return theMap;
 }
 

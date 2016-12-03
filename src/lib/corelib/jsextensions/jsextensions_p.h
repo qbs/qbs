@@ -1,7 +1,6 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
-** Copyright (C) 2015 Jake Petroules.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -38,34 +37,25 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_TEMPORARYDIR_H
-#define QBS_TEMPORARYDIR_H
+#ifndef QBS_JSEXTENSIONS_P_H
+#define QBS_JSEXTENSIONS_P_H
 
-#include <QtCore/qobject.h>
-#include <QtCore/qtemporarydir.h>
-#include <QtCore/qvariant.h>
+#include <QtCore/qhash.h>
 
-#include <QtScript/qscriptable.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {
 
-void initializeJsExtensionTemporaryDir(QScriptValue extensionObject);
-
-class TemporaryDir : public QObject, public QScriptable
-{
-    Q_OBJECT
-public:
-    static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
-    TemporaryDir(QScriptContext *context);
-    Q_INVOKABLE bool isValid() const;
-    Q_INVOKABLE QString path() const;
-    Q_INVOKABLE bool remove();
-private:
-    QTemporaryDir dir;
-};
+typedef QHash<QString, void (*)(QScriptValue)> InitializerMap;
+extern InitializerMap &initializers();
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_TEMPORARYDIR_H
+#define QBS_JSEXTENSION_REGISTER(name, initializer) \
+    static auto qbs_jsextension_register##name = [] { \
+        return initializers().insert(QStringLiteral(#name), initializer); \
+    }();
+
+#endif // QBS_JSEXTENSIONS_P_H
