@@ -1,7 +1,6 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
-** Copyright (C) 2015 Jake Petroules.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,15 +25,18 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \page loadablemodule-item.html
-    \previouspage javajarfile-item.html
-    \nextpage module-item.html
+    \contentspage list-of-convenience-items.html
+    \page javaclasscollection-item.html
+    \previouspage installpackage-item.html
+    \nextpage javajarfile-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
-    \title LoadableModule Item
-    \brief Represents a product that is a loadable module.
+    \title JavaClassCollection Item
+    \brief Represents a collection of Java class files not bundled in a jar file.
 
-    A \c LoadableModule item is a \c Product that has its type set to "loadablemodule". It exists
-    for the convenience of project file authors.
+    A \c JavaClassCollection item is a convenience item that has a dependency on the
+    \l{Module java}{Java module} and whose type is \c{["java.class"]}. If the files
+    should end up in a jar file, you should use a \l{JavaJarFile Item}{JavaJarFile} instead.
+
 */

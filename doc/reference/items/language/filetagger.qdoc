@@ -25,10 +25,11 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
+    \contentspage list-of-language-items.html
     \previouspage export-item.html
     \page filetagger-item.html
     \nextpage group-item.html
+    \ingroup list-of-language-items
     \ingroup list-of-items
 
     \title FileTagger Item

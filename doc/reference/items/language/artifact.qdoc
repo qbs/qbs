@@ -25,10 +25,10 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
+    \contentspage list-of-language-items.html
     \page artifact-item.html
-    \previouspage applicationextension-item.html
-    \nextpage autotestrunner-item.html
+    \nextpage depends-item.html
+    \ingroup list-of-language-items
     \ingroup list-of-items
 
     \title Artifact Item

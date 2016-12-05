@@ -26,10 +26,11 @@
 ****************************************************************************/
 
 /*!
-    \contentspage list-of-items.html
+    \contentspage list-of-language-items.html
     \previouspage filetagger-item.html
     \page group-item.html
-    \nextpage installpackage-item.html
+    \nextpage module-item.html
+    \ingroup list-of-language-items
     \ingroup list-of-items
 
     \title Group Item
@@ -78,7 +79,7 @@
      The pattern ** used in a pathname expansion context will match all files and zero or more
      directories and subdirectories.
      For example:
-     \snippet reference/items/group.qbs 0
+     \snippet reference/items/language/group.qbs 0
 
      A group can also be used to attach properties to build artifacts such as executables or
      libraries. In the following example, an application is installed to "<install root>/bin".

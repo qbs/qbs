@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2015 Jake Petroules.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -25,29 +26,15 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \page javajarfile-item.html
-    \previouspage javaclasscollection-item.html
-    \nextpage loadablemodule-item.html
+    \contentspage list-of-convenience-items.html
+    \page xpcservice-item.html
+    \previouspage staticlibrary-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
-    \title JavaJarFile Item
-    \brief Represents a collection of Java class files bundled in a jar file.
+    \title XPCService Item
+    \brief Represents a product that is a macOS, iOS, tvOS, or watchOS XPC service.
 
-    A \c JavaJarCollection item is product of type \c{java.jar}. It is used to produce a jar
-    archive from a set of Java sources.
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li entryPoint
-        \li string
-        \li undefined
-        \li The entry point for an executable jar file.
-    \endtable
-
+    An \c XPCService item is a convenience item based on \c Application that
+    sets some properties required for macOS, iOS, tvOS, or watchOS XPC services.
 */

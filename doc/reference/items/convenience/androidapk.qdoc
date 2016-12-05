@@ -25,9 +25,10 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
+    \contentspage list-of-convenience-items.html
     \page androidapk-item.html
     \nextpage application-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
     \title AndroidApk Item

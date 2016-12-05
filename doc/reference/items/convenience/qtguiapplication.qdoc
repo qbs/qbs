@@ -25,18 +25,33 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \page cppapplication-item.html
-    \previouspage autotestrunner-item.html
-    \nextpage depends-item.html
+    \contentspage list-of-convenience-items.html
+    \page qtguiapplication-item.html
+    \previouspage qtapplication-item.html
+    \nextpage staticlibrary-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
-    \title CppApplication Item
-    \brief Represents a product of application type with a dependency to the cpp module.
+    \title QtGuiApplication Item
+    \brief Represents a product of application type with a dependency to the Qt GUI module.
 
-    A \c CppApplication is a convenience item that is entirely equivalent to the following:
-    \code
-    Application {
-        Depends { name: "cpp" } }
-    \endcode
+    A \c QtGuiApplication is a convenience item that extends the \c QtApplication item by loading
+    the \c Qt.gui module and possibly also the default QPA plugin.
+
+    \section1 QtGuiApplication Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li linkDefaultQpaPlugin
+        \li bool
+        \li Qt.core.staticBuild == true
+        \li Whether or not to add a depencency to the default QPA plugin. The default is to
+            do that in the case of a static build, where it is normally required.
+    \endtable
+
 */

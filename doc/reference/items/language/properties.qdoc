@@ -25,10 +25,11 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
+    \contentspage list-of-language-items.html
     \previouspage project-item.html
     \page properties-item.html
     \nextpage propertyoptions-item.html
+    \ingroup list-of-language-items
     \ingroup list-of-items
 
     \title Properties Item

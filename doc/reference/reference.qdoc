@@ -32,7 +32,11 @@
     \title Reference
 
     \list
-        \li \l{List of Language Items}
+        \li \l{List of All Items}
+        \list
+            \li \l{List of Language Items}
+            \li \l{List of Convenience Items}
+        \endlist
         \li \l{List of Built-in Services}
         \li \l{List of Command-line Tools}
         \li \l{List of Modules}
@@ -70,6 +74,25 @@
 /*!
     \contentspage reference.html
     \group list-of-items
+    \title List of All Items
+
+    \QBS provides the following \l{List of Language Items}{built-in} and
+    \l{List of Convenience Items}{convenience} items to define projects.
+*/
+
+/*!
+    \contentspage reference.html
+    \group list-of-language-items
     \title List of Language Items
+
     \QBS provides the following built-in QML items to define projects.
+    These are the primitives upon which all other \QBS items are built.
+*/
+
+/*!
+    \contentspage reference.html
+    \group list-of-convenience-items
+    \title List of Convenience Items
+
+    \QBS provides the following QML items for convenience.
 */

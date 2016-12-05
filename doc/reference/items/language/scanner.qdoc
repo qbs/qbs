@@ -25,8 +25,11 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
+    \contentspage list-of-language-items.html
+    \previouspage rule-item.html
     \page scanner-item.html
+    \nextpage subproject-item.html
+    \ingroup list-of-language-items
     \ingroup list-of-items
 
     \title Scanner Item

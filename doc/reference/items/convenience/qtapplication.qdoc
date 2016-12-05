@@ -1,7 +1,6 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
-** Copyright (C) 2015 Jake Petroules.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,15 +25,21 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \page applicationextension-item.html
-    \previouspage application-item.html
-    \nextpage artifact-item.html
+    \contentspage list-of-convenience-items.html
+    \page qtapplication-item.html
+    \previouspage loadablemodule-item.html
+    \nextpage qtguiapplication-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
-    \title ApplicationExtension Item
-    \brief Represents a product that is an iOS, macOS, tvOS, or watchOS Application Extension.
+    \title QtApplication Item
+    \brief Represents a product of application type with a dependency to the Qt Core module.
 
-    An \c ApplicationExtension item is a convenience item based on \c XPCService that
-    sets some properties required for iOS, macOS, tvOS, or watchOS Application Extensions.
+    A \c QtApplication is a convenience item that is entirely equivalent to the following:
+    \code
+    CppApplication {
+        Depends { name: "Qt.core" } }
+    }
+    \endcode
+
 */

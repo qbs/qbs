@@ -25,10 +25,11 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \previouspage qtapplication-item.html
+    \contentspage list-of-language-items.html
+    \previouspage propertyoptions-item.html
     \page rule-item.html
-    \nextpage staticlibrary-item.html
+    \nextpage scanner-item.html
+    \ingroup list-of-language-items
     \ingroup list-of-items
 
     \title Rule Item

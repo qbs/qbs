@@ -25,10 +25,11 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
+    \contentspage list-of-convenience-items.html
     \page installpackage-item.html
-    \previouspage group-item.html
+    \previouspage innosetup-item.html
     \nextpage javaclasscollection-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
     \title InstallPackage Item

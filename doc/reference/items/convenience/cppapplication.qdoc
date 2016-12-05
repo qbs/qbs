@@ -1,7 +1,6 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
-** Copyright (C) 2015 Jake Petroules.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,14 +25,19 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \page xpcservice-item.html
-    \previouspage subproject-item.html
+    \contentspage list-of-convenience-items.html
+    \page cppapplication-item.html
+    \previouspage autotestrunner-item.html
+    \nextpage dynamiclibrary-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
-    \title XPCService Item
-    \brief Represents a product that is a macOS, iOS, tvOS, or watchOS XPC service.
+    \title CppApplication Item
+    \brief Represents a product of application type with a dependency to the cpp module.
 
-    An \c XPCService item is a convenience item based on \c Application that
-    sets some properties required for macOS, iOS, tvOS, or watchOS XPC services.
+    A \c CppApplication is a convenience item that is entirely equivalent to the following:
+    \code
+    Application {
+        Depends { name: "cpp" } }
+    \endcode
 */

@@ -25,30 +25,19 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \page staticlibrary-item.html
-    \previouspage rule-item.html
-    \nextpage subproject-item.html
+    \contentspage list-of-convenience-items.html
+    \page application-item.html
+    \previouspage androidapk-item.html
+    \nextpage applicationextension-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
-    \title StaticLibrary Item
-    \brief Represents a product that is a static library.
+    \title Application Item
+    \brief Represents a product of application type.
 
-    A \c StaticLibrary item is a convenience item that is normally entirely equivalent to
-    the following:
-    \code
-    Product {
-        type: "staticlibrary"
-    }
-    \endcode
+    An \c Application item is a \c Product that has its type set to "application"
+    It exists for the convenience of project file authors.
 
-    For Android targets, the following applies:
-    \list
-        \li There is a dependency on the \l{Module cpp}{cpp} and \l{Module Android.ndk}{Android.ndk}
-            modules.
-        \li There is an additional list property "architectures" that specifies for which
-            architectures to build, with the default value \c{["armeabi"]}.
-            This information influences the \c profiles property.
-    \endlist
-
+    \note On Android, an \c Application item instead builds a shared library for
+    products whose \c consoleApplication property is set to \c false.
 */

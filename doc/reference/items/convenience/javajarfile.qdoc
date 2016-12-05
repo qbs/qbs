@@ -25,18 +25,30 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \page application-item.html
-    \previouspage androidapk-item.html
-    \nextpage applicationextension-item.html
+    \contentspage list-of-convenience-items.html
+    \page javajarfile-item.html
+    \previouspage javaclasscollection-item.html
+    \nextpage loadablemodule-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
-    \title Application Item
-    \brief Represents a product of application type.
+    \title JavaJarFile Item
+    \brief Represents a collection of Java class files bundled in a jar file.
 
-    An \c Application item is a \c Product that has its type set to "application"
-    It exists for the convenience of project file authors.
+    A \c JavaJarCollection item is product of type \c{java.jar}. It is used to produce a jar
+    archive from a set of Java sources.
 
-    \note On Android, an \c Application item instead builds a shared library for
-    products whose \c consoleApplication property is set to \c false.
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li entryPoint
+        \li string
+        \li undefined
+        \li The entry point for an executable jar file.
+    \endtable
+
 */

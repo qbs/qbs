@@ -25,32 +25,16 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \page qtguiapplication-item.html
-    \previouspage propertyoptions-item.html
-    \nextpage rule-item.html
+    \contentspage list-of-convenience-items.html
+    \page innosetup-item.html
+    \previouspage dynamiclibrary-item.html
+    \nextpage installpackage-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
-    \title QtGuiApplication Item
-    \brief Represents a product of application type with a dependency to the Qt GUI module.
+    \title InnoSetup Item
+    \brief Represents a product that is an Inno Setup installer executable.
 
-    A \c QtGuiApplication is a convenience item that extends the \c QtApplication item by loading
-    the \c Qt.gui module and possibly also the default QPA plugin.
-
-    \section1 QtGuiApplication Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li linkDefaultQpaPlugin
-        \li bool
-        \li Qt.core.staticBuild == true
-        \li Whether or not to add a depencency to the default QPA plugin. The default is to
-            do that in the case of a static build, where it is normally required.
-    \endtable
-
+    A \c InnoSetup item is a convenience item that has a dependency on the
+    \l{Module innosetup}{Inno Setup module} and whose type is \c{["innosetup.exe"]}.
 */

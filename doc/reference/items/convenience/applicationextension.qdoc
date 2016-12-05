@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2015 Jake Petroules.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -25,17 +26,16 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \page javaclasscollection-item.html
-    \previouspage installpackage-item.html
-    \nextpage javajarfile-item.html
+    \contentspage list-of-convenience-items.html
+    \page applicationextension-item.html
+    \previouspage application-item.html
+    \nextpage autotestrunner-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
-    \title JavaClassCollection Item
-    \brief Represents a collection of Java class files not bundled in a jar file.
+    \title ApplicationExtension Item
+    \brief Represents a product that is an iOS, macOS, tvOS, or watchOS Application Extension.
 
-    A \c JavaClassCollection item is a convenience item that has a dependency on the
-    \l{Module java}{Java module} and whose type is \c{["java.class"]}. If the files
-    should end up in a jar file, you should use a \l{JavaJarFile Item}{JavaJarFile} instead.
-
+    An \c ApplicationExtension item is a convenience item based on \c XPCService that
+    sets some properties required for iOS, macOS, tvOS, or watchOS Application Extensions.
 */

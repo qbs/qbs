@@ -25,19 +25,24 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \previouspage properties-item.html
-    \page propertyoptions-item.html
-    \nextpage qtapplication-item.html
+    \contentspage list-of-language-items.html
+    \previouspage module-item.html
+    \page probe-item.html
+    \nextpage product-item.html
+    \ingroup list-of-language-items
     \ingroup list-of-items
 
-    \title PropertyOptions Item
-    \brief Provides inline documentation for properties within product and module items.
+    \title Probe Item
+    \brief Locates files outside the project.
 
-    A \c PropertyOptions item can appear inside a \l{Product Item} or \l{Module Item} to provide
-    inline documentation for properties.
+    A \c Probe item can appear inside a \l{Product Item} and is run prior to building products in
+    order to locate dependent headers, libraries, and other files outside the project directory
+    whose locations are not known ahead of time. \c Probes are similar to configure scripts.
+    \note Because Probes often invoke external processes, which is relatively expensive compared
+          to evaluating normal properties, their results are cached. To force re-evaluation
+          of a Probe, you can supply the \c{--force-probe-execution} command-line option.
 
-    \section1 PropertyOptions Properties
+    \section1 Probe Properties
 
     \table
     \header
@@ -46,21 +51,20 @@
         \li Default
         \li Description
     \row
-        \li allowedValues
-        \li stringList
-        \li undefined
-        \li A list of the values permitted by the property. \c{undefined} indicates that any value
-            is permitted.
+        \li condition
+        \li bool
+        \li true
+        \li Determines whether the probe will actually be run.
     \row
-        \li description
-        \li string
+        \li found
+        \li bool
         \li undefined
-        \li A brief description of the property.
+        \li Indicates whether the probe was run successfully. Set by \c configure.
     \row
-        \li name
-        \li string
+        \li configure
+        \li script
         \li undefined
-        \li The name of the property to document.
+        \li Script that is executed when the probe is run.
     \endtable
 
 */

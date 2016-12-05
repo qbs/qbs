@@ -25,10 +25,11 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \previouspage dynamiclibrary-item.html
+    \contentspage list-of-language-items.html
+    \previouspage depends-item.html
     \page export-item.html
     \nextpage filetagger-item.html
+    \ingroup list-of-language-items
     \ingroup list-of-items
 
     \title Export Item

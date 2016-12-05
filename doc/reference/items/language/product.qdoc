@@ -25,10 +25,11 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
+    \contentspage list-of-language-items.html
     \previouspage probe-item.html
     \page product-item.html
     \nextpage project-item.html
+    \ingroup list-of-language-items
     \ingroup list-of-items
 
     \title Product Item

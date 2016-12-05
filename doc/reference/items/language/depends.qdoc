@@ -25,10 +25,11 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \previouspage cppapplication-item.html
+    \contentspage list-of-language-items.html
+    \previouspage artifact-item.html
     \page depends-item.html
-    \nextpage dynamiclibrary-item.html
+    \nextpage export-item.html
+    \ingroup list-of-language-items
     \ingroup list-of-items
 
     \title Depends Item

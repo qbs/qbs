@@ -25,10 +25,10 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \previouspage staticlibrary-item.html
+    \contentspage list-of-language-items.html
+    \previouspage scanner-item.html
     \page subproject-item.html
-    \nextpage xpcservice-item.html
+    \ingroup list-of-language-items
     \ingroup list-of-items
 
     \title SubProject Item

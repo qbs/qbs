@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2015 Jake Petroules.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -25,15 +26,16 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
-    \page innosetup-item.html
-    \previouspage group-item.html
-    \nextpage installpackage-item.html
+    \contentspage list-of-convenience-items.html
+    \page loadablemodule-item.html
+    \previouspage javajarfile-item.html
+    \nextpage qtapplication-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
-    \title InnoSetup Item
-    \brief Represents a product that is an Inno Setup installer executable.
+    \title LoadableModule Item
+    \brief Represents a product that is a loadable module.
 
-    A \c InnoSetup item is a convenience item that has a dependency on the
-    \l{Module innosetup}{Inno Setup module} and whose type is \c{["innosetup.exe"]}.
+    A \c LoadableModule item is a \c Product that has its type set to "loadablemodule". It exists
+    for the convenience of project file authors.
 */

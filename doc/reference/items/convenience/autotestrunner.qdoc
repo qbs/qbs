@@ -25,10 +25,11 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-items.html
+    \contentspage list-of-convenience-items.html
     \page autotestrunner-item.html
-    \previouspage artifact-item.html
+    \previouspage applicationextension-item.html
     \nextpage cppapplication-item.html
+    \ingroup list-of-convenience-items
     \ingroup list-of-items
 
     \title AutotestRunner Item
