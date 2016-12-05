@@ -487,7 +487,7 @@ var BlackboxOutputArtifactTracker = (function () {
     };
     BlackboxOutputArtifactTracker.prototype.findFiles = function (dir) {
         var fileList = File.directoryEntries(dir, File.Files);
-        var dirList = File.directoryEntries(dir, File.Dirs | File.NoDotDot);
+        var dirList = File.directoryEntries(dir, File.Dirs | File.NoDotAndDotDot);
         for (var i = 0; i < dirList.length; ++i)
             fileList = fileList.concat(this.findFiles(dirList[i]));
         return fileList;
