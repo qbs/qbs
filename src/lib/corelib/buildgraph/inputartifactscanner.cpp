@@ -273,6 +273,8 @@ void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *sca
     ScanResultCache::Result scanResult = m_context->scanResultCache->value(scanner->key(), filePathToBeScanned);
     if (!scanResult.valid) {
         try {
+            if (m_logger.traceEnabled())
+                m_logger.qbsTrace() << "scanning " << FileInfo::fileName(filePathToBeScanned);
             scanWithScannerPlugin(scanner, fileToBeScanned, &scanResult);
         } catch (const ErrorInfo &error) {
             m_logger.printWarning(error);

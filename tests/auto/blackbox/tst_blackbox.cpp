@@ -317,6 +317,121 @@ void TestBlackbox::alwaysRun_data()
     QTest::newRow("Rule") << "rule.qbs";
 }
 
+void TestBlackbox::artifactScanning()
+{
+    const QString projectDir = testDataDir + "/artifact-scanning";
+    QDir::setCurrent(projectDir);
+    QbsRunParameters params("-vv");
+
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p1.cpp"), 1);
+    QCOMPARE(m_qbsStderr.count("scanning p2.cpp"), 1);
+    QCOMPARE(m_qbsStderr.count("scanning p3.cpp"), 1);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning shared.h"), 1);
+    QCOMPARE(m_qbsStderr.count("scanning external.h"), 1);
+    QCOMPARE(m_qbsStderr.count("scanning external2.h"), 1);
+    QCOMPARE(m_qbsStderr.count("scanning external-indirect.h"), 1);
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("p1.cpp");
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p1.cpp"), 1);
+    QCOMPARE(m_qbsStderr.count("scanning p2.cpp"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p3.cpp"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning shared.h"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning external.h"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning external2.h"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning external-indirect.h"), 0);
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("p2.cpp");
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p1.cpp"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p2.cpp"), 1);
+    QCOMPARE(m_qbsStderr.count("scanning p3.cpp"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning shared.h"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning external.h"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning external2.h"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning external-indirect.h"), 0);
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("p3.cpp");
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p1.cpp"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p2.cpp"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p3.cpp"), 1);
+    QCOMPARE(m_qbsStderr.count("scanning shared.h"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning external.h"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning external2.h"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning external-indirect.h"), 0);
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("shared.h");
+    QCOMPARE(runQbs(params), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning p1.cpp"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning p2.cpp"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p3.cpp"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning shared.h"), 1);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning external.h"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning external2.h"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning external-indirect.h"), 0);
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("external.h");
+    QCOMPARE(runQbs(params), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning p1.cpp"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning p2.cpp"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p3.cpp"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning shared.h"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning external.h"), 1);
+    QCOMPARE(m_qbsStderr.count("scanning external2.h"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning external-indirect.h"), 0);
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("subdir/external2.h");
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p1.cpp"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p2.cpp"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning p3.cpp"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning shared.h"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning external.h"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning external2.h"), 1);
+    QCOMPARE(m_qbsStderr.count("scanning external-indirect.h"), 0);
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("external-indirect.h");
+    QCOMPARE(runQbs(params), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning p1.cpp"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning p2.cpp"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning p3.cpp"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning shared.h"), 0);
+    QEXPECT_FAIL(0, "QBS-1052", Continue);
+    QCOMPARE(m_qbsStderr.count("scanning external.h"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning external2.h"), 0);
+    QCOMPARE(m_qbsStderr.count("scanning external-indirect.h"), 1);
+}
+
 void TestBlackbox::buildDirectories()
 {
     const QString projectDir

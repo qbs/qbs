@@ -41,6 +41,7 @@ public:
 private slots:
     void alwaysRun();
     void alwaysRun_data();
+    void artifactScanning();
     void assembly();
     void assetCatalog();
     void assetCatalog_data();
