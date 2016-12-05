@@ -173,6 +173,8 @@ void MainWindow::provideContextMenu(const QPoint &pos)
         m_model->removeKey(index);
 }
 
+extern "C" void qt_macos_forceTransformProcessToForegroundApplicationAndActivate();
+
 bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
     if (ui->treeView->hasFocus() && event->type() == QEvent::KeyPress) {
@@ -188,6 +190,17 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
             }
         }
     }
+
+    if (event->type() == QEvent::WindowActivate) {
+        // Effectively delay the foreground process transformation from QApplication construction to
+        // when the UI is shown - this prevents the application icon from popping up in the Dock
+        // when running `qbs help`, and QCoreApplication::arguments() requires the application
+        // object to be constructed, so it is not easily worked around
+    #if defined(Q_OS_MACOS) || defined(Q_OS_OSX)
+        qt_macos_forceTransformProcessToForegroundApplicationAndActivate();
+    #endif
+    }
+
 
     return QMainWindow::eventFilter(watched, event);
 }
