@@ -310,6 +310,10 @@ private:
 
     void handle(ItemValue *value)
     {
+        // TODO: Remove once QBS-1030 is fixed.
+        if (m_parentItem->type() == ItemType::Artifact)
+            return;
+
         if (value->item()->type() != ItemType::ModuleInstance
                 && value->item()->type() != ItemType::ModulePrefix
                 && m_parentItem->file()
