@@ -242,7 +242,11 @@
         \li An array of output artifacts, specified as JavaScript objects.
             Example:
             \code
-            outputArtifacts: [{filePath: "myfile.txt", fileTags: ["foo", "bar"]}]
+            outputArtifacts: [{
+                filePath: "myfile.cpp",
+                fileTags: ["cpp"],
+                cpp: { cxxLanguageVersion: "c++11" }
+            }]
             \endcode
             For a description of the possible properties, see the documentation of the
             \l{Artifact item}.

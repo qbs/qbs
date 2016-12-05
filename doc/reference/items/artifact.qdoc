@@ -38,6 +38,17 @@
 
     For example, if a rule produces three files, it needs to contain three Artifact items.
 
+    In addition to the properties listed in the section below, you can also set module properties
+    within an \c Artifact item:
+    \code
+    Artifact {
+        filePath: "somefile.cpp"
+        fileTags: ["cpp"]
+        cpp.cxxLanguageVersion: "c++11"
+        // ...
+    }
+    \endcode
+
     \section1 Artifact Properties
 
     \note The code on the right-hand side of these properties has access to the set of input
