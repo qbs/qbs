@@ -262,6 +262,9 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var linkDLL = (outputs.dynamiclibrary ? true : false)
     var primaryOutput = (linkDLL ? outputs.dynamiclibrary[0] : outputs.application[0])
     var debugInformation = product.cpp.debugInformation;
+    var additionalManifestInputs = inputs["native.pe.manifest"].map(function (a) {
+        return a.filePath;
+    });
     var generateManifestFiles = !linkDLL && product.cpp.generateManifestFile;
     var canEmbedManifest = (product.cpp.compilerVersionMajor >= 17);    // VS 2012
 
@@ -316,17 +319,22 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         args.push(subsystemSwitch);
 
     var linkerOutputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.filePath);
-    var manifestFileName;
+    var manifestFileNames = [];
     if (generateManifestFiles) {
         if (canEmbedManifest) {
             args.push("/MANIFEST:embed");
+            additionalManifestInputs.forEach(function (manifestFileName) {
+                args.push("/MANIFESTINPUT:" + manifestFileName);
+            });
         } else {
             linkerOutputNativeFilePath
                     = FileInfo.toWindowsSeparators(
                         FileInfo.path(primaryOutput.filePath) + "/intermediate."
                             + primaryOutput.fileName);
-            manifestFileName = linkerOutputNativeFilePath + ".manifest";
-            args.push('/MANIFEST', '/MANIFESTFILE:' + manifestFileName)
+
+            var manifestFileName = linkerOutputNativeFilePath + ".manifest";
+            args.push('/MANIFEST', '/MANIFESTFILE:' + manifestFileName);
+            manifestFileNames = [manifestFileName].concat(additionalManifestInputs);
         }
     }
 
@@ -382,10 +390,9 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         }
         cmd.silent = true
         commands.push(cmd);
-        args = [
-            '/nologo', '/manifest', manifestFileName,
-            "/outputresource:" + outputNativeFilePath + ";#" + (linkDLL ? "2" : "1")
-        ]
+
+        args = ['/nologo', '/manifest'].concat(manifestFileNames);
+        args.push("/outputresource:" + outputNativeFilePath + ";#" + (linkDLL ? "2" : "1"));
         cmd = new Command("mt.exe", args)
         cmd.description = 'embedding manifest into ' + primaryOutput.fileName;
         cmd.highlight = 'linker';

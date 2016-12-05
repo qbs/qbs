@@ -30,6 +30,7 @@
 
 import qbs 1.0
 import qbs.ModUtils
+import qbs.TextFile
 import qbs.Utilities
 import qbs.WindowsUtils
 
@@ -61,6 +62,56 @@ GenericGCC {
         var v = new ModUtils.EnvironmentVariable("PATH", ";", true);
         v.prepend(toolchainInstallPath);
         v.set();
+    }
+
+    FileTagger {
+        patterns: ["*.manifest"]
+        fileTags: ["native.pe.manifest"]
+    }
+
+    Rule {
+        inputs: ["native.pe.manifest"]
+        multiplex: true
+
+        outputFileTags: ["rc"]
+        outputArtifacts: {
+            if (product.type.containsAny(["application", "dynamiclibrary"])) {
+                return [{
+                    filePath: input.completeBaseName + ".rc",
+                    fileTags: ["rc"]
+                }];
+            }
+            return [];
+        }
+
+        prepare: {
+            // TODO: Emulate manifest merging like Microsoft's mt.exe tool does
+            if (inputs.length !== 1)
+                throw("The MinGW toolchain does not support manifest merging; " +
+                      "you may only specify a single manifest file to embed into your assembly.");
+
+            var cmd = new JavaScriptCommand();
+            cmd.silent = true;
+            cmd.productType = product.type;
+            cmd.inputFilePath = inputs[0].filePath;
+            cmd.outputFilePath = output.filePath;
+            cmd.sourceCode = function() {
+                var tf;
+                try {
+                    tf = new TextFile(outputFilePath, TextFile.WriteOnly);
+                    if (productType.contains("application"))
+                        tf.write("1 "); // CREATEPROCESS_MANIFEST_RESOURCE_ID
+                    else if (productType.contains("dynamiclibrary"))
+                        tf.write("2 "); // ISOLATIONAWARE_MANIFEST_RESOURCE_ID
+                    tf.write("24 "); // RT_MANIFEST
+                    tf.writeLine(Utilities.cStringQuote(inputFilePath));
+                } finally {
+                    if (tf)
+                        tf.close();
+                }
+            };
+            return [cmd];
+        }
     }
 
     FileTagger {
