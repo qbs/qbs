@@ -59,7 +59,7 @@ namespace Internal {
 static QString windowsSystem32Path()
 {
 #ifdef Q_OS_WIN
-    wchar_t str[MAX_PATH];
+    wchar_t str[UNICODE_STRING_MAX_CHARS];
     if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_SYSTEM, NULL, 0, str)))
         return QString::fromUtf16(reinterpret_cast<ushort*>(str));
 #endif

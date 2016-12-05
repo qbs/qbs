@@ -223,12 +223,16 @@ bool FileInfo::globMatches(const QRegExp &regexp, const QString &fileName)
     return regexp.exactMatch(fileName);
 }
 
+#ifdef Q_OS_WIN
+static const QString win32LongPathPrefix = QStringLiteral("\\\\?\\");
+#endif
+
 bool FileInfo::isFileCaseCorrect(const QString &filePath)
 {
 #if defined(Q_OS_WIN)
     // QFileInfo::canonicalFilePath() does not return the real case of the file path on Windows.
     QFileInfo fi(filePath);
-    const QString absolute = fi.absoluteFilePath();
+    const QString absolute = win32LongPathPrefix + QDir::toNativeSeparators(fi.absoluteFilePath());
     WIN32_FIND_DATA fd;
     HANDLE hFindFile = ::FindFirstFile((wchar_t*)absolute.utf16(), &fd);
     if (hFindFile == INVALID_HANDLE_VALUE)
@@ -263,7 +267,15 @@ FileInfo::FileInfo(const QString &fileName)
         sizeof(FileInfo::InternalStatType) == sizeof(WIN32_FILE_ATTRIBUTE_DATA)
             > internal_type_has_wrong_size;
     Q_UNUSED(internal_type_has_wrong_size);
-    if (!GetFileAttributesEx(reinterpret_cast<const WCHAR*>(fileName.utf16()),
+
+    QString filePath = fileName;
+
+    // The extended-length path prefix cannot be used with a relative path, so make it absolute
+    if (!isAbsolute(filePath))
+        filePath = QDir::currentPath() + QDir::separator() + filePath;
+
+    filePath = win32LongPathPrefix + QDir::toNativeSeparators(filePath);
+    if (!GetFileAttributesEx(reinterpret_cast<const WCHAR*>(filePath.utf16()),
                              GetFileExInfoStandard, &m_stat))
     {
         ZeroMemory(z(m_stat), sizeof(WIN32_FILE_ATTRIBUTE_DATA));
