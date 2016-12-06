@@ -274,7 +274,7 @@ FileInfo::FileInfo(const QString &fileName)
     if (!isAbsolute(filePath))
         filePath = QDir::currentPath() + QDir::separator() + filePath;
 
-    filePath = win32LongPathPrefix + QDir::toNativeSeparators(filePath);
+    filePath = win32LongPathPrefix + QDir::toNativeSeparators(QDir::cleanPath(filePath));
     if (!GetFileAttributesEx(reinterpret_cast<const WCHAR*>(filePath.utf16()),
                              GetFileExInfoStandard, &m_stat))
     {
