@@ -258,7 +258,7 @@ void BuildGraphLoader::trackProjectChanges()
     ldr.setProgressObserver(m_evalContext->observer());
     QHash<QString, QList<ProbeConstPtr>> restoredProbes;
     foreach (const auto restoredProduct, allRestoredProducts)
-        restoredProbes.insert(restoredProduct->name, restoredProduct->probes);
+        restoredProbes.insert(restoredProduct->uniqueName(), restoredProduct->probes);
     ldr.setOldProbes(restoredProbes);
     m_result.newlyResolvedProject = ldr.loadProject(m_parameters);
 

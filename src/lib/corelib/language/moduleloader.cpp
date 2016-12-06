@@ -2165,7 +2165,9 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
     const bool condition = m_evaluator->boolValue(probe, QLatin1String("condition"));
-    ProbeConstPtr resolvedProbe = findOldProbe(productContext->name, condition, initialProperties,
+    const QString &uniqueProductName
+            = ResolvedProduct::uniqueName(productContext->name, productContext->profileName);
+    ProbeConstPtr resolvedProbe = findOldProbe(uniqueProductName, condition, initialProperties,
                                                configureScript->sourceCode().toString());
     if (!resolvedProbe)
         resolvedProbe = findCurrentProbe(probe->location(), condition, initialProperties);
