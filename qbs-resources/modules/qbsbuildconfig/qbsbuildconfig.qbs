@@ -10,6 +10,9 @@ Module {
     property string libInstallDir: qbs.targetOS.contains("windows") ? "bin" : libDirName
     property string importLibInstallDir: libDirName
     property string libexecInstallDir: "libexec/qbs"
+    property bool installHtml: true
+    property bool installQch: false
+    property string docInstallDir: "share/doc/qbs/html"
     property string relativeLibexecPath: "../" + libexecInstallDir
     property string relativePluginsPath: "../" + libDirName
     property string relativeSearchPath: ".."

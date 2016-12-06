@@ -6,6 +6,7 @@ Product {
     builtByDefault: false
     type: "qch"
     Depends { name: "Qt.core" }
+    Depends { name: "qbsbuildconfig" }
 
     files: [
         "qbs.qdoc",
@@ -28,8 +29,13 @@ Product {
 
     Group {
         fileTagsFilter: ["qdoc-output"]
-        qbs.install: true
-        qbs.installDir: "share/doc/qbs/html"
+        qbs.install: qbsbuildconfig.installHtml
+        qbs.installDir: qbsbuildconfig.docInstallDir
         qbs.installSourceBase: Qt.core.qdocOutputDir
+    }
+    Group {
+        fileTagsFilter: ["qch"]
+        qbs.install: qbsbuildconfig.installQch
+        qbs.installDir: qbsbuildconfig.docInstallDir
     }
 }
