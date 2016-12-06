@@ -59,6 +59,7 @@ CppModule {
 
     windowsApiCharacterSet: "unicode"
     platformDefines: base.concat(WindowsUtils.characterSetDefines(windowsApiCharacterSet))
+                         .concat("WIN32")
     platformCommonCompilerFlags: {
         var flags = base;
         if (compilerVersionMajor >= 18) // 2013
