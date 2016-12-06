@@ -75,6 +75,7 @@ public:
     static QScriptValue js_canonicalTargetArchitecture(QScriptContext *context,
                                                        QScriptEngine *engine);
     static QScriptValue js_canonicalToolchain(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_cStringQuote(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getHash(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_nativeSettingGroups(QScriptContext *context, QScriptEngine *engine);
@@ -100,6 +101,8 @@ static void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                    UtilitiesExtension::js_canonicalTargetArchitecture, 4));
     environmentObj.setProperty(QStringLiteral("canonicalToolchain"),
                                engine->newFunction(UtilitiesExtension::js_canonicalToolchain));
+    environmentObj.setProperty(QStringLiteral("cStringQuote"),
+                               engine->newFunction(UtilitiesExtension::js_cStringQuote, 1));
     environmentObj.setProperty(QStringLiteral("getHash"),
                                engine->newFunction(UtilitiesExtension::js_getHash, 1));
     environmentObj.setProperty(QStringLiteral("getNativeSetting"),
@@ -169,6 +172,145 @@ QScriptValue UtilitiesExtension::js_canonicalToolchain(QScriptContext *context,
     for (int i = 0; i < context->argumentCount(); ++i)
         toolchain << context->argument(i).toString();
     return engine->toScriptValue(canonicalToolchain(toolchain));
+}
+
+// copied from src/corelib/tools/qtools_p.h
+Q_DECL_CONSTEXPR inline char toHexUpper(uint value) Q_DECL_NOTHROW
+{
+    return "0123456789ABCDEF"[value & 0xF];
+}
+
+Q_DECL_CONSTEXPR inline int fromHex(uint c) Q_DECL_NOTHROW
+{
+    return ((c >= '0') && (c <= '9')) ? int(c - '0') :
+           ((c >= 'A') && (c <= 'F')) ? int(c - 'A' + 10) :
+           ((c >= 'a') && (c <= 'f')) ? int(c - 'a' + 10) :
+           /* otherwise */              -1;
+}
+
+// copied from src/corelib/io/qdebug.cpp
+static inline bool isPrintable(uchar c)
+{ return c >= ' ' && c < 0x7f; }
+
+// modified
+template <typename Char>
+static inline QString escapedString(const Char *begin, int length, bool isUnicode = true)
+{
+    QChar quote(QLatin1Char('"'));
+    QString out = quote;
+
+    bool lastWasHexEscape = false;
+    const Char *end = begin + length;
+    for (const Char *p = begin; p != end; ++p) {
+        // check if we need to insert "" to break an hex escape sequence
+        if (Q_UNLIKELY(lastWasHexEscape)) {
+            if (fromHex(*p) != -1) {
+                // yes, insert it
+                out += QLatin1Char('"');
+                out += QLatin1Char('"');
+            }
+            lastWasHexEscape = false;
+        }
+
+        if (sizeof(Char) == sizeof(QChar)) {
+            // Surrogate characters are category Cs (Other_Surrogate), so isPrintable = false for them
+            int runLength = 0;
+            while (p + runLength != end &&
+                   isPrintable(p[runLength]) && p[runLength] != '\\' && p[runLength] != '"')
+                ++runLength;
+            if (runLength) {
+                out += QString(reinterpret_cast<const QChar *>(p), runLength);
+                p += runLength - 1;
+                continue;
+            }
+        } else if (isPrintable(*p) && *p != '\\' && *p != '"') {
+            QChar c = QLatin1Char(*p);
+            out += c;
+            continue;
+        }
+
+        // print as an escape sequence (maybe, see below for surrogate pairs)
+        int buflen = 2;
+        ushort buf[sizeof "\\U12345678" - 1];
+        buf[0] = '\\';
+
+        switch (*p) {
+        case '"':
+        case '\\':
+            buf[1] = *p;
+            break;
+        case '\b':
+            buf[1] = 'b';
+            break;
+        case '\f':
+            buf[1] = 'f';
+            break;
+        case '\n':
+            buf[1] = 'n';
+            break;
+        case '\r':
+            buf[1] = 'r';
+            break;
+        case '\t':
+            buf[1] = 't';
+            break;
+        default:
+            if (!isUnicode) {
+                // print as hex escape
+                buf[1] = 'x';
+                buf[2] = toHexUpper(uchar(*p) >> 4);
+                buf[3] = toHexUpper(uchar(*p));
+                buflen = 4;
+                lastWasHexEscape = true;
+                break;
+            }
+            if (QChar::isHighSurrogate(*p)) {
+                if ((p + 1) != end && QChar::isLowSurrogate(p[1])) {
+                    // properly-paired surrogates
+                    uint ucs4 = QChar::surrogateToUcs4(*p, p[1]);
+                    if (isPrintable(ucs4)) {
+                        buf[0] = *p;
+                        buf[1] = p[1];
+                        buflen = 2;
+                    } else {
+                        buf[1] = 'U';
+                        buf[2] = '0'; // toHexUpper(ucs4 >> 32);
+                        buf[3] = '0'; // toHexUpper(ucs4 >> 28);
+                        buf[4] = toHexUpper(ucs4 >> 20);
+                        buf[5] = toHexUpper(ucs4 >> 16);
+                        buf[6] = toHexUpper(ucs4 >> 12);
+                        buf[7] = toHexUpper(ucs4 >> 8);
+                        buf[8] = toHexUpper(ucs4 >> 4);
+                        buf[9] = toHexUpper(ucs4);
+                        buflen = 10;
+                    }
+                    ++p;
+                    break;
+                }
+                // improperly-paired surrogates, fall through
+            }
+            buf[1] = 'u';
+            buf[2] = toHexUpper(ushort(*p) >> 12);
+            buf[3] = toHexUpper(ushort(*p) >> 8);
+            buf[4] = toHexUpper(*p >> 4);
+            buf[5] = toHexUpper(*p);
+            buflen = 6;
+        }
+        out += QString(reinterpret_cast<QChar *>(buf), buflen);
+    }
+
+    out += quote;
+    return out;
+}
+
+QScriptValue UtilitiesExtension::js_cStringQuote(QScriptContext *context, QScriptEngine *engine)
+{
+    if (Q_UNLIKELY(context->argumentCount() < 1)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QStringLiteral("cStringQuote expects 1 argument"));
+    }
+    QString value = context->argument(0).toString();
+    return engine->toScriptValue(escapedString(reinterpret_cast<const ushort *>(value.constData()), value.size()));
 }
 
 QScriptValue UtilitiesExtension::js_getHash(QScriptContext *context, QScriptEngine *engine)

@@ -4,6 +4,7 @@ import QbsFunctions
 QbsAutotest {
     testName: "cmdlineparser"
     files: ["tst_cmdlineparser.cpp", "../../../src/app/qbs/qbstool.cpp"]
+    // TODO: Use Utilities.cStringQuote
     cpp.defines: base.concat([
         'SRCDIR="' + path + '"',
         "QBS_VERSION=\"" + QbsFunctions.qbsVersion() + "\""

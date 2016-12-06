@@ -21,6 +21,7 @@ Project {
             "tst_blackbox.cpp",
             "tst_blackbox.h",
         ]
+        // TODO: Use Utilities.cStringQuote
         cpp.defines: base.concat(['SRCDIR="' + path + '"'])
     }
 
@@ -41,6 +42,7 @@ Project {
             "tst_blackboxjava.cpp",
             "tst_blackboxjava.h",
         ]
+        // TODO: Use Utilities.cStringQuote
         cpp.defines: base.concat(['SRCDIR="' + path + '"'])
     }
 
@@ -64,6 +66,7 @@ Project {
             "tst_clangdb.cpp",
             "tst_clangdb.h",
         ]
+        // TODO: Use Utilities.cStringQuote
         cpp.defines: base.concat(['SRCDIR="' + path + '"'])
     }
 }

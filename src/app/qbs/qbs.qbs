@@ -5,6 +5,7 @@ QbsApp {
     name: "qbs_app"
     Depends { name: "qbs resources" }
     targetName: "qbs"
+    // TODO: Use Utilities.cStringQuote
     cpp.defines: base.concat([
         'QBS_VERSION="' + QbsFunctions.qbsVersion() + '"',
         'QBS_RELATIVE_LIBEXEC_PATH="' + qbsbuildconfig.relativeLibexecPath + '"',

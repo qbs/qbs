@@ -17,6 +17,7 @@ QbsLibrary {
     ])
     property stringList projectFileUpdateDefines:
         qbsbuildconfig.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : []
+    // TODO: Use Utilities.cStringQuote
     cpp.defines: base.concat([
         'QBS_RELATIVE_LIBEXEC_PATH="' + qbsbuildconfig.relativeLibexecPath + '"',
         "QBS_VERSION=\"" + version + "\"",

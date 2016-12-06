@@ -3,6 +3,7 @@ import qbs
 QbsAutotest {
     testName: "api"
     files: ["../shared.h", "tst_api.h", "tst_api.cpp"]
+    // TODO: Use Utilities.cStringQuote
     cpp.defines: base.concat([
         'SRCDIR="' + path + '"',
         'QBS_RELATIVE_LIBEXEC_PATH="' + qbsbuildconfig.relativeLibexecPath + '"',
