@@ -70,11 +70,14 @@ InputArtifactScannerContext::~InputArtifactScannerContext()
 {
 }
 
-static void resolveWithIncludePath(const QString &includePath,
-        const ScanResultCache::Dependency &dependency, const ResolvedProduct *product,
-        ResolvedDependency *result)
+static void resolveDepencency(const ScanResultCache::Dependency &dependency,
+                              const ResolvedProduct *product, ResolvedDependency *result,
+                              const QString &baseDir = QString())
 {
-    QString absDirPath = dependency.dirPath().isEmpty() ? includePath : FileInfo::resolvePath(includePath, dependency.dirPath());
+    QString absDirPath = baseDir.isEmpty()
+            ? dependency.dirPath()
+            : dependency.dirPath().isEmpty()
+              ? baseDir : FileInfo::resolvePath(baseDir, dependency.dirPath());
     if (!dependency.isClean())
         absDirPath = QDir::cleanPath(absDirPath);
 
@@ -87,49 +90,11 @@ static void resolveWithIncludePath(const QString &includePath,
         if ((fileDependencyArtifact = dynamic_cast<FileDependency *>(lookupResult)))
             continue;
         Artifact * const foundArtifact = dynamic_cast<Artifact *>(lookupResult);
-        if (foundArtifact->product == product)
+        if (foundArtifact->product == product) {
             dependencyInProduct = foundArtifact;
-        else
-            dependencyInOtherProduct = foundArtifact;
-    }
-
-    // prioritize found artifacts
-    if ((result->file = dependencyInProduct)
-        || (result->file = dependencyInOtherProduct)
-        || (result->file = fileDependencyArtifact))
-    {
-        result->filePath = result->file->filePath();
-        return;
-    }
-
-    QString absFilePath = absDirPath + QLatin1Char('/') + dependency.fileName();
-
-    // TODO: We probably need a flag that tells us whether directories are allowed.
-    const FileInfo fi(absFilePath);
-    if (fi.exists(absFilePath) && !fi.isDir())
-        result->filePath = absFilePath;
-}
-
-static void resolveAbsolutePath(const ScanResultCache::Dependency &dependency,
-        const ResolvedProduct *product, ResolvedDependency *result)
-{
-    QString absDirPath = dependency.dirPath();
-    if (!dependency.isClean())
-        absDirPath = QDir::cleanPath(absDirPath);
-
-    ResolvedProject *project = product->project.data();
-    FileDependency *fileDependencyArtifact = 0;
-    Artifact *dependencyInProduct = 0;
-    Artifact *dependencyInOtherProduct = 0;
-    foreach (FileResourceBase *lookupResult, project->topLevelProject()
-             ->buildData->lookupFiles(absDirPath, dependency.fileName())) {
-        if ((fileDependencyArtifact = dynamic_cast<FileDependency *>(lookupResult)))
-            continue;
-        Artifact * const foundArtifact = dynamic_cast<Artifact *>(lookupResult);
-        if (foundArtifact->product == product)
-            dependencyInProduct = foundArtifact;
-        else
-            dependencyInOtherProduct = foundArtifact;
+            break;
+        }
+        dependencyInOtherProduct = foundArtifact;
     }
 
     // prioritize found artifacts
@@ -140,8 +105,14 @@ static void resolveAbsolutePath(const ScanResultCache::Dependency &dependency,
         return;
     }
 
-    if (FileInfo::exists(dependency.filePath()))
-        result->filePath = dependency.filePath();
+    const QString &absFilePath = baseDir.isEmpty()
+            ? dependency.filePath()
+            : absDirPath + QLatin1Char('/') + dependency.fileName();
+
+    // TODO: We probably need a flag that tells us whether directories are allowed.
+    const FileInfo fi(absFilePath);
+    if (fi.exists(absFilePath) && !fi.isDir())
+        result->filePath = absFilePath;
 }
 
 static void scanWithScannerPlugin(DependencyScanner *scanner,
@@ -304,15 +275,14 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
         cachedResolvedDependencyItem.valid = true;
 
         if (FileInfo::isAbsolute(dependencyFilePath)) {
-            resolveAbsolutePath(dependency, inputArtifact->product.data(),
-                                &resolvedDependency);
+            resolveDepencency(dependency, inputArtifact->product.data(), &resolvedDependency);
             goto resolved;
         }
 
         // try include paths
         foreach (const QString &includePath, cache.searchPaths) {
-            resolveWithIncludePath(includePath, dependency, inputArtifact->product.data(),
-                                   &resolvedDependency);
+            resolveDepencency(dependency, inputArtifact->product.data(),
+                              &resolvedDependency, includePath);
             if (resolvedDependency.isValid())
                 goto resolved;
         }
