@@ -303,7 +303,9 @@ function outputArtifacts(product, inputs) {
         ];
         process.exec(ModUtils.moduleProperty(product, "interpreterFilePath"), javaArgs
                      .concat(javacArguments(product, inputs, helperOverrideArgs(product))), true);
-        return JSON.parse(process.readStdOut());
+        var out = JSON.parse(process.readStdOut());
+        console.error(process.readStdErr());
+        return out;
     } finally {
         if (process)
             process.close();

@@ -288,4 +288,14 @@ void TestBlackboxJava::javaDependencyTracking()
         QSKIP("No JDKs installed");
 }
 
+void TestBlackboxJava::javaDependencyTrackingInnerClass()
+{
+    QDir::setCurrent(testDataDir + "/java/inner-class");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QCOMPARE(runQbs(params), 0);
+    QEXPECT_FAIL(0, "QBS-1069", Abort);
+    QVERIFY(!m_qbsStderr.contains("QBS-1069"));
+}
+
 QTEST_MAIN(TestBlackboxJava)

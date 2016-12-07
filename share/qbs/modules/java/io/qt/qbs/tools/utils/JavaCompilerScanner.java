@@ -156,11 +156,18 @@ public class JavaCompilerScanner {
             Collections.sort(parsedOutputFilePathsArray);
             ArrayList<String> compilationOutputFilePathsArray = new ArrayList<String>(compilationOutputFilePaths);
             Collections.sort(compilationOutputFilePathsArray);
+            compilationOutputFilePaths.removeAll(parsedOutputFilePaths);
+            ArrayList<String> differenceArray = new ArrayList<String>(compilationOutputFilePaths);
+            Collections.sort(differenceArray);
 
-            throw new RuntimeException("The set of output files determined by source code parsing:\n\n"
+            System.err.println("The set of output files determined by source code parsing:\n\n"
                     + join("\n", parsedOutputFilePathsArray) + "\n\n"
-                    + "is missing some files that would be produced by the compiler:\n\n"
-                    + join("\n", compilationOutputFilePathsArray) + "\n");
+                    + "is missing some files from the list that would be produced by the compiler:\n\n"
+                    + join("\n", compilationOutputFilePathsArray) + "\n\n"
+                    + "The missing files are:\n\n"
+                    + join("\n", differenceArray) + "\n\n"
+                    + "Compilation will still continue, though a build error *might* appear later;\n"
+                    + "please check the bug report at https://bugreports.qt.io/browse/QBS-1069\n");
         }
 
         return !parsedOutputFilePaths.isEmpty() ? 0 : 1;

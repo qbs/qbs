@@ -43,6 +43,7 @@ private slots:
     void android_data();
     void java();
     void javaDependencyTracking();
+    void javaDependencyTrackingInnerClass();
 
 private:
     QMap<QString, QString> findAndroid(int *status);
