@@ -340,7 +340,6 @@ resolved:
 void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
 {
     const ResolvedProductPtr product = m_artifact->product;
-    bool insertIntoProduct = true;
     QBS_CHECK(m_artifact->artifactType == Artifact::Generated);
     QBS_CHECK(product);
 
@@ -370,7 +369,6 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
             m_logger.qbsTrace() << "[DEPSCAN] add artifact dependency " << dependency.filePath
                                 << " (from this product)";
         }
-        insertIntoProduct = false;
     } else {
         // The dependency is in some other product.
         ResolvedProduct * const otherProduct = artifactDependency->product;
@@ -378,7 +376,6 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
             m_logger.qbsTrace() << "[DEPSCAN] add artifact dependency " << dependency.filePath
                                 << " (from product " << otherProduct->uniqueName() << ')';
         }
-        insertIntoProduct = false;
     }
 
     if (m_artifact == dependency.file)
@@ -390,8 +387,6 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
     } else {
         if (m_artifact->children.contains(artifactDependency))
             return;
-        if (insertIntoProduct && !product->buildData->nodes.contains(artifactDependency))
-            insertArtifact(product, artifactDependency, m_logger);
         safeConnect(m_artifact, artifactDependency, m_logger);
         m_artifact->childrenAddedByScanner += artifactDependency;
         m_newDependencyAdded = true;
