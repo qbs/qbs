@@ -182,6 +182,7 @@ void InputArtifactScanner::scan()
     // They will be regenerated.
     foreach (Artifact *dependency, m_artifact->childrenAddedByScanner)
         disconnect(m_artifact, dependency, m_logger);
+    QBS_CHECK(m_artifact->childrenAddedByScanner.isEmpty());
 
     ArtifactSet::const_iterator it = m_artifact->transformer->inputs.begin();
     for (; it != m_artifact->transformer->inputs.end(); ++it) {
