@@ -290,10 +290,18 @@ void TestBlackboxJava::javaDependencyTracking()
 
 void TestBlackboxJava::javaDependencyTrackingInnerClass()
 {
+    Settings settings((QString()));
+    Profile p(profileName(), &settings);
+
     QDir::setCurrent(testDataDir + "/java/inner-class");
     QbsRunParameters params;
     params.expectFailure = true;
-    QCOMPARE(runQbs(params), 0);
+    int status = runQbs(params);
+    if (p.value("java.jdkPath").toString().isEmpty()
+            && status != 0 && m_qbsStderr.contains("jdkPath")) {
+        QSKIP("java.jdkPath not set and automatic detection failed");
+    }
+    QCOMPARE(status, 0);
     QEXPECT_FAIL(0, "QBS-1069", Abort);
     QVERIFY(!m_qbsStderr.contains("QBS-1069"));
 }
