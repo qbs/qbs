@@ -739,19 +739,58 @@ void TestBlackbox::deploymentTarget()
 
 void TestBlackbox::deploymentTarget_data()
 {
+    static const QString macos = QStringLiteral("macos,darwin,bsd,unix");
+    static const QString ios = QStringLiteral("ios,darwin,bsd,unix");
+    static const QString ios_sim = QStringLiteral("ios-simulator,") + ios;
+    static const QString tvos = QStringLiteral("tvos,darwin,bsd,unix");
+    static const QString tvos_sim = QStringLiteral("tvos-simulator,") + tvos;
+    static const QString watchos = QStringLiteral("watchos,darwin,bsd,unix");
+    static const QString watchos_sim = QStringLiteral("watchos-simulator,") + watchos;
+
     QTest::addColumn<QString>("os");
     QTest::addColumn<QString>("arch");
     QTest::addColumn<QString>("cflags");
     QTest::addColumn<QString>("lflags");
-    QTest::newRow("macos") << "macos,darwin,bsd,unix" << "x86_64"
+
+    QTest::newRow("macos x86") << macos << "x86"
+                         << "-triple i386-apple-macosx10.4"
+                         << "-macosx_version_min 10.4";
+    QTest::newRow("macos x86_64") << macos << "x86_64"
                          << "-triple x86_64-apple-macosx10.4"
                          << "-macosx_version_min 10.4";
-    QTest::newRow("ios") << "ios,darwin,bsd,unix" << "arm64"
-                         << "-triple arm64-apple-ios5.0"
-                         << "-iphoneos_version_min 5.0";
-    QTest::newRow("ios-sim") << "ios-simulator,ios,darwin,bsd,unix" << "x86_64"
-                             << "-triple x86_64-apple-ios5.0"
-                             << "-ios_simulator_version_min 5.0";
+    QTest::newRow("macos x86_64h") << macos << "x86_64h"
+                         << "-triple x86_64h-apple-macosx10.12"
+                         << "-macosx_version_min 10.12";
+
+    QTest::newRow("ios armv7a") << ios << "armv7a"
+                         << "-triple thumbv7-apple-ios6.0"
+                         << "-iphoneos_version_min 6.0";
+    QTest::newRow("ios armv7s") << ios << "armv7s"
+                         << "-triple thumbv7s-apple-ios7.0"
+                         << "-iphoneos_version_min 7.0";
+    QTest::newRow("ios arm64") << ios << "arm64"
+                         << "-triple arm64-apple-ios7.0"
+                         << "-iphoneos_version_min 7.0";
+    QTest::newRow("ios-simulator x86") << ios_sim << "x86"
+                             << "-triple i386-apple-ios6.0"
+                             << "-ios_simulator_version_min 6.0";
+    QTest::newRow("ios-simulator x86_64") << ios_sim << "x86_64"
+                             << "-triple x86_64-apple-ios7.0"
+                             << "-ios_simulator_version_min 7.0";
+
+    QTest::newRow("tvos arm64") << tvos << "arm64"
+                         << "-triple arm64-apple-tvos9.0"
+                         << "-tvos_version_min 9.0";
+    QTest::newRow("tvos-simulator x86_64") << tvos_sim << "x86_64"
+                             << "-triple x86_64-apple-tvos9.0"
+                             << "-tvos_simulator_version_min 9.0";
+
+    QTest::newRow("watchos armv7k") << watchos << "armv7k"
+                         << "-triple thumbv7k-apple-watchos2.0"
+                         << "-watchos_version_min 2.0";
+    QTest::newRow("watchos-simulator x86") << watchos_sim << "x86"
+                             << "-triple i386-apple-watchos2.0"
+                             << "-watchos_simulator_version_min 2.0";
 }
 
 void TestBlackbox::deprecatedProperty()

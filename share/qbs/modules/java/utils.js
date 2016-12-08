@@ -101,7 +101,9 @@ function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
             // We filter by architecture here so that we'll get a compatible JVM for JNI use.
             var args = [];
             if (arch) {
-                args.push("--arch", arch === "x86" ? "i386" : arch);
+                // Hardcoding apple/macosx/macho here is fine because we know we're on macOS
+                args.push("--arch",
+                          Utilities.canonicalTargetArchitecture(arch, "apple", "macosx", "macho"));
             }
 
             // --failfast doesn't print the default JVM if nothing matches the filter(s).

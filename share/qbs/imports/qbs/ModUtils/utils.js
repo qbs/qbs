@@ -554,6 +554,8 @@ function guessArchitecture(m) {
             architecture = "x86";
         } else if (hasAnyOf(m, ["__x86_64", "__x86_64__", "__amd64", "_M_X64", "_M_AMD64"])) {
             architecture = "x86_64";
+            if (hasAnyOf(m, ["__x86_64h", "__x86_64h__"]))
+                architecture = "x86_64h";
         } else if (hasAnyOf(m, ["__ia64", "__ia64__", "_M_IA64"])) {
             architecture = "ia64";
         } else if (hasAnyOf(m, ["__mips", "__mips__", "_M_MRX000"])) {

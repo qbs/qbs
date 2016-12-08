@@ -46,6 +46,29 @@
 
 namespace qbs {
 
+QString canonicalTargetArchitecture(const QString &architecture,
+                                    const QString &vendor,
+                                    const QString &system,
+                                    const QString &abi)
+{
+    const QString arch = canonicalArchitecture(architecture);
+    const bool isApple = (vendor == QStringLiteral("apple")
+                          || system == QStringLiteral("darwin")
+                          || system == QStringLiteral("macosx")
+                          || system == QStringLiteral("ios")
+                          || system == QStringLiteral("tvos")
+                          || system == QStringLiteral("watchos")
+                          || abi == QStringLiteral("macho"));
+
+    if (arch == QStringLiteral("armv7a") && isApple)
+        return QStringLiteral("armv7");
+
+    if (arch == QStringLiteral("x86"))
+        return QStringLiteral("i386");
+
+    return arch;
+}
+
 QString canonicalArchitecture(const QString &architecture)
 {
     QMap<QString, QStringList> archMap;
