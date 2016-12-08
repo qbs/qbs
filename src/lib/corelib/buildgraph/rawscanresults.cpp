@@ -37,44 +37,78 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_SCANRESULTCACHE_H
-#define QBS_SCANRESULTCACHE_H
+#include "rawscanresults.h"
 
-#include "rawscanneddependency.h"
+#include "filedependency.h"
+#include "depscanner.h"
 
-#include <language/filetags.h>
+#include <tools/persistence.h>
+#include <language/propertymapinternal.h>
 
-#include <QtCore/qhash.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qvector.h>
+#include <utility>
 
 namespace qbs {
 namespace Internal {
 
-class ScanResultCache
+void RawScanResult::load(PersistentPool &pool)
 {
-public:
-    class Result
-    {
-    public:
-        Result()
-            : valid(false)
-        {}
+    pool.load(deps);
+    pool.load(additionalFileTags);
+}
 
-        QVector<RawScannedDependency> deps;
-        FileTags additionalFileTags;
-        bool valid;
-    };
+void RawScanResult::store(PersistentPool &pool) const
+{
+    pool.store(deps);
+    pool.store(additionalFileTags);
+}
 
-    Result value(const void* scanner, const QString &fileName) const;
-    void insert(const void* scanner, const QString &fileName, const Result &value);
+void RawScanResults::ScanData::load(PersistentPool &pool)
+{
+    pool.load(scannerId);
+    pool.load(moduleProperties);
+    pool.load(lastScanTime);
+    pool.load(rawScanResult);
+}
 
-private:
-    typedef QHash<const void*, QHash<QString, Result> > ScanResultCacheData;
-    ScanResultCacheData m_data;
-};
+void RawScanResults::ScanData::store(PersistentPool &pool) const
+{
+    pool.store(scannerId);
+    pool.store(moduleProperties);
+    pool.store(lastScanTime);
+    pool.store(rawScanResult);
+}
 
+RawScanResults::ScanData &RawScanResults::findScanData(
+        const FileResourceBase *file,
+        const DependencyScanner *scanner,
+        const PropertyMapConstPtr &moduleProperties)
+{
+    QVector<ScanData> &scanDataForFile = m_rawScanData[file->filePath()];
+    const QString &scannerId = scanner->id();
+    for (auto it = scanDataForFile.begin(); it != scanDataForFile.end(); ++it) {
+        ScanData &scanData = *it;
+        if (scannerId != scanData.scannerId)
+            continue;
+        if (!scanner->areModulePropertiesCompatible(moduleProperties, scanData.moduleProperties))
+            continue;
+        return scanData;
+    }
+    ScanData newScanData;
+    newScanData.scannerId = scannerId;
+    newScanData.moduleProperties = moduleProperties;
+    scanDataForFile.append(std::move(newScanData));
+    return scanDataForFile.last();
+}
+
+void RawScanResults::load(PersistentPool &pool)
+{
+    pool.load(m_rawScanData);
+}
+
+void RawScanResults::store(PersistentPool &pool) const
+{
+    pool.store(m_rawScanData);
+}
+
+} // namespace Internal
 } // namespace qbs
-} // namespace qbs
-
-#endif // QBS_SCANRESULTCACHE_H

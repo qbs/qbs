@@ -40,6 +40,7 @@
 #define QBS_PROJECTBUILDDATA_H
 
 #include "forward_decls.h"
+#include "rawscanresults.h"
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 #include <tools/persistentobject.h>
@@ -80,6 +81,7 @@ public:
 
 
     Set<FileDependency *> fileDependencies;
+    RawScanResults rawScanResults;
 
     // do not serialize:
     RulesEvaluationContextPtr evaluationContext;

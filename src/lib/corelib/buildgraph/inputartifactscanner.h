@@ -40,7 +40,7 @@
 #ifndef QBS_INPUTARTIFACTSCANNER_H
 #define QBS_INPUTARTIFACTSCANNER_H
 
-#include "scanresultcache.h"
+#include <language/filetags.h>
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 #include <tools/set.h>
@@ -55,6 +55,8 @@ namespace Internal {
 
 class Artifact;
 class FileResourceBase;
+class RawScanResult;
+class RawScanResults;
 class PropertyMapInternal;
 
 class DependencyScanner;
@@ -71,12 +73,6 @@ public:
 
 class InputArtifactScannerContext
 {
-public:
-    InputArtifactScannerContext(ScanResultCache *scanResultCache);
-
-private:
-    ScanResultCache *scanResultCache;
-
     struct ResolvedDependencyCacheItem
     {
         ResolvedDependencyCacheItem()
@@ -133,13 +129,14 @@ private:
             QList<FileResourceBase *> *filesToScan,
             InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache);
     void resolveScanResultDependencies(const Artifact *inputArtifact,
-            const ScanResultCache::Result &scanResult, QList<FileResourceBase *> *artifactsToScan,
+            const RawScanResult &scanResult, QList<FileResourceBase *> *artifactsToScan,
             InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache);
     void handleDependency(ResolvedDependency &dependency);
     void scanWithScannerPlugin(DependencyScanner *scanner, FileResourceBase *fileToBeScanned,
-                               ScanResultCache::Result *scanResult);
+                               RawScanResult *scanResult);
 
     Artifact * const m_artifact;
+    RawScanResults &m_rawScanResults;
     InputArtifactScannerContext *const m_context;
     QByteArray m_fileTagsForScanner;
     bool m_newDependencyAdded;

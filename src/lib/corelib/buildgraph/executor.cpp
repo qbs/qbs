@@ -88,7 +88,7 @@ Executor::Executor(const Logger &logger, QObject *parent)
     , m_doTrace(logger.traceEnabled())
     , m_doDebug(logger.debugEnabled())
 {
-    m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
+    m_inputArtifactScanContext = new InputArtifactScannerContext;
     m_cancelationTimer->setSingleShot(false);
     m_cancelationTimer->setInterval(1000);
     connect(m_cancelationTimer, &QTimer::timeout, this, &Executor::checkForCancellation);

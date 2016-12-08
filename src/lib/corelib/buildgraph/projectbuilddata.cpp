@@ -347,11 +347,13 @@ void ProjectBuildData::load(PersistentPool &pool)
     pool.load(fileDependencies);
     for (auto dep = fileDependencies.cbegin(); dep != fileDependencies.cend(); ++dep)
         insertFileDependency(*dep);
+    pool.load(rawScanResults);
 }
 
 void ProjectBuildData::store(PersistentPool &pool) const
 {
     pool.store(fileDependencies);
+    pool.store(rawScanResults);
 }
 
 

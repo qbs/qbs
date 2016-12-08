@@ -37,21 +37,49 @@
 **
 ****************************************************************************/
 
-#include "scanresultcache.h"
-#include <tools/fileinfo.h>
+#include "rawscanneddependency.h"
+
+#include <tools/persistence.h>
 
 namespace qbs {
 namespace Internal {
 
-ScanResultCache::Result ScanResultCache::value(const void *scanner, const QString &fileName) const
+RawScannedDependency::RawScannedDependency() : m_isClean(true) {}
+
+RawScannedDependency::RawScannedDependency(const QString &filePath)
 {
-    return m_data[scanner][fileName];
+    FileInfo::splitIntoDirectoryAndFileName(filePath, &m_dirPath, &m_fileName);
+    setClean();
 }
 
-void ScanResultCache::insert(const void *scanner, const QString &fileName, const ScanResultCache::Result &value)
+QString RawScannedDependency::filePath() const
 {
-    m_data[scanner].insert(fileName, value);
+    return m_dirPath.isEmpty() ? m_fileName : m_dirPath + QLatin1Char('/') + m_fileName;
 }
+
+void RawScannedDependency::setClean()
+{
+    m_isClean = !m_dirPath.contains(QLatin1Char('.')) && !m_dirPath.contains(QLatin1String("//"));
+}
+
+void RawScannedDependency::load(PersistentPool &pool)
+{
+    pool.load(m_dirPath);
+    pool.load(m_fileName);
+    setClean();
+}
+
+void RawScannedDependency::store(PersistentPool &pool) const
+{
+    pool.store(m_dirPath);
+    pool.store(m_fileName);
+}
+
+bool operator==(const RawScannedDependency &d1, const RawScannedDependency &d2)
+{
+    return d1.dirPath() == d2.dirPath() && d1.fileName() == d2.fileName();
+}
+
 
 } // namespace Internal
 } // namespace qbs

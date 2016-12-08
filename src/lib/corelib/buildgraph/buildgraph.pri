@@ -23,13 +23,14 @@ SOURCES += \
     $$PWD/productinstaller.cpp \
     $$PWD/projectbuilddata.cpp \
     $$PWD/qtmocscanner.cpp \
+    $$PWD/rawscanneddependency.cpp \
+    $$PWD/rawscanresults.cpp \
     $$PWD/rescuableartifactdata.cpp \
     $$PWD/rulecommands.cpp \
     $$PWD/rulegraph.cpp \
     $$PWD/rulenode.cpp \
     $$PWD/rulesapplicator.cpp \
     $$PWD/rulesevaluationcontext.cpp \
-    $$PWD/scanresultcache.cpp \
     $$PWD/timestampsupdater.cpp \
     $$PWD/transformer.cpp
 
@@ -59,13 +60,13 @@ HEADERS += \
     $$PWD/projectbuilddata.h \
     $$PWD/qtmocscanner.h \
     $$PWD/rawscanneddependency.h \
+    $$PWD/rawscanresults.h \
     $$PWD/rescuableartifactdata.h \
     $$PWD/rulecommands.h \
     $$PWD/rulegraph.h \
     $$PWD/rulenode.h \
     $$PWD/rulesapplicator.h \
     $$PWD/rulesevaluationcontext.h \
-    $$PWD/scanresultcache.h \
     $$PWD/timestampsupdater.h \
     $$PWD/transformer.h
 

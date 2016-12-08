@@ -43,7 +43,6 @@
 #include "forward_decls.h"
 #include "buildgraphvisitor.h"
 #include <buildgraph/artifact.h>
-#include <buildgraph/scanresultcache.h>
 #include <language/forward_decls.h>
 
 #include <logging/logger.h>
@@ -166,7 +165,6 @@ private:
     NodeSet m_roots;
     Leaves m_leaves;
     QList<Artifact *> m_changedSourceArtifacts;
-    ScanResultCache m_scanResultCache;
     InputArtifactScannerContext *m_inputArtifactScanContext;
     ErrorInfo m_error;
     bool m_explicitlyCanceled;

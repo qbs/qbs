@@ -60,11 +60,6 @@
 namespace qbs {
 namespace Internal {
 
-InputArtifactScannerContext::InputArtifactScannerContext(ScanResultCache *scanResultCache)
-    : scanResultCache(scanResultCache)
-{
-}
-
 static void resolveDepencency(const RawScannedDependency &dependency,
                               const ResolvedProduct *product, ResolvedDependency *result,
                               const QString &baseDir = QString())
@@ -112,7 +107,11 @@ static void resolveDepencency(const RawScannedDependency &dependency,
 
 InputArtifactScanner::InputArtifactScanner(Artifact *artifact, InputArtifactScannerContext *ctx,
                                            const Logger &logger)
-    : m_artifact(artifact), m_context(ctx), m_newDependencyAdded(false), m_logger(logger)
+    : m_artifact(artifact),
+      m_rawScanResults(artifact->product->topLevelProject()->buildData->rawScanResults),
+      m_context(ctx),
+      m_newDependencyAdded(false),
+      m_logger(logger)
 {
 }
 
@@ -230,24 +229,25 @@ void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *sca
     }
 
     const QString &filePathToBeScanned = fileToBeScanned->filePath();
-    ScanResultCache::Result scanResult = m_context->scanResultCache->value(scanner->key(), filePathToBeScanned);
-    if (!scanResult.valid) {
+    RawScanResults::ScanData &scanData = m_rawScanResults.findScanData(fileToBeScanned, scanner,
+                                                                       m_artifact->properties);
+    if (scanData.lastScanTime < fileToBeScanned->timestamp()) {
         try {
             if (m_logger.traceEnabled())
                 m_logger.qbsTrace() << "scanning " << FileInfo::fileName(filePathToBeScanned);
-            scanWithScannerPlugin(scanner, fileToBeScanned, &scanResult);
+            scanWithScannerPlugin(scanner, fileToBeScanned, &scanData.rawScanResult);
+            scanData.lastScanTime = FileTime::currentTime();
         } catch (const ErrorInfo &error) {
             m_logger.printWarning(error);
             return;
         }
-        m_context->scanResultCache->insert(scanner->key(), filePathToBeScanned, scanResult);
     }
 
-    resolveScanResultDependencies(inputArtifact, scanResult, filesToScan, cache);
+    resolveScanResultDependencies(inputArtifact, scanData.rawScanResult, filesToScan, cache);
 }
 
 void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputArtifact,
-        const ScanResultCache::Result &scanResult, QList<FileResourceBase *> *artifactsToScan,
+        const RawScanResult &scanResult, QList<FileResourceBase *> *artifactsToScan,
         InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache)
 {
     foreach (const RawScannedDependency &dependency, scanResult.deps) {
@@ -343,6 +343,8 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
 
     if (fileDependency) {
         m_artifact->fileDependencies << fileDependency;
+        if (!fileDependency->timestamp().isValid())
+            fileDependency->setTimestamp(FileInfo(fileDependency->filePath()).lastModified());
     } else {
         if (m_artifact->children.contains(artifactDependency))
             return;
@@ -354,13 +356,13 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
 
 void InputArtifactScanner::scanWithScannerPlugin(DependencyScanner *scanner,
                                                  FileResourceBase *fileToBeScanned,
-                                                 ScanResultCache::Result *scanResult)
+                                                 RawScanResult *scanResult)
 {
+    scanResult->deps.clear();
     const QStringList &dependencies
             = scanner->collectDependencies(fileToBeScanned, m_fileTagsForScanner.constData());
     for (const QString &s : dependencies)
         scanResult->deps += RawScannedDependency(s);
-    scanResult->valid = true;
 }
 
 InputArtifactScannerContext::DependencyScannerCacheItem::DependencyScannerCacheItem() : valid(false)

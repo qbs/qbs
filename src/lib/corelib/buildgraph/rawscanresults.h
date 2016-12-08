@@ -37,45 +37,60 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_RAWSCANNEDDEPENDENCY_H
-#define QBS_RAWSCANNEDDEPENDENCY_H
+#ifndef QBS_RAWSCANRESULTS_H
+#define QBS_RAWSCANRESULTS_H
 
-#include <tools/fileinfo.h>
+#include "rawscanneddependency.h"
 
-#include <QString>
+#include <language/filetags.h>
+#include <language/forward_decls.h>
+#include <tools/filetime.h>
+
+#include <QtCore/qhash.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qvector.h>
 
 namespace qbs {
 namespace Internal {
+class DependencyScanner;
+class FileResourceBase;
 class PersistentPool;
 
-class RawScannedDependency
+class RawScanResult
 {
 public:
-    RawScannedDependency();
-    RawScannedDependency(const QString &filePath);
+    QVector<RawScannedDependency> deps;
+    FileTags additionalFileTags;
 
-    QString filePath() const;
-    const QString &dirPath() const { return m_dirPath; }
-    const QString &fileName() const { return m_fileName; }
-    bool isClean() const { return m_isClean; }
-    bool isValid() const { return !m_fileName.isEmpty(); }
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+};
+
+class RawScanResults
+{
+public:
+    struct ScanData
+    {
+        QString scannerId;
+        PropertyMapConstPtr moduleProperties;
+        FileTime lastScanTime;
+        RawScanResult rawScanResult;
+
+        void load(PersistentPool &pool);
+        void store(PersistentPool &pool) const;
+    };
+
+    ScanData &findScanData(
+            const FileResourceBase *file,
+            const DependencyScanner *scanner,
+            const PropertyMapConstPtr &moduleProperties);
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 
 private:
-    void setClean();
-
-    QString m_dirPath;
-    QString m_fileName;
-    bool m_isClean;
+    QHash<QString, QVector<ScanData>> m_rawScanData;
 };
-
-bool operator==(const RawScannedDependency &d1, const RawScannedDependency &d2);
-inline bool operator!=(const RawScannedDependency &d1, const RawScannedDependency &d2)
-{
-    return !(d1 == d2);
-}
 
 } // namespace Internal
 } // namespace qbs

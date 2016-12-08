@@ -40,8 +40,10 @@
 #include "qtmocscanner.h"
 
 #include "artifact.h"
+#include "depscanner.h"
 #include "productbuilddata.h"
-#include "scanresultcache.h"
+#include "projectbuilddata.h"
+#include "rawscanresults.h"
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
 #include <tools/scannerpluginmanager.h>
@@ -55,12 +57,32 @@
 namespace qbs {
 namespace Internal {
 
+class QtScanner : public DependencyScanner
+{
+public:
+    QtScanner(const DependencyScanner &actualScanner)
+        : m_id(QLatin1String("qt") + actualScanner.id()) {}
+
+private:
+    QStringList collectSearchPaths(Artifact *) { return QStringList(); }
+    QStringList collectDependencies(FileResourceBase *, const char *) { return QStringList(); }
+    bool recursive() const { return false; }
+    const void *key() const { return nullptr; }
+    QString createId() const { return m_id; }
+    bool areModulePropertiesCompatible(const PropertyMapConstPtr &,
+                                       const PropertyMapConstPtr &) const
+    {
+        return true;
+    }
+
+    const QString m_id;
+};
+
 QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targetScriptValue,
         const Logger &logger)
     : m_product(product)
     , m_targetScriptValue(targetScriptValue)
     , m_logger(logger)
-    , m_scanResultCache(new ScanResultCache)
     , m_cppScanner(0)
     , m_hppScanner(0)
 {
@@ -74,7 +96,6 @@ QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targe
 QtMocScanner::~QtMocScanner()
 {
     m_targetScriptValue.setProperty(QLatin1String("QtMocScanner"), QScriptValue());
-    delete m_scanResultCache;
 }
 
 ScannerPlugin *QtMocScanner::scannerPluginForFileTags(const FileTags &ft)
@@ -86,25 +107,29 @@ ScannerPlugin *QtMocScanner::scannerPluginForFileTags(const FileTags &ft)
     return m_hppScanner;
 }
 
-static ScanResultCache::Result runScanner(ScannerPlugin *scanner, const Artifact *artifact,
-        ScanResultCache *scanResultCache)
+static RawScanResult runScanner(ScannerPlugin *scanner, const Artifact *artifact)
 {
     const QString &filepath = artifact->filePath();
-    ScanResultCache::Result scanResult = scanResultCache->value(scanner, filepath);
-    if (!scanResult.valid) {
-        scanResult.valid = true;
+    QtScanner depScanner((PluginDependencyScanner(scanner)));
+    RawScanResults &rawScanResults
+            = artifact->product->topLevelProject()->buildData->rawScanResults;
+    RawScanResults::ScanData &scanData = rawScanResults.findScanData(artifact, &depScanner,
+                                                                     artifact->properties);
+    if (scanData.lastScanTime < artifact->timestamp()) {
         const QByteArray tagsForScanner
                 = artifact->fileTags().toStringList().join(QLatin1Char(',')).toLatin1();
         void *opaq = scanner->open(filepath.utf16(), tagsForScanner.constData(),
                                    ScanForDependenciesFlag | ScanForFileTagsFlag);
         if (!opaq || !scanner->additionalFileTags)
-            return scanResult;
+            return scanData.rawScanResult;
 
+        scanData.rawScanResult.additionalFileTags.clear();
+        scanData.rawScanResult.deps.clear();
         int length = 0;
         const char **szFileTagsFromScanner = scanner->additionalFileTags(opaq, &length);
         if (szFileTagsFromScanner) {
             for (int i = length; --i >= 0;)
-                scanResult.additionalFileTags += szFileTagsFromScanner[i];
+                scanData.rawScanResult.additionalFileTags += szFileTagsFromScanner[i];
         }
 
         QString baseDirOfInFilePath = artifact->dirPath();
@@ -122,13 +147,13 @@ static ScanResultCache::Result runScanner(ScannerPlugin *scanner, const Artifact
                 if (FileInfo::exists(localFilePath))
                     includedFilePath = localFilePath;
             }
-            scanResult.deps += RawScannedDependency(includedFilePath);
+            scanData.rawScanResult.deps += RawScannedDependency(includedFilePath);
         }
 
         scanner->close(opaq);
-        scanResultCache->insert(scanner, filepath, scanResult);
+        scanData.lastScanTime = FileTime::currentTime();
     }
-    return scanResult;
+    return scanData.rawScanResult;
 }
 
 void QtMocScanner::findIncludedMocCppFiles()
@@ -143,9 +168,8 @@ void QtMocScanner::findIncludedMocCppFiles()
                                                                 << QStringLiteral("cpp")
                                                                 << QStringLiteral("objcpp"));
     foreach (Artifact *artifact, m_product->lookupArtifactsByFileTags(mocCppTags)) {
-        const ScanResultCache::Result scanResult
-                = runScanner(scannerPluginForFileTags(artifact->fileTags()),
-                             artifact, m_scanResultCache);
+        const RawScanResult scanResult
+                = runScanner(scannerPluginForFileTags(artifact->fileTags()), artifact);
         foreach (const RawScannedDependency &dependency, scanResult.deps) {
             QString includedFileName = dependency.fileName();
             if (includedFileName.startsWith(QLatin1String("moc_"))
@@ -205,7 +229,7 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
 
     ScannerPlugin * const scanner = scannerPluginForFileTags(artifact->fileTags());
 
-    const ScanResultCache::Result scanResult = runScanner(scanner, artifact, m_scanResultCache);
+    const RawScanResult scanResult = runScanner(scanner, artifact);
     if (!scanResult.additionalFileTags.isEmpty()) {
         if (isHeaderFile) {
             if (scanResult.additionalFileTags.contains("moc_hpp"))

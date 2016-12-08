@@ -58,7 +58,6 @@ namespace qbs {
 namespace Internal {
 
 class Artifact;
-class ScanResultCache;
 
 class QtMocScanner
 {
@@ -76,7 +75,6 @@ private:
     const ResolvedProductPtr &m_product;
     QScriptValue m_targetScriptValue;
     const Logger &m_logger;
-    ScanResultCache *m_scanResultCache;
     QHash<QString, QString> m_includedMocCppFiles;
     ScannerPlugin *m_cppScanner;
     ScannerPlugin *m_objcppScanner;

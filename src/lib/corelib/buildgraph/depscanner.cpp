@@ -58,6 +58,13 @@
 namespace qbs {
 namespace Internal {
 
+QString DependencyScanner::id() const
+{
+    if (m_id.isEmpty())
+        m_id = createId();
+    return m_id;
+}
+
 static QStringList collectCppIncludePaths(const QVariantMap &modules)
 {
     QStringList result;
@@ -128,6 +135,20 @@ const void *PluginDependencyScanner::key() const
     return m_plugin;
 }
 
+QString PluginDependencyScanner::createId() const
+{
+    return QString::fromLatin1(m_plugin->name);
+}
+
+bool PluginDependencyScanner::areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
+                                                            const PropertyMapConstPtr &m2) const
+{
+    // This changes when our C++ scanner starts taking defines into account.
+    Q_UNUSED(m1);
+    Q_UNUSED(m2);
+    return true;
+}
+
 UserDependencyScanner::UserDependencyScanner(const ResolvedScannerConstPtr &scanner,
         const Logger &logger)
     : m_scanner(scanner),
@@ -170,6 +191,20 @@ bool UserDependencyScanner::recursive() const
 const void *UserDependencyScanner::key() const
 {
     return m_scanner.data();
+}
+
+QString UserDependencyScanner::createId() const
+{
+    return m_scanner->scanScript->sourceCode;
+}
+
+bool UserDependencyScanner::areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
+                                                          const PropertyMapConstPtr &m2) const
+{
+    // TODO: This should probably be made more fine-grained. Perhaps the Scanner item
+    //       could declare the relevant properties, or we could figure them out automatically
+    //       somehow.
+    return m1 == m2 || m1->value() == m2->value();
 }
 
 QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunctionPtr &script)

@@ -63,10 +63,19 @@ class DependencyScanner
 public:
     virtual ~DependencyScanner() {}
 
+    QString id() const;
+
     virtual QStringList collectSearchPaths(Artifact *artifact) = 0;
     virtual QStringList collectDependencies(FileResourceBase *file, const char *fileTags) = 0;
     virtual bool recursive() const = 0;
     virtual const void *key() const = 0;
+    virtual bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
+                                               const PropertyMapConstPtr &m2) const = 0;
+
+private:
+    virtual QString createId() const = 0;
+
+    mutable QString m_id;
 };
 
 class PluginDependencyScanner : public DependencyScanner
@@ -79,6 +88,9 @@ private:
     QStringList collectDependencies(FileResourceBase *file, const char *fileTags);
     bool recursive() const;
     const void *key() const;
+    QString createId() const;
+    bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
+                                       const PropertyMapConstPtr &m2) const;
 
     ScannerPlugin* m_plugin;
 };
@@ -94,6 +106,9 @@ private:
     QStringList collectDependencies(FileResourceBase *file, const char *fileTags);
     bool recursive() const;
     const void *key() const;
+    QString createId() const;
+    bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
+                                       const PropertyMapConstPtr &m2) const;
 
     QStringList evaluate(Artifact *artifact, const ScriptFunctionPtr &script);
 
