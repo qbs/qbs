@@ -40,6 +40,8 @@
 #ifndef QBS_SCANRESULTCACHE_H
 #define QBS_SCANRESULTCACHE_H
 
+#include "rawscanneddependency.h"
+
 #include <language/filetags.h>
 
 #include <QtCore/qhash.h>
@@ -52,23 +54,6 @@ namespace Internal {
 class ScanResultCache
 {
 public:
-    class Dependency
-    {
-    public:
-        Dependency() : m_isClean(true) {}
-        Dependency(const QString &filePath);
-
-        QString filePath() const { return m_dirPath.isEmpty() ? m_fileName : m_dirPath + QLatin1Char('/') + m_fileName; }
-        const QString &dirPath() const { return m_dirPath; }
-        const QString &fileName() const { return m_fileName; }
-        bool isClean() const { return m_isClean; }
-
-    private:
-        QString m_dirPath;
-        QString m_fileName;
-        bool m_isClean;
-    };
-
     class Result
     {
     public:
@@ -76,7 +61,7 @@ public:
             : valid(false)
         {}
 
-        QVector<Dependency> deps;
+        QVector<RawScannedDependency> deps;
         FileTags additionalFileTags;
         bool valid;
     };

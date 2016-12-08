@@ -59,6 +59,7 @@ HEADERS += \
     $$PWD/productinstaller.h \
     $$PWD/projectbuilddata.h \
     $$PWD/qtmocscanner.h \
+    $$PWD/rawscanneddependency.h \
     $$PWD/rescuableartifactdata.h \
     $$PWD/rulegraph.h \
     $$PWD/rulenode.h \

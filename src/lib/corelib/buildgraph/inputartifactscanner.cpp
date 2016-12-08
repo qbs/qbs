@@ -69,7 +69,7 @@ InputArtifactScannerContext::~InputArtifactScannerContext()
 {
 }
 
-static void resolveDepencency(const ScanResultCache::Dependency &dependency,
+static void resolveDepencency(const RawScannedDependency &dependency,
                               const ResolvedProduct *product, ResolvedDependency *result,
                               const QString &baseDir = QString())
 {
@@ -254,7 +254,7 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
         const ScanResultCache::Result &scanResult, QList<FileResourceBase *> *artifactsToScan,
         InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache)
 {
-    foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
+    foreach (const RawScannedDependency &dependency, scanResult.deps) {
         const QString &dependencyFilePath = dependency.filePath();
         InputArtifactScannerContext::ResolvedDependencyCacheItem &cachedResolvedDependencyItem
                 = cache.resolvedDependenciesCache[dependency.dirPath()][dependency.fileName()];
@@ -363,7 +363,7 @@ void InputArtifactScanner::scanWithScannerPlugin(DependencyScanner *scanner,
     const QStringList &dependencies
             = scanner->collectDependencies(fileToBeScanned, m_fileTagsForScanner.constData());
     for (const QString &s : dependencies)
-        scanResult->deps += ScanResultCache::Dependency(s);
+        scanResult->deps += RawScannedDependency(s);
     scanResult->valid = true;
 }
 

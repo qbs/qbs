@@ -37,21 +37,43 @@
 **
 ****************************************************************************/
 
-#include "scanresultcache.h"
+#ifndef QBS_RAWSCANNEDDEPENDENCY_H
+#define QBS_RAWSCANNEDDEPENDENCY_H
+
 #include <tools/fileinfo.h>
+
+#include <QString>
 
 namespace qbs {
 namespace Internal {
 
-ScanResultCache::Result ScanResultCache::value(const void *scanner, const QString &fileName) const
+class RawScannedDependency
 {
-    return m_data[scanner][fileName];
-}
+public:
+    RawScannedDependency() : m_isClean(true) {}
 
-void ScanResultCache::insert(const void *scanner, const QString &fileName, const ScanResultCache::Result &value)
-{
-    m_data[scanner].insert(fileName, value);
-}
+    RawScannedDependency(const QString &filePath)
+    {
+        FileInfo::splitIntoDirectoryAndFileName(filePath, &m_dirPath, &m_fileName);
+
+        m_isClean = !m_dirPath.contains(QLatin1Char('.'))
+                && !m_dirPath.contains(QLatin1String("//"));
+    }
+
+    QString filePath() const {
+        return m_dirPath.isEmpty() ? m_fileName : m_dirPath + QLatin1Char('/') + m_fileName;
+    }
+    const QString &dirPath() const { return m_dirPath; }
+    const QString &fileName() const { return m_fileName; }
+    bool isClean() const { return m_isClean; }
+
+private:
+    QString m_dirPath;
+    QString m_fileName;
+    bool m_isClean;
+};
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // Include guard

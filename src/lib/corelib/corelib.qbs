@@ -137,6 +137,7 @@ QbsLibrary {
             "projectbuilddata.h",
             "qtmocscanner.cpp",
             "qtmocscanner.h",
+            "rawscanneddependency.h",
             "rescuableartifactdata.cpp",
             "rescuableartifactdata.h",
             "rulegraph.cpp",
@@ -152,7 +153,7 @@ QbsLibrary {
             "timestampsupdater.cpp",
             "timestampsupdater.h",
             "transformer.cpp",
-            "transformer.h"
+            "transformer.h",
         ]
     }
     Group {
