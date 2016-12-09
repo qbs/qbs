@@ -43,6 +43,7 @@
 #include "forward_decls.h"
 
 #include <language/filetags.h>
+#include <language/forward_decls.h>
 #include <language/property.h>
 #include <tools/filetime.h>
 
@@ -85,7 +86,7 @@ public:
 
     // Only needed for API purposes
     FileTags fileTags;
-    QVariantMap properties;
+    PropertyMapPtr properties;
 
 };
 typedef QHash<QString, RescuableArtifactData> AllRescuableArtifactData;

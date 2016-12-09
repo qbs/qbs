@@ -41,6 +41,8 @@
 
 #include "command.h"
 
+#include <language/propertymapinternal.h>
+
 #include <tools/persistence.h>
 
 namespace qbs {
@@ -71,7 +73,7 @@ void RescuableArtifactData::load(PersistentPool &pool)
     propertiesRequestedFromArtifactInCommands = restorePropertyHash(pool);
     commands = loadCommandList(pool);
     fileTags.load(pool);
-    properties = pool.loadVariantMap();
+    properties = pool.idLoadS<PropertyMapInternal>();
 }
 
 void RescuableArtifactData::store(PersistentPool &pool) const
