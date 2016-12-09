@@ -163,7 +163,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
             copyCmd.tag = tag;
             copyCmd.silent = true;
             copyCmd.sourceCode = function() {
-                File.copy(input.filePath, outputs[tag + "_pch_copy"]);
+                File.copy(input.filePath, outputs[tag + "_pch_copy"][0].filePath);
             };
             commands.push(copyCmd);
         } else {
