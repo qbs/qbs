@@ -3849,8 +3849,8 @@ static bool haveWiX(const Profile &profile)
     }
 
     QStringList regKeys;
-    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML")
-            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML");
+    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\")
+            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\");
 
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
@@ -3887,20 +3887,22 @@ void TestBlackbox::wix()
         return;
     }
 
-    const QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
+    QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
+    if (arch.isEmpty())
+        arch = QByteArrayLiteral("x86");
 
     QDir::setCurrent(testDataDir + "/wix");
     QbsRunParameters params;
     if (!HostOsInfo::isWindowsHost())
         params.arguments << "qbs.targetOS:windows";
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(m_qbsStdout.contains("compiling QbsSetup.wxs"));
-    QVERIFY(m_qbsStdout.contains("linking qbs-" + arch + ".msi"));
-    QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs-" + arch + ".msi"));
+    QVERIFY2(m_qbsStdout.contains("compiling QbsSetup.wxs"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("linking qbs.msi"), m_qbsStdout);
+    QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs.msi"));
 
     if (HostOsInfo::isWindowsHost()) {
-        QVERIFY(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"));
-        QVERIFY(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"));
+        QVERIFY2(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"), m_qbsStdout);
+        QVERIFY2(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"), m_qbsStdout);
         QVERIFY(regularFileExists(relativeProductBuildDir("QbsBootstrapper")
                                   + "/qbs-setup-" + arch + ".exe"));
     }

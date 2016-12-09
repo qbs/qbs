@@ -208,14 +208,16 @@ Module {
             }
 
             var arch = product.moduleProperty("qbs", "architecture");
-            if (!["x86", "x86_64", "ia64", "arm"].contains(arch)) {
-                // http://wixtoolset.org/documentation/manual/v3/xsd/wix/package.html
-                throw("WiX: unsupported architecture '" + arch + "'");
-            }
 
-            // QBS uses "x86_64", Microsoft uses "x64"
-            if (arch === "x86_64") {
+            // http://wixtoolset.org/documentation/manual/v3/xsd/wix/package.html
+            switch (arch) {
+            case "x86_64":
                 arch = "x64";
+                break;
+            case "armv7":
+            case "armv7a":
+                arch = "arm";
+                break;
             }
 
             // Visual Studio defines these variables along with various solution and project names and paths;
@@ -245,10 +247,10 @@ Module {
                     throw("WiX: Unsupported product type '" + product.type + "'");
                 }
 
-                var builtBinaryFilePath = FileInfo.joinPaths(product.buildDirectory, product.destinationDirectory, product.targetName + productTargetExt);
+                var builtBinaryFilePath = FileInfo.joinPaths(product.destinationDirectory, product.targetName + productTargetExt);
                 args.push("-dOutDir=" + FileInfo.toWindowsSeparators(FileInfo.path(builtBinaryFilePath))); // in VS, relative to the project file by default
 
-                args.push("-dPlatform=" + arch);
+                args.push("-dPlatform=" + (arch || "x86"));
 
                 args.push("-dProjectName=" + project.name);
 
@@ -301,8 +303,11 @@ Module {
 
             args.push("-out");
             args.push(FileInfo.toWindowsSeparators(output.filePath));
-            args.push("-arch");
-            args.push(arch);
+
+            if (arch) {
+                args.push("-arch");
+                args.push(arch);
+            }
 
             var extensions = ModUtils.moduleProperty(input, "extensions");
             for (i in extensions) {
@@ -316,6 +321,11 @@ Module {
             cmd.description = "compiling " + input.fileName;
             cmd.highlight = "compiler";
             cmd.workingDirectory = FileInfo.path(output.filePath);
+            // candle.exe outputs the file name. We filter that out.
+            cmd.inputFileName = input.fileName;
+            cmd.stdoutFilterFunction = function(output) {
+                return output.split(inputFileName + "\r\n").join("");
+            };
             return cmd;
         }
     }
