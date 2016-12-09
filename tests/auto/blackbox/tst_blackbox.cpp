@@ -739,19 +739,58 @@ void TestBlackbox::deploymentTarget()
 
 void TestBlackbox::deploymentTarget_data()
 {
+    static const QString macos = QStringLiteral("macos,darwin,bsd,unix");
+    static const QString ios = QStringLiteral("ios,darwin,bsd,unix");
+    static const QString ios_sim = QStringLiteral("ios-simulator,") + ios;
+    static const QString tvos = QStringLiteral("tvos,darwin,bsd,unix");
+    static const QString tvos_sim = QStringLiteral("tvos-simulator,") + tvos;
+    static const QString watchos = QStringLiteral("watchos,darwin,bsd,unix");
+    static const QString watchos_sim = QStringLiteral("watchos-simulator,") + watchos;
+
     QTest::addColumn<QString>("os");
     QTest::addColumn<QString>("arch");
     QTest::addColumn<QString>("cflags");
     QTest::addColumn<QString>("lflags");
-    QTest::newRow("macos") << "macos,darwin,bsd,unix" << "x86_64"
+
+    QTest::newRow("macos x86") << macos << "x86"
+                         << "-triple i386-apple-macosx10.4"
+                         << "-macosx_version_min 10.4";
+    QTest::newRow("macos x86_64") << macos << "x86_64"
                          << "-triple x86_64-apple-macosx10.4"
                          << "-macosx_version_min 10.4";
-    QTest::newRow("ios") << "ios,darwin,bsd,unix" << "arm64"
-                         << "-triple arm64-apple-ios5.0"
-                         << "-iphoneos_version_min 5.0";
-    QTest::newRow("ios-sim") << "ios-simulator,ios,darwin,bsd,unix" << "x86_64"
-                             << "-triple x86_64-apple-ios5.0"
-                             << "-ios_simulator_version_min 5.0";
+    QTest::newRow("macos x86_64h") << macos << "x86_64h"
+                         << "-triple x86_64h-apple-macosx10.12"
+                         << "-macosx_version_min 10.12";
+
+    QTest::newRow("ios armv7a") << ios << "armv7a"
+                         << "-triple thumbv7-apple-ios6.0"
+                         << "-iphoneos_version_min 6.0";
+    QTest::newRow("ios armv7s") << ios << "armv7s"
+                         << "-triple thumbv7s-apple-ios7.0"
+                         << "-iphoneos_version_min 7.0";
+    QTest::newRow("ios arm64") << ios << "arm64"
+                         << "-triple arm64-apple-ios7.0"
+                         << "-iphoneos_version_min 7.0";
+    QTest::newRow("ios-simulator x86") << ios_sim << "x86"
+                             << "-triple i386-apple-ios6.0"
+                             << "-ios_simulator_version_min 6.0";
+    QTest::newRow("ios-simulator x86_64") << ios_sim << "x86_64"
+                             << "-triple x86_64-apple-ios7.0"
+                             << "-ios_simulator_version_min 7.0";
+
+    QTest::newRow("tvos arm64") << tvos << "arm64"
+                         << "-triple arm64-apple-tvos9.0"
+                         << "-tvos_version_min 9.0";
+    QTest::newRow("tvos-simulator x86_64") << tvos_sim << "x86_64"
+                             << "-triple x86_64-apple-tvos9.0"
+                             << "-tvos_simulator_version_min 9.0";
+
+    QTest::newRow("watchos armv7k") << watchos << "armv7k"
+                         << "-triple thumbv7k-apple-watchos2.0"
+                         << "-watchos_version_min 2.0";
+    QTest::newRow("watchos-simulator x86") << watchos_sim << "x86"
+                             << "-triple i386-apple-watchos2.0"
+                             << "-watchos_simulator_version_min 2.0";
 }
 
 void TestBlackbox::deprecatedProperty()
@@ -3830,6 +3869,17 @@ void TestBlackbox::generatedArtifactAsInputToDynamicRule()
     QVERIFY2(!m_qbsStdout.contains("generating"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::groupLocationWarning()
+{
+    QDir::setCurrent(testDataDir + "/group-location-warning");
+    QCOMPARE(runQbs(QStringList() << "-f" << "group-location-warning.qbs"), 0);
+    QCOMPARE(m_qbsStderr.count("base directory"), 4);
+    QCOMPARE(m_qbsStderr.count("ParentInOtherDir.qbs"), 1);
+    QCOMPARE(m_qbsStderr.count("AGroupInOtherDir.qbs"), 1);
+    QCOMPARE(m_qbsStderr.count("gm.qbs"), 1);
+    QCOMPARE(m_qbsStderr.count("AndAnotherGroupInOtherDir.qbs"), 1);
+}
+
 static bool haveWiX(const Profile &profile)
 {
     if (profile.value("wix.toolchainInstallPath").isValid() &&
@@ -3838,8 +3888,8 @@ static bool haveWiX(const Profile &profile)
     }
 
     QStringList regKeys;
-    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML")
-            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML");
+    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\")
+            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\");
 
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
@@ -3876,20 +3926,22 @@ void TestBlackbox::wix()
         return;
     }
 
-    const QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
+    QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
+    if (arch.isEmpty())
+        arch = QByteArrayLiteral("x86");
 
     QDir::setCurrent(testDataDir + "/wix");
     QbsRunParameters params;
     if (!HostOsInfo::isWindowsHost())
         params.arguments << "qbs.targetOS:windows";
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(m_qbsStdout.contains("compiling QbsSetup.wxs"));
-    QVERIFY(m_qbsStdout.contains("linking qbs-" + arch + ".msi"));
-    QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs-" + arch + ".msi"));
+    QVERIFY2(m_qbsStdout.contains("compiling QbsSetup.wxs"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("linking qbs.msi"), m_qbsStdout);
+    QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs.msi"));
 
     if (HostOsInfo::isWindowsHost()) {
-        QVERIFY(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"));
-        QVERIFY(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"));
+        QVERIFY2(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"), m_qbsStdout);
+        QVERIFY2(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"), m_qbsStdout);
         QVERIFY(regularFileExists(relativeProductBuildDir("QbsBootstrapper")
                                   + "/qbs-setup-" + arch + ".exe"));
     }
@@ -4020,6 +4072,55 @@ void TestBlackbox::infoPlist()
     QVERIFY2(fileContents.contains("<key>LSMinimumSystemVersion</key>"), fileContents.constData());
     QVERIFY2(fileContents.contains("<string>10.7</string>"), fileContents.constData());
     QVERIFY2(fileContents.contains("<key>NSPrincipalClass</key>"), fileContents.constData());
+}
+
+static bool haveInnoSetup(const Profile &profile)
+{
+    if (profile.value("innosetup.toolchainInstallPath").isValid())
+        return true;
+
+    QStringList regKeys;
+    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1")
+            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1");
+
+    QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
+            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+
+    for (const QString &key : regKeys) {
+        QSettings settings(key, QSettings::NativeFormat);
+        QString str = settings.value(QLatin1String("InstallLocation")).toString();
+        if (!str.isEmpty())
+            paths.prepend(str);
+    }
+
+    for (const QString &path : paths) {
+        if (regularFileExists(QDir::fromNativeSeparators(path) +
+                          HostOsInfo::appendExecutableSuffix(QLatin1String("/ISCC"))))
+            return true;
+    }
+
+    return false;
+}
+
+void TestBlackbox::innoSetup()
+{
+    Settings settings((QString()));
+    Profile profile(profileName(), &settings);
+
+    if (!haveInnoSetup(profile)) {
+        QSKIP("Inno Setup is not installed");
+        return;
+    }
+
+    QDir::setCurrent(testDataDir + "/innosetup");
+    QbsRunParameters params;
+    if (!HostOsInfo::isWindowsHost())
+        params.arguments << "qbs.targetOS:windows";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("compiling test.iss"));
+    QVERIFY(m_qbsStdout.contains("compiling Example1.iss"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs.setup.test.exe"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("Example1") + "/Example1.exe"));
 }
 
 void TestBlackbox::assetCatalog()

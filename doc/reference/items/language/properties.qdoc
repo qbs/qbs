@@ -1,0 +1,115 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-language-items.html
+    \previouspage project-item.html
+    \page properties-item.html
+    \nextpage propertyoptions-item.html
+    \ingroup list-of-language-items
+    \ingroup list-of-items
+
+    \title Properties Item
+    \brief Provides conditional setting of properties.
+
+    \note This documents the \c Properties item in the context of products. Usage within
+    a \c SubProject item is described \l{SubProject Item}{here}.
+
+    The \c Properties item is an auxiliary item for setting multiple property values conditionally.
+
+    In the following example, two properties are set if the project is built for Windows:
+    \code
+    Product {
+        Properties {
+            condition: qbs.targetOS.contains("windows")
+            cpp.defines: ["ON_WINDOWS"]
+            cpp.includePaths: ["extraWindowsIncludes"]
+        }
+    }
+    \endcode
+
+    Multiple \c Properties items can be specified to set properties dependent on different
+    conditions. The order of appearance is important. Semantics are similar to if-else-chains.
+    The following example
+    \code
+    Product {
+        Properties {
+            condition: qbs.targetOS.contains("windows")
+            cpp.defines: ["ON_WINDOWS"]
+            cpp.includePaths: ["myWindowsIncludes"]
+        }
+        Properties {
+            condition: qbs.targetOS.contains("linux")
+            cpp.defines: ["ON_LINUX"]
+            cpp.includePaths: ["myLinuxIncludes"]
+        }
+        cpp.defines: ["ON_UNKNOWN_PLATFORM"]
+    }
+    \endcode
+    is equivalent to
+    \code
+    Product {
+        cpp.defines: {
+            if (qbs.targetOS.contains("windows"))
+                return ["ON_WINDOWS"];
+            if (qbs.targetOS.contains("linux"))
+                return ["ON_LINUX"];
+            return ["ON_UNKNOWN_PLATFORM"];
+        }
+        cpp.includePaths: {
+            if (qbs.targetOS.contains("windows"))
+                return ["myWindowsIncludes"];
+            if (qbs.targetOS.contains("linux"))
+                return ["myLinuxIncludes"];
+            return base;
+        }
+    }
+    \endcode
+
+    We suggest to use the \c Properties item for mutually exclusive conditions only. It is
+    especially useful if there are several properties to set, based on the same condition.
+
+    \table
+        \header
+            \li Property
+            \li Type
+            \li Default
+            \li Description
+        \row
+            \li condition
+            \li bool
+            \li none - must be specified
+            \li The condition to be used for the other bindings in this item.
+        \row
+            \li overrideListProperties
+            \li bool
+            \li \c false
+            \li List properties set within this item will override the values coming from
+                modules, rather than getting merged with them, which is the default behavior.
+                Use this in the rare case that a module you depend on inserts a value into
+                a list property that is problematic for some product.
+    \endtable
+*/

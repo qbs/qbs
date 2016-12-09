@@ -946,7 +946,7 @@ function dumpMacros(compilerFilePath, args, nullDevice) {
     var p = new Process();
     try {
         p.setEnv("LC_ALL", "C");
-        p.exec(compilerFilePath, (args || []).concat(["-dM", "-E", "-x", "c", nullDevice]));
+        p.exec(compilerFilePath, (args || []).concat(["-dM", "-E", "-x", "c", nullDevice]), true);
         var map = {};
         p.readStdOut().trim().split("\n").map(function (line) {
             var parts = line.split(" ", 3);
@@ -970,7 +970,7 @@ function dumpDefaultPaths(compilerFilePath, args, nullDevice, pathListSeparator,
             else
                 args.push("--sysroot=" + sysroot);
         }
-        p.exec(compilerFilePath, args.concat(["-v", "-E", "-x", "c++", nullDevice]));
+        p.exec(compilerFilePath, args.concat(["-v", "-E", "-x", "c++", nullDevice]), true);
         var suffix = " (framework directory)";
         var includePaths = [];
         var libraryPaths = [];

@@ -1,0 +1,87 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-convenience-items.html
+    \page installpackage-item.html
+    \previouspage innosetup-item.html
+    \nextpage javaclasscollection-item.html
+    \ingroup list-of-convenience-items
+    \ingroup list-of-items
+
+    \title InstallPackage Item
+    \brief Represents an archive of an installed project.
+
+    An \c InstallPackage item is a product of type \c{archiver.archive}. It is used to produce an
+    archive from a set of installable files via the \l{Module archiver}{archiver Module}.
+    Consider the following example project:
+
+    \code
+    Project {
+        CppApplication {
+            name: "myapp"
+            Depends { name: "mylib" }
+            files: ["main.cpp"]
+            Group {
+                fileTagsFilter: product.type
+                qbs.install: true
+                qbs.installDir: "bin"
+            }
+        }
+        DynamicLibrary {
+            name: "mylib"
+            files: ["mylib.cpp"]
+            Group {
+                name: "public headers"
+                files: ["mylib.h"]
+                qbs.install: true
+                qbs.installDir: "include"
+            }
+            Group {
+                fileTagsFilter: product.type
+                qbs.install: true
+                qbs.installDir: "lib"
+            }
+        }
+
+        InstallPackage {
+            archiver.type: "tar"
+            name: "tar-package"
+            Depends { name: "myapp" }
+            Depends { name: "mylib" }
+        }
+    }
+    \endcode
+
+    Building the product "tar-package" on a Unix system will result in a tar file with these
+    contents:
+    \code
+    include/mylib.h
+    lib/libmylib.so
+    bin/myapp
+    \endcode
+
+*/

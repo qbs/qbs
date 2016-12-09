@@ -1,0 +1,84 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-language-items.html
+    \page artifact-item.html
+    \nextpage depends-item.html
+    \ingroup list-of-language-items
+    \ingroup list-of-items
+
+    \title Artifact Item
+    \brief Describes a file produced by a \c Rule.
+
+    An \c Artifact represents a single file produced by a \l{Rule Item}{Rule}.
+
+    For example, if a rule produces three files, it needs to contain three Artifact items.
+
+    In addition to the properties listed in the section below, you can also set module properties
+    within an \c Artifact item:
+    \code
+    Artifact {
+        filePath: "somefile.cpp"
+        fileTags: ["cpp"]
+        cpp.cxxLanguageVersion: "c++11"
+        // ...
+    }
+    \endcode
+
+    \section1 Artifact Properties
+
+    \note The code on the right-hand side of these properties has access to the set of input
+    artifacts, that is, it can refer to the \c inputs map and, if the rule is not a multiplex rule,
+    the \c input variable.
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li alwaysUpdated
+        \li bool
+        \li true
+        \li Setting this to \c false means the file is not necessarily always written to by any
+            command run by the rule. The timestamps of such artifacts are therefore not checked to
+            find out whether they are up to date. Consequently, if all artifacts of a rule have this
+            property set to \c false, the commands of the rule are always executed.
+    \row
+        \li filePath
+        \li string
+        \li undefined
+        \li The file path of the target artifact.
+    \row
+        \li fileTags
+        \li list
+        \li empty list
+        \li The tags to attach to the target file. These can then be matched by a rule.
+    \endtable
+
+*/

@@ -1,0 +1,103 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-convenience-items.html
+    \page androidapk-item.html
+    \nextpage application-item.html
+    \ingroup list-of-convenience-items
+    \ingroup list-of-items
+
+    \title AndroidApk Item
+    \brief Represents an Android application package.
+
+    An \c AndroidApk item is a \c Product of type \e android.apk. It has a dependency on
+    the \l{Module Android.sdk}{Android.sdk module}. The final build result is an Android
+    application package (APK) file.
+    Here is what the project file could look like for the BasicMediaDecoder
+    example that comes with the Android SDK:
+    \code
+        import qbs
+
+        AndroidApk {
+            name: "Basic Media Decoder"
+            packageName: "com.example.android.basicmediadecoder"
+
+            property string sourcesPrefix: "Application/src/main/"
+
+            resourcesDir: sourcesPrefix + "/res"
+            sourcesDir: sourcesPrefix + "/java"
+            manifestFile: sourcesPrefix + "/AndroidManifest.xml"
+        }
+    \endcode
+
+    \section1 AndroidApk Properties
+    The following properties are available in addition to the ones inherited from \c Product.
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li assetsDir
+        \li path
+        \li \c "assets"
+        \li The base directory for Android assets.
+            \note Android requires that the file name of this directory is always "assets".
+    \row
+        \li automaticSources
+        \li bool
+        \li \c true
+        \li If this is enabled, Java sources as well as Android resources, assets and the manifest
+            file will be automatically included in the product via wildcards. Set this property
+            to \c false if you want to specify these files manually.
+    \row
+        \li manifestFile
+        \li path
+        \li \c "AndroidManifest.xml"
+        \li The file path to the Android manifest file.
+            \note Android requires that the file name is always "AndroidManifest.xml".
+    \row
+        \li packageName
+        \li string
+        \li \c name
+        \li The package name as given in the manifest file.
+    \row
+        \li resourcesDir
+        \li path
+        \li \c "res"
+        \li The base directory for Android resources.
+            \note Android requires that the file name of this directory is always "res".
+    \row
+        \li sourcesDir
+        \li path
+        \li \c "src"
+        \li The base directory for Java sources. This property is only relevant if
+            \c automaticSources is enabled.
+    \endtable
+*/

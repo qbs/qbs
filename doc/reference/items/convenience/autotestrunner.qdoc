@@ -1,0 +1,105 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-convenience-items.html
+    \page autotestrunner-item.html
+    \previouspage applicationextension-item.html
+    \nextpage cppapplication-item.html
+    \ingroup list-of-convenience-items
+    \ingroup list-of-items
+
+    \title AutotestRunner Item
+    \brief A product that runs all autotests in the project.
+
+    An \c AutotestRunner has a dependency to all products with the type "autotest". "Building"
+    the \c AutotestRunner product will then run the respective executables. The \c builtByDefault
+    property of an \c AutotestRunner is set to \c false by default, so running the autotests
+    has to be explicitly requested. The default name of the product is "autotest-runner".
+    To use this feature, do the following:
+    \list A
+        \li
+            Attach the "autotest" type to your autotests:
+            \code
+            CppApplication {
+                name: "tst_mytest"
+                type: ["application", "autotest"]
+                // ...
+            }
+            \endcode
+        \li
+            Instantiate exactly one \c AutotestRunner in your project, typically at the top level:
+            \code
+            Project {
+                // ...
+                AutotestRunner { }
+                // ...
+            }
+            \endcode
+        \li
+            Trigger the autotest execution by "building" the product:
+            \code
+            qbs build -p autotest-runner
+            \endcode
+    \endlist
+
+    \section1 AutotestRunner Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li arguments
+        \li stringList
+        \li empty
+        \li The list of arguments to invoke the autotest with.
+    \row
+        \li environment
+        \li stringList
+        \li set internally
+        \li A list of environment variables that are added to the run environment.
+            They are provided as a list of strings in the form "varName=value".
+            By default, DYLD_LIBRARY_PATH, DYLD_FRAMEWORK_PATH, and DYLD_ROOT_PATH
+            are set on macOS, or an empty list for other platforms.
+    \row
+        \li limitToSubProject
+        \li bool
+        \li \c true
+        \li By default, only those autotests are considered that are in the same sub-project that
+            the \c AutotestRunner was instantiated in. If you want to run all autotests regardless
+            of their location in the project hierarchy, set this property to \c false.
+    \row
+        \li wrapper
+        \li stringList
+        \li empty
+        \li Wrapper binary and its arguments for wrapping autotest calls.
+            This is useful for tools like Valgrind and alike.
+    \endtable
+
+*/

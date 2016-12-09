@@ -49,8 +49,6 @@
 
 using qbs::Internal::Tr;
 
-extern "C" void qt_macos_forceTransformProcessToForegroundApplicationAndActivate();
-
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -67,13 +65,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Effectively delay the foreground process transformation from QApplication construction to
-    // just before UI is shown - this prevents the application icon from popping up in the Dock
-    // when running `qbs help`, and QCoreApplication::arguments() requires the application object
-    // to be constructed, so it is not easily worked around
-#if defined(Q_OS_MACOS) || defined(Q_OS_OSX)
-    qt_macos_forceTransformProcessToForegroundApplicationAndActivate();
-#endif
     MainWindow mw(clParser.settingsDir());
     mw.show();
     return app.exec();

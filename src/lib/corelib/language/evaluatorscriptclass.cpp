@@ -301,6 +301,7 @@ EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, Logger &l
     , m_logger(logger)
     , m_valueCacheEnabled(false)
 {
+    Q_UNUSED(m_logger);
 }
 
 QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue &object,

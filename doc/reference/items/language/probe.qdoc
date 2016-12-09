@@ -1,0 +1,70 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-language-items.html
+    \previouspage module-item.html
+    \page probe-item.html
+    \nextpage product-item.html
+    \ingroup list-of-language-items
+    \ingroup list-of-items
+
+    \title Probe Item
+    \brief Locates files outside the project.
+
+    A \c Probe item can appear inside a \l{Product Item} and is run prior to building products in
+    order to locate dependent headers, libraries, and other files outside the project directory
+    whose locations are not known ahead of time. \c Probes are similar to configure scripts.
+    \note Because Probes often invoke external processes, which is relatively expensive compared
+          to evaluating normal properties, their results are cached. To force re-evaluation
+          of a Probe, you can supply the \c{--force-probe-execution} command-line option.
+
+    \section1 Probe Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li condition
+        \li bool
+        \li true
+        \li Determines whether the probe will actually be run.
+    \row
+        \li found
+        \li bool
+        \li undefined
+        \li Indicates whether the probe was run successfully. Set by \c configure.
+    \row
+        \li configure
+        \li script
+        \li undefined
+        \li Script that is executed when the probe is run.
+    \endtable
+
+*/

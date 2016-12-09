@@ -1,0 +1,158 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage list-of-language-items.html
+    \previouspage filetagger-item.html
+    \page group-item.html
+    \nextpage module-item.html
+    \ingroup list-of-language-items
+    \ingroup list-of-items
+
+    \title Group Item
+    \brief Groups files in a product.
+
+    This item is attached to a product and used to group files that have something in common.
+    For example:
+
+     \code
+     Application {
+         Group {
+             name: "common files"
+             files: ["myclass.h", "myclass_common_impl.cpp"]
+         }
+         Group {
+             name: "Windows files"
+             condition: targetOS.contains("windows")
+             files: "myclass_win_impl.cpp"
+         }
+         Group {
+             name: "Unix files"
+             condition: targetOS.contains("unix")
+             files: "unixhelper.cpp"
+             Group {
+                 name: "Linux files"
+                 condition: targetOS.contains("linux")
+                 files: "myclass_linux_impl.cpp"
+             }
+             Group {
+                 name: "FreeBSD files"
+                 condition: targetOS.contains("freebsd")
+                 files: "myclass_freebsd_impl.cpp"
+             }
+         }
+         Group {
+             name: "Files to install"
+             qbs.install: true
+             qbs.installDir: "share"
+             files: "runtime_resource.txt"
+         }
+     }
+     \endcode
+     When specifying files, you can use the wildcards "*", "?" and "[]", which have their usual meaning.
+     By default, matching files are only picked up directly from the parent directory, but you can tell \QBS to
+     consider the whole directory tree. It is also possible to exclude certain files from the list.
+     The pattern ** used in a pathname expansion context will match all files and zero or more
+     directories and subdirectories.
+     For example:
+     \snippet reference/items/language/group.qbs 0
+
+     A group can also be used to attach properties to build artifacts such as executables or
+     libraries. In the following example, an application is installed to "<install root>/bin".
+     \code
+     Application {
+         Group {
+             fileTagsFilter: "application"
+             qbs.install: true
+             qbs.installDir: "bin"
+         }
+     }
+     \endcode
+
+     Groups may also appear in modules, which causes the respective sources to be added to the
+     products depending on said module.
+     Groups can be nested. In this case, child groups inherit the module properties and the file
+     tags of their parent group. The condition of a child group gets logically ANDed with the one
+     of its parent group.
+
+    \section1 Group Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li name
+        \li string
+        \li "Group x", where x is a unique number among all the groups in the product
+        \li The name of the group. Not used internally; mainly useful for IDEs.
+    \row
+        \li files
+        \li list
+        \li empty list
+        \li The files in the group. Mutually exclusive with fileTagsFilter.
+    \row
+        \li prefix
+        \li string
+        \li empty string
+        \li A string to prepend to all files. Slashes are allowed and have directory semantics.
+    \row
+        \li fileTagsFilter
+        \li list
+        \li empty list
+        \li Artifact file tags to match. Any properties set in this group will be applied
+            to the product's artifacts whose file tags intersect with the ones
+            listed here. Mutually exclusive with files.
+    \row
+        \li condition
+        \li bool
+        \li true
+        \li Determines whether the files in the group are actually considered part of the project.
+    \row
+        \li fileTags
+        \li list
+        \li empty list
+        \li Tags to attach to the group's files. These can then be matched by a rule.
+            Note that file taggers are never applied to a file that has this property set.
+    \row
+        \li overrideTags
+        \li bool
+        \li true
+        \li Determines how tags on files that are listed both at the top level of
+            a product (or the parent group, if there is one) and a group are handled.
+            If this property is true, then the file tags set via the group
+            replace the ones set via the product or parent group.
+            If it is false, the "group tags" are added to the "parent tags".
+    \row
+        \li excludeFiles
+        \li list
+        \li empty list
+        \li For use with wildcards; the files in this list are "subtracted" from the files list.
+    \endtable
+*/

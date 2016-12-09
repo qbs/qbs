@@ -43,6 +43,11 @@
 
 namespace qbs {
 
+QBS_EXPORT QString canonicalTargetArchitecture(const QString &architecture,
+                                               const QString &vendor,
+                                               const QString &system,
+                                               const QString &abi);
+
 QBS_EXPORT QString canonicalArchitecture(const QString &architecture);
 
 } // namespace qbs

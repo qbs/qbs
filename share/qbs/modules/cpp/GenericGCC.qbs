@@ -61,7 +61,8 @@ CppModule {
     compilerLibraryPaths: gccProbe.libraryPaths
 
     property string target: [targetArch, targetVendor, targetSystem, targetAbi].join("-")
-    property string targetArch: qbs.architecture === "x86" ? "i386" : qbs.architecture
+    property string targetArch: Utilities.canonicalTargetArchitecture(
+                                    qbs.architecture, targetVendor, targetSystem, targetAbi)
     property string targetVendor: "unknown"
     property string targetSystem: "unknown"
     property string targetAbi: "unknown"

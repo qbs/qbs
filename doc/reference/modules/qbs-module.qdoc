@@ -320,7 +320,8 @@
             \note This property is fundamentally different from \c installDir and \c installPrefix
             in that it must not be visible to the code being built. In fact, the install root is
             often just a temporary location used to package the binaries, which should therefore not
-            assume they will be in that location at run-time.
+            assume they will be in that location at run-time. For the same reason, this property
+            must not be set from within project files.
     \endtable
 */
 

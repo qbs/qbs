@@ -1,0 +1,70 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-convenience-items.html
+    \page dynamiclibrary-item.html
+    \previouspage cppapplication-item.html
+    \nextpage innosetup-item.html
+    \ingroup list-of-convenience-items
+    \ingroup list-of-items
+
+    \title DynamicLibrary Item
+    \brief Represents a product that is a dynamic library.
+
+    A \c DynamicLibrary item is a \c Product that has its type set to "dynamiclibrary". It exists
+    for the convenience of project file authors.
+
+    For Android targets, the following applies:
+    \list
+        \li The product type contains "android.nativelibrary" in addition to "dynamiclibrary".
+        \li There is a dependency on the \l{Module cpp}{cpp} and \l{Module Android.ndk}{Android.ndk}
+            modules.
+    \endlist
+
+    \section1 DynamicLibrary Properties
+    The following properties are available in addition to the ones inherited from \c Product.
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li architectures
+        \li stringList
+        \li see below
+        \li This property is only relevant for Android targets. There, it specifies for which
+            architectures to build, with the default value \c{["armeabi"]}.
+            This information influences the \c profiles property.
+    \row
+        \li bundleExtension
+        \li string
+        \li empty
+        \li The extension to use for the product's bundle. Only relevant on Darwin systems.
+    \endtable
+*/

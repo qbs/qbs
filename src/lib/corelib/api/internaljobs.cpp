@@ -149,6 +149,7 @@ void InternalJob::storeBuildGraph(const TopLevelProjectPtr &project)
 {
     try {
         doSanityChecks(project, logger());
+        TimedActivityLogger storeTimer(m_logger, Tr::tr("Storing build graph"), timed());
         project->store(logger());
     } catch (const ErrorInfo &error) {
         logger().printWarning(error);

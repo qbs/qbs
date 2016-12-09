@@ -159,7 +159,7 @@ static QStringList archList(const QString &applePlatformName)
     } else if (applePlatformName == QStringLiteral("iphoneos")
                || applePlatformName == QStringLiteral("appletvos")) {
         if (applePlatformName != QStringLiteral("appletvos"))
-            archs << QStringLiteral("armv7");
+            archs << QStringLiteral("armv7a");
         archs << QStringLiteral("arm64");
     } else if (applePlatformName == QStringLiteral("watchos")) {
         archs << QStringLiteral("armv7k");

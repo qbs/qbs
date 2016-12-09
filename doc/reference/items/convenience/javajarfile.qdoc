@@ -1,0 +1,54 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-convenience-items.html
+    \page javajarfile-item.html
+    \previouspage javaclasscollection-item.html
+    \nextpage loadablemodule-item.html
+    \ingroup list-of-convenience-items
+    \ingroup list-of-items
+
+    \title JavaJarFile Item
+    \brief Represents a collection of Java class files bundled in a jar file.
+
+    A \c JavaJarCollection item is product of type \c{java.jar}. It is used to produce a jar
+    archive from a set of Java sources.
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li entryPoint
+        \li string
+        \li undefined
+        \li The entry point for an executable jar file.
+    \endtable
+
+*/

@@ -70,7 +70,7 @@ QString processNameByPid(qint64 pid)
     HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, DWORD(pid));
     if (!hProcess)
         return QString();
-    wchar_t buf[MAX_PATH];
+    wchar_t buf[UNICODE_STRING_MAX_CHARS];
     const DWORD length = GetModuleFileNameEx(hProcess, NULL, buf, sizeof(buf) / sizeof(wchar_t));
     CloseHandle(hProcess);
     if (!length)

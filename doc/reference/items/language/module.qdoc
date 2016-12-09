@@ -1,0 +1,201 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-language-items.html
+    \previouspage group-item.html
+    \page module-item.html
+    \nextpage probe-item.html
+    \ingroup list-of-language-items
+    \ingroup list-of-items
+
+    \title Module Item
+    \brief Represents a collection of properties and items that can be loaded into a product.
+
+    A \c Module item is a collection of properties and language items that are used for building a
+    product if the product has a \l{Depends Item}{dependency} on the module.
+    The following (somewhat artificial) module pre-processes text files by removing certain
+    characters from them:
+
+    \code
+    import qbs
+    import qbs.FileInfo
+    import qbs.TextFile
+
+    Module {
+        property stringList unwantedCharacters: []
+        FileTagger {
+            patterns: ["*.raw"]
+            fileTags: ["raw-txt"]
+        }
+        Rule {
+            inputs: ["raw-txt"]
+            Artifact {
+                filePath: FileInfo.relativePath(input.filePath, product.sourceDirectory) +
+                           "/" + input.fileName + ".processed"
+                fileTags: ["processed-txt"]
+            }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.description = "Processing " + input.fileName;
+                cmd.sourceCode = function() {
+                    var inFile = new TextFile(input.filePath, TextFile.ReadOnly);
+                    var content = inFile.readAll();
+                    inFile.close();
+                    var unwantedChars = product.moduleProperty("txt_processor",
+                                                               "unwantedCharacters");
+                    for (var c in unwantedChars)
+                        content = content.replace(unwantedChars[c], "");
+                    var outFile = new TextFile(output.filePath, TextFile.WriteOnly);
+                    outFile.write(content);
+                    outFile.close();
+                };
+                return cmd;
+            }
+        }
+    }
+    \endcode
+
+    And this is how a product would use the module:
+
+    \code
+    Product {
+        type: "processed-txt"
+        Depends { name: "txt_processor" }
+        txt_processor.unwantedCharacters: ["\r"]
+        files: [
+            "file1.raw",
+            "file2.raw"
+        ]
+    }
+    \endcode
+
+    Of course, normally the pre-processed files would not be the target artifacts of the product,
+    but rather serve as inputs to a different rule that will often come from a different module.
+
+    How you make your own modules available to \QBS is explained
+    \l{Custom Modules and Items}{here}.
+
+    \section1 Special Property Values
+
+    For every property defined in a module, \QBS provides the following special built-in values:
+    \section2 \c base
+    This value is useful when making use of inheritance. It stands for the value of the respective
+    property in the item one level up in the inheritance chain. For instance:
+    \code
+    Product { // defined in MyProduct.qbs
+        Depends { name: "mymodule" }
+        mymodule.someProperty: ["value1"]
+    }
+    ------ some other file ------
+    MyProduct {
+        mymodule.someProperty: base.concat(["value2"]) // => ["value1", "value2"]
+    }
+    \endcode
+
+    \section2 \c original
+    This is the value of the property in the module itself (possibly overridden from a profile or
+    the command line). Use it to set a module property conditionally:
+    \code
+    Module { // This is mymodule
+        property string aProperty: "z"
+    }
+    ----------
+    Product {
+        Depends { name: "mymodule" }
+        Depends { name: "myothermodule" }
+        mymodule.aProperty: myothermodule.anotherProperty === "x" ? "y" : original // => "y" if myothermodule.anotherProperty is "x", "z" otherwise
+    \endcode
+
+    \section2 \c outer
+    This value is used in nested items, where it refers to the value of the respective property
+    in the surrounding item. It is often encountered in \l{Group Item}{groups}:
+    \code
+    Product {
+        Depends { name: "mymodule" }
+        mymodule.someProperty: ["value1"]
+        Group {
+            name: "special files"
+            files: ["somefile1", "somefile2"]
+            mymodule.someProperty: outer.concat(["value"]) // => ["value1", "value2"]
+        }
+    }
+    \endcode
+
+
+    \section1 Module Properties
+
+    \table
+        \header
+            \li Property
+            \li Type
+            \li Default
+            \li Description
+        \row
+            \li additionalProductTypes
+            \li string list
+            \li empty list
+            \li The elements of this list will be added to the \c type property of a product
+                that has a dependency on the module.
+        \row
+            \li condition
+            \li bool
+            \li \c true
+            \li Controls whether the module is enabled. If this property is \c false, the
+                surrounding \c Module item will not be considered in the module look-up.
+        \row
+            \li present
+            \li bool
+            \li \c true
+            \li This property is read-only. Its value is \c false if and only if the respective
+                \c Depends item had its \c required property set to \c false and the module was
+                not found.
+        \row
+            \li setupBuildEnvironment
+            \li script
+            \li \c undefined
+            \li Script for setting up the environment in which the project is built.
+            Use the \c putEnv, \c getEnv, and \c unsetEnv functions to alter the environment.
+            The return value of this script is ignored.
+        \row
+            \li setupRunEnvironment
+            \li script
+            \li \c setupBuildEnvironment
+            \li Script for setting up the environment in which the project is run.
+        \row
+            \li validate
+            \li script
+            \li \c undefined
+            \li Script that is run after the module is loaded. It can be used to check property
+            values and throw errors in unexpected cases. The return value is ignored.
+        \row
+            \li version
+            \li string
+            \li \c undefined
+            \li The module's version. It consists of integer values separated by dots. You can check
+                for specific values of this property in a \l{Depends item}{Depends} item.
+    \endtable
+*/

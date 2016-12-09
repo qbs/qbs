@@ -4,7 +4,7 @@ import qbs.FileInfo
 Project {
     WindowsInstallerPackage {
         name: "QbsSetup"
-        targetName: "qbs-" + qbs.architecture
+        targetName: "qbs"
         files: ["QbsSetup.wxs", "ExampleScript.bat"]
         wix.defines: ["scriptName=ExampleScript.bat"]
         wix.extensions: ["WixBalExtension", "WixUIExtension"]
@@ -23,6 +23,7 @@ Project {
         name: "QbsBootstrapper"
         targetName: "qbs-setup-" + qbs.architecture
         files: ["QbsBootstrapper.wxs"]
+        qbs.architecture: original || "x86"
     }
 
     WindowsInstallerPackage {
@@ -30,5 +31,6 @@ Project {
         files: ["QbsSetup.wxs", "Qt.wxs", "de.wxl"]
         wix.defines: ["scriptName=ExampleScript.bat"]
         wix.cultures: []
+        qbs.architecture: original || "x86"
     }
 }

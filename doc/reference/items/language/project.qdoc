@@ -1,0 +1,111 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-language-items.html
+    \previouspage product-item.html
+    \page project-item.html
+    \nextpage properties-item.html
+    \ingroup list-of-language-items
+    \ingroup list-of-items
+
+    \title Project Item
+    \brief Represents a collection of products and properties.
+
+    A \c Project item represents a collection of of products. In a
+    non-trivial project, these products are typically defined in their own files and
+    referenced in the main project file:
+    \code
+    Project {
+        references: [
+            "product1/product1.qbs",
+            "product2/product2.qbs"
+        ]
+    }
+    \endcode
+    Any property \c prop attached to this item is available in sub-items as \c project.prop.
+
+    While the root of the item hierarchy is always a \c Project, this kind of item can also
+    appear further down the hierarchy. Such sub-projects are ususally introduced to group products.
+    See the \l{SubProject Item} for details.
+
+    \note If your project consists of only one product, the \c Project item can be omitted.
+
+    \table
+        \header
+            \li Property
+            \li Type
+            \li Default
+            \li Description
+        \row
+            \li buildDirectory
+            \li path
+            \li n/a
+            \li The build directory of the top-level project. This property is read-only.
+        \row
+            \li name
+            \li string
+            \li basename of the file the project is defined in
+            \li The project name. Only relevant for e.g. displaying a project tree in an IDE.
+        \row
+            \li profile
+            \li string
+            \li n/a
+            \li The top-level profile for building the project. This property is read-only and
+                is set by \QBS when the project is being set up.
+        \row
+            \li condition
+            \li bool
+            \li true
+            \li Whether the project is enabled. If false, no products or sub-projects will be
+                collected.
+        \row
+            \li qbsSearchPaths
+            \li stringList
+            \li empty
+            \li These paths are searched for imports and modules in addition to the ones listed
+                in \c{preferences.qbsSearchPaths}. The value set here is merged with the value
+                inherited from the parent project, if there is one. The result is inherited by
+                all products in the project.
+        \row
+            \li references
+            \li path list
+            \li empty
+            \li A list of files from which to import products. This is equivalent to defining
+                the respective \c Product items directly under this \c Project item.
+        \row
+            \li sourceDirectory
+            \li path
+            \li n/a
+            \li The directory where the file containing the top-level \c Project item is located.
+                This property is read-only.
+        \row
+            \li minimumQbsVersion
+            \li string
+            \li "1.3.0"
+            \li The minimum version of qbs that is needed to build this project.
+    \endtable
+*/
