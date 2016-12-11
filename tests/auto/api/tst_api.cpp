@@ -1230,7 +1230,8 @@ void TestApi::inheritQbsSearchPaths()
              qPrintable(errorInfo.toString()));
 
     QVariantMap overriddenValues;
-    overriddenValues.insert("project.qbsSearchPaths", QStringList() << "subdir");
+    overriddenValues.insert("project.qbsSearchPaths",
+                            QStringList() << m_workingDataDir + "/inherit-qbs-search-paths/subdir");
     errorInfo = doBuildProject(projectFilePath, 0, 0, 0, qbs::BuildOptions(), overriddenValues);
     VERIFY_NO_ERROR(errorInfo);
 }

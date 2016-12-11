@@ -287,6 +287,7 @@ void TestBlackbox::alwaysRun()
     rmDirR(relativeBuildDir());
     QbsRunParameters params("build", QStringList() << "-f" << projectFile);
     if (projectFile.contains("transformer")) {
+        params.expectFailure = true;
         QVERIFY(runQbs(params) != 0);
         QVERIFY2(m_qbsStderr.contains("removed"), m_qbsStderr.constData());
         return;

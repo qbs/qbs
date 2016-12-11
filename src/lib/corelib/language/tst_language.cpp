@@ -1031,6 +1031,7 @@ public:
 void TestLanguage::itemPrototype()
 {
     FileContextPtr fileContext = FileContext::create();
+    fileContext->setFilePath("/dev/null");
     JSSourceValueCreator sourceValueCreator(fileContext);
     ItemPool pool;
     Item *proto = Item::create(&pool);
@@ -1053,6 +1054,7 @@ void TestLanguage::itemPrototype()
 void TestLanguage::itemScope()
 {
     FileContextPtr fileContext = FileContext::create();
+    fileContext->setFilePath("/dev/null");
     JSSourceValueCreator sourceValueCreator(fileContext);
     ItemPool pool;
     Item *scope1 = Item::create(&pool);
