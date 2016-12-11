@@ -214,6 +214,27 @@ static QString dpkgArch(const QString &prefix = QString())
 
 void TestBlackboxJava::javaDependencyTracking()
 {
+    QFETCH(QString, jdkPath);
+    QFETCH(QString, javaVersion);
+    QFETCH(QString, flag);
+
+    QDir::setCurrent(testDataDir + "/java");
+    QbsRunParameters rp;
+    rp.arguments.append(flag);
+    if (!jdkPath.isEmpty())
+        rp.arguments << ("java.jdkPath:" + jdkPath);
+    if (!javaVersion.isEmpty())
+        rp.arguments << ("java.languageVersion:'" + javaVersion + "'");
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(rp), 0);
+}
+
+void TestBlackboxJava::javaDependencyTracking_data()
+{
+    QTest::addColumn<QString>("jdkPath");
+    QTest::addColumn<QString>("javaVersion");
+    QTest::addColumn<QString>("flag");
+
     Settings settings((QString()));
     Profile p(profileName(), &settings);
 
@@ -247,19 +268,6 @@ void TestBlackboxJava::javaDependencyTracking()
         return QString();
     };
 
-    auto runQbsTest = [&](const QString &jdkPath, const QString &javaVersion,
-            const QString &arg) {
-        QDir::setCurrent(testDataDir + "/java");
-        QbsRunParameters rp;
-        rp.arguments.append(arg);
-        if (!jdkPath.isEmpty())
-            rp.arguments << ("java.jdkPath:" + jdkPath);
-        if (!javaVersion.isEmpty())
-            rp.arguments << ("java.languageVersion:'" + javaVersion + "'");
-        rmDirR(relativeBuildDir());
-        QCOMPARE(runQbs(rp), 0);
-    };
-
     static const auto knownJdkVersions = QStringList() << "1.6" << "1.7" << "1.8" << "1.9"
                                                        << QString(); // default JDK;
     QStringList seenJdkVersions;
@@ -277,8 +285,15 @@ void TestBlackboxJava::javaDependencyTracking()
                     << QString(); // also test with no explicitly specified source version
 
                 for (const auto &currentJavaVersion : javaVersions) {
-                    runQbsTest(jdkPath, currentJavaVersion, "--check-outputs");
-                    runQbsTest(jdkPath, currentJavaVersion, "--dry-run");
+                    const QString rowName = (!jdkPath.isEmpty() ? jdkPath : "default JDK")
+                            + QStringLiteral(", ")
+                            + (!currentJavaVersion.isEmpty()
+                               ? ("Java " + currentJavaVersion)
+                               : "default Java version");
+                    QTest::newRow((rowName + ", --check-outputs").toLatin1().constData())
+                            << jdkPath << currentJavaVersion << "--check-outputs";
+                    QTest::newRow((rowName + ", --dry-run").toLatin1().constData())
+                            << jdkPath << currentJavaVersion << "--dry-run";
                 }
             }
         }
