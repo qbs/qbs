@@ -186,6 +186,18 @@ void TestClangDb::checkClangDetectsSourceCodeProblems()
     if (clangVersion() < Version(3, 7))
         QSKIP("This test requires clang-check to be based on at least LLVM 3.7.0.");
 
+    // clang-check.exe does not understand MSVC command-line syntax
+    qbs::Settings settings((QString()));
+    qbs::Profile profile(profileName(), &settings);
+    if (profile.value("qbs.toolchain").toStringList().contains("msvc")) {
+        QFile commandsFile(relativeBuildDir() + "/compile_commands.json");
+        QVERIFY2(commandsFile.open(QIODevice::ReadWrite), qPrintable(commandsFile.errorString()));
+        QByteArray data = commandsFile.readAll();
+        data.replace("/D", "-D");
+        commandsFile.resize(0);
+        commandsFile.write(data);
+    }
+
     arguments = QStringList() << "-analyze" << "-p" << relativeBuildDir() << sourceFilePath;
     QVERIFY(runProcess(executable, arguments, stdErr, stdOut) == 0);
     const QString output = QString::fromLocal8Bit(stdErr);
