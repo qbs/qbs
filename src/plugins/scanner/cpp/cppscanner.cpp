@@ -59,6 +59,8 @@ using namespace CPlusPlus;
 #include <QtCore/QString>
 #include <QtCore/QLatin1Literal>
 
+#include <cstring>
+
 struct ScanResult
 {
     char *fileName;
@@ -198,11 +200,20 @@ static void scanCppFile(void *opaq, CPlusPlus::Lexer &yylex, bool scanForFileTag
     }
 }
 
-static Opaq *openScanner(const unsigned short *filePath, Opaq::FileType fileType, int flags)
+static void *openScanner(const unsigned short *filePath, const char *fileTags, int flags)
 {
     QScopedPointer<Opaq> opaque(new Opaq);
     opaque->fileName = QString::fromUtf16(filePath);
-    opaque->fileType = fileType;
+    const QList<QByteArray> &tagList = QByteArray::fromRawData(fileTags,
+                                                               std::strlen(fileTags)).split(',');
+    if (tagList.contains("hpp"))
+        opaque->fileType = Opaq::FT_HPP;
+    else if (tagList.contains("cpp"))
+        opaque->fileType = Opaq::FT_CPP;
+    else if (tagList.contains("objcpp"))
+        opaque->fileType = Opaq::FT_OBJCPP;
+    else
+        opaque->fileType = Opaq::FT_UNKNOWN;
 
     size_t mapl = 0;
 #ifdef Q_OS_UNIX
@@ -239,12 +250,6 @@ static Opaq *openScanner(const unsigned short *filePath, Opaq::FileType fileType
     CPlusPlus::Lexer lex(opaque->fileContent, opaque->fileContent + mapl);
     scanCppFile(opaque.data(), lex, flags & ScanForFileTagsFlag, flags & ScanForDependenciesFlag);
     return opaque.take();
-}
-
-template <typename Opaq::FileType t>
-static void *openScannerT(const unsigned short *filePath, int flags)
-{
-    return openScanner(filePath, t, flags);
 }
 
 static void closeScanner(void *ptr)
@@ -293,120 +298,18 @@ static const char **additionalFileTags(void *opaq, int *size)
 
 extern "C" {
 
-ScannerPlugin hppScanner =
+ScannerPlugin includeScanner =
 {
     "include_scanner",
-    "hpp",
-    openScannerT<Opaq::FT_HPP>,
+    "hpp,cpp,cpp_pch_src,c,c_pch_src,objcpp,objcpp_pch_src,objc,objc_pch_src",
+    openScanner,
     closeScanner,
     next,
     additionalFileTags,
     ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
 };
 
-ScannerPlugin cppScanner =
-{
-    "include_scanner",
-    "cpp",
-    openScannerT<Opaq::FT_CPP>,
-    closeScanner,
-    next,
-    additionalFileTags,
-    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
-};
-
-ScannerPlugin pchCppScanner =
-{
-    "include_scanner",
-    "cpp_pch_src",
-    openScannerT<Opaq::FT_HPP>,
-    closeScanner,
-    next,
-    additionalFileTags,
-    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
-};
-
-ScannerPlugin cScanner =
-{
-    "include_scanner",
-    "c",
-    openScannerT<Opaq::FT_C>,
-    closeScanner,
-    next,
-    0,
-    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
-};
-
-ScannerPlugin pchCScanner =
-{
-    "include_scanner",
-    "c_pch_src",
-    openScannerT<Opaq::FT_HPP>,
-    closeScanner,
-    next,
-    additionalFileTags,
-    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
-};
-
-ScannerPlugin objcppScanner =
-{
-    "include_scanner",
-    "objcpp",
-    openScannerT<Opaq::FT_OBJCPP>,
-    closeScanner,
-    next,
-    additionalFileTags,
-    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
-};
-
-ScannerPlugin pchObjcppScanner =
-{
-    "include_scanner",
-    "objcpp_pch_src",
-    openScannerT<Opaq::FT_HPP>,
-    closeScanner,
-    next,
-    additionalFileTags,
-    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
-};
-
-ScannerPlugin objcScanner =
-{
-    "include_scanner",
-    "objc",
-    openScannerT<Opaq::FT_OBJC>,
-    closeScanner,
-    next,
-    additionalFileTags,
-    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
-};
-
-ScannerPlugin pchObjcScanner =
-{
-    "include_scanner",
-    "objc_pch_src",
-    openScannerT<Opaq::FT_HPP>,
-    closeScanner,
-    next,
-    additionalFileTags,
-    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
-};
-
-ScannerPlugin rcScanner =
-{
-    "include_scanner",
-    "rc",
-    openScannerT<Opaq::FT_RC>,
-    closeScanner,
-    next,
-    0,
-    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
-};
-
-ScannerPlugin *cppScanners[] = {
-    &hppScanner, &pchCppScanner, &pchCScanner, &pchObjcppScanner, &pchObjcScanner,
-    &cppScanner, &cScanner, &objcppScanner, &objcScanner, &rcScanner, NULL
-};
+ScannerPlugin *cppScanners[] = { &includeScanner, NULL };
 
 #ifndef QBS_STATIC_LIB
 CPPSCANNER_EXPORT ScannerPlugin **getScanners()

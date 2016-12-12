@@ -140,9 +140,12 @@ private:
             const ScanResultCache::Result &scanResult, QList<FileResourceBase *> *artifactsToScan,
             InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache);
     void handleDependency(ResolvedDependency &dependency);
+    void scanWithScannerPlugin(DependencyScanner *scanner, FileResourceBase *fileToBeScanned,
+                               ScanResultCache::Result *scanResult);
 
     Artifact * const m_artifact;
     InputArtifactScannerContext *const m_context;
+    const char *m_fileTagsForScanner;
     bool m_newDependencyAdded;
     Logger m_logger;
 };

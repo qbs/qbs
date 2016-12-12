@@ -56,10 +56,11 @@ enum OpenScannerFlags
 /**
   * Open a file that's going to be scanned.
   * The file path encoding is UTF-16 on all platforms.
+  * The file tags are in CSV format.
   *
   * Returns a scanner handle.
   */
-typedef void *(*scanOpen_f) (const unsigned short *filePath, int flags);
+typedef void *(*scanOpen_f) (const unsigned short *filePath, const char *fileTags, int flags);
 
 /**
   * Closes the given scanner handle.
@@ -91,7 +92,7 @@ class ScannerPlugin
 {
 public:
     const char  *name;
-    const char  *fileTag;
+    const char  *fileTags; // CSV
     scanOpen_f  open;
     scanClose_f close;
     scanNext_f  next;

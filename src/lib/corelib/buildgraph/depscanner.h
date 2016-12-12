@@ -63,7 +63,7 @@ public:
     virtual ~DependencyScanner() {}
 
     virtual QStringList collectSearchPaths(Artifact *artifact) = 0;
-    virtual QStringList collectDependencies(FileResourceBase *file) = 0;
+    virtual QStringList collectDependencies(FileResourceBase *file, const char *fileTags) = 0;
     virtual bool recursive() const = 0;
     virtual const void *key() const = 0;
 };
@@ -75,7 +75,7 @@ public:
 
 private:
     QStringList collectSearchPaths(Artifact *artifact);
-    QStringList collectDependencies(FileResourceBase *file);
+    QStringList collectDependencies(FileResourceBase *file, const char *fileTags);
     bool recursive() const;
     const void *key() const;
 
@@ -90,7 +90,7 @@ public:
 
 private:
     QStringList collectSearchPaths(Artifact *artifact);
-    QStringList collectDependencies(FileResourceBase *file);
+    QStringList collectDependencies(FileResourceBase *file, const char *fileTags);
     bool recursive() const;
     const void *key() const;
 

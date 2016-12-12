@@ -92,7 +92,9 @@ static ScanResultCache::Result runScanner(ScannerPlugin *scanner, const Artifact
     ScanResultCache::Result scanResult = scanResultCache->value(scanner, filepath);
     if (!scanResult.valid) {
         scanResult.valid = true;
-        void *opaq = scanner->open(filepath.utf16(),
+        const char * const tagsForScanner
+                = artifact->fileTags().toStringList().join(QLatin1Char(',')).toLatin1().constData();
+        void *opaq = scanner->open(filepath.utf16(), tagsForScanner,
                                    ScanForDependenciesFlag | ScanForFileTagsFlag);
         if (!opaq || !scanner->additionalFileTags)
             return scanResult;

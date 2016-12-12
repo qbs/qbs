@@ -115,16 +115,6 @@ static void resolveDepencency(const ScanResultCache::Dependency &dependency,
         result->filePath = absFilePath;
 }
 
-static void scanWithScannerPlugin(DependencyScanner *scanner,
-                                  FileResourceBase *fileToBeScanned,
-                                  ScanResultCache::Result *scanResult)
-{
-    QStringList dependencies = scanner->collectDependencies(fileToBeScanned);
-    foreach (const QString &s, dependencies)
-        scanResult->deps += ScanResultCache::Dependency(s);
-    scanResult->valid = true;
-}
-
 InputArtifactScanner::InputArtifactScanner(Artifact *artifact, InputArtifactScannerContext *ctx,
                                            const Logger &logger)
     : m_artifact(artifact), m_context(ctx), m_newDependencyAdded(false), m_logger(logger)
@@ -176,6 +166,10 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
     QList<FileResourceBase *> filesToScan;
     filesToScan.append(inputArtifact);
     const QSet<DependencyScanner *> scanners = scannersForArtifact(inputArtifact);
+    if (scanners.isEmpty())
+        return;
+    m_fileTagsForScanner = inputArtifact->fileTags().toStringList().join(QLatin1Char(','))
+            .toLatin1().constData();
     while (!filesToScan.isEmpty()) {
         FileResourceBase *fileToBeScanned = filesToScan.takeFirst();
         const QString &filePathToBeScanned = fileToBeScanned->filePath();
@@ -362,6 +356,17 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         m_artifact->childrenAddedByScanner += artifactDependency;
         m_newDependencyAdded = true;
     }
+}
+
+void InputArtifactScanner::scanWithScannerPlugin(DependencyScanner *scanner,
+                                                 FileResourceBase *fileToBeScanned,
+                                                 ScanResultCache::Result *scanResult)
+{
+    const QStringList &dependencies
+            = scanner->collectDependencies(fileToBeScanned, m_fileTagsForScanner);
+    for (const QString &s : dependencies)
+        scanResult->deps += ScanResultCache::Dependency(s);
+    scanResult->valid = true;
 }
 
 InputArtifactScannerContext::DependencyScannerCacheItem::DependencyScannerCacheItem() : valid(false)

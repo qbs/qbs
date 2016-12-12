@@ -75,8 +75,12 @@ QList<ScannerPlugin *> ScannerPluginManager::scannersForFileTag(const FileTag &f
 
 void ScannerPluginManager::loadPlugins(ScannerPlugin **plugins)
 {
-    for (int i = 0; plugins[i] != 0; ++i)
-        m_scannerPlugins[FileTag(plugins[i]->fileTag)] += plugins[i];
+    for (int i = 0; plugins[i] != 0; ++i) {
+        const FileTags &fileTags = FileTags::fromStringList(
+                    QString::fromLatin1(plugins[i]->fileTags).split(QLatin1Char(',')));
+        for (const FileTag &tag : fileTags)
+        m_scannerPlugins[tag] += plugins[i];
+    }
 }
 
 void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Logger &logger)
