@@ -5,6 +5,7 @@ Project {
     qbsSearchPaths: ["qbs-resources"]
     property bool withExamples: false
     property stringList autotestArguments: []
+    property stringList autotestWrapper: []
 
     references: [
         "dist/dist.qbs",
@@ -34,6 +35,7 @@ Project {
         Depends { name: "qbs_cpp_scanner" }
         Depends { name: "qbs_qt_scanner" }
         arguments: project.autotestArguments
+        wrapper: project.autotestWrapper
         environment: {
             var env = base;
             if (qbs.hostOS.contains("windows") && qbs.targetOS.contains("windows")) {
