@@ -96,6 +96,7 @@ private slots:
     void installableFiles();
     void isRunnable();
     void listBuildSystemFiles();
+    void missingSourceFile();
     void mocCppIncluded();
     void multiArch();
     void newOutputArtifactInDependency();

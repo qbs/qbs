@@ -489,7 +489,7 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
     m_moduleContext = oldModuleContext;
 }
 
-SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductConstPtr &rproduct,
+SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr &rproduct,
         const QString &fileName, const GroupPtr &group, bool wildcard,
         const CodeLocation &filesLocation, QHash<QString, CodeLocation> *fileLocations,
         ErrorInfo *errorInfo)
@@ -499,6 +499,7 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductCon
     if (!wildcard && !FileInfo(absFilePath).exists()) {
         if (errorInfo)
             errorInfo->append(Tr::tr("File '%1' does not exist.").arg(absFilePath), filesLocation);
+        rproduct->missingSourceFiles << absFilePath;
         return SourceArtifactPtr();
     }
     if (group->enabled && fileLocations) {

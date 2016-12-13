@@ -468,6 +468,22 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
             m_logger.qbsDebug() << "A product was changed, must re-resolve project";
             hasChanged = true;
         } else if (!changedProducts.contains(product)) {
+            bool foundMissingSourceFile = false;
+            for (auto file = product->missingSourceFiles.cbegin();
+                 file != product->missingSourceFiles.cend(); ++file) {
+                if (FileInfo(*file).exists()) {
+                    m_logger.qbsDebug() << "Formerly missing file " << *file << " in product "
+                                        << product->name << " exists now, must re-resolve project";
+                    foundMissingSourceFile = true;
+                    break;
+                }
+            }
+            if (foundMissingSourceFile) {
+                hasChanged = true;
+                changedProducts += product;
+                continue;
+            }
+
             AccumulatingTimer wildcardTimer(m_parameters.logElapsedTime()
                                             ? &m_wildcardExpansionEffort : nullptr);
             foreach (const GroupPtr &group, product->groups) {

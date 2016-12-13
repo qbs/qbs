@@ -501,6 +501,7 @@ void ResolvedProduct::load(PersistentPool &pool)
     targetName = pool.idLoadString();
     sourceDirectory = pool.idLoadString();
     destinationDirectory = pool.idLoadString();
+    missingSourceFiles = pool.idLoadStringList();
     location.load(pool);
     productProperties = pool.loadVariantMap();
     moduleProperties = pool.idLoadS<PropertyMapInternal>();
@@ -524,6 +525,7 @@ void ResolvedProduct::store(PersistentPool &pool) const
     pool.storeString(targetName);
     pool.storeString(sourceDirectory);
     pool.storeString(destinationDirectory);
+    pool.storeStringList(missingSourceFiles);
     location.store(pool);
     pool.store(productProperties);
     pool.store(moduleProperties);

@@ -1332,6 +1332,35 @@ void TestApi::listBuildSystemFiles()
                                       + "/subproject2/subproject3/subproject3.qbs"));
 }
 
+void TestApi::missingSourceFile()
+{
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("missing-source-file/missing-source-file.qbs");
+    setupParams.setProductErrorMode(qbs::ErrorHandlingMode::Relaxed);
+
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    qbs::ProjectData project = job->project().projectData();
+    QCOMPARE(project.allProducts().count(), 1);
+    qbs::ProductData product = project.allProducts().first();
+    QCOMPARE(product.groups().count(), 1);
+    qbs::GroupData group = product.groups().first();
+    QCOMPARE(group.allSourceArtifacts().count(), 2);
+
+    QFile::rename("file2.txt.missing", "file2.txt");
+    job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    project = job->project().projectData();
+    QCOMPARE(project.allProducts().count(), 1);
+    product = project.allProducts().first();
+    QCOMPARE(product.groups().count(), 1);
+    group = product.groups().first();
+    QCOMPARE(group.allSourceArtifacts().count(), 3);
+}
+
 void TestApi::mocCppIncluded()
 {
     // Initial build.

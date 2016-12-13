@@ -394,6 +394,7 @@ public:
     QList<GroupPtr> groups;
     QList<ProbeConstPtr> probes;
     QList<ArtifactPropertiesPtr> artifactProperties;
+    QStringList missingSourceFiles;
     QScopedPointer<ProductBuildData> buildData;
 
     mutable QProcessEnvironment buildEnvironment; // must not be saved
