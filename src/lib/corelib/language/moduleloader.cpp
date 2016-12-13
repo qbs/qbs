@@ -1228,6 +1228,9 @@ void ModuleLoader::propagateModulesFromParent(Item *groupItem,
 void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module &module,
         const Item::Modules &dependentModules)
 {
+    if (!module.item->isPresentModule())
+        return;
+
     // There are three cases:
     //     a) The defining item is the "main" module instance, i.e. the one instantiated in the
     //        product directly (or a parent group).
@@ -1241,9 +1244,8 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
     Item *modulePrototype = module.item->prototype();
     while (modulePrototype->prototype())
         modulePrototype = modulePrototype->prototype();
-
-    // TODO: Why are there module instances whose top-level prototype is of type ModuleInstance?
-    // QBS_CHECK(modulePrototype->type() == ItemType::Module);
+    QBS_CHECK(modulePrototype->type() == ItemType::Module
+              || modulePrototype->type() == ItemType::Export);
 
     const Item::PropertyDeclarationMap &propDecls = modulePrototype->propertyDeclarations();
     for (const auto &decl : propDecls) {
