@@ -47,14 +47,14 @@ Module {
     }
 
     readonly property string latestSdkName: {
-        if (_availableSdks) {
-            return _availableSdks[_availableSdks.length - 1]["CanonicalName"];
+        if (_latestSdk) {
+            return _latestSdk["CanonicalName"];
         }
     }
 
     readonly property string latestSdkVersion: {
-        if (_availableSdks) {
-            return _availableSdks[_availableSdks.length - 1]["Version"];
+        if (_latestSdk) {
+            return _latestSdk["Version"];
         }
     }
 
@@ -132,6 +132,8 @@ Module {
 
     readonly property var _availableSdks: xcodeProbe.availableSdks
 
+    readonly property var _latestSdk: _availableSdks[_availableSdks.length - 1]
+
     readonly property var _sdkSettings: {
         if (_availableSdks) {
             for (var i in _availableSdks) {
@@ -143,7 +145,7 @@ Module {
 
             // Latest SDK available for the platform
             if (DarwinTools.applePlatformName(qbs.targetOS, platformType) === sdk)
-                return _availableSdks[_availableSdks.length - 1];
+                return _latestSdk;
         }
     }
 

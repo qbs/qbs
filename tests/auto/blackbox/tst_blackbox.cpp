@@ -718,6 +718,7 @@ void TestBlackbox::deploymentTarget()
     if (!HostOsInfo::isMacosHost())
         QSKIP("only applies on macOS");
 
+    QFETCH(QString, sdk);
     QFETCH(QString, os);
     QFETCH(QString, arch);
     QFETCH(QString, cflags);
@@ -733,7 +734,19 @@ void TestBlackbox::deploymentTarget()
             << "qbs.architecture:" + arch;
 
     rmDirR(relativeBuildDir());
-    QCOMPARE(runQbs(params), 0);
+    int status = runQbs(params);
+
+    const QStringList skippableMessages = QStringList()
+            << "There is no matching SDK available for " + sdk + "."
+            << "x86_64h will be mis-detected as x86_64 with Apple Clang < 6.0";
+    if (status != 0) {
+        for (const auto &message : skippableMessages) {
+            if (m_qbsStderr.contains(message.toUtf8()))
+                QSKIP(message.toUtf8());
+        }
+    }
+
+    QCOMPARE(status, 0);
     QVERIFY2(m_qbsStdout.contains(cflags.toLatin1()), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains(lflags.toLatin1()), m_qbsStdout.constData());
 }
@@ -748,48 +761,49 @@ void TestBlackbox::deploymentTarget_data()
     static const QString watchos = QStringLiteral("watchos,darwin,bsd,unix");
     static const QString watchos_sim = QStringLiteral("watchos-simulator,") + watchos;
 
+    QTest::addColumn<QString>("sdk");
     QTest::addColumn<QString>("os");
     QTest::addColumn<QString>("arch");
     QTest::addColumn<QString>("cflags");
     QTest::addColumn<QString>("lflags");
 
-    QTest::newRow("macos x86") << macos << "x86"
+    QTest::newRow("macos x86") << "macosx" << macos << "x86"
                          << "-triple i386-apple-macosx10.4"
                          << "-macosx_version_min 10.4";
-    QTest::newRow("macos x86_64") << macos << "x86_64"
+    QTest::newRow("macos x86_64") << "macosx" << macos << "x86_64"
                          << "-triple x86_64-apple-macosx10.4"
                          << "-macosx_version_min 10.4";
-    QTest::newRow("macos x86_64h") << macos << "x86_64h"
+    QTest::newRow("macos x86_64h") << "macosx" << macos << "x86_64h"
                          << "-triple x86_64h-apple-macosx10.12"
                          << "-macosx_version_min 10.12";
 
-    QTest::newRow("ios armv7a") << ios << "armv7a"
+    QTest::newRow("ios armv7a") << "iphoneos" << ios << "armv7a"
                          << "-triple thumbv7-apple-ios6.0"
                          << "-iphoneos_version_min 6.0";
-    QTest::newRow("ios armv7s") << ios << "armv7s"
+    QTest::newRow("ios armv7s") << "iphoneos" <<ios << "armv7s"
                          << "-triple thumbv7s-apple-ios7.0"
                          << "-iphoneos_version_min 7.0";
-    QTest::newRow("ios arm64") << ios << "arm64"
+    QTest::newRow("ios arm64") << "iphoneos" <<ios << "arm64"
                          << "-triple arm64-apple-ios7.0"
                          << "-iphoneos_version_min 7.0";
-    QTest::newRow("ios-simulator x86") << ios_sim << "x86"
+    QTest::newRow("ios-simulator x86") << "iphonesimulator" << ios_sim << "x86"
                              << "-triple i386-apple-ios6.0"
                              << "-ios_simulator_version_min 6.0";
-    QTest::newRow("ios-simulator x86_64") << ios_sim << "x86_64"
+    QTest::newRow("ios-simulator x86_64") << "iphonesimulator" << ios_sim << "x86_64"
                              << "-triple x86_64-apple-ios7.0"
                              << "-ios_simulator_version_min 7.0";
 
-    QTest::newRow("tvos arm64") << tvos << "arm64"
+    QTest::newRow("tvos arm64") << "appletvos" << tvos << "arm64"
                          << "-triple arm64-apple-tvos9.0"
                          << "-tvos_version_min 9.0";
-    QTest::newRow("tvos-simulator x86_64") << tvos_sim << "x86_64"
+    QTest::newRow("tvos-simulator x86_64") << "appletvsimulator" << tvos_sim << "x86_64"
                              << "-triple x86_64-apple-tvos9.0"
                              << "-tvos_simulator_version_min 9.0";
 
-    QTest::newRow("watchos armv7k") << watchos << "armv7k"
+    QTest::newRow("watchos armv7k") << "watchos" << watchos << "armv7k"
                          << "-triple thumbv7k-apple-watchos2.0"
                          << "-watchos_version_min 2.0";
-    QTest::newRow("watchos-simulator x86") << watchos_sim << "x86"
+    QTest::newRow("watchos-simulator x86") << "watchsimulator" << watchos_sim << "x86"
                              << "-triple i386-apple-watchos2.0"
                              << "-watchos_simulator_version_min 2.0";
 }
