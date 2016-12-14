@@ -38,7 +38,7 @@ import "../../../modules/typescript/typescript.js" as TypeScript
 BinaryProbe {
     id: tsc
     names: ["tsc"]
-    pathPrefixes: [packageManagerBinPath]
+    pathPrefixes: packageManagerBinPath ? [packageManagerBinPath] : []
 
     // Inputs
     property path interpreterPath
