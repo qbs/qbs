@@ -60,9 +60,9 @@ void RescuableArtifactData::load(PersistentPool &pool)
     pool.stream() >> c;
     for (int i = 0; i < c; ++i) {
         ChildData cd;
-        cd.productName = pool.idLoadString();
-        cd.productProfile = pool.idLoadString();
-        cd.childFilePath = pool.idLoadString();
+        pool.load(cd.productName);
+        pool.load(cd.productProfile);
+        pool.load(cd.childFilePath);
         pool.stream() >> cd.addedByScanner;
         children << cd;
     }
@@ -73,7 +73,7 @@ void RescuableArtifactData::load(PersistentPool &pool)
     propertiesRequestedFromArtifactInCommands = restorePropertyHash(pool);
     commands = loadCommandList(pool);
     fileTags.load(pool);
-    properties = pool.idLoadS<PropertyMapInternal>();
+    pool.load(properties);
 }
 
 void RescuableArtifactData::store(PersistentPool &pool) const
@@ -82,9 +82,9 @@ void RescuableArtifactData::store(PersistentPool &pool) const
 
     pool.stream() << children.count();
     foreach (const ChildData &cd, children) {
-        pool.storeString(cd.productName);
-        pool.storeString(cd.productProfile);
-        pool.storeString(cd.childFilePath);
+        pool.store(cd.productName);
+        pool.store(cd.productProfile);
+        pool.store(cd.childFilePath);
         pool.stream() << cd.addedByScanner;
     }
 

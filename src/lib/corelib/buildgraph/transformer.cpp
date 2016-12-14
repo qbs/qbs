@@ -258,9 +258,9 @@ void Transformer::createCommands(const ScriptFunctionConstPtr &script,
 
 void Transformer::load(PersistentPool &pool)
 {
-    rule = pool.idLoadS<Rule>();
-    pool.loadContainer(inputs);
-    pool.loadContainer(outputs);
+    pool.load(rule);
+    pool.load(inputs);
+    pool.load(outputs);
     propertiesRequestedInPrepareScript = restorePropertySet(pool);
     propertiesRequestedInCommands = restorePropertySet(pool);
     propertiesRequestedFromArtifactInPrepareScript = restorePropertyHash(pool);
@@ -272,8 +272,8 @@ void Transformer::load(PersistentPool &pool)
 void Transformer::store(PersistentPool &pool) const
 {
     pool.store(rule);
-    pool.storeContainer(inputs);
-    pool.storeContainer(outputs);
+    pool.store(inputs);
+    pool.store(outputs);
     storePropertySet(pool, propertiesRequestedInPrepareScript);
     storePropertySet(pool, propertiesRequestedInCommands);
     storePropertyHash(pool, propertiesRequestedFromArtifactInPrepareScript);

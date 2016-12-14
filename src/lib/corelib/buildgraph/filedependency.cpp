@@ -77,14 +77,14 @@ const QString &FileResourceBase::filePath() const
 
 void FileResourceBase::load(PersistentPool &pool)
 {
-    setFilePath(pool.idLoadString());
+    setFilePath(pool.load<QString>());
     pool.stream()
             >> m_timestamp;
 }
 
 void FileResourceBase::store(PersistentPool &pool) const
 {
-    pool.storeString(m_filePath);
+    pool.store(m_filePath);
     pool.stream()
             << m_timestamp;
 }

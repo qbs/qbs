@@ -95,20 +95,20 @@ void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const
 
 void AbstractCommand::load(PersistentPool &pool)
 {
-    m_description = pool.idLoadString();
-    m_extendedDescription = pool.idLoadString();
-    m_highlight = pool.idLoadString();
+    pool.load(m_description);
+    pool.load(m_extendedDescription);
+    pool.load(m_highlight);
     pool.stream() >> m_ignoreDryRun;
     pool.stream() >> m_silent;
     m_codeLocation.load(pool);
-    m_properties = pool.loadVariantMap();
+    pool.load(m_properties);
 }
 
 void AbstractCommand::store(PersistentPool &pool) const
 {
-    pool.storeString(m_description);
-    pool.storeString(m_extendedDescription);
-    pool.storeString(m_highlight);
+    pool.store(m_description);
+    pool.store(m_extendedDescription);
+    pool.store(m_highlight);
     pool.stream() << m_ignoreDryRun;
     pool.stream() << m_silent;
     m_codeLocation.store(pool);
@@ -290,32 +290,32 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
 void ProcessCommand::load(PersistentPool &pool)
 {
     AbstractCommand::load(pool);
-    m_program = pool.idLoadString();
-    m_arguments = pool.idLoadStringList();
-    const QStringList envList = pool.idLoadStringList();
-    m_workingDir = pool.idLoadString();
-    m_stdoutFilterFunction = pool.idLoadString();
-    m_stderrFilterFunction = pool.idLoadString();
-    m_responseFileUsagePrefix = pool.idLoadString();
+    pool.load(m_program);
+    pool.load(m_arguments);
+    const QStringList envList = pool.load<QStringList>();
+    pool.load(m_workingDir);
+    pool.load(m_stdoutFilterFunction);
+    pool.load(m_stderrFilterFunction);
+    pool.load(m_responseFileUsagePrefix);
     pool.stream() >> m_maxExitCode >> m_responseFileThreshold >> m_responseFileArgumentIndex;
-    m_stdoutFilePath = pool.idLoadString();
-    m_stderrFilePath = pool.idLoadString();
+    pool.load(m_stdoutFilePath);
+    pool.load(m_stderrFilePath);
     getEnvironmentFromList(envList);
 }
 
 void ProcessCommand::store(PersistentPool &pool) const
 {
     AbstractCommand::store(pool);
-    pool.storeString(m_program);
-    pool.storeStringList(m_arguments);
-    pool.storeStringList(m_environment.toStringList());
-    pool.storeString(m_workingDir);
-    pool.storeString(m_stdoutFilterFunction);
-    pool.storeString(m_stderrFilterFunction);
-    pool.storeString(m_responseFileUsagePrefix);
+    pool.store(m_program);
+    pool.store(m_arguments);
+    pool.store(m_environment.toStringList());
+    pool.store(m_workingDir);
+    pool.store(m_stdoutFilterFunction);
+    pool.store(m_stderrFilterFunction);
+    pool.store(m_responseFileUsagePrefix);
     pool.stream() << m_maxExitCode << m_responseFileThreshold << m_responseFileArgumentIndex;
-    pool.storeString(m_stdoutFilePath);
-    pool.storeString(m_stderrFilePath);
+    pool.store(m_stdoutFilePath);
+    pool.store(m_stderrFilePath);
 }
 
 static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine *engine)
@@ -372,13 +372,13 @@ void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, con
 void JavaScriptCommand::load(PersistentPool &pool)
 {
     AbstractCommand::load(pool);
-    m_sourceCode = pool.idLoadString();
+    pool.load(m_sourceCode);
 }
 
 void JavaScriptCommand::store(PersistentPool &pool) const
 {
     AbstractCommand::store(pool);
-    pool.storeString(m_sourceCode);
+    pool.store(m_sourceCode);
 }
 
 QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool)
@@ -393,10 +393,10 @@ QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool)
         AbstractCommandPtr cmd;
         switch (cmdType) {
         case AbstractCommand::JavaScriptCommandType:
-            cmd = pool.idLoadS<JavaScriptCommand>();
+            cmd = pool.load<JavaScriptCommandPtr>();
             break;
         case AbstractCommand::ProcessCommandType:
-            cmd = pool.idLoadS<ProcessCommand>();
+            cmd = pool.load<ProcessCommandPtr>();
             break;
         default:
             QBS_CHECK(false);

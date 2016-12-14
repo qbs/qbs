@@ -141,7 +141,7 @@ void PersistentPool::closeStream()
     m_stream.setDevice(0);
 }
 
-void PersistentPool::store(const PersistentObject *object)
+void PersistentPool::storePersistentObject(const PersistentObject *object)
 {
     if (!object) {
         m_stream << -1;
@@ -158,7 +158,7 @@ void PersistentPool::store(const PersistentObject *object)
     }
 }
 
-void PersistentPool::store(const QVariantMap &map)
+void PersistentPool::storeVariantMap(const QVariantMap &map)
 {
     m_stream << map.count();
     for (QVariantMap::ConstIterator it = map.constBegin(); it != map.constEnd(); ++it) {
@@ -180,7 +180,7 @@ QVariantMap PersistentPool::loadVariantMap()
     return map;
 }
 
-void PersistentPool::store(const QVariant &variant)
+void PersistentPool::storeVariant(const QVariant &variant)
 {
     const quint32 type = static_cast<quint32>(variant.type());
     m_stream << type;
@@ -189,10 +189,10 @@ void PersistentPool::store(const QVariant &variant)
         storeString(variant.toString());
         break;
     case QMetaType::QStringList:
-        storeStringList(variant.toStringList());
+        store(variant.toStringList());
         break;
     case QMetaType::QVariantList:
-        storeContainer(variant.toList());
+        store(variant.toList());
         break;
     case QMetaType::QVariantMap:
         store(variant.toMap());
@@ -212,7 +212,7 @@ QVariant PersistentPool::loadVariant()
         value = idLoadString();
         break;
     case QMetaType::QStringList:
-        value = idLoadStringList();
+        value = load<QStringList>();
         break;
     case QMetaType::QVariantList: {
         QVariantList l;
@@ -288,40 +288,6 @@ QString PersistentPool::idLoadString()
     int id;
     m_stream >> id;
     return loadString(id);
-}
-
-void PersistentPool::storeStringSet(const QSet<QString> &t)
-{
-    m_stream << t.count();
-    foreach (const QString &s, t)
-        storeString(s);
-}
-
-QSet<QString> PersistentPool::idLoadStringSet()
-{
-    int i;
-    m_stream >> i;
-    QSet<QString> result;
-    for (; --i >= 0;)
-        result += idLoadString();
-    return result;
-}
-
-void PersistentPool::storeStringList(const QStringList &t)
-{
-    m_stream << t.count();
-    foreach (const QString &s, t)
-        storeString(s);
-}
-
-QStringList PersistentPool::idLoadStringList()
-{
-    int i;
-    m_stream >> i;
-    QStringList result;
-    for (; --i >= 0;)
-        result += idLoadString();
-    return result;
 }
 
 } // namespace Internal

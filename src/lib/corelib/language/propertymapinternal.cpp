@@ -103,7 +103,7 @@ QString PropertyMapInternal::toJSLiteral() const
 
 void PropertyMapInternal::load(PersistentPool &pool)
 {
-    m_value = pool.loadVariantMap();
+    pool.load(m_value);
 }
 
 void PropertyMapInternal::store(PersistentPool &pool) const

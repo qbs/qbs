@@ -49,6 +49,8 @@
 #include <QVariantMap>
 #include <QVector>
 
+#include <type_traits>
+
 namespace qbs {
 namespace Internal {
 
@@ -64,6 +66,18 @@ public:
         QVariantMap projectConfig;
     };
 
+    // We need a helper class template, because we require partial specialization for some of
+    // the aggregate types, which is not possible with function templates.
+    template<typename T, typename Enable = void> struct Helper { };
+
+    template<typename T> void store(const T &value) { Helper<T>().store(value, this); }
+    template<typename T> void load(T &value) { Helper<T>().load(value, this); }
+    template<typename T> T load() {
+        T tmp;
+        Helper<T>().load(tmp, this);
+        return tmp;
+    }
+
     void load(const QString &filePath);
     void setupWriteStream(const QString &filePath);
     void finalizeWriteStream();
@@ -71,46 +85,28 @@ public:
     void clear();
     QDataStream &stream();
 
-    template <typename T> T *idLoad();
-    template <typename T> void loadContainer(T &container);
-    template <class T> QSharedPointer<T> idLoadS();
-    template <typename T> void loadContainerS(T &container);
-
-    void store(const QSharedPointer<const PersistentObject> &ptr) { store(ptr.data()); }
-    void store(const PersistentObject *object);
-    template <typename T> void storeContainer(const T &container);
-
-    void store(const QVariantMap &map);
-    QVariantMap loadVariantMap();
-
-    void store(const QVariant &variant);
-    QVariant loadVariant();
-
-    void storeString(const QString &t);
-    QString loadString(int id);
-    QString idLoadString();
-
-    void storeStringSet(const QSet<QString> &t);
-    QSet<QString> loadStringSet(const QList<int> &id);
-    QSet<QString> idLoadStringSet();
-
-    void storeStringList(const QStringList &t);
-    QStringList loadStringList(const QList<int> &ids);
-    QStringList idLoadStringList();
-
     const HeadData &headData() const { return m_headData; }
     void setHeadData(const HeadData &hd) { m_headData = hd; }
 
 private:
     typedef int PersistentObjectId;
 
-    template<typename T> struct RemovePointer { typedef T Type; };
-    template<typename T> struct RemovePointer<T*> { typedef T Type; };
-    template <class T> struct RemoveConst { typedef T Type; };
-    template <class T> struct RemoveConst<const T> { typedef T Type; };
-
+    template <typename T> T *idLoad();
+    template <class T> QSharedPointer<T> idLoadS();
     template <class T> T *loadRaw(PersistentObjectId id);
     template <class T> QSharedPointer<T> load(PersistentObjectId id);
+
+    void storePersistentObject(const PersistentObject *object);
+
+    void storeVariantMap(const QVariantMap &map);
+    QVariantMap loadVariantMap();
+
+    void storeVariant(const QVariant &variant);
+    QVariant loadVariant();
+
+    void storeString(const QString &t);
+    QString loadString(int id);
+    QString idLoadString();
 
     QDataStream m_stream;
     HeadData m_headData;
@@ -132,40 +128,11 @@ template <typename T> inline T *PersistentPool::idLoad()
     return loadRaw<T>(id);
 }
 
-template <typename T> inline void PersistentPool::loadContainer(T &container)
-{
-    int count;
-    stream() >> count;
-    container.clear();
-    container.reserve(count);
-    for (int i = count; --i >= 0;)
-        container += idLoad<typename RemovePointer<typename T::value_type>::Type>();
-}
-
 template <class T> inline QSharedPointer<T> PersistentPool::idLoadS()
 {
     PersistentObjectId id;
     m_stream >> id;
     return load<T>(id);
-}
-
-template <typename T> inline void PersistentPool::loadContainerS(T &container)
-{
-    int count;
-    stream() >> count;
-    container.clear();
-    container.reserve(count);
-    for (int i = count; --i >= 0;)
-        container += idLoadS<typename RemoveConst<typename T::value_type::value_type>::Type>();
-}
-
-template <typename T> inline void PersistentPool::storeContainer(const T &container)
-{
-    stream() << container.count();
-    typename T::const_iterator it = container.constBegin();
-    const typename T::const_iterator itEnd = container.constEnd();
-    for (; it != itEnd; ++it)
-        store(*it);
 }
 
 template <class T> inline T *PersistentPool::loadRaw(PersistentObjectId id)
@@ -207,6 +174,87 @@ template <class T> inline QSharedPointer<T> PersistentPool::load(PersistentObjec
     po->load(*this);
     return t;
 }
+
+/***** Specializations of Helper class *****/
+
+template<typename T>
+struct PersistentPool::Helper<T, typename std::enable_if<std::is_integral<T>::value>::type>
+{
+    static void store(const T &value, PersistentPool *pool) { pool->stream() << value; }
+    static void load(T &value, PersistentPool *pool) { pool->stream() >> value; }
+};
+
+// TODO: Use constexpr function once we require MSVC 2015.
+template<typename T> struct IsPersistentObject
+{
+    static const bool value = std::is_base_of<PersistentObject, T>::value;
+};
+
+template<typename T>
+struct PersistentPool::Helper<QSharedPointer<T>,
+                              typename std::enable_if<IsPersistentObject<T>::value>::type>
+{
+    static void store(const QSharedPointer<T> &value, PersistentPool *pool)
+    {
+        pool->store(value.data());
+    }
+    static void load(QSharedPointer<T> &value, PersistentPool *pool)
+    {
+        value = pool->idLoadS<typename std::remove_const<T>::type>();
+    }
+};
+
+template<typename T>
+struct PersistentPool::Helper<T *, typename std::enable_if<IsPersistentObject<T>::value>::type>
+{
+    static void store(const T *value, PersistentPool *pool) { pool->storePersistentObject(value); }
+    void load(T* &value, PersistentPool *pool) { value = pool->idLoad<T>(); }
+};
+
+template<> struct PersistentPool::Helper<QString>
+{
+    static void store(const QString &s, PersistentPool *pool) { pool->storeString(s); }
+    static void load(QString &s, PersistentPool *pool) { s = pool->idLoadString(); }
+};
+
+template<> struct PersistentPool::Helper<QVariant>
+{
+    static void store(const QVariant &v, PersistentPool *pool) { pool->storeVariant(v); }
+    static void load(QVariant &v, PersistentPool *pool) { v = pool->loadVariant(); }
+};
+
+template<> struct PersistentPool::Helper<QVariantMap>
+{
+    static void store(const QVariantMap &map, PersistentPool *pool) { pool->storeVariantMap(map); }
+    static void load(QVariantMap &map, PersistentPool *pool) { map = pool->loadVariantMap(); }
+};
+
+class ArtifactSet;
+template<typename T> struct IsSimpleContainer { static const bool value = false; };
+template<> struct IsSimpleContainer<ArtifactSet> { static const bool value = true; };
+template<> struct IsSimpleContainer<QStringList> { static const bool value = true; };
+template<typename T> struct IsSimpleContainer<QVector<T>> { static const bool value = true; };
+template<typename T> struct IsSimpleContainer<QList<T>> { static const bool value = true; };
+template<typename T> struct IsSimpleContainer<QSet<T>> { static const bool value = true; };
+
+template<typename T>
+struct PersistentPool::Helper<T, typename std::enable_if<IsSimpleContainer<T>::value>::type>
+{
+    static void store(const T &container, PersistentPool *pool)
+    {
+        pool->stream() << container.count();
+        for (auto it = container.cbegin(); it != container.cend(); ++it)
+            pool->store(*it);
+    }
+    static void load(T &container, PersistentPool *pool)
+    {
+        const int count = pool->load<int>();
+        container.clear();
+        container.reserve(count);
+        for (int i = count; --i >= 0;)
+            container += pool->load<typename T::value_type>();
+    }
+};
 
 } // namespace Internal
 } // namespace qbs

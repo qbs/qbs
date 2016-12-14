@@ -52,15 +52,15 @@ ResolvedFileContext::ResolvedFileContext(const FileContextBase &ctx)
 
 void ResolvedFileContext::load(PersistentPool &pool)
 {
-    m_filePath = pool.idLoadString();
-    m_jsExtensions = pool.idLoadStringList();
-    m_searchPaths = pool.idLoadStringList();
+    pool.load(m_filePath);
+    pool.load(m_jsExtensions);
+    pool.load(m_searchPaths);
     int count;
     pool.stream() >> count;
     for (int i = 0; i < count; ++i) {
         JsImport jsi;
-        jsi.scopeName = pool.idLoadString();
-        jsi.filePaths = pool.idLoadStringList();
+        pool.load(jsi.scopeName);
+        pool.load(jsi.filePaths);
         jsi.location.load(pool);
         m_jsImports << jsi;
     }
@@ -68,13 +68,13 @@ void ResolvedFileContext::load(PersistentPool &pool)
 
 void ResolvedFileContext::store(PersistentPool &pool) const
 {
-    pool.storeString(m_filePath);
-    pool.storeStringList(m_jsExtensions);
-    pool.storeStringList(m_searchPaths);
+    pool.store(m_filePath);
+    pool.store(m_jsExtensions);
+    pool.store(m_searchPaths);
     pool.stream() << m_jsImports.count();
     foreach (const JsImport &jsi, m_jsImports) {
-        pool.storeString(jsi.scopeName);
-        pool.storeStringList(jsi.filePaths);
+        pool.store(jsi.scopeName);
+        pool.store(jsi.filePaths);
         jsi.location.store(pool);
     }
 }

@@ -48,8 +48,8 @@ void storePropertySet(PersistentPool &pool, const PropertySet &propertySet)
 {
     pool.stream() << propertySet.count();
     foreach (const Property &p, propertySet) {
-        pool.storeString(p.moduleName);
-        pool.storeString(p.propertyName);
+        pool.store(p.moduleName);
+        pool.store(p.propertyName);
         pool.stream() << p.value << static_cast<int>(p.kind);
     }
 }
@@ -62,8 +62,8 @@ PropertySet restorePropertySet(PersistentPool &pool)
     propertySet.reserve(count);
     while (--count >= 0) {
         Property p;
-        p.moduleName = pool.idLoadString();
-        p.propertyName = pool.idLoadString();
+        pool.load(p.moduleName);
+        pool.load(p.propertyName);
         int k;
         pool.stream() >> p.value >> k;
         p.kind = static_cast<Property::Kind>(k);
@@ -76,12 +76,12 @@ void storePropertyHash(PersistentPool &pool, const PropertyHash &propertyHash)
 {
     pool.stream() << propertyHash.count();
     for (auto it = propertyHash.constBegin(); it != propertyHash.constEnd(); ++it) {
-        pool.storeString(it.key());
+        pool.store(it.key());
         const PropertySet &properties = it.value();
         pool.stream() << properties.count();
         foreach (const Property &p, properties) {
-            pool.storeString(p.moduleName);
-            pool.storeString(p.propertyName);
+            pool.store(p.moduleName);
+            pool.store(p.propertyName);
             pool.stream() << p.value; // kind is always PropertyInModule
         }
     }
@@ -94,15 +94,15 @@ PropertyHash restorePropertyHash(PersistentPool &pool)
     PropertyHash propertyHash;
     propertyHash.reserve(count);
     while (--count >= 0) {
-        const QString artifactName = pool.idLoadString();
+        const auto &artifactName = pool.load<QString>();
         int listCount;
         pool.stream() >> listCount;
         PropertySet list;
         list.reserve(listCount);
         while (--listCount >= 0) {
             Property p;
-            p.moduleName = pool.idLoadString();
-            p.propertyName = pool.idLoadString();
+            pool.load(p.moduleName);
+            pool.load(p.propertyName);
             pool.stream() >> p.value;
             p.kind = Property::PropertyInModule;
             list += p;

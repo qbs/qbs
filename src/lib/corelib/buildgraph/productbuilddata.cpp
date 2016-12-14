@@ -66,9 +66,8 @@ static void loadArtifactSetByFileTag(PersistentPool &pool,
     int elemCount;
     pool.stream() >> elemCount;
     for (int i = 0; i < elemCount; ++i) {
-        const QVariant fileTag = pool.loadVariant();
-        ArtifactSet artifacts;
-        pool.loadContainer(artifacts);
+        const auto &fileTag = pool.load<QVariant>();
+        const auto &artifacts = pool.load<ArtifactSet>();
         s.insert(FileTag::fromSetting(fileTag), artifacts);
     }
 }
@@ -81,7 +80,7 @@ void ProductBuildData::load(PersistentPool &pool)
     pool.stream() >> count;
     rescuableArtifactData.reserve(count);
     for (int i = 0; i < count; ++i) {
-        const QString filePath = pool.idLoadString();
+        const QString filePath = pool.load<QString>();
         RescuableArtifactData elem;
         elem.load(pool);
         rescuableArtifactData.insert(filePath, elem);
@@ -90,10 +89,9 @@ void ProductBuildData::load(PersistentPool &pool)
 
     pool.stream() >> count;
     for (int i = 0; i < count; ++i) {
-        const RulePtr r = pool.idLoadS<Rule>();
-        ArtifactSet s;
-        pool.loadContainer(s);
-        artifactsWithChangedInputsPerRule.insert(r, s);
+        const auto &rule = pool.load<RulePtr>();
+        const auto  &artifacts = pool.load<ArtifactSet>();
+        artifactsWithChangedInputsPerRule.insert(rule, artifacts);
     }
 }
 
@@ -104,7 +102,7 @@ static void storeArtifactSetByFileTag(PersistentPool &pool,
     ProductBuildData::ArtifactSetByFileTag::ConstIterator it;
     for (it = s.constBegin(); it != s.constEnd(); ++it) {
         pool.store(it.key().toSetting());
-        pool.storeContainer(it.value());
+        pool.store(it.value());
     }
 }
 
@@ -115,7 +113,7 @@ void ProductBuildData::store(PersistentPool &pool) const
     pool.stream() << rescuableArtifactData.count();
     for (AllRescuableArtifactData::ConstIterator it = rescuableArtifactData.constBegin();
              it != rescuableArtifactData.constEnd(); ++it) {
-        pool.storeString(it.key());
+        pool.store(it.key());
         it.value().store(pool);
     }
     storeArtifactSetByFileTag(pool, artifactsByFileTag);
@@ -124,7 +122,7 @@ void ProductBuildData::store(PersistentPool &pool) const
     for (ArtifactSetByRule::ConstIterator it = artifactsWithChangedInputsPerRule.constBegin();
          it != artifactsWithChangedInputsPerRule.constEnd(); ++it) {
         pool.store(it.key());
-        pool.storeContainer(it.value());
+        pool.store(it.value());
     }
 }
 

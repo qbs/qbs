@@ -79,12 +79,12 @@ bool FileTags::matches(const FileTags &other) const
 
 void FileTags::store(PersistentPool &pool) const
 {
-    pool.storeStringList(toStringList());
+    pool.store(toStringList());
 }
 
 void FileTags::load(PersistentPool &pool)
 {
-    *this = fromStringList(pool.idLoadStringList());
+    *this = fromStringList(pool.load<QStringList>());
 }
 
 LogWriter operator <<(LogWriter w, const FileTags &tags)

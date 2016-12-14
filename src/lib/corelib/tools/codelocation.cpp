@@ -127,7 +127,7 @@ void CodeLocation::load(Internal::PersistentPool &pool)
     if (!isValid)
         return;
     d = new CodeLocationPrivate;
-    d->filePath = pool.idLoadString();
+    pool.load(d->filePath);
     pool.stream() >> d->line;
     pool.stream() >> d->column;
 }
@@ -136,7 +136,7 @@ void CodeLocation::store(Internal::PersistentPool &pool) const
 {
     if (d) {
         pool.stream() << 1;
-        pool.storeString(d->filePath);
+        pool.store(d->filePath);
         pool.stream() << d->line;
         pool.stream() << d->column;
     } else {

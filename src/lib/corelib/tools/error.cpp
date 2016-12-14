@@ -109,14 +109,14 @@ bool ErrorItem::isBacktraceItem() const
 
 void ErrorItem::load(Internal::PersistentPool &pool)
 {
-    d->description = pool.idLoadString();
+    pool.load(d->description);
     d->codeLocation.load(pool);
     pool.stream() >> d->isBacktraceItem;
 }
 
 void ErrorItem::store(Internal::PersistentPool &pool) const
 {
-    pool.storeString(d->description);
+    pool.store(d->description);
     d->codeLocation.store(pool);
     pool.stream() << d->isBacktraceItem;
 }

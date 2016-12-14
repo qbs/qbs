@@ -145,15 +145,15 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
 void RuleNode::load(PersistentPool &pool)
 {
     BuildGraphNode::load(pool);
-    m_rule = pool.idLoadS<Rule>();
-    pool.loadContainer(m_oldInputArtifacts);
+    pool.load(m_rule);
+    pool.load(m_oldInputArtifacts);
 }
 
 void RuleNode::store(PersistentPool &pool) const
 {
     BuildGraphNode::store(pool);
     pool.store(m_rule);
-    pool.storeContainer(m_oldInputArtifacts);
+    pool.store(m_oldInputArtifacts);
 }
 
 ArtifactSet RuleNode::currentInputArtifacts() const

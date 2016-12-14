@@ -75,10 +75,10 @@ void NodeSet::load(PersistentPool &pool)
         BuildGraphNode *node = 0;
         switch (static_cast<BuildGraphNode::Type>(t)) {
         case BuildGraphNode::ArtifactNodeType:
-            node = pool.idLoad<Artifact>();
+            node = pool.load<Artifact *>();
             break;
         case BuildGraphNode::RuleNodeType:
-            node = pool.idLoad<RuleNode>();
+            node = pool.load<RuleNode *>();
             break;
         }
         QBS_CHECK(node);

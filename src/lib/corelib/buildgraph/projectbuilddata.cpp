@@ -348,15 +348,13 @@ void ProjectBuildData::load(PersistentPool &pool)
     pool.stream() >> count;
     fileDependencies.clear();
     fileDependencies.reserve(count);
-    for (; --count >= 0;) {
-        FileDependency *fileDependency = pool.idLoad<FileDependency>();
-        insertFileDependency(fileDependency);
-    }
+    for (; --count >= 0;)
+        insertFileDependency(pool.load<FileDependency *>());
 }
 
 void ProjectBuildData::store(PersistentPool &pool) const
 {
-    pool.storeContainer(fileDependencies);
+    pool.store(fileDependencies);
 }
 
 
