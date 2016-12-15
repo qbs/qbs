@@ -98,9 +98,6 @@ private:
 
     void storePersistentObject(const PersistentObject *object);
 
-    void storeVariantMap(const QVariantMap &map);
-    QVariantMap loadVariantMap();
-
     void storeVariant(const QVariant &variant);
     QVariant loadVariant();
 
@@ -223,12 +220,6 @@ template<> struct PersistentPool::Helper<QVariant>
     static void load(QVariant &v, PersistentPool *pool) { v = pool->loadVariant(); }
 };
 
-template<> struct PersistentPool::Helper<QVariantMap>
-{
-    static void store(const QVariantMap &map, PersistentPool *pool) { pool->storeVariantMap(map); }
-    static void load(QVariantMap &map, PersistentPool *pool) { map = pool->loadVariantMap(); }
-};
-
 class ArtifactSet;
 template<typename T> struct IsSimpleContainer { static const bool value = false; };
 template<> struct IsSimpleContainer<ArtifactSet> { static const bool value = true; };
@@ -253,6 +244,35 @@ struct PersistentPool::Helper<T, typename std::enable_if<IsSimpleContainer<T>::v
         container.reserve(count);
         for (int i = count; --i >= 0;)
             container += pool->load<typename T::value_type>();
+    }
+};
+
+template<typename T> struct IsKeyValueContainer { static const bool value = false; };
+template<typename K, typename V> struct IsKeyValueContainer<QMap<K, V>>
+{
+    static const bool value = true;
+};
+
+template<typename T>
+struct PersistentPool::Helper<T, typename std::enable_if<IsKeyValueContainer<T>::value>::type>
+{
+    static void store(const T &container, PersistentPool *pool)
+    {
+        pool->stream() << container.count();
+        for (auto it = container.cbegin(); it != container.cend(); ++it) {
+            pool->store(it.key());
+            pool->store(it.value());
+        }
+    }
+    static void load(T &container, PersistentPool *pool)
+    {
+        container.clear();
+        const int count = pool->load<int>();
+        for (int i = 0; i < count; ++i) {
+            const auto &key = pool->load<typename T::key_type>();
+            const auto &value = pool->load<typename T::mapped_type>();
+            container.insert(key, value);
+        }
     }
 };
 

@@ -158,28 +158,6 @@ void PersistentPool::storePersistentObject(const PersistentObject *object)
     }
 }
 
-void PersistentPool::storeVariantMap(const QVariantMap &map)
-{
-    m_stream << map.count();
-    for (QVariantMap::ConstIterator it = map.constBegin(); it != map.constEnd(); ++it) {
-        storeString(it.key());
-        store(it.value());
-    }
-}
-
-QVariantMap PersistentPool::loadVariantMap()
-{
-    int count;
-    m_stream >> count;
-    QVariantMap map;
-    for (int i = 0; i < count; ++i) {
-        const QString key = idLoadString();
-        const QVariant value = loadVariant();
-        map.insert(key, value);
-    }
-    return map;
-}
-
 void PersistentPool::storeVariant(const QVariant &variant)
 {
     const quint32 type = static_cast<quint32>(variant.type());
@@ -224,7 +202,7 @@ QVariant PersistentPool::loadVariant()
         break;
     }
     case QMetaType::QVariantMap:
-        value = loadVariantMap();
+        value = load<QVariantMap>();
         break;
     default:
         m_stream >> value;
