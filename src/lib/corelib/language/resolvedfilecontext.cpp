@@ -55,15 +55,7 @@ void ResolvedFileContext::load(PersistentPool &pool)
     pool.load(m_filePath);
     pool.load(m_jsExtensions);
     pool.load(m_searchPaths);
-    int count;
-    pool.stream() >> count;
-    for (int i = 0; i < count; ++i) {
-        JsImport jsi;
-        pool.load(jsi.scopeName);
-        pool.load(jsi.filePaths);
-        jsi.location.load(pool);
-        m_jsImports << jsi;
-    }
+    pool.load(m_jsImports);
 }
 
 void ResolvedFileContext::store(PersistentPool &pool) const
@@ -71,12 +63,7 @@ void ResolvedFileContext::store(PersistentPool &pool) const
     pool.store(m_filePath);
     pool.store(m_jsExtensions);
     pool.store(m_searchPaths);
-    pool.stream() << m_jsImports.count();
-    foreach (const JsImport &jsi, m_jsImports) {
-        pool.store(jsi.scopeName);
-        pool.store(jsi.filePaths);
-        jsi.location.store(pool);
-    }
+    pool.store(m_jsImports);
 }
 
 bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)

@@ -68,6 +68,23 @@ public:
                   const QString &c = QString(), bool byScanner = false)
             : productName(n), productProfile(p), childFilePath(c), addedByScanner(byScanner)
         {}
+
+        void load(PersistentPool &pool)
+        {
+            pool.load(productName);
+            pool.load(productProfile);
+            pool.load(childFilePath);
+            pool.load(addedByScanner);
+        }
+
+        void store(PersistentPool &pool) const
+        {
+            pool.store(productName);
+            pool.store(productProfile);
+            pool.store(childFilePath);
+            pool.store(addedByScanner);
+        }
+
         QString productName;
         QString productProfile;
         QString childFilePath;

@@ -44,6 +44,7 @@
 #include <logging/logger.h>
 
 #include <QDataStream>
+#include <QProcessEnvironment>
 #include <QSharedPointer>
 #include <QString>
 #include <QVariantMap>
@@ -68,7 +69,13 @@ public:
 
     // We need a helper class template, because we require partial specialization for some of
     // the aggregate types, which is not possible with function templates.
-    template<typename T, typename Enable = void> struct Helper { };
+    // The generic implementation assumes that T is of class type and has load() and store()
+    // member functions.
+    template<typename T, typename Enable = void> struct Helper
+    {
+        static void store(const T &object, PersistentPool *pool) { object.store(*pool); }
+        static void load(T &object, PersistentPool *pool) { object.load(*pool); }
+    };
 
     template<typename T> void store(const T &value) { Helper<T>().store(value, this); }
     template<typename T> void load(T &value) { Helper<T>().load(value, this); }
@@ -83,7 +90,6 @@ public:
     void finalizeWriteStream();
     void closeStream();
     void clear();
-    QDataStream &stream();
 
     const HeadData &headData() const { return m_headData; }
     void setHeadData(const HeadData &hd) { m_headData = hd; }
@@ -121,7 +127,7 @@ private:
 template <typename T> inline T *PersistentPool::idLoad()
 {
     PersistentObjectId id;
-    stream() >> id;
+    m_stream >> id;
     return loadRaw<T>(id);
 }
 
@@ -177,8 +183,8 @@ template <class T> inline QSharedPointer<T> PersistentPool::load(PersistentObjec
 template<typename T>
 struct PersistentPool::Helper<T, typename std::enable_if<std::is_integral<T>::value>::type>
 {
-    static void store(const T &value, PersistentPool *pool) { pool->stream() << value; }
-    static void load(T &value, PersistentPool *pool) { pool->stream() >> value; }
+    static void store(const T &value, PersistentPool *pool) { pool->m_stream << value; }
+    static void load(T &value, PersistentPool *pool) { pool->m_stream >> value; }
 };
 
 // TODO: Use constexpr function once we require MSVC 2015.
@@ -220,9 +226,46 @@ template<> struct PersistentPool::Helper<QVariant>
     static void load(QVariant &v, PersistentPool *pool) { v = pool->loadVariant(); }
 };
 
+template<> struct PersistentPool::Helper<QProcessEnvironment>
+{
+    static void store(const QProcessEnvironment &env, PersistentPool *pool)
+    {
+        const QStringList &keys = env.keys();
+        pool->store(keys.count());
+        for (const QString &key : keys) {
+            pool->store(key);
+            pool->store(env.value(key));
+        }
+    }
+    static void load(QProcessEnvironment &env, PersistentPool *pool)
+    {
+        const int count = pool->load<int>();
+        for (int i = 0; i < count; ++i) {
+            const auto &key = pool->load<QString>();
+            const auto &value = pool->load<QString>();
+            env.insert(key, value);
+        }
+    }
+};
+template<typename T, typename U> struct PersistentPool::Helper<QPair<T, U>>
+{
+    static void store(const QPair<T, U> &pair, PersistentPool *pool)
+    {
+        pool->store(pair.first);
+        pool->store(pair.second);
+    }
+    static void load(QPair<T, U> &pair, PersistentPool *pool)
+    {
+        pool->load(pair.first);
+        pool->load(pair.second);
+    }
+};
+
 class ArtifactSet;
+class FileTags;
 template<typename T> struct IsSimpleContainer { static const bool value = false; };
 template<> struct IsSimpleContainer<ArtifactSet> { static const bool value = true; };
+template<> struct IsSimpleContainer<FileTags> { static const bool value = true; };
 template<> struct IsSimpleContainer<QStringList> { static const bool value = true; };
 template<typename T> struct IsSimpleContainer<QVector<T>> { static const bool value = true; };
 template<typename T> struct IsSimpleContainer<QList<T>> { static const bool value = true; };
@@ -233,7 +276,7 @@ struct PersistentPool::Helper<T, typename std::enable_if<IsSimpleContainer<T>::v
 {
     static void store(const T &container, PersistentPool *pool)
     {
-        pool->stream() << container.count();
+        pool->store(container.count());
         for (auto it = container.cbegin(); it != container.cend(); ++it)
             pool->store(*it);
     }
@@ -252,13 +295,17 @@ template<typename K, typename V> struct IsKeyValueContainer<QMap<K, V>>
 {
     static const bool value = true;
 };
+template<typename K, typename V> struct IsKeyValueContainer<QHash<K, V>>
+{
+    static const bool value = true;
+};
 
 template<typename T>
 struct PersistentPool::Helper<T, typename std::enable_if<IsKeyValueContainer<T>::value>::type>
 {
     static void store(const T &container, PersistentPool *pool)
     {
-        pool->stream() << container.count();
+        pool->store(container.count());
         for (auto it = container.cbegin(); it != container.cend(); ++it) {
             pool->store(it.key());
             pool->store(it.value());

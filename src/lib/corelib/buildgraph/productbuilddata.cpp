@@ -60,70 +60,22 @@ const TypeFilter<Artifact> ProductBuildData::rootArtifacts() const
     return TypeFilter<Artifact>(roots);
 }
 
-static void loadArtifactSetByFileTag(PersistentPool &pool,
-                                     ProductBuildData::ArtifactSetByFileTag &s)
-{
-    int elemCount;
-    pool.stream() >> elemCount;
-    for (int i = 0; i < elemCount; ++i) {
-        const auto &fileTag = pool.load<QVariant>();
-        const auto &artifacts = pool.load<ArtifactSet>();
-        s.insert(FileTag::fromSetting(fileTag), artifacts);
-    }
-}
-
 void ProductBuildData::load(PersistentPool &pool)
 {
     nodes.load(pool);
     roots.load(pool);
-    int count;
-    pool.stream() >> count;
-    rescuableArtifactData.reserve(count);
-    for (int i = 0; i < count; ++i) {
-        const QString filePath = pool.load<QString>();
-        RescuableArtifactData elem;
-        elem.load(pool);
-        rescuableArtifactData.insert(filePath, elem);
-    }
-    loadArtifactSetByFileTag(pool, artifactsByFileTag);
-
-    pool.stream() >> count;
-    for (int i = 0; i < count; ++i) {
-        const auto &rule = pool.load<RulePtr>();
-        const auto  &artifacts = pool.load<ArtifactSet>();
-        artifactsWithChangedInputsPerRule.insert(rule, artifacts);
-    }
-}
-
-static void storeArtifactSetByFileTag(PersistentPool &pool,
-                                      const ProductBuildData::ArtifactSetByFileTag &s)
-{
-    pool.stream() << s.count();
-    ProductBuildData::ArtifactSetByFileTag::ConstIterator it;
-    for (it = s.constBegin(); it != s.constEnd(); ++it) {
-        pool.store(it.key().toSetting());
-        pool.store(it.value());
-    }
+    pool.load(rescuableArtifactData);
+    pool.load(artifactsByFileTag);
+    pool.load(artifactsWithChangedInputsPerRule);
 }
 
 void ProductBuildData::store(PersistentPool &pool) const
 {
     nodes.store(pool);
     roots.store(pool);
-    pool.stream() << rescuableArtifactData.count();
-    for (AllRescuableArtifactData::ConstIterator it = rescuableArtifactData.constBegin();
-             it != rescuableArtifactData.constEnd(); ++it) {
-        pool.store(it.key());
-        it.value().store(pool);
-    }
-    storeArtifactSetByFileTag(pool, artifactsByFileTag);
-
-    pool.stream() << artifactsWithChangedInputsPerRule.count();
-    for (ArtifactSetByRule::ConstIterator it = artifactsWithChangedInputsPerRule.constBegin();
-         it != artifactsWithChangedInputsPerRule.constEnd(); ++it) {
-        pool.store(it.key());
-        pool.store(it.value());
-    }
+    pool.store(rescuableArtifactData);
+    pool.store(artifactsByFileTag);
+    pool.store(artifactsWithChangedInputsPerRule);
 }
 
 void addArtifactToSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container)

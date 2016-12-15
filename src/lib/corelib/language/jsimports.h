@@ -41,6 +41,7 @@
 #define QBS_JSIMPORTS_H
 
 #include <tools/codelocation.h>
+#include <tools/persistence.h>
 
 #include <QHash>
 #include <QStringList>
@@ -61,6 +62,20 @@ public:
     QString scopeName;
     QStringList filePaths;
     CodeLocation location;
+
+    void store(PersistentPool &pool) const
+    {
+        pool.store(scopeName);
+        pool.store(filePaths);
+        pool.store(location);
+    }
+
+    void load(PersistentPool &pool)
+    {
+        pool.load(scopeName);
+        pool.load(filePaths);
+        pool.load(location);
+    }
 };
 inline uint qHash(const JsImport &jsi) { return qHash(jsi.scopeName); }
 

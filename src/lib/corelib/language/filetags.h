@@ -69,6 +69,9 @@ public:
     {}
 
     void clear();
+
+    void store(PersistentPool &pool) const;
+    void load(PersistentPool &pool);
 };
 
 class FileTags : public QSet<FileTag>
@@ -77,9 +80,6 @@ public:
     QStringList toStringList() const;
     static FileTags fromStringList(const QStringList &strings);
     bool matches(const FileTags &other) const;
-
-    void store(PersistentPool &pool) const;
-    void load(PersistentPool &pool);
 };
 
 LogWriter operator <<(LogWriter w, const FileTags &tags);

@@ -344,12 +344,9 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
 
 void ProjectBuildData::load(PersistentPool &pool)
 {
-    int count;
-    pool.stream() >> count;
-    fileDependencies.clear();
-    fileDependencies.reserve(count);
-    for (; --count >= 0;)
-        insertFileDependency(pool.load<FileDependency *>());
+    pool.load(fileDependencies);
+    for (auto dep = fileDependencies.cbegin(); dep != fileDependencies.cend(); ++dep)
+        insertFileDependency(*dep);
 }
 
 void ProjectBuildData::store(PersistentPool &pool) const

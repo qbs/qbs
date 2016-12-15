@@ -47,23 +47,6 @@
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
 
-QT_BEGIN_NAMESPACE
-
-static QDataStream &operator >>(QDataStream &s, qbs::Internal::Artifact::ArtifactType &t)
-{
-    int i;
-    s >> i;
-    t = static_cast<qbs::Internal::Artifact::ArtifactType>(i);
-    return s;
-}
-
-static QDataStream &operator <<(QDataStream &s, const qbs::Internal::Artifact::ArtifactType &t)
-{
-    return s << (int)t;
-}
-
-QT_END_NAMESPACE
-
 namespace qbs {
 namespace Internal {
 
@@ -158,14 +141,10 @@ void Artifact::load(PersistentPool &pool)
     pool.load(fileDependencies);
     pool.load(properties);
     pool.load(transformer);
-    m_fileTags.load(pool);
-    unsigned char c;
-    pool.stream()
-            >> artifactType
-            >> c;
-    alwaysUpdated = c;
-    pool.stream() >> c;
-    oldDataPossiblyPresent = c;
+    pool.load(m_fileTags);
+    artifactType = static_cast<ArtifactType>(pool.load<quint8>());
+    alwaysUpdated = pool.load<bool>();
+    oldDataPossiblyPresent = pool.load<bool>();
 }
 
 void Artifact::store(PersistentPool &pool) const
@@ -178,11 +157,10 @@ void Artifact::store(PersistentPool &pool) const
     pool.store(fileDependencies);
     pool.store(properties);
     pool.store(transformer);
-    m_fileTags.store(pool);
-    pool.stream()
-            << artifactType
-            << static_cast<unsigned char>(alwaysUpdated)
-            << static_cast<unsigned char>(oldDataPossiblyPresent);
+    pool.store(m_fileTags);
+    pool.store(static_cast<quint8>(artifactType));
+    pool.store(alwaysUpdated);
+    pool.store(oldDataPossiblyPresent);
 }
 
 } // namespace Internal

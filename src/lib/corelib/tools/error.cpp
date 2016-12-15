@@ -110,15 +110,15 @@ bool ErrorItem::isBacktraceItem() const
 void ErrorItem::load(Internal::PersistentPool &pool)
 {
     pool.load(d->description);
-    d->codeLocation.load(pool);
-    pool.stream() >> d->isBacktraceItem;
+    pool.load(d->codeLocation);
+    pool.load(d->isBacktraceItem);
 }
 
 void ErrorItem::store(Internal::PersistentPool &pool) const
 {
     pool.store(d->description);
-    d->codeLocation.store(pool);
-    pool.stream() << d->isBacktraceItem;
+    pool.store(d->codeLocation);
+    pool.store(d->isBacktraceItem);
 }
 
 /*!
@@ -266,22 +266,14 @@ bool ErrorInfo::isInternalError() const
 
 void ErrorInfo::load(Internal::PersistentPool &pool)
 {
-    int itemCount;
-    pool.stream() >> itemCount;
-    for (int i = 0; i < itemCount; ++i) {
-        ErrorItem e;
-        e.load(pool);
-        d->items << e;
-    }
-    pool.stream() >> d->internalError;
+    pool.load(d->items);
+    pool.load(d->internalError);
 }
 
 void ErrorInfo::store(Internal::PersistentPool &pool) const
 {
-    pool.stream() << d->items.count();
-    std::for_each(d->items.constBegin(), d->items.constEnd(),
-                  [&pool](const ErrorItem &e) { e.store(pool); });
-    pool.stream() << d->internalError;
+    pool.store(d->items);
+    pool.store(d->internalError);
 }
 
 } // namespace qbs

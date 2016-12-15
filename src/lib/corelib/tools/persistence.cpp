@@ -50,7 +50,7 @@
 namespace qbs {
 namespace Internal {
 
-static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-94";
+static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-95";
 
 PersistentPool::PersistentPool(Logger &logger) : m_logger(logger)
 {
@@ -182,8 +182,7 @@ void PersistentPool::storeVariant(const QVariant &variant)
 
 QVariant PersistentPool::loadVariant()
 {
-    quint32 type;
-    m_stream >> type;
+    const quint32 type = load<quint32>();
     QVariant value;
     switch (type) {
     case QMetaType::QString:
@@ -192,15 +191,9 @@ QVariant PersistentPool::loadVariant()
     case QMetaType::QStringList:
         value = load<QStringList>();
         break;
-    case QMetaType::QVariantList: {
-        QVariantList l;
-        int count;
-        m_stream >> count;
-        for (int i = 0; i < count; ++i)
-            l << loadVariant();
-        value = l;
+    case QMetaType::QVariantList:
+        value = load<QVariantList>();
         break;
-    }
     case QMetaType::QVariantMap:
         value = load<QVariantMap>();
         break;
@@ -216,11 +209,6 @@ void PersistentPool::clear()
     m_storageIndices.clear();
     m_stringStorage.clear();
     m_inverseStringStorage.clear();
-}
-
-QDataStream &PersistentPool::stream()
-{
-    return m_stream;
 }
 
 const int StringNotFoundId = -1;

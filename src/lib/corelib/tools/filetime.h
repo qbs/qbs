@@ -40,6 +40,8 @@
 #ifndef QBS_FILETIME_H
 #define QBS_FILETIME_H
 
+#include "persistence.h"
+
 #include <QDataStream>
 #include <QDebug>
 
@@ -66,6 +68,9 @@ public:
         : m_fileTime(ft)
     { }
 
+    void store(PersistentPool &pool) const;
+    void load(PersistentPool &pool);
+
     bool operator < (const FileTime &rhs) const;
     bool operator > (const FileTime &rhs) const;
     bool operator <= (const FileTime &rhs) const;
@@ -83,6 +88,16 @@ public:
     friend class FileInfo;
     InternalType m_fileTime;
 };
+
+inline void FileTime::store(PersistentPool &pool) const
+{
+    pool.store(static_cast<quint64>(m_fileTime));
+}
+
+inline void FileTime::load(PersistentPool &pool)
+{
+    m_fileTime = pool.load<quint64>();
+}
 
 inline bool FileTime::operator > (const FileTime &rhs) const
 {
@@ -113,20 +128,6 @@ inline bool FileTime::operator != (const FileTime &rhs) const
 } // namespace qbs
 
 QT_BEGIN_NAMESPACE
-
-inline QDataStream& operator>>(QDataStream &stream, qbs::Internal::FileTime &ft)
-{
-    quint64 u;
-    stream >> u;
-    ft.m_fileTime = u;
-    return stream;
-}
-
-inline QDataStream& operator<<(QDataStream &stream, const qbs::Internal::FileTime &ft)
-{
-    stream << (quint64)ft.m_fileTime;
-    return stream;
-}
 
 inline QDebug operator<<(QDebug dbg, const qbs::Internal::FileTime &t)
 {

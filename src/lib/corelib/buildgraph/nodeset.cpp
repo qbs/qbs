@@ -67,11 +67,9 @@ void NodeSet::remove(BuildGraphNode *node)
 void NodeSet::load(PersistentPool &pool)
 {
     clear();
-    int i;
-    pool.stream() >> i;
+    int i = pool.load<int>();
     for (; --i >= 0;) {
-        int t;
-        pool.stream() >> t;
+        const auto t = pool.load<quint8>();
         BuildGraphNode *node = 0;
         switch (static_cast<BuildGraphNode::Type>(t)) {
         case BuildGraphNode::ArtifactNodeType:
@@ -88,9 +86,9 @@ void NodeSet::load(PersistentPool &pool)
 
 void NodeSet::store(PersistentPool &pool) const
 {
-    pool.stream() << count();
+    pool.store(count());
     for (NodeSet::const_iterator it = constBegin(); it != constEnd(); ++it) {
-        pool.stream() << int((*it)->type());
+        pool.store(static_cast<quint8>((*it)->type()));
         pool.store(*it);
     }
 }

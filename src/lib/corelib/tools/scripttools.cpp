@@ -42,29 +42,6 @@
 #include <QDataStream>
 #include <QScriptEngine>
 
-QT_BEGIN_NAMESPACE
-
-QDataStream &operator<< (QDataStream &s, const QScriptProgram &script)
-{
-    s << script.sourceCode()
-      << script.fileName()
-      << script.firstLineNumber();
-    return s;
-}
-
-QDataStream &operator>> (QDataStream &s, QScriptProgram &script)
-{
-    QString fileName, sourceCode;
-    int lineNumber;
-    s >> sourceCode
-      >> fileName
-      >> lineNumber;
-    script = QScriptProgram(sourceCode, fileName, lineNumber);
-    return s;
-}
-
-QT_END_NAMESPACE
-
 namespace qbs {
 namespace Internal {
 

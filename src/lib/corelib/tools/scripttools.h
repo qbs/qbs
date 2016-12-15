@@ -48,13 +48,6 @@
 #include <QStringList>
 #include <QVariantMap>
 
-QT_BEGIN_NAMESPACE
-
-QDataStream &operator<< (QDataStream &s, const QScriptProgram &script);
-QDataStream &operator>> (QDataStream &s, QScriptProgram &script);
-
-QT_END_NAMESPACE
-
 namespace qbs {
 namespace Internal {
 

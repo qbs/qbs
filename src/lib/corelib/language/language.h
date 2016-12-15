@@ -152,6 +152,9 @@ public:
         QStringList name;
         QString code;
         CodeLocation location;
+
+        void store(PersistentPool &pool) const;
+        void load(PersistentPool &pool);
     };
 
     QVector<Binding> bindings;

@@ -104,7 +104,7 @@ void FileTagger::setPatterns(const QStringList &patterns)
 void FileTagger::load(PersistentPool &pool)
 {
     setPatterns(pool.load<QStringList>());
-    m_fileTags.load(pool);
+    pool.load(m_fileTags);
 }
 
 void FileTagger::store(PersistentPool &pool) const
@@ -113,14 +113,14 @@ void FileTagger::store(PersistentPool &pool) const
     foreach (const QRegExp &regExp, m_patterns)
         patterns << regExp.pattern();
     pool.store(patterns);
-    m_fileTags.store(pool);
+    pool.store(m_fileTags);
 }
 
 
 void Probe::load(PersistentPool &pool)
 {
     m_location.load(pool);
-    pool.stream() >> m_condition;
+    pool.load(m_condition);
     pool.load(m_configureScript);
     pool.load(m_properties);
     pool.load(m_initialProperties);
@@ -129,7 +129,7 @@ void Probe::load(PersistentPool &pool)
 void Probe::store(PersistentPool &pool) const
 {
     m_location.store(pool);
-    pool.stream() << condition();
+    pool.store(condition());
     pool.store(m_configureScript);
     pool.store(m_properties);
     pool.store(m_initialProperties);
@@ -148,16 +148,16 @@ void Probe::store(PersistentPool &pool) const
 void SourceArtifactInternal::load(PersistentPool &pool)
 {
     pool.load(absoluteFilePath);
-    fileTags.load(pool);
-    pool.stream() >> overrideFileTags;
+    pool.load(fileTags);
+    pool.load(overrideFileTags);
     pool.load(properties);
 }
 
 void SourceArtifactInternal::store(PersistentPool &pool) const
 {
     pool.store(absoluteFilePath);
-    fileTags.store(pool);
-    pool.stream() << overrideFileTags;
+    pool.store(fileTags);
+    pool.store(overrideFileTags);
     pool.store(properties);
 }
 
@@ -210,27 +210,27 @@ QList<SourceArtifactPtr> ResolvedGroup::allFiles() const
 void ResolvedGroup::load(PersistentPool &pool)
 {
     pool.load(name);
-    pool.stream() >> enabled;
-    location.load(pool);
+    pool.load(enabled);
+    pool.load(location);
     pool.load(prefix);
     pool.load(files);
     pool.load(wildcards);
     pool.load(properties);
-    fileTags.load(pool);
-    pool.stream() >> overrideTags;
+    pool.load(fileTags);
+    pool.load(overrideTags);
 }
 
 void ResolvedGroup::store(PersistentPool &pool) const
 {
     pool.store(name);
-    pool.stream() << enabled;
-    location.store(pool);
+    pool.store(enabled);
+    pool.store(location);
     pool.store(prefix);
     pool.store(files);
     pool.store(wildcards);
     pool.store(properties);
-    fileTags.store(pool);
-    pool.stream() << overrideTags;
+    pool.store(fileTags);
+    pool.store(overrideTags);
 }
 
 /*!
@@ -242,42 +242,39 @@ void ResolvedGroup::store(PersistentPool &pool) const
  * are inserted into the corresponding \c Artifact's properties.
  * \sa Rule
  */
+
+void RuleArtifact::Binding::store(PersistentPool &pool) const
+{
+    pool.store(name);
+    pool.store(code);
+    pool.store(location);
+}
+
+void RuleArtifact::Binding::load(PersistentPool &pool)
+{
+    pool.load(name);
+    pool.load(code);
+    pool.load(location);
+}
+
 void RuleArtifact::load(PersistentPool &pool)
 {
     pool.load(filePath);
-    fileTags.load(pool);
-    pool.stream() >> alwaysUpdated;
-    location.load(pool);
-    filePathLocation.load(pool);
-
-    int i;
-    pool.stream() >> i;
-    bindings.clear();
-    bindings.reserve(i);
-    Binding binding;
-    for (; --i >= 0;) {
-        pool.load(binding.name);
-        pool.load(binding.code);
-        binding.location.load(pool);
-        bindings += binding;
-    }
+    pool.load(fileTags);
+    pool.load(alwaysUpdated);
+    pool.load(location);
+    pool.load(filePathLocation);
+    pool.load(bindings);
 }
 
 void RuleArtifact::store(PersistentPool &pool) const
 {
     pool.store(filePath);
-    fileTags.store(pool);
-    pool.stream() << alwaysUpdated;
-    location.store(pool);
-    filePathLocation.store(pool);
-
-    pool.stream() << bindings.count();
-    for (int i = bindings.count(); --i >= 0;) {
-        const Binding &binding = bindings.at(i);
-        pool.store(binding.name);
-        pool.store(binding.code);
-        binding.location.store(pool);
-    }
+    pool.store(fileTags);
+    pool.store(alwaysUpdated);
+    pool.store(location);
+    pool.store(filePathLocation);
+    pool.store(bindings);
 }
 
 
@@ -409,13 +406,14 @@ void Rule::load(PersistentPool &pool)
     pool.load(prepareScript);
     pool.load(outputArtifactsScript);
     pool.load(module);
-    inputs.load(pool);
-    outputFileTags.load(pool);
-    auxiliaryInputs.load(pool);
-    excludedAuxiliaryInputs.load(pool);
-    inputsFromDependencies.load(pool);
-    explicitlyDependsOn.load(pool);
-    pool.stream() >> multiplex >> alwaysRun;
+    pool.load(inputs);
+    pool.load(outputFileTags);
+    pool.load(auxiliaryInputs);
+    pool.load(excludedAuxiliaryInputs);
+    pool.load(inputsFromDependencies);
+    pool.load(explicitlyDependsOn);
+    pool.load(multiplex);
+    pool.load(alwaysRun);
     pool.load(artifacts);
 }
 
@@ -425,13 +423,14 @@ void Rule::store(PersistentPool &pool) const
     pool.store(prepareScript);
     pool.store(outputArtifactsScript);
     pool.store(module);
-    inputs.store(pool);
-    outputFileTags.store(pool);
-    auxiliaryInputs.store(pool);
-    excludedAuxiliaryInputs.store(pool);
-    inputsFromDependencies.store(pool);
-    explicitlyDependsOn.store(pool);
-    pool.stream() << multiplex << alwaysRun;
+    pool.store(inputs);
+    pool.store(outputFileTags);
+    pool.store(auxiliaryInputs);
+    pool.store(excludedAuxiliaryInputs);
+    pool.store(inputsFromDependencies);
+    pool.store(explicitlyDependsOn);
+    pool.store(multiplex);
+    pool.store(alwaysRun);
     pool.store(artifacts);
 }
 
@@ -494,15 +493,15 @@ FileTags ResolvedProduct::fileTagsForFileName(const QString &fileName) const
 
 void ResolvedProduct::load(PersistentPool &pool)
 {
-    pool.stream() >> enabled;
-    fileTags.load(pool);
+    pool.load(enabled);
+    pool.load(fileTags);
     pool.load(name);
     pool.load(profile);
     pool.load(targetName);
     pool.load(sourceDirectory);
     pool.load(destinationDirectory);
     pool.load(missingSourceFiles);
-    location.load(pool);
+    pool.load(location);
     pool.load(productProperties);
     pool.load(moduleProperties);
     pool.load(rules);
@@ -518,15 +517,15 @@ void ResolvedProduct::load(PersistentPool &pool)
 
 void ResolvedProduct::store(PersistentPool &pool) const
 {
-    pool.stream() << enabled;
-    fileTags.store(pool);
+    pool.store(enabled);
+    pool.store(fileTags);
     pool.store(name);
     pool.store(profile);
     pool.store(targetName);
     pool.store(sourceDirectory);
     pool.store(destinationDirectory);
     pool.store(missingSourceFiles);
-    location.store(pool);
+    pool.store(location);
     pool.store(productProperties);
     pool.store(moduleProperties);
     pool.store(rules);
@@ -879,47 +878,32 @@ QList<ResolvedProductPtr> ResolvedProject::allProducts() const
 void ResolvedProject::load(PersistentPool &pool)
 {
     pool.load(name);
-    location.load(pool);
-    int count;
-    pool.stream()
-            >> enabled
-            >> count;
-    products.clear();
-    products.reserve(count);
-    for (; --count >= 0;) {
-        const auto &rProduct = pool.load<ResolvedProductPtr>();
-        if (rProduct->buildData) {
-            foreach (BuildGraphNode * const node, rProduct->buildData->nodes) {
-                node->product = rProduct;
+    pool.load(location);
+    pool.load(enabled);
+    pool.load(products);
+    std::for_each(products.cbegin(), products.cend(),
+                  [](const ResolvedProductPtr &p) {
+        if (!p->buildData)
+            return;
+        foreach (BuildGraphNode * const node, p->buildData->nodes) {
+            node->product = p;
 
-                // restore parent links
-                foreach (BuildGraphNode *child, node->children)
-                    child->parents.insert(node);
-            }
+            // restore parent links
+            foreach (BuildGraphNode *child, node->children)
+                child->parents.insert(node);
         }
-        products.append(rProduct);
-    }
-
-    pool.stream() >> count;
-    subProjects.clear();
-    subProjects.reserve(count);
-    for (; --count >= 0;)
-        subProjects.append(pool.load<ResolvedProjectPtr>());
+    });
+    pool.load(subProjects);
     pool.load(m_projectProperties);
 }
 
 void ResolvedProject::store(PersistentPool &pool) const
 {
     pool.store(name);
-    location.store(pool);
-    pool.stream()
-            << enabled
-            << products.count();
-    foreach (const ResolvedProductConstPtr &product, products)
-        pool.store(product);
-    pool.stream() << subProjects.count();
-    foreach (const ResolvedProjectConstPtr &project, subProjects)
-        pool.store(project);
+    pool.store(location);
+    pool.store(enabled);
+    pool.store(products);
+    pool.store(subProjects);
     pool.store(m_projectProperties);
 }
 
@@ -989,25 +973,16 @@ void TopLevelProject::load(PersistentPool &pool)
 {
     ResolvedProject::load(pool);
     pool.load(m_id);
-    pool.stream() >> usedEnvironment;
-    pool.stream() >> canonicalFilePathResults;
-    pool.stream() >> fileExistsResults;
-    pool.stream() >> directoryEntriesResults;
-    pool.stream() >> fileLastModifiedResults;
-    QHash<QString, QString> envHash;
-    pool.stream() >> envHash;
-    for (QHash<QString, QString>::const_iterator i = envHash.begin(); i != envHash.end(); ++i)
-        environment.insert(i.key(), i.value());
-    pool.stream() >> profileConfigs;
-    pool.stream() >> buildSystemFiles;
-    pool.stream() >> lastResolveTime;
-    int warningsCount;
-    pool.stream() >> warningsCount;
-    for (int i = 0; i < warningsCount; ++i) {
-        ErrorInfo e;
-        e.load(pool);
-        warningsEncountered << e;
-    }
+    pool.load(usedEnvironment);
+    pool.load(canonicalFilePathResults);
+    pool.load(fileExistsResults);
+    pool.load(directoryEntriesResults);
+    pool.load(fileLastModifiedResults);
+    pool.load(environment);
+    pool.load(profileConfigs);
+    pool.load(buildSystemFiles);
+    pool.load(lastResolveTime);
+    pool.load(warningsEncountered);
     buildData.reset(pool.load<ProjectBuildData *>());
     QBS_CHECK(buildData);
     buildData->isDirty = false;
@@ -1017,21 +992,16 @@ void TopLevelProject::store(PersistentPool &pool) const
 {
     ResolvedProject::store(pool);
     pool.store(m_id);
-    pool.stream() << usedEnvironment
-                  << canonicalFilePathResults
-                  << fileExistsResults
-                  << directoryEntriesResults
-                  << fileLastModifiedResults;
-    QHash<QString, QString> envHash;
-    foreach (const QString &key, environment.keys())
-        envHash.insert(key, environment.value(key));
-    pool.stream() << envHash;
-    pool.stream() << profileConfigs;
-    pool.stream() << buildSystemFiles;
-    pool.stream() << lastResolveTime;
-    pool.stream() << warningsEncountered.count();
-    std::for_each(warningsEncountered.constBegin(), warningsEncountered.constEnd(),
-                  [&pool](const ErrorInfo &e) { e.store(pool); });
+    pool.store(usedEnvironment);
+    pool.store(canonicalFilePathResults);
+    pool.store(fileExistsResults);
+    pool.store(directoryEntriesResults);
+    pool.store(fileLastModifiedResults);
+    pool.store(environment);
+    pool.store(profileConfigs);
+    pool.store(buildSystemFiles);
+    pool.store(lastResolveTime);
+    pool.store(warningsEncountered);
     pool.store(buildData.data());
 }
 
@@ -1267,8 +1237,8 @@ bool artifactPropertyListsAreEqual(const QList<ArtifactPropertiesPtr> &l1,
 void ResolvedScanner::load(PersistentPool &pool)
 {
     pool.load(module);
-    inputs.load(pool);
-    pool.stream() >> recursive;
+    pool.load(inputs);
+    pool.load(recursive);
     pool.load(searchPathsScript);
     pool.load(scanScript);
 }
@@ -1276,8 +1246,8 @@ void ResolvedScanner::load(PersistentPool &pool)
 void ResolvedScanner::store(PersistentPool &pool) const
 {
     pool.store(module);
-    inputs.store(pool);
-    pool.stream() << recursive;
+    pool.store(inputs);
+    pool.store(recursive);
     pool.store(searchPathsScript);
     pool.store(scanScript);
 }

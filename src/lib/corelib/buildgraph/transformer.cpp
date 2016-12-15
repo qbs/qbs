@@ -261,12 +261,12 @@ void Transformer::load(PersistentPool &pool)
     pool.load(rule);
     pool.load(inputs);
     pool.load(outputs);
-    propertiesRequestedInPrepareScript = restorePropertySet(pool);
-    propertiesRequestedInCommands = restorePropertySet(pool);
-    propertiesRequestedFromArtifactInPrepareScript = restorePropertyHash(pool);
-    propertiesRequestedFromArtifactInCommands = restorePropertyHash(pool);
+    pool.load(propertiesRequestedInPrepareScript);
+    pool.load(propertiesRequestedInCommands);
+    pool.load(propertiesRequestedFromArtifactInPrepareScript);
+    pool.load(propertiesRequestedFromArtifactInCommands);
     commands = loadCommandList(pool);
-    pool.stream() >> alwaysRun;
+    pool.load(alwaysRun);
 }
 
 void Transformer::store(PersistentPool &pool) const
@@ -274,12 +274,12 @@ void Transformer::store(PersistentPool &pool) const
     pool.store(rule);
     pool.store(inputs);
     pool.store(outputs);
-    storePropertySet(pool, propertiesRequestedInPrepareScript);
-    storePropertySet(pool, propertiesRequestedInCommands);
-    storePropertyHash(pool, propertiesRequestedFromArtifactInPrepareScript);
-    storePropertyHash(pool, propertiesRequestedFromArtifactInCommands);
+    pool.store(propertiesRequestedInPrepareScript);
+    pool.store(propertiesRequestedInCommands);
+    pool.store(propertiesRequestedFromArtifactInPrepareScript);
+    pool.store(propertiesRequestedFromArtifactInCommands);
     storeCommandList(commands, pool);
-    pool.stream() << alwaysRun;
+    pool.store(alwaysRun);
 }
 
 } // namespace Internal

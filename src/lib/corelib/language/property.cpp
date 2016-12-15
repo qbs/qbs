@@ -44,72 +44,20 @@
 namespace qbs {
 namespace Internal {
 
-void storePropertySet(PersistentPool &pool, const PropertySet &propertySet)
+void Property::store(PersistentPool &pool) const
 {
-    pool.stream() << propertySet.count();
-    foreach (const Property &p, propertySet) {
-        pool.store(p.moduleName);
-        pool.store(p.propertyName);
-        pool.stream() << p.value << static_cast<int>(p.kind);
-    }
+    pool.store(moduleName);
+    pool.store(propertyName);
+    pool.store(value);
+    pool.store(static_cast<quint8>(kind));
 }
 
-PropertySet restorePropertySet(PersistentPool &pool)
+void Property::load(PersistentPool &pool)
 {
-    int count;
-    pool.stream() >> count;
-    PropertySet propertySet;
-    propertySet.reserve(count);
-    while (--count >= 0) {
-        Property p;
-        pool.load(p.moduleName);
-        pool.load(p.propertyName);
-        int k;
-        pool.stream() >> p.value >> k;
-        p.kind = static_cast<Property::Kind>(k);
-        propertySet += p;
-    }
-    return propertySet;
-}
-
-void storePropertyHash(PersistentPool &pool, const PropertyHash &propertyHash)
-{
-    pool.stream() << propertyHash.count();
-    for (auto it = propertyHash.constBegin(); it != propertyHash.constEnd(); ++it) {
-        pool.store(it.key());
-        const PropertySet &properties = it.value();
-        pool.stream() << properties.count();
-        foreach (const Property &p, properties) {
-            pool.store(p.moduleName);
-            pool.store(p.propertyName);
-            pool.stream() << p.value; // kind is always PropertyInModule
-        }
-    }
-}
-
-PropertyHash restorePropertyHash(PersistentPool &pool)
-{
-    int count;
-    pool.stream() >> count;
-    PropertyHash propertyHash;
-    propertyHash.reserve(count);
-    while (--count >= 0) {
-        const auto &artifactName = pool.load<QString>();
-        int listCount;
-        pool.stream() >> listCount;
-        PropertySet list;
-        list.reserve(listCount);
-        while (--listCount >= 0) {
-            Property p;
-            pool.load(p.moduleName);
-            pool.load(p.propertyName);
-            pool.stream() >> p.value;
-            p.kind = Property::PropertyInModule;
-            list += p;
-        }
-        propertyHash.insert(artifactName, list);
-    }
-    return propertyHash;
+    pool.load(moduleName);
+    pool.load(propertyName);
+    pool.load(value);
+    kind = static_cast<Kind>(pool.load<quint8>());
 }
 
 } // namespace Internal

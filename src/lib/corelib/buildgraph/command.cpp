@@ -98,9 +98,9 @@ void AbstractCommand::load(PersistentPool &pool)
     pool.load(m_description);
     pool.load(m_extendedDescription);
     pool.load(m_highlight);
-    pool.stream() >> m_ignoreDryRun;
-    pool.stream() >> m_silent;
-    m_codeLocation.load(pool);
+    pool.load(m_ignoreDryRun);
+    pool.load(m_silent);
+    pool.load(m_codeLocation);
     pool.load(m_properties);
 }
 
@@ -109,9 +109,9 @@ void AbstractCommand::store(PersistentPool &pool) const
     pool.store(m_description);
     pool.store(m_extendedDescription);
     pool.store(m_highlight);
-    pool.stream() << m_ignoreDryRun;
-    pool.stream() << m_silent;
-    m_codeLocation.store(pool);
+    pool.store(m_ignoreDryRun);
+    pool.store(m_silent);
+    pool.store(m_codeLocation);
     pool.store(m_properties);
 }
 
@@ -292,15 +292,16 @@ void ProcessCommand::load(PersistentPool &pool)
     AbstractCommand::load(pool);
     pool.load(m_program);
     pool.load(m_arguments);
-    const QStringList envList = pool.load<QStringList>();
+    pool.load(m_environment);
     pool.load(m_workingDir);
     pool.load(m_stdoutFilterFunction);
     pool.load(m_stderrFilterFunction);
     pool.load(m_responseFileUsagePrefix);
-    pool.stream() >> m_maxExitCode >> m_responseFileThreshold >> m_responseFileArgumentIndex;
+    pool.load(m_maxExitCode);
+    pool.load(m_responseFileThreshold);
+    pool.load(m_responseFileArgumentIndex);
     pool.load(m_stdoutFilePath);
     pool.load(m_stderrFilePath);
-    getEnvironmentFromList(envList);
 }
 
 void ProcessCommand::store(PersistentPool &pool) const
@@ -308,12 +309,14 @@ void ProcessCommand::store(PersistentPool &pool) const
     AbstractCommand::store(pool);
     pool.store(m_program);
     pool.store(m_arguments);
-    pool.store(m_environment.toStringList());
+    pool.store(m_environment);
     pool.store(m_workingDir);
     pool.store(m_stdoutFilterFunction);
     pool.store(m_stderrFilterFunction);
     pool.store(m_responseFileUsagePrefix);
-    pool.stream() << m_maxExitCode << m_responseFileThreshold << m_responseFileArgumentIndex;
+    pool.store(m_maxExitCode);
+    pool.store(m_responseFileThreshold);
+    pool.store(m_responseFileArgumentIndex);
     pool.store(m_stdoutFilePath);
     pool.store(m_stderrFilePath);
 }
@@ -384,12 +387,10 @@ void JavaScriptCommand::store(PersistentPool &pool) const
 QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool)
 {
     QList<AbstractCommandPtr> commands;
-    int count;
-    pool.stream() >> count;
+    int count = pool.load<int>();
     commands.reserve(count);
     while (--count >= 0) {
-        int cmdType;
-        pool.stream() >> cmdType;
+        const auto cmdType = pool.load<quint8>();
         AbstractCommandPtr cmd;
         switch (cmdType) {
         case AbstractCommand::JavaScriptCommandType:
@@ -408,9 +409,9 @@ QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool)
 
 void storeCommandList(const QList<AbstractCommandPtr> &commands, PersistentPool &pool)
 {
-    pool.stream() << commands.count();
+    pool.store(commands.count());
     foreach (const AbstractCommandPtr &cmd, commands) {
-        pool.stream() << int(cmd->type());
+        pool.store(static_cast<quint8>(cmd->type()));
         pool.store(cmd);
     }
 }

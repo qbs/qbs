@@ -50,6 +50,16 @@ void FileTag::clear()
     Id::operator=(Id());
 }
 
+void FileTag::store(PersistentPool &pool) const
+{
+    pool.store(toString());
+}
+
+void FileTag::load(PersistentPool &pool)
+{
+    *this = FileTag(pool.load<QString>().toUtf8());
+}
+
 QStringList FileTags::toStringList() const
 {
     QStringList strlst;
@@ -62,7 +72,7 @@ FileTags FileTags::fromStringList(const QStringList &strings)
 {
     FileTags result;
     foreach (const QString &str, strings)
-        result += FileTag(str.toLocal8Bit());
+        result += FileTag(str.toUtf8());
     return result;
 }
 
@@ -75,16 +85,6 @@ bool FileTags::matches(const FileTags &other) const
         if (contains(*it))
             return true;
     return false;
-}
-
-void FileTags::store(PersistentPool &pool) const
-{
-    pool.store(toStringList());
-}
-
-void FileTags::load(PersistentPool &pool)
-{
-    *this = fromStringList(pool.load<QStringList>());
 }
 
 LogWriter operator <<(LogWriter w, const FileTags &tags)

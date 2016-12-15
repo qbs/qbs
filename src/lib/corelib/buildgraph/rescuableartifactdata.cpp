@@ -54,46 +54,27 @@ RescuableArtifactData::~RescuableArtifactData()
 
 void RescuableArtifactData::load(PersistentPool &pool)
 {
-    pool.stream() >> timeStamp;
-
-    int c;
-    pool.stream() >> c;
-    for (int i = 0; i < c; ++i) {
-        ChildData cd;
-        pool.load(cd.productName);
-        pool.load(cd.productProfile);
-        pool.load(cd.childFilePath);
-        pool.stream() >> cd.addedByScanner;
-        children << cd;
-    }
-
-    propertiesRequestedInPrepareScript = restorePropertySet(pool);
-    propertiesRequestedInCommands = restorePropertySet(pool);
-    propertiesRequestedFromArtifactInPrepareScript = restorePropertyHash(pool);
-    propertiesRequestedFromArtifactInCommands = restorePropertyHash(pool);
+    pool.load(timeStamp);
+    pool.load(children);
+    pool.load(propertiesRequestedInPrepareScript);
+    pool.load(propertiesRequestedInCommands);
+    pool.load(propertiesRequestedFromArtifactInPrepareScript);
+    pool.load(propertiesRequestedFromArtifactInCommands);
     commands = loadCommandList(pool);
-    fileTags.load(pool);
+    pool.load(fileTags);
     pool.load(properties);
 }
 
 void RescuableArtifactData::store(PersistentPool &pool) const
 {
-    pool.stream() << timeStamp;
-
-    pool.stream() << children.count();
-    foreach (const ChildData &cd, children) {
-        pool.store(cd.productName);
-        pool.store(cd.productProfile);
-        pool.store(cd.childFilePath);
-        pool.stream() << cd.addedByScanner;
-    }
-
-    storePropertySet(pool, propertiesRequestedInPrepareScript);
-    storePropertySet(pool, propertiesRequestedInCommands);
-    storePropertyHash(pool, propertiesRequestedFromArtifactInPrepareScript);
-    storePropertyHash(pool, propertiesRequestedFromArtifactInCommands);
+    pool.store(timeStamp);
+    pool.store(children);
+    pool.store(propertiesRequestedInPrepareScript);
+    pool.store(propertiesRequestedInCommands);
+    pool.store(propertiesRequestedFromArtifactInPrepareScript);
+    pool.store(propertiesRequestedFromArtifactInCommands);
     storeCommandList(commands, pool);
-    fileTags.store(pool);
+    pool.store(fileTags);
     pool.store(properties);
 }
 
