@@ -43,7 +43,7 @@ CppApplication {
     condition: qbs.targetOS.contains("ios")
     name: "Cocoa Touch Application"
 
-    cpp.precompiledHeader: "CocoaTouchApplication/CocoaTouchApplication-Prefix.pch"
+    cpp.useObjcPrecompiledHeader: true
 
     cpp.frameworks: [ "UIKit", "Foundation", "CoreGraphics" ]
 
@@ -53,7 +53,6 @@ CppApplication {
             "AppDelegate.h",
             "AppDelegate.m",
             "CocoaTouchApplication-Info.plist",
-            "CocoaTouchApplication-Prefix.pch",
             "Default-568h@2x.png",
             "Default.png",
             "Default@2x.png",
@@ -75,5 +74,10 @@ CppApplication {
             "MasterViewController_iPad.xib",
             "MasterViewController_iPhone.xib"
         ]
+    }
+
+    Group {
+        files: ["CocoaTouchApplication/CocoaTouchApplication-Prefix.pch"]
+        fileTags: ["objc_pch_src"]
     }
 }

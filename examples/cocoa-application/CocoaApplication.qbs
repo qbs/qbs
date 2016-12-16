@@ -43,7 +43,7 @@ CppApplication {
     condition: qbs.targetOS.contains("macos")
     name: "Cocoa Application"
 
-    cpp.precompiledHeader: "CocoaApplication/CocoaApplication-Prefix.pch"
+    cpp.useObjcPrecompiledHeader: true
 
     cpp.frameworks: ["Cocoa"]
 
@@ -53,7 +53,6 @@ CppApplication {
             "AppDelegate.h",
             "AppDelegate.m",
             "CocoaApplication-Info.plist",
-            "CocoaApplication-Prefix.pch",
             "main.m"
         ]
     }
@@ -66,5 +65,10 @@ CppApplication {
             "InfoPlist.strings",
             "MainMenu.xib"
         ]
+    }
+
+    Group {
+        files: ["CocoaApplication/CocoaApplication-Prefix.pch"]
+        fileTags: ["objc_pch_src"]
     }
 }

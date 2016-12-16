@@ -13,4 +13,10 @@ CppApplication {
 
     cpp.driverFlags: ["-v"]
     cpp.linkerFlags: ["-v"]
+
+    targetName: {
+        if (cpp.compilerVersionMajor < 6 && qbs.architecture === "x86_64h")
+            throw("x86_64h will be mis-detected as x86_64 with Apple Clang < 6.0");
+        return name;
+    }
 }
