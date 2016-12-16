@@ -7,6 +7,16 @@ import qbs
 
 Project {
 Application {
+    Probe {
+        property var buildEnv: cpp.buildEnv
+        configure: {
+            if (buildEnv) {
+                console.info("INCLUDE=" + buildEnv["INCLUDE"]);
+                console.info("LIB=" + buildEnv["LIB"]);
+            }
+        }
+    }
+
     targetName: "i like spaces"
 
     Depends {
