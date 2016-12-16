@@ -103,6 +103,15 @@ public:
     }
 
 private:
+    QScriptValue importScope(Evaluator *evaluator, const FileContextConstPtr &file)
+    {
+        try {
+            return evaluator->importScope(file);
+        } catch (const ErrorInfo &e) {
+            return evaluator->engine()->currentContext()->throwError(e.toString());
+        }
+    }
+
     void setupConvenienceProperty(const QString &conveniencePropertyName, QScriptValue *extraScope,
                                   const QScriptValue &scriptValue)
     {
@@ -194,7 +203,15 @@ private:
             if (alternative->value->definingItem())
                 pushItemScopes(alternative->value->definingItem());
             engine->currentContext()->pushScope(conditionScope);
-            engine->currentContext()->pushScope(data->evaluator->importScope(value->file()));
+            const QScriptValue theImportScope = importScope(data->evaluator, value->file());
+            if (theImportScope.isError()) {
+                engine->currentContext()->popScope();
+                engine->currentContext()->popScope();
+                popScopes();
+                *result = theImportScope;
+                return;
+            }
+            engine->currentContext()->pushScope(theImportScope);
             const QScriptValue cr = engine->evaluate(alternative->condition);
             const QScriptValue overrides = engine->evaluate(alternative->overrideListProperties);
             engine->currentContext()->popScope();
@@ -269,9 +286,14 @@ private:
         if (value->definingItem())
             pushItemScopes(value->definingItem());
         pushScope(extraScope);
-        pushScope(data->evaluator->importScope(value->file()));
-        *result = engine->evaluate(value->sourceCodeForEvaluation(), value->file()->filePath(),
-                                   value->line());
+        const QScriptValue theImportScope = importScope(data->evaluator, value->file());
+        if (theImportScope.isError()) {
+            *result = theImportScope;
+        } else {
+            pushScope(data->evaluator->importScope(value->file()));
+            *result = engine->evaluate(value->sourceCodeForEvaluation(), value->file()->filePath(),
+                                       value->line());
+        }
         popScopes();
     }
 
