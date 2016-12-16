@@ -266,7 +266,7 @@ function helperOverrideArgs(product, tool) {
         // Build the helper tool's class files separately from the actual product's class files
         overrides["classFilesDir"] = ModUtils.moduleProperty(product, "internalClassFilesDir");
 
-        // Add tools.jar to the classpath as required for the tree scanner API on JDK 7+
+        // Add tools.jar to the classpath as required for the tree scanner API
         var toolsJarPath = ModUtils.moduleProperty(product, "toolsJarPath");
         if (toolsJarPath)
             overrides["additionalClassPaths"] = [toolsJarPath].concat(

@@ -105,8 +105,9 @@ Module {
 
     property pathList jdkIncludePaths: {
         var paths = [];
-        if (qbs.hostOS.contains("darwin") && compilerVersionMinor <= 6) {
-            paths.push("/System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers");
+        if (isAppleJava) {
+            paths.push(FileInfo.joinPaths(qbs.sysroot,
+                "/System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers"));
         } else {
             paths.push(FileInfo.joinPaths(jdkPath, "include"));
 
@@ -128,15 +129,28 @@ Module {
     property path classFilesDir: FileInfo.joinPaths(product.buildDirectory, "classes")
     property path internalClassFilesDir: FileInfo.joinPaths(product.buildDirectory, ".classes")
 
-    property path runtimeJarPath: {
-        if (qbs.hostOS.contains("macos") && compilerVersionMajor === 1 && compilerVersionMinor < 7)
+    property bool isAppleJava: qbs.hostOS.contains("darwin")
+                               && (compilerVersionMajor < 1
+                                   || (compilerVersionMajor === 1 && compilerVersionMinor < 7))
+
+    // https://developer.apple.com/library/content/documentation/Java/Conceptual/Java14Development/02-JavaDevTools/JavaDevTools.html
+    // tools.jar does not exist. Classes usually located here are instead included in classes.jar.
+    // The same is true for rt.jar, although not mentioned in the documentation
+    property path classesJarPath: {
+        if (isAppleJava)
             return FileInfo.joinPaths(jdkPath, "bundle", "Classes", "classes.jar");
+    }
+
+    property path runtimeJarPath: {
+        if (classesJarPath)
+            return classesJarPath;
         return FileInfo.joinPaths(jdkPath, "jre", "lib", "rt.jar");
     }
 
     property path toolsJarPath: {
-        if (compilerVersionMajor > 1 || (compilerVersionMajor === 1 && compilerVersionMinor >= 7))
-            return FileInfo.joinPaths(jdkPath, "lib", "tools.jar");
+        if (classesJarPath)
+            return classesJarPath;
+        return FileInfo.joinPaths(jdkPath, "lib", "tools.jar");
     }
 
     validate: {
