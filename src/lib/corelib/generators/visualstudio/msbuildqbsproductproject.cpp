@@ -138,7 +138,9 @@ void MSBuildQbsProductProject::addConfiguration(const GeneratableProject &projec
                                    debugBuild ? QStringLiteral("true") : QStringLiteral("false"));
 
     // General - General
-    propertyGroup1->appendProperty(QStringLiteral("OutDir"), relativeTargetDir);
+    // We need a trailing backslash for $(OutDir); See also the VS documentation:
+    // https://docs.microsoft.com/en-us/cpp/ide/common-macros-for-build-commands-and-properties
+    propertyGroup1->appendProperty(QStringLiteral("OutDir"), relativeTargetDir + QLatin1Char('\\'));
     propertyGroup1->appendProperty(QStringLiteral("TargetName"), productData.targetName());
     propertyGroup1->appendProperty(QStringLiteral("PlatformToolset"),
                                    versionInfo().platformToolsetVersion());
