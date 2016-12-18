@@ -324,8 +324,12 @@ void MSBuildQbsProductProject::addFiles(const GeneratableProject &project,
                     });
                 }
                 auto fileItem = sourceFileNodes[filePath];
-                fileItem->setFilePath(QStringLiteral("$(ProjectDir)")
-                                      + project.baseBuildDirectory().relativeFilePath(filePath));
+                QString path = project.baseBuildDirectory().relativeFilePath(filePath);
+                // The path still might not be relative (for example if the file item is
+                // located on a different drive)
+                if (QFileInfo(path).isRelative())
+                    path = QStringLiteral("$(ProjectDir)") + path;
+                fileItem->setFilePath(path);
                 if (group.isEnabled())
                     sourceFileEnabledConfigurations[filePath] << productDataIt.key();
             }
