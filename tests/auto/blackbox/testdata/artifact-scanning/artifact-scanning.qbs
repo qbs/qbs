@@ -3,6 +3,7 @@ import qbs
 Project {
     CppApplication {
         name: "p1"
+        consoleApplication: true
         cpp.includePaths: ["."]
         files: [
             "p1.cpp",
@@ -12,6 +13,7 @@ Project {
 
     CppApplication {
         name: "p2"
+        consoleApplication: true
         cpp.includePaths: ["."]
         files: [
             "p2.cpp",
@@ -21,6 +23,7 @@ Project {
 
     CppApplication {
         name: "p3"
+        consoleApplication: true
         cpp.includePaths: [".", "subdir"]
         files: [
             "p3.cpp",
