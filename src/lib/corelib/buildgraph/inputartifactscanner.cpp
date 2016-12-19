@@ -168,8 +168,8 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
     const QSet<DependencyScanner *> scanners = scannersForArtifact(inputArtifact);
     if (scanners.isEmpty())
         return;
-    m_fileTagsForScanner = inputArtifact->fileTags().toStringList().join(QLatin1Char(','))
-            .toLatin1().constData();
+    m_fileTagsForScanner
+            = inputArtifact->fileTags().toStringList().join(QLatin1Char(',')).toLatin1();
     while (!filesToScan.isEmpty()) {
         FileResourceBase *fileToBeScanned = filesToScan.takeFirst();
         const QString &filePathToBeScanned = fileToBeScanned->filePath();
@@ -363,7 +363,7 @@ void InputArtifactScanner::scanWithScannerPlugin(DependencyScanner *scanner,
                                                  ScanResultCache::Result *scanResult)
 {
     const QStringList &dependencies
-            = scanner->collectDependencies(fileToBeScanned, m_fileTagsForScanner);
+            = scanner->collectDependencies(fileToBeScanned, m_fileTagsForScanner.constData());
     for (const QString &s : dependencies)
         scanResult->deps += ScanResultCache::Dependency(s);
     scanResult->valid = true;

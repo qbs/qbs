@@ -145,7 +145,7 @@ private:
 
     Artifact * const m_artifact;
     InputArtifactScannerContext *const m_context;
-    const char *m_fileTagsForScanner;
+    QByteArray m_fileTagsForScanner;
     bool m_newDependencyAdded;
     Logger m_logger;
 };
