@@ -105,6 +105,11 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         QBS_CHECK(inheritorItem->type() <= ItemType::LastActualItem);
         item->setType(inheritorItem->type());
     } else {
+        if (fullTypeName.count() > 1) {
+            throw ErrorInfo(Tr::tr("Invalid item '%1'. Did you mean to set a module property?")
+                            .arg(fullTypeName.join(QLatin1Char('.'))),
+                            item->location());
+        }
         const ItemType itemType
                 = BuiltinDeclarations::instance().typeForName(typeName, item->location());
         checkDeprecationStatus(itemType, typeName, item->location());

@@ -604,6 +604,8 @@ void TestLanguage::erroneousFiles_data()
             << "Export item in inherited item redeclares property 'theProp' with different type.";
     QTest::newRow("invalid-property-option")
             << "PropertyOptions item refers to non-existing property 's0meProp'";
+    QTest::newRow("missing-colon")
+            << "Invalid item 'cpp.dynamicLibraries'. Did you mean to set a module property?";
 }
 
 void TestLanguage::erroneousFiles()
