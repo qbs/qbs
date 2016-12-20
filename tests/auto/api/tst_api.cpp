@@ -1521,6 +1521,7 @@ void TestApi::newPatternMatch()
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(!receiver.taskDescriptions.contains("Resolving"));
 
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile f("test.txt");
     QVERIFY2(f.open(QIODevice::WriteOnly), qPrintable(f.errorString()));
     f.close();
@@ -1533,6 +1534,7 @@ void TestApi::newPatternMatch()
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(!receiver.taskDescriptions.contains("Resolving"));
 
+    WAIT_FOR_NEW_TIMESTAMP();
     f.remove();
     errorInfo = doBuildProject("new-pattern-match/project.qbs", 0, 0, &receiver);
     VERIFY_NO_ERROR(errorInfo);

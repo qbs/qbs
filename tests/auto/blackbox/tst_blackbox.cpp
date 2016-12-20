@@ -1679,6 +1679,7 @@ void TestBlackbox::wildcardRenaming()
     QDir::setCurrent(testDataDir + "/wildcard_renaming");
     QCOMPARE(runQbs(QbsRunParameters("install")), 0);
     QVERIFY(QFileInfo(defaultInstallRoot + "/pioniere.txt").exists());
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile::rename(QDir::currentPath() + "/pioniere.txt", QDir::currentPath() + "/fdj.txt");
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"),
                                      QStringList("--clean-install-root"))), 0);
@@ -4418,6 +4419,7 @@ void TestBlackbox::wildCardsAndRules()
     output.close();
 
     // Add input.
+    WAIT_FOR_NEW_TIMESTAMP();
     touch("input2.inp");
     QbsRunParameters params;
     params.expectFailure = true;
@@ -4428,6 +4430,7 @@ void TestBlackbox::wildCardsAndRules()
     output.close();
 
     // Add "explicitlyDependsOn".
+    WAIT_FOR_NEW_TIMESTAMP();
     touch("dep.dep");
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("Creating output artifact"));

@@ -64,6 +64,8 @@
 #include <QDir>
 #include <QFileInfo>
 
+#include <algorithm>
+
 namespace qbs {
 namespace Internal {
 
@@ -496,6 +498,14 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
                                             ? &m_wildcardExpansionEffort : nullptr);
             foreach (const GroupPtr &group, product->groups) {
                 if (!group->wildcards)
+                    continue;
+                const bool reExpansionRequired = std::any_of(
+                            group->wildcards->dirTimeStamps.cbegin(),
+                            group->wildcards->dirTimeStamps.cend(),
+                            [](const QPair<QString, FileTime> &pair) {
+                                return FileInfo(pair.first).lastModified() > pair.second;
+                });
+                if (!reExpansionRequired)
                     continue;
                 const QString &buildDirectory = product->project->topLevelProject()->buildDirectory;
                 const QSet<QString> files

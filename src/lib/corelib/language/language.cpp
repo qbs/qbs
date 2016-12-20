@@ -168,6 +168,7 @@ void SourceWildCards::load(PersistentPool &pool)
     pool.load(prefix);
     pool.load(patterns);
     pool.load(excludePatterns);
+    pool.load(dirTimeStamps);
     pool.load(files);
 }
 
@@ -176,6 +177,7 @@ void SourceWildCards::store(PersistentPool &pool) const
     pool.store(prefix);
     pool.store(patterns);
     pool.store(excludePatterns);
+    pool.store(dirTimeStamps);
     pool.store(files);
 }
 
@@ -1040,7 +1042,7 @@ void TopLevelProject::store(PersistentPool &pool) const
  */
 
 QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
-                                              const QString &baseDir, const QString &buildDir) const
+                                              const QString &baseDir, const QString &buildDir)
 {
     QSet<QString> files = expandPatterns(group, patterns, baseDir, buildDir);
     files -= expandPatterns(group, excludePatterns, baseDir, buildDir);
@@ -1048,7 +1050,7 @@ QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
 }
 
 QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
-        const QStringList &patterns, const QString &baseDir, const QString &buildDir) const
+        const QStringList &patterns, const QString &baseDir, const QString &buildDir)
 {
     QSet<QString> files;
     QString expandedPrefix = prefix;
@@ -1078,13 +1080,15 @@ QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
 
 void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr &group,
                                      const QStringList &parts,
-                                     const QString &baseDir, const QString &buildDir) const
+                                     const QString &baseDir, const QString &buildDir)
 {
     // People might build directly in the project source directory. This is okay, since
     // we keep the build data in a "container" directory. However, we must make sure we don't
     // match any generated files therein as source files.
     if (baseDir.startsWith(buildDir))
         return;
+
+    dirTimeStamps << qMakePair(baseDir, FileInfo(baseDir).lastModified());
 
     QStringList changed_parts = parts;
     bool recursive = false;

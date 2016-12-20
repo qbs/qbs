@@ -217,23 +217,24 @@ public:
     static Ptr create() { return Ptr(new SourceWildCards); }
 
     QSet<QString> expandPatterns(const GroupConstPtr &group, const QString &baseDir,
-                                 const QString &buildDir) const;
+                                 const QString &buildDir);
 
     // TODO: Use back pointer to Group instead?
     QString prefix;
 
     QStringList patterns;
     QStringList excludePatterns;
+    QVector<QPair<QString, FileTime>> dirTimeStamps;
     QList<SourceArtifactPtr> files;
 
 private:
     SourceWildCards() {}
 
     QSet<QString> expandPatterns(const GroupConstPtr &group, const QStringList &patterns,
-                                 const QString &baseDir, const QString &buildDir) const;
+                                 const QString &baseDir, const QString &buildDir);
     void expandPatterns(QSet<QString> &result, const GroupConstPtr &group,
                         const QStringList &parts, const QString &baseDir,
-                        const QString &buildDir) const;
+                        const QString &buildDir);
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
