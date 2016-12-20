@@ -15,6 +15,9 @@ HEADERS += \
     $$PWD/generateoptions.h \
     $$PWD/id.h \
     $$PWD/jsliterals.h \
+    $$PWD/launcherinterface.h \
+    $$PWD/launcherpackets.h \
+    $$PWD/launchersocket.h \
     $$PWD/msvcinfo.h \
     $$PWD/persistence.h \
     $$PWD/scannerpluginmanager.h \
@@ -31,6 +34,7 @@ HEADERS += \
     $$PWD/processutils.h \
     $$PWD/progressobserver.h \
     $$PWD/projectgeneratormanager.h \
+    $$PWD/qbsprocess.h \
     $$PWD/shellutils.h \
     $$PWD/toolchains.h \
     $$PWD/hostosinfo.h \
@@ -61,6 +65,9 @@ SOURCES += \
     $$PWD/generateoptions.cpp \
     $$PWD/id.cpp \
     $$PWD/jsliterals.cpp \
+    $$PWD/launcherinterface.cpp \
+    $$PWD/launcherpackets.cpp \
+    $$PWD/launchersocket.cpp \
     $$PWD/msvcinfo.cpp \
     $$PWD/persistence.cpp \
     $$PWD/scannerpluginmanager.cpp \
@@ -74,6 +81,7 @@ SOURCES += \
     $$PWD/profiling.cpp \
     $$PWD/progressobserver.cpp \
     $$PWD/projectgeneratormanager.cpp \
+    $$PWD/qbsprocess.cpp \
     $$PWD/shellutils.cpp \
     $$PWD/buildoptions.cpp \
     $$PWD/installoptions.cpp \

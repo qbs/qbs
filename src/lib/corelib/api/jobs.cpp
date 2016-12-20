@@ -41,6 +41,7 @@
 #include "internaljobs.h"
 #include "project_p.h"
 #include <language/language.h>
+#include <tools/launcherinterface.h>
 #include <tools/qbsassert.h>
 
 #include <QtCore/qtimer.h>
@@ -161,6 +162,8 @@ AbstractJob::~AbstractJob()
  */
 ErrorInfo AbstractJob::error() const
 {
+    if (m_error.hasError())
+        return m_error;
     return internalJob()->error();
 }
 
@@ -300,6 +303,8 @@ void SetupProjectJob::finish()
 BuildJob::BuildJob(const Logger &logger, QObject *parent)
     : AbstractJob(new InternalBuildJob(logger), parent)
 {
+    connect(&LauncherInterface::instance(), &LauncherInterface::errorOccurred,
+            this, &BuildJob::handleLauncherError);
     InternalBuildJob *job = static_cast<InternalBuildJob *>(internalJob());
     connect(job, &BuildGraphTouchingJob::reportCommandDescription,
             this, &BuildJob::reportCommandDescription);
@@ -312,7 +317,19 @@ void BuildJob::build(const TopLevelProjectPtr &project, const QList<ResolvedProd
 {
     if (!lockProject(project))
         return;
+    LauncherInterface::startLauncher();
     qobject_cast<InternalBuildJob *>(internalJob())->build(project, products, options);
+}
+
+void BuildJob::handleLauncherError(const ErrorInfo &error)
+{
+    setError(error);
+    cancel();
+}
+
+void BuildJob::finish()
+{
+    LauncherInterface::stopLauncher();
 }
 
 

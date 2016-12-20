@@ -37,63 +37,56 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_PROCESSCOMMANDEXECUTOR_H
-#define QBS_PROCESSCOMMANDEXECUTOR_H
+#ifndef QBS_LAUNCHERSOCKETHANDLER_H
+#define QBS_LAUNCHERSOCKETHANDLER_H
 
-#include "abstractcommandexecutor.h"
+#include <launcherpackets.h>
 
-#include <tools/qbsprocess.h>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qhash.h>
+#include <QtCore/qobject.h>
 
-#include <QtCore/qstring.h>
+QT_BEGIN_NAMESPACE
+class QLocalSocket;
+QT_END_NAMESPACE
 
 namespace qbs {
-class ProcessResult;
-
 namespace Internal {
-class ProcessCommand;
+class Process;
 
-class ProcessCommandExecutor : public AbstractCommandExecutor
+class LauncherSocketHandler : public QObject
 {
     Q_OBJECT
 public:
-    explicit ProcessCommandExecutor(const Internal::Logger &logger, QObject *parent = 0);
+    explicit LauncherSocketHandler(const QString &socketPath, QObject *parent = nullptr);
+    ~LauncherSocketHandler();
 
-    void setProcessEnvironment(const QProcessEnvironment &processEnvironment) {
-        m_buildEnvironment = processEnvironment;
-    }
-
-signals:
-    void reportProcessResult(const qbs::ProcessResult &result);
+    void start();
 
 private:
-    void onProcessError();
-    void onProcessFinished();
+    void handleSocketData();
+    void handleSocketError();
+    void handleSocketClosed();
+    void handleProcessError();
+    void handleProcessFinished();
+    void handleStopFailure();
 
-    void doSetup();
-    void doReportCommandDescription();
-    void doStart();
-    void cancel();
+    void handleStartPacket();
+    void handleStopPacket();
+    void handleShutdownPacket();
 
-    void startProcessCommand();
-    QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
-    void getProcessOutput(bool stdOut, ProcessResult &result);
+    void sendPacket(const LauncherPacket &packet);
 
-    void sendProcessOutput();
-    void removeResponseFile();
-    const ProcessCommand *processCommand() const;
+    Process *setupProcess(quintptr token);
+    Process *senderProcess() const;
 
-private:
-    QString m_program;
-    QStringList m_arguments;
-    QString m_shellInvocation;
-
-    QbsProcess m_process;
-    QProcessEnvironment m_buildEnvironment;
-    QProcessEnvironment m_commandEnvironment;
-    QString m_responseFileName;
+    const QString m_serverPath;
+    QLocalSocket * const m_socket;
+    PacketParser m_packetParser;
+    QHash<quintptr, Process *> m_processes;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_PROCESSCOMMANDEXECUTOR_H
+#endif // Include guard

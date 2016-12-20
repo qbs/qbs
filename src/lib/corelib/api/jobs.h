@@ -81,6 +81,7 @@ protected:
     Internal::InternalJob *internalJob() const { return m_internalJob; }
 
     bool lockProject(const Internal::TopLevelProjectPtr &project);
+    void setError(const ErrorInfo &error) { m_error = error; }
 
 signals:
     void taskStarted(const QString &description, int maximumProgressValue, qbs::AbstractJob *job);
@@ -99,6 +100,7 @@ private:
 
     Internal::InternalJob * const m_internalJob;
     Internal::TopLevelProjectPtr m_project;
+    ErrorInfo m_error;
     State m_state;
 };
 
@@ -136,6 +138,9 @@ private:
     void build(const Internal::TopLevelProjectPtr &project,
                const QList<qbs::Internal::ResolvedProductPtr> &products,
                const BuildOptions &options);
+    void handleLauncherError(const ErrorInfo &error);
+
+    void finish();
 };
 
 

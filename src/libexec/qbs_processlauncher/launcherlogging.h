@@ -36,64 +36,19 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QBS_LAUCHERLOGGING_H
+#define QBS_LAUCHERLOGGING_H
 
-#ifndef QBS_PROCESSCOMMANDEXECUTOR_H
-#define QBS_PROCESSCOMMANDEXECUTOR_H
-
-#include "abstractcommandexecutor.h"
-
-#include <tools/qbsprocess.h>
-
+#include <QtCore/qloggingcategory.h>
 #include <QtCore/qstring.h>
 
 namespace qbs {
-class ProcessResult;
-
 namespace Internal {
-class ProcessCommand;
+Q_DECLARE_LOGGING_CATEGORY(launcherLog)
+template<typename T> void logDebug(const T &msg) { qCDebug(launcherLog) << msg; }
+template<typename T> void logWarn(const T &msg) { qCWarning(launcherLog) << msg; }
+template<typename T> void logError(const T &msg) { qCCritical(launcherLog) << msg; }
+}
+}
 
-class ProcessCommandExecutor : public AbstractCommandExecutor
-{
-    Q_OBJECT
-public:
-    explicit ProcessCommandExecutor(const Internal::Logger &logger, QObject *parent = 0);
-
-    void setProcessEnvironment(const QProcessEnvironment &processEnvironment) {
-        m_buildEnvironment = processEnvironment;
-    }
-
-signals:
-    void reportProcessResult(const qbs::ProcessResult &result);
-
-private:
-    void onProcessError();
-    void onProcessFinished();
-
-    void doSetup();
-    void doReportCommandDescription();
-    void doStart();
-    void cancel();
-
-    void startProcessCommand();
-    QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
-    void getProcessOutput(bool stdOut, ProcessResult &result);
-
-    void sendProcessOutput();
-    void removeResponseFile();
-    const ProcessCommand *processCommand() const;
-
-private:
-    QString m_program;
-    QStringList m_arguments;
-    QString m_shellInvocation;
-
-    QbsProcess m_process;
-    QProcessEnvironment m_buildEnvironment;
-    QProcessEnvironment m_commandEnvironment;
-    QString m_responseFileName;
-};
-
-} // namespace Internal
-} // namespace qbs
-
-#endif // QBS_PROCESSCOMMANDEXECUTOR_H
+#endif // Include guard

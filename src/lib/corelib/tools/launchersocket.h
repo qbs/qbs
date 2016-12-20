@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,63 +37,55 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_PROCESSCOMMANDEXECUTOR_H
-#define QBS_PROCESSCOMMANDEXECUTOR_H
+#ifndef QBS_LAUNCHERSOCKET_H
+#define QBS_LAUNCHERSOCKET_H
 
-#include "abstractcommandexecutor.h"
+#include "launcherpackets.h"
 
-#include <tools/qbsprocess.h>
+#include <QtCore/qbytearraylist.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qobject.h>
 
-#include <QtCore/qstring.h>
+QT_BEGIN_NAMESPACE
+class QLocalSocket;
+QT_END_NAMESPACE
 
 namespace qbs {
-class ProcessResult;
-
 namespace Internal {
-class ProcessCommand;
+class LauncherInterface;
 
-class ProcessCommandExecutor : public AbstractCommandExecutor
+class LauncherSocket : public QObject
 {
     Q_OBJECT
+    friend class LauncherInterface;
 public:
-    explicit ProcessCommandExecutor(const Internal::Logger &logger, QObject *parent = 0);
-
-    void setProcessEnvironment(const QProcessEnvironment &processEnvironment) {
-        m_buildEnvironment = processEnvironment;
-    }
+    bool isReady() const { return m_socket; }
+    void sendData(const QByteArray &data);
 
 signals:
-    void reportProcessResult(const qbs::ProcessResult &result);
+    void ready();
+    void errorOccurred(const QString &error);
+    void packetArrived(qbs::Internal::LauncherPacketType type, quintptr token,
+                       const QByteArray &payload);
 
 private:
-    void onProcessError();
-    void onProcessFinished();
+    LauncherSocket(QObject *parent);
 
-    void doSetup();
-    void doReportCommandDescription();
-    void doStart();
-    void cancel();
+    void setSocket(QLocalSocket *socket);
+    void shutdown();
 
-    void startProcessCommand();
-    QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
-    void getProcessOutput(bool stdOut, ProcessResult &result);
+    void handleSocketError();
+    void handleSocketDataAvailable();
+    void handleError(const QString &error);
+    void handleRequests();
 
-    void sendProcessOutput();
-    void removeResponseFile();
-    const ProcessCommand *processCommand() const;
-
-private:
-    QString m_program;
-    QStringList m_arguments;
-    QString m_shellInvocation;
-
-    QbsProcess m_process;
-    QProcessEnvironment m_buildEnvironment;
-    QProcessEnvironment m_commandEnvironment;
-    QString m_responseFileName;
+    QLocalSocket *m_socket = nullptr;
+    PacketParser m_packetParser;
+    QByteArrayList m_requests;
+    QMutex m_requestsMutex;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_PROCESSCOMMANDEXECUTOR_H
+#endif // Include guard

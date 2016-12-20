@@ -18,6 +18,7 @@ QbsLibrary {
     property stringList projectFileUpdateDefines:
         qbsbuildconfig.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : []
     cpp.defines: base.concat([
+        'QBS_RELATIVE_LIBEXEC_PATH="' + qbsbuildconfig.relativeLibexecPath + '"',
         "QBS_VERSION=\"" + version + "\"",
         "QT_CREATOR", "QML_BUILD_STATIC_LIB",   // needed for QmlJS
         "SRCDIR=\"" + path + "\""
@@ -360,6 +361,12 @@ QbsLibrary {
             "jsliterals.cpp",
             "jsliterals.h",
             "installoptions.cpp",
+            "launcherinterface.cpp",
+            "launcherinterface.h",
+            "launcherpackets.cpp",
+            "launcherpackets.h",
+            "launchersocket.cpp",
+            "launchersocket.h",
             "msvcinfo.cpp",
             "msvcinfo.h",
             "pathutils.h",
@@ -379,6 +386,8 @@ QbsLibrary {
             "projectgeneratormanager.cpp",
             "qbsassert.cpp",
             "qbsassert.h",
+            "qbsprocess.cpp",
+            "qbsprocess.h",
             "qttools.cpp",
             "qttools.h",
             "scannerpluginmanager.cpp",

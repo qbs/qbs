@@ -71,9 +71,9 @@ namespace Internal {
 ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *parent)
     : AbstractCommandExecutor(logger, parent)
 {
-    connect(&m_process, static_cast<void (QProcess::*)(QProcess::ProcessError)>(&QProcess::error),
+    connect(&m_process, static_cast<void (QbsProcess::*)(QProcess::ProcessError)>(&QbsProcess::error),
             this, &ProcessCommandExecutor::onProcessError);
-    connect(&m_process, static_cast<void (QProcess::*)(int)>(&QProcess::finished),
+    connect(&m_process, static_cast<void (QbsProcess::*)(int)>(&QbsProcess::finished),
             this, &ProcessCommandExecutor::onProcessFinished);
 }
 
@@ -169,9 +169,7 @@ void ProcessCommandExecutor::cancel()
     // We don't want this command to be reported as failing, since we explicitly terminated it.
     disconnect(this, &ProcessCommandExecutor::reportProcessResult, 0, 0);
 
-    m_process.terminate();
-    if (!m_process.waitForFinished(1000))
-        m_process.kill();
+    m_process.cancel();
 }
 
 QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,

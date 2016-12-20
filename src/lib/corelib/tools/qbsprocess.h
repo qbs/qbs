@@ -37,63 +37,70 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_PROCESSCOMMANDEXECUTOR_H
-#define QBS_PROCESSCOMMANDEXECUTOR_H
+#ifndef QBS_QBSPROCESS_H
+#define QBS_QBSPROCESS_H
 
-#include "abstractcommandexecutor.h"
+#include "launcherpackets.h"
 
-#include <tools/qbsprocess.h>
-
-#include <QtCore/qstring.h>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
-class ProcessResult;
-
 namespace Internal {
-class ProcessCommand;
 
-class ProcessCommandExecutor : public AbstractCommandExecutor
+class QbsProcess : public QObject
 {
     Q_OBJECT
 public:
-    explicit ProcessCommandExecutor(const Internal::Logger &logger, QObject *parent = 0);
+    explicit QbsProcess(QObject *parent = 0);
 
-    void setProcessEnvironment(const QProcessEnvironment &processEnvironment) {
-        m_buildEnvironment = processEnvironment;
-    }
+    QProcess::ProcessState state() const { return m_state; }
+    void setProcessEnvironment(const QProcessEnvironment &env) { m_environment = env; }
+    void setWorkingDirectory(const QString &workingDir) { m_workingDirectory = workingDir; }
+    QString workingDirectory() const { return m_workingDirectory; }
+    void start(const QString &command, const QStringList &arguments);
+    void cancel();
+    QByteArray readAllStandardOutput();
+    QByteArray readAllStandardError();
+    int exitCode() const { return m_exitCode; }
+    QProcess::ProcessError error() const { return m_error; }
+    QString errorString() const { return m_errorString; }
 
 signals:
-    void reportProcessResult(const qbs::ProcessResult &result);
+    void error(QProcess::ProcessError error);
+    void finished(int exitCode);
 
 private:
-    void onProcessError();
-    void onProcessFinished();
-
-    void doSetup();
-    void doReportCommandDescription();
     void doStart();
-    void cancel();
+    void sendPacket(const LauncherPacket &packet);
+    QByteArray readAndClear(QByteArray &data);
 
-    void startProcessCommand();
-    QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
-    void getProcessOutput(bool stdOut, ProcessResult &result);
+    void handleSocketError(const QString &message);
+    void handlePacket(qbs::Internal::LauncherPacketType type, quintptr token,
+                      const QByteArray &payload);
+    void handleErrorPacket(const QByteArray &packetData);
+    void handleFinishedPacket(const QByteArray &packetData);
+    void handleSocketReady();
 
-    void sendProcessOutput();
-    void removeResponseFile();
-    const ProcessCommand *processCommand() const;
+    quintptr token() const { return reinterpret_cast<quintptr>(this); }
 
-private:
-    QString m_program;
+    QString m_command;
     QStringList m_arguments;
-    QString m_shellInvocation;
-
-    QbsProcess m_process;
-    QProcessEnvironment m_buildEnvironment;
-    QProcessEnvironment m_commandEnvironment;
-    QString m_responseFileName;
+    QProcessEnvironment m_environment;
+    QString m_workingDirectory;
+    QByteArray m_stdout;
+    QByteArray m_stderr;
+    QString m_errorString;
+    QProcess::ProcessError m_error = QProcess::UnknownError;
+    QProcess::ProcessState m_state = QProcess::NotRunning;
+    int m_exitCode;
+    int m_connectionAttempts = 0;
+    bool m_socketError = false;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_PROCESSCOMMANDEXECUTOR_H
+#endif // QBSPROCESS_H
