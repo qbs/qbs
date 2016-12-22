@@ -646,7 +646,6 @@ void Executor::finishArtifact(Artifact *leaf)
         m_logger.qbsTrace() << "[EXEC] finishArtifact " << relativeArtifactFileName(leaf);
 
     finishNode(leaf);
-    m_scanResultCache.remove(leaf->filePath());
 }
 
 QString Executor::configString() const

@@ -290,10 +290,11 @@ resolved:
         handleDependency(resolvedDependency);
         if (artifactsToScan && resolvedDependency.file) {
             if (Artifact *artifactDependency = dynamic_cast<Artifact *>(resolvedDependency.file)) {
-                // Do not scan artifacts that are being built. Otherwise we might read an incomplete
-                // file or conflict with the writing process.
-                if (artifactDependency->buildState != BuildGraphNode::Building)
+                // Do not scan an artifact that is not built yet: Its contents might still change.
+                if (artifactDependency->artifactType == Artifact::SourceFile
+                        || artifactDependency->buildState == BuildGraphNode::Built) {
                     artifactsToScan->append(artifactDependency);
+                }
             } else {
                 // Add file dependency to the next round of scanning.
                 artifactsToScan->append(resolvedDependency.file);

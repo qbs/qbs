@@ -83,7 +83,6 @@ public:
 
     Result value(const void* scanner, const QString &fileName) const;
     void insert(const void* scanner, const QString &fileName, const Result &value);
-    void remove(const QString &fileName);
 
 private:
     typedef QHash<const void*, QHash<QString, Result> > ScanResultCacheData;

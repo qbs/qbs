@@ -61,14 +61,5 @@ void ScanResultCache::insert(const void *scanner, const QString &fileName, const
     m_data[scanner].insert(fileName, value);
 }
 
-void ScanResultCache::remove(const QString &fileName)
-{
-    ScanResultCacheData::iterator i = m_data.begin();
-    while (i != m_data.end()) {
-        i.value().remove(fileName);
-        ++i;
-    }
-}
-
 } // namespace Internal
 } // namespace qbs
