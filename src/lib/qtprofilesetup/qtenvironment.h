@@ -79,6 +79,7 @@ public:
     Internal::Version msvcVersion;
     bool staticBuild = false;
     bool frameworkBuild = false;
+    bool hasQtQuickCompiler = false;
 };
 
 } // namespace qbs

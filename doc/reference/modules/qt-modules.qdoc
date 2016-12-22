@@ -143,7 +143,7 @@
         \li quick
         \li Qt Quick (2)
         \li Provides the \c{Qt Quick} module (Qt Quick 2). For more information,
-            see \l {quick Properties}.
+            see \l{quick Properties} and \l{quick File Tags}.
     \row
         \li qml
         \li Qt QML
@@ -481,6 +481,11 @@
         \li Default
         \li Description
     \row
+        \li compilerAvailable
+        \li \c{bool}
+        \li set by \c{qbs-setup-qt}
+        \li Specifies whether the Qt installation contains the Qt Quick compiler.
+    \row
         \li qmlDebugging
         \li \c{bool}
         \li \c{false}
@@ -714,6 +719,26 @@
         \li \c{*.qml}
         \li 1.8
         \li Source files with this tag serve as inputs to the QML plugin scanner.
+    \endtable
+
+    \section2 quick File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"qt.quick.qrc"}
+        \li \c{*.qrc}
+        \li 1.10
+        \li Qt resource files with this file tag will be picked up by the
+            Qt Quick compiler rule, and all QML files in the resource will be
+            compiled.
+
+            This file tag will only be added automatically if the Qt Quick
+            compiler is available.
     \endtable
 
     \section2 scxml File Tags

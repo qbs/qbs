@@ -221,6 +221,11 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
         s << indent << "property string qmlImportsPath: "
                 << pathToJSLiteral(qtEnvironment.qmlImportPath);
 
+        if (module.qbsName == QLatin1String("quick")) {
+            s << endl << indent << "property bool compilerAvailable: "
+              << toJSLiteral(qtEnvironment.hasQtQuickCompiler);
+        }
+
         const QByteArray baIndent(4, ' ');
         compilerDefines = "{\n"
                 + baIndent + baIndent + "var result = " + compilerDefines + ";\n"
@@ -324,6 +329,10 @@ static void createModules(Profile &profile, Settings *settings,
             }
         } else if (module.qbsName == QLatin1String("phonon")) {
             moduleTemplateFileName = QLatin1String("phonon.qbs");
+        } else if (module.qbsName == QLatin1String("quick")) {
+            moduleTemplateFileName = QLatin1String("quick.qbs");
+            copyTemplateFile(QLatin1String("quick.js"), qbsQtModuleDir, profile,
+                             qtEnvironment, &allFiles);
         } else if (module.isPlugin) {
             moduleTemplateFileName = QLatin1String("plugin.qbs");
         } else {
@@ -485,6 +494,10 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
 
     Profile profile(profileName, settings);
     profile.removeProfile();
+    if (QFileInfo::exists(qtEnvironment.mkspecBasePath
+                          + QStringLiteral("/features/qtquickcompiler.prf"))) {
+        qtEnvironment.hasQtQuickCompiler = true;
+    }
     createModules(profile, settings, qtEnvironment);
 }
 

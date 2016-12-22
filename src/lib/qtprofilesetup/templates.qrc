@@ -15,5 +15,7 @@
         <file>templates/qml.qbs</file>
         <file>templates/qml.js</file>
         <file>templates/qmlcache.qbs</file>
+        <file>templates/quick.js</file>
+        <file>templates/quick.qbs</file>
     </qresource>
 </RCC>
