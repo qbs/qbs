@@ -38,39 +38,17 @@
 ****************************************************************************/
 #include "propertyfinder.h"
 
-#include "qbsassert.h"
-
-#include <QStringList>
-
 namespace qbs {
 namespace Internal {
 
 QVariant PropertyFinder::propertyValue(const QVariantMap &properties, const QString &moduleName,
                                        const QString &key)
 {
-    m_moduleName = moduleName;
-    m_key = key;
-    m_values.clear();
-    findModuleValues(properties);
-
-    return m_values.isEmpty() ? QVariant() : m_values.first();
-}
-
-void PropertyFinder::findModuleValues(const QVariantMap &properties)
-{
     const QVariantMap moduleProperties = properties.value(QLatin1String("modules")).toMap();
-    const QVariantMap::const_iterator modIt = moduleProperties.find(m_moduleName);
-    if (modIt != moduleProperties.constEnd()) {
-        const QVariantMap moduleMap = modIt->toMap();
-        const QVariant property = moduleMap.value(m_key);
-        addToList(property);
-    }
-}
-
-void PropertyFinder::addToList(const QVariant &value)
-{
-    if (!value.isNull() && !m_values.contains(value))
-        m_values << value;
+    const QVariant &value = moduleProperties.value(moduleName).toMap().value(key);
+    if (value.isNull())
+        return QVariant();
+    return value;
 }
 
 } // namespace Internal

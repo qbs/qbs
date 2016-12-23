@@ -39,7 +39,6 @@
 #ifndef QBS_PROPERTY_FINDER_H
 #define QBS_PROPERTY_FINDER_H
 
-#include <QVariantList>
 #include <QVariantMap>
 
 namespace qbs {
@@ -50,14 +49,6 @@ class PropertyFinder
 public:
     QVariant propertyValue(const QVariantMap &properties, const QString &moduleName,
                            const QString &key);
-
-private:
-    void findModuleValues(const QVariantMap &properties);
-    void addToList(const QVariant &value);
-
-    QString m_moduleName;
-    QString m_key;
-    QVariantList m_values;
 };
 
 } // namespace Internal
