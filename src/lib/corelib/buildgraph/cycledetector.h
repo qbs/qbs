@@ -40,10 +40,9 @@
 #define QBS_CYCLEDETECTOR_H
 
 #include "buildgraphvisitor.h"
+#include "nodeset.h"
 #include <language/forward_decls.h>
 #include <logging/logger.h>
-
-#include <QtCore/qset.h>
 
 namespace qbs {
 namespace Internal {
@@ -66,8 +65,8 @@ private:
 
     QList<BuildGraphNode *> cycle(BuildGraphNode *doubleEntry);
 
-    QSet<BuildGraphNode *> m_allNodes;
-    QSet<BuildGraphNode *> m_nodesInCurrentPath;
+    NodeSet m_allNodes;
+    NodeSet m_nodesInCurrentPath;
     BuildGraphNode *m_parent;
     Logger m_logger;
 };

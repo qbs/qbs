@@ -60,5 +60,15 @@ void Property::load(PersistentPool &pool)
     kind = static_cast<Kind>(pool.load<quint8>());
 }
 
+bool operator<(const Property &p1, const Property &p2)
+{
+    const int cmpResult = QString::compare(p1.moduleName, p2.moduleName);
+    if (cmpResult < 0)
+        return true;
+    if (cmpResult > 0)
+        return false;
+    return p1.propertyName < p2.propertyName;
+}
+
 } // namespace Internal
 } // namespace qbs

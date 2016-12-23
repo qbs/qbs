@@ -39,7 +39,8 @@
 #ifndef QBS_PROPERTY_H
 #define QBS_PROPERTY_H
 
-#include <QtCore/qset.h>
+#include <tools/set.h>
+
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
 
@@ -80,13 +81,14 @@ inline bool operator==(const Property &p1, const Property &p2)
 {
     return p1.moduleName == p2.moduleName && p1.propertyName == p2.propertyName;
 }
+bool operator<(const Property &p1, const Property &p2);
 
 inline uint qHash(const Property &p)
 {
     return QT_PREPEND_NAMESPACE(qHash)(p.moduleName + p.propertyName);
 }
 
-typedef QSet<Property> PropertySet;
+typedef Set<Property> PropertySet;
 typedef QHash<QString, PropertySet> PropertyHash;
 
 } // namespace Internal

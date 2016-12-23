@@ -43,17 +43,16 @@
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 #include <tools/persistentobject.h>
+#include <tools/set.h>
 
 #include <QtCore/qhash.h>
 #include <QtCore/qlist.h>
-#include <QtCore/qset.h>
 #include <QtCore/qstring.h>
 
 #include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {
-class ArtifactSet;
 class BuildGraphNode;
 class FileDependency;
 class FileResourceBase;
@@ -80,7 +79,7 @@ public:
                         bool removeFromProduct = true);
 
 
-    QSet<FileDependency *> fileDependencies;
+    Set<FileDependency *> fileDependencies;
 
     // do not serialize:
     RulesEvaluationContextPtr evaluationContext;

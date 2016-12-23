@@ -38,7 +38,6 @@
 ****************************************************************************/
 #include "transformer.h"
 
-#include "artifact.h"
 #include "command.h"
 #include "rulesevaluationcontext.h"
 #include <jsextensions/moduleproperties.h>
@@ -155,7 +154,7 @@ ResolvedProductPtr Transformer::product() const
 {
     if (outputs.isEmpty())
         return ResolvedProductPtr();
-    return (*outputs.begin())->product;
+    return (*outputs.cbegin())->product;
 }
 
 void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,
@@ -166,10 +165,10 @@ void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet 
     targetScriptValue.setProperty(QLatin1String("inputs"), scriptValue);
     QScriptValue inputScriptValue;
     if (inputs.count() == 1) {
-        Artifact *input = *inputs.begin();
+        Artifact *input = *inputs.cbegin();
         const FileTags &fileTags = input->fileTags();
         QBS_ASSERT(!fileTags.isEmpty(), return);
-        QScriptValue inputsForFileTag = scriptValue.property(fileTags.begin()->toString());
+        QScriptValue inputsForFileTag = scriptValue.property(fileTags.cbegin()->toString());
         inputScriptValue = inputsForFileTag.property(0);
     }
     targetScriptValue.setProperty(QLatin1String("input"), inputScriptValue);
@@ -187,10 +186,10 @@ void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetS
     targetScriptValue.setProperty(QLatin1String("outputs"), scriptValue);
     QScriptValue outputScriptValue;
     if (outputs.count() == 1) {
-        Artifact *output = *outputs.begin();
+        Artifact *output = *outputs.cbegin();
         const FileTags &fileTags = output->fileTags();
         QBS_ASSERT(!fileTags.isEmpty(), return);
-        QScriptValue outputsForFileTag = scriptValue.property(fileTags.begin()->toString());
+        QScriptValue outputsForFileTag = scriptValue.property(fileTags.cbegin()->toString());
         outputScriptValue = outputsForFileTag.property(0);
     }
     targetScriptValue.setProperty(QLatin1String("output"), outputScriptValue);

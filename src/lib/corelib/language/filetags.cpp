@@ -60,31 +60,12 @@ void FileTag::load(PersistentPool &pool)
     *this = FileTag(pool.load<QString>().toUtf8());
 }
 
-QStringList FileTags::toStringList() const
-{
-    QStringList strlst;
-    foreach (const FileTag &tag, *this)
-        strlst += tag.toString();
-    return strlst;
-}
-
 FileTags FileTags::fromStringList(const QStringList &strings)
 {
     FileTags result;
     foreach (const QString &str, strings)
         result += FileTag(str.toUtf8());
     return result;
-}
-
-/*!
- * \return \c{true} if this file tags set has file tags in common with \c{other}.
- */
-bool FileTags::matches(const FileTags &other) const
-{
-    for (FileTags::const_iterator it = other.begin(); it != other.end(); ++it)
-        if (contains(*it))
-            return true;
-    return false;
 }
 
 LogWriter operator <<(LogWriter w, const FileTags &tags)

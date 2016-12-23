@@ -43,9 +43,10 @@
 
 #include "qbs_export.h"
 
-#include <QtCore/qset.h>
-#include <QtCore/qstring.h>
+#include <tools/set.h>
 #include <tools/version.h>
+
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {
@@ -53,9 +54,10 @@ namespace Internal {
 class QBS_EXPORT VisualStudioVersionInfo
 {
 public:
+    VisualStudioVersionInfo();
     VisualStudioVersionInfo(const Version &version);
 
-    static QSet<VisualStudioVersionInfo> knownVersions();
+    static Set<VisualStudioVersionInfo> knownVersions();
 
     bool operator<(const VisualStudioVersionInfo &other) const;
     bool operator==(const VisualStudioVersionInfo &other) const;

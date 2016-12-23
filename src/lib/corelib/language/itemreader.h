@@ -42,8 +42,8 @@
 
 #include "forward_decls.h"
 #include <logging/logger.h>
+#include <tools/set.h>
 
-#include <QtCore/qset.h>
 #include <QtCore/qstack.h>
 #include <QtCore/qstringlist.h>
 
@@ -80,7 +80,7 @@ public:
 
     Item *readFile(const QString &filePath);
 
-    QSet<QString> filesRead() const;
+    Set<QString> filesRead() const;
 
     void setEnableTiming(bool on);
     qint64 elapsedTime() const { return m_elapsedTime; }

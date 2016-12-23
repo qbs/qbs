@@ -42,10 +42,10 @@
 
 #include <language/filetags.h>
 #include <language/forward_decls.h>
+#include <tools/set.h>
 
 #include <QtCore/qlist.h>
 #include <QtCore/qmap.h>
-#include <QtCore/qset.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qvector.h>
 
@@ -64,7 +64,7 @@ class RuleGraph
 public:
     RuleGraph();
 
-    void build(const QSet<RulePtr> &rules, const FileTags &productFileTag);
+    void build(const Set<RulePtr> &rules, const FileTags &productFileTag);
     void accept(RuleGraphVisitor *visitor) const;
 
     void dump() const;
@@ -81,7 +81,7 @@ private:
     QVector<RulePtr> m_rules;
     QVector< QVector<int> > m_parents;
     QVector< QVector<int> > m_children;
-    QSet<int> m_rootRules;
+    Set<int> m_rootRules;
 };
 
 } // namespace Internal

@@ -56,7 +56,6 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qset.h>
 #include <QtCore/qstring.h>
 
 namespace qbs {
@@ -123,7 +122,7 @@ public:
         }
     }
 
-    const QSet<QString> &directories() const { return m_directories; }
+    const Set<QString> &directories() const { return m_directories; }
     bool hasError() const { return m_hasError; }
 
 private:
@@ -150,7 +149,7 @@ private:
     Logger m_logger;
     bool m_hasError;
     ResolvedProductConstPtr m_product;
-    QSet<QString> m_directories;
+    Set<QString> m_directories;
 };
 
 ArtifactCleaner::ArtifactCleaner(const Logger &logger, ProgressObserver *observer)
@@ -166,7 +165,7 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
     const QString configString = Tr::tr(" for configuration %1").arg(project->id());
     m_observer->initialize(Tr::tr("Cleaning up%1").arg(configString), products.count() + 1);
 
-    QSet<QString> directories;
+    Set<QString> directories;
     foreach (const ResolvedProductPtr &product, products) {
         CleanupVisitor visitor(options, m_observer, m_logger);
         visitor.visitProduct(product);

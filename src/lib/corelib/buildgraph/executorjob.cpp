@@ -105,7 +105,7 @@ void ExecutorJob::run(Transformer *t)
     t->propertiesRequestedInCommands.clear();
     QBS_CHECK(!t->outputs.isEmpty());
     m_processCommandExecutor->setProcessEnvironment(
-                (*t->outputs.begin())->product->buildEnvironment);
+                (*t->outputs.cbegin())->product->buildEnvironment);
     m_transformer = t;
     runNextCommand();
 }

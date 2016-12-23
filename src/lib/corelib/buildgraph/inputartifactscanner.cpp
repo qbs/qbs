@@ -54,7 +54,6 @@
 #include <tools/error.h>
 
 #include <QtCore/qdir.h>
-#include <QtCore/qset.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
@@ -145,8 +144,8 @@ void InputArtifactScanner::scan()
         disconnect(m_artifact, dependency, m_logger);
     QBS_CHECK(m_artifact->childrenAddedByScanner.isEmpty());
 
-    ArtifactSet::const_iterator it = m_artifact->transformer->inputs.begin();
-    for (; it != m_artifact->transformer->inputs.end(); ++it) {
+    ArtifactSet::const_iterator it = m_artifact->transformer->inputs.cbegin();
+    for (; it != m_artifact->transformer->inputs.cend(); ++it) {
         Artifact *inputArtifact = *it;
         scanForFileDependencies(inputArtifact);
     }
@@ -162,10 +161,10 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
     }
 
     InputArtifactScannerContext::CacheItem &cacheItem = m_context->cache[inputArtifact->properties];
-    QSet<QString> visitedFilePaths;
+    Set<QString> visitedFilePaths;
     QList<FileResourceBase *> filesToScan;
     filesToScan.append(inputArtifact);
-    const QSet<DependencyScanner *> scanners = scannersForArtifact(inputArtifact);
+    const Set<DependencyScanner *> scanners = scannersForArtifact(inputArtifact);
     if (scanners.isEmpty())
         return;
     m_fileTagsForScanner
@@ -173,9 +172,8 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
     while (!filesToScan.isEmpty()) {
         FileResourceBase *fileToBeScanned = filesToScan.takeFirst();
         const QString &filePathToBeScanned = fileToBeScanned->filePath();
-        if (visitedFilePaths.contains(filePathToBeScanned))
+        if (!visitedFilePaths.insert(filePathToBeScanned).second)
             continue;
-        visitedFilePaths.insert(filePathToBeScanned);
 
         foreach (DependencyScanner *scanner, scanners) {
             scanForScannerFileDependencies(scanner, inputArtifact, fileToBeScanned,
@@ -184,9 +182,9 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
     }
 }
 
-QSet<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifact *artifact) const
+Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifact *artifact) const
 {
-    QSet<DependencyScanner *> scanners;
+    Set<DependencyScanner *> scanners;
     ResolvedProduct *product = artifact->product.data();
     QHash<FileTag, InputArtifactScannerContext::DependencyScannerCacheItem> &scannerCache
             = m_context->scannersCache[product];
@@ -348,8 +346,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         return;
 
     if (fileDependency) {
-        if (!m_artifact->fileDependencies.contains(fileDependency))
-            m_artifact->fileDependencies << fileDependency;
+        m_artifact->fileDependencies << fileDependency;
     } else {
         if (m_artifact->children.contains(artifactDependency))
             return;

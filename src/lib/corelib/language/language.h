@@ -48,6 +48,7 @@
 #include <tools/codelocation.h>
 #include <tools/filetime.h>
 #include <tools/persistentobject.h>
+#include <tools/set.h>
 #include <tools/weakpointer.h>
 
 #include <QtCore/qdatastream.h>
@@ -56,7 +57,6 @@
 #include <QtCore/qprocess.h>
 #include <QtCore/qregexp.h>
 #include <QtCore/qscopedpointer.h>
-#include <QtCore/qset.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
@@ -217,7 +217,7 @@ public:
 
     static Ptr create() { return Ptr(new SourceWildCards); }
 
-    QSet<QString> expandPatterns(const GroupConstPtr &group, const QString &baseDir,
+    Set<QString> expandPatterns(const GroupConstPtr &group, const QString &baseDir,
                                  const QString &buildDir);
 
     // TODO: Use back pointer to Group instead?
@@ -231,9 +231,9 @@ public:
 private:
     SourceWildCards() {}
 
-    QSet<QString> expandPatterns(const GroupConstPtr &group, const QStringList &patterns,
+    Set<QString> expandPatterns(const GroupConstPtr &group, const QStringList &patterns,
                                  const QString &baseDir, const QString &buildDir);
-    void expandPatterns(QSet<QString> &result, const GroupConstPtr &group,
+    void expandPatterns(Set<QString> &result, const GroupConstPtr &group,
                         const QStringList &parts, const QString &baseDir,
                         const QString &buildDir);
 
@@ -400,8 +400,8 @@ public:
     WeakPointer<ResolvedProject> project;
     QVariantMap productProperties;
     PropertyMapPtr moduleProperties;
-    QSet<RulePtr> rules;
-    QSet<ResolvedProductPtr> dependencies;
+    Set<RulePtr> rules;
+    Set<ResolvedProductPtr> dependencies;
     QList<FileTaggerConstPtr> fileTaggers;
     QList<ResolvedModuleConstPtr> modules;
     QList<ResolvedScannerConstPtr> scanners;
@@ -515,7 +515,7 @@ public:
     BuildGraphLocker *bgLocker; // This holds the system-wide build graph file lock.
     bool locked; // This is the API-level lock for the project instance.
 
-    QSet<QString> buildSystemFiles;
+    Set<QString> buildSystemFiles;
     FileTime lastResolveTime;
     QList<ErrorInfo> warningsEncountered;
 

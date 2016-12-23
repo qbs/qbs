@@ -193,22 +193,19 @@ void ProjectResolver::ignoreItem(Item *item, ProjectContext *projectContext)
 
 static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
 {
-    QSet<QString> subProjectNames;
-    QSet<ResolvedProjectPtr> projectsInNeedOfNameChange;
+    Set<QString> subProjectNames;
+    Set<ResolvedProjectPtr> projectsInNeedOfNameChange;
     foreach (const ResolvedProjectPtr &p, parentProject->subProjects) {
-        if (subProjectNames.contains(p->name))
+        if (!subProjectNames.insert(p->name).second)
             projectsInNeedOfNameChange << p;
-        else
-            subProjectNames << p->name;
         makeSubProjectNamesUniqe(p);
     }
     while (!projectsInNeedOfNameChange.isEmpty()) {
-        QSet<ResolvedProjectPtr>::Iterator it = projectsInNeedOfNameChange.begin();
+        auto it = projectsInNeedOfNameChange.begin();
         while (it != projectsInNeedOfNameChange.end()) {
             const ResolvedProjectPtr p = *it;
             p->name += QLatin1Char('_');
-            if (!subProjectNames.contains(p->name)) {
-                subProjectNames << p->name;
+            if (subProjectNames.insert(p->name).second) {
                 it = projectsInNeedOfNameChange.erase(it);
             } else {
                 ++it;
@@ -435,12 +432,11 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
     QQueue<Item::Module> modules;
     foreach (const Item::Module &m, item->modules())
         modules.enqueue(m);
-    QSet<QStringList> seen;
+    Set<QStringList> seen;
     while (!modules.isEmpty()) {
         const Item::Module m = modules.takeFirst();
-        if (seen.contains(m.name))
+        if (!seen.insert(m.name).second)
             continue;
-        seen.insert(m.name);
         resolveModule(m.name, m.item, m.isProduct, projectContext);
         foreach (const Item::Module &childModule, m.item->modules())
             modules.enqueue(childModule);
@@ -694,7 +690,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         wildcards->prefix = group->prefix;
         wildcards->patterns = patterns;
         group->wildcards = wildcards;
-        QSet<QString> files = wildcards->expandPatterns(group,
+        Set<QString> files = wildcards->expandPatterns(group,
                 FileInfo::path(item->file()->filePath()),
                 projectContext->project->topLevelProject()->buildDirectory);
         foreach (const QString &fileName, files)
@@ -997,7 +993,7 @@ void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
     foreach (const SourceArtifactPtr &artifact, artifacts) {
         foreach (const ArtifactPropertiesConstPtr &artifactProperties,
                  product->artifactProperties) {
-            if (artifact->fileTags.matches(artifactProperties->fileTagsFilter()))
+            if (artifact->fileTags.intersects(artifactProperties->fileTagsFilter()))
                 artifact->properties = artifactProperties->propertyMap();
         }
     }
@@ -1017,8 +1013,8 @@ void ProjectResolver::printProfilingInfo()
                                          .arg(elapsedTimeString(m_elapsedTimeGroups));
 }
 
-static bool hasDependencyCycle(QSet<ResolvedProduct *> *checked,
-                               QSet<ResolvedProduct *> *branch,
+static bool hasDependencyCycle(Set<ResolvedProduct *> *checked,
+                               Set<ResolvedProduct *> *branch,
                                const ResolvedProductPtr &product,
                                ErrorInfo *error)
 {
@@ -1038,12 +1034,12 @@ static bool hasDependencyCycle(QSet<ResolvedProduct *> *checked,
     return false;
 }
 
-using DependencyMap = QHash<ResolvedProduct *, QSet<ResolvedProduct *>>;
+using DependencyMap = QHash<ResolvedProduct *, Set<ResolvedProduct *>>;
 void gatherDependencies(ResolvedProduct *product, DependencyMap &dependencies)
 {
     if (dependencies.contains(product))
         return;
-    QSet<ResolvedProduct *> &productDeps = dependencies[product];
+    Set<ResolvedProduct *> &productDeps = dependencies[product];
     foreach (const ResolvedProductPtr &dep, product->dependencies) {
         productDeps << dep.data();
         gatherDependencies(dep.data(), dependencies);
@@ -1079,9 +1075,9 @@ void ProjectResolver::resolveProductDependencies(const ProjectContext &projectCo
     }
 
     // Check for cyclic dependencies.
-    QSet<ResolvedProduct *> checked;
+    Set<ResolvedProduct *> checked;
     foreach (const ResolvedProductPtr &rproduct, allProducts) {
-        QSet<ResolvedProduct *> branch;
+        Set<ResolvedProduct *> branch;
         ErrorInfo error;
         if (hasDependencyCycle(&checked, &branch, rproduct, &error)) {
             error.prepend(rproduct->name, rproduct->location);

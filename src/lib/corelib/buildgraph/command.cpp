@@ -45,7 +45,6 @@
 #include <tools/qbsassert.h>
 
 #include <QtCore/qfile.h>
-#include <QtCore/qset.h>
 
 #include <QtScript/qscriptengine.h>
 #include <QtScript/qscriptvalueiterator.h>

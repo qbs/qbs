@@ -64,7 +64,6 @@
 
 #include <QtCore/qdir.h>
 #include <QtCore/qpair.h>
-#include <QtCore/qset.h>
 #include <QtCore/qtimer.h>
 
 #include <algorithm>
@@ -166,7 +165,7 @@ class ProductPrioritySetter
 {
     const TopLevelProject *m_topLevelProject;
     unsigned int m_priority;
-    QSet<ResolvedProductPtr> m_seenProducts;
+    Set<ResolvedProductPtr> m_seenProducts;
 public:
     ProductPrioritySetter(const TopLevelProject *tlp)
         : m_topLevelProject(tlp)
@@ -176,10 +175,11 @@ public:
     void apply()
     {
         QList<ResolvedProductPtr> allProducts = m_topLevelProject->allProducts();
-        QSet<ResolvedProductPtr> allDependencies;
+        Set<ResolvedProductPtr> allDependencies;
         foreach (const ResolvedProductPtr &product, allProducts)
             allDependencies += product->dependencies;
-        QSet<ResolvedProductPtr> rootProducts = allProducts.toSet() - allDependencies;
+        Set<ResolvedProductPtr> rootProducts
+                = Set<ResolvedProductPtr>::fromList(allProducts) - allDependencies;
         m_priority = UINT_MAX;
         m_seenProducts.clear();
         foreach (const ResolvedProductPtr &rootProduct, rootProducts)
@@ -189,9 +189,8 @@ public:
 private:
     void traverse(const ResolvedProductPtr &product)
     {
-        if (m_seenProducts.contains(product))
+        if (!m_seenProducts.insert(product).second)
             return;
-        m_seenProducts += product;
         foreach (const ResolvedProductPtr &dependency, product->dependencies)
             traverse(dependency);
         if (!product->buildData)
@@ -298,9 +297,8 @@ void Executor::updateLeaves(const NodeSet &nodes)
 
 void Executor::updateLeaves(BuildGraphNode *node, NodeSet &seenNodes)
 {
-    if (seenNodes.contains(node))
+    if (!seenNodes.insert(node).second)
         return;
-    seenNodes += node;
 
     // Artifacts that appear in the build graph after
     // prepareBuildGraph() has been called, must be initialized.
@@ -512,7 +510,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
         if (m_doDebug)
             m_logger.qbsDebug() << "[EXEC] " << ruleNode->toString();
         const WeakPointer<ResolvedProduct> &product = ruleNode->product;
-        QSet<RuleNode *> parentRules;
+        Set<RuleNode *> parentRules;
         if (!result.createdNodes.isEmpty()) {
             foreach (BuildGraphNode *parent, ruleNode->parents) {
                 if (RuleNode *parentRule = dynamic_cast<RuleNode *>(parent))
@@ -526,7 +524,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
             Artifact *outputArtifact = dynamic_cast<Artifact *>(node);
             if (!outputArtifact)
                 continue;
-            if (outputArtifact->fileTags().matches(product->fileTags))
+            if (outputArtifact->fileTags().intersects(product->fileTags))
                 product->buildData->roots += outputArtifact;
 
             foreach (Artifact *inputArtifact, outputArtifact->transformer->inputs)
@@ -668,8 +666,8 @@ bool Executor::transformerHasMatchingOutputTags(const TransformerConstPtr &trans
 
 bool Executor::artifactHasMatchingOutputTags(const Artifact *artifact) const
 {
-    return m_activeFileTags.matches(artifact->fileTags())
-            || m_tagsNeededForFilesToConsider.matches(artifact->fileTags());
+    return m_activeFileTags.intersects(artifact->fileTags())
+            || m_tagsNeededForFilesToConsider.intersects(artifact->fileTags());
 }
 
 bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &transformer) const
@@ -683,7 +681,7 @@ bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &trans
     foreach (const Artifact * const input, transformer->inputs) {
         foreach (const QString &filePath, m_buildOptions.filesToConsider()) {
             if (input->filePath() == filePath
-                    || input->fileTags().matches(m_tagsNeededForFilesToConsider)) {
+                    || input->fileTags().intersects(m_tagsNeededForFilesToConsider)) {
                 return true;
             }
         }
@@ -943,8 +941,7 @@ void Executor::runTransformer(const TransformerPtr &transformer)
 
     // create the output directories
     if (!m_buildOptions.dryRun()) {
-        ArtifactSet::const_iterator it = transformer->outputs.begin();
-        for (; it != transformer->outputs.end(); ++it) {
+        for (auto it = transformer->outputs.cbegin(); it != transformer->outputs.cend(); ++it) {
             Artifact *output = *it;
             QDir outDir = QFileInfo(output->filePath()).absoluteDir();
             if (!outDir.exists() && !outDir.mkpath(QLatin1String("."))) {
@@ -1171,11 +1168,11 @@ void Executor::setupForBuildingSelectedFiles(const BuildGraphNode *node)
         return;
     const RuleNode * const ruleNode = static_cast<const RuleNode *>(node);
     const Rule * const rule = ruleNode->rule().data();
-    if (rule->inputs.matches(m_tagsOfFilesToConsider)) {
+    if (rule->inputs.intersects(m_tagsOfFilesToConsider)) {
         FileTags otherInputs = rule->auxiliaryInputs;
         otherInputs.unite(rule->explicitlyDependsOn).subtract(rule->excludedAuxiliaryInputs);
         m_tagsNeededForFilesToConsider.unite(otherInputs);
-    } else if (rule->collectedOutputFileTags().matches(m_tagsNeededForFilesToConsider)) {
+    } else if (rule->collectedOutputFileTags().intersects(m_tagsNeededForFilesToConsider)) {
         FileTags allInputs = rule->inputs;
         allInputs.unite(rule->auxiliaryInputs).unite(rule->explicitlyDependsOn)
                 .subtract(rule->excludedAuxiliaryInputs);

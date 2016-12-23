@@ -53,7 +53,7 @@ class TopLevelProject;
 
 class BuildGraphNode : public virtual PersistentObject
 {
-    friend class NodeSet;
+    friend NodeSet;
 public:
     virtual ~BuildGraphNode();
 

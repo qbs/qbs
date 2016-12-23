@@ -42,8 +42,9 @@
 
 #include <logging/logger.h>
 #include <tools/id.h>
+#include <tools/set.h>
+
 #include <QtCore/qdatastream.h>
-#include <QtCore/qset.h>
 
 namespace qbs {
 namespace Internal {
@@ -74,12 +75,12 @@ public:
     void load(PersistentPool &pool);
 };
 
-class FileTags : public QSet<FileTag>
+template<> inline bool Set<FileTag>::sortAfterLoadRequired() const { return true; }
+
+class FileTags : public Set<FileTag>
 {
 public:
-    QStringList toStringList() const;
     static FileTags fromStringList(const QStringList &strings);
-    bool matches(const FileTags &other) const;
 };
 
 LogWriter operator <<(LogWriter w, const FileTags &tags);

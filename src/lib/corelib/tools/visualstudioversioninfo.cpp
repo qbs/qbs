@@ -46,15 +46,19 @@
 namespace qbs {
 namespace Internal {
 
+VisualStudioVersionInfo::VisualStudioVersionInfo()
+{
+}
+
 VisualStudioVersionInfo::VisualStudioVersionInfo(const Version &version)
     : m_version(version)
 {
     QBS_CHECK(version.minorVersion() == 0 || version == Version(7, 1));
 }
 
-QSet<VisualStudioVersionInfo> VisualStudioVersionInfo::knownVersions()
+Set<VisualStudioVersionInfo> VisualStudioVersionInfo::knownVersions()
 {
-    QSet<VisualStudioVersionInfo> known;
+    Set<VisualStudioVersionInfo> known;
     known << Version(14) << Version(12) << Version(11)
           << Version(10) << Version(9) << Version(8)
           << Version(7, 1) << Version(7) << Version(6);

@@ -39,7 +39,7 @@
 #ifndef QBS_RULESAPPLICATOR_H
 #define QBS_RULESAPPLICATOR_H
 
-#include "artifactset.h"
+#include "artifact.h"
 #include "forward_decls.h"
 #include "nodeset.h"
 #include <language/filetags.h>
@@ -74,7 +74,7 @@ private:
     void doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext);
     ArtifactSet collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const;
     Artifact *createOutputArtifactFromRuleArtifact(const RuleArtifactConstPtr &ruleArtifact,
-            const ArtifactSet &inputArtifacts, QSet<QString> *outputFilePaths);
+            const ArtifactSet &inputArtifacts, Set<QString> *outputFilePaths);
     Artifact *createOutputArtifact(const QString &filePath, const FileTags &fileTags,
             bool alwaysUpdated, const ArtifactSet &inputArtifacts);
     QList<Artifact *> runOutputArtifactsScript(const ArtifactSet &inputArtifacts,

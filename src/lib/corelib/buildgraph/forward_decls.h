@@ -45,11 +45,10 @@ namespace qbs {
 namespace Internal {
 
 class Artifact;
-class ArtifactSet;
+class BuildGraphNode;
 class ProjectBuildData;
 class ProductBuildData;
 class Node;
-class NodeSet;
 
 class Transformer;
 typedef QSharedPointer<Transformer> TransformerPtr;
@@ -66,6 +65,10 @@ typedef QSharedPointer<ProcessCommand> ProcessCommandPtr;
 
 class JavaScriptCommand;
 typedef QSharedPointer<JavaScriptCommand> JavaScriptCommandPtr;
+
+template<typename T> class Set;
+using ArtifactSet = Set<Artifact *>;
+using NodeSet = Set<BuildGraphNode *>;
 
 } // namespace Internal
 } // namespace qbs

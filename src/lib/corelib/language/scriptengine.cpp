@@ -447,9 +447,9 @@ void ScriptEngine::addFileLastModifiedResult(const QString &filePath, const File
     m_fileLastModifiedResult.insert(filePath, fileTime);
 }
 
-QSet<QString> ScriptEngine::imports() const
+Set<QString> ScriptEngine::imports() const
 {
-    QSet<QString> filePaths;
+    Set<QString> filePaths;
     foreach (const JsImport &jsImport, m_jsImportCache.keys()) {
         foreach (const QString &filePath, jsImport.filePaths)
             filePaths << filePath;

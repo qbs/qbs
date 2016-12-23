@@ -41,53 +41,32 @@
 
 #include "artifact.h"
 #include "rulenode.h"
-#include <language/language.h>  // because of RulePtr
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
 
 namespace qbs {
 namespace Internal {
 
-NodeSet &NodeSet::unite(const NodeSet &other)
+BuildGraphNode *loadBuildGraphNode(PersistentPool &pool)
 {
-    for (auto node = other.m_data.cbegin(); node != other.m_data.cend(); ++node)
-        insert(*node);
-    return *this;
-}
-
-void NodeSet::remove(BuildGraphNode *node)
-{
-    m_data.removeOne(node);
-}
-
-void NodeSet::load(PersistentPool &pool)
-{
-    clear();
-    int i = pool.load<int>();
-    reserve(i);
-    for (; --i >= 0;) {
-        const auto t = pool.load<quint8>();
-        BuildGraphNode *node = 0;
-        switch (static_cast<BuildGraphNode::Type>(t)) {
-        case BuildGraphNode::ArtifactNodeType:
-            node = pool.load<Artifact *>();
-            break;
-        case BuildGraphNode::RuleNodeType:
-            node = pool.load<RuleNode *>();
-            break;
-        }
-        QBS_CHECK(node);
-        m_data << node;
+    const auto t = pool.load<quint8>();
+    BuildGraphNode *node = 0;
+    switch (static_cast<BuildGraphNode::Type>(t)) {
+    case BuildGraphNode::ArtifactNodeType:
+        node = pool.load<Artifact *>();
+        break;
+    case BuildGraphNode::RuleNodeType:
+        node = pool.load<RuleNode *>();
+        break;
     }
+    QBS_CHECK(node);
+    return node;
 }
 
-void NodeSet::store(PersistentPool &pool) const
+void storeBuildGraphNode(PersistentPool &pool, const BuildGraphNode *node)
 {
-    pool.store(count());
-    for (NodeSet::const_iterator it = constBegin(); it != constEnd(); ++it) {
-        pool.store(static_cast<quint8>((*it)->type()));
-        pool.store(*it);
-    }
+    pool.store(static_cast<quint8>(node->type()));
+    pool.store(node);
 }
 
 } // namespace Internal

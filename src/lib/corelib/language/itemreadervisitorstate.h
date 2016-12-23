@@ -40,8 +40,8 @@
 #define QBS_ITEMREADERVISITORSTATE_H
 
 #include <logging/logger.h>
+#include <tools/set.h>
 
-#include <QtCore/qset.h>
 #include <QtCore/qstack.h>
 #include <QtCore/qstringlist.h>
 
@@ -56,7 +56,7 @@ public:
     ItemReaderVisitorState(Logger &logger);
     ~ItemReaderVisitorState();
 
-    QSet<QString> filesRead() const { return m_filesRead; }
+    Set<QString> filesRead() const { return m_filesRead; }
 
     Item *readFile(const QString &filePath, const QStringList &searchPaths, ItemPool *itemPool);
 
@@ -65,7 +65,7 @@ public:
 
 private:
     Logger &m_logger;
-    QSet<QString> m_filesRead;
+    Set<QString> m_filesRead;
     QHash<QString, QStringList> m_directoryEntries;
 
     class ASTCache;

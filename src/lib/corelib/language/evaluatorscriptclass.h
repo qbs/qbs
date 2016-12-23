@@ -44,9 +44,9 @@
 #include "qualifiedid.h"
 
 #include <logging/logger.h>
+#include <tools/set.h>
 
 #include <QtCore/qstack.h>
-#include <QtCore/qset.h>
 
 #include <QtScript/qscriptclass.h>
 
@@ -102,7 +102,7 @@ private:
     Logger &m_logger;
     bool m_valueCacheEnabled;
     QStack<JSSourceValue *> m_sourceValueStack;
-    QSet<Value *> m_currentNextChain;
+    Set<Value *> m_currentNextChain;
     PropertyDependencies m_propertyDependencies;
     QStack<QualifiedId> m_requestedProperties;
 };

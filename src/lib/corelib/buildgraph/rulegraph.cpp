@@ -49,7 +49,7 @@ RuleGraph::RuleGraph()
 {
 }
 
-void RuleGraph::build(const QSet<RulePtr> &rules, const FileTags &productFileTags)
+void RuleGraph::build(const Set<RulePtr> &rules, const FileTags &productFileTags)
 {
     QMap<FileTag, QList<const Rule *> > inputFileTagToRule;
     m_rules.reserve(rules.count());
@@ -69,7 +69,7 @@ void RuleGraph::build(const QSet<RulePtr> &rules, const FileTags &productFileTag
         foreach (const FileTag &fileTag, inFileTags) {
             inputFileTagToRule[fileTag].append(rule.data());
             foreach (const Rule * const producingRule, m_outputFileTagToRule.value(fileTag)) {
-                if (!producingRule->collectedOutputFileTags().matches(
+                if (!producingRule->collectedOutputFileTags().intersects(
                         rule->excludedAuxiliaryInputs)) {
                     connect(rule.data(), producingRule);
                 }
@@ -98,7 +98,7 @@ void RuleGraph::dump() const
 {
     QByteArray indent;
     printf("---rule graph dump:\n");
-    QSet<int> rootRules;
+    Set<int> rootRules;
     foreach (const RuleConstPtr &rule, m_rules)
         if (m_parents[rule->ruleGraphId].isEmpty())
             rootRules += rule->ruleGraphId;

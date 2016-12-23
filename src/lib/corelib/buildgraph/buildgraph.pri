@@ -4,7 +4,6 @@ SOURCES += \
     $$PWD/abstractcommandexecutor.cpp \
     $$PWD/artifact.cpp \
     $$PWD/artifactcleaner.cpp \
-    $$PWD/artifactset.cpp \
     $$PWD/artifactvisitor.cpp \
     $$PWD/buildgraph.cpp \
     $$PWD/buildgraphloader.cpp \
@@ -38,7 +37,6 @@ HEADERS += \
     $$PWD/abstractcommandexecutor.h \
     $$PWD/artifact.h \
     $$PWD/artifactcleaner.h \
-    $$PWD/artifactset.h \
     $$PWD/artifactvisitor.h \
     $$PWD/buildgraph.h \
     $$PWD/buildgraphloader.h \

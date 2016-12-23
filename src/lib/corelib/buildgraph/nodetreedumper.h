@@ -39,7 +39,7 @@
 #ifndef QBS_NODETREEDUMPER_H
 #define QBS_NODETREEDUMPER_H
 
-#include "artifactset.h"
+#include "artifact.h"
 #include "buildgraphvisitor.h"
 #include <language/forward_decls.h>
 

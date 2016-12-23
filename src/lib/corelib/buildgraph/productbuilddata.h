@@ -39,7 +39,7 @@
 #ifndef QBS_PRODUCTBUILDDATA_H
 #define QBS_PRODUCTBUILDDATA_H
 
-#include "artifactset.h"
+#include "artifact.h"
 #include "nodeset.h"
 #include "rescuableartifactdata.h"
 #include <language/filetags.h>
@@ -47,7 +47,6 @@
 #include <tools/persistentobject.h>
 
 #include <QtCore/qlist.h>
-#include <QtCore/qset.h>
 
 namespace qbs {
 namespace Internal {

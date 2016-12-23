@@ -90,7 +90,7 @@ Item *ItemReader::readFile(const QString &filePath)
     return m_visitorState->readFile(filePath, searchPaths(), m_pool);
 }
 
-QSet<QString> ItemReader::filesRead() const
+Set<QString> ItemReader::filesRead() const
 {
     return m_visitorState->filesRead();
 }

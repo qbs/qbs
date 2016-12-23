@@ -129,7 +129,7 @@ public:
                 productsMap.insert(prodIt->name, prodIt);
             }
         }
-        QSet<ProductContext *> allDependencies;
+        Set<ProductContext *> allDependencies;
         foreach (auto productContext, allProducts) {
             auto &productDependencies = m_dependencyMap[productContext];
             foreach (const auto &dep, productContext->info.usedProducts) {
@@ -142,7 +142,8 @@ public:
                 allDependencies << depProduct;
             }
         }
-        QSet<ProductContext *> rootProducts = allProducts.toSet() - allDependencies;
+        Set<ProductContext *> rootProducts
+                = Set<ProductContext *>::fromList(allProducts) - allDependencies;
         foreach (ProductContext * const rootProduct, rootProducts)
             traverse(rootProduct);
         if (m_sortedProducts.count() < allProducts.count()) {
@@ -163,9 +164,8 @@ public:
 private:
     void traverse(ModuleLoader::ProductContext *product)
     {
-        if (m_seenProducts.contains(product))
+        if (!m_seenProducts.insert(product).second)
             return;
-        m_seenProducts << product;
         foreach (auto dependency, m_dependencyMap.value(product))
             traverse(dependency);
         m_sortedProducts << product;
@@ -189,7 +189,7 @@ private:
 
     TopLevelProjectContext &m_tlp;
     QHash<ProductContext *, QVector<ProductContext *>> m_dependencyMap;
-    QSet<ProductContext *> m_seenProducts;
+    Set<ProductContext *> m_seenProducts;
     QList<ProductContext *> m_sortedProducts;
 };
 
@@ -300,7 +300,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     root->setProperty(QLatin1String("profile"),
                       VariantValue::create(m_parameters.topLevelProfile()));
     handleTopLevelProject(&result, root, buildDirectory,
-                  QSet<QString>() << QDir::cleanPath(parameters.projectFilePath()));
+                  Set<QString>() << QDir::cleanPath(parameters.projectFilePath()));
     result.root = root;
     result.qbsFiles = m_reader->filesRead();
     printProfilingInfo();
@@ -317,14 +317,14 @@ static void handlePropertyError(const ErrorInfo &error, const SetupProjectParame
 
 class PropertyDeclarationCheck : public ValueHandler
 {
-    const QSet<Item *> &m_disabledItems;
-    QSet<Item *> m_handledItems;
+    const Set<Item *> &m_disabledItems;
+    Set<Item *> m_handledItems;
     Item *m_parentItem;
     QString m_currentName;
     SetupProjectParameters m_params;
     Logger &m_logger;
 public:
-    PropertyDeclarationCheck(const QSet<Item *> &disabledItems,
+    PropertyDeclarationCheck(const Set<Item *> &disabledItems,
                              const SetupProjectParameters &params, Logger &logger)
         : m_disabledItems(disabledItems)
         , m_parentItem(0)
@@ -372,9 +372,8 @@ private:
 
     void handleItem(Item *item)
     {
-        if (m_handledItems.contains(item))
+        if (!m_handledItems.insert(item).second)
             return;
-        m_handledItems.insert(item);
         if (m_disabledItems.contains(item)
                 // TODO: We never checked module prototypes, apparently. Should we?
                 // It's currently not possible because of e.g. things like "cpp.staticLibraries"
@@ -437,7 +436,7 @@ private:
 };
 
 void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *projectItem,
-        const QString &buildDirectory, const QSet<QString> &referencedFilePaths)
+        const QString &buildDirectory, const Set<QString> &referencedFilePaths)
 {
     TopLevelProjectContext tlp;
     tlp.buildDirectory = buildDirectory;
@@ -476,7 +475,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
 
 void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         TopLevelProjectContext *topLevelProjectContext, Item *projectItem,
-        const QSet<QString> &referencedFilePaths)
+        const Set<QString> &referencedFilePaths)
 {
     auto *p = new ProjectContext;
     auto &projectContext = *p;
@@ -574,7 +573,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         case ItemType::Project:
             copyProperties(projectItem, subItem);
             handleProject(loadResult, topLevelProjectContext, subItem,
-                          QSet<QString>(referencedFilePaths) << subItem->file()->filePath());
+                          Set<QString>(referencedFilePaths) << subItem->file()->filePath());
             break;
         default:
             break;
@@ -865,7 +864,7 @@ void ModuleLoader::initProductProperties(const ProductContext &product)
 }
 
 void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext, Item *projectItem,
-        const QSet<QString> &referencedFilePaths)
+        const Set<QString> &referencedFilePaths)
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] handleSubProject " << projectItem->file()->filePath();
@@ -914,12 +913,12 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
     Item::addChild(projectItem, loadedItem);
     projectItem->setScope(projectContext->scope);
     handleProject(projectContext->result, projectContext->topLevelProject, loadedItem,
-                  QSet<QString>(referencedFilePaths) << subProjectFilePath);
+                  Set<QString>(referencedFilePaths) << subProjectFilePath);
 }
 
 QList<Item *> ModuleLoader::loadReferencedFile(const QString &relativePath,
                                                const CodeLocation &referencingLocation,
-                                               const QSet<QString> &referencedFilePaths,
+                                               const Set<QString> &referencedFilePaths,
                                                ModuleLoader::ProductContext &dummyContext)
 {
     QString absReferencePath = FileInfo::resolvePath(FileInfo::path(referencingLocation.filePath()),
@@ -1144,7 +1143,7 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
         productContext.item->setChildren(children);
 
     Item *merged = Item::create(productContext.item->pool(), ItemType::Export);
-    QSet<FileContextConstPtr> filesWithExportItem;
+    Set<FileContextConstPtr> filesWithExportItem;
     foreach (Item *exportItem, exportItems) {
         checkCancelation();
         if (Q_UNLIKELY(filesWithExportItem.contains(exportItem->file())))
@@ -2325,7 +2324,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
         return;
     const QList<PropertyDeclaration> &builtinProjectProperties = BuiltinDeclarations::instance()
             .declarationsForType(ItemType::Project).properties();
-    QSet<QString> builtinProjectPropertyNames;
+    Set<QString> builtinProjectPropertyNames;
     foreach (const PropertyDeclaration &p, builtinProjectProperties)
         builtinProjectPropertyNames << p.name();
 

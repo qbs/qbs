@@ -60,9 +60,9 @@
 namespace qbs {
 namespace Internal {
 
-static QSet<ResolvedProductPtr> findDependentProducts(const ResolvedProductPtr &product)
+static Set<ResolvedProductPtr> findDependentProducts(const ResolvedProductPtr &product)
 {
-    QSet<ResolvedProductPtr> result;
+    Set<ResolvedProductPtr> result;
     foreach (const ResolvedProductPtr &parent, product->topLevelProject()->allProducts()) {
         if (parent->dependencies.contains(product))
             result += parent;
@@ -77,7 +77,7 @@ public:
     {
     }
 
-    const QSet<RuleNode *> &apply(const ResolvedProductPtr &product)
+    const Set<RuleNode *> &apply(const ResolvedProductPtr &product)
     {
         m_result.clear();
         m_product = product;
@@ -110,7 +110,7 @@ private:
     }
 
     ResolvedProductPtr m_product;
-    QSet<RuleNode *> m_result;
+    Set<RuleNode *> m_result;
 };
 
 class FindRootRules : public BuildGraphVisitor
@@ -393,7 +393,7 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevel
             continue;
         QBS_CHECK(product->buildData);
         const QList<RuleNode *> rootRules = FindRootRules().apply(product);
-        QSet<ResolvedProductPtr> dependents = findDependentProducts(product);
+        Set<ResolvedProductPtr> dependents = findDependentProducts(product);
         foreach (const ResolvedProductPtr &dependentProduct, dependents) {
             if (!dependentProduct->enabled)
                 continue;
@@ -414,7 +414,7 @@ public:
     {
     }
 
-    const QSet<RuleNode *> &leaves() const
+    const Set<RuleNode *> &leaves() const
     {
         return m_leaves;
     }
@@ -423,13 +423,13 @@ private:
     const ResolvedProductPtr &m_product;
     const Logger &m_logger;
     QHash<RuleConstPtr, RuleNode *> m_nodePerRule;
-    QSet<const Rule *> m_rulesOnPath;
+    Set<const Rule *> m_rulesOnPath;
     QList<const Rule *> m_rulePath;
-    QSet<RuleNode *> m_leaves;
+    Set<RuleNode *> m_leaves;
 
     void visit(const RuleConstPtr &parentRule, const RuleConstPtr &rule)
     {
-        if (m_rulesOnPath.contains(rule.data())) {
+        if (!m_rulesOnPath.insert(rule.data()).second) {
             QString pathstr;
             foreach (const Rule *r, m_rulePath) {
                 pathstr += QLatin1Char('\n') + r->toString() + QLatin1Char('\t')
@@ -437,7 +437,6 @@ private:
             }
             throw ErrorInfo(Tr::tr("Cycle detected in rule dependencies: %1").arg(pathstr));
         }
-        m_rulesOnPath.insert(rule.data());
         m_rulePath.append(rule.data());
         RuleNode *node = m_nodePerRule.value(rule);
         if (!node) {

@@ -213,12 +213,11 @@ void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap
 
 void ModuleMerger::insertProperties(Item::PropertyMap *dst, Item *srcItem, PropertiesType type)
 {
-    QSet<const Item *> &seenInstances
-            = type == ScalarProperties ? m_seenInstancesTopDown : m_seenInstancesBottomUp;
+    Set<const Item *> &seenInstances = type == ScalarProperties
+            ? m_seenInstancesTopDown : m_seenInstancesBottomUp;
     Item *origSrcItem = srcItem;
     do {
-        if (!seenInstances.contains(srcItem)) {
-            seenInstances.insert(srcItem);
+        if (seenInstances.insert(srcItem).second) {
             for (Item::PropertyMap::const_iterator it = srcItem->properties().constBegin();
                  it != srcItem->properties().constEnd(); ++it) {
                 const ValuePtr &srcVal = it.value();

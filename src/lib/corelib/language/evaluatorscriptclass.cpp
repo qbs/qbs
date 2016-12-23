@@ -401,7 +401,7 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
         const QString &propertyName, const ValuePtr &value)
 {
     QScriptValueList lst;
-    QSet<Value *> oldNextChain = m_currentNextChain;
+    Set<Value *> oldNextChain = m_currentNextChain;
     for (ValuePtr next = value; next; next = next->next())
         m_currentNextChain.insert(next.data());
 

@@ -41,9 +41,9 @@
 
 #include "forward_decls.h"
 
+#include "artifact.h"
 #include "rescuableartifactdata.h"
 
-#include <buildgraph/artifactset.h>
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 #include <tools/setupprojectparameters.h>
@@ -57,7 +57,6 @@ namespace Internal {
 class FileDependency;
 class FileResourceBase;
 class FileTime;
-class NodeSet;
 class Property;
 
 class BuildGraphLoadResult
@@ -91,9 +90,9 @@ private:
     bool hasFileLastModifiedResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasProductFileChanged(const QList<ResolvedProductPtr> &restoredProducts,
                                const FileTime &referenceTime,
-                               QSet<QString> &remainingBuildSystemFiles,
+                               Set<QString> &remainingBuildSystemFiles,
                                QList<ResolvedProductPtr> &productsWithChangedFiles);
-    bool hasBuildSystemFileChanged(const QSet<QString> &buildSystemFiles,
+    bool hasBuildSystemFileChanged(const Set<QString> &buildSystemFiles,
                                    const FileTime &referenceTime);
     void checkAllProductsForChanges(const QList<ResolvedProductPtr> &restoredProducts,
             const QMap<QString, ResolvedProductPtr> &newlyResolvedProductsByName,

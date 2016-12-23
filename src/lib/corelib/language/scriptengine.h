@@ -44,6 +44,7 @@
 #include "property.h"
 #include <logging/logger.h>
 #include <tools/filetime.h>
+#include <tools/set.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qhash.h>
@@ -135,7 +136,7 @@ public:
     }
 
     QHash<QString, FileTime> fileLastModifiedResults() const { return m_fileLastModifiedResult; }
-    QSet<QString> imports() const;
+    Set<QString> imports() const;
     static QScriptValueList argumentList(const QStringList &argumentNames,
             const QScriptValue &context);
     void registerOwnedVariantMap(QVariantMap *vm) { m_ownedVariantMaps.append(vm); }

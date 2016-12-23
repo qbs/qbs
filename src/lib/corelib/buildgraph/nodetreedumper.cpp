@@ -76,8 +76,7 @@ bool NodeTreeDumper::visit(Artifact *artifact)
     m_outDevice.write(indentation());
     m_outDevice.write(artifact->fileName().toLocal8Bit());
     indent();
-    const bool wasVisited = m_visited.contains(artifact);
-    m_visited.insert(artifact);
+    const bool wasVisited = !m_visited.insert(artifact).second;
     return !wasVisited && artifact->product == m_currentProduct;
 }
 

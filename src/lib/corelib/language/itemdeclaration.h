@@ -43,8 +43,8 @@
 #include "deprecationinfo.h"
 #include "itemtype.h"
 #include "propertydeclaration.h"
+#include <tools/set.h>
 
-#include <QtCore/qset.h>
 #include <QtCore/qstring.h>
 
 namespace qbs {
@@ -66,7 +66,7 @@ public:
 
     ItemDeclaration &operator<<(const PropertyDeclaration &decl);
 
-    typedef QSet<ItemType> TypeNames;
+    typedef Set<ItemType> TypeNames;
     void setAllowedChildTypes(const TypeNames &typeNames) { m_allowedChildTypes = typeNames; }
     const TypeNames &allowedChildTypes() const { return m_allowedChildTypes; }
     bool isChildTypeAllowed(ItemType type) const;

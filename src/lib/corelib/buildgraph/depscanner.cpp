@@ -52,7 +52,6 @@
 #include <tools/fileinfo.h>
 
 #include <QtCore/qvariant.h>
-#include <QtCore/qset.h>
 
 #include <QtScript/qscriptcontext.h>
 
@@ -93,7 +92,7 @@ QStringList PluginDependencyScanner::collectSearchPaths(Artifact *artifact)
 QStringList PluginDependencyScanner::collectDependencies(FileResourceBase *file,
                                                          const char *fileTags)
 {
-    QSet<QString> result;
+    Set<QString> result;
     QString baseDirOfInFilePath = file->dirPath();
     const QString &filepath = file->filePath();
     void *scannerHandle = m_plugin->open(filepath.utf16(), fileTags, ScanForDependenciesFlag);

@@ -43,6 +43,7 @@
 #include "scanresultcache.h"
 #include <language/forward_decls.h>
 #include <logging/logger.h>
+#include <tools/set.h>
 
 #include <QtCore/qhash.h>
 #include <QtCore/qstringlist.h>
@@ -131,7 +132,7 @@ public:
 
 private:
     void scanForFileDependencies(Artifact *inputArtifact);
-    QSet<DependencyScanner *> scannersForArtifact(const Artifact *artifact) const;
+    Set<DependencyScanner *> scannersForArtifact(const Artifact *artifact) const;
     void scanForScannerFileDependencies(DependencyScanner *scanner,
             Artifact *inputArtifact, FileResourceBase *fileToBeScanned,
             QList<FileResourceBase *> *filesToScan,

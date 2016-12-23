@@ -39,14 +39,15 @@
 #ifndef QBS_EMPTYDIRECTORIESREMOVER_H
 #define QBS_EMPTYDIRECTORIESREMOVER_H
 
-#include <logging/logger.h>
+#include "forward_decls.h"
 
-#include <QtCore/qset.h>
+#include <logging/logger.h>
+#include <tools/set.h>
+
 #include <QtCore/qstringlist.h>
 
 namespace qbs {
 namespace Internal {
-class ArtifactSet;
 class TopLevelProject;
 
 class EmptyDirectoriesRemover
@@ -63,7 +64,7 @@ private:
     const TopLevelProject * const m_project;
     Logger m_logger;
     QStringList m_dirsToRemove;
-    QSet<QString> m_handledDirs;
+    Set<QString> m_handledDirs;
 };
 
 } // namespace Internal

@@ -38,8 +38,6 @@
 ****************************************************************************/
 #include "buildgraphloader.h"
 
-#include "artifact.h"
-#include "artifactset.h"
 #include "buildgraph.h"
 #include "command.h"
 #include "cycledetector.h"
@@ -189,7 +187,7 @@ void BuildGraphLoader::checkBuildGraphCompatibility(const TopLevelProjectConstPt
 }
 
 static bool checkProductForChangedDependency(QList<ResolvedProductPtr> &changedProducts,
-        QSet<ResolvedProductPtr> &seenProducts, const ResolvedProductPtr &product)
+        Set<ResolvedProductPtr> &seenProducts, const ResolvedProductPtr &product)
 {
     if (seenProducts.contains(product))
         return false;
@@ -212,7 +210,7 @@ static bool checkProductForChangedDependency(QList<ResolvedProductPtr> &changedP
 static void makeChangedProductsListComplete(QList<ResolvedProductPtr> &changedProducts,
                                             const QList<ResolvedProductPtr> &allRestoredProducts)
 {
-    QSet<ResolvedProductPtr> seenProducts;
+    Set<ResolvedProductPtr> seenProducts;
     foreach (const ResolvedProductPtr &p, allRestoredProducts)
         checkProductForChangedDependency(changedProducts, seenProducts, p);
 }
@@ -222,7 +220,7 @@ void BuildGraphLoader::trackProjectChanges()
     TimedActivityLogger trackingTimer(m_logger, Tr::tr("Change tracking"),
                                       m_parameters.logElapsedTime());
     const TopLevelProjectPtr &restoredProject = m_result.loadedProject;
-    QSet<QString> buildSystemFiles = restoredProject->buildSystemFiles;
+    Set<QString> buildSystemFiles = restoredProject->buildSystemFiles;
     QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
     QList<ResolvedProductPtr> changedProducts;
     bool reResolvingNecessary = false;
@@ -284,7 +282,7 @@ void BuildGraphLoader::trackProjectChanges()
             // If the product gets temporarily removed, its artifacts will get disconnected
             // and this structural information will no longer be directly available from them.
             for (const Artifact *a : filterByType<Artifact>(product->buildData->nodes)) {
-                childLists.insert(a, ChildrenInfo(ArtifactSet::fromNodeSet(a->children),
+                childLists.insert(a, ChildrenInfo(ArtifactSet::filtered(a->children),
                                                   a->childrenAddedByScanner));
             }
         }
@@ -462,7 +460,7 @@ bool BuildGraphLoader::hasFileLastModifiedResultChanged(const TopLevelProjectCon
 }
 
 bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &restoredProducts,
-        const FileTime &referenceTime, QSet<QString> &remainingBuildSystemFiles,
+        const FileTime &referenceTime, Set<QString> &remainingBuildSystemFiles,
         QList<ResolvedProductPtr> &changedProducts)
 {
     bool hasChanged = false;
@@ -506,10 +504,10 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
                 });
                 if (!reExpansionRequired)
                     continue;
-                const QSet<QString> files = group->wildcards->expandPatterns(group,
+                const Set<QString> files = group->wildcards->expandPatterns(group,
                         FileInfo::path(group->location.filePath()),
                         product->topLevelProject()->buildDirectory);
-                QSet<QString> wcFiles;
+                Set<QString> wcFiles;
                 foreach (const SourceArtifactConstPtr &sourceArtifact, group->wildcards->files)
                     wcFiles += sourceArtifact->absoluteFilePath;
                 if (files == wcFiles)
@@ -524,7 +522,7 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
     return hasChanged;
 }
 
-bool BuildGraphLoader::hasBuildSystemFileChanged(const QSet<QString> &buildSystemFiles,
+bool BuildGraphLoader::hasBuildSystemFileChanged(const Set<QString> &buildSystemFiles,
                                                  const FileTime &referenceTime)
 {
     foreach (const QString &file, buildSystemFiles) {
@@ -577,8 +575,8 @@ static bool dependenciesAreEqual(const ResolvedProductConstPtr &p1,
 {
     if (p1->dependencies.count() != p2->dependencies.count())
         return false;
-    QSet<QString> names1;
-    QSet<QString> names2;
+    Set<QString> names1;
+    Set<QString> names2;
     foreach (const ResolvedProductConstPtr &dep, p1->dependencies)
         names1 << dep->uniqueName();
     foreach (const ResolvedProductConstPtr &dep, p2->dependencies)
@@ -656,12 +654,11 @@ bool BuildGraphLoader::checkTransformersForPropertyChanges(const ResolvedProduct
         const ResolvedProductPtr &newlyResolvedProduct)
 {
     bool transformerChanges = false;
-    QSet<TransformerConstPtr> seenTransformers;
+    Set<TransformerConstPtr> seenTransformers;
     for (Artifact *artifact : filterByType<Artifact>(restoredProduct->buildData->nodes)) {
         const TransformerPtr transformer = artifact->transformer;
-        if (!transformer || seenTransformers.contains(transformer))
+        if (!transformer || !seenTransformers.insert(transformer).second)
             continue;
-        seenTransformers.insert(transformer);
         if (checkForPropertyChanges(transformer, newlyResolvedProduct))
             transformerChanges = true;
     }
@@ -818,7 +815,7 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
         if (!product->buildData)
             continue;
         for (Artifact *artifactInProduct : filterByType<Artifact>(product->buildData->nodes)) {
-            if (artifactInProduct->fileDependencies.removeOne(filedep))
+            if (artifactInProduct->fileDependencies.remove(filedep))
                 loggedConnect(artifactInProduct, artifact, m_logger);
         }
     }

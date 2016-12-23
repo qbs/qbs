@@ -44,10 +44,10 @@
 #include "qualifiedid.h"
 
 #include <logging/logger.h>
+#include <tools/set.h>
 #include <tools/version.h>
 
 #include <QtCore/qhash.h>
-#include <QtCore/qset.h>
 
 namespace qbs {
 namespace Internal {
@@ -74,9 +74,9 @@ private:
     Item::Module &m_mergedModule;
     Item *m_clonedModulePrototype = nullptr;
     QHash<ValuePtr, PropertyDeclaration> m_decls;
-    QSet<const Item *> m_seenInstancesTopDown;
-    QSet<const Item *> m_seenInstancesBottomUp;
-    QSet<Item *> m_moduleInstanceContainers;
+    Set<const Item *> m_seenInstancesTopDown;
+    Set<const Item *> m_seenInstancesBottomUp;
+    Set<Item *> m_moduleInstanceContainers;
     bool m_required;
     VersionRange m_versionRange;
 };

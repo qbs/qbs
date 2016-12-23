@@ -47,6 +47,7 @@
 #include "hostosinfo.h"
 #include "processutils.h"
 #include "profile.h"
+#include "set.h"
 #include "settings.h"
 #include "setupprojectparameters.h"
 #include "version.h"
@@ -283,6 +284,684 @@ void TestTools::testBuildConfigMerging()
 void TestTools::testProcessNameByPid()
 {
     QCOMPARE(qAppName(), processNameByPid(QCoreApplication::applicationPid()));
+}
+
+
+int toNumber(const QString &str)
+{
+    int res = 0;
+    for (int i = 0; i < str.length(); ++i)
+        res = (res * 10) + str[i].digitValue();
+    return res;
+}
+
+void TestTools::set_operator_eq()
+{
+    {
+        Set<int> set1, set2;
+        QVERIFY(set1 == set2);
+        QVERIFY(!(set1 != set2));
+
+        set1.insert(1);
+        QVERIFY(set1 != set2);
+        QVERIFY(!(set1 == set2));
+
+        set2.insert(1);
+        QVERIFY(set1 == set2);
+        QVERIFY(!(set1 != set2));
+
+        set2.insert(1);
+        QVERIFY(set1 == set2);
+        QVERIFY(!(set1 != set2));
+
+        set1.insert(2);
+        QVERIFY(set1 != set2);
+        QVERIFY(!(set1 == set2));
+    }
+
+    {
+        Set<QString> set1, set2;
+        QVERIFY(set1 == set2);
+        QVERIFY(!(set1 != set2));
+
+        set1.insert("one");
+        QVERIFY(set1 != set2);
+        QVERIFY(!(set1 == set2));
+
+        set2.insert("one");
+        QVERIFY(set1 == set2);
+        QVERIFY(!(set1 != set2));
+
+        set2.insert("one");
+        QVERIFY(set1 == set2);
+        QVERIFY(!(set1 != set2));
+
+        set1.insert("two");
+        QVERIFY(set1 != set2);
+        QVERIFY(!(set1 == set2));
+    }
+
+    {
+        Set<QString> a;
+        Set<QString> b;
+
+        a += "otto";
+        b += "willy";
+
+        QVERIFY(a != b);
+        QVERIFY(!(a == b));
+    }
+
+    {
+        Set<int> s1, s2;
+        s1.reserve(100);
+        s2.reserve(4);
+        QVERIFY(s1 == s2);
+        s1 << 100 << 200 << 300 << 400;
+        s2 << 400 << 300 << 200 << 100;
+        QVERIFY(s1 == s2);
+    }
+}
+
+void TestTools::set_swap()
+{
+    Set<int> s1, s2;
+    s1.insert(1);
+    s2.insert(2);
+    s1.swap(s2);
+    QCOMPARE(*s1.begin(),2);
+    QCOMPARE(*s2.begin(),1);
+}
+
+void TestTools::set_size()
+{
+    Set<int> set;
+    QVERIFY(set.size() == 0);
+    QVERIFY(set.isEmpty());
+    QVERIFY(set.count() == set.size());
+
+    set.insert(1);
+    QVERIFY(set.size() == 1);
+    QVERIFY(!set.isEmpty());
+    QVERIFY(set.count() == set.size());
+
+    set.insert(1);
+    QVERIFY(set.size() == 1);
+    QVERIFY(!set.isEmpty());
+    QVERIFY(set.count() == set.size());
+
+    set.insert(2);
+    QVERIFY(set.size() == 2);
+    QVERIFY(!set.isEmpty());
+    QVERIFY(set.count() == set.size());
+
+    set.remove(1);
+    QVERIFY(set.size() == 1);
+    QVERIFY(!set.isEmpty());
+    QVERIFY(set.count() == set.size());
+
+    set.remove(1);
+    QVERIFY(set.size() == 1);
+    QVERIFY(!set.isEmpty());
+    QVERIFY(set.count() == set.size());
+
+    set.remove(2);
+    QVERIFY(set.size() == 0);
+    QVERIFY(set.isEmpty());
+    QVERIFY(set.count() == set.size());
+}
+
+void TestTools::set_capacity()
+{
+    Set<int> set;
+    int n = set.capacity();
+    QVERIFY(n == 0);
+
+    for (int i = 0; i < 1000; ++i) {
+        set.insert(i);
+        QVERIFY(set.capacity() >= set.size());
+    }
+}
+
+void TestTools::set_reserve()
+{
+    Set<int> set;
+    int n = set.capacity();
+    QVERIFY(n == 0);
+
+    set.reserve(1000);
+    QVERIFY(set.capacity() >= 1000);
+
+    for (int i = 0; i < 500; ++i)
+        set.insert(i);
+
+    QVERIFY(set.capacity() >= 1000);
+
+    for (int j = 0; j < 500; ++j)
+        set.remove(j);
+
+    QVERIFY(set.capacity() >= 1000);
+
+    set.clear();
+    QVERIFY(set.capacity() == 0);
+}
+
+void TestTools::set_clear()
+{
+    Set<QString> set1, set2;
+    QVERIFY(set1.size() == 0);
+
+    set1.clear();
+    QVERIFY(set1.size() == 0);
+
+    set1.insert("foo");
+    QVERIFY(set1.size() != 0);
+
+    set2 = set1;
+
+    set1.clear();
+    QVERIFY(set1.size() == 0);
+    QVERIFY(set2.size() != 0);
+
+    set2.clear();
+    QVERIFY(set1.size() == 0);
+    QVERIFY(set2.size() == 0);
+}
+
+void TestTools::set_remove()
+{
+    Set<QString> set1;
+
+    for (int i = 0; i < 500; ++i)
+        set1.insert(QString::number(i));
+
+    QCOMPARE(set1.size(), 500);
+
+    for (int j = 0; j < 500; ++j) {
+        set1.remove(QString::number((j * 17) % 500));
+        QCOMPARE(set1.size(), 500 - j - 1);
+    }
+}
+
+void TestTools::set_contains()
+{
+    Set<QString> set1;
+
+    for (int i = 0; i < 500; ++i) {
+        QVERIFY(!set1.contains(QString::number(i)));
+        set1.insert(QString::number(i));
+        QVERIFY(set1.contains(QString::number(i)));
+    }
+
+    QCOMPARE(set1.size(), 500);
+
+    for (int j = 0; j < 500; ++j) {
+        int i = (j * 17) % 500;
+        QVERIFY(set1.contains(QString::number(i)));
+        set1.remove(QString::number(i));
+        QVERIFY(!set1.contains(QString::number(i)));
+    }
+}
+
+void TestTools::set_containsSet()
+{
+    Set<QString> set1;
+    Set<QString> set2;
+
+    // empty set contains the empty set
+    QVERIFY(set1.contains(set2));
+
+    for (int i = 0; i < 500; ++i) {
+        set1.insert(QString::number(i));
+        set2.insert(QString::number(i));
+    }
+    QVERIFY(set1.contains(set2));
+
+    set2.remove(QString::number(19));
+    set2.remove(QString::number(82));
+    set2.remove(QString::number(7));
+    QVERIFY(set1.contains(set2));
+
+    set1.remove(QString::number(23));
+    QVERIFY(!set1.contains(set2));
+
+    // filled set contains the empty set as well
+    Set<QString> set3;
+    QVERIFY(set1.contains(set3));
+
+    // the empty set doesn't contain a filled set
+    QVERIFY(!set3.contains(set1));
+
+    // verify const signature
+    const Set<QString> set4;
+    QVERIFY(set3.contains(set4));
+}
+
+void TestTools::set_begin()
+{
+    Set<int> set1;
+    Set<int> set2 = set1;
+
+    {
+        Set<int>::const_iterator i = set1.constBegin();
+        Set<int>::const_iterator j = set1.cbegin();
+        Set<int>::const_iterator k = set2.constBegin();
+        Set<int>::const_iterator ell = set2.cbegin();
+
+        QVERIFY(i == j);
+        QVERIFY(k == ell);
+        QVERIFY(i == k);
+        QVERIFY(j == ell);
+    }
+
+    set1.insert(44);
+
+    {
+        Set<int>::const_iterator i = set1.constBegin();
+        Set<int>::const_iterator j = set1.cbegin();
+        Set<int>::const_iterator k = set2.constBegin();
+        Set<int>::const_iterator ell = set2.cbegin();
+
+        QVERIFY(i == j);
+        QVERIFY(k == ell);
+        QVERIFY(i != k);
+        QVERIFY(j != ell);
+    }
+
+    set2 = set1;
+
+    {
+        Set<int>::const_iterator i = set1.constBegin();
+        Set<int>::const_iterator j = set1.cbegin();
+        Set<int>::const_iterator k = set2.constBegin();
+        Set<int>::const_iterator ell = set2.cbegin();
+
+        QVERIFY(i == j);
+        QVERIFY(k == ell);
+        QVERIFY(i == k);
+        QVERIFY(j == ell);
+    }
+}
+
+void TestTools::set_end()
+{
+    Set<int> set1;
+    Set<int> set2 = set1;
+
+    {
+        Set<int>::const_iterator i = set1.constEnd();
+        Set<int>::const_iterator j = set1.cend();
+        Set<int>::const_iterator k = set2.constEnd();
+        Set<int>::const_iterator ell = set2.cend();
+
+        QVERIFY(i == j);
+        QVERIFY(k == ell);
+        QVERIFY(i == k);
+        QVERIFY(j == ell);
+
+        QVERIFY(set1.constBegin() == set1.constEnd());
+        QVERIFY(set2.constBegin() == set2.constEnd());
+    }
+
+    set1.insert(44);
+
+    {
+        Set<int>::const_iterator i = set1.constEnd();
+        Set<int>::const_iterator j = set1.cend();
+        Set<int>::const_iterator k = set2.constEnd();
+        Set<int>::const_iterator ell = set2.cend();
+
+        QVERIFY(i == j);
+        QVERIFY(k == ell);
+        QVERIFY(i != k);
+        QVERIFY(j != ell);
+
+        QVERIFY(set1.constBegin() != set1.constEnd());
+        QVERIFY(set2.constBegin() == set2.constEnd());
+    }
+
+    set2 = set1;
+
+    {
+        Set<int>::const_iterator i = set1.constEnd();
+        Set<int>::const_iterator j = set1.cend();
+        Set<int>::const_iterator k = set2.constEnd();
+        Set<int>::const_iterator ell = set2.cend();
+
+        QVERIFY(i == j);
+        QVERIFY(k == ell);
+        QVERIFY(i == k);
+        QVERIFY(j == ell);
+
+        QVERIFY(set1.constBegin() != set1.constEnd());
+        QVERIFY(set2.constBegin() != set2.constEnd());
+    }
+
+    set1.clear();
+    set2.clear();
+    QVERIFY(set1.constBegin() == set1.constEnd());
+    QVERIFY(set2.constBegin() == set2.constEnd());
+}
+
+struct IdentityTracker {
+    int value, id;
+};
+inline bool operator==(IdentityTracker lhs, IdentityTracker rhs) { return lhs.value == rhs.value; }
+inline bool operator<(IdentityTracker lhs, IdentityTracker rhs) { return lhs.value < rhs.value; }
+
+void TestTools::set_insert()
+{
+    {
+        Set<int> set1;
+        QVERIFY(set1.size() == 0);
+        set1.insert(1);
+        QVERIFY(set1.size() == 1);
+        set1.insert(2);
+        QVERIFY(set1.size() == 2);
+        set1.insert(2);
+        QVERIFY(set1.size() == 2);
+        QVERIFY(set1.contains(2));
+        set1.remove(2);
+        QVERIFY(set1.size() == 1);
+        QVERIFY(!set1.contains(2));
+        set1.insert(2);
+        QVERIFY(set1.size() == 2);
+        QVERIFY(set1.contains(2));
+    }
+
+    {
+        Set<int> set1;
+        QVERIFY(set1.size() == 0);
+        set1 << 1;
+        QVERIFY(set1.size() == 1);
+        set1 << 2;
+        QVERIFY(set1.size() == 2);
+        set1 << 2;
+        QVERIFY(set1.size() == 2);
+        QVERIFY(set1.contains(2));
+        set1.remove(2);
+        QVERIFY(set1.size() == 1);
+        QVERIFY(!set1.contains(2));
+        set1 << 2;
+        QVERIFY(set1.size() == 2);
+        QVERIFY(set1.contains(2));
+    }
+
+    {
+        Set<IdentityTracker> set;
+        QCOMPARE(set.size(), 0);
+        const int dummy = -1;
+        IdentityTracker id00 = {0, 0}, id01 = {0, 1}, searchKey = {0, dummy};
+        QCOMPARE(set.insert(id00).first->id, id00.id);
+        QCOMPARE(set.size(), 1);
+        QCOMPARE(set.insert(id01).first->id, id00.id); // first inserted is kept
+        QCOMPARE(set.size(), 1);
+        QCOMPARE(set.find(searchKey)->id, id00.id);
+    }
+}
+
+void TestTools::set_reverseIterators()
+{
+    Set<int> s;
+    s << 1 << 17 << 61 << 127 << 911;
+    std::vector<int> v(s.begin(), s.end());
+    std::reverse(v.begin(), v.end());
+    const Set<int> &cs = s;
+    QVERIFY(std::equal(v.begin(), v.end(), s.rbegin()));
+    QVERIFY(std::equal(v.begin(), v.end(), s.crbegin()));
+    QVERIFY(std::equal(v.begin(), v.end(), cs.rbegin()));
+    QVERIFY(std::equal(s.rbegin(), s.rend(), v.begin()));
+    QVERIFY(std::equal(s.crbegin(), s.crend(), v.begin()));
+    QVERIFY(std::equal(cs.rbegin(), cs.rend(), v.begin()));
+}
+
+void TestTools::set_stlIterator()
+{
+    Set<QString> set1;
+    for (int i = 0; i < 25000; ++i)
+        set1.insert(QString::number(i));
+
+    {
+        int sum = 0;
+        Set<QString>::const_iterator i = set1.begin();
+        while (i != set1.end()) {
+            sum += toNumber(*i);
+            ++i;
+        }
+        QVERIFY(sum == 24999 * 25000 / 2);
+    }
+
+    {
+        int sum = 0;
+        Set<QString>::const_iterator i = set1.end();
+        while (i != set1.begin()) {
+            --i;
+            sum += toNumber(*i);
+        }
+        QVERIFY(sum == 24999 * 25000 / 2);
+    }
+}
+
+void TestTools::set_stlMutableIterator()
+{
+    Set<QString> set1;
+    for (int i = 0; i < 25000; ++i)
+        set1.insert(QString::number(i));
+
+    {
+        int sum = 0;
+        Set<QString>::iterator i = set1.begin();
+        while (i != set1.end()) {
+            sum += toNumber(*i);
+            ++i;
+        }
+        QVERIFY(sum == 24999 * 25000 / 2);
+    }
+
+    {
+        int sum = 0;
+        Set<QString>::iterator i = set1.end();
+        while (i != set1.begin()) {
+            --i;
+            sum += toNumber(*i);
+        }
+        QVERIFY(sum == 24999 * 25000 / 2);
+    }
+
+    {
+        Set<QString> set2 = set1;
+        Set<QString> set3 = set2;
+
+        Set<QString>::iterator i = set2.begin();
+        Set<QString>::iterator j = set3.begin();
+
+        while (i != set2.end()) {
+            i = set2.erase(i);
+        }
+        QVERIFY(set2.isEmpty());
+        QVERIFY(!set3.isEmpty());
+
+        j = set3.end();
+        while (j != set3.begin()) {
+            j--;
+            if (j + 1 != set3.end())
+                set3.erase(j + 1);
+        }
+        if (set3.begin() != set3.end())
+            set3.erase(set3.begin());
+
+        QVERIFY(set2.isEmpty());
+        QVERIFY(set3.isEmpty());
+
+        i = set2.insert("foo").first;
+        QCOMPARE(*i, QLatin1String("foo"));
+    }
+}
+
+void TestTools::set_setOperations()
+{
+    Set<QString> set1, set2;
+    set1 << "alpha" << "beta" << "gamma" << "delta"              << "zeta"           << "omega";
+    set2            << "beta" << "gamma" << "delta" << "epsilon"           << "iota" << "omega";
+
+    Set<QString> set3 = set1;
+    set3.unite(set2);
+    QVERIFY(set3.size() == 8);
+    QVERIFY(set3.contains("alpha"));
+    QVERIFY(set3.contains("beta"));
+    QVERIFY(set3.contains("gamma"));
+    QVERIFY(set3.contains("delta"));
+    QVERIFY(set3.contains("epsilon"));
+    QVERIFY(set3.contains("zeta"));
+    QVERIFY(set3.contains("iota"));
+    QVERIFY(set3.contains("omega"));
+
+    Set<QString> set4 = set2;
+    set4.unite(set1);
+    QVERIFY(set4.size() == 8);
+    QVERIFY(set4.contains("alpha"));
+    QVERIFY(set4.contains("beta"));
+    QVERIFY(set4.contains("gamma"));
+    QVERIFY(set4.contains("delta"));
+    QVERIFY(set4.contains("epsilon"));
+    QVERIFY(set4.contains("zeta"));
+    QVERIFY(set4.contains("iota"));
+    QVERIFY(set4.contains("omega"));
+
+    QVERIFY(set3 == set4);
+
+    Set<QString> set5 = set1;
+    set5.intersect(set2);
+    QVERIFY(set5.size() == 4);
+    QVERIFY(set5.contains("beta"));
+    QVERIFY(set5.contains("gamma"));
+    QVERIFY(set5.contains("delta"));
+    QVERIFY(set5.contains("omega"));
+
+    Set<QString> set6 = set2;
+    set6.intersect(set1);
+    QVERIFY(set6.size() == 4);
+    QVERIFY(set6.contains("beta"));
+    QVERIFY(set6.contains("gamma"));
+    QVERIFY(set6.contains("delta"));
+    QVERIFY(set6.contains("omega"));
+
+    QVERIFY(set5 == set6);
+
+    Set<QString> set7 = set1;
+    set7.subtract(set2);
+    QVERIFY(set7.size() == 2);
+    QVERIFY(set7.contains("alpha"));
+    QVERIFY(set7.contains("zeta"));
+
+    Set<QString> set8 = set2;
+    set8.subtract(set1);
+    QVERIFY(set8.size() == 2);
+    QVERIFY(set8.contains("epsilon"));
+    QVERIFY(set8.contains("iota"));
+
+    Set<QString> set9 = set1 | set2;
+    QVERIFY(set9 == set3);
+
+    Set<QString> set10 = set1 & set2;
+    QVERIFY(set10 == set5);
+
+    Set<QString> set11 = set1 + set2;
+    QVERIFY(set11 == set3);
+
+    Set<QString> set12 = set1 - set2;
+    QVERIFY(set12 == set7);
+
+    Set<QString> set13 = set2 - set1;
+    QVERIFY(set13 == set8);
+
+    Set<QString> set14 = set1;
+    set14 |= set2;
+    QVERIFY(set14 == set3);
+
+    Set<QString> set15 = set1;
+    set15 &= set2;
+    QVERIFY(set15 == set5);
+
+    Set<QString> set16 = set1;
+    set16 += set2;
+    QVERIFY(set16 == set3);
+
+    Set<QString> set17 = set1;
+    set17 -= set2;
+    QVERIFY(set17 == set7);
+
+    Set<QString> set18 = set2;
+    set18 -= set1;
+    QVERIFY(set18 == set8);
+}
+
+void TestTools::set_makeSureTheComfortFunctionsCompile()
+{
+    Set<int> set1, set2, set3;
+    set1 << 5;
+    set1 |= set2;
+    set1 |= 5;
+    set1 &= set2;
+    set1 &= 5;
+    set1 += set2;
+    set1 += 5;
+    set1 -= set2;
+    set1 -= 5;
+    set1 = set2 | set3;
+    set1 = set2 & set3;
+    set1 = set2 + set3;
+    set1 = set2 - set3;
+}
+
+void TestTools::set_initializerList()
+{
+    Set<int> set = {1, 1, 2, 3, 4, 5};
+    QCOMPARE(set.count(), 5);
+    QVERIFY(set.contains(1));
+    QVERIFY(set.contains(2));
+    QVERIFY(set.contains(3));
+    QVERIFY(set.contains(4));
+    QVERIFY(set.contains(5));
+
+    // check _which_ of the equal elements gets inserted (in the QHash/QMap case, it's the last):
+    const Set<IdentityTracker> set2 = {{1, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}};
+    QCOMPARE(set2.count(), 5);
+    const int dummy = -1;
+    const IdentityTracker searchKey = {1, dummy};
+    QCOMPARE(set2.find(searchKey)->id, 0);
+
+    Set<int> emptySet{};
+    QVERIFY(emptySet.isEmpty());
+
+    Set<int> set3{{}, {}, {}};
+    QVERIFY(!set3.isEmpty());
+}
+
+void TestTools::set_intersects()
+{
+    Set<int> s1;
+    Set<int> s2;
+
+    QVERIFY(!s1.intersects(s1));
+    QVERIFY(!s1.intersects(s2));
+
+    s1 << 100;
+    QVERIFY(s1.intersects(s1));
+    QVERIFY(!s1.intersects(s2));
+
+    s2 << 200;
+    QVERIFY(!s1.intersects(s2));
+
+    s1 << 200;
+    QVERIFY(s1.intersects(s2));
+
+    qSetGlobalQHashSeed(0x10101010);
+    Set<int> s3;
+    s3 << 500;
+    QVERIFY(!s1.intersects(s3));
+    s3 << 200;
+    QVERIFY(s1.intersects(s3));
 }
 
 } // namespace Internal

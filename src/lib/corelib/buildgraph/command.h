@@ -44,9 +44,9 @@
 
 #include <tools/codelocation.h>
 #include <tools/persistentobject.h>
+#include <tools/set.h>
 
 #include <QtCore/qprocess.h>
-#include <QtCore/qset.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
@@ -91,8 +91,7 @@ protected:
     void store(PersistentPool &pool) const;
     void applyCommandProperties(const QScriptValue *scriptValue);
 
-    QSet<QString> m_predefinedProperties;
-
+    Set<QString> m_predefinedProperties;
 
 private:
     QString m_description;

@@ -796,7 +796,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                 ta.d->fileTags = it.value().fileTags.toStringList();
                 ta.d->properties.d->m_map = it.value().properties;
                 ta.d->isGenerated = true;
-                ta.d->isTargetArtifact = resolvedProduct->fileTags.matches(it.value().fileTags);
+                ta.d->isTargetArtifact = resolvedProduct->fileTags.intersects(it.value().fileTags);
                 ta.d->isValid = true;
                 setupInstallData(ta, resolvedProduct);
                 product.d->generatedArtifacts << ta;
@@ -1084,7 +1084,7 @@ QHash<QString, QString> Project::usedEnvironment() const
 QSet<QString> Project::buildSystemFiles() const
 {
     QBS_ASSERT(isValid(), return QSet<QString>());
-    return d->internalProject->buildSystemFiles;
+    return d->internalProject->buildSystemFiles.toQSet();
 }
 
 RuleCommandList Project::ruleCommands(const ProductData &product,

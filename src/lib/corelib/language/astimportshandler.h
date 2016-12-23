@@ -42,9 +42,9 @@
 #include "forward_decls.h"
 
 #include <parser/qmljsastfwd_p.h>
+#include <tools/set.h>
 
 #include <QtCore/qhash.h>
-#include <QtCore/qset.h>
 #include <QtCore/qstringlist.h>
 
 namespace qbs {
@@ -82,7 +82,7 @@ private:
     const FileContextPtr &m_file;
     const QString m_directory;
     QHash<QStringList, QString> m_typeNameToFile;
-    QSet<QString> m_importAsNames;
+    Set<QString> m_importAsNames;
 
     using JsImportsHash = QHash<QString, JsImport>;
     JsImportsHash m_jsImports;

@@ -40,7 +40,7 @@
 #ifndef QBS_RULENODE_H
 #define QBS_RULENODE_H
 
-#include "artifactset.h"
+#include "artifact.h"
 #include "buildgraphnode.h"
 #include "forward_decls.h"
 #include <language/forward_decls.h>

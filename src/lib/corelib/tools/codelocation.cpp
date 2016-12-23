@@ -161,4 +161,9 @@ QDebug operator<<(QDebug debug, const CodeLocation &location)
     return debug << location.toString();
 }
 
+bool operator<(const CodeLocation &cl1, const CodeLocation &cl2)
+{
+    return cl1.toString() < cl2.toString();
+}
+
 } // namespace qbs

@@ -40,87 +40,26 @@
 #ifndef QBS_NODESET_H
 #define QBS_NODESET_H
 
-#include <QtCore/qvector.h>
+#include <tools/set.h>
 
 #include <iterator>
 
 namespace qbs {
 namespace Internal {
-
 class BuildGraphNode;
 
-class PersistentPool;
+BuildGraphNode *loadBuildGraphNode(PersistentPool &pool);
+void storeBuildGraphNode(PersistentPool &pool, const BuildGraphNode *node);
 
-/**
-  * Set of build graph nodes.
-  * This is faster than QSet when iterating over the container.
-  */
-class NodeSet
+using NodeSet = Set<BuildGraphNode *>;
+template<> inline BuildGraphNode *NodeSet::loadElem(PersistentPool &pool)
 {
-public:
-    NodeSet &unite(const NodeSet &other);
-
-    typedef QVector<BuildGraphNode *>::const_iterator const_iterator;
-    typedef QVector<BuildGraphNode *>::iterator iterator;
-    typedef BuildGraphNode * value_type;
-
-    iterator begin() { return m_data.begin(); }
-    iterator end() { return m_data.end(); }
-    const_iterator begin() const { return m_data.begin(); }
-    const_iterator end() const { return m_data.end(); }
-    const_iterator constBegin() const { return m_data.begin(); }
-    const_iterator constEnd() const { return m_data.end(); }
-
-    void insert(BuildGraphNode *node)
-    {
-        if (!m_data.contains(node))
-            m_data << node;
-    }
-
-    void operator+=(BuildGraphNode *node)
-    {
-        insert(node);
-    }
-
-    NodeSet &operator<<(BuildGraphNode *node)
-    {
-        insert(node);
-        return *this;
-    }
-
-    void remove(BuildGraphNode *node);
-
-    bool contains(BuildGraphNode *node) const
-    {
-        return m_data.contains(node);
-    }
-
-    void clear()
-    {
-        m_data.clear();
-    }
-
-    bool isEmpty() const
-    {
-        return m_data.empty();
-    }
-
-    int count() const
-    {
-        return m_data.size();
-    }
-
-    void reserve(int size)
-    {
-        m_data.reserve(size);
-    }
-
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
-
-private:
-    QVector<BuildGraphNode *> m_data;
-};
+    return loadBuildGraphNode(pool);
+}
+template<> inline void NodeSet::storeElem(PersistentPool &pool, BuildGraphNode * const &node) const
+{
+    storeBuildGraphNode(pool, node);
+}
 
 template <class T>
 class TypeFilter

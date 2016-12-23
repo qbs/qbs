@@ -2004,8 +2004,8 @@ void TestLanguage::recursiveProductDependencies()
         QVERIFY(p3);
         const ResolvedProductPtr p4 = products.value("p4");
         QVERIFY(p4);
-        QVERIFY(p1->dependencies == QSet<ResolvedProductPtr>() << p3 << p4);
-        QVERIFY(p2->dependencies == QSet<ResolvedProductPtr>() << p3 << p4);
+        QVERIFY(p1->dependencies == Set<ResolvedProductPtr>() << p3 << p4);
+        QVERIFY(p2->dependencies == Set<ResolvedProductPtr>() << p3 << p4);
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();

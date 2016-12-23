@@ -45,11 +45,11 @@
 #include "item.h"
 #include "itempool.h"
 #include <logging/logger.h>
+#include <tools/set.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/version.h>
 
 #include <QtCore/qmap.h>
-#include <QtCore/qset.h>
 #include <QtCore/qstack.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
@@ -100,7 +100,7 @@ struct ModuleLoaderResult
     Item *root;
     QHash<Item *, ProductInfo> productInfos;
     QList<ProbeConstPtr> projectProbes;
-    QSet<QString> qbsFiles;
+    Set<QString> qbsFiles;
     QVariantMap profileConfigs;
 };
 
@@ -200,10 +200,10 @@ private:
     typedef QList<ModuleLoaderResult::ProductInfo::Dependency> ProductDependencyResults;
 
     void handleTopLevelProject(ModuleLoaderResult *loadResult, Item *projectItem,
-            const QString &buildDirectory, const QSet<QString> &referencedFilePaths);
+            const QString &buildDirectory, const Set<QString> &referencedFilePaths);
     void handleProject(ModuleLoaderResult *loadResult,
             TopLevelProjectContext *topLevelProjectContext, Item *projectItem,
-            const QSet<QString> &referencedFilePaths);
+            const Set<QString> &referencedFilePaths);
     QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);
     void prepareProduct(ProjectContext *projectContext, Item *productItem);
     void setupProductDependencies(ProductContext *productContext);
@@ -212,10 +212,10 @@ private:
                                 const ErrorInfo &error);
     void initProductProperties(const ProductContext &product);
     void handleSubProject(ProjectContext *projectContext, Item *projectItem,
-            const QSet<QString> &referencedFilePaths);
+            const Set<QString> &referencedFilePaths);
     QList<Item *> loadReferencedFile(const QString &relativePath,
                                      const CodeLocation &referencingLocation,
-                                     const QSet<QString> &referencedFilePaths,
+                                     const Set<QString> &referencedFilePaths,
                                      ProductContext &dummyContext);
     void handleAllPropertyOptionsItems(Item *item);
     void handlePropertyOptions(Item *optionsItem);
@@ -293,8 +293,8 @@ private:
     QMap<QString, QStringList> m_moduleDirListCache;
     QHash<QString, Item *> m_productModuleCache;
     ModuleItemCache m_modulePrototypeItemCache;
-    QHash<Item *, QSet<QString> > m_validItemPropertyNamesPerItem;
-    QSet<Item *> m_disabledItems;
+    QHash<Item *, Set<QString>> m_validItemPropertyNamesPerItem;
+    Set<Item *> m_disabledItems;
     QStack<bool> m_requiredChain;
 
     using DependsChainEntry = QPair<QualifiedId, CodeLocation>;

@@ -139,14 +139,13 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
             as = import->importId.toString();
         }
 
-        if (Q_UNLIKELY(m_importAsNames.contains(as))) {
-            throw ErrorInfo(Tr::tr("Cannot import into the same name more than once."),
-                        toCodeLocation(m_file->filePath(), import->importIdToken));
-        }
         if (Q_UNLIKELY(JsExtensions::hasExtension(as)))
             throw ErrorInfo(Tr::tr("Cannot reuse the name of built-in extension '%1'.").arg(as),
                             toCodeLocation(m_file->filePath(), import->importIdToken));
-        m_importAsNames.insert(as);
+        if (Q_UNLIKELY(!m_importAsNames.insert(as).second)) {
+            throw ErrorInfo(Tr::tr("Cannot import into the same name more than once."),
+                        toCodeLocation(m_file->filePath(), import->importIdToken));
+        }
     }
 
     if (!import->fileName.isNull()) {

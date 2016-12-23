@@ -67,6 +67,26 @@ private slots:
     void testSettingsMigration();
     void testSettingsMigration_data();
 
+    void set_operator_eq();
+    void set_swap();
+    void set_size();
+    void set_capacity();
+    void set_reserve();
+    void set_clear();
+    void set_remove();
+    void set_contains();
+    void set_containsSet();
+    void set_begin();
+    void set_end();
+    void set_insert();
+    void set_reverseIterators();
+    void set_stlIterator();
+    void set_stlMutableIterator();
+    void set_setOperations();
+    void set_makeSureTheComfortFunctionsCompile();
+    void set_initializerList();
+    void set_intersects();
+
 private:
     QString setupSettingsDir1();
     QString setupSettingsDir2();

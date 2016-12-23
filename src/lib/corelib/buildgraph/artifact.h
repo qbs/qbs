@@ -40,19 +40,21 @@
 #ifndef QBS_ARTIFACT_H
 #define QBS_ARTIFACT_H
 
-#include "artifactset.h"
 #include "filedependency.h"
 #include "buildgraphnode.h"
 #include "forward_decls.h"
 #include <language/filetags.h>
 #include <tools/filetime.h>
+#include <tools/set.h>
 
-#include <QtCore/qset.h>
 #include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {
 class Logger;
+
+class Artifact;
+using ArtifactSet = Set<Artifact *>;
 
 /**
  * The Artifact class
@@ -78,7 +80,7 @@ public:
     const FileTags &fileTags() const { return m_fileTags; }
 
     ArtifactSet childrenAddedByScanner;
-    QVector<FileDependency *> fileDependencies;
+    Set<FileDependency *> fileDependencies;
     TransformerPtr transformer;
     PropertyMapPtr properties;
 
@@ -106,6 +108,11 @@ private:
 
     FileTags m_fileTags;
 };
+
+template<> inline QString Set<Artifact *>::toString(Artifact * const &artifact) const
+{
+    return artifact->filePath();
+}
 
 // debugging helper
 inline QString toString(Artifact::ArtifactType t)

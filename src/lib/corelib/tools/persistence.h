@@ -261,15 +261,10 @@ template<typename T, typename U> struct PersistentPool::Helper<QPair<T, U>>
     }
 };
 
-class ArtifactSet;
-class FileTags;
 template<typename T> struct IsSimpleContainer { static const bool value = false; };
-template<> struct IsSimpleContainer<ArtifactSet> { static const bool value = true; };
-template<> struct IsSimpleContainer<FileTags> { static const bool value = true; };
 template<> struct IsSimpleContainer<QStringList> { static const bool value = true; };
 template<typename T> struct IsSimpleContainer<QVector<T>> { static const bool value = true; };
 template<typename T> struct IsSimpleContainer<QList<T>> { static const bool value = true; };
-template<typename T> struct IsSimpleContainer<QSet<T>> { static const bool value = true; };
 
 template<typename T>
 struct PersistentPool::Helper<T, typename std::enable_if<IsSimpleContainer<T>::value>::type>

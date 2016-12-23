@@ -45,7 +45,6 @@
 #include "scriptengine.h"
 
 #include <buildgraph/artifact.h>
-#include <buildgraph/artifactset.h>
 #include <buildgraph/productbuilddata.h>
 #include <buildgraph/projectbuilddata.h>
 #include <buildgraph/rulegraph.h> // TODO: Move to language?
@@ -379,7 +378,7 @@ QString Rule::toString() const
 
 bool Rule::acceptsAsInput(Artifact *artifact) const
 {
-    return artifact->fileTags().matches(inputs);
+    return artifact->fileTags().intersects(inputs);
 }
 
 FileTags Rule::staticOutputFileTags() const
@@ -546,17 +545,15 @@ void ResolvedProduct::store(PersistentPool &pool) const
 
 QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*, QList<const ResolvedModule*> > &moduleChildren,
                                       const QList<const ResolvedModule*> &modules,
-                                      QSet<QString> &seenModuleNames)
+                                      Set<QString> &seenModuleNames)
 {
     QList<const ResolvedModule*> result;
     foreach (const ResolvedModule *m, modules) {
         if (m->name.isNull())
             continue;
         result.append(topSortModules(moduleChildren, moduleChildren.value(m), seenModuleNames));
-        if (!seenModuleNames.contains(m->name)) {
-            seenModuleNames.insert(m->name);
+        if (seenModuleNames.insert(m->name).second)
             result.append(m);
-        }
     }
     return result;
 }
@@ -629,7 +626,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
     scope.setPrototype(engine->globalObject());
     TemporaryGlobalObjectSetter tgos(scope);
 
-    QSet<QString> seenModuleNames;
+    Set<QString> seenModuleNames;
     QList<const ResolvedModule *> topSortedModules = topSortModules(moduleChildren, rootModules, seenModuleNames);
     foreach (const ResolvedModule *module, topSortedModules) {
         if ((envType == BuildEnv && module->setupBuildEnvironmentScript->sourceCode.isEmpty()) ||
@@ -748,7 +745,7 @@ ArtifactSet ResolvedProduct::targetArtifacts() const
     QBS_CHECK(buildData);
     ArtifactSet taSet;
     foreach (Artifact * const a, buildData->rootArtifacts()) {
-        if (a->fileTags().matches(fileTags))
+        if (a->fileTags().intersects(fileTags))
             taSet << a;
     }
     return taSet;
@@ -774,7 +771,7 @@ static QStringList findGeneratedFiles(const Artifact *base, bool recursive, cons
 {
     QStringList result;
     for (const Artifact *parent : base->parentArtifacts()) {
-        if (tags.isEmpty() || parent->fileTags().matches(tags))
+        if (tags.isEmpty() || parent->fileTags().intersects(tags))
             result << parent->filePath();
         if (recursive)
             result << findGeneratedFiles(parent, true, tags);
@@ -1042,18 +1039,18 @@ void TopLevelProject::store(PersistentPool &pool) const
  * \brief The \c SourceArtifacts resulting from the expanded list of matching files.
  */
 
-QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
+Set<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
                                               const QString &baseDir, const QString &buildDir)
 {
-    QSet<QString> files = expandPatterns(group, patterns, baseDir, buildDir);
+    Set<QString> files = expandPatterns(group, patterns, baseDir, buildDir);
     files -= expandPatterns(group, excludePatterns, baseDir, buildDir);
     return files;
 }
 
-QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
+Set<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
         const QStringList &patterns, const QString &baseDir, const QString &buildDir)
 {
-    QSet<QString> files;
+    Set<QString> files;
     QString expandedPrefix = prefix;
     if (expandedPrefix.startsWith(QLatin1String("~/")))
         expandedPrefix.replace(0, 1, QDir::homePath());
@@ -1079,7 +1076,7 @@ QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
     return files;
 }
 
-void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr &group,
+void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &group,
                                      const QStringList &parts,
                                      const QString &baseDir, const QString &buildDir)
 {

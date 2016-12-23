@@ -38,7 +38,6 @@
 ****************************************************************************/
 #include "rulesapplicator.h"
 
-#include "artifact.h"
 #include "buildgraph.h"
 #include "emptydirectoriesremover.h"
 #include "productbuilddata.h"
@@ -184,11 +183,11 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         outputArtifacts = runOutputArtifactsScript(inputArtifacts,
                     ScriptEngine::argumentList(m_rule->outputArtifactsScript->argumentNames,
                                                scope()));
-        ArtifactSet newOutputs = ArtifactSet::fromNodeList(outputArtifacts);
+        ArtifactSet newOutputs = ArtifactSet::fromList(outputArtifacts);
         const ArtifactSet oldOutputs = collectOldOutputArtifacts(inputArtifacts);
         handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_logger);
     } else {
-        QSet<QString> outputFilePaths;
+        Set<QString> outputFilePaths;
         foreach (const RuleArtifactConstPtr &ruleArtifact, m_rule->artifacts) {
             Artifact * const outputArtifact
                     = createOutputArtifactFromRuleArtifact(ruleArtifact, inputArtifacts,
@@ -275,7 +274,7 @@ ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputA
 
 Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
         const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts,
-        QSet<QString> *outputFilePaths)
+        Set<QString> *outputFilePaths)
 {
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->filePath,
                                                   ruleArtifact->filePathLocation.filePath(),
@@ -287,11 +286,10 @@ Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
         throw errorInfo;
     }
     QString outputPath = FileInfo::resolvePath(m_product->buildDirectory(), scriptValue.toString());
-    if (Q_UNLIKELY(outputFilePaths->contains(outputPath))) {
+    if (Q_UNLIKELY(!outputFilePaths->insert(outputPath).second)) {
         throw ErrorInfo(Tr::tr("Rule %1 already created '%2'.")
                         .arg(m_rule->toString(), outputPath));
     }
-    outputFilePaths->insert(outputPath);
     return createOutputArtifact(outputPath, ruleArtifact->fileTags, ruleArtifact->alwaysUpdated,
                                 inputArtifacts);
 }
@@ -339,8 +337,8 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
             error.append(Tr::tr("Output artifact '%1' is to be produced from input "
                                 "artifacts '%2' and '%3', but the rule is not a multiplex rule.")
                          .arg(outputArtifact->filePath(),
-                              (*transformer->inputs.begin())->filePath(),
-                              (*inputArtifacts.begin())->filePath()));
+                              (*transformer->inputs.cbegin())->filePath(),
+                              (*inputArtifacts.cbegin())->filePath()));
             throw error;
         }
         if (m_rule->requiresInputs())
@@ -363,7 +361,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
 
     for (int i = 0; i < m_product->artifactProperties.count(); ++i) {
         const ArtifactPropertiesConstPtr &props = m_product->artifactProperties.at(i);
-        if (outputArtifact->fileTags().matches(props->fileTagsFilter())) {
+        if (outputArtifact->fileTags().intersects(props->fileTagsFilter())) {
             outputArtifact->properties = props->propertyMap();
             break;
         }
@@ -417,9 +415,9 @@ class ArtifactBindingsExtractor
     typedef QPair<QStringList, QVariant> NameValuePair;
     QList<NameValuePair> m_propertyValues;
 
-    static QSet<QString> getArtifactItemPropertyNames()
+    static Set<QString> getArtifactItemPropertyNames()
     {
-        QSet<QString> s;
+        Set<QString> s;
         foreach (const PropertyDeclaration &pd,
                  BuiltinDeclarations::instance().declarationsForType(
                      ItemType::Artifact).properties()) {
@@ -437,7 +435,7 @@ class ArtifactBindingsExtractor
             const QString name = svit.name();
             if (fullName.isEmpty()) {
                 // Ignore property names that are part of the Artifact item.
-                static const QSet<QString> artifactItemPropertyNames
+                static const Set<QString> artifactItemPropertyNames
                         = getArtifactItemPropertyNames();
                 if (artifactItemPropertyNames.contains(name))
                     continue;

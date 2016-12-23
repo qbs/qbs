@@ -227,7 +227,7 @@ bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode *> &pat
         return true;
     }
 
-    for (NodeSet::const_iterator it = u->children.begin(); it != u->children.end(); ++it) {
+    for (NodeSet::const_iterator it = u->children.cbegin(); it != u->children.cend(); ++it) {
         if (findPath(*it, v, path)) {
             path.prepend(u);
             return true;
@@ -274,16 +274,15 @@ void loggedConnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger)
     connect(u, v);
 }
 
-static bool existsPath_impl(BuildGraphNode *u, BuildGraphNode *v, QSet<BuildGraphNode *> *seen)
+static bool existsPath_impl(BuildGraphNode *u, BuildGraphNode *v, NodeSet *seen)
 {
     if (u == v)
         return true;
 
-    if (seen->contains(u))
+    if (!seen->insert(u).second)
         return false;
 
-    seen->insert(u);
-    for (NodeSet::const_iterator it = u->children.begin(); it != u->children.end(); ++it)
+    for (NodeSet::const_iterator it = u->children.cbegin(); it != u->children.cend(); ++it)
         if (existsPath_impl(*it, v, seen))
             return true;
 
@@ -292,7 +291,7 @@ static bool existsPath_impl(BuildGraphNode *u, BuildGraphNode *v, QSet<BuildGrap
 
 static bool existsPath(BuildGraphNode *u, BuildGraphNode *v)
 {
-    QSet<BuildGraphNode *> seen;
+    NodeSet seen;
     return existsPath_impl(u, v, &seen);
 }
 
@@ -438,7 +437,7 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
 }
 
 static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
-        const QSet<ResolvedProductPtr> &allProducts, const Logger &logger)
+        const Set<ResolvedProductPtr> &allProducts, const Logger &logger)
 {
     logger.qbsTrace() << "Sanity checking product '" << product->uniqueName() << "'";
     CycleDetector cycleDetector(logger);
@@ -454,7 +453,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
             logger.qbsTrace() << "Checking root node '" << node->toString() << "'.";
         QBS_CHECK(buildData->nodes.contains(node));
     }
-    QSet<QString> filePaths;
+    Set<QString> filePaths;
     foreach (BuildGraphNode * const node, buildData->nodes) {
         logger.qbsTrace() << "Sanity checking node '" << node->toString() << "'";
         QBS_CHECK(node->product == product);
@@ -488,15 +487,14 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
         ArtifactSet transformerOutputChildren;
         foreach (const Artifact * const output, transformer->outputs) {
             QBS_CHECK(output->transformer == transformer);
-            transformerOutputChildren.unite(ArtifactSet::fromNodeSet(output->children));
-            QSet<QString> childFilePaths;
+            transformerOutputChildren.unite(ArtifactSet::filtered(output->children));
+            Set<QString> childFilePaths;
             for (const Artifact *a : filterByType<Artifact>(output->children)) {
-                if (childFilePaths.contains(a->filePath())) {
+                if (!childFilePaths.insert(a->filePath()).second) {
                     throw ErrorInfo(QString::fromLatin1("There is more than one artifact for "
                         "file '%1' in the child list for output '%2'.")
                         .arg(a->filePath(), output->filePath()), CodeLocation(), true);
                 }
-                childFilePaths << a->filePath();
             }
         }
         if (logger.traceEnabled()) {
@@ -514,7 +512,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
 }
 
 static void doSanityChecks(const ResolvedProjectPtr &project,
-                           const QSet<ResolvedProductPtr> &allProducts, QSet<QString> &productNames,
+                           const Set<ResolvedProductPtr> &allProducts, Set<QString> &productNames,
                            const Logger &logger)
 {
     logger.qbsDebug() << "Sanity checking project '" << project->name << "'";
@@ -534,8 +532,9 @@ void doSanityChecks(const ResolvedProjectPtr &project, const Logger &logger)
 {
     if (qEnvironmentVariableIsEmpty("QBS_SANITY_CHECKS"))
         return;
-    QSet<QString> productNames;
-    const QSet<ResolvedProductPtr> allProducts = project->allProducts().toSet();
+    Set<QString> productNames;
+    const Set<ResolvedProductPtr> allProducts
+            = Set<ResolvedProductPtr>::fromList(project->allProducts());
     doSanityChecks(project, allProducts, productNames, logger);
 }
 

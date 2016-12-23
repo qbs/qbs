@@ -19,6 +19,7 @@ HEADERS += \
     $$PWD/persistence.h \
     $$PWD/scannerpluginmanager.h \
     $$PWD/scripttools.h \
+    $$PWD/set.h \
     $$PWD/settings.h \
     $$PWD/settingsmodel.h \
     $$PWD/pathutils.h \
