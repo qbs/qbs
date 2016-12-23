@@ -40,13 +40,13 @@ import "utils.js" as SdkUtils
 Module {
     Probes.AndroidSdkProbe {
         id: sdkProbe
-        environmentPaths: [sdkDir].concat(base)
+        environmentPaths: (sdkDir ? [sdkDir] : []).concat(base)
     }
 
     Probes.AndroidNdkProbe {
         id: ndkProbe
         sdkPath: sdkProbe.path
-        environmentPaths: [ndkDir].concat(base)
+        environmentPaths: (ndkDir ? [ndkDir] : []).concat(base)
     }
 
     property path sdkDir: sdkProbe.path
