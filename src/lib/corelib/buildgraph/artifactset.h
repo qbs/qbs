@@ -40,8 +40,8 @@
 #ifndef QBS_ARTIFACTSET_H
 #define QBS_ARTIFACTSET_H
 
-#include <QSet>
 #include <QStringList>
+#include <QVector>
 
 namespace qbs {
 namespace Internal {
@@ -49,20 +49,53 @@ namespace Internal {
 class Artifact;
 class NodeSet;
 
-class ArtifactSet : public QSet<Artifact *>
+class ArtifactSet
 {
 public:
-    ArtifactSet();
-    ArtifactSet(const ArtifactSet &other);
-    ArtifactSet(const QSet<Artifact *> &other);
+    using const_iterator = QVector<Artifact *>::const_iterator;
+    using iterator = QVector<Artifact *>::iterator;
+    using value_type = Artifact*;
+
+    iterator begin() { return m_data.begin(); }
+    iterator end() { return m_data.end(); }
+    const_iterator begin() const { return m_data.begin(); }
+    const_iterator end() const { return m_data.end(); }
+    const_iterator cbegin() const { return m_data.cbegin(); }
+    const_iterator cend() const { return m_data.cend(); }
+    const_iterator constBegin() const { return cbegin(); }
+    const_iterator constEnd() const { return cend(); }
+
+    void insert(Artifact *artifact);
+    void operator+=(Artifact *artifact) { insert(artifact); }
+    void operator<<(Artifact *artifact) { insert(artifact); }
+
+    void clear() { m_data.clear(); }
+    void reserve(int size) { m_data.reserve(size); }
+
+    bool remove(Artifact *artifact) { return m_data.removeOne(artifact); }
+    void operator-=(Artifact *artifact) { remove(artifact); }
+
+    bool contains(Artifact *artifact) const { return m_data.contains(artifact); }
+    bool isEmpty() const { return m_data.isEmpty(); }
+    int count() const { return m_data.count(); }
 
     ArtifactSet &unite(const ArtifactSet &other);
+    void operator+=(const ArtifactSet &other) { unite(other); }
+
     QStringList toStringList() const;
     QString toString() const;
 
     static ArtifactSet fromNodeSet(const NodeSet &nodes);
     static ArtifactSet fromNodeList(const QList<Artifact *> &lst);
+
+    bool operator==(const ArtifactSet &other) const { return m_data == other.m_data; }
+    bool operator!=(const ArtifactSet &other) const { return m_data != other.m_data; }
+
+private:
+    QVector<Artifact *> m_data;
 };
+
+ArtifactSet operator-(const ArtifactSet &set1, const ArtifactSet &set2);
 
 } // namespace Internal
 } // namespace qbs

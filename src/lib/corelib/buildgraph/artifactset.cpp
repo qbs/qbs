@@ -43,23 +43,16 @@
 namespace qbs {
 namespace Internal {
 
-ArtifactSet::ArtifactSet()
+void ArtifactSet::insert(Artifact *artifact)
 {
-}
-
-ArtifactSet::ArtifactSet(const ArtifactSet &other)
-    : QSet<Artifact *>(other)
-{
-}
-
-ArtifactSet::ArtifactSet(const QSet<Artifact *> &other)
-    : QSet<Artifact *>(other)
-{
+    if (!m_data.contains(artifact))
+        m_data << artifact;
 }
 
 ArtifactSet &ArtifactSet::unite(const ArtifactSet &other)
 {
-    QSet<Artifact *>::unite(other);
+    for (auto node = other.m_data.cbegin(); node != other.m_data.cend(); ++node)
+        insert(*node);
     return *this;
 }
 
@@ -79,11 +72,11 @@ QString ArtifactSet::toString() const
 ArtifactSet ArtifactSet::fromNodeSet(const NodeSet &nodes)
 {
     ArtifactSet result;
-    result.reserve(nodes.count());
+    result.m_data.reserve(nodes.count());
     foreach (BuildGraphNode *node, nodes) {
         Artifact *artifact = dynamic_cast<Artifact *>(node);
         if (artifact)
-            result += artifact;
+            result.m_data += artifact;
     }
     return result;
 }
@@ -91,9 +84,17 @@ ArtifactSet ArtifactSet::fromNodeSet(const NodeSet &nodes)
 ArtifactSet ArtifactSet::fromNodeList(const QList<Artifact *> &lst)
 {
     ArtifactSet result;
-    result.reserve(lst.count());
+    result.m_data.reserve(lst.count());
     for (QList<Artifact *>::const_iterator it = lst.constBegin(); it != lst.end(); ++it)
         result.insert(*it);
+    return result;
+}
+
+ArtifactSet operator-(const ArtifactSet &set1, const ArtifactSet &set2)
+{
+    ArtifactSet result = set1;
+    for (auto artifact = set2.cbegin(); artifact != set2.cend(); ++artifact)
+        result.remove(*artifact);
     return result;
 }
 
