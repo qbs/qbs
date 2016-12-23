@@ -72,37 +72,22 @@ void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
                             const QString &type)
 {
     QScriptEngine * const engine = objectWithProperties.engine();
-    objectWithProperties.setProperty(QLatin1String("moduleProperties"),
-                                     engine->newFunction(ModuleProperties::js_moduleProperties, 2));
     objectWithProperties.setProperty(QLatin1String("moduleProperty"),
                                      engine->newFunction(ModuleProperties::js_moduleProperty, 2));
     objectWithProperties.setProperty(ptrKey(), engine->toScriptValue(quintptr(ptr)));
     objectWithProperties.setProperty(typeKey(), type);
 }
 
-QScriptValue ModuleProperties::js_moduleProperties(QScriptContext *context, QScriptEngine *engine)
-{
-    ErrorInfo deprWarning(Tr::tr("The moduleProperties() function is deprecated and will be "
-                                 "removed in a future version of Qbs. Use moduleProperty() "
-                                 "instead."), context->backtrace());
-    static_cast<ScriptEngine *>(engine)->logger().printWarning(deprWarning);
-    try {
-        return moduleProperties(context, engine);
-    } catch (const ErrorInfo &e) {
-        return context->throwError(e.toString());
-    }
-}
-
 QScriptValue ModuleProperties::js_moduleProperty(QScriptContext *context, QScriptEngine *engine)
 {
     try {
-        return moduleProperties(context, engine);
+        return moduleProperty(context, engine);
     } catch (const ErrorInfo &e) {
         return context->throwError(e.toString());
     }
 }
 
-QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScriptEngine *engine)
+QScriptValue ModuleProperties::moduleProperty(QScriptContext *context, QScriptEngine *engine)
 {
     if (Q_UNLIKELY(context->argumentCount() < 2)) {
         return context->throwError(QScriptContext::SyntaxError,
