@@ -40,21 +40,14 @@
 #ifndef QBS_NODESET_H
 #define QBS_NODESET_H
 
-#include <set>
-#include <cstddef>
+#include <QVector>
 
-#include <QSharedData>
+#include <iterator>
 
 namespace qbs {
 namespace Internal {
 
 class BuildGraphNode;
-
-class NodeSetData : public QSharedData
-{
-public:
-    std::set<BuildGraphNode *> m_data;
-};
 
 class PersistentPool;
 
@@ -65,34 +58,33 @@ class PersistentPool;
 class NodeSet
 {
 public:
-    NodeSet();
-
     NodeSet &unite(const NodeSet &other);
 
-    typedef std::set<BuildGraphNode *>::const_iterator const_iterator;
-    typedef std::set<BuildGraphNode *>::iterator iterator;
+    typedef QVector<BuildGraphNode *>::const_iterator const_iterator;
+    typedef QVector<BuildGraphNode *>::iterator iterator;
     typedef BuildGraphNode * value_type;
 
-    iterator begin() { return d->m_data.begin(); }
-    iterator end() { return d->m_data.end(); }
-    const_iterator begin() const { return d->m_data.begin(); }
-    const_iterator end() const { return d->m_data.end(); }
-    const_iterator constBegin() const { return d->m_data.begin(); }
-    const_iterator constEnd() const { return d->m_data.end(); }
+    iterator begin() { return m_data.begin(); }
+    iterator end() { return m_data.end(); }
+    const_iterator begin() const { return m_data.begin(); }
+    const_iterator end() const { return m_data.end(); }
+    const_iterator constBegin() const { return m_data.begin(); }
+    const_iterator constEnd() const { return m_data.end(); }
 
     void insert(BuildGraphNode *node)
     {
-        d->m_data.insert(node);
+        if (!m_data.contains(node))
+            m_data << node;
     }
 
     void operator+=(BuildGraphNode *node)
     {
-        d->m_data.insert(node);
+        insert(node);
     }
 
     NodeSet &operator<<(BuildGraphNode *node)
     {
-        d->m_data.insert(node);
+        insert(node);
         return *this;
     }
 
@@ -100,38 +92,34 @@ public:
 
     bool contains(BuildGraphNode *node) const
     {
-        return d->m_data.find(node) != d->m_data.end();
+        return m_data.contains(node);
     }
 
     void clear()
     {
-        d->m_data.clear();
+        m_data.clear();
     }
 
     bool isEmpty() const
     {
-        return d->m_data.empty();
+        return m_data.empty();
     }
 
     int count() const
     {
-        return (int)d->m_data.size();
+        return m_data.size();
     }
 
-    void reserve(int)
+    void reserve(int size)
     {
-        // no-op
+        m_data.reserve(size);
     }
-
-    bool operator==(const NodeSet &other) const { return d->m_data == other.d->m_data; }
-    bool operator!=(const NodeSet &other) const { return !(*this == other); }
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 
-
 private:
-    QSharedDataPointer<NodeSetData> d;
+    QVector<BuildGraphNode *> m_data;
 };
 
 template <class T>

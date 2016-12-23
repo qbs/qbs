@@ -48,26 +48,23 @@
 namespace qbs {
 namespace Internal {
 
-NodeSet::NodeSet()
-    : d(new NodeSetData)
-{
-}
-
 NodeSet &NodeSet::unite(const NodeSet &other)
 {
-    d->m_data.insert(other.begin(), other.end());
+    for (auto node = other.m_data.cbegin(); node != other.m_data.cend(); ++node)
+        insert(*node);
     return *this;
 }
 
 void NodeSet::remove(BuildGraphNode *node)
 {
-    d->m_data.erase(node);
+    m_data.removeOne(node);
 }
 
 void NodeSet::load(PersistentPool &pool)
 {
     clear();
     int i = pool.load<int>();
+    reserve(i);
     for (; --i >= 0;) {
         const auto t = pool.load<quint8>();
         BuildGraphNode *node = 0;
@@ -80,7 +77,7 @@ void NodeSet::load(PersistentPool &pool)
             break;
         }
         QBS_CHECK(node);
-        insert(node);
+        m_data << node;
     }
 }
 
