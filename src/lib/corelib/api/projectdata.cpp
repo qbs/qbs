@@ -43,7 +43,6 @@
 #include <language/propertymapinternal.h>
 #include <tools/fileinfo.h>
 #include <tools/jsliterals.h>
-#include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>
 
 #include <QDir>
@@ -818,8 +817,7 @@ QVariant PropertyMap::getProperty(const QString &name) const
 QStringList PropertyMap::getModulePropertiesAsStringList(const QString &moduleName,
                                                           const QString &propertyName) const
 {
-    const QVariantList &vl = Internal::PropertyFinder().propertyValue(d->m_map->value(), moduleName,
-                                                                      propertyName).toList();
+    const QVariantList &vl = d->m_map->moduleProperty(moduleName, propertyName).toList();
     QStringList sl;
     foreach (const QVariant &v, vl) {
         QBS_ASSERT(v.canConvert<QString>(), continue);
@@ -834,7 +832,7 @@ QStringList PropertyMap::getModulePropertiesAsStringList(const QString &moduleNa
 QVariant PropertyMap::getModuleProperty(const QString &moduleName,
                                         const QString &propertyName) const
 {
-    return Internal::PropertyFinder().propertyValue(d->m_map->value(), moduleName, propertyName);
+    return d->m_map->moduleProperty(moduleName, propertyName);
 }
 
 static QString mapToString(const QVariantMap &map, const QString &prefix)

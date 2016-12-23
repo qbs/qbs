@@ -653,8 +653,8 @@ void TestLanguage::exports()
         QVERIFY(propertyValues.at(1).toString().endsWith("/subdir/lib"));
         QVERIFY(propertyValues.at(2).toString().endsWith("/subdir2/lib"));
 
-        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
-                                                "productName").toString(), QString("myapp"));
+        QCOMPARE(product->moduleProperties->moduleProperty("dummy", "productName").toString(),
+                 QString("myapp"));
 
         product = products.value("mylib");
         QVERIFY(product);
@@ -696,24 +696,24 @@ void TestLanguage::exports()
         propertyName = QStringList() << "modules" << "dummy" << "defines";
         propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "ABC");
-        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
-                                                "productName").toString(), QString("myapp2"));
-        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
+        QCOMPARE(product->moduleProperties->moduleProperty("dummy", "productName").toString(),
+                 QString("myapp2"));
+        QCOMPARE(product->moduleProperties->moduleProperty("dummy",
                 "upperCaseProductName").toString(), QString("MYAPP2"));
 
         // Check whether we're returning incorrect cached values.
         product = products.value("myapp3");
         QVERIFY(product);
-        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
-                                                "productName").toString(), QString("myapp3"));
-        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
+        QCOMPARE(product->moduleProperties->moduleProperty("dummy", "productName").toString(),
+                 QString("myapp3"));
+        QCOMPARE(product->moduleProperties->moduleProperty("dummy",
                 "upperCaseProductName").toString(), QString("MYAPP3"));
 
         // Verify we refer to the right "project" variable.
         product = products.value("sub p2");
         QVERIFY(product);
-        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
-                                                "someString").toString(), QString("sub1"));
+        QCOMPARE(product->moduleProperties->moduleProperty("dummy", "someString").toString(),
+                 QString("sub1"));
 
         product = products.value("libE");
         QVERIFY(product);
@@ -1199,8 +1199,7 @@ void TestLanguage::moduleProperties()
     const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(product);
-    QVariant values = PropertyFinder().propertyValue(product->moduleProperties->value(),
-                                                          "dummy", propertyName);
+    QVariant values = product->moduleProperties->moduleProperty("dummy", propertyName);
     QStringList valueStrings;
     foreach (const QVariant &v, values.toList())
         valueStrings += v.toString();
@@ -1518,8 +1517,7 @@ void TestLanguage::nonRequiredProducts()
             QCOMPARE(dependeeEnabled, dependee->enabled);
         const ResolvedProductConstPtr depender = products.value("depender");
         QVERIFY(depender);
-        const QStringList defines = PropertyFinder()
-                .propertyValue(depender->moduleProperties->value(), "dummy", "defines")
+        const QStringList defines = depender->moduleProperties->moduleProperty("dummy", "defines")
                 .toStringList();
         QCOMPARE(subProjectEnabled && dependeeEnabled, defines.contains("WITH_DEPENDEE"));
 
@@ -1634,14 +1632,13 @@ void TestLanguage::profileValuesAndOverriddenValues()
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         ResolvedProductPtr product = products.value("product1");
         QVERIFY(product);
-        PropertyFinder pf;
         QVariantList values;
-        values = pf.propertyValue(product->moduleProperties->value(), "dummy", "cxxFlags").toList();
+        values = product->moduleProperties->moduleProperty("dummy", "cxxFlags").toList();
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.first().toString(), QString("IN_PROFILE"));
-        values = pf.propertyValue(product->moduleProperties->value(), "dummy", "defines").toList();
+        values = product->moduleProperties->moduleProperty("dummy", "defines").toList();
         QCOMPARE(values, QVariantList() << QLatin1String("IN_FILE") << QLatin1String("IN_PROFILE"));
-        values = pf.propertyValue(product->moduleProperties->value(), "dummy", "cFlags").toList();
+        values = product->moduleProperties->moduleProperty("dummy", "cFlags").toList();
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.first().toString(), QString("OVERRIDDEN"));
     } catch (const ErrorInfo &e) {

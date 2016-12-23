@@ -241,8 +241,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
             bundlePath += QLatin1Char('/') + installDir;
         }
 
-        const QString bundleName = PropertyFinder().propertyValue(
-                    d->resolvedProduct->moduleProperties->value(),
+        const QString bundleName = d->resolvedProduct->moduleProperties->moduleProperty(
                     QLatin1String("bundle"),
                     QLatin1String("bundleName")).toString();
         bundlePath += QLatin1Char('/') + bundleName;

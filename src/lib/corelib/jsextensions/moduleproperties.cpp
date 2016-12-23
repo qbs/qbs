@@ -45,7 +45,6 @@
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/error.h>
-#include <tools/propertyfinder.h>
 
 #include <QScriptEngine>
 
@@ -127,7 +126,7 @@ QScriptValue ModuleProperties::moduleProperty(QScriptContext *context, QScriptEn
     if (qbsEngine->isPropertyCacheEnabled())
         value = qbsEngine->retrieveFromPropertyCache(moduleName, propertyName, properties);
     if (!value.isValid()) {
-        value = PropertyFinder().propertyValue(properties->value(), moduleName, propertyName);
+        value = properties->moduleProperty(moduleName, propertyName);
         const Property p(moduleName, propertyName, value);
         if (artifact)
             qbsEngine->addPropertyRequestedFromArtifact(artifact, p);
