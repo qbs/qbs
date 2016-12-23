@@ -91,7 +91,7 @@ QScriptValue ModuleProperties::moduleProperty(QScriptContext *context, QScriptEn
 {
     if (Q_UNLIKELY(context->argumentCount() < 2)) {
         return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("Function moduleProperties() expects 2 arguments"));
+                                   Tr::tr("Function moduleProperty() expects 2 arguments"));
     }
 
     const QScriptValue objectWithProperties = context->thisObject();
