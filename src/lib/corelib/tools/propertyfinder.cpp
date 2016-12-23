@@ -45,10 +45,7 @@ QVariant PropertyFinder::propertyValue(const QVariantMap &properties, const QStr
                                        const QString &key)
 {
     const QVariantMap moduleProperties = properties.value(QLatin1String("modules")).toMap();
-    const QVariant &value = moduleProperties.value(moduleName).toMap().value(key);
-    if (value.isNull())
-        return QVariant();
-    return value;
+    return moduleProperties.value(moduleName).toMap().value(key);
 }
 
 } // namespace Internal

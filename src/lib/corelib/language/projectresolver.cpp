@@ -1227,8 +1227,7 @@ QVariantMap ProjectResolver::evaluateProperties(const Item *item, const Item *pr
             // NOTE: Loses type information if scriptValue.isUndefined == true,
             //       as such QScriptValues become invalid QVariants.
             QVariant v = scriptValue.toVariant();
-
-            if (pd.type() == PropertyDeclaration::Path)
+            if (pd.type() == PropertyDeclaration::Path && v.isValid())
                 v = convertPathProperty(v.toString(),
                                         m_productContext->product->sourceDirectory);
             else if (pd.type() == PropertyDeclaration::PathList)
