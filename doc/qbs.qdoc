@@ -68,6 +68,7 @@
                \li  \l{Running Applications}
                \li  \l{Installing Files}
                \li  \l{Using the Shell}
+               \li  \l{Generators}
                \li  \l{Custom Modules and Items}
            \endlist
        \li  \l{Reference}
@@ -269,6 +270,7 @@
         \li  \l{Running Applications}
         \li  \l{Installing Files}
         \li  \l{Using the Shell}
+        \li  \l{Generators}
         \li  \l{Custom Modules and Items}
     \endlist
 
@@ -786,7 +788,7 @@
     \contentspage index.html
     \previouspage installing-files.html
     \page shell.html
-    \nextpage custom-modules.html
+    \nextpage generators.html
 
     \title Using the Shell
 
@@ -804,7 +806,7 @@
 
 /*!
     \contentspage index.html
-    \previouspage shell.html
+    \previouspage generators.html
     \page custom-modules.html
     \nextpage reference.html
 
@@ -869,4 +871,77 @@
     qbs config preferences.qbsSearchPaths /usr/local/share/custom-qbs-extensions
     \endcode
 
+*/
+
+/*!
+    \contentspage index.html
+    \previouspage shell.html
+    \page generators.html
+    \nextpage custom-modules.html
+
+    \title Generators
+
+    Generators are a \QBS sub-tool and set of APIs which enable arbitrary processing to be performed
+    on the build graph. Currently they are used to implement IDE integration with popular IDEs like
+    Visual Studio.
+
+    \section1 Using Generators
+
+    To generate a project for another build system like Visual Studio, use the
+    \c qbs-generate sub-command and specify a generator using the \c{-g} option. For example:
+
+    \code
+    # For Visual Studio
+    qbs generate -g visualstudio2015
+    \endcode
+
+    \QBS will then generate a series of files in the current directory, based on the generator that
+    was chosen. For the Visual Studio generator, the resulting project files can be
+    opened in the respective IDEs and all work can be performed there.
+
+    The project files will expose as much information as possible to the IDE and will use \QBS to
+    perform the actual build. \note You cannot modify build system files and expect the changes
+    to be reflected in \QBS; you must edit your \QBS project files and re-run \c{qbs-generate} in
+    order for the changes to be reflected in your IDE.
+
+    \section1 Limitations
+
+    Due to the high flexibility of the Qbs project format and build engine, some projects may be too
+    complex to produce an equivalent project file for another build system.
+
+    This list of limitations aims to be as small as possible, but one of the most notable (at least
+    for the Visual Studio generator) is that certain properties must contain the same
+    value across all build configurations. For example, the following is not allowed:
+
+    \code
+    Product {
+        // ERROR: 'name' property cannot have different values based on the configuration
+        name: qbs.configuration === "debug"
+            ? "MyProduct_debug"
+            : "MyProduct"
+    }
+    \endcode
+
+    Note that this limitation only applies when property values are varied on the configuration
+    name. For example, the following is OK (as long as the value of xyz itself does not vary across
+    configurations):
+
+    \code
+    Product {
+        // OK
+        property bool isDebug: <some value>
+        name: isDebug ? "MyProduct_debug" : "MyProduct"
+    }
+    \endcode
+
+    The properties to which the limitation applies includes but is not limited to:
+
+    \list
+        \li \l{Product Item}{Product}.name
+        \li \l{Module bundle}{bundle}.isBundle
+    \endlist
+
+    If a simple workaround is possible in a particular case (e.g. varying Product.targetName across
+    configuration instead of Product.name), the generator will typically suggest it in the error
+    message.
 */
