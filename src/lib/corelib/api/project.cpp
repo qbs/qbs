@@ -71,7 +71,6 @@
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
 #include <tools/processresult.h>
-#include <tools/propertyfinder.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
 #include <tools/setupprojectparameters.h>
