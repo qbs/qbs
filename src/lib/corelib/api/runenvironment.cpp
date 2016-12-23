@@ -51,7 +51,6 @@
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
-#include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>
 #include <tools/shellutils.h>
 
@@ -212,14 +211,9 @@ static QString findExecutable(const QStringList &fileNames)
 
 int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arguments)
 {
-    const QStringList targetOS = PropertyFinder().propertyValue(
-                d->resolvedProduct->moduleProperties->value(),
-                QLatin1String("qbs"),
+    const QStringList targetOS = d->resolvedProduct->moduleProperties->qbsPropertyValue(
                 QLatin1String("targetOS")).toStringList();
-
-    const QStringList toolchain = PropertyFinder().propertyValue(
-                d->resolvedProduct->moduleProperties->value(),
-                QLatin1String("qbs"),
+    const QStringList toolchain = d->resolvedProduct->moduleProperties->qbsPropertyValue(
                 QLatin1String("toolchain")).toStringList();
 
     QString targetExecutable = targetBin;
@@ -228,15 +222,11 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
 
     if (targetOS.contains(QLatin1String("ios"))) {
         QString bundlePath = d->resolvedProduct->buildDirectory();
-        const bool install = PropertyFinder().propertyValue(
-                    d->resolvedProduct->moduleProperties->value(),
-                    QLatin1String("qbs"),
+        const bool install = d->resolvedProduct->moduleProperties->qbsPropertyValue(
                     QLatin1String("install")).toBool();
         if (install) {
             bundlePath = d->installOptions.installRoot();
-            const QString installDir = PropertyFinder().propertyValue(
-                        d->resolvedProduct->moduleProperties->value(),
-                        QLatin1String("qbs"),
+            const QString installDir = d->resolvedProduct->moduleProperties->qbsPropertyValue(
                         QLatin1String("installDir")).toString();
             bundlePath += QLatin1Char('/') + installDir;
         }
