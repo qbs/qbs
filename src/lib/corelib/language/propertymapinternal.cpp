@@ -41,7 +41,6 @@
 
 #include <tools/jsliterals.h>
 #include <tools/persistence.h>
-#include <tools/propertyfinder.h>
 
 namespace qbs {
 namespace Internal {
@@ -70,7 +69,7 @@ PropertyMapInternal::PropertyMapInternal(const PropertyMapInternal &other)
 QVariant PropertyMapInternal::moduleProperty(const QString &moduleName,
                                                   const QString &key) const
 {
-    return PropertyFinder().propertyValue(value(), moduleName, key);
+    return ::qbs::Internal::moduleProperty(m_value, moduleName, key);
 }
 
 QVariant PropertyMapInternal::qbsPropertyValue(const QString &key) const
@@ -115,6 +114,13 @@ void PropertyMapInternal::load(PersistentPool &pool)
 void PropertyMapInternal::store(PersistentPool &pool) const
 {
     pool.store(m_value);
+}
+
+QVariant moduleProperty(const QVariantMap &properties, const QString &moduleName,
+                        const QString &key)
+{
+    const QVariantMap moduleProperties = properties.value(QLatin1String("modules")).toMap();
+    return moduleProperties.value(moduleName).toMap().value(key);
 }
 
 } // namespace Internal

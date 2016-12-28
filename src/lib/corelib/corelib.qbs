@@ -377,8 +377,6 @@ QbsLibrary {
             "progressobserver.cpp",
             "progressobserver.h",
             "projectgeneratormanager.cpp",
-            "propertyfinder.cpp",
-            "propertyfinder.h",
             "qbsassert.cpp",
             "qbsassert.h",
             "qttools.cpp",

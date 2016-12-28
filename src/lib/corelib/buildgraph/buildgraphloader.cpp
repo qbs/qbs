@@ -58,7 +58,6 @@
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/profiling.h>
-#include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>
 
 #include <QDir>
@@ -786,7 +785,6 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
 bool BuildGraphLoader::checkForPropertyChange(const Property &restoredProperty,
                                               const QVariantMap &newProperties)
 {
-    PropertyFinder finder;
     QVariant v;
     switch (restoredProperty.kind) {
     case Property::PropertyInProduct:
@@ -794,8 +792,8 @@ bool BuildGraphLoader::checkForPropertyChange(const Property &restoredProperty,
         v = newProperties.value(restoredProperty.propertyName);
         break;
     case Property::PropertyInModule:
-        v = finder.propertyValue(newProperties, restoredProperty.moduleName,
-                                 restoredProperty.propertyName);
+        v = moduleProperty(newProperties, restoredProperty.moduleName,
+                           restoredProperty.propertyName);
         break;
     }
     if (restoredProperty.value != v) {

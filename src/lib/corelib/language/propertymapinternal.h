@@ -69,6 +69,9 @@ private:
     QVariantMap m_value;
 };
 
+QVariant moduleProperty(const QVariantMap &properties, const QString &moduleName,
+                        const QString &key);
+
 } // namespace Internal
 } // namespace qbs
 

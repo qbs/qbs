@@ -30,7 +30,6 @@ HEADERS += \
     $$PWD/processutils.h \
     $$PWD/progressobserver.h \
     $$PWD/projectgeneratormanager.h \
-    $$PWD/propertyfinder.h \
     $$PWD/shellutils.h \
     $$PWD/toolchains.h \
     $$PWD/hostosinfo.h \
@@ -73,7 +72,6 @@ SOURCES += \
     $$PWD/profiling.cpp \
     $$PWD/progressobserver.cpp \
     $$PWD/projectgeneratormanager.cpp \
-    $$PWD/propertyfinder.cpp \
     $$PWD/shellutils.cpp \
     $$PWD/buildoptions.cpp \
     $$PWD/installoptions.cpp \

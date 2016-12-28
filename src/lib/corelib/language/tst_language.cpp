@@ -60,7 +60,6 @@
 #include <tools/hostosinfo.h>
 #include <tools/jsliterals.h>
 #include <tools/profile.h>
-#include <tools/propertyfinder.h>
 #include <tools/settings.h>
 
 #include <QProcessEnvironment>
@@ -1244,150 +1243,148 @@ void TestLanguage::modulePropertiesInGroups()
         QVERIFY(g211);
 
         const QVariantMap productProps = product->moduleProperties->value();
-        PropertyFinder pf;
-
-        const auto &productGmod1List1 = pf.propertyValue(productProps, "gmod.gmod1", "gmod1_list1")
+        const auto &productGmod1List1 = moduleProperty(productProps, "gmod.gmod1", "gmod1_list1")
                 .toStringList();
         QCOMPARE(productGmod1List1, QStringList() << "gmod1_list1_proto" << "gmod1_string_proto");
-        const auto &productGmod1List2 = pf.propertyValue(productProps, "gmod.gmod1", "gmod1_list2")
+        const auto &productGmod1List2 = moduleProperty(productProps, "gmod.gmod1", "gmod1_list2")
                 .toStringList();
         QCOMPARE(productGmod1List2, QStringList() << "grouptest" << "gmod1_string_proto"
                  << "gmod1_list2_proto");
-        const auto &productGmod1List3 = pf.propertyValue(productProps, "gmod.gmod1", "gmod1_list3")
+        const auto &productGmod1List3 = moduleProperty(productProps, "gmod.gmod1", "gmod1_list3")
                 .toStringList();
         QCOMPARE(productGmod1List3, QStringList() << "product" << "gmod1_string_proto");
-        const int productP0 = pf.propertyValue(productProps, "gmod.gmod1", "p0").toInt();
+        const int productP0 = moduleProperty(productProps, "gmod.gmod1", "p0").toInt();
         QCOMPARE(productP0, 1);
-        const int productDepProp = pf.propertyValue(productProps, "gmod.gmod1", "depProp").toInt();
+        const int productDepProp = moduleProperty(productProps, "gmod.gmod1", "depProp").toInt();
         QCOMPARE(productDepProp, 0);
-        const auto &productGmod2String = pf.propertyValue(productProps, "gmod2", "gmod2_string")
+        const auto &productGmod2String = moduleProperty(productProps, "gmod2", "gmod2_string")
                 .toString();
         QCOMPARE(productGmod2String, QString("gmod1_string_proto"));
-        const auto &productGmod2List = pf.propertyValue(productProps, "gmod2", "gmod2_list")
+        const auto &productGmod2List = moduleProperty(productProps, "gmod2", "gmod2_list")
                 .toStringList();
         QCOMPARE(productGmod2List, QStringList() << "gmod1_string_proto" << "commonName_in_gmod1"
                  << "gmod4_string_proto_gmod3_string_proto"  << "gmod3_string_proto"
                  << "gmod2_list_proto");
 
         const QVariantMap g1Props = g1->properties->value();
-        const auto &g1Gmod1List1 = pf.propertyValue(g1Props, "gmod.gmod1", "gmod1_list1")
+        const auto &g1Gmod1List1 = moduleProperty(g1Props, "gmod.gmod1", "gmod1_list1")
                 .toStringList();
         QCOMPARE(g1Gmod1List1, QStringList() << "gmod1_list1_proto" << "g1");
-        const auto &g1Gmod1List2 = pf.propertyValue(g1Props, "gmod.gmod1", "gmod1_list2")
+        const auto &g1Gmod1List2 = moduleProperty(g1Props, "gmod.gmod1", "gmod1_list2")
                 .toStringList();
         QCOMPARE(g1Gmod1List2, QStringList() << "grouptest" << "gmod1_string_proto"
                  << "gmod1_list2_proto" << "g1");
-        const auto &g1Gmod1List3 = pf.propertyValue(g1Props, "gmod.gmod1", "gmod1_list3")
+        const auto &g1Gmod1List3 = moduleProperty(g1Props, "gmod.gmod1", "gmod1_list3")
                 .toStringList();
         QCOMPARE(g1Gmod1List3, QStringList() << "product" << "g1");
-        const int g1P0 = pf.propertyValue(g1Props, "gmod.gmod1", "p0").toInt();
+        const int g1P0 = moduleProperty(g1Props, "gmod.gmod1", "p0").toInt();
         QCOMPARE(g1P0, 3);
-        const int g1DepProp = pf.propertyValue(g1Props, "gmod.gmod1", "depProp").toInt();
+        const int g1DepProp = moduleProperty(g1Props, "gmod.gmod1", "depProp").toInt();
         QCOMPARE(g1DepProp, 1);
-        const auto &g1Gmod2String = pf.propertyValue(g1Props, "gmod2", "gmod2_string").toString();
+        const auto &g1Gmod2String = moduleProperty(g1Props, "gmod2", "gmod2_string").toString();
         QCOMPARE(g1Gmod2String, QString("g1"));
-        const auto &g1Gmod2List = pf.propertyValue(g1Props, "gmod2", "gmod2_list")
+        const auto &g1Gmod2List = moduleProperty(g1Props, "gmod2", "gmod2_list")
                 .toStringList();
         QCOMPARE(g1Gmod2List, QStringList() << "g1" << "commonName_in_gmod1" << "g1_gmod4_g1_gmod3"
                  << "g1_gmod3" << "gmod2_list_proto");
 
         const QVariantMap g11Props = g11->properties->value();
-        const auto &g11Gmod1List1 = pf.propertyValue(g11Props, "gmod.gmod1", "gmod1_list1")
+        const auto &g11Gmod1List1 = moduleProperty(g11Props, "gmod.gmod1", "gmod1_list1")
                 .toStringList();
         QCOMPARE(g11Gmod1List1, QStringList() << "gmod1_list1_proto" << "g1.1");
-        const auto &g11Gmod1List2 = pf.propertyValue(g11Props, "gmod.gmod1", "gmod1_list2")
+        const auto &g11Gmod1List2 = moduleProperty(g11Props, "gmod.gmod1", "gmod1_list2")
                 .toStringList();
         QCOMPARE(g11Gmod1List2, QStringList() << "grouptest" << "gmod1_string_proto"
                  << "gmod1_list2_proto" << "g1" << "g1.1");
-        const auto &g11Gmod1List3 = pf.propertyValue(g11Props, "gmod.gmod1", "gmod1_list3")
+        const auto &g11Gmod1List3 = moduleProperty(g11Props, "gmod.gmod1", "gmod1_list3")
                 .toStringList();
         QCOMPARE(g11Gmod1List3, QStringList() << "product" << "g1.1");
-        const int g11P0 = pf.propertyValue(g11Props, "gmod.gmod1", "p0").toInt();
+        const int g11P0 = moduleProperty(g11Props, "gmod.gmod1", "p0").toInt();
         QCOMPARE(g11P0, 5);
-        const int g11DepProp = pf.propertyValue(g11Props, "gmod.gmod1", "depProp").toInt();
+        const int g11DepProp = moduleProperty(g11Props, "gmod.gmod1", "depProp").toInt();
         QCOMPARE(g11DepProp, 2);
-        const auto &g11Gmod2String = pf.propertyValue(g11Props, "gmod2", "gmod2_string").toString();
+        const auto &g11Gmod2String = moduleProperty(g11Props, "gmod2", "gmod2_string").toString();
         QCOMPARE(g11Gmod2String, QString("g1.1"));
-        const auto &g11Gmod2List = pf.propertyValue(g11Props, "gmod2", "gmod2_list")
+        const auto &g11Gmod2List = moduleProperty(g11Props, "gmod2", "gmod2_list")
                 .toStringList();
         QCOMPARE(g11Gmod2List, QStringList() << "g1.1" << "commonName_in_gmod1"
                  << "g1.1_gmod4_g1.1_gmod3" << "g1.1_gmod3" << "gmod2_list_proto");
 
         const QVariantMap g12Props = g12->properties->value();
-        const auto &g12Gmod1List1 = pf.propertyValue(g12Props, "gmod.gmod1", "gmod1_list1")
+        const auto &g12Gmod1List1 = moduleProperty(g12Props, "gmod.gmod1", "gmod1_list1")
                 .toStringList();
         QCOMPARE(g12Gmod1List1, QStringList() << "gmod1_list1_proto" << "g1.2");
-        const auto &g12Gmod1List2 = pf.propertyValue(g12Props, "gmod.gmod1", "gmod1_list2")
+        const auto &g12Gmod1List2 = moduleProperty(g12Props, "gmod.gmod1", "gmod1_list2")
                 .toStringList();
         QCOMPARE(g12Gmod1List2, QStringList() << "grouptest" << "gmod1_string_proto"
                  << "gmod1_list2_proto" << "g1" << "g1.2");
-        const auto &g12Gmod1List3 = pf.propertyValue(g12Props, "gmod.gmod1", "gmod1_list3")
+        const auto &g12Gmod1List3 = moduleProperty(g12Props, "gmod.gmod1", "gmod1_list3")
                 .toStringList();
         QCOMPARE(g12Gmod1List3, QStringList() << "product" << "g1.2");
-        const int g12P0 = pf.propertyValue(g12Props, "gmod.gmod1", "p0").toInt();
+        const int g12P0 = moduleProperty(g12Props, "gmod.gmod1", "p0").toInt();
         QCOMPARE(g12P0, 9);
-        const int g12DepProp = pf.propertyValue(g12Props, "gmod.gmod1", "depProp").toInt();
+        const int g12DepProp = moduleProperty(g12Props, "gmod.gmod1", "depProp").toInt();
         QCOMPARE(g12DepProp, 1);
-        const auto &g12Gmod2String = pf.propertyValue(g12Props, "gmod2", "gmod2_string").toString();
+        const auto &g12Gmod2String = moduleProperty(g12Props, "gmod2", "gmod2_string").toString();
         QCOMPARE(g12Gmod2String, QString("g1.2"));
-        const auto &g12Gmod2List = pf.propertyValue(g12Props, "gmod2", "gmod2_list")
+        const auto &g12Gmod2List = moduleProperty(g12Props, "gmod2", "gmod2_list")
                 .toStringList();
         QCOMPARE(g12Gmod2List, QStringList() << "g1.2" << "commonName_in_gmod1"
                  << "g1_gmod4_g1.2_gmod3" << "g1.2_gmod3" << "gmod2_list_proto");
 
         const QVariantMap g2Props = g2->properties->value();
-        const auto &g2Gmod1List1 = pf.propertyValue(g2Props, "gmod.gmod1", "gmod1_list1")
+        const auto &g2Gmod1List1 = moduleProperty(g2Props, "gmod.gmod1", "gmod1_list1")
                 .toStringList();
         QCOMPARE(g2Gmod1List1, QStringList() << "gmod1_list1_proto" << "g2");
-        const auto &g2Gmod1List2 = pf.propertyValue(g2Props, "gmod.gmod1", "gmod1_list2")
+        const auto &g2Gmod1List2 = moduleProperty(g2Props, "gmod.gmod1", "gmod1_list2")
                 .toStringList();
         QCOMPARE(g2Gmod1List2, QStringList() << "grouptest" << "g2" << "gmod1_list2_proto");
-        const int g2P0 = pf.propertyValue(g2Props, "gmod.gmod1", "p0").toInt();
+        const int g2P0 = moduleProperty(g2Props, "gmod.gmod1", "p0").toInt();
         QCOMPARE(g2P0, 6);
-        const int g2DepProp = pf.propertyValue(g2Props, "gmod.gmod1", "depProp").toInt();
+        const int g2DepProp = moduleProperty(g2Props, "gmod.gmod1", "depProp").toInt();
         QCOMPARE(g2DepProp, 2);
-        const auto &g2Gmod2String = pf.propertyValue(g2Props, "gmod2", "gmod2_string").toString();
+        const auto &g2Gmod2String = moduleProperty(g2Props, "gmod2", "gmod2_string").toString();
         QCOMPARE(g2Gmod2String, QString("g2"));
-        const auto &g2Gmod2List = pf.propertyValue(g2Props, "gmod2", "gmod2_list")
+        const auto &g2Gmod2List = moduleProperty(g2Props, "gmod2", "gmod2_list")
                 .toStringList();
         QCOMPARE(g2Gmod2List, QStringList() << "g2" << "commonName_in_gmod1" << "g2_gmod4_g2_gmod3"
                  << "g2_gmod3" << "gmod2_list_proto");
 
         const QVariantMap g21Props = g21->properties->value();
-        const auto &g21Gmod1List1 = pf.propertyValue(g21Props, "gmod.gmod1", "gmod1_list1")
+        const auto &g21Gmod1List1 = moduleProperty(g21Props, "gmod.gmod1", "gmod1_list1")
                 .toStringList();
         QCOMPARE(g21Gmod1List1, QStringList() << "gmod1_list1_proto" << "g2");
-        const auto &g21Gmod1List2 = pf.propertyValue(g21Props, "gmod.gmod1", "gmod1_list2")
+        const auto &g21Gmod1List2 = moduleProperty(g21Props, "gmod.gmod1", "gmod1_list2")
                 .toStringList();
         QEXPECT_FAIL(0, "no re-eval when no module props set", Continue);
         QCOMPARE(g21Gmod1List2, QStringList() << "grouptest" << "g2.1" << "gmod1_list2_proto");
-        const int g21P0 = pf.propertyValue(g21Props, "gmod.gmod1", "p0").toInt();
+        const int g21P0 = moduleProperty(g21Props, "gmod.gmod1", "p0").toInt();
         QCOMPARE(g21P0, 6);
-        const int g21DepProp = pf.propertyValue(g21Props, "gmod.gmod1", "depProp").toInt();
+        const int g21DepProp = moduleProperty(g21Props, "gmod.gmod1", "depProp").toInt();
         QCOMPARE(g21DepProp, 2);
-        const auto &g21Gmod2String = pf.propertyValue(g21Props, "gmod2", "gmod2_string").toString();
+        const auto &g21Gmod2String = moduleProperty(g21Props, "gmod2", "gmod2_string").toString();
         QCOMPARE(g21Gmod2String, QString("g2"));
-        const auto &g21Gmod2List = pf.propertyValue(g21Props, "gmod2", "gmod2_list")
+        const auto &g21Gmod2List = moduleProperty(g21Props, "gmod2", "gmod2_list")
                 .toStringList();
         QEXPECT_FAIL(0, "no re-eval when no module props set", Continue);
         QCOMPARE(g21Gmod2List, QStringList() << "g2" << "commonName_in_gmod1"
                  << "g2.1_gmod4_g2.1_gmod3" << "g2.1_gmod3" << "gmod2_list_proto");
 
         const QVariantMap g211Props = g211->properties->value();
-        const auto &g211Gmod1List1 = pf.propertyValue(g211Props, "gmod.gmod1", "gmod1_list1")
+        const auto &g211Gmod1List1 = moduleProperty(g211Props, "gmod.gmod1", "gmod1_list1")
                 .toStringList();
         QCOMPARE(g211Gmod1List1, QStringList() << "gmod1_list1_proto" << "g2");
-        const auto &g211Gmod1List2 = pf.propertyValue(g211Props, "gmod.gmod1", "gmod1_list2")
+        const auto &g211Gmod1List2 = moduleProperty(g211Props, "gmod.gmod1", "gmod1_list2")
                 .toStringList();
         QCOMPARE(g211Gmod1List2, QStringList() << "g2.1.1");
-        const int g211P0 = pf.propertyValue(g211Props, "gmod.gmod1", "p0").toInt();
+        const int g211P0 = moduleProperty(g211Props, "gmod.gmod1", "p0").toInt();
         QCOMPARE(g211P0, 17);
-        const int g211DepProp = pf.propertyValue(g211Props, "gmod.gmod1", "depProp").toInt();
+        const int g211DepProp = moduleProperty(g211Props, "gmod.gmod1", "depProp").toInt();
         QCOMPARE(g211DepProp, 2);
         const auto &g211Gmod2String
-                = pf.propertyValue(g211Props, "gmod2", "gmod2_string").toString();
+                = moduleProperty(g211Props, "gmod2", "gmod2_string").toString();
         QCOMPARE(g211Gmod2String, QString("g2.1.1"));
-        const auto &g211Gmod2List = pf.propertyValue(g211Props, "gmod2", "gmod2_list")
+        const auto &g211Gmod2List = moduleProperty(g211Props, "gmod2", "gmod2_list")
                 .toStringList();
         QCOMPARE(g211Gmod2List, QStringList() << "g2.1.1" << "commonName_in_gmod1"
                  << "g2.1.1_gmod4_g2.1.1_gmod3" << "g2.1.1_gmod3" << "gmod2_list_proto");
@@ -1410,7 +1407,7 @@ void TestLanguage::moduleScope()
 
         int intValue(const QString &name)
         {
-            return PropertyFinder().propertyValue(m_properties, "scopemod", name).toInt();
+            return moduleProperty(m_properties, "scopemod", name).toInt();
         }
     };
 
@@ -1833,8 +1830,7 @@ void TestLanguage::propertiesBlockInGroup()
                 [](const GroupConstPtr &g) { return g->name == "the group"; });
         QVERIFY(groupIt != product->groups.constEnd());
         const QVariantMap propertyMap = (*groupIt)->properties->value();
-        const QVariantList value
-                = PropertyFinder().propertyValue(propertyMap, "dummy", "defines").toList();
+        const QVariantList value = moduleProperty(propertyMap, "dummy", "defines").toList();
         QStringList stringListValue;
         std::transform(value.constBegin(), value.constEnd(), std::back_inserter(stringListValue),
                        [](const QVariant &v) { return v.toString(); });

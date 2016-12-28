@@ -48,7 +48,6 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
-#include <tools/propertyfinder.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
 
