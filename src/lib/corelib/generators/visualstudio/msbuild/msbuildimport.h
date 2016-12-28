@@ -49,8 +49,8 @@ class MSBuildImport : public QObject, public IMSBuildNode
     Q_OBJECT
     Q_DISABLE_COPY(MSBuildImport)
 public:
-    explicit MSBuildImport(MSBuildProject *parent = 0);
-    explicit MSBuildImport(MSBuildImportGroup *parent = 0);
+    explicit MSBuildImport(MSBuildProject *parent);
+    explicit MSBuildImport(MSBuildImportGroup *parent);
     virtual ~MSBuildImport();
 
     QString project() const;
