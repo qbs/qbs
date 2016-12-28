@@ -37,7 +37,6 @@
 **
 ****************************************************************************/
 #include "installoptions.h"
-#include "propertyfinder.h"
 #include "language/language.h"
 
 #include <QDir>
@@ -68,14 +67,12 @@ QString effectiveInstallRoot(const InstallOptions &options, const TopLevelProjec
     if (!installRoot.isEmpty())
         return installRoot;
 
-    QVariantMap configForPropertyFinder;
-    configForPropertyFinder.insert(QLatin1String("modules"), project->buildConfiguration());
     if (options.installIntoSysroot()) {
-        return PropertyFinder().propertyValue(configForPropertyFinder,
-            QLatin1String("qbs"), QLatin1String("sysroot")).toString();
+        return project->buildConfiguration().value(QLatin1String("qbs")).toMap()
+                .value(QLatin1String("sysroot")).toString();
     }
-    return PropertyFinder().propertyValue(configForPropertyFinder,
-        QLatin1String("qbs"), QLatin1String("installRoot")).toString();
+    return project->buildConfiguration().value(QLatin1String("qbs")).toMap()
+            .value(QLatin1String("installRoot")).toString();
 }
 
 } // namespace Internal
