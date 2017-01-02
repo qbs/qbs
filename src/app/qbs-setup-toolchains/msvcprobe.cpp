@@ -310,6 +310,7 @@ void createMsvcProfile(const QString &profileName, const QString &compilerFilePa
                        Settings *settings)
 {
     MSVC msvc(compilerFilePath);
+    msvc.init();
     QList<Profile> dummy;
     addMSVCPlatform(settings, dummy, profileName, &msvc);
     qbsInfo() << Tr::tr("Profile '%1' created for '%2'.")

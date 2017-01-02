@@ -107,7 +107,7 @@ Module {
         }
 
         Artifact {
-            fileTags: ["debuginfo"]
+            fileTags: ["debuginfo_app"]
             filePath: FileInfo.joinPaths(product.destinationDirectory,
                                          product.targetName
                                          + product.moduleProperty(product.moduleName,
@@ -134,7 +134,7 @@ Module {
         }
 
         Artifact {
-            fileTags: ["debuginfo"]
+            fileTags: ["debuginfo_dll"]
             filePath: FileInfo.joinPaths(product.destinationDirectory,
                                          product.targetName
                                          + product.moduleProperty(product.moduleName,
@@ -161,7 +161,7 @@ Module {
         }
 
         Artifact {
-            fileTags: ["debuginfo"]
+            fileTags: ["debuginfo_netmodule"]
             filePath: FileInfo.joinPaths(product.destinationDirectory,
                                          product.targetName
                                          + product.moduleProperty(product.moduleName,

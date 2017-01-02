@@ -49,15 +49,16 @@ private slots:
     void checkClangDetectsSourceCodeProblems();
 
 private:
-    static int runProcess(const QString &exec, const QStringList &args, QByteArray &stdErr,
-                          QByteArray &stdOut);
-    static qbs::Internal::Version clangVersion();
+    int runProcess(const QString &exec, const QStringList &args, QByteArray &stdErr,
+                   QByteArray &stdOut);
+    qbs::Internal::Version clangVersion();
 
     const QString projectDir;
     const QString projectFileName;
     const QString buildDir;
     const QString sourceFilePath;
     const QString dbFilePath;
+    QProcessEnvironment processEnvironment;
 };
 
 #endif // Include guard.

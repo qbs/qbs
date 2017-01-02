@@ -52,6 +52,9 @@ int TestClangDb::runProcess(const QString &exec, const QStringList &args, QByteA
                             QByteArray &stdOut)
 {
     QProcess process;
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert(processEnvironment);
+    process.setProcessEnvironment(env);
 
     process.start(exec, args);
     const int waitTime = 10 * 60000;
@@ -106,6 +109,20 @@ void TestClangDb::ensureBuildTreeCreated()
 {
     QCOMPARE(runQbs(), 0);
     QVERIFY(QFile::exists(buildDir));
+
+    qbs::Settings settings((QString()));
+    qbs::Profile profile(profileName(), &settings);
+    if (profile.value("qbs.toolchain").toStringList().contains("msvc")) {
+        sanitizeOutput(&m_qbsStdout);
+        for (const auto &line : m_qbsStdout.split('\n')) {
+            static const QByteArray includeEnv = "INCLUDE=";
+            static const QByteArray libEnv = "LIB=";
+            if (line.startsWith(includeEnv))
+                processEnvironment.insert("INCLUDE", line.mid(includeEnv.size()));
+            if (line.startsWith(libEnv))
+                processEnvironment.insert("LIB", line.mid(libEnv.size()));
+        }
+    }
 }
 
 void TestClangDb::checkCanGenerateDb()
@@ -147,11 +164,6 @@ void TestClangDb::checkDbIsConsistentWithProject()
     QVERIFY(entry.value("file").isString());
     QVERIFY(entry.value("file").toString() == sourceFilePath);
 
-    qbs::Settings settings((QString()));
-    qbs::Profile profile(profileName(), &settings);
-    if (profile.value("qbs.toolchain").toStringList().contains("msvc"))
-        QSKIP("MSVC command line is not self-contained");
-
     // Validate the compile command itself, this requires a previous build since the command
     // line contains 'deep' path that are created during Qbs build run
     QByteArray stdErr;
@@ -190,15 +202,12 @@ void TestClangDb::checkClangDetectsSourceCodeProblems()
     qbs::Settings settings((QString()));
     qbs::Profile profile(profileName(), &settings);
     if (profile.value("qbs.toolchain").toStringList().contains("msvc")) {
-        QFile commandsFile(relativeBuildDir() + "/compile_commands.json");
-        QVERIFY2(commandsFile.open(QIODevice::ReadWrite), qPrintable(commandsFile.errorString()));
-        QByteArray data = commandsFile.readAll();
-        data.replace("/D", "-D");
-        commandsFile.resize(0);
-        commandsFile.write(data);
+        arguments << "-extra-arg-before=--driver-mode=cl";
+    } else if (profile.value("qbs.toolchain").toStringList().contains("mingw")) {
+        arguments << "-extra-arg-before=--driver-mode=g++";
     }
 
-    arguments = QStringList() << "-analyze" << "-p" << relativeBuildDir() << sourceFilePath;
+    arguments << "-analyze" << "-p" << relativeBuildDir() << sourceFilePath;
     QVERIFY(runProcess(executable, arguments, stdErr, stdOut) == 0);
     const QString output = QString::fromLocal8Bit(stdErr);
     QVERIFY(output.contains(QRegExp(QStringLiteral("warning.*undefined"), Qt::CaseInsensitive)));

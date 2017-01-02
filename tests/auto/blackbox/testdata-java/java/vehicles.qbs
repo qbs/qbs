@@ -60,17 +60,15 @@ Project {
             files: ["Car8.java"]
         }
 
-        property stringList cppIncludePaths: {
-            var paths = java.jdkIncludePaths;
-            if (java.compilerVersionMinor >= 8) {
-                paths.push(buildDirectory); // generated JNI headers
-            }
-            return paths;
-        }
-
         Export {
             Depends { name: "cpp" }
-            cpp.systemIncludePaths: product.cppIncludePaths
+            cpp.systemIncludePaths: {
+                var paths = importingProduct.java.jdkIncludePaths;
+                if (importingProduct.java.compilerVersionMinor >= 8) {
+                    paths.push(product.buildDirectory); // generated JNI headers
+                }
+                return paths;
+            }
 
             Depends { name: "java" }
             java.manifestClassPath: [product.targetName + ".jar"]

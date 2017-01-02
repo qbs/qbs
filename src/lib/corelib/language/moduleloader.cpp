@@ -2273,18 +2273,18 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         if (!resolvedProbe)
             properties.insert(b.first, newValue);
     }
-    if (!resolvedProbe) {
-        resolvedProbe = Probe::create(probeId, probe->location(), condition,
-                                      sourceCode, properties, initialProperties);
-        m_currentProbes[probe->location()] << resolvedProbe;
-    }
-    productContext->info.probes << resolvedProbe;
     m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
     if (evalError.hasError())
         throw evalError;
+    if (!resolvedProbe) {
+        resolvedProbe = Probe::create(probeId, probe->location(), condition,
+                                      sourceCode, properties, initialProperties);
+        m_currentProbes[probe->location()] << resolvedProbe;
+    }
+    productContext->info.probes << resolvedProbe;
 }
 
 void ModuleLoader::checkCancelation() const

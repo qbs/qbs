@@ -39,7 +39,7 @@ import "utils.js" as NdkUtils
 Module {
     Probes.AndroidNdkProbe {
         id: ndkProbe
-        environmentPaths: [ndkDir].concat(base)
+        environmentPaths: (ndkDir ? [ndkDir] : []).concat(base)
     }
 
     readonly property string abi: NdkUtils.androidAbi(qbs.architecture)
