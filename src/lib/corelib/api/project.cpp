@@ -796,7 +796,6 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                 ArtifactData ta;
                 ta.d->filePath = it.key();
                 ta.d->fileTags = it.value().fileTags.toStringList();
-                ta.d->properties.d->m_map = PropertyMapInternal::create();
                 ta.d->properties.d->m_map = it.value().properties;
                 ta.d->isGenerated = true;
                 ta.d->isTargetArtifact = resolvedProduct->fileTags.matches(it.value().fileTags);
