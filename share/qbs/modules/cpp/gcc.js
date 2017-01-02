@@ -774,9 +774,11 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     cmd.responseFileUsagePrefix = '@';
     commands.push(cmd);
 
-    if (outputs.debuginfo) {
+    var debugInfo = outputs.debuginfo_app || outputs.debuginfo_dll
+            || outputs.debuginfo_loadablemodule;
+    if (debugInfo) {
         if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
-            var dsymPath = outputs.debuginfo[0].filePath;
+            var dsymPath = debugInfo[0].filePath;
             if (outputs.debuginfo_bundle && outputs.debuginfo_bundle[0])
                 dsymPath = outputs.debuginfo_bundle[0].filePath;
             var flags = ModUtils.moduleProperty(product, "dsymutilFlags") || [];
@@ -794,7 +796,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
             var objcopy = ModUtils.moduleProperty(product, "objcopyPath");
 
             cmd = new Command(objcopy, ["--only-keep-debug", primaryOutput.filePath,
-                                        outputs.debuginfo[0].filePath]);
+                                        debugInfo[0].filePath]);
             cmd.silent = true;
             commands.push(cmd);
 
@@ -802,7 +804,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
             cmd.silent = true;
             commands.push(cmd);
 
-            cmd = new Command(objcopy, ["--add-gnu-debuglink=" + outputs.debuginfo[0].filePath,
+            cmd = new Command(objcopy, ["--add-gnu-debuglink=" + debugInfo[0].filePath,
                                         primaryOutput.filePath]);
             cmd.silent = true;
             commands.push(cmd);
@@ -939,12 +941,12 @@ function concatLibsFromArtifacts(libs, artifacts)
     return concatLibs(deps, libs);
 }
 
-function debugInfoArtifacts(product) {
+function debugInfoArtifacts(product, debugInfoTagSuffix) {
     var artifacts = [];
     if (product.moduleProperty("cpp", "separateDebugInformation")) {
         artifacts.push({
             filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
-            fileTags: ["debuginfo"]
+            fileTags: ["debuginfo_" + debugInfoTagSuffix]
         });
         if (PathTools.debugInfoIsBundle(product)) {
             artifacts.push({

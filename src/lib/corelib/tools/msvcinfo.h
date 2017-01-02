@@ -75,6 +75,7 @@ public:
     MSVC(const QString &clPath)
     {
         QDir parentDir = QFileInfo(clPath).dir();
+        binPath = parentDir.absolutePath();
         QString parentDirName = parentDir.dirName().toLower();
         if (parentDirName == QLatin1String("bin"))
             parentDirName = QStringLiteral("x86");
@@ -82,7 +83,6 @@ public:
             parentDir.cdUp();
         architecture = parentDirName;
         vcInstallPath = parentDir.path();
-        binPath = vcInstallPath;
     }
 
     QBS_EXPORT void init();

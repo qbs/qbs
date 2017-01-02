@@ -530,18 +530,9 @@ static void doSanityChecks(const ResolvedProjectPtr &project,
     }
 }
 
-static bool isReleaseBuild()
-{
-#ifdef QT_NO_DEBUG
-    return true;
-#else
-    return false;
-#endif
-}
-
 void doSanityChecks(const ResolvedProjectPtr &project, const Logger &logger)
 {
-    if (isReleaseBuild() && qgetenv("QBS_SANITY_CHECKS").isEmpty())
+    if (qEnvironmentVariableIsEmpty("QBS_SANITY_CHECKS"))
         return;
     QSet<QString> productNames;
     const QSet<ResolvedProductPtr> allProducts = project->allProducts().toSet();

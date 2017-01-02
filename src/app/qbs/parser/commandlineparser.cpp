@@ -87,7 +87,6 @@ public:
     void setupBuildOptions();
     bool checkForExistingBuildConfiguration(const QList<QVariantMap> &buildConfigs,
                                             const QString &configurationName);
-    bool isSameProfile(const QString &profile1, const QString &profile2) const;
     bool withNonDefaultProducts() const;
     bool dryRun() const;
     QString settingsDir() const { return  optionPool.settingsDirOption()->settingsDir(); }
@@ -604,19 +603,6 @@ bool CommandLineParser::CommandLineParserPrivate::checkForExistingBuildConfigura
         if (configurationName == getBuildConfigurationName(buildConfig))
             return true;
     }
-    return false;
-}
-
-bool CommandLineParser::CommandLineParserPrivate::isSameProfile(const QString &profile1,
-                                                                const QString &profile2) const
-{
-    if (profile1 == profile2)
-        return true;
-    Settings settings(settingsDir());
-    if (profile1.isEmpty())
-        return profile2.isEmpty() || profile2 == settings.defaultProfile();
-    if (profile2.isEmpty())
-        return profile1 == settings.defaultProfile();
     return false;
 }
 

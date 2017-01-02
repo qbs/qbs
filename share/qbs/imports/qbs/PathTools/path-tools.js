@@ -119,7 +119,9 @@ function importLibraryFilePath(product) {
 }
 
 function debugInfoIsBundle(product) {
-    var flags = product.moduleProperty("cpp", "dsymutilFlags");
+    if (!product.moduleProperty("qbs", "targetOS").contains("darwin"))
+        return false;
+    var flags = product.moduleProperty("cpp", "dsymutilFlags") || [];
     return !flags.contains("-f") && !flags.contains("--flat");
 }
 
