@@ -39,7 +39,7 @@ QT_END_NAMESPACE
 namespace qbsBenchmarker {
 
 void runProcess(const QStringList &commandLine, const QString& workingDir = QString(),
-                QByteArray *output = 0);
+                QByteArray *output = nullptr, int *exitCode = nullptr);
 
 } // namespace qbsBenchmarker
 

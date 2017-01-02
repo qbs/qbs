@@ -36,7 +36,8 @@
 
 namespace qbsBenchmarker {
 
-void runProcess(const QStringList &commandLine, const QString &workingDir, QByteArray *output)
+void runProcess(const QStringList &commandLine, const QString &workingDir, QByteArray *output,
+                int *exitCode)
 {
     QStringList args = commandLine;
     const QString command = args.takeFirst();
@@ -51,6 +52,8 @@ void runProcess(const QStringList &commandLine, const QString &workingDir, QByte
         throw Exception(QString::fromLatin1("Error running '%1': %2")
                         .arg(command, p.errorString()));
     }
+    if (exitCode)
+        *exitCode = p.exitCode();
     if (p.exitCode() != 0) {
         QString errorString = QString::fromLatin1("Command '%1' finished with exit code %2.")
                 .arg(command).arg(p.exitCode());

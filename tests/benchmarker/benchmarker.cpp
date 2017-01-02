@@ -96,7 +96,18 @@ void Benchmarker::benchmark()
 void Benchmarker::rememberCurrentRepoState()
 {
     QByteArray commit;
-    runProcess(QStringList() << "git" << "describe" << "HEAD", m_qbsRepo, &commit);
+    int exitCode = 0;
+    try {
+        runProcess(QStringList() << "git" << "symbolic-ref" << "--short" << "HEAD", m_qbsRepo,
+                   &commit, &exitCode);
+    } catch (const Exception &) {
+        if (exitCode == 0) {
+            // runProcess did not throw because of the exit code.
+            throw;
+        }
+        // Fallback, in case git cannot retrieve a nice symbolic name.
+        runProcess(QStringList() << "git" << "describe" << "HEAD", m_qbsRepo, &commit);
+    }
     m_commitToRestore = QString::fromLatin1(commit);
 }
 
