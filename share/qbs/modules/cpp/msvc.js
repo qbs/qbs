@@ -220,8 +220,9 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
     if (debugInformation) {
         args.push("/DEBUG");
-        if (outputs.debuginfo)
-            args.push("/PDB:" + outputs.debuginfo[0].fileName);
+        var debugInfo = outputs.debuginfo_app || outputs.debuginfo_dll;
+        if (debugInfo)
+            args.push("/PDB:" + debugInfo[0].fileName);
     } else {
         args.push('/INCREMENTAL:NO')
     }

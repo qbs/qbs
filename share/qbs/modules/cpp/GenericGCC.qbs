@@ -268,7 +268,9 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
 
-        outputFileTags: ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy", "debuginfo"]
+        outputFileTags: [
+            "dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy", "debuginfo_dll"
+        ]
         outputArtifacts: {
             var lib = {
                 filePath: product.destinationDirectory + "/"
@@ -297,7 +299,7 @@ CppModule {
                     artifacts.push(symlink);
                 }
             }
-            return artifacts.concat(Gcc.debugInfoArtifacts(product));
+            return artifacts.concat(Gcc.debugInfoArtifacts(product, "dll"));
         }
 
         prepare: {
@@ -375,14 +377,14 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
 
-        outputFileTags: ["loadablemodule", "debuginfo"]
+        outputFileTags: ["loadablemodule", "debuginfo_loadablemodule"]
         outputArtifacts: {
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
                                              PathTools.loadableModuleFilePath(product)),
                 fileTags: ["loadablemodule"]
             }
-            return [app].concat(Gcc.debugInfoArtifacts(product));
+            return [app].concat(Gcc.debugInfoArtifacts(product, "loadablemodule"));
         }
 
         prepare: {
@@ -403,14 +405,14 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
 
-        outputFileTags: ["application", "debuginfo"]
+        outputFileTags: ["application", "debuginfo_app"]
         outputArtifacts: {
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
                                              PathTools.applicationFilePath(product)),
                 fileTags: ["application"]
             }
-            return [app].concat(Gcc.debugInfoArtifacts(product));
+            return [app].concat(Gcc.debugInfoArtifacts(product, "app"));
         }
 
         prepare: {

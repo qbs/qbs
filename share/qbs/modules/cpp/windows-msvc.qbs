@@ -174,9 +174,9 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: ['obj']
-        inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo"]
+        inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_app"]
 
-        outputFileTags: ["application", "debuginfo"]
+        outputFileTags: ["application", "debuginfo_app"]
         outputArtifacts: {
             var app = {
                 fileTags: ["application"],
@@ -188,7 +188,7 @@ CppModule {
             if (ModUtils.moduleProperty(product, "debugInformation")
                     && ModUtils.moduleProperty(product, "separateDebugInformation")) {
                 artifacts.push({
-                    fileTags: ["debuginfo"],
+                    fileTags: ["debuginfo_app"],
                     filePath: app.filePath.substr(0, app.filePath.length - 4)
                               + ModUtils.moduleProperty(product, "debugInfoSuffix")
                 });
@@ -205,9 +205,9 @@ CppModule {
         id: dynamicLibraryLinker
         multiplex: true
         inputs: ['obj']
-        inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo"]
+        inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_dll"]
 
-        outputFileTags: ["dynamiclibrary", "dynamiclibrary_import", "debuginfo"]
+        outputFileTags: ["dynamiclibrary", "dynamiclibrary_import", "debuginfo_dll"]
         outputArtifacts: {
             var artifacts = [
                 {
@@ -224,7 +224,7 @@ CppModule {
                     && ModUtils.moduleProperty(product, "separateDebugInformation")) {
                 var lib = artifacts[0];
                 artifacts.push({
-                    fileTags: ["debuginfo"],
+                    fileTags: ["debuginfo_dll"],
                     filePath: lib.filePath.substr(0, lib.filePath.length - 4)
                               + ModUtils.moduleProperty(product, "debugInfoSuffix")
                 });
