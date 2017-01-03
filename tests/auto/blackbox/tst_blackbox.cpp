@@ -4125,17 +4125,23 @@ void TestBlackbox::typescript()
 
     QDir::setCurrent(testDataDir + QLatin1String("/typescript"));
 
-    status = runQbs();
+    QbsRunParameters params;
+    params.expectFailure = true;
+    status = runQbs(params);
     if (p.value("typescript.toolchainInstallPath").toString().isEmpty() && status != 0) {
+        if (m_qbsStderr.contains("Path\" must be specified"))
+            QSKIP("typescript probe failed");
         if (m_qbsStderr.contains("typescript.toolchainInstallPath"))
             QSKIP("typescript.toolchainInstallPath not set and automatic detection failed");
         if (m_qbsStderr.contains("nodejs.interpreterFilePath"))
             QSKIP("nodejs.interpreterFilePath not set and automatic detection failed");
     }
 
+    if (status != 0)
+        qDebug() << m_qbsStderr;
     QCOMPARE(status, 0);
 
-    QbsRunParameters params;
+    params.expectFailure = false;
     params.command = QLatin1String("run");
     params.arguments = QStringList() << "-p" << "animals";
     QCOMPARE(runQbs(params), 0);
