@@ -2,6 +2,7 @@ TARGET = tst_blackbox-java
 
 HEADERS = tst_blackboxjava.h tst_blackboxbase.h
 SOURCES = tst_blackboxjava.cpp tst_blackboxbase.cpp
+OBJECTS_DIR = java
 
 include(../auto.pri)
 
