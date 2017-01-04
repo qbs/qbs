@@ -46,6 +46,8 @@
 #include <QtCore/qtemporarydir.h>
 #include <QtCore/qtemporaryfile.h>
 
+#include <QtXml/qdom.h>
+
 #include <functional>
 
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
@@ -866,6 +868,28 @@ void TestBlackbox::deploymentTarget()
     QVERIFY2(m_qbsStdout.contains(lflags.toLatin1()), m_qbsStdout.constData());
 }
 
+static qbs::Internal::Version findXcodeVersion()
+{
+    QProcess process;
+    process.start("pkgutil", QStringList("--pkg-info-plist=com.apple.pkg.Xcode"));
+    process.waitForFinished();
+
+    QDomDocument xcodeVersionDoc;
+    if (xcodeVersionDoc.setContent(process.readAllStandardOutput())) {
+        QDomNodeList nodes = xcodeVersionDoc.elementsByTagName(QStringLiteral("key"));
+        for (int i = 0; i < nodes.count(); ++i) {
+            QDomElement elem = nodes.at(i).toElement();
+            if (elem.text().compare(QStringLiteral("pkg-version")) == 0) {
+                return qbs::Internal::Version::fromString(
+                            QStringList(elem.nextSiblingElement().text().split(
+                                QLatin1Char('.')).mid(0, 3)).join(QLatin1Char('.')), true);
+            }
+        }
+    }
+
+    return qbs::Internal::Version();
+}
+
 void TestBlackbox::deploymentTarget_data()
 {
     static const QString macos = QStringLiteral("macos,darwin,bsd,unix");
@@ -888,9 +912,11 @@ void TestBlackbox::deploymentTarget_data()
     QTest::newRow("macos x86_64") << "macosx" << macos << "x86_64"
                          << "-triple x86_64-apple-macosx10.4"
                          << "-macosx_version_min 10.4";
-    QTest::newRow("macos x86_64h") << "macosx" << macos << "x86_64h"
-                         << "-triple x86_64h-apple-macosx10.12"
-                         << "-macosx_version_min 10.12";
+
+    if (findXcodeVersion() >= qbs::Internal::Version(6))
+        QTest::newRow("macos x86_64h") << "macosx" << macos << "x86_64h"
+                             << "-triple x86_64h-apple-macosx10.12"
+                             << "-macosx_version_min 10.12";
 
     QTest::newRow("ios armv7a") << "iphoneos" << ios << "armv7a"
                          << "-triple thumbv7-apple-ios6.0"

@@ -5,6 +5,8 @@ SOURCES = tst_blackbox.cpp tst_blackboxbase.cpp
 
 include(../auto.pri)
 
+QT += xml
+
 DATA_DIRS = testdata ../find
 
 for(data_dir, DATA_DIRS) {
