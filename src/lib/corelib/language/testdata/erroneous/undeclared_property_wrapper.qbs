@@ -1,5 +1,7 @@
 import qbs
 
-SubProject {
-    filePath: "undeclared_property.qbs"
+Project {
+    SubProject {
+        filePath: "undeclared_property.qbs"
+    }
 }

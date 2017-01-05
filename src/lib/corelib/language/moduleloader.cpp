@@ -250,7 +250,16 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
             return ModuleLoaderResult();
     }
 
-    root = wrapInProjectIfNecessary(root);
+    switch (root->type()) {
+    case ItemType::Product:
+        root = wrapInProjectIfNecessary(root);
+        break;
+    case ItemType::Project:
+        break;
+    default:
+        throw ErrorInfo(Tr::tr("The top-level item must be of type 'Project' or 'Product', but it"
+                               " is of type '%1'.").arg(root->typeName()), root->location());
+    }
 
     const QString buildDirectory = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(),
             TopLevelProject::deriveId(parameters.finalBuildConfigurationTree()));
