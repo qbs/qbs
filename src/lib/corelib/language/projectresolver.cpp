@@ -432,7 +432,7 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
     QQueue<Item::Module> modules;
     foreach (const Item::Module &m, item->modules())
         modules.enqueue(m);
-    Set<QStringList> seen;
+    Set<QualifiedId> seen;
     while (!modules.isEmpty()) {
         const Item::Module m = modules.takeFirst();
         if (!seen.insert(m.name).second)

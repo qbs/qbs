@@ -702,6 +702,7 @@ void TestTools::set_insert()
 
 void TestTools::set_reverseIterators()
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     Set<int> s;
     s << 1 << 17 << 61 << 127 << 911;
     std::vector<int> v(s.begin(), s.end());
@@ -713,6 +714,7 @@ void TestTools::set_reverseIterators()
     QVERIFY(std::equal(s.rbegin(), s.rend(), v.begin()));
     QVERIFY(std::equal(s.crbegin(), s.crend(), v.begin()));
     QVERIFY(std::equal(cs.rbegin(), cs.rend(), v.begin()));
+#endif
 }
 
 void TestTools::set_stlIterator()
@@ -956,7 +958,6 @@ void TestTools::set_intersects()
     s1 << 200;
     QVERIFY(s1.intersects(s2));
 
-    qSetGlobalQHashSeed(0x10101010);
     Set<int> s3;
     s3 << 500;
     QVERIFY(!s1.intersects(s3));

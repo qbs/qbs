@@ -70,7 +70,10 @@ template<typename T> class Set
 public:
     using const_iterator = typename QVector<T>::const_iterator;
     using iterator = typename QVector<T>::iterator;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     using reverse_iterator = typename QVector<T>::reverse_iterator;
+    using const_reverse_iterator = typename QVector<T>::const_reverse_iterator;
+#endif
     using size_type = typename QVector<T>::size_type;
     using value_type = T;
     using difference_type = typename QVector<T>::difference_type;
@@ -78,20 +81,21 @@ public:
     using const_pointer = typename QVector<T>::const_pointer;
     using reference = typename QVector<T>::reference;
     using const_reference = typename QVector<T>::const_reference;
-    using const_reverse_iterator = typename QVector<T>::const_reverse_iterator;
 
     iterator begin() { return m_data.begin(); }
     iterator end() { return m_data.end(); }
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     reverse_iterator rbegin() { return m_data.rbegin(); }
     reverse_iterator rend() { return m_data.rend(); }
-    const_iterator begin() const { return m_data.begin(); }
     const_reverse_iterator rbegin() const { return m_data.rbegin(); }
-    const_iterator end() const { return m_data.end(); }
     const_reverse_iterator rend() const { return m_data.rend(); }
-    const_iterator cbegin() const { return m_data.cbegin(); }
     const_reverse_iterator crbegin() const { return m_data.crbegin(); }
-    const_iterator cend() const { return m_data.cend(); }
     const_reverse_iterator crend() const { return m_data.crend(); }
+#endif
+    const_iterator begin() const { return m_data.begin(); }
+    const_iterator end() const { return m_data.end(); }
+    const_iterator cbegin() const { return m_data.cbegin(); }
+    const_iterator cend() const { return m_data.cend(); }
     const_iterator constBegin() const { return m_data.cbegin(); }
     const_iterator constEnd() const { return m_data.cend(); }
 
