@@ -72,11 +72,15 @@ static QStringList collectCppIncludePaths(const QVariantMap &modules)
     if (cpp.isEmpty())
         return result;
 
-    result
-        << cpp.value(QLatin1String("includePaths")).toStringList()
-        << cpp.value(QLatin1String("systemIncludePaths")).toStringList()
-        << cpp.value(QLatin1String("distributionIncludePaths")).toStringList()
-        << cpp.value(QLatin1String("compilerIncludePaths")).toStringList();
+    result << cpp.value(QLatin1String("includePaths")).toStringList();
+    const bool useSystemHeaders
+            = cpp.value(QLatin1String("treatSystemHeadersAsDependencies")).toBool();
+    if (useSystemHeaders) {
+        result
+            << cpp.value(QLatin1String("systemIncludePaths")).toStringList()
+            << cpp.value(QLatin1String("distributionIncludePaths")).toStringList()
+            << cpp.value(QLatin1String("compilerIncludePaths")).toStringList();
+    }
     result.removeDuplicates();
     return result;
 }

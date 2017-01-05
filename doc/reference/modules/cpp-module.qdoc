@@ -370,6 +370,16 @@
         \li Try to generate reproducible object files. Some compilers (notably gcc) use random
             numbers for generating symbol names that have to be different in every compilation
             unit. This is avoided by setting this property to \c{true}.
+    \row
+        \li treatSystemHeadersAsDependencies
+        \li \c{bool}
+        \li 1.8
+        \li \c{false}
+        \li If this property is enabled, then included header files found via
+            \c systemIncludePaths, \c distributionIncludePaths or \c compilerIncludePaths
+            will be added to the dependencies of the respective object file. This means that
+            modification of such header files (or any of the headers they include) will cause
+            recompilation.
     \endtable
 
     \section1 Properties Specific to Apple Platforms

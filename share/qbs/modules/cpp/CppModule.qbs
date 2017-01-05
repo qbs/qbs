@@ -56,6 +56,8 @@ Module {
     property bool useObjcPrecompiledHeader: false
     property bool useObjcxxPrecompiledHeader: false
 
+    property bool treatSystemHeadersAsDependencies: false
+
     property stringList defines
     property stringList platformDefines: qbs.enableDebugCode ? [] : ["NDEBUG"]
     property stringList compilerDefines
