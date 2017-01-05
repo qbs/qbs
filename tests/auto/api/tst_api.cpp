@@ -283,7 +283,7 @@ void TestApi::buildGraphLocking()
              qPrintable(setupJob->error().toString()));
     QVERIFY2(QFileInfo(lockFile).isFile(), qPrintable(lockFile));
 
-    // Case 3: Changing the build directory of an existing project to something con-competing.
+    // Case 3: Changing the build directory of an existing project to something non-competing.
     qbs::SetupProjectParameters setupParams3 = setupParams2;
     setupParams3.setBuildRoot(setupParams.buildRoot() + "/3");
     setupJob.reset(qbs::Project().setupProject(setupParams3, m_logSink, 0));
@@ -294,6 +294,19 @@ void TestApi::buildGraphLocking()
     const QString newLockFile = setupParams3.buildRoot() + '/' + buildDirName + '/'
             + buildDirName + ".bg.lock";
     QVERIFY2(QFileInfo(newLockFile).isFile(), qPrintable(newLockFile));
+    qbs::Project project3 = setupJob->project();
+    QVERIFY(project3.isValid());
+
+    // Case 4: Changing the build directory again, but cancelling the job.
+    setupJob.reset(project3.setupProject(setupParams2, m_logSink, 0));
+    setupJob->cancel();
+    waitForFinished(setupJob.data());
+    QVERIFY(setupJob->error().hasError());
+    QVERIFY2(!QFileInfo(lockFile).exists(), qPrintable(lockFile));
+    QVERIFY2(QFileInfo(newLockFile).isFile(), qPrintable(newLockFile));
+    setupJob.reset(nullptr);
+    project3 = qbs::Project();
+    QVERIFY2(!QFileInfo(newLockFile).exists(), qPrintable(newLockFile));
 }
 
 void TestApi::buildProject()
