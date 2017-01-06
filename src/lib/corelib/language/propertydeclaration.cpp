@@ -44,8 +44,6 @@
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstringlist.h>
 
-#include <QtScript/qscriptvalue.h>
-
 namespace qbs {
 namespace Internal {
 
@@ -61,7 +59,6 @@ public:
     QString name;
     PropertyDeclaration::Type type;
     PropertyDeclaration::Flags flags;
-    QScriptValue allowedValues;
     QString description;
     QString initialValueSource;
     QStringList functionArgumentNames;
@@ -170,16 +167,6 @@ PropertyDeclaration::Flags PropertyDeclaration::flags() const
 void PropertyDeclaration::setFlags(Flags f)
 {
     d->flags = f;
-}
-
-const QScriptValue &PropertyDeclaration::allowedValues() const
-{
-    return d->allowedValues;
-}
-
-void PropertyDeclaration::setAllowedValues(const QScriptValue &v)
-{
-    d->allowedValues = v;
 }
 
 const QString &PropertyDeclaration::description() const

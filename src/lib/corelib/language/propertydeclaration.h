@@ -43,7 +43,6 @@
 #include <QtCore/qshareddata.h>
 
 QT_BEGIN_NAMESPACE
-class QScriptValue;
 class QString;
 class QStringList;
 QT_END_NAMESPACE
@@ -97,9 +96,6 @@ public:
 
     Flags flags() const;
     void setFlags(Flags f);
-
-    const QScriptValue &allowedValues() const;
-    void setAllowedValues(const QScriptValue &v);
 
     const QString &description() const;
     void setDescription(const QString &str);
