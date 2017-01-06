@@ -997,7 +997,7 @@ void TopLevelProject::load(PersistentPool &pool)
     pool.stream() >> fileLastModifiedResults;
     QHash<QString, QString> envHash;
     pool.stream() >> envHash;
-    for (QHash<QString, QString>::const_iterator i = envHash.begin(); i != envHash.end(); ++i)
+    for (auto i = envHash.cbegin(); i != envHash.cend(); ++i)
         environment.insert(i.key(), i.value());
     pool.stream() >> profileConfigs;
     pool.stream() >> buildSystemFiles;
