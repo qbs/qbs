@@ -607,6 +607,9 @@ void TestLanguage::erroneousFiles_data()
             << "PropertyOptions item refers to non-existing property 's0meProp'";
     QTest::newRow("missing-colon")
             << "Invalid item 'cpp.dynamicLibraries'. Did you mean to set a module property?";
+    QTest::newRow("wrong-toplevel-item")
+            << "wrong-toplevel-item.qbs:3:1.*The top-level item must be of type 'Project' or "
+               "'Product', but it is of type 'Artifact'.";
 }
 
 void TestLanguage::erroneousFiles()

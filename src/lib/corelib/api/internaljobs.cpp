@@ -237,8 +237,8 @@ TopLevelProjectPtr InternalSetupProjectJob::project() const
 
 void InternalSetupProjectJob::start()
 {
-    const TopLevelProjectConstPtr existingProject = m_existingProject;
     BuildGraphLocker *bgLocker = m_existingProject ? m_existingProject->bgLocker : 0;
+    bool deleteLocker = false;
     try {
         const ErrorInfo err = m_parameters.expandBuildConfiguration();
         if (err.hasError())
@@ -253,17 +253,19 @@ void InternalSetupProjectJob::start()
             bgLocker = new BuildGraphLocker(ProjectBuildData::deriveBuildGraphFilePath(buildDir,
                                                                                        projectId),
                                            logger(), m_parameters.waitLockBuildGraph(), observer());
+            deleteLocker = true;
         }
         execute();
         if (m_existingProject)
             m_existingProject->bgLocker = 0;
         m_newProject->bgLocker = bgLocker;
+        deleteLocker = false;
     } catch (const ErrorInfo &error) {
         m_newProject.clear();
         setError(error);
 
         // Delete the build graph locker if and only if we allocated it here.
-        if (!existingProject)
+        if (deleteLocker)
             delete bgLocker;
     }
     emit finished(this);

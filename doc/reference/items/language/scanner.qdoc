@@ -35,20 +35,19 @@
     \title Scanner Item
     \brief Creates custom dependency scanners in modules.
 
-    An \c Scanner item can appear inside a \l{Module Item}, and allows to define
-    artifacts dependency, according to the artifacts contents.
-    For example scanner for "qrc" files:
+    A \c Scanner item can appear inside a \l{Module Item}, and allows to extract
+    dependencies for artifacts from the artifacts' file contents.
+    For example, this is what a scanner for "qrc" files might look like:
     \code
     import qbs.Xml
 
     Module {
       Scanner {
-        condition: true
         inputs: 'qrc'
         scan: {
           var xml = new XmlDomDocument(input.filePath);
           dependencies = [];
-          // do something with the xml
+          // retrieve <file> entries from the XML document
           return dependencies;
         }
       }
@@ -76,7 +75,7 @@
         \li recursive
         \li bool
         \li false
-        \li Determines whether to scan dependencies recursively.
+        \li Determines whether to scan the returned dependencies using the same scanner.
     \row
         \li searchPaths
         \li script

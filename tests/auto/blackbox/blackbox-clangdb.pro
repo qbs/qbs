@@ -2,6 +2,7 @@ TARGET = tst_blackbox-clangdb
 
 HEADERS = tst_blackboxbase.h tst_clangdb.h
 SOURCES = tst_blackboxbase.cpp tst_clangdb.cpp
+OBJECTS_DIR = clangdb
 
 include(../auto.pri)
 
