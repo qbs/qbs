@@ -113,7 +113,7 @@ struct ModuleLoaderResult
 class ModuleLoader
 {
 public:
-    ModuleLoader(ScriptEngine *engine, Logger &logger);
+    ModuleLoader(Evaluator *evaluator, Logger &logger);
     ~ModuleLoader();
 
     void setProgressObserver(ProgressObserver *progressObserver);

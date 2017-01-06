@@ -39,6 +39,7 @@
 
 #include "loader.h"
 
+#include "evaluator.h"
 #include "language.h"
 #include "moduleloader.h"
 #include "projectresolver.h"
@@ -126,13 +127,14 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     }
 
     const FileTime resolveTime = FileTime::currentTime();
-    ModuleLoader moduleLoader(m_engine, m_logger);
+    Evaluator evaluator(m_engine, m_logger);
+    ModuleLoader moduleLoader(&evaluator, m_logger);
     moduleLoader.setProgressObserver(m_progressObserver);
     moduleLoader.setSearchPaths(m_searchPaths);
     moduleLoader.setOldProjectProbes(m_oldProjectProbes);
     moduleLoader.setOldProductProbes(m_oldProductProbes);
     const ModuleLoaderResult loadResult = moduleLoader.load(parameters);
-    ProjectResolver resolver(moduleLoader.evaluator(), loadResult, parameters, m_logger);
+    ProjectResolver resolver(&evaluator, loadResult, parameters, m_logger);
     resolver.setProgressObserver(m_progressObserver);
     const TopLevelProjectPtr project = resolver.resolve();
     project->lastResolveTime = resolveTime;

@@ -206,20 +206,18 @@ private:
     ItemReader * const m_itemReader;
 };
 
-ModuleLoader::ModuleLoader(ScriptEngine *engine,
-                           Logger &logger)
-    : m_engine(engine)
+ModuleLoader::ModuleLoader(Evaluator *evaluator, Logger &logger)
+    : m_engine(evaluator->engine())
     , m_pool(0)
     , m_logger(logger)
     , m_progressObserver(0)
     , m_reader(new ItemReader(logger))
-    , m_evaluator(new Evaluator(engine, logger))
+    , m_evaluator(evaluator)
 {
 }
 
 ModuleLoader::~ModuleLoader()
 {
-    delete m_evaluator;
     delete m_reader;
 }
 
