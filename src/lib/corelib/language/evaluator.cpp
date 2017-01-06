@@ -66,15 +66,8 @@ Evaluator::Evaluator(ScriptEngine *scriptEngine, Logger &logger)
 
 Evaluator::~Evaluator()
 {
-    QHash<const Item *, QScriptValue>::iterator it = m_scriptValueMap.begin();
-    for (; it != m_scriptValueMap.end(); ++it) {
-        EvaluationData *data = attachedPointer<EvaluationData>(*it);
-        if (data) {
-            if (data->item)
-                data->item->setPropertyObserver(0);
-            delete data;
-        }
-    }
+    for (auto it = m_scriptValueMap.begin(); it != m_scriptValueMap.end(); ++it)
+        delete attachedPointer<EvaluationData>(*it);
     delete m_scriptClass;
 }
 
@@ -163,12 +156,6 @@ void Evaluator::onItemPropertyChanged(Item *item)
     EvaluationData *data = attachedPointer<EvaluationData>(m_scriptValueMap.value(item));
     if (data)
         data->valueCache.clear();
-}
-
-void Evaluator::onItemDestroyed(Item *item)
-{
-    delete attachedPointer<EvaluationData>(m_scriptValueMap.value(item));
-    m_scriptValueMap.remove(item);
 }
 
 void Evaluator::handleEvaluationError(const Item *item, const QString &name,

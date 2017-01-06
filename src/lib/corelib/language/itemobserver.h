@@ -49,7 +49,6 @@ class ItemObserver
 {
 public:
     virtual void onItemPropertyChanged(Item *item) = 0;
-    virtual void onItemDestroyed(Item *item) = 0;
 };
 
 } // namespace Internal

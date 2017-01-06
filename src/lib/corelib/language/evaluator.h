@@ -87,7 +87,6 @@ public:
             const QScriptValue &scriptValue);
 private:
     void onItemPropertyChanged(Item *item);
-    void onItemDestroyed(Item *item);
     bool evaluateProperty(QScriptValue *result, const Item *item, const QString &name,
             bool *propertyWasSet);
 

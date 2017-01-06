@@ -68,8 +68,6 @@ class Item : public QbsQmlJS::Managed
     Item(ItemPool *pool, ItemType type);
 
 public:
-    ~Item();
-
     struct Module
     {
         Module()

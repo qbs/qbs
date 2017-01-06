@@ -67,12 +67,6 @@ Item::Item(ItemPool *pool, ItemType type)
 {
 }
 
-Item::~Item()
-{
-    if (m_propertyObserver)
-        m_propertyObserver->onItemDestroyed(this);
-}
-
 Item *Item::create(ItemPool *pool, ItemType type)
 {
     return pool->allocateItem(type);
