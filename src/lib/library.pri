@@ -16,6 +16,7 @@ DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_PROCESS_COMBINED_ARGUMENT_START
 INCLUDEPATH += $${PWD}/../
 contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 win32:CONFIG(debug, debug|release):TARGET = $${TARGET}d
+CONFIG(debug, debug|release):DEFINES += QT_STRICT_ITERATORS
 CONFIG += c++11
 CONFIG += create_prl
 
