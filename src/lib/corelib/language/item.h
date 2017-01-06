@@ -41,7 +41,6 @@
 #define QBS_ITEM_H
 
 #include "forward_decls.h"
-#include "functiondeclaration.h"
 #include "itemtype.h"
 #include "propertydeclaration.h"
 #include "qualifiedid.h"
@@ -148,7 +147,6 @@ private:
     FileContextPtr m_file;
     PropertyMap m_properties;
     PropertyDeclarationMap m_propertyDeclarations;
-    QList<FunctionDeclaration> m_functions;
     Modules m_modules;
     ItemType m_type;
 };

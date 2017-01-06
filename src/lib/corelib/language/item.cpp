@@ -84,7 +84,6 @@ Item *Item::clone() const
     dup->m_parent = m_parent;
     dup->m_file = m_file;
     dup->m_propertyDeclarations = m_propertyDeclarations;
-    dup->m_functions = m_functions;
     dup->m_modules = m_modules;
 
     dup->m_children.reserve(m_children.count());

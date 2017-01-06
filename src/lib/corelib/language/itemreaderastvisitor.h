@@ -71,7 +71,6 @@ private:
     bool visit(QbsQmlJS::AST::UiObjectDefinition *ast) override;
     bool visit(QbsQmlJS::AST::UiPublicMember *ast) override;
     bool visit(QbsQmlJS::AST::UiScriptBinding *ast) override;
-    bool visit(QbsQmlJS::AST::FunctionDeclaration *ast) override;
 
     bool handleBindingRhs(QbsQmlJS::AST::Statement *statement, const JSSourceValuePtr &value);
     CodeLocation toCodeLocation(const QbsQmlJS::AST::SourceLocation &location) const;

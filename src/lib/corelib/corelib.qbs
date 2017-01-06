@@ -238,7 +238,6 @@ QbsLibrary {
             "filecontextbase.h",
             "filetags.cpp",
             "filetags.h",
-            "functiondeclaration.h",
             "identifiersearch.cpp",
             "identifiersearch.h",
             "item.cpp",

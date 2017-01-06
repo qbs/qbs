@@ -228,24 +228,6 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
     return false;
 }
 
-bool ItemReaderASTVisitor::visit(AST::FunctionDeclaration *ast)
-{
-    FunctionDeclaration f;
-    if (Q_UNLIKELY(ast->name.isNull()))
-        throw ErrorInfo(Tr::tr("function decl without name"));
-    f.setName(ast->name.toString());
-
-    // remove the name
-    QString funcNoName = textOf(m_file->content(), ast);
-    funcNoName.replace(QRegExp(QLatin1String("^(\\s*function\\s*)\\w*")), QLatin1String("(\\1"));
-    funcNoName.append(QLatin1Char(')'));
-    f.setSourceCode(funcNoName);
-
-    f.setLocation(toCodeLocation(ast->firstSourceLocation()));
-    m_item->m_functions += f;
-    return false;
-}
-
 bool ItemReaderASTVisitor::handleBindingRhs(AST::Statement *statement,
                                             const JSSourceValuePtr &value)
 {
