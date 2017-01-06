@@ -207,8 +207,7 @@ private:
 };
 
 ModuleLoader::ModuleLoader(Evaluator *evaluator, Logger &logger)
-    : m_engine(evaluator->engine())
-    , m_pool(0)
+    : m_pool(0)
     , m_logger(logger)
     , m_progressObserver(0)
     , m_reader(new ItemReader(logger))
@@ -2241,11 +2240,12 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
                 initialProperties.insert(name, value.toVariant());
         }
     }
-    QScriptValue scope = m_engine->newObject();
-    m_engine->currentContext()->pushScope(m_evaluator->scriptValue(parent));
-    m_engine->currentContext()->pushScope(m_evaluator->fileScope(configureScript->file()));
-    m_engine->currentContext()->pushScope(m_evaluator->importScope(configureScript->file()));
-    m_engine->currentContext()->pushScope(scope);
+    ScriptEngine * const engine = m_evaluator->engine();
+    QScriptValue scope = engine->newObject();
+    engine->currentContext()->pushScope(m_evaluator->scriptValue(parent));
+    engine->currentContext()->pushScope(m_evaluator->fileScope(configureScript->file()));
+    engine->currentContext()->pushScope(m_evaluator->importScope(configureScript->file()));
+    engine->currentContext()->pushScope(scope);
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
     const bool condition = m_evaluator->boolValue(probe, QLatin1String("condition"));
@@ -2265,9 +2265,9 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     if (!condition) {
         m_logger.qbsDebug() << "Probe disabled; skipping";
     } else if (!resolvedProbe) {
-        QScriptValue sv = m_engine->evaluate(configureScript->sourceCodeForEvaluation());
-        if (Q_UNLIKELY(m_engine->hasErrorOrException(sv)))
-            evalError = ErrorInfo(m_engine->lastErrorString(sv), configureScript->location());
+        QScriptValue sv = engine->evaluate(configureScript->sourceCodeForEvaluation());
+        if (Q_UNLIKELY(engine->hasErrorOrException(sv)))
+            evalError = ErrorInfo(engine->lastErrorString(sv), configureScript->location());
     }
     QVariantMap properties;
     foreach (const ProbeProperty &b, probeBindings) {
@@ -2278,10 +2278,10 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         if (!resolvedProbe)
             properties.insert(b.first, newValue);
     }
-    m_engine->currentContext()->popScope();
-    m_engine->currentContext()->popScope();
-    m_engine->currentContext()->popScope();
-    m_engine->currentContext()->popScope();
+    engine->currentContext()->popScope();
+    engine->currentContext()->popScope();
+    engine->currentContext()->popScope();
+    engine->currentContext()->popScope();
     if (evalError.hasError())
         throw evalError;
     if (!resolvedProbe) {

@@ -283,7 +283,6 @@ private:
     bool isSomeModulePropertySet(const Item *item);
     Item *loadItemFromFile(const QString &filePath);
 
-    ScriptEngine *m_engine;
     ItemPool *m_pool;
     Logger &m_logger;
     ProgressObserver *m_progressObserver;
