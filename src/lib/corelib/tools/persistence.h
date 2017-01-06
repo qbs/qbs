@@ -99,8 +99,6 @@ private:
 
     template <typename T> T *idLoad();
     template <class T> QSharedPointer<T> idLoadS();
-    template <class T> T *loadRaw(PersistentObjectId id);
-    template <class T> QSharedPointer<T> load(PersistentObjectId id);
 
     void storePersistentObject(const PersistentObject *object);
 
@@ -128,18 +126,7 @@ template <typename T> inline T *PersistentPool::idLoad()
 {
     PersistentObjectId id;
     m_stream >> id;
-    return loadRaw<T>(id);
-}
 
-template <class T> inline QSharedPointer<T> PersistentPool::idLoadS()
-{
-    PersistentObjectId id;
-    m_stream >> id;
-    return load<T>(id);
-}
-
-template <class T> inline T *PersistentPool::loadRaw(PersistentObjectId id)
-{
     if (id < 0)
         return 0;
 
@@ -160,8 +147,11 @@ template <class T> inline T *PersistentPool::loadRaw(PersistentObjectId id)
     return t;
 }
 
-template <class T> inline QSharedPointer<T> PersistentPool::load(PersistentObjectId id)
+template <class T> inline QSharedPointer<T> PersistentPool::idLoadS()
 {
+    PersistentObjectId id;
+    m_stream >> id;
+
     if (id < 0)
         return QSharedPointer<T>();
 
