@@ -150,22 +150,16 @@ bool PluginDependencyScanner::areModulePropertiesCompatible(const PropertyMapCon
 }
 
 UserDependencyScanner::UserDependencyScanner(const ResolvedScannerConstPtr &scanner,
-        const Logger &logger)
+        const Logger &logger, ScriptEngine *engine)
     : m_scanner(scanner),
       m_logger(logger),
-      m_engine(new ScriptEngine(m_logger, EvalContext::RuleExecution)),
+      m_engine(engine),
       m_observer(m_engine),
       m_product(0)
 {
-    m_engine->setProcessEventsInterval(-1); // QBS-782
     m_global = m_engine->newObject();
     m_global.setPrototype(m_engine->globalObject());
     setupScriptEngineForFile(m_engine, m_scanner->scanScript->fileContext, m_global);
-}
-
-UserDependencyScanner::~UserDependencyScanner()
-{
-    delete m_engine;
 }
 
 QStringList UserDependencyScanner::collectSearchPaths(Artifact *artifact)
@@ -207,8 +201,26 @@ bool UserDependencyScanner::areModulePropertiesCompatible(const PropertyMapConst
     return m1 == m2 || m1->value() == m2->value();
 }
 
+class ScriptEngineActiveFlagGuard
+{
+    ScriptEngine *m_engine;
+public:
+    ScriptEngineActiveFlagGuard(ScriptEngine *engine)
+        : m_engine(engine)
+    {
+        m_engine->setActive(true);
+    }
+
+    ~ScriptEngineActiveFlagGuard()
+    {
+        m_engine->setActive(false);
+    }
+};
+
 QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunctionPtr &script)
 {
+    ScriptEngineActiveFlagGuard guard(m_engine);
+
     if (artifact->product.data() != m_product) {
         m_product = artifact->product.data();
         setupScriptEngineForProduct(m_engine, artifact->product,

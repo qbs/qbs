@@ -181,6 +181,7 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
 {
     Set<DependencyScanner *> scanners;
     ResolvedProduct *product = artifact->product.data();
+    ScriptEngine *engine = product->topLevelProject()->buildData->evaluationContext->engine();
     QHash<FileTag, InputArtifactScannerContext::DependencyScannerCacheItem> &scannerCache
             = m_context->scannersCache[product];
     foreach (const FileTag &fileTag, artifact->fileTags()) {
@@ -194,7 +195,7 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
             foreach (const ResolvedScannerConstPtr &scanner, product->scanners) {
                 if (scanner->inputs.contains(fileTag)) {
                     cache.scanners += DependencyScannerPtr(
-                                new UserDependencyScanner(scanner, m_logger));
+                                new UserDependencyScanner(scanner, m_logger, engine));
                     break;
                 }
             }
