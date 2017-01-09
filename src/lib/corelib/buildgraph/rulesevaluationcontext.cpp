@@ -71,11 +71,6 @@ RulesEvaluationContext::~RulesEvaluationContext()
     delete m_engine;
 }
 
-bool RulesEvaluationContext::isActive() const
-{
-    return m_initScopeCalls > 0;
-}
-
 void RulesEvaluationContext::initializeObserver(const QString &description, int maximumProgress)
 {
     if (m_observer)
@@ -99,6 +94,7 @@ void RulesEvaluationContext::initScope()
     if (m_initScopeCalls++ > 0)
         return;
 
+    m_engine->setActive(true);
     m_scope = m_engine->newObject();
     m_scope.setPrototype(m_prepareScriptScope);
     m_engine->setGlobalObject(m_scope);
@@ -112,6 +108,7 @@ void RulesEvaluationContext::cleanupScope()
 
     m_scope = QScriptValue();
     m_engine->setGlobalObject(m_prepareScriptScope.prototype());
+    m_engine->setActive(false);
 }
 
 RulesEvaluationContext::Scope::Scope(RulesEvaluationContext *evalContext)

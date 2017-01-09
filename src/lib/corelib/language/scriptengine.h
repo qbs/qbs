@@ -154,6 +154,11 @@ public:
 
     void cancel();
 
+    // The active flag is different from QScriptEngine::isEvaluating.
+    // It is set and cleared externally for example by the rule execution code.
+    bool isActive() const { return m_active; }
+    void setActive(bool on) { m_active = on; }
+
 private:
     void abort();
 
@@ -189,6 +194,7 @@ private:
     ScriptImporter *m_scriptImporter;
     QHash<JsImport, QScriptValue> m_jsImportCache;
     bool m_propertyCacheEnabled;
+    bool m_active;
     QHash<PropertyCacheKey, QVariant> m_propertyCache;
     PropertySet m_propertiesRequestedInScript;
     QHash<QString, PropertySet> m_propertiesRequestedFromArtifact;

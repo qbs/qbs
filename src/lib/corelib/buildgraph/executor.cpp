@@ -472,7 +472,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
     if (!checkNodeProduct(ruleNode))
         return;
 
-    QBS_CHECK(!m_evalContext->isActive());
+    QBS_CHECK(!m_evalContext->engine()->isActive());
     ArtifactSet changedInputArtifacts;
     if (ruleNode->rule()->isDynamic()) {
         foreach (Artifact *artifact, m_changedSourceArtifacts) {
@@ -984,7 +984,7 @@ void Executor::onJobFinished(const qbs::ErrorInfo &err)
     try {
         ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
         QBS_CHECK(job);
-        if (m_evalContext->isActive()) {
+        if (m_evalContext->engine()->isActive()) {
             m_logger.qbsDebug() << "Executor job finished while rule execution is pausing. "
                                    "Delaying slot execution.";
             QTimer::singleShot(0, job, [job, err] { job->finished(err); });
@@ -1063,7 +1063,7 @@ bool Executor::checkNodeProduct(BuildGraphNode *node)
 void Executor::finish()
 {
     QBS_ASSERT(m_state != ExecutorIdle, /* ignore */);
-    QBS_ASSERT(!m_evalContext || !m_evalContext->isActive(), /* ignore */);
+    QBS_ASSERT(!m_evalContext || !m_evalContext->engine()->isActive(), /* ignore */);
 
     checkForUnbuiltProducts();
     if (m_explicitlyCanceled) {
@@ -1097,7 +1097,7 @@ void Executor::checkForCancellation()
     QBS_ASSERT(m_progressObserver, return);
     if (m_state == ExecutorRunning && m_progressObserver->canceled()) {
         cancelJobs();
-        if (m_evalContext->isActive())
+        if (m_evalContext->engine()->isActive())
             m_evalContext->engine()->cancel();
     }
 }

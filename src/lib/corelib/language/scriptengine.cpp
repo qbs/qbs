@@ -90,7 +90,7 @@ uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed = 0)
 
 ScriptEngine::ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent)
     : QScriptEngine(parent), m_scriptImporter(new ScriptImporter(this)),
-      m_propertyCacheEnabled(true), m_logger(logger), m_evalContext(evalContext)
+      m_propertyCacheEnabled(true), m_active(false), m_logger(logger), m_evalContext(evalContext)
 {
     setProcessEventsInterval(1000); // For the cancelation mechanism to work.
     m_cancelationError = currentContext()->throwValue(tr("Execution canceled"));
