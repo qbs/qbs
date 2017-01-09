@@ -49,7 +49,6 @@ namespace qbs {
 namespace Internal {
 
 class BuildGraphVisitor;
-class TopLevelProject;
 
 class BuildGraphNode : public virtual PersistentObject
 {
