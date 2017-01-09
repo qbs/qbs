@@ -63,14 +63,10 @@ typedef QSharedPointer<DependencyScanner> DependencyScannerPtr;
 class ResolvedDependency
 {
 public:
-    ResolvedDependency()
-        : file(0)
-    {}
-
     bool isValid() const { return !filePath.isNull(); }
 
     QString filePath;
-    FileResourceBase *file;
+    FileResourceBase *file = nullptr;
 };
 
 class InputArtifactScannerContext
