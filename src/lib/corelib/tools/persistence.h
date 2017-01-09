@@ -177,6 +177,20 @@ struct PersistentPool::Helper<T, typename std::enable_if<std::is_integral<T>::va
     static void load(T &value, PersistentPool *pool) { pool->m_stream >> value; }
 };
 
+template<typename T>
+struct PersistentPool::Helper<T, typename std::enable_if<std::is_enum<T>::value>::type>
+{
+    using U = typename std::underlying_type<T>::type;
+    static void store(const T &value, PersistentPool *pool)
+    {
+        pool->m_stream << static_cast<U>(value);
+    }
+    static void load(T &value, PersistentPool *pool)
+    {
+        pool->m_stream >> reinterpret_cast<U &>(value);
+    }
+};
+
 // TODO: Use constexpr function once we require MSVC 2015.
 template<typename T> struct IsPersistentObject
 {
