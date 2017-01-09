@@ -42,21 +42,23 @@
 
 #include <QtCore/qhash.h>
 
-#include <QtScript/qscriptengine.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {
 
+class ScriptEngine;
+
 class ScriptImporter
 {
 public:
-    ScriptImporter(QScriptEngine *scriptEngine);
+    ScriptImporter(ScriptEngine *scriptEngine);
     void importSourceCode(const QString &sourceCode, const QString &filePath, QScriptValue &targetObject);
 
 private:
     static void copyProperties(const QScriptValue &src, QScriptValue &dst);
 
-    QScriptEngine *m_engine;
+    ScriptEngine *m_engine;
     QHash<QString, QString> m_sourceCodeCache;
 };
 

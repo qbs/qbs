@@ -39,6 +39,8 @@
 
 #include "scriptimporter.h"
 
+#include "scriptengine.h"
+
 #include <parser/qmljsastfwd_p.h>
 #include <parser/qmljsastvisitor_p.h>
 #include <parser/qmljslexer_p.h>
@@ -111,7 +113,7 @@ private:
 };
 
 
-ScriptImporter::ScriptImporter(QScriptEngine *scriptEngine)
+ScriptImporter::ScriptImporter(ScriptEngine *scriptEngine)
     : m_engine(scriptEngine)
 {
 }
