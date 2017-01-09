@@ -44,6 +44,7 @@
 #include <logging/logger.h>
 
 #include <QtCore/qdatastream.h>
+#include <QtCore/qflags.h>
 #include <QtCore/qprocess.h>
 #include <QtCore/qsharedpointer.h>
 #include <QtCore/qstring.h>
@@ -262,6 +263,19 @@ template<typename T, typename U> struct PersistentPool::Helper<QPair<T, U>>
     {
         pool->load(pair.first);
         pool->load(pair.second);
+    }
+};
+
+template<typename T> struct PersistentPool::Helper<QFlags<T>>
+{
+    using Int = typename QFlags<T>::Int;
+    static void store(const QFlags<T> &flags, PersistentPool *pool)
+    {
+        pool->store<Int>(flags);
+    }
+    static void load(QFlags<T> &flags, PersistentPool *pool)
+    {
+        flags = QFlags<T>(pool->load<Int>());
     }
 };
 
