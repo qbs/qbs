@@ -65,10 +65,6 @@ InputArtifactScannerContext::InputArtifactScannerContext(ScanResultCache *scanRe
 {
 }
 
-InputArtifactScannerContext::~InputArtifactScannerContext()
-{
-}
-
 static void resolveDepencency(const RawScannedDependency &dependency,
                               const ResolvedProduct *product, ResolvedDependency *result,
                               const QString &baseDir = QString())

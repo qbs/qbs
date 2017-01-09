@@ -73,7 +73,6 @@ class InputArtifactScannerContext
 {
 public:
     InputArtifactScannerContext(ScanResultCache *scanResultCache);
-    ~InputArtifactScannerContext();
 
 private:
     ScanResultCache *scanResultCache;
