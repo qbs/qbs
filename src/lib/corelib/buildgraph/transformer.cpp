@@ -40,7 +40,6 @@
 
 #include "artifact.h"
 #include "rulecommands.h"
-#include "rulesevaluationcontext.h"
 #include <jsextensions/moduleproperties.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
@@ -105,7 +104,8 @@ static void setArtifactProperty(QScriptValue &obj, const QString &name,
                     QScriptValue::PropertyGetter);
 }
 
-QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artifact *artifact, const QString &defaultModuleName)
+QScriptValue Transformer::translateFileConfig(ScriptEngine *scriptEngine, Artifact *artifact,
+                                              const QString &defaultModuleName)
 {
     QScriptValue obj = scriptEngine->newObject();
     attachPointerTo(obj, artifact);
@@ -127,7 +127,9 @@ static bool compareByFilePath(const Artifact *a1, const Artifact *a2)
     return a1->filePath() < a2->filePath();
 }
 
-QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const ArtifactSet &artifacts, const QString &defaultModuleName)
+QScriptValue Transformer::translateInOutputs(ScriptEngine *scriptEngine,
+                                             const ArtifactSet &artifacts,
+                                             const QString &defaultModuleName)
 {
     typedef QMap<QString, QList<Artifact*> > TagArtifactsMap;
     TagArtifactsMap tagArtifactsMap;
@@ -161,7 +163,7 @@ ResolvedProductPtr Transformer::product() const
 void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,
         const QString &defaultModuleName)
 {
-    QScriptEngine *const scriptEngine = targetScriptValue.engine();
+    ScriptEngine *const scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     QScriptValue scriptValue = translateInOutputs(scriptEngine, inputs, defaultModuleName);
     targetScriptValue.setProperty(QLatin1String("inputs"), scriptValue);
     QScriptValue inputScriptValue;
@@ -180,7 +182,7 @@ void Transformer::setupInputs(QScriptValue targetScriptValue)
     setupInputs(targetScriptValue, inputs, rule->module->name);
 }
 
-void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue)
+void Transformer::setupOutputs(ScriptEngine *scriptEngine, QScriptValue targetScriptValue)
 {
     const QString &defaultModuleName = rule->module->name;
     QScriptValue scriptValue = translateInOutputs(scriptEngine, outputs, defaultModuleName);
@@ -212,10 +214,9 @@ static AbstractCommandPtr createCommandFromScriptValue(const QScriptValue &scrip
     return cmdBase;
 }
 
-void Transformer::createCommands(const ScriptFunctionConstPtr &script,
-        const RulesEvaluationContextPtr &evalContext, const QScriptValueList &args)
+void Transformer::createCommands(ScriptEngine *engine, const ScriptFunctionConstPtr &script,
+                                 const QScriptValueList &args)
 {
-    ScriptEngine * const engine = evalContext->engine();
     if (!script->scriptFunction.isValid() || script->scriptFunction.engine() != engine) {
         script->scriptFunction = engine->evaluate(script->sourceCode,
                                                   script->location.filePath(),

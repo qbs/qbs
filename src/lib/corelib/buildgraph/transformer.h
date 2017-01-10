@@ -44,18 +44,16 @@
 #include "forward_decls.h"
 #include <language/forward_decls.h>
 #include <language/property.h>
+#include <language/scriptengine.h>
 #include <tools/persistentobject.h>
 
 #include <QtCore/qhash.h>
-
-#include <QtScript/qscriptengine.h>
 
 namespace qbs {
 namespace Internal {
 class Artifact;
 class AbstractCommand;
 class Rule;
-class ScriptEngine;
 
 class Transformer : public PersistentObject
 {
@@ -74,10 +72,10 @@ public:
     QHash<QString, PropertySet> propertiesRequestedFromArtifactInCommands;
     bool alwaysRun;
 
-    static QScriptValue translateFileConfig(QScriptEngine *scriptEngine,
+    static QScriptValue translateFileConfig(ScriptEngine *scriptEngine,
                                             Artifact *artifact,
                                             const QString &defaultModuleName);
-    static QScriptValue translateInOutputs(QScriptEngine *scriptEngine,
+    static QScriptValue translateInOutputs(ScriptEngine *scriptEngine,
                                            const ArtifactSet &artifacts,
                                            const QString &defaultModuleName);
 
@@ -85,9 +83,9 @@ public:
     static void setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,
             const QString &defaultModuleName);
     void setupInputs(QScriptValue targetScriptValue);
-    void setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
-    void createCommands(const ScriptFunctionConstPtr &script,
-                        const RulesEvaluationContextPtr &evalContext, const QScriptValueList &args);
+    void setupOutputs(ScriptEngine *scriptEngine, QScriptValue targetScriptValue);
+    void createCommands(ScriptEngine *engine, const ScriptFunctionConstPtr &script,
+                        const QScriptValueList &args);
 
 private:
     Transformer();

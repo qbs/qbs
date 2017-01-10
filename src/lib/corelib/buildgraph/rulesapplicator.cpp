@@ -252,7 +252,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         engine()->setGlobalObject(prepareScriptContext.prototype());
 
     m_transformer->setupOutputs(engine(), prepareScriptContext);
-    m_transformer->createCommands(m_rule->prepareScript, evalContext(),
+    m_transformer->createCommands(engine(), m_rule->prepareScript,
             ScriptEngine::argumentList(m_rule->prepareScript->argumentNames, prepareScriptContext));
     if (Q_UNLIKELY(m_transformer->commands.isEmpty()))
         throw ErrorInfo(Tr::tr("There is a rule without commands: %1.")
