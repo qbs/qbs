@@ -101,7 +101,6 @@ private:
     QueryResult m_queryResult;
     Logger &m_logger;
     bool m_valueCacheEnabled;
-    QStack<JSSourceValue *> m_sourceValueStack;
     Set<Value *> m_currentNextChain;
     PropertyDependencies m_propertyDependencies;
     QStack<QualifiedId> m_requestedProperties;

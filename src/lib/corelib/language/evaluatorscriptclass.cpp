@@ -75,14 +75,13 @@ class SVConverter : ValueHandler
     const QScriptString * const propertyName;
     const EvaluationData * const data;
     QScriptValue * const result;
-    QStack<JSSourceValue *> * const sourceValueStack;
     char pushedScopesCount;
 
 public:
 
     SVConverter(EvaluatorScriptClass *esc, const QScriptValue *obj, const ValuePtr &v,
                 const Item *_itemOfProperty, const QScriptString *propertyName, const EvaluationData *data,
-                QScriptValue *result, QStack<JSSourceValue *> *sourceValueStack)
+                QScriptValue *result)
         : scriptClass(esc)
         , engine(static_cast<ScriptEngine *>(esc->engine()))
         , scriptContext(esc->engine()->currentContext())
@@ -92,7 +91,6 @@ public:
         , propertyName(propertyName)
         , data(data)
         , result(result)
-        , sourceValueStack(sourceValueStack)
         , pushedScopesCount(0)
     {
     }
@@ -249,7 +247,7 @@ private:
             QScriptValue baseValue;
             if (value->baseValue()) {
                 SVConverter converter(scriptClass, object, value->baseValue(), itemOfProperty,
-                                      propertyName, data, &baseValue, sourceValueStack);
+                                      propertyName, data, &baseValue);
                 converter.start();
             }
             setupConvenienceProperty(QLatin1String("base"), &extraScope, baseValue);
@@ -269,7 +267,7 @@ private:
                 while (item->type() == ItemType::ModuleInstance)
                     item = item->prototype();
                 SVConverter converter(scriptClass, object, item->property(*propertyName), item,
-                                      propertyName, data, &originalValue, sourceValueStack);
+                                      propertyName, data, &originalValue);
                 converter.start();
             } else {
                 originalValue = engine->newArray(0);
@@ -614,8 +612,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     if (value->next() && !m_currentNextChain.contains(value.data())) {
         collectValuesFromNextChain(data, &result, name.toString(), value);
     } else {
-        SVConverter converter(this, &object, value, itemOfProperty, &name, data, &result,
-                              &m_sourceValueStack);
+        SVConverter converter(this, &object, value, itemOfProperty, &name, data, &result);
         converter.start();
 
         const PropertyDeclaration decl = data->item->propertyDeclaration(name.toString());
