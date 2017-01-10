@@ -114,7 +114,7 @@ private:
                                   const QScriptValue &scriptValue)
     {
         if (!extraScope->isObject())
-            *extraScope = scriptClass->engine()->newObject();
+            *extraScope = engine->newObject();
         const PropertyDeclaration::Type type
                 = itemOfProperty->propertyDeclaration(propertyName->toString()).type();
         const bool isArray = type == PropertyDeclaration::StringList
@@ -304,7 +304,7 @@ private:
 
     void handle(VariantValue *variantValue)
     {
-        *result = scriptClass->engine()->toScriptValue(variantValue->value());
+        *result = engine->toScriptValue(variantValue->value());
     }
 };
 
