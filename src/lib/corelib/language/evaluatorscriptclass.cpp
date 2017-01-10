@@ -196,25 +196,25 @@ private:
                 QBS_ASSERT(conditionScope.isObject(), return);
                 conditionFileScope = data->evaluator->fileScope(value->file());
             }
-            engine->currentContext()->pushScope(conditionFileScope);
+            scriptContext->pushScope(conditionFileScope);
             pushItemScopes(conditionScopeItem);
             if (alternative->value->definingItem())
                 pushItemScopes(alternative->value->definingItem());
-            engine->currentContext()->pushScope(conditionScope);
+            scriptContext->pushScope(conditionScope);
             const QScriptValue theImportScope = importScope(data->evaluator, value->file());
             if (theImportScope.isError()) {
-                engine->currentContext()->popScope();
-                engine->currentContext()->popScope();
+                scriptContext->popScope();
+                scriptContext->popScope();
                 popScopes();
                 *result = theImportScope;
                 return;
             }
-            engine->currentContext()->pushScope(theImportScope);
+            scriptContext->pushScope(theImportScope);
             const QScriptValue cr = engine->evaluate(alternative->condition);
             const QScriptValue overrides = engine->evaluate(alternative->overrideListProperties);
-            engine->currentContext()->popScope();
-            engine->currentContext()->popScope();
-            engine->currentContext()->popScope();
+            scriptContext->popScope();
+            scriptContext->popScope();
+            scriptContext->popScope();
             popScopes();
             if (engine->hasErrorOrException(cr)) {
                 *result = engine->lastErrorValue(cr);
