@@ -60,7 +60,7 @@ class Evaluator : private ItemObserver
     friend class SVConverter;
 
 public:
-    Evaluator(ScriptEngine *scriptEngine, Logger &logger);
+    Evaluator(ScriptEngine *scriptEngine, const Logger &logger);
     virtual ~Evaluator();
 
     ScriptEngine *engine() const { return m_scriptEngine; }
