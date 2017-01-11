@@ -1838,6 +1838,76 @@ void TestBlackbox::ruleWithNoInputs()
     QVERIFY2(m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::smartRelinking()
+{
+    QDir::setCurrent(testDataDir + "/smart-relinking");
+    rmDirR(relativeBuildDir());
+    QFETCH(bool, strictChecking);
+    QbsRunParameters params(QStringList() << (QString("cpp.exportedSymbolsCheckMode:%1")
+            .arg(strictChecking ? "strict" : "ignore-undefined")));
+    QCOMPARE(runQbs(params), 0);
+    if (m_qbsStdout.contains("project disabled"))
+        QSKIP("Test does not apply on this target");
+    QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
+
+    // Irrelevant change.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("lib.cpp");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
+
+    // Add new private symbol.
+    WAIT_FOR_NEW_TIMESTAMP();
+    params.arguments << "lib.defines:PRIV2";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
+
+    // Remove private symbol.
+    WAIT_FOR_NEW_TIMESTAMP();
+    params.arguments.removeLast();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
+
+    // Add new public symbol.
+    WAIT_FOR_NEW_TIMESTAMP();
+    params.arguments << "lib.defines:PUB2";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
+
+    // Remove public symbol.
+    WAIT_FOR_NEW_TIMESTAMP();
+    params.arguments.removeLast();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
+
+    // Add new undefined symbol.
+    WAIT_FOR_NEW_TIMESTAMP();
+    params.arguments << "lib.defines:PRINTF";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
+    QVERIFY2(strictChecking == m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
+
+    // Remove undefined symbol.
+    WAIT_FOR_NEW_TIMESTAMP();
+    params.arguments.removeLast();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
+    QVERIFY2(strictChecking == m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
+}
+
+void TestBlackbox::smartRelinking_data()
+{
+    QTest::addColumn<bool>("strictChecking");
+    QTest::newRow("strict checking") << true;
+    QTest::newRow("ignore undefined") << false;
+}
+
 
 static QString soName(const QString &readElfPath, const QString &libFilePath)
 {

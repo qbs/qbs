@@ -164,6 +164,8 @@ private slots:
     void ruleConditions();
     void ruleCycle();
     void ruleWithNoInputs();
+    void smartRelinking();
+    void smartRelinking_data();
     void soVersion();
     void soVersion_data();
     void subProfileChangeTracking();
