@@ -114,6 +114,7 @@ private slots:
     void linkerScripts();
     void listPropertiesWithOuter();
     void listPropertyOrder();
+    void loadExtension();
     void loadableModule();
     void lrelease();
     void missingDependency();
