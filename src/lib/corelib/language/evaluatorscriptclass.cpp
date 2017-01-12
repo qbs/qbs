@@ -288,7 +288,7 @@ private:
         if (theImportScope.isError()) {
             *result = theImportScope;
         } else {
-            pushScope(data->evaluator->importScope(value->file()));
+            pushScope(theImportScope);
             *result = engine->evaluate(value->sourceCodeForEvaluation(), value->file()->filePath(),
                                        value->line());
         }
