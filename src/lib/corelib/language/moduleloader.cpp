@@ -661,8 +661,7 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     productContext.profileName = m_evaluator->stringValue(productItem, QLatin1String("profile"),
                                                          QString(), &profilePropertySet);
     QBS_CHECK(profilePropertySet);
-    const QVariantMap::ConstIterator it
-            = projectContext->result->profileConfigs.find(productContext.profileName);
+    const auto it = projectContext->result->profileConfigs.constFind(productContext.profileName);
     if (it == projectContext->result->profileConfigs.constEnd()) {
         const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
                     m_parameters.settingsDirectory(), productContext.profileName,
