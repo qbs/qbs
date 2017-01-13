@@ -171,6 +171,7 @@ private slots:
     void renameDependency();
     void separateDebugInfo();
     void sevenZip();
+    void staticQtPluginLinking();
     void suspiciousCalls();
     void suspiciousCalls_data();
     void systemRunPaths();

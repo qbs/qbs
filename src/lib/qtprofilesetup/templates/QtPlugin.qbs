@@ -12,7 +12,7 @@ QtModule {
         multiplex: true
         Artifact {
             filePath: product.targetName + "_qt_plugin_import_"
-                      + parent.parent.qtModuleName + ".cpp"
+                      + product.moduleProperty(product.moduleName, "qtModuleName") + ".cpp"
             fileTags: "cpp"
         }
 

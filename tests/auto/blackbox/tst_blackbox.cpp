@@ -165,6 +165,14 @@ void TestBlackbox::sevenZip()
     QVERIFY2(output.contains("archivable.qbs"), output.constData());
 }
 
+void TestBlackbox::staticQtPluginLinking()
+{
+    QDir::setCurrent(testDataDir + "/static-qt-plugin-linking");
+    QCOMPARE(runQbs(), 0);
+    const bool isStaticQt = m_qbsStdout.contains("Qt is static");
+    QVERIFY2(m_qbsStdout.contains("Creating static import") == isStaticQt, m_qbsStdout.constData());
+}
+
 void TestBlackbox::suspiciousCalls()
 {
     const QString projectDir = testDataDir + "/suspicious-calls";
