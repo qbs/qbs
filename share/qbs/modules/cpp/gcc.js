@@ -880,9 +880,9 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
                 }
             }
 
-            while (globalSymbolsSourceLines.length > 0) {
-                var sourceLine = globalSymbolsSourceLines.shift();
-                var targetLine = globalSymbolsTargetLines.shift();
+            for (var i = 0; i < globalSymbolsSourceLines.length; ++i) {
+                var sourceLine = globalSymbolsSourceLines[i];
+                var targetLine = globalSymbolsTargetLines[i];
                 var sourceLineElems = sourceLine.split(/\s+/);
                 var targetLineElems = targetLine.split(/\s+/);
                 if (sourceLineElems[0] !== targetLineElems[0] // Object name.
