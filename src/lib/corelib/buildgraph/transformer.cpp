@@ -232,10 +232,7 @@ void Transformer::createCommands(ScriptEngine *engine, const ScriptFunctionConst
     if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue))) {
         ErrorInfo errorInfo(engine->lastErrorString(scriptValue),
                             engine->uncaughtExceptionBacktraceOrEmpty());
-        if (rule)
-            errorInfo.append(QStringLiteral("Rule.prepare"), script->location);
-        else
-            errorInfo.append(QStringLiteral("Transformer.prepare"), script->location);
+        errorInfo.append(QStringLiteral("Rule.prepare"), script->location);
         throw errorInfo;
     }
 
