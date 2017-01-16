@@ -725,7 +725,7 @@ void TestTools::set_stlIterator()
 
     {
         int sum = 0;
-        Set<QString>::const_iterator i = set1.begin();
+        Set<QString>::const_iterator i = set1.cbegin();
         while (i != set1.end()) {
             sum += toNumber(*i);
             ++i;
@@ -735,7 +735,7 @@ void TestTools::set_stlIterator()
 
     {
         int sum = 0;
-        Set<QString>::const_iterator i = set1.end();
+        Set<QString>::const_iterator i = set1.cend();
         while (i != set1.begin()) {
             --i;
             sum += toNumber(*i);
