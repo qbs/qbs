@@ -112,6 +112,11 @@ private:
         scope.setPrototype(scriptEngine->globalObject());
         PrepareScriptObserver observer(scriptEngine);
         setupScriptEngineForFile(scriptEngine, transformer->rule->prepareScript->fileContext, scope);
+
+        QScriptValue importScopeForSourceCode;
+        if (!cmd->scopeName().isEmpty())
+            importScopeForSourceCode = scope.property(cmd->scopeName());
+
         setupScriptEngineForProduct(scriptEngine, transformer->product(), transformer->rule->module, scope,
                                     &observer);
         transformer->setupInputs(scope);
@@ -123,7 +128,11 @@ private:
         }
 
         scriptEngine->setGlobalObject(scope);
+        if (importScopeForSourceCode.isObject())
+            scriptEngine->currentContext()->pushScope(importScopeForSourceCode);
         scriptEngine->evaluate(cmd->sourceCode());
+        if (importScopeForSourceCode.isObject())
+            scriptEngine->currentContext()->popScope();
         scriptEngine->setGlobalObject(scope.prototype());
         transformer->propertiesRequestedInCommands
                 += scriptEngine->propertiesRequestedInScript();

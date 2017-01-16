@@ -331,6 +331,16 @@ void ProcessCommand::store(PersistentPool &pool) const
     pool.store(m_stderrFilePath);
 }
 
+static QString currentImportScopeName(QScriptContext *context)
+{
+    for (; context; context = context->parentContext()) {
+        QScriptValue v = context->thisObject().property(QLatin1String("_qbs_importScopeName"));
+        if (v.isString())
+            return v.toString();
+    }
+    return QString();
+}
+
 static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine *engine)
 {
     if (Q_UNLIKELY(!context->isCalledAsConstructor()))
@@ -346,6 +356,9 @@ static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine 
                     engine->toScriptValue(QString::fromLatin1("JavaScriptCommand")));
     cmd.setProperty(QLatin1String("sourceCode"),
                     engine->toScriptValue(commandPrototype->sourceCode()));
+    cmd.setProperty(QLatin1String("_qbs_importScopeName"),
+                    engine->toScriptValue(currentImportScopeName(context)));
+
     return cmd;
 }
 
@@ -372,25 +385,33 @@ bool JavaScriptCommand::equals(const AbstractCommand *otherAbstractCommand) cons
 void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
 {
     AbstractCommand::fillFromScriptValue(scriptValue, codeLocation);
+
+    const QScriptValue importScope = scriptValue->property(QLatin1String("_qbs_importScopeName"));
+    if (importScope.isString())
+        m_scopeName = importScope.toString();
+
     QScriptValue sourceCode = scriptValue->property(QLatin1String("sourceCode"));
     if (sourceCode.isFunction())
         m_sourceCode = QLatin1String("(") + sourceCode.toString() + QLatin1String(")()");
     else
         m_sourceCode = sourceCode.toString();
 
-    m_predefinedProperties << QLatin1String("className") << QLatin1String("sourceCode");
+    m_predefinedProperties << QLatin1String("className") << QLatin1String("sourceCode")
+                           << QLatin1String("_qbs_importScopeName");
     applyCommandProperties(scriptValue);
 }
 
 void JavaScriptCommand::load(PersistentPool &pool)
 {
     AbstractCommand::load(pool);
+    pool.load(m_scopeName);
     pool.load(m_sourceCode);
 }
 
 void JavaScriptCommand::store(PersistentPool &pool) const
 {
     AbstractCommand::store(pool);
+    pool.store(m_scopeName);
     pool.store(m_sourceCode);
 }
 

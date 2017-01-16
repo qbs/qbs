@@ -157,6 +157,7 @@ public:
     bool equals(const AbstractCommand *otherAbstractCommand) const;
     void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
 
+    const QString &scopeName() const { return m_scopeName; }
     const QString &sourceCode() const { return m_sourceCode; }
     void setSourceCode(const QString &str) { m_sourceCode = str; }
 
@@ -166,6 +167,7 @@ private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 
+    QString m_scopeName;
     QString m_sourceCode;
 };
 

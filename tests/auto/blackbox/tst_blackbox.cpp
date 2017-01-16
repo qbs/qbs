@@ -3187,10 +3187,7 @@ void TestBlackbox::listPropertyOrder()
 void TestBlackbox::loadExtension()
 {
     QDir::setCurrent(testDataDir + "/loadExtension");
-    QEXPECT_FAIL(0, "QBS-1093", Abort);
-    QbsRunParameters params;
-    params.expectFailure = true;
-    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackbox::mixedBuildVariants()

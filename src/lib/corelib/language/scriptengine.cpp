@@ -151,7 +151,11 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue &targetObject)
             importFile(filePath, jsImportValue);
         m_jsImportCache.insert(jsImport, jsImportValue);
     }
-    targetObject.setProperty(jsImport.scopeName, jsImportValue);
+
+    QScriptValue sv = newObject();
+    sv.setPrototype(jsImportValue);
+    sv.setProperty(QLatin1String("_qbs_importScopeName"), jsImport.scopeName);
+    targetObject.setProperty(jsImport.scopeName, sv);
 }
 
 void ScriptEngine::clearImportsCache()
@@ -411,6 +415,10 @@ QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *q
                                                        relativeFilePath);
         result = engine->newObject();
         engine->importFile(filePath, result);
+        const QString scopeName = QLatin1String("_qbs_scope_")
+                + QString::number(qHash(filePath), 16);
+        result.setProperty(QLatin1String("_qbs_importScopeName"), scopeName);
+        context->thisObject().setProperty(scopeName, result);
     } catch (const ErrorInfo &e) {
         result = context->throwError(e.toString());
     }

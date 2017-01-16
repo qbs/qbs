@@ -834,11 +834,6 @@ function createSymbolCheckingCommand(product, outputs)
         var libFilePath = outputs.dynamiclibrary[0].filePath;
         var symbolFilePath = outputs.dynamiclibrary_copy[0].filePath;
 
-        // TODO: QBS-1093
-        var getSymbolInfo = Gcc.getSymbolInfo;
-        var createSymbolFile = Gcc.createSymbolFile;
-        var readSymbolFile = Gcc.readSymbolFile;
-
         if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
             // mingw's nm tool does not work correctly.
             createSymbolFile(symbolFilePath, [], []);
