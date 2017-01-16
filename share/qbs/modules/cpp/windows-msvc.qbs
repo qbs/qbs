@@ -56,6 +56,7 @@ CppModule {
     compilerVersionMajor: msvcProbe.versionMajor
     compilerVersionMinor: msvcProbe.versionMinor
     compilerVersionPatch: msvcProbe.versionPatch
+    compilerIncludePaths: msvcProbe.includePaths
 
     windowsApiCharacterSet: "unicode"
     platformDefines: base.concat(WindowsUtils.characterSetDefines(windowsApiCharacterSet))

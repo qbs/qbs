@@ -29,6 +29,8 @@
 ****************************************************************************/
 
 import qbs
+import qbs.File
+import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Utilities
 
@@ -42,6 +44,7 @@ PathProbe {
     property int versionMajor
     property int versionMinor
     property int versionPatch
+    property stringList includePaths
     property var buildEnv
 
     configure: {
@@ -58,6 +61,12 @@ PathProbe {
         versionPatch = parseInt(ver.substr(4), 10);
 
         buildEnv = info.buildEnvironment;
+        var clParentDir = FileInfo.joinPaths(FileInfo.path(compilerFilePath), "..");
+        var inclPath = FileInfo.joinPaths(clParentDir, "INCLUDE");
+        if (!File.exists(inclPath))
+            inclPath = FileInfo.joinPaths(clParentDir, "..", "INCLUDE");
+        if (File.exists(inclPath))
+            includePaths = [inclPath];
 
         if (preferredArchitecture && Utilities.canonicalArchitecture(preferredArchitecture)
                 !== Utilities.canonicalArchitecture(architecture)) {
