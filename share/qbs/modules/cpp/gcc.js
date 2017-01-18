@@ -834,17 +834,12 @@ function createSymbolCheckingCommand(product, outputs)
         var libFilePath = outputs.dynamiclibrary[0].filePath;
         var symbolFilePath = outputs.dynamiclibrary_copy[0].filePath;
 
-        if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
-            // mingw's nm tool does not work correctly.
-            createSymbolFile(symbolFilePath, [], []);
-            return;
-        }
+        if (product.moduleProperty("qbs", "toolchain").contains("mingw"))
+            return; // mingw's nm tool does not work correctly.
 
         var newNmResult = getSymbolInfo(product, libFilePath);
-        if (!newNmResult.success) {
-            createSymbolFile(symbolFilePath, [], []);
+        if (!newNmResult.success)
             return;
-        }
 
         if (!File.exists(symbolFilePath)) {
             console.debug("Symbol file '" + symbolFilePath + "' does not yet exist.");
