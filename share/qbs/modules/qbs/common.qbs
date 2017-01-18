@@ -133,14 +133,14 @@ Module {
         validator.addCustomValidator("toolchain", toolchain, function (value) {
             if (toolchain === undefined)
                 return false; // cannot have null toolchain, empty is valid... for now
-            var canonical = Utilities.canonicalToolchain.apply(this, toolchain);
+            var canonical = Utilities.canonicalToolchain.apply(Utilities, toolchain);
             for (var i = 0; i < Math.max(canonical.length, toolchain.length); ++i) {
                 if (canonical[i] !== toolchain[i])
                     return false;
             }
             return true;
         }, "'" + toolchain + "' is invalid. You must use the canonical list '" +
-        Utilities.canonicalToolchain.apply(this, toolchain) + "'");
+        Utilities.canonicalToolchain.apply(Utilities, toolchain) + "'");
 
         validator.addCustomValidator("toolchain", toolchain, function (value) {
             // None of the pairs listed here may appear in the same toolchain list.
@@ -151,7 +151,7 @@ Module {
                 ["gcc", "msvc"],
                 ["llvm", "mingw"]
             ];
-            var canonical = Utilities.canonicalToolchain.apply(this, value);
+            var canonical = Utilities.canonicalToolchain.apply(Utilities, value);
             for (var i = 0; i < pairs.length; ++i) {
                 if (canonical.contains(pairs[i][0]) && canonical.contains(pairs[i][1]))
                     return false;

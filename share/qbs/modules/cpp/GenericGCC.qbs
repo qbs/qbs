@@ -319,7 +319,7 @@ CppModule {
         }
 
         prepare: {
-            return Gcc.prepareLinker.apply(this, arguments);
+            return Gcc.prepareLinker.apply(Gcc, arguments);
         }
     }
 
@@ -404,7 +404,7 @@ CppModule {
         }
 
         prepare: {
-            return Gcc.prepareLinker.apply(this, arguments);
+            return Gcc.prepareLinker.apply(Gcc, arguments);
         }
     }
 
@@ -432,7 +432,7 @@ CppModule {
         }
 
         prepare: {
-            return Gcc.prepareLinker.apply(this, arguments);
+            return Gcc.prepareLinker.apply(Gcc, arguments);
         }
     }
 
@@ -458,7 +458,7 @@ CppModule {
         }
 
         prepare: {
-            return Gcc.prepareCompiler.apply(this, arguments);
+            return Gcc.prepareCompiler.apply(Gcc, arguments);
         }
     }
 
@@ -472,7 +472,7 @@ CppModule {
         }
 
         prepare: {
-            return Gcc.prepareAssembler.apply(this, arguments);
+            return Gcc.prepareAssembler.apply(Gcc, arguments);
         }
     }
 
@@ -485,7 +485,7 @@ CppModule {
             fileTags: ["c_pch"]
         }
         prepare: {
-            return Gcc.prepareCompiler.apply(this, arguments);
+            return Gcc.prepareCompiler.apply(Gcc, arguments);
         }
     }
 
@@ -498,7 +498,7 @@ CppModule {
             fileTags: ["cpp_pch"]
         }
         prepare: {
-            return Gcc.prepareCompiler.apply(this, arguments);
+            return Gcc.prepareCompiler.apply(Gcc, arguments);
         }
     }
 
@@ -511,7 +511,7 @@ CppModule {
             fileTags: ["objc_pch"]
         }
         prepare: {
-            return Gcc.prepareCompiler.apply(this, arguments);
+            return Gcc.prepareCompiler.apply(Gcc, arguments);
         }
     }
 
@@ -524,7 +524,7 @@ CppModule {
             fileTags: ["objcpp_pch"]
         }
         prepare: {
-            return Gcc.prepareCompiler.apply(this, arguments);
+            return Gcc.prepareCompiler.apply(Gcc, arguments);
         }
     }
 

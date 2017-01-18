@@ -128,7 +128,7 @@ CppModule {
             filePath: ".obj/" + product.name + '_c.pch_copy'
         }
         prepare: {
-            return MSVC.prepareCompiler.apply(this, arguments);
+            return MSVC.prepareCompiler.apply(MSVC, arguments);
         }
     }
 
@@ -151,7 +151,7 @@ CppModule {
         }
 
         prepare: {
-            return MSVC.prepareCompiler.apply(this, arguments);
+            return MSVC.prepareCompiler.apply(MSVC, arguments);
         }
     }
 
@@ -167,7 +167,7 @@ CppModule {
         }
 
         prepare: {
-            return MSVC.prepareCompiler.apply(this, arguments);
+            return MSVC.prepareCompiler.apply(MSVC, arguments);
         }
     }
 
@@ -198,7 +198,7 @@ CppModule {
         }
 
         prepare: {
-            return MSVC.prepareLinker.apply(this, arguments);
+            return MSVC.prepareLinker.apply(MSVC, arguments);
         }
     }
 
@@ -234,7 +234,7 @@ CppModule {
         }
 
         prepare: {
-            return MSVC.prepareLinker.apply(this, arguments);
+            return MSVC.prepareLinker.apply(MSVC, arguments);
         }
     }
 
