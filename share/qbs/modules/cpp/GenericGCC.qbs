@@ -280,7 +280,7 @@ CppModule {
             var libCopy = {
                 // List of libfoo's public symbols for smart re-linking.
                 filePath: product.destinationDirectory + "/.sosymbols/"
-                          + FileInfo.fileName(PathTools.dynamicLibraryFilePath(product)),
+                          + PathTools.dynamicLibraryFilePath(product),
                 fileTags: ["dynamiclibrary_copy"],
                 alwaysUpdated: false,
             };

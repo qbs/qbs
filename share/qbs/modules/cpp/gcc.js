@@ -260,9 +260,7 @@ function linkerFlags(project, product, inputs, output) {
     var staticLibsFromInputs = inputs.staticlibrary
             ? inputs.staticlibrary.map(function(a) { return a.filePath; }) : [];
     staticLibraries = concatLibsFromArtifacts(staticLibraries, inputs.staticlibrary);
-    var filePathGetterSoCopy = function(a) {
-        return FileInfo.joinPaths(FileInfo.path(a.filePath), "..", a.fileName);
-    };
+    var filePathGetterSoCopy = function(a) { return a.filePath.replace(".sosymbols/", ""); };
     var dynamicLibsFromInputs = inputs.dynamiclibrary_copy
             ? inputs.dynamiclibrary_copy.map(filePathGetterSoCopy) : [];
     dynamicLibraries = concatLibsFromArtifacts(dynamicLibraries, inputs.dynamiclibrary_copy,
