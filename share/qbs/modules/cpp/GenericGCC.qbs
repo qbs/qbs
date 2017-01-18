@@ -50,6 +50,21 @@ CppModule {
         preferredMachineType: machineType
     }
 
+    Probe {
+        id: nmProbe
+        property string theNmPath: nmPath
+        property bool hasDynamicOption
+        configure: {
+            var proc = new Process();
+            try {
+                hasDynamicOption = proc.exec(theNmPath, ["-D", theNmPath], false) == 0;
+                console.debug("nm has -D: " + hasDynamicOption);
+            } finally {
+                proc.close();
+            }
+        }
+    }
+
     qbs.architecture: gccProbe.found ? gccProbe.architecture : original
 
     compilerVersionMajor: gccProbe.versionMajor
@@ -136,6 +151,7 @@ CppModule {
     linkerPath: toolchainPathPrefix + linkerName
     property string archiverPath: toolchainPathPrefix + archiverName
     property string nmPath: toolchainPathPrefix + nmName
+    property bool _nmHasDynamicOption: nmProbe.hasDynamicOption
     property string objcopyPath: toolchainPathPrefix + objcopyName
     property string stripPath: toolchainPathPrefix + stripName
     property string dsymutilPath: toolchainPathPrefix + dsymutilName

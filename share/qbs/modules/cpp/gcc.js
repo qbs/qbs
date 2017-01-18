@@ -762,7 +762,9 @@ function getSymbolInfo(product, inputFile)
 {
     var result = { };
     var command = ModUtils.moduleProperty(product, "nmPath");
-    var args = ["-g", "-D", "-P"];
+    var args = ["-g", "-P"];
+    if (ModUtils.moduleProperty(product, "_nmHasDynamicOption"))
+        args.push("-D");
     try {
         result.allGlobalSymbols = collectStdoutLines(command, args.concat(inputFile));
 
