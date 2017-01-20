@@ -40,11 +40,18 @@ Probe {
     property string minVersion
     property string exactVersion
     property string maxVersion
+    property bool forStaticBuild: false
     property stringList libDirs // Full, non-sysrooted paths, mirroring the environment variable
 
     // Output
-    property stringList cflags
-    property stringList libs
+    property stringList cflags // Unmodified --cflags output
+    property stringList libs   // Unmodified --libs output
+
+    property stringList libraries
+    property stringList libraryPaths
+    property stringList includePaths
+    property stringList compilerFlags
+    property stringList linkerFlags
     property string modversion
 
     configure: {
@@ -74,12 +81,36 @@ Probe {
             if (p.exec(executable, args.concat([ '--cflags' ])) === 0) {
                 cflags = p.readStdOut().trim();
                 cflags = cflags ? cflags.split(/\s/) : [];
-                if (p.exec(executable, args.concat([ '--libs' ])) === 0) {
+                var libsArgs = args.concat("--libs");
+                if (forStaticBuild)
+                    libsArgs.push("--static");
+                if (p.exec(executable, libsArgs) === 0) {
                     libs = p.readStdOut().trim();
                     libs = libs ? libs.split(/\s/) : [];
                     if (p.exec(executable, args.concat([ '--modversion' ])) === 0) {
                         modversion = p.readStdOut().trim();
                         found = true;
+                        includePaths = [];
+                        compilerFlags = [];
+                        for (var i = 0; i < cflags.length; ++i) {
+                            var flag = cflags[i];
+                            if (flag.startsWith("-I"))
+                                includePaths.push(flag.slice(2));
+                            else
+                                compilerFlags.push(flag);
+                        }
+                        libraries = [];
+                        libraryPaths = [];
+                        linkerFlags = [];
+                        for (i = 0; i < libs.length; ++i) {
+                            flag = libs[i];
+                            if (flag.startsWith("-l"))
+                                libraries.push(flag.slice(2));
+                            else if (flag.startsWith("-L"))
+                                libraryPaths.push(flag.slice(2));
+                            else
+                                linkerFlags.push(flag);
+                        }
                         console.info("PkgConfigProbe: found library " + name);
                         return;
                     }
