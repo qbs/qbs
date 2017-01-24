@@ -119,13 +119,18 @@ BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingPr
     }
     QBS_CHECK(parameters.restoreBehavior() == SetupProjectParameters::RestoreAndTrackChanges);
 
-    if (m_parameters.logElapsedTime())
+    if (m_parameters.logElapsedTime()) {
         m_wildcardExpansionEffort = 0;
+        m_propertyComparisonEffort = 0;
+    }
     trackProjectChanges();
     if (m_parameters.logElapsedTime()) {
         m_logger.qbsLog(LoggerInfo, true) << "\t"
                 << Tr::tr("Wilcard expansion took %1.")
                    .arg(elapsedTimeString(m_wildcardExpansionEffort));
+        m_logger.qbsLog(LoggerInfo, true) << "\t"
+                << Tr::tr("Comparing property values took %1.")
+                   .arg(elapsedTimeString(m_propertyComparisonEffort));
     }
     return m_result;
 }
@@ -626,6 +631,8 @@ bool BuildGraphLoader::checkProductForInstallInfoChanges(const ResolvedProductPt
 bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restoredProduct,
                                                const ResolvedProductPtr &newlyResolvedProduct)
 {
+    AccumulatingTimer propertyComparisonTimer(m_parameters.logElapsedTime()
+                                              ? &m_propertyComparisonEffort: nullptr);
     m_logger.qbsDebug() << "Checking for changes in properties requested in prepare scripts for "
                            "product '"  << restoredProduct->uniqueName() << "'.";
     if (!restoredProduct->buildData)
