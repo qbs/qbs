@@ -112,14 +112,11 @@ ResolvedModuleConstPtr TestLanguage::findModuleByName(ResolvedProductPtr product
 QVariant TestLanguage::productPropertyValue(ResolvedProductPtr product, QString propertyName)
 {
     QStringList propertyNameComponents = propertyName.split(QLatin1Char('.'));
-    QVariantMap properties;
     if (propertyNameComponents.count() > 1) {
         propertyNameComponents.prepend(QLatin1String("modules"));
-        properties = product->moduleProperties->value();
-    } else {
-        properties = product->productProperties;
+        return product->moduleProperties->property(propertyNameComponents);
     }
-    return getConfigProperty(properties, propertyNameComponents);
+    return getConfigProperty(product->productProperties, propertyNameComponents);
 }
 
 void TestLanguage::handleInitCleanupDataTags(const char *projectFileName, bool *handled)
@@ -468,11 +465,11 @@ void TestLanguage::defaultValue()
         const ResolvedProductPtr product = products.value("egon");
         QVERIFY(product);
         QStringList propertyName = QStringList() << "modules" << "lower" << "prop2";
-        QVariant propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        QVariant propertyValue = product->moduleProperties->property(propertyName);
         QFETCH(QVariant, expectedProp2Value);
         QCOMPARE(propertyValue, expectedProp2Value);
         propertyName = QStringList() << "modules" << "lower" << "listProp";
-        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        propertyValue = product->moduleProperties->property(propertyName);
         QFETCH(QVariant, expectedListPropValue);
         QCOMPARE(propertyValue.toStringList(), expectedListPropValue.toStringList());
     }
@@ -644,12 +641,11 @@ void TestLanguage::exports()
         product = products.value("myapp");
         QVERIFY(product);
         QStringList propertyName = QStringList() << "modules" << "dummy" << "defines";
-        QVariant propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        QVariant propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYAPP" << "USE_MYLIB"
                  << "USE_MYLIB2");
         propertyName = QStringList() << "modules" << "dummy" << "includePaths";
-        QVariantList propertyValues = getConfigProperty(product->moduleProperties->value(),
-                                                        propertyName).toList();
+        QVariantList propertyValues = product->moduleProperties->property(propertyName).toList();
         QCOMPARE(propertyValues.count(), 3);
         QVERIFY(propertyValues.at(0).toString().endsWith("/app"));
         QVERIFY(propertyValues.at(1).toString().endsWith("/subdir/lib"));
@@ -661,13 +657,13 @@ void TestLanguage::exports()
         product = products.value("mylib");
         QVERIFY(product);
         propertyName = QStringList() << "modules" << "dummy" << "defines";
-        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB");
 
         product = products.value("mylib2");
         QVERIFY(product);
         propertyName = QStringList() << "modules" << "dummy" << "defines";
-        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB2");
 
         product = products.value("A");
@@ -688,15 +684,15 @@ void TestLanguage::exports()
         product = products.value("myapp2");
         QVERIFY(product);
         propertyName = QStringList() << "modules" << "dummy" << "cFlags";
-        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList()
                  << "BASE_PRODUCTWITHINHERITEDEXPORTITEM"
                  << "PRODUCT_PRODUCTWITHINHERITEDEXPORTITEM");
         propertyName = QStringList() << "modules" << "dummy" << "cxxFlags";
-        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "-bar");
         propertyName = QStringList() << "modules" << "dummy" << "defines";
-        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "ABC");
         QCOMPARE(product->moduleProperties->moduleProperty("dummy", "productName").toString(),
                  QString("myapp2"));
@@ -720,11 +716,11 @@ void TestLanguage::exports()
         product = products.value("libE");
         QVERIFY(product);
         propertyName = QStringList() << "modules" << "dummy" << "defines";
-        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(),
                  QStringList() << "LIBA" << "LIBB" << "LIBC" << "LIBD");
         propertyName = QStringList() << "modules" << "dummy" << "productName";
-        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
+        propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toString(), QString("libE"));
     }
     catch (const ErrorInfo &e) {
@@ -1589,13 +1585,12 @@ void TestLanguage::pathProperties()
         QVERIFY(product);
         QString projectFileDir = QFileInfo(defaultParameters.projectFilePath()).absolutePath();
         const QVariantMap productProps = product->productProperties;
-        const QVariantMap moduleProps = product->moduleProperties->value();
         QCOMPARE(productProps.value("projectFileDir").toString(), projectFileDir);
         QStringList filesInProjectFileDir = QStringList()
                 << FileInfo::resolvePath(projectFileDir, "aboutdialog.h")
                 << FileInfo::resolvePath(projectFileDir, "aboutdialog.cpp");
         QCOMPARE(productProps.value("filesInProjectFileDir").toStringList(), filesInProjectFileDir);
-        QStringList includePaths = getConfigProperty(moduleProps,
+        QStringList includePaths = product->moduleProperties->property(
                 QStringList() << "modules" << "dummy" << "includePaths").toStringList();
         QCOMPARE(includePaths, QStringList() << projectFileDir);
         QCOMPARE(productProps.value("base_fileInProductDir").toString(),

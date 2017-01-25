@@ -41,6 +41,7 @@
 
 #include <tools/jsliterals.h>
 #include <tools/persistence.h>
+#include <tools/scripttools.h>
 
 namespace qbs {
 namespace Internal {
@@ -75,6 +76,11 @@ QVariant PropertyMapInternal::moduleProperty(const QString &moduleName,
 QVariant PropertyMapInternal::qbsPropertyValue(const QString &key) const
 {
     return moduleProperty(QLatin1String("qbs"), key);
+}
+
+QVariant PropertyMapInternal::property(const QStringList &name) const
+{
+    return getConfigProperty(m_value, name);
 }
 
 void PropertyMapInternal::setValue(const QVariantMap &map)

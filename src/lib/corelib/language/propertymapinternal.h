@@ -56,6 +56,7 @@ public:
     const QVariantMap &value() const { return m_value; }
     QVariant moduleProperty(const QString &moduleName, const QString &key) const;
     QVariant qbsPropertyValue(const QString &key) const; // Convenience function.
+    QVariant property(const QStringList &name) const;
     void setValue(const QVariantMap &value);
     QString toJSLiteral() const;
 
