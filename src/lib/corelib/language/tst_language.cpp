@@ -1396,20 +1396,6 @@ void TestLanguage::modulePropertiesInGroups()
 
 void TestLanguage::moduleScope()
 {
-    class IntPropertyFinder
-    {
-        const QVariantMap &m_properties;
-    public:
-        IntPropertyFinder(const QVariantMap &properties)
-            : m_properties(properties)
-        {}
-
-        int intValue(const QString &name)
-        {
-            return moduleProperty(m_properties, "scopemod", name).toInt();
-        }
-    };
-
     bool exceptionCaught = false;
     try {
         defaultParameters.setProjectFilePath(testProject("modulescope.qbs"));
@@ -1419,15 +1405,20 @@ void TestLanguage::moduleScope()
         QCOMPARE(products.count(), 1);
         ResolvedProductPtr product = products.value("product1");
         QVERIFY(product);
-        IntPropertyFinder ipf(product->moduleProperties->value());
-        QCOMPARE(ipf.intValue("a"), 2);     // overridden in module instance
-        QCOMPARE(ipf.intValue("b"), 1);     // genuine
-        QCOMPARE(ipf.intValue("c"), 3);     // genuine, dependent on overridden value
-        QCOMPARE(ipf.intValue("d"), 2);     // genuine, dependent on genuine value
-        QCOMPARE(ipf.intValue("e"), 1);     // genuine
-        QCOMPARE(ipf.intValue("f"), 2);     // overridden
-        QCOMPARE(ipf.intValue("g"), 156);   // overridden, dependent on product properties
-        QCOMPARE(ipf.intValue("h"), 158);   // overridden, base dependent on product properties
+
+        auto intModuleValue = [product] (const QString &name) -> int
+        {
+            return product->moduleProperties->moduleProperty("scopemod", name).toInt();
+        };
+
+        QCOMPARE(intModuleValue("a"), 2);     // overridden in module instance
+        QCOMPARE(intModuleValue("b"), 1);     // genuine
+        QCOMPARE(intModuleValue("c"), 3);     // genuine, dependent on overridden value
+        QCOMPARE(intModuleValue("d"), 2);     // genuine, dependent on genuine value
+        QCOMPARE(intModuleValue("e"), 1);     // genuine
+        QCOMPARE(intModuleValue("f"), 2);     // overridden
+        QCOMPARE(intModuleValue("g"), 156);   // overridden, dependent on product properties
+        QCOMPARE(intModuleValue("h"), 158);   // overridden, base dependent on product properties
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
