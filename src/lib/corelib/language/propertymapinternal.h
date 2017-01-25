@@ -58,7 +58,6 @@ public:
     QVariant qbsPropertyValue(const QString &key) const; // Convenience function.
     QVariant property(const QStringList &name) const;
     void setValue(const QVariantMap &value);
-    QString toJSLiteral() const;
 
 private:
     friend bool operator==(const PropertyMapInternal &lhs, const PropertyMapInternal &rhs);
