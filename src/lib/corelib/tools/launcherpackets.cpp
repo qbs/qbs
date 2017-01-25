@@ -152,7 +152,7 @@ void PacketParser::setDevice(QIODevice *device)
 
 bool PacketParser::parse()
 {
-    static const int commonPayloadSize = static_cast<int>(1 + sizeof LauncherPacket::token);
+    static const int commonPayloadSize = static_cast<int>(1 + sizeof(quintptr));
     if (m_sizeOfNextPacket == -1) {
         if (m_stream.device()->bytesAvailable() < static_cast<int>(sizeof m_sizeOfNextPacket))
             return false;
