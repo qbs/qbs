@@ -68,7 +68,7 @@ void ArtifactProperties::store(PersistentPool &pool) const
 bool operator==(const ArtifactProperties &ap1, const ArtifactProperties &ap2)
 {
     return ap1.fileTagsFilter() == ap2.fileTagsFilter()
-            && ap1.propertyMap()->value() == ap2.propertyMap()->value();
+            && *ap1.propertyMap() == *ap2.propertyMap();
 }
 
 } // namespace Internal

@@ -1180,7 +1180,7 @@ bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal 
     return sa1.absoluteFilePath == sa2.absoluteFilePath
             && sa1.fileTags == sa2.fileTags
             && sa1.overrideFileTags == sa2.overrideFileTags
-            && sa1.properties->value() == sa2.properties->value();
+            && *sa1.properties == *sa2.properties;
 }
 
 bool sourceArtifactSetsAreEqual(const QList<SourceArtifactPtr> &l1,

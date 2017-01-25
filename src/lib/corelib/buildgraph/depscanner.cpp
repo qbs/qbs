@@ -202,7 +202,7 @@ bool UserDependencyScanner::areModulePropertiesCompatible(const PropertyMapConst
     // TODO: This should probably be made more fine-grained. Perhaps the Scanner item
     //       could declare the relevant properties, or we could figure them out automatically
     //       somehow.
-    return m1 == m2 || m1->value() == m2->value();
+    return m1 == m2 || *m1 == *m2;
 }
 
 class ScriptEngineActiveFlagGuard

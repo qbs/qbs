@@ -859,12 +859,12 @@ QString PropertyMap::toString() const
 
 bool operator==(const PropertyMap &pm1, const PropertyMap &pm2)
 {
-    return pm1.d->m_map->value() == pm2.d->m_map->value();
+    return *pm1.d->m_map == *pm2.d->m_map;
 }
 
 bool operator!=(const PropertyMap &pm1, const PropertyMap &pm2)
 {
-    return !(pm1.d->m_map->value() == pm2.d->m_map->value());
+    return !(*pm1.d->m_map == *pm2.d->m_map);
 }
 
 } // namespace qbs

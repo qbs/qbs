@@ -60,6 +60,8 @@ public:
     QString toJSLiteral() const;
 
 private:
+    friend bool operator==(const PropertyMapInternal &lhs, const PropertyMapInternal &rhs);
+
     PropertyMapInternal();
     PropertyMapInternal(const PropertyMapInternal &other);
 
@@ -68,6 +70,11 @@ private:
 
     QVariantMap m_value;
 };
+
+inline bool operator==(const PropertyMapInternal &lhs, const PropertyMapInternal &rhs)
+{
+    return lhs.m_value == rhs.m_value;
+}
 
 QVariant moduleProperty(const QVariantMap &properties, const QString &moduleName,
                         const QString &key);
