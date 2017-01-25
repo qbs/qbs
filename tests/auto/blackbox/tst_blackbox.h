@@ -57,6 +57,7 @@ private slots:
     void checkProjectFilePath();
     void clean();
     void cli();
+    void combinedMoc();
     void concurrentExecutor();
     void conditionalExport();
     void conflictingArtifacts();

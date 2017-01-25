@@ -225,6 +225,14 @@
         \li \c{undefined}
         \li The path in which Qt tools such as \c qmake, \c moc and so on are located.
     \row
+        \li combineMocOutput
+        \li \c{bool}
+        \li \c{false}
+        \li If this property is enabled, the C++ sources created by \c moc are combined
+            into a single C++ file per product. For projects where many header files are to be
+            handled by \c moc, this can speed up compilation considerably. However, side effects may
+            occur as a result of merging translation units.
+    \row
         \li config
         \li \c{stringList}
         \li \c{empty}

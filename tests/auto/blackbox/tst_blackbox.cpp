@@ -2924,6 +2924,20 @@ void TestBlackbox::cli()
     rmDirR(relativeBuildDir());
 }
 
+void TestBlackbox::combinedMoc()
+{
+    QDir::setCurrent(testDataDir + "/combined-moc");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling moc_theobject.cpp"));
+    QVERIFY(!m_qbsStdout.contains("creating amalgamated_moc_theapp.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling amalgamated_moc_theapp.cpp"));
+    QbsRunParameters params(QStringList("Qt.core.combineMocOutput:true"));
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling moc_theobject.cpp"));
+    QVERIFY(m_qbsStdout.contains("creating amalgamated_moc_theapp.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling amalgamated_moc_theapp.cpp"));
+}
+
 void TestBlackbox::jsExtensionsFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions-file");

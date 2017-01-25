@@ -246,12 +246,14 @@ Module {
         fileTags: ["qhp"]
     }
 
+    property bool combineMocOutput: false
+
     Rule {
         name: "QtCoreMocRule"
         inputs: ["objcpp", "cpp", "hpp"]
         auxiliaryInputs: ["qt_plugin_metadata"]
         excludedAuxiliaryInputs: ["unmocable"]
-        outputFileTags: ["hpp", "cpp", "unmocable"]
+        outputFileTags: ["hpp", "cpp", "moc_cpp", "unmocable"]
         outputArtifacts: {
             var mocinfo = QtMocScanner.apply(input);
             if (!mocinfo.hasQObjectMacro)
@@ -264,7 +266,8 @@ Module {
                 artifact.filePath = ModUtils.moduleProperty(product, "generatedHeadersDir")
                           + '/' + input.completeBaseName + ".moc";
             }
-            artifact.fileTags.push(mocinfo.mustCompile ? "cpp" : "hpp");
+            var amalgamate = input.moduleProperty("Qt.core", "combineMocOutput");
+            artifact.fileTags.push(mocinfo.mustCompile ? (amalgamate ? "moc_cpp" : "cpp") : "hpp");
             if (mocinfo.hasPluginMetaDataMacro)
                 artifact.explicitlyDependsOn = ["qt_plugin_metadata"];
             return [artifact];
@@ -275,6 +278,31 @@ Module {
             cmd.description = 'moc ' + input.fileName;
             cmd.highlight = 'codegen';
             return cmd;
+        }
+    }
+
+    Rule {
+        multiplex: true
+        inputs: ["moc_cpp"]
+        outputs: ["cpp", "unmocable"]
+        Artifact {
+            filePath: "amalgamated_moc_" + product.targetName + ".cpp"
+            fileTags: ["cpp", "unmocable"]
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "creating " + output.fileName;
+            cmd.highlight = "codegen";
+            cmd.sourceCode = function() {
+                var f = new TextFile(output.filePath, TextFile.WriteOnly);
+                try {
+                    for (var i = 0; i < inputs["moc_cpp"].length; ++i)
+                        f.writeLine('#include "' + inputs["moc_cpp"][i].filePath + '"');
+                } finally {
+                    f.close();
+                }
+            };
+            return [cmd];
         }
     }
 
