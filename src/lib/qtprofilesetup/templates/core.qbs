@@ -3,6 +3,7 @@ import qbs.FileInfo
 import qbs.ModUtils
 import qbs.TextFile
 import qbs.Utilities
+import qbs.Xml
 import "moc.js" as Moc
 import "qdoc.js" as Qdoc
 
@@ -320,38 +321,43 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating " + output.fileName;
             cmd.sourceCode = function() {
-                var qrcFile = new TextFile(output.filePath, TextFile.WriteOnly);
-                try {
-                    qrcFile.writeLine('<!DOCTYPE RCC>');
-                    qrcFile.writeLine('<RCC version="1.0">');
+                var doc = new XmlDomDocument("RCC");
 
-                    var inputsByPrefix = {}
-                    for (var i = 0; i < inputs["qt.core.resource_data"].length; ++i) {
-                        var inp = inputs["qt.core.resource_data"][i];
-                        var prefix = inp.moduleProperty("Qt.core", "resourcePrefix");
-                        var inputsList = inputsByPrefix[prefix] || [];
-                        inputsList.push(inp);
-                        inputsByPrefix[prefix] = inputsList;
-                    }
+                var rccNode = doc.createElement("RCC");
+                rccNode.setAttribute("version", "1.0");
+                doc.appendChild(rccNode);
 
-                    for (var prefix in inputsByPrefix) {
-                        qrcFile.writeLine('<qresource prefix="' + prefix + '">');
-                        for (var i = 0; i < inputsByPrefix[prefix].length; ++i) {
-                            var inp = inputsByPrefix[prefix][i];
-                            var fullResPath = inp.filePath;
-                            var baseDir = inp.moduleProperty("Qt.core", "resourceSourceBase");
-                            var resAlias = baseDir
-                                ? FileInfo.relativePath(baseDir, fullResPath) : inp.fileName;
-                            qrcFile.writeLine('<file alias="' + resAlias + '">'
-                                              + fullResPath + '</file>');
-                        }
-                        qrcFile.writeLine('</qresource>');
-                    }
-
-                    qrcFile.writeLine('</RCC>');
-                } finally {
-                    qrcFile.close();
+                var inputsByPrefix = {}
+                for (var i = 0; i < inputs["qt.core.resource_data"].length; ++i) {
+                    var inp = inputs["qt.core.resource_data"][i];
+                    var prefix = inp.moduleProperty("Qt.core", "resourcePrefix");
+                    var inputsList = inputsByPrefix[prefix] || [];
+                    inputsList.push(inp);
+                    inputsByPrefix[prefix] = inputsList;
                 }
+
+                for (var prefix in inputsByPrefix) {
+                    var qresourceNode = doc.createElement("qresource");
+                    qresourceNode.setAttribute("prefix", prefix);
+                    rccNode.appendChild(qresourceNode);
+
+                    for (var i = 0; i < inputsByPrefix[prefix].length; ++i) {
+                        var inp = inputsByPrefix[prefix][i];
+                        var fullResPath = inp.filePath;
+                        var baseDir = inp.moduleProperty("Qt.core", "resourceSourceBase");
+                        var resAlias = baseDir
+                            ? FileInfo.relativePath(baseDir, fullResPath) : inp.fileName;
+
+                        var fileNode = doc.createElement("file");
+                        fileNode.setAttribute("alias", resAlias);
+                        qresourceNode.appendChild(fileNode);
+
+                        var fileTextNode = doc.createTextNode(fullResPath);
+                        fileNode.appendChild(fileTextNode);
+                    }
+                }
+
+                doc.save(output.filePath, 4);
             };
             return [cmd];
         }
