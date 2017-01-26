@@ -80,6 +80,8 @@ template<> inline bool Set<FileTag>::sortAfterLoadRequired() const { return true
 class FileTags : public Set<FileTag>
 {
 public:
+    FileTags() : Set<FileTag>() {}
+    FileTags(const std::initializer_list<FileTag> &list) : Set<FileTag>(list) {}
     static FileTags fromStringList(const QStringList &strings);
 };
 

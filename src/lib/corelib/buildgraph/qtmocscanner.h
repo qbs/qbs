@@ -58,6 +58,7 @@ namespace qbs {
 namespace Internal {
 
 class Artifact;
+struct CommonFileTags;
 
 class QtMocScanner
 {
@@ -72,6 +73,7 @@ private:
     static QScriptValue js_apply(QScriptContext *ctx, QScriptEngine *engine, void *data);
     QScriptValue apply(QScriptEngine *engine, const Artifact *artifact);
 
+    const CommonFileTags &m_tags;
     const ResolvedProductPtr &m_product;
     QScriptValue m_targetScriptValue;
     const Logger &m_logger;
