@@ -64,6 +64,8 @@
 
 #include <QtScript/qscriptvalueiterator.h>
 
+#include <vector>
+
 namespace qbs {
 namespace Internal {
 
@@ -411,8 +413,17 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
 
 class ArtifactBindingsExtractor
 {
-    typedef QPair<QStringList, QVariant> NameValuePair;
-    QList<NameValuePair> m_propertyValues;
+    struct Entry
+    {
+        Entry(const QString &module, const QString &name, const QVariant &value)
+            : module(module), name(name), value(value)
+        {}
+
+        QString module;
+        QString name;
+        QVariant value;
+    };
+    std::vector<Entry> m_propertyValues;
 
     static Set<QString> getArtifactItemPropertyNames()
     {
@@ -426,13 +437,13 @@ class ArtifactBindingsExtractor
         return s;
     }
 
-    void extractPropertyValues(const QScriptValue &obj, QStringList fullName = QStringList())
+    void extractPropertyValues(const QScriptValue &obj, QString moduleName = QString())
     {
         QScriptValueIterator svit(obj);
         while (svit.hasNext()) {
             svit.next();
             const QString name = svit.name();
-            if (fullName.isEmpty()) {
+            if (moduleName.isEmpty()) {
                 // Ignore property names that are part of the Artifact item.
                 static const Set<QString> artifactItemPropertyNames
                         = getArtifactItemPropertyNames();
@@ -441,35 +452,28 @@ class ArtifactBindingsExtractor
             }
 
             const QScriptValue value = svit.value();
-            fullName.append(name);
-            if (value.isObject() && !value.isArray() && !value.isError() && !value.isRegExp())
-                extractPropertyValues(value, fullName);
-            else
-                m_propertyValues.append(NameValuePair(fullName, value.toVariant()));
-            fullName.removeLast();
+            if (value.isObject() && !value.isArray() && !value.isError() && !value.isRegExp()) {
+                if (!moduleName.isEmpty())
+                    moduleName.append(QLatin1Char('.'));
+                moduleName.append(name);
+                extractPropertyValues(value, moduleName);
+            } else {
+                m_propertyValues.emplace_back(moduleName, name, value.toVariant());
+            }
         }
     }
 public:
     void apply(Artifact *outputArtifact, const QScriptValue &obj)
     {
         extractPropertyValues(obj);
-        if (m_propertyValues.isEmpty())
+        if (m_propertyValues.empty())
             return;
 
         outputArtifact->properties = outputArtifact->properties->clone();
         QVariantMap artifactCfg = outputArtifact->properties->value();
-        foreach (const NameValuePair &nvp, m_propertyValues)
-            setConfigProperty(artifactCfg, constructValuePath(nvp.first), nvp.second);
+        for (const auto &e : m_propertyValues)
+            setConfigProperty(artifactCfg, {QStringLiteral("modules"), e.module, e.name}, e.value);
         outputArtifact->properties->setValue(artifactCfg);
-    }
-
-    static QStringList constructValuePath(const QStringList &nameParts)
-    {
-        return {
-            QLatin1String("modules"),
-            nameParts.mid(0, nameParts.length() - 1).join(QLatin1Char('.')),
-            nameParts.last()
-        };
     }
 };
 
