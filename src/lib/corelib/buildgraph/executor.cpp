@@ -746,9 +746,8 @@ void Executor::addExecutorJobs()
         job->setEchoMode(m_buildOptions.echoMode());
         m_availableJobs.append(job);
         connect(job, &ExecutorJob::reportCommandDescription,
-                this, &Executor::reportCommandDescription, Qt::QueuedConnection);
-        connect(job, &ExecutorJob::reportProcessResult,
-                this, &Executor::reportProcessResult, Qt::QueuedConnection);
+                this, &Executor::reportCommandDescription);
+        connect(job, &ExecutorJob::reportProcessResult, this, &Executor::reportProcessResult);
         connect(job, &ExecutorJob::finished,
                 this, &Executor::onJobFinished, Qt::QueuedConnection);
     }
