@@ -60,6 +60,7 @@ private slots:
     void combinedMoc();
     void concurrentExecutor();
     void conditionalExport();
+    void conditionalFileTagger();
     void conflictingArtifacts();
     void dbusAdaptors();
     void dbusInterfaces();

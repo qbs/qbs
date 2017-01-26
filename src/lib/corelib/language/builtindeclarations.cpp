@@ -226,6 +226,7 @@ void BuiltinDeclarations::addExportItem()
 void BuiltinDeclarations::addFileTaggerItem()
 {
     ItemDeclaration item(ItemType::FileTagger);
+    item << conditionProperty();
     item << PropertyDeclaration(QLatin1String("patterns"), PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::StringList);
     insert(item);

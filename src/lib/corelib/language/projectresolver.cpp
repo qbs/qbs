@@ -889,6 +889,8 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
 void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
+    if (!m_evaluator->boolValue(item, QLatin1String("condition")))
+        return;
     QList<FileTaggerConstPtr> &fileTaggers = m_productContext
             ? m_productContext->product->fileTaggers
             : projectContext->fileTaggers;

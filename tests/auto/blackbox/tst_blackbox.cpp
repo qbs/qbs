@@ -1189,6 +1189,17 @@ void TestBlackbox::conditionalExport()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::conditionalFileTagger()
+{
+    QDir::setCurrent(testDataDir + "/conditional-filetagger");
+    QbsRunParameters params(QStringList("theApp.enableTagger:false"));
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling"));
+    params.arguments = QStringList("theApp.enableTagger:true");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("compiling"));
+}
+
 void TestBlackbox::conflictingArtifacts()
 {
     QDir::setCurrent(testDataDir + "/conflicting-artifacts");
