@@ -70,79 +70,6 @@ static Set<ResolvedProductPtr> findDependentProducts(const ResolvedProductPtr &p
     return result;
 }
 
-class FindLeafRules : public BuildGraphVisitor
-{
-public:
-    FindLeafRules()
-    {
-    }
-
-    const Set<RuleNode *> &apply(const ResolvedProductPtr &product)
-    {
-        m_result.clear();
-        m_product = product;
-        QBS_CHECK(product->buildData);
-        foreach (BuildGraphNode *n, product->buildData->nodes)
-            n->accept(this);
-        return m_result;
-    }
-
-private:
-    virtual bool visit(Artifact *)
-    {
-        return false;
-    }
-
-    virtual bool visit(RuleNode *node)
-    {
-        if (!hasChildRuleInThisProduct(node))
-            m_result << node;
-        return false;
-    }
-
-    bool hasChildRuleInThisProduct(const RuleNode *node) const
-    {
-        foreach (BuildGraphNode *c, node->children) {
-            if (c->product == m_product && c->type() == BuildGraphNode::RuleNodeType)
-                return true;
-        }
-        return false;
-    }
-
-    ResolvedProductPtr m_product;
-    Set<RuleNode *> m_result;
-};
-
-class FindRootRules : public BuildGraphVisitor
-{
-public:
-    FindRootRules()
-    {
-    }
-
-    const QList<RuleNode *> &apply(const ResolvedProductPtr &product)
-    {
-        m_result.clear();
-        foreach (BuildGraphNode *n, product->buildData->roots)
-            n->accept(this);
-        return m_result;
-    }
-
-private:
-    bool visit(Artifact *)
-    {
-        return false;
-    }
-
-    bool visit(RuleNode *node)
-    {
-        m_result << node;
-        return false;
-    }
-
-    QList<RuleNode *> m_result;
-};
-
 ProjectBuildData::ProjectBuildData(const ProjectBuildData *other)
     : isDirty(true), m_doCleanupInDestructor(true)
 {
@@ -389,22 +316,21 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevel
             resolveProductBuildData(product);
     }
 
-    // Connect the leaf rules of all dependent products to the root rules of the dependency.
+    QHash<ResolvedProductPtr, Set<ResolvedProductPtr>> dependencyMap;
     foreach (const ResolvedProductPtr &product, freshProducts) {
         if (!product->enabled)
             continue;
         QBS_CHECK(product->buildData);
-        const QList<RuleNode *> rootRules = FindRootRules().apply(product);
         Set<ResolvedProductPtr> dependents = findDependentProducts(product);
         foreach (const ResolvedProductPtr &dependentProduct, dependents) {
             if (!dependentProduct->enabled)
                 continue;
-            foreach (RuleNode *leaf, FindLeafRules().apply(dependentProduct)) {
-                foreach (RuleNode *root, rootRules) {
-                    loggedConnect(leaf, root, m_logger);
-                }
-            }
+            dependencyMap[dependentProduct] << product;
         }
+    }
+    for (auto it = dependencyMap.cbegin(); it != dependencyMap.cend(); ++it) {
+        if (!freshProducts.contains(it.key()))
+           connectRulesToDependencies(it.key(), it.value());
     }
 }
 
@@ -470,6 +396,12 @@ private:
     }
 };
 
+static bool areRulesCompatible(const RuleNode *ruleNode, const RuleNode *dependencyRule)
+{
+    return ruleNode->rule()->inputsFromDependencies.intersects(
+                dependencyRule->rule()->collectedOutputFileTags());
+}
+
 void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &product)
 {
     if (product->buildData)
@@ -513,16 +445,35 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     CreateRuleNodes crn(product, m_logger);
     ruleGraph.accept(&crn);
 
-    // Connect the leaf rules of this product to the root rules of all product dependencies.
-    foreach (const ResolvedProductConstPtr &dep, product->dependencies) {
+    connectRulesToDependencies(product, product->dependencies);
+}
+
+static bool isRootRuleNode(RuleNode *ruleNode)
+{
+    return ruleNode->product->buildData->roots.contains(ruleNode);
+}
+
+void BuildDataResolver::connectRulesToDependencies(const ResolvedProductPtr &product,
+                                                   const Set<ResolvedProductPtr> &dependencies)
+{
+    // Connect the rules of this product to the compatible rules of all product dependencies.
+    // Rules that take "installable" artifacts are connected to all root rules of product
+    // dependencies.
+    std::vector<RuleNode *> ruleNodes;
+    for (RuleNode *ruleNode : filterByType<RuleNode>(product->buildData->nodes))
+        ruleNodes.push_back(ruleNode);
+    foreach (const ResolvedProductConstPtr &dep, dependencies) {
         if (!dep->buildData)
             continue;
-        foreach (BuildGraphNode *depRoot, dep->buildData->roots) {
-            RuleNode *depRootRule = dynamic_cast<RuleNode *>(depRoot);
-            if (!depRootRule)
-                continue;
-            foreach (RuleNode *leafRule, crn.leaves())
-                loggedConnect(leafRule, depRootRule, m_logger);
+        for (RuleNode *depRuleNode : filterByType<RuleNode>(dep->buildData->nodes)) {
+            for (RuleNode *ruleNode : ruleNodes) {
+                static const FileTag installableTag("installable");
+                if (areRulesCompatible(ruleNode, depRuleNode)
+                        || (ruleNode->rule()->inputsFromDependencies.contains(installableTag)
+                            && isRootRuleNode(depRuleNode))) {
+                    loggedConnect(ruleNode, depRuleNode, m_logger);
+                }
+            }
         }
     }
 }

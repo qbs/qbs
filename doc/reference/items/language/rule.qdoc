@@ -234,8 +234,7 @@
            \endcode
            All artifacts of \a foo that match the given
            file tags will appear in the \a inputs variable of the prepare
-           script. Also, each output artifact of this rule will be dependent on
-           those artifacts.
+           script.
     \row
         \li outputArtifacts
         \li array of objects
