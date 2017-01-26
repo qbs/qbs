@@ -156,10 +156,15 @@ void ProcessCommandExecutor::doStart()
         }
     }
 
-    logger().qbsDebug() << "[EXEC] Running external process; full command line is: "
-                        << m_shellInvocation;
+    if (logger().debugEnabled()) {
+        logger().qbsDebug() << "[EXEC] Running external process; full command line is: "
+                            << m_shellInvocation;
+    }
     const QProcessEnvironment &additionalVariables = cmd->environment();
-    logger().qbsTrace() << "[EXEC] Additional environment:" << additionalVariables.toStringList();
+    if (logger().traceEnabled()) {
+        logger().qbsTrace() << "[EXEC] Additional environment:"
+                            << additionalVariables.toStringList();
+    }
     m_process.setWorkingDirectory(workingDir);
     m_process.start(m_program, arguments);
 }
