@@ -2975,6 +2975,27 @@ void TestBlackbox::combinedMoc()
     QVERIFY(m_qbsStdout.contains("compiling amalgamated_moc_theapp.cpp"));
 }
 
+void TestBlackbox::combinedSources()
+{
+    QDir::setCurrent(testDataDir + "/combined-sources");
+    QbsRunParameters params(QStringList("cpp.combineCxxSources:false"));
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling combinable.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling uncombinable.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling amalgamated_theapp.cpp"));
+    params.arguments = QStringList("cpp.combineCxxSources:true");
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("combinable.cpp");
+    touch("main.cpp");
+    touch("uncombinable.cpp");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling main.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling combinable.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling uncombinable.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling amalgamated_theapp.cpp"));
+}
+
 void TestBlackbox::jsExtensionsFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions-file");

@@ -33,7 +33,19 @@ var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var Process = require("qbs.Process");
 var TemporaryDir = require("qbs.TemporaryDir");
+var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
+
+function mergeCFiles(inputs, outputFilePath)
+{
+    var f = new TextFile(outputFilePath, TextFile.WriteOnly);
+    try {
+        for (var i = 0; i < inputs.length; ++i)
+            f.writeLine('#include "' + inputs[i].filePath + '"');
+    } finally {
+        f.close();
+    }
+}
 
 function sanitizedList(list, product, fullPropertyName) {
     if (!Array.isArray(list))

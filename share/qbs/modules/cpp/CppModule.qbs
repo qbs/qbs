@@ -312,24 +312,100 @@ Module {
 
     property bool allowUnresolvedSymbols: false
 
+    property bool combineCSources: false
+    property bool combineCxxSources: false
+    property bool combineObjcSources: false
+    property bool combineObjcxxSources: false
+
+    // TODO: The following four rules could use a convenience base item if rule properties
+    //       were available in Artifact items and prepare scripts.
+    Rule {
+        multiplex: true
+        inputs: ["c.combine"]
+        Artifact {
+            filePath: "amalgamated_" + product.targetName + ".c"
+            fileTags: ["c"]
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "creating " + output.fileName;
+            cmd.highlight = "codegen";
+            cmd.sourceCode = function() {
+                ModUtils.mergeCFiles(inputs["c.combine"], output.filePath);
+            };
+            return [cmd];
+        }
+    }
+    Rule {
+        multiplex: true
+        inputs: ["cpp.combine"]
+        Artifact {
+            filePath: "amalgamated_" + product.targetName + ".cpp"
+            fileTags: ["cpp"]
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "creating " + output.fileName;
+            cmd.highlight = "codegen";
+            cmd.sourceCode = function() {
+                ModUtils.mergeCFiles(inputs["cpp.combine"], output.filePath);
+            };
+            return [cmd];
+        }
+    }
+    Rule {
+        multiplex: true
+        inputs: ["objc.combine"]
+        Artifact {
+            filePath: "amalgamated_" + product.targetName + ".m"
+            fileTags: ["objc"]
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "creating " + output.fileName;
+            cmd.highlight = "codegen";
+            cmd.sourceCode = function() {
+                ModUtils.mergeCFiles(inputs["objc.combine"], output.filePath);
+            };
+            return [cmd];
+        }
+    }
+    Rule {
+        multiplex: true
+        inputs: ["objcpp.combine"]
+        Artifact {
+            filePath: "amalgamated_" + product.targetName + ".mm"
+            fileTags: ["objccpp"]
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "creating " + output.fileName;
+            cmd.highlight = "codegen";
+            cmd.sourceCode = function() {
+                ModUtils.mergeCFiles(inputs["objcpp.combine"], output.filePath);
+            };
+            return [cmd];
+        }
+    }
+
     FileTagger {
         patterns: ["*.c"]
-        fileTags: ["c"]
+        fileTags: combineCSources ? ["c.combine"] : ["c"]
     }
 
     FileTagger {
         patterns: ["*.C", "*.cpp", "*.cxx", "*.c++", "*.cc"]
-        fileTags: ["cpp"]
+        fileTags: combineCxxSources ? ["cpp.combine"] : ["cpp"]
     }
 
     FileTagger {
         patterns: ["*.m"]
-        fileTags: ["objc"]
+        fileTags: combineObjcSources ? ["objc.combine"] : ["objc"]
     }
 
     FileTagger {
         patterns: ["*.mm"]
-        fileTags: ["objcpp"]
+        fileTags: combineObjcxxSources ? ["objcpp.combine"] : ["objcpp"]
     }
 
     FileTagger {

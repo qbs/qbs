@@ -58,6 +58,7 @@ private slots:
     void clean();
     void cli();
     void combinedMoc();
+    void combinedSources();
     void concurrentExecutor();
     void conditionalExport();
     void conditionalFileTagger();

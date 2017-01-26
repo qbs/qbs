@@ -250,7 +250,7 @@ Module {
         fileTags: ["qhp"]
     }
 
-    property bool combineMocOutput: false
+    property bool combineMocOutput: cpp.combineCxxSources
 
     Rule {
         name: "QtCoreMocRule"
@@ -298,13 +298,7 @@ Module {
             cmd.description = "creating " + output.fileName;
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
-                var f = new TextFile(output.filePath, TextFile.WriteOnly);
-                try {
-                    for (var i = 0; i < inputs["moc_cpp"].length; ++i)
-                        f.writeLine('#include "' + inputs["moc_cpp"][i].filePath + '"');
-                } finally {
-                    f.close();
-                }
+                ModUtils.mergeCFiles(inputs["moc_cpp"], output.filePath);
             };
             return [cmd];
         }

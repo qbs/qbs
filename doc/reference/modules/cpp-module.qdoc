@@ -68,6 +68,45 @@
         \li \c{qbs.debugInformation}
         \li Generate debug information. See \c{qbs.debugInformation}.
     \row
+        \li combineCSources
+        \li \c{bool}
+        \li 1.8
+        \li \c{false}
+        \li Enabling this property on a product instructs the \l{FileTagger Item}{file tagger}
+            to attach the tag \c{"c.combine"} to C sources, rather than \c{"c"}.
+            As a result, all C sources of the product will be combined into a single file which
+            is then compiled. This can speed up initial compilation significantly, but is
+            of course detrimental in the context of incremental builds. Also, perfectly legal code
+            may fail to compile with this option due to the merging of translation units.
+            If you want to enable this property in a product that has some sources which
+            cannot be merged, you need to put these into a dedicated \l{Group Item}{group} and
+            set their file tag to \c{"c"}, overriding the file tagger.
+            \note Module properties set on specific source files (that is, at the Group level)
+                  will not be taken into account when building the combined file. You either need
+                  to set these properties at the product level instead or prevent the respective
+                  files from getting combined via the mechanism described above.
+    \row
+        \li combineCxxSources
+        \li \c{bool}
+        \li 1.8
+        \li \c{false}
+        \li Like \c combineCSources, but for C++. The relevant file tags are \c{"cpp"}
+            and \c{"cpp.combine"}.
+    \row
+        \li combineObjcSources
+        \li \c{bool}
+        \li 1.8
+        \li \c{false}
+        \li Like \c combineCSources, but for Objective-C. The relevant file tags are \c{"objc"}
+            and \c{"objc.combine"}.
+    \row
+        \li combineObjcxxSources
+        \li \c{bool}
+        \li 1.8
+        \li \c{false}
+        \li Like \c combineCSources, but for Objective-C++. The relevant file tags are \c{"objcpp"}
+            and \c{"objcpp.combine"}.
+    \row
         \li separateDebugInformation
         \li \c{bool}
         \li 1.4
@@ -764,16 +803,30 @@
             effect with GCC-like toolchains.
     \row
         \li \c{"c"}
-        \li \c{*.c}
+        \li \c{*.c} (if \c combineCSources is not enabled)
         \li 1.0.1
         \li Source files with this tag serve as inputs to a rule invoking the toolchain's
             C compiler. One object file is generated for each such file.
     \row
+        \li \c{"c.combine"}
+        \li \c{*.c} (if \c combineCSources is enabled)
+        \li 1.8
+        \li Source files with this tag serve as inputs to a rule combining them into
+            a single C file, which will then be compiled.
+    \row
         \li \c{"cpp"}
         \li \c{*.C}, \c{*.cpp}, \c{*.cxx}, \c{*.c++}, \c{*.cc}
+            (if \c combineCxxSources is not enabled)
         \li 1.0.1
         \li Source files with this tag serve as inputs to a rule invoking the toolchain's
             C++ compiler. One object file is generated for each such file.
+    \row
+        \li \c{"cpp.combine"}
+        \li \c{*.C}, \c{*.cpp}, \c{*.cxx}, \c{*.c++}, \c{*.cc}
+            (if \c combineCxxSources is enabled)
+        \li 1.8
+        \li Source files with this tag serve as inputs to a rule combining them into
+            a single C++ file, which will then be compiled.
     \row
         \li \\c{"c_pch_src"}, \c{"cpp_pch_src"}, \c{"objc_pch_src"}, \c{"objcpp_pch_src"}
         \li -
@@ -811,16 +864,28 @@
             process and rarely need to be referenced in project files.
     \row
         \li \c{"objc"}
-        \li \c{*.m}
+        \li \c{*.m} (if \c combineObjcSources is not enabled)
         \li 1.1.0
         \li Source files with this tag serve as inputs to a rule invoking the toolchain's
             Objective-C compiler. One object file is generated for each such file.
     \row
+        \li \c{"objc.combine"}
+        \li \c{*.m} (if \c combineObjcSources is enabled)
+        \li 1.8
+        \li Source files with this tag serve as inputs to a rule combining them into
+            a single Objective-C file, which will then be compiled.
+    \row
         \li \c{"objcpp"}
-        \li \c{*.mm}
+        \li \c{*.mm} (if \c combineObjcxxSources is not enabled)
         \li 1.1.0
         \li Source files with this tag serve as inputs to a rule invoking the toolchain's
             Objective-C++ compiler. One object file is generated for each such file.
+    \row
+        \li \c{"objcpp.combine"}
+        \li \c{*.mm} (if \c combineObjcxxSources is enabled)
+        \li 1.8
+        \li Source files with this tag serve as inputs to a rule combining them into
+            a single Objective-C++ file, which will then be compiled.
     \row
         \li \c{"rc"}
         \li \c{*.rc}
