@@ -450,10 +450,6 @@ class ArtifactBindingsExtractor
         }
     }
 public:
-    ArtifactBindingsExtractor()
-    {
-    }
-
     void apply(Artifact *outputArtifact, const QScriptValue &obj)
     {
         extractPropertyValues(obj);
