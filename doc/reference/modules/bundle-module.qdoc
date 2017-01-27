@@ -293,4 +293,19 @@
         \li Path of the bundle's Versions subdirectory.
             This is only relevant for (non-shallow) framework bundles.
     \endtable
+
+    \section1 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"bundle.content"}
+        \li -
+        \li 1.8
+        \li This tag is attached to the output artifacts of the rule that produces the bundle.
+    \endtable
 */

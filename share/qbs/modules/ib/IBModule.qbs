@@ -129,12 +129,17 @@ Module {
     Rule {
         inputs: ["iconset"]
 
-        Artifact {
-            filePath: FileInfo.joinPaths(BundleTools.destinationDirectoryForResource(product, input),
-                                         input.completeBaseName +
-                                         ModUtils.moduleProperty(product, "appleIconSuffix"))
-            fileTags: ["icns"]
-        }
+        outputFileTags: ["icns", "bundle.input"]
+        outputArtifacts: ([{
+            filePath: FileInfo.joinPaths(product.destinationDirectory, input.completeBaseName +
+                                         ModUtils.moduleProperty(product, "appleIconSuffix")),
+            fileTags: ["icns", "bundle.input"],
+            bundle: {
+                _bundleFilePath: FileInfo.joinPaths(BundleTools.destinationDirectoryForResource(product, input),
+                                                    input.completeBaseName +
+                                                    ModUtils.moduleProperty(product, "appleIconSuffix"))
+            }
+        }])
 
         prepare: {
             var args = ["--convert", "icns", "--output", output.filePath, input.filePath];
@@ -158,7 +163,7 @@ Module {
 
         prepare: {
             var cmd = new Command(ModUtils.moduleProperty(product, "ibtoolPath"),
-                                  Ib.ibtooldArguments(product, inputs, outputs));
+                                  Ib.ibtooldArguments(product, inputs, input, outputs));
             cmd.description = "compiling " + input.fileName;
 
             // Also display the language name of the nib/storyboard being compiled if it has one
@@ -186,11 +191,14 @@ Module {
         multiplex: true
 
         outputArtifacts: Ib.actoolOutputArtifacts(product, inputs)
-        outputFileTags: ["compiled_assetcatalog", "partial_infoplist"]
+        outputFileTags: ["bundle.input", "compiled_assetcatalog", "partial_infoplist"]
 
         prepare: {
+            var mkdir = new Command("mkdir", ["-p", product.buildDirectory + "/actool.dir"]);
+            mkdir.silent = true;
+
             var cmd = new Command(ModUtils.moduleProperty(product, "actoolPath"),
-                                  Ib.ibtooldArguments(product, inputs, outputs));
+                                  Ib.ibtooldArguments(product, inputs, input, outputs));
             cmd.description = inputs["assetcatalog"].map(function (input) {
                 return "compiling " + input.fileName;
             }).join('\n');
@@ -200,7 +208,7 @@ Module {
                 return "";
             };
 
-            return cmd;
+            return [mkdir, cmd];
         }
     }
 }

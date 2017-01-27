@@ -94,7 +94,7 @@ Module {
         }
     }
 
-    additionalProductTypes: ["bundle"]
+    additionalProductTypes: ["bundle.content"]
 
     property bool isBundle: !product.consoleApplication && qbs.targetOS.contains("darwin") &&
         product.type.containsAny(["application", "dynamiclibrary", "loadablemodule"])
@@ -265,17 +265,20 @@ Module {
         multiplex: true
         inputs: ["qbs", "infoplist", "partial_infoplist"]
 
-        outputFileTags: ["aggregate_infoplist"]
+        outputFileTags: ["bundle.input", "aggregate_infoplist"]
         outputArtifacts: {
             var artifacts = [];
             var embed = ModUtils.moduleProperty(product, "embedInfoPlist");
             if (ModUtils.moduleProperty(product, "isBundle") || embed) {
                 artifacts.push({
                     filePath: FileInfo.joinPaths(
-                                  product.destinationDirectory, embed
-                                      ? product.name + "-Info.plist"
-                                      : ModUtils.moduleProperty(product, "infoPlistPath")),
-                    fileTags: ["aggregate_infoplist"]
+                                  product.destinationDirectory, product.name + "-Info.plist"),
+                    fileTags: ["aggregate_infoplist"].concat(!embed ? ["bundle.input"] : []),
+                    bundle: {
+                        _bundleFilePath: FileInfo.joinPaths(
+                                             product.destinationDirectory,
+                                             ModUtils.moduleProperty(product, "infoPlistPath")),
+                    }
                 });
             }
             return artifacts;
@@ -448,13 +451,14 @@ Module {
         multiplex: true
         inputs: ["aggregate_infoplist"]
 
-        outputFileTags: ["pkginfo"]
+        outputFileTags: ["bundle.input", "pkginfo"]
         outputArtifacts: {
             var artifacts = [];
             if (ModUtils.moduleProperty(product, "isBundle") && ModUtils.moduleProperty(product, "generatePackageInfo")) {
                 artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "pkgInfoPath")),
-                    fileTags: ["pkginfo"]
+                    filePath: FileInfo.joinPaths(product.destinationDirectory, "PkgInfo"),
+                    fileTags: ["bundle.input", "pkginfo"],
+                    bundle: { _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "pkgInfoPath")) }
                 });
             }
             return artifacts;
@@ -486,12 +490,14 @@ Module {
     Rule {
         condition: qbs.targetOS.contains("darwin")
         multiplex: true
-        inputs: ["aggregate_infoplist", "pkginfo", "hpp",
+        inputs: ["bundle.input",
+                 "aggregate_infoplist", "pkginfo", "hpp",
                  "icns", "xcent",
                  "compiled_ibdoc", "compiled_assetcatalog",
                  "xcode.provisioningprofile.main"]
 
-        outputFileTags: ["bundle",
+        outputFileTags: [
+            "bundle.content",
             "bundle.symlink.headers", "bundle.symlink.private-headers",
             "bundle.symlink.resources", "bundle.symlink.executable",
             "bundle.symlink.version", "bundle.hpp", "bundle.resource",
@@ -499,10 +505,15 @@ Module {
         outputArtifacts: {
             var i, artifacts = [];
             if (ModUtils.moduleProperty(product, "isBundle")) {
-                artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName")),
-                    fileTags: ["bundle"]
-                });
+                for (i in inputs["bundle.input"]) {
+                    var fp = inputs["bundle.input"][i].moduleProperty("bundle", "_bundleFilePath");
+                    if (!fp)
+                        throw("Artifact " + inputs["bundle.input"][i].filePath + " has no associated bundle file path");
+                    artifacts.push({
+                        filePath: fp,
+                        fileTags: ["bundle.content", "bundle.content.copied"]
+                    });
+                }
 
                 for (i in inputs["xcode.provisioningprofile.main"]) {
                     var ext = inputs["xcode.provisioningprofile.main"][i].fileName.split('.')[1];
@@ -511,7 +522,7 @@ Module {
                                                      ModUtils.moduleProperty(product,
                                                                              "contentsFolderPath"),
                                                      "embedded." + ext),
-                        fileTags: ["bundle.provisioningprofile"]
+                        fileTags: ["bundle.provisioningprofile", "bundle.content"]
                     });
                 }
 
@@ -522,7 +533,7 @@ Module {
                     if (publicHeaders && publicHeaders.length) {
                         artifacts.push({
                             filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName"), "Headers"),
-                            fileTags: ["bundle.symlink.headers"]
+                            fileTags: ["bundle.symlink.headers", "bundle.content"]
                         });
                     }
 
@@ -530,23 +541,23 @@ Module {
                     if (privateHeaders && privateHeaders.length) {
                         artifacts.push({
                             filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName"), "PrivateHeaders"),
-                            fileTags: ["bundle.symlink.private-headers"]
+                            fileTags: ["bundle.symlink.private-headers", "bundle.content"]
                         });
                     }
 
                     artifacts.push({
                         filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName"), "Resources"),
-                        fileTags: ["bundle.symlink.resources"]
+                        fileTags: ["bundle.symlink.resources", "bundle.content"]
                     });
 
                     artifacts.push({
                         filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "bundleName"), product.targetName),
-                        fileTags: ["bundle.symlink.executable"]
+                        fileTags: ["bundle.symlink.executable", "bundle.content"]
                     });
 
                     artifacts.push({
                         filePath: FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, "versionsFolderPath"), "Current"),
-                        fileTags: ["bundle.symlink.version"]
+                        fileTags: ["bundle.symlink.version", "bundle.content"]
                     });
                 }
 
@@ -557,7 +568,7 @@ Module {
                     for (i in sources) {
                         artifacts.push({
                             filePath: FileInfo.joinPaths(destination, FileInfo.fileName(sources[i])),
-                            fileTags: ["bundle.hpp"]
+                            fileTags: ["bundle.hpp", "bundle.content"]
                         });
                     }
                 }
@@ -567,9 +578,15 @@ Module {
                     destination = BundleTools.destinationDirectoryForResource(product, {baseDir: FileInfo.path(sources[i]), fileName: FileInfo.fileName(sources[i])});
                     artifacts.push({
                         filePath: FileInfo.joinPaths(destination, FileInfo.fileName(sources[i])),
-                        fileTags: ["bundle.resource"]
+                        fileTags: ["bundle.resource", "bundle.content"]
                     });
                 }
+
+                var wrapperPath = FileInfo.joinPaths(
+                            product.destinationDirectory,
+                            ModUtils.moduleProperty(product, "bundleName"));
+                for (var i = 0; i < artifacts.length; ++i)
+                    artifacts[i].bundle = { wrapperPath: wrapperPath };
             }
             return artifacts;
         }
@@ -640,6 +657,30 @@ Module {
                 cmd = new Command("ln", ["-sf", FileInfo.joinPaths("Versions", "Current", product.targetName),
                                          executables[i].filePath]);
                 cmd.silent = true;
+                commands.push(cmd);
+            }
+
+            function sortedArtifactList(list, func) {
+                if (list) {
+                    return list.sort(func || (function (a, b) {
+                        return a.filePath.localeCompare(b.filePath);
+                    }));
+                }
+            }
+
+            var bundleInputs = sortedArtifactList(inputs["bundle.input"], function (a, b) {
+                return a.moduleProperty("bundle", "_bundleFilePath").localeCompare(
+                            b.moduleProperty("bundle", "_bundleFilePath"));
+            });
+            var bundleContents = sortedArtifactList(outputs["bundle.content.copied"]);
+            for (i in bundleContents) {
+                cmd = new JavaScriptCommand();
+                cmd.silent = true;
+                cmd.source = bundleInputs[i].filePath;
+                cmd.destination = bundleContents[i].filePath;
+                cmd.sourceCode = function() {
+                    File.copy(source, destination);
+                };
                 commands.push(cmd);
             }
 

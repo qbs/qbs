@@ -285,13 +285,20 @@ CppModule {
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
 
         outputFileTags: [
+            "bundle.input",
             "dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy", "debuginfo_dll"
         ]
         outputArtifacts: {
+            if (product.type.contains("bundle") && !product.type.contains("dynamiclibrary"))
+                return [];
             var lib = {
                 filePath: product.destinationDirectory + "/"
                           + PathTools.dynamicLibraryFilePath(product),
-                fileTags: ["dynamiclibrary"]
+                fileTags: ["bundle.input", "dynamiclibrary"],
+                bundle: {
+                    _bundleFilePath: product.destinationDirectory + "/"
+                                     + PathTools.bundleExecutableFilePath(product)
+                }
             };
             var libCopy = {
                 // List of libfoo's public symbols for smart re-linking.
@@ -307,7 +314,7 @@ CppModule {
                 for (var i = 0; i < maxVersionParts; ++i) {
                     var symlink = {
                         filePath: product.destinationDirectory + "/"
-                                  + PathTools.dynamicLibraryFileName(product, undefined, i),
+                                  + PathTools.dynamicLibraryFilePath(product, undefined, i),
                         fileTags: ["dynamiclibrary_symlink"]
                     };
                     if (i > 0 && artifacts[i-1].filePath == symlink.filePath)
@@ -329,9 +336,11 @@ CppModule {
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["dynamiclibrary", "staticlibrary"]
 
-        outputFileTags: ["staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
+        outputFileTags: ["bundle.input", "staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
         outputArtifacts: {
-            var tags = ["staticlibrary"];
+            if (product.type.contains("bundle") && !product.type.contains("staticlibrary"))
+                return [];
+            var tags = ["bundle.input", "staticlibrary"];
             for (var i = 0; i < inputs["obj"].length; ++i) {
                 var ft = inputs["obj"][i].fileTags;
                 if (ft.contains("c_obj"))
@@ -364,7 +373,11 @@ CppModule {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
                                              PathTools.staticLibraryFilePath(product)),
                 fileTags: tags,
-                cpp: { "staticLibraries": staticLibraries, "dynamicLibraries": dynamicLibraries }
+                cpp: { "staticLibraries": staticLibraries, "dynamicLibraries": dynamicLibraries },
+                bundle: {
+                    _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                        PathTools.bundleExecutableFilePath(product))
+                }
             }];
         }
 
@@ -393,12 +406,18 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
 
-        outputFileTags: ["loadablemodule", "debuginfo_loadablemodule"]
+        outputFileTags: ["bundle.input", "loadablemodule", "debuginfo_loadablemodule"]
         outputArtifacts: {
+            if (product.type.contains("bundle") && !product.type.contains("loadablemodule"))
+                return [];
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
                                              PathTools.loadableModuleFilePath(product)),
-                fileTags: ["loadablemodule"]
+                fileTags: ["bundle.input", "loadablemodule"],
+                bundle: {
+                    _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                        PathTools.bundleExecutableFilePath(product))
+                }
             }
             return [app].concat(Gcc.debugInfoArtifacts(product, "loadablemodule"));
         }
@@ -421,12 +440,18 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
 
-        outputFileTags: ["application", "debuginfo_app"]
+        outputFileTags: ["bundle.input", "application", "debuginfo_app"]
         outputArtifacts: {
+            if (product.type.contains("bundle") && !product.type.contains("application"))
+                return [];
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
                                              PathTools.applicationFilePath(product)),
-                fileTags: ["application"]
+                fileTags: ["bundle.input", "application"],
+                bundle: {
+                    _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                        PathTools.bundleExecutableFilePath(product))
+                }
             }
             return [app].concat(Gcc.debugInfoArtifacts(product, "app"));
         }

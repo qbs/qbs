@@ -30,46 +30,45 @@
 
 var FileInfo = loadExtension("qbs.FileInfo");
 
-function applicationFileName(product) {
+function _bundleExecutableTemporaryFilePath(product) {
+    return ".tmp/" + FileInfo.fileName(bundleExecutableFilePath(product));
+}
+
+function bundleExecutableFilePath(product) {
+    return product.moduleProperty("bundle", "executablePath");
+}
+
+function applicationFilePath(product) {
+    if (product.moduleProperty("bundle", "isBundle"))
+        return _bundleExecutableTemporaryFilePath(product);
+
     return product.moduleProperty("cpp", "executablePrefix")
          + product.targetName
          + product.moduleProperty("cpp", "executableSuffix");
 }
 
-function applicationFilePath(product) {
+function loadableModuleFilePath(product) {
     if (product.moduleProperty("bundle", "isBundle"))
-        return product.moduleProperty("bundle", "executablePath");
-    else
-        return applicationFileName(product);
-}
+        return _bundleExecutableTemporaryFilePath(product);
 
-function loadableModuleFileName(product) {
     return product.moduleProperty("cpp", "loadableModulePrefix")
          + product.targetName
          + product.moduleProperty("cpp", "loadableModuleSuffix");
 }
 
-function loadableModuleFilePath(product) {
+function staticLibraryFilePath(product) {
     if (product.moduleProperty("bundle", "isBundle"))
-        return product.moduleProperty("bundle", "executablePath");
-    else
-        return loadableModuleFileName(product);
-}
+        return _bundleExecutableTemporaryFilePath(product);
 
-function staticLibraryFileName(product) {
     return product.moduleProperty("cpp", "staticLibraryPrefix")
          + product.targetName
          + product.moduleProperty("cpp", "staticLibrarySuffix");
 }
 
-function staticLibraryFilePath(product) {
+function dynamicLibraryFilePath(product, version, maxParts) {
     if (product.moduleProperty("bundle", "isBundle"))
-        return product.moduleProperty("bundle", "executablePath");
-    else
-        return staticLibraryFileName(product);
-}
+        return _bundleExecutableTemporaryFilePath(product);
 
-function dynamicLibraryFileName(product, version, maxParts) {
     // If no override version was given, use the product's version
     // We specifically want to differentiate between undefined and i.e.
     // empty string as empty string should be taken to mean "no version"
@@ -104,13 +103,6 @@ function dynamicLibraryFileName(product, version, maxParts) {
     return fileName;
 }
 
-function dynamicLibraryFilePath(product, version, maxParts) {
-    if (product.moduleProperty("bundle", "isBundle"))
-        return product.moduleProperty("bundle", "executablePath");
-    else
-        return dynamicLibraryFileName(product, version, maxParts);
-}
-
 function importLibraryFilePath(product) {
     return product.moduleProperty("cpp", "dynamicLibraryPrefix")
          + product.targetName
@@ -132,18 +124,19 @@ function debugInfoFileName(product) {
             || !debugInfoIsBundle(product))
         suffix = product.moduleProperty("cpp", "debugInfoSuffix");
 
-    if (!product.moduleProperty("bundle", "isBundle")) {
+    if (product.moduleProperty("bundle", "isBundle")) {
+        return FileInfo.fileName(bundleExecutableFilePath(product)) + suffix;
+    } else {
         if (product.type.contains("application"))
-            return applicationFileName(product) + suffix;
+            return applicationFilePath(product) + suffix;
         else if (product.type.contains("dynamiclibrary"))
-            return dynamicLibraryFileName(product) + suffix;
+            return dynamicLibraryFilePath(product) + suffix;
         else if (product.type.contains("loadablemodule"))
-            return loadableModuleFileName(product) + suffix;
+            return loadableModuleFilePath(product) + suffix;
         else if (product.type.contains("staticlibrary"))
-            return staticLibraryFileName(product) + suffix;
+            return staticLibraryFilePath(product) + suffix;
+        return product.targetName + suffix;
     }
-
-    return product.targetName + suffix;
 }
 
 function debugInfoBundlePath(product) {

@@ -44,7 +44,7 @@ function artifactsFromInputs(inputs) {
     return artifacts;
 }
 
-function ibtooldArguments(product, inputs, outputs, overrideOutput) {
+function ibtooldArguments(product, inputs, input, outputs, overrideOutput) {
     var i;
     var args = [];
     var allInputs = artifactsFromInputs(inputs);
@@ -125,12 +125,11 @@ function ibtooldArguments(product, inputs, outputs, overrideOutput) {
     if (overrideOutput) {
         args.push("--compile", overrideOutput);
     } else {
-        if (outputs.compiled_ibdoc_main)
-            args.push("--compile", outputs.compiled_ibdoc_main[0].filePath);
-
         if (outputs.compiled_assetcatalog)
-            args.push("--compile",
-                      BundleTools.destinationDirectoryForResource(product, inputs.assetcatalog[0]));
+            args.push("--compile", product.buildDirectory + "/actool.dir");
+        else // compiled_ibdoc
+            args.push("--compile", product.buildDirectory + "/ibtool.dir/"
+                      + ibtoolCompiledDirSuffix(product, input));
     }
 
     for (i in allInputs)
@@ -149,21 +148,25 @@ function ibtoolFileTaggers(fileTags) {
     if (!ext)
         throw "unknown ibtool input file tags: " + fileTags;
 
-    var t = "compiled_ibdoc";
+    var t = ["bundle.input", "compiled_ibdoc"];
     return {
-        ".nib": [t, "compiled_" + ext + (ext !== "nib" ? "_nib" : "")],
-        ".plist": [t, "compiled_" + ext + "_infoplist"],
-        ".storyboard": [t, "compiled_" + ext]
+        ".nib": t.concat(["compiled_" + ext + (ext !== "nib" ? "_nib" : "")]),
+        ".plist": t.concat(["compiled_" + ext + "_infoplist"]),
+        ".storyboard": t.concat(["compiled_" + ext])
     };
 }
 
-function ibtoolOutputArtifacts(product, inputs, input) {
+function ibtoolCompiledDirSuffix(product, input) {
     var suffix = input.completeBaseName;
     if (input.fileTags.contains("nib"))
         suffix += ModUtils.moduleProperty(product, "compiledNibSuffix");
     else if (input.fileTags.contains("storyboard"))
         suffix += ModUtils.moduleProperty(product, "compiledStoryboardSuffix");
+    return suffix;
+}
 
+function ibtoolOutputArtifacts(product, inputs, input) {
+    var suffix = ibtoolCompiledDirSuffix(product, input);
     var tracker = new ModUtils.BlackboxOutputArtifactTracker();
     tracker.hostOS = product.moduleProperty("qbs", "hostOS");
     tracker.shellPath = product.moduleProperty("qbs", "shellPath");
@@ -173,13 +176,15 @@ function ibtoolOutputArtifacts(product, inputs, input) {
         // Last --output-format argument overrides any previous ones
         // Append the name of the base output since it can be either a file or a directory
         // in the case of XIB compilations
-        return ibtooldArguments(product, inputs,
+        return ibtooldArguments(product, inputs, input,
                                 undefined, FileInfo.joinPaths(outputDirectory, suffix))
             .concat(["--output-format", "xml1"]);
     };
 
-    var artifacts = tracker.artifacts(
-                FileInfo.joinPaths(BundleTools.destinationDirectoryForResource(product, input)));
+    var ibtoolBuildDirectory = product.buildDirectory + "/ibtool.dir";
+    var main = BundleTools.destinationDirectoryForResource(product, input);
+
+    var artifacts = tracker.artifacts(ibtoolBuildDirectory);
 
     if (product.moduleProperty("ib", "ibtoolVersionMajor") >= 6) {
         var prefix = input.fileTags.contains("storyboard") ? "SB" : "";
@@ -188,28 +193,13 @@ function ibtoolOutputArtifacts(product, inputs, input) {
         artifacts.push({ filePath: path, fileTags: ["partial_infoplist"] });
     }
 
-    // Tag the "main" output
+    // Let the output artifacts known the "main" output
     // This can be either a file or directory so the artifact might already exist in the output list
-    var main = FileInfo.joinPaths(BundleTools.destinationDirectoryForResource(product, input),
-                                  suffix);
-    var mainTags = ["compiled_ibdoc", "compiled_ibdoc_main"];
-    var mainIndex = -1;
     for (var i = 0; i < artifacts.length; ++i) {
-        if (artifacts[i].filePath === main) {
-            mainIndex = i;
-            break;
-        }
-    }
-
-    if (mainIndex === -1) {
-        // artifact not in list - the output was a directory (unflatted nib or storyboard)
-        artifacts.splice(0, 0, {
-            filePath: main,
-            fileTags: mainTags
-        });
-    } else {
-        // artifact in list - the output was a file (flattened nib)
-        artifacts[mainIndex].fileTags = mainTags.uniqueConcat(artifacts[mainIndex].fileTags);
+        if (artifacts[i].fileTags.contains("compiled_ibdoc"))
+            artifacts[i].bundle = {
+                _bundleFilePath: artifacts[i].filePath.replace(ibtoolBuildDirectory, main)
+            };
     }
 
     return artifacts;
@@ -224,12 +214,11 @@ function actoolOutputArtifacts(product, inputs) {
     tracker.command = ModUtils.moduleProperty(product, "actoolPath");
     tracker.commandArgsFunction = function (outputDirectory) {
         // Last --output-format argument overrides any previous ones
-        return ibtooldArguments(product, inputs,
+        return ibtooldArguments(product, inputs, undefined,
                                 undefined, outputDirectory).concat(["--output-format", "xml1"]);
     };
     tracker.processStdOutFunction = parseActoolOutput;
-    var artifacts = tracker.artifacts(BundleTools.destinationDirectoryForResource(product,
-            inputs.assetcatalog[0]));
+    var artifacts = tracker.artifacts(product.buildDirectory + "/actool.dir");
 
     // Newer versions of actool don't generate *anything* if there's no input;
     // in that case a partial Info.plist would not have been generated either
@@ -239,6 +228,16 @@ function actoolOutputArtifacts(product, inputs) {
                                          "assetcatalog_generated_info.plist"),
             fileTags: ["partial_infoplist"]
         });
+    }
+
+    for (var i = 0; i < artifacts.length; ++i) {
+        if (artifacts[i].fileTags.contains("compiled_assetcatalog")) {
+            artifacts[i].bundle = {
+                _bundleFilePath: artifacts[i].filePath.replace(
+                    product.buildDirectory + "/actool.dir",
+                    BundleTools.destinationDirectoryForResource(product, inputs.assetcatalog[0]))
+            };
+        }
     }
 
     return artifacts;
@@ -260,7 +259,7 @@ function parseActoolOutput(output) {
                     continue;
                 var tags = files[i].endsWith(".plist")
                         ? ["partial_infoplist"]
-                        : ["compiled_assetcatalog"];
+                        : ["bundle.input", "compiled_assetcatalog"];
                 artifacts.push({
                     filePath: files[i],
                     fileTags: tags

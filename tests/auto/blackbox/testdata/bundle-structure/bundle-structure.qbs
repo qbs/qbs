@@ -1,14 +1,7 @@
 import qbs
 
 Project {
-    property stringList bundleFileTags: [
-        "aggregate_infoplist", "pkginfo", "hpp",
-        "icns", "xcent",
-        "compiled_ibdoc", "compiled_assetcatalog",
-        "bundle.symlink.headers", "bundle.symlink.private-headers",
-        "bundle.symlink.resources", "bundle.symlink.executable",
-        "bundle.symlink.version", "bundle.hpp", "bundle.resource",
-    ]
+    property stringList bundleFileTags: ["bundle.content"]
 
     property stringList buildableProducts: ["A", "B", "C", "D", "E", "F", "G"]
 

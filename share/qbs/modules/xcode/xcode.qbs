@@ -329,7 +329,7 @@ Module {
         Artifact {
             filePath: FileInfo.joinPaths(product.destinationDirectory,
                                          product.targetName + ".xcent")
-            fileTags: ["xcent"]
+            fileTags: ["xcent", "bundle.input"]
         }
 
         prepare: {

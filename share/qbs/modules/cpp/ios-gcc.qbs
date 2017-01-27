@@ -62,7 +62,7 @@ DarwinGCC {
 
     Rule {
         condition: !product.moduleProperty("qbs", "targetOS").contains("ios-simulator")
-        inputsFromDependencies: ["bundle"]
+        inputsFromDependencies: ["bundle.content"]
 
         Artifact {
             filePath: FileInfo.joinPaths(product.destinationDirectory, product.targetName + ".ipa")
