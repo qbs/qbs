@@ -454,8 +454,10 @@ var BlackboxOutputArtifactTracker = (function () {
         };
     };
     BlackboxOutputArtifactTracker.prototype.findFiles = function (dir) {
-        var fileList = File.directoryEntries(dir, File.Files);
-        var dirList = File.directoryEntries(dir, File.Dirs | File.NoDotAndDotDot);
+        var fileList = File.directoryEntries(dir, File.Files).map(function (p) {
+            return FileInfo.joinPaths(dir, p); });
+        var dirList = File.directoryEntries(dir, File.Dirs | File.NoDotAndDotDot).map(function (p) {
+            return FileInfo.joinPaths(dir, p); });
         for (var i = 0; i < dirList.length; ++i)
             fileList = fileList.concat(this.findFiles(dirList[i]));
         return fileList;
