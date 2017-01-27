@@ -203,8 +203,8 @@ static void *openScanner(const unsigned short *filePath, const char *fileTags, i
 {
     QScopedPointer<Opaq> opaque(new Opaq);
     opaque->fileName = QString::fromUtf16(filePath);
-    const QList<QByteArray> &tagList = QByteArray::fromRawData(fileTags,
-                                                               std::strlen(fileTags)).split(',');
+    const int fileTagsLength = static_cast<int>(std::strlen(fileTags));
+    const QList<QByteArray> &tagList = QByteArray::fromRawData(fileTags, fileTagsLength).split(',');
     if (tagList.contains("hpp"))
         opaque->fileType = Opaq::FT_HPP;
     else if (tagList.contains("cpp"))
