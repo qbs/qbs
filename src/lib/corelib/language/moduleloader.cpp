@@ -499,7 +499,8 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
                            m_parameters.overriddenValuesTree());
     const QString projectName = m_evaluator->stringValue(projectItem, QLatin1String("name"));
     if (!projectName.isEmpty())
-        overrideItemProperties(projectItem, projectName, m_parameters.overriddenValuesTree());
+        overrideItemProperties(projectItem, QLatin1String("projects.") + projectName,
+                               m_parameters.overriddenValuesTree());
     if (!checkItemCondition(projectItem)) {
         delete p;
         return;
@@ -605,7 +606,8 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         productName = FileInfo::completeBaseName(productItem->file()->filePath());
         productItem->setProperty(QLatin1String("name"), VariantValue::create(productName));
     }
-    overrideItemProperties(productItem, productName, m_parameters.overriddenValuesTree());
+    overrideItemProperties(productItem, QLatin1String("products.") + productName,
+                           m_parameters.overriddenValuesTree());
 
     const QString profilesKey = QLatin1String("profiles");
     const ValueConstPtr profilesValue = productItem->property(profilesKey);
@@ -2174,8 +2176,8 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     }
 
     // override module properties given on the command line
-    const QVariantMap userModuleProperties
-            = m_parameters.overriddenValuesTree().value(fullName).toMap();
+    const QVariantMap userModuleProperties = m_parameters.overriddenValuesTree()
+            .value(QLatin1String("modules.") + fullName).toMap();
     for (QVariantMap::const_iterator vmit = userModuleProperties.begin();
          vmit != userModuleProperties.end(); ++vmit) {
         if (Q_UNLIKELY(!moduleInstance->hasProperty(vmit.key()))) {

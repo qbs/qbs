@@ -456,7 +456,7 @@ void TestLanguage::defaultValue()
         QFETCH(QString, prop1Value);
         QVariantMap overridden;
         if (!prop1Value.isEmpty())
-            overridden.insert("lower.prop1", prop1Value);
+            overridden.insert("modules.lower.prop1", prop1Value);
         params.setOverriddenValues(overridden);
         TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(project);
@@ -1490,9 +1490,9 @@ void TestLanguage::nonRequiredProducts()
         QFETCH(bool, dependeeEnabled);
         QVariantMap overriddenValues;
         if (!subProjectEnabled)
-            overriddenValues.insert("subproject.condition", false);
+            overriddenValues.insert("projects.subproject.condition", false);
         else if (!dependeeEnabled)
-            overriddenValues.insert("dependee.condition", false);
+            overriddenValues.insert("products.dependee.condition", false);
         params.setOverriddenValues(overriddenValues);
         const TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(project);
@@ -1609,7 +1609,7 @@ void TestLanguage::profileValuesAndOverriddenValues()
         SetupProjectParameters parameters = defaultParameters;
         parameters.setTopLevelProfile(profile.name());
         QVariantMap overriddenValues;
-        overriddenValues.insert("dummy.cFlags", "OVERRIDDEN");
+        overriddenValues.insert("modules.dummy.cFlags", "OVERRIDDEN");
         parameters.setOverriddenValues(overriddenValues);
         parameters.setProjectFilePath(testProject("profilevaluesandoverriddenvalues.qbs"));
         parameters.expandBuildConfiguration();
@@ -1935,7 +1935,7 @@ void TestLanguage::throwingProbe()
         SetupProjectParameters params = defaultParameters;
         params.setProjectFilePath(testProject("throwing-probe.qbs"));
         QVariantMap properties;
-        properties.insert(QLatin1String("theProduct.enableProbe"), enableProbe);
+        properties.insert(QLatin1String("products.theProduct.enableProbe"), enableProbe);
         params.setOverriddenValues(properties);
         const TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(project);

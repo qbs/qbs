@@ -1487,7 +1487,8 @@ void TestApi::multiArch()
     // Error check: Try to build for the same profile twice, this time attaching
     // the properties via the product name.
     overriddenValues.clear();
-    overriddenValues.insert("p1.profiles", targetProfile.name() + ',' + targetProfile.name());
+    overriddenValues.insert("products.p1.profiles",
+                            targetProfile.name() + ',' + targetProfile.name());
     setupParams.setOverriddenValues(overriddenValues);
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
@@ -1646,9 +1647,9 @@ void TestApi::processResult()
     QFETCH(bool, redirectStdout);
     QFETCH(bool, redirectStderr);
     QVariantMap overridden;
-    overridden.insert("app-caller.argument", expectedExitCode);
-    overridden.insert("app-caller.redirectStdout", redirectStdout);
-    overridden.insert("app-caller.redirectStderr", redirectStderr);
+    overridden.insert("products.app-caller.argument", expectedExitCode);
+    overridden.insert("products.app-caller.redirectStdout", redirectStdout);
+    overridden.insert("products.app-caller.redirectStderr", redirectStderr);
     ProcessResultReceiver resultReceiver;
     const qbs::ErrorInfo errorInfo = doBuildProject("process-result/process-result.qbs",
             nullptr, &resultReceiver, nullptr, qbs::BuildOptions(), overridden);
@@ -1749,10 +1750,10 @@ void TestApi::projectPropertiesByName()
     errorInfo = doBuildProject(projectFile, 0, 0, 0, qbs::BuildOptions(), overridden);
     QVERIFY(errorInfo.hasError());
     overridden.clear();
-    overridden.insert("subproject1.theDefines", QStringList() << "SUB1");
+    overridden.insert("projects.subproject1.theDefines", QStringList() << "SUB1");
     errorInfo = doBuildProject(projectFile, 0, 0, 0, qbs::BuildOptions(), overridden);
     QVERIFY(errorInfo.hasError());
-    overridden.insert("subproject2.theDefines", QStringList() << "SUB2");
+    overridden.insert("projects.subproject2.theDefines", QStringList() << "SUB2");
     errorInfo = doBuildProject(projectFile, 0, 0, 0, qbs::BuildOptions(), overridden);
     VERIFY_NO_ERROR(errorInfo);
 }
@@ -2027,7 +2028,7 @@ void TestApi::restoredWarnings()
 
     // Re-resolving with changes: Errors come from the re-resolving, stored ones must be suppressed.
     QVariantMap overridenValues;
-    overridenValues.insert("theProduct.moreFiles", true);
+    overridenValues.insert("products.theProduct.moreFiles", true);
     setupParams.setOverriddenValues(overridenValues);
     job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
     waitForFinished(job.data());
