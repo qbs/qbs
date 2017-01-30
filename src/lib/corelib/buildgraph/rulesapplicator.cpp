@@ -437,7 +437,7 @@ class ArtifactBindingsExtractor
         return s;
     }
 
-    void extractPropertyValues(const QScriptValue &obj, QString moduleName = QString())
+    void extractPropertyValues(const QScriptValue &obj, const QString &moduleName = QString())
     {
         QScriptValueIterator svit(obj);
         while (svit.hasNext()) {
@@ -453,10 +453,11 @@ class ArtifactBindingsExtractor
 
             const QScriptValue value = svit.value();
             if (value.isObject() && !value.isArray() && !value.isError() && !value.isRegExp()) {
+                QString newModuleName;
                 if (!moduleName.isEmpty())
-                    moduleName.append(QLatin1Char('.'));
-                moduleName.append(name);
-                extractPropertyValues(value, moduleName);
+                    newModuleName.append(moduleName + QLatin1Char('.'));
+                newModuleName.append(name);
+                extractPropertyValues(value, newModuleName);
             } else {
                 m_propertyValues.emplace_back(moduleName, name, value.toVariant());
             }
