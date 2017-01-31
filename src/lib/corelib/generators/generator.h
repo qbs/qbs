@@ -70,10 +70,12 @@ public:
 
     void generate(const QList<Project> &projects,
                   const QList<QVariantMap> &buildConfigurations,
-                  const InstallOptions &installOptions);
+                  const InstallOptions &installOptions,
+                  const QString &qbsSettingsDir);
 
     const GeneratableProject project() const;
     QFileInfo qbsExecutableFilePath() const;
+    QString qbsSettingsDir() const;
 
 private:
     QList<Project> projects() const;

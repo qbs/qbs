@@ -51,6 +51,7 @@ public:
     QList<Project> projects;
     QList<QVariantMap> buildConfigurations;
     InstallOptions installOptions;
+    QString qbsSettingsDir;
 };
 
 ProjectGenerator::ProjectGenerator()
@@ -77,7 +78,8 @@ static QString _configurationName(const QVariantMap &buildConfiguration)
 
 void ProjectGenerator::generate(const QList<Project> &projects,
                                 const QList<QVariantMap> &buildConfigurations,
-                                const InstallOptions &installOptions)
+                                const InstallOptions &installOptions,
+                                const QString &qbsSettingsDir)
 {
     d->projects = projects;
     std::sort(d->projects.begin(), d->projects.end(),
@@ -88,6 +90,7 @@ void ProjectGenerator::generate(const QList<Project> &projects,
               [](const QVariantMap &a, const QVariantMap &b) {
                   return _configurationName(a) < _configurationName(b); });
     d->installOptions = installOptions;
+    d->qbsSettingsDir = qbsSettingsDir;
     generate();
 }
 
@@ -223,6 +226,11 @@ QFileInfo ProjectGenerator::qbsExecutableFilePath() const
         : QCoreApplication::applicationDirPath() + QLatin1String("/qbs")));
     QBS_CHECK(file.isAbsolute() && file.exists());
     return file;
+}
+
+QString ProjectGenerator::qbsSettingsDir() const
+{
+    return d->qbsSettingsDir;
 }
 
 } // namespace qbs

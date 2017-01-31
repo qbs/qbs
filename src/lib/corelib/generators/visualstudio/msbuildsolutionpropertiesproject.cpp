@@ -41,7 +41,8 @@ namespace qbs {
 MSBuildSolutionPropertiesProject::MSBuildSolutionPropertiesProject(
         const Internal::VisualStudioVersionInfo &versionInfo,
         const GeneratableProject &project,
-        const QFileInfo &qbsExecutable)
+        const QFileInfo &qbsExecutable,
+        const QString &qbsSettingsDir)
 {
     setDefaultTargets(QStringLiteral("Build"));
     setToolsVersion(versionInfo.toolsVersion());
@@ -57,6 +58,12 @@ MSBuildSolutionPropertiesProject::MSBuildSolutionPropertiesProject(
     group->appendProperty(QStringLiteral("QbsProjectDir"),
                           Internal::PathUtils::toNativeSeparators(project.filePath().path(), win)
                           + Internal::HostOsInfo::pathSeparator(win));
+
+    if (!qbsSettingsDir.isEmpty()) {
+        group->appendProperty(QStringLiteral("QbsSettingsDir"),
+                              Internal::PathUtils::toNativeSeparators(qbsSettingsDir, win)
+                              + Internal::HostOsInfo::pathSeparator(win) + QLatin1Char('.'));
+    }
 }
 
 } // namespace qbs
