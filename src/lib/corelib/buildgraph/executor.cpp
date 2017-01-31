@@ -139,6 +139,8 @@ void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
         artifact->setTimestamp(recursiveFileTime(artifact->filePath()));
 
     artifact->timestampRetrieved = true;
+    if (!artifact->timestamp().isValid())
+        throw ErrorInfo(Tr::tr("Source file '%1' has disappeared.").arg(artifact->filePath()));
 }
 
 void Executor::build()
