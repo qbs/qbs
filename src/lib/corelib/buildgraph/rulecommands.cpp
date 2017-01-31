@@ -219,16 +219,6 @@ void ProcessCommand::getEnvironmentFromList(const QStringList &envList)
     }
 }
 
-static bool processEnvironmentsAreEqual(const QProcessEnvironment &env1,
-                                        const QProcessEnvironment &env2)
-{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-    return env1 == env2;
-#else // qtbase/8b5cdc20be
-    return env1.toStringList() == env2.toStringList();
-#endif
-}
-
 bool ProcessCommand::equals(const AbstractCommand *otherAbstractCommand) const
 {
     if (!AbstractCommand::equals(otherAbstractCommand))
@@ -245,7 +235,7 @@ bool ProcessCommand::equals(const AbstractCommand *otherAbstractCommand) const
             && m_responseFileUsagePrefix == other->m_responseFileUsagePrefix
             && m_stdoutFilePath == other->m_stdoutFilePath
             && m_stderrFilePath == other->m_stderrFilePath
-            && processEnvironmentsAreEqual(m_environment, other->m_environment);
+            && m_environment == other->m_environment;
 }
 
 void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)

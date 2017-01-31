@@ -45,27 +45,6 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
 
-static inline QDateTime QDateTime_fromNSDate(const NSDate *date)
-{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
-    return QDateTime::fromNSDate(date);
-#else
-    if (!date)
-        return QDateTime();
-    return QDateTime::fromMSecsSinceEpoch(static_cast<qint64>([date timeIntervalSince1970] * 1000));
-#endif
-}
-
-static inline NSDate *QDateTime_toNSDate(const QDateTime &qdatetime)
-{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
-    return qdatetime.toNSDate();
-#else
-    return [NSDate
-        dateWithTimeIntervalSince1970:static_cast<NSTimeInterval>(qdatetime.toMSecsSinceEpoch()) / 1000];
-#endif
-}
-
 static QVariant fromObject(id obj);
 static QVariantMap fromDictionary(NSDictionary *dict);
 static QVariantList fromArray(NSArray *array);
@@ -84,7 +63,7 @@ static QVariant fromObject(id obj)
     } else if ([obj isKindOfClass:[NSData class]]) {
         value = QByteArray::fromNSData(obj);
     } else if ([obj isKindOfClass:[NSDate class]]) {
-        value = QDateTime_fromNSDate(obj);
+        value = QDateTime::fromNSDate(obj);
     } else if ([obj isKindOfClass:[NSNumber class]]) {
         if (strcmp([(NSNumber *)obj objCType], @encode(BOOL)) == 0) {
             value = static_cast<bool>([obj boolValue]);
@@ -160,7 +139,7 @@ static id toObject(const QVariant &variant)
         return variant.toByteArray().toNSData();
     } else if (variant.type() == QVariant::Date ||
                variant.type() == QVariant::DateTime) {
-        return QDateTime_toNSDate(variant.toDateTime());
+        return variant.toDateTime().toNSDate();
     } else if (variant.type() == QVariant::Bool) {
         return variant.toBool()
                 ? [NSNumber numberWithBool:YES]

@@ -55,11 +55,6 @@
 namespace qbs {
 namespace Internal {
 
-static bool hasQtBug45497()
-{
-    return Version::fromString(QLatin1String(qVersion())) < Version(5, 5, 1);
-}
-
 static bool hasQtBug53392()
 {
     if (!HostOsInfo::isWindowsHost())
@@ -102,7 +97,7 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
             QString hostName;
             QString appName;
             if (m_lockFile.getLockInfo(&pid, &hostName, &appName)) {
-                if ((!hasQtBug45497() && !hasQtBug53392()) || appName == processNameByPid(pid)) {
+                if ((!hasQtBug53392()) || appName == processNameByPid(pid)) {
                     throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': "
                                            "Already locked by '%2' (PID %3).")
                                     .arg(buildGraphFilePath, appName).arg(pid));

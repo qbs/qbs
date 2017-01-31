@@ -115,7 +115,7 @@
 
     \title System Requirements
 
-    To build \QBS from the source, you need Qt 5.4.0, or later
+    To build \QBS from the source, you need Qt 5.6.0, or later
 
 */
 
