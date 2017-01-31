@@ -154,7 +154,7 @@ QScriptValue EnvironmentExtension::js_currentEnv(QScriptContext *context, QScrip
     if (!procenv)
         procenv = &env;
     QScriptValue envObject = engine->newObject();
-    foreach (const QString &key, procenv->keys())
+    for (const QString &key : procenv->keys())
         envObject.setProperty(key, QScriptValue(procenv->value(key)));
     return envObject;
 }

@@ -43,6 +43,7 @@
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdiriterator.h>
@@ -57,7 +58,7 @@ using namespace Internal;
 
 ProjectGeneratorManager::~ProjectGeneratorManager()
 {
-    foreach (QLibrary * const lib, m_libs) {
+    for (QLibrary * const lib : qAsConst(m_libs)) {
         lib->unload();
         delete lib;
     }
@@ -74,9 +75,8 @@ ProjectGeneratorManager::ProjectGeneratorManager()
     QVector<QSharedPointer<ProjectGenerator> > generators;
     generators << QSharedPointer<ClangCompilationDatabaseGenerator>::create();
     generators << qbs::VisualStudioGenerator::createGeneratorList();
-    foreach (QSharedPointer<ProjectGenerator> generator, generators) {
+    for (QSharedPointer<ProjectGenerator> generator : qAsConst(generators))
         m_generators[generator->generatorName()] = generator;
-    }
 }
 
 QStringList ProjectGeneratorManager::loadedGeneratorNames()

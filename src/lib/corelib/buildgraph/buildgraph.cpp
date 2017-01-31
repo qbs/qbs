@@ -57,6 +57,7 @@
 #include <tools/fileinfo.h>
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
@@ -114,12 +115,12 @@ private:
                   [](const ResolvedProductPtr &p1, const ResolvedProductPtr &p2) {
                           return p1->name < p2->name;
                   });
-        foreach (const ResolvedProductPtr &dependency, productDeps) {
+        for (const ResolvedProductPtr &dependency : qAsConst(productDeps)) {
             QScriptValue obj = engine->newObject();
             setupProductScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency, 0);
             result.setProperty(idx++, obj);
         }
-        foreach (const ResolvedModuleConstPtr &dependency, product->modules) {
+        for (const ResolvedModuleConstPtr &dependency : qAsConst(product->modules)) {
             QScriptValue obj = engine->newObject();
             setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj,
                                    product->moduleProperties->value(), dependency->name);
@@ -298,7 +299,7 @@ static bool existsPath(BuildGraphNode *u, BuildGraphNode *v)
 static QStringList toStringList(const QList<BuildGraphNode *> &path)
 {
     QStringList lst;
-    foreach (BuildGraphNode *node, path)
+    for (BuildGraphNode *node : path)
         lst << node->toString();
     return lst;
 }
@@ -448,18 +449,18 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
     QBS_CHECK(!!product->enabled == !!buildData);
     if (!product->enabled)
         return;
-    foreach (BuildGraphNode * const node, buildData->roots) {
+    for (BuildGraphNode * const node : qAsConst(buildData->roots)) {
         if (logger.traceEnabled())
             logger.qbsTrace() << "Checking root node '" << node->toString() << "'.";
         QBS_CHECK(buildData->nodes.contains(node));
     }
     Set<QString> filePaths;
-    foreach (BuildGraphNode * const node, buildData->nodes) {
+    for (BuildGraphNode * const node : qAsConst(buildData->nodes)) {
         logger.qbsTrace() << "Sanity checking node '" << node->toString() << "'";
         QBS_CHECK(node->product == product);
-        foreach (const BuildGraphNode * const parent, node->parents)
+        for (const BuildGraphNode * const parent : qAsConst(node->parents))
             QBS_CHECK(parent->children.contains(node));
-        foreach (BuildGraphNode * const child, node->children) {
+        for (BuildGraphNode * const child : qAsConst(node->children)) {
             QBS_CHECK(child->parents.contains(node));
             QBS_CHECK(!child->product.isNull());
             QBS_CHECK(!child->product->buildData.isNull());
@@ -474,7 +475,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
         QBS_CHECK(!filePaths.contains(artifact->filePath()));
         filePaths << artifact->filePath();
 
-        foreach (Artifact * const child, artifact->childrenAddedByScanner)
+        for (Artifact * const child : qAsConst(artifact->childrenAddedByScanner))
             QBS_CHECK(artifact->children.contains(child));
         const TransformerConstPtr transformer = artifact->transformer;
         if (artifact->artifactType == Artifact::SourceFile)
@@ -485,7 +486,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
         logger.qbsTrace() << "The transformer has " << transformer->outputs.count()
                           << " outputs.";
         ArtifactSet transformerOutputChildren;
-        foreach (const Artifact * const output, transformer->outputs) {
+        for (const Artifact * const output : qAsConst(transformer->outputs)) {
             QBS_CHECK(output->transformer == transformer);
             transformerOutputChildren.unite(ArtifactSet::filtered(output->children));
             Set<QString> childFilePaths;
@@ -499,14 +500,14 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
         }
         if (logger.traceEnabled()) {
             logger.qbsTrace() << "The transformer output children are:";
-            foreach (const Artifact * const a, transformerOutputChildren)
+            for (const Artifact * const a : qAsConst(transformerOutputChildren))
                 logger.qbsTrace() << "\t" << a->fileName();
             logger.qbsTrace() << "The transformer inputs are:";
-            foreach (const Artifact * const a, transformer->inputs)
+            for (const Artifact * const a : qAsConst(transformer->inputs))
                 logger.qbsTrace() << "\t" << a->fileName();
         }
         QBS_CHECK(transformer->inputs.count() <= transformerOutputChildren.count());
-        foreach (Artifact * const transformerInput, transformer->inputs)
+        for (Artifact * const transformerInput : qAsConst(transformer->inputs))
             QBS_CHECK(transformerOutputChildren.contains(transformerInput));
     }
 }
@@ -516,10 +517,10 @@ static void doSanityChecks(const ResolvedProjectPtr &project,
                            const Logger &logger)
 {
     logger.qbsDebug() << "Sanity checking project '" << project->name << "'";
-    foreach (const ResolvedProjectPtr &subProject, project->subProjects)
+    for (const ResolvedProjectPtr &subProject : qAsConst(project->subProjects))
         doSanityChecks(subProject, allProducts, productNames, logger);
 
-    foreach (const ResolvedProductConstPtr &product, project->products) {
+    for (const ResolvedProductConstPtr &product : qAsConst(project->products)) {
         QBS_CHECK(product->project == project);
         QBS_CHECK(product->topLevelProject() == project->topLevelProject());
         doSanityChecksForProduct(product, allProducts, logger);

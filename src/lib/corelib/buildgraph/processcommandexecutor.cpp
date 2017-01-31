@@ -86,7 +86,7 @@ void ProcessCommandExecutor::doSetup()
 
     QProcessEnvironment env = m_buildEnvironment;
     const QProcessEnvironment &additionalVariables = cmd->environment();
-    foreach (const QString &key, additionalVariables.keys())
+    for (const QString &key : additionalVariables.keys())
         env.insert(key, additionalVariables.value(key));
     m_commandEnvironment = env;
 

@@ -43,6 +43,7 @@
 #include "item.h"
 
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 namespace qbs {
 namespace Internal {
@@ -140,7 +141,7 @@ void JSSourceValue::setHasFunctionForm(bool b)
 void JSSourceValue::setDefiningItem(Item *item)
 {
     Value::setDefiningItem(item);
-    foreach (const JSSourceValue::Alternative &a, m_alternatives)
+    for (const JSSourceValue::Alternative &a : qAsConst(m_alternatives))
         a.value->setDefiningItem(item);
 }
 

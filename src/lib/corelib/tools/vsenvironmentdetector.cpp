@@ -41,6 +41,7 @@
 
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
@@ -84,7 +85,7 @@ bool VsEnvironmentDetector::start(QVector<MSVC *> msvcs)
 
     QVector<MSVC *> compatibleMSVCs;
     QString lastVcInstallPath;
-    foreach (MSVC *msvc, msvcs) {
+    for (MSVC * const msvc : qAsConst(msvcs)) {
         if (lastVcInstallPath != msvc->vcInstallPath) {
             lastVcInstallPath = msvc->vcInstallPath;
             if (!compatibleMSVCs.isEmpty()) {
@@ -163,13 +164,13 @@ bool VsEnvironmentDetector::startDetection(const QVector<MSVC *> &compatibleMSVC
 
 static void batClearVars(QTextStream &s, const QStringList &varnames)
 {
-    foreach (const QString &varname, varnames)
+    for (const QString &varname : varnames)
         s << "set " << varname << '=' << endl;
 }
 
 static void batPrintVars(QTextStream &s, const QStringList &varnames)
 {
-    foreach (const QString &varname, varnames)
+    for (const QString &varname : varnames)
         s << "echo " << varname << "=%" << varname << '%' << endl;
 }
 
@@ -215,7 +216,7 @@ void VsEnvironmentDetector::parseBatOutput(const QByteArray &output, QVector<MSV
 {
     QString arch;
     QProcessEnvironment *targetEnv = 0;
-    foreach (QByteArray line, output.split('\n')) {
+    for (QByteArray line : output.split('\n')) {
         line = line.trimmed();
         if (line.isEmpty())
             continue;

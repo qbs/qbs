@@ -57,7 +57,7 @@ QScriptValue toScriptValue(QScriptEngine *scriptEngine, const C &container)
 {
     QScriptValue v = scriptEngine->newArray(container.count());
     int i = 0;
-    foreach (const typename C::value_type &item, container)
+    for (const typename C::value_type &item : container)
         v.setProperty(i++, scriptEngine->toScriptValue(item));
     return v;
 }

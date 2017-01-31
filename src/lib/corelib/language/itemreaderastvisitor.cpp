@@ -352,7 +352,7 @@ void ItemReaderASTVisitor::checkDeprecationStatus(ItemType itemType, const QStri
 void ItemReaderASTVisitor::doCheckItemTypes(const Item *item)
 {
     const ItemDeclaration decl = BuiltinDeclarations::instance().declarationsForType(item->type());
-    foreach (const Item * const child, item->children()) {
+    for (const Item * const child : item->children()) {
         if (!decl.isChildTypeAllowed(child->type())) {
             throw ErrorInfo(Tr::tr("Items of type '%1' cannot contain items of type '%2'.")
                             .arg(item->typeName(), child->typeName()), child->location());

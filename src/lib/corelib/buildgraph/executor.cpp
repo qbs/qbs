@@ -61,6 +61,7 @@
 #include <tools/profiling.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qpair.h>
@@ -68,6 +69,7 @@
 
 #include <algorithm>
 #include <climits>
+#include <iterator>
 
 namespace qbs {
 namespace Internal {
@@ -97,9 +99,9 @@ Executor::Executor(const Logger &logger, QObject *parent)
 Executor::~Executor()
 {
     // jobs must be destroyed before deleting the shared scan result cache
-    foreach (ExecutorJob *job, m_availableJobs)
+    for (ExecutorJob *job : qAsConst(m_availableJobs))
         delete job;
-    foreach (ExecutorJob *job, m_processingJobs.keys())
+    for (ExecutorJob *job : m_processingJobs.keys())
         delete job;
     delete m_inputArtifactScanContext;
     delete m_productInstaller;
@@ -119,7 +121,7 @@ FileTime Executor::recursiveFileTime(const QString &filePath) const
         return newest;
     const QStringList dirContents = QDir(filePath)
             .entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
-    foreach (const QString &curFileName, dirContents) {
+    for (const QString &curFileName : dirContents) {
         const FileTime ft = recursiveFileTime(filePath + QLatin1Char('/') + curFileName);
         if (ft > newest)
             newest = ft;
@@ -176,15 +178,15 @@ public:
 
     void apply()
     {
-        QList<ResolvedProductPtr> allProducts = m_topLevelProject->allProducts();
+        const QList<ResolvedProductPtr> &allProducts = m_topLevelProject->allProducts();
         Set<ResolvedProductPtr> allDependencies;
-        foreach (const ResolvedProductPtr &product, allProducts)
+        for (const ResolvedProductPtr &product : allProducts)
             allDependencies += product->dependencies;
-        Set<ResolvedProductPtr> rootProducts
+        const Set<ResolvedProductPtr> rootProducts
                 = Set<ResolvedProductPtr>::fromList(allProducts) - allDependencies;
         m_priority = UINT_MAX;
         m_seenProducts.clear();
-        foreach (const ResolvedProductPtr &rootProduct, rootProducts)
+        for (const ResolvedProductPtr &rootProduct : rootProducts)
             traverse(rootProduct);
     }
 
@@ -193,7 +195,7 @@ private:
     {
         if (!m_seenProducts.insert(product).second)
             return;
-        foreach (const ResolvedProductPtr &dependency, product->dependencies)
+        for (const ResolvedProductPtr &dependency : qAsConst(product->dependencies))
             traverse(dependency);
         if (!product->buildData)
             return;
@@ -293,7 +295,7 @@ void Executor::initLeaves()
 void Executor::updateLeaves(const NodeSet &nodes)
 {
     NodeSet seenNodes;
-    foreach (BuildGraphNode * const node, nodes)
+    for (BuildGraphNode * const node : nodes)
         updateLeaves(node, seenNodes);
 }
 
@@ -312,7 +314,7 @@ void Executor::updateLeaves(BuildGraphNode *node, NodeSet &seenNodes)
     }
 
     bool isLeaf = true;
-    foreach (BuildGraphNode *child, node->children) {
+    for (BuildGraphNode *child : qAsConst(node->children)) {
         if (child->buildState != BuildGraphNode::Built) {
             isLeaf = false;
             updateLeaves(child, seenNodes);
@@ -394,7 +396,7 @@ bool Executor::isUpToDate(Artifact *artifact) const
             return false;
     }
 
-    foreach (FileDependency *fileDependency, artifact->fileDependencies) {
+    for (FileDependency *fileDependency : qAsConst(artifact->fileDependencies)) {
         if (!fileDependency->timestamp().isValid()) {
             FileInfo fi(fileDependency->filePath());
             fileDependency->setTimestamp(fi.lastModified());
@@ -423,7 +425,7 @@ bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
     if (transformer->alwaysRun)
         return true;
     bool hasAlwaysUpdatedArtifacts = false;
-    foreach (Artifact *artifact, transformer->outputs) {
+    for (Artifact *artifact : qAsConst(transformer->outputs)) {
         if (artifact->alwaysUpdated)
             hasAlwaysUpdatedArtifacts = true;
         else if (!m_buildOptions.forceTimestampCheck())
@@ -477,7 +479,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
     QBS_CHECK(!m_evalContext->engine()->isActive());
     ArtifactSet changedInputArtifacts;
     if (ruleNode->rule()->isDynamic()) {
-        foreach (Artifact *artifact, m_changedSourceArtifacts) {
+        for (Artifact * const artifact : qAsConst(m_changedSourceArtifacts)) {
             if (artifact->product != ruleNode->product)
                 continue;
             if (ruleNode->rule()->acceptsAsInput(artifact))
@@ -514,12 +516,12 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
         const WeakPointer<ResolvedProduct> &product = ruleNode->product;
         Set<RuleNode *> parentRules;
         if (!result.createdNodes.isEmpty()) {
-            foreach (BuildGraphNode *parent, ruleNode->parents) {
+            for (BuildGraphNode *parent : qAsConst(ruleNode->parents)) {
                 if (RuleNode *parentRule = dynamic_cast<RuleNode *>(parent))
                     parentRules += parentRule;
             }
         }
-        foreach (BuildGraphNode *node, result.createdNodes) {
+        for (BuildGraphNode *node : qAsConst(result.createdNodes)) {
             if (m_doDebug)
                 m_logger.qbsDebug() << "[EXEC] rule created " << node->toString();
             loggedConnect(node, ruleNode, m_logger);
@@ -529,10 +531,10 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
             if (outputArtifact->fileTags().intersects(product->fileTags))
                 product->buildData->roots += outputArtifact;
 
-            foreach (Artifact *inputArtifact, outputArtifact->transformer->inputs)
+            for (Artifact *inputArtifact : qAsConst(outputArtifact->transformer->inputs))
                 loggedConnect(ruleNode, inputArtifact, m_logger);
 
-            foreach (RuleNode *parentRule, parentRules)
+            for (RuleNode *parentRule : qAsConst(parentRules))
                 loggedConnect(parentRule, outputArtifact, m_logger);
         }
         updateLeaves(result.createdNodes);
@@ -555,7 +557,7 @@ void Executor::finishJob(ExecutorJob *job, bool success)
     m_availableJobs.append(job);
     if (success) {
         m_project->buildData->isDirty = true;
-        foreach (Artifact *artifact, transformer->outputs) {
+        for (Artifact * const artifact : qAsConst(transformer->outputs)) {
             if (artifact->alwaysUpdated) {
                 artifact->setTimestamp(FileTime::currentTime());
                 if (m_buildOptions.forceOutputCheck()
@@ -606,16 +608,14 @@ void Executor::finishJob(ExecutorJob *job, bool success)
 
 static bool allChildrenBuilt(BuildGraphNode *node)
 {
-    foreach (BuildGraphNode *child, node->children)
-        if (child->buildState != BuildGraphNode::Built)
-            return false;
-    return true;
+    return std::all_of(node->children.cbegin(), node->children.cend(),
+                       std::mem_fn(&BuildGraphNode::isBuilt));
 }
 
 void Executor::finishNode(BuildGraphNode *leaf)
 {
     leaf->buildState = BuildGraphNode::Built;
-    foreach (BuildGraphNode *parent, leaf->parents) {
+    for (BuildGraphNode * const parent : qAsConst(leaf->parents)) {
         if (parent->buildState != BuildGraphNode::Buildable) {
             if (m_doTrace) {
                 m_logger.qbsTrace() << "[EXEC] parent " << parent->toString()
@@ -658,12 +658,8 @@ bool Executor::transformerHasMatchingOutputTags(const TransformerConstPtr &trans
     if (m_activeFileTags.isEmpty())
         return true; // No filtering requested.
 
-    foreach (Artifact * const output, transformer->outputs) {
-        if (artifactHasMatchingOutputTags(output))
-            return true;
-    }
-
-    return false;
+    return std::any_of(transformer->outputs.cbegin(), transformer->outputs.cend(),
+                       [this](const Artifact *a) { return artifactHasMatchingOutputTags(a); });
 }
 
 bool Executor::artifactHasMatchingOutputTags(const Artifact *artifact) const
@@ -680,8 +676,8 @@ bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &trans
         return false;
     if (transformer->inputs.isEmpty())
         return true;
-    foreach (const Artifact * const input, transformer->inputs) {
-        foreach (const QString &filePath, m_buildOptions.filesToConsider()) {
+    for (const Artifact * const input : qAsConst(transformer->inputs)) {
+        for (const QString &filePath : m_buildOptions.filesToConsider()) {
             if (input->filePath() == filePath
                     || input->fileTags().intersects(m_tagsNeededForFilesToConsider)) {
                 return true;
@@ -698,8 +694,7 @@ void Executor::cancelJobs()
         return;
     m_logger.qbsTrace() << "Canceling all jobs.";
     setState(ExecutorCanceling);
-    QList<ExecutorJob *> jobs = m_processingJobs.keys();
-    foreach (ExecutorJob *job, jobs)
+    for (ExecutorJob *job : m_processingJobs.keys())
         job->cancel();
 }
 
@@ -708,13 +703,10 @@ void Executor::setupProgressObserver()
     if (!m_progressObserver)
         return;
     int totalEffort = 1; // For the effort after the last rule application;
-    foreach (const ResolvedProductConstPtr &product, m_productsToBuild) {
+    for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
-        foreach (const BuildGraphNode * const node, product->buildData->nodes) {
-            const RuleNode * const ruleNode = dynamic_cast<const RuleNode *>(node);
-            if (ruleNode)
-                ++totalEffort;
-        }
+        const auto filtered = filterByType<RuleNode>(product->buildData->nodes);
+        totalEffort += std::distance(filtered.begin(), filtered.end());
     }
     m_progressObserver->initialize(tr("Building%1").arg(configString()), totalEffort);
 }
@@ -723,7 +715,7 @@ void Executor::doSanityChecks()
 {
     QBS_CHECK(m_project);
     QBS_CHECK(!m_productsToBuild.isEmpty());
-    foreach (const ResolvedProductConstPtr &product, m_productsToBuild) {
+    for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         QBS_CHECK(product->topLevelProject() == m_project);
     }
@@ -784,7 +776,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
     bool canRescue = commandListsAreEqual(artifact->transformer->commands, rad.commands);
     if (canRescue) {
         ResolvedProductPtr pseudoProduct = ResolvedProduct::create();
-        foreach (const RescuableArtifactData::ChildData &cd, rad.children) {
+        for (const RescuableArtifactData::ChildData &cd : qAsConst(rad.children)) {
             pseudoProduct->name = cd.productName;
             pseudoProduct->profile = cd.productProfile;
             Artifact * const child = lookupArtifact(pseudoProduct, m_project->buildData.data(),
@@ -833,7 +825,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         artifact->setTimestamp(rad.timeStamp);
         if (childrenAdded && !childrenToConnect.isEmpty())
             *childrenAdded = true;
-        foreach (const ChildArtifactData &cad, childrenToConnect) {
+        for (const ChildArtifactData &cad : qAsConst(childrenToConnect)) {
             safeConnect(artifact, cad.first, m_logger);
             if (cad.second)
                 artifact->childrenAddedByScanner << cad.first;
@@ -853,7 +845,7 @@ bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
 {
     bool buildingDependenciesFound = false;
     NodeSet unbuiltDependencies;
-    foreach (BuildGraphNode *dependency, artifact->children) {
+    for (BuildGraphNode * const dependency : qAsConst(artifact->children)) {
         switch (dependency->buildState) {
         case BuildGraphNode::Untouched:
         case BuildGraphNode::Buildable:
@@ -890,7 +882,7 @@ bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
 
 void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
 {
-    foreach (Artifact * const output, transformer->outputs) {
+    for (Artifact * const output : qAsConst(transformer->outputs)) {
         // Rescuing build data can introduce new dependencies, potentially delaying execution of
         // this transformer.
         bool childrenAddedDueToRescue;
@@ -920,7 +912,7 @@ void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
         return;
     }
 
-    foreach (Artifact * const output, transformer->outputs) {
+    for (Artifact * const output : qAsConst(transformer->outputs)) {
         // Scan all input artifacts. If new dependencies were found during scanning, delay
         // execution of this transformer.
         InputArtifactScanner scanner(output, m_inputArtifactScanContext, m_logger);
@@ -956,7 +948,7 @@ void Executor::runTransformer(const TransformerPtr &transformer)
 
     QBS_CHECK(!m_availableJobs.isEmpty());
     ExecutorJob *job = m_availableJobs.takeFirst();
-    foreach (Artifact * const artifact, transformer->outputs)
+    for (Artifact * const artifact : qAsConst(transformer->outputs))
         artifact->buildState = BuildGraphNode::Building;
     m_processingJobs.insert(job, transformer);
     job->run(transformer.data());
@@ -964,7 +956,7 @@ void Executor::runTransformer(const TransformerPtr &transformer)
 
 void Executor::finishTransformer(const TransformerPtr &transformer)
 {
-    foreach (Artifact * const artifact, transformer->outputs) {
+    for (Artifact * const artifact : qAsConst(transformer->outputs)) {
         possiblyInstallArtifact(artifact);
         finishArtifact(artifact);
     }
@@ -1016,9 +1008,9 @@ void Executor::checkForUnbuiltProducts()
     if (m_buildOptions.executeRulesOnly())
         return;
     QList<ResolvedProductPtr> unbuiltProducts;
-    foreach (const ResolvedProductPtr &product, m_productsToBuild) {
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
         bool productBuilt = true;
-        foreach (BuildGraphNode *rootNode, product->buildData->roots) {
+        for (BuildGraphNode *rootNode : qAsConst(product->buildData->roots)) {
             if (rootNode->buildState != BuildGraphNode::Built) {
                 productBuilt = false;
                 unbuiltProducts += product;
@@ -1028,9 +1020,10 @@ void Executor::checkForUnbuiltProducts()
         if (productBuilt) {
             // Any element still left after a successful build has not been re-created
             // by any rule and therefore does not exist anymore as an artifact.
-            foreach (const QString &filePath, product->buildData->rescuableArtifactData.keys()) {
-                removeGeneratedArtifactFromDisk(filePath, m_logger);
-                m_artifactsRemovedFromDisk << filePath;
+            for (auto it = product->buildData->rescuableArtifactData.cbegin();
+                 it != product->buildData->rescuableArtifactData.cend(); ++it) {
+                removeGeneratedArtifactFromDisk(it.key(), m_logger);
+                m_artifactsRemovedFromDisk << it.key();
             }
             product->buildData->rescuableArtifactData.clear();
         }
@@ -1040,7 +1033,7 @@ void Executor::checkForUnbuiltProducts()
         m_logger.qbsInfo() << Tr::tr("Build done%1.").arg(configString());
     } else {
         m_error.append(Tr::tr("The following products could not be built%1:").arg(configString()));
-        foreach (const ResolvedProductConstPtr &p, unbuiltProducts) {
+        for (const ResolvedProductConstPtr &p : qAsConst(unbuiltProducts)) {
             QString errorMessage = Tr::tr("\t%1").arg(p->name);
             if (p->profile != m_project->profile())
                 errorMessage += Tr::tr(" (for profile '%1')").arg(p->profile);
@@ -1129,14 +1122,14 @@ bool Executor::visit(RuleNode *ruleNode)
   */
 void Executor::prepareAllNodes()
 {
-    foreach (const ResolvedProductPtr &product, m_project->allProducts()) {
+    for (const ResolvedProductPtr &product : m_project->allProducts()) {
         if (product->enabled) {
             QBS_CHECK(product->buildData);
-            foreach (BuildGraphNode * const node, product->buildData->nodes)
+            for (BuildGraphNode * const node : qAsConst(product->buildData->nodes))
                 node->buildState = BuildGraphNode::Untouched;
         }
     }
-    foreach (const ResolvedProductPtr &product, m_productsToBuild) {
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         for (Artifact * const artifact : filterByType<Artifact>(product->buildData->nodes))
             prepareArtifact(artifact);
@@ -1157,7 +1150,7 @@ void Executor::prepareArtifact(Artifact *artifact)
     }
 
     // Timestamps of file dependencies must be invalid for every build.
-    foreach (FileDependency *fileDependency, artifact->fileDependencies)
+    for (FileDependency * const fileDependency : qAsConst(artifact->fileDependencies))
         fileDependency->clearTimestamp();
 }
 
@@ -1189,7 +1182,7 @@ void Executor::setupForBuildingSelectedFiles(const BuildGraphNode *node)
  */
 void Executor::prepareReachableNodes()
 {
-    foreach (BuildGraphNode *root, m_roots)
+    for (BuildGraphNode * const root : qAsConst(m_roots))
         prepareReachableNodes_impl(root);
 }
 
@@ -1201,7 +1194,7 @@ void Executor::prepareReachableNodes_impl(BuildGraphNode *node)
         return;
 
     node->buildState = BuildGraphNode::Buildable;
-    foreach (BuildGraphNode *child, node->children)
+    for (BuildGraphNode *child : qAsConst(node->children))
         prepareReachableNodes_impl(child);
 }
 
@@ -1209,17 +1202,15 @@ void Executor::prepareProducts()
 {
     ProductPrioritySetter prioritySetter(m_project.data());
     prioritySetter.apply();
-    foreach (ResolvedProductPtr product, m_productsToBuild)
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild))
         product->setupBuildEnvironment(m_evalContext->engine(), m_project->environment);
 }
 
 void Executor::setupRootNodes()
 {
     m_roots.clear();
-    foreach (const ResolvedProductPtr &product, m_productsToBuild) {
-        foreach (BuildGraphNode *root, product->buildData->roots)
-            m_roots += root;
-    }
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild))
+        m_roots += product->buildData->roots;
 }
 
 void Executor::setState(ExecutorState s)

@@ -50,6 +50,7 @@
 #include <logging/logger.h>
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 namespace qbs {
 namespace Internal {
@@ -113,7 +114,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         return;
     if (!removedInputs.isEmpty()) {
         ArtifactSet outputArtifactsToRemove;
-        foreach (Artifact *artifact, removedInputs) {
+        for (Artifact * const artifact : removedInputs) {
             for (Artifact *parent : filterByType<Artifact>(artifact->parents)) {
                 if (parent->transformer->rule != m_rule) {
                     // parent was not created by our rule.
@@ -158,8 +159,8 @@ void RuleNode::store(PersistentPool &pool) const
 ArtifactSet RuleNode::currentInputArtifacts() const
 {
     ArtifactSet s;
-    foreach (const FileTag &t, m_rule->inputs) {
-        foreach (Artifact *artifact, product->lookupArtifactsByFileTag(t)) {
+    for (const FileTag &t : qAsConst(m_rule->inputs)) {
+        for (Artifact *artifact : product->lookupArtifactsByFileTag(t)) {
             if (artifact->transformer && artifact->transformer->rule == m_rule) {
                 // Do not add compatible artifacts as inputs that were created by this rule.
                 // This can e.g. happen for the ["cpp", "hpp"] -> ["hpp", "cpp", "unmocable"] rule.
@@ -169,7 +170,7 @@ ArtifactSet RuleNode::currentInputArtifacts() const
         }
     }
 
-    foreach (const ResolvedProductConstPtr &dep, product->dependencies) {
+    for (const ResolvedProductConstPtr &dep : qAsConst(product->dependencies)) {
         if (!dep->buildData)
             continue;
         if (m_rule->inputsFromDependencies.isEmpty())

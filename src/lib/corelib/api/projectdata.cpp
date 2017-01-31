@@ -44,6 +44,7 @@
 #include <tools/fileinfo.h>
 #include <tools/jsliterals.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
 
@@ -516,13 +517,13 @@ QList<ArtifactData> ProductData::targetArtifacts() const
 QList<ArtifactData> ProductData::installableArtifacts() const
 {
     QList<ArtifactData> artifacts;
-    foreach (const GroupData &g, groups()) {
-        foreach (const ArtifactData &a, g.allSourceArtifacts()) {
+    for (const GroupData &g : groups()) {
+        for (const ArtifactData &a : g.allSourceArtifacts()) {
             if (a.installData().isInstallable())
                 artifacts << a;
         }
     }
-    foreach (const ArtifactData &a, targetArtifacts()) {
+    for (const ArtifactData &a : targetArtifacts()) {
         if (a.installData().isInstallable())
             artifacts << a;
     }
@@ -536,7 +537,7 @@ QList<ArtifactData> ProductData::installableArtifacts() const
 QString ProductData::targetExecutable() const
 {
     QBS_ASSERT(isValid(), return QString());
-    foreach (const ArtifactData &ta, targetArtifacts()) {
+    for (const ArtifactData &ta : targetArtifacts()) {
         if (ta.isExecutable()) {
             if (ta.installData().isInstallable())
                 return ta.installData().localInstallFilePath();
@@ -717,7 +718,7 @@ QList<ProjectData> ProjectData::subProjects() const
 QList<ProductData> ProjectData::allProducts() const
 {
     QList<ProductData> productList = products();
-    foreach (const ProjectData &pd, subProjects())
+    for (const ProjectData &pd : subProjects())
         productList << pd.allProducts();
     return productList;
 }
@@ -728,7 +729,7 @@ QList<ProductData> ProjectData::allProducts() const
 QList<ArtifactData> ProjectData::installableArtifacts() const
 {
     QList<ArtifactData> artifacts;
-    foreach (const ProductData &p, allProducts())
+    for (const ProductData &p : allProducts())
         artifacts << p.installableArtifacts();
     return artifacts;
 }
@@ -819,7 +820,7 @@ QStringList PropertyMap::getModulePropertiesAsStringList(const QString &moduleNa
 {
     const QVariantList &vl = d->m_map->moduleProperty(moduleName, propertyName).toList();
     QStringList sl;
-    foreach (const QVariant &v, vl) {
+    for (const QVariant &v : vl) {
         QBS_ASSERT(v.canConvert<QString>(), continue);
         sl << v.toString();
     }
@@ -840,7 +841,7 @@ static QString mapToString(const QVariantMap &map, const QString &prefix)
     QStringList keys(map.keys());
     qSort(keys);
     QString stringRep;
-    foreach (const QString &key, keys) {
+    for (const QString &key : qAsConst(keys)) {
         const QVariant &val = map.value(key);
         if (val.type() == QVariant::Map) {
             stringRep += mapToString(val.value<QVariantMap>(), prefix + key + QLatin1Char('.'));

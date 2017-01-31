@@ -61,6 +61,7 @@
 #include <tools/profiling.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
 
@@ -130,9 +131,9 @@ public:
             }
         }
         Set<ProductContext *> allDependencies;
-        foreach (auto productContext, allProducts) {
+        for (auto productContext : qAsConst(allProducts)) {
             auto &productDependencies = m_dependencyMap[productContext];
-            foreach (const auto &dep, productContext->info.usedProducts) {
+            for (const auto &dep : qAsConst(productContext->info.usedProducts)) {
                 if (!dep.productTypes.isEmpty())
                     continue;
                 QBS_CHECK(!dep.name.isEmpty());
@@ -142,12 +143,12 @@ public:
                 allDependencies << depProduct;
             }
         }
-        Set<ProductContext *> rootProducts
+        const Set<ProductContext *> rootProducts
                 = Set<ProductContext *>::fromList(allProducts) - allDependencies;
-        foreach (ProductContext * const rootProduct, rootProducts)
+        for (ProductContext * const rootProduct : rootProducts)
             traverse(rootProduct);
         if (m_sortedProducts.count() < allProducts.count()) {
-            foreach (auto * const product, allProducts) {
+            for (auto * const product : qAsConst(allProducts)) {
                 QList<ModuleLoader::ProductContext *> path;
                 findCycle(product, path);
             }
@@ -166,7 +167,7 @@ private:
     {
         if (!m_seenProducts.insert(product).second)
             return;
-        foreach (auto dependency, m_dependencyMap.value(product))
+        for (const auto &dependency : m_dependencyMap.value(product))
             traverse(dependency);
         m_sortedProducts << product;
     }
@@ -176,13 +177,13 @@ private:
     {
         if (path.contains(product)) {
             ErrorInfo error(Tr::tr("Cyclic dependencies detected."));
-            foreach (const auto * const p, path)
+            for (const auto * const p : path)
                 error.append(p->name, p->item->location());
             error.append(product->name, product->item->location());
             throw error;
         }
         path << product;
-        foreach (auto * const dep, m_dependencyMap.value(product))
+        for (auto * const dep : m_dependencyMap.value(product))
             findCycle(dep, path);
         path.removeLast();
     }
@@ -236,12 +237,12 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
 
     m_moduleDirListCache.clear();
     m_moduleSearchPaths.clear();
-    foreach (const QString &path, searchPaths)
+    for (const QString &path : searchPaths)
         addExtraModuleSearchPath(m_moduleSearchPaths, path);
 
     if (m_logger.traceEnabled()) {
         m_logger.qbsTrace() << "[MODLDR] module search paths:";
-        foreach (const QString &path, m_moduleSearchPaths)
+        for (const QString &path : qAsConst(m_moduleSearchPaths))
             m_logger.qbsTrace() << "    " << path;
     }
 }
@@ -249,7 +250,7 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
 void ModuleLoader::setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes)
 {
     m_oldProjectProbes.clear();
-    foreach (const ProbeConstPtr& probe, oldProbes)
+    for (const ProbeConstPtr& probe : oldProbes)
         m_oldProjectProbes[probe->globalId()] << probe;
 }
 
@@ -425,7 +426,7 @@ private:
             it.value()->apply(this);
         }
         m_parentItem = oldParentItem;
-        foreach (Item *child, item->children()) {
+        for (Item * const child : item->children()) {
             if (child->type () != ItemType::Export)
                 handleItem(child);
         }
@@ -448,7 +449,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
     tlp.buildDirectory = buildDirectory;
     handleProject(loadResult, &tlp, projectItem, referencedFilePaths);
 
-    foreach (ProjectContext *projectContext, tlp.projects) {
+    for (ProjectContext * const projectContext : qAsConst(tlp.projects)) {
         m_reader->setExtraSearchPathsStack(projectContext->searchPathsStack);
         for (auto it = projectContext->products.begin(); it != projectContext->products.end();
              ++it) {
@@ -464,7 +465,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
 
     ProductSortByDependencies productSorter(tlp);
     productSorter.apply();
-    foreach (ProductContext * const p, productSorter.sortedProducts()) {
+    for (ProductContext * const p : productSorter.sortedProducts()) {
         try {
             handleProduct(p);
         } catch (const ErrorInfo &err) {
@@ -527,20 +528,20 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
                                                               m_qbsVersion.toString()));
     }
 
-    foreach (Item *child, projectItem->children()) {
+    QList<Item *> multiplexedProducts;
+    for (Item * const child : projectItem->children()) {
         child->setScope(projectContext.scope);
-        if (child->type() == ItemType::Product) {
-            foreach (Item * const additionalProductItem,
-                     multiplexProductItem(&dummyProductContext, child)) {
-                Item::addChild(projectItem, additionalProductItem);
-            }
-        }
+        if (child->type() == ItemType::Product)
+            multiplexedProducts << multiplexProductItem(&dummyProductContext, child);
     }
+    for (Item * const additionalProductItem : multiplexedProducts)
+        Item::addChild(projectItem, additionalProductItem);
 
     resolveProbes(&dummyProductContext, projectItem);
     projectContext.topLevelProject->probes.append(dummyProductContext.info.probes);
 
-    foreach (Item *child, projectItem->children()) {
+    const QList<Item *> originalChildren = projectItem->children();
+    for (Item * const child : originalChildren) {
         switch (child->type()) {
         case ItemType::Product:
             prepareProduct(&projectContext, child);
@@ -561,7 +562,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     const CodeLocation referencingLocation
             = projectItem->property(QLatin1String("references"))->location();
     QList<Item *> additionalProjectChildren;
-    foreach (const QString &filePath, refs) {
+    for (const QString &filePath : refs) {
         try {
             additionalProjectChildren << loadReferencedFile(filePath, referencingLocation,
                     referencedFilePaths, dummyProductContext);
@@ -571,7 +572,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
             m_logger.printWarning(error);
         }
     }
-    foreach (Item * const subItem, additionalProjectChildren) {
+    for (Item * const subItem : qAsConst(additionalProjectChildren)) {
         Item::addChild(projectContext.item, subItem);
         switch (subItem->type()) {
         case ItemType::Product:
@@ -617,7 +618,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         throw ErrorInfo(Tr::tr("The 'profiles' property cannot be an empty list."),
                         profilesValue->location());
     }
-    foreach (const QString &profileName, profileNames) {
+    for (const QString &profileName : profileNames) {
         if (profileNames.count(profileName) > 1) {
             throw ErrorInfo(Tr::tr("The profile '%1' appears in the 'profiles' list twice, "
                     "which is not allowed.").arg(profileName), profilesValue->location());
@@ -703,7 +704,7 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
     Settings settings(m_parameters.settingsDirectory());
     const QStringList prefsSearchPaths
             = Preferences(&settings, productContext->profileName).searchPaths();
-    foreach (const QString &p, prefsSearchPaths) {
+    for (const QString &p : prefsSearchPaths) {
         if (!m_moduleSearchPaths.contains(p) && FileInfo(p).exists())
             extraSearchPaths << p;
     }
@@ -722,7 +723,7 @@ static void createSortedModuleList(const Item::Module &parentModule, QVector<Ite
 {
     if (modules.contains(parentModule))
         return;
-    foreach (const Item::Module &dep, parentModule.item->modules())
+    for (const Item::Module &dep : parentModule.item->modules())
         createSortedModuleList(dep, modules);
     modules << parentModule;
     return;
@@ -765,7 +766,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
     Item * const item = productContext->item;
 
     Item::Modules mergedModules;
-    foreach (const Item::Module &module, item->modules()) {
+    for (const Item::Module &module : Item::Modules(item->modules())) {
         Item::Module mergedModule = module;
         ModuleMerger(m_logger, item, mergedModule).start();
         mergedModules << mergedModule;
@@ -774,11 +775,11 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 
     // Must happen after all modules have been merged, so needs to be a second loop.
     QVector<Item::Module> sortedModules;
-    foreach (const Item::Module &module, item->modules())
+    for (const Item::Module &module : item->modules())
         createSortedModuleList(module, sortedModules);
     QBS_CHECK(sortedModules.count() == item->modules().count());
 
-    foreach (const Item::Module &module, sortedModules) {
+    for (const Item::Module &module : qAsConst(sortedModules)) {
         if (!module.item->isPresentModule())
             continue;
         try {
@@ -819,7 +820,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 
     // Module validation must happen in an extra pass, after all Probes have been resolved.
     EvalCacheEnabler cacheEnabler(m_evaluator);
-    foreach (const Item::Module &module, sortedModules) {
+    for (const Item::Module &module : qAsConst(sortedModules)) {
         if (!module.item->isPresentModule())
             continue;
         try {
@@ -840,7 +841,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
     copyGroupsFromModulesToProduct(*productContext);
 
     ModuleDependencies reverseModuleDeps;
-    foreach (Item *child, item->children()) {
+    for (Item * const child : item->children()) {
         if (child->type() == ItemType::Group) {
             if (reverseModuleDeps.isEmpty())
                 reverseModuleDeps = setupReverseModuleDependencies(item);
@@ -971,7 +972,7 @@ void ModuleLoader::handleGroup(Item *groupItem, const ModuleDependencies &revers
     checkCancelation();
     propagateModulesFromParent(groupItem, reverseDepencencies);
     checkItemCondition(groupItem);
-    foreach (Item * const child, groupItem->children()) {
+    for (Item * const child : groupItem->children()) {
         if (child->type() == ItemType::Group)
             handleGroup(child, reverseDepencencies);
     }
@@ -1079,7 +1080,7 @@ ProbeConstPtr ModuleLoader::findOldProjectProbe(
     if (m_parameters.forceProbeExecution())
         return ProbeConstPtr();
 
-    foreach (const ProbeConstPtr &oldProbe, m_oldProjectProbes.value(globalId)) {
+    for (const ProbeConstPtr &oldProbe : m_oldProjectProbes.value(globalId)) {
         if (probeEqualTo(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
             return oldProbe;
     }
@@ -1096,7 +1097,7 @@ ProbeConstPtr ModuleLoader::findOldProductProbe(
     if (m_parameters.forceProbeExecution())
         return ProbeConstPtr();
 
-    foreach (const ProbeConstPtr &oldProbe, m_oldProductProbes.value(productName)) {
+    for (const ProbeConstPtr &oldProbe : m_oldProductProbes.value(productName)) {
         if (probeEqualTo(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
             return oldProbe;
     }
@@ -1109,8 +1110,8 @@ ProbeConstPtr ModuleLoader::findCurrentProbe(
         bool condition,
         const QVariantMap &initialProperties) const
 {
-    const QList<ProbeConstPtr> cachedProbes = m_currentProbes.value(location);
-    foreach (const ProbeConstPtr &probe, cachedProbes) {
+    const QList<ProbeConstPtr> &cachedProbes = m_currentProbes.value(location);
+    for (const ProbeConstPtr &probe : cachedProbes) {
         if (probeEqualTo(probe, condition, initialProperties, QString(), CompareScript::No))
             return probe;
     }
@@ -1151,7 +1152,7 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
 
     Item *merged = Item::create(productContext.item->pool(), ItemType::Export);
     Set<FileContextConstPtr> filesWithExportItem;
-    foreach (Item *exportItem, exportItems) {
+    for (Item * const exportItem : qAsConst(exportItems)) {
         checkCancelation();
         if (Q_UNLIKELY(filesWithExportItem.contains(exportItem->file())))
             throw ErrorInfo(Tr::tr("Multiple Export items in one product are prohibited."),
@@ -1159,7 +1160,7 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
         if (!checkExportItemCondition(exportItem, productContext))
             continue;
         filesWithExportItem += exportItem->file();
-        foreach (Item *child, exportItem->children())
+        for (Item * const child : exportItem->children())
             Item::addChild(merged, child);
         const Item::PropertyDeclarationMap &decls = exportItem->propertyDeclarations();
         for (auto it = decls.constBegin(); it != decls.constEnd(); ++it) {
@@ -1441,7 +1442,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                         replacement = Item::create(v->definingItem()->pool(),
                                                    v->definingItem()->type());
                         replacement->setProperties(v->definingItem()->properties());
-                        foreach (const auto &decl, v->definingItem()->propertyDeclarations())
+                        for (const auto &decl : v->definingItem()->propertyDeclarations())
                             replacement->setPropertyDeclaration(decl.name(), decl);
                         replacement->setPrototype(v->definingItem()->prototype());
                         replacement->setScope(Item::create(v->definingItem()->pool(),
@@ -1470,12 +1471,12 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     // Resolve all Depends items.
     ItemModuleList loadedModules;
     ProductDependencyResults productDependencies;
-    foreach (Item *child, item->children())
+    for (Item * const child : item->children())
         if (child->type() == ItemType::Depends)
             resolveDependsItem(dependsContext, item, child, &loadedModules, &productDependencies);
 
     item->addModule(baseModule);
-    foreach (const Item::Module &module, loadedModules)
+    for (const Item::Module &module : qAsConst(loadedModules))
         item->addModule(module);
 
     dependsContext->productDependencies->append(productDependencies);
@@ -1513,8 +1514,9 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
     const QString name
             = m_evaluator->stringValue(dependsItem, QLatin1String("name"), QString(), &nameIsSet);
     bool submodulesPropertySet;
-    QStringList submodules = m_evaluator->stringListValue(dependsItem, QLatin1String("submodules"),
-                                                          &submodulesPropertySet);
+    const QStringList submodules = m_evaluator->stringListValue(dependsItem,
+                                                                QLatin1String("submodules"),
+                                                                &submodulesPropertySet);
     if (productTypesIsSet) {
         if (nameIsSet) {
             throw ErrorInfo(Tr::tr("The 'productTypes' and 'name' properties are mutually "
@@ -1556,12 +1558,12 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
 
         moduleNames << nameParts;
     } else {
-        foreach (const QString &submodule, submodules)
+        for (const QString &submodule : submodules)
             moduleNames << nameParts + QualifiedId::fromString(submodule);
     }
 
     Item::Module result;
-    foreach (const QualifiedId &moduleName, moduleNames) {
+    for (const QualifiedId &moduleName : qAsConst(moduleNames)) {
         bool isRequired = m_evaluator->boolValue(dependsItem, QLatin1String("required"));
         for (int i = m_requiredChain.count() - 1; i >= 0 && isRequired; --i) {
             if (!m_requiredChain.at(i))
@@ -1619,7 +1621,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
                 productResults->append(dependency);
                 continue;
             }
-            foreach (const QString &profile, profiles) {
+            for (const QString &profile : profiles) {
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
                 dependency.name = moduleName.toString();
                 dependency.profile = profile;
@@ -1736,7 +1738,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         return moduleInstance; // already handled
 
     if (Q_UNLIKELY(moduleInstance->type() == ItemType::ModulePrefix)) {
-        foreach (const Item::Module &m, item->modules()) {
+        for (const Item::Module &m : item->modules()) {
             if (m.name.first() == moduleName.first())
                 throwModuleNamePrefixError(moduleName, m.name, dependsItemLocation);
         }
@@ -1748,7 +1750,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
     if (!modulePrototype) {
         *isProductDependency = false;
         QStringList moduleSearchPaths;
-        foreach (const QString &searchPath, m_reader->searchPaths())
+        for (const QString &searchPath : m_reader->searchPaths())
             addExtraModuleSearchPath(moduleSearchPaths, searchPath);
         bool cacheHit = false;
         modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
@@ -1773,7 +1775,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
 
     bool triedToLoadModule = false;
     const QString fullName = moduleName.toString();
-    foreach (const QString &path, searchPaths) {
+    for (const QString &path : qAsConst(searchPaths)) {
         const QString dirPath = findExistingModulePath(path, moduleName);
         if (dirPath.isEmpty())
             continue;
@@ -1785,7 +1787,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
 
             m_moduleDirListCache.insert(dirPath, moduleFileNames);
         }
-        foreach (const QString &filePath, moduleFileNames) {
+        for (const QString &filePath : qAsConst(moduleFileNames)) {
             triedToLoadModule = true;
             Item *module = loadModuleFile(productContext, fullName,
                                             moduleName.count() == 1
@@ -1915,7 +1917,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         return 0;
     }
 
-    foreach (const ErrorInfo &error, unknownProfilePropertyErrors)
+    for (const ErrorInfo &error : qAsConst(unknownProfilePropertyErrors))
         handlePropertyError(error, m_parameters, m_logger);
 
     module->setProperty(QLatin1String("name"), VariantValue::create(fullModuleName));
@@ -2080,7 +2082,7 @@ static void collectItemsWithId_impl(Item *item, QList<Item *> *result)
 {
     if (!item->id().isEmpty())
         result->append(item);
-    foreach (Item *child, item->children())
+    for (Item * const child : item->children())
         collectItemsWithId_impl(child, result);
 }
 
@@ -2152,7 +2154,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
 
     // create ids from from the prototype in the instance
     if (modulePrototype->file()->idScope()) {
-        foreach (Item *itemWithId, collectItemsWithId(modulePrototype)) {
+        for (Item * const itemWithId : collectItemsWithId(modulePrototype)) {
             Item *idProto = itemWithId;
             Item *idInstance = prototypeInstanceMap.value(idProto);
             QBS_ASSERT(idInstance, continue);
@@ -2162,7 +2164,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     }
 
     // create module instances for the dependencies of this module
-    foreach (Item::Module m, modulePrototype->modules()) {
+    for (Item::Module m : modulePrototype->modules()) {
         Item *depinst = moduleInstanceItem(moduleInstance, m.name);
         const bool safetyCheck = true;
         if (safetyCheck) {
@@ -2203,7 +2205,7 @@ void ModuleLoader::createChildInstances(ProductContext *productContext, Item *in
                                         Item *prototype,
                                         QHash<Item *, Item *> *prototypeInstanceMap) const
 {
-    foreach (Item *childPrototype, prototype->children()) {
+    for (Item * const childPrototype : prototype->children()) {
         Item *childInstance = Item::create(m_pool, childPrototype->type());
         prototypeInstanceMap->insert(childPrototype, childInstance);
         childInstance->setPrototype(childPrototype);
@@ -2219,7 +2221,7 @@ void ModuleLoader::resolveProbes(ProductContext *productContext, Item *item)
 {
     AccumulatingTimer probesTimer(m_parameters.logElapsedTime() ? &m_elapsedTimeProbes : nullptr);
     EvalContextSwitcher evalContextSwitcher(m_evaluator->engine(), EvalContext::ProbeExecution);
-    foreach (Item *child, item->children())
+    for (Item * const child : item->children())
         if (child->type() == ItemType::Probe)
             resolveProbe(productContext, item, child);
 }
@@ -2237,7 +2239,9 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     QList<ProbeProperty> probeBindings;
     QVariantMap initialProperties;
     for (Item *obj = probe; obj; obj = obj->prototype()) {
-        foreach (const QString &name, obj->properties().keys()) {
+        const Item::PropertyMap &props = obj->properties();
+        for (auto it = props.cbegin(); it != props.cend(); ++it) {
+            const QString &name = it.key();
             if (name == QLatin1String("configure"))
                 continue;
             const QScriptValue value = m_evaluator->value(probe, name);
@@ -2252,7 +2256,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     engine->currentContext()->pushScope(m_evaluator->fileScope(configureScript->file()));
     engine->currentContext()->pushScope(m_evaluator->importScope(configureScript->file()));
     engine->currentContext()->pushScope(scope);
-    foreach (const ProbeProperty &b, probeBindings)
+    for (const ProbeProperty &b : qAsConst(probeBindings))
         scope.setProperty(b.first, b.second);
     const bool condition = m_evaluator->boolValue(probe, QLatin1String("condition"));
     const QString &sourceCode = configureScript->sourceCode().toString();
@@ -2276,7 +2280,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
             evalError = ErrorInfo(engine->lastErrorString(sv), configureScript->location());
     }
     QVariantMap properties;
-    foreach (const ProbeProperty &b, probeBindings) {
+    for (const ProbeProperty &b : qAsConst(probeBindings)) {
         const QVariant newValue = resolvedProbe
                 ? resolvedProbe->properties().value(b.first) : scope.property(b.first).toVariant();
         if (newValue != b.second.toVariant())
@@ -2325,7 +2329,7 @@ QStringList ModuleLoader::readExtraSearchPaths(Item *item, bool *wasSet)
     // (e.g command line).
     const QString basePath = FileInfo::path(prop ? prop->file()->filePath()
                                                  : m_parameters.projectFilePath());
-    foreach (const QString &path, paths)
+    for (const QString &path : paths)
         result += FileInfo::resolvePath(basePath, path);
     return result;
 }
@@ -2337,7 +2341,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
     const QList<PropertyDeclaration> &builtinProjectProperties = BuiltinDeclarations::instance()
             .declarationsForType(ItemType::Project).properties();
     Set<QString> builtinProjectPropertyNames;
-    foreach (const PropertyDeclaration &p, builtinProjectProperties)
+    for (const PropertyDeclaration &p : builtinProjectProperties)
         builtinProjectPropertyNames << p.name();
 
     for (Item::PropertyDeclarationMap::ConstIterator it
@@ -2385,7 +2389,7 @@ QString ModuleLoader::findExistingModulePath(const QString &searchPath,
         const QualifiedId &moduleName)
 {
     QString dirPath = searchPath;
-    foreach (const QString &moduleNamePart, moduleName) {
+    for (const QString &moduleNamePart : moduleName) {
         dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
         if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath))
             return QString();
@@ -2395,7 +2399,7 @@ QString ModuleLoader::findExistingModulePath(const QString &searchPath,
 
 void ModuleLoader::setScopeForDescendants(Item *item, Item *scope)
 {
-    foreach (Item *child, item->children()) {
+    for (Item * const child : item->children()) {
         child->setScope(scope);
         setScopeForDescendants(child, scope);
     }
@@ -2424,7 +2428,7 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
 
 static void collectAllModules(Item *item, QVector<Item::Module> *modules)
 {
-    foreach (const Item::Module &m, item->modules()) {
+    for (const Item::Module &m : item->modules()) {
         auto it = std::find_if(modules->begin(), modules->end(),
                                [m] (const Item::Module &m2) { return m.name == m2.name; });
         if (it != modules->end()) {
@@ -2452,7 +2456,7 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
         m_logger.qbsTrace() << "[MODLDR] addTransitiveDependencies";
     QVector<Item::Module> transitiveDeps = allModules(ctx->item);
     std::sort(transitiveDeps.begin(), transitiveDeps.end());
-    foreach (const Item::Module &m, ctx->item->modules()) {
+    for (const Item::Module &m : ctx->item->modules()) {
         if (m.isProduct) {
             ctx->info.usedProducts.append(
                         ctx->project->topLevelProject->productModules.value(
@@ -2463,7 +2467,7 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
         QBS_CHECK(it != transitiveDeps.end() && it->name == m.name);
         transitiveDeps.erase(it);
     }
-    foreach (const Item::Module &module, transitiveDeps) {
+    for (const Item::Module &module : qAsConst(transitiveDeps)) {
         if (module.isProduct) {
             ctx->item->addModule(module);
             ctx->info.usedProducts.append(
@@ -2528,7 +2532,7 @@ void ModuleLoader::copyGroupsFromModuleToProduct(const ProductContext &productCo
 
 void ModuleLoader::copyGroupsFromModulesToProduct(const ProductContext &productContext)
 {
-    foreach (const Item::Module &module, productContext.item->modules()) {
+    for (const Item::Module &module : productContext.item->modules()) {
         Item *prototype = module.item;
         bool modulePassedValidation;
         while ((modulePassedValidation = prototype->isPresentModule()) && prototype->prototype())

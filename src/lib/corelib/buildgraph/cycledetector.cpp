@@ -46,6 +46,7 @@
 #include <language/language.h>
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/qttools.h>
 
 namespace qbs {
 namespace Internal {
@@ -79,7 +80,7 @@ bool CycleDetector::visitNode(BuildGraphNode *node)
 {
     if (Q_UNLIKELY(m_nodesInCurrentPath.contains(node))) {
         ErrorInfo error(Tr::tr("Cycle in build graph detected."));
-        foreach (const BuildGraphNode * const n, cycle(node))
+        for (const BuildGraphNode * const n : cycle(node))
             error.append(n->toString());
         throw error;
     }
@@ -89,7 +90,7 @@ bool CycleDetector::visitNode(BuildGraphNode *node)
 
     m_nodesInCurrentPath += node;
     m_parent = node;
-    foreach (BuildGraphNode * const child, node->children)
+    for (BuildGraphNode * const child : qAsConst(node->children))
         child->accept(this);
     m_nodesInCurrentPath -= node;
     m_allNodes += node;

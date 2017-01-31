@@ -81,6 +81,8 @@ public:
     virtual QString toString() const = 0;
     virtual void onChildDisconnected(BuildGraphNode *child);
 
+    bool isBuilt() const { return buildState == Built; }
+
 protected:
     explicit BuildGraphNode();
     void acceptChildren(BuildGraphVisitor *visitor);

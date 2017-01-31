@@ -49,8 +49,8 @@ IdentifierSearch::IdentifierSearch()
 
 void IdentifierSearch::start(QbsQmlJS::AST::Node *node)
 {
-    foreach (bool *found, m_requests)
-        *found = false;
+    for (auto it = m_requests.cbegin(); it != m_requests.cend(); ++it)
+        *it.value() = false;
     m_numberOfFoundIds = 0;
     node->accept(this);
 }

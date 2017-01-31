@@ -50,6 +50,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
@@ -94,7 +95,7 @@ void ProductInstaller::install()
         removeInstallRoot();
 
     QList<const Artifact *> artifactsToInstall;
-    foreach (const ResolvedProductConstPtr &product, m_products) {
+    for (const ResolvedProductConstPtr &product : qAsConst(m_products)) {
         QBS_CHECK(product->buildData);
         for (const Artifact *artifact : filterByType<Artifact>(product->buildData->nodes)) {
             if (artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
@@ -103,7 +104,7 @@ void ProductInstaller::install()
     }
     m_observer->initialize(Tr::tr("Installing"), artifactsToInstall.count());
 
-    foreach (const Artifact * const a, artifactsToInstall) {
+    for (const Artifact * const a : qAsConst(artifactsToInstall)) {
         copyFile(a);
         m_observer->incrementProgressValue();
     }

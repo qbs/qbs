@@ -56,6 +56,7 @@
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 namespace qbs {
 namespace Internal {
@@ -63,7 +64,7 @@ namespace Internal {
 static Set<ResolvedProductPtr> findDependentProducts(const ResolvedProductPtr &product)
 {
     Set<ResolvedProductPtr> result;
-    foreach (const ResolvedProductPtr &parent, product->topLevelProject()->allProducts()) {
+    for (const ResolvedProductPtr &parent : product->topLevelProject()->allProducts()) {
         if (parent->dependencies.contains(product))
             result += parent;
     }
@@ -104,7 +105,7 @@ void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)
             = m_artifactLookupTable[fileres->fileName()][fileres->dirPath()];
     const auto * const artifact = dynamic_cast<Artifact *>(fileres);
     if (artifact && artifact->artifactType == Artifact::Generated) {
-        foreach (const auto *file, lst) {
+        for (const auto *file : lst) {
             const auto * const otherArtifact = dynamic_cast<const Artifact *>(file);
             if (otherArtifact) {
                 ErrorInfo error;
@@ -159,7 +160,7 @@ static void disconnectArtifactChildren(Artifact *artifact, const Logger &logger)
         logger.qbsTrace() << QString::fromLatin1("[BG] disconnectChildren: '%1'")
                              .arg(relativeArtifactFileName(artifact));
     }
-    foreach (BuildGraphNode * const child, artifact->children)
+    for (BuildGraphNode * const child : qAsConst(artifact->children))
         child->parents.remove(artifact);
     artifact->children.clear();
     artifact->childrenAddedByScanner.clear();
@@ -171,7 +172,7 @@ static void disconnectArtifactParents(Artifact *artifact, const Logger &logger)
         logger.qbsTrace() << QString::fromLatin1("[BG] disconnectParents: '%1'")
                              .arg(relativeArtifactFileName(artifact));
     }
-    foreach (BuildGraphNode * const parent, artifact->parents) {
+    for (BuildGraphNode * const parent : qAsConst(artifact->parents)) {
         parent->children.remove(artifact);
         Artifact *parentArtifact = dynamic_cast<Artifact *>(parent);
         if (parentArtifact) {
@@ -229,11 +230,10 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
 
 static void removeFromRuleNodes(Artifact *artifact, const Logger &logger)
 {
-    foreach (const ResolvedProductPtr &product,
-             artifact->product->topLevelProject()->allProducts()) {
+    for (const ResolvedProductPtr &product : artifact->product->topLevelProject()->allProducts()) {
         if (!product->buildData)
             continue;
-        foreach (BuildGraphNode *n, product->buildData->nodes) {
+        for (BuildGraphNode *n : qAsConst(product->buildData->nodes)) {
             if (n->type() != BuildGraphNode::RuleNodeType)
                 continue;
             RuleNode * const ruleNode = static_cast<RuleNode *>(n);
@@ -298,7 +298,7 @@ void BuildDataResolver::resolveBuildData(const TopLevelProjectPtr &resolvedProje
     const QList<ResolvedProductPtr> allProducts = resolvedProject->allProducts();
     evalContext->initializeObserver(Tr::tr("Setting up build graph for configuration %1")
                                     .arg(resolvedProject->id()), allProducts.count() + 1);
-    foreach (ResolvedProductPtr rProduct, allProducts) {
+    for (ResolvedProductPtr rProduct : allProducts) {
         if (rProduct->enabled)
             resolveProductBuildData(rProduct);
         evalContext->incrementProgressValue();
@@ -311,7 +311,7 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevel
         const QList<ResolvedProductPtr> &freshProducts)
 {
     m_project = project;
-    foreach (const ResolvedProductPtr &product, freshProducts) {
+    for (const ResolvedProductPtr &product : freshProducts) {
         if (product->enabled)
             resolveProductBuildData(product);
     }
@@ -359,7 +359,7 @@ private:
     {
         if (!m_rulesOnPath.insert(rule.data()).second) {
             QString pathstr;
-            foreach (const Rule *r, m_rulePath) {
+            for (const Rule *r : qAsConst(m_rulePath)) {
                 pathstr += QLatin1Char('\n') + r->toString() + QLatin1Char('\t')
                         + r->prepareScript->location.toString();
             }
@@ -412,7 +412,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     product->buildData.reset(new ProductBuildData);
     ProductBuildData::ArtifactSetByFileTag artifactsPerFileTag;
 
-    foreach (ResolvedProductPtr dependency, product->dependencies) {
+    for (ResolvedProductPtr dependency : qAsConst(product->dependencies)) {
         QBS_CHECK(dependency->enabled);
         resolveProductBuildData(dependency);
     }
@@ -430,13 +430,13 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
 
     // read sources
-    foreach (const SourceArtifactConstPtr &sourceArtifact, product->allEnabledFiles()) {
+    for (const SourceArtifactConstPtr &sourceArtifact : product->allEnabledFiles()) {
         QString filePath = sourceArtifact->absoluteFilePath;
         if (lookupArtifact(product, filePath))
             continue; // ignore duplicate artifacts
 
         Artifact *artifact = createArtifact(product, sourceArtifact, m_logger);
-        foreach (const FileTag &fileTag, artifact->fileTags())
+        for (const FileTag &fileTag : artifact->fileTags())
             artifactsPerFileTag[fileTag].insert(artifact);
     }
 

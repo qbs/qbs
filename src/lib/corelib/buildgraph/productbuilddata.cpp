@@ -80,7 +80,7 @@ void ProductBuildData::store(PersistentPool &pool) const
 
 void addArtifactToSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container)
 {
-    foreach (const FileTag &tag, artifact->fileTags())
+    for (const FileTag &tag : artifact->fileTags())
         container[tag] += artifact;
 }
 
@@ -97,7 +97,7 @@ void removeArtifactFromSetByFileTag(Artifact *artifact, const FileTag &fileTag,
 
 void removeArtifactFromSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container)
 {
-    foreach (const FileTag &t, artifact->fileTags())
+    for (const FileTag &t : artifact->fileTags())
         removeArtifactFromSetByFileTag(artifact, t, container);
 }
 

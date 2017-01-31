@@ -57,6 +57,7 @@
 #include <tools/persistence.h>
 #include <tools/profiling.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
@@ -78,17 +79,17 @@ BuildGraphLoader::~BuildGraphLoader()
 
 static void restoreBackPointers(const ResolvedProjectPtr &project)
 {
-    foreach (const ResolvedProductPtr &product, project->products) {
+    for (const ResolvedProductPtr &product : qAsConst(project->products)) {
         product->project = project;
         if (!product->buildData)
             continue;
-        foreach (BuildGraphNode * const n, product->buildData->nodes) {
+        for (BuildGraphNode * const n : qAsConst(product->buildData->nodes)) {
             if (Artifact *a = dynamic_cast<Artifact *>(n))
                 project->topLevelProject()->buildData->insertIntoLookupTable(a);
         }
     }
 
-    foreach (const ResolvedProjectPtr &subProject, project->subProjects) {
+    for (const ResolvedProjectPtr &subProject : qAsConst(project->subProjects)) {
         subProject->parentProject = project;
         restoreBackPointers(subProject);
     }
@@ -113,7 +114,7 @@ BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingPr
     if (!m_result.loadedProject)
         return m_result;
     if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly) {
-        foreach (const ErrorInfo &e, m_result.loadedProject->warningsEncountered)
+        for (const ErrorInfo &e : qAsConst(m_result.loadedProject->warningsEncountered))
             m_logger.printWarning(e);
         return m_result;
     }
@@ -198,7 +199,7 @@ static bool checkProductForChangedDependency(QList<ResolvedProductPtr> &changedP
         return false;
     if (changedProducts.contains(product))
         return true;
-    foreach (const ResolvedProductPtr &dep, product->dependencies) {
+    for (const ResolvedProductPtr &dep : qAsConst(product->dependencies)) {
         if (checkProductForChangedDependency(changedProducts, seenProducts, dep)) {
             changedProducts << product;
             return true;
@@ -216,7 +217,7 @@ static void makeChangedProductsListComplete(QList<ResolvedProductPtr> &changedPr
                                             const QList<ResolvedProductPtr> &allRestoredProducts)
 {
     Set<ResolvedProductPtr> seenProducts;
-    foreach (const ResolvedProductPtr &p, allRestoredProducts)
+    for (const ResolvedProductPtr &p : allRestoredProducts)
         checkProductForChangedDependency(changedProducts, seenProducts, p);
 }
 
@@ -251,7 +252,7 @@ void BuildGraphLoader::trackProjectChanges()
     }
 
     if (!reResolvingNecessary) {
-        foreach (const ErrorInfo &e, restoredProject->warningsEncountered)
+        for (const ErrorInfo &e : qAsConst(restoredProject->warningsEncountered))
             m_logger.printWarning(e);
         return;
     }
@@ -262,7 +263,7 @@ void BuildGraphLoader::trackProjectChanges()
     ldr.setProgressObserver(m_evalContext->observer());
     ldr.setOldProjectProbes(restoredProject->probes);
     QHash<QString, QList<ProbeConstPtr>> restoredProbes;
-    foreach (const auto restoredProduct, allRestoredProducts)
+    for (const auto &restoredProduct : qAsConst(allRestoredProducts))
         restoredProbes.insert(restoredProduct->uniqueName(), restoredProduct->probes);
     ldr.setOldProductProbes(restoredProbes);
     m_result.newlyResolvedProject = ldr.loadProject(m_parameters);
@@ -270,7 +271,7 @@ void BuildGraphLoader::trackProjectChanges()
     QMap<QString, ResolvedProductPtr> freshProductsByName;
     QList<ResolvedProductPtr> allNewlyResolvedProducts
             = m_result.newlyResolvedProject->allProducts();
-    foreach (const ResolvedProductPtr &cp, allNewlyResolvedProducts)
+    for (const ResolvedProductPtr &cp : qAsConst(allNewlyResolvedProducts))
         freshProductsByName.insert(cp->uniqueName(), cp);
 
     checkAllProductsForChanges(allRestoredProducts, freshProductsByName, changedProducts);
@@ -280,7 +281,7 @@ void BuildGraphLoader::trackProjectChanges()
     if (!changedProducts.isEmpty()) {
         oldBuildData = QSharedPointer<ProjectBuildData>(
                     new ProjectBuildData(restoredProject->buildData.data()));
-        foreach (const ResolvedProductConstPtr &product, allRestoredProducts) {
+        for (const ResolvedProductConstPtr &product : qAsConst(allRestoredProducts)) {
             if (!product->buildData)
                 continue;
 
@@ -299,7 +300,7 @@ void BuildGraphLoader::trackProjectChanges()
     // mean that artifacts will have to get rebuilt; whether this is necesessary will be decided
     // an a per-artifact basis by the Executor on the next build.
     QHash<QString, AllRescuableArtifactData> rescuableArtifactData;
-    foreach (const ResolvedProductPtr &product, changedProducts) {
+    for (const ResolvedProductPtr &product : qAsConst(changedProducts)) {
         ResolvedProductPtr freshProduct = freshProductsByName.value(product->uniqueName());
         if (!freshProduct)
             continue;
@@ -323,7 +324,7 @@ void BuildGraphLoader::trackProjectChanges()
                 if (newlyResolvedProduct->enabled)
                     newlyResolvedProduct->buildData.swap(restoredProduct->buildData);
                 if (newlyResolvedProduct->buildData) {
-                    foreach (BuildGraphNode *node, newlyResolvedProduct->buildData->nodes)
+                    for (BuildGraphNode *node : qAsConst(newlyResolvedProduct->buildData->nodes))
                         node->product = newlyResolvedProduct;
                 }
 
@@ -338,7 +339,7 @@ void BuildGraphLoader::trackProjectChanges()
     }
 
     // Products still left in the list do not exist anymore.
-    foreach (const ResolvedProductPtr &removedProduct, allRestoredProducts) {
+    for (const ResolvedProductPtr &removedProduct : qAsConst(allRestoredProducts)) {
         changedProducts.removeOne(removedProduct);
         onProductRemoved(removedProduct, m_result.newlyResolvedProject->buildData.data());
     }
@@ -351,7 +352,7 @@ void BuildGraphLoader::trackProjectChanges()
                                                       allNewlyResolvedProducts);
     }
 
-    foreach (const ResolvedProductConstPtr &changedProduct, changedProducts) {
+    for (const ResolvedProductConstPtr &changedProduct : qAsConst(changedProducts)) {
         rescueOldBuildData(changedProduct, freshProductsByName.value(changedProduct->uniqueName()),
                            childLists, rescuableArtifactData.value(changedProduct->uniqueName()));
     }
@@ -359,7 +360,7 @@ void BuildGraphLoader::trackProjectChanges()
     EmptyDirectoriesRemover(m_result.newlyResolvedProject.data(), m_logger)
             .removeEmptyParentDirectories(m_artifactsRemovedFromDisk);
 
-    foreach (FileResourceBase * const f, m_objectsToDelete) {
+    for (FileResourceBase * const f : qAsConst(m_objectsToDelete)) {
         Artifact * const a = dynamic_cast<Artifact *>(f);
         if (a)
             a->product.clear(); // To help with the sanity checks.
@@ -377,7 +378,7 @@ bool BuildGraphLoader::probeExecutionForced(
     if (!restoredProject->probes.isEmpty())
         return true;
 
-    foreach (const auto &p, restoredProducts) {
+    for (const auto &p : qAsConst(restoredProducts)) {
         if (!p->probes.isEmpty())
             return true;
     }
@@ -469,7 +470,7 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
         QList<ResolvedProductPtr> &changedProducts)
 {
     bool hasChanged = false;
-    foreach (const ResolvedProductPtr &product, restoredProducts) {
+    for (const ResolvedProductPtr &product : restoredProducts) {
         const QString filePath = product->location.filePath();
         const FileInfo pfi(filePath);
         remainingBuildSystemFiles.remove(filePath);
@@ -498,7 +499,7 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
 
             AccumulatingTimer wildcardTimer(m_parameters.logElapsedTime()
                                             ? &m_wildcardExpansionEffort : nullptr);
-            foreach (const GroupPtr &group, product->groups) {
+            for (const GroupPtr &group : qAsConst(product->groups)) {
                 if (!group->wildcards)
                     continue;
                 const bool reExpansionRequired = std::any_of(
@@ -513,8 +514,10 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
                         FileInfo::path(group->location.filePath()),
                         product->topLevelProject()->buildDirectory);
                 Set<QString> wcFiles;
-                foreach (const SourceArtifactConstPtr &sourceArtifact, group->wildcards->files)
+                for (const SourceArtifactConstPtr &sourceArtifact
+                     : qAsConst(group->wildcards->files)) {
                     wcFiles += sourceArtifact->absoluteFilePath;
+                }
                 if (files == wcFiles)
                     continue;
                 hasChanged = true;
@@ -530,7 +533,7 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
 bool BuildGraphLoader::hasBuildSystemFileChanged(const Set<QString> &buildSystemFiles,
                                                  const FileTime &referenceTime)
 {
-    foreach (const QString &file, buildSystemFiles) {
+    for (const QString &file : buildSystemFiles) {
         const FileInfo fi(file);
         if (!fi.exists() || referenceTime < fi.lastModified()) {
             m_logger.qbsDebug() << "A qbs or js file changed, must re-resolve project.";
@@ -544,7 +547,7 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
         const QMap<QString, ResolvedProductPtr> &newlyResolvedProductsByName,
         QList<ResolvedProductPtr> &changedProducts)
 {
-    foreach (const ResolvedProductPtr &restoredProduct, restoredProducts) {
+    for (const ResolvedProductPtr &restoredProduct : restoredProducts) {
         const ResolvedProductPtr newlyResolvedProduct
                 = newlyResolvedProductsByName.value(restoredProduct->uniqueName());
         if (!newlyResolvedProduct)
@@ -582,9 +585,9 @@ static bool dependenciesAreEqual(const ResolvedProductConstPtr &p1,
         return false;
     Set<QString> names1;
     Set<QString> names2;
-    foreach (const ResolvedProductConstPtr &dep, p1->dependencies)
+    for (const ResolvedProductConstPtr &dep : qAsConst(p1->dependencies))
         names1 << dep->uniqueName();
-    foreach (const ResolvedProductConstPtr &dep, p2->dependencies)
+    for (const ResolvedProductConstPtr &dep : qAsConst(p2->dependencies))
         names2 << dep->uniqueName();
     return names1 == names2;
 }
@@ -603,7 +606,7 @@ bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restored
     if (!dependenciesAreEqual(restoredProduct, newlyResolvedProduct))
         return true;
     const FileTime referenceTime = restoredProduct->topLevelProject()->lastResolveTime;
-    foreach (const RuleConstPtr &rule, newlyResolvedProduct->rules) {
+    for (const RuleConstPtr &rule : qAsConst(newlyResolvedProduct->rules)) {
         if (!isPrepareScriptUpToDate(rule->prepareScript, referenceTime))
             return true;
     }
@@ -618,7 +621,7 @@ bool BuildGraphLoader::checkProductForInstallInfoChanges(const ResolvedProductPt
     const QStringList specialProperties = QStringList() << QLatin1String("install")
             << QLatin1String("installDir") << QLatin1String("installPrefix")
             << QLatin1String("installRoot");
-    foreach (const QString &key, specialProperties) {
+    for (const QString &key : specialProperties) {
         if (restoredProduct->moduleProperties->qbsPropertyValue(key)
                 != newlyResolvedProduct->moduleProperties->qbsPropertyValue(key)) {
             m_logger.qbsDebug() << "Product property 'qbs." << key << "' changed.";
@@ -683,7 +686,7 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
 
     product->project->products.removeOne(product);
     if (product->buildData) {
-        foreach (BuildGraphNode * const node, product->buildData->nodes) {
+        for (BuildGraphNode * const node : qAsConst(product->buildData->nodes)) {
             if (node->type() == BuildGraphNode::ArtifactNodeType) {
                 Artifact * const artifact = static_cast<Artifact *>(node);
                 projectBuildData->removeArtifact(artifact, m_logger, removeArtifactsFromDisk,
@@ -691,10 +694,10 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
                 if (removeArtifactsFromDisk && artifact->artifactType == Artifact::Generated)
                     m_artifactsRemovedFromDisk << artifact->filePath();
             } else {
-                foreach (BuildGraphNode * const parent, node->parents)
+                for (BuildGraphNode * const parent : qAsConst(node->parents))
                     parent->children.remove(node);
                 node->parents.clear();
-                foreach (BuildGraphNode * const child, node->children)
+                for (BuildGraphNode * const child : qAsConst(node->children))
                     child->parents.remove(node);
                 node->children.clear();
             }
@@ -707,7 +710,7 @@ static SourceArtifactConstPtr findSourceArtifact(const ResolvedProductConstPtr &
 {
     SourceArtifactConstPtr &artifact = artifactMap[artifactFilePath];
     if (!artifact) {
-        foreach (const SourceArtifactConstPtr &a, product->allFiles()) {
+        for (const SourceArtifactConstPtr &a : product->allFiles()) {
             if (a->absoluteFilePath == artifactFilePath) {
                 artifact = a;
                 break;
@@ -744,7 +747,7 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
         const ResolvedProductPtr &freshProduct)
 {
     // This check must come first, as it can prevent build data rescuing.
-    foreach (const Property &property, restoredTrafo->propertiesRequestedInCommands) {
+    for (const Property &property : qAsConst(restoredTrafo->propertiesRequestedInCommands)) {
         if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property.kind))) {
             invalidateTransformer(restoredTrafo);
             return true;
@@ -758,7 +761,7 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
                 = findSourceArtifact(freshProduct, it.key(), artifactMap);
         if (!artifact)
             continue;
-        foreach (const Property &property, it.value()) {
+        for (const Property &property : qAsConst(it.value())) {
             if (checkForPropertyChange(property, artifact->properties->value())) {
                 invalidateTransformer(restoredTrafo);
                 return true;
@@ -766,7 +769,7 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
         }
     }
 
-    foreach (const Property &property, restoredTrafo->propertiesRequestedInPrepareScript) {
+    for (const Property &property : qAsConst(restoredTrafo->propertiesRequestedInPrepareScript)) {
         if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property.kind)))
             return true;
     }
@@ -774,11 +777,11 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
     for (QHash<QString, PropertySet>::ConstIterator it =
          restoredTrafo->propertiesRequestedFromArtifactInPrepareScript.constBegin();
          it != restoredTrafo->propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {
-        const SourceArtifactConstPtr artifact
+        const SourceArtifactConstPtr &artifact
                 = findSourceArtifact(freshProduct, it.key(), artifactMap);
         if (!artifact)
             continue;
-        foreach (const Property &property, it.value()) {
+        for (const Property &property : qAsConst(it.value())) {
             if (checkForPropertyChange(property, artifact->properties->value()))
                 return true;
         }
@@ -818,7 +821,7 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
             << QString::fromLatin1("[BG] replace file dependency '%1' with artifact of type '%2'")
                .arg(filedep->filePath()).arg(artifact->artifactType);
     }
-    foreach (const ResolvedProductPtr &product, fileDepProduct->topLevelProject()->allProducts()) {
+    for (const ResolvedProductPtr &product : fileDepProduct->topLevelProject()->allProducts()) {
         if (!product->buildData)
             continue;
         for (Artifact *artifactInProduct : filterByType<Artifact>(product->buildData->nodes)) {
@@ -851,8 +854,8 @@ bool BuildGraphLoader::isConfigCompatible()
 bool BuildGraphLoader::isPrepareScriptUpToDate(const ScriptFunctionConstPtr &script,
                                                const FileTime &referenceTime)
 {
-    foreach (const JsImport &jsImport, script->fileContext->jsImports()) {
-        foreach (const QString &filePath, jsImport.filePaths) {
+    for (const JsImport &jsImport : script->fileContext->jsImports()) {
+        for (const QString &filePath : qAsConst(jsImport.filePaths)) {
             if (FileInfo(filePath).lastModified() > referenceTime) {
                 m_logger.qbsDebug() << "Change in import '" << filePath
                         << "' potentially influences prepare script, marking as out of date";
@@ -899,7 +902,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
             rad.propertiesRequestedFromArtifactInCommands
                     = oldArtifact->transformer->propertiesRequestedFromArtifactInCommands;
             const ChildrenInfo &childrenInfo = childLists.value(oldArtifact);
-            foreach (Artifact * const child, childrenInfo.children) {
+            for (Artifact * const child : qAsConst(childrenInfo.children)) {
                 rad.children << RescuableArtifactData::ChildData(child->product->name,
                         child->product->profile, child->filePath(),
                         childrenInfo.childrenAddedByScanner.contains(child));

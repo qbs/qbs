@@ -178,10 +178,10 @@ void QtMocScanner::findIncludedMocCppFiles()
         m_logger.qbsTrace() << "[QtMocScanner] looking for included moc_XXX.cpp files";
 
     static const FileTags mocCppTags = {m_tags.cpp, m_tags.objcpp};
-    foreach (Artifact *artifact, m_product->lookupArtifactsByFileTags(mocCppTags)) {
+    for (Artifact *artifact : m_product->lookupArtifactsByFileTags(mocCppTags)) {
         const RawScanResult scanResult
                 = runScanner(scannerPluginForFileTags(artifact->fileTags()), artifact);
-        foreach (const RawScannedDependency &dependency, scanResult.deps) {
+        for (const RawScannedDependency &dependency : scanResult.deps) {
             QString includedFileName = dependency.fileName();
             if (includedFileName.startsWith(QLatin1String("moc_"))
                     && includedFileName.endsWith(QLatin1String(".cpp"))) {

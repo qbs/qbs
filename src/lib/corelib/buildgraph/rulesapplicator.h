@@ -68,7 +68,7 @@ public:
 
     void applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts);
     static void handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
-            ArtifactSet artifactsToRemove, const Logger &logger);
+            const ArtifactSet &artifactsToRemove, const Logger &logger);
 
 private:
     void doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext);

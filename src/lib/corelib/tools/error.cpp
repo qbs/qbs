@@ -40,6 +40,7 @@
 #include "error.h"
 
 #include "persistence.h"
+#include "qttools.h"
 
 #include <QtCore/qregularexpression.h>
 #include <QtCore/qshareddata.h>
@@ -240,7 +241,7 @@ void ErrorInfo::clear()
 QString ErrorInfo::toString() const
 {
     QStringList lines;
-    foreach (const ErrorItem &e, d->items) {
+    for (const ErrorItem &e : qAsConst(d->items)) {
         if (e.isBacktraceItem()) {
             QString line;
             if (!e.description().isEmpty())

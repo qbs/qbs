@@ -348,7 +348,7 @@ static QVariantMap expandedBuildConfigurationInternal(const QString &settingsBas
             throw err;
         if (profileKeys.isEmpty())
             throw ErrorInfo(Internal::Tr::tr("Unknown or empty profile '%1'.").arg(profileName));
-        foreach (const QString &profileKey, profileKeys) {
+        for (const QString &profileKey : profileKeys) {
             buildConfig.insert(profileKey, profile.value(profileKey, QVariant(), &err));
                 if (err.hasError())
                     throw err;

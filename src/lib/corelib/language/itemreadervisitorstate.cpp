@@ -139,10 +139,10 @@ Item *ItemReaderVisitorState::readFile(const QString &filePath, const QStringLis
 
         file.close();
         if (!parser.parse()) {
-            QList<QbsQmlJS::DiagnosticMessage> parserMessages = parser.diagnosticMessages();
+            const QList<QbsQmlJS::DiagnosticMessage> &parserMessages = parser.diagnosticMessages();
             if (Q_UNLIKELY(!parserMessages.isEmpty())) {
                 ErrorInfo err;
-                foreach (const QbsQmlJS::DiagnosticMessage &msg, parserMessages)
+                for (const QbsQmlJS::DiagnosticMessage &msg : parserMessages)
                     err.append(msg.message, toCodeLocation(filePath, msg.loc));
                 throw err;
             }

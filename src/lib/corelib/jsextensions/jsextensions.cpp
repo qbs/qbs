@@ -55,7 +55,7 @@ InitializerMap &initializers()
 
 void JsExtensions::setupExtensions(const QStringList &names, QScriptValue scope)
 {
-    foreach (const QString &name, names)
+    for (const QString &name : names)
         initializers().value(name)(scope);
 }
 

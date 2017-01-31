@@ -209,7 +209,7 @@ ProcessCommand::ProcessCommand()
 void ProcessCommand::getEnvironmentFromList(const QStringList &envList)
 {
     m_environment.clear();
-    foreach (const QString &env, envList) {
+    for (const QString &env : envList) {
         const int equalsIndex = env.indexOf(QLatin1Char('='));
         if (equalsIndex <= 0 || equalsIndex == env.count() - 1)
             continue;
@@ -441,7 +441,7 @@ QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool)
 void storeCommandList(const QList<AbstractCommandPtr> &commands, PersistentPool &pool)
 {
     pool.store(commands.count());
-    foreach (const AbstractCommandPtr &cmd, commands) {
+    for (const AbstractCommandPtr &cmd : commands) {
         pool.store(static_cast<quint8>(cmd->type()));
         pool.store(cmd);
     }

@@ -39,6 +39,7 @@
 #include "settingsmodel.h"
 
 #include <tools/jsliterals.h>
+#include <tools/qttools.h>
 #include <tools/settings.h>
 
 #include <QtCore/qlist.h>
@@ -76,7 +77,7 @@ QString Node::uniqueChildName() const
     bool unique;
     do {
         unique = true;
-        foreach (const Node *childNode, children) {
+        for (const Node *childNode : qAsConst(children)) {
             if (childNode->name == newName) {
                 unique = false;
                 newName += QLatin1Char('_');
@@ -89,7 +90,7 @@ QString Node::uniqueChildName() const
 
 bool Node::hasDirectChildWithName(const QString &name) const
 {
-    foreach (const Node * const child, children) {
+    for (const Node * const child : qAsConst(children)) {
         if (child->name == name)
             return true;
     }
@@ -318,7 +319,7 @@ void SettingsModel::SettingsModelPrivate::readSettings()
 {
     qDeleteAll(rootNode.children);
     rootNode.children.clear();
-    foreach (const QString &topLevelKey, settings->directChildren(QString()))
+    for (const QString &topLevelKey : settings->directChildren(QString()))
         addNodeFromSettings(&rootNode, topLevelKey);
     for (QVariantMap::ConstIterator it = additionalProperties.constBegin();
          it != additionalProperties.constEnd(); ++it) {
@@ -344,7 +345,7 @@ void SettingsModel::SettingsModelPrivate::addNodeFromSettings(Node *parentNode,
             = fullyQualifiedName.mid(fullyQualifiedName.lastIndexOf(QLatin1Char('.')) + 1);
     Node * const node = createNode(parentNode, nodeName);
     node->value = settingsValueToRepresentation(settings->value(fullyQualifiedName));
-    foreach (const QString &childKey, settings->directChildren(fullyQualifiedName))
+    for (const QString &childKey : settings->directChildren(fullyQualifiedName))
         addNodeFromSettings(node, fullyQualifiedName + QLatin1Char('.') + childKey);
     dirty = true;
 }
@@ -353,7 +354,7 @@ void SettingsModel::SettingsModelPrivate::addNode(qbs::Internal::Node *parentNod
         const QString &currentNamePart, const QStringList &restOfName, const QVariant &value)
 {
     Node *currentNode = 0;
-    foreach (Node * const n, parentNode->children) {
+    for (Node * const n : qAsConst(parentNode->children)) {
         if (n->name == currentNamePart) {
             currentNode = n;
             break;
@@ -377,7 +378,7 @@ void SettingsModel::SettingsModelPrivate::doSave(const Node *node, const QString
     }
 
     const QString newPrefix = prefix + node->name + QLatin1Char('.');
-    foreach (const Node * const child, node->children)
+    for (const Node * const child : qAsConst(node->children))
         doSave(child, newPrefix);
 }
 

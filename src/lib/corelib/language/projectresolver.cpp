@@ -195,7 +195,7 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
 {
     Set<QString> subProjectNames;
     Set<ResolvedProjectPtr> projectsInNeedOfNameChange;
-    foreach (const ResolvedProjectPtr &p, parentProject->subProjects) {
+    for (const ResolvedProjectPtr &p : qAsConst(parentProject->subProjects)) {
         if (!subProjectNames.insert(p->name).second)
             projectsInNeedOfNameChange << p;
         makeSubProjectNamesUniqe(p);
@@ -239,7 +239,7 @@ TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
     resolveProductDependencies(projectContext);
     checkForDuplicateProductNames(project);
 
-    foreach (const ResolvedProductPtr &product, project->allProducts()) {
+    for (const ResolvedProductPtr &product : project->allProducts()) {
         if (!product->enabled)
             continue;
 
@@ -247,7 +247,7 @@ TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
         matchArtifactProperties(product, product->allEnabledFiles());
 
         // Let a positive value of qbs.install imply the file tag "installable".
-        foreach (const SourceArtifactPtr &artifact, product->allFiles()) {
+        for (const SourceArtifactPtr &artifact : product->allFiles()) {
             if (artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
                 artifact->fileTags += "installable";
         }
@@ -297,10 +297,10 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
         { ItemType::PropertyOptions, &ProjectResolver::ignoreItem }
     };
 
-    foreach (Item *child, item->children())
+    for (Item * const child : item->children())
         callItemFunction(mapping, child, projectContext);
 
-    foreach (const ResolvedProductPtr &product, projectContext->project->products)
+    for (const ResolvedProductPtr &product : qAsConst(projectContext->project->products))
         postProcess(product, projectContext);
 }
 
@@ -410,13 +410,13 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         { ItemType::PropertyOptions, &ProjectResolver::ignoreItem }
     };
 
-    foreach (Item *child, subItems)
+    for (Item * const child : qAsConst(subItems))
         callItemFunction(mapping, child, projectContext);
 
     resolveModules(item, projectContext);
     product->fileTags += productContext.additionalFileTags;
 
-    foreach (const FileTag &t, product->fileTags)
+    for (const FileTag &t : qAsConst(product->fileTags))
         m_productsByType[t] << product;
 
     m_productContext = 0;
@@ -429,7 +429,7 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
     // Breadth first search needed here, because the product might set properties on the cpp module,
     // whose children must be evaluated in that context then.
     QQueue<Item::Module> modules;
-    foreach (const Item::Module &m, item->modules())
+    for (const Item::Module &m : item->modules())
         modules.enqueue(m);
     Set<QualifiedId> seen;
     while (!modules.isEmpty()) {
@@ -437,7 +437,7 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
         if (!seen.insert(m.name).second)
             continue;
         resolveModule(m.name, m.item, m.isProduct, projectContext);
-        foreach (const Item::Module &childModule, m.item->modules())
+        for (const Item::Module &childModule : m.item->modules())
             modules.enqueue(childModule);
     }
     std::sort(m_productContext->product->modules.begin(), m_productContext->product->modules.end(),
@@ -468,7 +468,7 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
     m_productContext->additionalFileTags +=
             m_evaluator->fileTagsValue(item, QLatin1String("additionalProductTypes"));
 
-    foreach (const Item::Module &m, item->modules()) {
+    for (const Item::Module &m : item->modules()) {
         if (m_evaluator->boolValue(m.item, QLatin1String("present")))
             module->moduleDependencies += m.name.toString();
     }
@@ -485,7 +485,7 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
         { ItemType::Depends, &ProjectResolver::ignoreItem },
         { ItemType::Probe, &ProjectResolver::ignoreItem }
     };
-    foreach (Item *child, item->children())
+    for (Item *child : item->children())
         callItemFunction(mapping, child, projectContext);
 
     m_moduleContext = oldModuleContext;
@@ -689,15 +689,15 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         wildcards->prefix = group->prefix;
         wildcards->patterns = patterns;
         group->wildcards = wildcards;
-        Set<QString> files = wildcards->expandPatterns(group,
+        const Set<QString> files = wildcards->expandPatterns(group,
                 FileInfo::path(item->file()->filePath()),
                 projectContext->project->topLevelProject()->buildDirectory);
-        foreach (const QString &fileName, files)
+        for (const QString &fileName : files)
             createSourceArtifact(m_productContext->product, fileName, group, true, filesLocation,
                                  &m_productContext->sourceArtifactLocations, &fileError);
     }
 
-    foreach (const QString &fileName, files) {
+    for (const QString &fileName : files) {
         createSourceArtifact(m_productContext->product, fileName, group, false, filesLocation,
                              &m_productContext->sourceArtifactLocations, &fileError);
     }
@@ -727,7 +727,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         const GroupConstPtr m_oldGroup;
     };
     GroupContextSwitcher groupSwitcher(*m_productContext, group);
-    foreach (Item * const childItem, item->children())
+    for (Item * const childItem : item->children())
         resolveGroup(childItem, projectContext);
 }
 
@@ -796,7 +796,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
 
     // read artifacts
     bool hasArtifactChildren = false;
-    foreach (Item *child, item->children()) {
+    for (Item * const child : item->children()) {
         if (Q_UNLIKELY(child->type() != ItemType::Artifact)) {
             throw ErrorInfo(Tr::tr("'Rule' can only have children of type 'Artifact'."),
                                child->location());
@@ -917,7 +917,7 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
     if (fileTags.isEmpty())
         throw ErrorInfo(Tr::tr("FileTagger.fileTags must not be empty."), item->location());
 
-    foreach (const QString &pattern, patterns) {
+    for (const QString &pattern : patterns) {
         if (pattern.isEmpty())
             throw ErrorInfo(Tr::tr("A FileTagger pattern must not be empty."), item->location());
     }
@@ -950,9 +950,9 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
         const ModuleLoaderResult::ProductInfo::Dependency &dependency = dependencies.at(i);
         QBS_CHECK(dependency.name.isEmpty() != dependency.productTypes.isEmpty());
         if (!dependency.productTypes.isEmpty()) {
-            foreach (const FileTag &tag, dependency.productTypes) {
+            for (const FileTag &tag : dependency.productTypes) {
                 const QList<ResolvedProductPtr> productsForTag = m_productsByType.value(tag);
-                foreach (const ResolvedProductPtr &p, productsForTag) {
+                for (const ResolvedProductPtr &p : productsForTag) {
                     if (p == product || !p->enabled
                             || (dependency.limitToSubProject && !product->isInParentProject(p))) {
                         continue;
@@ -966,7 +966,7 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
             }
             dependencies.removeAt(i);
         } else if (dependency.profile == QLatin1String("*")) {
-            foreach (const ResolvedProductPtr &p, m_productsByName) {
+            for (const ResolvedProductPtr &p : qAsConst(m_productsByName)) {
                 if (p->name != dependency.name || p == product || !p->enabled
                         || (dependency.limitToSubProject && !product->isInParentProject(p))) {
                     continue;
@@ -1006,9 +1006,9 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
 void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
         const QList<SourceArtifactPtr> &artifacts)
 {
-    foreach (const SourceArtifactPtr &artifact, artifacts) {
-        foreach (const ArtifactPropertiesConstPtr &artifactProperties,
-                 product->artifactProperties) {
+    for (const SourceArtifactPtr &artifact : artifacts) {
+        for (const ArtifactPropertiesConstPtr &artifactProperties :
+                 qAsConst(product->artifactProperties)) {
             if (artifact->fileTags.intersects(artifactProperties->fileTagsFilter()))
                 artifact->properties = artifactProperties->propertyMap();
         }
@@ -1040,7 +1040,7 @@ static bool hasDependencyCycle(Set<ResolvedProduct *> *checked,
         return false;
     checked->insert(product.data());
     branch->insert(product.data());
-    foreach (const ResolvedProductPtr &dep, product->dependencies) {
+    for (const ResolvedProductPtr &dep : qAsConst(product->dependencies)) {
         if (hasDependencyCycle(checked, branch, dep, error)) {
             error->prepend(dep->name, dep->location);
             return true;
@@ -1056,7 +1056,7 @@ void gatherDependencies(ResolvedProduct *product, DependencyMap &dependencies)
     if (dependencies.contains(product))
         return;
     Set<ResolvedProduct *> &productDeps = dependencies[product];
-    foreach (const ResolvedProductPtr &dep, product->dependencies) {
+    for (const ResolvedProductPtr &dep : qAsConst(product->dependencies)) {
         productDeps << dep.data();
         gatherDependencies(dep.data(), dependencies);
         productDeps += dependencies.value(dep.data());
@@ -1068,7 +1068,7 @@ void gatherDependencies(ResolvedProduct *product, DependencyMap &dependencies)
 static DependencyMap allDependencies(const QList<ResolvedProductPtr> &products)
 {
     DependencyMap dependencies;
-    foreach (const ResolvedProductPtr &product, products)
+    for (const ResolvedProductPtr &product : products)
         gatherDependencies(product.data(), dependencies);
     return dependencies;
 }
@@ -1076,15 +1076,15 @@ static DependencyMap allDependencies(const QList<ResolvedProductPtr> &products)
 void ProjectResolver::resolveProductDependencies(const ProjectContext &projectContext)
 {
     // Resolve all inter-product dependencies.
-    QList<ResolvedProductPtr> allProducts = projectContext.project->allProducts();
+    const QList<ResolvedProductPtr> allProducts = projectContext.project->allProducts();
     bool disabledDependency = false;
-    foreach (const ResolvedProductPtr &rproduct, allProducts) {
+    for (const ResolvedProductPtr &rproduct : allProducts) {
         if (!rproduct->enabled)
             continue;
         Item *productItem = m_productItemMap.value(rproduct);
         const ModuleLoaderResult::ProductInfo &productInfo
                 = m_loadResult.productInfos.value(productItem);
-        foreach (const ResolvedProductPtr &usedProduct,
+        for (const ResolvedProductPtr &usedProduct :
                  getProductDependencies(rproduct, productInfo, disabledDependency)) {
             rproduct->dependencies.insert(usedProduct);
         }
@@ -1092,7 +1092,7 @@ void ProjectResolver::resolveProductDependencies(const ProjectContext &projectCo
 
     // Check for cyclic dependencies.
     Set<ResolvedProduct *> checked;
-    foreach (const ResolvedProductPtr &rproduct, allProducts) {
+    for (const ResolvedProductPtr &rproduct : allProducts) {
         Set<ResolvedProduct *> branch;
         ErrorInfo error;
         if (hasDependencyCycle(&checked, &branch, rproduct, &error)) {
@@ -1107,13 +1107,13 @@ void ProjectResolver::resolveProductDependencies(const ProjectContext &projectCo
         const DependencyMap allDeps = allDependencies(allProducts);
         DependencyMap allDepsReversed;
         for (auto it = allDeps.constBegin(); it != allDeps.constEnd(); ++it) {
-            foreach (ResolvedProduct *dep, it.value())
+            for (ResolvedProduct *dep : qAsConst(it.value()))
                 allDepsReversed[dep] << it.key();
         }
         for (auto it = allDepsReversed.constBegin(); it != allDepsReversed.constEnd(); ++it) {
             if (it.key()->enabled)
                 continue;
-            foreach (ResolvedProduct * const dependingProduct, it.value()) {
+            for (ResolvedProduct * const dependingProduct : qAsConst(it.value())) {
                 if (dependingProduct->enabled) {
                     m_logger.qbsWarning() << Tr::tr("Disabling product '%1', because it depends on "
                                                     "disabled product '%2'.")
@@ -1129,13 +1129,13 @@ void ProjectResolver::postProcess(const ResolvedProductPtr &product,
                                   ProjectContext *projectContext) const
 {
     product->fileTaggers += projectContext->fileTaggers;
-    foreach (const RulePtr &rule, projectContext->rules)
+    for (const RulePtr &rule : qAsConst(projectContext->rules))
         product->rules += rule;
 }
 
 void ProjectResolver::applyFileTaggers(const ResolvedProductPtr &product) const
 {
-    foreach (const SourceArtifactPtr &artifact, product->allEnabledFiles())
+    for (const SourceArtifactPtr &artifact : product->allEnabledFiles())
         applyFileTaggers(artifact, product, m_logger);
 }
 
@@ -1159,7 +1159,7 @@ QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototy
     AccumulatingTimer modPropEvalTimer(m_setupParams.logElapsedTime()
                                        ? &m_elapsedTimeModPropEval : nullptr);
     QVariantMap moduleValues;
-    foreach (const Item::Module &module, item->modules()) {
+    for (const Item::Module &module : item->modules()) {
         const QString fullName = module.name.toString();
         moduleValues[fullName] = evaluateProperties(module.item, lookupPrototype);
     }
@@ -1258,7 +1258,7 @@ QStringList ProjectResolver::convertPathListProperty(const QStringList &paths,
                                                      const QString &dirPath) const
 {
     QStringList result;
-    foreach (const QString &path, paths)
+    for (const QString &path : paths)
         result += convertPathProperty(path, dirPath);
     return result;
 }

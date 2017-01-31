@@ -41,6 +41,7 @@
 #include <language/language.h>
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/qttools.h>
 
 namespace qbs {
 namespace Internal {
@@ -53,8 +54,8 @@ void RuleGraph::build(const Set<RulePtr> &rules, const FileTags &productFileTags
 {
     QMap<FileTag, QList<const Rule *> > inputFileTagToRule;
     m_rules.reserve(rules.count());
-    foreach (const RulePtr &rule, rules) {
-        foreach (const FileTag &fileTag, rule->collectedOutputFileTags())
+    for (const RulePtr &rule : rules) {
+        for (const FileTag &fileTag : rule->collectedOutputFileTags())
             m_outputFileTagToRule[fileTag].append(rule.data());
         insert(rule);
     }
@@ -62,13 +63,13 @@ void RuleGraph::build(const Set<RulePtr> &rules, const FileTags &productFileTags
     m_parents.resize(rules.count());
     m_children.resize(rules.count());
 
-    foreach (const RuleConstPtr &rule, m_rules) {
+    for (const RuleConstPtr &rule : qAsConst(m_rules)) {
         FileTags inFileTags = rule->inputs;
         inFileTags += rule->auxiliaryInputs;
         inFileTags += rule->explicitlyDependsOn;
-        foreach (const FileTag &fileTag, inFileTags) {
+        for (const FileTag &fileTag : qAsConst(inFileTags)) {
             inputFileTagToRule[fileTag].append(rule.data());
-            foreach (const Rule * const producingRule, m_outputFileTagToRule.value(fileTag)) {
+            for (const Rule * const producingRule : m_outputFileTagToRule.value(fileTag)) {
                 if (!producingRule->collectedOutputFileTags().intersects(
                         rule->excludedAuxiliaryInputs)) {
                     connect(rule.data(), producingRule);
@@ -78,19 +79,19 @@ void RuleGraph::build(const Set<RulePtr> &rules, const FileTags &productFileTags
     }
 
     QList<const Rule *> productRules;
-    foreach (const FileTag &productFileTag, productFileTags) {
+    for (const FileTag &productFileTag : productFileTags) {
         QList<const Rule *> rules = m_outputFileTagToRule.value(productFileTag);
         productRules += rules;
         //### check: the rule graph must be a in valid shape!
     }
-    foreach (const Rule *r, productRules)
+    for (const Rule *r : qAsConst(productRules))
         m_rootRules += r->ruleGraphId;
 }
 
 void RuleGraph::accept(RuleGraphVisitor *visitor) const
 {
     const RuleConstPtr nullParent;
-    foreach (int rootIndex, m_rootRules)
+    for (int rootIndex : qAsConst(m_rootRules))
         traverse(visitor, nullParent, m_rules.at(rootIndex));
 }
 
@@ -99,12 +100,11 @@ void RuleGraph::dump() const
     QByteArray indent;
     printf("---rule graph dump:\n");
     Set<int> rootRules;
-    foreach (const RuleConstPtr &rule, m_rules)
+    for (const RuleConstPtr &rule : qAsConst(m_rules))
         if (m_parents[rule->ruleGraphId].isEmpty())
             rootRules += rule->ruleGraphId;
-    foreach (int idx, rootRules) {
+    for (int idx : qAsConst(rootRules))
         dump_impl(indent, idx);
-    }
 }
 
 void RuleGraph::dump_impl(QByteArray &indent, int rootIndex) const
@@ -115,7 +115,7 @@ void RuleGraph::dump_impl(QByteArray &indent, int rootIndex) const
     printf("\n");
 
     indent.append("  ");
-    foreach (int childIndex, m_children[rootIndex])
+    for (int childIndex : qAsConst(m_children[rootIndex]))
         dump_impl(indent, childIndex);
     indent.chop(2);
 }
@@ -143,7 +143,7 @@ void RuleGraph::traverse(RuleGraphVisitor *visitor, const RuleConstPtr &parentRu
         const RuleConstPtr &rule) const
 {
     visitor->visit(parentRule, rule);
-    foreach (int childIndex, m_children.at(rule->ruleGraphId))
+    for (int childIndex : m_children.at(rule->ruleGraphId))
         traverse(visitor, rule, m_rules.at(childIndex));
     visitor->endVisit(rule);
 }

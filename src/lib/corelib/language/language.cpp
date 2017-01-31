@@ -58,6 +58,7 @@
 #include <tools/persistence.h>
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qcryptographichash.h>
 #include <QtCore/qdir.h>
@@ -91,7 +92,7 @@ FileTagger::FileTagger(const QStringList &patterns, const FileTags &fileTags)
 void FileTagger::setPatterns(const QStringList &patterns)
 {
     m_patterns.clear();
-    foreach (const QString &pattern, patterns) {
+    for (const QString &pattern : patterns) {
         QBS_CHECK(!pattern.isEmpty());
         m_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::Wildcard);
     }
@@ -110,7 +111,7 @@ void FileTagger::load(PersistentPool &pool)
 void FileTagger::store(PersistentPool &pool) const
 {
     QStringList patterns;
-    foreach (const QRegExp &regExp, m_patterns)
+    for (const QRegExp &regExp : qAsConst(m_patterns))
         patterns << regExp.pattern();
     pool.store(patterns);
     pool.store(m_fileTags);
@@ -384,7 +385,7 @@ bool Rule::acceptsAsInput(Artifact *artifact) const
 FileTags Rule::staticOutputFileTags() const
 {
     FileTags result;
-    foreach (const RuleArtifactConstPtr &artifact, artifacts)
+    for (const RuleArtifactConstPtr &artifact : qAsConst(artifacts))
         result.unite(artifact->fileTags);
     return result;
 }
@@ -451,7 +452,7 @@ void ResolvedProduct::accept(BuildGraphVisitor *visitor) const
 {
     if (!buildData)
         return;
-    foreach (BuildGraphNode * const node, buildData->roots)
+    for (BuildGraphNode * const node : qAsConst(buildData->roots))
         node->accept(visitor);
 }
 
@@ -462,7 +463,7 @@ void ResolvedProduct::accept(BuildGraphVisitor *visitor) const
 QList<SourceArtifactPtr> ResolvedProduct::allFiles() const
 {
     QList<SourceArtifactPtr> lst;
-    foreach (const GroupConstPtr &group, groups)
+    for (const GroupConstPtr &group : qAsConst(groups))
         lst += group->allFiles();
     return lst;
 }
@@ -474,7 +475,7 @@ QList<SourceArtifactPtr> ResolvedProduct::allFiles() const
 QList<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
 {
     QList<SourceArtifactPtr> lst;
-    foreach (const GroupConstPtr &group, groups) {
+    for (const GroupConstPtr &group : qAsConst(groups)) {
         if (group->enabled)
             lst += group->allFiles();
     }
@@ -484,8 +485,8 @@ QList<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
 FileTags ResolvedProduct::fileTagsForFileName(const QString &fileName) const
 {
     FileTags result;
-    foreach (FileTaggerConstPtr tagger, fileTaggers) {
-        foreach (const QRegExp &pattern, tagger->patterns()) {
+    for (const FileTaggerConstPtr &tagger : qAsConst(fileTaggers)) {
+        for (const QRegExp &pattern : tagger->patterns()) {
             if (FileInfo::globMatches(pattern, fileName)) {
                 result.unite(tagger->fileTags());
                 break;
@@ -548,7 +549,7 @@ QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*, Q
                                       Set<QString> &seenModuleNames)
 {
     QList<const ResolvedModule*> result;
-    foreach (const ResolvedModule *m, modules) {
+    for (const ResolvedModule * const m : modules) {
         if (m->name.isNull())
             continue;
         result.append(topSortModules(moduleChildren, moduleChildren.value(m), seenModuleNames));
@@ -592,13 +593,13 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
                                                  const QProcessEnvironment &env)
 {
     QMap<QString, const ResolvedModule *> moduleMap;
-    foreach (const ResolvedModuleConstPtr &module, modules)
+    for (const ResolvedModuleConstPtr &module : modules)
         moduleMap.insert(module->name, module.data());
 
     QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleParents;
     QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleChildren;
-    foreach (ResolvedModuleConstPtr module, modules) {
-        foreach (const QString &moduleName, module->moduleDependencies) {
+    for (const ResolvedModuleConstPtr &module : modules) {
+        for (const QString &moduleName : qAsConst(module->moduleDependencies)) {
             const ResolvedModule * const depmod = moduleMap.value(moduleName);
             QBS_ASSERT(depmod, return env);
             moduleParents[depmod].append(module.data());
@@ -607,7 +608,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
     }
 
     QList<const ResolvedModule *> rootModules;
-    foreach (ResolvedModuleConstPtr module, modules) {
+    for (const ResolvedModuleConstPtr &module : modules) {
         if (moduleParents.value(module.data()).isEmpty()) {
             QBS_ASSERT(module, return env);
             rootModules.append(module.data());
@@ -627,8 +628,9 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
     TemporaryGlobalObjectSetter tgos(scope);
 
     Set<QString> seenModuleNames;
-    QList<const ResolvedModule *> topSortedModules = topSortModules(moduleChildren, rootModules, seenModuleNames);
-    foreach (const ResolvedModule *module, topSortedModules) {
+    const QList<const ResolvedModule *> &topSortedModules
+            = topSortModules(moduleChildren, rootModules, seenModuleNames);
+    for (const ResolvedModule * const module : topSortedModules) {
         if ((envType == BuildEnv && module->setupBuildEnvironmentScript->sourceCode.isEmpty()) ||
             (envType == RunEnv && module->setupBuildEnvironmentScript->sourceCode.isEmpty()
              && module->setupRunEnvironmentScript->sourceCode.isEmpty()))
@@ -652,7 +654,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
         QScriptValue scriptValue;
         QVariantMap productModules = productConfiguration->value()
                 .value(QLatin1String("modules")).toMap();
-        foreach (const ResolvedModule * const depmod, moduleChildren.value(module)) {
+        for (const ResolvedModule * const depmod : moduleChildren.value(module)) {
             scriptValue = engine->newObject();
             QVariantMap moduleCfg = productModules.value(depmod->name).toMap();
             for (QVariantMap::const_iterator it = moduleCfg.constBegin(); it != moduleCfg.constEnd(); ++it)
@@ -744,7 +746,7 @@ ArtifactSet ResolvedProduct::targetArtifacts() const
 {
     QBS_CHECK(buildData);
     ArtifactSet taSet;
-    foreach (Artifact * const a, buildData->rootArtifacts()) {
+    for (Artifact * const a : buildData->rootArtifacts()) {
         if (a->fileTags().intersects(fileTags))
             taSet << a;
     }
@@ -841,9 +843,9 @@ ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(0)
 
 void ResolvedProject::accept(BuildGraphVisitor *visitor) const
 {
-    foreach (const ResolvedProductPtr &product, products)
+    for (const ResolvedProductPtr &product : qAsConst(products))
         product->accept(visitor);
-    foreach (const ResolvedProjectPtr &subProject, subProjects)
+    for (const ResolvedProjectPtr &subProject : qAsConst(subProjects))
         subProject->accept(visitor);
 }
 
@@ -864,7 +866,7 @@ TopLevelProject *ResolvedProject::topLevelProject()
 QList<ResolvedProjectPtr> ResolvedProject::allSubProjects() const
 {
     QList<ResolvedProjectPtr> projectList = subProjects;
-    foreach (const ResolvedProjectConstPtr &subProject, subProjects)
+    for (const ResolvedProjectConstPtr &subProject : qAsConst(subProjects))
         projectList << subProject->allSubProjects();
     return projectList;
 }
@@ -872,7 +874,7 @@ QList<ResolvedProjectPtr> ResolvedProject::allSubProjects() const
 QList<ResolvedProductPtr> ResolvedProject::allProducts() const
 {
     QList<ResolvedProductPtr> productList = products;
-    foreach (const ResolvedProjectConstPtr &subProject, subProjects)
+    for (const ResolvedProjectConstPtr &subProject : qAsConst(subProjects))
         productList << subProject->allProducts();
     return productList;
 }
@@ -887,11 +889,11 @@ void ResolvedProject::load(PersistentPool &pool)
                   [](const ResolvedProductPtr &p) {
         if (!p->buildData)
             return;
-        foreach (BuildGraphNode * const node, p->buildData->nodes) {
+        for (BuildGraphNode * const node : qAsConst(p->buildData->nodes)) {
             node->product = p;
 
             // restore parent links
-            foreach (BuildGraphNode *child, node->children)
+            for (BuildGraphNode * const child : qAsConst(node->children))
                 child->parents.insert(node);
         }
     });
@@ -1054,7 +1056,7 @@ Set<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
     QString expandedPrefix = prefix;
     if (expandedPrefix.startsWith(QLatin1String("~/")))
         expandedPrefix.replace(0, 1, QDir::homePath());
-    foreach (QString pattern, patterns) {
+    for (QString pattern : patterns) {
         pattern.prepend(expandedPrefix);
         pattern.replace(QLatin1Char('\\'), QLatin1Char('/'));
         QStringList parts = pattern.split(QLatin1Char('/'), QString::SkipEmptyParts);
@@ -1136,7 +1138,7 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
 template<typename T> QMap<QString, T> listToMap(const QList<T> &list)
 {
     QMap<QString, T> map;
-    foreach (const T &elem, list)
+    for (const T &elem : list)
         map.insert(keyFromElem(elem), elem);
     return map;
 }
@@ -1147,7 +1149,7 @@ template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
         return false;
     const QMap<QString, T> map1 = listToMap(l1);
     const QMap<QString, T> map2 = listToMap(l2);
-    foreach (const QString &key, map1.keys()) {
+    for (const QString &key : map1.keys()) {
         const T value2 = map2.value(key);
         if (!value2)
             return false;
@@ -1162,7 +1164,7 @@ QString keyFromElem(const RulePtr &r) {
     QString key = r->toString() + r->prepareScript->sourceCode;
     if (r->outputArtifactsScript)
         key += r->outputArtifactsScript->sourceCode;
-    foreach (const auto &a, r->artifacts) {
+    for (const auto &a : qAsConst(r->artifacts)) {
         key += a->filePath;
     }
     return key;

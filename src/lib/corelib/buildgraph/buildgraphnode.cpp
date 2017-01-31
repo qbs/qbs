@@ -45,6 +45,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 namespace qbs {
 namespace Internal {
@@ -55,9 +56,9 @@ BuildGraphNode::BuildGraphNode() : buildState(Untouched)
 
 BuildGraphNode::~BuildGraphNode()
 {
-    foreach (BuildGraphNode *p, parents)
+    for (BuildGraphNode *p : qAsConst(parents))
         p->children.remove(this);
-    foreach (BuildGraphNode *c, children)
+    for (BuildGraphNode *c : qAsConst(children))
         c->parents.remove(this);
 }
 
@@ -68,7 +69,7 @@ void BuildGraphNode::onChildDisconnected(BuildGraphNode *child)
 
 void BuildGraphNode::acceptChildren(BuildGraphVisitor *visitor)
 {
-    foreach (BuildGraphNode *child, children)
+    for (BuildGraphNode *child : qAsConst(children))
         child->accept(visitor);
 }
 

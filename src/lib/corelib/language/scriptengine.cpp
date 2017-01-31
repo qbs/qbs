@@ -147,7 +147,7 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue &targetObject)
         if (debugJSImports)
             qDebug() << "[ENGINE] " << jsImport.filePaths << " (cache miss)";
         jsImportValue = newObject();
-        foreach (const QString &filePath, jsImport.filePaths)
+        for (const QString &filePath : jsImport.filePaths)
             importFile(filePath, jsImportValue);
         m_jsImportCache.insert(jsImport, jsImportValue);
     }
@@ -304,7 +304,7 @@ void ScriptEngine::importFile(const QString &filePath, QScriptValue &targetObjec
 
 static QString findExtensionDir(const QStringList &searchPaths, const QString &extensionPath)
 {
-    foreach (const QString &searchPath, searchPaths) {
+    for (const QString &searchPath : searchPaths) {
         const QString dirPath = searchPath + QStringLiteral("/imports/") + extensionPath;
         QFileInfo fi(dirPath);
         if (fi.exists() && fi.isDir())
@@ -316,7 +316,7 @@ static QString findExtensionDir(const QStringList &searchPaths, const QString &e
 static QScriptValue mergeExtensionObjects(const QScriptValueList &lst)
 {
     QScriptValue result;
-    foreach (const QScriptValue &v, lst) {
+    for (const QScriptValue &v : lst) {
         if (!result.isValid()) {
             result = v;
             continue;
@@ -485,8 +485,9 @@ void ScriptEngine::addFileLastModifiedResult(const QString &filePath, const File
 Set<QString> ScriptEngine::imports() const
 {
     Set<QString> filePaths;
-    foreach (const JsImport &jsImport, m_jsImportCache.keys()) {
-        foreach (const QString &filePath, jsImport.filePaths)
+    for (auto it = m_jsImportCache.cbegin(); it != m_jsImportCache.cend(); ++it) {
+        const JsImport &jsImport = it.key();
+        for (const QString &filePath : jsImport.filePaths)
             filePaths << filePath;
     }
     return filePaths;

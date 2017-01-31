@@ -365,8 +365,8 @@ bool removeFileRecursion(const QFileInfo &f, QString *errorMessage)
         const QDir dir(f.absoluteFilePath());
 
         // QDir::System is needed for broken symlinks.
-        foreach (const QFileInfo &fi, dir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot
-                                                       | QDir::Hidden | QDir::System))
+        for (const QFileInfo &fi : dir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot
+                                                     | QDir::Hidden | QDir::System))
             removeFileRecursion(fi, errorMessage);
         QDir parent = f.absoluteDir();
         if (!parent.rmdir(f.fileName())) {
@@ -492,9 +492,9 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
     } else if (srcFileInfo.isDir()) {
         if (copyDirectoryContents) {
             QDir sourceDir(srcFilePath);
-            QStringList fileNames = sourceDir.entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot
-                | QDir::Hidden | QDir::System);
-            foreach (const QString &fileName, fileNames) {
+            const QStringList fileNames = sourceDir.entryList(QDir::Files | QDir::Dirs
+                    | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System);
+            for (const QString &fileName : fileNames) {
                 const QString newSrcFilePath = srcFilePath + QLatin1Char('/') + fileName;
                 const QString newTgtFilePath = tgtFilePath + QLatin1Char('/') + fileName;
                 if (!copyFileRecursion(newSrcFilePath, newTgtFilePath, preserveSymLinks,

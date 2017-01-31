@@ -46,6 +46,7 @@
 #include <language/propertymapinternal.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
+#include <tools/qttools.h>
 
 namespace qbs {
 namespace Internal {
@@ -94,7 +95,7 @@ void Artifact::setFileTags(const FileTags &newFileTags)
         m_fileTags = newFileTags;
         return;
     }
-    foreach (const FileTag &t, m_fileTags)
+    for (const FileTag &t : qAsConst(m_fileTags))
         removeArtifactFromSetByFileTag(this, t, product->buildData->artifactsByFileTag);
     m_fileTags = newFileTags;
     addArtifactToSet(this, product->buildData->artifactsByFileTag);

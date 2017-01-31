@@ -52,6 +52,7 @@
 #include <tools/scannerpluginmanager.h>
 #include <tools/qbsassert.h>
 #include <tools/error.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qstringlist.h>
@@ -75,7 +76,7 @@ static void resolveDepencency(const RawScannedDependency &dependency,
     FileDependency *fileDependencyArtifact = 0;
     Artifact *dependencyInProduct = 0;
     Artifact *dependencyInOtherProduct = 0;
-    foreach (FileResourceBase *lookupResult, project->topLevelProject()
+    for (FileResourceBase *lookupResult : project->topLevelProject()
              ->buildData->lookupFiles(absDirPath, dependency.fileName())) {
         if ((fileDependencyArtifact = dynamic_cast<FileDependency *>(lookupResult)))
             continue;
@@ -135,9 +136,10 @@ void InputArtifactScanner::scan()
 
     // Remove all connections to children that were added by the dependency scanner.
     // They will be regenerated.
-    foreach (Artifact *dependency, m_artifact->childrenAddedByScanner)
+    const Set<Artifact *> childrenAddedByScanner = m_artifact->childrenAddedByScanner;
+    m_artifact->childrenAddedByScanner.clear();
+    for (Artifact * const dependency : childrenAddedByScanner)
         disconnect(m_artifact, dependency, m_logger);
-    QBS_CHECK(m_artifact->childrenAddedByScanner.isEmpty());
 
     ArtifactSet::const_iterator it = m_artifact->transformer->inputs.cbegin();
     for (; it != m_artifact->transformer->inputs.cend(); ++it) {
@@ -170,7 +172,7 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
         if (!visitedFilePaths.insert(filePathToBeScanned).second)
             continue;
 
-        foreach (DependencyScanner *scanner, scanners) {
+        for (DependencyScanner * const scanner : scanners) {
             scanForScannerFileDependencies(scanner, inputArtifact, fileToBeScanned,
                 scanner->recursive() ? &filesToScan : 0, cacheItem[scanner->key()]);
         }
@@ -184,15 +186,15 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
     ScriptEngine *engine = product->topLevelProject()->buildData->evaluationContext->engine();
     QHash<FileTag, InputArtifactScannerContext::DependencyScannerCacheItem> &scannerCache
             = m_context->scannersCache[product];
-    foreach (const FileTag &fileTag, artifact->fileTags()) {
+    for (const FileTag &fileTag : artifact->fileTags()) {
         InputArtifactScannerContext::DependencyScannerCacheItem &cache = scannerCache[fileTag];
         if (!cache.valid) {
             cache.valid = true;
-            foreach (ScannerPlugin *scanner, ScannerPluginManager::scannersForFileTag(fileTag)) {
+            for (ScannerPlugin *scanner : ScannerPluginManager::scannersForFileTag(fileTag)) {
                 PluginDependencyScanner *pluginScanner = new PluginDependencyScanner(scanner);
                 cache.scanners += DependencyScannerPtr(pluginScanner);
             }
-            foreach (const ResolvedScannerConstPtr &scanner, product->scanners) {
+            for (const ResolvedScannerConstPtr &scanner : qAsConst(product->scanners)) {
                 if (scanner->inputs.contains(fileTag)) {
                     cache.scanners += DependencyScannerPtr(
                                 new UserDependencyScanner(scanner, m_logger, engine));
@@ -200,9 +202,8 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
                 }
             }
         }
-        foreach (const DependencyScannerPtr &scanner, cache.scanners) {
+        for (const DependencyScannerPtr &scanner : qAsConst(cache.scanners))
             scanners += scanner.data();
-        }
     }
     return scanners;
 }
@@ -225,7 +226,7 @@ void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *sca
     if (m_logger.traceEnabled()) {
         m_logger.qbsTrace()
                 << "[DEPSCAN] include paths (cache " << (cacheHit ? "hit)" : "miss)");
-        foreach (const QString &s, cache.searchPaths)
+        for (const QString &s : qAsConst(cache.searchPaths))
             m_logger.qbsTrace() << "    " << s;
     }
 
@@ -251,7 +252,7 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
         const RawScanResult &scanResult, QList<FileResourceBase *> *artifactsToScan,
         InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache)
 {
-    foreach (const RawScannedDependency &dependency, scanResult.deps) {
+    for (const RawScannedDependency &dependency : scanResult.deps) {
         const QString &dependencyFilePath = dependency.filePath();
         InputArtifactScannerContext::ResolvedDependencyCacheItem &cachedResolvedDependencyItem
                 = cache.resolvedDependenciesCache[dependency.dirPath()][dependency.fileName()];
@@ -269,7 +270,7 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
         }
 
         // try include paths
-        foreach (const QString &includePath, cache.searchPaths) {
+        for (const QString &includePath : cache.searchPaths) {
             resolveDepencency(dependency, inputArtifact->product.data(),
                               &resolvedDependency, includePath);
             if (resolvedDependency.isValid())

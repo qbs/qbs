@@ -66,7 +66,7 @@ public:
 
         // For target artifacts, we have to update the on-disk timestamp, because
         // the executor will look at it.
-        foreach (Artifact * const targetArtifact, product->targetArtifacts()) {
+        for (Artifact * const targetArtifact : product->targetArtifacts()) {
             if (FileInfo(targetArtifact->filePath()).exists())
                 QFile(targetArtifact->filePath()).open(QIODevice::WriteOnly | QIODevice::Append);
         }
@@ -86,7 +86,7 @@ void TimestampsUpdater::updateTimestamps(const TopLevelProjectPtr &project,
         const QList<ResolvedProductPtr> &products, const Logger &logger)
 {
     TimestampsUpdateVisitor v;
-    foreach (const ResolvedProductPtr &product, products)
+    for (const ResolvedProductPtr &product : products)
         v.visitProduct(product);
     project->buildData->isDirty = !products.isEmpty();
     project->store(logger);

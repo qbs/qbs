@@ -60,11 +60,11 @@ NodeTreeDumper::NodeTreeDumper(QIODevice &outDevice) : m_outDevice(outDevice)
 void NodeTreeDumper::start(const QList<ResolvedProductPtr> &products)
 {
     m_indentation = 0;
-    foreach (const ResolvedProductPtr &p, products) {
+    for (const ResolvedProductPtr &p : products) {
         if (!p->buildData)
             continue;
         m_currentProduct = p;
-        foreach (Artifact * const root, p->buildData->rootArtifacts())
+        for (Artifact * const root : p->buildData->rootArtifacts())
             root->accept(this);
         m_visited.clear();
         QBS_CHECK(m_indentation == 0);

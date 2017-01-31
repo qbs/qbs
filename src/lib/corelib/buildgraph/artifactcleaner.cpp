@@ -166,7 +166,7 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
     m_observer->initialize(Tr::tr("Cleaning up%1").arg(configString), products.count() + 1);
 
     Set<QString> directories;
-    foreach (const ResolvedProductPtr &product, products) {
+    for (const ResolvedProductPtr &product : products) {
         CleanupVisitor visitor(options, m_observer, m_logger);
         visitor.visitProduct(product);
         directories.unite(visitor.directories());

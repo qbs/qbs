@@ -133,8 +133,8 @@ QScriptValue Transformer::translateInOutputs(ScriptEngine *scriptEngine,
 {
     typedef QMap<QString, QList<Artifact*> > TagArtifactsMap;
     TagArtifactsMap tagArtifactsMap;
-    foreach (Artifact *artifact, artifacts)
-        foreach (const FileTag &fileTag, artifact->fileTags())
+    for (Artifact *artifact : artifacts)
+        for (const FileTag &fileTag : artifact->fileTags())
             tagArtifactsMap[fileTag.toString()].append(artifact);
     for (TagArtifactsMap::Iterator it = tagArtifactsMap.begin(); it != tagArtifactsMap.end(); ++it)
         std::sort(it.value().begin(), it.value().end(), compareByFilePath);
@@ -143,9 +143,10 @@ QScriptValue Transformer::translateInOutputs(ScriptEngine *scriptEngine,
     for (TagArtifactsMap::const_iterator tag = tagArtifactsMap.constBegin(); tag != tagArtifactsMap.constEnd(); ++tag) {
         const QList<Artifact*> &artifacts = tag.value();
         QScriptValue jsFileConfig = scriptEngine->newArray(artifacts.count());
-        int i=0;
-        foreach (Artifact *artifact, artifacts) {
-            jsFileConfig.setProperty(i++, translateFileConfig(scriptEngine, artifact, defaultModuleName));
+        int i = 0;
+        for (Artifact * const artifact : artifacts) {
+            jsFileConfig.setProperty(i++, translateFileConfig(scriptEngine, artifact,
+                                                              defaultModuleName));
         }
         jsTagFiles.setProperty(tag.key(), jsFileConfig);
     }

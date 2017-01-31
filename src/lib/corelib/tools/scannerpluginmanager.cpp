@@ -42,6 +42,7 @@
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdiriterator.h>
@@ -52,7 +53,7 @@ namespace Internal {
 
 ScannerPluginManager::~ScannerPluginManager()
 {
-    foreach (QLibrary * const lib, m_libs) {
+    for (QLibrary * const lib : qAsConst(m_libs)) {
         lib->unload();
         delete lib;
     }
@@ -94,7 +95,7 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Log
     else
         filters << QLatin1String("*.so");
 
-    foreach (const QString &pluginPath, pluginPaths) {
+    for (const QString &pluginPath : pluginPaths) {
         logger.qbsTrace() << QString::fromLatin1("pluginmanager: loading plugins from '%1'.")
                              .arg(QDir::toNativeSeparators(pluginPath));
         QDirIterator it(pluginPath, filters, QDir::Files);

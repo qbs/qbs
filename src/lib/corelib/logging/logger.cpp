@@ -147,7 +147,7 @@ LogWriter operator<<(LogWriter w, const QSet<QString> &strSet)
 {
     bool firstLoop = true;
     w.write('(');
-    foreach (const QString &str, strSet) {
+    for (const QString &str : strSet) {
         if (firstLoop)
             firstLoop = false;
         else
@@ -163,7 +163,7 @@ LogWriter operator<<(LogWriter w, const QVariant &variant)
     QString str = QLatin1String(variant.typeName()) + QLatin1Char('(');
     if (variant.type() == QVariant::List) {
         bool firstLoop = true;
-        foreach (const QVariant &item, variant.toList()) {
+        for (const QVariant &item : variant.toList()) {
             str += item.toString();
             if (firstLoop)
                 firstLoop = false;

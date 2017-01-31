@@ -58,7 +58,7 @@ void EmptyDirectoriesRemover::removeEmptyParentDirectories(const QStringList &ar
 {
     m_dirsToRemove.clear();
     m_handledDirs.clear();
-    foreach (const QString &filePath, artifactFilePaths)
+    for (const QString &filePath : artifactFilePaths)
         insertSorted(QFileInfo(filePath).absolutePath());
     while (!m_dirsToRemove.isEmpty())
         removeDirIfEmpty();
@@ -67,7 +67,7 @@ void EmptyDirectoriesRemover::removeEmptyParentDirectories(const QStringList &ar
 void EmptyDirectoriesRemover::removeEmptyParentDirectories(const ArtifactSet &artifacts)
 {
     QStringList filePaths;
-    foreach (const Artifact * const a, artifacts) {
+    for (const Artifact * const a : artifacts) {
         if (a->artifactType == Artifact::Generated)
             filePaths << a->filePath();
     }

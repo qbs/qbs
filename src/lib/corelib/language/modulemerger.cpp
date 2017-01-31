@@ -43,6 +43,7 @@
 
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 namespace qbs {
 namespace Internal {
@@ -87,8 +88,8 @@ void ModuleMerger::replaceItemInScopes(Item *toReplace)
     // as their "instance scope", which is the scope of their scope. This function takes
     // care that the "wrong" definingItem of values in sub-modules still has the "right"
     // instance scope, namely our merged module instead of some other instance.
-    foreach (const Item::Module &module, toReplace->modules()) {
-        foreach (const ValuePtr &property, module.item->properties()) {
+    for (const Item::Module &module : toReplace->modules()) {
+        for (const ValuePtr &property : module.item->properties()) {
             ValuePtr v = property;
             do {
                 if (v->definingItem() && v->definingItem()->scope()
@@ -121,9 +122,9 @@ void ModuleMerger::start()
     }
     m_mergedModule.item->setProperties(mergedProps);
 
-    foreach (Item *moduleInstanceContainer, m_moduleInstanceContainers) {
+    for (Item *moduleInstanceContainer : qAsConst(m_moduleInstanceContainers)) {
         Item::Modules modules;
-        foreach (const Item::Module &dep, moduleInstanceContainer->modules()) {
+        for (const Item::Module &dep : moduleInstanceContainer->modules()) {
             const bool isTheModule = dep.name == m_mergedModule.name;
             Item::Module m = dep;
             if (isTheModule && m.item != m_mergedModule.item) {
@@ -145,7 +146,7 @@ Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap pro
 {
     Item *moduleInstance = 0;
     int numberOfOutprops = m.item->modules().count();
-    foreach (const Item::Module &dep, m.item->modules()) {
+    for (const Item::Module &dep : m.item->modules()) {
         if (dep.name == m_mergedModule.name) {
             --numberOfOutprops;
             moduleInstance = dep.item;
@@ -160,7 +161,7 @@ Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap pro
 
     QVector<Item::PropertyMap> outprops;
     outprops.reserve(numberOfOutprops);
-    foreach (const Item::Module &dep, m.item->modules()) {
+    for (const Item::Module &dep : m.item->modules()) {
         if (dep.item != moduleInstance)
             outprops << dfs(dep, props);
     }

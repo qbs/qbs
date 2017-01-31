@@ -73,7 +73,7 @@ QString toJSLiteral(const QVariant &val)
         return QLatin1String("undefined");
     if (val.type() == QVariant::List || val.type() == QVariant::StringList) {
         QString res;
-        foreach (const QVariant &child, val.toList()) {
+        for (const QVariant &child : val.toList()) {
             if (res.length()) res.append(QLatin1String(", "));
             res.append(toJSLiteral(child));
         }

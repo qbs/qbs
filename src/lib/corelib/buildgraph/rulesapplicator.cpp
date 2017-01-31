@@ -58,6 +58,7 @@
 #include <tools/fileinfo.h>
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qscopedpointer.h>
@@ -105,7 +106,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
     if (m_rule->multiplex) { // apply the rule once for a set of inputs
         doApply(inputArtifacts, prepareScriptContext);
     } else { // apply the rule once for each input
-        foreach (Artifact * const inputArtifact, inputArtifacts) {
+        for (Artifact * const inputArtifact : inputArtifacts) {
             ArtifactSet lst;
             lst += inputArtifact;
             doApply(lst, prepareScriptContext);
@@ -114,11 +115,11 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
 }
 
 void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
-        ArtifactSet outputArtifactsToRemove, const Logger &logger)
+        const ArtifactSet &outputArtifactsToRemove, const Logger &logger)
 {
     ArtifactSet artifactsToRemove;
     const TopLevelProject *project = 0;
-    foreach (Artifact *removedArtifact, outputArtifactsToRemove) {
+    for (Artifact * const removedArtifact : outputArtifactsToRemove) {
         if (logger.traceEnabled()) {
             logger.qbsTrace() << "[BG] dynamic rule removed output artifact "
                                 << removedArtifact->toString();
@@ -129,12 +130,12 @@ void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts
                                                                  &artifactsToRemove);
     }
     // parents of removed artifacts must update their transformers
-    foreach (Artifact *removedArtifact, artifactsToRemove) {
+    for (Artifact *removedArtifact : qAsConst(artifactsToRemove)) {
         for (Artifact *parent : removedArtifact->parentArtifacts())
             parent->product->registerArtifactWithChangedInputs(parent);
     }
     EmptyDirectoriesRemover(project, logger).removeEmptyParentDirectories(artifactsToRemove);
-    foreach (Artifact *artifact, artifactsToRemove) {
+    for (Artifact * const artifact : qAsConst(artifactsToRemove)) {
         QBS_CHECK(!inputArtifacts.contains(artifact));
         delete artifact;
     }
@@ -148,7 +149,7 @@ static void copyProperty(const QString &name, const QScriptValue &src, QScriptVa
 static QStringList toStringList(const ArtifactSet &artifacts)
 {
     QStringList lst;
-    foreach (const Artifact *artifact, artifacts) {
+    for (const Artifact * const artifact : artifacts) {
         const QString str = artifact->filePath() + QLatin1String(" [")
                 + artifact->fileTags().toStringList().join(QLatin1String(", ")) + QLatin1Char(']');
         lst << str;
@@ -189,7 +190,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_logger);
     } else {
         Set<QString> outputFilePaths;
-        foreach (const RuleArtifactConstPtr &ruleArtifact, m_rule->artifacts) {
+        for (const RuleArtifactConstPtr &ruleArtifact : qAsConst(m_rule->artifacts)) {
             Artifact * const outputArtifact
                     = createOutputArtifactFromRuleArtifact(ruleArtifact, inputArtifacts,
                                                            &outputFilePaths);
@@ -203,10 +204,10 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     if (outputArtifacts.isEmpty())
         return;
 
-    foreach (Artifact *outputArtifact, outputArtifacts) {
+    for (Artifact * const outputArtifact : qAsConst(outputArtifacts)) {
         // connect artifacts that match the file tags in explicitlyDependsOn
-        foreach (const FileTag &fileTag, m_rule->explicitlyDependsOn)
-            foreach (Artifact *dependency, m_product->lookupArtifactsByFileTag(fileTag))
+        for (const FileTag &fileTag : qAsConst(m_rule->explicitlyDependsOn))
+            for (Artifact *dependency : m_product->lookupArtifactsByFileTag(fileTag))
                 loggedConnect(outputArtifact, dependency, m_logger);
 
         outputArtifact->product->unregisterArtifactWithChangedInputs(outputArtifact);
@@ -263,7 +264,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
 ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const
 {
     ArtifactSet result;
-    foreach (Artifact *a, inputArtifacts) {
+    for (Artifact * const a : inputArtifacts) {
         for (Artifact *p : a->parentArtifacts()) {
             QBS_CHECK(p->transformer);
             if (p->transformer->rule == m_rule && p->transformer->inputs.contains(a))
@@ -372,7 +373,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
     if (outputArtifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
         outputArtifact->addFileTag("installable");
 
-    foreach (Artifact *inputArtifact, inputArtifacts) {
+    for (Artifact * const inputArtifact : inputArtifacts) {
         QBS_CHECK(outputArtifact != inputArtifact);
         loggedConnect(outputArtifact, inputArtifact, m_logger);
     }
@@ -428,7 +429,7 @@ class ArtifactBindingsExtractor
     static Set<QString> getArtifactItemPropertyNames()
     {
         Set<QString> s;
-        foreach (const PropertyDeclaration &pd,
+        for (const PropertyDeclaration &pd :
                  BuiltinDeclarations::instance().declarationsForType(
                      ItemType::Artifact).properties()) {
             s.insert(pd.name());
@@ -494,10 +495,9 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValu
     Artifact *output = createOutputArtifact(filePath, fileTags, alwaysUpdated, inputArtifacts);
     const FileTags explicitlyDependsOn = FileTags::fromStringList(
                 obj.property(QLatin1String("explicitlyDependsOn")).toVariant().toStringList());
-    foreach (const FileTag &tag, explicitlyDependsOn) {
-        foreach (Artifact *dependency, m_product->lookupArtifactsByFileTag(tag)) {
+    for (const FileTag &tag : explicitlyDependsOn) {
+        for (Artifact * const dependency : m_product->lookupArtifactsByFileTag(tag))
             loggedConnect(output, dependency, m_logger);
-        }
     }
     ArtifactBindingsExtractor().apply(output, obj);
     return output;

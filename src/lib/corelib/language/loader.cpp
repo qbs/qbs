@@ -74,7 +74,7 @@ void Loader::setProgressObserver(ProgressObserver *observer)
 void Loader::setSearchPaths(const QStringList &_searchPaths)
 {
     QStringList searchPaths;
-    foreach (const QString &searchPath, _searchPaths) {
+    for (const QString &searchPath : _searchPaths) {
         if (!FileInfo::exists(searchPath)) {
             m_logger.qbsWarning() << Tr::tr("Search path '%1' does not exist.")
                     .arg(QDir::toNativeSeparators(searchPath));

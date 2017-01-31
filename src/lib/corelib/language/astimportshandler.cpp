@@ -68,7 +68,7 @@ ASTImportsHandler::ASTImportsHandler(ItemReaderVisitorState &visitorState, Logge
 
 void ASTImportsHandler::handleImports(const QbsQmlJS::AST::UiImportList *uiImportList)
 {
-    foreach (const QString &searchPath, m_file->searchPaths())
+    for (const QString &searchPath : m_file->searchPaths())
         collectPrototypes(searchPath + QLatin1String("/imports"), QString());
 
     // files in the same directory are available as prototypes
@@ -181,7 +181,7 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
                 ? QLatin1String("qbs/base") : importUri.join(QDir::separator());
         bool found = m_typeNameToFile.contains(importUri);
         if (!found) {
-            foreach (const QString &searchPath, m_file->searchPaths()) {
+            for (const QString &searchPath : m_file->searchPaths()) {
                 const QFileInfo fi(FileInfo::resolvePath(
                                        FileInfo::resolvePath(searchPath,
                                                              QLatin1String("imports")),
@@ -256,7 +256,7 @@ void ASTImportsHandler::collectPrototypes(const QString &path, const QString &as
 {
     QStringList fileNames; // Yes, file *names*.
     if (m_visitorState.findDirectoryEntries(path, &fileNames)) {
-        foreach (const QString &fileName, fileNames)
+        for (const QString &fileName : qAsConst(fileNames))
             addPrototype(fileName, path + QLatin1Char('/') + fileName, as, false);
         return;
     }

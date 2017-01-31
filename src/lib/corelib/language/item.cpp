@@ -50,6 +50,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <algorithm>
 
@@ -86,7 +87,7 @@ Item *Item::clone() const
     dup->m_modules = m_modules;
 
     dup->m_children.reserve(m_children.count());
-    foreach (const Item *child, m_children) {
+    for (const Item * const child : qAsConst(m_children)) {
         Item *clonedChild = child->clone();
         clonedChild->m_parent = dup;
         dup->m_children.append(clonedChild);
@@ -209,7 +210,7 @@ bool Item::isPresentModule() const
 void Item::setupForBuiltinType(Logger &logger)
 {
     const BuiltinDeclarations &builtins = BuiltinDeclarations::instance();
-    foreach (const PropertyDeclaration &pd, builtins.declarationsForType(type()).properties()) {
+    for (const PropertyDeclaration &pd : builtins.declarationsForType(type()).properties()) {
         m_propertyDeclarations.insert(pd.name(), pd);
         const ValuePtr value = m_properties.value(pd.name());
         if (!value) {
@@ -285,7 +286,7 @@ void Item::dump(int indentation) const
     }
     if (!m_children.isEmpty())
         qDebug("%schildren:", indent.constData());
-    foreach (const Item * const child, m_children)
+    for (const Item * const child : qAsConst(m_children))
         child->dump(indentation + 4);
     if (prototype()) {
         qDebug("%sprototype:", indent.constData());
@@ -301,7 +302,7 @@ void Item::removeProperty(const QString &name)
 Item *Item::child(ItemType type, bool checkForMultiple) const
 {
     Item *child = 0;
-    foreach (Item * const currentChild, children()) {
+    for (Item * const currentChild : children()) {
         if (currentChild->type() == type) {
             if (!checkForMultiple)
                 return currentChild;

@@ -52,6 +52,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/jsliterals.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qfile.h>
 
@@ -178,7 +179,7 @@ void ProjectFileUpdater::apply()
         if (!parserMessages.isEmpty()) {
             ErrorInfo errorInfo;
             errorInfo.append(Tr::tr("Failure parsing project file."));
-            foreach (const DiagnosticMessage &msg, parserMessages)
+            for (const DiagnosticMessage &msg : qAsConst(parserMessages))
                 errorInfo.append(msg.message, toCodeLocation(file.fileName(), msg.loc));
             throw errorInfo;
         }
@@ -288,7 +289,7 @@ static QString &addToFilesRepr(QString &filesRepr, const QString &fileRepr, int 
 
 static QString &addToFilesRepr(QString &filesRepr, const QStringList &filePaths, int indentation)
 {
-    foreach (const QString &f, filePaths)
+    for (const QString &f : filePaths)
         addToFilesRepr(filesRepr, toJSLiteral(f), indentation);
     return filesRepr;
 }
@@ -468,7 +469,7 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
                             .arg(filesToRemove.join(QLatin1String(", "))), bindingLocation);
         }
         QString filesString = QLatin1String("[\n");
-        foreach (const QString &file, newFilesList) {
+        for (const QString &file : qAsConst(newFilesList)) {
             filesString += QString(arrayElemIndentation, QLatin1Char(' '));
             filesString += QString::fromLatin1("\"%1\",\n").arg(file);
         }

@@ -40,6 +40,7 @@
 #include "languageinfo.h"
 
 #include <language/builtindeclarations.h>
+#include <tools/qttools.h>
 #include <tools/version.h>
 
 #include <QtCore/qstringlist.h>
@@ -64,7 +65,7 @@ QByteArray LanguageInfo::qmlTypeInfo()
     // Individual Components:
     auto typeNames = builtins.allTypeNames();
     typeNames.sort();
-    foreach (const QString &typeName, typeNames) {
+    for (const QString &typeName : qAsConst(typeNames)) {
         QByteArray utf8TypeName = typeName.toUtf8();
         result.append("    Component {\n");
         result.append(QByteArray("        name: \"") + utf8TypeName + QByteArray("\"\n"));
@@ -84,7 +85,7 @@ QByteArray LanguageInfo::qmlTypeInfo()
                   (const Internal::PropertyDeclaration &a, const Internal::PropertyDeclaration &b) {
             return a.name() < b.name();
         });
-        foreach (const Internal::PropertyDeclaration &property, properties) {
+        for (const Internal::PropertyDeclaration &property : qAsConst(properties)) {
             result.append("        Property { name: \"");
             result.append(property.name().toUtf8());
             result.append("\"; ");

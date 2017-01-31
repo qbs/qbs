@@ -155,7 +155,7 @@ int RunEnvironment::doRunShell()
 #if defined(Q_OS_LINUX)
     clearenv();
 #endif
-    foreach (const QString &key, environment.keys())
+    for (const QString &key : environment.keys())
         qputenv(key.toLocal8Bit().constData(), environment.value(key).toLocal8Bit());
     QString command;
     QScopedPointer<QTemporaryFile> envFile;
@@ -197,9 +197,9 @@ static QString findExecutable(const QStringList &fileNames)
     const QStringList path = QString::fromLocal8Bit(qgetenv("PATH"))
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
 
-    foreach (const QString &fileName, fileNames) {
+    for (const QString &fileName : fileNames) {
         const QString exeFileName = HostOsInfo::appendExecutableSuffix(fileName);
-        foreach (const QString &ppath, path) {
+        for (const QString &ppath : path) {
             const QString fullPath = ppath + QLatin1Char('/') + exeFileName;
             QFileInfo fi(fullPath);
             if (fi.exists() && fi.isFile() && fi.isExecutable())

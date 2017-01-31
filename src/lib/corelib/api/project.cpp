@@ -75,6 +75,7 @@
 #include <tools/scripttools.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qmutex.h>
@@ -99,7 +100,7 @@ static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
         return;
 
     QStringList pluginPaths;
-    foreach (const QString &pluginPath, _pluginPaths) {
+    for (const QString &pluginPath : _pluginPaths) {
         if (!FileInfo::exists(pluginPath)) {
 #ifndef QBS_STATIC_LIB
             logger.qbsWarning() << Tr::tr("Plugin path '%1' does not exist.")
@@ -134,7 +135,7 @@ static void addDependencies(QList<ResolvedProductPtr> &products)
 {
     for (int i = 0; i < products.count(); ++i) {
         const ResolvedProductPtr &product = products.at(i);
-        foreach (const ResolvedProductPtr &dependency, product->dependencies) {
+        for (const ResolvedProductPtr &dependency : qAsConst(product->dependencies)) {
             if (!products.contains(dependency))
                 products << dependency;
         }
@@ -176,7 +177,7 @@ InstallJob *ProjectPrivate::installProducts(const QList<ResolvedProductPtr> &pro
 QList<ResolvedProductPtr> ProjectPrivate::internalProducts(const QList<ProductData> &products) const
 {
     QList<ResolvedProductPtr> internalProducts;
-    foreach (const ProductData &product, products) {
+    for (const ProductData &product : products) {
         if (product.isEnabled())
             internalProducts << internalProduct(product);
     }
@@ -187,11 +188,11 @@ static QList<ResolvedProductPtr> enabledInternalProducts(const ResolvedProjectCo
                                                          bool includingNonDefault)
 {
     QList<ResolvedProductPtr> products;
-    foreach (const ResolvedProductPtr &p, project->products) {
+    for (const ResolvedProductPtr &p : qAsConst(project->products)) {
         if (p->enabled && (includingNonDefault || p->builtByDefault()))
             products << p;
     }
-    foreach (const ResolvedProjectConstPtr &subProject, project->subProjects)
+    for (const ResolvedProjectConstPtr &subProject : qAsConst(project->subProjects))
         products << enabledInternalProducts(subProject, includingNonDefault);
     return products;
 }
@@ -204,13 +205,13 @@ QList<ResolvedProductPtr> ProjectPrivate::allEnabledInternalProducts(bool includ
 static ResolvedProductPtr internalProductForProject(const ResolvedProjectConstPtr &project,
                                                     const ProductData &product)
 {
-    foreach (const ResolvedProductPtr &resolvedProduct, project->products) {
+    for (const ResolvedProductPtr &resolvedProduct : qAsConst(project->products)) {
         if (product.name() == resolvedProduct->name
                 && product.profile() == resolvedProduct->profile) {
             return resolvedProduct;
         }
     }
-    foreach (const ResolvedProjectConstPtr &subProject, project->subProjects) {
+    for (const ResolvedProjectConstPtr &subProject : qAsConst(project->subProjects)) {
         const ResolvedProductPtr &p = internalProductForProject(subProject, product);
         if (p)
             return p;
@@ -225,7 +226,7 @@ ResolvedProductPtr ProjectPrivate::internalProduct(const ProductData &product) c
 
 ProductData ProjectPrivate::findProductData(const ProductData &product) const
 {
-    foreach (const ProductData &p, m_projectData.allProducts()) {
+    for (const ProductData &p : m_projectData.allProducts()) {
         if (p.name() == product.name() && p.profile() == product.profile())
             return p;
     }
@@ -235,7 +236,7 @@ ProductData ProjectPrivate::findProductData(const ProductData &product) const
 QList<ProductData> ProjectPrivate::findProductsByName(const QString &name) const
 {
     QList<ProductData> list;
-    foreach (const ProductData &p, m_projectData.allProducts()) {
+    for (const ProductData &p : m_projectData.allProducts()) {
         if (p.name() == name)
             list << p;
     }
@@ -244,7 +245,7 @@ QList<ProductData> ProjectPrivate::findProductsByName(const QString &name) const
 
 GroupData ProjectPrivate::findGroupData(const ProductData &product, const QString &groupName) const
 {
-    foreach (const GroupData &g, product.groups()) {
+    for (const GroupData &g : product.groups()) {
         if (g.name() == groupName)
             return g;
     }
@@ -258,13 +259,13 @@ GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup
     group.d->name = resolvedGroup->name;
     group.d->prefix = resolvedGroup->prefix;
     group.d->location = resolvedGroup->location;
-    foreach (const SourceArtifactConstPtr &sa, resolvedGroup->files) {
+    for (const SourceArtifactConstPtr &sa : qAsConst(resolvedGroup->files)) {
         ArtifactData artifact = createApiSourceArtifact(sa);
         setupInstallData(artifact, product);
         group.d->sourceArtifacts << artifact;
     }
     if (resolvedGroup->wildcards) {
-        foreach (const SourceArtifactConstPtr &sa, resolvedGroup->wildcards->files) {
+        for (const SourceArtifactConstPtr &sa : qAsConst(resolvedGroup->wildcards->files)) {
             ArtifactData artifact = createApiSourceArtifact(sa);
             setupInstallData(artifact, product);
             group.d->sourceArtifactsFromWildcards << artifact;
@@ -323,7 +324,7 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
     const QList<ResolvedProductPtr> resolvedProducts = internalProducts(products);
     QBS_CHECK(products.count() == resolvedProducts.count());
 
-    foreach (const GroupPtr &resolvedGroup, resolvedProducts.first()->groups) {
+    for (const GroupPtr &resolvedGroup : qAsConst(resolvedProducts.first()->groups)) {
         if (resolvedGroup->name == groupName) {
             throw ErrorInfo(Tr::tr("Group '%1' already exists in product '%2'.")
                             .arg(groupName, product.name()), resolvedGroup->location);
@@ -367,8 +368,8 @@ ProjectPrivate::GroupUpdateContext ProjectPrivate::getGroupContext(const Product
     context.resolvedProducts = internalProducts(context.products);
 
     const QString groupName = group.isValid() ? group.name() : product.name();
-    foreach (const ResolvedProductPtr &p, context.resolvedProducts) {
-        foreach (const GroupPtr &g, p->groups) {
+    for (const ResolvedProductPtr &p : qAsConst(context.resolvedProducts)) {
+        for (const GroupPtr &g : qAsConst(p->groups)) {
             if (g->name == groupName) {
                 context.resolvedGroups << g;
                 break;
@@ -377,7 +378,7 @@ ProjectPrivate::GroupUpdateContext ProjectPrivate::getGroupContext(const Product
     }
     if (context.resolvedGroups.isEmpty())
         throw ErrorInfo(Tr::tr("Group '%1' does not exist.").arg(groupName));
-    foreach (const ProductData &p, context.products) {
+    for (const ProductData &p : qAsConst(context.products)) {
         const GroupData &g = findGroupData(p, groupName);
         QBS_CHECK(p.isValid());
         context.groups << g;
@@ -392,7 +393,7 @@ static bool matchesWildcard(const QString &filePath, const GroupConstPtr &group)
 {
     if (!group->wildcards)
         return false;
-    foreach (const QString &pattern, group->wildcards->patterns) {
+    for (const QString &pattern : qAsConst(group->wildcards->patterns)) {
         QString fullPattern;
         if (QFileInfo(group->prefix).isAbsolute()) {
             fullPattern = group->prefix;
@@ -431,7 +432,7 @@ ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const P
     QString baseDirPath = QFileInfo(product.location().filePath()).dir().absolutePath()
             + QLatin1Char('/') + prefix;
     QDir baseDir(baseDirPath);
-    foreach (const QString &filePath, filePaths) {
+    for (const QString &filePath : filePaths) {
         const QString absPath = QDir::cleanPath(FileInfo::resolvePath(baseDirPath, filePath));
         if (filesContext.absoluteFilePaths.contains(absPath))
             throw ErrorInfo(Tr::tr("File '%1' appears more than once.").arg(absPath));
@@ -465,9 +466,9 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
 
     // We do not check for entries in other groups, because such doublettes might be legitimate
     // due to conditions.
-    foreach (const GroupPtr &group, groupContext.resolvedGroups) {
-        foreach (const QString &filePath, filesContext.absoluteFilePaths) {
-            foreach (const SourceArtifactConstPtr &sa, group->files) {
+    for (const GroupPtr &group : qAsConst(groupContext.resolvedGroups)) {
+        for (const QString &filePath : qAsConst(filesContext.absoluteFilePaths)) {
+            for (const SourceArtifactConstPtr &sa : qAsConst(group->files)) {
                 if (sa->absoluteFilePath == filePath) {
                     throw ErrorInfo(Tr::tr("File '%1' already exists in group '%2'.")
                                     .arg(filePath, group->name));
@@ -489,26 +490,26 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     for (int i = 0; i < groupContext.resolvedGroups.count(); ++i) {
         const ResolvedProductPtr &resolvedProduct = groupContext.resolvedProducts.at(i);
         const GroupPtr &resolvedGroup = groupContext.resolvedGroups.at(i);
-        foreach (const QString &file, filesContext.absoluteFilePaths) {
+        for (const QString &file : qAsConst(filesContext.absoluteFilePaths)) {
             const SourceArtifactPtr sa = createSourceArtifact(file, resolvedProduct, resolvedGroup,
                                                               false, logger);
             addedSourceArtifacts.insert(file, qMakePair(sa, resolvedProduct));
         }
-        foreach (const QString &file, filesContext.absoluteFilePathsFromWildcards) {
+        for (const QString &file : qAsConst(filesContext.absoluteFilePathsFromWildcards)) {
             QBS_CHECK(resolvedGroup->wildcards);
             const SourceArtifactPtr sa = createSourceArtifact(file, resolvedProduct, resolvedGroup,
                     true, logger);
             addedSourceArtifacts.insert(file, qMakePair(sa, resolvedProduct));
         }
         if (resolvedProduct->enabled) {
-            foreach (const auto &pair, addedSourceArtifacts)
+            for (const auto &pair : qAsConst(addedSourceArtifacts))
                 createArtifact(resolvedProduct, pair.first, logger);
         }
     }
     doSanityChecks(internalProject, logger);
     QList<ArtifactData> sourceArtifacts;
     QList<ArtifactData> sourceArtifactsFromWildcards;
-    foreach (const QString &fp, filesContext.absoluteFilePaths) {
+    for (const QString &fp : qAsConst(filesContext.absoluteFilePaths)) {
         const auto pair = addedSourceArtifacts.value(fp);
         const SourceArtifactConstPtr sa = pair.first;
         QBS_CHECK(sa);
@@ -516,7 +517,7 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         setupInstallData(artifactData, pair.second);
         sourceArtifacts << artifactData;
     }
-    foreach (const QString &fp, filesContext.absoluteFilePathsFromWildcards) {
+    for (const QString &fp : qAsConst(filesContext.absoluteFilePathsFromWildcards)) {
         const auto pair = addedSourceArtifacts.value(fp);
         const SourceArtifactConstPtr sa = pair.first;
         QBS_CHECK(sa);
@@ -524,7 +525,7 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         setupInstallData(artifactData, pair.second);
         sourceArtifactsFromWildcards << artifactData;
     }
-    foreach (const GroupData &g, groupContext.groups) {
+    for (const GroupData &g : qAsConst(groupContext.groups)) {
         g.d->sourceArtifacts << sourceArtifacts;
         qSort(g.d->sourceArtifacts);
         g.d->sourceArtifactsFromWildcards << sourceArtifactsFromWildcards;
@@ -545,7 +546,7 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
     }
     QStringList filesNotFound = filesContext.absoluteFilePaths;
     QList<SourceArtifactPtr> sourceArtifacts;
-    foreach (const SourceArtifactPtr &sa, groupContext.resolvedGroups.first()->files) {
+    for (const SourceArtifactPtr &sa : qAsConst(groupContext.resolvedGroups.first()->files)) {
         if (filesNotFound.removeOne(sa->absoluteFilePath))
             sourceArtifacts << sa;
     }
@@ -561,7 +562,7 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
 
     for (int i = 0; i < groupContext.resolvedProducts.count(); ++i) {
         removeFilesFromBuildGraph(groupContext.resolvedProducts.at(i), sourceArtifacts);
-        foreach (const SourceArtifactPtr &sa, sourceArtifacts)
+        for (const SourceArtifactPtr &sa : qAsConst(sourceArtifacts))
             groupContext.resolvedGroups.at(i)->files.removeOne(sa);
     }
     doSanityChecks(internalProject, logger);
@@ -569,7 +570,7 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
     m_projectData.d.detach();
     updateInternalCodeLocations(internalProject, remover.itemPosition(), remover.lineOffset());
     updateExternalCodeLocations(m_projectData, remover.itemPosition(), remover.lineOffset());
-    foreach (const GroupData &g, groupContext.groups) {
+    for (const GroupData &g : qAsConst(groupContext.groups)) {
         for (int i = g.d->sourceArtifacts.count() - 1; i >= 0; --i) {
             if (filesContext.absoluteFilePaths.contains(g.d->sourceArtifacts.at(i).filePath()))
                 g.d->sourceArtifacts.removeAt(i);
@@ -610,7 +611,7 @@ void ProjectPrivate::removeFilesFromBuildGraph(const ResolvedProductConstPtr &pr
         return;
     QBS_CHECK(internalProject->buildData);
     ArtifactSet allRemovedArtifacts;
-    foreach (const SourceArtifactPtr &sa, files) {
+    for (const SourceArtifactPtr &sa : files) {
         ArtifactSet removedArtifacts;
         Artifact * const artifact = lookupArtifact(product, sa->absoluteFilePath);
         if (artifact) { // Can be null if the executor has not yet applied the respective rule.
@@ -640,26 +641,26 @@ void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &proje
     if (lineOffset == 0)
         return;
     updateLocationIfNecessary(project->location, changeLocation, lineOffset);
-    foreach (const ResolvedProjectPtr &subProject, project->subProjects)
+    for (const ResolvedProjectPtr &subProject : qAsConst(project->subProjects))
         updateInternalCodeLocations(subProject, changeLocation, lineOffset);
-    foreach (const ResolvedProductPtr &product, project->products) {
+    for (const ResolvedProductPtr &product : qAsConst(project->products)) {
         updateLocationIfNecessary(product->location, changeLocation, lineOffset);
-        foreach (const GroupPtr &group, product->groups)
+        for (const GroupPtr &group : qAsConst(product->groups))
             updateLocationIfNecessary(group->location, changeLocation, lineOffset);
-        foreach (const RulePtr &rule, product->rules) {
+        for (const RulePtr &rule : qAsConst(product->rules)) {
             updateLocationIfNecessary(rule->prepareScript->location, changeLocation, lineOffset);
-            foreach (const RuleArtifactPtr &artifact, rule->artifacts) {
+            for (const RuleArtifactPtr &artifact : qAsConst(rule->artifacts)) {
                 for (int i = 0; i < artifact->bindings.count(); ++i) {
                     updateLocationIfNecessary(artifact->bindings[i].location, changeLocation,
                                               lineOffset);
                 }
             }
         }
-        foreach (const ResolvedScannerConstPtr &scanner, product->scanners) {
+        for (const ResolvedScannerConstPtr &scanner : qAsConst(product->scanners)) {
             updateLocationIfNecessary(scanner->searchPathsScript->location, changeLocation, lineOffset);
             updateLocationIfNecessary(scanner->scanScript->location, changeLocation, lineOffset);
         }
-        foreach (const ResolvedModuleConstPtr &module, product->modules) {
+        for (const ResolvedModuleConstPtr &module : qAsConst(product->modules)) {
             updateLocationIfNecessary(module->setupBuildEnvironmentScript->location,
                                       changeLocation, lineOffset);
             updateLocationIfNecessary(module->setupRunEnvironmentScript->location,
@@ -674,11 +675,11 @@ void ProjectPrivate::updateExternalCodeLocations(const ProjectData &project,
     if (lineOffset == 0)
         return;
     updateLocationIfNecessary(project.d->location, changeLocation, lineOffset);
-    foreach (const ProjectData &subProject, project.subProjects())
+    for (const ProjectData &subProject : project.subProjects())
         updateExternalCodeLocations(subProject, changeLocation, lineOffset);
-    foreach (const ProductData &product, project.products()) {
+    for (const ProductData &product : project.products()) {
         updateLocationIfNecessary(product.d->location, changeLocation, lineOffset);
-        foreach (const GroupData &group, product.groups())
+        for (const GroupData &group : product.groups())
             updateLocationIfNecessary(group.d->location, changeLocation, lineOffset);
     }
 }
@@ -704,14 +705,14 @@ RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
     QBS_CHECK(resolvedProduct->buildData);
     const ArtifactSet &outputArtifacts = resolvedProduct->buildData->artifactsByFileTag
             .value(FileTag(outputFileTag.toLocal8Bit()));
-    foreach (const Artifact * const outputArtifact, outputArtifacts) {
+    for (const Artifact * const outputArtifact : qAsConst(outputArtifacts)) {
         const TransformerConstPtr transformer = outputArtifact->transformer;
         if (!transformer)
             continue;
-        foreach (const Artifact * const inputArtifact, transformer->inputs) {
+        for (const Artifact * const inputArtifact : qAsConst(transformer->inputs)) {
             if (inputArtifact->filePath() == inputFilePath) {
                 RuleCommandList list;
-                foreach (const AbstractCommandPtr &internalCommand, transformer->commands) {
+                for (const AbstractCommandPtr &internalCommand : qAsConst(transformer->commands)) {
                     RuleCommand externalCommand;
                     externalCommand.d->description = internalCommand->description();
                     externalCommand.d->extendedDescription = internalCommand->extendedDescription();
@@ -756,7 +757,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
     projectData.d->name = internalProject->name;
     projectData.d->location = internalProject->location;
     projectData.d->enabled = internalProject->enabled;
-    foreach (const ResolvedProductConstPtr &resolvedProduct, internalProject->products) {
+    for (const ResolvedProductConstPtr &resolvedProduct : qAsConst(internalProject->products)) {
         ProductData product;
         product.d->type = resolvedProduct->fileTags.toStringList();
         product.d->name = resolvedProduct->name;
@@ -770,13 +771,12 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->isRunnable = productIsRunnable(resolvedProduct);
         product.d->properties = resolvedProduct->productProperties;
         product.d->moduleProperties.d->m_map = resolvedProduct->moduleProperties;
-        foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups)
+        for (const GroupPtr &resolvedGroup : qAsConst(resolvedProduct->groups))
             product.d->groups << createGroupDataFromGroup(resolvedGroup, resolvedProduct);
         if (resolvedProduct->enabled) {
             QBS_CHECK(resolvedProduct->buildData);
             const ArtifactSet targetArtifacts = resolvedProduct->targetArtifacts();
-            foreach (Artifact * const a,
-                     filterByType<Artifact>(resolvedProduct->buildData->nodes)) {
+            for (Artifact * const a : filterByType<Artifact>(resolvedProduct->buildData->nodes)) {
                 if (a->artifactType != Artifact::Generated)
                     continue;
                 ArtifactData ta;
@@ -802,8 +802,10 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                 product.d->generatedArtifacts << ta;
             }
         }
-        foreach (const ResolvedProductPtr &resolvedDependentProduct, resolvedProduct->dependencies)
+        for (const ResolvedProductPtr &resolvedDependentProduct
+             : qAsConst(resolvedProduct->dependencies)) {
             product.d->dependencies << resolvedDependentProduct->name;
+        }
         qSort(product.d->type);
         qSort(product.d->groups);
         qSort(product.d->generatedArtifacts);
@@ -811,7 +813,8 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->isValid = true;
         projectData.d->products << product;
     }
-    foreach (const ResolvedProjectConstPtr &internalSubProject, internalProject->subProjects) {
+    for (const ResolvedProjectConstPtr &internalSubProject
+         : qAsConst(internalProject->subProjects)) {
         if (!internalSubProject->enabled)
             continue;
         ProjectData subProject;

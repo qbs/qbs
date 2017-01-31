@@ -42,6 +42,7 @@
 #include "productbuilddata.h"
 #include <language/language.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 namespace qbs {
 namespace Internal {
@@ -54,13 +55,13 @@ void ArtifactVisitor::visitProduct(const ResolvedProductConstPtr &product)
 {
     if (!product->buildData)
         return;
-    foreach (BuildGraphNode *node, product->buildData->nodes)
+    for (BuildGraphNode *node : qAsConst(product->buildData->nodes))
         node->accept(this);
 }
 
 void ArtifactVisitor::visitProject(const ResolvedProjectConstPtr &project)
 {
-    foreach (const ResolvedProductConstPtr &product, project->allProducts())
+    for (const ResolvedProductConstPtr &product : project->allProducts())
         visitProduct(product);
 }
 

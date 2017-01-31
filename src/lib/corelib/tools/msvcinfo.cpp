@@ -67,7 +67,7 @@ public:
     TemporaryEnvChanger(const QProcessEnvironment &envChanges)
     {
         QProcessEnvironment currentEnv = QProcessEnvironment::systemEnvironment();
-        foreach (const QString &key, envChanges.keys()) {
+        for (const QString &key : envChanges.keys()) {
             m_changesToRestore.insert(key, currentEnv.value(key));
             qputenv(qPrintable(key), qPrintable(envChanges.value(key)));
         }
@@ -75,7 +75,7 @@ public:
 
     ~TemporaryEnvChanger()
     {
-        foreach (const QString &key, m_changesToRestore.keys())
+        for (const QString &key : m_changesToRestore.keys())
             qputenv(qPrintable(key), qPrintable(m_changesToRestore.value(key)));
     }
 

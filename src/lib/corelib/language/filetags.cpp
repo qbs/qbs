@@ -63,7 +63,7 @@ void FileTag::load(PersistentPool &pool)
 FileTags FileTags::fromStringList(const QStringList &strings)
 {
     FileTags result;
-    foreach (const QString &str, strings)
+    for (const QString &str : strings)
         result += FileTag(str.toUtf8());
     return result;
 }
@@ -72,7 +72,7 @@ LogWriter operator <<(LogWriter w, const FileTags &tags)
 {
     bool firstLoop = true;
     w.write('(');
-    foreach (const FileTag &tag, tags) {
+    for (const FileTag &tag : tags) {
         if (firstLoop)
             firstLoop = false;
         else
