@@ -41,6 +41,6 @@
 
 namespace qbs {
 namespace Internal {
-Q_LOGGING_CATEGORY(launcherLog, "qbs.launcher")
+Q_LOGGING_CATEGORY(launcherLog, "qbs.launcher", QtWarningMsg)
 }
 }
