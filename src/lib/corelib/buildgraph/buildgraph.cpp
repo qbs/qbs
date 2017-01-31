@@ -228,8 +228,8 @@ bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode *> &pat
         return true;
     }
 
-    for (NodeSet::const_iterator it = u->children.cbegin(); it != u->children.cend(); ++it) {
-        if (findPath(*it, v, path)) {
+    for (BuildGraphNode * const childNode : qAsConst(u->children)) {
+        if (findPath(childNode, v, path)) {
             path.prepend(u);
             return true;
         }
@@ -283,9 +283,10 @@ static bool existsPath_impl(BuildGraphNode *u, BuildGraphNode *v, NodeSet *seen)
     if (!seen->insert(u).second)
         return false;
 
-    for (NodeSet::const_iterator it = u->children.cbegin(); it != u->children.cend(); ++it)
-        if (existsPath_impl(*it, v, seen))
+    for (BuildGraphNode * const childNode : qAsConst(u->children)) {
+        if (existsPath_impl(childNode, v, seen))
             return true;
+    }
 
     return false;
 }

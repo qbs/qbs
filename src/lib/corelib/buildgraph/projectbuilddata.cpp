@@ -272,8 +272,8 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
 void ProjectBuildData::load(PersistentPool &pool)
 {
     pool.load(fileDependencies);
-    for (auto dep = fileDependencies.cbegin(); dep != fileDependencies.cend(); ++dep)
-        insertFileDependency(*dep);
+    for (FileDependency * const dep : qAsConst(fileDependencies))
+        insertFileDependency(dep);
     pool.load(rawScanResults);
 }
 

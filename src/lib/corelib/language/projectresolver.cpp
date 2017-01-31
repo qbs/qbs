@@ -535,9 +535,8 @@ static QualifiedIdSet propertiesToEvaluate(const QList<QualifiedId> &initialProp
         const auto insertResult = allProperties.insert(prop);
         if (!insertResult.second)
             continue;
-        const QualifiedIdSet &directDeps = deps.value(prop);
-        for (auto depIt = directDeps.cbegin(); depIt != directDeps.cend(); ++depIt)
-            remainingProps << *depIt;
+        for (const QualifiedId &directDep : deps.value(prop))
+            remainingProps << directDep;
     }
     return allProperties;
 }
@@ -589,16 +588,16 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
         propsPerModule[moduleName] << fullPropName.last();
     }
     EvalCacheEnabler cachingEnabler(m_evaluator);
-    for (auto it = group->modules().cbegin(); it != group->modules().cend(); ++it) {
-        const QString &fullModName = it->name.toString();
+    for (const Item::Module &module : group->modules()) {
+        const QString &fullModName = module.name.toString();
         const QStringList propsForModule = propsPerModule.take(fullModName);
         if (propsForModule.isEmpty())
             continue;
         QVariantMap reusableValues = modulesMap.value(fullModName).toMap();
-        for (auto propIt = propsForModule.cbegin(); propIt != propsForModule.cend(); ++propIt)
-            reusableValues.remove(*propIt);
+        for (const QString &prop : qAsConst(propsForModule))
+            reusableValues.remove(prop);
         modulesMap.insert(fullModName,
-                          evaluateProperties(it->item, it->item, reusableValues, true));
+                          evaluateProperties(module.item, module.item, reusableValues, true));
     }
     QVariantMap newValues = currentValues;
     newValues.insert(QLatin1String("modules"), modulesMap);

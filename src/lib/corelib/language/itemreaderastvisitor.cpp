@@ -306,8 +306,8 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
             QBS_CHECK(!sv->baseValue());
             const JSSourceValuePtr baseValue = it.value().staticCast<JSSourceValue>();
             sv->setBaseValue(baseValue);
-            for (auto it = sv->m_alternatives.begin(); it != sv->m_alternatives.end(); ++it)
-                it->value->setBaseValue(baseValue);
+            for (const JSSourceValue::Alternative &alt : qAsConst(sv->m_alternatives))
+                alt.value->setBaseValue(baseValue);
             break;
         }
         case Value::ItemValueType:

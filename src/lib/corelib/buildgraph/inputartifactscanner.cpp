@@ -141,11 +141,8 @@ void InputArtifactScanner::scan()
     for (Artifact * const dependency : childrenAddedByScanner)
         disconnect(m_artifact, dependency, m_logger);
 
-    ArtifactSet::const_iterator it = m_artifact->transformer->inputs.cbegin();
-    for (; it != m_artifact->transformer->inputs.cend(); ++it) {
-        Artifact *inputArtifact = *it;
+    for (Artifact * const inputArtifact : qAsConst(m_artifact->transformer->inputs))
         scanForFileDependencies(inputArtifact);
-    }
 }
 
 void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)

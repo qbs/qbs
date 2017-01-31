@@ -40,6 +40,7 @@
 #include "launchersocket.h"
 
 #include "qbsassert.h"
+#include "qttools.h"
 
 #include <logging/translator.h>
 
@@ -124,8 +125,8 @@ void LauncherSocket::handleError(const QString &error)
 void LauncherSocket::handleRequests()
 {
     QMutexLocker locker(&m_requestsMutex);
-    for (auto it = m_requests.cbegin(); it != m_requests.cend(); ++it)
-        m_socket->write(*it);
+    for (const QByteArray &request : qAsConst(m_requests))
+        m_socket->write(request);
     m_requests.clear();
 }
 

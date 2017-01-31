@@ -936,8 +936,7 @@ void Executor::runTransformer(const TransformerPtr &transformer)
 
     // create the output directories
     if (!m_buildOptions.dryRun()) {
-        for (auto it = transformer->outputs.cbegin(); it != transformer->outputs.cend(); ++it) {
-            Artifact *output = *it;
+        for (Artifact * const output : qAsConst(transformer->outputs)) {
             QDir outDir = QFileInfo(output->filePath()).absoluteDir();
             if (!outDir.exists() && !outDir.mkpath(QLatin1String("."))) {
                     throw ErrorInfo(tr("Failed to create directory '%1'.")

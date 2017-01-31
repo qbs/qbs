@@ -123,8 +123,8 @@ public:
     {
         QHash<QString, ProductContext *> productsMap;
         QList<ProductContext *> allProducts;
-        for (auto projIt = m_tlp.projects.begin(); projIt != m_tlp.projects.end(); ++projIt) {
-            QVector<ProductContext> &products = (*projIt)->products;
+        for (ProjectContext * const projectContext : qAsConst(m_tlp.projects)) {
+            QVector<ProductContext> &products = projectContext->products;
             for (auto prodIt = products.begin(); prodIt != products.end(); ++prodIt) {
                 allProducts << prodIt;
                 productsMap.insert(prodIt->name, prodIt);
@@ -451,14 +451,13 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
 
     for (ProjectContext * const projectContext : qAsConst(tlp.projects)) {
         m_reader->setExtraSearchPathsStack(projectContext->searchPathsStack);
-        for (auto it = projectContext->products.begin(); it != projectContext->products.end();
-             ++it) {
+        for (ProductContext &productContext : projectContext->products) {
             try {
-                setupProductDependencies(it);
+                setupProductDependencies(&productContext);
             } catch (const ErrorInfo &err) {
-                if (it->name.isEmpty())
+                if (productContext.name.isEmpty())
                     throw err;
-                handleProductError(err, it);
+                handleProductError(err, &productContext);
             }
         }
     }
@@ -741,10 +740,9 @@ void ModuleLoader::setupReverseModuleDependencies(const Item::Module &module,
 {
     if (!insertIntoSet(seenModules, module.name))
         return;
-    const Item::Modules &modules = module.item->modules();
-    for (auto it = modules.begin(); it != modules.end(); ++it) {
-        deps[it->name].insert(module.name);
-        setupReverseModuleDependencies(*it, deps, seenModules);
+    for (const Item::Module &m : module.item->modules()) {
+        deps[m.name].insert(module.name);
+        setupReverseModuleDependencies(m, deps, seenModules);
     }
 }
 
@@ -752,9 +750,8 @@ ModuleLoader::ModuleDependencies ModuleLoader::setupReverseModuleDependencies(co
 {
     ModuleDependencies deps;
     QualifiedIdSet seenModules;
-    const Item::Modules &modules = product->modules();
-    for (auto it = modules.begin(); it != modules.end(); ++it)
-        setupReverseModuleDependencies(*it, deps, seenModules);
+    for (const Item::Module &m : product->modules())
+        setupReverseModuleDependencies(m, deps, seenModules);
     return deps;
 }
 
@@ -1253,20 +1250,19 @@ void ModuleLoader::propagateModulesFromParent(Item *groupItem,
     }
 
     // Step 2: Make the inter-module references point to the instances created in step 1.
-    for (auto it = groupItem->modules().cbegin(); it != groupItem->modules().cend(); ++it) {
+    for (const Item::Module &module : groupItem->modules()) {
         Item::Modules adaptedModules;
-        const Item::Modules &oldModules = it->item->prototype()->modules();
-        for (auto depIt = oldModules.begin(); depIt != oldModules.end(); ++depIt) {
-            Item::Module depMod = *depIt;
-            depMod.item = moduleInstancesForGroup.value(depIt->name);
+        const Item::Modules &oldModules = module.item->prototype()->modules();
+        for (Item::Module depMod : oldModules) {
+            depMod.item = moduleInstancesForGroup.value(depMod.name);
             adaptedModules << depMod;
-            if (depMod.name.first() == it->name.first())
+            if (depMod.name.first() == module.name.first())
                 continue;
             const ItemValuePtr &modulePrefix = groupItem->itemProperty(depMod.name.first());
             QBS_CHECK(modulePrefix);
-            it->item->setProperty(depMod.name.first(), modulePrefix);
+            module.item->setProperty(depMod.name.first(), modulePrefix);
         }
-        it->item->setModules(adaptedModules);
+        module.item->setModules(adaptedModules);
     }
 
     if (!isSomeModulePropertySet(groupItem))
@@ -1274,20 +1270,19 @@ void ModuleLoader::propagateModulesFromParent(Item *groupItem,
 
     // Step 3: Adapt defining items in values. This is potentially necessary if module properties
     //         get assigned on the group level.
-    const Item::Modules &groupModules = groupItem->modules();
-    for (auto modIt = groupModules.begin(); modIt != groupModules.end(); ++modIt) {
-        const QualifiedIdSet &dependents = reverseDepencencies.value(modIt->name);
+    for (const Item::Module &module : groupItem->modules()) {
+        const QualifiedIdSet &dependents = reverseDepencencies.value(module.name);
         Item::Modules dependentModules;
         dependentModules.reserve(int(dependents.size()));
-        for (auto depIt = dependents.begin(); depIt != dependents.end(); ++depIt) {
-            Item * const itemOfDependent = moduleInstancesForGroup.value(*depIt);
+        for (const QualifiedId &depName : dependents) {
+            Item * const itemOfDependent = moduleInstancesForGroup.value(depName);
             QBS_CHECK(itemOfDependent);
             Item::Module depMod;
-            depMod.name = *depIt;
+            depMod.name = depName;
             depMod.item = itemOfDependent;
             dependentModules << depMod;
         }
-        adjustDefiningItemsInGroupModuleInstances(*modIt, dependentModules);
+        adjustDefiningItemsInGroupModuleInstances(module, dependentModules);
     }
 }
 
@@ -1427,9 +1422,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
 
                 QBS_CHECK(v->definingItem()->scope() && v->definingItem()->scope()->scope());
                 bool found = false;
-                for (auto depIt = dependentModules.cbegin(); depIt != dependentModules.cend();
-                     ++depIt) {
-                    const Item::Module &depMod = *depIt;
+                for (const Item::Module &depMod : dependentModules) {
                     const Item *depModPrototype = depMod.item->prototype();
                     for (int i = 1; i < prototypeChainLen; ++i)
                         depModPrototype = depModPrototype->prototype();
@@ -1707,8 +1700,8 @@ public:
         if (alreadyInChain) {
             ErrorInfo error;
             error.append(Tr::tr("Cyclic dependencies detected:"));
-            for (auto e = m_dependsChain.cbegin(); e != m_dependsChain.cend(); ++e)
-                error.append(e->first.toString(), e->second);
+            for (const DependsChainEntry &e : qAsConst(m_dependsChain))
+                error.append(e.first.toString(), e.second);
             error.append(module.toString(), dependsLocation);
             throw error;
         }
@@ -2508,9 +2501,8 @@ Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &r
 void ModuleLoader::handleProductError(const ErrorInfo &error,
                                       ModuleLoader::ProductContext *productContext)
 {
-    const QList<ErrorItem> &errorItems = error.items();
-    for (auto ei = errorItems.begin(); ei != errorItems.end(); ++ei)
-        productContext->info.delayedError.append(ei->description(), ei->codeLocation());
+    for (const ErrorItem &ei : error.items())
+        productContext->info.delayedError.append(ei.description(), ei.codeLocation());
     productContext->project->result->productInfos.insert(productContext->item,
                                                          productContext->info);
     m_disabledItems << productContext->item;

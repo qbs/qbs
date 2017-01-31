@@ -63,7 +63,7 @@ void ModuleMerger::replaceItemInValues(QualifiedId moduleName, Item *containerIt
     QBS_CHECK(!moduleName.isEmpty());
     QBS_CHECK(containerItem != m_mergedModule.item);
     const QString moduleNamePrefix = moduleName.takeFirst();
-    Item::PropertyMap properties = containerItem->properties();
+    const Item::PropertyMap &properties = containerItem->properties();
     for (auto it = properties.begin(); it != properties.end(); ++it) {
         if (it.key() != moduleNamePrefix)
             continue;

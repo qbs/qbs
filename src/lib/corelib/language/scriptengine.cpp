@@ -121,10 +121,8 @@ void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue &
     m_currentDirPathStack.push(FileInfo::path(fileCtx->filePath()));
     m_extensionSearchPathsStack.push(fileCtx->searchPaths());
 
-    const JsImports jsImports = fileCtx->jsImports();
-    for (JsImports::const_iterator it = jsImports.begin(); it != jsImports.end(); ++it) {
-        import(*it, targetObject);
-    }
+    for (const JsImport &jsImport : fileCtx->jsImports())
+        import(jsImport, targetObject);
 
     m_currentDirPathStack.pop();
     m_extensionSearchPathsStack.pop();
@@ -166,8 +164,7 @@ void ScriptEngine::clearImportsCache()
 void ScriptEngine::checkContext(const QString &operation,
                                 const DubiousContextList &dubiousContexts)
 {
-    for (auto it = dubiousContexts.cbegin(); it != dubiousContexts.cend(); ++it) {
-        const DubiousContext &info = *it;
+    for (const DubiousContext &info : dubiousContexts) {
         if (info.context != evalContext())
             continue;
         QString warning;

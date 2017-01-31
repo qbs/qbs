@@ -482,10 +482,9 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
             hasChanged = true;
         } else if (!changedProducts.contains(product)) {
             bool foundMissingSourceFile = false;
-            for (auto file = product->missingSourceFiles.cbegin();
-                 file != product->missingSourceFiles.cend(); ++file) {
-                if (FileInfo(*file).exists()) {
-                    m_logger.qbsDebug() << "Formerly missing file " << *file << " in product "
+            for (const QString &file : qAsConst(product->missingSourceFiles)) {
+                if (FileInfo(file).exists()) {
+                    m_logger.qbsDebug() << "Formerly missing file " << file << " in product "
                                         << product->name << " exists now, must re-resolve project";
                     foundMissingSourceFile = true;
                     break;

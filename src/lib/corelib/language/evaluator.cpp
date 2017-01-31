@@ -66,7 +66,7 @@ Evaluator::Evaluator(ScriptEngine *scriptEngine, const Logger &logger)
 
 Evaluator::~Evaluator()
 {
-    for (auto it = m_scriptValueMap.begin(); it != m_scriptValueMap.end(); ++it)
+    for (auto it = m_scriptValueMap.cbegin(); it != m_scriptValueMap.cend(); ++it)
         delete attachedPointer<EvaluationData>(*it);
     delete m_scriptClass;
 }
