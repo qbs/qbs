@@ -39,9 +39,12 @@ function sanitizedList(list, product, fullPropertyName) {
     if (!Array.isArray(list))
         return list;
     var filterFunc = function(elem) {
-        if (elem.length === 0) {
-            console.warn("Removing empty string from value of property '" + fullPropertyName
-                         + "' in product '" + product.name + "'.");
+        if (typeof elem === "string" && elem.length === 0) {
+            var msg = "Removing empty string from value of property '" + fullPropertyName + "'";
+            // product might actually be a module
+            if (product.name)
+                msg += " in product '" + product.name + "'.";
+            console.warn(msg);
             return false;
         }
         return true;
