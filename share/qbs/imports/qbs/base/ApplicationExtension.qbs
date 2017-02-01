@@ -35,13 +35,15 @@ XPCService {
 
     type: base.concat(["applicationextension"])
 
+    property bool _useLegacyExtensionLibraries:
+        qbs.targetOS.contains("macos") && parseInt(xcode.sdkVersion.split(".")[1], 10) < 11 ||
+        qbs.targetOS.contains("ios") && parseInt(xcode.sdkVersion.split(".")[0], 10) < 9
+
     cpp.entryPoint: "_NSExtensionMain"
     cpp.frameworks: {
         var frameworks = base.concat(["Foundation"]);
-        if (qbs.targetOS.contains("macos") && parseInt(xcode.sdkVersion.split(".")[1], 10) < 11 ||
-            qbs.targetOS.contains("ios") && parseInt(xcode.sdkVersion.split(".")[0], 10) < 9) {
-            frameworks = base.concat(["/System/Library/PrivateFrameworks/PlugInKit.framework"]);
-        }
+        if (_useLegacyExtensionLibraries)
+            frameworks.push(qbs.sysroot + "/System/Library/PrivateFrameworks/PlugInKit.framework");
         return frameworks;
     }
 
