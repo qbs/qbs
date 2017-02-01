@@ -118,15 +118,13 @@ function prepareCompiler(product, inputs, output) {
 
     if (warningLevel !== undefined) {
         if (language === "cli.vb") {
-            if (warningLevel === "none" || warningLevel === 0)
+            if (warningLevel === "none" || warningLevel === "0")
                 args.push("/quiet");
         } else {
             if (warningLevel === "all")
-                warningLevel = 4;
+                warningLevel = "4";
             else if (warningLevel === "none")
-                warningLevel = 0;
-            else
-                warningLevel = parseInt(warningLevel, 10);
+                warningLevel = "0";
             args.push("/warn:" + warningLevel);
         }
     }
