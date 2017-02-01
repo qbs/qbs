@@ -134,6 +134,7 @@ private slots:
     void nonDefaultProduct();
     void nsis();
     void objcArc();
+    void objectAsTargetArtifact();
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
     void pchChangeTracking();

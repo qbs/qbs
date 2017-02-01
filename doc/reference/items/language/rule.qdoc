@@ -202,9 +202,10 @@
         \li string list
         \li undefined
         \li File tags the input artifacts must match.
-           All output artifacts will depend on all artifacts in the product with
-           the given input file tags. Also these artifacts are available in the
-           inputs variable of the prepare script.
+            All output artifacts of the rule will depend on all artifacts in the product and on
+            all target artifacts of depending products that match these file tags.
+            Such artifacts are then also available in the \c inputs variable of the
+            \c prepare script.
     \row
         \li auxiliaryInputs
         \li string list
