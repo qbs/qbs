@@ -32,6 +32,7 @@ var DarwinTools = loadExtension("qbs.DarwinTools");
 var Process = loadExtension("qbs.Process");
 
 // HACK: Workaround until the PropertyList extension is supported cross-platform
+var TextFile = loadExtension("qbs.TextFile");
 var PropertyList2 = (function () {
     function PropertyList2() {
     }
