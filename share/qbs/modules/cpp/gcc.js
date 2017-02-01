@@ -405,7 +405,7 @@ function effectiveCompilerInfo(toolchain, input, output) {
 
 // ### what we actually need here is something like product.usedFileTags
 //     that contains all fileTags that have been used when applying the rules.
-function compilerFlags(product, input, output) {
+function compilerFlags(project, product, input, output) {
     var includePaths = ModUtils.moduleProperty(input, 'includePaths');
     var systemIncludePaths = ModUtils.moduleProperty(input, 'systemIncludePaths');
     var distributionIncludePaths = ModUtils.moduleProperty(input, "distributionIncludePaths");
@@ -707,7 +707,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     var compilerPath = compilerInfo.path;
     var pchOutput = output.fileTags.contains(compilerInfo.tag + "_pch");
 
-    var args = compilerFlags(product, input, output);
+    var args = compilerFlags(project, product, input, output);
     var wrapperArgsLength = 0;
     var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");
     if (wrapperArgs && wrapperArgs.length > 0) {
