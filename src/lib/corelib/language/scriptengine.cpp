@@ -351,51 +351,12 @@ QScriptValue ScriptEngine::js_loadExtension(QScriptContext *context, QScriptEngi
                                      "an extension name."));
     }
 
-    if (engine->m_extensionSearchPathsStack.isEmpty())
-        return context->throwError(
-                    ScriptEngine::tr("loadExtension: internal error. No search paths."));
+    ErrorInfo deprWarning(Tr::tr("The loadExtension() function is deprecated and will be "
+                                 "removed in a future version of Qbs. Use require() "
+                                 "instead."), context->backtrace());
+    engine->logger().printWarning(deprWarning);
 
-    const QString uri = context->argument(0).toVariant().toString();
-    if (engine->m_logger.debugEnabled()) {
-        engine->m_logger.qbsDebug()
-                << "[loadExtension] loading extension " << uri;
-    }
-
-    QString uriAsPath = uri;
-    uriAsPath.replace(QLatin1Char('.'), QLatin1Char('/'));
-    const QStringList searchPaths = engine->m_extensionSearchPathsStack.top();
-    const QString dirPath = findExtensionDir(searchPaths, uriAsPath);
-    if (dirPath.isEmpty()) {
-        if (uri.startsWith(QLatin1String("qbs.")))
-            return loadInternalExtension(context, engine, uri);
-    } else {
-        QDirIterator dit(dirPath,
-                         QStringList() << QStringLiteral("*.js"),
-                         QDir::Files | QDir::Readable);
-        QScriptValueList values;
-        try {
-            while (dit.hasNext()) {
-                const QString filePath = dit.next();
-                if (engine->m_logger.debugEnabled()) {
-                    engine->m_logger.qbsDebug()
-                            << "[loadExtension] importing file " << filePath;
-                }
-                QScriptValue obj = engine->newObject();
-                engine->importFile(filePath, obj);
-                values << obj;
-            }
-        } catch (const ErrorInfo &e) {
-            return context->throwError(e.toString());
-        }
-
-        if (!values.isEmpty())
-            return mergeExtensionObjects(values);
-    }
-
-    return context->throwError(
-                ScriptEngine::tr("loadExtension: Cannot find extension '%1'. "
-                                 "Search paths: %2.").arg(uri, searchPaths.join(
-                                                              QLatin1String(", "))));
+    return js_require(context, qtengine);
 }
 
 QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *qtengine)
@@ -406,16 +367,80 @@ QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *q
                     ScriptEngine::tr("The loadFile function requires a file path."));
     }
 
+    ErrorInfo deprWarning(Tr::tr("The loadFile() function is deprecated and will be "
+                                 "removed in a future version of Qbs. Use require() "
+                                 "instead."), context->backtrace());
+    engine->logger().printWarning(deprWarning);
+
+    return js_require(context, qtengine);
+}
+
+QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qtengine)
+{
+    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    if (context->argumentCount() < 1) {
+        return context->throwError(
+                    ScriptEngine::tr("The require function requires a module name or path."));
+    }
+
+    const QString moduleName = context->argument(0).toString();
+
+    // First try to load a named module if the argument doesn't look like a file path
+    if (!moduleName.contains(QLatin1Char('/'))) {
+        if (engine->m_extensionSearchPathsStack.isEmpty())
+            return context->throwError(
+                        ScriptEngine::tr("require: internal error. No search paths."));
+
+        const QString uri = moduleName;
+        if (engine->m_logger.debugEnabled()) {
+            engine->m_logger.qbsDebug()
+                    << "[require] loading extension " << uri;
+        }
+
+        QString uriAsPath = uri;
+        uriAsPath.replace(QLatin1Char('.'), QLatin1Char('/'));
+        const QStringList searchPaths = engine->m_extensionSearchPathsStack.top();
+        const QString dirPath = findExtensionDir(searchPaths, uriAsPath);
+        if (dirPath.isEmpty()) {
+            if (uri.startsWith(QLatin1String("qbs.")))
+                return loadInternalExtension(context, engine, uri);
+        } else {
+            QDirIterator dit(dirPath,
+                             QStringList() << QStringLiteral("*.js"),
+                             QDir::Files | QDir::Readable);
+            QScriptValueList values;
+            try {
+                while (dit.hasNext()) {
+                    const QString filePath = dit.next();
+                    if (engine->m_logger.debugEnabled()) {
+                        engine->m_logger.qbsDebug()
+                                << "[require] importing file " << filePath;
+                    }
+                    QScriptValue obj = engine->newObject();
+                    engine->importFile(filePath, obj);
+                    values << obj;
+                }
+            } catch (const ErrorInfo &e) {
+                return context->throwError(e.toString());
+            }
+
+            if (!values.isEmpty())
+                return mergeExtensionObjects(values);
+        }
+
+        // The module name might be a file name component, which is assumed to be to a JavaScript
+        // file located in the current directory search path; try that next
+    }
+
     if (engine->m_currentDirPathStack.isEmpty()) {
         return context->throwError(
-            ScriptEngine::tr("loadFile: internal error. No current directory."));
+            ScriptEngine::tr("require: internal error. No current directory."));
     }
 
     QScriptValue result;
-    const QString relativeFilePath = context->argument(0).toVariant().toString();
     try {
         const QString filePath = FileInfo::resolvePath(engine->m_currentDirPathStack.top(),
-                                                       relativeFilePath);
+                                                       moduleName);
         result = engine->newObject();
         engine->importFile(filePath, result);
         const QString scopeName = QLatin1String("_qbs_scope_")
@@ -626,12 +651,14 @@ void ScriptEngine::installImportFunctions()
 {
     installFunction(QLatin1String("loadFile"), 1, &m_loadFileFunction, js_loadFile);
     installFunction(QLatin1String("loadExtension"), 1, &m_loadExtensionFunction, js_loadExtension);
+    installFunction(QLatin1String("require"), 1, &m_requireFunction, js_require);
 }
 
 void ScriptEngine::uninstallImportFunctions()
 {
     globalObject().setProperty(QLatin1String("loadFile"), QScriptValue());
     globalObject().setProperty(QLatin1String("loadExtension"), QScriptValue());
+    globalObject().setProperty(QLatin1String("require"), QScriptValue());
 }
 
 ScriptEngine::PropertyCacheKey::PropertyCacheKey(const QString &moduleName,

@@ -1,4 +1,4 @@
-var File = loadExtension("qbs.File");
+var File = require("qbs.File");
 
 function fileList() { return []; }
 

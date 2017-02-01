@@ -173,6 +173,7 @@ private:
     void importFile(const QString &filePath, QScriptValue &targetObject);
     static QScriptValue js_loadExtension(QScriptContext *context, QScriptEngine *qtengine);
     static QScriptValue js_loadFile(QScriptContext *context, QScriptEngine *qtengine);
+    static QScriptValue js_require(QScriptContext *context, QScriptEngine *qtengine);
 
     class PropertyCacheKey
     {
@@ -211,6 +212,7 @@ private:
     QStack<QStringList> m_extensionSearchPathsStack;
     QScriptValue m_loadFileFunction;
     QScriptValue m_loadExtensionFunction;
+    QScriptValue m_requireFunction;
     QScriptValue m_qbsObject;
     QScriptValue m_consoleObject;
     QScriptValue m_cancelationError;

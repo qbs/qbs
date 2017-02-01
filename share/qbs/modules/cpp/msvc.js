@@ -28,10 +28,10 @@
 **
 ****************************************************************************/
 
-var File = loadExtension("qbs.File");
-var FileInfo = loadExtension("qbs.FileInfo");
-var ModUtils = loadExtension("qbs.ModUtils");
-var WindowsUtils = loadExtension("qbs.WindowsUtils");
+var File = require("qbs.File");
+var FileInfo = require("qbs.FileInfo");
+var ModUtils = require("qbs.ModUtils");
+var WindowsUtils = require("qbs.WindowsUtils");
 
 function compilerVersionDefine(cpp) {
     var result = '_MSC_VER=' + cpp.compilerVersionMajor;

@@ -28,16 +28,16 @@
 **
 ****************************************************************************/
 
-var File = loadExtension("qbs.File");
-var FileInfo = loadExtension("qbs.FileInfo");
-var DarwinTools = loadExtension("qbs.DarwinTools");
-var ModUtils = loadExtension("qbs.ModUtils");
-var PathTools = loadExtension("qbs.PathTools");
-var Process = loadExtension("qbs.Process");
-var TextFile = loadExtension("qbs.TextFile");
-var UnixUtils = loadExtension("qbs.UnixUtils");
-var Utilities = loadExtension("qbs.Utilities");
-var WindowsUtils = loadExtension("qbs.WindowsUtils");
+var File = require("qbs.File");
+var FileInfo = require("qbs.FileInfo");
+var DarwinTools = require("qbs.DarwinTools");
+var ModUtils = require("qbs.ModUtils");
+var PathTools = require("qbs.PathTools");
+var Process = require("qbs.Process");
+var TextFile = require("qbs.TextFile");
+var UnixUtils = require("qbs.UnixUtils");
+var Utilities = require("qbs.Utilities");
+var WindowsUtils = require("qbs.WindowsUtils");
 
 function effectiveLinkerPath(product, inputs) {
     if (product.moduleProperty("cpp", "linkerMode") === "automatic") {

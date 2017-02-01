@@ -28,7 +28,7 @@
 **
 ****************************************************************************/
 
-var FileInfo = loadExtension("qbs.FileInfo");
+var FileInfo = require("qbs.FileInfo");
 
 function soname(product, outputFileName) {
     var soVersion = product.moduleProperty("cpp", "soVersion");

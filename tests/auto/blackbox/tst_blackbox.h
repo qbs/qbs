@@ -117,7 +117,6 @@ private slots:
     void linkerScripts();
     void listPropertiesWithOuter();
     void listPropertyOrder();
-    void loadExtension();
     void loadableModule();
     void lrelease();
     void missingDependency();
@@ -164,6 +163,8 @@ private slots:
     void referenceErrorInExport();
     void reproducibleBuild();
     void reproducibleBuild_data();
+    void require();
+    void requireDeprecated();
     void responseFiles();
     void ruleConditions();
     void ruleCycle();

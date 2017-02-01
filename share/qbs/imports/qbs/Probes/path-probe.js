@@ -28,10 +28,10 @@
 **
 ****************************************************************************/
 
-var Environment = loadExtension("qbs.Environment");
-var File = loadExtension("qbs.File");
-var FileInfo = loadExtension("qbs.FileInfo");
-var ModUtils = loadExtension("qbs.ModUtils");
+var Environment = require("qbs.Environment");
+var File = require("qbs.File");
+var FileInfo = require("qbs.FileInfo");
+var ModUtils = require("qbs.ModUtils");
 
 function configure(names, nameSuffixes, nameFilter, pathPrefixes, pathSuffixes, platformPaths,
                    environmentPaths, platformEnvironmentPaths, pathListSeparator) {

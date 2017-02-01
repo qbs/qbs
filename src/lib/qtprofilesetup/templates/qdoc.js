@@ -29,8 +29,8 @@
 **
 ****************************************************************************/
 
-var FileInfo = loadExtension("qbs.FileInfo");
-var ModUtils = loadExtension("qbs.ModUtils");
+var FileInfo = require("qbs.FileInfo");
+var ModUtils = require("qbs.ModUtils");
 
 function qdocArgs(product, input, outputDir) {
     var args = [input.filePath];

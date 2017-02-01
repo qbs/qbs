@@ -28,9 +28,9 @@
 **
 ****************************************************************************/
 
-var FileInfo = loadExtension("qbs.FileInfo");
-var DarwinTools = loadExtension("qbs.DarwinTools");
-var PropertyList = loadExtension("qbs.PropertyList");
+var FileInfo = require("qbs.FileInfo");
+var DarwinTools = require("qbs.DarwinTools");
+var PropertyList = require("qbs.PropertyList");
 
 function destinationDirectoryForResource(product, input) {
     var path = product.destinationDirectory;

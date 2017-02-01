@@ -28,10 +28,10 @@
 **
 ****************************************************************************/
 
-var File = loadExtension("qbs.File");
-var FileInfo = loadExtension("qbs.FileInfo");
-var Process = loadExtension("qbs.Process");
-var PropertyList = loadExtension("qbs.PropertyList");
+var File = require("qbs.File");
+var FileInfo = require("qbs.FileInfo");
+var Process = require("qbs.Process");
+var PropertyList = require("qbs.PropertyList");
 
 function sdkInfoList(sdksPath) {
     var sdkInfo = [];

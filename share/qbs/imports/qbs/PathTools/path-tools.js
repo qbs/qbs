@@ -28,7 +28,7 @@
 **
 ****************************************************************************/
 
-var FileInfo = loadExtension("qbs.FileInfo");
+var FileInfo = require("qbs.FileInfo");
 
 function _bundleExecutableTemporaryFilePath(product) {
     return ".tmp/" + FileInfo.fileName(bundleExecutableFilePath(product));

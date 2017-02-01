@@ -28,13 +28,13 @@
 **
 ****************************************************************************/
 
-var File = loadExtension("qbs.File");
-var FileInfo = loadExtension("qbs.FileInfo");
-var ModUtils = loadExtension("qbs.ModUtils");
-var Process = loadExtension("qbs.Process");
-var TextFile = loadExtension("qbs.TextFile");
-var Utilities = loadExtension("qbs.Utilities");
-var WindowsUtils = loadExtension("qbs.WindowsUtils");
+var File = require("qbs.File");
+var FileInfo = require("qbs.FileInfo");
+var ModUtils = require("qbs.ModUtils");
+var Process = require("qbs.Process");
+var TextFile = require("qbs.TextFile");
+var Utilities = require("qbs.Utilities");
+var WindowsUtils = require("qbs.WindowsUtils");
 
 function is64bitProcess() {
     var y = jdkRootRegistryKey(true);

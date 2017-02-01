@@ -28,8 +28,8 @@
 **
 ****************************************************************************/
 
-var FileInfo = loadExtension("qbs.FileInfo");
-var Utilities = loadExtension("qbs.Utilities");
+var FileInfo = require("qbs.FileInfo");
+var Utilities = require("qbs.Utilities");
 
 var _deviceMap = {
     "mac": undefined, // only devices have an ID

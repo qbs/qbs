@@ -28,7 +28,7 @@
 **
 ****************************************************************************/
 
-var Process = loadExtension("qbs.Process");
+var Process = require("qbs.Process");
 
 function findLocation(packageManagerFilePath, location) {
     var p = new Process();

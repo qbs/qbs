@@ -28,11 +28,11 @@
 **
 ****************************************************************************/
 
-var DarwinTools = loadExtension("qbs.DarwinTools");
-var Process = loadExtension("qbs.Process");
+var DarwinTools = require("qbs.DarwinTools");
+var Process = require("qbs.Process");
 
 // HACK: Workaround until the PropertyList extension is supported cross-platform
-var TextFile = loadExtension("qbs.TextFile");
+var TextFile = require("qbs.TextFile");
 var PropertyList2 = (function () {
     function PropertyList2() {
     }

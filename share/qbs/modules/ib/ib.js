@@ -28,13 +28,13 @@
 **
 ****************************************************************************/
 
-var BundleTools = loadExtension("qbs.BundleTools");
-var DarwinTools = loadExtension("qbs.DarwinTools");
-var File = loadExtension("qbs.File");
-var FileInfo = loadExtension("qbs.FileInfo");
-var ModUtils = loadExtension("qbs.ModUtils");
-var Process = loadExtension("qbs.Process");
-var PropertyList = loadExtension("qbs.PropertyList");
+var BundleTools = require("qbs.BundleTools");
+var DarwinTools = require("qbs.DarwinTools");
+var File = require("qbs.File");
+var FileInfo = require("qbs.FileInfo");
+var ModUtils = require("qbs.ModUtils");
+var Process = require("qbs.Process");
+var PropertyList = require("qbs.PropertyList");
 
 function artifactsFromInputs(inputs) {
     var artifacts = [];

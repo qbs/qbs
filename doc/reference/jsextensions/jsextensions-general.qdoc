@@ -38,27 +38,20 @@
 
     \section1 Available Operations
 
-    \section2 loadFile
+    \section2 require
     \code
-    loadFile(filePath: string): any
+    require(identifier: string): any
     \endcode
-    Loads a JavaScript file and returns an object that contains the evaluated context of this file.
-    This function is only available in JavaScript files.
-    For example:
+    Loads an extension and returns an object representing the extension.
+    If \a identifier is a relative or absolute file path, this function will load a JavaScript file
+    and return an object containing the evaluated context of that file. Otherwise, loads a \QBS
+    extension named \a identifier and returns an object that contains the extension's context.
+    This function is only available in JavaScript files and is designed to behave similarly to the
+    CommonJS/RequireJS/Node.js module resolution systems.
     \code
-    var MyFunctions = loadFile("myfunctions.js");
+    var MyFunctions = require("./myfunctions.js");
     MyFunctions.doSomething();
-    \endcode
-
-    \section2 loadExtension
-    \code
-    loadExtension(extensionName: string): any
-    \endcode
-    Loads a \QBS extension and returns an object that contains all functions of that extension.
-    This function is only available in JavaScript files.
-    For example:
-    \code
-    var FileInfo = loadExtension("qbs.FileInfo");
+    var FileInfo = require("qbs.FileInfo");
     var fileName = FileInfo.fileName(filePath);
     \endcode
 

@@ -1,4 +1,4 @@
-var FileInfo = loadExtension("qbs.FileInfo");
+var FileInfo = require("qbs.FileInfo");
 
 function outputFilePath(product, input, posixFileName, forYacc)
 {

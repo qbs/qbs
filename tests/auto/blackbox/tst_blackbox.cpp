@@ -3243,10 +3243,20 @@ void TestBlackbox::listPropertyOrder()
     QCOMPARE(m_qbsStderr.constData(), firstOutput.constData());
 }
 
-void TestBlackbox::loadExtension()
+void TestBlackbox::require()
 {
-    QDir::setCurrent(testDataDir + "/loadExtension");
+    QDir::setCurrent(testDataDir + "/require");
     QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::requireDeprecated()
+{
+    QDir::setCurrent(testDataDir + "/require-deprecated");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStderr.contains("loadExtension() function is deprecated"),
+             m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.contains("loadFile() function is deprecated"),
+             m_qbsStderr.constData());
 }
 
 void TestBlackbox::mixedBuildVariants()

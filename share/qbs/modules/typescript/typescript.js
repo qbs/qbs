@@ -28,9 +28,9 @@
 **
 ****************************************************************************/
 
-var FileInfo = loadExtension("qbs.FileInfo");
-var ModUtils = loadExtension("qbs.ModUtils");
-var Process = loadExtension("qbs.Process");
+var FileInfo = require("qbs.FileInfo");
+var ModUtils = require("qbs.ModUtils");
+var Process = require("qbs.Process");
 
 function findTscVersion(compilerFilePath, nodejsPath) {
     var p = new Process();

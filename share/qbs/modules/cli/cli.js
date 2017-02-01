@@ -29,7 +29,7 @@
 **
 ****************************************************************************/
 
-var FileInfo = loadExtension("qbs.FileInfo");
+var FileInfo = require("qbs.FileInfo");
 
 function prepareCompiler(product, inputs, output) {
     var i;

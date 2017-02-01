@@ -28,12 +28,12 @@
 **
 ****************************************************************************/
 
-var Environment = loadExtension("qbs.Environment");
-var File = loadExtension("qbs.File");
-var FileInfo = loadExtension("qbs.FileInfo");
-var Process = loadExtension("qbs.Process");
-var TemporaryDir = loadExtension("qbs.TemporaryDir");
-var Utilities = loadExtension("qbs.Utilities");
+var Environment = require("qbs.Environment");
+var File = require("qbs.File");
+var FileInfo = require("qbs.FileInfo");
+var Process = require("qbs.Process");
+var TemporaryDir = require("qbs.TemporaryDir");
+var Utilities = require("qbs.Utilities");
 
 function sanitizedList(list, product, fullPropertyName) {
     if (!Array.isArray(list))
