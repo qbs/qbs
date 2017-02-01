@@ -406,27 +406,14 @@ function effectiveCompilerInfo(toolchain, input, output) {
 // ### what we actually need here is something like product.usedFileTags
 //     that contains all fileTags that have been used when applying the rules.
 function compilerFlags(project, product, input, output) {
+    var i;
+
     var includePaths = ModUtils.moduleProperty(input, 'includePaths');
     var systemIncludePaths = ModUtils.moduleProperty(input, 'systemIncludePaths');
     var distributionIncludePaths = ModUtils.moduleProperty(input, "distributionIncludePaths");
 
     var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
     var defines = ModUtils.moduleProperty(input, 'defines');
-
-    var EffectiveTypeEnum = { UNKNOWN: 0, LIB: 1, APP: 2 };
-    var effectiveType = EffectiveTypeEnum.UNKNOWN;
-    var libTypes = {staticlibrary : 1, dynamiclibrary : 1};
-    var appTypes = {application : 1};
-    var i;
-    for (i = product.type.length; --i >= 0;) {
-        if (libTypes.hasOwnProperty(product.type[i]) !== -1) {
-            effectiveType = EffectiveTypeEnum.LIB;
-            break;
-        } else if (appTypes.hasOwnProperty(product.type[i]) !== -1) {
-            effectiveType = EffectiveTypeEnum.APP;
-            break;
-        }
-    }
 
     // Determine which C-language we're compiling
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
@@ -541,17 +528,9 @@ function compilerFlags(project, product, input, output) {
     }
 
     var positionIndependentCode = input.moduleProperty('cpp', 'positionIndependentCode')
-    if (effectiveType === EffectiveTypeEnum.LIB) {
-        if (positionIndependentCode !== false && !product.moduleProperty("qbs", "toolchain").contains("mingw"))
-            args.push('-fPIC');
-    } else if (effectiveType === EffectiveTypeEnum.APP) {
-        if (positionIndependentCode && !product.moduleProperty("qbs", "toolchain").contains("mingw"))
-            args.push('-fPIE');
-    } else {
-        throw ("The product's type must be in " + JSON.stringify(
-                   Object.getOwnPropertyNames(libTypes).concat(Object.getOwnPropertyNames(appTypes)))
-                + ". But it is " + JSON.stringify(product.type) + '.');
-    }
+    if (positionIndependentCode && !product.moduleProperty("qbs", "toolchain").contains("mingw"))
+        args.push('-fPIC');
+
     var cppFlags = ModUtils.moduleProperty(input, 'cppFlags');
     for (i in cppFlags)
         args.push('-Wp,' + cppFlags[i])

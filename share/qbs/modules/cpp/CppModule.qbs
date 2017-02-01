@@ -225,7 +225,7 @@ Module {
         description: "additional compiler driver flags"
     }
 
-    property bool positionIndependentCode
+    property bool positionIndependentCode: true
     PropertyOptions {
         name: "positionIndependentCode"
         description: "generate position independent code"
