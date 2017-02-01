@@ -79,7 +79,6 @@ function dynamicLibraryFileName(product, version, maxParts) {
         version = product.moduleProperty("cpp", "internalVersion");
 
     // If we have a version number, potentially strip off some components
-    maxParts = parseInt(maxParts, 10);
     if (maxParts === 0)
         version = undefined;
     else if (maxParts && version)
