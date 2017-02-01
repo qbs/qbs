@@ -368,31 +368,34 @@ QScriptValue ScriptEngine::js_loadExtension(QScriptContext *context, QScriptEngi
     if (dirPath.isEmpty()) {
         if (uri.startsWith(QLatin1String("qbs.")))
             return loadInternalExtension(context, engine, uri);
-
-        return context->throwError(
-                    ScriptEngine::tr("loadExtension: Cannot find extension '%1'. "
-                                     "Search paths: %2.").arg(uri, searchPaths.join(
-                                                                  QLatin1String(", "))));
-    }
-
-    QDirIterator dit(dirPath, QDir::Files | QDir::Readable);
-    QScriptValueList values;
-    try {
-        while (dit.hasNext()) {
-            const QString filePath = dit.next();
-            if (engine->m_logger.debugEnabled()) {
-                engine->m_logger.qbsDebug()
-                        << "[loadExtension] importing file " << filePath;
+    } else {
+        QDirIterator dit(dirPath,
+                         QStringList() << QStringLiteral("*.js"),
+                         QDir::Files | QDir::Readable);
+        QScriptValueList values;
+        try {
+            while (dit.hasNext()) {
+                const QString filePath = dit.next();
+                if (engine->m_logger.debugEnabled()) {
+                    engine->m_logger.qbsDebug()
+                            << "[loadExtension] importing file " << filePath;
+                }
+                QScriptValue obj = engine->newObject();
+                engine->importFile(filePath, obj);
+                values << obj;
             }
-            QScriptValue obj = engine->newObject();
-            engine->importFile(filePath, obj);
-            values << obj;
+        } catch (const ErrorInfo &e) {
+            return context->throwError(e.toString());
         }
-    } catch (const ErrorInfo &e) {
-        return context->throwError(e.toString());
+
+        if (!values.isEmpty())
+            return mergeExtensionObjects(values);
     }
 
-    return mergeExtensionObjects(values);
+    return context->throwError(
+                ScriptEngine::tr("loadExtension: Cannot find extension '%1'. "
+                                 "Search paths: %2.").arg(uri, searchPaths.join(
+                                                              QLatin1String(", "))));
 }
 
 QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *qtengine)
