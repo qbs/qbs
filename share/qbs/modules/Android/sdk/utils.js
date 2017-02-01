@@ -31,6 +31,7 @@
 var File = loadExtension("qbs.File");
 var FileInfo = loadExtension("qbs.FileInfo");
 var TextFile = loadExtension("qbs.TextFile");
+var Utilities = loadExtension("qbs.Utilities");
 
 function sourceAndTargetFilePathsFromInfoFiles(inputs, product, inputTag)
 {
@@ -91,19 +92,7 @@ function availableBuildToolsVersions(sdkDir) {
 
     // Sort by version number
     versions.sort(function (a, b) {
-        a = a.match(re);
-        if (a)
-            a = {major: a[1], minor: a[2], patch: a[3]};
-        b = b.match(re);
-        if (b)
-            b = {major: b[1], minor: b[2], patch: a[3]};
-
-        if (a.major === b.major) {
-            if (a.minor === b.minor)
-                return a.patch - b.patch;
-            return a.minor - b.minor;
-        }
-        return a.major - b.major;
+        return Utilities.versionCompare(a, b);
     });
 
     return versions;
