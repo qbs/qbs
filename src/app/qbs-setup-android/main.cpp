@@ -60,7 +60,8 @@ int main(int argc, char *argv[])
             return EXIT_SUCCESS;
         }
         qbs::Settings settings(clParser.settingsDir());
-        setupAndroid(&settings, clParser.profileName(), clParser.sdkDir(), clParser.ndkDir());
+        setupAndroid(&settings, clParser.profileName(), clParser.sdkDir(), clParser.ndkDir(),
+                     clParser.qtSdkDir());
     } catch (const qbs::ErrorInfo &e) {
         std::cerr << qPrintable(qbs::Internal::Tr::tr("Error: %1").arg(e.toString())) << std::endl;
         return EXIT_FAILURE;

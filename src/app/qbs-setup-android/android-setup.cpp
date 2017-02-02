@@ -45,7 +45,12 @@
 #include <tools/profile.h>
 #include <tools/version.h>
 
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qdir.h>
+#include <QtCore/qdiriterator.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qhash.h>
+#include <QtCore/qprocess.h>
 #include <QtCore/qstring.h>
 
 using namespace qbs;
@@ -86,7 +91,73 @@ void setupSdk(qbs::Settings *settings, const QString &profileName, const QString
                      << qls("unix"));
 }
 
-void setupNdk(qbs::Settings *settings, const QString &profileName, const QString &ndkDirPath)
+static QString mapArch(const QString &androidName)
+{
+    if (androidName == qls("arm64-v8a"))
+        return qls("arm64");
+    if (androidName == qls("armeabi"))
+        return qls("armv5te");
+    if (androidName == qls("armeabi-v7a"))
+        return qls("armv7a");
+    return androidName;
+}
+
+struct QtAndroidInfo {
+    bool isValid() const { return !arch.isEmpty(); }
+
+    QString qmakePath;
+    QString arch;
+    QString platform;
+};
+
+static QtAndroidInfo getInfoForQtDir(const QString &qtDir)
+{
+    QtAndroidInfo info;
+    info.qmakePath = qbs::Internal::HostOsInfo::appendExecutableSuffix(qtDir + qls("/bin/qmake"));
+    if (!QFile::exists(info.qmakePath))
+        return info;
+    QFile qdevicepri(qtDir + qls("/mkspecs/qdevice.pri"));
+    if (!qdevicepri.open(QIODevice::ReadOnly))
+        return info;
+    while (!qdevicepri.atEnd()) {
+        const QByteArray line = qdevicepri.readLine().simplified();
+        const bool isArchLine = line.startsWith("DEFAULT_ANDROID_TARGET_ARCH");
+        const bool isPlatformLine = line.startsWith("DEFAULT_ANDROID_PLATFORM");
+        if (!isArchLine && !isPlatformLine)
+            continue;
+        const QList<QByteArray> elems = line.split('=');
+        if (elems.count() != 2)
+            continue;
+        const QString rhs = QString::fromLatin1(elems.at(1).trimmed());
+        if (isArchLine)
+            info.arch = mapArch(rhs);
+        else
+            info.platform = rhs;
+    }
+    return info;
+}
+
+using QtInfoPerArch = QHash<QString, QtAndroidInfo>;
+static QtInfoPerArch getQtAndroidInfo(const QString &qtSdkDir)
+{
+    QtInfoPerArch archs;
+    if (qtSdkDir.isEmpty())
+        return archs;
+
+    QStringList qtDirs(qtSdkDir);
+    QDirIterator dit(qtSdkDir, QStringList() << QLatin1String("android_*"), QDir::Dirs);
+    while (dit.hasNext())
+        qtDirs << dit.next();
+    for (auto it = qtDirs.cbegin(); it != qtDirs.cend(); ++it) {
+        const QtAndroidInfo info = getInfoForQtDir(*it);
+        if (info.isValid())
+            archs.insert(info.arch, info);
+    }
+    return archs;
+}
+
+static void setupNdk(qbs::Settings *settings, const QString &profileName, const QString &ndkDirPath,
+                     const QString &qtSdkDirPath)
 {
     if (!QDir(ndkDirPath).exists()) {
         throw ErrorInfo(Tr::tr("NDK directory '%1' does not exist.")
@@ -99,17 +170,42 @@ void setupNdk(qbs::Settings *settings, const QString &profileName, const QString
         mainProfile.setValue(qls("Android.sdk.ndkDir"), QDir::cleanPath(ndkDirPath));
     }
     mainProfile.setValue(qls("qbs.toolchain"), QStringList() << qls("gcc"));
+    const QtInfoPerArch infoPerArch = getQtAndroidInfo(qtSdkDirPath);
     foreach (const QString &arch, expectedArchs()) {
-        Profile p(subProfileName(profileName, arch), settings);
-        p.removeProfile();
+        const QString subProName = subProfileName(profileName, arch);
+        const QtAndroidInfo qtAndroidInfo = infoPerArch.value(arch);
+        if (qtAndroidInfo.isValid()) {
+            const QString setupQtPath = qApp->applicationDirPath() + qls("/qbs-setup-qt");
+            QProcess setupQt;
+            setupQt.start(setupQtPath, QStringList() << qtAndroidInfo.qmakePath << subProName);
+            if (!setupQt.waitForStarted()) {
+                throw ErrorInfo(Tr::tr("Setting up Qt profile failed: '%1' "
+                                       "could not be started.").arg(setupQtPath));
+            }
+            if (!setupQt.waitForFinished()) {
+                throw ErrorInfo(Tr::tr("Setting up Qt profile failed: Error running '%1' (%2)")
+                                .arg(setupQtPath, setupQt.errorString()));
+            }
+            if (setupQt.exitCode() != 0) {
+                throw ErrorInfo(Tr::tr("Setting up Qt profile failed: '%1' returned with "
+                                       "exit code %2.").arg(setupQtPath).arg(setupQt.exitCode()));
+            }
+        }
+        Profile p(subProName, settings);
+        if (qtAndroidInfo.isValid()) {
+            if (!qtAndroidInfo.platform.isEmpty())
+                p.setValue(qls("Android.ndk.platform"), qtAndroidInfo.platform);
+        } else {
+            p.removeProfile();
+        }
         p.setBaseProfile(mainProfile.name());
         p.setValue(qls("qbs.architecture"), arch);
     }
 }
 
 void setupAndroid(Settings *settings, const QString &profileName, const QString &sdkDirPath,
-                  const QString &ndkDirPath)
+                  const QString &ndkDirPath, const QString &qtSdkDirPath)
 {
     setupSdk(settings, profileName, sdkDirPath);
-    setupNdk(settings, profileName, ndkDirPath);
+    setupNdk(settings, profileName, ndkDirPath, qtSdkDirPath);
 }

@@ -55,6 +55,7 @@ static QString helpOptionLong() { return QLatin1String("--help"); }
 static QString settingsDirOption() { return QLatin1String("--settings-dir"); }
 static QString sdkDirOption() { return QLatin1String("--sdk-dir"); }
 static QString ndkDirOption() { return QLatin1String("--ndk-dir"); }
+static QString qtSdkDirOption() { return QLatin1String("--qt-dir"); }
 
 void CommandLineParser::parse(const QStringList &commandLine)
 {
@@ -83,6 +84,8 @@ void CommandLineParser::parse(const QStringList &commandLine)
             assignOptionArgument(sdkDirOption(), m_sdkDir);
         else if (arg == ndkDirOption())
             assignOptionArgument(ndkDirOption(), m_ndkDir);
+        else if (arg == qtSdkDirOption())
+            assignOptionArgument(arg, m_qtSdkDir);
     }
 
     if (m_helpRequested) {
@@ -113,12 +116,16 @@ QString CommandLineParser::usageString() const
 {
     QString s = Tr::tr("This tool creates qbs profiles from Android SDK and NDK installations.\n");
     s += Tr::tr("Usage:\n");
-    s += Tr::tr("    %1 [%2 <settings dir>] [%3 <NDK dir>] [%4 <SDK dir>] <profile name>\n")
-            .arg(m_command, settingsDirOption(), ndkDirOption(), sdkDirOption());
+    s += Tr::tr("    %1 [%2 <settings dir>] [%3 <NDK dir>] [%4 <SDK dir>] [%5 <Qt dir>] "
+                "<profile name>\n")
+            .arg(m_command, settingsDirOption(), ndkDirOption(), sdkDirOption(), qtSdkDirOption());
     s += Tr::tr("    %1 %2|%3\n").arg(m_command, helpOptionShort(), helpOptionLong());
     s += Tr::tr("If an NDK path is given, additional profiles will be created for each "
                 "architecture supported by the NDK.\n"
-                "Their names will be of the form <main profile name>_<arch name>.");
+                "Their names will be of the form <main profile name>_<arch name>.\n");
+    s += Tr::tr("If a Qt path is given, these additional profiles will be suitable for building "
+                "Qt binaries for the respective architecture, if the Qt installation has "
+                "support for it.\n");
     return s;
 }
 

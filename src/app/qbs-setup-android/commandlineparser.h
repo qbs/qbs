@@ -52,6 +52,7 @@ public:
 
     QString sdkDir() const { return m_sdkDir; }
     QString ndkDir() const { return m_ndkDir; }
+    QString qtSdkDir() const { return m_qtSdkDir; }
     QString profileName() const { return m_profileName; }
     QString settingsDir() const { return m_settingsDir; }
 
@@ -65,6 +66,7 @@ private:
     bool m_helpRequested;
     QString m_sdkDir;
     QString m_ndkDir;
+    QString m_qtSdkDir;
     QString m_profileName;
     QString m_settingsDir;
     QStringList m_commandLine;

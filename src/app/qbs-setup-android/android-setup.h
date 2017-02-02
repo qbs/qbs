@@ -49,7 +49,7 @@ class QString;
 QT_END_NAMESPACE
 
 void setupAndroid(qbs::Settings *settings, const QString &profileName, const QString &sdkDirPath,
-                  const QString &ndkDirPath);
+                  const QString &ndkDirPath, const QString &qtSdkDirPath);
 
 #endif // Include guard.
 
