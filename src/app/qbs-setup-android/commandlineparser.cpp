@@ -72,7 +72,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
 
     while (!m_commandLine.isEmpty()) {
         const QString arg = m_commandLine.first();
-        if (!arg.startsWith(QLatin1String("--")))
+        if (!arg.startsWith(QLatin1Char('-')))
             break;
         m_commandLine.removeFirst();
         if (arg == helpOptionShort() || arg == helpOptionLong())
