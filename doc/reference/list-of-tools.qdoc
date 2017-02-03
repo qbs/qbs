@@ -43,6 +43,10 @@
 
     Manages \QBS settings like preferences and profiles.
 
+    \section1 create-project
+
+    Creates a \QBS project from an existing set of source files.
+
     \section1 config-ui
 
     Like \c config, but with a graphical user interface.

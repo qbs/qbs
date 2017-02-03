@@ -1210,6 +1210,21 @@ void TestBlackbox::conflictingArtifacts()
     QVERIFY2(m_qbsStderr.contains("Conflicting artifacts"), m_qbsStderr.constData());
 }
 
+void TestBlackbox::createProject()
+{
+    QDir::setCurrent(testDataDir + "/create-project");
+    QVERIFY(QFile::copy(SRCDIR "/../../../examples/helloworld-qt/main.cpp",
+                        QDir::currentPath() + "/main.cpp"));
+    QbsRunParameters createParams("create-project");
+    createParams.useProfile = false;
+    QCOMPARE(runQbs(createParams), 0);
+    createParams.expectFailure = true;
+    QVERIFY(runQbs(createParams) != 0);
+    QVERIFY2(m_qbsStderr.contains("already contains qbs files"), m_qbsStderr.constData());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::dbusAdaptors()
 {
     QDir::setCurrent(testDataDir + "/dbus-adaptors");

@@ -55,7 +55,8 @@ static QString initQbsExecutableFilePath()
 
 static bool supportsBuildDirectoryOption(const QString &command) {
     return !(QStringList() << "help" << "config" << "config-ui" << "qmltypes"
-             << "setup-android" << "setup-qt" << "setup-toolchains").contains(command);
+             << "setup-android" << "setup-qt" << "setup-toolchains" << "create-project")
+            .contains(command);
 }
 
 TestBlackboxBase::TestBlackboxBase(const QString &testDataSrcDir, const QString &testName)

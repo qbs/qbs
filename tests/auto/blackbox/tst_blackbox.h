@@ -62,6 +62,7 @@ private slots:
     void conditionalExport();
     void conditionalFileTagger();
     void conflictingArtifacts();
+    void createProject();
     void dbusAdaptors();
     void dbusInterfaces();
     void dependenciesProperty();

@@ -425,6 +425,17 @@ QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() cons
             << commandPool.getCommand(HelpCommandType);
 }
 
+static QString extractToolDescription(const QString &tool, const QString &output)
+{
+    if (tool == QLatin1String("create-project")) {
+        // This command uses QCommandLineParser, where the description is not in the first line.
+        const int eol1Pos = output.indexOf(QLatin1Char('\n'));
+        const int eol2Pos = output.indexOf(QLatin1Char('\n'), eol1Pos + 1);
+        return output.mid(eol1Pos + 1, eol2Pos - eol1Pos - 1);
+    }
+    return output.left(output.indexOf(QLatin1Char('\n')));
+}
+
 QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
 {
     QString help = Tr::tr("Usage: qbs [command] [command parameters]\n");
@@ -455,8 +466,7 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
             tool.runTool(toolName, QStringList(QLatin1String("--help")));
             if (tool.exitCode() != 0)
                 continue;
-            const QString shortDescription
-                    = tool.stdOut().left(tool.stdOut().indexOf(QLatin1Char('\n')));
+            const QString shortDescription = extractToolDescription(toolName, tool.stdOut());
             help.append(whitespace).append(shortDescription).append(QLatin1Char('\n'));
         }
     }
