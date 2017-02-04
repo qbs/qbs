@@ -112,11 +112,5 @@ function commonCompilerFlags(buildVariant, abi, armMode) {
 }
 
 function commonLinkerFlags(abi) {
-    var flags = ["-z", "noexecstack", "-z", "relro", "-z", "now"];
-
-    if (abi === "armeabi-v7a") {
-        flags.push("--fix-cortex-a8");
-    }
-
-    return flags;
+    return ["-z", "noexecstack", "-z", "relro", "-z", "now"];
 }
