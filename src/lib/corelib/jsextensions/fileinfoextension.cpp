@@ -164,9 +164,19 @@ QScriptValue FileInfoExtension::js_relativePath(QScriptContext *context, QScript
         return context->throwError(QScriptContext::SyntaxError,
                                    Tr::tr("relativePath expects 2 arguments"));
     }
-    const QString base = context->argument(0).toString();
-    const QString rel = context->argument(1).toString();
-    return QDir(base).relativeFilePath(rel);
+    const QString baseDir = context->argument(0).toString();
+    const QString filePath = context->argument(1).toString();
+    if (!FileInfo::isAbsolute(baseDir)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   Tr::tr("FileInfo.relativePath() expects an absolute path as "
+                                          "its first argument, but it is '%1'.").arg(baseDir));
+    }
+    if (!FileInfo::isAbsolute(filePath)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   Tr::tr("FileInfo.relativePath() expects an absolute path as "
+                                          "its second argument, but it is '%1'.").arg(filePath));
+    }
+    return QDir(baseDir).relativeFilePath(filePath);
 }
 
 QScriptValue FileInfoExtension::js_resolvePath(QScriptContext *context, QScriptEngine *engine)
