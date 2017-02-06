@@ -36,5 +36,5 @@ public:
 
 int main()
 {
-    MyThread::mySleep(60);
+    MyThread::mySleep(700);
 }

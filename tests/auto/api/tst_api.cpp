@@ -1206,6 +1206,7 @@ void TestApi::infiniteLoopBuilding()
     const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
     QTimer::singleShot(1000, buildJob.data(), &qbs::AbstractJob::cancel);
     QVERIFY(waitForFinished(buildJob.data(), 600000));
+    QVERIFY(buildJob->error().hasError());
 }
 
 void TestApi::infiniteLoopBuilding_data()
