@@ -334,6 +334,7 @@ Module {
         id: lightLinker
         multiplex: true
         inputs: ["wixobj", "wxl"]
+        inputsFromDependencies: product.type.contains("wixsetup") ? ["msi"] : []
 
         outputArtifacts: {
             var artifacts = [];
