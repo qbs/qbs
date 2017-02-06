@@ -2545,6 +2545,15 @@ void TestBlackbox::qtBug51237()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::qtKeywords()
+{
+    QDir::setCurrent(testDataDir + "/qt-keywords");
+    QbsRunParameters params(QStringList("Qt.core.enableKeywords:false"));
+    params.expectFailure = true;
+    QVERIFY(runQbs(QbsRunParameters(params)) != 0);
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::qtScxml()
 {
     QDir::setCurrent(testDataDir + "/qtscxml");

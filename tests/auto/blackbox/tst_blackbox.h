@@ -154,6 +154,7 @@ private slots:
     void qmlDebugging();
     void qobjectInObjectiveCpp();
     void qtBug51237();
+    void qtKeywords();
     void qtScxml();
     void radAfterIncompleteBuild();
     void radAfterIncompleteBuild_data();

@@ -243,6 +243,13 @@
         \li \c{undefined}
         \li The path in which the Qt documentation is located.
     \row
+        \li enableKeywords
+        \li bool
+        \li true
+        \li Set this property to \c false if you do not want Qt to define the symbols
+            \c {signals}, \c {slots}, and \c {emit}. This can be necessary if your project
+            interacts with code that also defines such symbols.
+    \row
         \li frameworkBuild
         \li \c{bool}
         \li \c{undefined}

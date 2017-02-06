@@ -34,6 +34,7 @@ Module {
     property bool frameworkBuild
     property bool staticBuild
     property stringList pluginMetaData: []
+    property bool enableKeywords: true
 
     property stringList availableBuildVariants
     property string qtBuildVariant: {
@@ -93,6 +94,8 @@ Module {
         //     from the build variant "release"
         if (!qbs.debugInformation)
             defines.push("QT_NO_DEBUG");
+        if (!enableKeywords)
+            defines.push("QT_NO_KEYWORDS");
         if (qbs.targetOS.containsAny(["ios", "tvos"])) {
             defines = defines.concat(["DARWIN_NO_CARBON", "QT_NO_CORESERVICES", "QT_NO_PRINTER",
                             "QT_NO_PRINTDIALOG"]);
