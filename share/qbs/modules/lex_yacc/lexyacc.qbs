@@ -24,7 +24,7 @@ Module {
         prepare: {
             var args = product.moduleProperty("lex_yacc", "lexFlags");
             if (product.moduleProperty("lex_yacc", "uniqueSymbolPrefix"))
-                args.push("-P", input.baseName, "-o", output.filePath);
+                args.push("-P" + input.baseName, "-o" + output.filePath);
             args.push(input.filePath);
             var cmd = new Command(product.moduleProperty("lex_yacc", "lexBinary"), args);
             cmd.workingDirectory = product.moduleProperty("lex_yacc", "outputDir");
