@@ -38,7 +38,9 @@ import "../../../modules/java/utils.js" as JavaUtils
 PathProbe {
     // Inputs
     property stringList hostOS: qbs.hostOS
-    property string architecture: qbs.architecture
+    property string architecture: !_androidCrossCompiling ? qbs.architecture : undefined
+    property bool _androidCrossCompiling: qbs.targetOS.contains("android")
+                                          && !qbs.hostOS.contains("android")
 
     environmentPaths: Environment.getEnv("JAVA_HOME")
     platformPaths: [
