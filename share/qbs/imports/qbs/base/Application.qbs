@@ -36,7 +36,7 @@ Product {
     }
 
     property bool isForAndroid: qbs.targetOS.contains("android")
-    property stringList architectures: isForAndroid ? ["armv5te"] : undefined
+    property stringList architectures: isForAndroid && !qbs.architecture ? ["armv5te"] : undefined
 
     Depends { name: "bundle" }
 
