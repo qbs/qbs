@@ -72,7 +72,8 @@ QString qbsCommandLine(const GeneratableProject &project,
         commandLine.appendArgument(QStringLiteral("--wait-lock"));
     }
 
-    if (realSubCommand == QStringLiteral("build") && !project.installRoot.isEmpty()) {
+    if (realSubCommand == QStringLiteral("build")
+            && !project.installOptions.installRoot().isEmpty()) {
         commandLine.appendArgument(QStringLiteral("--install-root"));
         addEnvironmentVariableArgument(commandLine, QStringLiteral("QbsInstallRoot"));
     }
@@ -101,10 +102,10 @@ MSBuildSharedSolutionPropertiesProject::MSBuildSharedSolutionPropertiesProject(
     // Order's important here... a variable must be listed before one that uses it
     group->appendProperty(QStringLiteral("QbsExecutablePath"),
                           QStringLiteral("$(QbsExecutableDir)") + qbsExecutable.fileName());
-    if (!project.installRoot.isEmpty()) {
+    if (!project.installOptions.installRoot().isEmpty()) {
         group->appendProperty(QStringLiteral("QbsInstallRoot"),
                               Internal::PathUtils::toNativeSeparators(
-                                  project.installRoot,
+                                  project.installOptions.installRoot(),
                                   Internal::HostOsInfo::HostOsWindows));
     }
 

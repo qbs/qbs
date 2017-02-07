@@ -211,7 +211,7 @@ const GeneratableProject ProjectGenerator::project() const
     proj.data = p.data;
     proj.products = p.products;
     proj.subProjects = p.subProjects;
-    proj.installRoot = d->installOptions.installRoot();
+    proj.installOptions = d->installOptions;
     return proj;
 }
 
