@@ -12,6 +12,14 @@ Project {
         }
     }
     Product {
+        name: "property_set_indirect"
+        Depends { name: "dummyqt.core" }
+        Properties {
+            condition: true
+            dummyqt.core.zort: "VAL"
+        }
+    }
+    Product {
         name: "property_overwrite_no_outer"
         Depends { name: "dummy" }
         Properties {

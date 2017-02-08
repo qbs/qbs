@@ -105,13 +105,14 @@ private:
                 continue;
             }
             if (it.value()->type() == Value::ItemValueType) {
+                Item * const innerVal = it.value().staticCast<ItemValue>()->item();
                 ItemValuePtr outerVal = outer->itemProperty(it.key());
                 if (!outerVal) {
-                    outerVal = ItemValue::create(Item::create(outer->pool(),
-                                                              ItemType::ModuleInstance), true);
+                    outerVal = ItemValue::create(Item::create(outer->pool(), innerVal->type()),
+                                                 true);
                     outer->setProperty(it.key(), outerVal);
                 }
-                doApply(outerVal->item(), it.value().staticCast<ItemValue>()->item());
+                doApply(outerVal->item(), innerVal);
             } else if (it.value()->type() == Value::JSSourceValueType) {
                 const ValuePtr outerVal = outer->property(it.key());
                 if (Q_UNLIKELY(outerVal && outerVal->type() != Value::JSSourceValueType)) {

@@ -1710,6 +1710,10 @@ void TestLanguage::propertiesBlocks_data()
             << QString("dummy.defines")
             << QStringList("OVERWRITTEN")
             << QString();
+    QTest::newRow("property_set_indirect")
+            << QString("dummy.cFlags")
+            << QStringList("VAL")
+            << QString();
     QTest::newRow("property_overwrite_no_outer")
             << QString("dummy.defines")
             << QStringList("OVERWRITTEN")
