@@ -1593,6 +1593,12 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
                             .arg(moduleName.toString(), dependsContext->product->name),
                             dependsItem->location());
         }
+        if (result.isProduct && parentItem->type() == ItemType::Module) {
+            throw ErrorInfo(Tr::tr("Invalid dependency on product '%1': Modules cannot depend on "
+                                   "products. You may want to turn your module into a product and "
+                                   "add the dependency in that product's Export item.")
+                            .arg(moduleName.toString()), dependsItem->location());
+        }
         if (m_logger.traceEnabled())
             m_logger.qbsTrace() << "module loaded: " << moduleName.toString();
         result.name = moduleName;
