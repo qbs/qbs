@@ -47,7 +47,10 @@
 #include <logging/logger.h>
 #include <tools/set.h>
 
+#include <QtCore/qhash.h>
 #include <QtCore/qmap.h>
+#include <QtCore/qpair.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 namespace Internal {
@@ -99,9 +102,9 @@ private:
     void resolveGroup(Item *item, ProjectContext *projectContext);
     void resolveRule(Item *item, ProjectContext *projectContext);
     void resolveRuleArtifact(const RulePtr &rule, Item *item);
-    static void resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact, Item *item,
-                                           const QStringList &namePrefix,
-                                           QualifiedIdSet *seenBindings);
+    void resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact, Item *item,
+                                    const QStringList &namePrefix,
+                                    QualifiedIdSet *seenBindings);
     void resolveFileTagger(Item *item, ProjectContext *projectContext);
     void resolveScanner(Item *item, ProjectContext *projectContext);
     void resolveProductDependencies(const ProjectContext &projectContext);
@@ -117,6 +120,9 @@ private:
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
     QList<ResolvedProductPtr> getProductDependencies(const ResolvedProductConstPtr &product,
             const ModuleLoaderResult::ProductInfo &productInfo, bool &disabledDependency);
+    QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
+                                 const PropertyDeclaration &decl) const;
+    QString sourceCodeForEvaluation(const JSSourceValueConstPtr &value) const;
     static void matchArtifactProperties(const ResolvedProductPtr &product,
             const QList<SourceArtifactPtr> &artifacts);
     void printProfilingInfo();
@@ -131,6 +137,8 @@ private:
     QHash<FileTag, QList<ResolvedProductPtr> > m_productsByType;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
+    mutable QHash<QPair<QStringRef, QStringList>, QString> m_scriptFunctions;
+    mutable QHash<QStringRef, QString> m_sourceCode;
     const SetupProjectParameters &m_setupParams;
     const ModuleLoaderResult &m_loadResult;
     Set<CodeLocation> m_groupLocationWarnings;

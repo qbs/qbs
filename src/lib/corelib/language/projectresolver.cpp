@@ -170,7 +170,7 @@ QString ProjectResolver::verbatimValue(const ValueConstPtr &value, bool *propert
     QString result;
     if (value && value->type() == Value::JSSourceValueType) {
         const JSSourceValueConstPtr sourceValue = value.staticCast<const JSSourceValue>();
-        result = sourceValue->sourceCodeForEvaluation();
+        result = sourceCodeForEvaluation(sourceValue);
         if (propertyWasSet)
             *propertyWasSet = (result != QLatin1String("undefined"));
     } else {
@@ -731,21 +731,36 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         resolveGroup(childItem, projectContext);
 }
 
-static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
-        const PropertyDeclaration &decl)
+
+QString ProjectResolver::sourceCodeAsFunction(const JSSourceValueConstPtr &value,
+                                              const PropertyDeclaration &decl) const
 {
+    QString &scriptFunction = m_scriptFunctions[qMakePair(value->sourceCode(),
+                                                          decl.functionArgumentNames())];
+    if (!scriptFunction.isNull())
+        return scriptFunction;
     const QString args = decl.functionArgumentNames().join(QLatin1Char(','));
     if (value->hasFunctionForm()) {
         // Insert the argument list.
-        QString code = value->sourceCodeForEvaluation();
-        code.insert(10, args);
+        scriptFunction = value->sourceCodeForEvaluation();
+        scriptFunction.insert(10, args);
         // Remove the function application "()" that has been
         // added in ItemReaderASTVisitor::visitStatement.
-        return code.left(code.length() - 2);
+        scriptFunction.chop(2);
     } else {
-        return QLatin1String("(function(") + args + QLatin1String("){return ")
+        scriptFunction = QLatin1String("(function(") + args + QLatin1String("){return ")
                 + value->sourceCode().toString() + QLatin1String(";})");
     }
+    return scriptFunction;
+}
+
+QString ProjectResolver::sourceCodeForEvaluation(const JSSourceValueConstPtr &value) const
+{
+    QString &code = m_sourceCode[value->sourceCode()];
+    if (!code.isNull())
+        return code;
+    code = value->sourceCodeForEvaluation();
+    return code;
 }
 
 ScriptFunctionPtr ProjectResolver::scriptFunctionValue(Item *item, const QString &name) const
@@ -877,7 +892,7 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
             JSSourceValuePtr sourceValue = it.value().staticCast<JSSourceValue>();
             RuleArtifact::Binding rab;
             rab.name = name;
-            rab.code = sourceValue->sourceCodeForEvaluation();
+            rab.code = sourceCodeForEvaluation(sourceValue);
             rab.location = sourceValue->location();
             ruleArtifact->bindings += rab;
         } else {
