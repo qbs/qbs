@@ -54,6 +54,7 @@ static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-97";
 
 PersistentPool::PersistentPool(Logger &logger) : m_logger(logger)
 {
+    Q_UNUSED(m_logger);
     m_stream.setVersion(QDataStream::Qt_4_8);
 }
 
