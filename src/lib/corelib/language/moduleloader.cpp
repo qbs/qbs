@@ -728,7 +728,7 @@ static void createSortedModuleList(const Item::Module &parentModule, QVector<Ite
     return;
 }
 
-template<typename T> bool insertIntoSet(std::set<T> &set, const T &value)
+template<typename T> bool insertIntoSet(Set<T> &set, const T &value)
 {
     const auto insertionResult = set.insert(value);
     return insertionResult.second;

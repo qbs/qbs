@@ -43,6 +43,7 @@
 #include "filetags.h"
 #include "itemtype.h"
 #include "moduleloader.h"
+#include "qualifiedid.h"
 
 #include <logging/logger.h>
 #include <tools/set.h>
@@ -59,7 +60,6 @@ class Evaluator;
 class Item;
 class ProgressObserver;
 class ScriptEngine;
-class QualifiedIdSet;
 
 class ProjectResolver
 {

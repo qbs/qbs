@@ -40,10 +40,11 @@
 #ifndef QBS_QUALIFIEDID_H
 #define QBS_QUALIFIEDID_H
 
+#include <tools/set.h>
+
 #include <QtCore/qhash.h>
 #include <QtCore/qstringlist.h>
 
-#include <set>
 
 namespace qbs {
 namespace Internal {
@@ -62,11 +63,7 @@ public:
 bool operator<(const QualifiedId &a, const QualifiedId &b);
 inline uint qHash(const QualifiedId &qid) { return qHash(qid.toString()); }
 
-class QualifiedIdSet : public std::set<QualifiedId>
-{
-public:
-    typedef std::pair<iterator, bool> InsertResult;
-};
+using QualifiedIdSet = Set<QualifiedId>;
 
 // Values are the properties with a dependency on the key property
 using PropertyDependencies = QHash<QualifiedId, QualifiedIdSet>;

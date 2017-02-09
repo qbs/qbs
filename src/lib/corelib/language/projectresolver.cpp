@@ -532,7 +532,7 @@ static QualifiedIdSet propertiesToEvaluate(const QList<QualifiedId> &initialProp
     QualifiedIdSet allProperties;
     while (!remainingProps.isEmpty()) {
         const QualifiedId prop = remainingProps.takeFirst();
-        const QualifiedIdSet::InsertResult insertResult = allProperties.insert(prop);
+        const auto insertResult = allProperties.insert(prop);
         if (!insertResult.second)
             continue;
         const QualifiedIdSet &directDeps = deps.value(prop);
@@ -886,7 +886,7 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
                                        it.value().staticCast<ItemValue>()->item(), name,
                                        seenBindings);
         } else if (it.value()->type() == Value::JSSourceValueType) {
-            const QualifiedIdSet::InsertResult insertResult = seenBindings->insert(name);
+            const auto insertResult = seenBindings->insert(name);
             if (!insertResult.second)
                 continue;
             JSSourceValuePtr sourceValue = it.value().staticCast<JSSourceValue>();
