@@ -45,7 +45,7 @@ class MSBuildSharedSolutionPropertiesProject : public MSBuildProject
 public:
     MSBuildSharedSolutionPropertiesProject(const Internal::VisualStudioVersionInfo &versionInfo,
                                            const GeneratableProject &project,
-                                           const QFileInfo &qbsExecutable);
+                                           const QFileInfo &qbsExecutable, const QString &qbsSettingsDir);
 };
 
 } // namespace qbs

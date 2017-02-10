@@ -508,7 +508,8 @@ void CommandLineFrontend::generate()
 
     generator->generate(m_projects,
                         m_parser.buildConfigurations(),
-                        m_parser.installOptions(QString()));
+                        m_parser.installOptions(QString()),
+                        m_parser.settingsDir());
 }
 
 int CommandLineFrontend::runTarget()

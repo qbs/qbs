@@ -39,9 +39,10 @@
 
 namespace qbs {
 
-QString qbsCommandLine(const GeneratableProject &project,
-                       const QString &subCommand,
-                       const Internal::VisualStudioVersionInfo &versionInfo)
+static QString qbsCommandLine(const GeneratableProject &project,
+                              const QString &subCommand,
+                              const QString &qbsSettingsDir,
+                              const Internal::VisualStudioVersionInfo &versionInfo)
 {
     auto addEnvironmentVariableArgument = [&](Internal::CommandLine &cl, const QString &var) {
         cl.appendRawArgument(QStringLiteral("\"$(%1)\"").arg(var));
@@ -51,11 +52,19 @@ QString qbsCommandLine(const GeneratableProject &project,
     if (subCommand == QStringLiteral("rebuild"))
         realSubCommand = QStringLiteral("build");
 
-    // "path/to/qbs.exe" {build|clean} -f "path/to/project.qbs" -d "/build/directory/"
+    // "path/to/qbs.exe" {build|clean}
+    // --settings-dir "path/to/settings/directory/"
+    // -f "path/to/project.qbs" -d "/build/directory/"
     // -p product_name [[configuration key:value]...]
     Internal::CommandLine commandLine;
     commandLine.setProgram(QStringLiteral("\"$(QbsExecutablePath)\""), true);
     commandLine.appendArgument(realSubCommand);
+
+    if (!qbsSettingsDir.isEmpty()) {
+        commandLine.appendArgument(QStringLiteral("--settings-dir"));
+        addEnvironmentVariableArgument(commandLine, QStringLiteral("QbsSettingsDir"));
+    }
+
     commandLine.appendArgument(QStringLiteral("-f"));
     addEnvironmentVariableArgument(commandLine, QStringLiteral("QbsProjectFile"));
     commandLine.appendArgument(QStringLiteral("-d"));
@@ -72,7 +81,8 @@ QString qbsCommandLine(const GeneratableProject &project,
         commandLine.appendArgument(QStringLiteral("--wait-lock"));
     }
 
-    if (realSubCommand == QStringLiteral("build") && !project.installRoot.isEmpty()) {
+    if (realSubCommand == QStringLiteral("build")
+            && !project.installOptions.installRoot().isEmpty()) {
         commandLine.appendArgument(QStringLiteral("--install-root"));
         addEnvironmentVariableArgument(commandLine, QStringLiteral("QbsInstallRoot"));
     }
@@ -90,7 +100,8 @@ QString qbsCommandLine(const GeneratableProject &project,
 MSBuildSharedSolutionPropertiesProject::MSBuildSharedSolutionPropertiesProject(
         const Internal::VisualStudioVersionInfo &versionInfo,
         const GeneratableProject &project,
-        const QFileInfo &qbsExecutable)
+        const QFileInfo &qbsExecutable,
+        const QString &qbsSettingsDir)
 {
     setDefaultTargets(QStringLiteral("Build"));
     setToolsVersion(versionInfo.toolsVersion());
@@ -101,10 +112,10 @@ MSBuildSharedSolutionPropertiesProject::MSBuildSharedSolutionPropertiesProject(
     // Order's important here... a variable must be listed before one that uses it
     group->appendProperty(QStringLiteral("QbsExecutablePath"),
                           QStringLiteral("$(QbsExecutableDir)") + qbsExecutable.fileName());
-    if (!project.installRoot.isEmpty()) {
+    if (!project.installOptions.installRoot().isEmpty()) {
         group->appendProperty(QStringLiteral("QbsInstallRoot"),
                               Internal::PathUtils::toNativeSeparators(
-                                  project.installRoot,
+                                  project.installOptions.installRoot(),
                                   Internal::HostOsInfo::HostOsWindows));
     }
 
@@ -122,13 +133,17 @@ MSBuildSharedSolutionPropertiesProject::MSBuildSharedSolutionPropertiesProject(
                           QStringLiteral("$(SolutionDir)."));
 
     group->appendProperty(QStringLiteral("QbsBuildCommandLine"),
-                          qbsCommandLine(project, QStringLiteral("build"), versionInfo));
+                          qbsCommandLine(project, QStringLiteral("build"),
+                                         qbsSettingsDir, versionInfo));
     group->appendProperty(QStringLiteral("QbsReBuildCommandLine"),
-                          qbsCommandLine(project, QStringLiteral("rebuild"), versionInfo));
+                          qbsCommandLine(project, QStringLiteral("rebuild"),
+                                         qbsSettingsDir, versionInfo));
     group->appendProperty(QStringLiteral("QbsCleanCommandLine"),
-                          qbsCommandLine(project, QStringLiteral("clean"), versionInfo));
+                          qbsCommandLine(project, QStringLiteral("clean"),
+                                         qbsSettingsDir, versionInfo));
     group->appendProperty(QStringLiteral("QbsGenerateCommandLine"),
-                          qbsCommandLine(project, QStringLiteral("generate"), versionInfo));
+                          qbsCommandLine(project, QStringLiteral("generate"),
+                                         qbsSettingsDir, versionInfo));
 }
 
 } // namespace qbs

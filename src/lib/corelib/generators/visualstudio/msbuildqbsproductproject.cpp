@@ -46,6 +46,7 @@
 #include "msbuildutils.h"
 #include "visualstudiogenerator.h"
 
+#include <api/runenvironment.h>
 #include <tools/pathutils.h>
 #include <tools/shellutils.h>
 #include <tools/version.h>
@@ -95,6 +96,14 @@ static QString productTargetPath(const qbs::ProductData &productData)
     if (!fullPath.isEmpty())
         return QFileInfo(fullPath).absolutePath();
     return productData.properties().value(QStringLiteral("buildDirectory")).toString();
+}
+
+static bool listEnvironmentVariableContainsValue(const QString &environmentVariable,
+                                                 const QString &value)
+{
+    return environmentVariable.contains(QLatin1Char(';') + value + QLatin1Char(';'))
+            || environmentVariable.startsWith(value + QLatin1Char(';'))
+            || environmentVariable.endsWith(QLatin1Char(';') + value);
 }
 
 void MSBuildQbsProductProject::addConfiguration(const GeneratableProject &project,
@@ -159,6 +168,50 @@ void MSBuildQbsProductProject::addConfiguration(const GeneratableProject &projec
                                    QStringLiteral("$(OutDir)$(TargetName)$(TargetExt)"));
     propertyGroup1->appendProperty(QStringLiteral("LocalDebuggerWorkingDirectory"),
                                    QStringLiteral("$(OutDir)"));
+
+    auto env = buildTask.getRunEnvironment(productData, project.installOptions,
+                                           QProcessEnvironment(), nullptr).runEnvironment();
+    if (!env.isEmpty()) {
+        const auto systemEnv = QProcessEnvironment::systemEnvironment();
+        for (const auto &key : systemEnv.keys()) {
+            if (!env.contains(key))
+                continue;
+
+            // Don't duplicate keys from the system environment
+            if (env.value(key) == systemEnv.value(key)) {
+                env.remove(key);
+                continue;
+            }
+
+            // Cleverly concatenate list variables to avoid duplicating system environment
+            const QString systemValue = systemEnv.value(key);
+            QString overriddenValue = env.value(key);
+            if (listEnvironmentVariableContainsValue(overriddenValue, systemValue)) {
+                env.insert(key, overriddenValue.replace(systemValue,
+                                                        QLatin1Char('%') + key + QLatin1Char('%')));
+            }
+
+            QString installRoot = project.installOptions.installRoot();
+            if (!installRoot.isEmpty()) {
+                if (listEnvironmentVariableContainsValue(overriddenValue, installRoot)) {
+                    env.insert(key, overriddenValue.replace(installRoot,
+                        QStringLiteral("$(QbsInstallRoot)")));
+                }
+            } else {
+                installRoot = Internal::PathUtils::toNativeSeparators(
+                            QDir(buildTask.projectData().buildDirectory()).absoluteFilePath(
+                                project.installOptions.defaultInstallRoot()),
+                            Internal::HostOsInfo::HostOsWindows);
+                if (listEnvironmentVariableContainsValue(overriddenValue, installRoot)) {
+                    env.insert(key, overriddenValue.replace(installRoot,
+                        QStringLiteral("$(SolutionDir)$(Configuration)\\install-root")));
+                }
+            }
+        }
+
+        propertyGroup1->appendProperty(QStringLiteral("LocalDebuggerEnvironment"),
+                                       env.toStringList().join(QStringLiteral("\n")));
+    }
 
     // NMake - General
     // Skip configuration name, that's handled in qbs-shared.props

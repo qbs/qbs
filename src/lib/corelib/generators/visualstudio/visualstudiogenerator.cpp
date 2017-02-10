@@ -172,7 +172,8 @@ void VisualStudioGenerator::addPropertySheets(const GeneratableProject &project)
         d->propertySheetNames.append({ fileName, true });
         d->msbuildProjects.insert(project.baseBuildDirectory().absoluteFilePath(fileName),
                                 QSharedPointer<MSBuildSolutionPropertiesProject>::create(
-                                    d->versionInfo, project, qbsExecutableFilePath()));
+                                    d->versionInfo, project,
+                                    qbsExecutableFilePath(), qbsSettingsDir()));
     }
 
     {
@@ -180,7 +181,8 @@ void VisualStudioGenerator::addPropertySheets(const GeneratableProject &project)
         d->propertySheetNames.append({ fileName, false });
         d->msbuildProjects.insert(project.baseBuildDirectory().absoluteFilePath(fileName),
                                 QSharedPointer<MSBuildSharedSolutionPropertiesProject>::create(
-                                    d->versionInfo, project, qbsExecutableFilePath()));
+                                    d->versionInfo, project,
+                                    qbsExecutableFilePath(), qbsSettingsDir()));
     }
 }
 

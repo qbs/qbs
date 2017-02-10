@@ -44,6 +44,7 @@
 #include <QtCore/qmap.h>
 #include <api/project.h>
 #include <api/projectdata.h>
+#include <tools/installoptions.h>
 
 namespace qbs {
 
@@ -68,7 +69,7 @@ struct GeneratableProject : public GeneratableProjectData {
     GeneratableProjectMap projects;
     QMap<QString, QVariantMap> buildConfigurations;
     QMap<QString, QStringList> commandLines;
-    QString installRoot;
+    InstallOptions installOptions;
     QDir baseBuildDirectory() const;
     QFileInfo filePath() const;
     bool hasMultipleConfigurations() const;
