@@ -49,7 +49,6 @@
 namespace qbs {
 namespace Internal {
 
-// TODO: add stop state and timer here.
 class Process : public QProcess
 {
     Q_OBJECT
