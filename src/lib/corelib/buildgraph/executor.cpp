@@ -694,6 +694,8 @@ bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &trans
 
 void Executor::cancelJobs()
 {
+    if (m_state == ExecutorCanceling)
+        return;
     m_logger.qbsTrace() << "Canceling all jobs.";
     setState(ExecutorCanceling);
     QList<ExecutorJob *> jobs = m_processingJobs.keys();
