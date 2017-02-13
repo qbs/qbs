@@ -177,25 +177,27 @@ void LauncherSocketHandler::handleSocketClosed()
 
 void LauncherSocketHandler::handleProcessError()
 {
-    if (senderProcess()->error() != QProcess::FailedToStart)
+    Process * proc = senderProcess();
+    if (proc->error() != QProcess::FailedToStart)
         return;
-    senderProcess()->stopStopProcedure();
-    ProcessErrorPacket packet(senderProcess()->token());
-    packet.error = senderProcess()->error();
-    packet.errorString = senderProcess()->errorString();
+    proc->stopStopProcedure();
+    ProcessErrorPacket packet(proc->token());
+    packet.error = proc->error();
+    packet.errorString = proc->errorString();
     sendPacket(packet);
 }
 
 void LauncherSocketHandler::handleProcessFinished()
 {
-    senderProcess()->stopStopProcedure();
-    ProcessFinishedPacket packet(senderProcess()->token());
-    packet.error = senderProcess()->error();
-    packet.errorString = senderProcess()->errorString();
-    packet.exitCode = senderProcess()->exitCode();
-    packet.exitStatus = senderProcess()->exitStatus();
-    packet.stdErr = senderProcess()->readAllStandardError();
-    packet.stdOut = senderProcess()->readAllStandardOutput();
+    Process * proc = senderProcess();
+    proc->stopStopProcedure();
+    ProcessFinishedPacket packet(proc->token());
+    packet.error = proc->error();
+    packet.errorString = proc->errorString();
+    packet.exitCode = proc->exitCode();
+    packet.exitStatus = proc->exitStatus();
+    packet.stdErr = proc->readAllStandardError();
+    packet.stdOut = proc->readAllStandardOutput();
     sendPacket(packet);
 }
 
@@ -203,14 +205,15 @@ void LauncherSocketHandler::handleStopFailure()
 {
     // Process did not react to a kill signal. Rare, but not unheard of.
     // Forget about the associated Process object and report process exit to the client.
-    senderProcess()->disconnect();
-    m_processes.remove(senderProcess()->token());
-    ProcessFinishedPacket packet(senderProcess()->token());
+    Process * proc = senderProcess();
+    proc->disconnect();
+    m_processes.remove(proc->token());
+    ProcessFinishedPacket packet(proc->token());
     packet.error = QProcess::Crashed;
     packet.exitCode = -1;
     packet.exitStatus = QProcess::CrashExit;
-    packet.stdErr = senderProcess()->readAllStandardError();
-    packet.stdOut = senderProcess()->readAllStandardOutput();
+    packet.stdErr = proc->readAllStandardError();
+    packet.stdOut = proc->readAllStandardOutput();
     sendPacket(packet);
 }
 
