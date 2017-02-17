@@ -41,7 +41,7 @@ function mergeCFiles(inputs, outputFilePath)
     var f = new TextFile(outputFilePath, TextFile.WriteOnly);
     try {
         for (var i = 0; i < inputs.length; ++i)
-            f.writeLine('#include "' + inputs[i].filePath + '"');
+            f.writeLine('#include ' + Utilities.cStringQuote(inputs[i].filePath));
     } finally {
         f.close();
     }
