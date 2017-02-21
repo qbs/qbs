@@ -64,7 +64,8 @@ void ConsoleLogSink::doPrintMessage(qbs::LoggerLevel level, const QString &messa
     if (!m_enabled)
         return;
 
-    FILE * const file = level == qbs::LoggerInfo ? stdout : stderr;
+    FILE * const file = level == qbs::LoggerInfo && tag != QStringLiteral("stdErr")
+            ? stdout : stderr;
 
     const QString levelTag = logLevelTag(level);
     TextColor color = TextColorDefault;

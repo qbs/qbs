@@ -316,11 +316,12 @@ void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &re
     if (!hasOutput && result.success())
         return;
 
-    (result.success() ? qbsInfo() : qbsError())
-            << shellQuote(QDir::toNativeSeparators(result.executableFilePath()), result.arguments())
-            << (hasOutput ? QString::fromLatin1("\n") : QString())
-            << (result.stdOut().isEmpty() ? QString() : result.stdOut().join(QLatin1Char('\n')))
-            << (result.stdErr().isEmpty() ? QString() : result.stdErr().join(QLatin1Char('\n')));
+    LogWriter w = result.success() ? qbsInfo() : qbsError();
+    w << shellQuote(QDir::toNativeSeparators(result.executableFilePath()), result.arguments())
+      << (hasOutput ? QString::fromLatin1("\n") : QString())
+      << (result.stdOut().isEmpty() ? QString() : result.stdOut().join(QLatin1Char('\n')));
+    if (!result.stdErr().isEmpty())
+        w << result.stdErr().join(QLatin1Char('\n')) << MessageTag(QStringLiteral("stdErr"));
 }
 
 bool CommandLineFrontend::resolvingMultipleProjects() const
