@@ -44,7 +44,6 @@ function compilerVersionDefine(cpp) {
 
 function prepareCompiler(project, product, inputs, outputs, input, output) {
     var i;
-    var optimization = ModUtils.moduleProperty(input, "optimization")
     var debugInformation = ModUtils.moduleProperty(input, "debugInformation")
     var args = ['/nologo', '/c']
 
@@ -77,11 +76,17 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         args.push(enableRtti ? "/GR" : "/GR-");
     }
 
-    // optimization:
-    if (optimization === 'small')
+    switch (ModUtils.moduleProperty(input, "optimization")) {
+    case "small":
         args.push('/Os')
-    else if (optimization === 'fast')
+        break;
+    case "fast":
         args.push('/O2')
+        break;
+    case "none":
+        args.push("/Od");
+        break;
+    }
 
     if (debugInformation) {
         if (ModUtils.moduleProperty(product, "separateDebugInformation"))
