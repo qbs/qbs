@@ -48,6 +48,14 @@
         \li Default
         \li Description
     \row
+        \li enableCompilerWarnings
+        \li \c{bool}
+        \li 1.8
+        \li \c{false}
+        \li Because \c lex and \c yacc are known to produce files that will trigger compiler
+            warnings, such warnings are suppressed by default. Set this property to \c true
+            if you want to see them.
+    \row
         \li lexBinary
         \li \c{string}
         \li 1.6

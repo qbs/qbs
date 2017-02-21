@@ -3212,6 +3212,10 @@ void TestBlackbox::lexyacc()
     params.expectFailure = false;
     params.arguments << (QStringList() << "lex_yacc.uniqueSymbolPrefix:true");
     QCOMPARE(runQbs(params), 0);
+    QVERIFY2(!m_qbsStdout.contains("whatever"), m_qbsStdout.constData());
+    params.arguments << "lex_yacc.enableCompilerWarnings:true";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("whatever"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::linkerScripts()

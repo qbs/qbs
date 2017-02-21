@@ -4,6 +4,7 @@ import "lexyacc.js" as HelperFunctions
 Module {
     Depends { name: "cpp" }
 
+    property bool enableCompilerWarnings: false
     property string lexBinary: "lex"
     property string yaccBinary: "yacc"
     property string outputTag: "c"
@@ -20,6 +21,8 @@ Module {
             fileTags: [product.moduleProperty("lex_yacc", "outputTag")]
             cpp.includePaths: (product.moduleProperty("cpp", "includePaths") || [])
                 .concat([product.moduleProperty("lex_yacc", "outputDir")])
+            cpp.warningLevel: input.moduleProperty("lex_yacc", "enableCompilerWarnings")
+                              ? "all" : "none"
         }
         prepare: {
             var args = product.moduleProperty("lex_yacc", "lexFlags");
@@ -38,6 +41,8 @@ Module {
         Artifact {
             filePath: HelperFunctions.outputFilePath(product, input, "y.tab.c", true)
             fileTags: [product.moduleProperty("lex_yacc", "outputTag")]
+            cpp.warningLevel: input.moduleProperty("lex_yacc", "enableCompilerWarnings")
+                              ? "all" : "none"
         }
         Artifact {
             filePath: HelperFunctions.outputFilePath(product, input, "y.tab.h", true)
