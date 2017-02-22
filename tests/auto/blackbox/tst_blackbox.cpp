@@ -2099,8 +2099,8 @@ void TestBlackbox::pkgConfigProbeSysroot()
         QSKIP("This test requires the pkg-config tool");
 
     QDir::setCurrent(testDataDir + "/pkg-config-probe-sysroot");
-    QCOMPARE(runQbs(), 0);
-    QCOMPARE(m_qbsStdout.count("PkgConfigProbe: found library"), 2);
+    QCOMPARE(runQbs(QStringList("-v")), 0);
+    QCOMPARE(m_qbsStderr.count("PkgConfigProbe: found packages"), 2);
     const QString outputTemplate = "theProduct%1 libs: [\"-L%2/usr/dummy\",\"-ldummy1\"]";
     QVERIFY2(m_qbsStdout.contains(outputTemplate
                                   .arg("1", QDir::currentPath() + "/sysroot1").toLocal8Bit()),

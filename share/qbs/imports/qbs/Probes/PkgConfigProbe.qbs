@@ -37,6 +37,7 @@ Probe {
     property string sysroot: qbs.sysroot
     property string executable: 'pkg-config'
     property string name
+    property stringList packageNames: [name]
     property string minVersion
     property string exactVersion
     property string maxVersion
@@ -56,17 +57,17 @@ Probe {
     property string modversion
 
     configure: {
-        if (!name)
-            throw '"name" must be specified';
+        if (!packageNames || packageNames.length === 0)
+            throw 'PkgConfigProbe.packageNames must be specified.';
         var p = new Process();
         try {
-            var args = [ name ];
+            var args = packageNames;
             if (minVersion !== undefined)
-                args.push(name + ' >= ' + minVersion);
+                args.unshift("--atleast-version=" + minVersion);
             if (exactVersion !== undefined)
-                args.push(name + ' = ' + exactVersion);
+                args.unshift("--exact-version=" + exactVersion);
             if (maxVersion !== undefined)
-                args.push(name + ' <= ' + maxVersion);
+                args.unshift("--max-version=" + maxVersion);
             var libDirsToSet = libDirs;
             if (sysroot) {
                 p.setEnv("PKG_CONFIG_SYSROOT_DIR", sysroot);
@@ -88,7 +89,7 @@ Probe {
                 if (p.exec(executable, libsArgs) === 0) {
                     libs = p.readStdOut().trim();
                     libs = libs ? libs.split(/\s/) : [];
-                    if (p.exec(executable, args.concat([ '--modversion' ])) === 0) {
+                    if (p.exec(executable, [packageNames[0]].concat([ '--modversion' ])) === 0) {
                         modversion = p.readStdOut().trim();
                         found = true;
                         includePaths = [];
@@ -115,7 +116,7 @@ Probe {
                             else
                                 linkerFlags.push(flag);
                         }
-                        console.info("PkgConfigProbe: found library " + name);
+                        console.debug("PkgConfigProbe: found packages " + packageNames);
                         return;
                     }
                 }
