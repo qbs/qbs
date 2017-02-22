@@ -41,6 +41,7 @@
 #include "artifact.h"
 #include "projectbuilddata.h"
 #include "buildgraph.h"
+#include "transformer.h"
 
 #include <tools/error.h>
 #include <logging/translator.h>
@@ -231,20 +232,11 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunc
                                     m_scanner->module, m_global, &m_observer);
     }
 
-    QScriptValue artifactConfig = m_engine->newObject();
-    ModuleProperties::init(artifactConfig, artifact);
-    artifactConfig.setProperty(QLatin1String("fileName"),
-                               FileInfo::fileName(artifact->filePath()), 0);
-    artifactConfig.setProperty(QLatin1String("filePath"), artifact->filePath(), 0);
-    const QStringList fileTags = artifact->fileTags().toStringList();
-    artifactConfig.setProperty(QLatin1String("fileTags"), m_engine->toScriptValue(fileTags));
-    if (!m_scanner->module->name.isEmpty())
-        artifactConfig.setProperty(QLatin1String("moduleName"), m_scanner->module->name);
     QScriptValueList args;
     args.reserve(3);
     args.append(m_global.property(QString::fromLatin1("project")));
     args.append(m_global.property(QString::fromLatin1("product")));
-    args.append(artifactConfig);
+    args.append(Transformer::translateFileConfig(m_engine, artifact, m_scanner->module->name));
 
     m_engine->setGlobalObject(m_global);
     QScriptValue &function = script->scriptFunction;
