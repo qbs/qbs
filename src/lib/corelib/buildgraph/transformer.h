@@ -73,7 +73,7 @@ public:
     bool alwaysRun;
 
     static QScriptValue translateFileConfig(ScriptEngine *scriptEngine,
-                                            Artifact *artifact,
+                                            const Artifact *artifact,
                                             const QString &defaultModuleName);
     static QScriptValue translateInOutputs(ScriptEngine *scriptEngine,
                                            const ArtifactSet &artifacts,

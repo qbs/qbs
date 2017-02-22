@@ -98,13 +98,13 @@ static QScriptValue js_baseDir(QScriptContext *ctx, QScriptEngine *engine, void 
 }
 
 static void setArtifactProperty(QScriptValue &obj, const QString &name,
-        QScriptEngine::FunctionWithArgSignature func, Artifact *artifact)
+        QScriptEngine::FunctionWithArgSignature func, const Artifact *artifact)
 {
     obj.setProperty(name, obj.engine()->newFunction(func, (void *)artifact),
                     QScriptValue::PropertyGetter);
 }
 
-QScriptValue Transformer::translateFileConfig(ScriptEngine *scriptEngine, Artifact *artifact,
+QScriptValue Transformer::translateFileConfig(ScriptEngine *scriptEngine, const Artifact *artifact,
                                               const QString &defaultModuleName)
 {
     QScriptValue obj = scriptEngine->newObject();
