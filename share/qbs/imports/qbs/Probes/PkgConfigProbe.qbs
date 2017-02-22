@@ -47,6 +47,7 @@ Probe {
     property stringList cflags // Unmodified --cflags output
     property stringList libs   // Unmodified --libs output
 
+    property stringList defines
     property stringList libraries
     property stringList libraryPaths
     property stringList includePaths
@@ -91,11 +92,14 @@ Probe {
                         modversion = p.readStdOut().trim();
                         found = true;
                         includePaths = [];
+                        defines = []
                         compilerFlags = [];
                         for (var i = 0; i < cflags.length; ++i) {
                             var flag = cflags[i];
                             if (flag.startsWith("-I"))
                                 includePaths.push(flag.slice(2));
+                            else if (flag.startsWith("-D"))
+                                defines.push(flag.slice(2));
                             else
                                 compilerFlags.push(flag);
                         }
