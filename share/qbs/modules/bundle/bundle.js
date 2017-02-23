@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 var DarwinTools = require("qbs.DarwinTools");
+var ModUtils = require("qbs.ModUtils");
 var Process = require("qbs.Process");
 
 // HACK: Workaround until the PropertyList extension is supported cross-platform
@@ -85,6 +86,37 @@ function productTypeIdentifier(productType) {
     return "com.apple.package-type.wrapper";
 }
 
+function excludedAuxiliaryInputs(project, product) {
+    var chain = product.moduleProperty("bundle", "_productTypeIdentifierChain");
+    var bestPossibleType;
+    for (var i = chain.length - 1; i >= 0; --i) {
+        switch (chain[i]) {
+        case "com.apple.product-type.bundle":
+            bestPossibleType = "loadablemodule";
+            break;
+        case "com.apple.product-type.framework":
+            bestPossibleType = "dynamiclibrary";
+            break;
+        case "com.apple.product-type.framework.static":
+            bestPossibleType = "staticlibrary";
+            break;
+        case "com.apple.product-type.application":
+        case "com.apple.product-type.xpc-service":
+            bestPossibleType = "application";
+            break;
+        }
+    }
+
+    var excluded = [];
+    var possibleTypes = ["application", "dynamiclibrary", "staticlibrary", "loadablemodule"];
+    for (i = 0; i < possibleTypes.length; ++i) {
+        if (possibleTypes[i] !== bestPossibleType)
+            excluded.push(possibleTypes[i]);
+    }
+
+    return excluded;
+}
+
 var XcodeBuildSpecsReader = (function () {
     function XcodeBuildSpecsReader(specsPath, separator, additionalSettings, useShallowBundles) {
         this._additionalSettings = additionalSettings;
@@ -107,6 +139,14 @@ var XcodeBuildSpecsReader = (function () {
             plist2.clear();
         }
     }
+    XcodeBuildSpecsReader.prototype.productTypeIdentifierChain = function (typeIdentifier) {
+        var ids = [typeIdentifier];
+        var obj = this._types[typeIdentifier];
+        var parentId = obj && obj["BasedOn"];
+        if (parentId)
+            return ids.concat(this.productTypeIdentifierChain(parentId));
+        return ids;
+    };
     XcodeBuildSpecsReader.prototype.settings = function (typeIdentifier, recursive, skipPackageTypes) {
         // Silently use shallow bundles when preferred since it seems to be some sort of automatic
         // shadowing mechanism. For example, this matches Xcode behavior where static frameworks

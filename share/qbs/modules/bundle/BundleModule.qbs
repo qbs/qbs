@@ -69,6 +69,7 @@ Module {
 
         // Outputs
         property var xcodeSettings: ({})
+        property var productTypeIdentifierChain: []
 
         configure: {
             var specsPath = path;
@@ -84,11 +85,14 @@ Module {
                                                           additionalSettings,
                                                           !qbs.targetOS.contains("macos"));
             var settings = reader.expandedSettings(_productTypeIdentifier);
-            if (settings) {
+            var chain = reader.productTypeIdentifierChain(_productTypeIdentifier);
+            if (settings && chain) {
                 xcodeSettings = settings;
+                productTypeIdentifierChain = chain;
                 found = true;
             } else {
                 xcodeSettings = {};
+                productTypeIdentifierChain = [];
                 found = false;
             }
         }
@@ -180,6 +184,7 @@ Module {
 
     // private properties
     property string _productTypeIdentifier: Bundle.productTypeIdentifier(product.type)
+    property stringList _productTypeIdentifierChain: bundleSettingsProbe.productTypeIdentifierChain
 
     property bool _useXcodeBuildSpecs: true // false to use ONLY the qbs build specs
 
@@ -495,6 +500,10 @@ Module {
                  "icns", "xcent",
                  "compiled_ibdoc", "compiled_assetcatalog",
                  "xcode.provisioningprofile.main"]
+
+        // Make sure the inputs of this rule are only those rules which produce outputs compatible
+        // with the type of the bundle being produced.
+        excludedAuxiliaryInputs: Bundle.excludedAuxiliaryInputs(project, product)
 
         outputFileTags: [
             "bundle.content",
