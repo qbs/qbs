@@ -164,7 +164,7 @@ void TestApi::init()
 void TestApi::addQObjectMacroToCppFile()
 {
     BuildDescriptionReceiver receiver;
-    qbs::ErrorInfo errorInfo = doBuildProject("add-qobject-macro-to-cpp-file/project.qbs", &receiver);
+    qbs::ErrorInfo errorInfo = doBuildProject("add-qobject-macro-to-cpp-file", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY2(!receiver.descriptions.contains("moc"), qPrintable(receiver.descriptions));
     receiver.descriptions.clear();
@@ -177,7 +177,7 @@ void TestApi::addQObjectMacroToCppFile()
     cppFile.resize(0);
     cppFile.write(contents);
     cppFile.close();
-    errorInfo = doBuildProject("add-qobject-macro-to-cpp-file/project.qbs", &receiver);
+    errorInfo = doBuildProject("add-qobject-macro-to-cpp-file", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY2(receiver.descriptions.contains("moc"), qPrintable(receiver.descriptions));
 }
@@ -191,7 +191,7 @@ static bool isAboutUndefinedSymbols(const QString &_message)
 void TestApi::addedFilePersistent()
 {
     // On the initial run, linking will fail.
-    const QString relProjectFilePath = "added-file-persistent/project.qbs";
+    const QString relProjectFilePath = "added-file-persistent";
     ProcessResultReceiver receiver;
     qbs::ErrorInfo errorInfo = doBuildProject(relProjectFilePath, 0, &receiver);
     QVERIFY(errorInfo.hasError());
@@ -250,7 +250,7 @@ void TestApi::baseProperties()
 void TestApi::buildGraphLocking()
 {
     qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("buildgraph-locking/project.qbs");
+            = defaultSetupParameters("buildgraph-locking");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(setupJob.data());
@@ -314,9 +314,11 @@ void TestApi::buildProject()
 {
     QFETCH(QString, projectSubDir);
     QFETCH(QString, productFileName);
-    qbs::SetupProjectParameters params = defaultSetupParameters(projectSubDir + "/project.qbs");
+    const QString projectFilePath = projectSubDir + QLatin1Char('/') + projectSubDir
+            + QLatin1String(".qbs");
+    qbs::SetupProjectParameters params = defaultSetupParameters(projectFilePath);
     removeBuildDir(params);
-    qbs::ErrorInfo errorInfo = doBuildProject(projectSubDir + "/project.qbs");
+    qbs::ErrorInfo errorInfo = doBuildProject(projectFilePath);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(regularFileExists(relativeBuildGraphFilePath()));
     if (!productFileName.isEmpty()) {
@@ -327,7 +329,7 @@ void TestApi::buildProject()
     WAIT_FOR_NEW_TIMESTAMP();
     qbs::BuildOptions options;
     options.setForceTimestampCheck(true);
-    errorInfo = doBuildProject(projectSubDir + "/project.qbs", 0, 0, 0, options);
+    errorInfo = doBuildProject(projectFilePath, 0, 0, 0, options);
     VERIFY_NO_ERROR(errorInfo);
     if (!productFileName.isEmpty())
         QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
@@ -402,12 +404,13 @@ void TestApi::buildProjectDryRun()
 {
     QFETCH(QString, projectSubDir);
     QFETCH(QString, productFileName);
-    qbs::SetupProjectParameters params = defaultSetupParameters(projectSubDir + "/project.qbs");
+    const QString projectFilePath = projectSubDir + QLatin1Char('/') + projectSubDir
+            + QLatin1String(".qbs");
+    qbs::SetupProjectParameters params = defaultSetupParameters(projectFilePath);
     removeBuildDir(params);
     qbs::BuildOptions options;
     options.setDryRun(true);
-    const qbs::ErrorInfo errorInfo
-            = doBuildProject(projectSubDir + "/project.qbs", 0, 0, 0, options);
+    const qbs::ErrorInfo errorInfo = doBuildProject(projectFilePath, 0, 0, 0, options);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY2(!QFileInfo::exists(relativeBuildDir()), qPrintable(QDir(relativeBuildDir())
             .entryList(QDir::NoDotAndDotDot | QDir::AllEntries | QDir::System).join(", ")));
@@ -421,7 +424,7 @@ void TestApi::buildProjectDryRun_data()
 void TestApi::buildSingleFile()
 {
     qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("build-single-file/project.qbs");
+            = defaultSetupParameters("build-single-file");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
     waitForFinished(setupJob.data());
@@ -538,11 +541,11 @@ void TestApi::canonicalToolchainList()
 void TestApi::checkOutputs()
 {
     QFETCH(bool, check);
-    qbs::SetupProjectParameters params = defaultSetupParameters("/check-outputs/project.qbs");
+    qbs::SetupProjectParameters params = defaultSetupParameters("/check-outputs");
     qbs::BuildOptions options;
     options.setForceOutputCheck(check);
     removeBuildDir(params);
-    qbs::ErrorInfo errorInfo = doBuildProject("/check-outputs/project.qbs", 0, 0, 0, options);
+    qbs::ErrorInfo errorInfo = doBuildProject("/check-outputs", 0, 0, 0, options);
     if (check)
         QVERIFY(errorInfo.hasError());
     else
@@ -585,7 +588,7 @@ static void printProjectData(const qbs::ProjectData &project)
 
 void TestApi::changeContent()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-editing/project.qbs");
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-editing");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -873,8 +876,7 @@ void TestApi::changeContent()
 
 void TestApi::commandExtraction()
 {
-    qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("/command-extraction/project.qbs");
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("/command-extraction");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
     waitForFinished(setupJob.data());
@@ -916,7 +918,7 @@ void TestApi::commandExtraction()
 
 void TestApi::changeDependentLib()
 {
-    qbs::ErrorInfo errorInfo = doBuildProject("change-dependent-lib/change-dependent-lib.qbs");
+    qbs::ErrorInfo errorInfo = doBuildProject("change-dependent-lib");
     VERIFY_NO_ERROR(errorInfo);
 
     WAIT_FOR_NEW_TIMESTAMP();
@@ -930,19 +932,19 @@ void TestApi::changeDependentLib()
     qbsFile.seek(0);
     qbsFile.write(content2);
     qbsFile.close();
-    errorInfo = doBuildProject("change-dependent-lib/change-dependent-lib.qbs");
+    errorInfo = doBuildProject("change-dependent-lib");
     VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::enableAndDisableProduct()
 {
     BuildDescriptionReceiver bdr;
-    qbs::ErrorInfo errorInfo = doBuildProject("enable-and-disable-product/project.qbs", &bdr);
+    qbs::ErrorInfo errorInfo = doBuildProject("enable-and-disable-product", &bdr);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(!bdr.descriptions.contains("compiling"));
 
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile projectFile("project.qbs");
+    QFile projectFile("enable-and-disable-product.qbs");
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     QByteArray content = projectFile.readAll();
     content.replace("undefined", "'hidden'");
@@ -950,7 +952,7 @@ void TestApi::enableAndDisableProduct()
     projectFile.write(content);
     projectFile.close();
     bdr.descriptions.clear();
-    errorInfo = doBuildProject("enable-and-disable-product/project.qbs", &bdr);
+    errorInfo = doBuildProject("enable-and-disable-product", &bdr);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(bdr.descriptions.contains("linking"));
 
@@ -963,7 +965,7 @@ void TestApi::enableAndDisableProduct()
     projectFile.write(content);
     projectFile.close();
     bdr.descriptions.clear();
-    errorInfo = doBuildProject("enable-and-disable-product/project.qbs", &bdr);
+    errorInfo = doBuildProject("enable-and-disable-product", &bdr);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(!bdr.descriptions.contains("compiling"));
 }
@@ -971,8 +973,7 @@ void TestApi::enableAndDisableProduct()
 void TestApi::errorInSetupRunEnvironment()
 {
     qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("error-in-setup-run-environment/"
-                                     "error-in-setup-run-environment.qbs");
+            = defaultSetupParameters("error-in-setup-run-environment");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -1009,7 +1010,7 @@ static qbs::ErrorInfo forceRuleEvaluation(const qbs::Project project)
 void TestApi::disabledInstallGroup()
 {
     qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("disabled_install_group/project.qbs");
+            = defaultSetupParameters("disabled_install_group");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -1033,13 +1034,13 @@ void TestApi::disabledInstallGroup()
 
 void TestApi::disabledProduct()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("disabled-product/disabledProduct.qbs");
+    const qbs::ErrorInfo errorInfo = doBuildProject("disabled-product");
     VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::disabledProject()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("disabled-project/disabled_project.qbs");
+    const qbs::ErrorInfo errorInfo = doBuildProject("disabled-project");
     VERIFY_NO_ERROR(errorInfo);
 }
 
@@ -1069,44 +1070,44 @@ void TestApi::dynamicLibs()
 
 void TestApi::emptyFileTagList()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("empty-filetag-list/project.qbs");
+    const qbs::ErrorInfo errorInfo = doBuildProject("empty-filetag-list");
     VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::emptySubmodulesList()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("empty-submodules-list/project.qbs");
+    const qbs::ErrorInfo errorInfo = doBuildProject("empty-submodules-list");
     VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::explicitlyDependsOn()
 {
     BuildDescriptionReceiver receiver;
-    qbs::ErrorInfo errorInfo = doBuildProject("explicitly-depends-on/project.qbs", &receiver);
+    qbs::ErrorInfo errorInfo = doBuildProject("explicitly-depends-on", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(receiver.descriptions.contains("Creating output artifact"));
     receiver.descriptions.clear();
 
-    errorInfo = doBuildProject("explicitly-depends-on/project.qbs", &receiver);
+    errorInfo = doBuildProject("explicitly-depends-on", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(!receiver.descriptions.contains("Creating output artifact"));
 
     WAIT_FOR_NEW_TIMESTAMP();
     touch("dependency.txt");
-    errorInfo = doBuildProject("explicitly-depends-on/project.qbs", &receiver);
+    errorInfo = doBuildProject("explicitly-depends-on", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(receiver.descriptions.contains("Creating output artifact"));
 }
 
 void TestApi::exportSimple()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("export-simple/project.qbs");
+    const qbs::ErrorInfo errorInfo = doBuildProject("export-simple");
     VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::exportWithRecursiveDepends()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("export-with-recursive-depends/project.qbs");
+    const qbs::ErrorInfo errorInfo = doBuildProject("export-with-recursive-depends");
     VERIFY_NO_ERROR(errorInfo);
 }
 
@@ -1121,7 +1122,7 @@ void TestApi::fileTagger()
 void TestApi::fileTagsFilterOverride()
 {
     qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("filetagsfilter_override/project.qbs");
+            = defaultSetupParameters("filetagsfilter_override");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                          m_logSink, 0));
     waitForFinished(job.data());
@@ -1142,7 +1143,7 @@ void TestApi::fileTagsFilterOverride()
 void TestApi::generatedFilesList()
 {
     qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("generated-files-list/generated-files-list.qbs");
+            = defaultSetupParameters("generated-files-list");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
     QVERIFY(waitForFinished(setupJob.data()));
@@ -1218,8 +1219,7 @@ void TestApi::infiniteLoopBuilding_data()
 
 void TestApi::infiniteLoopResolving()
 {
-    qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("infinite-loop-resolving/project.qbs");
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("infinite-loop-resolving");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
     QTimer::singleShot(1000, setupJob.data(), &qbs::AbstractJob::cancel);
@@ -1262,8 +1262,7 @@ template <typename T, class Pred> T findElem(const QList<T> &list, Pred p)
 
 void TestApi::installableFiles()
 {
-    qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("installed-artifact/installed_artifact.qbs");
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("installed-artifact");
     QVariantMap overriddenValues;
     overriddenValues.insert(QLatin1String("qbs.installRoot"), QLatin1String("/tmp"));
     setupParams.setOverriddenValues(overriddenValues);
@@ -1295,7 +1294,7 @@ void TestApi::installableFiles()
         }
     }
 
-    setupParams  = defaultSetupParameters("recursive-wildcards/recursive_wildcards.qbs");
+    setupParams  = defaultSetupParameters("recursive-wildcards");
     setupParams.setOverriddenValues(overriddenValues);
     job.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(job.data());
@@ -1316,7 +1315,7 @@ void TestApi::installableFiles()
 
 void TestApi::isRunnable()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters("is-runnable/project.qbs");
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("is-runnable");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -1380,7 +1379,7 @@ void TestApi::missingSourceFile()
 void TestApi::mocCppIncluded()
 {
     // Initial build.
-    qbs::ErrorInfo errorInfo = doBuildProject("moc-hpp-included/project.qbs");
+    qbs::ErrorInfo errorInfo = doBuildProject("moc-hpp-included");
     VERIFY_NO_ERROR(errorInfo);
 
     // Touch header and try again.
@@ -1390,7 +1389,7 @@ void TestApi::mocCppIncluded()
              qPrintable(headerFile.errorString()));
     headerFile.write("\n");
     headerFile.close();
-    errorInfo = doBuildProject("moc-hpp-included/project.qbs");
+    errorInfo = doBuildProject("moc-hpp-included");
     VERIFY_NO_ERROR(errorInfo);
 
     // Touch cpp file and try again.
@@ -1400,13 +1399,13 @@ void TestApi::mocCppIncluded()
              qPrintable(cppFile.errorString()));
     cppFile.write("\n");
     cppFile.close();
-    errorInfo = doBuildProject("moc-hpp-included/project.qbs");
+    errorInfo = doBuildProject("moc-hpp-included");
     VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::multiArch()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters("multi-arch/project.qbs");
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("multi-arch");
     qbs::Settings settings((QString()));
     qbs::Internal::TemporaryProfile tph("host", &settings);
     qbs::Profile hostProfile = tph.p;
@@ -1503,7 +1502,7 @@ void TestApi::newOutputArtifactInDependency()
 {
     BuildDescriptionReceiver receiver;
     qbs::ErrorInfo errorInfo
-            = doBuildProject("new-output-artifact-in-dependency/project.qbs", &receiver);
+            = doBuildProject("new-output-artifact-in-dependency", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(receiver.descriptions.contains("linking app"));
     const QByteArray linkingLibString = QByteArray("linking ")
@@ -1512,14 +1511,14 @@ void TestApi::newOutputArtifactInDependency()
     receiver.descriptions.clear();
 
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile projectFile("project.qbs");
+    QFile projectFile("new-output-artifact-in-dependency.qbs");
     QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
     QByteArray contents = projectFile.readAll();
     contents.replace("//Depends", "Depends");
     projectFile.resize(0);
     projectFile.write(contents);
     projectFile.close();
-    errorInfo = doBuildProject("new-output-artifact-in-dependency/project.qbs", &receiver);
+    errorInfo = doBuildProject("new-output-artifact-in-dependency", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(receiver.descriptions.contains("linking app"));
     QVERIFY(receiver.descriptions.contains(linkingLibString));
@@ -1528,12 +1527,12 @@ void TestApi::newOutputArtifactInDependency()
 void TestApi::newPatternMatch()
 {
     TaskReceiver receiver;
-    qbs::ErrorInfo errorInfo = doBuildProject("new-pattern-match/project.qbs", 0, 0, &receiver);
+    qbs::ErrorInfo errorInfo = doBuildProject("new-pattern-match", 0, 0, &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY2(receiver.taskDescriptions.contains("Resolving"), qPrintable(m_logSink->output));
     receiver.taskDescriptions.clear();
 
-    errorInfo = doBuildProject("new-pattern-match/project.qbs", 0, 0, &receiver);
+    errorInfo = doBuildProject("new-pattern-match", 0, 0, &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(!receiver.taskDescriptions.contains("Resolving"));
 
@@ -1541,18 +1540,18 @@ void TestApi::newPatternMatch()
     QFile f("test.txt");
     QVERIFY2(f.open(QIODevice::WriteOnly), qPrintable(f.errorString()));
     f.close();
-    errorInfo = doBuildProject("new-pattern-match/project.qbs", 0, 0, &receiver);
+    errorInfo = doBuildProject("new-pattern-match", 0, 0, &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(receiver.taskDescriptions.contains("Resolving"));
     receiver.taskDescriptions.clear();
 
-    errorInfo = doBuildProject("new-pattern-match/project.qbs", 0, 0, &receiver);
+    errorInfo = doBuildProject("new-pattern-match", 0, 0, &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(!receiver.taskDescriptions.contains("Resolving"));
 
     WAIT_FOR_NEW_TIMESTAMP();
     f.remove();
-    errorInfo = doBuildProject("new-pattern-match/project.qbs", 0, 0, &receiver);
+    errorInfo = doBuildProject("new-pattern-match", 0, 0, &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(receiver.taskDescriptions.contains("Resolving"));
 }
@@ -1560,7 +1559,7 @@ void TestApi::newPatternMatch()
 void TestApi::nonexistingProjectPropertyFromProduct()
 {
     qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("nonexistingprojectproperties/invalidaccessfromproduct.qbs");
+            = defaultSetupParameters("nonexistingprojectproperties");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -1573,7 +1572,7 @@ void TestApi::nonexistingProjectPropertyFromProduct()
 void TestApi::nonexistingProjectPropertyFromCommandLine()
 {
     qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("nonexistingprojectproperties/project.qbs");
+            = defaultSetupParameters("nonexistingprojectproperties");
     removeBuildDir(setupParams);
     QVariantMap projectProperties;
     projectProperties.insert(QLatin1String("project.blubb"), QLatin1String("true"));
@@ -1588,7 +1587,7 @@ void TestApi::nonexistingProjectPropertyFromCommandLine()
 
 void TestApi::objC()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("objc/objc.qbs");
+    const qbs::ErrorInfo errorInfo = doBuildProject("objc");
     VERIFY_NO_ERROR(errorInfo);
 }
 
@@ -1642,7 +1641,7 @@ void TestApi::processResult()
     // for a while.
     if (qbs::Internal::HostOsInfo::isWindowsHost())
         QTest::qWait(500);
-    removeBuildDir(defaultSetupParameters("process-result/process-result.qbs"));
+    removeBuildDir(defaultSetupParameters("process-result"));
 
     QFETCH(int, expectedExitCode);
     QFETCH(bool, redirectStdout);
@@ -1652,7 +1651,7 @@ void TestApi::processResult()
     overridden.insert("products.app-caller.redirectStdout", redirectStdout);
     overridden.insert("products.app-caller.redirectStderr", redirectStderr);
     ProcessResultReceiver resultReceiver;
-    const qbs::ErrorInfo errorInfo = doBuildProject("process-result/process-result.qbs",
+    const qbs::ErrorInfo errorInfo = doBuildProject("process-result",
             nullptr, &resultReceiver, nullptr, qbs::BuildOptions(), overridden);
     QCOMPARE(expectedExitCode != 0, errorInfo.hasError());
     QVERIFY(resultReceiver.results.count() > 1);
@@ -1698,9 +1697,8 @@ void TestApi::processResult_data()
 
 void TestApi::projectInvalidation()
 {
-    qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("project-invalidation/project.qbs");
-    QVERIFY(QFile::copy("project.no-error.qbs", "project.qbs"));
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-invalidation");
+    QVERIFY(QFile::copy("project.no-error.qbs", "project-invalidation.qbs"));
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(setupJob.data());
@@ -1708,13 +1706,13 @@ void TestApi::projectInvalidation()
     qbs::Project project = setupJob->project();
     QVERIFY(project.isValid());
     WAIT_FOR_NEW_TIMESTAMP();
-    copyFileAndUpdateTimestamp("project.early-error.qbs", "project.qbs");
+    copyFileAndUpdateTimestamp("project.early-error.qbs", "project-invalidation.qbs");
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
     QVERIFY(setupJob->error().hasError());
     QVERIFY(project.isValid()); // Error in Loader, old project still valid.
     WAIT_FOR_NEW_TIMESTAMP();
-    copyFileAndUpdateTimestamp("project.late-error.qbs", "project.qbs");
+    copyFileAndUpdateTimestamp("project.late-error.qbs", "project-invalidation.qbs");
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
     QVERIFY(setupJob->error().hasError());
@@ -1723,7 +1721,7 @@ void TestApi::projectInvalidation()
 
 void TestApi::projectLocking()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-locking/project.qbs");
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-locking");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(setupJob.data());
@@ -1743,7 +1741,7 @@ void TestApi::projectLocking()
 
 void TestApi::projectPropertiesByName()
 {
-    const QString projectFile = "project-properties-by-name/project.qbs";
+    const QString projectFile = "project-properties-by-name/project-properties-by-name.qbs";
     qbs::ErrorInfo errorInfo = doBuildProject(projectFile);
     QVERIFY(errorInfo.hasError());
     QVariantMap overridden;
@@ -1761,20 +1759,20 @@ void TestApi::projectPropertiesByName()
 
 void TestApi::projectWithPropertiesItem()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("project-with-properties-item/project.qbs");
+    const qbs::ErrorInfo errorInfo = doBuildProject("project-with-properties-item");
     VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::propertiesBlocks()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("properties-blocks/propertiesblocks.qbs");
+    const qbs::ErrorInfo errorInfo = doBuildProject("properties-blocks");
     VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::rc()
 {
     BuildDescriptionReceiver receiver;
-    const qbs::ErrorInfo errorInfo = doBuildProject("rc/rc.qbs", &receiver);
+    const qbs::ErrorInfo errorInfo = doBuildProject("rc", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     const bool rcFileWasCompiled = receiver.descriptions.contains("compiling test.rc");
     QCOMPARE(rcFileWasCompiled, qbs::Internal::HostOsInfo::isWindowsHost());
@@ -1783,8 +1781,7 @@ void TestApi::rc()
 void TestApi::referencedFileErrors()
 {
     QFETCH(bool, relaxedMode);
-    qbs::SetupProjectParameters params
-            = defaultSetupParameters("referenced-file-errors/referenced-file-errors.qbs");
+    qbs::SetupProjectParameters params = defaultSetupParameters("referenced-file-errors");
     params.setDryRun(true);
     params.setProductErrorMode(relaxedMode ? qbs::ErrorHandlingMode::Relaxed
                                            : qbs::ErrorHandlingMode::Strict);
@@ -1808,13 +1805,22 @@ void TestApi::referencedFileErrors_data()
     QTest::newRow("relaxed mode") << true;
 }
 
-qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &projectFilePath) const
+qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &projectFileOrDir) const
 {
+    QFileInfo fi(m_workingDataDir + QLatin1Char('/') + projectFileOrDir);
+    QString projectDirPath;
+    QString projectFilePath;
+    if (fi.isDir()) {
+        projectDirPath = fi.absoluteFilePath();
+        projectFilePath = projectDirPath + QLatin1Char('/') + projectFileOrDir
+                + QStringLiteral(".qbs");
+    } else {
+        projectDirPath = fi.absolutePath();
+        projectFilePath = fi.absoluteFilePath();
+    }
+
     qbs::SetupProjectParameters setupParams;
-    const QString projectDirPath = QDir::cleanPath(m_workingDataDir + QLatin1Char('/')
-                                                   + QFileInfo(projectFilePath).path());
-    setupParams.setProjectFilePath(projectDirPath + QLatin1Char('/')
-                                   + QFileInfo(projectFilePath).fileName());
+    setupParams.setProjectFilePath(projectFilePath);
     setupParams.setPropertyCheckingMode(qbs::ErrorHandlingMode::Strict);
     QDir::setCurrent(projectDirPath);
     setupParams.setBuildRoot(projectDirPath);
@@ -1862,8 +1868,7 @@ void TestApi::references()
 
 void TestApi::relaxedModeRecovery()
 {
-    qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("relaxed-mode-recovery/relaxed-mode-recovery.qbs");
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("relaxed-mode-recovery");
     setupParams.setProductErrorMode(qbs::ErrorHandlingMode::Relaxed);
     setupParams.setPropertyCheckingMode(qbs::ErrorHandlingMode::Relaxed);
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
@@ -1960,8 +1965,7 @@ void TestApi::resolveProject()
     QFETCH(QString, projectSubDir);
     QFETCH(QString, productFileName);
 
-    const qbs::SetupProjectParameters params
-            = defaultSetupParameters(projectSubDir + "/project.qbs");
+    const qbs::SetupProjectParameters params = defaultSetupParameters(projectSubDir);
     removeBuildDir(params);
     const QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
                                                                                     m_logSink, 0));
@@ -1981,7 +1985,7 @@ void TestApi::resolveProjectDryRun()
     QFETCH(QString, projectSubDir);
     QFETCH(QString, productFileName);
 
-    qbs::SetupProjectParameters params = defaultSetupParameters(projectSubDir + "/project.qbs");
+    qbs::SetupProjectParameters params = defaultSetupParameters(projectSubDir);
     params.setDryRun(true);
     removeBuildDir(params);
     const QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
@@ -1999,8 +2003,7 @@ void TestApi::resolveProjectDryRun_data()
 
 void TestApi::restoredWarnings()
 {
-    qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("restored-warnings/restored-warnings.qbs");
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("restored-warnings");
     setupParams.setPropertyCheckingMode(qbs::ErrorHandlingMode::Relaxed);
     setupParams.setProductErrorMode(qbs::ErrorHandlingMode::Relaxed);
 
@@ -2048,7 +2051,7 @@ void TestApi::restoredWarnings()
 
 void TestApi::ruleConflict()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("rule-conflict/rule-conflict.qbs");
+    const qbs::ErrorInfo errorInfo = doBuildProject("rule-conflict");
     QVERIFY(errorInfo.hasError());
     const QString errorString = errorInfo.toString();
     QVERIFY2(errorString.contains("conflict") && errorString.contains("pch1.h")
@@ -2057,15 +2060,14 @@ void TestApi::ruleConflict()
 
 void TestApi::softDependency()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("soft-dependency/project.qbs");
+    const qbs::ErrorInfo errorInfo = doBuildProject("soft-dependency");
     VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::sourceFileInBuildDir()
 {
-    VERIFY_NO_ERROR(doBuildProject("source-file-in-build-dir/project.qbs"));
-    qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("source-file-in-build-dir/project.qbs");
+    VERIFY_NO_ERROR(doBuildProject("source-file-in-build-dir"));
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("source-file-in-build-dir");
     const QString generatedFile = relativeProductBuildDir("theProduct") + "/generated.cpp";
     QVERIFY2(regularFileExists(generatedFile), qPrintable(generatedFile));
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
@@ -2184,26 +2186,26 @@ void TestApi::transformers()
 void TestApi::typeChange()
 {
     BuildDescriptionReceiver receiver;
-    qbs::ErrorInfo errorInfo = doBuildProject("type-change/project.qbs", &receiver);
+    qbs::ErrorInfo errorInfo = doBuildProject("type-change", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY2(!receiver.descriptions.contains("compiling"), qPrintable(receiver.descriptions));
 
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile projectFile("project.qbs");
+    QFile projectFile("type-change.qbs");
     QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
     QByteArray content = projectFile.readAll();
     content.replace("//", "");
     projectFile.resize(0);
     projectFile.write(content);
     projectFile.close();
-    errorInfo = doBuildProject("type-change/project.qbs", &receiver);
+    errorInfo = doBuildProject("type-change", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY2(receiver.descriptions.contains("compiling"), qPrintable(receiver.descriptions));
 }
 
 void TestApi::uic()
 {
-    const qbs::ErrorInfo errorInfo = doBuildProject("uic/uic.qbs");
+    const qbs::ErrorInfo errorInfo = doBuildProject("uic");
     VERIFY_NO_ERROR(errorInfo);
 }
 

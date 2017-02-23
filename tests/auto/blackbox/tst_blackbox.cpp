@@ -744,7 +744,7 @@ void TestBlackbox::changeInDisabledProduct()
     QDir::setCurrent(testDataDir + "/change-in-disabled-product");
     QCOMPARE(runQbs(), 0);
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile projectFile("project.qbs");
+    QFile projectFile("change-in-disabled-product.qbs");
     QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
     QByteArray content = projectFile.readAll();
     content.replace("// 'test2.txt'", "'test2.txt'");
@@ -1417,7 +1417,7 @@ void TestBlackbox::trackAddFile()
 
     WAIT_FOR_NEW_TIMESTAMP();
     ccp("../after", ".");
-    touch("project.qbs");
+    touch("trackAddFile.qbs");
     touch("main.cpp");
     QCOMPARE(runQbs(), 0);
 
@@ -1552,16 +1552,16 @@ void TestBlackbox::trackRemoveFile()
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile::remove("project.qbs");
+    QFile::remove("trackAddFile.qbs");
     QFile::remove("main.cpp");
-    QFile::copy("../before/project.qbs", "project.qbs");
+    QFile::copy("../before/trackAddFile.qbs", "trackAddFile.qbs");
     QFile::copy("../before/main.cpp", "main.cpp");
     QVERIFY(QFile::remove("zort.h"));
     QVERIFY(QFile::remove("zort.cpp"));
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("resolve"))), 0);
 
     touch("main.cpp");
-    touch("project.qbs");
+    touch("trackAddFile.qbs");
     QCOMPARE(runQbs(), 0);
 
     process.start(relativeExecutableFilePath("someapp"), QStringList());
@@ -1603,7 +1603,7 @@ void TestBlackbox::trackAddFileTag()
     WAIT_FOR_NEW_TIMESTAMP();
     ccp("../after", ".");
     touch("main.cpp");
-    touch("project.qbs");
+    touch("trackFileTags.qbs");
     QCOMPARE(runQbs(), 0);
 
     process.start(relativeExecutableFilePath("someapp"), QStringList());
@@ -1642,7 +1642,7 @@ void TestBlackbox::trackRemoveFileTag()
     WAIT_FOR_NEW_TIMESTAMP();
     ccp("../before", ".");
     touch("main.cpp");
-    touch("project.qbs");
+    touch("trackFileTags.qbs");
     QCOMPARE(runQbs(), 0);
 
     process.start(relativeExecutableFilePath("someapp"), QStringList());
@@ -1780,7 +1780,7 @@ void TestBlackbox::referenceErrorInExport()
     QVERIFY(runQbs(params) != 0);
     QEXPECT_FAIL(0, "QBS-946", Abort);
     QVERIFY(m_qbsStderr.contains(
-                "project.qbs:17:31 ReferenceError: Can't find variable: includePaths"));
+        "referenceErrorInExport.qbs:17:31 ReferenceError: Can't find variable: includePaths"));
 }
 
 void TestBlackbox::reproducibleBuild()
@@ -2007,7 +2007,7 @@ void TestBlackbox::overrideProjectProperties()
     QDir::setCurrent(testDataDir + "/overrideProjectProperties");
     QCOMPARE(runQbs(QbsRunParameters(QStringList()
                                      << QLatin1String("-f")
-                                     << QLatin1String("project.qbs")
+                                     << QLatin1String("overrideProjectProperties.qbs")
                                      << QLatin1String("project.nameSuffix:ForYou")
                                      << QLatin1String("project.someBool:false")
                                      << QLatin1String("project.someInt:156")
@@ -2283,15 +2283,15 @@ void TestBlackbox::productProperties()
 {
     QDir::setCurrent(testDataDir + "/productproperties");
     QCOMPARE(runQbs(QbsRunParameters(QStringList() << QLatin1String("-f")
-                                     << QLatin1String("project.qbs"))), 0);
+                                     << QLatin1String("productproperties.qbs"))), 0);
     QVERIFY(regularFileExists(relativeExecutableFilePath("blubb_user")));
 }
 
 void TestBlackbox::propertyChanges()
 {
     QDir::setCurrent(testDataDir + "/propertyChanges");
-    QFile projectFile("project.qbs");
-    QbsRunParameters params(QStringList() << "-f" << "project.qbs");
+    QFile projectFile("propertyChanges.qbs");
+    QbsRunParameters params(QStringList() << "-f" << "propertyChanges.qbs");
 
     // Initial build.
     QCOMPARE(runQbs(params), 0);
@@ -2672,19 +2672,19 @@ void TestBlackbox::errorInfo()
 
     params.arguments = QStringList() << "project.fail1:true";
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:25"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("error-info.qbs:25"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail2:true";
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:37"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("error-info.qbs:37"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail3:true";
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:52"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("error-info.qbs:52"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail4:true";
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:67"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("error-info.qbs:67"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail5:true";
     QVERIFY(runQbs(params) != 0);
@@ -2697,7 +2697,7 @@ void TestBlackbox::errorInfo()
     params.arguments = QStringList() << "project.fail7:true";
     QVERIFY(runQbs(params) != 0);
     QVERIFY2(m_qbsStderr.contains("JavaScriptCommand.sourceCode"), m_qbsStderr);
-    QVERIFY2(m_qbsStderr.contains("project.qbs:58"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("error-info.qbs:58"), m_qbsStderr);
 }
 
 void TestBlackbox::systemRunPaths()
@@ -3411,7 +3411,7 @@ void TestBlackbox::propertyPrecedence()
     qbs::Internal::TemporaryProfile profile("qbs_autotests_propPrecedence", &s);
     profile.p.setValue("qbs.architecture", "x86"); // Profiles must not be empty...
     s.sync();
-    const QStringList args = QStringList() << "-f" << "project.qbs"
+    const QStringList args = QStringList() << "-f" << "property-precedence.qbs"
                                            << ("profile:" + profile.p.name());
     QbsRunParameters params(args);
     params.useProfile = false;
@@ -3480,7 +3480,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 9: [cmdline=0,prod=1,export=0,nonleaf=0,profile=0]
-    QFile productFile("project.qbs");
+    QFile productFile("property-precedence.qbs");
     QVERIFY2(productFile.open(QIODevice::ReadWrite), qPrintable(productFile.errorString()));
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, false);

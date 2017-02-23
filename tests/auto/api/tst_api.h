@@ -136,7 +136,7 @@ private slots:
     void uic();
 
 private:
-    qbs::SetupProjectParameters defaultSetupParameters(const QString &projectFilePath) const;
+    qbs::SetupProjectParameters defaultSetupParameters(const QString &projectFileOrDir) const;
     qbs::ErrorInfo doBuildProject(const QString &projectFilePath,
                                   BuildDescriptionReceiver *buildDescriptionReceiver = 0,
                                   ProcessResultReceiver *procResultReceiver = 0,
