@@ -319,6 +319,7 @@ void TestApi::buildProject()
     qbs::SetupProjectParameters params = defaultSetupParameters(projectFilePath);
     removeBuildDir(params);
     qbs::ErrorInfo errorInfo = doBuildProject(projectFilePath);
+    QEXPECT_FAIL("link staticlib dynamiclib", "to be fixed", Abort);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(regularFileExists(relativeBuildGraphFilePath()));
     if (!productFileName.isEmpty()) {
@@ -349,6 +350,9 @@ void TestApi::buildProject_data()
     QTest::newRow("link static libs")
             << QString("link-static-lib")
             << relativeExecutableFilePath("HelloWorld");
+    QTest::newRow("link staticlib dynamiclib")
+            << QString("link-staticlib-dynamiclib")
+            << relativeExecutableFilePath("app");
     QTest::newRow("precompiled header new")
             << QString("precompiled-header-new")
             << relativeExecutableFilePath("MyApp");
