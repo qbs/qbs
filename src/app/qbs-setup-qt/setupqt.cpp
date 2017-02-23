@@ -273,13 +273,8 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     }
 
     // determine whether we have a framework build
-    qtEnvironment.frameworkBuild = false;
-    if (qtEnvironment.mkspecPath.contains(QLatin1String("macx"))) {
-        if (qtEnvironment.configItems.contains(QLatin1String("qt_framework")))
-            qtEnvironment.frameworkBuild = true;
-        else if (!qtEnvironment.configItems.contains(QLatin1String("qt_no_framework")))
-            throw ErrorInfo(tr("could not determine whether Qt is a frameworks build"));
-    }
+    qtEnvironment.frameworkBuild = qtEnvironment.mkspecPath.contains(QLatin1String("macx"))
+            && qtEnvironment.configItems.contains(QLatin1String("qt_framework"));
 
     // determine whether Qt is built with debug, release or both
     addQtBuildVariant(&qtEnvironment, QLatin1String("debug"));
