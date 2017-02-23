@@ -55,6 +55,7 @@
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qlibrary.h>
 #include <QtCore/qregexp.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qtextstream.h>
 
 namespace qbs {
@@ -76,19 +77,47 @@ static QString defaultQpaPlugin(const Profile &profile, const QtModuleInfo &modu
 {
     if (qtEnv.qtMajorVersion < 5)
         return QString();
-    QFile qConfigPri(qtEnv.mkspecBasePath + QLatin1String("/qconfig.pri"));
-    if (!qConfigPri.open(QIODevice::ReadOnly)) {
-        throw ErrorInfo(Tr::tr("Setting up Qt profile '%1' failed: Cannot open "
-                "file '%2' (%3).")
-                .arg(profile.name(), qConfigPri.fileName(), qConfigPri.errorString()));
+
+    if (qtEnv.qtMajorVersion == 5 && qtEnv.qtMinorVersion < 8) {
+        QFile qConfigPri(qtEnv.mkspecBasePath + QLatin1String("/qconfig.pri"));
+        if (!qConfigPri.open(QIODevice::ReadOnly)) {
+            throw ErrorInfo(Tr::tr("Setting up Qt profile '%1' failed: Cannot open "
+                    "file '%2' (%3).")
+                    .arg(profile.name(), qConfigPri.fileName(), qConfigPri.errorString()));
+        }
+        const QList<QByteArray> lines = qConfigPri.readAll().split('\n');
+        const QByteArray magicString = "QT_DEFAULT_QPA_PLUGIN =";
+        foreach (const QByteArray &line, lines) {
+            const QByteArray simplifiedLine = line.simplified();
+            if (simplifiedLine.startsWith(magicString))
+                return QString::fromLatin1(simplifiedLine.mid(magicString.count()).trimmed());
+        }
+    } else {
+        const QString qtGuiConfigHeader = (qtEnv.frameworkBuild
+                                           ? qtEnv.libraryPath
+                                           : qtEnv.includePath)
+                + QStringLiteral("/QtGui")
+                + (qtEnv.frameworkBuild ? QStringLiteral(".framework/Headers") : QString())
+                + QStringLiteral("/qtgui-config.h");
+        QFile qtGuiConfigHeaderFile(qtGuiConfigHeader);
+        if (!qtGuiConfigHeaderFile.open(QIODevice::ReadOnly)) {
+            throw ErrorInfo(Tr::tr("Setting up Qt profile '%1' failed: Cannot open "
+                    "file '%2' (%3).")
+                    .arg(profile.name(), qtGuiConfigHeaderFile.fileName(),
+                         qtGuiConfigHeaderFile.errorString()));
+        }
+
+        const QRegularExpression regexp(
+                    QStringLiteral("^#define QT_QPA_DEFAULT_PLATFORM_NAME \"(?<name>.+)\""));
+        const QList<QByteArray> lines = qtGuiConfigHeaderFile.readAll().split('\n');
+        for (const QByteArray &line : lines) {
+            const QRegularExpressionMatch match = regexp.match(
+                        QString::fromLatin1(line.simplified()));
+            if (match.hasMatch())
+                return QLatin1Char('q') + match.captured(QStringLiteral("name"));
+        }
     }
-    const QList<QByteArray> lines = qConfigPri.readAll().split('\n');
-    const QByteArray magicString = "QT_DEFAULT_QPA_PLUGIN =";
-    foreach (const QByteArray &line, lines) {
-        const QByteArray simplifiedLine = line.simplified();
-        if (simplifiedLine.startsWith(magicString))
-            return QString::fromLatin1(simplifiedLine.mid(magicString.count()).trimmed());
-    }
+
     if (module.isStaticLibrary)
         qDebug("Warning: Could not determine default QPA plugin for static Qt.");
     return QString();
