@@ -594,6 +594,7 @@ TopLevelProject::TopLevelProject()
 
 TopLevelProject::~TopLevelProject()
 {
+    cleanupModuleProviderOutput();
     delete bgLocker;
 }
 
@@ -636,6 +637,8 @@ void TopLevelProject::store(Logger logger)
         qCDebug(lcBuildGraph) << "build graph is unchanged in project" << id();
         return;
     }
+    for (ModuleProviderInfo &m : moduleProviderInfo)
+        m.transientOutput = false;
     const QString fileName = buildGraphFilePath();
     qCDebug(lcBuildGraph) << "storing:" << fileName;
     PersistentPool pool(logger);
@@ -659,6 +662,23 @@ void TopLevelProject::store(PersistentPool &pool)
 {
     ResolvedProject::store(pool);
     serializationOp<PersistentPool::Store>(pool);
+}
+
+void TopLevelProject::cleanupModuleProviderOutput()
+{
+    QString error;
+    for (const ModuleProviderInfo &m : moduleProviderInfo) {
+        if (m.transientOutput) {
+            if (!removeDirectoryWithContents(m.outputDirPath(buildDirectory), &error))
+                qCWarning(lcBuildGraph) << "Error removing module provider output:" << error;
+        }
+    }
+    QDir moduleProviderBaseDir(buildDirectory + QLatin1Char('/')
+                               + ModuleProviderInfo::outputBaseDirName());
+    if (moduleProviderBaseDir.exists() && moduleProviderBaseDir.isEmpty()
+            && !removeDirectoryWithContents(moduleProviderBaseDir.path(), &error)) {
+        qCWarning(lcBuildGraph) << "Error removing module provider output:" << error;
+    }
 }
 
 /*!

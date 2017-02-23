@@ -240,6 +240,7 @@ TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
     project->buildSystemFiles = m_loadResult.qbsFiles;
     project->profileConfigs = m_loadResult.profileConfigs;
     project->probes = m_loadResult.projectProbes;
+    project->moduleProviderInfo = m_loadResult.moduleProviderInfo;
     ProjectContext projectContext;
     projectContext.project = project;
 

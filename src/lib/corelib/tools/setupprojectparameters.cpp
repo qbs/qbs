@@ -92,6 +92,7 @@ public:
     bool logElapsedTime;
     bool forceProbeExecution;
     bool waitLockBuildGraph;
+    bool fallbackProviderEnabled = true;
     SetupProjectParameters::RestoreBehavior restoreBehavior;
     ErrorHandlingMode propertyCheckingMode;
     ErrorHandlingMode productErrorMode;
@@ -502,6 +503,22 @@ bool SetupProjectParameters::waitLockBuildGraph() const
 void SetupProjectParameters::setWaitLockBuildGraph(bool wait)
 {
     d->waitLockBuildGraph = wait;
+}
+
+/*!
+ * \brief Returns true if qbs should fall back to pkg-config if a dependency is not found.
+ */
+bool SetupProjectParameters::fallbackProviderEnabled() const
+{
+    return d->fallbackProviderEnabled;
+}
+
+/*!
+ * Controls whether to fall back to pkg-config if a dependency is not found.
+ */
+void SetupProjectParameters::setFallbackProviderEnabled(bool enable)
+{
+    d->fallbackProviderEnabled = enable;
 }
 
 /*!

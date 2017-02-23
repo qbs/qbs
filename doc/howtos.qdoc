@@ -41,6 +41,7 @@
     \li \l{How do I make sure my generated sources are getting compiled?}
     \li \l{How do I run my autotests?}
     \li \l{How do I create a module for a third-party library?}
+    \li \l{How do I build against libraries that provide pkg-config files?}
     \li \l{How do I create application bundles and frameworks on iOS, macOS, tvOS, and watchOS?}
     \li \l{How do I apply C/C++ preprocessor macros to only a subset of the files in my product?}
     \li \l{How do I make the state of my Git repository available to my source files?}
@@ -314,6 +315,20 @@
     Building your application against your framework is the same as linking a normal dynamic or
     static library; see the \l{How do I make my app build against my library?} section for an
     example.
+
+    \section1 How do I build against libraries that provide pkg-config files?
+
+    Just add a \l Depends item that matches the name of the pkg-config module, and \QBS
+    will automatically employ \l{https://www.freedesktop.org/wiki/Software/pkg-config}{pkg-config}
+    to find the headers and libraries if no matching \QBS module can be found. For instance,
+    to build against the OpenSSL library, you would write this:
+    \code
+    Depends { name: "openssl" }
+    \endcode
+    That's it. The pkg-config behavior can be fine-tuned via the \l pkgconfig module,
+    but normally you will not need to pull it in explicitly.
+
+    Internally, this functionality is implemented via \l {Module Providers}
 
     \section1 How do I apply C/C++ preprocessor macros to only a subset of the files in my product?
 

@@ -210,7 +210,8 @@ static QList<CommandLineOption::Type> resolveOptions()
             << CommandLineOption::ShowProgressOptionType
             << CommandLineOption::DryRunOptionType
             << CommandLineOption::ForceProbesOptionType
-            << CommandLineOption::LogTimeOptionType;
+            << CommandLineOption::LogTimeOptionType
+            << CommandLineOption::DisableFallbackProviderType;
 }
 
 QList<CommandLineOption::Type> ResolveCommand::supportedOptions() const

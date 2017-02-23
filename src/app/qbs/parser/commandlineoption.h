@@ -75,6 +75,7 @@ public:
         GeneratorOptionType,
         WaitLockOptionType,
         RunEnvConfigOptionType,
+        DisableFallbackProviderType,
     };
 
     virtual ~CommandLineOption();
@@ -407,6 +408,14 @@ public:
 };
 
 class WaitLockOption : public OnOffOption
+{
+public:
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
+};
+
+class DisableFallbackProviderOption : public OnOffOption
 {
 public:
     QString description(CommandType command) const override;

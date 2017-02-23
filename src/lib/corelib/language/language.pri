@@ -28,6 +28,7 @@ HEADERS += \
     $$PWD/loader.h \
     $$PWD/moduleloader.h \
     $$PWD/modulemerger.h \
+    $$PWD/moduleproviderinfo.h \
     $$PWD/preparescriptobserver.h \
     $$PWD/projectresolver.h \
     $$PWD/property.h \

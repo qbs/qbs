@@ -69,6 +69,7 @@ BuiltinDeclarations::BuiltinDeclarations()
         { QLatin1String("Group"), ItemType::Group },
         { QLatin1String("JobLimit"), ItemType::JobLimit },
         { QLatin1String("Module"), ItemType::Module },
+        { QLatin1String("ModuleProvider"), ItemType::ModuleProvider },
         { QLatin1String("Parameter"), ItemType::Parameter },
         { QLatin1String("Parameters"), ItemType::Parameters },
         { QLatin1String("Probe"), ItemType::Probe },
@@ -90,6 +91,7 @@ BuiltinDeclarations::BuiltinDeclarations()
     addGroupItem();
     addJobLimitItem();
     addModuleItem();
+    addModuleProviderItem();
     addProbeItem();
     addProductItem();
     addProfileItem();
@@ -244,6 +246,8 @@ void BuiltinDeclarations::addDependsItem()
     item << PropertyDeclaration(StringConstants::multiplexConfigurationIdsProperty(),
                                 PropertyDeclaration::StringList, QString(),
                                 PropertyDeclaration::ReadOnlyFlag);
+    item << PropertyDeclaration(StringConstants::enableFallbackProperty(),
+                                PropertyDeclaration::Boolean, StringConstants::trueValue());
     insert(item);
 }
 
@@ -313,6 +317,16 @@ void BuiltinDeclarations::addModuleItem()
 {
     ItemDeclaration item = moduleLikeItem(ItemType::Module);
     item << priorityProperty();
+    insert(item);
+}
+
+void BuiltinDeclarations::addModuleProviderItem()
+{
+    ItemDeclaration item(ItemType::ModuleProvider);
+    item << nameProperty()
+         << PropertyDeclaration(QStringLiteral("outputBaseDir"), PropertyDeclaration::String)
+         << PropertyDeclaration(QStringLiteral("relativeSearchPaths"),
+                                PropertyDeclaration::StringList);
     insert(item);
 }
 

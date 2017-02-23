@@ -27,7 +27,7 @@
 /*!
     \contentspage list-of-language-items.html
     \previouspage JobLimit
-    \nextpage Parameter
+    \nextpage ModuleProvider
     \qmltype Module
     \inqmlmodule QbsLanguageItems
     \ingroup list-of-items

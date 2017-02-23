@@ -78,6 +78,7 @@ private:
     void addGroupItem();
     void addJobLimitItem();
     void addModuleItem();
+    void addModuleProviderItem();
     static ItemDeclaration moduleLikeItem(ItemType type);
     void addProbeItem();
     void addProductItem();

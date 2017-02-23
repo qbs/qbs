@@ -621,7 +621,8 @@ public:
                     || itemOfProperty->type() == ItemType::Export)) {
             const VariantValueConstPtr varValue
                     = itemOfProperty->variantProperty(StringConstants::nameProperty());
-            QBS_ASSERT(varValue, return);
+            if (!varValue)
+                return;
             m_stackUpdate = true;
             const QualifiedId fullPropName
                     = QualifiedId::fromString(varValue->value().toString()) << name.toString();

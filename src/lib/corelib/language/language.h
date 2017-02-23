@@ -43,6 +43,7 @@
 #include "filetags.h"
 #include "forward_decls.h"
 #include "jsimports.h"
+#include "moduleproviderinfo.h"
 #include "propertydeclaration.h"
 #include "resolvedfilecontext.h"
 
@@ -691,6 +692,7 @@ public:
     QString buildDirectory; // Not saved
     QProcessEnvironment environment;
     std::vector<ProbeConstPtr> probes;
+    ModuleProviderInfoList moduleProviderInfo;
 
     QHash<QString, QString> canonicalFilePathResults; // Results of calls to "File.canonicalFilePath()."
     QHash<QString, bool> fileExistsResults; // Results of calls to "File.exists()".
@@ -722,10 +724,13 @@ private:
         pool.serializationOp<opType>(m_id, canonicalFilePathResults, fileExistsResults,
                                      directoryEntriesResults, fileLastModifiedResults, environment,
                                      probes, profileConfigs, overriddenValues, buildSystemFiles,
-                                     lastResolveTime, warningsEncountered, buildData);
+                                     lastResolveTime, warningsEncountered, buildData,
+                                     moduleProviderInfo);
     }
     void load(PersistentPool &pool) override;
     void store(PersistentPool &pool) override;
+
+    void cleanupModuleProviderOutput();
 
     QString m_id;
     QVariantMap m_buildConfiguration;

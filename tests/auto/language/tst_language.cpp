@@ -93,7 +93,7 @@ TestLanguage::TestLanguage(ILogSink *logSink, Settings *settings)
 {
     qsrand(QTime::currentTime().msec());
     qRegisterMetaType<QList<bool> >("QList<bool>");
-    defaultParameters.setBuildRoot("/some/build/directory");
+    defaultParameters.setBuildRoot(m_tempDir.path() + "/buildroot");
     defaultParameters.setPropertyCheckingMode(ErrorHandlingMode::Strict);
     defaultParameters.setSettingsDirectory(m_settings->baseDirectory());
 }
@@ -163,6 +163,7 @@ void TestLanguage::handleInitCleanupDataTags(const char *projectFileName, bool *
 void TestLanguage::init()
 {
     m_logSink->setLogLevel(LoggerInfo);
+    QVERIFY(m_tempDir.isValid());
 }
 
 #define HANDLE_INIT_CLEANUP_DATATAGS(fn) {\

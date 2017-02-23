@@ -55,6 +55,7 @@ enum class ItemType {
     Group,
     JobLimit,
     Module,
+    ModuleProvider,
     Parameter,
     Parameters,
     Probe,

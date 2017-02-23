@@ -104,6 +104,11 @@ void Loader::setStoredProfiles(const QVariantMap &profiles)
     m_storedProfiles = profiles;
 }
 
+void Loader::setStoredModuleProviderInfo(const ModuleProviderInfoList &providerInfo)
+{
+    m_storedModuleProviderInfo = providerInfo;
+}
+
 TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters)
 {
     SetupProjectParameters parameters = _parameters;
@@ -160,6 +165,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
     moduleLoader.setOldProductProbes(m_oldProductProbes);
     moduleLoader.setLastResolveTime(m_lastResolveTime);
     moduleLoader.setStoredProfiles(m_storedProfiles);
+    moduleLoader.setStoredModuleProviderInfo(m_storedModuleProviderInfo);
     const ModuleLoaderResult loadResult = moduleLoader.load(parameters);
     ProjectResolver resolver(&evaluator, loadResult, parameters, m_logger);
     resolver.setProgressObserver(m_progressObserver);

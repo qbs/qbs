@@ -86,6 +86,7 @@ public:
     static const QString &explicitlyDependsOnFromDependenciesProperty() {
         return explicitlyDependsOnFromDependencies();
     }
+    QBS_STRING_CONSTANT(enableFallbackProperty, "enableFallback")
     static const QString &fileNameProperty() { return fileName(); }
     static const QString &filePathProperty() { return filePath(); }
     static const QString &filePathVar() { return filePath(); }
@@ -111,6 +112,7 @@ public:
     QBS_STRING_CONSTANT(limitToSubProjectProperty, "limitToSubProject")
     QBS_STRING_CONSTANT(minimumQbsVersionProperty, "minimumQbsVersion")
     QBS_STRING_CONSTANT(moduleNameProperty, "moduleName")
+    QBS_STRING_CONSTANT(moduleProviders, "moduleProviders")
     QBS_STRING_CONSTANT(multiplexByQbsPropertiesProperty, "multiplexByQbsProperties")
     QBS_STRING_CONSTANT(multiplexConfigurationIdProperty, "multiplexConfigurationId")
     QBS_STRING_CONSTANT(multiplexConfigurationIdsProperty, "multiplexConfigurationIds")

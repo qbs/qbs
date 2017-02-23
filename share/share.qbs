@@ -56,6 +56,15 @@ Product {
     }
 
     Group {
+        name: "Module providers"
+        files: ["qbs/module-providers/**/*"]
+        fileTags: ["qbs resources"]
+        qbs.install: true
+        qbs.installDir: qbsbuildconfig.resourcesInstallDir + "/share"
+        qbs.installSourceBase: "."
+    }
+
+    Group {
         name: "Examples as resources"
         files: ["../examples/**/*"]
         fileTags: []

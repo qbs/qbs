@@ -45,6 +45,7 @@
 #include <logging/ilogsink.h>
 #include <tools/setupprojectparameters.h>
 
+#include <QtCore/qtemporarydir.h>
 #include <QtTest/qtest.h>
 
 class TestLanguage : public QObject
@@ -178,6 +179,9 @@ private slots:
     void versionCompare();
     void wildcards_data();
     void wildcards();
+
+private:
+    QTemporaryDir m_tempDir;
 };
 
 #endif // TST_LANGUAGE_H

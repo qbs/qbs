@@ -1,0 +1,108 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-language-items.html
+    \previouspage Module
+    \nextpage Parameter
+    \qmltype ModuleProvider
+    \inqmlmodule QbsLanguageItems
+    \ingroup list-of-items
+    \keyword QML.ModuleProvider
+
+    \brief Creates modules on demand.
+
+    The \c ModuleProvider item implements the module creation part of the procedure described
+    in the \l {Module Providers} overview. It is always located in a file called \c provider.qbs.
+
+    The actual module creation is done on the right-hand side of the
+    \l{ModuleProvider::relativeSearchPaths}{relativeSearchPaths} property.
+
+    Here is a complete minimal example of a module provider. It just creates an empty module.
+    If you put this item into the file \c {module-providers/mymodule/provider.qbs}
+    in your project source directory, you will be able to successfully build a product which
+    contains a dependency on the module \c mymodule.
+    \code
+        import qbs.File
+        import qbs.FileInfo
+        import qbs.TextFile
+
+        ModuleProvider {
+            relativeSearchPaths: {
+                var moduleDir = FileInfo.joinPaths(outputBaseDir, "modules", name);
+                File.makePath(moduleDir);
+                var moduleFilePath = FileInfo.joinPaths(moduleDir, name + ".qbs");
+                var moduleFile = new TextFile(moduleFilePath, TextFile.WriteOnly);
+                moduleFile.writeLine("Module {");
+                moduleFile.writeLine("}");
+                moduleFile.close();
+                return "";
+            }
+        }
+    \endcode
+*/
+
+/*!
+    \qmlproperty string ModuleProvider::name
+
+    The name of the module provider.
+
+    This property is set by \QBS. For simple dependency names, it is the name of the dependency
+    as specified in the \l Depends item. If the dependency name consists of multiple components,
+    the value is the name up until (and including) the component that corresponds to the directory
+    the provider was found in. For instance, if the dependency is \c {x.m1} and the provider was
+    found in \c {module-providers/x/m1/provider.qbs}, then \c name is \c {x.m1}.
+    If the provider was found in \c {module-providers/x/provider.qbs}, then \c name is \c x.
+*/
+
+/*!
+    \qmlproperty string ModuleProvider::outputBaseDir
+
+    The path under which the new modules should be created when \l relativeSearchPaths
+    is evaluated. The path is unique for the current provider in the given configuration.
+
+    This property is set by \QBS.
+*/
+
+/*!
+    \qmlproperty stringList ModuleProvider::relativeSearchPaths
+
+    This property gets evaluated by \QBS to retrieve new search paths with which
+    to re-attempt the module look-up.
+
+    It is here where you need to put the code that creates the new module files.
+    Use the directory structure explained in \l {Custom Modules and Items}.
+    That is, the file for a module called \c m will be located in a directory \c {modules/m/},
+    anchored at \l outputBaseDir.
+
+    The return value is the list of search paths required to find the new module,
+    relative to \l outputBaseDir. In most cases, only a single search path will be required,
+    in which case a single-element list containing an empty string should be returned
+    (or just the empty string, because of \QBS' auto-conversion feature).
+
+    The returned list can also be empty, which means that the module provider was not able
+    to generate any modules in this environment.
+*/

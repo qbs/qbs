@@ -1,12 +1,10 @@
-Application {
+CppApplication {
     Depends {
         name: "nosuchmodule"
         required: false
     }
-    Depends {
-        name: "cpp"
+    Properties {
         condition: nosuchmodule.present
+        files: "main.cpp"
     }
-
-    files: "main.cpp"
 }

@@ -68,6 +68,7 @@
                \li  \l{Generators}
                \li  \l{Multiplexing}
                \li  \l{Custom Modules and Items}
+               \li  \l{Module Providers}
            \endlist
        \li  \l{How-tos}
        \li  \l{Reference}
@@ -791,6 +792,7 @@
         \li  \l{Generators}
         \li  \l{Multiplexing}
         \li  \l{Custom Modules and Items}
+        \li  \l{Module Providers}
     \endlist
 
 */
@@ -1351,7 +1353,7 @@
     \contentspage index.html
     \previouspage multiplexing.html
     \page custom-modules.html
-    \nextpage howtos.html
+    \nextpage module-providers.html
 
     \title Custom Modules and Items
 
@@ -1416,6 +1418,62 @@
     \code
     qbs config preferences.qbsSearchPaths /usr/local/share/custom-qbs-extensions
     \endcode
+
+*/
+
+/*!
+    \contentspage index.html
+    \previouspage custom-modules.html
+    \page module-providers.html
+    \nextpage howtos.html
+
+    \title Module Providers
+
+    There are use cases for which a pre-defined module is not flexible enough.
+    For instance, the overall set of modules related to a certain task might depend
+    on some information present on the local platform.
+
+    \note Module providers are an advanced concept that you will rarely need to use directly.
+    Reading this section is not required for most people's everyday work.
+
+    \section1 How \QBS Uses Module Providers
+
+    If \QBS encounters a \l Depends item whose name does not match a known module,
+    it checks whether such a module can be generated. This procedure works as follows:
+    \list 1
+        \li All \l{Project::qbsSearchPaths}{search paths} are scanned for a file called
+            \c {module-providers/<name>/provider.qbs}, where \c <name> is the name of the dependency
+            as specified in the \c Depends item. Multi-component names such as "a.b" are turned
+            into nested directories, and each of them is scanned, starting with the deepest path.
+            For instance, if the dependency's name is \c {a.b}, then \QBS will look for
+            \c {a/b/provider.qbs} and then \c {a/provider.qbs}.
+        \li If such a file is found, it needs to contain a \l ModuleProvider item. This item
+            is instantiated, which potentially leads to the creation of one or more modules,
+            and \QBS retrieves the search paths to find these modules from the item.
+            The details are described in the \l ModuleProvider documentation.
+        \li If a matching module provider was found and provided new search paths,
+            a second attempt will be made to locate the dependency using the new paths.
+            The search for a matching module provider ends as soon as one was found, regardless
+            of whether it created any modules or not.
+        \li If no matching module provider was found in any of the search paths, \QBS will fall back
+            to a generic module provider, which creates a module that attempts to locate the
+            dependency via \c pkg-config.
+            This fallback mechanism can be disabled in the respective
+            \l{Depends::enableFallback}{Depends} item or globally via the
+            \l{no-fallback-module-provider}{--no-fallback-module-provider} option.
+    \endlist
+
+    \section1 Parameterizing Module Providers
+
+    You can pass information to module providers from the command line, via profiles or
+    from within a product, in a similar way as you would do for modules. For instance, the
+    following invocation of \QBS passes information to two module providers \c a and \c b:
+    \code
+    $ qbs moduleProviders.a.p1:true moduleProviders.a.p2:true moduleProviders.b.p:false
+    \endcode
+    \QBS will set the properties of the respective module providers accordingly.
+    In the above example, module provider \c a needs to declare two boolean properties \c p1
+    and \c p2, and they will be set to \c true and \c false, respectively.
 
 */
 

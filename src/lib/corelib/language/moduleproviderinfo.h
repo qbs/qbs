@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,53 +36,55 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef  QBS_LOADER_H
-#define  QBS_LOADER_H
 
-#include "forward_decls.h"
-#include "moduleproviderinfo.h"
-#include <logging/logger.h>
-#include <tools/filetime.h>
+#ifndef QBS_MODULEPROVIDERINFO_H
+#define QBS_MODULEPROVIDERINFO_H
+
+#include "qualifiedid.h"
+#include <tools/persistence.h>
 
 #include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
+
+#include <vector>
 
 namespace qbs {
-class Settings;
-class SetupProjectParameters;
 namespace Internal {
-class Logger;
-class ProgressObserver;
-class ScriptEngine;
 
-class QBS_AUTOTEST_EXPORT Loader
+class ModuleProviderInfo
 {
 public:
-    Loader(ScriptEngine *engine, const Logger &logger);
+    ModuleProviderInfo() = default;
+    ModuleProviderInfo(const QualifiedId &name, const QVariantMap &config,
+                   const QStringList &searchPaths, bool transientOutput)
+        : name(name), config(config), searchPaths(searchPaths), transientOutput(transientOutput)
+    {}
 
-    void setProgressObserver(ProgressObserver *observer);
-    void setSearchPaths(const QStringList &searchPaths);
-    void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
-    void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
-    void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
-    void setStoredProfiles(const QVariantMap &profiles);
-    void setStoredModuleProviderInfo(const ModuleProviderInfoList &providerInfo);
-    TopLevelProjectPtr loadProject(const SetupProjectParameters &parameters);
+    static QString outputBaseDirName() { return QStringLiteral("genmodules"); }
+    static QString outputDirPath(const QString &baseDir, const QualifiedId &name)
+    {
+        return baseDir + QLatin1Char('/') + outputBaseDirName() + QLatin1Char('/')
+                + name.toString();
+    }
+    QString outputDirPath(const QString &baseDir) const
+    {
+        return outputDirPath(baseDir, name);
+    }
 
-    static void setupProjectFilePath(SetupProjectParameters &parameters);
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(reinterpret_cast<QStringList &>(name), config, searchPaths);
+    }
 
-private:
-    Logger m_logger;
-    ProgressObserver *m_progressObserver;
-    ScriptEngine * const m_engine;
-    QStringList m_searchPaths;
-    std::vector<ProbeConstPtr> m_oldProjectProbes;
-    QHash<QString, std::vector<ProbeConstPtr>> m_oldProductProbes;
-    ModuleProviderInfoList m_storedModuleProviderInfo;
-    QVariantMap m_storedProfiles;
-    FileTime m_lastResolveTime;
+    QualifiedId name;
+    QVariantMap config;
+    QStringList searchPaths;
+    bool transientOutput = false; // Not to be serialized.
 };
+
+using ModuleProviderInfoList = std::vector<ModuleProviderInfo>;
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_LOADER_H
+#endif // Include guard

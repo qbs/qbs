@@ -38,25 +38,21 @@
     A Depends item can appear inside a \l{Product} or \l{Module} item.
 
     For example, the following product will load the \l{cpp} module. In
-    addition, it will try to load modules that may or may not exist, and in the
-    latter case use a fallback.
+    addition, it will try to load modules that may or may not exist, and
+    pass this information on to the compiler.
 
     \code
     Product {
         Depends { name: "cpp" }
         Depends {
-            name: "awesome_module"
+            name: "optional_module"
             versionAtLeast: "2.0"
             required: false
         }
-        Depends {
-            name: "adequate_module"
-            condition: !awesome_module.present
-            required: false
-        }
-        Depends {
-            name: "inferior_module"
-            condition: !awesome_module.present && !adequate_module.present
+
+        Properties {
+            condition: optional_module.present
+            cpp.defines: "HAS_OPTIONAL_MODULE"
         }
 
         // ...
@@ -189,4 +185,13 @@
     A list of submodules of the module to depend on, if applicable.
 
     \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool Depends::enableFallback
+
+    Whether to fall back to a pkg-config based \l{Module Providers}{module provider}
+    if the dependency is not found.
+
+    \defaultvalue \c true
 */

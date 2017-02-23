@@ -1,0 +1,69 @@
+/****************************************************************************
+**
+** Copyright (C) 2019 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype pkgconfig
+    \inqmlmodule QbsModules
+    \since 1.13
+
+    \brief Allows to configure the pkg-config tool.
+
+    The \c pkgconfig module is used to fine-tune the behavior of the \c {pkg-config} tool,
+    which is
+    \l{How do I build against libraries that provide pkg-config files?}{potentially employed}
+    when looking up dependencies.
+*/
+
+/*!
+    \qmlproperty string pkgconfig::executableFilePath
+
+    The path to the \c {pkg-config} executable.
+
+    \defaultvalue auto-detected
+*/
+
+/*!
+    \qmlproperty stringList pkgconfig::libDirs
+
+    Set this if you need to overwrite the default search directories. The values
+    given here will be forwarded to the tool via the \c PKG_CONFIG_LIBDIR environment
+    variable.
+    \note You do not need to set this for cross-compilation in order to point
+          \c {pkg-config} to the sysroot. \QBS does that for you.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool pkgconfig::staticMode
+
+    If this property is \c true, then calls to \c{pkg-config} will include the
+    \c{--static} option. Set this if your product is to be linked statically.
+
+    \defaultvalue \c false
+*/

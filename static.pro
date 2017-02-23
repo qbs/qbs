@@ -1,6 +1,6 @@
 TEMPLATE = aux
 
-DATA_DIRS = share/qbs/imports share/qbs/modules
+DATA_DIRS = share/qbs/imports share/qbs/modules share/qbs/module-providers
 PYTHON_DATA_DIRS = src/3rdparty/python/lib
 win32:DATA_FILES = $$PWD/bin/ibmsvc.xml $$PWD/bin/ibqbs.bat
 LIBEXEC_FILES = $$PWD/src/3rdparty/python/bin/dmgbuild

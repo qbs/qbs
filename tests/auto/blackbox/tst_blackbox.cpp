@@ -6310,6 +6310,106 @@ void TestBlackbox::maximumCxxLanguageVersion()
              m_qbsStdout.constData());
 }
 
+void TestBlackbox::moduleProviders()
+{
+    QDir::setCurrent(testDataDir + "/module-providers");
+
+    // Resolving in dry-run mode must not leave any data behind.
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    QCOMPARE(m_qbsStdout.count("Running setup script for mygenerator"), 2);
+    QVERIFY(!QFile::exists(relativeBuildDir()));
+
+    // Initial build.
+    QCOMPARE(runQbs(QbsRunParameters("run", QStringList{"-p", "app1"})), 0);
+    QVERIFY(QFile::exists(relativeBuildDir()));
+    QCOMPARE(m_qbsStdout.count("Running setup script for mygenerator"), 2);
+    QVERIFY2(m_qbsStdout.contains("The letters are A and B"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("run", QStringList{"-p", "app2"})), 0);
+    QVERIFY2(m_qbsStdout.contains("The letters are Z and Y"), m_qbsStdout.constData());
+
+    // Rebuild with overridden module provider config. The output for product 2 must change,
+    // but no setup script must be re-run, because both config values have already been
+    // handled in the first run.
+    const QStringList resolveArgs("moduleProviders.mygenerator.chooseLettersFrom:beginning");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", resolveArgs)), 0);
+    QVERIFY2(!m_qbsStdout.contains("Running setup script"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("run", QStringList{"-p", "app1"})), 0);
+    QVERIFY2(m_qbsStdout.contains("The letters are A and B"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("run", QStringList{"-p", "app2"})), 0);
+    QVERIFY2(m_qbsStdout.contains("The letters are A and B"), m_qbsStdout.constData());
+
+    // Forcing Probe execution triggers a re-run of the setup script. But only once,
+    // because the module provider config is the same now.
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList(resolveArgs)
+                                     << "--force-probe-execution")), 0);
+    QCOMPARE(m_qbsStdout.count("Running setup script for mygenerator"), 1);
+    QCOMPARE(runQbs(QbsRunParameters("run", QStringList{"-p", "app1"})), 0);
+    QVERIFY2(m_qbsStdout.contains("The letters are A and B"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("run", QStringList{"-p", "app2"})), 0);
+    QVERIFY2(m_qbsStdout.contains("The letters are A and B"), m_qbsStdout.constData());
+
+    // Now re-run without the module provider config override. Again, the setup script must
+    // run once, for the config value that was not present in the last run.
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    QCOMPARE(m_qbsStdout.count("Running setup script for mygenerator"), 1);
+    QCOMPARE(runQbs(QbsRunParameters("run", QStringList{"-p", "app1"})), 0);
+    QVERIFY2(m_qbsStdout.contains("The letters are A and B"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("run", QStringList{"-p", "app2"})), 0);
+    QVERIFY2(m_qbsStdout.contains("The letters are Z and Y"), m_qbsStdout.constData());
+}
+
+void TestBlackbox::fallbackModuleProvider_data()
+{
+    QTest::addColumn<bool>("fallbacksEnabledGlobally");
+    QTest::addColumn<bool>("fallbacksEnabledInProduct");
+    QTest::addColumn<QStringList>("pkgConfigLibDirs");
+    QTest::addColumn<bool>("successExpected");
+    QTest::newRow("without custom lib dir, fallbacks disabled globally and in product")
+            << false << false << QStringList() << false;
+    QTest::newRow("without custom lib dir, fallbacks disabled globally, enabled in product")
+            << false << true << QStringList() << false;
+    QTest::newRow("without custom lib dir, fallbacks enabled globally, disabled in product")
+            << true << false << QStringList() << false;
+    QTest::newRow("without custom lib dir, fallbacks enabled globally and in product")
+            << true << true << QStringList() << false;
+    QTest::newRow("with custom lib dir, fallbacks disabled globally and in product")
+            << false << false << QStringList(testDataDir + "/fallback-module-provider/libdir")
+            << false;
+    QTest::newRow("with custom lib dir, fallbacks disabled globally, enabled in product")
+            << false << true << QStringList(testDataDir + "/fallback-module-provider/libdir")
+            << false;
+    QTest::newRow("with custom lib dir, fallbacks enabled globally, disabled in product")
+            << true << false << QStringList(testDataDir + "/fallback-module-provider/libdir")
+            << false;
+    QTest::newRow("with custom lib dir, fallbacks enabled globally and in product")
+            << true << true << QStringList(testDataDir + "/fallback-module-provider/libdir")
+            << true;
+}
+
+void TestBlackbox::fallbackModuleProvider()
+{
+    QFETCH(bool, fallbacksEnabledInProduct);
+    QFETCH(bool, fallbacksEnabledGlobally);
+    QFETCH(QStringList, pkgConfigLibDirs);
+    QFETCH(bool, successExpected);
+    QDir::setCurrent(testDataDir + "/fallback-module-provider");
+    static const auto b2s = [](bool b) { return QString(b ? "true" : "false"); };
+    QbsRunParameters resolveParams("resolve",
+        QStringList{"modules.pkgconfig.libDirs:" + pkgConfigLibDirs.join(','),
+                    "products.p.fallbacksEnabled:" + b2s(fallbacksEnabledInProduct)});
+    if (!fallbacksEnabledGlobally)
+        resolveParams.arguments << "--no-fallback-module-provider";
+    QCOMPARE(runQbs(resolveParams), 0);
+    const bool pkgConfigPresent = m_qbsStdout.contains("pkg-config present: true");
+    const bool pkgConfigNotPresent = m_qbsStdout.contains("pkg-config present: false");
+    QVERIFY(pkgConfigPresent != pkgConfigNotPresent);
+    if (pkgConfigNotPresent)
+        successExpected = false;
+    QbsRunParameters buildParams;
+    buildParams.expectFailure = !successExpected;
+    QCOMPARE(runQbs(buildParams) == 0, successExpected);
+}
+
 void TestBlackbox::minimumSystemVersion()
 {
     rmDirR(relativeBuildDir());

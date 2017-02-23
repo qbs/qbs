@@ -77,6 +77,7 @@ public:
     RespectProjectJobLimitsOption *respectProjectJobLimitsOption() const;
     GeneratorOption *generatorOption() const;
     WaitLockOption *waitLockOption() const;
+    DisableFallbackProviderOption *disableFallbackProviderOption() const;
     RunEnvConfigOption *runEnvConfigOption() const;
 
 private:

@@ -174,6 +174,9 @@ private slots:
     void makefileGenerator();
     void maximumCLanguageVersion();
     void maximumCxxLanguageVersion();
+    void moduleProviders();
+    void fallbackModuleProvider_data();
+    void fallbackModuleProvider();
     void minimumSystemVersion();
     void minimumSystemVersion_data();
     void missingBuildGraph();

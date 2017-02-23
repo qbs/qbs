@@ -459,6 +459,16 @@
 
 //! [show-progress]
 
+//! [no-fallback-module-provider]
+
+    \section2 \c --no-fallback-module-provider
+
+    If this option is set, then \QBS will not fall back to a pkg-config based
+    \l{Module Providers}{module provider} if a dependency is not found.
+
+//! [no-fallback-module-provider]
+
+
 //! [setup-tools-system]
 
     \section2 \c {--system}

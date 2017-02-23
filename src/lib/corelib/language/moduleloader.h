@@ -44,6 +44,7 @@
 #include "forward_decls.h"
 #include "item.h"
 #include "itempool.h"
+#include "moduleproviderinfo.h"
 #include <logging/logger.h>
 #include <tools/filetime.h>
 #include <tools/qttools.h>
@@ -106,6 +107,7 @@ struct ModuleLoaderResult
     Item *root;
     QHash<Item *, ProductInfo> productInfos;
     std::vector<ProbeConstPtr> projectProbes;
+    ModuleProviderInfoList moduleProviderInfo;
     Set<QString> qbsFiles;
     QVariantMap profileConfigs;
 };
@@ -128,6 +130,7 @@ public:
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
     void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
     void setStoredProfiles(const QVariantMap &profiles);
+    void setStoredModuleProviderInfo(const ModuleProviderInfoList &moduleProviderInfo);
     Evaluator *evaluator() const { return m_evaluator; }
 
     ModuleLoaderResult load(const SetupProjectParameters &parameters);
@@ -180,6 +183,11 @@ private:
         std::map<QString, ProductDependencies> productModuleDependencies;
         std::unordered_map<const Item *, std::vector<ErrorInfo>> unknownProfilePropertyErrors;
         QStringList searchPaths;
+
+        std::vector<QStringList> newlyAddedModuleProviderSearchPaths;
+        Set<QualifiedId> knownModuleProviders;
+        QVariantMap theModuleProviderConfig;
+        bool moduleProviderConfigRetrieved = false;
 
         // The key corresponds to DeferredDependsContext.exportingProductItem, which is the
         // only value from that data structure that we still need here.
@@ -297,16 +305,18 @@ private:
     QVariantMap extractParameters(Item *dependsItem) const;
     Item *moduleInstanceItem(Item *containerItem, const QualifiedId &moduleName);
     static ProductModuleInfo *productModule(ProductContext *productContext, const QString &name,
-                                            const QString &multiplexId);
+                                            const QString &multiplexId, bool &productNameMatch);
     static ProductContext *product(ProjectContext *projectContext, const QString &name);
     static ProductContext *product(TopLevelProjectContext *tlpContext, const QString &name);
+
+    enum class FallbackMode { Enabled, Disabled };
     Item *loadModule(ProductContext *productContext, Item *exportingProductItem, Item *item,
             const CodeLocation &dependsItemLocation, const QString &moduleId,
-            const QualifiedId &moduleName, const QString &multiplexId, bool isRequired,
-                     bool *isProductDependency, QVariantMap *defaultParameters);
+            const QualifiedId &moduleName, const QString &multiplexId, FallbackMode fallbackMode,
+            bool isRequired, bool *isProductDependency, QVariantMap *defaultParameters);
     Item *searchAndLoadModuleFile(ProductContext *productContext,
             const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
-            bool isRequired, Item *moduleInstance);
+            FallbackMode fallbackMode, bool isRequired, Item *moduleInstance);
     Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
             bool isBaseModule, const QString &filePath, bool *triedToLoad, Item *moduleInstance);
     Item *getModulePrototype(ProductContext *productContext, const QString &fullModuleName,
@@ -329,6 +339,20 @@ private:
     Item *wrapInProjectIfNecessary(Item *item);
     static QString findExistingModulePath(const QString &searchPath,
             const QualifiedId &moduleName);
+
+    enum class ModuleProviderLookup { Regular, Fallback };
+    struct ModuleProviderResult
+    {
+        ModuleProviderResult() = default;
+        ModuleProviderResult(bool ran, bool added)
+            : providerFound(ran), providerAddedSearchPaths(added) {}
+        bool providerFound = false;
+        bool providerAddedSearchPaths = false;
+    };
+    ModuleProviderResult findModuleProvider(const QualifiedId &name, ProductContext &product,
+            ModuleProviderLookup lookupType, const CodeLocation &dependsItemLocation);
+    QVariantMap moduleProviderConfig(ProductContext &product);
+
     static void setScopeForDescendants(Item *item, Item *scope);
     void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                 const QVariantMap &buildConfig);
@@ -424,6 +448,8 @@ private:
 
     std::unordered_map<ProductContext *, Set<DeferredDependsContext>> m_productsWithDeferredDependsItems;
     Set<Item *> m_exportsWithDeferredDependsItems;
+
+    ModuleProviderInfoList m_moduleProviderInfo;
 
     SetupProjectParameters m_parameters;
     std::unique_ptr<Settings> m_settings;

@@ -231,6 +231,11 @@ bool CommandLineParser::waitLockBuildGraph() const
     return d->optionPool.waitLockOption()->enabled();
 }
 
+bool CommandLineParser::disableFallbackProvider() const
+{
+    return d->optionPool.disableFallbackProviderOption()->enabled();
+}
+
 bool CommandLineParser::logTime() const
 {
     return d->logTime;
