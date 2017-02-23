@@ -5,7 +5,7 @@ Project {
         Depends { name: "lib" }
         Depends { name: "mod" }
         name: "app"
-        bundle.isBundle: false
+        consoleApplication: true
         files: ["main.m"]
         cpp.frameworks: ["Foundation"]
         cpp.rpaths: ["@loader_path"]

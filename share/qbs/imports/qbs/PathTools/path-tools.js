@@ -116,7 +116,7 @@ function debugInfoIsBundle(product) {
     return !flags.contains("-f") && !flags.contains("--flat");
 }
 
-function debugInfoFileName(product) {
+function debugInfoFileName(product, fileTag) {
     var suffix = "";
 
     // For dSYM bundles, the DWARF debug info file has no suffix
@@ -127,33 +127,36 @@ function debugInfoFileName(product) {
     if (product.moduleProperty("bundle", "isBundle")) {
         return FileInfo.fileName(bundleExecutableFilePath(product)) + suffix;
     } else {
-        if (product.type.contains("application"))
+        switch (fileTag) {
+        case "application":
             return applicationFilePath(product) + suffix;
-        else if (product.type.contains("dynamiclibrary"))
+        case "dynamiclibrary":
             return dynamicLibraryFilePath(product) + suffix;
-        else if (product.type.contains("loadablemodule"))
+        case "loadablemodule":
             return loadableModuleFilePath(product) + suffix;
-        else if (product.type.contains("staticlibrary"))
+        case "staticlibrary":
             return staticLibraryFilePath(product) + suffix;
-        return product.targetName + suffix;
+        default:
+            return product.targetName + suffix;
+        }
     }
 }
 
-function debugInfoBundlePath(product) {
+function debugInfoBundlePath(product, fileTag) {
     if (!debugInfoIsBundle(product))
         return undefined;
     var suffix = product.moduleProperty("cpp", "debugInfoBundleSuffix");
     if (product.moduleProperty("qbs", "targetOS").contains("darwin")
             && product.moduleProperty("bundle", "isBundle"))
         return product.moduleProperty("bundle", "bundleName") + suffix;
-    return debugInfoFileName(product) + suffix;
+    return debugInfoFileName(product, fileTag) + suffix;
 }
 
-function debugInfoFilePath(product) {
-    var name = debugInfoFileName(product);
+function debugInfoFilePath(product, fileTag) {
+    var name = debugInfoFileName(product, fileTag);
     if (product.moduleProperty("qbs", "targetOS").contains("darwin") && debugInfoIsBundle(product)) {
-        return FileInfo.joinPaths(debugInfoBundlePath(product), "Contents", "Resources", "DWARF",
-                                  name);
+        return FileInfo.joinPaths(debugInfoBundlePath(product, fileTag),
+                                  "Contents", "Resources", "DWARF", name);
     } else if (product.moduleProperty("bundle", "isBundle")) {
         return FileInfo.joinPaths(product.moduleProperty("bundle", "executableFolderPath"), name);
     }
@@ -161,10 +164,10 @@ function debugInfoFilePath(product) {
     return name;
 }
 
-function debugInfoPlistFilePath(product) {
+function debugInfoPlistFilePath(product, fileTag) {
     if (!debugInfoIsBundle(product))
         return undefined;
-    return FileInfo.joinPaths(debugInfoBundlePath(product), "Contents", "Info.plist");
+    return FileInfo.joinPaths(debugInfoBundlePath(product, fileTag), "Contents", "Info.plist");
 }
 
 // Returns whether the string looks like a library filename

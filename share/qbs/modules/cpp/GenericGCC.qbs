@@ -276,8 +276,7 @@ CppModule {
         multiplex: true
         inputs: {
             var tags = ["obj", "linkerscript", "versionscript"];
-            if (product.type.contains("dynamiclibrary") &&
-                product.moduleProperty("qbs", "targetOS").contains("darwin") &&
+            if (product.moduleProperty("qbs", "targetOS").contains("darwin") &&
                 product.moduleProperty("bundle", "embedInfoPlist"))
                 tags.push("aggregate_infoplist");
             return tags;
@@ -394,8 +393,7 @@ CppModule {
         multiplex: true
         inputs: {
             var tags = ["obj", "linkerscript"];
-            if (product.type.contains("loadablemodule") &&
-                product.moduleProperty("qbs", "targetOS").contains("darwin") &&
+            if (product.moduleProperty("qbs", "targetOS").contains("darwin") &&
                 product.moduleProperty("bundle", "embedInfoPlist"))
                 tags.push("aggregate_infoplist");
             return tags;
@@ -426,8 +424,7 @@ CppModule {
         multiplex: true
         inputs: {
             var tags = ["obj", "linkerscript"];
-            if (product.type.contains("application") &&
-                product.moduleProperty("qbs", "targetOS").contains("darwin") &&
+            if (product.moduleProperty("qbs", "targetOS").contains("darwin") &&
                 product.moduleProperty("bundle", "embedInfoPlist"))
                 tags.push("aggregate_infoplist");
             return tags;

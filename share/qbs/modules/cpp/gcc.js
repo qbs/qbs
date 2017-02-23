@@ -493,8 +493,7 @@ function compilerFlags(project, product, input, output) {
     }
 
     var visibility = ModUtils.moduleProperty(input, 'visibility');
-    if (!product.type.contains('staticlibrary')
-            && !product.moduleProperty("qbs", "toolchain").contains("mingw")) {
+    if (!product.moduleProperty("qbs", "toolchain").contains("mingw")) {
         if (visibility === 'hidden' || visibility === 'minimal')
             args.push('-fvisibility=hidden');
         if ((visibility === 'hiddenInlines' || visibility === 'minimal') && tag === 'cpp')
@@ -979,19 +978,35 @@ function concatLibsFromArtifacts(libs, artifacts, filePathGetter)
 }
 
 function debugInfoArtifacts(product, debugInfoTagSuffix) {
+    var fileTag;
+    switch (debugInfoTagSuffix) {
+    case "app":
+        fileTag = "application";
+        break;
+    case "dll":
+        fileTag = "dynamiclibrary";
+        break;
+    default:
+        fileTag = debugInfoTagSuffix;
+        break;
+    }
+
     var artifacts = [];
     if (product.moduleProperty("cpp", "separateDebugInformation")) {
         artifacts.push({
-            filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFilePath(product)),
+            filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                         PathTools.debugInfoFilePath(product, fileTag)),
             fileTags: ["debuginfo_" + debugInfoTagSuffix]
         });
         if (PathTools.debugInfoIsBundle(product)) {
             artifacts.push({
-                filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoBundlePath(product)),
+                filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                             PathTools.debugInfoBundlePath(product, fileTag)),
                 fileTags: ["debuginfo_bundle"]
             });
             artifacts.push({
-                filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoPlistFilePath(product)),
+                filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                             PathTools.debugInfoPlistFilePath(product, fileTag)),
                 fileTags: ["debuginfo_plist"]
             });
         }

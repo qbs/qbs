@@ -117,6 +117,26 @@ function excludedAuxiliaryInputs(project, product) {
     return excluded;
 }
 
+function packageType(productTypeIdentifier) {
+    switch (productTypeIdentifier) {
+    case "com.apple.product-type.in-app-purchase-content":
+        return undefined;
+    case "com.apple.product-type.app-extension":
+    case "com.apple.product-type.xpc-service":
+        return "XPC!";
+    case "com.apple.product-type.application":
+        return "APPL";
+    case "com.apple.product-type.framework":
+    case "com.apple.product-type.framework.static":
+        return "FMWK";
+    case "com.apple.product-type.kernel-extension":
+    case "com.apple.product-type.kernel-extension.iokit":
+        return "KEXT";
+    default:
+        return "BNDL";
+    }
+}
+
 var XcodeBuildSpecsReader = (function () {
     function XcodeBuildSpecsReader(specsPath, separator, additionalSettings, useShallowBundles) {
         this._additionalSettings = additionalSettings;

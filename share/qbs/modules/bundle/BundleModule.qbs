@@ -100,8 +100,7 @@ Module {
 
     additionalProductTypes: ["bundle.content"]
 
-    property bool isBundle: !product.consoleApplication && qbs.targetOS.contains("darwin") &&
-        product.type.containsAny(["application", "dynamiclibrary", "loadablemodule"])
+    property bool isBundle: !product.consoleApplication && qbs.targetOS.contains("darwin")
 
     readonly property bool isShallow: bundleSettingsProbe.xcodeSettings["SHALLOW_BUNDLE"] === "YES"
 
@@ -110,19 +109,7 @@ Module {
 
     property string extension: bundleSettingsProbe.xcodeSettings["WRAPPER_EXTENSION"]
 
-    property string packageType: {
-        if (product.type.contains("inapppurchase"))
-            return undefined;
-        if (product.type.contains("xpcservice"))
-            return "XPC!";
-        if (product.type.contains("application"))
-            return "APPL";
-        if (product.type.containsAny(["dynamiclibrary", "staticlibrary"]))
-            return "FMWK";
-        if (product.type.contains("kernelmodule"))
-            return "KEXT";
-        return "BNDL";
-    }
+    property string packageType: Bundle.packageType(_productTypeIdentifier)
 
     property string signature: "????" // legacy creator code in Mac OS Classic (CFBundleSignature), can be ignored
 
@@ -146,7 +133,7 @@ Module {
 
     property var infoPlist
     property bool processInfoPlist: true
-    property bool embedInfoPlist: product.type.contains("application") && !isBundle
+    property bool embedInfoPlist: product.consoleApplication && !isBundle
     property string infoPlistFormat: qbs.targetOS.contains("macos") ? "same-as-input" : "binary1"
 
     property string localizedResourcesFolderSuffix: ".lproj"
@@ -780,7 +767,7 @@ Module {
                         commands.push(cmd);
                     }
 
-                    if (product.type.contains("application")
+                    if (bundleType === "application"
                             && product.moduleProperty("qbs", "targetOS").contains("macos")) {
                         cmd = new Command(ModUtils.moduleProperty(product, "lsregisterPath"),
                                           ["-f", bundles[i].filePath]);
