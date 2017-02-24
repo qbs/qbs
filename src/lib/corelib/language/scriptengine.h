@@ -159,7 +159,26 @@ public:
     bool isActive() const { return m_active; }
     void setActive(bool on) { m_active = on; }
 
+    using QScriptEngine::newFunction;
+
+    template <typename T, typename E,
+              typename = typename std::enable_if<std::is_pointer<T>::value>::type,
+              typename = typename std::enable_if<std::is_pointer<E>::value>::type,
+              typename = typename std::enable_if<std::is_base_of<
+                QScriptEngine, typename std::remove_pointer<E>::type>::value>::type
+              > QScriptValue newFunction(QScriptValue (*signature)(QScriptContext *, E, T), T arg) {
+        return QScriptEngine::newFunction(
+                    reinterpret_cast<FunctionWithArgSignature>(signature),
+                    reinterpret_cast<void *>(const_cast<
+                                             typename std::add_pointer<
+                                             typename std::remove_const<
+                                             typename std::remove_pointer<T>::type>::type>::type>(
+                                                 arg)));
+    }
+
 private:
+    QScriptValue newFunction(FunctionWithArgSignature signature, void *arg) Q_DECL_EQ_DELETE;
+
     void abort();
 
     void installQbsBuiltins();
@@ -167,7 +186,8 @@ private:
     void installFunction(const QString &name, int length, QScriptValue *functionValue,
                          FunctionSignature f, QScriptValue *targetObject);
     void installQbsFunction(const QString &name, int length, FunctionSignature f);
-    void installConsoleFunction(const QString &name, FunctionWithArgSignature f);
+    void installConsoleFunction(const QString &name,
+                                QScriptValue (*f)(QScriptContext *, QScriptEngine *, Logger *));
     void installImportFunctions();
     void uninstallImportFunctions();
     void importFile(const QString &filePath, QScriptValue &targetObject);

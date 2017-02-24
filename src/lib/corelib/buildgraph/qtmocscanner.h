@@ -70,7 +70,7 @@ public:
 private:
     ScannerPlugin *scannerPluginForFileTags(const FileTags &ft);
     void findIncludedMocCppFiles();
-    static QScriptValue js_apply(QScriptContext *ctx, QScriptEngine *engine, void *data);
+    static QScriptValue js_apply(QScriptContext *ctx, QScriptEngine *engine, QtMocScanner *that);
     QScriptValue apply(QScriptEngine *engine, const Artifact *artifact);
 
     const CommonFileTags &m_tags;

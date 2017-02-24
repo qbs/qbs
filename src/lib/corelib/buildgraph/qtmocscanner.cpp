@@ -44,6 +44,7 @@
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "rawscanresults.h"
+#include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
 #include <tools/scannerpluginmanager.h>
@@ -99,7 +100,7 @@ QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targe
     , m_cppScanner(0)
     , m_hppScanner(0)
 {
-    QScriptEngine *engine = targetScriptValue.engine();
+    ScriptEngine *engine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     QScriptValue scannerObj = engine->newObject();
     targetScriptValue.setProperty(QLatin1String("QtMocScanner"), scannerObj);
     QScriptValue applyFunction = engine->newFunction(&js_apply, this);
@@ -196,9 +197,9 @@ void QtMocScanner::findIncludedMocCppFiles()
     }
 }
 
-QScriptValue QtMocScanner::js_apply(QScriptContext *ctx, QScriptEngine *engine, void *data)
+QScriptValue QtMocScanner::js_apply(QScriptContext *ctx, QScriptEngine *engine,
+                                    QtMocScanner *that)
 {
-    QtMocScanner *that = reinterpret_cast<QtMocScanner *>(data);
     QScriptValue input = ctx->argument(0);
     return that->apply(engine, attachedPointer<Artifact>(input));
 }

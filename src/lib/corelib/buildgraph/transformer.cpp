@@ -65,27 +65,27 @@ Transformer::~Transformer()
 {
 }
 
-static QScriptValue js_baseName(QScriptContext *ctx, QScriptEngine *engine, void *arg)
+static QScriptValue js_baseName(QScriptContext *ctx, QScriptEngine *engine,
+                                const Artifact *artifact)
 {
     Q_UNUSED(ctx);
     Q_UNUSED(engine);
-    Artifact *artifact = reinterpret_cast<Artifact *>(arg);
     return QScriptValue(FileInfo::baseName(artifact->filePath()));
 }
 
-static QScriptValue js_completeBaseName(QScriptContext *ctx, QScriptEngine *engine, void *arg)
+static QScriptValue js_completeBaseName(QScriptContext *ctx, QScriptEngine *engine,
+                                        const Artifact *artifact)
 {
     Q_UNUSED(ctx);
     Q_UNUSED(engine);
-    Artifact *artifact = reinterpret_cast<Artifact *>(arg);
     return QScriptValue(FileInfo::completeBaseName(artifact->filePath()));
 }
 
-static QScriptValue js_baseDir(QScriptContext *ctx, QScriptEngine *engine, void *arg)
+static QScriptValue js_baseDir(QScriptContext *ctx, QScriptEngine *engine,
+                               const Artifact *artifact)
 {
     Q_UNUSED(ctx);
     Q_UNUSED(engine);
-    Artifact *artifact = reinterpret_cast<Artifact *>(arg);
     QString basedir;
     if (artifact->artifactType == Artifact::SourceFile) {
         QDir sourceDir(artifact->product->sourceDirectory);
@@ -98,9 +98,10 @@ static QScriptValue js_baseDir(QScriptContext *ctx, QScriptEngine *engine, void 
 }
 
 static void setArtifactProperty(QScriptValue &obj, const QString &name,
-        QScriptEngine::FunctionWithArgSignature func, const Artifact *artifact)
+        QScriptValue (*func)(QScriptContext *, QScriptEngine *, const Artifact *),
+        const Artifact *artifact)
 {
-    obj.setProperty(name, obj.engine()->newFunction(func, (void *)artifact),
+    obj.setProperty(name, static_cast<ScriptEngine *>(obj.engine())->newFunction(func, artifact),
                     QScriptValue::PropertyGetter);
 }
 

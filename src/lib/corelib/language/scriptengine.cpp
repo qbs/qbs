@@ -225,9 +225,9 @@ void ScriptEngine::defineProperty(QScriptValue &object, const QString &name,
     QBS_ASSERT(!hasErrorOrException(result), qDebug() << name << result.toString());
 }
 
-static QScriptValue js_observedGet(QScriptContext *context, QScriptEngine *, void *arg)
+static QScriptValue js_observedGet(QScriptContext *context, QScriptEngine *,
+                                   ScriptPropertyObserver * const observer)
 {
-    ScriptPropertyObserver * const observer = static_cast<ScriptPropertyObserver *>(arg);
     const QScriptValue data = context->callee().property(QLatin1String("qbsdata"));
     const QScriptValue value = data.property(2);
     observer->onPropertyRead(data.property(0), data.property(1).toVariant().toString(), value);
@@ -581,16 +581,11 @@ void ScriptEngine::installQbsBuiltins()
     globalObject().setProperty(QLatin1String("qbs"), m_qbsObject = newObject());
 
     globalObject().setProperty(QLatin1String("console"), m_consoleObject = newObject());
-    installConsoleFunction(QLatin1String("debug"),
-                           reinterpret_cast<FunctionWithArgSignature>(&js_consoleDebug));
-    installConsoleFunction(QLatin1String("error"),
-                           reinterpret_cast<FunctionWithArgSignature>(&js_consoleError));
-    installConsoleFunction(QLatin1String("info"),
-                           reinterpret_cast<FunctionWithArgSignature>(&js_consoleInfo));
-    installConsoleFunction(QLatin1String("log"),
-                           reinterpret_cast<FunctionWithArgSignature>(&js_consoleLog));
-    installConsoleFunction(QLatin1String("warn"),
-                           reinterpret_cast<FunctionWithArgSignature>(&js_consoleWarn));
+    installConsoleFunction(QLatin1String("debug"), &js_consoleDebug);
+    installConsoleFunction(QLatin1String("error"), &js_consoleError);
+    installConsoleFunction(QLatin1String("info"), &js_consoleInfo);
+    installConsoleFunction(QLatin1String("log"), &js_consoleLog);
+    installConsoleFunction(QLatin1String("warn"), &js_consoleWarn);
 }
 
 void ScriptEngine::extendJavaScriptBuiltins()
@@ -640,7 +635,8 @@ void ScriptEngine::installQbsFunction(const QString &name, int length, FunctionS
     installFunction(name, length, &functionValue, f, &m_qbsObject);
 }
 
-void ScriptEngine::installConsoleFunction(const QString &name, FunctionWithArgSignature f)
+void ScriptEngine::installConsoleFunction(const QString &name,
+        QScriptValue (*f)(QScriptContext *, QScriptEngine *, Logger *))
 {
     m_consoleObject.setProperty(name, newFunction(f, &m_logger));
 }

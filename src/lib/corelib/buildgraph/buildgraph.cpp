@@ -96,8 +96,7 @@ public:
 
     void init(QScriptValue &productScriptValue, const ResolvedProductConstPtr &product)
     {
-        QScriptValue depfunc = m_engine->newFunction(&js_productDependencies,
-                                                     (void *)product.data());
+        QScriptValue depfunc = m_engine->newFunction(&js_productDependencies, product.data());
         setProduct(depfunc, product.data());
         productScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
                                        QScriptValue::ReadOnly | QScriptValue::Undeletable
@@ -105,9 +104,9 @@ public:
     }
 
 private:
-    static QScriptValue js_productDependencies(QScriptContext *, QScriptEngine *engine, void *arg)
+    static QScriptValue js_productDependencies(QScriptContext *, ScriptEngine *engine,
+                                               const ResolvedProduct * const product)
     {
-        const ResolvedProduct * const product = static_cast<const ResolvedProduct *>(arg);
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
         QList<ResolvedProductPtr> productDeps = product->dependencies.toList();
@@ -129,9 +128,9 @@ private:
         return result;
     }
 
-    static QScriptValue js_moduleDependencies(QScriptContext *, QScriptEngine *engine, void *arg)
+    static QScriptValue js_moduleDependencies(QScriptContext *, ScriptEngine *engine,
+                                              const QVariantMap *modulesMap)
     {
-        const QVariantMap *modulesMap = static_cast<const QVariantMap *>(arg);
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
         for (QVariantMap::const_iterator it = modulesMap->begin(); it != modulesMap->end(); ++it) {
@@ -157,7 +156,8 @@ private:
         }
         QVariantMap *modulesMap = new QVariantMap(propMap.value(QLatin1String("modules")).toMap());
         engine->registerOwnedVariantMap(modulesMap);
-        QScriptValue depfunc = engine->newFunction(&js_moduleDependencies, modulesMap);
+        QScriptValue depfunc = engine->newFunction<const QVariantMap *>(&js_moduleDependencies,
+                                                                        modulesMap);
         moduleScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
                                       QScriptValue::ReadOnly | QScriptValue::Undeletable
                                       | QScriptValue::PropertyGetter);
