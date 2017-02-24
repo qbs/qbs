@@ -78,7 +78,6 @@ private slots:
     void disabledProject();
     void duplicateProductNames();
     void duplicateProductNames_data();
-    void dynamicLibs();
     void emptyFileTagList();
     void emptySubmodulesList();
     void enableAndDisableProduct();
@@ -95,6 +94,7 @@ private slots:
     void inheritQbsSearchPaths();
     void installableFiles();
     void isRunnable();
+    void linkDynamicLibs();
     void listBuildSystemFiles();
     void missingSourceFile();
     void mocCppIncluded();

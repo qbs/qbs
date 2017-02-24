@@ -1062,12 +1062,6 @@ void TestApi::duplicateProductNames_data()
 
 }
 
-void TestApi::dynamicLibs()
-{
-    const qbs::ErrorInfo errorInfo = doBuildProject("dynamic-libs/link_dynamiclib.qbs");
-    VERIFY_NO_ERROR(errorInfo);
-}
-
 void TestApi::emptyFileTagList()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("empty-filetag-list");
@@ -1330,6 +1324,12 @@ void TestApi::isRunnable()
         else
             QVERIFY(!p.isRunnable());
     }
+}
+
+void TestApi::linkDynamicLibs()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("link-dynamiclibs");
+    VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::listBuildSystemFiles()
