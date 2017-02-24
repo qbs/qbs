@@ -191,9 +191,13 @@ function modulePropertiesFromArtifacts(product, artifacts, moduleName, propertyN
 
 function moduleProperty(product, propertyName, langFilter)
 {
-    return sanitizedList(product.moduleProperty(product.moduleName,
-                                                languagePropertyName(propertyName, langFilter)),
-                         product, product.moduleName + "." + propertyName);
+    return sanitizedModuleProperty(product, product.moduleName, propertyName, langFilter);
+}
+
+function sanitizedModuleProperty(obj, moduleName, propertyName, langFilter) {
+    return sanitizedList(obj.moduleProperty(moduleName,
+                                            languagePropertyName(propertyName, langFilter)),
+                         obj, moduleName + "." + propertyName);
 }
 
 /**
