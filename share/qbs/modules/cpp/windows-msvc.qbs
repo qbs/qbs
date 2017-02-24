@@ -242,21 +242,11 @@ CppModule {
         id: libtool
         multiplex: true
         inputs: ["obj"]
-        inputsFromDependencies: ["staticlibrary"]
+        inputsFromDependencies: ["staticlibrary", "dynamiclibrary_import"]
 
         Artifact {
             fileTags: ["staticlibrary"]
             filePath: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
-            cpp.staticLibraries: {
-                var result = ModUtils.moduleProperty(product, 'staticLibraries');
-                for (var i in inputs.staticlibrary) {
-                    var lib = inputs.staticlibrary[i]
-                    result.push(lib.filePath)
-                    var impliedLibs = ModUtils.moduleProperty(lib, 'staticLibraries')
-                    result = result.uniqueConcat(impliedLibs);
-                }
-                return result
-            }
         }
 
         prepare: {

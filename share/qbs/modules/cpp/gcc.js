@@ -73,6 +73,106 @@ function useCompilerDriverLinker(product, inputs) {
     return linker === product.moduleProperty("cpp", "compilerPath");
 }
 
+function collectLibraryDependencies(product) {
+    var publicDeps = {};
+    var objects = [];
+    var objectByFilePath = {};
+
+    function addObject(obj, addFunc) {
+        addFunc.call(objects, obj);
+        objectByFilePath[obj.filePath] = obj;
+    }
+
+    function addPublicFilePath(filePath) {
+        var existing = objectByFilePath[filePath];
+        if (existing)
+            existing.direct = true;
+        else
+            addObject({ direct: true, filePath: filePath }, Array.prototype.unshift);
+    }
+
+    function addPrivateFilePath(filePath) {
+        var existing = objectByFilePath[filePath];
+        if (!existing)
+            addObject({ direct: false, filePath: filePath }, Array.prototype.unshift);
+    }
+
+    function addArtifactFilePaths(dep, tag, addFunction) {
+        var artifacts = dep.artifacts[tag];
+        if (!artifacts)
+            return;
+        var artifactFilePaths = artifacts.map(function(a) { return a.filePath; });
+        artifactFilePaths.forEach(addFunction);
+    }
+
+    function addExternalLibs(obj) {
+        var externalLibs = [].concat(
+                    ModUtils.sanitizedModuleProperty(obj, "cpp", "staticLibraries"),
+                    ModUtils.sanitizedModuleProperty(obj, "cpp", "dynamicLibraries"));
+        for (var i = 0, len = externalLibs.length; i < len; ++i) {
+            var filePath = externalLibs[i];
+            var existing = objectByFilePath[filePath];
+            if (existing)
+                existing.direct = true;
+            else
+                addObject({ direct: true, filePath: filePath }, Array.prototype.push);
+        }
+    }
+
+    function traverse(dep, isBelowIndirectDynamicLib) {
+        if (publicDeps[dep.name])
+            return;
+
+        var isStaticLibrary = typeof dep.artifacts["staticlibrary"] !== "undefined";
+        var isDynamicLibrary = !isStaticLibrary
+                && typeof dep.artifacts["dynamiclibrary"] !== "undefined";
+        if (!isStaticLibrary && !isDynamicLibrary)
+            return;
+
+        var nextIsBelowIndirectDynamicLib = isBelowIndirectDynamicLib || isDynamicLibrary;
+        dep.dependencies.forEach(function(depdep) {
+            traverse(depdep, nextIsBelowIndirectDynamicLib);
+        });
+        if (isStaticLibrary) {
+            if (!isBelowIndirectDynamicLib) {
+                addArtifactFilePaths(dep, "staticlibrary", addPublicFilePath);
+                addExternalLibs(dep);
+                publicDeps[dep.name] = true;
+            }
+        } else if (isDynamicLibrary) {
+            if (!isBelowIndirectDynamicLib) {
+                addArtifactFilePaths(dep, "dynamiclibrary", addPublicFilePath);
+                publicDeps[dep.name] = true;
+            } else {
+                addArtifactFilePaths(dep, "dynamiclibrary", addPrivateFilePath);
+            }
+        }
+    }
+
+    function traverseDirectDependency(dep) {
+        traverse(dep, false);
+    }
+
+    product.dependencies.forEach(traverseDirectDependency);
+    addExternalLibs(product);
+
+    var seenRPathLinkDirs = {};
+    var result = { libraries: [], rpath_link: [] };
+    objects.forEach(
+                function (obj) {
+                    if (obj.direct) {
+                        result.libraries.push(obj.filePath);
+                    } else {
+                        var dirPath = FileInfo.path(obj.filePath);
+                        if (!seenRPathLinkDirs.hasOwnProperty(dirPath)) {
+                            seenRPathLinkDirs[dirPath] = true;
+                            result.rpath_link.push(dirPath);
+                        }
+                    }
+                });
+    return result;
+}
+
 function escapeLinkerFlags(product, inputs, linkerFlags, allowEscape) {
     if (allowEscape === undefined)
         allowEscape = true;
@@ -104,8 +204,7 @@ function escapeLinkerFlags(product, inputs, linkerFlags, allowEscape) {
 function linkerFlags(project, product, inputs, output) {
     var libraryPaths = ModUtils.moduleProperty(product, 'libraryPaths');
     var distributionLibraryPaths = ModUtils.moduleProperty(product, "distributionLibraryPaths");
-    var dynamicLibraries = ModUtils.moduleProperty(product, "dynamicLibraries");
-    var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
+    var libraryDependencies = collectLibraryDependencies(product);
     var frameworks = ModUtils.moduleProperty(product, 'frameworks');
     var weakFrameworks = ModUtils.moduleProperty(product, 'weakFrameworks');
     var rpaths = (product.moduleProperty("cpp", "useRPaths") !== false)
@@ -256,16 +355,6 @@ function linkerFlags(project, product, inputs, output) {
     if (inputs.obj)
         args = args.concat(inputs.obj.map(function (obj) { return obj.filePath }));
 
-    // Add filenames of internal library dependencies to the lists
-    var staticLibsFromInputs = inputs.staticlibrary
-            ? inputs.staticlibrary.map(function(a) { return a.filePath; }) : [];
-    staticLibraries = concatLibsFromArtifacts(staticLibraries, inputs.staticlibrary);
-    var filePathGetterSoCopy = function(a) { return a.filePath.replace(".sosymbols/", ""); };
-    var dynamicLibsFromInputs = inputs.dynamiclibrary_copy
-            ? inputs.dynamiclibrary_copy.map(filePathGetterSoCopy) : [];
-    dynamicLibraries = concatLibsFromArtifacts(dynamicLibraries, inputs.dynamiclibrary_copy,
-                                               filePathGetterSoCopy);
-
     for (i in frameworks) {
         frameworkExecutablePath = PathTools.frameworkExecutablePath(frameworks[i]);
         if (FileInfo.isAbsolutePath(frameworkExecutablePath))
@@ -282,22 +371,20 @@ function linkerFlags(project, product, inputs, output) {
             args = args.concat(['-weak_framework', weakFrameworks[i]]);
     }
 
-    for (i in staticLibraries) {
-        if (staticLibsFromInputs.contains(staticLibraries[i]) ||
-                FileInfo.isAbsolutePath(staticLibraries[i])) {
-            args.push(staticLibraries[i]);
-        } else {
-            args.push('-l' + staticLibraries[i]);
-        }
-    }
+    args = args.concat(libraryDependencies.libraries.map(function(lib) {
+        return FileInfo.isAbsolutePath(lib)
+                ? lib
+                : '-l' + lib;
+    }));
 
-    for (i in dynamicLibraries) {
-        if (dynamicLibsFromInputs.contains(dynamicLibraries[i])
-                || FileInfo.isAbsolutePath(dynamicLibraries[i])) {
-            args.push(dynamicLibraries[i]);
-        } else {
-            args.push('-l' + dynamicLibraries[i]);
-        }
+    if (product.moduleProperty("qbs", "targetOS").contains("unix")
+            && !product.moduleProperty("qbs", "targetOS").contains("darwin")) {
+        args = args.concat(escapeLinkerFlags(
+                               product, inputs,
+                               libraryDependencies.rpath_link.map(
+                                   function(dir) {
+                                       return "-rpath-link=" + dir;
+                                   })));
     }
 
     return args;

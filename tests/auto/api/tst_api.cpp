@@ -323,7 +323,6 @@ void TestApi::buildProject()
     qbs::SetupProjectParameters params = defaultSetupParameters(projectFilePath);
     removeBuildDir(params);
     qbs::ErrorInfo errorInfo = doBuildProject(projectFilePath);
-    QEXPECT_FAIL("link staticlib dynamiclib", "to be fixed", Abort);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(regularFileExists(relativeBuildGraphFilePath()));
     if (!productFileName.isEmpty()) {
@@ -1347,7 +1346,6 @@ void TestApi::linkDynamicAndStaticLibs()
     options.setEchoMode(qbs::CommandEchoModeCommandLine);
     const qbs::ErrorInfo errorInfo = doBuildProject("link-dynamiclibs-staticlibs", &bdr, nullptr,
                                                     nullptr, options);
-    QEXPECT_FAIL("", "currently broken; about to be fixed", Abort);
     VERIFY_NO_ERROR(errorInfo);
 
     // The dependent static libs should not appear in the link command for the executable.
@@ -1375,7 +1373,6 @@ void TestApi::linkStaticAndDynamicLibs()
     options.setEchoMode(qbs::CommandEchoModeCommandLine);
     const qbs::ErrorInfo errorInfo = doBuildProject("link-staticlibs-dynamiclibs", &bdr, nullptr,
                                                     nullptr, options);
-    QEXPECT_FAIL("", "broken; about to be fixed", Abort);
     VERIFY_NO_ERROR(errorInfo);
 
     // The dependencies libdynamic1.so and libstatic2.a must not appear in the link command for the
