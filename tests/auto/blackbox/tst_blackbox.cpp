@@ -873,8 +873,8 @@ void TestBlackbox::deploymentTarget()
     }
 
     QCOMPARE(status, 0);
-    QVERIFY2(m_qbsStdout.contains(cflags.toLatin1()), m_qbsStdout.constData());
-    QVERIFY2(m_qbsStdout.contains(lflags.toLatin1()), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStderr.contains(cflags.toLatin1()), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.contains(lflags.toLatin1()), m_qbsStderr.constData());
 }
 
 static qbs::Internal::Version findXcodeVersion()
