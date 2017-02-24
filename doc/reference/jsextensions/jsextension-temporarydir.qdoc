@@ -33,7 +33,7 @@
     \title TemporaryDir Service
     \brief Creates a unique directory for temporary use.
 
-    The \c PropertyList service creates a unique directory for temporary use.
+    The \c TemporaryDir service creates a unique directory for temporary use.
 
     \section1 Available Operations
 
