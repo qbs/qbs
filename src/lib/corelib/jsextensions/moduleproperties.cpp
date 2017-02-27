@@ -65,6 +65,17 @@ void ModuleProperties::init(QScriptValue productObject,
 void ModuleProperties::init(QScriptValue artifactObject, const Artifact *artifact)
 {
     init(artifactObject, artifact, artifactType());
+    const auto product = artifact->product;
+    const QVariantMap productProperties {
+        {QStringLiteral("buildDirectory"), product->buildDirectory()},
+        {QStringLiteral("destinationDirectory"), product->destinationDirectory},
+        {QStringLiteral("name"), product->name},
+        {QStringLiteral("sourceDirectory"), product->sourceDirectory},
+        {QStringLiteral("targetName"), product->targetName},
+        {QStringLiteral("type"), product->fileTags.toStringList()}
+    };
+    QScriptEngine * const engine = artifactObject.engine();
+    artifactObject.setProperty(QStringLiteral("product"), engine->toScriptValue(productProperties));
 }
 
 void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
@@ -75,19 +86,6 @@ void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
                                      engine->newFunction(ModuleProperties::js_moduleProperty, 2));
     objectWithProperties.setProperty(ptrKey(), engine->toScriptValue(quintptr(ptr)));
     objectWithProperties.setProperty(typeKey(), type);
-    if (type == artifactType()) {
-        const auto product = static_cast<const Artifact *>(ptr)->product;
-        const QVariantMap productProperties {
-            {QStringLiteral("buildDirectory"), product->buildDirectory()},
-            {QStringLiteral("destinationDirectory"), product->destinationDirectory},
-            {QStringLiteral("name"), product->name},
-            {QStringLiteral("sourceDirectory"), product->sourceDirectory},
-            {QStringLiteral("targetName"), product->targetName},
-            {QStringLiteral("type"), product->fileTags.toStringList()}
-        };
-        objectWithProperties.setProperty(QStringLiteral("product"),
-                                         engine->toScriptValue(productProperties));
-    }
 }
 
 QScriptValue ModuleProperties::js_moduleProperty(QScriptContext *context, QScriptEngine *engine)
