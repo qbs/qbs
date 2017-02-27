@@ -148,6 +148,7 @@ private slots:
     void probesInNestedModules();
     void productDependenciesByType();
     void productProperties();
+    void propertyAssignmentOnNonPresentModule();
     void propertyChanges();
     void propertyPrecedence();
     void properQuoting();

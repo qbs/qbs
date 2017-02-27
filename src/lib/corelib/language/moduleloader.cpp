@@ -387,6 +387,8 @@ private:
                 // inside Artifact items...
                 || item->type() == ItemType::Module
 
+                || (item->type() == ItemType::ModuleInstance && !item->isPresentModule())
+
                 // The Properties child of a SubProject item is not a regular item.
                 || item->type() == ItemType::PropertiesInSubProject) {
             return;
