@@ -443,7 +443,11 @@ void TestTools::set_reserve()
     QVERIFY(set.capacity() >= 1000);
 
     set.clear();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 7, 0))
+    QVERIFY(set.capacity() >= 1000);        // qtbase/a7885c9756d423042bd0670d82d78d8dffe9be54
+#else
     QVERIFY(set.capacity() == 0);
+#endif
 }
 
 void TestTools::set_clear()
