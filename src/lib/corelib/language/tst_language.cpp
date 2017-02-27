@@ -876,13 +876,11 @@ void TestLanguage::homeDirectory()
         QVERIFY(product);
 
         QDir dir = QDir::home();
-        QCOMPARE(product->productProperties.value("home").toString(), dir.canonicalPath());
-        QCOMPARE(product->productProperties.value("homeSlash").toString(),
-                 dir.canonicalPath());
+        QCOMPARE(product->productProperties.value("home").toString(), dir.path());
+        QCOMPARE(product->productProperties.value("homeSlash").toString(), dir.path());
 
         dir.cdUp();
-        QCOMPARE(product->productProperties.value("homeUp").toString(),
-                 dir.canonicalPath());
+        QCOMPARE(product->productProperties.value("homeUp").toString(), dir.path());
 
         dir = QDir::home();
         QCOMPARE(product->productProperties.value("homeFile").toString(),
