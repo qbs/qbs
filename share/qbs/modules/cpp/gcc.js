@@ -403,8 +403,6 @@ function effectiveCompilerInfo(toolchain, input, output) {
     };
 }
 
-// ### what we actually need here is something like product.usedFileTags
-//     that contains all fileTags that have been used when applying the rules.
 function compilerFlags(project, product, input, output) {
     var i;
 
