@@ -2929,6 +2929,15 @@ void TestBlackbox::invalidExtensionInstantiation_data()
     QTest::newRow("Utilities");
 }
 
+void TestBlackbox::invalidInstallDir()
+{
+    QDir::setCurrent(testDataDir + "/invalid-install-dir");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("outside of install root"), m_qbsStderr.constData());
+}
+
 void TestBlackbox::cli()
 {
     int status;

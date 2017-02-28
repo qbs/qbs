@@ -131,6 +131,12 @@ QString ProductInstaller::targetFilePath(const TopLevelProject *project,
 
     QString targetFilePath;
     if (installSourceBase.isEmpty()) {
+        if (!targetDir.startsWith(options.installRoot())) {
+            throw ErrorInfo(Tr::tr("Cannot install '%1', because target directory '%2' "
+                                   "is outside of install root '%3'")
+                            .arg(sourceFilePath, targetDir, options.installRoot()));
+        }
+
         // This has the same effect as if installSourceBase would equal the directory of the file.
         targetFilePath = FileInfo::fileName(sourceFilePath);
     } else {

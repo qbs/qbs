@@ -128,7 +128,7 @@ QString InstallOptions::installRoot() const
  */
 void InstallOptions::setInstallRoot(const QString &installRoot)
 {
-    d->installRoot = installRoot;
+    d->installRoot = QDir::cleanPath(installRoot);
     if (!QDir(installRoot).isRoot()) {
         while (d->installRoot.endsWith(QLatin1Char('/')))
             d->installRoot.chop(1);

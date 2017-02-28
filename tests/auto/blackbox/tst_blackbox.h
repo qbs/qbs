@@ -104,6 +104,7 @@ private slots:
     void invalidCommandProperty();
     void invalidExtensionInstantiation();
     void invalidExtensionInstantiation_data();
+    void invalidInstallDir();
     void invalidLibraryNames();
     void invalidLibraryNames_data();
     void jsExtensionsFile();
