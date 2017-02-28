@@ -29,12 +29,13 @@
 ****************************************************************************/
 
 import qbs
+import "freebsd.js" as FreeBSD
 
 UnixGCC {
     condition: qbs.targetOS && qbs.targetOS.contains("freebsd") &&
                qbs.toolchain && qbs.toolchain.contains("gcc")
 
-    targetSystem: "freebsd"
+    targetSystem: "freebsd" + (qbs.hostOS.contains("freebsd") ? FreeBSD.hostKernelRelease() : "")
 
     distributionIncludePaths: ["/usr/local/include"]
     distributionLibraryPaths: ["/usr/local/lib"]

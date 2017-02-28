@@ -78,6 +78,7 @@ public:
     static QScriptValue js_cStringQuote(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getHash(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_kernelVersion(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_nativeSettingGroups(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_rfc1034identifier(QScriptContext *context, QScriptEngine *engine);
 
@@ -107,6 +108,8 @@ static void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                engine->newFunction(UtilitiesExtension::js_getHash, 1));
     environmentObj.setProperty(QStringLiteral("getNativeSetting"),
                                engine->newFunction(UtilitiesExtension::js_getNativeSetting, 3));
+    environmentObj.setProperty(QStringLiteral("kernelVersion"),
+                               engine->newFunction(UtilitiesExtension::js_kernelVersion, 0));
     environmentObj.setProperty(QStringLiteral("nativeSettingGroups"),
                                engine->newFunction(UtilitiesExtension::js_nativeSettingGroups, 1));
     environmentObj.setProperty(QStringLiteral("rfc1034Identifier"),
@@ -343,6 +346,12 @@ QScriptValue UtilitiesExtension::js_getNativeSetting(QScriptContext *context, QS
     QSettings settings(context->argument(0).toString(), QSettings::NativeFormat);
     QVariant value = settings.value(key, defaultValue);
     return value.isNull() ? engine->undefinedValue() : engine->toScriptValue(value);
+}
+
+QScriptValue UtilitiesExtension::js_kernelVersion(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(context);
+    return engine->toScriptValue(QSysInfo::kernelVersion());
 }
 
 QScriptValue UtilitiesExtension::js_nativeSettingGroups(QScriptContext *context,
