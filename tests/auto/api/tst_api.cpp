@@ -34,6 +34,7 @@
 #include <qbs.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/qttools.h>
 #include <tools/toolchains.h>
 
 #include <QtCore/qcoreapplication.h>
@@ -41,6 +42,7 @@
 #include <QtCore/qeventloop.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qfileinfo.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qscopedpointer.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qtimer.h>
@@ -78,9 +80,11 @@ class BuildDescriptionReceiver : public QObject
     Q_OBJECT
 public:
     QString descriptions;
+    QStringList descriptionLines;
 
     void handleDescription(const QString &, const QString &description) {
         descriptions += description;
+        descriptionLines << description;
     }
 };
 
@@ -1334,6 +1338,34 @@ void TestApi::linkDynamicLibs()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("link-dynamiclibs");
     VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::linkDynamicAndStaticLibs()
+{
+    BuildDescriptionReceiver bdr;
+    qbs::BuildOptions options;
+    options.setEchoMode(qbs::CommandEchoModeCommandLine);
+    const qbs::ErrorInfo errorInfo = doBuildProject("link-dynamiclibs-staticlibs", &bdr, nullptr,
+                                                    nullptr, options);
+    QEXPECT_FAIL("", "currently broken; about to be fixed", Abort);
+    VERIFY_NO_ERROR(errorInfo);
+
+    // The dependent static libs should not appear in the link command for the executable.
+    qbs::Settings settings((QString()));
+    const qbs::Profile buildProfile(profileName(), &settings);
+    if (buildProfile.value("qbs.toolchain").toStringList().contains("gcc")) {
+        QRegularExpression appLinkCmdRex(" -o [^ ]*/HelloWorld ");
+        QString appLinkCmd;
+        for (const QString &line : qAsConst(bdr.descriptionLines)) {
+            if (line.contains(appLinkCmdRex)) {
+                appLinkCmd = line;
+                break;
+            }
+        }
+        QVERIFY(!appLinkCmd.isEmpty());
+        QVERIFY(!appLinkCmd.contains("static1"));
+        QVERIFY(!appLinkCmd.contains("static2"));
+    }
 }
 
 void TestApi::listBuildSystemFiles()
