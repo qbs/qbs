@@ -258,12 +258,16 @@ function linkerFlags(project, product, inputs, output) {
             args.push("--sysroot=" + sysroot); // do not escape, compiler-as-linker also needs it
     }
 
-    var unresolvedSymbolsAction = isDarwin ? "error" : "ignore-in-shared-libs";
-    if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
-        unresolvedSymbolsAction = isDarwin ? "suppress" : "ignore-all";
-    args = args.concat(escapeLinkerFlags(product, inputs, isDarwin
-                                         ? ["-undefined", unresolvedSymbolsAction]
-                                         : ["--unresolved-symbols=" + unresolvedSymbolsAction]));
+    if (isDarwin) {
+        var unresolvedSymbolsAction;
+        unresolvedSymbolsAction = ModUtils.moduleProperty(product, "allowUnresolvedSymbols")
+                                    ? "suppress" : "error";
+        args = args.concat(escapeLinkerFlags(product, inputs,
+                                             ["-undefined", unresolvedSymbolsAction]));
+    } else if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols")) {
+        args = args.concat(escapeLinkerFlags(product, inputs,
+                                             ["--unresolved-symbols=ignore-all"]));
+    }
 
     for (i in rpaths) {
         if (systemRunPaths.indexOf(rpaths[i]) === -1)
