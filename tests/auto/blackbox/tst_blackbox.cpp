@@ -3176,7 +3176,7 @@ void TestBlackbox::linkerMode()
             QList<QByteArray> lines = deptoolOutput.split('\n');
             int sz = lines.size();
             for (int i = 0; i < sz; ++i) {
-                if (!lines.at(i).contains("(NEEDED)")) {
+                if (!lines.at(i).contains("NEEDED")) {
                     lines.removeAt(i--);
                     sz--;
                 }
