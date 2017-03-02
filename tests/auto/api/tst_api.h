@@ -96,6 +96,7 @@ private slots:
     void isRunnable();
     void linkDynamicLibs();
     void linkDynamicAndStaticLibs();
+    void linkStaticAndDynamicLibs();
     void listBuildSystemFiles();
     void missingSourceFile();
     void mocCppIncluded();

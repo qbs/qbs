@@ -1368,6 +1368,38 @@ void TestApi::linkDynamicAndStaticLibs()
     }
 }
 
+void TestApi::linkStaticAndDynamicLibs()
+{
+    BuildDescriptionReceiver bdr;
+    qbs::BuildOptions options;
+    options.setEchoMode(qbs::CommandEchoModeCommandLine);
+    const qbs::ErrorInfo errorInfo = doBuildProject("link-staticlibs-dynamiclibs", &bdr, nullptr,
+                                                    nullptr, options);
+    QEXPECT_FAIL("", "broken; about to be fixed", Abort);
+    VERIFY_NO_ERROR(errorInfo);
+
+    // The dependencies libdynamic1.so and libstatic2.a must not appear in the link command for the
+    // executable. The -rpath-link line for libdynamic1.so must be there.
+    qbs::Settings settings((QString()));
+    const qbs::Profile buildProfile(profileName(), &settings);
+    if (buildProfile.value("qbs.toolchain").toStringList().contains("gcc")) {
+        QRegularExpression appLinkCmdRex(" -o [^ ]*/HelloWorld ");
+        QString appLinkCmd;
+        for (const QString &line : qAsConst(bdr.descriptionLines)) {
+            if (line.contains(appLinkCmdRex)) {
+                appLinkCmd = line;
+                break;
+            }
+        }
+        QVERIFY(!appLinkCmd.isEmpty());
+        QRegularExpression rpathLinkRex(QString("-rpath-link=\\S*/")
+                                        + relativeProductBuildDir("dynamic2"));
+        QVERIFY(appLinkCmd.contains(rpathLinkRex));
+        QVERIFY(!appLinkCmd.contains("libstatic2.a"));
+        QVERIFY(!appLinkCmd.contains("libdynamic2.so"));
+    }
+}
+
 void TestApi::listBuildSystemFiles()
 {
     qbs::SetupProjectParameters setupParams
