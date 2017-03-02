@@ -35,27 +35,12 @@ import io.qt.qbs.tools.utils.JavaCompilerScanner;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class JavaCompilerScannerTool {
     public static void main(String[] args) {
-        JavaCompilerScanner scanner = new JavaCompilerScanner();
-
-        List<String> compilerArguments = new ArrayList<String>(
-                Arrays.asList(args));
-        if (args.length >= 1 && args[0].equals("--output-format")) {
-            compilerArguments.remove(0);
-            if (args.length < 2) {
-                throw new IllegalArgumentException(
-                        "--output-format requires an argument");
-            }
-
-            scanner.setOutputFormat(args[1]);
-            compilerArguments.remove(0);
-        }
-
         try {
-            int result = scanner.run(compilerArguments);
+            JavaCompilerScanner scanner = new JavaCompilerScanner();
+            int result = scanner.run(new ArrayList<String>(Arrays.asList(args)));
             scanner.write(System.out);
             System.exit(result);
         } catch (IOException e) {

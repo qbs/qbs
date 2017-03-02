@@ -226,11 +226,10 @@ void TestBlackboxJava::javaDependencyTracking()
 {
     QFETCH(QString, jdkPath);
     QFETCH(QString, javaVersion);
-    QFETCH(QString, flag);
 
     QDir::setCurrent(testDataDir + "/java");
     QbsRunParameters rp;
-    rp.arguments.append(flag);
+    rp.arguments.append("--check-outputs");
     if (!jdkPath.isEmpty())
         rp.arguments << ("modules.java.jdkPath:" + jdkPath);
     if (!javaVersion.isEmpty())
@@ -243,7 +242,6 @@ void TestBlackboxJava::javaDependencyTracking_data()
 {
     QTest::addColumn<QString>("jdkPath");
     QTest::addColumn<QString>("javaVersion");
-    QTest::addColumn<QString>("flag");
 
     const SettingsPtr s = settings();
     Profile p(profileName(), s.get());
@@ -300,10 +298,8 @@ void TestBlackboxJava::javaDependencyTracking_data()
                             + (!currentJavaVersion.isEmpty()
                                ? ("Java " + currentJavaVersion)
                                : "default Java version");
-                    QTest::newRow((rowName + ", --check-outputs").toLatin1().constData())
-                            << jdkPath << currentJavaVersion << "--check-outputs";
-                    QTest::newRow((rowName + ", --dry-run").toLatin1().constData())
-                            << jdkPath << currentJavaVersion << "--dry-run";
+                    QTest::newRow(rowName.toLatin1().constData())
+                            << jdkPath << currentJavaVersion;
                 }
             }
         }
@@ -320,15 +316,12 @@ void TestBlackboxJava::javaDependencyTrackingInnerClass()
 
     QDir::setCurrent(testDataDir + "/java/inner-class");
     QbsRunParameters params;
-    params.expectFailure = true;
     int status = runQbs(params);
     if (p.value("java.jdkPath").toString().isEmpty()
             && status != 0 && m_qbsStderr.contains("jdkPath")) {
         QSKIP("java.jdkPath not set and automatic detection failed");
     }
     QCOMPARE(status, 0);
-    QEXPECT_FAIL(0, "QBS-1069", Abort);
-    QVERIFY(!m_qbsStderr.contains("QBS-1069"));
 }
 
 QTEST_MAIN(TestBlackboxJava)

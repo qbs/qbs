@@ -35,6 +35,5 @@ import java.io.OutputStream;
 import java.util.List;
 
 public interface ArtifactListWriter {
-    public abstract void write(List<Artifact> artifacts,
-            OutputStream outputStream) throws IOException;
+    void write(List<Artifact> artifacts, OutputStream outputStream) throws IOException;
 }

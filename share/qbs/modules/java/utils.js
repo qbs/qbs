@@ -218,12 +218,8 @@ function helperFullyQualifiedNames(type) {
     var names = [
         "io/qt/qbs/Artifact",
         "io/qt/qbs/ArtifactListJsonWriter",
-        "io/qt/qbs/ArtifactListTextWriter",
         "io/qt/qbs/ArtifactListWriter",
-        "io/qt/qbs/ArtifactListXmlWriter",
         "io/qt/qbs/tools/JavaCompilerScannerTool",
-        "io/qt/qbs/tools/utils/ArtifactProcessor",
-        "io/qt/qbs/tools/utils/ArtifactScanner",
         "io/qt/qbs/tools/utils/JavaCompilerOptions",
         "io/qt/qbs/tools/utils/JavaCompilerScanner",
         "io/qt/qbs/tools/utils/JavaCompilerScanner$1",
@@ -301,7 +297,6 @@ function outputArtifacts(product, inputs) {
         var javaArgs = [
             "-classpath", process.workingDirectory() + (toolsJarPath ? (sep + toolsJarPath) : ""),
             "io/qt/qbs/tools/JavaCompilerScannerTool",
-            "--output-format", "json",
         ];
         process.exec(ModUtils.moduleProperty(product, "interpreterFilePath"), javaArgs
                      .concat(javacArguments(product, inputs, helperOverrideArgs(product))), true);

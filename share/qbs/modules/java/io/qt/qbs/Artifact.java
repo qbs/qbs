@@ -31,6 +31,7 @@
 package io.qt.qbs;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Artifact {
@@ -54,11 +55,11 @@ public class Artifact {
     }
 
     public List<String> getFileTags() {
-        return fileTags;
+        return Collections.unmodifiableList(fileTags);
     }
 
     public void setFileTags(List<String> fileTags) {
-        this.fileTags = fileTags;
+        this.fileTags = new ArrayList<String>(fileTags);
     }
 
     public void addFileTag(String fileTag) {
