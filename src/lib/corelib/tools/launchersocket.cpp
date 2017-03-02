@@ -58,6 +58,7 @@ LauncherSocket::LauncherSocket(QObject *parent) : QObject(parent)
 
 void LauncherSocket::sendData(const QByteArray &data)
 {
+    QBS_ASSERT(m_socket, return);
     QMutexLocker locker(&m_requestsMutex);
     m_requests << data;
     if (m_requests.count() == 1)
@@ -66,6 +67,7 @@ void LauncherSocket::sendData(const QByteArray &data)
 
 void LauncherSocket::shutdown()
 {
+    QBS_ASSERT(m_socket, return);
     m_socket->disconnect();
     m_socket->write(ShutdownPacket().serialize());
     m_socket->waitForBytesWritten(1000);

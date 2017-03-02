@@ -88,7 +88,19 @@ void QbsProcess::doStart()
 
 void QbsProcess::cancel()
 {
-    sendPacket(StopProcessPacket(token()));
+    switch (m_state) {
+    case QProcess::NotRunning:
+        break;
+    case QProcess::Starting:
+        m_errorString = Tr::tr("Process canceled before it was started.");
+        m_error = QProcess::FailedToStart;
+        m_state = QProcess::NotRunning;
+        emit error(m_error);
+        break;
+    case QProcess::Running:
+        sendPacket(StopProcessPacket(token()));
+        break;
+    }
 }
 
 QByteArray QbsProcess::readAllStandardOutput()
