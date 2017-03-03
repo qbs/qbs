@@ -84,10 +84,11 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
     process.setProcessEnvironment(params.environment);
     process.start(qbsExecutableFilePath, args);
     const int waitTime = 10 * 60000;
-    if (!process.waitForStarted() || !process.waitForFinished(waitTime)) {
+    if (!process.waitForStarted() || !process.waitForFinished(waitTime)
+            || process.exitStatus() != QProcess::NormalExit) {
         m_qbsStderr = process.readAllStandardError();
-        if (!params.expectFailure)
-            qDebug("%s", qPrintable(process.errorString()));
+        QTest::qFail("qbs did not run correctly", __FILE__, __LINE__);
+        qDebug("%s", qPrintable(process.errorString()));
         return -1;
     }
 
@@ -102,7 +103,7 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
         if (!m_qbsStdout.isEmpty())
             qDebug("%s", m_qbsStdout.constData());
     }
-    return process.exitStatus() == QProcess::NormalExit ? process.exitCode() : -1;
+    return process.exitCode();
 }
 
 /*!
