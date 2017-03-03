@@ -3294,9 +3294,10 @@ void TestBlackbox::requireDeprecated()
 {
     QDir::setCurrent(testDataDir + "/require-deprecated");
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStderr.contains("loadExtension() function is deprecated"),
+    // TODO: Revert conditions in 1.9
+    QVERIFY2(!m_qbsStderr.contains("loadExtension() function is deprecated"),
              m_qbsStderr.constData());
-    QVERIFY2(m_qbsStderr.contains("loadFile() function is deprecated"),
+    QVERIFY2(!m_qbsStderr.contains("loadFile() function is deprecated"),
              m_qbsStderr.constData());
 }
 

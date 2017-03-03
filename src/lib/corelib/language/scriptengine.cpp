@@ -341,33 +341,35 @@ static QScriptValue loadInternalExtension(QScriptContext *context, ScriptEngine 
 
 QScriptValue ScriptEngine::js_loadExtension(QScriptContext *context, QScriptEngine *qtengine)
 {
-    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
     if (context->argumentCount() < 1) {
         return context->throwError(
                     ScriptEngine::tr("The loadExtension function requires "
                                      "an extension name."));
     }
 
-    ErrorInfo deprWarning(Tr::tr("The loadExtension() function is deprecated and will be "
-                                 "removed in a future version of Qbs. Use require() "
-                                 "instead."), context->backtrace());
-    engine->logger().printWarning(deprWarning);
+    // TODO: Enable in 1.9
+    // ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    // ErrorInfo deprWarning(Tr::tr("The loadExtension() function is deprecated and will be "
+    //                              "removed in a future version of Qbs. Use require() "
+    //                              "instead."), context->backtrace());
+    // engine->logger().printWarning(deprWarning);
 
     return js_require(context, qtengine);
 }
 
 QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *qtengine)
 {
-    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
     if (context->argumentCount() < 1) {
         return context->throwError(
                     ScriptEngine::tr("The loadFile function requires a file path."));
     }
 
-    ErrorInfo deprWarning(Tr::tr("The loadFile() function is deprecated and will be "
-                                 "removed in a future version of Qbs. Use require() "
-                                 "instead."), context->backtrace());
-    engine->logger().printWarning(deprWarning);
+    // TODO: Enable in 1.9
+    // ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    // ErrorInfo deprWarning(Tr::tr("The loadFile() function is deprecated and will be "
+    //                              "removed in a future version of Qbs. Use require() "
+    //                              "instead."), context->backtrace());
+    // engine->logger().printWarning(deprWarning);
 
     return js_require(context, qtengine);
 }
