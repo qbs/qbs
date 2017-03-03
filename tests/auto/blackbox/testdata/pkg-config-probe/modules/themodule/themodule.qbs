@@ -26,14 +26,10 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.sourceCode = function() {
-                console.info(product.name + " found: "
-                             + product.moduleProperty("themodule", "probeSuccess"));
-                console.info(product.name + " libs: "
-                             + JSON.stringify(product.moduleProperty("themodule", "libs")));
-                console.info(product.name + " cflags: "
-                             + JSON.stringify(product.moduleProperty("themodule", "cFlags")));
-                console.info(product.name + " version: "
-                             + product.moduleProperty("themodule", "packageVersion"));
+                console.info(product.name + " found: " + product.themodule.probeSuccess);
+                console.info(product.name + " libs: " + JSON.stringify(product.themodule.libs));
+                console.info(product.name + " cflags: " + JSON.stringify(product.themodule.cFlags));
+                console.info(product.name + " version: " + product.themodule.packageVersion);
             }
             return [cmd];
         }

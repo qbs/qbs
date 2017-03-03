@@ -22,7 +22,7 @@ Module {
             cmd.description = "Making output from input";
             cmd.sourceCode = function() {
                 // console.info('Change in source code');
-                console.info(input.moduleProperty("TestModule", "testProperty"));
+                console.info(input.TestModule.testProperty);
                 File.copy(input.filePath, output.filePath);
             }
             return cmd;

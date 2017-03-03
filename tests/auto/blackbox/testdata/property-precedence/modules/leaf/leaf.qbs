@@ -15,9 +15,8 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.sourceCode = function() {
-                console.info("scalar prop: " + product.moduleProperty("leaf", "scalarProp"));
-                console.info("list prop: "
-                             + JSON.stringify(product.moduleProperty("leaf", "listProp")));
+                console.info("scalar prop: " + product.leaf.scalarProp);
+                console.info("list prop: " + JSON.stringify(product.leaf.listProp));
             }
             return [cmd];
         }

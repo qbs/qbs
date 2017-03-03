@@ -20,7 +20,7 @@ DynamicLibrary {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.sourceCode = function() {
-                console.warn("---" + product.moduleProperty("cpp", "nmPath") + "---");
+                console.warn("---" + product.cpp.nmPath + "---");
             }
             return [cmd];
         }

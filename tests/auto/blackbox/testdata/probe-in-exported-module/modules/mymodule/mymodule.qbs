@@ -20,7 +20,7 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.description = "Creating out artifact";
             cmd.sourceCode = function() {
-                console.info("found: " + product.moduleProperty("mymodule", "found"));
+                console.info("found: " + product.mymodule.found);
             };
             return [cmd];
         }

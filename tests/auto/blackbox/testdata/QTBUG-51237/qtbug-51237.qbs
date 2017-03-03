@@ -10,7 +10,7 @@ Product {
             fileTags: ["custom"]
         }
         prepare: {
-            var theProperty = product.moduleProperty("mymodule", "theProperty");
+            var theProperty = product.mymodule.theProperty;
             if (!theProperty)
                 throw "Oh no!";
             var dummy = new JavaScriptCommand();

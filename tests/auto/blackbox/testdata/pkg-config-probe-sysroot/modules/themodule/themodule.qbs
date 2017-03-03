@@ -19,8 +19,7 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.sourceCode = function() {
-                console.info(product.name + " libs: "
-                             + JSON.stringify(product.moduleProperty("themodule", "libs")));
+                console.info(product.name + " libs: " + JSON.stringify(product.themodule.libs));
             }
             return [cmd];
         }

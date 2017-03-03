@@ -20,9 +20,8 @@ Project {
                 cmd.sourceCode = function() {
                     // Synchronous run, successful.
                     var process = new Process();
-                    var pathVal = [process.getEnv("PATH"),
-                                   product.moduleProperty("Qt.core", "binPath")]
-                                   .join(product.moduleProperty("qbs", "pathListSeparator"));
+                    var pathVal = [process.getEnv("PATH"), product.Qt.core.binPath]
+                                   .join(product.qbs.pathListSeparator);
                     process.setEnv("PATH", pathVal);
                     process.exec(project.qbsFilePath, ["help"], true);
                     var output = new TextFile("output.txt", TextFile.WriteOnly);
@@ -46,7 +45,7 @@ Project {
 
                     // closeWriteChannel test
                     process = new Process();
-                    if (product.moduleProperty("qbs", "hostOS").contains("windows"))
+                    if (product.qbs.hostOS.contains("windows"))
                         process.start("cmd", ["/C", "c:\\windows\\system32\\sort.exe"]);
                     else
                         process.start("cat", []);

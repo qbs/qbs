@@ -24,7 +24,7 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating dummy";
             cmd.sourceCode = function() {
-                console.info("prop: " + JSON.stringify(product.moduleProperty("mymodule", "prop")));
+                console.info("prop: " + JSON.stringify(product.mymodule.prop));
             }
             return [cmd];
         }

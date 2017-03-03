@@ -14,8 +14,8 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.description = "Creating dep-out artifact";
             cmd.sourceCode = function() {
-                console.info("prop: " + product.moduleProperty("depmodule", "prop"));
-                console.info("listProp: " + product.moduleProperty("depmodule", "listProp"));
+                console.info("prop: " + product.depmodule.prop);
+                console.info("listProp: " + product.depmodule.listProp);
             };
             return [cmd];
         }

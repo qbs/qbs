@@ -36,13 +36,12 @@ Project {
                 cmd.description = "running " + input.filePath;
                 var pathVar;
                 var pathValue;
-                if (product.moduleProperty("qbs", "hostOS").contains("windows")) {
+                if (product.qbs.hostOS.contains("windows")) {
                     pathVar = "PATH";
-                    pathValue = FileInfo.toWindowsSeparators(
-                                input.moduleProperty("Qt.core", "binPath"));
+                    pathValue = FileInfo.toWindowsSeparators(input.Qt.core.binPath);
                 } else {
                     pathVar = "LD_LIBRARY_PATH";
-                    pathValue = input.moduleProperty("Qt.core", "libPath");
+                    pathValue = input.Qt.core.libPath;
                 }
                 cmd.environment = [pathVar + '=' + pathValue];
                 return [cmd];

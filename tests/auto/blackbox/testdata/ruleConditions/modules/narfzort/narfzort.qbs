@@ -9,7 +9,7 @@ Module {
         fileTags: ["narf"]
     }
     Rule {
-        condition: product.moduleProperty("narfzort", "buildZort");
+        condition: product.narfzort.buildZort
         inputs: ["narf"]
         outputFileTags: ["zort"]
         outputArtifacts: [{
