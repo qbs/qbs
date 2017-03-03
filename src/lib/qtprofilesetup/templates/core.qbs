@@ -264,13 +264,13 @@ Module {
                 return [];
             var artifact = { fileTags: ["unmocable"] };
             if (input.fileTags.contains("hpp")) {
-                artifact.filePath = ModUtils.moduleProperty(product, "generatedHeadersDir")
+                artifact.filePath = product.Qt.core.generatedHeadersDir
                         + "/moc_" + input.completeBaseName + ".cpp";
             } else {
-                artifact.filePath = ModUtils.moduleProperty(product, "generatedHeadersDir")
+                artifact.filePath = product.Qt.core.generatedHeadersDir
                           + '/' + input.completeBaseName + ".moc";
             }
-            var amalgamate = input.moduleProperty("Qt.core", "combineMocOutput");
+            var amalgamate = input.Qt.core.combineMocOutput;
             artifact.fileTags.push(mocinfo.mustCompile ? (amalgamate ? "moc_cpp" : "cpp") : "hpp");
             if (mocinfo.hasPluginMetaDataMacro)
                 artifact.explicitlyDependsOn = ["qt_plugin_metadata"];
@@ -311,7 +311,7 @@ Module {
         multiplex: true
         inputs: ["qt.core.resource_data"]
         Artifact {
-            filePath: product.moduleProperty("Qt.core", "resourceFileBaseName") + ".qrc"
+            filePath: product.Qt.core.resourceFileBaseName + ".qrc"
             fileTags: ["qrc"]
         }
         prepare: {
@@ -327,7 +327,7 @@ Module {
                 var inputsByPrefix = {}
                 for (var i = 0; i < inputs["qt.core.resource_data"].length; ++i) {
                     var inp = inputs["qt.core.resource_data"][i];
-                    var prefix = inp.moduleProperty("Qt.core", "resourcePrefix");
+                    var prefix = inp.Qt.core.resourcePrefix;
                     var inputsList = inputsByPrefix[prefix] || [];
                     inputsList.push(inp);
                     inputsByPrefix[prefix] = inputsList;
@@ -341,7 +341,7 @@ Module {
                     for (var i = 0; i < inputsByPrefix[prefix].length; ++i) {
                         var inp = inputsByPrefix[prefix][i];
                         var fullResPath = inp.filePath;
-                        var baseDir = inp.moduleProperty("Qt.core", "resourceSourceBase");
+                        var baseDir = inp.Qt.core.resourceSourceBase;
                         var resAlias = baseDir
                             ? FileInfo.relativePath(baseDir, fullResPath) : inp.fileName;
 
@@ -368,7 +368,7 @@ Module {
             fileTags: ["cpp"]
         }
         prepare: {
-            var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/rcc',
+            var cmd = new Command(product.Qt.core.binPath + '/rcc',
                                   [input.filePath, '-name',
                                    FileInfo.completeBaseName(input.filePath),
                                    '-o', output.filePath]);
@@ -383,22 +383,22 @@ Module {
         multiplex: lreleaseMultiplexMode
 
         Artifact {
-            filePath: FileInfo.joinPaths(ModUtils.moduleProperty(product, "qmDir"),
-                    (ModUtils.moduleProperty(product, "lreleaseMultiplexMode")
-                     ? ModUtils.moduleProperty(product, "qmBaseName")
+            filePath: FileInfo.joinPaths(product.Qt.core.qmDir,
+                    (product.Qt.core.lreleaseMultiplexMode
+                     ? product.Qt.core.qmBaseName
                      : input.baseName) + ".qm")
             fileTags: ["qm"]
         }
 
         prepare: {
             var inputFilePaths;
-            if (ModUtils.moduleProperty(product, "lreleaseMultiplexMode"))
+            if (product.Qt.core.lreleaseMultiplexMode)
                 inputFilePaths = inputs["ts"].map(function(artifact) { return artifact.filePath; });
             else
                 inputFilePaths = [input.filePath];
             var args = ['-silent', '-qm', output.filePath].concat(inputFilePaths);
-            var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/'
-                                  + ModUtils.moduleProperty(product, "lreleaseName"), args);
+            var cmd = new Command(product.Qt.core.binPath + '/'
+                                  + product.Qt.core.lreleaseName, args);
             cmd.description = 'Creating ' + output.fileName;
             cmd.highlight = 'filegen';
             return cmd;
@@ -413,13 +413,12 @@ Module {
         outputArtifacts: Qdoc.outputArtifacts(product, input)
 
         prepare: {
-            var outputDir = ModUtils.moduleProperty(product, "qdocOutputDir");
+            var outputDir = product.Qt.core.qdocOutputDir;
             var args = Qdoc.qdocArgs(product, input, outputDir);
-            var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/'
-                                  + ModUtils.moduleProperty(product, "qdocName"), args);
+            var cmd = new Command(product.Qt.core.binPath + '/' + product.Qt.core.qdocName, args);
             cmd.description = 'qdoc ' + input.fileName;
             cmd.highlight = 'filegen';
-            cmd.environment = ModUtils.moduleProperty(product, "qdocEnvironment");
+            cmd.environment = product.Qt.core.qdocEnvironment;
             cmd.environment.push("OUTDIR=" + outputDir); // Qt 4 replacement for -outputdir
             return cmd;
         }
@@ -435,11 +434,10 @@ Module {
 
         prepare: {
             var args = [input.filePath];
-            args = args.concat(ModUtils.moduleProperty(product, "helpGeneratorArgs"));
+            args = args.concat(product.Qt.core.helpGeneratorArgs);
             args.push("-o");
             args.push(output.filePath);
-            var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + "/qhelpgenerator",
-                                  args);
+            var cmd = new Command(product.Qt.core.binPath + "/qhelpgenerator", args);
             cmd.description = 'qhelpgenerator ' + input.fileName;
             cmd.highlight = 'filegen';
             cmd.stdoutFilterFunction = function(output) {
