@@ -38,7 +38,7 @@
     A \c Module item is a collection of properties and language items that are used for building a
     product if the product has a \l{Depends Item}{dependency} on the module.
     The following (somewhat artificial) module pre-processes text files by removing certain
-    characters from them:
+    characters from them. The module's name is \a{txt_processor}.
 
     \code
     import qbs
@@ -65,8 +65,7 @@
                     var inFile = new TextFile(input.filePath, TextFile.ReadOnly);
                     var content = inFile.readAll();
                     inFile.close();
-                    var unwantedChars = product.moduleProperty("txt_processor",
-                                                               "unwantedCharacters");
+                    var unwantedChars = product.txt_processor.unwantedCharacters;
                     for (var c in unwantedChars)
                         content = content.replace(unwantedChars[c], "");
                     var outFile = new TextFile(output.filePath, TextFile.WriteOnly);

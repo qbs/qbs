@@ -141,13 +141,12 @@
     \row
         \li \c fileTags
         \li The list of the artifact's file tags.
-    \row
-        \li \c moduleProperty
-        \li A function taking two parameters. The first one is the name of a module,
-            the second one is the name of a property in that module. For instance, for an
-            artifact in a C++ product, a call to \c{moduleProperty("cpp", "defines")} returns the
-            list of defines that will be passed when compiling the respective file.
     \endtable
+
+    The artifact object contains a property for every module that is used in the product. That can
+    be used to access the module's properties. For instance, for an artifact in a C++ product,
+    \c{artifact.cpp.defines} is the list of defines that will be passed when compiling the
+    respective file.
 
     But what about the variables \c input and \c output that appeared in our example? These
     are simply convenience variables which are available in the case that the \c inputs

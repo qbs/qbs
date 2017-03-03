@@ -61,6 +61,7 @@
 #include <QtCore/qtextstream.h>
 #include <QtCore/qtimer.h>
 
+#include <QtScript/qscriptclass.h>
 #include <QtScript/qscriptvalueiterator.h>
 
 namespace qbs {
@@ -90,6 +91,7 @@ uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed = 0)
 
 ScriptEngine::ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent)
     : QScriptEngine(parent), m_scriptImporter(new ScriptImporter(this)),
+      m_modulePropertyScriptClass(nullptr),
       m_propertyCacheEnabled(true), m_active(false), m_logger(logger), m_evalContext(evalContext)
 {
     setProcessEventsInterval(1000); // For the cancelation mechanism to work.
@@ -113,6 +115,7 @@ ScriptEngine::~ScriptEngine()
         m_logger.qbsLog(LoggerInfo, true) << Tr::tr("Setting up imports took %1.")
                                              .arg(elapsedTimeString(m_elapsedTimeImporting));
     }
+    delete m_modulePropertyScriptClass;
 }
 
 void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject)
@@ -451,6 +454,16 @@ QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qt
     }
 
     return result;
+}
+
+QScriptClass *ScriptEngine::modulePropertyScriptClass() const
+{
+    return m_modulePropertyScriptClass;
+}
+
+void ScriptEngine::setModulePropertyScriptClass(QScriptClass *modulePropertyScriptClass)
+{
+    m_modulePropertyScriptClass = modulePropertyScriptClass;
 }
 
 void ScriptEngine::addEnvironmentVariable(const QString &name, const QString &value)

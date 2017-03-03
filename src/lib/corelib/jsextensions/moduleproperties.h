@@ -49,6 +49,8 @@
 namespace qbs {
 namespace Internal {
 
+class ScriptEngine;
+
 class ModuleProperties
 {
 public:
@@ -57,6 +59,8 @@ public:
 
 private:
     static void init(QScriptValue objectWithProperties, const void *ptr, const QString &type);
+    static void setupModules(QScriptValue &object, const ResolvedProductConstPtr &product,
+                             const Artifact *artifact);
 
     static QScriptValue js_moduleProperty(QScriptContext *context, QScriptEngine *engine);
 

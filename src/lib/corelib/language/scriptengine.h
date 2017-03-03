@@ -176,6 +176,9 @@ public:
                                                  arg)));
     }
 
+    QScriptClass *modulePropertyScriptClass() const;
+    void setModulePropertyScriptClass(QScriptClass *modulePropertyScriptClass);
+
 private:
     QScriptValue newFunction(FunctionWithArgSignature signature, void *arg) Q_DECL_EQ_DELETE;
 
@@ -213,6 +216,7 @@ private:
     friend uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed);
 
     ScriptImporter *m_scriptImporter;
+    QScriptClass *m_modulePropertyScriptClass;
     QHash<JsImport, QScriptValue> m_jsImportCache;
     bool m_propertyCacheEnabled;
     bool m_active;

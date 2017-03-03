@@ -42,14 +42,89 @@
 #include <buildgraph/artifact.h>
 #include <language/language.h>
 #include <language/propertymapinternal.h>
+#include <language/qualifiedid.h>
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/qttools.h>
 
-#include <QtScript/qscriptengine.h>
+#include <QtScript/qscriptclass.h>
 
 namespace qbs {
 namespace Internal {
+
+enum ScriptValueCommonPropertyKeys : quint32
+{
+    ModuleNameKey,
+    ProductPtrKey,
+    ArtifactPtrKey
+};
+
+static QScriptValue getModuleProperty(const PropertyMapConstPtr &properties,
+                                      const Artifact *artifact,
+                                      ScriptEngine *engine, const QString &moduleName,
+                                      const QString &propertyName)
+{
+    QVariant value;
+    if (engine->isPropertyCacheEnabled())
+        value = engine->retrieveFromPropertyCache(moduleName, propertyName, properties);
+    if (!value.isValid()) {
+        value = properties->moduleProperty(moduleName, propertyName);
+        const Property p(moduleName, propertyName, value);
+        if (artifact)
+            engine->addPropertyRequestedFromArtifact(artifact, p);
+        else
+            engine->addPropertyRequestedInScript(p);
+
+        // Cache the variant value. We must not cache the QScriptValue here, because it's a
+        // reference and the user might change the actual object.
+        if (engine->isPropertyCacheEnabled())
+            engine->addToPropertyCache(moduleName, propertyName, properties, value);
+    }
+    return engine->toScriptValue(value);
+}
+
+class ModulePropertyScriptClass : public QScriptClass
+{
+public:
+    ModulePropertyScriptClass(QScriptEngine *engine)
+        : QScriptClass(engine)
+    {
+    }
+
+    QueryFlags queryProperty(const QScriptValue &object, const QScriptString &name,
+                             QueryFlags flags, uint *id) override
+    {
+        Q_UNUSED(object);
+        Q_UNUSED(name);
+        Q_UNUSED(flags);
+        Q_UNUSED(id);
+        return HandlesReadAccess;
+    }
+
+    QScriptValue property(const QScriptValue &object, const QScriptString &name, uint id) override
+    {
+        Q_UNUSED(id);
+        if (m_lastObjectId != object.objectId()) {
+            m_lastObjectId = object.objectId();
+            const QScriptValue data = object.data();
+            m_moduleName = data.property(ModuleNameKey).toString();
+            m_product = reinterpret_cast<const ResolvedProduct *>(
+                        data.property(ProductPtrKey).toVariant().value<quintptr>());
+            m_artifact = reinterpret_cast<const Artifact *>(
+                        data.property(ArtifactPtrKey).toVariant().value<quintptr>());
+        }
+        return getModuleProperty(m_artifact ? m_artifact->properties : m_product->moduleProperties,
+                                 m_artifact, static_cast<ScriptEngine *>(engine()), m_moduleName,
+                                 name);
+    }
+
+private:
+    qint64 m_lastObjectId = 0;
+    QString m_moduleName;
+    const ResolvedProduct *m_product = nullptr;
+    const Artifact *m_artifact = nullptr;
+};
 
 static QString ptrKey() { return QLatin1String("__internalPtr"); }
 static QString typeKey() { return QLatin1String("__type"); }
@@ -60,6 +135,7 @@ void ModuleProperties::init(QScriptValue productObject,
                             const ResolvedProductConstPtr &product)
 {
     init(productObject, product.data(), productType());
+    setupModules(productObject, product, nullptr);
 }
 
 void ModuleProperties::init(QScriptValue artifactObject, const Artifact *artifact)
@@ -76,6 +152,7 @@ void ModuleProperties::init(QScriptValue artifactObject, const Artifact *artifac
     };
     QScriptEngine * const engine = artifactObject.engine();
     artifactObject.setProperty(QStringLiteral("product"), engine->toScriptValue(productProperties));
+    setupModules(artifactObject, artifact->product, artifact);
 }
 
 void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
@@ -86,6 +163,38 @@ void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
                                      engine->newFunction(ModuleProperties::js_moduleProperty, 2));
     objectWithProperties.setProperty(ptrKey(), engine->toScriptValue(quintptr(ptr)));
     objectWithProperties.setProperty(typeKey(), type);
+}
+
+void ModuleProperties::setupModules(QScriptValue &object, const ResolvedProductConstPtr &product,
+                                    const Artifact *artifact)
+{
+    ScriptEngine *engine = static_cast<ScriptEngine *>(object.engine());
+    QScriptClass *modulePropertyScriptClass = engine->modulePropertyScriptClass();
+    if (!modulePropertyScriptClass) {
+        modulePropertyScriptClass = new ModulePropertyScriptClass(engine);
+        engine->setModulePropertyScriptClass(modulePropertyScriptClass);
+    }
+    for (const auto &module : qAsConst(product->modules)) {
+        QScriptValue data = engine->newObject();
+        data.setProperty(ModuleNameKey, module->name);
+        QVariant v;
+        v.setValue<quintptr>(reinterpret_cast<quintptr>(product.data()));
+        data.setProperty(ProductPtrKey, engine->newVariant(v));
+        v.setValue<quintptr>(reinterpret_cast<quintptr>(artifact));
+        data.setProperty(ArtifactPtrKey, engine->newVariant(v));
+        QScriptValue moduleObject = engine->newObject(modulePropertyScriptClass);
+        moduleObject.setData(data);
+        const QualifiedId moduleName = QualifiedId::fromString(module->name);
+        QScriptValue obj = object;
+        for (int i = 0; i < moduleName.count() - 1; ++i) {
+            QScriptValue tmp = obj.property(moduleName.at(i));
+            if (!tmp.isObject())
+                tmp = engine->newObject();
+            obj.setProperty(moduleName.at(i), tmp);
+            obj = tmp;
+        }
+        obj.setProperty(moduleName.last(), moduleObject);
+    }
 }
 
 QScriptValue ModuleProperties::js_moduleProperty(QScriptContext *context, QScriptEngine *engine)
@@ -132,24 +241,7 @@ QScriptValue ModuleProperties::moduleProperty(QScriptContext *context, QScriptEn
     ScriptEngine * const qbsEngine = static_cast<ScriptEngine *>(engine);
     const QString moduleName = context->argument(0).toString();
     const QString propertyName = context->argument(1).toString();
-
-    QVariant value;
-    if (qbsEngine->isPropertyCacheEnabled())
-        value = qbsEngine->retrieveFromPropertyCache(moduleName, propertyName, properties);
-    if (!value.isValid()) {
-        value = properties->moduleProperty(moduleName, propertyName);
-        const Property p(moduleName, propertyName, value);
-        if (artifact)
-            qbsEngine->addPropertyRequestedFromArtifact(artifact, p);
-        else
-            qbsEngine->addPropertyRequestedInScript(p);
-
-        // Cache the variant value. We must not cache the QScriptValue here, because it's a
-        // reference and the user might change the actual object.
-        if (qbsEngine->isPropertyCacheEnabled())
-            qbsEngine->addToPropertyCache(moduleName, propertyName, properties, value);
-    }
-    return engine->toScriptValue(value);
+    return getModuleProperty(properties, artifact, qbsEngine, moduleName, propertyName);
 }
 
 } // namespace Internal
