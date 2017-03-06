@@ -45,7 +45,6 @@
 #include <QtCore/qt_windows.h>
 #else
 #include <QtCore/qdatetime.h>
-#include <time.h>
 #endif
 
 namespace qbs {
@@ -57,33 +56,55 @@ template<> struct CompileTimeAssert<true> {};
 #endif
 
 FileTime::FileTime()
-    : m_fileTime(0)
 {
 #ifdef Q_OS_WIN
     static CompileTimeAssert<sizeof(FileTime::InternalType) == sizeof(FILETIME)> internal_type_has_wrong_size;
     Q_UNUSED(internal_type_has_wrong_size);
+    m_fileTime = 0;
+#else
+    m_fileTime = {0, 0};
 #endif
 }
 
-bool FileTime::operator < (const FileTime &rhs) const
+FileTime::FileTime(const FileTime::InternalType &ft) : m_fileTime(ft)
+{
+#ifndef Q_OS_WIN
+    if (m_fileTime.tv_sec == 0)
+        m_fileTime.tv_nsec = 0; // stat() sets only the first member to 0 for non-existing files.
+#endif
+}
+
+int FileTime::compare(const FileTime &other) const
 {
 #ifdef Q_OS_WIN
     const FILETIME *const t1 = reinterpret_cast<const FILETIME *>(&m_fileTime);
-    const FILETIME *const t2 = reinterpret_cast<const FILETIME *>(&rhs.m_fileTime);
-    return CompareFileTime(t1, t2) < 0;
+    const FILETIME *const t2 = reinterpret_cast<const FILETIME *>(&other.m_fileTime);
+    return CompareFileTime(t1, t2);
 #else
-    return m_fileTime < rhs.m_fileTime;
+    if (m_fileTime.tv_sec < other.m_fileTime.tv_sec)
+        return -1;
+    if (m_fileTime.tv_sec > other.m_fileTime.tv_sec)
+        return 1;
+    if (m_fileTime.tv_nsec < other.m_fileTime.tv_nsec)
+        return -1;
+    if (m_fileTime.tv_nsec > other.m_fileTime.tv_nsec)
+        return 1;
+    return 0;
 #endif
 }
 
 void FileTime::clear()
 {
+#ifdef Q_OS_WIN
     m_fileTime = 0;
+#else
+    m_fileTime = { 0, 0 };
+#endif
 }
 
 bool FileTime::isValid() const
 {
-    return m_fileTime != 0;
+    return *this != FileTime();
 }
 
 FileTime FileTime::currentTime()
@@ -96,7 +117,9 @@ FileTime FileTime::currentTime()
     SystemTimeToFileTime(&st, ft);
     return result;
 #else
-    return time(0);
+    InternalType t;
+    clock_gettime(CLOCK_REALTIME, &t);
+    return t;
 #endif
 }
 
@@ -118,7 +141,16 @@ FileTime FileTime::oldestTime()
     SystemTimeToFileTime(&st, ft);
     return result;
 #else
-    return 1;
+    return FileTime({1, 0});
+#endif
+}
+
+double FileTime::asDouble() const
+{
+#ifdef Q_OS_WIN
+    return static_cast<double>(m_fileTime);
+#else
+    return static_cast<double>(m_fileTime.tv_sec);
 #endif
 }
 
@@ -135,8 +167,28 @@ QString FileTime::toString() const
     return result;
 #else
     QDateTime dt;
-    dt.setTime_t(m_fileTime);
+    dt.setMSecsSinceEpoch(m_fileTime.tv_sec * 1000 + m_fileTime.tv_nsec / 1000000);
     return dt.toString();
+#endif
+}
+
+void qbs::Internal::FileTime::store(PersistentPool &pool) const
+{
+#ifdef Q_OS_WIN
+    pool.store(static_cast<quint64>(m_fileTime));
+#else
+    pool.store(static_cast<qint64>(m_fileTime.tv_sec));
+    pool.store(static_cast<qint64>(m_fileTime.tv_nsec));
+#endif
+}
+
+void qbs::Internal::FileTime::load(PersistentPool &pool)
+{
+#ifdef Q_OS_WIN
+    m_fileTime = pool.load<quint64>();
+#else
+    m_fileTime.tv_sec = pool.load<qint64>();
+    m_fileTime.tv_nsec = pool.load<qint64>();
 #endif
 }
 

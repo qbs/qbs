@@ -341,12 +341,12 @@ bool FileInfo::exists() const
 
 FileTime FileInfo::lastModified() const
 {
-    return m_stat.st_mtime;
+    return m_stat.st_mtim;
 }
 
 FileTime FileInfo::lastStatusChange() const
 {
-    return m_stat.st_ctime;
+    return m_stat.st_ctim;
 }
 
 bool FileInfo::isDir() const

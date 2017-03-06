@@ -56,7 +56,7 @@ class FileTime
 {
 public:
 #if defined(Q_OS_UNIX)
-    typedef time_t InternalType;
+    typedef timespec InternalType;
 #elif defined(Q_OS_WIN)
     typedef quint64 InternalType;
 #else
@@ -64,19 +64,18 @@ public:
 #endif
 
     FileTime();
-    FileTime(const InternalType &ft)
-        : m_fileTime(ft)
-    { }
+    FileTime(const InternalType &ft);
 
     void store(PersistentPool &pool) const;
     void load(PersistentPool &pool);
 
-    bool operator < (const FileTime &rhs) const;
-    bool operator > (const FileTime &rhs) const;
-    bool operator <= (const FileTime &rhs) const;
-    bool operator >= (const FileTime &rhs) const;
-    bool operator == (const FileTime &rhs) const;
-    bool operator != (const FileTime &rhs) const;
+    bool operator<(const FileTime &rhs) const { return compare(rhs) < 0; }
+    bool operator>(const FileTime &rhs) const { return compare(rhs) > 0; }
+    bool operator<=(const FileTime &rhs) const { return !operator>(rhs); }
+    bool operator>=(const FileTime &rhs) const { return !operator<(rhs); }
+    bool operator==(const FileTime &rhs) const { return compare(rhs) == 0; }
+    bool operator!= (const FileTime &rhs) const { return !operator==(rhs); }
+    int compare(const FileTime &other) const;
 
     void clear();
     bool isValid() const;
@@ -85,44 +84,11 @@ public:
     static FileTime currentTime();
     static FileTime oldestTime();
 
-    friend class FileInfo;
+    double asDouble() const;
+
+private:
     InternalType m_fileTime;
 };
-
-inline void FileTime::store(PersistentPool &pool) const
-{
-    pool.store(static_cast<quint64>(m_fileTime));
-}
-
-inline void FileTime::load(PersistentPool &pool)
-{
-    m_fileTime = pool.load<quint64>();
-}
-
-inline bool FileTime::operator > (const FileTime &rhs) const
-{
-    return rhs < *this;
-}
-
-inline bool FileTime::operator <= (const FileTime &rhs) const
-{
-    return operator < (rhs) || operator == (rhs);
-}
-
-inline bool FileTime::operator >= (const FileTime &rhs) const
-{
-    return operator > (rhs) || operator == (rhs);
-}
-
-inline bool FileTime::operator == (const FileTime &rhs) const
-{
-    return m_fileTime == rhs.m_fileTime;
-}
-
-inline bool FileTime::operator != (const FileTime &rhs) const
-{
-    return !operator==(rhs);
-}
 
 } // namespace Internal
 } // namespace qbs

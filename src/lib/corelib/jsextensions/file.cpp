@@ -213,7 +213,7 @@ QScriptValue File::js_lastModified(QScriptContext *context, QScriptEngine *engin
     const FileTime timestamp = FileInfo(filePath).lastModified();
     ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
     se->addFileLastModifiedResult(filePath, timestamp);
-    return static_cast<qsreal>(timestamp.m_fileTime);
+    return timestamp.asDouble();
 }
 
 QScriptValue File::js_makePath(QScriptContext *context, QScriptEngine *engine)
