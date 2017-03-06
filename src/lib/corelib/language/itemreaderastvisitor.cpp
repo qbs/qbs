@@ -53,7 +53,6 @@
 #include <parser/qmljsast_p.h>
 #include <tools/codelocation.h>
 #include <tools/error.h>
-#include <tools/fileinfo.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <logging/translator.h>

@@ -40,8 +40,6 @@
 #ifndef QBS_RAWSCANNEDDEPENDENCY_H
 #define QBS_RAWSCANNEDDEPENDENCY_H
 
-#include <tools/fileinfo.h>
-
 #include <QString>
 
 namespace qbs {

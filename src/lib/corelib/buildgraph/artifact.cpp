@@ -44,7 +44,6 @@
 #include "productbuilddata.h"
 #include <language/language.h>
 #include <language/propertymapinternal.h>
-#include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/qttools.h>
 

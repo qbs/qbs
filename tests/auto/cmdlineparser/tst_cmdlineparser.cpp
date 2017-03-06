@@ -30,7 +30,6 @@
 #include <app/shared/logging/consolelogger.h>
 #include <tools/buildoptions.h>
 #include <tools/error.h>
-#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 
 #include <QtCore/qdir.h>

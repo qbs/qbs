@@ -41,10 +41,8 @@
 
 #include <language/scriptengine.h>
 #include <logging/translator.h>
-#include <tools/fileinfo.h>
 
 #include <QtCore/qdir.h>
-#include <QtCore/qfileinfo.h>
 #include <QtCore/qregularexpression.h>
 
 #include <QtScript/qscriptable.h>

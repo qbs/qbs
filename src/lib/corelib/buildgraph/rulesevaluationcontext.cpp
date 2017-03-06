@@ -45,7 +45,6 @@
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/error.h>
-#include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
 

@@ -39,6 +39,7 @@
 
 #include "rawscanneddependency.h"
 
+#include <tools/fileinfo.h>
 #include <tools/persistence.h>
 
 namespace qbs {

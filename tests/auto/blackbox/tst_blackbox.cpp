@@ -30,13 +30,13 @@
 
 #include "../shared.h"
 
-#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
 #include <tools/shellutils.h>
 #include <tools/version.h>
 
+#include <QtCore/qdebug.h>
 #include <QtCore/qjsonarray.h>
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qjsonobject.h>

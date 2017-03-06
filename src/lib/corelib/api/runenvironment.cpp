@@ -47,7 +47,6 @@
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
-#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
