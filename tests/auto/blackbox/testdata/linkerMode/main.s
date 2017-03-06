@@ -1,5 +1,5 @@
 .globl _main
-.globl _start
+.globl main
 
 _main:
-_start:
+main:

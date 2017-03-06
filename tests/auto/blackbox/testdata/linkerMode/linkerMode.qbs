@@ -6,8 +6,7 @@ Project {
         name: "LinkedProduct-Assembly"
         files: ["main.s"]
 
-        cpp.entryPoint: "_start"
-        cpp.dynamicLibraries: qbs.targetOS.contains("darwin") ? ["System"] : ["c"]
+        cpp.linkerPath: cpp.compilerPathByLanguage["c"]
 
         Group {
             fileTagsFilter: product.type
