@@ -39,6 +39,8 @@
 
 #include "jsliterals.h"
 
+#include <QtCore/qregexp.h>
+
 namespace qbs {
 
 QString toJSLiteral(const bool b)

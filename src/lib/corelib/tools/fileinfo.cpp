@@ -46,6 +46,7 @@
 #include <QtCore/qdatetime.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
+#include <QtCore/qregexp.h>
 
 #if defined(Q_OS_UNIX)
 #include <errno.h>

@@ -42,6 +42,7 @@
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qjsonvalue.h>
 #include <QtCore/qlocale.h>
+#include <QtCore/qregexp.h>
 #include <QtCore/qregularexpression.h>
 #include <QtCore/qtemporarydir.h>
 #include <QtCore/qtemporaryfile.h>
