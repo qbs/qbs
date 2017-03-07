@@ -28,37 +28,32 @@
 **
 ****************************************************************************/
 
-var ModUtils = require("qbs.ModUtils");
-
 function args(product, input, outputFileName)
 {
-    var defines = product.moduleProperty("cpp", "compilerDefines");
-    defines = defines.uniqueConcat(product.moduleProperty("cpp", "platformDefines"));
-    defines = defines.uniqueConcat(
-                ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'defines'));
-    var includePaths = ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'includePaths');
-    includePaths = includePaths.uniqueConcat(ModUtils.modulePropertiesFromArtifacts(
-                                                 product, [input], 'cpp', 'systemIncludePaths'));
-    var useCompilerPaths = product.moduleProperty("Qt.core", "versionMajor") >= 5;
+    var defines = product.cpp.compilerDefines;
+    defines = defines.uniqueConcat(product.cpp.platformDefines);
+    defines = defines.uniqueConcat(input.cpp.defines);
+    var includePaths = input.cpp.includePaths;
+    includePaths = includePaths.uniqueConcat(input.cpp.systemIncludePaths);
+    var useCompilerPaths = product.Qt.core.versionMajor >= 5;
     if (useCompilerPaths) {
-        includePaths = includePaths.uniqueConcat(ModUtils.modulePropertiesFromArtifacts(
-                                                 product, [input], 'cpp', 'compilerIncludePaths'));
+        includePaths = includePaths.uniqueConcat(input.cpp.compilerIncludePaths);
     }
-    var frameworkPaths = product.moduleProperty("cpp", "frameworkPaths");
+    var frameworkPaths = product.cpp.frameworkPaths;
     frameworkPaths = frameworkPaths.uniqueConcat(
-                product.moduleProperty("cpp", "systemFrameworkPaths"));
+                product.cpp.systemFrameworkPaths);
     if (useCompilerPaths) {
         frameworkPaths = frameworkPaths.uniqueConcat(
-                    product.moduleProperty("cpp", "compilerFrameworkPaths"));
+                    product.cpp.compilerFrameworkPaths);
     }
-    var pluginMetaData = product.moduleProperty("Qt.core", "pluginMetaData");
+    var pluginMetaData = product.Qt.core.pluginMetaData;
     var args = [];
     args = args.concat(
                 defines.map(function(item) { return '-D' + item; }),
                 includePaths.map(function(item) { return '-I' + item; }),
                 frameworkPaths.map(function(item) { return '-F' + item; }),
                 pluginMetaData.map(function(item) { return '-M' + item; }),
-                ModUtils.moduleProperty(product, "mocFlags"),
+                product.Qt.core.mocFlags,
                 '-o', outputFileName,
                 input.filePath);
     return args;
@@ -66,5 +61,5 @@ function args(product, input, outputFileName)
 
 function fullPath(product)
 {
-    return ModUtils.moduleProperty(product, "binPath") + '/' + ModUtils.moduleProperty(product, "mocName");
+    return product.Qt.core.binPath + '/' + product.Qt.core.mocName;
 }
