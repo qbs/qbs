@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -30,10 +30,25 @@
 
 import qbs
 
-NativeBinary {
-    type: {
-        if (qbs.targetOS.contains("ios") && parseInt(cpp.minimumIosVersion, 10) < 8)
-            return ["staticlibrary"];
-        return ["dynamiclibrary"].concat(isForAndroid ? ["android.nativelibrary"] : []);
+Product {
+    property bool isForAndroid: qbs.targetOS.contains("android")
+    property bool isForDarwin: qbs.targetOS.contains("darwin")
+    property stringList architectures: isForAndroid && !qbs.architecture ? ["armv5te"] : undefined
+
+    Depends { name: "bundle" }
+
+    profiles: architectures
+        ? architectures.map(function(arch) { return project.profile + '-' + arch; })
+        : [project.profile]
+
+    aggregate: ((qbs.architectures && qbs.architectures.length > 1)
+                || (qbs.buildVariants && qbs.buildVariants.length > 1)) && isForDarwin
+
+    multiplexByQbsProperties: {
+        if (isForDarwin)
+            return ["profiles", "architectures", "buildVariants"];
+        if (isForAndroid)
+            return ["profiles"];
+        return base;
     }
 }

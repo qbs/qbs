@@ -443,6 +443,12 @@
         \li determined by qbs-setup-toolchains
         \li Full path of the dsymutil binary. This is set in the build profile.
     \row
+        \li lipoPath
+        \li \c{string}
+        \li 1.9
+        \li determined automatically
+        \li Full path of the lipo binary.
+    \row
         \li frameworkPaths
         \li \c{pathList}
         \li 1.0
@@ -723,6 +729,13 @@
         \li Since
         \li Default
         \li Description
+    \row
+        \li alwaysUseLipo
+        \li \{bool}
+        \li 1.9
+        \li \c{false}
+        \li Whether to always use lipo when combining Mach-O output files on Apple platforms,
+            even if there is only one CPU architecture. The should not normally need to be changed.
     \row
         \li compilerDefines
         \li \c{stringList}

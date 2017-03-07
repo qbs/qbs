@@ -28,19 +28,12 @@
 **
 ****************************************************************************/
 
-Product {
+import qbs
+
+NativeBinary {
     type: {
         if (isForAndroid && !consoleApplication)
             return ["dynamiclibrary", "android.nativelibrary"];
         return ["application"];
     }
-
-    property bool isForAndroid: qbs.targetOS.contains("android")
-    property stringList architectures: isForAndroid && !qbs.architecture ? ["armv5te"] : undefined
-
-    Depends { name: "bundle" }
-
-    profiles: architectures
-        ? architectures.map(function(arch) { return project.profile + '-' + arch; })
-        : [project.profile]
 }

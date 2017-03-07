@@ -30,10 +30,14 @@
 
 import qbs
 import qbs.DarwinTools
+import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.PathTools
 import qbs.PropertyList
 import qbs.TextFile
+import "darwin.js" as Darwin
+import "gcc.js" as Gcc
 
 UnixGCC {
     condition: false
@@ -51,6 +55,13 @@ UnixGCC {
     loadableModulePrefix: ""
     loadableModuleSuffix: ".bundle"
     dynamicLibrarySuffix: ".dylib"
+    variantSuffix: {
+        // "release" corresponds to the "normal" (non-suffixed) variant
+        if (qbs.buildVariant !== "release")
+            return "_" + qbs.buildVariant;
+        return "";
+    }
+
     separateDebugInformation: true
     debugInfoBundleSuffix: ".dSYM"
     debugInfoSuffix: ".dwarf"
@@ -166,6 +177,52 @@ UnixGCC {
     property string minimumDarwinVersion
     property string minimumDarwinVersionCompilerFlag
     property string minimumDarwinVersionLinkerFlag
+
+    Rule {
+        condition: product.aggregate
+        inputsFromDependencies: ["application"]
+        multiplex: true
+
+        outputFileTags: ["bundle.input", "application", "primary", "debuginfo_app"]
+        outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "application", "app")
+
+        prepare: Darwin.prepareLipo.apply(Darwin, arguments)
+    }
+
+    Rule {
+        condition: product.aggregate
+        inputsFromDependencies: ["loadablemodule"]
+        multiplex: true
+
+        outputFileTags: ["bundle.input", "loadablemodule", "primary", "debuginfo_loadablemodule"]
+        outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "loadablemodule",
+                                                                     "loadablemodule")
+
+        prepare: Darwin.prepareLipo.apply(Darwin, arguments)
+    }
+
+    Rule {
+        condition: product.aggregate
+        inputsFromDependencies: ["dynamiclibrary"]
+        multiplex: true
+
+        outputFileTags: ["bundle.input", "dynamiclibrary", "dynamiclibrary_copy", "primary",
+                         "debuginfo_dll"]
+        outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "dynamiclibrary", "dll")
+
+        prepare: Darwin.prepareLipo.apply(Darwin, arguments)
+    }
+
+    Rule {
+        condition: product.aggregate
+        inputsFromDependencies: ["staticlibrary"]
+        multiplex: true
+
+        outputFileTags: ["bundle.input", "staticlibrary", "primary"]
+        outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "staticlibrary")
+
+        prepare: Darwin.prepareLipo.apply(Darwin, arguments)
+    }
 
     Rule {
         condition: qbs.targetOS.contains("darwin")

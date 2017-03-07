@@ -30,44 +30,44 @@
 
 var FileInfo = require("qbs.FileInfo");
 
-function _bundleExecutableTemporaryFilePath(product) {
-    return ".tmp/" + FileInfo.fileName(bundleExecutableFilePath(product));
+function _bundleExecutableTemporaryFilePath(product, variantSuffix) {
+    return ".tmp/" + FileInfo.fileName(bundleExecutableFilePath(product, variantSuffix));
 }
 
-function bundleExecutableFilePath(product) {
-    return product.moduleProperty("bundle", "executablePath");
+function bundleExecutableFilePath(product, variantSuffix) {
+    return product.moduleProperty("bundle", "executablePath") + (variantSuffix || "");
 }
 
-function applicationFilePath(product) {
+function applicationFilePath(product, variantSuffix) {
     if (product.moduleProperty("bundle", "isBundle"))
-        return _bundleExecutableTemporaryFilePath(product);
+        return _bundleExecutableTemporaryFilePath(product, variantSuffix);
 
     return product.moduleProperty("cpp", "executablePrefix")
-         + product.targetName
+         + product.targetName + (variantSuffix || "")
          + product.moduleProperty("cpp", "executableSuffix");
 }
 
-function loadableModuleFilePath(product) {
+function loadableModuleFilePath(product, variantSuffix) {
     if (product.moduleProperty("bundle", "isBundle"))
-        return _bundleExecutableTemporaryFilePath(product);
+        return _bundleExecutableTemporaryFilePath(product, variantSuffix);
 
     return product.moduleProperty("cpp", "loadableModulePrefix")
-         + product.targetName
+         + product.targetName + (variantSuffix || "")
          + product.moduleProperty("cpp", "loadableModuleSuffix");
 }
 
-function staticLibraryFilePath(product) {
+function staticLibraryFilePath(product, variantSuffix) {
     if (product.moduleProperty("bundle", "isBundle"))
-        return _bundleExecutableTemporaryFilePath(product);
+        return _bundleExecutableTemporaryFilePath(product, variantSuffix);
 
     return product.moduleProperty("cpp", "staticLibraryPrefix")
-         + product.targetName
+         + product.targetName + (variantSuffix || "")
          + product.moduleProperty("cpp", "staticLibrarySuffix");
 }
 
-function dynamicLibraryFilePath(product, version, maxParts) {
+function dynamicLibraryFilePath(product, variantSuffix, version, maxParts) {
     if (product.moduleProperty("bundle", "isBundle"))
-        return _bundleExecutableTemporaryFilePath(product);
+        return _bundleExecutableTemporaryFilePath(product, variantSuffix);
 
     // If no override version was given, use the product's version
     // We specifically want to differentiate between undefined and i.e.
@@ -84,7 +84,9 @@ function dynamicLibraryFilePath(product, version, maxParts) {
         version = version.split('.').slice(0, maxParts).join('.');
 
     // Start with prefix + name (i.e. libqbs, qbs)
-    var fileName = product.moduleProperty("cpp", "dynamicLibraryPrefix") + product.targetName;
+    var fileName = product.moduleProperty("cpp", "dynamicLibraryPrefix")
+            + product.targetName
+            + (variantSuffix || "");
 
     // For Mach-O images, append the version number if there is one (i.e. libqbs.1.0.0)
     var imageFormat = product.moduleProperty("cpp", "imageFormat");
@@ -103,6 +105,21 @@ function dynamicLibraryFilePath(product, version, maxParts) {
     return fileName;
 }
 
+function linkerOutputFilePath(fileTag, product, variantSuffix, version, maxParts) {
+    switch (fileTag) {
+    case "application":
+        return applicationFilePath(product, variantSuffix);
+    case "loadablemodule":
+        return loadableModuleFilePath(product, variantSuffix);
+    case "staticlibrary":
+        return staticLibraryFilePath(product, variantSuffix);
+    case "dynamiclibrary":
+        return dynamicLibraryFilePath(product, variantSuffix, version, maxParts);
+    default:
+        throw new Error("Unknown linker output file tag: " + fileTag);
+    }
+}
+
 function importLibraryFilePath(product) {
     return product.moduleProperty("cpp", "dynamicLibraryPrefix")
          + product.targetName
@@ -116,7 +133,7 @@ function debugInfoIsBundle(product) {
     return !flags.contains("-f") && !flags.contains("--flat");
 }
 
-function debugInfoFileName(product, fileTag) {
+function debugInfoFileName(product, variantSuffix, fileTag) {
     var suffix = "";
 
     // For dSYM bundles, the DWARF debug info file has no suffix
@@ -125,19 +142,19 @@ function debugInfoFileName(product, fileTag) {
         suffix = product.moduleProperty("cpp", "debugInfoSuffix");
 
     if (product.moduleProperty("bundle", "isBundle")) {
-        return FileInfo.fileName(bundleExecutableFilePath(product)) + suffix;
+        return FileInfo.fileName(bundleExecutableFilePath(product, variantSuffix)) + suffix;
     } else {
         switch (fileTag) {
         case "application":
-            return applicationFilePath(product) + suffix;
+            return applicationFilePath(product, variantSuffix) + suffix;
         case "dynamiclibrary":
-            return dynamicLibraryFilePath(product) + suffix;
+            return dynamicLibraryFilePath(product, variantSuffix) + suffix;
         case "loadablemodule":
-            return loadableModuleFilePath(product) + suffix;
+            return loadableModuleFilePath(product, variantSuffix) + suffix;
         case "staticlibrary":
-            return staticLibraryFilePath(product) + suffix;
+            return staticLibraryFilePath(product, variantSuffix) + suffix;
         default:
-            return product.targetName + suffix;
+            return product.targetName + (variantSuffix || "") + suffix;
         }
     }
 }
@@ -149,11 +166,11 @@ function debugInfoBundlePath(product, fileTag) {
     if (product.moduleProperty("qbs", "targetOS").contains("darwin")
             && product.moduleProperty("bundle", "isBundle"))
         return product.moduleProperty("bundle", "bundleName") + suffix;
-    return debugInfoFileName(product, fileTag) + suffix;
+    return debugInfoFileName(product, undefined, fileTag) + suffix;
 }
 
-function debugInfoFilePath(product, fileTag) {
-    var name = debugInfoFileName(product, fileTag);
+function debugInfoFilePath(product, variantSuffix, fileTag) {
+    var name = debugInfoFileName(product, variantSuffix, fileTag);
     if (product.moduleProperty("qbs", "targetOS").contains("darwin") && debugInfoIsBundle(product)) {
         return FileInfo.joinPaths(debugInfoBundlePath(product, fileTag),
                                   "Contents", "Resources", "DWARF", name);

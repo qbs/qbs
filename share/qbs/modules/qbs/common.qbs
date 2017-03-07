@@ -37,7 +37,7 @@ import qbs.Utilities
 
 Module {
     readonly property string configurationName: "default"
-    property string buildVariant: {
+    property string defaultBuildVariant: {
         switch (configurationName.toLowerCase()) {
         case "release":
             return "release";
@@ -45,6 +45,8 @@ Module {
             return "debug";
         }
     }
+
+    property string buildVariant: defaultBuildVariant
 
     property bool enableDebugCode: buildVariant == "debug"
     property bool debugInformation: (buildVariant == "debug")
@@ -211,8 +213,27 @@ Module {
 
     // Properties that can be set for multiplexing products.
     property stringList profiles
-    property stringList architectures
-    property stringList buildVariants
+    property stringList architectures: {
+        if (targetOS.contains("android"))
+            return ["armv5te"];
+        if (targetOS.contains("ios-simulator"))
+            return ["x86", "x86_64"];
+        if (targetOS.contains("ios"))
+            return ["armv7a", "arm64"];
+        if (targetOS.contains("macos"))
+            return ["x86_64"];
+        if (targetOS.contains("tvos-simulator"))
+            return ["x86_64"];
+        if (targetOS.contains("tvos"))
+            return ["arm64"];
+        if (targetOS.contains("watchos-simulator"))
+            return ["x86"];
+        if (targetOS.contains("watchos"))
+            return ["armv7k"];
+        return architecture ? [architecture] : undefined;
+    }
+
+    property stringList buildVariants: [defaultBuildVariant]
 
     // internal properties
     readonly property string version: [versionMajor, versionMinor, versionPatch].join(".")

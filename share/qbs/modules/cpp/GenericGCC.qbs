@@ -110,6 +110,7 @@ CppModule {
     property string objcopyName: "objcopy"
     property string stripName: "strip"
     property string dsymutilName: "dsymutil"
+    property string lipoName: "lipo"
     property path sysroot: qbs.sysroot
 
     property string linkerMode: "automatic"
@@ -173,7 +174,10 @@ CppModule {
     property string objcopyPath: toolchainPathPrefix + objcopyName
     property string stripPath: toolchainPathPrefix + stripName
     property string dsymutilPath: toolchainPathPrefix + dsymutilName
+    property string lipoPath: toolchainPathPrefix + lipoName
     property stringList dsymutilFlags
+
+    property bool alwaysUseLipo: false
 
     readonly property bool shouldCreateSymlinks: {
         return createSymlinks && internalVersion && ["macho", "elf"].contains(cpp.imageFormat);
@@ -296,8 +300,14 @@ CppModule {
         validator.validate();
     }
 
+    // Product should be linked if it's not multiplexed or aggregated at all,
+    // or if it is multiplexed, if it's not the aggregate product
+    readonly property bool shouldLink: !(product.multiplexed || product.aggregate)
+                                       || product.multiplexConfigurationId
+
     Rule {
         id: dynamicLibraryLinker
+        condition: product.cpp.shouldLink
         multiplex: true
         inputs: {
             var tags = ["obj", "linkerscript", "versionscript"];
@@ -338,7 +348,8 @@ CppModule {
                 for (var i = 0; i < maxVersionParts; ++i) {
                     var symlink = {
                         filePath: product.destinationDirectory + "/"
-                                  + PathTools.dynamicLibraryFilePath(product, undefined, i),
+                                  + PathTools.dynamicLibraryFilePath(product, undefined, undefined,
+                                                                     i),
                         fileTags: ["dynamiclibrary_symlink"]
                     };
                     if (i > 0 && artifacts[i-1].filePath == symlink.filePath)
@@ -346,7 +357,9 @@ CppModule {
                     artifacts.push(symlink);
                 }
             }
-            return artifacts.concat(Gcc.debugInfoArtifacts(product, "dll"));
+            if (!product.aggregate)
+                artifacts = artifacts.concat(Gcc.debugInfoArtifacts(product, undefined, "dll"));
+            return artifacts;
         }
 
         prepare: {
@@ -356,6 +369,7 @@ CppModule {
 
     Rule {
         id: staticLibraryLinker
+        condition: product.cpp.shouldLink
         multiplex: true
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["dynamiclibrary", "staticlibrary"]
@@ -395,6 +409,7 @@ CppModule {
 
     Rule {
         id: loadableModuleLinker
+        condition: product.cpp.shouldLink
         multiplex: true
         inputs: {
             var tags = ["obj", "linkerscript"];
@@ -417,7 +432,11 @@ CppModule {
                                                         PathTools.bundleExecutableFilePath(product))
                 }
             }
-            return [app].concat(Gcc.debugInfoArtifacts(product, "loadablemodule"));
+            var artifacts = [app];
+            if (!product.aggregate)
+                artifacts = artifacts.concat(Gcc.debugInfoArtifacts(product, undefined,
+                                                                    "loadablemodule"));
+            return artifacts;
         }
 
         prepare: {
@@ -427,6 +446,7 @@ CppModule {
 
     Rule {
         id: applicationLinker
+        condition: product.cpp.shouldLink
         multiplex: true
         inputs: {
             var tags = ["obj", "linkerscript"];
@@ -449,7 +469,10 @@ CppModule {
                                                         PathTools.bundleExecutableFilePath(product))
                 }
             }
-            return [app].concat(Gcc.debugInfoArtifacts(product, "app"));
+            var artifacts = [app];
+            if (!product.aggregate)
+                artifacts = artifacts.concat(Gcc.debugInfoArtifacts(product, undefined, "app"));
+            return artifacts;
         }
 
         prepare: {

@@ -98,7 +98,8 @@ Module {
         }
     }
 
-    additionalProductTypes: ["bundle.content"]
+    additionalProductTypes: !(product.multiplexed || product.aggregate)
+                            || !product.multiplexConfigurationId ? ["bundle.content"] : []
 
     property bool isBundle: !product.consoleApplication && qbs.targetOS.contains("darwin")
 
@@ -641,7 +642,7 @@ Module {
 
             var executables = outputs["bundle.symlink.executable"];
             for (i in executables) {
-                cmd = new Command("ln", ["-sf", FileInfo.joinPaths("Versions", "Current", product.targetName),
+                cmd = new Command("ln", ["-sfn", FileInfo.joinPaths("Versions", "Current", product.targetName),
                                          executables[i].filePath]);
                 cmd.silent = true;
                 commands.push(cmd);

@@ -748,6 +748,17 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
     return cmd;
 }
 
+function nativeConfigString(product) {
+    var props = [];
+    if ((product.multiplexed || product.aggregate) && product.multiplexConfigurationId) {
+        if (product.qbs.targetOS.containsAny(["android", "darwin"]))
+            props.push(product.qbs.architecture);
+        if (product.qbs.targetOS.contains("darwin"))
+            props.push(product.qbs.buildVariant);
+    }
+    return props.length > 0 ? (" (" + props.join(", ") + ")") : "";
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output) {
     var compilerInfo = effectiveCompilerInfo(product.qbs.toolchain,
                                              input, output);
@@ -768,6 +779,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + input.fileName;
     if (pchOutput)
         cmd.description += ' (' + compilerInfo.tag + ')';
+    cmd.description += nativeConfigString(product);
     cmd.highlight = "compiler";
     cmd.responseFileArgumentIndex = wrapperArgsLength;
     cmd.responseFileUsagePrefix = '@';
@@ -872,61 +884,79 @@ function readSymbolFile(filePath)
     return result;
 }
 
-function createSymbolCheckingCommand(product, outputs)
-{
-    // Update the symbols file if the list of relevant symbols has changed.
-    cmd = new JavaScriptCommand();
-    cmd.silent = true;
-    cmd.sourceCode = function() {
-        if (!outputs.dynamiclibrary_copy)
-            return;
+function createSymbolCheckingCommands(product, outputs) {
+    var commands = [];
+    if (!outputs.dynamiclibrary || !outputs.dynamiclibrary_copy)
+        return commands;
 
-        var libFilePath = outputs.dynamiclibrary[0].filePath;
-        var symbolFilePath = outputs.dynamiclibrary_copy[0].filePath;
+    if (outputs.dynamiclibrary.length !== outputs.dynamiclibrary_copy.length)
+        throw new Error("The number of outputs tagged dynamiclibrary ("
+                        + outputs.dynamiclibrary.length + ") must be equal to the number of "
+                        + "outputs tagged dynamiclibrary_copy ("
+                        + outputs.dynamiclibrary_copy.length + ")");
 
-        var newNmResult = getSymbolInfo(product, libFilePath);
-        if (!newNmResult.success)
-            return;
+    for (var d = 0; d < outputs.dynamiclibrary_copy.length; ++d) {
+        // Update the symbols file if the list of relevant symbols has changed.
+        var cmd = new JavaScriptCommand();
+        cmd.silent = true;
+        cmd.d = d;
+        cmd.sourceCode = function() {
+            if (outputs.dynamiclibrary[d].qbs.buildVariant
+                    !== outputs.dynamiclibrary_copy[d].qbs.buildVariant)
+                throw new Error("Build variant of output tagged dynamiclibrary ("
+                                + outputs.dynamiclibrary[d].qbs.buildVariant + ") is not equal to "
+                                + "build variant of output tagged dynamiclibrary_copy ("
+                                + outputs.dynamiclibrary_copy[d].qbs.buildVariant + ") at index "
+                                + d);
 
-        if (!File.exists(symbolFilePath)) {
-            console.debug("Symbol file '" + symbolFilePath + "' does not yet exist.");
-            createSymbolFile(symbolFilePath, newNmResult.allGlobalSymbols,
-                             newNmResult.definedGlobalSymbols);
-            return;
-        }
+            var libFilePath = outputs.dynamiclibrary[d].filePath;
+            var symbolFilePath = outputs.dynamiclibrary_copy[d].filePath;
 
-        var oldNmResult = readSymbolFile(symbolFilePath);
-        var checkMode = product.cpp.exportedSymbolsCheckMode;
-        var oldSymbols;
-        var newSymbols;
-        if (checkMode === "strict") {
-            oldSymbols = oldNmResult.allGlobalSymbols;
-            newSymbols = newNmResult.allGlobalSymbols;
-        } else {
-            oldSymbols = oldNmResult.definedGlobalSymbols;
-            newSymbols = newNmResult.definedGlobalSymbols;
-        }
-        if (oldSymbols.length !== newSymbols.length) {
-            console.debug("List of relevant symbols differs for '" + libFilePath + "'.");
-            createSymbolFile(symbolFilePath, newNmResult.allGlobalSymbols,
-                             newNmResult.definedGlobalSymbols);
-            return;
-        }
-        for (var i = 0; i < oldSymbols.length; ++i) {
-            var oldLine = oldSymbols[i];
-            var newLine = newSymbols[i];
-            var oldLineElems = oldLine.split(/\s+/);
-            var newLineElems = newLine.split(/\s+/);
-            if (oldLineElems[0] !== newLineElems[0] // Object name.
-                    || oldLineElems[1] !== newLineElems[1]) { // Object type
+            var newNmResult = getSymbolInfo(product, libFilePath);
+            if (!newNmResult.success)
+                return;
+
+            if (!File.exists(symbolFilePath)) {
+                console.debug("Symbol file '" + symbolFilePath + "' does not yet exist.");
+                createSymbolFile(symbolFilePath, newNmResult.allGlobalSymbols,
+                                 newNmResult.definedGlobalSymbols);
+                return;
+            }
+
+            var oldNmResult = readSymbolFile(symbolFilePath);
+            var checkMode = product.cpp.exportedSymbolsCheckMode;
+            var oldSymbols;
+            var newSymbols;
+            if (checkMode === "strict") {
+                oldSymbols = oldNmResult.allGlobalSymbols;
+                newSymbols = newNmResult.allGlobalSymbols;
+            } else {
+                oldSymbols = oldNmResult.definedGlobalSymbols;
+                newSymbols = newNmResult.definedGlobalSymbols;
+            }
+            if (oldSymbols.length !== newSymbols.length) {
                 console.debug("List of relevant symbols differs for '" + libFilePath + "'.");
                 createSymbolFile(symbolFilePath, newNmResult.allGlobalSymbols,
                                  newNmResult.definedGlobalSymbols);
                 return;
             }
+            for (var i = 0; i < oldSymbols.length; ++i) {
+                var oldLine = oldSymbols[i];
+                var newLine = newSymbols[i];
+                var oldLineElems = oldLine.split(/\s+/);
+                var newLineElems = newLine.split(/\s+/);
+                if (oldLineElems[0] !== newLineElems[0] // Object name.
+                        || oldLineElems[1] !== newLineElems[1]) { // Object type
+                    console.debug("List of relevant symbols differs for '" + libFilePath + "'.");
+                    createSymbolFile(symbolFilePath, newNmResult.allGlobalSymbols,
+                                     newNmResult.definedGlobalSymbols);
+                    return;
+                }
+            }
         }
+        commands.push(cmd);
     }
-    return cmd;
+    return commands;
 }
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
@@ -953,7 +983,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     }
 
     cmd = new Command(linkerPath, args);
-    cmd.description = 'linking ' + primaryOutput.fileName;
+    cmd.description = 'linking ' + primaryOutput.fileName + nativeConfigString(product);
     cmd.highlight = 'linker';
     cmd.responseFileArgumentIndex = wrapperArgsLength;
     cmd.responseFileUsagePrefix = '@';
@@ -963,20 +993,22 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
             || outputs.debuginfo_loadablemodule;
     if (debugInfo) {
         if (product.qbs.targetOS.contains("darwin")) {
-            var dsymPath = debugInfo[0].filePath;
-            if (outputs.debuginfo_bundle && outputs.debuginfo_bundle[0])
-                dsymPath = outputs.debuginfo_bundle[0].filePath;
-            var flags = product.cpp.dsymutilFlags || [];
-            cmd = new Command(product.cpp.dsymutilPath, flags.concat([
-                "-o", dsymPath, primaryOutput.filePath
-            ]));
-            cmd.description = "generating dSYM for " + product.name;
-            commands.push(cmd);
+            if (!product.aggregate) {
+                var dsymPath = debugInfo[0].filePath;
+                if (outputs.debuginfo_bundle && outputs.debuginfo_bundle[0])
+                    dsymPath = outputs.debuginfo_bundle[0].filePath;
+                var flags = product.cpp.dsymutilFlags || [];
+                cmd = new Command(product.cpp.dsymutilPath, flags.concat([
+                    "-o", dsymPath, primaryOutput.filePath
+                ]));
+                cmd.description = "generating dSYM for " + product.name;
+                commands.push(cmd);
 
-            cmd = new Command(product.cpp.stripPath,
-                              ["-S", primaryOutput.filePath]);
-            cmd.silent = true;
-            commands.push(cmd);
+                cmd = new Command(product.cpp.stripPath,
+                                  ["-S", primaryOutput.filePath]);
+                cmd.silent = true;
+                commands.push(cmd);
+            }
         } else {
             var objcopy = product.cpp.objcopyPath;
 
@@ -997,7 +1029,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     }
 
     if (outputs.dynamiclibrary) {
-        commands.push(createSymbolCheckingCommand(product, outputs));
+        Array.prototype.push.apply(commands, createSymbolCheckingCommands(product, outputs));
 
         // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
         var links = outputs["dynamiclibrary_symlink"];
@@ -1050,7 +1082,7 @@ function concatLibsFromArtifacts(libs, artifacts, filePathGetter)
     return concatLibs(deps, libs);
 }
 
-function debugInfoArtifacts(product, debugInfoTagSuffix) {
+function debugInfoArtifacts(product, variants, debugInfoTagSuffix) {
     var fileTag;
     switch (debugInfoTagSuffix) {
     case "app":
@@ -1064,12 +1096,18 @@ function debugInfoArtifacts(product, debugInfoTagSuffix) {
         break;
     }
 
+    variants = variants || [{}];
+
     var artifacts = [];
     if (product.cpp.separateDebugInformation) {
-        artifacts.push({
-            filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                         PathTools.debugInfoFilePath(product, fileTag)),
-            fileTags: ["debuginfo_" + debugInfoTagSuffix]
+        variants.map(function (variant) {
+            artifacts.push({
+                filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                 PathTools.debugInfoFilePath(product,
+                                                                             variant.suffix,
+                                                                             fileTag)),
+                fileTags: ["debuginfo_" + debugInfoTagSuffix]
+            });
         });
         if (PathTools.debugInfoIsBundle(product)) {
             artifacts.push({

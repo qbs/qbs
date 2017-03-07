@@ -55,6 +55,15 @@
 using qbs::Internal::HostOsInfo;
 using qbs::Profile;
 
+class QFileInfo2 : public QFileInfo {
+public:
+    QFileInfo2(const QString &path) : QFileInfo(path) { }
+    bool isRegularFile() const { return isFile() && !isSymLink(); }
+    bool isRegularDir() const { return isDir() && !isSymLink(); }
+    bool isFileSymLink() const { return isFile() && isSymLink(); }
+    bool isDirSymLink() const { return isDir() && isSymLink(); }
+};
+
 class MacosTarHealer {
 public:
     MacosTarHealer() {
@@ -334,6 +343,70 @@ void TestBlackbox::alwaysRun_data()
     QTest::newRow("Rule") << "rule.qbs";
 }
 
+void TestBlackbox::appleMultiConfig()
+{
+    if (!HostOsInfo::isMacosHost())
+        QSKIP("only applies on macOS");
+
+    QDir::setCurrent(testDataDir + "/apple-multiconfig");
+    QCOMPARE(runQbs(), 0);
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/MacOS/singleapp").isExecutable());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/PkgInfo").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp_agg.app/Contents/MacOS/singleapp_agg").isExecutable());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp_agg.app/Contents/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp_agg.app/Contents/PkgInfo").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/singlelib").isFileSymLink());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Resources").isDirSymLink());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/A").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/A/singlelib").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/A/Resources").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/A/Resources/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/Current").isDirSymLink());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/Contents/MacOS/multiapp").isExecutable());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/Contents/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/Contents/PkgInfo").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/MacOS/fatmultiapp").isFileSymLink());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/MacOS/fatmultiapp_debug").isExecutable());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/PkgInfo").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/multilib").isFileSymLink());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Resources").isDirSymLink());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib_debug").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib_profile").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/Resources").isRegularDir());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/Resources/Info.plist").isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/Current").isDirSymLink());
+
+    for (const QString &variant : { "release", "debug", "profile" }) {
+        for (const QString &arch : { "x86_64" }) {
+            QProcess process;
+            process.setProgram("/usr/bin/arch");
+            process.setArguments({
+                "-arch", arch,
+                "-e", "DYLD_IMAGE_SUFFIX=_" + variant,
+                defaultInstallRoot + "/multiapp.app/Contents/MacOS/multiapp"
+            });
+            process.start();
+            process.waitForFinished();
+            QCOMPARE(process.exitCode(), 0);
+            const auto processStdout = process.readAllStandardOutput();
+            QVERIFY2(processStdout.contains("Hello from " + variant.toUtf8() + " " + arch.toUtf8()),
+                     processStdout.constData());
+        }
+    }
+}
+
 void TestBlackbox::artifactScanning()
 {
     const QString projectDir = testDataDir + "/artifact-scanning";
@@ -468,15 +541,6 @@ void TestBlackbox::buildDirectories()
     QVERIFY2(outputLines.contains(projectDir), m_qbsStdout.constData());
 }
 
-class QFileInfo2 : public QFileInfo {
-public:
-    QFileInfo2(const QString &path) : QFileInfo(path) { }
-    bool isRegularFile() const { return isFile() && !isSymLink(); }
-    bool isRegularDir() const { return isDir() && !isSymLink(); }
-    bool isFileSymLink() const { return isFile() && isSymLink(); }
-    bool isDirSymLink() const { return isDir() && isSymLink(); }
-};
-
 void TestBlackbox::bundleStructure()
 {
     if (!HostOsInfo::isMacosHost())
@@ -494,7 +558,7 @@ void TestBlackbox::bundleStructure()
         // automatic detection
         params.arguments
                 << "qbs.targetOS:ios,darwin,bsd,unix"
-                << "qbs.architecture:arm64";
+                << "qbs.architectures:arm64";
     }
 
     if (productName == "ABadApple" || productName == "ABadThirdParty")
@@ -864,7 +928,7 @@ void TestBlackbox::deploymentTarget()
             << "--command-echo-mode"
             << "command-line"
             << "qbs.targetOS:" + os
-            << "qbs.architecture:" + arch;
+            << "qbs.architectures:" + arch;
 
     rmDirR(relativeBuildDir());
     int status = runQbs(params);

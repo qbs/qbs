@@ -339,13 +339,14 @@
         \li architectures
         \li \c{stringList}
         \li 1.9
-        \li \c{undefined}
+        \li \c{["armv5te"]} on Android, same as Xcode on Apple platforms, otherwise equivalent to
+            \c{[qbs.architecture]}
         \li Specifies the architectures the product will be built for.
     \row
         \li buildVariants
         \li \c{stringList}
         \li 1.9
-        \li \c{undefined}
+        \li equivalent to \c{[qbs.buildVariant]}
         \li Specifies the build variants the product will be built for.
     \row
         \li profiles

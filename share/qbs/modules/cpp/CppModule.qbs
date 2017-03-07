@@ -164,6 +164,7 @@ Module {
     property string executableSuffix
     property string debugInfoSuffix
     property string debugInfoBundleSuffix
+    property string variantSuffix
     property bool createSymlinks: true
     property stringList dynamicLibraries // list of names, will be linked with -lname
     property stringList staticLibraries // list of static library files
