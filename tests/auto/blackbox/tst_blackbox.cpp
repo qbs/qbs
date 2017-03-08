@@ -4610,14 +4610,6 @@ void TestBlackbox::objcArc()
     QCOMPARE(runQbs(), 0);
 }
 
-void TestBlackbox::objectAsTargetArtifact()
-{
-    QDir::setCurrent(testDataDir + QLatin1String("/object-as-target-artifact"));
-    QCOMPARE(runQbs(), 0);
-    QCOMPARE(m_qbsStdout.count("compiling object.cpp"), 1);
-    QCOMPARE(m_qbsStdout.count("linking"), 2);
-}
-
 void TestBlackbox::outputArtifactAutoTagging()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/output-artifact-auto-tagging"));
