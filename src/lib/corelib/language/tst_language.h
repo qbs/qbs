@@ -79,6 +79,7 @@ private slots:
     void baseValidation();
     void buildConfigStringListSyntax();
     void builtinFunctionInSearchPathsProperty();
+    void chainedProbes();
     void canonicalArchitecture();
     void conditionalDepends();
     void delayedError();

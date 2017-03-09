@@ -235,6 +235,26 @@ void TestLanguage::builtinFunctionInSearchPathsProperty()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::chainedProbes()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters parameters = defaultParameters;
+        parameters.setProjectFilePath(testProject("chained-probes/chained-probes.qbs"));
+        const TopLevelProjectConstPtr project = loader->loadProject(parameters);
+        QVERIFY(project);
+        QCOMPARE(project->products.count(), 1);
+        const QString prop2Val = project->products.first()->moduleProperties
+                ->moduleProperty("m", "prop2").toString();
+        QCOMPARE(prop2Val, QLatin1String("probe1Valprobe2Val"));
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+
+}
+
 void TestLanguage::versionCompare()
 {
     bool exceptionCaught = false;

@@ -2145,7 +2145,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     prototypeInstanceMap[modulePrototype] = moduleInstance;
 
     // create instances for every child of the prototype
-    createChildInstances(productContext, moduleInstance, modulePrototype, &prototypeInstanceMap);
+    createChildInstances(moduleInstance, modulePrototype, &prototypeInstanceMap);
 
     // create ids from from the prototype in the instance
     if (modulePrototype->file()->idScope()) {
@@ -2196,8 +2196,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     }
 }
 
-void ModuleLoader::createChildInstances(ProductContext *productContext, Item *instance,
-                                        Item *prototype,
+void ModuleLoader::createChildInstances(Item *instance, Item *prototype,
                                         QHash<Item *, Item *> *prototypeInstanceMap) const
 {
     for (Item * const childPrototype : prototype->children()) {
@@ -2206,9 +2205,9 @@ void ModuleLoader::createChildInstances(ProductContext *productContext, Item *in
         childInstance->setPrototype(childPrototype);
         childInstance->setFile(childPrototype->file());
         childInstance->setLocation(childPrototype->location());
-        childInstance->setScope(productContext->scope);
+        childInstance->setScope(instance->scope());
         Item::addChild(instance, childInstance);
-        createChildInstances(productContext, childInstance, childPrototype, prototypeInstanceMap);
+        createChildInstances(childInstance, childPrototype, prototypeInstanceMap);
     }
 }
 

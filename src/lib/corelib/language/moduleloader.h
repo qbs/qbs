@@ -249,8 +249,8 @@ private:
     void instantiateModule(ProductContext *productContext, Item *exportingProductItem,
             Item *instanceScope, Item *moduleInstance, Item *modulePrototype,
             const QualifiedId &moduleName, bool isProduct);
-    void createChildInstances(ProductContext *productContext, Item *instance,
-                              Item *prototype, QHash<Item *, Item *> *prototypeInstanceMap) const;
+    void createChildInstances(Item *instance, Item *prototype,
+                              QHash<Item *, Item *> *prototypeInstanceMap) const;
     void resolveProbes(ProductContext *productContext, Item *item);
     void resolveProbe(ProductContext *productContext, Item *parent, Item *probe);
     void checkCancelation() const;
