@@ -47,6 +47,7 @@
 
 #if defined(Q_OS_UNIX)
 #include <time.h>
+#define HAS_CLOCK_GETTIME (_POSIX_C_SOURCE >= 199309L)
 #endif
 
 namespace qbs {
@@ -56,7 +57,11 @@ class FileTime
 {
 public:
 #if defined(Q_OS_UNIX)
+#if HAS_CLOCK_GETTIME
     typedef timespec InternalType;
+#else
+    typedef time_t InternalType;
+#endif // HAS_CLOCK_GETTIME
 #elif defined(Q_OS_WIN)
     typedef quint64 InternalType;
 #else
