@@ -73,6 +73,8 @@ public:
 
     static QString cleanName(const QString &name);
 
+    static QString fallbackName() { return QLatin1String("none"); }
+
 private:
     static QString baseProfileKey();
     void checkBaseProfileExistence(const Profile &baseProfile) const;

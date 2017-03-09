@@ -521,10 +521,10 @@
     You can set these properties on the command line or by using a profile.
 
     \code
-    $ qbs                   # qbs.buildVariant:debug, profile:<default profile>
+    $ qbs                   # qbs.buildVariant:debug, profile:<default profile> (or profile:none, if no default profile exists)
     $ qbs release           # qbs.buildVariant:release, profile:<default profile>
-    $ qbs profile:Maemo     # qbs.buildVariant:debug, profile:Maemo
     $ qbs debug release     # builds two configurations of the project
+    $ qbs profile:none      # all module properties have their default values
     \endcode
 
     To select files by build variant:
