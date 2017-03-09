@@ -80,7 +80,16 @@ Module {
     property string nullDevice: hostOS.contains("windows") ? "NUL" : "/dev/null"
     property path shellPath: hostOS.contains("windows") ? windowsShellPath : "/bin/sh"
     property string profile
-    property stringList toolchain: []
+    property stringList toolchain: {
+        var tc;
+        if (targetOS.contains("windows"))
+            tc = hostOS.contains("windows") ? "msvc" : "mingw";
+        else if (targetOS.contains("darwin"))
+            tc = hostOS.contains("macos") ? "xcode" : "clang";
+        else
+            tc = targetOS.contains("freebsd") ? "clang" : "gcc";
+        return Utilities.canonicalToolchain(tc);
+    }
     property string architecture
     property bool install: false
     property path installSourceBase
