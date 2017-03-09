@@ -43,6 +43,12 @@ import 'gcc.js' as Gcc
 CppModule {
     condition: false
 
+    Probes.BinaryProbe {
+        id: compilerPathProbe
+        condition: !toolchainInstallPath
+        names: [compilerName]
+    }
+
     Probes.GccProbe {
         id: gccProbe
         compilerFilePath: compilerPath
@@ -83,7 +89,8 @@ CppModule {
     property string targetAbi: "unknown"
 
     property string toolchainPrefix
-    property path toolchainInstallPath
+    property string toolchainInstallPath: compilerPathProbe.found ? compilerPathProbe.path
+                                                                  : undefined
     assemblerName: 'as'
     compilerName: cxxCompilerName
     linkerName: 'ld'

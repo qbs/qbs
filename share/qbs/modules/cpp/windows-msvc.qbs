@@ -45,6 +45,12 @@ CppModule {
 
     id: module
 
+    Probes.BinaryProbe {
+        id: compilerPathProbe
+        condition: !toolchainInstallPath
+        names: ["cl"]
+    }
+
     Probes.MsvcProbe {
         id: msvcProbe
         compilerFilePath: compilerPath
@@ -89,7 +95,8 @@ CppModule {
     separateDebugInformation: true
 
     property bool generateManifestFile: true
-    property path toolchainInstallPath
+    property string toolchainInstallPath: compilerPathProbe.found ? compilerPathProbe.path
+                                                                  : undefined
     architecture: qbs.architecture
     staticLibraryPrefix: ""
     dynamicLibraryPrefix: ""
