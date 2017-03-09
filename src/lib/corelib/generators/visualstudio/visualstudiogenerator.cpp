@@ -292,12 +292,12 @@ void VisualStudioGenerator::generate()
     d->reset();
 }
 
-QVector<QSharedPointer<ProjectGenerator> > VisualStudioGenerator::createGeneratorList()
+std::vector<QSharedPointer<ProjectGenerator> > VisualStudioGenerator::createGeneratorList()
 {
-    QVector<QSharedPointer<ProjectGenerator> > result;
+    std::vector<QSharedPointer<ProjectGenerator> > result;
     for (const auto &info : VisualStudioVersionInfo::knownVersions()) {
         if (info.usesMsBuild())
-            result << QSharedPointer<ProjectGenerator>(new VisualStudioGenerator(info));
+            result.push_back(QSharedPointer<ProjectGenerator>(new VisualStudioGenerator(info)));
     }
     return result;
 }

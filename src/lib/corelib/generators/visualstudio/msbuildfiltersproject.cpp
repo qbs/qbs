@@ -40,7 +40,8 @@
 #include <tools/set.h>
 
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qvector.h>
+
+#include <vector>
 
 namespace qbs {
 
@@ -72,12 +73,10 @@ static QStringList headerFileExtensions()
             << QStringLiteral("h++");
 }
 
-static QVector<MSBuildFilter *> defaultItemGroupFilters(IMSBuildItemGroup *parent = 0)
+static std::vector<MSBuildFilter *> defaultItemGroupFilters(IMSBuildItemGroup *parent = 0)
 {
-    const auto filters = QVector<MSBuildFilter *> {
-        new MSBuildFilter(QStringLiteral("Source Files"), sourceFileExtensions(), parent),
-        new MSBuildFilter(QStringLiteral("Header Files"), headerFileExtensions(), parent)
-    };
+    const auto sourceFilter = new MSBuildFilter(QStringLiteral("Source Files"), sourceFileExtensions(), parent);
+    const auto headerFilter = new MSBuildFilter(QStringLiteral("Header Files"), headerFileExtensions(), parent);
 
     const auto formFilter = new MSBuildFilter(QStringLiteral("Form Files"),
                                               QStringList() << QStringLiteral("ui"), parent);
@@ -94,12 +93,9 @@ static QVector<MSBuildFilter *> defaultItemGroupFilters(IMSBuildItemGroup *paren
                                                      QStringList() << QStringLiteral("ts"), parent);
     translationFilter->setParseFiles(false);
 
-    return QVector<MSBuildFilter *>()
-            << filters
-            << formFilter
-            << resourceFilter
-            << generatedFilter
-            << translationFilter;
+    return std::vector<MSBuildFilter *> {
+        sourceFilter, headerFilter, formFilter, resourceFilter, generatedFilter, translationFilter
+    };
 }
 
 static bool matchesFilter(const MSBuildFilter *filter, const QString &filePath)
@@ -132,14 +128,11 @@ MSBuildFiltersProject::MSBuildFiltersProject(const GeneratableProductData &produ
                 allFiles.unite(Internal::Set<QString>::fromList(groupData.allFilePaths()));
     }
 
-    auto allFilesSorted = allFiles.toList();
-    std::sort(allFilesSorted.begin(), allFilesSorted.end());
-
     MSBuildItemGroup *headerFilesGroup = nullptr;
     MSBuildItemGroup *sourceFilesGroup = nullptr;
     MSBuildItemGroup *filesGroup = nullptr;
 
-    for (const auto &filePath : allFilesSorted) {
+    for (const auto &filePath : allFiles) {
         MSBuildFileItem *fileItem = nullptr;
 
         for (const MSBuildFilter *options : filterOptions) {

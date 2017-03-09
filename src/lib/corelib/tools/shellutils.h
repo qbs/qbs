@@ -44,7 +44,8 @@
 #include "qbs_export.h"
 #include "hostosinfo.h"
 #include <QtCore/qstring.h>
-#include <QtCore/qvector.h>
+
+#include <vector>
 
 namespace qbs {
 namespace Internal {
@@ -78,7 +79,7 @@ private:
 
     bool m_isRawProgram;
     QString m_program;
-    QVector<Argument> m_arguments;
+    std::vector<Argument> m_arguments;
 };
 
 } // namespace Internal

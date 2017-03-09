@@ -48,7 +48,8 @@
 
 #include <QtCore/qhash.h>
 #include <QtCore/qstring.h>
-#include <QtCore/qvector.h>
+
+#include <vector>
 
 namespace qbs {
 namespace Internal {
@@ -59,7 +60,7 @@ class PersistentPool;
 class RawScanResult
 {
 public:
-    QVector<RawScannedDependency> deps;
+    std::vector<RawScannedDependency> deps;
     FileTags additionalFileTags;
 
     void load(PersistentPool &pool);
@@ -89,7 +90,7 @@ public:
     void store(PersistentPool &pool) const;
 
 private:
-    QHash<QString, QVector<ScanData>> m_rawScanData;
+    QHash<QString, std::vector<ScanData>> m_rawScanData;
 };
 
 } // namespace Internal

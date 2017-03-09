@@ -72,9 +72,10 @@ ProjectGeneratorManager *ProjectGeneratorManager::instance()
 
 ProjectGeneratorManager::ProjectGeneratorManager()
 {
-    QVector<QSharedPointer<ProjectGenerator> > generators;
-    generators << QSharedPointer<ClangCompilationDatabaseGenerator>::create();
-    generators << qbs::VisualStudioGenerator::createGeneratorList();
+    std::vector<QSharedPointer<ProjectGenerator> > generators;
+    generators.push_back(QSharedPointer<ClangCompilationDatabaseGenerator>::create());
+    const auto vsGenerators = qbs::VisualStudioGenerator::createGeneratorList();
+    std::copy(vsGenerators.cbegin(), vsGenerators.cend(), std::back_inserter(generators));
     for (QSharedPointer<ProjectGenerator> generator : qAsConst(generators))
         m_generators[generator->generatorName()] = generator;
 }

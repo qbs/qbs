@@ -53,15 +53,15 @@ RuleGraph::RuleGraph()
 void RuleGraph::build(const Set<RulePtr> &rules, const FileTags &productFileTags)
 {
     QMap<FileTag, QList<const Rule *> > inputFileTagToRule;
-    m_rules.reserve(rules.count());
+    m_rules.reserve(rules.size());
     for (const RulePtr &rule : rules) {
         for (const FileTag &fileTag : rule->collectedOutputFileTags())
             m_outputFileTagToRule[fileTag].append(rule.data());
         insert(rule);
     }
 
-    m_parents.resize(rules.count());
-    m_children.resize(rules.count());
+    m_parents.resize(rules.size());
+    m_children.resize(rules.size());
 
     for (const RuleConstPtr &rule : qAsConst(m_rules)) {
         FileTags inFileTags = rule->inputs;
@@ -101,7 +101,7 @@ void RuleGraph::dump() const
     printf("---rule graph dump:\n");
     Set<int> rootRules;
     for (const RuleConstPtr &rule : qAsConst(m_rules))
-        if (m_parents[rule->ruleGraphId].isEmpty())
+        if (m_parents[rule->ruleGraphId].empty())
             rootRules += rule->ruleGraphId;
     for (int idx : qAsConst(rootRules))
         dump_impl(indent, idx);
@@ -122,21 +122,21 @@ void RuleGraph::dump_impl(QByteArray &indent, int rootIndex) const
 
 int RuleGraph::insert(const RulePtr &rule)
 {
-    rule->ruleGraphId = m_rules.count();
-    m_rules.append(rule);
+    rule->ruleGraphId = m_rules.size();
+    m_rules.push_back(rule);
     return rule->ruleGraphId;
 }
 
 void RuleGraph::connect(const Rule *creatingRule, const Rule *consumingRule)
 {
-    int maxIndex = qMax(creatingRule->ruleGraphId, consumingRule->ruleGraphId);
-    if (m_parents.count() <= maxIndex) {
+    int maxIndex = std::max(creatingRule->ruleGraphId, consumingRule->ruleGraphId);
+    if (static_cast<int>(m_parents.size()) <= maxIndex) {
         const int c = maxIndex + 1;
         m_parents.resize(c);
         m_children.resize(c);
     }
-    m_parents[consumingRule->ruleGraphId].append(creatingRule->ruleGraphId);
-    m_children[creatingRule->ruleGraphId].append(consumingRule->ruleGraphId);
+    m_parents[consumingRule->ruleGraphId].push_back(creatingRule->ruleGraphId);
+    m_children[creatingRule->ruleGraphId].push_back(consumingRule->ruleGraphId);
 }
 
 void RuleGraph::traverse(RuleGraphVisitor *visitor, const RuleConstPtr &parentRule,

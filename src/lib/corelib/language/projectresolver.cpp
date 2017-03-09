@@ -893,7 +893,7 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
             rab.name = name;
             rab.code = sourceCodeForEvaluation(sourceValue);
             rab.location = sourceValue->location();
-            ruleArtifact->bindings += rab;
+            ruleArtifact->bindings.push_back(rab);
         } else {
             QBS_ASSERT(!"unexpected value type", continue);
         }

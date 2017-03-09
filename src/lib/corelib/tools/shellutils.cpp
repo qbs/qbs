@@ -179,7 +179,7 @@ void CommandLine::setProgram(const QString &program, bool raw)
 
 void CommandLine::appendArgument(const QString &value)
 {
-    m_arguments.append(value);
+    m_arguments.push_back(value);
 }
 
 void CommandLine::appendArguments(const QList<QString> &args)
@@ -192,14 +192,14 @@ void CommandLine::appendRawArgument(const QString &value)
 {
     Argument arg(value);
     arg.shouldQuote = false;
-    m_arguments.append(arg);
+    m_arguments.push_back(arg);
 }
 
 void CommandLine::appendPathArgument(const QString &value)
 {
     Argument arg(value);
     arg.isFilePath = true;
-    m_arguments.append(arg);
+    m_arguments.push_back(arg);
 }
 
 void CommandLine::clearArguments()

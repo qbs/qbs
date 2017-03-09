@@ -42,7 +42,8 @@
 
 #include <QtCore/qbytearray.h>
 #include <QtCore/qhash.h>
-#include <QtCore/qvector.h>
+
+#include <vector>
 
 namespace qbs {
 namespace Internal {

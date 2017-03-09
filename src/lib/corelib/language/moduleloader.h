@@ -165,7 +165,7 @@ private:
     public:
         TopLevelProjectContext *topLevelProject;
         ModuleLoaderResult *result;
-        QVector<ProductContext> products;
+        std::vector<ProductContext> products;
         QStack<QStringList> searchPathsStack;
     };
 
@@ -184,7 +184,7 @@ private:
         TopLevelProjectContext() {}
         ~TopLevelProjectContext() { qDeleteAll(projects); }
 
-        QVector<ProjectContext *> projects;
+        std::vector<ProjectContext *> projects;
         QHash<QString, ProductModuleInfo> productModules;
         QList<ProbeConstPtr> probes;
         QString buildDirectory;

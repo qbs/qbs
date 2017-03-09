@@ -47,13 +47,13 @@
 #include <QtCore/qscopedpointer.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qtimer.h>
-#include <QtCore/qvector.h>
 
 #include <QtTest/qtest.h>
 
 #include <algorithm>
 #include <functional>
 #include <utility>
+#include <vector>
 
 #define VERIFY_NO_ERROR(errorInfo) \
     QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()))
@@ -94,10 +94,10 @@ class ProcessResultReceiver : public QObject
     Q_OBJECT
 public:
     QString output;
-    QVector<qbs::ProcessResult> results;
+    std::vector<qbs::ProcessResult> results;
 
     void handleProcessResult(const qbs::ProcessResult &result) {
-        results << result;
+        results.push_back(result);
         output += result.stdErr().join(QLatin1Char('\n'));
         output += result.stdOut().join(QLatin1Char('\n'));
     }
@@ -1723,8 +1723,8 @@ void TestApi::processResult()
     const qbs::ErrorInfo errorInfo = doBuildProject("process-result",
             nullptr, &resultReceiver, nullptr, qbs::BuildOptions(), overridden);
     QCOMPARE(expectedExitCode != 0, errorInfo.hasError());
-    QVERIFY(resultReceiver.results.count() > 1);
-    const qbs::ProcessResult &result = resultReceiver.results.last();
+    QVERIFY(resultReceiver.results.size() > 1);
+    const qbs::ProcessResult &result = resultReceiver.results.back();
     QVERIFY2(result.executableFilePath().contains("app"), qPrintable(result.executableFilePath()));
     QCOMPARE(expectedExitCode, result.exitCode());
     QCOMPARE(expectedExitCode == 0, result.success());
@@ -1737,7 +1737,7 @@ void TestApi::processResult()
         QByteArray expectedContent;
         const QStringList consoleOutput;
     };
-    const QVector<CheckParams> checkParams({
+    const std::vector<CheckParams> checkParams({
         CheckParams(redirectStdout, "stdout.txt", "stdout", result.stdOut()),
         CheckParams(redirectStderr, "stderr.txt", "stderr", result.stdErr())
     });

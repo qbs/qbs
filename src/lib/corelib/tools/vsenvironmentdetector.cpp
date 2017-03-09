@@ -74,26 +74,26 @@ VsEnvironmentDetector::VsEnvironmentDetector()
 
 bool VsEnvironmentDetector::start(MSVC *msvc)
 {
-    return start(QVector<MSVC *>() << msvc);
+    return start(std::vector<MSVC *>{ msvc });
 }
 
-bool VsEnvironmentDetector::start(QVector<MSVC *> msvcs)
+bool VsEnvironmentDetector::start(std::vector<MSVC *> msvcs)
 {
     std::sort(msvcs.begin(), msvcs.end(), [] (const MSVC *a, const MSVC *b) -> bool {
         return a->vcInstallPath < b->vcInstallPath;
     });
 
-    QVector<MSVC *> compatibleMSVCs;
+    std::vector<MSVC *> compatibleMSVCs;
     QString lastVcInstallPath;
     for (MSVC * const msvc : qAsConst(msvcs)) {
         if (lastVcInstallPath != msvc->vcInstallPath) {
             lastVcInstallPath = msvc->vcInstallPath;
-            if (!compatibleMSVCs.isEmpty()) {
+            if (!compatibleMSVCs.empty()) {
                 startDetection(compatibleMSVCs);
                 compatibleMSVCs.clear();
             }
         }
-        compatibleMSVCs.append(msvc);
+        compatibleMSVCs.push_back(msvc);
     }
     startDetection(compatibleMSVCs);
     return true;
@@ -122,9 +122,9 @@ QString VsEnvironmentDetector::findVcVarsAllBat(const MSVC &msvc) const
     return QString();
 }
 
-bool VsEnvironmentDetector::startDetection(const QVector<MSVC *> &compatibleMSVCs)
+bool VsEnvironmentDetector::startDetection(const std::vector<MSVC *> &compatibleMSVCs)
 {
-    const QString vcvarsallbat = findVcVarsAllBat(*compatibleMSVCs.first());
+    const QString vcvarsallbat = findVcVarsAllBat(**compatibleMSVCs.begin());
     if (vcvarsallbat.isEmpty()) {
         m_errorString = Tr::tr("Cannot find 'vcvarsall.bat'.");
         return false;
@@ -194,7 +194,7 @@ static QString vcArchitecture(const MSVC *msvc)
 }
 
 void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcvarsallbat,
-                                           const QVector<MSVC *> &msvcs) const
+                                           const std::vector<MSVC *> &msvcs) const
 {
     const QStringList varnames = QStringList() << QLatin1String("PATH")
             << QLatin1String("INCLUDE") << QLatin1String("LIB");
@@ -212,7 +212,7 @@ void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcv
     }
 }
 
-void VsEnvironmentDetector::parseBatOutput(const QByteArray &output, QVector<MSVC *> msvcs)
+void VsEnvironmentDetector::parseBatOutput(const QByteArray &output, std::vector<MSVC *> msvcs)
 {
     QString arch;
     QProcessEnvironment *targetEnv = 0;
@@ -225,7 +225,8 @@ void VsEnvironmentDetector::parseBatOutput(const QByteArray &output, QVector<MSV
             line.remove(0, 2);
             line.chop(2);
             arch = QString::fromLocal8Bit(line);
-            targetEnv = &msvcs.takeFirst()->environment;
+            targetEnv = &msvcs.front()->environment;
+            msvcs.erase(msvcs.begin());
         } else {
             int idx = line.indexOf('=');
             if (idx < 0)

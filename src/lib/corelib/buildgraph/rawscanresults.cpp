@@ -83,7 +83,7 @@ RawScanResults::ScanData &RawScanResults::findScanData(
         const DependencyScanner *scanner,
         const PropertyMapConstPtr &moduleProperties)
 {
-    QVector<ScanData> &scanDataForFile = m_rawScanData[file->filePath()];
+    std::vector<ScanData> &scanDataForFile = m_rawScanData[file->filePath()];
     const QString &scannerId = scanner->id();
     for (auto it = scanDataForFile.begin(); it != scanDataForFile.end(); ++it) {
         ScanData &scanData = *it;
@@ -96,8 +96,8 @@ RawScanResults::ScanData &RawScanResults::findScanData(
     ScanData newScanData;
     newScanData.scannerId = scannerId;
     newScanData.moduleProperties = moduleProperties;
-    scanDataForFile.append(std::move(newScanData));
-    return scanDataForFile.last();
+    scanDataForFile.push_back(std::move(newScanData));
+    return scanDataForFile.back();
 }
 
 void RawScanResults::load(PersistentPool &pool)

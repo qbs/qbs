@@ -426,8 +426,6 @@ void TestTools::set_capacity()
 void TestTools::set_reserve()
 {
     Set<int> set;
-    int n = set.capacity();
-    QVERIFY(n == 0);
 
     set.reserve(1000);
     QVERIFY(set.capacity() >= 1000);
@@ -441,13 +439,6 @@ void TestTools::set_reserve()
         set.remove(j);
 
     QVERIFY(set.capacity() >= 1000);
-
-    set.clear();
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 7, 0))
-    QVERIFY(set.capacity() >= 1000);        // qtbase/a7885c9756d423042bd0670d82d78d8dffe9be54
-#else
-    QVERIFY(set.capacity() == 0);
-#endif
 }
 
 void TestTools::set_clear()
@@ -582,8 +573,6 @@ void TestTools::set_begin()
 
         QVERIFY(i == j);
         QVERIFY(k == ell);
-        QVERIFY(i == k);
-        QVERIFY(j == ell);
     }
 }
 
@@ -600,8 +589,6 @@ void TestTools::set_end()
 
         QVERIFY(i == j);
         QVERIFY(k == ell);
-        QVERIFY(i == k);
-        QVERIFY(j == ell);
 
         QVERIFY(set1.constBegin() == set1.constEnd());
         QVERIFY(set2.constBegin() == set2.constEnd());
@@ -634,8 +621,6 @@ void TestTools::set_end()
 
         QVERIFY(i == j);
         QVERIFY(k == ell);
-        QVERIFY(i == k);
-        QVERIFY(j == ell);
 
         QVERIFY(set1.constBegin() != set1.constEnd());
         QVERIFY(set2.constBegin() != set2.constEnd());

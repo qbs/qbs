@@ -60,14 +60,14 @@ public:
     VsEnvironmentDetector();
 
     bool start(MSVC *msvc);
-    bool start(QVector<MSVC *> msvcs);
+    bool start(std::vector<MSVC *> msvcs);
     QString errorString() const { return m_errorString; }
 
 private:
     QString findVcVarsAllBat(const MSVC &msvc) const;
-    bool startDetection(const QVector<MSVC *> &compatibleMSVCs);
-    void writeBatchFile(QIODevice *device, const QString &vcvarsallbat, const QVector<MSVC *> &msvcs) const;
-    void parseBatOutput(const QByteArray &output, QVector<MSVC *> msvcs);
+    bool startDetection(const std::vector<MSVC *> &compatibleMSVCs);
+    void writeBatchFile(QIODevice *device, const QString &vcvarsallbat, const std::vector<MSVC *> &msvcs) const;
+    void parseBatOutput(const QByteArray &output, std::vector<MSVC *> msvcs);
 
     const QString m_windowsSystemDirPath;
     QString m_errorString;

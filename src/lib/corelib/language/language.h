@@ -166,9 +166,19 @@ public:
 
         void store(PersistentPool &pool) const;
         void load(PersistentPool &pool);
+
+        bool operator<(const Binding &other) const
+        {
+            if (name == other.name) {
+                if (code == other.code)
+                    return location < other.location;
+                return code < other.code;
+            }
+            return name < other.name;
+        }
     };
 
-    QVector<Binding> bindings;
+    std::vector<Binding> bindings;
 
 private:
     RuleArtifact()
@@ -226,7 +236,7 @@ public:
 
     QStringList patterns;
     QStringList excludePatterns;
-    QVector<std::pair<QString, FileTime>> dirTimeStamps;
+    std::vector<std::pair<QString, FileTime>> dirTimeStamps;
     QList<SourceArtifactPtr> files;
 
 private:

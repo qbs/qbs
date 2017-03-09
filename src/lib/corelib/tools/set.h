@@ -68,17 +68,17 @@ template<typename T> struct SortAfterLoad<QSharedPointer<T>> { static const bool
 template<typename T> class Set
 {
 public:
-    using const_iterator = typename QVector<T>::const_iterator;
-    using iterator = typename QVector<T>::iterator;
-    using reverse_iterator = typename QVector<T>::reverse_iterator;
-    using const_reverse_iterator = typename QVector<T>::const_reverse_iterator;
-    using size_type = typename QVector<T>::size_type;
+    using const_iterator = typename std::vector<T>::const_iterator;
+    using iterator = typename std::vector<T>::iterator;
+    using reverse_iterator = typename std::vector<T>::reverse_iterator;
+    using const_reverse_iterator = typename std::vector<T>::const_reverse_iterator;
+    using size_type = typename std::vector<T>::size_type;
     using value_type = T;
-    using difference_type = typename QVector<T>::difference_type;
-    using pointer = typename QVector<T>::pointer;
-    using const_pointer = typename QVector<T>::const_pointer;
-    using reference = typename QVector<T>::reference;
-    using const_reference = typename QVector<T>::const_reference;
+    using difference_type = typename std::vector<T>::difference_type;
+    using pointer = typename std::vector<T>::pointer;
+    using const_pointer = typename std::vector<T>::const_pointer;
+    using reference = typename std::vector<T>::reference;
+    using const_reference = typename std::vector<T>::const_reference;
 
     iterator begin() { return m_data.begin(); }
     iterator end() { return m_data.end(); }
@@ -119,7 +119,7 @@ public:
     bool contains(const T &v) const { return std::binary_search(cbegin(), cend(), v); }
     bool contains(const Set<T> &other) const;
     bool isEmpty() const { return m_data.empty(); }
-    int count() const { return m_data.count(); }
+    int count() const { return m_data.size(); }
     int size() const { return count(); }
     int capacity() const { return m_data.capacity(); }
     bool intersects(const Set<T> &other) const;
@@ -140,9 +140,10 @@ public:
     QString toString(const T& value) const { return value.toString(); }
     QString toString() const;
 
+    static Set<T> fromStdVector(const std::vector<T> &vector);
     static Set<T> fromList(const QList<T> &list);
     static Set<T> fromStdSet(const std::set<T> &set);
-    QList<T> toList() const { return m_data.toList(); }
+    QList<T> toList() const;
     std::set<T> toStdSet() const;
 
     template<typename U> static Set<T> filtered(const Set<U> &s);
@@ -160,7 +161,7 @@ private:
     bool sortAfterLoadRequired() const { return helper::SortAfterLoad<T>::required; }
     iterator asMutableIterator(const_iterator cit);
 
-    QVector<T> m_data;
+    std::vector<T> m_data;
 };
 
 template<typename T> Set<T>::Set(const std::initializer_list<T> &list) : m_data(list)
@@ -239,7 +240,7 @@ template<typename T> Set<T> &Set<T>::unite(const Set<T> &other)
     for (auto otherIt = other.cbegin(); otherIt != other.cend(); ++otherIt) {
         lowerBound = std::lower_bound(lowerBound, m_data.end(), *otherIt);
         if (lowerBound == m_data.end()) {
-            m_data.reserve(count() + std::distance(otherIt, other.cend()));
+            m_data.reserve(size() + std::distance(otherIt, other.cend()));
             std::copy(otherIt, other.cend(), std::back_inserter(m_data));
             return *this;
         }
@@ -265,7 +266,7 @@ template<typename T> void Set<T>::load(PersistentPool &pool)
     int i = pool.load<int>();
     reserve(i);
     for (; --i >= 0;)
-        m_data << loadElem(pool);
+        m_data.push_back(loadElem(pool));
     if (sortAfterLoadRequired())
         sort();
 }
@@ -294,10 +295,18 @@ template<typename T> QString Set<T>::toString() const
     return QLatin1Char('[') + toStringList().join(QLatin1String(", ")) + QLatin1Char(']');
 }
 
+template<typename T> Set<T> Set<T>::fromStdVector(const std::vector<T> &vector)
+{
+    Set<T> s;
+    std::copy(vector.cbegin(), vector.cend(), std::back_inserter(s.m_data));
+    s.sort();
+    return s;
+}
+
 template<typename T> Set<T> Set<T>::fromList(const QList<T> &list)
 {
     Set<T> s;
-    s.m_data = QVector<T>::fromList(list);
+    std::copy(list.cbegin(), list.cend(), std::back_inserter(s.m_data));
     s.sort();
     return s;
 }
@@ -307,6 +316,13 @@ template<typename T> Set<T> Set<T>::fromStdSet(const std::set<T> &set)
     Set<T> s;
     std::copy(set.cbegin(), set.cend(), std::back_inserter(s.m_data));
     return s;
+}
+
+template<typename T> QList<T> Set<T>::toList() const
+{
+    QList<T> list;
+    std::copy(m_data.cbegin(), m_data.cend(), std::back_inserter(list));
+    return list;
 }
 
 template<typename T> std::set<T> Set<T>::toStdSet() const
@@ -332,7 +348,7 @@ template<typename T> template<typename U> Set<T> Set<T>::filtered(const Set<U> &
     for (auto &u : s) {
         T t = dynamic_cast<T>(u);
         if (t)
-            filteredSet.m_data << t;
+            filteredSet.m_data.push_back(t);
     }
     return filteredSet;
 }
@@ -376,7 +392,7 @@ template<typename T> Set<T> operator-(const Set<T> &set1, const Set<T> &set2)
             break;
         }
         if (*it1 < *it2) {
-            result.m_data << *it1++;
+            result.m_data.push_back(*it1++);
         } else if (*it2 < *it1) {
             ++it2;
         } else {
@@ -401,7 +417,7 @@ template<typename T> Set<T> operator&(const Set<T> &set1, const Set<T> &set2)
             ++it2;
             continue;
         }
-        result.m_data << *it1;
+        result.m_data.push_back(*it1);
         ++it1;
         ++it2;
     }

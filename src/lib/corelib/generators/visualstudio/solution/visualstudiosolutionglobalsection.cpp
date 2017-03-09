@@ -29,9 +29,9 @@
 ****************************************************************************/
 
 #include "visualstudiosolutionglobalsection.h"
-#include <QtCore/qvector.h>
 
 #include <utility>
+#include <vector>
 
 namespace qbs {
 
@@ -39,7 +39,7 @@ class VisualStudioSolutionGlobalSectionPrivate
 {
 public:
     QString name;
-    QVector<std::pair<QString, QString>> properties;
+    std::vector<std::pair<QString, QString>> properties;
     bool post = false;
 };
 
@@ -75,14 +75,14 @@ void VisualStudioSolutionGlobalSection::setPost(bool post)
     d->post = post;
 }
 
-QVector<std::pair<QString, QString> > VisualStudioSolutionGlobalSection::properties() const
+std::vector<std::pair<QString, QString> > VisualStudioSolutionGlobalSection::properties() const
 {
     return d->properties;
 }
 
 void VisualStudioSolutionGlobalSection::appendProperty(const QString &key, const QString &value)
 {
-    d->properties.append({ key, value });
+    d->properties.push_back({ key, value });
 }
 
 } // namespace qbs

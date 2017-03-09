@@ -47,7 +47,8 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qmap.h>
 #include <QtCore/qstring.h>
-#include <QtCore/qvector.h>
+
+#include <vector>
 
 namespace qbs {
 namespace Internal {
@@ -78,9 +79,9 @@ private:
 
 private:
     QMap<FileTag, QList<const Rule*> > m_outputFileTagToRule;
-    QVector<RulePtr> m_rules;
-    QVector< QVector<int> > m_parents;
-    QVector< QVector<int> > m_children;
+    std::vector<RulePtr> m_rules;
+    std::vector< std::vector<int> > m_parents;
+    std::vector< std::vector<int> > m_children;
     Set<int> m_rootRules;
 };
 

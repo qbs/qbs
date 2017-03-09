@@ -44,7 +44,8 @@
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/quuid.h>
-#include <QtCore/qvector.h>
+
+#include <vector>
 
 namespace qbs {
 

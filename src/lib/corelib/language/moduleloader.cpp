@@ -125,10 +125,9 @@ public:
         QHash<QString, ProductContext *> productsMap;
         QList<ProductContext *> allProducts;
         for (ProjectContext * const projectContext : qAsConst(m_tlp.projects)) {
-            QVector<ProductContext> &products = projectContext->products;
-            for (auto prodIt = products.begin(); prodIt != products.end(); ++prodIt) {
-                allProducts << prodIt;
-                productsMap.insert(prodIt->name, prodIt);
+            for (auto &product : projectContext->products) {
+                allProducts.push_back(&product);
+                productsMap.insert(product.name, &product);
             }
         }
         Set<ProductContext *> allDependencies;
@@ -140,7 +139,7 @@ public:
                 QBS_CHECK(!dep.name.isEmpty());
                 ProductContext * const depProduct = productsMap.value(dep.name);
                 QBS_CHECK(depProduct);
-                productDependencies << depProduct;
+                productDependencies.push_back(depProduct);
                 allDependencies << depProduct;
             }
         }
@@ -190,7 +189,7 @@ private:
     }
 
     TopLevelProjectContext &m_tlp;
-    QHash<ProductContext *, QVector<ProductContext *>> m_dependencyMap;
+    QHash<ProductContext *, std::vector<ProductContext *>> m_dependencyMap;
     Set<ProductContext *> m_seenProducts;
     QList<ProductContext *> m_sortedProducts;
 };
@@ -508,7 +507,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         delete p;
         return;
     }
-    topLevelProjectContext->projects << &projectContext;
+    topLevelProjectContext->projects.push_back(&projectContext);
     m_reader->pushExtraSearchPaths(readExtraSearchPaths(projectItem)
                                    << projectItem->file()->dirPath());
     projectContext.searchPathsStack = m_reader->extraSearchPathsStack();
@@ -692,7 +691,7 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
 
     setScopeForDescendants(productItem, productContext.scope);
 
-    projectContext->products << productContext;
+    projectContext->products.push_back(productContext);
 }
 
 void ModuleLoader::setupProductDependencies(ProductContext *productContext)
@@ -727,7 +726,7 @@ static void createSortedModuleList(const Item::Module &parentModule, Item::Modul
         return;
     for (const Item::Module &dep : parentModule.item->modules())
         createSortedModuleList(dep, modules);
-    modules << parentModule;
+    modules.push_back(parentModule);
     return;
 }
 
@@ -1132,12 +1131,12 @@ void ModuleLoader::printProfilingInfo()
 
 void ModuleLoader::mergeExportItems(const ProductContext &productContext)
 {
-    QVector<Item *> exportItems;
+    std::vector<Item *> exportItems;
     QList<Item *> children = productContext.item->children();
     for (int i = 0; i < children.count();) {
         Item * const child = children.at(i);
         if (child->type() == ItemType::Export) {
-            exportItems << child;
+            exportItems.push_back(child);
             children.removeAt(i);
         } else {
             ++i;
@@ -1147,7 +1146,7 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
     // Note that we do not return if there are no Export items: The "merged" item becomes the
     // "product module", which always needs to exist, regardless of whether the product sources
     // actually contain an Export item or not.
-    if (!exportItems.isEmpty())
+    if (!exportItems.empty())
         productContext.item->setChildren(children);
 
     Item *merged = Item::create(productContext.item->pool(), ItemType::Export);
@@ -1178,10 +1177,10 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
             mergeProperty(merged, it.key(), it.value());
         }
     }
-    merged->setFile(exportItems.isEmpty()
-            ? productContext.item->file() : exportItems.last()->file());
-    merged->setLocation(exportItems.isEmpty()
-            ? productContext.item->location() : exportItems.last()->location());
+    merged->setFile(exportItems.empty()
+            ? productContext.item->file() : exportItems.back()->file());
+    merged->setLocation(exportItems.empty()
+            ? productContext.item->location() : exportItems.back()->location());
     Item::addChild(productContext.item, merged);
     merged->setupForBuiltinType(m_logger);
     ProductModuleInfo &pmi
@@ -2428,7 +2427,7 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
     }
 }
 
-static void collectAllModules(Item *item, QVector<Item::Module> *modules)
+static void collectAllModules(Item *item, std::vector<Item::Module> *modules)
 {
     for (const Item::Module &m : item->modules()) {
         auto it = std::find_if(modules->begin(), modules->end(),
@@ -2440,14 +2439,14 @@ static void collectAllModules(Item *item, QVector<Item::Module> *modules)
             it->versionRange.narrowDown(m.versionRange);
             continue;
         }
-        modules->append(m);
+        modules->push_back(m);
         collectAllModules(m.item, modules);
     }
 }
 
-static QVector<Item::Module> allModules(Item *item)
+static std::vector<Item::Module> allModules(Item *item)
 {
-    QVector<Item::Module> lst;
+    std::vector<Item::Module> lst;
     collectAllModules(item, &lst);
     return lst;
 }
@@ -2456,7 +2455,7 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] addTransitiveDependencies";
-    QVector<Item::Module> transitiveDeps = allModules(ctx->item);
+    std::vector<Item::Module> transitiveDeps = allModules(ctx->item);
     std::sort(transitiveDeps.begin(), transitiveDeps.end());
     for (const Item::Module &m : ctx->item->modules()) {
         if (m.isProduct) {

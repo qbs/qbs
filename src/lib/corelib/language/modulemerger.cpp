@@ -164,11 +164,11 @@ Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap pro
     outprops.reserve(numberOfOutprops);
     for (const Item::Module &dep : m.item->modules()) {
         if (dep.item != moduleInstance)
-            outprops << dfs(dep, props);
+            outprops.push_back(dfs(dep, props));
     }
 
     if (!outprops.empty()) {
-        props = outprops.at(0);
+        props = outprops.front();
         for (size_t i = 1; i < outprops.size(); ++i)
             mergeOutProps(&props, outprops.at(i));
     }

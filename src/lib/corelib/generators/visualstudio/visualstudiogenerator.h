@@ -61,7 +61,7 @@ public:
     QString generatorName() const override;
     void generate() override;
 
-    static QVector<QSharedPointer<ProjectGenerator> > createGeneratorList();
+    static std::vector<QSharedPointer<ProjectGenerator> > createGeneratorList();
 
 private:
     virtual void visitProject(const GeneratableProject &project) override;

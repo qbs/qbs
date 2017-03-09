@@ -49,9 +49,9 @@
 #include <QtCore/qsharedpointer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
-#include <QtCore/qvector.h>
 
 #include <type_traits>
+#include <vector>
 
 namespace qbs {
 namespace Internal {
@@ -112,12 +112,12 @@ private:
 
     QDataStream m_stream;
     HeadData m_headData;
-    QVector<PersistentObject *> m_loadedRaw;
-    QVector<QSharedPointer<PersistentObject> > m_loaded;
+    std::vector<PersistentObject *> m_loadedRaw;
+    std::vector<QSharedPointer<PersistentObject> > m_loaded;
     QHash<const PersistentObject *, int> m_storageIndices;
     PersistentObjectId m_lastStoredObjectId;
 
-    QVector<QString> m_stringStorage;
+    std::vector<QString> m_stringStorage;
     QHash<QString, int> m_inverseStringStorage;
     PersistentObjectId m_lastStoredStringId;
     Logger &m_logger;
@@ -131,14 +131,14 @@ template <typename T> inline T *PersistentPool::idLoad()
     if (id < 0)
         return 0;
 
-    if (id < m_loadedRaw.count()) {
-        PersistentObject *obj = m_loadedRaw.value(id);
+    if (id < static_cast<PersistentObjectId>(m_loadedRaw.size())) {
+        PersistentObject *obj = m_loadedRaw.at(id);
         return dynamic_cast<T*>(obj);
     }
 
-    int i = m_loadedRaw.count();
+    auto i = m_loadedRaw.size();
     m_loadedRaw.resize(id + 1);
-    for (; i < m_loadedRaw.count(); ++i)
+    for (; i < m_loadedRaw.size(); ++i)
         m_loadedRaw[i] = 0;
 
     T * const t = new T;
@@ -156,8 +156,8 @@ template <class T> inline QSharedPointer<T> PersistentPool::idLoadS()
     if (id < 0)
         return QSharedPointer<T>();
 
-    if (id < m_loaded.count()) {
-        QSharedPointer<PersistentObject> obj = m_loaded.value(id);
+    if (id < static_cast<PersistentObjectId>(m_loaded.size())) {
+        QSharedPointer<PersistentObject> obj = m_loaded.at(id);
         return obj.dynamicCast<T>();
     }
 
@@ -281,7 +281,6 @@ template<typename T> struct PersistentPool::Helper<QFlags<T>>
 
 template<typename T> struct IsSimpleContainer { static const bool value = false; };
 template<> struct IsSimpleContainer<QStringList> { static const bool value = true; };
-template<typename T> struct IsSimpleContainer<QVector<T>> { static const bool value = true; };
 template<typename T> struct IsSimpleContainer<QList<T>> { static const bool value = true; };
 template<typename T> struct IsSimpleContainer<std::vector<T>> { static const bool value = true; };
 

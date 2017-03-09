@@ -239,7 +239,7 @@ QString PersistentPool::loadString(int id)
 
     QBS_CHECK(id >= 0);
 
-    if (id >= m_stringStorage.count()) {
+    if (id >= static_cast<int>(m_stringStorage.size())) {
         QString s;
         m_stream >> s;
         m_stringStorage.resize(id + 1);

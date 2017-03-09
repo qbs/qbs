@@ -222,7 +222,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         engine()->setGlobalObject(prepareScriptContext);
     for (int i = ruleArtifactArtifactMap.count(); --i >= 0;) {
         const RuleArtifact *ra = ruleArtifactArtifactMap.at(i).first;
-        if (ra->bindings.isEmpty())
+        if (ra->bindings.empty())
             continue;
 
         // expose attributes of this artifact
@@ -236,8 +236,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
 
         QVariantMap artifactModulesCfg = outputArtifact->properties->value()
                 .value(QLatin1String("modules")).toMap();
-        for (int i=0; i < ra->bindings.count(); ++i) {
-            const RuleArtifact::Binding &binding = ra->bindings.at(i);
+        for (const auto &binding : ra->bindings) {
             scriptValue = engine()->evaluate(binding.code);
             if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
                 QString msg = QLatin1String("evaluating rule binding '%1': %2");
@@ -332,8 +331,8 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
             throw ErrorInfo(e);
         }
         if (transformer && !m_rule->multiplex && transformer->inputs != inputArtifacts) {
-            QBS_CHECK(inputArtifacts.count() == 1);
-            QBS_CHECK(transformer->inputs.count() == 1);
+            QBS_CHECK(inputArtifacts.size() == 1);
+            QBS_CHECK(transformer->inputs.size() == 1);
             ErrorInfo error(Tr::tr("Conflicting instances of rule '%1':").arg(m_rule->toString()),
                             m_rule->prepareScript->location);
             error.append(Tr::tr("Output artifact '%1' is to be produced from input "

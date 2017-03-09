@@ -63,9 +63,9 @@
 #include <tools/settings.h>
 
 #include <QtCore/qprocess.h>
-#include <QtCore/qvector.h>
 
 #include <algorithm>
+#include <vector>
 
 Q_DECLARE_METATYPE(QList<bool>)
 
@@ -1534,7 +1534,7 @@ void TestLanguage::nonRequiredProducts()
                 .toStringList();
         QCOMPARE(subProjectEnabled && dependeeEnabled, defines.contains("WITH_DEPENDEE"));
 
-        for (const auto &name : QVector<const char *>({ "p3", "p2", "p1"})) {
+        for (const auto &name : std::vector<const char *>({ "p3", "p2", "p1"})) {
              const ResolvedProductConstPtr &product = products.value(name);
              QVERIFY2(product, name);
              QVERIFY2(!product->enabled, name);

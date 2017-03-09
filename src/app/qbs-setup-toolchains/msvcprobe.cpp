@@ -56,7 +56,8 @@
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qsettings.h>
 #include <QtCore/qstringlist.h>
-#include <QtCore/qvector.h>
+
+#include <vector>
 
 using namespace qbs;
 using namespace qbs::Internal;
@@ -98,9 +99,9 @@ struct MSVCArchInfo
     QString binPath;
 };
 
-static QVector<MSVCArchInfo> findSupportedArchitectures(const MSVC &msvc)
+static std::vector<MSVCArchInfo> findSupportedArchitectures(const MSVC &msvc)
 {
-    QVector<MSVCArchInfo> result;
+    std::vector<MSVCArchInfo> result;
     if (msvc.internalVsVersion.majorVersion() < 15) {
         static const QStringList knownArchitectures = QStringList()
             << QStringLiteral("x86")
@@ -116,7 +117,7 @@ static QVector<MSVCArchInfo> findSupportedArchitectures(const MSVC &msvc)
             ai.arch = knownArchitecture;
             ai.binPath = msvc.binPathForArchitecture(knownArchitecture);
             if (QFile::exists(ai.binPath + QLatin1String("/cl.exe")))
-                result += ai;
+                result.push_back(ai);
         }
     } else {
         QDir vcInstallDir(msvc.vcInstallPath);
@@ -132,7 +133,7 @@ static QVector<MSVCArchInfo> findSupportedArchitectures(const MSVC &msvc)
                     ai.arch = arch;
                 else
                     ai.arch = shortHostArch + QLatin1Char('_') + arch;
-                result += ai;
+                result.push_back(ai);
             }
         }
     }
@@ -154,9 +155,9 @@ struct MSVCRegistryEntry
     QString installDir;
 };
 
-static QVector<MSVCRegistryEntry> installedMSVCsFromRegistry()
+static std::vector<MSVCRegistryEntry> installedMSVCsFromRegistry()
 {
-    QVector<MSVCRegistryEntry> result;
+    std::vector<MSVCRegistryEntry> result;
 
     // Detect Visual Studio
     const QSettings vsRegistry(
@@ -167,7 +168,7 @@ static QVector<MSVCRegistryEntry> installedMSVCsFromRegistry()
         MSVCRegistryEntry entry;
         entry.version = vsName;
         entry.installDir = vsRegistry.value(vsName).toString();
-        result.append(entry);
+        result.push_back(entry);
     }
 
     // Detect Visual C++ Build Tools
@@ -189,7 +190,7 @@ static QVector<MSVCRegistryEntry> installedMSVCsFromRegistry()
                         + QStringLiteral("\\Setup\\VC"),
                         QSettings::NativeFormat);
             entry.installDir = vsRegistry.value(QStringLiteral("ProductDir")).toString();
-            result.append(entry);
+            result.push_back(entry);
         }
         vcbtRegistry.endGroup();
     }
@@ -197,10 +198,10 @@ static QVector<MSVCRegistryEntry> installedMSVCsFromRegistry()
     return result;
 }
 
-static QVector<MSVC> installedMSVCs()
+static std::vector<MSVC> installedMSVCs()
 {
-    QVector<MSVC> msvcs;
-    const QVector<MSVCRegistryEntry> &registryEntries = installedMSVCsFromRegistry();
+    std::vector<MSVC> msvcs;
+    const std::vector<MSVCRegistryEntry> &registryEntries = installedMSVCsFromRegistry();
     for (const MSVCRegistryEntry &registryEntry : registryEntries) {
         MSVC msvc;
         msvc.internalVsVersion = Version::fromString(registryEntry.version);
@@ -226,7 +227,7 @@ static QVector<MSVC> installedMSVCs()
             if (!vcInstallDir.cd(QStringLiteral("bin")))
                 continue;
             msvc.vcInstallPath = vcInstallDir.absolutePath();
-            msvcs.append(msvc);
+            msvcs.push_back(msvc);
         } else {
             QDir vcInstallDir = vsInstallDir;
             vcInstallDir.cd(QStringLiteral("Tools/MSVC"));
@@ -241,7 +242,7 @@ static QVector<MSVC> installedMSVCs()
                     continue;
                 }
                 msvc.vcInstallPath = specificVcInstallDir.absolutePath();
-                msvcs.append(msvc);
+                msvcs.push_back(msvc);
             }
         }
     }
@@ -253,7 +254,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     qbsInfo() << Tr::tr("Detecting MSVC toolchains...");
 
     // 1) Installed SDKs preferred over standalone Visual studio
-    QVector<WinSDK> winSDKs;
+    std::vector<WinSDK> winSDKs;
     WinSDK defaultWinSDK;
 
     const QSettings sdkRegistry(QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
@@ -276,7 +277,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
                 WinSDK specificSDK = sdk;
                 specificSDK.architecture = ai.arch;
                 specificSDK.binPath = ai.binPath;
-                winSDKs += specificSDK;
+                winSDKs.push_back(specificSDK);
             }
         }
     }
@@ -289,7 +290,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     }
 
     // 2) Installed MSVCs
-    QVector<MSVC> msvcs;
+    std::vector<MSVC> msvcs;
     foreach (MSVC msvc, installedMSVCs()) {
         if (msvc.internalVsVersion.majorVersion() < 15) {
             // Check existence of various install scripts
@@ -302,7 +303,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
             MSVC specificMSVC = msvc;
             specificMSVC.architecture = ai.arch;
             specificMSVC.binPath = ai.binPath;
-            msvcs += specificMSVC;
+            msvcs.push_back(specificMSVC);
         }
     }
 
@@ -312,14 +313,14 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
                                           QDir::toNativeSeparators(msvc.binPath));
     }
 
-    if (winSDKs.isEmpty() && msvcs.isEmpty()) {
+    if (winSDKs.empty() && msvcs.empty()) {
         qbsInfo() << Tr::tr("Could not detect an installation of "
                             "the Windows SDK or Visual Studio.");
         return;
     }
 
     qbsInfo() << Tr::tr("Detecting build environment...");
-    QVector<MSVC *> msvcPtrs;
+    std::vector<MSVC *> msvcPtrs;
     msvcPtrs.resize(winSDKs.size() + msvcs.size());
     std::transform(winSDKs.begin(), winSDKs.end(), msvcPtrs.begin(),
                    [] (WinSDK &sdk) -> MSVC * { return &sdk; });
@@ -329,8 +330,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     VsEnvironmentDetector envDetector;
     envDetector.start(msvcPtrs);
 
-    for (int i = 0; i < winSDKs.count(); ++i) {
-        WinSDK &sdk = winSDKs[i];
+    for (WinSDK &sdk : winSDKs) {
         const QString name = QLatin1String("WinSDK") + sdk.version + QLatin1Char('-')
                 + sdk.architecture;
         try {
@@ -341,8 +341,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
         }
     }
 
-    for (int i = 0; i < msvcs.count(); ++i) {
-        MSVC &msvc = msvcs[i];
+    for (MSVC &msvc : msvcs) {
         const QString name = QLatin1String("MSVC") + msvc.version + QLatin1Char('-')
                 + msvc.architecture;
         try {
