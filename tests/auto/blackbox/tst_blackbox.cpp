@@ -2712,6 +2712,22 @@ void TestBlackbox::errorInfo()
     QVERIFY2(m_qbsStderr.contains("error-info.qbs:58"), m_qbsStderr);
 }
 
+void TestBlackbox::escapedLinkerFlags()
+{
+    Settings settings((QString()));
+    const Profile buildProfile(profileName(), &settings);
+    const QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    if (!toolchain.contains("gcc") || targetOs() == HostOsInfo::HostOsMacos)
+        QSKIP("escaped linker flags test only applies with gcc and GNU ld");
+    QDir::setCurrent(testDataDir + "/escaped-linker-flags");
+    QbsRunParameters params(QStringList("products.app.escapeLinkerFlags:false"));
+    QCOMPARE(runQbs(params), 0);
+    params.arguments = QStringList() << "products.app.escapeLinkerFlags:true";
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("Encountered escaped linker flag"), m_qbsStderr.constData());
+}
+
 void TestBlackbox::systemRunPaths()
 {
     Settings settings((QString()));

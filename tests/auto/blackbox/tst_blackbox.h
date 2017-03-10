@@ -80,6 +80,7 @@ private slots:
     void erroneousFiles_data();
     void erroneousFiles();
     void errorInfo();
+    void escapedLinkerFlags();
     void exportRule();
     void exportToOutsideSearchPath();
     void fileDependencies();

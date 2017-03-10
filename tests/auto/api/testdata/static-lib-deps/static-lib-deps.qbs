@@ -94,7 +94,7 @@ Project {
 
         Properties {
             condition: qbs.targetOS.contains("linux")
-            cpp.linkerFlags: ["-static"]
+            cpp.driverFlags: ["-static"]
         }
 
         files: [
