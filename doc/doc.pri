@@ -1,12 +1,8 @@
 include(../src/install_prefix.pri)
 
-defineReplace(targetPath) {
-    return($$replace(1, /, $$QMAKE_DIR_SEP))
-}
-
-QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc)
+QDOC_BIN = $$shell_path($$[QT_INSTALL_BINS]/qdoc)
 QDOC_MAINFILE = $$PWD/qbs.qdocconf
-HELPGENERATOR = $$targetPath($$[QT_INSTALL_BINS]/qhelpgenerator)
+HELPGENERATOR = $$shell_path($$[QT_INSTALL_BINS]/qhelpgenerator)
 
 include(doc_targets.pri)
 
@@ -25,7 +21,7 @@ QMAKE_EXTRA_TARGETS += \
     qch_docs
 
 fixnavi.commands = \
-    cd $$targetPath($$PWD) && \
+    cd $$shell_path($$PWD) && \
     perl fixnavi.pl -Dqcmanual -Dqtquick \
         qbs.qdoc
 QMAKE_EXTRA_TARGETS += fixnavi
