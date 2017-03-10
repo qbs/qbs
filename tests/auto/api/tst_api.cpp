@@ -1389,9 +1389,11 @@ void TestApi::linkStaticAndDynamicLibs()
             }
         }
         QVERIFY(!appLinkCmd.isEmpty());
-        QRegularExpression rpathLinkRex(QString("-rpath-link=\\S*/")
-                                        + relativeProductBuildDir("dynamic2"));
-        QVERIFY(appLinkCmd.contains(rpathLinkRex));
+        if (!buildProfile.value("qbs.targetOS").toStringList().contains("darwin")) {
+            QRegularExpression rpathLinkRex(QString("-rpath-link=\\S*/")
+                                            + relativeProductBuildDir("dynamic2"));
+            QVERIFY(appLinkCmd.contains(rpathLinkRex));
+        }
         QVERIFY(!appLinkCmd.contains("libstatic2.a"));
         QVERIFY(!appLinkCmd.contains("libdynamic2.so"));
     }
