@@ -7,10 +7,9 @@ project     = "Qbs"
 description = "Qbs Manual"
 
 headerdirs =
-sourcedirs = $SRCDIR
-imagedirs = $SRCDIR/images $SRCDIR/templates/images
-outputdir = $OUTDIR
-exampledirs = $SRCDIR
+sourcedirs = ..
+imagedirs = ../images ../templates/images
+exampledirs = ..
 
 include(macros.qdocconf)
 sources.fileextensions  = "*.qdoc"

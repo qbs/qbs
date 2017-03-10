@@ -1,24 +1,13 @@
 include(../src/install_prefix.pri)
 
-QDOC_BIN = $$shell_path($$[QT_INSTALL_BINS]/qdoc)
-QDOC_MAINFILE = $$PWD/qbs.qdocconf
-HELPGENERATOR = $$shell_path($$[QT_INSTALL_BINS]/qhelpgenerator)
+include(doc_shared.pri)
+
+DOC_OUTDIR_POSTFIX = /html
+DOC_HTML_INSTALLDIR = $$QBS_INSTALL_PREFIX/share/doc/qbs
+DOC_QCH_OUTDIR = $$OUT_PWD/doc
+DOC_QCH_INSTALLDIR = $$QBS_INSTALL_PREFIX/share/doc/qbs
 
 include(doc_targets.pri)
-
-html_docs.depends = qbs_html_docs
-html_docs_online.depends = qbs_html_docs_online
-qch_docs.depends = qbs_qch_docs
-docs_online.depends = qbs_docs_online
-install_docs.depends = qbs_install_docs
-docs.depends = qbs_docs
-QMAKE_EXTRA_TARGETS += \
-    docs \
-    docs_online \
-    html_docs \
-    html_docs_online \
-    install_docs \
-    qch_docs
 
 fixnavi.commands = \
     cd $$shell_path($$PWD) && \
