@@ -58,12 +58,24 @@ QString canonicalTargetArchitecture(const QString &architecture,
                           || system == QStringLiteral("tvos")
                           || system == QStringLiteral("watchos")
                           || abi == QStringLiteral("macho"));
+    const bool isQnx = (system == QStringLiteral("nto")
+                        || abi.startsWith(QStringLiteral("qnx")));
 
-    if (arch == QStringLiteral("armv7a") && isApple)
-        return QStringLiteral("armv7");
+    if (arch == QStringLiteral("armv7a")) {
+        if (isApple)
+            return QStringLiteral("armv7");
+        if (isQnx)
+            return QStringLiteral("arm");
+    }
 
-    if (arch == QStringLiteral("x86"))
+    if (arch == QStringLiteral("arm64") && isQnx)
+        return QStringLiteral("aarch64");
+
+    if (arch == QStringLiteral("x86")) {
+        if (isQnx)
+            return QStringLiteral("i586");
         return QStringLiteral("i386");
+    }
 
     return arch;
 }

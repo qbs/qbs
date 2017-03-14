@@ -248,7 +248,9 @@ function linkerFlags(project, product, inputs, output) {
 
     var sysroot = product.cpp.sysroot;
     if (sysroot) {
-        if (isDarwin)
+        if (product.qbs.toolchain.contains("qcc"))
+            args = args.concat(escapeLinkerFlags(product, inputs, ["--sysroot=" + sysroot]));
+        else if (isDarwin)
             args = args.concat(escapeLinkerFlags(product, inputs, ["-syslibroot", sysroot]));
         else
             args.push("--sysroot=" + sysroot); // do not escape, compiler-as-linker also needs it
@@ -480,7 +482,9 @@ function compilerFlags(project, product, input, output) {
 
     var sysroot = product.cpp.sysroot;
     if (sysroot) {
-        if (product.qbs.targetOS.contains("darwin"))
+        if (product.qbs.toolchain.contains("qcc"))
+            args.push("-I" + FileInfo.joinPaths(sysroot, "usr", "include"));
+        else if (product.qbs.targetOS.contains("darwin"))
             args.push("-isysroot", sysroot);
         else
             args.push("--sysroot=" + sysroot);
@@ -507,7 +511,9 @@ function compilerFlags(project, product, input, output) {
         args.push('-Werror');
 
     args = args.concat(configFlags(input));
-    args.push('-pipe');
+
+    if (!input.qbs.toolchain.contains("qcc"))
+        args.push('-pipe');
 
     if (input.cpp.enableReproducibleBuilds) {
         var toolchain = product.qbs.toolchain;
@@ -1064,7 +1070,9 @@ function dumpMacros(env, compilerFilePath, args, nullDevice) {
         p.setEnv("LC_ALL", "C");
         for (var key in env)
             p.setEnv(key, env[key]);
-        p.exec(compilerFilePath, (args || []).concat(["-dM", "-E", "-x", "c", nullDevice]), true);
+        // qcc NEEDS the explicit -Wp, prefix to -dM; clang and gcc do not but all three accept it
+        p.exec(compilerFilePath,
+               (args || []).concat(["-Wp,-dM", "-E", "-x", "c", nullDevice]), true);
         var map = {};
         p.readStdOut().trim().split("\n").map(function (line) {
             var parts = line.split(" ", 3);

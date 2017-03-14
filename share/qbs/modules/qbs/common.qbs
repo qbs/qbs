@@ -86,8 +86,12 @@ Module {
             tc = hostOS.contains("windows") ? "msvc" : "mingw";
         else if (targetOS.contains("darwin"))
             tc = hostOS.contains("macos") ? "xcode" : "clang";
+        else if (targetOS.contains("freebsd"))
+            tc = "clang";
+        else if (targetOS.contains("qnx"))
+            tc = "qcc";
         else
-            tc = targetOS.contains("freebsd") ? "clang" : "gcc";
+            tc = "gcc";
         return Utilities.canonicalToolchain(tc);
     }
     property string architecture

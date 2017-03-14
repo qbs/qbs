@@ -31,6 +31,6 @@
 import qbs 1.0
 
 UnixGCC {
-    condition: qbs.targetOS && !qbs.targetOS.containsAny(['darwin', 'freebsd', 'linux']) &&
+    condition: qbs.targetOS && !qbs.targetOS.containsAny(['darwin', 'freebsd', 'linux', 'qnx']) &&
                qbs.toolchain && qbs.toolchain.contains('gcc') && !qbs.toolchain.contains('mingw')
 }
