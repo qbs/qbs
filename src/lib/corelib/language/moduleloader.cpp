@@ -68,9 +68,9 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qdiriterator.h>
-#include <QtCore/qpair.h>
 
 #include <algorithm>
+#include <utility>
 
 namespace qbs {
 namespace Internal {
@@ -1707,7 +1707,7 @@ public:
             error.append(module.toString(), dependsLocation);
             throw error;
         }
-        m_dependsChain.push(qMakePair(module, dependsLocation));
+        m_dependsChain.push(std::make_pair(module, dependsLocation));
     }
 
     ~DependsChainManager() { m_dependsChain.pop(); }
@@ -2229,7 +2229,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     const JSSourceValueConstPtr configureScript = probe->sourceProperty(QLatin1String("configure"));
     if (Q_UNLIKELY(!configureScript))
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
-    typedef QPair<QString, QScriptValue> ProbeProperty;
+    typedef std::pair<QString, QScriptValue> ProbeProperty;
     QList<ProbeProperty> probeBindings;
     QVariantMap initialProperties;
     for (Item *obj = probe; obj; obj = obj->prototype()) {

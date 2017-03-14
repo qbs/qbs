@@ -64,12 +64,12 @@
 #include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
-#include <QtCore/qpair.h>
 #include <QtCore/qtimer.h>
 
 #include <algorithm>
 #include <climits>
 #include <iterator>
+#include <utility>
 
 namespace qbs {
 namespace Internal {
@@ -771,7 +771,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
                                                    "artifact '%1'").arg(artifact->fileName());
     }
 
-    typedef QPair<Artifact *, bool> ChildArtifactData;
+    typedef std::pair<Artifact *, bool> ChildArtifactData;
     QList<ChildArtifactData> childrenToConnect;
     bool canRescue = commandListsAreEqual(artifact->transformer->commands, rad.commands);
     if (canRescue) {
@@ -794,7 +794,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
             }
             // TODO: Shouldn't addedByScanner always be true here? Otherwise the child would be
             //       in the list already, no?
-            childrenToConnect << qMakePair(child, cd.addedByScanner);
+            childrenToConnect << std::make_pair(child, cd.addedByScanner);
         }
 
         if (canRescue) {

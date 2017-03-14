@@ -52,7 +52,7 @@ public:
     bool isPost() const;
     void setPost(bool post);
 
-    QVector<QPair<QString, QString> > properties() const;
+    QVector<std::pair<QString, QString> > properties() const;
     void appendProperty(const QString &key, const QString &value);
 
 private:

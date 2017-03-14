@@ -52,6 +52,7 @@
 #include <tools/fileinfo.h>
 #include <tools/profiling.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qdiriterator.h>
@@ -485,8 +486,9 @@ void ScriptEngine::addFileExistsResult(const QString &filePath, bool exists)
 void ScriptEngine::addDirectoryEntriesResult(const QString &path, QDir::Filters filters,
                                              const QStringList &entries)
 {
-    m_directoryEntriesResult.insert(QPair<QString, quint32>(path, static_cast<quint32>(filters)),
-                                    entries);
+    m_directoryEntriesResult.insert(
+                std::pair<QString, quint32>(path, static_cast<quint32>(filters)),
+                entries);
 }
 
 void ScriptEngine::addFileLastModifiedResult(const QString &filePath, const FileTime &fileTime)

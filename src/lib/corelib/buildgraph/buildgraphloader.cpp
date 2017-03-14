@@ -504,7 +504,7 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
                 const bool reExpansionRequired = std::any_of(
                             group->wildcards->dirTimeStamps.cbegin(),
                             group->wildcards->dirTimeStamps.cend(),
-                            [](const QPair<QString, FileTime> &pair) {
+                            [](const std::pair<QString, FileTime> &pair) {
                                 return FileInfo(pair.first).lastModified() > pair.second;
                 });
                 if (!reExpansionRequired)

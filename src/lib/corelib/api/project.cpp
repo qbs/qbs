@@ -487,20 +487,20 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     updateInternalCodeLocations(internalProject, adder.itemPosition(), adder.lineOffset());
     updateExternalCodeLocations(m_projectData, adder.itemPosition(), adder.lineOffset());
 
-    QHash<QString, QPair<SourceArtifactPtr, ResolvedProductPtr>> addedSourceArtifacts;
+    QHash<QString, std::pair<SourceArtifactPtr, ResolvedProductPtr>> addedSourceArtifacts;
     for (int i = 0; i < groupContext.resolvedGroups.count(); ++i) {
         const ResolvedProductPtr &resolvedProduct = groupContext.resolvedProducts.at(i);
         const GroupPtr &resolvedGroup = groupContext.resolvedGroups.at(i);
         for (const QString &file : qAsConst(filesContext.absoluteFilePaths)) {
             const SourceArtifactPtr sa = createSourceArtifact(file, resolvedProduct, resolvedGroup,
                                                               false, logger);
-            addedSourceArtifacts.insert(file, qMakePair(sa, resolvedProduct));
+            addedSourceArtifacts.insert(file, std::make_pair(sa, resolvedProduct));
         }
         for (const QString &file : qAsConst(filesContext.absoluteFilePathsFromWildcards)) {
             QBS_CHECK(resolvedGroup->wildcards);
             const SourceArtifactPtr sa = createSourceArtifact(file, resolvedProduct, resolvedGroup,
                     true, logger);
-            addedSourceArtifacts.insert(file, qMakePair(sa, resolvedProduct));
+            addedSourceArtifacts.insert(file, std::make_pair(sa, resolvedProduct));
         }
         if (resolvedProduct->enabled) {
             for (const auto &pair : qAsConst(addedSourceArtifacts))

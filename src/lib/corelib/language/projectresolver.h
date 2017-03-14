@@ -50,8 +50,9 @@
 
 #include <QtCore/qhash.h>
 #include <QtCore/qmap.h>
-#include <QtCore/qpair.h>
 #include <QtCore/qstringlist.h>
+
+#include <utility>
 
 namespace qbs {
 namespace Internal {
@@ -137,7 +138,7 @@ private:
     QHash<FileTag, QList<ResolvedProductPtr> > m_productsByType;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
-    mutable QHash<QPair<QStringRef, QStringList>, QString> m_scriptFunctions;
+    mutable QHash<std::pair<QStringRef, QStringList>, QString> m_scriptFunctions;
     mutable QHash<QStringRef, QString> m_sourceCode;
     const SetupProjectParameters &m_setupParams;
     const ModuleLoaderResult &m_loadResult;

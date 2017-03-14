@@ -226,7 +226,7 @@ public:
 
     QStringList patterns;
     QStringList excludePatterns;
-    QVector<QPair<QString, FileTime>> dirTimeStamps;
+    QVector<std::pair<QString, FileTime>> dirTimeStamps;
     QList<SourceArtifactPtr> files;
 
 private:
@@ -510,7 +510,7 @@ public:
 
     QHash<QString, QString> canonicalFilePathResults; // Results of calls to "File.canonicalFilePath()."
     QHash<QString, bool> fileExistsResults; // Results of calls to "File.exists()".
-    QHash<QPair<QString, quint32>, QStringList> directoryEntriesResults; // Results of calls to "File.directoryEntries()".
+    QHash<std::pair<QString, quint32>, QStringList> directoryEntriesResults; // Results of calls to "File.directoryEntries()".
     QHash<QString, FileTime> fileLastModifiedResults; // Results of calls to "File.lastModified()".
     QScopedPointer<ProjectBuildData> buildData;
     BuildGraphLocker *bgLocker; // This holds the system-wide build graph file lock.

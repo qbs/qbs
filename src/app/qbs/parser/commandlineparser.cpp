@@ -60,8 +60,9 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qmap.h>
-#include <QtCore/qpair.h>
 #include <QtCore/qtextstream.h>
+
+#include <utility>
 
 #ifdef Q_OS_UNIX
 #include <unistd.h>
@@ -291,7 +292,7 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
 {
     // first: configuration name, second: properties.
     // Empty configuration name used for global properties.
-    typedef QPair<QString, QVariantMap> PropertyListItem;
+    typedef std::pair<QString, QVariantMap> PropertyListItem;
     QList<PropertyListItem> propertiesPerConfiguration;
 
     const QString configurationNameKey = QLatin1String("qbs.configurationName");
@@ -300,7 +301,8 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
     foreach (const QString &arg, d->command->additionalArguments()) {
         const int sepPos = arg.indexOf(QLatin1Char(':'));
         if (sepPos == -1) { // New build configuration found.
-            propertiesPerConfiguration << qMakePair(currentConfigurationName, currentProperties);
+            propertiesPerConfiguration << std::make_pair(currentConfigurationName,
+                                                         currentProperties);
             currentConfigurationName = arg;
             currentProperties.clear();
             continue;
@@ -316,7 +318,7 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
             currentProperties.insert(property, representationToSettingsValue(rawString));
         }
     }
-    propertiesPerConfiguration << qMakePair(currentConfigurationName, currentProperties);
+    propertiesPerConfiguration << std::make_pair(currentConfigurationName, currentProperties);
 
     if (propertiesPerConfiguration.count() == 1) // No configuration name specified on command line.
         propertiesPerConfiguration << PropertyListItem(QStringLiteral("default"), QVariantMap());

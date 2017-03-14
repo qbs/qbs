@@ -47,6 +47,15 @@ QT_BEGIN_NAMESPACE
 uint qHash(const QStringList &list);
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 7, 0)
+template <typename T1, typename T2> inline uint qHash(const std::pair<T1, T2> &key, uint seed = 0)
+    Q_DECL_NOEXCEPT_EXPR(noexcept(qHash(key.first, seed)) && noexcept(qHash(key.second, seed)))
+{
+    QtPrivate::QHashCombine hash;
+    seed = hash(seed, key.first);
+    seed = hash(seed, key.second);
+    return seed;
+}
+
 namespace QtPrivate {
 template <typename T> struct QAddConst { typedef const T Type; };
 }

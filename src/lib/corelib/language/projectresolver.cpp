@@ -90,7 +90,7 @@ struct ProjectResolver::ProductContext
     QString buildDirectory;
     FileTags additionalFileTags;
     Item *item;
-    typedef QPair<ArtifactPropertiesPtr, CodeLocation> ArtifactPropertiesInfo;
+    typedef std::pair<ArtifactPropertiesPtr, CodeLocation> ArtifactPropertiesInfo;
     QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
     QHash<QString, CodeLocation> sourceArtifactLocations;
     GroupConstPtr currentGroup;
@@ -734,7 +734,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
 QString ProjectResolver::sourceCodeAsFunction(const JSSourceValueConstPtr &value,
                                               const PropertyDeclaration &decl) const
 {
-    QString &scriptFunction = m_scriptFunctions[qMakePair(value->sourceCode(),
+    QString &scriptFunction = m_scriptFunctions[std::make_pair(value->sourceCode(),
                                                           decl.functionArgumentNames())];
     if (!scriptFunction.isNull())
         return scriptFunction;

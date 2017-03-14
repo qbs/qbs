@@ -44,10 +44,11 @@
 
 #include <QtCore/qshareddata.h>
 #include <QtCore/qlist.h>
-#include <QtCore/qpair.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
+
+#include <utility>
 
 namespace qbs {
 namespace Internal {

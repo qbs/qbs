@@ -133,7 +133,7 @@ private:
         bool enabled;
     };
 
-    typedef QMap<QPair<QString, QString>, ItemCacheValue> ModuleItemCache;
+    typedef QMap<std::pair<QString, QString>, ItemCacheValue> ModuleItemCache;
 
     class ContextBase
     {
@@ -296,7 +296,7 @@ private:
     Set<Item *> m_disabledItems;
     QStack<bool> m_requiredChain;
 
-    using DependsChainEntry = QPair<QualifiedId, CodeLocation>;
+    using DependsChainEntry = std::pair<QualifiedId, CodeLocation>;
     class DependsChainManager;
     QStack<DependsChainEntry> m_dependsChain;
 

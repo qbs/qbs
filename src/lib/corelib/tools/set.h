@@ -42,7 +42,6 @@
 
 #include <tools/persistence.h>
 
-#include <QtCore/qpair.h>
 #include <QtCore/qsharedpointer.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvector.h>
@@ -111,7 +110,7 @@ public:
 
     iterator find(const T &v) { return std::find(m_data.begin(), m_data.end(), v); }
     const_iterator find(const T &v) const { return std::find(m_data.cbegin(), m_data.cend(), v); }
-    QPair<iterator, bool> insert(const T &v);
+    std::pair<iterator, bool> insert(const T &v);
     Set &operator+=(const T &v) { insert(v); return *this; }
     Set &operator|=(const T &v) { return operator+=(v); }
     Set &operator<<(const T &v) { return operator+=(v); }
@@ -189,12 +188,12 @@ template<typename T> Set<T> &Set<T>::intersect(const Set<T> &other)
     return *this;
 }
 
-template<typename T> QPair<typename Set<T>::iterator, bool> Set<T>::insert(const T &v)
+template<typename T> std::pair<typename Set<T>::iterator, bool> Set<T>::insert(const T &v)
 {
     const auto it = std::lower_bound(m_data.begin(), m_data.end(), v);
     if (it == m_data.end() || v < *it)
-        return qMakePair(m_data.insert(it, v), true);
-    return qMakePair(it, false);
+        return std::make_pair(m_data.insert(it, v), true);
+    return std::make_pair(it, false);
 }
 
 template<typename T> bool Set<T>::contains(const Set<T> &other) const

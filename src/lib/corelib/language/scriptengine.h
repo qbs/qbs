@@ -130,7 +130,7 @@ public:
     void addFileLastModifiedResult(const QString &filePath, const FileTime &fileTime);
     QHash<QString, QString> canonicalFilePathResults() const { return m_canonicalFilePathResult; }
     QHash<QString, bool> fileExistsResults() const { return m_fileExistsResult; }
-    QHash<QPair<QString, quint32>, QStringList> directoryEntriesResults() const
+    QHash<std::pair<QString, quint32>, QStringList> directoryEntriesResults() const
     {
         return m_directoryEntriesResult;
     }
@@ -230,7 +230,7 @@ private:
     QHash<QString, QString> m_usedEnvironment;
     QHash<QString, QString> m_canonicalFilePathResult;
     QHash<QString, bool> m_fileExistsResult;
-    QHash<QPair<QString, quint32>, QStringList> m_directoryEntriesResult;
+    QHash<std::pair<QString, quint32>, QStringList> m_directoryEntriesResult;
     QHash<QString, FileTime> m_fileLastModifiedResult;
     QStack<QString> m_currentDirPathStack;
     QStack<QStringList> m_extensionSearchPathsStack;

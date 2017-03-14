@@ -80,7 +80,7 @@ public:
     QMap<QString, QSharedPointer<MSBuildProject>> msbuildProjects;
     QMap<QString, VisualStudioSolutionFileProject *> solutionProjects;
     QMap<QString, VisualStudioSolutionFolderProject *> solutionFolders;
-    QList<QPair<QString, bool>> propertySheetNames;
+    QList<std::pair<QString, bool>> propertySheetNames;
 
     void reset();
 };

@@ -1088,7 +1088,7 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
     if (baseDir.startsWith(buildDir))
         return;
 
-    dirTimeStamps << qMakePair(baseDir, FileInfo(baseDir).lastModified());
+    dirTimeStamps << std::make_pair(baseDir, FileInfo(baseDir).lastModified());
 
     QStringList changed_parts = parts;
     bool recursive = false;
@@ -1233,7 +1233,7 @@ bool operator==(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2
 
 uint qHash(const RuleArtifact::Binding &b)
 {
-    return qHash(qMakePair(b.code, b.name.join(QLatin1Char(','))));
+    return qHash(std::make_pair(b.code, b.name.join(QLatin1Char(','))));
 }
 
 bool artifactPropertyListsAreEqual(const QList<ArtifactPropertiesPtr> &l1,

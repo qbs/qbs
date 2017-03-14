@@ -167,7 +167,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
                             << toStringList(inputArtifacts).join(QLatin1String(",\n            "));
     }
 
-    QList<QPair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
+    QList<std::pair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
 
     m_transformer = Transformer::create();
@@ -197,7 +197,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             if (!outputArtifact)
                 continue;
             outputArtifacts << outputArtifact;
-            ruleArtifactArtifactMap << qMakePair(ruleArtifact.data(), outputArtifact);
+            ruleArtifactArtifactMap << std::make_pair(ruleArtifact.data(), outputArtifact);
         }
     }
 

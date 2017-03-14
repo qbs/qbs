@@ -252,14 +252,14 @@ template<> struct PersistentPool::Helper<QProcessEnvironment>
         }
     }
 };
-template<typename T, typename U> struct PersistentPool::Helper<QPair<T, U>>
+template<typename T, typename U> struct PersistentPool::Helper<std::pair<T, U>>
 {
-    static void store(const QPair<T, U> &pair, PersistentPool *pool)
+    static void store(const std::pair<T, U> &pair, PersistentPool *pool)
     {
         pool->store(pair.first);
         pool->store(pair.second);
     }
-    static void load(QPair<T, U> &pair, PersistentPool *pool)
+    static void load(std::pair<T, U> &pair, PersistentPool *pool)
     {
         pool->load(pair.first);
         pool->load(pair.second);
