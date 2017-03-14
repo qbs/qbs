@@ -39,6 +39,8 @@
 
 #include "qualifiedid.h"
 
+#include <algorithm>
+
 namespace qbs {
 namespace Internal {
 
@@ -68,7 +70,7 @@ QString QualifiedId::toString() const
 
 bool operator<(const QualifiedId &a, const QualifiedId &b)
 {
-    const int c = qMin(a.count(), b.count());
+    const int c = std::min(a.count(), b.count());
     for (int i = 0; i < c; ++i) {
         int n = a.at(i).compare(b.at(i));
         if (n < 0)

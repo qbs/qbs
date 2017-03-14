@@ -116,7 +116,7 @@ FileTime Executor::recursiveFileTime(const QString &filePath) const
         m_logger.qbsWarning() << Tr::tr("File '%1' not found.").arg(nativeFilePath);
         return newest;
     }
-    newest = qMax(fileInfo.lastModified(), fileInfo.lastStatusChange());
+    newest = std::max(fileInfo.lastModified(), fileInfo.lastStatusChange());
     if (!fileInfo.isDir())
         return newest;
     const QStringList dirContents = QDir(filePath)
