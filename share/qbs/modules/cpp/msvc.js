@@ -44,7 +44,7 @@ function compilerVersionDefine(cpp) {
 
 function prepareCompiler(project, product, inputs, outputs, input, output) {
     var i;
-    var debugInformation = ModUtils.moduleProperty(input, "debugInformation")
+    var debugInformation = input.cpp.debugInformation;
     var args = ['/nologo', '/c']
 
     // Determine which C-language we're compiling
@@ -55,9 +55,9 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     // Whether we're compiling a precompiled header or normal source file
     var pchOutput = outputs[tag + "_pch"] ? outputs[tag + "_pch"][0] : undefined;
 
-    var enableExceptions = ModUtils.moduleProperty(input, "enableExceptions");
+    var enableExceptions = input.cpp.enableExceptions;
     if (enableExceptions) {
-        var ehModel = ModUtils.moduleProperty(input, "exceptionHandlingModel");
+        var ehModel = input.cpp.exceptionHandlingModel;
         switch (ehModel) {
         case "default":
             args.push("/EHsc"); // "Yes" in VS
@@ -71,12 +71,12 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         }
     }
 
-    var enableRtti = ModUtils.moduleProperty(input, "enableRtti");
+    var enableRtti = input.cpp.enableRtti;
     if (enableRtti !== undefined) {
         args.push(enableRtti ? "/GR" : "/GR-");
     }
 
-    switch (ModUtils.moduleProperty(input, "optimization")) {
+    switch (input.cpp.optimization) {
     case "small":
         args.push('/Os')
         break;
@@ -89,48 +89,48 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     }
 
     if (debugInformation) {
-        if (ModUtils.moduleProperty(product, "separateDebugInformation"))
+        if (product.cpp.separateDebugInformation)
             args.push('/Zi');
         else
             args.push('/Z7');
     }
 
-    var rtl = ModUtils.moduleProperty(product, "runtimeLibrary");
+    var rtl = product.cpp.runtimeLibrary;
     if (rtl) {
         rtl = (rtl === "static" ? "/MT" : "/MD");
-        if (product.moduleProperty("qbs", "enableDebugCode"))
+        if (product.qbs.enableDebugCode)
             rtl += "d";
         args.push(rtl);
     }
 
     // warnings:
-    var warningLevel = ModUtils.moduleProperty(input, "warningLevel")
+    var warningLevel = input.cpp.warningLevel;
     if (warningLevel === 'none')
         args.push('/w')
     if (warningLevel === 'all')
         args.push('/Wall')
-    if (ModUtils.moduleProperty(input, "treatWarningsAsErrors"))
+    if (input.cpp.treatWarningsAsErrors)
         args.push('/WX')
     var allIncludePaths = [];
-    var includePaths = ModUtils.moduleProperty(input, 'includePaths');
+    var includePaths = input.cpp.includePaths;
     if (includePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(includePaths);
-    var systemIncludePaths = ModUtils.moduleProperty(input, 'systemIncludePaths');
+    var systemIncludePaths = input.cpp.systemIncludePaths;
     if (systemIncludePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
     for (i in allIncludePaths)
         args.push('/I' + FileInfo.toWindowsSeparators(allIncludePaths[i]))
     var allDefines = [];
-    var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
+    var platformDefines = input.cpp.platformDefines;
     if (platformDefines)
         allDefines = allDefines.uniqueConcat(platformDefines);
-    var defines = ModUtils.moduleProperty(input, 'defines');
+    var defines = input.cpp.defines;
     if (defines)
         allDefines = allDefines.uniqueConcat(defines);
     for (i in allDefines)
         args.push('/D' + allDefines[i].replace(/%/g, "%%"));
 
-    var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
+    var minimumWindowsVersion = product.cpp.minimumWindowsVersion;
     if (minimumWindowsVersion) {
         var hexVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'hex');
         if (hexVersion) {
@@ -145,7 +145,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     args.push('/Fo' + FileInfo.toWindowsSeparators(objOutput.filePath))
     args.push(FileInfo.toWindowsSeparators(input.filePath))
 
-    var prefixHeaders = ModUtils.moduleProperty(product, "prefixHeaders");
+    var prefixHeaders = product.cpp.prefixHeaders;
     for (i in prefixHeaders)
         args.push("/FI" + FileInfo.toWindowsSeparators(prefixHeaders[i]));
 
@@ -187,8 +187,8 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
                        ModUtils.moduleProperty(input, 'platformFlags', tag),
                        ModUtils.moduleProperty(input, 'flags', tag));
 
-    var compilerPath = ModUtils.moduleProperty(product, "compilerPath");
-    var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");
+    var compilerPath = product.cpp.compilerPath;
+    var wrapperArgs = product.cpp.compilerWrapper;
     if (wrapperArgs && wrapperArgs.length > 0) {
         args.unshift(compilerPath);
         compilerPath = wrapperArgs.shift();
@@ -261,8 +261,8 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var i;
     var linkDLL = (outputs.dynamiclibrary ? true : false)
     var primaryOutput = (linkDLL ? outputs.dynamiclibrary[0] : outputs.application[0])
-    var debugInformation = ModUtils.moduleProperty(product, "debugInformation")
-    var generateManifestFiles = !linkDLL && ModUtils.moduleProperty(product, "generateManifestFile")
+    var debugInformation = product.cpp.debugInformation;
+    var generateManifestFiles = !linkDLL && product.cpp.generateManifestFile;
 
     var args = ['/nologo']
     if (linkDLL) {
@@ -279,7 +279,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         args.push('/INCREMENTAL:NO')
     }
 
-    switch (product.moduleProperty("qbs", "architecture")) {
+    switch (product.qbs.architecture) {
     case "x86":
         args.push("/MACHINE:X86");
         break;
@@ -294,7 +294,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         break;
     }
 
-    var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
+    var minimumWindowsVersion = product.cpp.minimumWindowsVersion;
     var subsystemSwitch = undefined;
     if (minimumWindowsVersion || product.consoleApplication !== undefined) {
         // Ensure that we default to console if product.consoleApplication is undefined
@@ -336,24 +336,23 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     function toWindowsSeparator(filePath) { return FileInfo.toWindowsSeparators(filePath); }
     args = args.concat(collectLibraryDependencies(product).map(toWindowsSeparator));
 
-    if (product.moduleProperty("cpp", "entryPoint"))
-        args.push("/ENTRY:" + product.moduleProperty("cpp", "entryPoint"));
+    if (product.cpp.entryPoint)
+        args.push("/ENTRY:" + product.cpp.entryPoint);
 
     args.push('/OUT:' + linkerOutputNativeFilePath)
-    var libraryPaths = ModUtils.moduleProperty(product, 'libraryPaths');
+    var libraryPaths = product.cpp.libraryPaths;
     if (libraryPaths)
         libraryPaths = [].uniqueConcat(libraryPaths);
     for (i in libraryPaths) {
         args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
     }
-    var linkerFlags = ModUtils.moduleProperty(product, 'platformLinkerFlags').concat(
-                ModUtils.moduleProperty(product, 'linkerFlags'));
+    var linkerFlags = product.cpp.platformLinkerFlags.concat(product.cpp.linkerFlags);
     args = args.concat(linkerFlags);
-    if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
+    if (product.cpp.allowUnresolvedSymbols)
         args.push("/FORCE:UNRESOLVED");
 
-    var linkerPath = product.moduleProperty("cpp", "linkerPath");
-    var wrapperArgs = product.moduleProperty("cpp", "linkerWrapper");
+    var linkerPath = product.cpp.linkerPath;
+    var wrapperArgs = product.cpp.linkerWrapper;
     if (wrapperArgs && wrapperArgs.length > 0) {
         args.unshift(linkerPath);
         linkerPath = wrapperArgs.shift();

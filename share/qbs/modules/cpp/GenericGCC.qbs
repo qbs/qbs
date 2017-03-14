@@ -283,9 +283,10 @@ CppModule {
         multiplex: true
         inputs: {
             var tags = ["obj", "linkerscript", "versionscript"];
-            if (product.moduleProperty("qbs", "targetOS").contains("darwin") &&
-                product.moduleProperty("bundle", "embedInfoPlist"))
+            if (product.bundle && product.bundle.embedInfoPlist
+                    && product.qbs.targetOS.contains("darwin")) {
                 tags.push("aggregate_infoplist");
+            }
             return tags;
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
@@ -313,7 +314,7 @@ CppModule {
             };
             var artifacts = [lib, libCopy];
 
-            if (ModUtils.moduleProperty(product, "shouldCreateSymlinks") && !product.moduleProperty("bundle", "isBundle")) {
+            if (product.cpp.shouldCreateSymlinks && (!product.bundle || !product.bundle.isBundle)) {
                 var maxVersionParts = Gcc.isNumericProductVersion(product.version) ? 3 : 1;
                 for (var i = 0; i < maxVersionParts; ++i) {
                     var symlink = {
@@ -365,7 +366,7 @@ CppModule {
             var args = ['rcs', output.filePath];
             for (var i in inputs.obj)
                 args.push(inputs.obj[i].filePath);
-            var cmd = new Command(ModUtils.moduleProperty(product, "archiverPath"), args);
+            var cmd = new Command(product.cpp.archiverPath, args);
             cmd.description = 'creating ' + output.fileName;
             cmd.highlight = 'linker'
             cmd.responseFileUsagePrefix = '@';
@@ -378,9 +379,10 @@ CppModule {
         multiplex: true
         inputs: {
             var tags = ["obj", "linkerscript"];
-            if (product.moduleProperty("qbs", "targetOS").contains("darwin") &&
-                product.moduleProperty("bundle", "embedInfoPlist"))
+            if (product.bundle && product.bundle.embedInfoPlist
+                    && product.qbs.targetOS.contains("darwin")) {
                 tags.push("aggregate_infoplist");
+            }
             return tags;
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
@@ -409,9 +411,10 @@ CppModule {
         multiplex: true
         inputs: {
             var tags = ["obj", "linkerscript"];
-            if (product.moduleProperty("qbs", "targetOS").contains("darwin") &&
-                product.moduleProperty("bundle", "embedInfoPlist"))
+            if (product.bundle && product.bundle.embedInfoPlist
+                    && product.qbs.targetOS.contains("darwin")) {
                 tags.push("aggregate_infoplist");
+            }
             return tags;
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]

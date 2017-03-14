@@ -193,12 +193,11 @@ CppModule {
                               PathTools.applicationFilePath(product))
             };
             var artifacts = [app];
-            if (ModUtils.moduleProperty(product, "debugInformation")
-                    && ModUtils.moduleProperty(product, "separateDebugInformation")) {
+            if (product.cpp.debugInformation && product.cpp.separateDebugInformation) {
                 artifacts.push({
                     fileTags: ["debuginfo_app"],
                     filePath: app.filePath.substr(0, app.filePath.length - 4)
-                              + ModUtils.moduleProperty(product, "debugInfoSuffix")
+                              + product.cpp.debugInfoSuffix
                 });
             }
             return artifacts;
@@ -228,13 +227,12 @@ CppModule {
                     alwaysUpdated: false
                 }
             ];
-            if (ModUtils.moduleProperty(product, "debugInformation")
-                    && ModUtils.moduleProperty(product, "separateDebugInformation")) {
+            if (product.cpp.debugInformation && product.cpp.separateDebugInformation) {
                 var lib = artifacts[0];
                 artifacts.push({
                     fileTags: ["debuginfo_dll"],
                     filePath: lib.filePath.substr(0, lib.filePath.length - 4)
-                              + ModUtils.moduleProperty(product, "debugInfoSuffix")
+                              + product.cpp.debugInfoSuffix
                 });
             }
             return artifacts;
@@ -288,13 +286,13 @@ CppModule {
         }
 
         prepare: {
-            var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
-            var defines = ModUtils.moduleProperty(input, 'defines');
-            var includePaths = ModUtils.moduleProperty(input, 'includePaths');
-            var systemIncludePaths = ModUtils.moduleProperty(input, 'systemIncludePaths');
+            var platformDefines = input.cpp.platformDefines;
+            var defines = input.cpp.defines;
+            var includePaths = input.cpp.includePaths;
+            var systemIncludePaths = input.cpp.systemIncludePaths;
             var args = [];
             var i;
-            var hasNoLogo = ModUtils.moduleProperty(product, "compilerVersionMajor") >= 16; // 2010
+            var hasNoLogo = product.cpp.compilerVersionMajor >= 16; // 2010
             if (hasNoLogo)
                 args.push("/nologo");
 
@@ -349,11 +347,11 @@ CppModule {
             var args = ["/nologo", "/c",
                         "/Fo" + FileInfo.toWindowsSeparators(output.filePath),
                         FileInfo.toWindowsSeparators(input.filePath)];
-            if (ModUtils.moduleProperty(product, "debugInformation"))
+            if (product.cpp.debugInformation)
                 args.push("/Zi");
             args = args.concat(ModUtils.moduleProperty(input, 'platformFlags', 'asm'),
                                ModUtils.moduleProperty(input, 'flags', 'asm'));
-            var cmd = new Command(ModUtils.moduleProperty(product, "assemblerPath"), args);
+            var cmd = new Command(product.cpp.assemblerPath, args);
             cmd.description = "assembling " + input.fileName;
             cmd.inputFileName = input.fileName;
             cmd.stdoutFilterFunction = function(output) {

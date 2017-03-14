@@ -61,7 +61,7 @@ DarwinGCC {
     }
 
     Rule {
-        condition: !product.moduleProperty("qbs", "targetOS").contains("ios-simulator")
+        condition: !product.qbs.targetOS.contains("ios-simulator")
         inputsFromDependencies: ["bundle.content"]
 
         Artifact {

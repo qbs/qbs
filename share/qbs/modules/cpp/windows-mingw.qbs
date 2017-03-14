@@ -78,10 +78,10 @@ GenericGCC {
         }
 
         prepare: {
-            var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
-            var defines = ModUtils.moduleProperty(input, 'defines');
-            var includePaths = ModUtils.moduleProperty(input, 'includePaths');
-            var systemIncludePaths = ModUtils.moduleProperty(input, 'systemIncludePaths');
+            var platformDefines = input.cpp.platformDefines;
+            var defines = input.cpp.defines;
+            var includePaths = input.cpp.includePaths;
+            var systemIncludePaths = input.cpp.systemIncludePaths;
             var args = [];
             var i;
             for (i in platformDefines) {
@@ -102,7 +102,7 @@ GenericGCC {
             }
 
             args = args.concat(['-i', input.filePath, '-o', output.filePath]);
-            var cmd = new Command(ModUtils.moduleProperty(product, "windresPath"), args);
+            var cmd = new Command(product.cpp.windresPath, args);
             cmd.description = 'compiling ' + input.fileName;
             cmd.highlight = 'compiler';
             return cmd;

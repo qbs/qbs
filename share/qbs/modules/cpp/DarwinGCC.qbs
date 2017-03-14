@@ -160,7 +160,7 @@ UnixGCC {
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
-            cmd.inputData = ModUtils.moduleProperty(product, "defaultInfoPlist");
+            cmd.inputData = product.cpp.defaultInfoPlist;
             cmd.outputFilePath = output.filePath;
             cmd.sourceCode = function() {
                 var plist = new PropertyList();

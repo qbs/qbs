@@ -40,8 +40,8 @@ var Utilities = require("qbs.Utilities");
 var WindowsUtils = require("qbs.WindowsUtils");
 
 function effectiveLinkerPath(product, inputs) {
-    if (product.moduleProperty("cpp", "linkerMode") === "automatic") {
-        var compilers = ModUtils.moduleProperty(product, "compilerPathByLanguage");
+    if (product.cpp.linkerMode === "automatic") {
+        var compilers = product.cpp.compilerPathByLanguage;
         if (compilers) {
             if (inputs.cpp_obj || inputs.cpp_staticlibrary) {
                 console.log("Found C++ or Objective-C++ objects, choosing C++ linker for "
@@ -60,17 +60,17 @@ function effectiveLinkerPath(product, inputs) {
                     + product.name);
     }
 
-    return ModUtils.moduleProperty(product, "linkerPath");
+    return product.cpp.linkerPath;
 }
 
 function useCompilerDriverLinker(product, inputs) {
     var linker = effectiveLinkerPath(product, inputs);
-    var compilers = product.moduleProperty("cpp", "compilerPathByLanguage");
+    var compilers = product.cpp.compilerPathByLanguage;
     if (compilers) {
         return linker === compilers["cpp"]
             || linker === compilers["c"];
     }
-    return linker === product.moduleProperty("cpp", "compilerPath");
+    return linker === product.cpp.compilerPath;
 }
 
 function collectLibraryDependencies(product) {
@@ -202,22 +202,21 @@ function escapeLinkerFlags(product, inputs, linkerFlags, allowEscape) {
 }
 
 function linkerFlags(project, product, inputs, output) {
-    var libraryPaths = ModUtils.moduleProperty(product, 'libraryPaths');
-    var distributionLibraryPaths = ModUtils.moduleProperty(product, "distributionLibraryPaths");
+    var libraryPaths = product.cpp.libraryPaths;
+    var distributionLibraryPaths = product.cpp.distributionLibraryPaths;
     var libraryDependencies = collectLibraryDependencies(product);
-    var frameworks = ModUtils.moduleProperty(product, 'frameworks');
-    var weakFrameworks = ModUtils.moduleProperty(product, 'weakFrameworks');
-    var rpaths = (product.moduleProperty("cpp", "useRPaths") !== false)
-            ? ModUtils.moduleProperty(product, 'rpaths') : undefined;
-    var systemRunPaths = product.moduleProperty("cpp", "systemRunPaths") || [];
-    var isDarwin = product.moduleProperty("qbs", "targetOS").contains("darwin");
+    var frameworks = product.cpp.frameworks;
+    var weakFrameworks = product.cpp.weakFrameworks;
+    var rpaths = (product.cpp.useRPaths !== false) ? product.cpp.rpaths : undefined;
+    var systemRunPaths = product.cpp.systemRunPaths || [];
+    var isDarwin = product.qbs.targetOS.contains("darwin");
     var i, args = additionalCompilerAndLinkerFlags(product);
 
     if (output.fileTags.contains("dynamiclibrary")) {
         args.push(isDarwin ? "-dynamiclib" : "-shared");
 
         if (isDarwin) {
-            var internalVersion = product.moduleProperty("cpp", "internalVersion");
+            var internalVersion = product.cpp.internalVersion;
             if (internalVersion && isNumericProductVersion(internalVersion))
                 args.push("-current_version", internalVersion);
 
@@ -243,14 +242,14 @@ function linkerFlags(project, product, inputs, output) {
                                                  ["--as-needed"]));
     }
 
-    var minimumDarwinVersion = ModUtils.moduleProperty(product, "minimumDarwinVersion");
+    var minimumDarwinVersion = product.cpp.minimumDarwinVersion;
     if (minimumDarwinVersion) {
-        var flag = ModUtils.moduleProperty(product, "minimumDarwinVersionLinkerFlag");
+        var flag = product.cpp.minimumDarwinVersionLinkerFlag;
         if (flag)
             args = args.concat(escapeLinkerFlags(product, inputs, [flag, minimumDarwinVersion]));
     }
 
-    var sysroot = ModUtils.moduleProperty(product, "sysroot");
+    var sysroot = product.cpp.sysroot;
     if (sysroot) {
         if (isDarwin)
             args = args.concat(escapeLinkerFlags(product, inputs, ["-syslibroot", sysroot]));
@@ -260,11 +259,11 @@ function linkerFlags(project, product, inputs, output) {
 
     if (isDarwin) {
         var unresolvedSymbolsAction;
-        unresolvedSymbolsAction = ModUtils.moduleProperty(product, "allowUnresolvedSymbols")
+        unresolvedSymbolsAction = product.cpp.allowUnresolvedSymbols
                                     ? "suppress" : "error";
         args = args.concat(escapeLinkerFlags(product, inputs,
                                              ["-undefined", unresolvedSymbolsAction]));
-    } else if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols")) {
+    } else if (product.cpp.allowUnresolvedSymbols) {
         args = args.concat(escapeLinkerFlags(product, inputs,
                                              ["--unresolved-symbols=ignore-all"]));
     }
@@ -274,11 +273,11 @@ function linkerFlags(project, product, inputs, output) {
             args = args.concat(escapeLinkerFlags(product, inputs, ["-rpath", rpaths[i]]));
     }
 
-    if (product.moduleProperty("cpp", "entryPoint"))
+    if (product.cpp.entryPoint)
         args = args.concat(escapeLinkerFlags(product, inputs,
-                                             ["-e", product.moduleProperty("cpp", "entryPoint")]));
+                                             ["-e", product.cpp.entryPoint]));
 
-    if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
+    if (product.qbs.toolchain.contains("mingw")) {
         if (product.consoleApplication !== undefined)
             args = args.concat(escapeLinkerFlags(product, inputs, [
                                                      "-subsystem",
@@ -286,7 +285,7 @@ function linkerFlags(project, product, inputs, output) {
                                                         ? "console"
                                                         : "windows"]));
 
-        var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
+        var minimumWindowsVersion = product.cpp.minimumWindowsVersion;
         if (minimumWindowsVersion) {
             var subsystemVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
             if (subsystemVersion) {
@@ -311,9 +310,9 @@ function linkerFlags(project, product, inputs, output) {
 
     var isLinkingCppObjects = !!(inputs.cpp_obj || inputs.cpp_staticlibrary);
     var stdlib = isLinkingCppObjects
-            ? product.moduleProperty("cpp", "cxxStandardLibrary")
+            ? product.cpp.cxxStandardLibrary
             : undefined;
-    if (stdlib && product.moduleProperty("qbs", "toolchain").contains("clang"))
+    if (stdlib && product.qbs.toolchain.contains("clang"))
         args.push("-stdlib=" + stdlib);
 
     // Flags for library search paths
@@ -334,7 +333,7 @@ function linkerFlags(project, product, inputs, output) {
     args = args.concat(escapeLinkerFlags(product, inputs, [].uniqueConcat(versionScripts)
                        .map(function(path) { return '--version-script=' + path })));
 
-    if (isDarwin && ModUtils.moduleProperty(product, "warningLevel") === "none")
+    if (isDarwin && product.cpp.warningLevel === "none")
         args.push('-w');
 
     var allowEscape = !ModUtils.checkCompatibilityMode(project, "1.6",
@@ -348,11 +347,8 @@ function linkerFlags(project, product, inputs, output) {
 
     args = args.concat(configFlags(product, useCompilerDriverLinker(product, inputs)));
     args = args.concat(escapeLinkerFlags(
-                           product, inputs,
-                           ModUtils.moduleProperty(product, 'platformLinkerFlags'), allowEscape));
-    args = args.concat(escapeLinkerFlags(
-                           product, inputs,
-                           ModUtils.moduleProperty(product, 'linkerFlags'), allowEscape));
+                           product, inputs, product.cpp.platformLinkerFlags, allowEscape));
+    args = args.concat(escapeLinkerFlags(product, inputs, product.cpp.linkerFlags, allowEscape));
 
     args.push("-o", output.filePath);
 
@@ -401,15 +397,15 @@ function configFlags(config, isDriver) {
     var args = [];
 
     if (isDriver) {
-        args = args.concat(ModUtils.moduleProperty(config, 'platformDriverFlags'));
-        args = args.concat(ModUtils.moduleProperty(config, 'driverFlags'));
+        args = args.concat(config.cpp.platformDriverFlags);
+        args = args.concat(config.cpp.driverFlags);
     }
 
     if (haveTargetOption(config) && isDriver) {
-        args.push("-target", config.moduleProperty("cpp", "target"));
+        args.push("-target", config.cpp.target);
     } else {
-        var arch = config.moduleProperty("cpp", "targetArch");
-        if (config.moduleProperty("qbs", "targetOS").contains("darwin"))
+        var arch = config.cpp.targetArch;
+        if (config.qbs.targetOS.contains("darwin"))
             args.push("-arch", arch);
 
         if (isDriver) {
@@ -418,30 +414,30 @@ function configFlags(config, isDriver) {
             else if (arch === 'i386')
                 args.push('-m32');
 
-            var march = config.moduleProperty("cpp", "machineType");
+            var march = config.cpp.machineType;
             if (march)
                 args.push("-march=" + march);
 
-            var minimumDarwinVersion = ModUtils.moduleProperty(config, "minimumDarwinVersion");
+            var minimumDarwinVersion = config.cpp.minimumDarwinVersion;
             if (minimumDarwinVersion) {
-                var flag = ModUtils.moduleProperty(config, "minimumDarwinVersionCompilerFlag");
+                var flag = config.cpp.minimumDarwinVersionCompilerFlag;
                 if (flag)
                     args.push(flag + "=" + minimumDarwinVersion);
             }
         }
     }
 
-    var frameworkPaths = ModUtils.moduleProperty(config, 'frameworkPaths');
+    var frameworkPaths = config.cpp.frameworkPaths;
     if (frameworkPaths)
         args = args.concat(frameworkPaths.map(function(path) { return '-F' + path }));
 
     var allSystemFrameworkPaths = [];
 
-    var systemFrameworkPaths = ModUtils.moduleProperty(config, 'systemFrameworkPaths');
+    var systemFrameworkPaths = config.cpp.systemFrameworkPaths;
     if (systemFrameworkPaths)
         allSystemFrameworkPaths = allSystemFrameworkPaths.uniqueConcat(systemFrameworkPaths);
 
-    var distributionFrameworkPaths = ModUtils.moduleProperty(config, "distributionFrameworkPaths");
+    var distributionFrameworkPaths = config.cpp.distributionFrameworkPaths;
     if (distributionFrameworkPaths)
         allSystemFrameworkPaths = allSystemFrameworkPaths.uniqueConcat(distributionFrameworkPaths);
 
@@ -478,14 +474,14 @@ function effectiveCompilerInfo(toolchain, input, output) {
     // Whether we're compiling a precompiled header or normal source file
     var pchOutput = output.fileTags.contains(tag + "_pch");
 
-    var compilerPathByLanguage = ModUtils.moduleProperty(input, "compilerPathByLanguage");
+    var compilerPathByLanguage = input.cpp.compilerPathByLanguage;
     if (compilerPathByLanguage)
         compilerPath = compilerPathByLanguage[tag];
     if (!compilerPath || tag !== languageTagFromFileExtension(toolchain, input.fileName))
         language = languageName(tag) + (pchOutput ? '-header' : '');
     if (!compilerPath)
         // fall back to main compiler
-        compilerPath = ModUtils.moduleProperty(input, "compilerPath");
+        compilerPath = input.cpp.compilerPath;
     return {
         path: compilerPath,
         language: language,
@@ -496,34 +492,34 @@ function effectiveCompilerInfo(toolchain, input, output) {
 function compilerFlags(project, product, input, output) {
     var i;
 
-    var includePaths = ModUtils.moduleProperty(input, 'includePaths');
-    var systemIncludePaths = ModUtils.moduleProperty(input, 'systemIncludePaths');
-    var distributionIncludePaths = ModUtils.moduleProperty(input, "distributionIncludePaths");
+    var includePaths = input.cpp.includePaths;
+    var systemIncludePaths = input.cpp.systemIncludePaths;
+    var distributionIncludePaths = input.cpp.distributionIncludePaths;
 
-    var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
-    var defines = ModUtils.moduleProperty(input, 'defines');
+    var platformDefines = input.cpp.platformDefines;
+    var defines = input.cpp.defines;
 
     // Determine which C-language we're compiling
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
     if (!["c", "cpp", "objc", "objcpp", "asm_cpp"].contains(tag))
         throw ("unsupported source language: " + tag);
 
-    var compilerInfo = effectiveCompilerInfo(product.moduleProperty("qbs", "toolchain"),
+    var compilerInfo = effectiveCompilerInfo(product.qbs.toolchain,
                                              input, output);
 
     var args = additionalCompilerAndLinkerFlags(product);
 
-    var sysroot = ModUtils.moduleProperty(product, "sysroot");
+    var sysroot = product.cpp.sysroot;
     if (sysroot) {
-        if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
+        if (product.qbs.targetOS.contains("darwin"))
             args.push("-isysroot", sysroot);
         else
             args.push("--sysroot=" + sysroot);
     }
 
-    if (ModUtils.moduleProperty(input, "debugInformation"))
+    if (input.cpp.debugInformation)
         args.push('-g');
-    var opt = ModUtils.moduleProperty(input, "optimization")
+    var opt = input.cpp.optimization
     if (opt === 'fast')
         args.push('-O2');
     if (opt === 'small')
@@ -531,41 +527,41 @@ function compilerFlags(project, product, input, output) {
     if (opt === 'none')
         args.push('-O0');
 
-    var warnings = ModUtils.moduleProperty(input, "warningLevel")
+    var warnings = input.cpp.warningLevel
     if (warnings === 'none')
         args.push('-w');
     if (warnings === 'all') {
         args.push('-Wall');
         args.push('-Wextra');
     }
-    if (ModUtils.moduleProperty(input, "treatWarningsAsErrors"))
+    if (input.cpp.treatWarningsAsErrors)
         args.push('-Werror');
 
     args = args.concat(configFlags(input));
     args.push('-pipe');
 
-    if (ModUtils.moduleProperty(input, "enableReproducibleBuilds")) {
-        var toolchain = product.moduleProperty("qbs", "toolchain");
+    if (input.cpp.enableReproducibleBuilds) {
+        var toolchain = product.qbs.toolchain;
         if (!toolchain.contains("clang")) {
             var hashString = FileInfo.relativePath(project.sourceDirectory, input.filePath);
             var hash = Utilities.getHash(hashString);
             args.push("-frandom-seed=0x" + hash.substring(0, 8));
         }
 
-        var major = product.moduleProperty("cpp", "compilerVersionMajor");
-        var minor = product.moduleProperty("cpp", "compilerVersionMinor");
+        var major = product.cpp.compilerVersionMajor;
+        var minor = product.cpp.compilerVersionMinor;
         if ((toolchain.contains("clang") && (major > 3 || (major === 3 && minor >= 5))) ||
             (toolchain.contains("gcc") && (major > 4 || (major === 4 && minor >= 9)))) {
             args.push("-Wdate-time");
         }
     }
 
-    var useArc = ModUtils.moduleProperty(input, "automaticReferenceCounting");
+    var useArc = input.cpp.automaticReferenceCounting;
     if (useArc !== undefined && (tag === "objc" || tag === "objcpp")) {
         args.push(useArc ? "-fobjc-arc" : "-fno-objc-arc");
     }
 
-    var enableExceptions = ModUtils.moduleProperty(input, "enableExceptions");
+    var enableExceptions = input.cpp.enableExceptions;
     if (enableExceptions !== undefined) {
         if (tag === "cpp" || tag === "objcpp")
             args.push(enableExceptions ? "-fexceptions" : "-fno-exceptions");
@@ -577,13 +573,13 @@ function compilerFlags(project, product, input, output) {
         }
     }
 
-    var enableRtti = ModUtils.moduleProperty(input, "enableRtti");
+    var enableRtti = input.cpp.enableRtti;
     if (enableRtti !== undefined && (tag === "cpp" || tag === "objcpp")) {
         args.push(enableRtti ? "-frtti" : "-fno-rtti");
     }
 
-    var visibility = ModUtils.moduleProperty(input, 'visibility');
-    if (!product.moduleProperty("qbs", "toolchain").contains("mingw")) {
+    var visibility = input.cpp.visibility;
+    if (!product.qbs.toolchain.contains("mingw")) {
         if (visibility === 'hidden' || visibility === 'minimal')
             args.push('-fvisibility=hidden');
         if ((visibility === 'hiddenInlines' || visibility === 'minimal') && tag === 'cpp')
@@ -592,7 +588,7 @@ function compilerFlags(project, product, input, output) {
             args.push('-fvisibility=default')
     }
 
-    var prefixHeaders = ModUtils.moduleProperty(input, "prefixHeaders");
+    var prefixHeaders = input.cpp.prefixHeaders;
     for (i in prefixHeaders) {
         args.push('-include');
         args.push(prefixHeaders[i]);
@@ -614,11 +610,11 @@ function compilerFlags(project, product, input, output) {
         args.push('-include', pchFilePath);
     }
 
-    var positionIndependentCode = input.moduleProperty('cpp', 'positionIndependentCode')
-    if (positionIndependentCode && !product.moduleProperty("qbs", "toolchain").contains("mingw"))
+    var positionIndependentCode = input.cpp.positionIndependentCode;
+    if (positionIndependentCode && !product.qbs.toolchain.contains("mingw"))
         args.push('-fPIC');
 
-    var cppFlags = ModUtils.moduleProperty(input, 'cppFlags');
+    var cppFlags = input.cpp.cppFlags;
     for (i in cppFlags)
         args.push('-Wp,' + cppFlags[i])
 
@@ -638,8 +634,8 @@ function compilerFlags(project, product, input, output) {
         allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(distributionIncludePaths);
     args = args.concat(allSystemIncludePaths.map(function(path) { return '-isystem' + path }));
 
-    var minimumWindowsVersion = ModUtils.moduleProperty(input, "minimumWindowsVersion");
-    if (minimumWindowsVersion && product.moduleProperty("qbs", "targetOS").contains("windows")) {
+    var minimumWindowsVersion = input.cpp.minimumWindowsVersion;
+    if (minimumWindowsVersion && product.qbs.targetOS.contains("windows")) {
         var hexVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'hex');
         if (hexVersion) {
             var versionDefs = [ 'WINVER', '_WIN32_WINNT', '_WIN32_WINDOWS' ];
@@ -649,7 +645,7 @@ function compilerFlags(project, product, input, output) {
     }
 
     if (tag === "c" || tag === "objc") {
-        var cVersion = ModUtils.moduleProperty(input, "cLanguageVersion");
+        var cVersion = input.cpp.cLanguageVersion;
         if (cVersion) {
             var gccCVersionsMap = {
                 "c11": "c1x" // Deprecated, but compatible with older gcc versions.
@@ -659,7 +655,7 @@ function compilerFlags(project, product, input, output) {
     }
 
     if (tag === "cpp" || tag === "objcpp") {
-        var cxxVersion = ModUtils.moduleProperty(input, "cxxLanguageVersion");
+        var cxxVersion = input.cpp.cxxLanguageVersion;
         if (cxxVersion) {
             var gccCxxVersionsMap = {
                 "c++11": "c++0x", // Deprecated, but compatible with older gcc versions.
@@ -668,8 +664,8 @@ function compilerFlags(project, product, input, output) {
             args.push("-std=" + (gccCxxVersionsMap[cxxVersion] || cxxVersion));
         }
 
-        var cxxStandardLibrary = product.moduleProperty("cpp", "cxxStandardLibrary");
-        if (cxxStandardLibrary && product.moduleProperty("qbs", "toolchain").contains("clang")) {
+        var cxxStandardLibrary = product.cpp.cxxStandardLibrary;
+        if (cxxStandardLibrary && product.qbs.toolchain.contains("clang")) {
             args.push("-stdlib=" + cxxStandardLibrary);
         }
     }
@@ -681,9 +677,9 @@ function compilerFlags(project, product, input, output) {
 }
 
 function haveTargetOption(product) {
-    var toolchain = product.moduleProperty("qbs", "toolchain");
-    var major = product.moduleProperty("cpp", "compilerVersionMajor");
-    var minor = product.moduleProperty("cpp", "compilerVersionMinor");
+    var toolchain = product.qbs.toolchain;
+    var major = product.cpp.compilerVersionMajor;
+    var minor = product.cpp.compilerVersionMinor;
 
     // Apple Clang 3.1 (shipped with Xcode 4.3) just happened to also correspond to LLVM 3.1,
     // so no special version check is needed for Apple
@@ -693,8 +689,8 @@ function haveTargetOption(product) {
 function additionalCompilerAndLinkerFlags(product) {
     var args = []
 
-    var requireAppExtensionSafeApi = ModUtils.moduleProperty(product, "requireAppExtensionSafeApi");
-    if (requireAppExtensionSafeApi !== undefined && product.moduleProperty("qbs", "targetOS").contains("darwin")) {
+    var requireAppExtensionSafeApi = product.cpp.requireAppExtensionSafeApi;
+    if (requireAppExtensionSafeApi !== undefined && product.qbs.targetOS.contains("darwin")) {
         args.push(requireAppExtensionSafeApi ? "-fapplication-extension" : "-fno-application-extension");
     }
 
@@ -718,30 +714,30 @@ function languageName(fileTag) {
 }
 
 function prepareAssembler(project, product, inputs, outputs, input, output) {
-    var assemblerPath = ModUtils.moduleProperty(product, "assemblerPath");
+    var assemblerPath = product.cpp.assemblerPath;
 
-    var includePaths = ModUtils.moduleProperty(input, 'includePaths');
-    var systemIncludePaths = ModUtils.moduleProperty(input, 'systemIncludePaths');
-    var distributionIncludePaths = ModUtils.moduleProperty(input, "distributionIncludePaths");
+    var includePaths = input.cpp.includePaths;
+    var systemIncludePaths = input.cpp.systemIncludePaths;
+    var distributionIncludePaths = input.cpp.distributionIncludePaths;
 
     var args = [];
-    var arch = product.moduleProperty("cpp", "targetArch");
-    if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
+    var arch = product.cpp.targetArch;
+    if (product.qbs.targetOS.contains("darwin"))
         args.push("-arch", arch);
     else if (arch === 'x86_64')
         args.push('--64');
     else if (arch === 'i386')
         args.push('--32');
 
-    if (ModUtils.moduleProperty(input, "debugInformation"))
+    if (input.cpp.debugInformation)
         args.push('-g');
 
-    var warnings = ModUtils.moduleProperty(input, "warningLevel")
+    var warnings = input.cpp.warningLevel
     if (warnings === 'none')
         args.push('-W');
 
     var tag = "asm";
-    if (tag !== languageTagFromFileExtension(product.moduleProperty("qbs", "toolchain"),
+    if (tag !== languageTagFromFileExtension(product.qbs.toolchain,
                                              input.fileName))
         // Only push '-x language' if we have to.
         args.push("-x", languageName(tag));
@@ -768,14 +764,14 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
 }
 
 function prepareCompiler(project, product, inputs, outputs, input, output) {
-    var compilerInfo = effectiveCompilerInfo(product.moduleProperty("qbs", "toolchain"),
+    var compilerInfo = effectiveCompilerInfo(product.qbs.toolchain,
                                              input, output);
     var compilerPath = compilerInfo.path;
     var pchOutput = output.fileTags.contains(compilerInfo.tag + "_pch");
 
     var args = compilerFlags(project, product, input, output);
     var wrapperArgsLength = 0;
-    var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");
+    var wrapperArgs = product.cpp.compilerWrapper;
     if (wrapperArgs && wrapperArgs.length > 0) {
         wrapperArgsLength = wrapperArgs.length;
         args.unshift(compilerPath);
@@ -827,9 +823,9 @@ function collectStdoutLines(command, args)
 function getSymbolInfo(product, inputFile)
 {
     var result = { };
-    var command = ModUtils.moduleProperty(product, "nmPath");
+    var command = product.cpp.nmPath;
     var args = ["-g", "-P"];
-    if (ModUtils.moduleProperty(product, "_nmHasDynamicOption"))
+    if (product.cpp._nmHasDynamicOption)
         args.push("-D");
     try {
         result.allGlobalSymbols = collectStdoutLines(command, args.concat(inputFile));
@@ -900,7 +896,7 @@ function createSymbolCheckingCommand(product, outputs)
         var libFilePath = outputs.dynamiclibrary[0].filePath;
         var symbolFilePath = outputs.dynamiclibrary_copy[0].filePath;
 
-        if (product.moduleProperty("qbs", "toolchain").contains("mingw"))
+        if (product.qbs.toolchain.contains("mingw"))
             return; // mingw's nm tool does not work correctly.
 
         var newNmResult = getSymbolInfo(product, libFilePath);
@@ -915,7 +911,7 @@ function createSymbolCheckingCommand(product, outputs)
         }
 
         var oldNmResult = readSymbolFile(symbolFilePath);
-        var checkMode = ModUtils.moduleProperty(product, "exportedSymbolsCheckMode");
+        var checkMode = product.cpp.exportedSymbolsCheckMode;
         var oldSymbols;
         var newSymbols;
         if (checkMode === "strict") {
@@ -963,7 +959,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
     var args = linkerFlags(project, product, inputs, primaryOutput)
     var wrapperArgsLength = 0;
-    var wrapperArgs = ModUtils.moduleProperty(product, "linkerWrapper");
+    var wrapperArgs = product.cpp.linkerWrapper;
     if (wrapperArgs && wrapperArgs.length > 0) {
         wrapperArgsLength = wrapperArgs.length;
         args.unshift(linkerPath);
@@ -981,23 +977,23 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var debugInfo = outputs.debuginfo_app || outputs.debuginfo_dll
             || outputs.debuginfo_loadablemodule;
     if (debugInfo) {
-        if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
+        if (product.qbs.targetOS.contains("darwin")) {
             var dsymPath = debugInfo[0].filePath;
             if (outputs.debuginfo_bundle && outputs.debuginfo_bundle[0])
                 dsymPath = outputs.debuginfo_bundle[0].filePath;
-            var flags = ModUtils.moduleProperty(product, "dsymutilFlags") || [];
-            cmd = new Command(ModUtils.moduleProperty(product, "dsymutilPath"), flags.concat([
+            var flags = product.cpp.dsymutilFlags || [];
+            cmd = new Command(product.cpp.dsymutilPath, flags.concat([
                 "-o", dsymPath, primaryOutput.filePath
             ]));
             cmd.description = "generating dSYM for " + product.name;
             commands.push(cmd);
 
-            cmd = new Command(ModUtils.moduleProperty(product, "stripPath"),
+            cmd = new Command(product.cpp.stripPath,
                               ["-S", primaryOutput.filePath]);
             cmd.silent = true;
             commands.push(cmd);
         } else {
-            var objcopy = ModUtils.moduleProperty(product, "objcopyPath");
+            var objcopy = product.cpp.objcopyPath;
 
             cmd = new Command(objcopy, ["--only-keep-debug", primaryOutput.filePath,
                                         debugInfo[0].filePath]);
@@ -1032,25 +1028,27 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         }
     }
 
-    var actualSigningIdentity = product.moduleProperty("xcode", "actualSigningIdentity");
-    var codesignDisplayName = product.moduleProperty("xcode", "actualSigningIdentityDisplayName");
-    if (actualSigningIdentity && !product.moduleProperty("bundle", "isBundle")) {
-        var args = product.moduleProperty("xcode", "codesignFlags") || [];
-        args.push("--force");
-        args.push("--sign", actualSigningIdentity);
-        args = args.concat(DarwinTools._codeSignTimestampFlags(product));
+    if (product.xcode && product.bundle) {
+        var actualSigningIdentity = product.xcode.actualSigningIdentity;
+        var codesignDisplayName = product.xcode.actualSigningIdentityDisplayName;
+        if (actualSigningIdentity && !product.bundle.isBundle) {
+            args = product.xcode.codesignFlags || [];
+            args.push("--force");
+            args.push("--sign", actualSigningIdentity);
+            args = args.concat(DarwinTools._codeSignTimestampFlags(product));
 
-        for (var j in inputs.xcent) {
-            args.push("--entitlements", inputs.xcent[j].filePath);
-            break; // there should only be one
+            for (var j in inputs.xcent) {
+                args.push("--entitlements", inputs.xcent[j].filePath);
+                break; // there should only be one
+            }
+            args.push(primaryOutput.filePath);
+            cmd = new Command(product.xcode.codesignPath, args);
+            cmd.description = "codesign "
+                    + primaryOutput.fileName
+                    + " using " + codesignDisplayName
+                    + " (" + actualSigningIdentity + ")";
+            commands.push(cmd);
         }
-        args.push(primaryOutput.filePath);
-        cmd = new Command(product.moduleProperty("xcode", "codesignPath"), args);
-        cmd.description = "codesign "
-                + primaryOutput.fileName
-                + " using " + codesignDisplayName
-                + " (" + actualSigningIdentity + ")";
-        commands.push(cmd);
     }
 
     return commands;
@@ -1082,7 +1080,7 @@ function debugInfoArtifacts(product, debugInfoTagSuffix) {
     }
 
     var artifacts = [];
-    if (product.moduleProperty("cpp", "separateDebugInformation")) {
+    if (product.cpp.separateDebugInformation) {
         artifacts.push({
             filePath: FileInfo.joinPaths(product.destinationDirectory,
                                          PathTools.debugInfoFilePath(product, fileTag)),
