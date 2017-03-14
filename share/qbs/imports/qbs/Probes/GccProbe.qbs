@@ -38,6 +38,7 @@ PathProbe {
     property string preferredArchitecture
     property string preferredMachineType
     property stringList flags: []
+    property var environment
 
     property bool _haveArchFlag: qbs.targetOS.contains("darwin")
     property string _nullDevice: qbs.nullDevice
@@ -70,8 +71,8 @@ PathProbe {
                 args.push("-march=" + preferredMachineType);
         }
 
-        var macros = Gcc.dumpMacros(compilerFilePath, args, _nullDevice);
-        var defaultPaths = Gcc.dumpDefaultPaths(compilerFilePath, args, _nullDevice,
+        var macros = Gcc.dumpMacros(environment, compilerFilePath, args, _nullDevice);
+        var defaultPaths = Gcc.dumpDefaultPaths(environment, compilerFilePath, args, _nullDevice,
                                                 _pathListSeparator, _targetOS, _sysroot);
         found = !!macros && !!defaultPaths;
 

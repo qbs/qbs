@@ -1106,10 +1106,12 @@ function isNumericProductVersion(version) {
     return version && version.match(/^([0-9]+\.){0,3}[0-9]+$/);
 }
 
-function dumpMacros(compilerFilePath, args, nullDevice) {
+function dumpMacros(env, compilerFilePath, args, nullDevice) {
     var p = new Process();
     try {
         p.setEnv("LC_ALL", "C");
+        for (var key in env)
+            p.setEnv(key, env[key]);
         p.exec(compilerFilePath, (args || []).concat(["-dM", "-E", "-x", "c", nullDevice]), true);
         var map = {};
         p.readStdOut().trim().split("\n").map(function (line) {
@@ -1122,11 +1124,13 @@ function dumpMacros(compilerFilePath, args, nullDevice) {
     }
 }
 
-function dumpDefaultPaths(compilerFilePath, args, nullDevice, pathListSeparator, targetOS,
+function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSeparator, targetOS,
                           sysroot) {
     var p = new Process();
     try {
         p.setEnv("LC_ALL", "C");
+        for (var key in env)
+            p.setEnv(key, env[key]);
         args = args || [];
         if (sysroot) {
             if (targetOS.contains("darwin"))

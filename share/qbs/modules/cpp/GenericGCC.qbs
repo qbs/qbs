@@ -54,6 +54,7 @@ CppModule {
         compilerFilePath: compilerPath
         preferredArchitecture: targetArch
         preferredMachineType: machineType
+        environment: buildEnv
     }
 
     Probe {
@@ -197,6 +198,8 @@ CppModule {
             return "";
         return v.split('.')[0];
     }
+
+    property var buildEnv: ({})
 
     exceptionHandlingModel: {
         if (qbs.toolchain.contains("mingw")) {
