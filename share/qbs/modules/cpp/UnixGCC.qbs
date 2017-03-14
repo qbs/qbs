@@ -43,5 +43,6 @@ GenericGCC {
     debugInfoSuffix: ".debug"
     imageFormat: "elf"
     systemRunPaths: ["/lib", "/usr/lib"]
+    useRPathLink: true
 }
 

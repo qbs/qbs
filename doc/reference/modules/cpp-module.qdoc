@@ -662,6 +662,12 @@
         \li \c{true}
         \li Set this property to \c{false} to prevent the linker from writing rpaths to the binary.
     \row
+        \li useRPathLink
+        \li \c{bool}
+        \li 1.8
+        \li \c{true} on non-Darwin Unix platforms.
+        \li Use the \c{-rpath-link} linker option for transitive shared objects.
+    \row
         \li visibility
         \li \c{string}
         \li 1.0

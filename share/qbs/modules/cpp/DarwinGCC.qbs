@@ -54,6 +54,7 @@ UnixGCC {
     separateDebugInformation: true
     debugInfoBundleSuffix: ".dSYM"
     debugInfoSuffix: ".dwarf"
+    useRPathLink: false
 
     toolchainInstallPath: xcode.present
                           ? FileInfo.joinPaths(xcode.toolchainPath, "usr", "bin") : base

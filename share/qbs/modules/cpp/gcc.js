@@ -381,8 +381,7 @@ function linkerFlags(project, product, inputs, output) {
                 : '-l' + lib;
     }));
 
-    if (product.moduleProperty("qbs", "targetOS").contains("unix")
-            && !product.moduleProperty("qbs", "targetOS").contains("darwin")) {
+    if (product.cpp.useRPathLink) {
         args = args.concat(escapeLinkerFlags(
                                product, inputs,
                                libraryDependencies.rpath_link.map(
