@@ -46,9 +46,10 @@
 #include <QtCore/qshareddata.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qlist.h>
-#include <QtCore/qset.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
+
+#include <set>
 
 QT_BEGIN_NAMESPACE
 class QIODevice;
@@ -131,7 +132,7 @@ public:
     QVariantMap projectConfiguration() const;
     QHash<QString, QString> usedEnvironment() const;
 
-    QSet<QString> buildSystemFiles() const;
+    std::set<QString> buildSystemFiles() const;
 
     RuleCommandList ruleCommands(const ProductData &product, const QString &inputFilePath,
                                  const QString &outputFileTag, ErrorInfo *error = 0) const;

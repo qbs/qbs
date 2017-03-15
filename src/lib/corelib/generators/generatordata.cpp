@@ -39,6 +39,7 @@
 
 #include "generatordata.h"
 #include <tools/error.h>
+#include <tools/set.h>
 
 #include <QtCore/qdir.h>
 
@@ -93,7 +94,7 @@ QString GeneratableProjectData::name() const
 
 QDir GeneratableProject::baseBuildDirectory() const
 {
-    QSet<QString> baseBuildDirectory;
+    Internal::Set<QString> baseBuildDirectory;
     QMapIterator<QString, ProjectData> it(data);
     while (it.hasNext()) {
         it.next();
@@ -102,19 +103,19 @@ QDir GeneratableProject::baseBuildDirectory() const
         baseBuildDirectory.insert(dir.absolutePath());
     }
     Q_ASSERT(baseBuildDirectory.size() == 1);
-    return baseBuildDirectory.values().first();
+    return *baseBuildDirectory.begin();
 }
 
 QFileInfo GeneratableProject::filePath() const
 {
-    QSet<QString> filePath;
+    Internal::Set<QString> filePath;
     QMapIterator<QString, ProjectData> it(data);
     while (it.hasNext()) {
         it.next();
         filePath.insert(it.value().location().filePath());
     }
     Q_ASSERT(filePath.size() == 1);
-    return filePath.values().first();
+    return *filePath.begin();
 }
 
 bool GeneratableProject::hasMultipleConfigurations() const

@@ -58,12 +58,13 @@
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qset.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/qtimer.h>
 
 #include <QtScript/qscriptclass.h>
 #include <QtScript/qscriptvalueiterator.h>
+
+#include <set>
 
 namespace qbs {
 namespace Internal {

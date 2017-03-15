@@ -39,7 +39,8 @@
 
 #include "toolchains.h"
 #include <QtCore/qmap.h>
-#include <QtCore/qset.h>
+
+#include <set>
 
 namespace qbs {
 

@@ -37,6 +37,8 @@
 #include "msbuild/items/msbuildfilter.h"
 #include "msbuild/items/msbuildnone.h"
 
+#include <tools/set.h>
+
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qvector.h>
 
@@ -123,11 +125,11 @@ MSBuildFiltersProject::MSBuildFiltersProject(const GeneratableProductData &produ
         filter->appendProperty(QStringLiteral("SourceControlFiles"), options->sourceControlFiles());
     }
 
-    QSet<QString> allFiles;
+    Internal::Set<QString> allFiles;
     for (const auto &productData : product.data.values()) {
         for (const auto &groupData : productData.groups())
             if (groupData.isEnabled())
-                allFiles.unite(groupData.allFilePaths().toSet());
+                allFiles.unite(Internal::Set<QString>::fromList(groupData.allFilePaths()));
     }
 
     auto allFilesSorted = allFiles.toList();

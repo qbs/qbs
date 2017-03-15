@@ -1085,10 +1085,10 @@ QHash<QString, QString> Project::usedEnvironment() const
     return d->internalProject->usedEnvironment;
 }
 
-QSet<QString> Project::buildSystemFiles() const
+std::set<QString> Project::buildSystemFiles() const
 {
-    QBS_ASSERT(isValid(), return QSet<QString>());
-    return d->internalProject->buildSystemFiles.toQSet();
+    QBS_ASSERT(isValid(), return std::set<QString>());
+    return d->internalProject->buildSystemFiles.toStdSet();
 }
 
 RuleCommandList Project::ruleCommands(const ProductData &product,

@@ -43,6 +43,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/profile.h>
+#include <tools/set.h>
 
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qfile.h>
@@ -160,7 +161,8 @@ QString QtModuleInfo::libNameForLinker(const QtEnvironment &qtEnvironment, bool 
     return libName;
 }
 
-void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, QSet<QString> *nonExistingPrlFiles)
+void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv,
+                                  Internal::Set<QString> *nonExistingPrlFiles)
 {
     setupLibraries(qtEnv, true, nonExistingPrlFiles);
     setupLibraries(qtEnv, false, nonExistingPrlFiles);
@@ -172,7 +174,7 @@ static QStringList makeList(const QByteArray &s)
 }
 
 void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
-                                  QSet<QString> *nonExistingPrlFiles)
+                                  Internal::Set<QString> *nonExistingPrlFiles)
 {
     if (!hasLibrary)
         return; // Can happen for Qt4 convenience modules, like "widgets".
@@ -485,7 +487,7 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
             modules[i].mustExist = false;
     }
 
-    QSet<QString> nonExistingPrlFiles;
+    Internal::Set<QString> nonExistingPrlFiles;
     for (int i = 0; i < modules.count(); ++i) {
         QtModuleInfo &module = modules[i];
         if (qtEnvironment.staticBuild)
@@ -531,7 +533,7 @@ static QList<QByteArray> getPriFileContentsRecursively(const Profile &profile,
 
 QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &qtEnvironment)
 {
-    QSet<QString> nonExistingPrlFiles;
+    Internal::Set<QString> nonExistingPrlFiles;
     QList<QtModuleInfo> modules;
     QDirIterator dit(qtEnvironment.mkspecBasePath + QLatin1String("/modules"));
     while (dit.hasNext()) {

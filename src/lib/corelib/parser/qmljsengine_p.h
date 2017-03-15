@@ -56,7 +56,8 @@
 #include "qmljsmemorypool_p.h"
 
 #include <QtCore/qstring.h>
-#include <QtCore/qset.h>
+
+#include <set>
 
 namespace QbsQmlJS {
 

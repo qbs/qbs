@@ -43,13 +43,15 @@
 
 #include "logger.h"
 
+#include <tools/set.h>
+
 #include <QtCore/qbytearray.h>
 #include <QtCore/qelapsedtimer.h>
-#include <QtCore/qset.h>
 #include <QtCore/qvariant.h>
 
 #include <cstdarg>
 #include <mutex>
+#include <set>
 #include <stdio.h>
 
 namespace qbs {
@@ -143,7 +145,7 @@ LogWriter operator<<(LogWriter w, const QStringList &strList)
     return w;
 }
 
-LogWriter operator<<(LogWriter w, const QSet<QString> &strSet)
+LogWriter operator<<(LogWriter w, const Internal::Set<QString> &strSet)
 {
     bool firstLoop = true;
     w.write('(');

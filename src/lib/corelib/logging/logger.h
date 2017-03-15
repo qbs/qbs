@@ -55,6 +55,8 @@ QT_END_NAMESPACE
 namespace qbs {
 namespace Internal {
 
+template<typename T> class Set;
+
 // Note that while these classes are not part of the API, we export some stuff for use by
 // our command line tools for the sake of a uniform logging approach.
 
@@ -99,7 +101,7 @@ QBS_EXPORT LogWriter operator<<(LogWriter w, const char *str);
 QBS_EXPORT LogWriter operator<<(LogWriter w, const QByteArray &byteArray);
 QBS_EXPORT LogWriter operator<<(LogWriter w, const QString &str);
 QBS_EXPORT LogWriter operator<<(LogWriter w, const QStringList &strList);
-QBS_EXPORT LogWriter operator<<(LogWriter w, const QSet<QString> &strSet);
+QBS_EXPORT LogWriter operator<<(LogWriter w, const Internal::Set<QString> &strSet);
 QBS_EXPORT LogWriter operator<<(LogWriter w, const QVariant &variant);
 QBS_EXPORT LogWriter operator<<(LogWriter w, int n);
 QBS_EXPORT LogWriter operator<<(LogWriter w, qint64 n);

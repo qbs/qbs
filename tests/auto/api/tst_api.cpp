@@ -35,6 +35,7 @@
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/qttools.h>
+#include <tools/set.h>
 #include <tools/toolchains.h>
 
 #include <QtCore/qcoreapplication.h>
@@ -1407,7 +1408,8 @@ void TestApi::listBuildSystemFiles()
                                                                         m_logSink, 0));
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
-    const QSet<QString> buildSystemFiles = job->project().buildSystemFiles();
+    const auto buildSystemFiles = qbs::Internal::Set<QString>::fromStdSet(
+                job->project().buildSystemFiles());
     QVERIFY(buildSystemFiles.contains(setupParams.projectFilePath()));
     QVERIFY(buildSystemFiles.contains(setupParams.buildRoot() + "/subproject2/subproject2.qbs"));
     QVERIFY(buildSystemFiles.contains(setupParams.buildRoot()

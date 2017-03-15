@@ -45,6 +45,7 @@
 #include <tools/architectures.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
+#include <tools/set.h>
 #include <tools/settings.h>
 #include <tools/version.h>
 
@@ -288,11 +289,12 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
 
 static bool isToolchainProfile(const Profile &profile)
 {
-    const QSet<QString> actual = profile.allKeys(Profile::KeySelectionRecursive).toSet();
-    QSet<QString> expected = QSet<QString>() << QLatin1String("qbs.toolchain");
+    const auto actual = Internal::Set<QString>::fromList(
+                profile.allKeys(Profile::KeySelectionRecursive));
+    Internal::Set<QString> expected = Internal::Set<QString> { QLatin1String("qbs.toolchain") };
     if (HostOsInfo::isMacosHost())
         expected.insert(QLatin1String("qbs.targetOS")); // match only Xcode profiles
-    return QSet<QString>(actual).unite(expected) == actual;
+    return Internal::Set<QString>(actual).unite(expected) == actual;
 }
 
 static bool isQtProfile(const Profile &profile)
@@ -442,11 +444,12 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
 {
     Match match = MatchFull;
 
-    const QSet<QString> toolchainNames = toolchainProfile.value(QLatin1String("qbs.toolchain"))
-            .toStringList().toSet();
-    const QSet<QString> mkspecToolchainNames = qbsToolchainFromQtMkspec(env.mkspecName).toSet();
+    const auto toolchainNames = Internal::Set<QString>::fromList(
+                toolchainProfile.value(QLatin1String("qbs.toolchain")).toStringList());
+    const auto mkspecToolchainNames = Internal::Set<QString>::fromList(
+                qbsToolchainFromQtMkspec(env.mkspecName));
     if (areProfilePropertiesIncompatible(toolchainNames, mkspecToolchainNames)) {
-        QSet<QString> intersection = toolchainNames;
+        auto intersection = toolchainNames;
         intersection.intersect(mkspecToolchainNames);
         if (!intersection.isEmpty())
             match = MatchPartial;
@@ -454,10 +457,11 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
             return MatchNone;
     }
 
-    const QSet<QString> targetOsNames = toolchainProfile.value(QLatin1String("qbs.targetOS"))
-            .toStringList().toSet();
-    if (areProfilePropertiesIncompatible(qbsTargetOsFromQtMkspec(env.mkspecName).toSet(),
-                                         targetOsNames))
+    const auto targetOsNames = Internal::Set<QString>::fromList(
+                toolchainProfile.value(QLatin1String("qbs.targetOS")).toStringList());
+    if (areProfilePropertiesIncompatible(
+                Internal::Set<QString>::fromList(qbsTargetOsFromQtMkspec(env.mkspecName)),
+                targetOsNames))
         return MatchNone;
 
     const QString toolchainArchitecture = toolchainProfile.value(QLatin1String("qbs.architecture"))

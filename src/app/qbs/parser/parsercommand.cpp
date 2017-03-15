@@ -44,9 +44,9 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
+#include <tools/set.h>
 
 #include <QtCore/qmap.h>
-#include <QtCore/qset.h>
 
 namespace qbs {
 using namespace Internal;
@@ -91,7 +91,7 @@ QList<CommandLineOption::Type> Command::actualSupportedOptions() const
 
 void Command::parseOptions(QStringList &input)
 {
-    QSet<CommandLineOption *> usedOptions;
+    Set<CommandLineOption *> usedOptions;
     while (!input.isEmpty()) {
         const QString optionString = input.first();
         if (!optionString.startsWith(QLatin1Char('-')))

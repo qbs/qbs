@@ -49,6 +49,7 @@
 #include <algorithm>
 #include <functional>
 #include <iterator>
+#include <set>
 #include <type_traits>
 
 namespace qbs {
@@ -140,8 +141,9 @@ public:
     QString toString() const;
 
     static Set<T> fromList(const QList<T> &list);
+    static Set<T> fromStdSet(const std::set<T> &set);
     QList<T> toList() const { return m_data.toList(); }
-    QSet<T> toQSet() const;
+    std::set<T> toStdSet() const;
 
     template<typename U> static Set<T> filtered(const Set<U> &s);
 
@@ -300,11 +302,18 @@ template<typename T> Set<T> Set<T>::fromList(const QList<T> &list)
     return s;
 }
 
-template<typename T> QSet<T> Set<T>::toQSet() const
+template<typename T> Set<T> Set<T>::fromStdSet(const std::set<T> &set)
 {
-    QSet<T> set;
+    Set<T> s;
+    std::copy(set.cbegin(), set.cend(), std::back_inserter(s.m_data));
+    return s;
+}
+
+template<typename T> std::set<T> Set<T>::toStdSet() const
+{
+    std::set<T> set;
     for (auto it = cbegin(); it != cend(); ++it)
-        set << *it;
+        set.insert(*it);
     return set;
 }
 

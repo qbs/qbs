@@ -39,7 +39,6 @@
 #ifndef QBS_QTMODULEINFO_H
 #define QBS_QTMODULEINFO_H
 
-#include <QtCore/qset.h>
 #include <QtCore/qstringlist.h>
 
 namespace qbs {
@@ -47,6 +46,8 @@ class QtEnvironment;
 class Profile;
 
 namespace Internal {
+
+template<typename T> class Set;
 
 class QtModuleInfo
 {
@@ -62,7 +63,7 @@ public:
     QString libBaseName(const QString &libName, bool debugBuild,
                         const QtEnvironment &qtEnvironment) const;
     QString libNameForLinker(const QtEnvironment &qtEnvironment, bool debugBuild) const;
-    void setupLibraries(const QtEnvironment &qtEnv, QSet<QString> *nonExistingPrlFiles);
+    void setupLibraries(const QtEnvironment &qtEnv, Internal::Set<QString> *nonExistingPrlFiles);
     bool isFramework(const QtEnvironment &qtEnv) const;
 
     QString modulePrefix; // default is empty and means "Qt".
@@ -100,7 +101,7 @@ public:
 
 private:
     void setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
-                        QSet<QString> *nonExistingPrlFiles);
+                        Internal::Set<QString> *nonExistingPrlFiles);
 };
 
 QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment);
