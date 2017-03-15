@@ -49,6 +49,8 @@
 #include <QtCore/private/qcore_mac_p.h>
 #include <Security/Security.h>
 
+#include <mutex>
+
 namespace qbs {
 namespace Internal {
 
@@ -104,8 +106,8 @@ QVariantMap identitiesProperties()
 {
     // Apple documentation states that the Sec* family of functions are not thread-safe on macOS
     // https://developer.apple.com/library/mac/documentation/Security/Reference/certifkeytrustservices/
-    static QMutex securityMutex;
-    QMutexLocker locker(&securityMutex);
+    static std::mutex securityMutex;
+    std::lock_guard<std::mutex> locker(securityMutex);
     Q_UNUSED(locker);
 
     const void *keys[] = {kSecClass, kSecMatchLimit, kSecAttrCanSign};

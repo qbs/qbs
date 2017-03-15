@@ -53,7 +53,6 @@
 
 #include <QtCore/qdatastream.h>
 #include <QtCore/qhash.h>
-#include <QtCore/qmutex.h>
 #include <QtCore/qprocess.h>
 #include <QtCore/qregexp.h>
 #include <QtCore/qscopedpointer.h>
@@ -62,6 +61,8 @@
 #include <QtCore/qvariant.h>
 
 #include <QtScript/qscriptvalue.h>
+
+#include <mutex>
 
 QT_BEGIN_NAMESPACE
 class QScriptEngine;
@@ -452,7 +453,7 @@ private:
     void store(PersistentPool &pool) const;
 
     QHash<QString, QString> m_executablePathCache;
-    mutable QMutex m_executablePathCacheLock;
+    mutable std::mutex m_executablePathCacheLock;
 };
 
 class ResolvedProject : public PersistentObject

@@ -41,7 +41,8 @@
 #include <tools/error.h>
 
 #include <QtCore/qbytearray.h>
-#include <QtCore/qmutex.h>
+
+#include <mutex>
 
 namespace qbs {
 
@@ -78,7 +79,7 @@ class ILogSink::ILogSinkPrivate
 {
 public:
     LoggerLevel logLevel;
-    QMutex mutex;
+    std::mutex mutex;
 };
 
 ILogSink::ILogSink() : d(new ILogSinkPrivate)

@@ -43,8 +43,9 @@
 #include "launcherpackets.h"
 
 #include <QtCore/qbytearraylist.h>
-#include <QtCore/qmutex.h>
 #include <QtCore/qobject.h>
+
+#include <mutex>
 
 QT_BEGIN_NAMESPACE
 class QLocalSocket;
@@ -82,7 +83,7 @@ private:
     QLocalSocket *m_socket = nullptr;
     PacketParser m_packetParser;
     QByteArrayList m_requests;
-    QMutex m_requestsMutex;
+    std::mutex m_requestsMutex;
 };
 
 } // namespace Internal

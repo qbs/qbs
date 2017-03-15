@@ -64,11 +64,11 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qmap.h>
-#include <QtCore/qmutex.h>
 
 #include <QtScript/qscriptvalue.h>
 
 #include <algorithm>
+#include <mutex>
 
 namespace qbs {
 namespace Internal {
@@ -826,13 +826,13 @@ bool ResolvedProduct::builtByDefault() const
 
 void ResolvedProduct::cacheExecutablePath(const QString &origFilePath, const QString &fullFilePath)
 {
-    QMutexLocker locker(&m_executablePathCacheLock);
+    std::lock_guard<std::mutex> locker(m_executablePathCacheLock);
     m_executablePathCache.insert(origFilePath, fullFilePath);
 }
 
 QString ResolvedProduct::cachedExecutablePath(const QString &origFilePath) const
 {
-    QMutexLocker locker(&m_executablePathCacheLock);
+    std::lock_guard<std::mutex> locker(m_executablePathCacheLock);
     return m_executablePathCache.value(origFilePath);
 }
 

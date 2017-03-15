@@ -34,11 +34,12 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qfuture.h>
-#include <QtCore/qmutex.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qxmlstream.h>
 
 #include <QtConcurrent/qtconcurrentrun.h>
+
+#include <mutex>
 
 namespace qbsBenchmarker {
 
@@ -152,7 +153,7 @@ QStringList ValgrindRunner::valgrindCommandLine(const QString &qbsCommand, const
 
 void ValgrindRunner::addToResults(const ValgrindResult &result)
 {
-    QMutexLocker locker(&m_resultsMutex);
+    std::lock_guard<std::mutex> locker(m_resultsMutex);
     m_results << result;
 }
 

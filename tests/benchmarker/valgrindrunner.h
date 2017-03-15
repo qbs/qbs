@@ -31,8 +31,9 @@
 #include "activities.h"
 
 #include <QtCore/qlist.h>
-#include <QtCore/qmutex.h>
 #include <QtCore/qstring.h>
+
+#include <mutex>
 
 QT_BEGIN_NAMESPACE
 class QStringList;
@@ -82,7 +83,7 @@ private:
     const QString m_qbsBinary;
     const QString m_baseOutputDir;
     QList<ValgrindResult> m_results;
-    QMutex m_resultsMutex;
+    std::mutex m_resultsMutex;
 };
 
 } // namespace qbsBenchmarker

@@ -78,9 +78,10 @@
 #include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
-#include <QtCore/qmutex.h>
 #include <QtCore/qregexp.h>
 #include <QtCore/qshareddata.h>
+
+#include <mutex>
 
 #ifdef QBS_STATIC_LIB
 extern "C" ScannerPlugin *cppScanners[];
@@ -91,11 +92,11 @@ namespace qbs {
 namespace Internal {
 
 static bool pluginsLoaded = false;
-static QMutex pluginsLoadedMutex;
+static std::mutex pluginsLoadedMutex;
 
 static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
 {
-    QMutexLocker locker(&pluginsLoadedMutex);
+    std::lock_guard<std::mutex> locker(pluginsLoadedMutex);
     if (pluginsLoaded)
         return;
 
