@@ -148,28 +148,76 @@ static QString wow6432Key()
 #endif
 }
 
+struct MSVCRegistryEntry
+{
+    QString version;
+    QString installDir;
+};
+
+static QVector<MSVCRegistryEntry> installedMSVCsFromRegistry()
+{
+    QVector<MSVCRegistryEntry> result;
+
+    // Detect Visual Studio
+    const QSettings vsRegistry(
+                QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
+                + QStringLiteral("\\Microsoft\\VisualStudio\\SxS\\VS7"),
+                QSettings::NativeFormat);
+    foreach (const QString &vsName, vsRegistry.childKeys()) {
+        MSVCRegistryEntry entry;
+        entry.version = vsName;
+        entry.installDir = vsRegistry.value(vsName).toString();
+        result.append(entry);
+    }
+
+    // Detect Visual C++ Build Tools
+    QSettings vcbtRegistry(
+                QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
+                + QStringLiteral("\\Microsoft\\VisualCppBuildTools"),
+                QSettings::NativeFormat);
+    const QStringList &vcbtRegistryChildGroups = vcbtRegistry.childGroups();
+    for (const QString &childGroup : vcbtRegistryChildGroups) {
+        vcbtRegistry.beginGroup(childGroup);
+        bool ok;
+        int installed = vcbtRegistry.value(QStringLiteral("Installed")).toInt(&ok);
+        if (ok && installed) {
+            MSVCRegistryEntry entry;
+            entry.version = childGroup;
+            const QSettings vsRegistry(
+                        QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
+                        + QStringLiteral("\\Microsoft\\VisualStudio\\") + childGroup
+                        + QStringLiteral("\\Setup\\VC"),
+                        QSettings::NativeFormat);
+            entry.installDir = vsRegistry.value(QStringLiteral("ProductDir")).toString();
+            result.append(entry);
+        }
+        vcbtRegistry.endGroup();
+    }
+
+    return result;
+}
+
 static QVector<MSVC> installedMSVCs()
 {
     QVector<MSVC> msvcs;
-    const QSettings vsRegistry(
-                QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
-                + QLatin1String("\\Microsoft\\VisualStudio\\SxS\\VS7"),
-                QSettings::NativeFormat);
-    foreach (const QString &vsName, vsRegistry.childKeys()) {
+    const QVector<MSVCRegistryEntry> &registryEntries = installedMSVCsFromRegistry();
+    for (const MSVCRegistryEntry &registryEntry : registryEntries) {
         MSVC msvc;
-        msvc.internalVsVersion = Version::fromString(vsName);
+        msvc.internalVsVersion = Version::fromString(registryEntry.version);
         if (!msvc.internalVsVersion.isValid())
             continue;
 
-        QDir vsInstallDir(vsRegistry.value(vsName).toString());
+        QDir vsInstallDir(registryEntry.installDir);
         msvc.vsInstallPath = vsInstallDir.absolutePath();
-        if (!vsInstallDir.cd(QStringLiteral("VC")))
+        if (vsInstallDir.dirName() != QStringLiteral("VC")
+                && !vsInstallDir.cd(QStringLiteral("VC"))) {
             continue;
+        }
 
         msvc.version = QString::number(Internal::VisualStudioVersionInfo(
-            Internal::Version::fromString(vsName)).marketingVersion());
+            Internal::Version::fromString(registryEntry.version)).marketingVersion());
         if (msvc.version.isEmpty()) {
-            qbsWarning() << Tr::tr("Unknown MSVC version %1 found.").arg(vsName);
+            qbsWarning() << Tr::tr("Unknown MSVC version %1 found.").arg(registryEntry.version);
             continue;
         }
 
