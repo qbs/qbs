@@ -2332,7 +2332,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
 {
     if (!sourceProject)
         return;
-    const QList<PropertyDeclaration> &builtinProjectProperties = BuiltinDeclarations::instance()
+    const QList<PropertyDeclaration> builtinProjectProperties = BuiltinDeclarations::instance()
             .declarationsForType(ItemType::Project).properties();
     Set<QString> builtinProjectPropertyNames;
     for (const PropertyDeclaration &p : builtinProjectProperties)
