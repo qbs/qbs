@@ -36,6 +36,7 @@ HEADERS += \
     $$PWD/projectgeneratormanager.h \
     $$PWD/qbsprocess.h \
     $$PWD/shellutils.h \
+    $$PWD/stlutils.h \
     $$PWD/toolchains.h \
     $$PWD/hostosinfo.h \
     $$PWD/buildoptions.h \

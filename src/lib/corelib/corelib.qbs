@@ -402,6 +402,7 @@ QbsLibrary {
             "setupprojectparameters.cpp",
             "shellutils.cpp",
             "shellutils.h",
+            "stlutils.h",
             "toolchains.cpp",
             "version.cpp",
             "version.h",
