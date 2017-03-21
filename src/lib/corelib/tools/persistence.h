@@ -283,13 +283,14 @@ template<typename T> struct IsSimpleContainer { static const bool value = false;
 template<> struct IsSimpleContainer<QStringList> { static const bool value = true; };
 template<typename T> struct IsSimpleContainer<QVector<T>> { static const bool value = true; };
 template<typename T> struct IsSimpleContainer<QList<T>> { static const bool value = true; };
+template<typename T> struct IsSimpleContainer<std::vector<T>> { static const bool value = true; };
 
 template<typename T>
 struct PersistentPool::Helper<T, typename std::enable_if<IsSimpleContainer<T>::value>::type>
 {
     static void store(const T &container, PersistentPool *pool)
     {
-        pool->store(container.count());
+        pool->store<int>(container.size());
         for (auto it = container.cbegin(); it != container.cend(); ++it)
             pool->store(*it);
     }
@@ -299,7 +300,7 @@ struct PersistentPool::Helper<T, typename std::enable_if<IsSimpleContainer<T>::v
         container.clear();
         container.reserve(count);
         for (int i = count; --i >= 0;)
-            container += pool->load<typename T::value_type>();
+            container.push_back(pool->load<typename T::value_type>());
     }
 };
 
