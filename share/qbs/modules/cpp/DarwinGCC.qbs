@@ -119,7 +119,26 @@ UnixGCC {
         return dict;
     }
 
+    targetLinkerFlags: darwinArchFlags.concat(minimumDarwinVersionLinkerFlags)
+    targetAssemblerFlags: targetDriverFlags
+    targetDriverFlags: {
+        var args = [];
+        if (!hasTargetOption)
+            args = args.concat(darwinArchFlags).concat(minimumDarwinVersionCompilerFlags);
+        return args.concat(base); // concat base flags to get -march
+    }
+
     // private properties
+    readonly property stringList darwinArchFlags: targetArch ? ["-arch", targetArch] : []
+
+    readonly property stringList minimumDarwinVersionCompilerFlags:
+        (minimumDarwinVersionCompilerFlag && minimumDarwinVersion)
+        ? [minimumDarwinVersionCompilerFlag + "=" + minimumDarwinVersion] : []
+
+    readonly property stringList minimumDarwinVersionLinkerFlags:
+        (minimumDarwinVersionLinkerFlag && minimumDarwinVersion)
+        ? [minimumDarwinVersionLinkerFlag, minimumDarwinVersion] : []
+
     readonly property var buildEnv: {
         var env = {
             "ARCHS_STANDARD": targetArch, // TODO: this will be affected by multi-arch support

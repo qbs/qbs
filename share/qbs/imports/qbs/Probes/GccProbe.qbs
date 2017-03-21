@@ -35,12 +35,9 @@ import "../../../modules/cpp/gcc.js" as Gcc
 PathProbe {
     // Inputs
     property string compilerFilePath
-    property string preferredArchitecture
-    property string preferredMachineType
     property stringList flags: []
     property var environment
 
-    property bool _haveArchFlag: qbs.targetOS.contains("darwin")
     property string _nullDevice: qbs.nullDevice
     property stringList _toolchain: qbs.toolchain
     property string _pathListSeparator: qbs.pathListSeparator
@@ -57,22 +54,8 @@ PathProbe {
     property stringList frameworkPaths
 
     configure: {
-        var args = flags;
-        if (_haveArchFlag) {
-            if (preferredArchitecture)
-                args.push("-arch", preferredArchitecture);
-        } else {
-            if (preferredArchitecture === "i386")
-                args.push("-m32");
-            else if (preferredArchitecture === "x86_64")
-                args.push("-m64");
-
-            if (preferredMachineType)
-                args.push("-march=" + preferredMachineType);
-        }
-
-        var macros = Gcc.dumpMacros(environment, compilerFilePath, args, _nullDevice);
-        var defaultPaths = Gcc.dumpDefaultPaths(environment, compilerFilePath, args, _nullDevice,
+        var macros = Gcc.dumpMacros(environment, compilerFilePath, flags, _nullDevice);
+        var defaultPaths = Gcc.dumpDefaultPaths(environment, compilerFilePath, flags, _nullDevice,
                                                 _pathListSeparator, _targetOS, _sysroot);
         found = !!macros && !!defaultPaths;
 
@@ -82,7 +65,7 @@ PathProbe {
 
         // We have to dump the compiler's macros; -dumpmachine is not suitable because it is not
         // always complete (for example, the subarch is not included for arm architectures).
-        architecture = ModUtils.guessArchitecture(macros) || preferredArchitecture;
+        architecture = ModUtils.guessArchitecture(macros);
 
         if (_toolchain.contains("clang")) {
             versionMajor = parseInt(macros["__clang_major__"], 10);

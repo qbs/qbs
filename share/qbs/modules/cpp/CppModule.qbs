@@ -318,6 +318,10 @@ Module {
     property bool combineObjcSources: false
     property bool combineObjcxxSources: false
 
+    property stringList targetAssemblerFlags
+    property stringList targetDriverFlags
+    property stringList targetLinkerFlags
+
     // TODO: The following four rules could use a convenience base item if rule properties
     //       were available in Artifact items and prepare scripts.
     Rule {

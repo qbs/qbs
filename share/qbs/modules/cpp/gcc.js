@@ -242,12 +242,9 @@ function linkerFlags(project, product, inputs, output) {
                                                  ["--as-needed"]));
     }
 
-    var minimumDarwinVersion = product.cpp.minimumDarwinVersion;
-    if (minimumDarwinVersion) {
-        var flag = product.cpp.minimumDarwinVersionLinkerFlag;
-        if (flag)
-            args = args.concat(escapeLinkerFlags(product, inputs, [flag, minimumDarwinVersion]));
-    }
+    var targetLinkerFlags = product.cpp.targetLinkerFlags;
+    if (targetLinkerFlags)
+        args = args.concat(escapeLinkerFlags(product, inputs, targetLinkerFlags));
 
     var sysroot = product.cpp.sysroot;
     if (sysroot) {
@@ -391,40 +388,12 @@ function linkerFlags(project, product, inputs, output) {
 
 // for compiler AND linker
 function configFlags(config, isDriver) {
-    if (isDriver === undefined)
-        isDriver = true;
-
     var args = [];
 
-    if (isDriver) {
+    if (isDriver !== false) {
         args = args.concat(config.cpp.platformDriverFlags);
         args = args.concat(config.cpp.driverFlags);
-    }
-
-    if (haveTargetOption(config) && isDriver) {
-        args.push("-target", config.cpp.target);
-    } else {
-        var arch = config.cpp.targetArch;
-        if (config.qbs.targetOS.contains("darwin"))
-            args.push("-arch", arch);
-
-        if (isDriver) {
-            if (arch === 'x86_64')
-                args.push('-m64');
-            else if (arch === 'i386')
-                args.push('-m32');
-
-            var march = config.cpp.machineType;
-            if (march)
-                args.push("-march=" + march);
-
-            var minimumDarwinVersion = config.cpp.minimumDarwinVersion;
-            if (minimumDarwinVersion) {
-                var flag = config.cpp.minimumDarwinVersionCompilerFlag;
-                if (flag)
-                    args.push(flag + "=" + minimumDarwinVersion);
-            }
-        }
+        args = args.concat(config.cpp.targetDriverFlags);
     }
 
     var frameworkPaths = config.cpp.frameworkPaths;
@@ -676,16 +645,6 @@ function compilerFlags(project, product, input, output) {
     return args;
 }
 
-function haveTargetOption(product) {
-    var toolchain = product.qbs.toolchain;
-    var major = product.cpp.compilerVersionMajor;
-    var minor = product.cpp.compilerVersionMinor;
-
-    // Apple Clang 3.1 (shipped with Xcode 4.3) just happened to also correspond to LLVM 3.1,
-    // so no special version check is needed for Apple
-    return toolchain.contains("clang") && (major > 3 || (major === 3 && minor >= 1));
-}
-
 function additionalCompilerAndLinkerFlags(product) {
     var args = []
 
@@ -720,14 +679,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
     var systemIncludePaths = input.cpp.systemIncludePaths;
     var distributionIncludePaths = input.cpp.distributionIncludePaths;
 
-    var args = [];
-    var arch = product.cpp.targetArch;
-    if (product.qbs.targetOS.contains("darwin"))
-        args.push("-arch", arch);
-    else if (arch === 'x86_64')
-        args.push('--64');
-    else if (arch === 'i386')
-        args.push('--32');
+    var args = product.cpp.targetAssemblerFlags;
 
     if (input.cpp.debugInformation)
         args.push('-g');

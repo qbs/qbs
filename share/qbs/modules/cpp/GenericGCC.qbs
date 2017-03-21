@@ -52,9 +52,39 @@ CppModule {
     Probes.GccProbe {
         id: gccProbe
         compilerFilePath: compilerPath
-        preferredArchitecture: targetArch
-        preferredMachineType: machineType
         environment: buildEnv
+        flags: targetDriverFlags
+    }
+
+    targetAssemblerFlags: {
+        switch (targetArch) {
+        case "i386":
+            return ["--32"];
+        case "x86_64":
+            return ["--64"];
+        default:
+            return [];
+        }
+    }
+
+    targetDriverFlags: {
+        var args = [];
+        if (hasTargetOption) {
+            if (target)
+                args.push("-target", target);
+        } else {
+            switch (targetArch) {
+            case "i386":
+                args.push("-m32");
+                break;
+            case "x86_64":
+                args.push("-m64");
+                break;
+            }
+            if (machineType)
+                args.push("-march=" + machineType);
+        }
+        return args;
     }
 
     Probe {
@@ -82,6 +112,8 @@ CppModule {
     compilerFrameworkPaths: gccProbe.frameworkPaths
     compilerLibraryPaths: gccProbe.libraryPaths
 
+    property bool hasTargetOption: qbs.toolchain.contains("clang")
+                                   && Utilities.versionCompare(compilerVersion, "3.1") >= 0
     property string target: [targetArch, targetVendor, targetSystem, targetAbi].join("-")
     property string targetArch: Utilities.canonicalTargetArchitecture(
                                     qbs.architecture, targetVendor, targetSystem, targetAbi)
