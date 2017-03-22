@@ -1318,7 +1318,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
         // gets inherited in that case. In particular, setting a list property
         // overwrites the value from the product's (or parent group's) instance completely,
         // rather than appending to it (concatenation happens via outer.concat()).
-        ValueConstPtr propValue = module.item->properties().value(propName);
+        ValueConstPtr propValue = module.item->ownProperty(propName);
         if (propValue)
             continue;
 
@@ -1332,7 +1332,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
             instanceWithProperty = instanceWithProperty->prototype();
             QBS_CHECK(instanceWithProperty);
             ++prototypeChainLen;
-            propValue = instanceWithProperty->properties().value(propName);
+            propValue = instanceWithProperty->ownProperty(propName);
         } while (!propValue);
         QBS_CHECK(propValue);
 
@@ -1641,7 +1641,7 @@ Item *ModuleLoader::moduleInstanceItem(Item *containerItem, const QualifiedId &m
     Item *instance = containerItem;
     for (int i = 0; i < moduleName.count(); ++i) {
         const QString &moduleNameSegment = moduleName.at(i);
-        const ValuePtr v = instance->properties().value(moduleName.at(i));
+        const ValuePtr v = instance->ownProperty(moduleName.at(i));
         if (v && v->type() == Value::ItemValueType) {
             instance = v.staticCast<ItemValue>()->item();
         } else {

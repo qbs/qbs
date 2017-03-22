@@ -361,7 +361,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
                                                                  bool ignoreParent)
 {
     for (const Item *item = data->item; item; item = item->prototype()) {
-        m_queryResult.value = item->properties().value(name);
+        m_queryResult.value = item->ownProperty(name);
         if (!m_queryResult.value.isNull()) {
             m_queryResult.data = data;
             m_queryResult.itemOfProperty = item;

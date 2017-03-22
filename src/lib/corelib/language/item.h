@@ -111,6 +111,7 @@ public:
     bool hasProperty(const QString &name) const;
     bool hasOwnProperty(const QString &name) const;
     ValuePtr property(const QString &name) const;
+    ValuePtr ownProperty(const QString &name) const;
     ItemValuePtr itemProperty(const QString &name, const Item *itemTemplate = nullptr);
     JSSourceValuePtr sourceProperty(const QString &name) const;
     VariantValuePtr variantProperty(const QString &name) const;

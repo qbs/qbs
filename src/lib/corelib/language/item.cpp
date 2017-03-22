@@ -140,6 +140,11 @@ ValuePtr Item::property(const QString &name) const
     return value;
 }
 
+ValuePtr Item::ownProperty(const QString &name) const
+{
+    return m_properties.value(name);
+}
+
 ItemValuePtr Item::itemProperty(const QString &name, const Item *itemTemplate)
 {
     ItemValuePtr result;

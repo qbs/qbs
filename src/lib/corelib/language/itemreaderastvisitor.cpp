@@ -264,7 +264,7 @@ Item *ItemReaderASTVisitor::targetItemForBinding(const QStringList &bindingName,
     Item *targetItem = m_item;
     const int c = bindingName.count() - 1;
     for (int i = 0; i < c; ++i) {
-        ValuePtr v = targetItem->properties().value(bindingName.at(i));
+        ValuePtr v = targetItem->ownProperty(bindingName.at(i));
         if (!v) {
             const ItemType itemType = i < c - 1 ? ItemType::ModulePrefix : ItemType::ModuleInstance;
             Item *newItem = Item::create(m_itemPool, itemType);
