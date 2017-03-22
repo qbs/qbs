@@ -41,6 +41,7 @@
 
 #include "jsimports.h"
 #include <tools/persistence.h>
+#include <tools/stlutils.h>
 
 namespace qbs {
 namespace Internal {
@@ -70,7 +71,7 @@ bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)
 {
     return a.filePath() == b.filePath()
             && a.jsExtensions().toSet() == b.jsExtensions().toSet()
-            && a.jsImports().toSet() == b.jsImports().toSet();
+            && sorted(a.jsImports()) == sorted(b.jsImports());
 }
 
 } // namespace Internal

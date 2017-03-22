@@ -51,8 +51,8 @@ public:
     void setFilePath(const QString &filePath) { m_filePath = filePath; }
     QString filePath() const { return m_filePath; }
 
-    void addJsImport(const JsImport &jsImport) { m_jsImports << jsImport; }
-    JsImports jsImports() const { return m_jsImports; }
+    void addJsImport(const JsImport &jsImport) { m_jsImports.push_back(jsImport); }
+    const JsImports &jsImports() const { return m_jsImports; }
 
     void addJsExtension(const QString &extension) { m_jsExtensions << extension; }
     QStringList jsExtensions() const { return m_jsExtensions; }

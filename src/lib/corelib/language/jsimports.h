@@ -46,6 +46,8 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qstringlist.h>
 
+#include <vector>
+
 namespace qbs {
 namespace Internal {
 
@@ -79,12 +81,17 @@ public:
 };
 inline uint qHash(const JsImport &jsi) { return qHash(jsi.scopeName); }
 
-typedef QList<JsImport> JsImports;
+inline bool operator<(const JsImport &lhs, const JsImport &rhs)
+{
+    return lhs.scopeName < rhs.scopeName;
+}
 
 inline bool operator==(const JsImport &jsi1, const JsImport &jsi2)
 {
     return jsi1.scopeName == jsi2.scopeName && jsi1.filePaths.toSet() == jsi2.filePaths.toSet();
 }
+
+typedef std::vector<JsImport> JsImports;
 
 } // namespace Internal
 } // namespace qbs
