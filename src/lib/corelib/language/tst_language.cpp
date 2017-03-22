@@ -629,6 +629,12 @@ void TestLanguage::erroneousFiles_data()
                "'Product', but it is of type 'Artifact'.";
     QTest::newRow("module-depends-on-product")
             << "module-with-product-dependency.qbs:4:5.*Modules cannot depend on products.";
+    QTest::newRow("overwrite-inherited-readonly-property")
+            << "overwrite-inherited-readonly-property.qbs"
+               ":4:21.*Cannot set read-only property 'readOnlyString'.";
+    QTest::newRow("overwrite-readonly-module-property")
+            << "overwrite-readonly-module-property.qbs"
+               ":5:30.*Cannot set read-only property 'readOnlyString'.";
 }
 
 void TestLanguage::erroneousFiles()

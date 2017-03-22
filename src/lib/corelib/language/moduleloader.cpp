@@ -2176,6 +2176,16 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
         moduleInstance->addModule(m);
     }
 
+    // Check readonly properties.
+    const auto end = moduleInstance->properties().cend();
+    for (auto it = moduleInstance->properties().cbegin(); it != end; ++it) {
+        const PropertyDeclaration &pd = moduleInstance->propertyDeclaration(it.key());
+        if (!pd.flags().testFlag(PropertyDeclaration::ReadOnlyFlag))
+            continue;
+        throw ErrorInfo(Tr::tr("Cannot set read-only property '%1'.").arg(pd.name()),
+                        moduleInstance->property(pd.name())->location());
+    }
+
     // override module properties given on the command line
     const QVariantMap userModuleProperties = m_parameters.overriddenValuesTree()
             .value(QLatin1String("modules.") + fullName).toMap();

@@ -171,6 +171,8 @@ bool ItemReaderASTVisitor::visit(AST::UiPublicMember *ast)
         throw ErrorInfo(Tr::tr("public member with type modifier '%1' not supported").arg(
                         ast->typeModifier.toString()));
     }
+    if (ast->isReadonlyMember)
+        p.setFlags(PropertyDeclaration::ReadOnlyFlag);
 
     m_item->m_propertyDeclarations.insert(p.name(), p);
 
@@ -287,6 +289,15 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
         child->m_parent = dst;
     }
 
+    for (const PropertyDeclaration &pd : src->propertyDeclarations()) {
+        if (pd.flags().testFlag(PropertyDeclaration::ReadOnlyFlag)
+                && dst->hasOwnProperty(pd.name())) {
+            throw ErrorInfo(Tr::tr("Cannot set read-only property '%1'.").arg(pd.name()),
+                            dst->property(pd.name())->location());
+        }
+        dst->setPropertyDeclaration(pd.name(), pd);
+    }
+
     for (auto it = src->properties().constBegin(); it != src->properties().constEnd(); ++it) {
         ValuePtr &v = dst->m_properties[it.key()];
         if (!v) {
@@ -314,11 +325,6 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
         default:
             QBS_CHECK(!"unexpected value type");
         }
-    }
-
-    for (auto it = src->propertyDeclarations().constBegin();
-         it != src->propertyDeclarations().constEnd(); ++it) {
-        dst->setPropertyDeclaration(it.key(), it.value());
     }
 }
 
