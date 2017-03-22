@@ -145,7 +145,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
 void ItemReaderASTVisitor::checkDuplicateBinding(Item *item, const QStringList &bindingName,
                                                  const AST::SourceLocation &sourceLocation)
 {
-    if (Q_UNLIKELY(item->properties().contains(bindingName.last()))) {
+    if (Q_UNLIKELY(item->hasOwnProperty(bindingName.last()))) {
         QString msg = Tr::tr("Duplicate binding for '%1'");
         throw ErrorInfo(msg.arg(bindingName.join(QLatin1Char('.'))),
                     toCodeLocation(sourceLocation));

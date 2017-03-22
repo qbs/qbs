@@ -2359,7 +2359,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
         if (builtinProjectPropertyNames.contains(it.key()))
             continue;
 
-        if (targetProject->properties().contains(it.key()))
+        if (targetProject->hasOwnProperty(it.key()))
             continue; // Ignore stuff the target project already has.
 
         targetProject->setPropertyDeclaration(it.key(), it.value());
