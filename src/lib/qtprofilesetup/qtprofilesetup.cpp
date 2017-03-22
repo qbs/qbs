@@ -139,9 +139,29 @@ static QString defaultQpaPlugin(const Profile &profile, const QtModuleInfo &modu
     return QString();
 }
 
+static QByteArray minVersionJsString(const QString &minVersion)
+{
+    if (minVersion.isEmpty())
+        return "original";
+    return utf8JSLiteral(minVersion);
+}
+
 static void replaceSpecialValues(QByteArray *content, const Profile &profile,
         const QtModuleInfo &module, const QtEnvironment &qtEnvironment)
 {
+    content->replace("@config@", utf8JSLiteral(qtEnvironment.configItems));
+    content->replace("@qtConfig@", utf8JSLiteral(qtEnvironment.qtConfigItems));
+    content->replace("@binPath@", utf8JSLiteral(qtEnvironment.binaryPath));
+    content->replace("@libPath@", utf8JSLiteral(qtEnvironment.libraryPath));
+    content->replace("@pluginPath@", utf8JSLiteral(qtEnvironment.pluginPath));
+    content->replace("@incPath@", utf8JSLiteral(qtEnvironment.includePath));
+    content->replace("@docPath@", utf8JSLiteral(qtEnvironment.documentationPath));
+    content->replace("@mkspecPath@", utf8JSLiteral(qtEnvironment.mkspecPath));
+    content->replace("@version@", utf8JSLiteral(qtEnvironment.qtVersion));
+    content->replace("@libInfix@", utf8JSLiteral(qtEnvironment.qtLibInfix));
+    content->replace("@availableBuildVariants@", utf8JSLiteral(qtEnvironment.buildVariant));
+    content->replace("@staticBuild@", utf8JSLiteral(qtEnvironment.staticBuild));
+    content->replace("@frameworkBuild@", utf8JSLiteral(qtEnvironment.frameworkBuild));
     content->replace("@name@", utf8JSLiteral(module.moduleNameWithoutPrefix()));
     content->replace("@has_library@", utf8JSLiteral(module.hasLibrary));
     content->replace("@dependencies@", utf8JSLiteral(module.dependencies));
@@ -165,6 +185,11 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
                     utf8JSLiteral(module.libNameForLinker(qtEnvironment, false)));
     content->replace("@entryPointLibsDebug@", utf8JSLiteral(qtEnvironment.entryPointLibsDebug));
     content->replace("@entryPointLibsRelease@", utf8JSLiteral(qtEnvironment.entryPointLibsRelease));
+    content->replace("@minWinVersion@", minVersionJsString(qtEnvironment.windowsVersion));
+    content->replace("@minMacVersion@", minVersionJsString(qtEnvironment.macosVersion));
+    content->replace("@minIosVersion@", minVersionJsString(qtEnvironment.iosVersion));
+    content->replace("@minAndroidVersion@", minVersionJsString(qtEnvironment.androidVersion));
+
     QByteArray propertiesString;
     QByteArray compilerDefines = utf8JSLiteral(module.compilerDefines);
     if (module.qbsName == QLatin1String("declarative")
@@ -378,38 +403,17 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
     if (qtEnvironment.qtConfigItems.contains(QLatin1String("c++11")) && qtEnvironment.staticBuild)
         qtEnvironment.configItems.append(QLatin1String("c++11"));
 
-    Profile profile(profileName, settings);
-    profile.removeProfile();
-    const QString settingsTemplate(QLatin1String("Qt.core.%1"));
-    profile.setValue(settingsTemplate.arg(QLatin1String("config")), qtEnvironment.configItems);
-    profile.setValue(settingsTemplate.arg(QLatin1String("qtConfig")), qtEnvironment.qtConfigItems);
-    profile.setValue(settingsTemplate.arg(QLatin1String("binPath")), qtEnvironment.binaryPath);
-    profile.setValue(settingsTemplate.arg(QLatin1String("libPath")), qtEnvironment.libraryPath);
-    profile.setValue(settingsTemplate.arg(QLatin1String("pluginPath")), qtEnvironment.pluginPath);
-    profile.setValue(settingsTemplate.arg(QLatin1String("incPath")), qtEnvironment.includePath);
-    profile.setValue(settingsTemplate.arg(QLatin1String("mkspecPath")), qtEnvironment.mkspecPath);
-    profile.setValue(settingsTemplate.arg(QLatin1String("docPath")),
-                     qtEnvironment.documentationPath);
-    profile.setValue(settingsTemplate.arg(QLatin1String("version")), qtEnvironment.qtVersion);
-    profile.setValue(settingsTemplate.arg(QLatin1String("libInfix")), qtEnvironment.qtLibInfix);
-    profile.setValue(settingsTemplate.arg(QLatin1String("availableBuildVariants")),
-                     qtEnvironment.buildVariant);
-    profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")), qtEnvironment.staticBuild);
-
     // Set the minimum operating system versions appropriate for this Qt version
-    const QString windowsVersion = guessMinimumWindowsVersion(qtEnvironment);
-    QString macosVersion, iosVersion, androidVersion;
-
-    if (!windowsVersion.isEmpty()) {    // Is target OS Windows?
+    qtEnvironment.windowsVersion = guessMinimumWindowsVersion(qtEnvironment);
+    if (!qtEnvironment.windowsVersion.isEmpty()) {    // Is target OS Windows?
         const Version qtVersion = Version(qtEnvironment.qtMajorVersion,
                                           qtEnvironment.qtMinorVersion,
                                           qtEnvironment.qtPatchVersion);
         qtEnvironment.entryPointLibsDebug = fillEntryPointLibs(qtEnvironment, qtVersion, true);
         qtEnvironment.entryPointLibsRelease = fillEntryPointLibs(qtEnvironment, qtVersion, false);
     } else if (qtEnvironment.mkspecPath.contains(QLatin1String("macx"))) {
-        profile.setValue(settingsTemplate.arg(QLatin1String("frameworkBuild")), qtEnvironment.frameworkBuild);
         if (qtEnvironment.qtMajorVersion >= 5) {
-            macosVersion = QLatin1String("10.6");
+            qtEnvironment.macosVersion = QLatin1String("10.6");
         } else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 6) {
             QDir qconfigDir;
             if (qtEnvironment.frameworkBuild) {
@@ -433,44 +437,38 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
                     }
                 } while (!line.isNull());
 
-                if (ts.status() == QTextStream::Ok)
-                    macosVersion = qtCocoaBuild ? QLatin1String("10.5") : QLatin1String("10.4");
+                if (ts.status() == QTextStream::Ok) {
+                    qtEnvironment.macosVersion = qtCocoaBuild ? QLatin1String("10.5")
+                                                              : QLatin1String("10.4");
+                }
             }
 
-            if (macosVersion.isEmpty()) {
+            if (qtEnvironment.macosVersion.isEmpty()) {
                 throw ErrorInfo(Internal::Tr::tr("Error reading qconfig.h; could not determine "
                                                  "whether Qt is using Cocoa or Carbon"));
             }
         }
 
         if (qtEnvironment.qtConfigItems.contains(QLatin1String("c++11")))
-            macosVersion = QLatin1String("10.7");
+            qtEnvironment.macosVersion = QLatin1String("10.7");
     }
 
-    if (qtEnvironment.mkspecPath.contains(QLatin1String("ios")) && qtEnvironment.qtMajorVersion >= 5)
-        iosVersion = QLatin1String("5.0");
+    if (qtEnvironment.mkspecPath.contains(QLatin1String("ios"))
+            && qtEnvironment.qtMajorVersion >= 5) {
+        qtEnvironment.iosVersion = QLatin1String("5.0");
+    }
 
     if (qtEnvironment.mkspecPath.contains(QLatin1String("android"))) {
         if (qtEnvironment.qtMajorVersion >= 5)
-            androidVersion = QLatin1String("2.3");
+            qtEnvironment.androidVersion = QLatin1String("2.3");
         else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 8)
-            androidVersion = QLatin1String("1.6"); // Necessitas
+            qtEnvironment.androidVersion = QLatin1String("1.6"); // Necessitas
     }
 
     // ### TODO: wince, winphone, blackberry
 
-    if (!windowsVersion.isEmpty())
-        profile.setValue(QLatin1String("cpp.minimumWindowsVersion"), windowsVersion);
-
-    if (!macosVersion.isEmpty())
-        profile.setValue(QLatin1String("cpp.minimumMacosVersion"), macosVersion);
-
-    if (!iosVersion.isEmpty())
-        profile.setValue(QLatin1String("cpp.minimumIosVersion"), iosVersion);
-
-    if (!androidVersion.isEmpty())
-        profile.setValue(QLatin1String("cpp.minimumAndroidVersion"), androidVersion);
-
+    Profile profile(profileName, settings);
+    profile.removeProfile();
     createModules(profile, settings, qtEnvironment);
 }
 

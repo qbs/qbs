@@ -12,31 +12,32 @@ Module {
 
     Depends { name: "cpp" }
 
-    property string libInfix: ""
-    property stringList config
-    property stringList qtConfig
-    property path binPath
-    property path incPath
-    property path libPath
-    property path pluginPath
-    property path mkspecPath
+    version: @version@
+    property string libInfix: @libInfix@
+    property stringList config: @config@
+    property stringList qtConfig: @qtConfig@
+    property path binPath: @binPath@
+    property path incPath: @incPath@
+    property path libPath: @libPath@
+    property path pluginPath: @pluginPath@
+    property path mkspecPath: @mkspecPath@
     property string mocName: "moc"
     property stringList mocFlags: []
     property string lreleaseName: "lrelease"
     property string qdocName: versionMajor >= 5 ? "qdoc" : "qdoc3"
     property stringList qdocEnvironment
-    property path docPath
+    property path docPath: @docPath@
     property stringList helpGeneratorArgs: versionMajor >= 5 ? ["-platform", "minimal"] : []
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
     property int versionMinor: versionParts[1]
     property int versionPatch: versionParts[2]
-    property bool frameworkBuild
-    property bool staticBuild
+    property bool frameworkBuild: @frameworkBuild@
+    property bool staticBuild: @staticBuild@
     property stringList pluginMetaData: []
     property bool enableKeywords: true
 
-    property stringList availableBuildVariants
+    property stringList availableBuildVariants: @availableBuildVariants@
     property string qtBuildVariant: {
         if (availableBuildVariants.contains(qbs.buildVariant))
             return qbs.buildVariant;
@@ -164,6 +165,10 @@ Module {
             return "libc++";
         return original;
     }
+    cpp.minimumWindowsVersion: @minWinVersion@
+    cpp.minimumMacosVersion: @minMacVersion@
+    cpp.minimumIosVersion: @minIosVersion@
+    cpp.minimumAndroidVersion: @minAndroidVersion@
 
     additionalProductTypes: ["qm"]
 

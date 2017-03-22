@@ -68,6 +68,10 @@ public:
     QStringList qtConfigItems;
     QString architecture;
     QString qtVersion;
+    QString windowsVersion;
+    QString macosVersion;
+    QString iosVersion;
+    QString androidVersion;
     int qtMajorVersion;
     int qtMinorVersion;
     int qtPatchVersion;

@@ -3443,13 +3443,11 @@ void TestBlackbox::mixedBuildVariants()
         params.expectFailure = true;
         QVERIFY(runQbs(params) != 0);
         QVERIFY2(m_qbsStderr.contains("not allowed"), m_qbsStderr.constData());
-    } else if (!profile.value("Qt.core.availableBuildVariants").toStringList().contains("release")) {
+    } else {
         QbsRunParameters params;
         params.expectFailure = true;
         QVERIFY(runQbs(params) != 0);
         QVERIFY2(m_qbsStderr.contains("not supported"), m_qbsStderr.constData());
-    } else {
-        QCOMPARE(runQbs(), 0);
     }
 }
 

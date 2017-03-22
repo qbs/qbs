@@ -169,13 +169,14 @@ void TestBlackboxBase::initTestCase()
                          "' could not be found. Please set it up on your machine."));
 
     Profile buildProfile(profileName(), &settings);
-    QVariant qtBinPath = buildProfile.value(QLatin1String("Qt.core.binPath"));
-    if (!qtBinPath.isValid())
+    const QStringList searchPaths
+            = buildProfile.value(QLatin1String("preferences.qbsSearchPaths")).toStringList();
+    if (searchPaths.isEmpty())
         QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
                          "' is not a valid Qt profile."));
-    if (!QFile::exists(qtBinPath.toString()))
+    if (!QFileInfo(searchPaths.first()).isDir())
         QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
-                         "' points to an invalid Qt path."));
+                         "' points to an invalid qbs search path."));
 
     // Initialize the test data directory.
     QVERIFY(testDataDir != testSourceDir);
