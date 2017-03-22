@@ -167,9 +167,7 @@ bool ItemReaderASTVisitor::visit(AST::UiPublicMember *ast)
         throw ErrorInfo(Tr::tr("Unknown type '%1' in property declaration.")
                         .arg(ast->memberType.toString()), toCodeLocation(ast->typeToken));
     }
-    if (ast->typeModifier.compare(QLatin1String("list"))) {
-        p.setFlags(p.flags() | PropertyDeclaration::ListProperty);
-    } else if (Q_UNLIKELY(!ast->typeModifier.isEmpty())) {
+    if (Q_UNLIKELY(!ast->typeModifier.isEmpty())) {
         throw ErrorInfo(Tr::tr("public member with type modifier '%1' not supported").arg(
                         ast->typeModifier.toString()));
     }

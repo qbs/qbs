@@ -70,7 +70,6 @@ public:
     enum Flag
     {
         DefaultFlags = 0,
-        ListProperty = 0x1,
         PropertyNotAvailableInConfig = 0x2     // Is this property part of a project, product or file configuration?
     };
     Q_DECLARE_FLAGS(Flags, Flag)
