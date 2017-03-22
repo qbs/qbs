@@ -44,6 +44,7 @@
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stlutils.h>
 
 namespace qbs {
 namespace Internal {
@@ -145,7 +146,7 @@ void ModuleMerger::start()
 Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap props)
 {
     Item *moduleInstance = 0;
-    int numberOfOutprops = m.item->modules().count();
+    size_t numberOfOutprops = m.item->modules().size();
     for (const Item::Module &dep : m.item->modules()) {
         if (dep.name == m_mergedModule.name) {
             --numberOfOutprops;
@@ -159,16 +160,16 @@ Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap pro
         }
     }
 
-    QVector<Item::PropertyMap> outprops;
+    std::vector<Item::PropertyMap> outprops;
     outprops.reserve(numberOfOutprops);
     for (const Item::Module &dep : m.item->modules()) {
         if (dep.item != moduleInstance)
             outprops << dfs(dep, props);
     }
 
-    if (!outprops.isEmpty()) {
-        props = outprops.first();
-        for (int i = 1; i < outprops.count(); ++i)
+    if (!outprops.empty()) {
+        props = outprops.at(0);
+        for (size_t i = 1; i < outprops.size(); ++i)
             mergeOutProps(&props, outprops.at(i));
     }
 

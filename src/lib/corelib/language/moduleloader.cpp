@@ -64,6 +64,7 @@
 #include <tools/qttools.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
@@ -720,9 +721,9 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
 }
 
 // Non-dependencies first.
-static void createSortedModuleList(const Item::Module &parentModule, QVector<Item::Module> &modules)
+static void createSortedModuleList(const Item::Module &parentModule, Item::Modules &modules)
 {
-    if (modules.contains(parentModule))
+    if (contains(modules, parentModule))
         return;
     for (const Item::Module &dep : parentModule.item->modules())
         createSortedModuleList(dep, modules);
@@ -773,10 +774,10 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
     item->setModules(mergedModules);
 
     // Must happen after all modules have been merged, so needs to be a second loop.
-    QVector<Item::Module> sortedModules;
+    Item::Modules sortedModules;
     for (const Item::Module &module : item->modules())
         createSortedModuleList(module, sortedModules);
-    QBS_CHECK(sortedModules.count() == item->modules().count());
+    QBS_CHECK(sortedModules.size() == item->modules().size());
 
     for (const Item::Module &module : qAsConst(sortedModules)) {
         if (!module.item->isPresentModule())
@@ -1226,10 +1227,7 @@ void ModuleLoader::propagateModulesFromParent(Item *groupItem,
     QHash<QualifiedId, Item *> moduleInstancesForGroup;
 
     // Step 1: Instantiate the product's modules for the group.
-    for (Item::Modules::const_iterator it = groupItem->parent()->modules().constBegin();
-         it != groupItem->parent()->modules().constEnd(); ++it)
-    {
-        Item::Module m = *it;
+    for (Item::Module m : groupItem->parent()->modules()) {
         Item *targetItem = moduleInstanceItem(groupItem, m.name);
         targetItem->setPrototype(m.item);
 

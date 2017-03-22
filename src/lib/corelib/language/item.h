@@ -52,6 +52,8 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qmap.h>
 
+#include <vector>
+
 namespace qbs {
 namespace Internal {
 class ItemObserver;
@@ -79,7 +81,7 @@ public:
         bool required;
         VersionRange versionRange;
     };
-    typedef QList<Module> Modules;
+    typedef std::vector<Module> Modules;
     typedef QMap<QString, PropertyDeclaration> PropertyDeclarationMap;
     typedef QMap<QString, ValuePtr> PropertyMap;
 
