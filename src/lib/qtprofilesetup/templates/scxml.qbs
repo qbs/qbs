@@ -45,6 +45,7 @@ QtModule {
         }
     }
 
+    architecture: @arch@
     staticLibsDebug: @staticLibsDebug@
     staticLibsRelease: @staticLibsRelease@
     dynamicLibsDebug: @dynamicLibsDebug@

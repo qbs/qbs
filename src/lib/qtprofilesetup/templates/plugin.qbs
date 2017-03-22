@@ -6,6 +6,7 @@ QtPlugin {
     Depends { name: "Qt"; submodules: @dependencies@}
 
     className: @className@
+    architecture: @arch@
     staticLibsDebug: @staticLibsDebug@
     staticLibsRelease: @staticLibsRelease@
     dynamicLibsDebug: @dynamicLibsDebug@

@@ -33,6 +33,7 @@ QtModule {
     }
 
     property string defaultQpaPlugin: @defaultQpaPlugin@
+    architecture: @arch@
     staticLibsDebug: @staticLibsDebug@
     staticLibsRelease: @staticLibsRelease@
     dynamicLibsDebug: @dynamicLibsDebug@

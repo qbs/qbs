@@ -8,11 +8,14 @@ import "moc.js" as Moc
 import "qdoc.js" as Qdoc
 
 Module {
+    condition: !qbs.architecture || architecture === qbs.architecture
+
     id: qtcore
 
     Depends { name: "cpp" }
 
     version: @version@
+    property string architecture: @arch@
     property string libInfix: @libInfix@
     property stringList config: @config@
     property stringList qtConfig: @qtConfig@

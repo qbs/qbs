@@ -2,6 +2,8 @@ import qbs 1.0
 import qbs.FileInfo
 
 Module {
+    condition: !qbs.architecture || architecture === qbs.architecture
+
     Depends { name: "cpp" }
     Depends { name: "Qt.core" }
 
@@ -23,6 +25,7 @@ Module {
     property bool isStaticLibrary: false
     property bool isPlugin: false
 
+    property string architecture
     property stringList staticLibsDebug
     property stringList staticLibsRelease
     property stringList dynamicLibsDebug

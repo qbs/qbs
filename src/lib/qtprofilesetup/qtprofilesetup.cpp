@@ -42,6 +42,7 @@
 #include "qtmoduleinfo.h"
 
 #include <logging/translator.h>
+#include <tools/architectures.h>
 #include <tools/error.h>
 #include <tools/jsliterals.h>
 #include <tools/profile.h>
@@ -146,9 +147,18 @@ static QByteArray minVersionJsString(const QString &minVersion)
     return utf8JSLiteral(minVersion);
 }
 
+static QString extractQbsArch(const QtEnvironment &qtEnv)
+{
+    QString qbsArch = canonicalArchitecture(qtEnv.architecture);
+    if (qbsArch == QLatin1String("arm") && qtEnv.mkspecPath.contains(QLatin1String("android")))
+        qbsArch = QLatin1String("armv7a");
+    return qbsArch;
+}
+
 static void replaceSpecialValues(QByteArray *content, const Profile &profile,
         const QtModuleInfo &module, const QtEnvironment &qtEnvironment)
 {
+    content->replace("@arch@", utf8JSLiteral(extractQbsArch(qtEnvironment)));
     content->replace("@config@", utf8JSLiteral(qtEnvironment.configItems));
     content->replace("@qtConfig@", utf8JSLiteral(qtEnvironment.qtConfigItems));
     content->replace("@binPath@", utf8JSLiteral(qtEnvironment.binaryPath));
