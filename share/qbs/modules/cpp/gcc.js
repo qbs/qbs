@@ -1155,6 +1155,10 @@ function targetFlags(tool, hasTargetOption, target, targetArch, machineType) {
                 "i386": ["-m32"],
                 "x86_64": ["-m64"],
             },
+            "linker": {
+                "i386": ["-m", "elf_i386"],
+                "x86_64": ["-m", "elf_x86_64"],
+            },
             "assembler": {
                 "i386": ["--32"],
                 "x86_64": ["--64"],
