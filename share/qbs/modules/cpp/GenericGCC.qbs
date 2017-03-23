@@ -56,36 +56,12 @@ CppModule {
         flags: targetDriverFlags
     }
 
-    targetAssemblerFlags: {
-        switch (targetArch) {
-        case "i386":
-            return ["--32"];
-        case "x86_64":
-            return ["--64"];
-        default:
-            return [];
-        }
-    }
-
-    targetDriverFlags: {
-        var args = [];
-        if (hasTargetOption) {
-            if (target)
-                args.push("-target", target);
-        } else {
-            switch (targetArch) {
-            case "i386":
-                args.push("-m32");
-                break;
-            case "x86_64":
-                args.push("-m64");
-                break;
-            }
-            if (machineType)
-                args.push("-march=" + machineType);
-        }
-        return args;
-    }
+    targetLinkerFlags: Gcc.targetFlags("linker", false,
+                                       target, targetArch, machineType)
+    targetAssemblerFlags: Gcc.targetFlags("assembler", assemblerHasTargetOption,
+                                          target, targetArch, machineType)
+    targetDriverFlags: Gcc.targetFlags("compiler", compilerHasTargetOption,
+                                       target, targetArch, machineType)
 
     Probe {
         id: nmProbe
@@ -112,8 +88,10 @@ CppModule {
     compilerFrameworkPaths: gccProbe.frameworkPaths
     compilerLibraryPaths: gccProbe.libraryPaths
 
-    property bool hasTargetOption: qbs.toolchain.contains("clang")
-                                   && Utilities.versionCompare(compilerVersion, "3.1") >= 0
+    property bool compilerHasTargetOption: qbs.toolchain.contains("clang")
+                                           && Utilities.versionCompare(compilerVersion, "3.1") >= 0
+    property bool assemblerHasTargetOption: qbs.toolchain.contains("xcode")
+                                            && Utilities.versionCompare(compilerVersion, "7") >= 0
     property string target: [targetArch, targetVendor, targetSystem, targetAbi].join("-")
     property string targetArch: Utilities.canonicalTargetArchitecture(
                                     qbs.architecture, targetVendor, targetSystem, targetAbi)

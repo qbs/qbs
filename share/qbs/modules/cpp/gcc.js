@@ -1143,3 +1143,30 @@ function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSepar
         p.close();
     }
 }
+
+function targetFlags(tool, hasTargetOption, target, targetArch, machineType) {
+    var args = [];
+    if (hasTargetOption) {
+        if (target)
+            args.push("-target", target);
+    } else {
+        var archArgs = {
+            "compiler": {
+                "i386": ["-m32"],
+                "x86_64": ["-m64"],
+            },
+            "assembler": {
+                "i386": ["--32"],
+                "x86_64": ["--64"],
+            },
+        };
+
+        var flags = archArgs[tool] ? archArgs[tool][targetArch] : undefined;
+        if (flags)
+            args = args.concat(flags);
+
+        if (machineType && tool !== "linker")
+            args.push("-march=" + machineType);
+    }
+    return args;
+}

@@ -120,13 +120,13 @@ UnixGCC {
     }
 
     targetLinkerFlags: darwinArchFlags.concat(minimumDarwinVersionLinkerFlags)
-    targetAssemblerFlags: targetDriverFlags
-    targetDriverFlags: {
-        var args = [];
-        if (!hasTargetOption)
-            args = args.concat(darwinArchFlags).concat(minimumDarwinVersionCompilerFlags);
-        return args.concat(base); // concat base flags to get -march
-    }
+
+    targetAssemblerFlags: !assemblerHasTargetOption ? darwinArchFlags : base;
+
+    targetDriverFlags: !compilerHasTargetOption ? legacyTargetDriverFlags : base
+
+    property stringList legacyTargetDriverFlags:
+        base.concat(darwinArchFlags).concat(minimumDarwinVersionCompilerFlags)
 
     // private properties
     readonly property stringList darwinArchFlags: targetArch ? ["-arch", targetArch] : []

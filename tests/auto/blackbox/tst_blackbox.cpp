@@ -865,7 +865,11 @@ void TestBlackbox::deploymentTarget()
 
     const QStringList skippableMessages = QStringList()
             << "There is no matching SDK available for " + sdk + "."
-            << "x86_64h will be mis-detected as x86_64 with Apple Clang < 6.0";
+            << "x86_64h will be mis-detected as x86_64 with Apple Clang < 6.0"
+            << "clang: error: unknown argument: '-mtvos-version-min"
+            << "clang: error: unknown argument: '-mtvos-simulator-version-min"
+            << "clang: error: unknown argument: '-mwatchos-version-min"
+            << "clang: error: unknown argument: '-mwatchos-simulator-version-min";
     if (status != 0) {
         for (const auto &message : skippableMessages) {
             if (m_qbsStderr.contains(message.toUtf8()))
