@@ -68,9 +68,11 @@ Module {
 
     version: qnxSdkProbe.found ? qnxSdkProbe.fileName.substr(3, 3).split("").join(".") : undefined
 
+    readonly property bool qnx7: Utilities.versionCompare(version, "7") >= 0
+
     property string sdkDir: qnxSdkProbe.filePath
 
-    property string hostArch: "x86_64"
+    property string hostArch: qnx7 ? "x86_64" : "x86"
 
     property string hostOs: {
         if (qbs.hostOS.contains("linux"))
@@ -78,7 +80,7 @@ Module {
         if (qbs.hostOS.contains("macos"))
             return "darwin";
         if (qbs.hostOS.contains("windows"))
-            return "win64";
+            return qnx7 ? "win64" : "win32";
     }
 
     property string targetOs: qnxTargetOsProbe.targets[0]

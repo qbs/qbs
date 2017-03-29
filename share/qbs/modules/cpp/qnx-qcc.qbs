@@ -44,7 +44,7 @@ UnixGCC {
     sysroot: qnx.targetDir
 
     cCompilerName: "qcc" + compilerExtension
-    cxxCompilerName: "q++" + compilerExtension
+    cxxCompilerName: (qnx.qnx7 ? "q++" : "QCC") + compilerExtension
 
     targetDriverFlags: qnxTarget ? ["-V" + qnxTarget] : []
 
