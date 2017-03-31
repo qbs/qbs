@@ -140,6 +140,12 @@ private slots:
         QCOMPARE(parser.buildConfigurations().count(), 1);
         QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(), QLatin1String("debug"));
         QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("b"));
+
+        // Digits are always handled as option parameters.
+        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "-j" << "123"));
+        QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
+        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "-j123"));
+        QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
     }
 
     void testInvalidCommandLine()
@@ -156,6 +162,7 @@ private slots:
         QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "--products"));  // Missing argument.
         QVERIFY(!parser.parseCommandLine(QStringList() << "--changed-files" << "," << fileArgs)); // Wrong argument.
         QVERIFY(!parser.parseCommandLine(QStringList() << "--log-level" << "blubb" << fileArgs)); // Wrong argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "-123")); // Unknown numeric argument.
     }
 
     void testProjectFileLookup()
