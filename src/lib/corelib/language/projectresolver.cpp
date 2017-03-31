@@ -152,8 +152,29 @@ TopLevelProjectPtr ProjectResolver::resolve()
     m_productContext = 0;
     m_moduleContext = 0;
     m_elapsedTimeModPropEval = m_elapsedTimeAllPropEval = m_elapsedTimeGroups = 0;
-    const TopLevelProjectPtr tlp = resolveTopLevelProject();
-    printProfilingInfo();
+    TopLevelProjectPtr tlp;
+    try {
+        tlp = resolveTopLevelProject();
+        printProfilingInfo();
+    } catch (const ErrorInfo &errorInfo) {
+        ErrorInfo e;
+        for (auto it = m_loadResult.productInfos.cbegin(); it != m_loadResult.productInfos.cend();
+             ++it) {
+            const auto &productInfo = it.value();
+            if (productInfo.delayedError.hasError()) {
+                try {
+                    QString name = m_evaluator->stringValue(it.key(), QStringLiteral("name"));
+                    e.append(Tr::tr("Errors in product '%1':").arg(name), it.key()->location());
+                } catch (const ErrorInfo &/* ignore */) {
+                    // The name cannot be determined because of other errors.
+                    e.append(Tr::tr("Errors in product:"), it.key()->location());
+                }
+                appendError(e, productInfo.delayedError);
+            }
+        }
+        appendError(e, errorInfo);
+        throw e;
+    }
     return tlp;
 }
 
@@ -346,7 +367,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->uniqueName();
     m_productsByName.insert(product->uniqueName(), product);
     product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
-    const ModuleLoaderResult::ProductInfo &pi = m_loadResult.productInfos.value(item);
+    ModuleLoaderResult::ProductInfo &pi = m_loadResult.productInfos[item];
     if (pi.delayedError.hasError()) {
         if (product->enabled) {
             switch (m_setupParams.productErrorMode()) {
@@ -357,9 +378,14 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
                 product->enabled = false;
                 break;
             case ErrorHandlingMode::Strict:
-                throw pi.delayedError;
+                {
+                    ErrorInfo errorInfo;
+                    std::swap(pi.delayedError, errorInfo);
+                    throw errorInfo;
+                }
             }
         }
+        pi.delayedError.clear();
         return;
     }
     product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
