@@ -179,7 +179,7 @@ CppModule {
         return createSymlinks && internalVersion && ["macho", "elf"].contains(cpp.imageFormat);
     }
 
-    readonly property string internalVersion: {
+    property string internalVersion: {
         if (product.version === undefined)
             return undefined;
 
