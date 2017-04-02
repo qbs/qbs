@@ -119,7 +119,7 @@ public:
     bool contains(const T &v) const { return std::binary_search(cbegin(), cend(), v); }
     bool contains(const Set<T> &other) const;
     bool isEmpty() const { return m_data.empty(); }
-    int count() const { return m_data.size(); }
+    int count() const { return int(m_data.size()); }
     int size() const { return count(); }
     int capacity() const { return m_data.capacity(); }
     bool intersects(const Set<T> &other) const;
