@@ -1144,7 +1144,7 @@ function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSepar
     }
 }
 
-function targetFlags(tool, hasTargetOption, target, targetArch, machineType) {
+function targetFlags(tool, hasTargetOption, target, targetArch, machineType, targetOS) {
     var args = [];
     if (hasTargetOption) {
         if (target)
@@ -1156,8 +1156,8 @@ function targetFlags(tool, hasTargetOption, target, targetArch, machineType) {
                 "x86_64": ["-m64"],
             },
             "linker": {
-                "i386": ["-m", "elf_i386"],
-                "x86_64": ["-m", "elf_x86_64"],
+                "i386": ["-m", targetOS.contains("windows") ? "i386pe" : "elf_i386"],
+                "x86_64": ["-m", targetOS.contains("windows") ? "i386pep" : "elf_x86_64"],
             },
             "assembler": {
                 "i386": ["--32"],

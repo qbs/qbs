@@ -57,11 +57,11 @@ CppModule {
     }
 
     targetLinkerFlags: Gcc.targetFlags("linker", false,
-                                       target, targetArch, machineType)
+                                       target, targetArch, machineType, qbs.targetOS)
     targetAssemblerFlags: Gcc.targetFlags("assembler", assemblerHasTargetOption,
-                                          target, targetArch, machineType)
+                                          target, targetArch, machineType, qbs.targetOS)
     targetDriverFlags: Gcc.targetFlags("compiler", compilerHasTargetOption,
-                                       target, targetArch, machineType)
+                                       target, targetArch, machineType, qbs.targetOS)
 
     Probe {
         id: nmProbe
