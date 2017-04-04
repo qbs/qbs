@@ -35,7 +35,7 @@
 #ifdef Q_OS_WIN
 #include <QtCore/qt_windows.h>
 
-BOOL consoleCtrlHandler(DWORD)
+BOOL WINAPI consoleCtrlHandler(DWORD)
 {
     // Ignore Ctrl-C / Ctrl-Break. Qbs will tell us to exit gracefully.
     return TRUE;
