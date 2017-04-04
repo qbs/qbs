@@ -133,10 +133,8 @@ void LauncherInterface::handleProcessError()
 
 void LauncherInterface::handleProcessFinished()
 {
-    if (!m_socket->isReady()) {
-        emit errorOccurred(ErrorInfo(m_process->errorString()));
-        return;
-    }
+    emit errorOccurred(ErrorInfo(Tr::tr("Process launcher closed unexpectedly: %1")
+                                 .arg(m_process->errorString())));
 }
 
 void LauncherInterface::handleProcessStderr()
