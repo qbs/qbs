@@ -58,7 +58,8 @@ LauncherSocket::LauncherSocket(QObject *parent) : QObject(parent)
 
 void LauncherSocket::sendData(const QByteArray &data)
 {
-    QBS_ASSERT(m_socket, return);
+    if (!isReady())
+        return;
     std::lock_guard<std::mutex> locker(m_requestsMutex);
     m_requests << data;
     if (m_requests.count() == 1)
