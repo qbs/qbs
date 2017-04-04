@@ -173,9 +173,9 @@ private:
         PropertyCacheKey(const QString &moduleName, const QString &propertyName,
                          const PropertyMapConstPtr &propertyMap);
     private:
-        const QString &m_moduleName;
-        const QString &m_propertyName;
-        const PropertyMapConstPtr &m_propertyMap;
+        const QString m_moduleName;
+        const QString m_propertyName;
+        const PropertyMapConstPtr m_propertyMap;
 
         friend bool operator==(const PropertyCacheKey &lhs, const PropertyCacheKey &rhs);
         friend uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed);
