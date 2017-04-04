@@ -77,6 +77,7 @@ private:
 
     void handleSocketError();
     void handleSocketDataAvailable();
+    void handleSocketDisconnected();
     void handleError(const QString &error);
     void handleRequests();
 

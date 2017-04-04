@@ -85,12 +85,15 @@ void LauncherSocket::setSocket(QLocalSocket *socket)
             this, &LauncherSocket::handleSocketError);
     connect(m_socket, &QLocalSocket::readyRead,
             this, &LauncherSocket::handleSocketDataAvailable);
+    connect(m_socket, &QLocalSocket::disconnected,
+            this, &LauncherSocket::handleSocketDisconnected);
     emit ready();
 }
 
 void LauncherSocket::handleSocketError()
 {
-    handleError(Tr::tr("Socket error: %1").arg(m_socket->errorString()));
+    if (m_socket->error() != QLocalSocket::PeerClosedError)
+        handleError(Tr::tr("Socket error: %1").arg(m_socket->errorString()));
 }
 
 void LauncherSocket::handleSocketDataAvailable()
@@ -114,6 +117,11 @@ void LauncherSocket::handleSocketDataAvailable()
         return;
     }
     handleSocketDataAvailable();
+}
+
+void LauncherSocket::handleSocketDisconnected()
+{
+    handleError(Tr::tr("Launcher socket closed unexpectedly"));
 }
 
 void LauncherSocket::handleError(const QString &error)
