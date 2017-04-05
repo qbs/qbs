@@ -7,7 +7,7 @@ Project {
         name: "p1lib1"
         files: ["src/main/jni/lib1.cpp"]
         Android.ndk.appStl: "stlport_shared"
-        architectures: !qbs.architecture ? ["mips", "x86"] : undefined
+        qbs.architectures: !qbs.architecture ? ["mips", "x86"] : undefined
         cpp.useRPaths: false
     }
 

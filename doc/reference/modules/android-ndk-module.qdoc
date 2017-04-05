@@ -48,7 +48,7 @@
         Project {
             DynamicLibrary {
                 name: "hello-jni"
-                architectures: ["mips", "x86"]
+                qbs.architectures: ["mips", "x86"]
                 files: ["jni/hello-jni.c"]
             }
 

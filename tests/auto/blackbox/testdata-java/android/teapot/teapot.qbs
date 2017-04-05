@@ -2,11 +2,7 @@ import qbs
 
 Project {
     minimumQbsVersion: qbs.version
-    property stringList architectures: !qbs.architecture
-                                       ? ["arm64", "armv7a", "x86", "x86_64", "mips", "mips64"]
-                                       : undefined
     StaticLibrary {
-        architectures: project.architectures
         name: "native-glue"
         Depends { name: "cpp" }
         Group {
@@ -23,7 +19,6 @@ Project {
     }
 
     StaticLibrary {
-        architectures: project.architectures
         name: "ndk-helper"
         Depends { name: "Android.ndk" }
         Depends { name: "cpp" }
@@ -44,7 +39,6 @@ Project {
     }
 
     StaticLibrary {
-        architectures: project.architectures
         name: "cpufeatures"
         Depends { name: "cpp" }
         Group {
@@ -62,7 +56,6 @@ Project {
 
     DynamicLibrary {
         name: "TeapotNativeActivity"
-        architectures: project.architectures
         Depends { name: "Android.ndk" }
         Depends { name: "cpp" }
         Depends { name: "cpufeatures" }

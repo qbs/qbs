@@ -104,17 +104,22 @@ void TestBlackboxJava::android()
 
 void TestBlackboxJava::android_data()
 {
+    const SettingsPtr s = settings();
+    const Profile p("qbs_autotests-android", s.get());
+    const int archCount = p.value(QLatin1String("qbs.architectures")).toStringList().count();
+
     QTest::addColumn<QString>("projectDir");
     QTest::addColumn<QStringList>("productNames");
     QTest::addColumn<QList<int>>("apkFileCounts");
-    QTest::newRow("teapot") << "teapot" << QStringList("com.sample.teapot") << (QList<int>() << 31);
+    QTest::newRow("teapot") << "teapot" << QStringList("com.sample.teapot")
+                            << (QList<int>() << (13 + 3*archCount));
     QTest::newRow("no native") << "no-native"
             << QStringList("com.example.android.basicmediadecoder") << (QList<int>() << 22);
     QTest::newRow("multiple libs") << "multiple-libs-per-apk" << QStringList("twolibs")
-                                   << (QList<int>() << 10);
+                                   << (QList<int>() << (6 + 4 * archCount));
     QTest::newRow("multiple apks") << "multiple-apks-per-project"
                                    << (QStringList() << "twolibs1" << "twolibs2")
-                                   << (QList<int>() << 15 << 9);
+                                   << QList<int>({6 + archCount * 3 + 2, 5 + archCount * 4});
 }
 
 static QProcessEnvironment processEnvironmentWithCurrentDirectoryInLibraryPath()

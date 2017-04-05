@@ -43,6 +43,7 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
+#include <tools/settings.h>
 #include <tools/version.h>
 
 #include <QtCore/qcoreapplication.h>
@@ -52,6 +53,8 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qprocess.h>
 #include <QtCore/qstring.h>
+
+#include <algorithm>
 
 using namespace qbs;
 using qbs::Internal::Tr;
@@ -156,6 +159,29 @@ static QtInfoPerArch getQtAndroidInfo(const QString &qtSdkDir)
     return archs;
 }
 
+static QString maximumPlatform(const QString &platform1, const QString &platform2)
+{
+    if (platform1.isEmpty())
+        return platform2;
+    if (platform2.isEmpty())
+        return platform1;
+    static const QString prefix = qls("android-");
+    const QString numberString1 = platform1.mid(prefix.count());
+    const QString numberString2 = platform2.mid(prefix.count());
+    bool ok;
+    const int value1 = numberString1.toInt(&ok);
+    if (!ok) {
+        qWarning("Ignoring malformed Android platform string '%s'.", qPrintable(platform1));
+        return platform2;
+    }
+    const int value2 = numberString2.toInt(&ok);
+    if (!ok) {
+        qWarning("Ignoring malformed Android platform string '%s'.", qPrintable(platform2));
+        return platform1;
+    }
+    return prefix + QString::number(std::max(value1, value2));
+}
+
 static void setupNdk(qbs::Settings *settings, const QString &profileName, const QString &ndkDirPath,
                      const QString &qtSdkDirPath)
 {
@@ -170,37 +196,41 @@ static void setupNdk(qbs::Settings *settings, const QString &profileName, const 
         mainProfile.setValue(qls("Android.sdk.ndkDir"), QDir::cleanPath(ndkDirPath));
     }
     mainProfile.setValue(qls("qbs.toolchain"), QStringList() << qls("gcc"));
+    const QStringList archs = expectedArchs();
     const QtInfoPerArch infoPerArch = getQtAndroidInfo(qtSdkDirPath);
-    foreach (const QString &arch, expectedArchs()) {
-        const QString subProName = subProfileName(profileName, arch);
+    mainProfile.setValue(qls("qbs.architectures"), infoPerArch.isEmpty()
+                         ? archs : QStringList(infoPerArch.keys()));
+    QStringList searchPaths;
+    QString platform;
+    for (const QString &arch : archs) {
         const QtAndroidInfo qtAndroidInfo = infoPerArch.value(arch);
-        if (qtAndroidInfo.isValid()) {
-            const QString setupQtPath = qApp->applicationDirPath() + qls("/qbs-setup-qt");
-            QProcess setupQt;
-            setupQt.start(setupQtPath, QStringList() << qtAndroidInfo.qmakePath << subProName);
-            if (!setupQt.waitForStarted()) {
-                throw ErrorInfo(Tr::tr("Setting up Qt profile failed: '%1' "
-                                       "could not be started.").arg(setupQtPath));
-            }
-            if (!setupQt.waitForFinished()) {
-                throw ErrorInfo(Tr::tr("Setting up Qt profile failed: Error running '%1' (%2)")
-                                .arg(setupQtPath, setupQt.errorString()));
-            }
-            if (setupQt.exitCode() != 0) {
-                throw ErrorInfo(Tr::tr("Setting up Qt profile failed: '%1' returned with "
-                                       "exit code %2.").arg(setupQtPath).arg(setupQt.exitCode()));
-            }
+        if (!qtAndroidInfo.isValid())
+            continue;
+        const QString subProName = subProfileName(profileName, arch);
+        const QString setupQtPath = qApp->applicationDirPath() + qls("/qbs-setup-qt");
+        QProcess setupQt;
+        setupQt.start(setupQtPath, QStringList({ qtAndroidInfo.qmakePath, subProName }));
+        if (!setupQt.waitForStarted()) {
+            throw ErrorInfo(Tr::tr("Setting up Qt profile failed: '%1' "
+                                   "could not be started.").arg(setupQtPath));
         }
-        Profile p(subProName, settings);
-        if (qtAndroidInfo.isValid()) {
-            if (!qtAndroidInfo.platform.isEmpty())
-                p.setValue(qls("Android.ndk.platform"), qtAndroidInfo.platform);
-        } else {
-            p.removeProfile();
+        if (!setupQt.waitForFinished()) {
+            throw ErrorInfo(Tr::tr("Setting up Qt profile failed: Error running '%1' (%2)")
+                            .arg(setupQtPath, setupQt.errorString()));
         }
-        p.setBaseProfile(mainProfile.name());
-        p.setValue(qls("qbs.architecture"), arch);
+        if (setupQt.exitCode() != 0) {
+            throw ErrorInfo(Tr::tr("Setting up Qt profile failed: '%1' returned with "
+                                   "exit code %2.").arg(setupQtPath).arg(setupQt.exitCode()));
+        }
+        settings->sync();
+        qbs::Internal::TemporaryProfile p(subProName, settings);
+        searchPaths << p.p.value(qls("preferences.qbsSearchPaths")).toStringList();
+        platform = maximumPlatform(platform, qtAndroidInfo.platform);
     }
+    if (!searchPaths.isEmpty())
+        mainProfile.setValue(qls("preferences.qbsSearchPaths"), searchPaths);
+    if (!platform.isEmpty())
+        mainProfile.setValue(qls("Android.ndk.platform"), platform);
 }
 
 void setupAndroid(Settings *settings, const QString &profileName, const QString &sdkDirPath,

@@ -33,13 +33,8 @@ import qbs
 Product {
     property bool isForAndroid: qbs.targetOS.contains("android")
     property bool isForDarwin: qbs.targetOS.contains("darwin")
-    property stringList architectures: isForAndroid && !qbs.architecture ? ["armv5te"] : undefined
 
     Depends { name: "bundle" }
-
-    qbs.profiles: architectures
-        ? architectures.map(function(arch) { return project.profile + '-' + arch; })
-        : [project.profile]
 
     aggregate: {
         if (!isForDarwin)
@@ -54,6 +49,8 @@ Product {
     multiplexByQbsProperties: {
         if (isForDarwin)
             return ["profiles", "architectures", "buildVariants"];
+        if (isForAndroid)
+            return ["architectures"]
         return ["profiles"];
     }
 }
