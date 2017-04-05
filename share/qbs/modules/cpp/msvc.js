@@ -263,6 +263,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var primaryOutput = (linkDLL ? outputs.dynamiclibrary[0] : outputs.application[0])
     var debugInformation = product.cpp.debugInformation;
     var generateManifestFiles = !linkDLL && product.cpp.generateManifestFile;
+    var canEmbedManifest = (product.cpp.compilerVersionMajor >= 17);    // VS 2012
 
     var args = ['/nologo']
     if (linkDLL) {
@@ -314,17 +315,19 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     if (subsystemSwitch)
         args.push(subsystemSwitch);
 
-    var linkerOutputNativeFilePath;
+    var linkerOutputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.filePath);
     var manifestFileName;
     if (generateManifestFiles) {
-        linkerOutputNativeFilePath
-                = FileInfo.toWindowsSeparators(
-                    FileInfo.path(primaryOutput.filePath) + "/intermediate."
-                        + primaryOutput.fileName);
-        manifestFileName = linkerOutputNativeFilePath + ".manifest";
-        args.push('/MANIFEST', '/MANIFESTFILE:' + manifestFileName)
-    } else {
-        linkerOutputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.filePath);
+        if (canEmbedManifest) {
+            args.push("/MANIFEST:embed");
+        } else {
+            linkerOutputNativeFilePath
+                    = FileInfo.toWindowsSeparators(
+                        FileInfo.path(primaryOutput.filePath) + "/intermediate."
+                            + primaryOutput.fileName);
+            manifestFileName = linkerOutputNativeFilePath + ".manifest";
+            args.push('/MANIFEST', '/MANIFESTFILE:' + manifestFileName)
+        }
     }
 
     var allInputs = inputs.obj || [];
@@ -369,7 +372,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     };
     commands.push(cmd);
 
-    if (generateManifestFiles) {
+    if (generateManifestFiles && !canEmbedManifest) {
         var outputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.filePath);
         cmd = new JavaScriptCommand();
         cmd.src = linkerOutputNativeFilePath;
