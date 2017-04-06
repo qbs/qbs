@@ -309,7 +309,7 @@ CppModule {
             "dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy", "debuginfo_dll"
         ]
         outputArtifacts: {
-            var lib = {
+            var artifacts = [{
                 filePath: product.destinationDirectory + "/"
                           + PathTools.dynamicLibraryFilePath(product),
                 fileTags: ["bundle.input", "dynamiclibrary"],
@@ -317,15 +317,16 @@ CppModule {
                     _bundleFilePath: product.destinationDirectory + "/"
                                      + PathTools.bundleExecutableFilePath(product)
                 }
-            };
-            var libCopy = {
+            }];
+            if (!product.qbs.toolchain.contains("mingw")) {
                 // List of libfoo's public symbols for smart re-linking.
-                filePath: product.destinationDirectory + "/.sosymbols/"
-                          + PathTools.dynamicLibraryFilePath(product),
-                fileTags: ["dynamiclibrary_copy"],
-                alwaysUpdated: false,
-            };
-            var artifacts = [lib, libCopy];
+                artifacts.push({
+                    filePath: product.destinationDirectory + "/.sosymbols/"
+                              + PathTools.dynamicLibraryFilePath(product),
+                    fileTags: ["dynamiclibrary_copy"],
+                    alwaysUpdated: false,
+                });
+            }
 
             if (product.cpp.shouldCreateSymlinks && (!product.bundle || !product.bundle.isBundle)) {
                 var maxVersionParts = Gcc.isNumericProductVersion(product.version) ? 3 : 1;

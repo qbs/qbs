@@ -851,11 +851,11 @@ function createSymbolCheckingCommand(product, outputs)
     cmd = new JavaScriptCommand();
     cmd.silent = true;
     cmd.sourceCode = function() {
+        if (!outputs.dynamiclibrary_copy)
+            return;
+
         var libFilePath = outputs.dynamiclibrary[0].filePath;
         var symbolFilePath = outputs.dynamiclibrary_copy[0].filePath;
-
-        if (product.qbs.toolchain.contains("mingw"))
-            return; // mingw's nm tool does not work correctly.
 
         var newNmResult = getSymbolInfo(product, libFilePath);
         if (!newNmResult.success)
