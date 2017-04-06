@@ -209,7 +209,12 @@ CppModule {
         return v.split('.')[0];
     }
 
-    property var buildEnv: ({})
+    property var buildEnv: {
+        var env = {};
+        if (qbs.toolchain.contains("mingw"))
+            env.PATH = [toolchainInstallPath]; // For libwinpthread etc
+        return env;
+    }
 
     exceptionHandlingModel: {
         if (qbs.toolchain.contains("mingw")) {
