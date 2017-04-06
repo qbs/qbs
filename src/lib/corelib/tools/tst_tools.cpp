@@ -545,8 +545,6 @@ void TestTools::set_begin()
 
         QVERIFY(i == j);
         QVERIFY(k == ell);
-        QVERIFY(i == k);
-        QVERIFY(j == ell);
     }
 
     set1.insert(44);
@@ -559,8 +557,6 @@ void TestTools::set_begin()
 
         QVERIFY(i == j);
         QVERIFY(k == ell);
-        QVERIFY(i != k);
-        QVERIFY(j != ell);
     }
 
     set2 = set1;
@@ -604,8 +600,6 @@ void TestTools::set_end()
 
         QVERIFY(i == j);
         QVERIFY(k == ell);
-        QVERIFY(i != k);
-        QVERIFY(j != ell);
 
         QVERIFY(set1.constBegin() != set1.constEnd());
         QVERIFY(set2.constBegin() == set2.constEnd());
