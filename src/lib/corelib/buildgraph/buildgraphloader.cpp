@@ -67,8 +67,8 @@
 namespace qbs {
 namespace Internal {
 
-BuildGraphLoader::BuildGraphLoader(const QProcessEnvironment &env, const Logger &logger) :
-    m_logger(logger), m_environment(env)
+BuildGraphLoader::BuildGraphLoader(const Logger &logger) :
+    m_logger(logger)
 {
 }
 
@@ -389,7 +389,7 @@ bool BuildGraphLoader::probeExecutionForced(
 bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const
 {
     QProcessEnvironment oldEnv = restoredProject->environment;
-    QProcessEnvironment newEnv = m_environment;
+    QProcessEnvironment newEnv = m_parameters.adjustedEnvironment();
 
     // HACK. Valgrind screws up our null-build benchmarker otherwise.
     // TODO: Think about a (module-provided) whitelist.
@@ -399,7 +399,7 @@ bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &rest
     if (oldEnv != newEnv) {
         m_logger.qbsDebug() << "Set of environment variables changed. Must re-resolve project.";
         m_logger.qbsTrace() << "old: " << restoredProject->environment.toStringList() << "\nnew:"
-                            << m_environment.toStringList();
+                            << m_parameters.adjustedEnvironment().toStringList();
         return true;
     }
     return false;

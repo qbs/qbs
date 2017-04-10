@@ -70,7 +70,7 @@ public:
 class BuildGraphLoader
 {
 public:
-    BuildGraphLoader(const QProcessEnvironment &env, const Logger &logger);
+    BuildGraphLoader(const Logger &logger);
     ~BuildGraphLoader();
 
     BuildGraphLoadResult load(const TopLevelProjectPtr &existingProject,
@@ -134,7 +134,6 @@ private:
     SetupProjectParameters m_parameters;
     BuildGraphLoadResult m_result;
     Logger m_logger;
-    QProcessEnvironment m_environment;
     QStringList m_artifactsRemovedFromDisk;
     qint64 m_wildcardExpansionEffort;
     qint64 m_propertyComparisonEffort;
