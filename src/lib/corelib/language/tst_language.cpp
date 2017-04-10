@@ -160,6 +160,7 @@ void TestLanguage::initTestCase()
     defaultParameters.setTopLevelProfile(profileName());
     defaultParameters.setConfigurationName("default");
     defaultParameters.expandBuildConfiguration();
+    defaultParameters.setEnvironment(QProcessEnvironment::systemEnvironment());
     QVERIFY(QFileInfo(m_wildcardsTestDirPath).isAbsolute());
 }
 

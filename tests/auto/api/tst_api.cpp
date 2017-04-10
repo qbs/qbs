@@ -1893,6 +1893,7 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &proje
     }
 
     qbs::SetupProjectParameters setupParams;
+    setupParams.setEnvironment(QProcessEnvironment::systemEnvironment());
     setupParams.setProjectFilePath(projectFilePath);
     setupParams.setPropertyCheckingMode(qbs::ErrorHandlingMode::Strict);
     QDir::setCurrent(projectDirPath);

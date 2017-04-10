@@ -139,6 +139,7 @@ void CommandLineFrontend::start()
         if (m_parser.showProgress())
             m_observer = new ConsoleProgressObserver;
         SetupProjectParameters params;
+        params.setEnvironment(QProcessEnvironment::systemEnvironment());
         params.setProjectFilePath(m_parser.projectFilePath());
         params.setIgnoreDifferentProjectFilePath(m_parser.force());
         params.setDryRun(m_parser.dryRun());

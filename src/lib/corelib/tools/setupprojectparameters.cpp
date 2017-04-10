@@ -67,7 +67,6 @@ public:
         , restoreBehavior(SetupProjectParameters::RestoreAndTrackChanges)
         , propertyCheckingMode(ErrorHandlingMode::Relaxed)
         , productErrorMode(ErrorHandlingMode::Strict)
-        , environment(QProcessEnvironment::systemEnvironment())
     {
     }
 
