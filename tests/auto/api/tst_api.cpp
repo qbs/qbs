@@ -1841,10 +1841,13 @@ void TestApi::propertiesBlocks()
 
 void TestApi::rc()
 {
-    BuildDescriptionReceiver receiver;
-    const qbs::ErrorInfo errorInfo = doBuildProject("rc", &receiver);
+    BuildDescriptionReceiver bdr;
+    ProcessResultReceiver prr;
+    const qbs::ErrorInfo errorInfo = doBuildProject("rc", &bdr, &prr);
+    if (errorInfo.hasError())
+        qDebug() << prr.output;
     VERIFY_NO_ERROR(errorInfo);
-    const bool rcFileWasCompiled = receiver.descriptions.contains("compiling test.rc");
+    const bool rcFileWasCompiled = bdr.descriptions.contains("compiling test.rc");
     QCOMPARE(rcFileWasCompiled, qbs::Internal::HostOsInfo::isWindowsHost());
 }
 
