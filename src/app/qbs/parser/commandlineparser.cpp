@@ -343,9 +343,9 @@ void CommandLineParser::CommandLineParserPrivate::doParse()
     if (command->type() == BuildCommandType && optionPool.versionOption()->enabled())
         return;
 
-    setupProjectFile();
     setupBuildDirectory();
     setupBuildConfigurations();
+    setupProjectFile();
     setupProgress();
     setupLogLevel();
     setupBuildOptions();
@@ -429,6 +429,28 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
 {
     projectFilePath = optionPool.fileOption()->projectFilePath();
     if (projectFilePath.isEmpty()) {
+        bool allBuildGraphsExist = true;
+        foreach (const QVariantMap &buildConfig, buildConfigurations) {
+            const QString configName = buildConfig.value(QLatin1String("qbs.configurationName"))
+                    .toString();
+            const QString profile = buildConfig.value(QLatin1String("qbs.profile")).toString();
+            QString buildDir = projectBuildDirectory;
+            Settings settings(settingsDir());
+            if (buildDir.isEmpty()) {
+                buildDir = Preferences(&settings, profile).defaultBuildDirectory();
+                if (buildDir.isEmpty())
+                    buildDir = QDir::currentPath();
+            }
+            if (!QFile::exists(buildDir + QLatin1Char('/') + configName + QLatin1Char('/')
+                               + configName + QLatin1String(".bg"))) {
+                allBuildGraphsExist = false;
+                break;
+            }
+        }
+        if (allBuildGraphsExist) {
+            qbsDebug() << "No project file given; using the one from the build graph.";
+            return;
+        }
         qbsDebug() << "No project file given; looking in current directory.";
         projectFilePath = QDir::currentPath();
     }

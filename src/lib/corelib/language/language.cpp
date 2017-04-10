@@ -985,6 +985,7 @@ void TopLevelProject::load(PersistentPool &pool)
     pool.load(environment);
     pool.load(probes);
     pool.load(profileConfigs);
+    pool.load(overriddenValues);
     pool.load(buildSystemFiles);
     pool.load(lastResolveTime);
     pool.load(warningsEncountered);
@@ -1005,6 +1006,7 @@ void TopLevelProject::store(PersistentPool &pool) const
     pool.store(environment);
     pool.store(probes);
     pool.store(profileConfigs);
+    pool.store(overriddenValues);
     pool.store(buildSystemFiles);
     pool.store(lastResolveTime);
     pool.store(warningsEncountered);

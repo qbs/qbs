@@ -1,5 +1,5 @@
 import qbs 1.0
 
 CppApplication {
-    files: "main.cpp"
+    files: "main2.cpp"
 }

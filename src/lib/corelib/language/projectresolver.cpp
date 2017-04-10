@@ -249,6 +249,7 @@ TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
     projectContext.project = project;
     resolveProject(m_loadResult.root, &projectContext);
     project->setBuildConfiguration(m_setupParams.finalBuildConfigurationTree());
+    project->overriddenValues = m_setupParams.overriddenValues();
     project->usedEnvironment = m_engine->usedEnvironment();
     project->canonicalFilePathResults = m_engine->canonicalFilePathResults();
     project->fileExistsResults = m_engine->fileExistsResults();

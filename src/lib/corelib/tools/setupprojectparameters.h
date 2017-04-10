@@ -103,8 +103,8 @@ public:
             const QVariantMap &overriddenValues, const QString &buildRoot);
     QVariantMap finalBuildConfigurationTree() const;
 
-    bool ignoreDifferentProjectFilePath() const;
-    void setIgnoreDifferentProjectFilePath(bool doIgnore);
+    bool overrideBuildGraphData() const;
+    void setOverrideBuildGraphData(bool doOverride);
 
     bool dryRun() const;
     void setDryRun(bool dryRun);

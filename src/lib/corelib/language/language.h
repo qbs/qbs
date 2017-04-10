@@ -535,6 +535,7 @@ public:
     QString id() const { return m_id; }
     QString profile() const;
     QVariantMap profileConfigs;
+    QVariantMap overriddenValues;
 
     QString buildGraphFilePath() const;
     void store(Logger logger) const;

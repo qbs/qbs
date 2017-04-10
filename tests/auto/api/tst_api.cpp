@@ -1896,6 +1896,7 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &proje
     setupParams.setEnvironment(QProcessEnvironment::systemEnvironment());
     setupParams.setProjectFilePath(projectFilePath);
     setupParams.setPropertyCheckingMode(qbs::ErrorHandlingMode::Strict);
+    setupParams.setOverrideBuildGraphData(true);
     QDir::setCurrent(projectDirPath);
     setupParams.setBuildRoot(projectDirPath);
     qbs::Settings settings((QString()));

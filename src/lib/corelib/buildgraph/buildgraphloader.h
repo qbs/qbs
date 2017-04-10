@@ -79,7 +79,7 @@ public:
 
 private:
     void loadBuildGraphFromDisk();
-    void checkBuildGraphCompatibility(const TopLevelProjectConstPtr &project);
+    bool checkBuildGraphCompatibility(const TopLevelProjectConstPtr &project);
     void trackProjectChanges();
     bool probeExecutionForced(const TopLevelProjectConstPtr &restoredProject,
                               const QList<ResolvedProductPtr> &restoredProducts) const;
@@ -113,7 +113,7 @@ private:
                                 const QVariantMap &newProperties);
     void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
             FileDependency *filedep, Artifact *artifact);
-    bool isConfigCompatible();
+    bool checkConfigCompatibility();
     bool isPrepareScriptUpToDate(const ScriptFunctionConstPtr &script,
                                  const FileTime &referenceTime);
 

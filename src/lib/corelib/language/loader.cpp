@@ -47,8 +47,10 @@
 
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
+#include <tools/profile.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
+#include <tools/settings.h>
 #include <tools/setupprojectparameters.h>
 
 #include <QtCore/qdir.h>
@@ -96,10 +98,22 @@ void Loader::setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &old
     m_oldProductProbes = oldProbes;
 }
 
-TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
+TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters)
 {
-    QBS_CHECK(QFileInfo(parameters.projectFilePath()).isAbsolute());
+    QBS_CHECK(QFileInfo(_parameters.projectFilePath()).isAbsolute());
 
+    SetupProjectParameters parameters = _parameters;
+    if (parameters.topLevelProfile().isEmpty()) {
+        Settings settings(parameters.settingsDirectory());
+        QString profileName = settings.defaultProfile();
+        if (profileName.isEmpty()) {
+            m_logger.qbsDebug() << Tr::tr("No profile specified and no default profile exists. "
+                                          "Using default property values.");
+            profileName = Profile::fallbackName();
+        }
+        parameters.setTopLevelProfile(profileName);
+        parameters.expandBuildConfiguration();
+    }
     m_engine->setEnvironment(parameters.adjustedEnvironment());
     m_engine->clearExceptions();
     m_engine->clearImportsCache();

@@ -213,6 +213,7 @@ void TestBlackbox::tar()
         QSKIP("Beware of the msys tar");
     MacosTarHealer tarHealer;
     QDir::setCurrent(testDataDir + "/archiver");
+    rmDirR(relativeBuildDir());
     QString binary = findArchiver("tar");
     if (binary.isEmpty())
         QSKIP("tar not found");
@@ -246,6 +247,7 @@ void TestBlackbox::zip()
         QSKIP("zip tool not found");
 
     QDir::setCurrent(testDataDir + "/archiver");
+    rmDirR(relativeBuildDir());
     QbsRunParameters params(QStringList()
                             << "archiver.type:zip" << "archiver.command:" + binary);
     QCOMPARE(runQbs(params), 0);
@@ -267,8 +269,10 @@ void TestBlackbox::zip()
              sortedFileList(listFile.readAll()));
 
     // Make sure the module is still loaded when the java/jar fallback is not available
+    params.command = "resolve";
     params.arguments << "java.jdkPath:/blubb";
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackbox::zip_data()
@@ -281,6 +285,7 @@ void TestBlackbox::zip_data()
 void TestBlackbox::zipInvalid()
 {
     QDir::setCurrent(testDataDir + "/archiver");
+    rmDirR(relativeBuildDir());
     QbsRunParameters params(QStringList() << "archiver.type:zip"
                             << "archiver.command:/bin/something");
     params.expectFailure = true;
@@ -335,7 +340,7 @@ void TestBlackbox::artifactScanning()
 {
     const QString projectDir = testDataDir + "/artifact-scanning";
     QDir::setCurrent(projectDir);
-    QbsRunParameters params("-vv");
+    QbsRunParameters params(QStringList("-vv"));
 
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(m_qbsStderr.count("scanning p1.cpp"), 1);
@@ -433,7 +438,10 @@ void TestBlackbox::artifactScanning()
 
     WAIT_FOR_NEW_TIMESTAMP();
     touch("p1.cpp");
+    params.command = "resolve";
     params.arguments << "cpp.treatSystemHeadersAsDependencies:true";
+    QCOMPARE(runQbs(params), 0);
+    params.command = "build";
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(m_qbsStderr.count("scanning p1.cpp"), 1);
     QCOMPARE(m_qbsStderr.count("scanning p2.cpp"), 0);
@@ -1120,7 +1128,8 @@ void TestBlackbox::clean()
 
     // Remove all, with a forced re-resolve in between.
     // This checks that rescuable artifacts are also removed.
-    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "cpp.optimization:none")), 0);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList() << "cpp.optimization:none")), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList() << "cpp.optimization:fast")), 0);
@@ -1192,6 +1201,9 @@ void TestBlackbox::conditionalExport()
 
     params.expectFailure = false;
     params.arguments << "project.enableExport:true";
+    params.command = "resolve";
+    QCOMPARE(runQbs(params), 0);
+    params.command = "build";
     QCOMPARE(runQbs(params), 0);
 }
 
@@ -1202,6 +1214,9 @@ void TestBlackbox::conditionalFileTagger()
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling"));
     params.arguments = QStringList("products.theApp.enableTagger:true");
+    params.command = "resolve";
+    QCOMPARE(runQbs(params), 0);
+    params.command = "build";
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("compiling"));
 }
@@ -1453,8 +1468,16 @@ void TestBlackbox::trackExternalProductChanges()
     params.environment.insert("QBS_TEST_PULL_IN_FILE_VIA_ENV", "1");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling main.cpp"));
-    QVERIFY(m_qbsStdout.contains("compiling environmentChange.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
+    params.command = "resolve";
+    QCOMPARE(runQbs(params), 0);
+    params.command = "build";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling main.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling environmentChange.cpp"));
+    QVERIFY2(!m_qbsStdout.contains("compiling jsFileChange.cpp"), m_qbsStdout.constData());
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
 
     rmDirR(relativeBuildDir());
@@ -1512,9 +1535,12 @@ void TestBlackbox::trackExternalProductChanges()
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QVERIFY2(m_qbsStderr.contains("hiddenheaderqbs.h"), m_qbsStderr.constData());
+    params.command = "resolve";
     params.environment.insert("CPLUS_INCLUDE_PATH",
                               QDir::toNativeSeparators(QDir::currentPath() + "/hidden"));
     params.expectFailure = false;
+    QCOMPARE(runQbs(params), 0);
+    params.command = "build";
     QCOMPARE(runQbs(params), 0);
 }
 
@@ -1526,9 +1552,11 @@ void TestBlackbox::trackGroupConditionChange()
     QVERIFY(runQbs(params) != 0);
     QVERIFY(m_qbsStderr.contains("jibbetnich"));
 
+    params.command = "resolve";
     params.arguments = QStringList("project.kaputt:false");
     params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackbox::trackRemoveFile()
@@ -1802,6 +1830,7 @@ void TestBlackbox::reproducibleBuild()
     QbsRunParameters params;
     params.arguments << QString("cpp.enableReproducibleBuilds:")
                         + (reproducible ? "true" : "false");
+    rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(params), 0);
     QFile object(relativeProductBuildDir("the product") + "/.obj/" + inputDirHash(".") + '/'
                  + objectFileName("file1.cpp", profileName()));
@@ -1870,10 +1899,15 @@ void TestBlackbox::ruleWithNoInputs()
     QVERIFY2(m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
     QVERIFY2(runQbs() == 0, m_qbsStderr.constData());
     QVERIFY2(!m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
-    QbsRunParameters params(QStringList() << "theProduct.version:1");
+    QbsRunParameters params("resolve", QStringList() << "theProduct.version:1");
+    QVERIFY2(runQbs(params) == 0, m_qbsStderr.constData());
+    params.command = "build";
     QVERIFY2(runQbs(params) == 0, m_qbsStderr.constData());
     QVERIFY2(!m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
+    params.command = "resolve";
     params.arguments = QStringList() << "products.theProduct.version:2";
+    QVERIFY2(runQbs(params) == 0, m_qbsStderr.constData());
+    params.command = "build";
     QVERIFY2(runQbs(params) == 0, m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
 }
@@ -1900,8 +1934,10 @@ void TestBlackbox::smartRelinking()
 
     // Add new private symbol.
     WAIT_FOR_NEW_TIMESTAMP();
+    params.command = "resolve";
     params.arguments << "products.lib.defines:PRIV2";
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
 
@@ -1909,6 +1945,7 @@ void TestBlackbox::smartRelinking()
     WAIT_FOR_NEW_TIMESTAMP();
     params.arguments.removeLast();
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
 
@@ -1916,6 +1953,7 @@ void TestBlackbox::smartRelinking()
     WAIT_FOR_NEW_TIMESTAMP();
     params.arguments << "products.lib.defines:PUB2";
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
 
@@ -1923,6 +1961,7 @@ void TestBlackbox::smartRelinking()
     WAIT_FOR_NEW_TIMESTAMP();
     params.arguments.removeLast();
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
 
@@ -1930,6 +1969,7 @@ void TestBlackbox::smartRelinking()
     WAIT_FOR_NEW_TIMESTAMP();
     params.arguments << "products.lib.defines:PRINTF";
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
     QVERIFY2(strictChecking == m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
 
@@ -1937,6 +1977,7 @@ void TestBlackbox::smartRelinking()
     WAIT_FOR_NEW_TIMESTAMP();
     params.arguments.removeLast();
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("linking lib"), m_qbsStdout.constData());
     QVERIFY2(strictChecking == m_qbsStdout.contains("linking app"), m_qbsStdout.constData());
 }
@@ -1987,6 +2028,7 @@ void TestBlackbox::soVersion()
         params.arguments << ("modules.cpp.soVersion:" + soVersion);
     const QString libFilePath = relativeProductBuildDir("mylib") + "/libmylib.so"
             + (useVersion ? ".1.2.3" : QString());
+    rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(regularFileExists(libFilePath), qPrintable(libFilePath));
     QCOMPARE(soName(readElfPath, libFilePath), expectedSoName);
@@ -2063,6 +2105,7 @@ void TestBlackbox::pkgConfigProbe()
     QFETCH(QStringList, cflags);
     QFETCH(QStringList, version);
 
+    rmDirR(relativeBuildDir());
     QbsRunParameters params(QStringList() << ("project.packageBaseName:" + packageBaseName));
     QCOMPARE(runQbs(params), 0);
     const QString stdOut = m_qbsStdout;
@@ -2138,6 +2181,7 @@ void TestBlackbox::probeChangeTracking()
 
     // Product probe disabled, other probes enabled.
     QbsRunParameters params;
+    params.command = "resolve";
     params.arguments = QStringList("products.theProduct.runProbe:false");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("running tlpProbe"));
@@ -2382,14 +2426,17 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("Making output from other output"));
 
     // Incremental build, input property changed via command line for second product.
+    params.command = "resolve";
     params.arguments << "project.projectDefines:blubb002";
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(!m_qbsStdout.contains("linking product 1"));
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("linking product 3"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     params.arguments.removeLast();
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(!m_qbsStdout.contains("linking product 1"));
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("linking product 3"));
@@ -2402,10 +2449,26 @@ void TestBlackbox::propertyChanges()
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("linking product 1"));
     QVERIFY(!m_qbsStdout.contains("linking product 2"));
+    QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("generated.txt"));
+    params.environment.remove("QBS_BLACKBOX_DEFINE");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!m_qbsStdout.contains("linking product 1"));
+    QVERIFY(!m_qbsStdout.contains("linking product 2"));
+    QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("generated.txt"));
+    QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    params.environment.insert("QBS_BLACKBOX_DEFINE", "newvalue");
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("linking product 1"));
+    QVERIFY(!m_qbsStdout.contains("linking product 2"));
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    params.environment.clear();
+    params.environment.remove("QBS_BLACKBOX_DEFINE");
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(!m_qbsStdout.contains("linking product 1"));
     QVERIFY(!m_qbsStdout.contains("linking product 2"));
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
@@ -2416,6 +2479,7 @@ void TestBlackbox::propertyChanges()
     // Incremental build, module property changed via command line.
     params.arguments << "qbs.enableDebugCode:false";
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(m_qbsStdout.contains("linking product 1.release"));
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
@@ -2424,6 +2488,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     params.arguments.removeLast();
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(m_qbsStdout.contains("linking product 1.debug"));
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
@@ -2440,6 +2505,7 @@ void TestBlackbox::propertyChanges()
     projectFile.resize(0);
     projectFile.write(contents);
     projectFile.close();
+    params.command = "build";
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("linking product 1"));
     QVERIFY(m_qbsStdout.contains("linking product 2"));
@@ -2577,8 +2643,13 @@ void TestBlackbox::qtKeywords()
     QDir::setCurrent(testDataDir + "/qt-keywords");
     QbsRunParameters params(QStringList("Qt.core.enableKeywords:false"));
     params.expectFailure = true;
-    QVERIFY(runQbs(QbsRunParameters(params)) != 0);
-    QCOMPARE(runQbs(), 0);
+    QVERIFY(runQbs(params) != 0);
+    params.arguments.clear();
+    QVERIFY(runQbs(params) != 0);
+    params.command = "resolve";
+    QCOMPARE(runQbs(params), 0);
+    params.command = "build";
+    QCOMPARE(runQbs(params), 0);
 }
 
 void TestBlackbox::qtScxml()
@@ -2682,32 +2753,40 @@ void TestBlackbox::errorInfo()
     QbsRunParameters params;
     params.expectFailure = true;
 
+    params.command = "resolve";
     params.arguments = QStringList() << "project.fail1:true";
-    QVERIFY(runQbs(params) != 0);
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(runQbs() != 0);
     QVERIFY2(m_qbsStderr.contains("error-info.qbs:25"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail2:true";
-    QVERIFY(runQbs(params) != 0);
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(runQbs() != 0);
     QVERIFY2(m_qbsStderr.contains("error-info.qbs:37"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail3:true";
-    QVERIFY(runQbs(params) != 0);
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(runQbs() != 0);
     QVERIFY2(m_qbsStderr.contains("error-info.qbs:52"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail4:true";
-    QVERIFY(runQbs(params) != 0);
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(runQbs() != 0);
     QVERIFY2(m_qbsStderr.contains("error-info.qbs:67"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail5:true";
-    QVERIFY(runQbs(params) != 0);
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(runQbs() != 0);
     QVERIFY2(m_qbsStderr.contains("helper.js:4"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail6:true";
-    QVERIFY(runQbs(params) != 0);
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(runQbs() != 0);
     QVERIFY2(m_qbsStderr.contains("helper.js:8"), m_qbsStderr);
 
     params.arguments = QStringList() << "project.fail7:true";
-    QVERIFY(runQbs(params) != 0);
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(runQbs() != 0);
     QVERIFY2(m_qbsStderr.contains("JavaScriptCommand.sourceCode"), m_qbsStderr);
     QVERIFY2(m_qbsStderr.contains("error-info.qbs:58"), m_qbsStderr);
 }
@@ -2722,7 +2801,10 @@ void TestBlackbox::escapedLinkerFlags()
     QDir::setCurrent(testDataDir + "/escaped-linker-flags");
     QbsRunParameters params(QStringList("products.app.escapeLinkerFlags:false"));
     QCOMPARE(runQbs(params), 0);
+    params.command = "resolve";
     params.arguments = QStringList() << "products.app.escapeLinkerFlags:true";
+    QCOMPARE(runQbs(params), 0);
+    params.command = "build";
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QVERIFY2(m_qbsStderr.contains("Encountered escaped linker flag"), m_qbsStderr.constData());
@@ -2746,6 +2828,7 @@ void TestBlackbox::systemRunPaths()
         QSKIP("ldd not found");
     QDir::setCurrent(testDataDir + "/system-run-paths");
     QFETCH(bool, setRunPaths);
+    rmDirR(relativeBuildDir());
     QbsRunParameters params;
     params.arguments << QString("project.setRunPaths:") + (setRunPaths ? "true" : "false");
     QCOMPARE(runQbs(params), 0);
@@ -2942,6 +3025,7 @@ void TestBlackbox::invalidLibraryNames_data()
 
 void TestBlackbox::invalidExtensionInstantiation()
 {
+    rmDirR(relativeBuildDir());
     QDir::setCurrent(testDataDir + "/invalid-extension-instantiation");
     QbsRunParameters params;
     params.expectFailure = true;
@@ -3012,6 +3096,9 @@ void TestBlackbox::combinedMoc()
     QVERIFY(!m_qbsStdout.contains("creating amalgamated_moc_theapp.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling amalgamated_moc_theapp.cpp"));
     QbsRunParameters params(QStringList("Qt.core.combineMocOutput:true"));
+    params.command = "resolve";
+    QCOMPARE(runQbs(params), 0);
+    params.command = "build";
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling moc_theobject.cpp"));
     QVERIFY(m_qbsStdout.contains("creating amalgamated_moc_theapp.cpp"));
@@ -3028,10 +3115,13 @@ void TestBlackbox::combinedSources()
     QVERIFY(m_qbsStdout.contains("compiling uncombinable.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling amalgamated_theapp.cpp"));
     params.arguments = QStringList("cpp.combineCxxSources:true");
+    params.command = "resolve";
+    QCOMPARE(runQbs(params), 0);
     WAIT_FOR_NEW_TIMESTAMP();
     touch("combinable.cpp");
     touch("main.cpp");
     touch("uncombinable.cpp");
+    params.command = "build";
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling main.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling combinable.cpp"));
@@ -3253,11 +3343,14 @@ void TestBlackbox::lexyacc()
     QVERIFY(runQbs(params) != 0);
 
     params.expectFailure = false;
+    params.command = "resolve";
     params.arguments << (QStringList() << "lex_yacc.uniqueSymbolPrefix:true");
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY2(!m_qbsStderr.contains("whatever"), m_qbsStderr.constData());
     params.arguments << "lex_yacc.enableCompilerWarnings:true";
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStderr.contains("whatever"), m_qbsStderr.constData());
 }
 
@@ -3366,7 +3459,8 @@ void TestBlackbox::multipleChanges()
     QFile newFile("test.blubb");
     QVERIFY(newFile.open(QIODevice::WriteOnly));
     newFile.close();
-    QCOMPARE(runQbs(QStringList() << "project.prop:true"), 0);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList() << "project.prop:true")), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("prop: true"));
 }
 
@@ -3391,8 +3485,9 @@ void TestBlackbox::newOutputArtifact()
     QVERIFY(regularFileExists(relativeBuildDir() + "/install-root/output_98.out"));
     const QString the100thArtifact = relativeBuildDir() + "/install-root/output_99.out";
     QVERIFY(!regularFileExists(the100thArtifact));
-    QbsRunParameters params(QStringList() << "products.theProduct.artifactCount:100");
+    QbsRunParameters params("resolve", QStringList() << "products.theProduct.artifactCount:100");
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(the100thArtifact));
 }
 
@@ -3459,15 +3554,19 @@ void TestBlackbox::propertyPrecedence()
                                            << ("profile:" + profile.p.name());
     QbsRunParameters params(args);
     params.useProfile = false;
+    QbsRunParameters resolveParams = params;
+    resolveParams.command = "resolve";
 
     // Case 1: [cmdline=0,prod=0,export=0,nonleaf=0,profile=0]
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: leaf\n")
              && m_qbsStdout.contains("list prop: [\"leaf\"]\n"),
              m_qbsStdout.constData());
+    params.arguments.clear();
 
     // Case 2: [cmdline=0,prod=0,export=0,nonleaf=0,profile=1]
     switchProfileContents(profile.p, &s, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: profile\n")
              && m_qbsStdout.contains("list prop: [\"profile\"]\n"),
@@ -3478,6 +3577,7 @@ void TestBlackbox::propertyPrecedence()
     QVERIFY2(nonleafFile.open(QIODevice::ReadWrite), qPrintable(nonleafFile.errorString()));
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: nonleaf\n")
              && m_qbsStdout.contains("list prop: [\"nonleaf\",\"leaf\"]\n"),
@@ -3485,6 +3585,7 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 4: [cmdline=0,prod=0,export=0,nonleaf=1,profile=1]
     switchProfileContents(profile.p, &s, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: nonleaf\n")
              && m_qbsStdout.contains("list prop: [\"nonleaf\",\"profile\"]\n"),
@@ -3496,6 +3597,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"leaf\"]\n"),
@@ -3503,6 +3605,7 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 6: [cmdline=0,prod=0,export=1,nonleaf=0,profile=1]
     switchProfileContents(profile.p, &s, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"profile\"]\n"),
@@ -3511,6 +3614,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 7: [cmdline=0,prod=0,export=1,nonleaf=1,profile=0]
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"nonleaf\",\"leaf\"]\n"),
@@ -3518,6 +3622,7 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 8: [cmdline=0,prod=0,export=1,nonleaf=1,profile=1]
     switchProfileContents(profile.p, &s, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"nonleaf\",\"profile\"]\n"),
@@ -3530,6 +3635,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, false);
     switchFileContents(productFile, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"leaf\"]\n"),
@@ -3537,6 +3643,7 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 10: [cmdline=0,prod=1,export=0,nonleaf=0,profile=1]
     switchProfileContents(profile.p, &s, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"profile\"]\n"),
@@ -3545,6 +3652,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 11: [cmdline=0,prod=1,export=0,nonleaf=1,profile=0]
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"nonleaf\",\"leaf\"]\n"),
@@ -3552,6 +3660,7 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 12: [cmdline=0,prod=1,export=0,nonleaf=1,profile=1]
     switchProfileContents(profile.p, &s, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"nonleaf\",\"profile\"]\n"),
@@ -3561,6 +3670,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"export\",\"leaf\"]\n"),
@@ -3568,6 +3678,7 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 14: [cmdline=0,prod=1,export=1,nonleaf=0,profile=1]
     switchProfileContents(profile.p, &s, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"export\",\"profile\"]\n"),
@@ -3576,6 +3687,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 15: [cmdline=0,prod=1,export=1,nonleaf=1,profile=0]
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"export\",\"nonleaf\",\"leaf\"]\n"),
@@ -3583,6 +3695,7 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 16: [cmdline=0,prod=1,export=1,nonleaf=1,profile=1]
     switchProfileContents(profile.p, &s, true);
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"export\",\"nonleaf\",\"profile\"]\n"),
@@ -3594,7 +3707,8 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, false);
     switchFileContents(productFile, false);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3602,7 +3716,8 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 18: [cmdline=1,prod=0,export=0,nonleaf=0,profile=1]
     switchProfileContents(profile.p, &s, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3611,7 +3726,8 @@ void TestBlackbox::propertyPrecedence()
     // Case 19: [cmdline=1,prod=0,export=0,nonleaf=1,profile=0]
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3619,7 +3735,8 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 20: [cmdline=1,prod=0,export=0,nonleaf=1,profile=1]
     switchProfileContents(profile.p, &s, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3629,7 +3746,8 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3637,7 +3755,8 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 22: [cmdline=1,prod=0,export=1,nonleaf=0,profile=1]
     switchProfileContents(profile.p, &s, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3646,7 +3765,8 @@ void TestBlackbox::propertyPrecedence()
     // Case 23: [cmdline=1,prod=0,export=1,nonleaf=1,profile=0]
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3654,7 +3774,8 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 24: [cmdline=1,prod=0,export=1,nonleaf=1,profile=1]
     switchProfileContents(profile.p, &s, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3665,7 +3786,8 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, false);
     switchFileContents(productFile, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3673,7 +3795,8 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 26: [cmdline=1,prod=1,export=0,nonleaf=0,profile=1]
     switchProfileContents(profile.p, &s, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3682,7 +3805,8 @@ void TestBlackbox::propertyPrecedence()
     // Case 27: [cmdline=1,prod=1,export=0,nonleaf=1,profile=0]
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3690,7 +3814,8 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 28: [cmdline=1,prod=1,export=0,nonleaf=1,profile=1]
     switchProfileContents(profile.p, &s, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3700,7 +3825,8 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3708,7 +3834,8 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 30: [cmdline=1,prod=1,export=1,nonleaf=0,profile=1]
     switchProfileContents(profile.p, &s, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3717,7 +3844,8 @@ void TestBlackbox::propertyPrecedence()
     // Case 31: [cmdline=1,prod=1,export=1,nonleaf=1,profile=0]
     switchProfileContents(profile.p, &s, false);
     switchFileContents(nonleafFile, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3725,7 +3853,8 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 32: [cmdline=1,prod=1,export=1,nonleaf=1,profile=1]
     switchProfileContents(profile.p, &s, true);
-    params.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
+    QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -3865,7 +3994,17 @@ void TestBlackbox::subProfileChangeTracking()
 
     subProfile.p.setValue("cpp.includePaths", QStringList("/tmp/include2"));
     settings.sync();
-    QCOMPARE(runQbs(), 0);
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("The current set of properties for configuration 'default' "
+                                  "differs in profile 'qbs-autotests-subprofile'"),
+             m_qbsStderr.constData());
+    params.expectFailure = false;
+    params.command = "resolve";
+    QCOMPARE(runQbs(params), 0);
+    params.command = "build";
+    QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("main1.cpp"));
     QVERIFY(m_qbsStdout.contains("main2.cpp"));
 }
@@ -3875,11 +4014,13 @@ void TestBlackbox::successiveChanges()
     QDir::setCurrent(testDataDir + "/successive-changes");
     QCOMPARE(runQbs(), 0);
 
-    QbsRunParameters params(QStringList() << "theProduct.type:output,blubb");
+    QbsRunParameters params("resolve", QStringList() << "theProduct.type:output,blubb");
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
 
     params.arguments << "project.version:2";
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QFile output(relativeProductBuildDir("theProduct") + "/output.out");
     QVERIFY2(output.open(QIODevice::ReadOnly), qPrintable(output.errorString()));
     const QByteArray version = output.readAll();
@@ -3894,8 +4035,9 @@ void TestBlackbox::installedApp()
     QVERIFY(regularFileExists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
 
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("qbs.installRoot:" + testDataDir
-                                                 + "/installed-app"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("qbs.installRoot:" + testDataDir
+                                                            + "/installed-app"))), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(testDataDir
             + HostOsInfo::appendExecutableSuffix("/installed-app/usr/bin/installedApp")));
 
@@ -3903,7 +4045,8 @@ void TestBlackbox::installedApp()
     QVERIFY(addedFile.open(QIODevice::WriteOnly));
     addedFile.close();
     QVERIFY(addedFile.exists());
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("--clean-install-root"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "--clean-install-root")), 0);
     QVERIFY(regularFileExists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/src/main.cpp")));
@@ -3943,18 +4086,18 @@ void TestBlackbox::installedApp()
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/local/source/main.cpp")));
 
     // Check whether changing install parameters on the command line causes re-installation.
-    QbsRunParameters(QStringList("qbs.installRoot:" + relativeBuildDir() + "/blubb"));
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("qbs.installRoot:" + relativeBuildDir()
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("qbs.installRoot:" + relativeBuildDir()
                                                  + "/blubb"))), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(relativeBuildDir() + "/blubb/usr/local/source/main.cpp"));
 
     // Check --no-install
     rmDirR(relativeBuildDir());
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("--no-install"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "--no-install")), 0);
     QCOMPARE(QDir(defaultInstallRoot).entryList(QDir::NoDotAndDotDot).count(), 0);
 
     // Check --no-build (with and without an existing build graph)
-    QbsRunParameters params("install", QStringList("--no-build"));
+    QbsRunParameters params("install", QStringList() << "--no-build");
     QCOMPARE(runQbs(params), 0);
     rmDirR(relativeBuildDir());
     params.expectFailure = true;
@@ -4005,6 +4148,7 @@ void TestBlackbox::checkProjectFilePath()
     QDir::setCurrent(testDataDir + "/project_filepath_check");
     QbsRunParameters params(QStringList("-f") << "project1.qbs");
     QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("main.cpp"), m_qbsStdout.constData());
     QCOMPARE(runQbs(params), 0);
 
     params.arguments = QStringList("-f") << "project2.qbs";
@@ -4012,10 +4156,13 @@ void TestBlackbox::checkProjectFilePath()
     QVERIFY(runQbs(params) != 0);
     QVERIFY(m_qbsStderr.contains("project file"));
 
-    params.arguments = QStringList("-f") << "project2.qbs" << "--force";
+    params.arguments = QStringList("-f") << "project2.qbs";
+    params.command = "resolve";
     params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(m_qbsStderr.contains("project file"));
+    params.command = "build";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("main2.cpp"), m_qbsStdout.constData());
 }
 
 class TemporaryDefaultProfileRemover
@@ -4677,13 +4824,20 @@ void TestBlackbox::lrelease()
 
     QCOMPARE(runQbs(QString("clean")), 0);
     QbsRunParameters params(QStringList({ "Qt.core.lreleaseMultiplexMode:true"}));
+    params.command = "resolve";
+    QCOMPARE(runQbs(params), 0);
+    params.command = "build";
     QCOMPARE(runQbs(params), 0);
     QVERIFY(regularFileExists(relativeProductBuildDir("lrelease-test") + "/lrelease-test.qm"));
     QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/de.qm"));
     QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/hu.qm"));
 
     QCOMPARE(runQbs(QString("clean")), 0);
+    params.command = "resolve";
     params.arguments << "Qt.core.qmBaseName:somename";
+    QCOMPARE(runQbs(params), 0);
+    params.command = "build";
+    params.arguments.clear();
     QCOMPARE(runQbs(params), 0);
     QVERIFY(regularFileExists(relativeProductBuildDir("lrelease-test") + "/somename.qm"));
     QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/lrelease-test.qm"));
@@ -4727,7 +4881,7 @@ void TestBlackbox::missingProjectFile()
     QCOMPARE(runQbs(params), 0);
     WAIT_FOR_NEW_TIMESTAMP();
     touch("project-dir/file.cpp");
-    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("compiling file.cpp"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }

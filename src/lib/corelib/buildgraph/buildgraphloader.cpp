@@ -106,7 +106,8 @@ BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingPr
     if (existingProject) {
         QBS_CHECK(existingProject->buildData);
         existingProject->buildData->evaluationContext = evalContext;
-        checkBuildGraphCompatibility(existingProject);
+        if (!checkBuildGraphCompatibility(existingProject))
+            return m_result;
         m_result.loadedProject = existingProject;
     } else {
         loadBuildGraphFromDisk();
@@ -149,8 +150,10 @@ void BuildGraphLoader::loadBuildGraphFromDisk()
     try {
         pool.load(buildGraphFilePath);
     } catch (const ErrorInfo &loadError) {
-        if (m_parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
+        if (m_parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly
+                || m_parameters.projectFilePath().isEmpty()) {
             throw;
+        }
         m_logger.qbsInfo() << loadError.toString();
         return;
     }
@@ -164,7 +167,8 @@ void BuildGraphLoader::loadBuildGraphFromDisk()
     project->buildData->evaluationContext = m_evalContext;
     project->setBuildConfiguration(pool.headData().projectConfig);
     project->buildDirectory = buildDir;
-    checkBuildGraphCompatibility(project);
+    if (!checkBuildGraphCompatibility(project))
+        return;
     restoreBackPointers(project);
     project->location = CodeLocation(m_parameters.projectFilePath(), project->location.line(),
                                      project->location.column());
@@ -173,23 +177,24 @@ void BuildGraphLoader::loadBuildGraphFromDisk()
     doSanityChecks(project, m_logger);
 }
 
-void BuildGraphLoader::checkBuildGraphCompatibility(const TopLevelProjectConstPtr &project)
+bool BuildGraphLoader::checkBuildGraphCompatibility(const TopLevelProjectConstPtr &project)
 {
-    if (QFileInfo(project->location.filePath()) != QFileInfo(m_parameters.projectFilePath())) {
-        QString errorMessage = Tr::tr("Stored build graph at '%1' is for project file '%2', but "
-                                      "input file is '%3'. ")
-                .arg(QDir::toNativeSeparators(project->buildGraphFilePath()),
-                     QDir::toNativeSeparators(project->location.filePath()),
-                     QDir::toNativeSeparators(m_parameters.projectFilePath()));
-        if (!m_parameters.ignoreDifferentProjectFilePath()) {
-            errorMessage += Tr::tr("Aborting.");
-            throw ErrorInfo(errorMessage);
-        }
-
-        // Okay, let's assume it's the same project anyway (the source dir might have moved).
-        errorMessage += Tr::tr("Ignoring.");
-        m_logger.qbsWarning() << errorMessage;
+    if (m_parameters.projectFilePath().isEmpty())
+        m_parameters.setProjectFilePath(project->location.filePath());
+    if (QFileInfo(project->location.filePath()) == QFileInfo(m_parameters.projectFilePath()))
+        return true;
+    QString message = Tr::tr("Stored build graph at '%1' is for project file '%2', but "
+                             "input file is '%3'.")
+            .arg(QDir::toNativeSeparators(project->buildGraphFilePath()),
+                 QDir::toNativeSeparators(project->location.filePath()),
+                 QDir::toNativeSeparators(m_parameters.projectFilePath()));
+    if (m_parameters.overrideBuildGraphData()) {
+        m_logger.qbsInfo() << message;
+        return false;
     }
+    message.append(QLatin1Char('\n')).append(Tr::tr("Use the 'resolve' command to enforce "
+                                                    "using a different project file."));
+    throw ErrorInfo(message);
 }
 
 static bool checkProductForChangedDependency(QList<ResolvedProductPtr> &changedProducts,
@@ -230,7 +235,7 @@ void BuildGraphLoader::trackProjectChanges()
     QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
     QList<ResolvedProductPtr> changedProducts;
     bool reResolvingNecessary = false;
-    if (!isConfigCompatible())
+    if (!checkConfigCompatibility())
         reResolvingNecessary = true;
     if (hasProductFileChanged(allRestoredProducts, restoredProject->lastResolveTime,
                               buildSystemFiles, changedProducts)) {
@@ -258,6 +263,8 @@ void BuildGraphLoader::trackProjectChanges()
     }
 
     restoredProject->buildData->isDirty = true;
+    if (!m_parameters.overrideBuildGraphData())
+        m_parameters.setEnvironment(restoredProject->environment);
     Loader ldr(m_evalContext->engine(), m_logger);
     ldr.setSearchPaths(m_parameters.searchPaths());
     ldr.setProgressObserver(m_evalContext->observer());
@@ -388,6 +395,8 @@ bool BuildGraphLoader::probeExecutionForced(
 
 bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const
 {
+    if (!m_parameters.overrideBuildGraphData())
+        return false;
     QProcessEnvironment oldEnv = restoredProject->environment;
     QProcessEnvironment newEnv = m_parameters.adjustedEnvironment();
 
@@ -833,19 +842,52 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
     m_objectsToDelete << filedep;
 }
 
-bool BuildGraphLoader::isConfigCompatible()
+bool BuildGraphLoader::checkConfigCompatibility()
 {
     const TopLevelProjectConstPtr restoredProject = m_result.loadedProject;
-    if (m_parameters.finalBuildConfigurationTree() != restoredProject->buildConfiguration())
-        return false;
+    if (!m_parameters.overrideBuildGraphData()) {
+        if (!m_parameters.overriddenValues().isEmpty()
+                && m_parameters.overriddenValues() != restoredProject->overriddenValues) {
+            throw ErrorInfo(Tr::tr("Property values set on the command line differ from the "
+                                   "ones used for the previous build. Use the 'resolve' command if "
+                                   "you really want to rebuild with the new properties."));
+            }
+        m_parameters.setOverriddenValues(restoredProject->overriddenValues);
+        if (!m_parameters.topLevelProfile().isEmpty()
+                && m_parameters.topLevelProfile() != restoredProject->profile()) {
+            throw ErrorInfo(Tr::tr("The current profile is '%1', but profile '%2' was used "
+                                   "when last building for configuration '%3'. Use  the "
+                                   "'resolve' command if you really want to rebuild with a "
+                                   "different profile.")
+                            .arg(m_parameters.topLevelProfile(), restoredProject->profile(),
+                                 m_parameters.configurationName()));
+        }
+        m_parameters.setTopLevelProfile(restoredProject->profile());
+        m_parameters.expandBuildConfiguration();
+    }
+    if (m_parameters.finalBuildConfigurationTree() != restoredProject->buildConfiguration()) {
+        if (m_parameters.overrideBuildGraphData())
+            return false;
+        throw ErrorInfo(Tr::tr("The current set of properties for configuration '%1' differs "
+                               "from the one used in the last build. Use the 'resolve' "
+                               "command if you really want to rebuild with the new properties.")
+                        .arg(m_parameters.configurationName()));
+    }
     for (QVariantMap::ConstIterator it = restoredProject->profileConfigs.constBegin();
          it != restoredProject->profileConfigs.constEnd(); ++it) {
         const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
                     m_parameters.settingsDirectory(), it.key(), m_parameters.configurationName());
         const QVariantMap newConfig = SetupProjectParameters::finalBuildConfigurationTree(
                     buildConfig, m_parameters.overriddenValues(), m_parameters.buildRoot());
-        if (newConfig != it.value())
-            return false;
+        if (newConfig != it.value()) {
+            if (m_parameters.overrideBuildGraphData())
+                return false;
+            throw ErrorInfo(Tr::tr("The current set of properties for configuration '%1' differs "
+                                   "in profile '%2' from the one used for the last build. "
+                                   "Use the 'resolve' command if you really want to rebuild "
+                                   "with the new properties.")
+                            .arg(m_parameters.configurationName(), it.key()));
+        }
     }
     return true;
 }

@@ -141,12 +141,12 @@ void CommandLineFrontend::start()
         SetupProjectParameters params;
         params.setEnvironment(QProcessEnvironment::systemEnvironment());
         params.setProjectFilePath(m_parser.projectFilePath());
-        params.setIgnoreDifferentProjectFilePath(m_parser.force());
         params.setDryRun(m_parser.dryRun());
         params.setForceProbeExecution(m_parser.forceProbesExecution());
         params.setWaitLockBuildGraph(m_parser.waitLockBuildGraph());
         params.setLogElapsedTime(m_parser.logTime());
         params.setSettingsDirectory(m_settings->baseDirectory());
+        params.setOverrideBuildGraphData(m_parser.command() == ResolveCommandType);
         if (!m_parser.buildBeforeInstalling() || m_parser.command() == DumpNodesTreeCommandType)
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
@@ -160,14 +160,7 @@ void CommandLineFrontend::start()
                 userConfig.insert(installRootKey, installRoot);
             }
             const QString configurationName = userConfig.take(configurationKey).toString();
-            QString profileName = userConfig.take(profileKey).toString();
-            if (profileName.isEmpty())
-                profileName = m_settings->defaultProfile();
-            if (profileName.isEmpty()) {
-                qbsDebug() << Tr::tr("No profile specified and no default profile exists. "
-                                     "Using default property values.");
-                profileName = Profile::fallbackName();
-            }
+            const QString profileName = userConfig.take(profileKey).toString();
             const Preferences prefs(m_settings);
             params.setSearchPaths(prefs.searchPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
                     + QLatin1String("/" QBS_RELATIVE_SEARCH_PATH))));

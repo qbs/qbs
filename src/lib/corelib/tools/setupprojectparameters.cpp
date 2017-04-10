@@ -59,7 +59,7 @@ class SetupProjectParametersPrivate : public QSharedData
 {
 public:
     SetupProjectParametersPrivate()
-        : ignoreDifferentProjectFilePath(false)
+        : overrideBuildGraphData(false)
         , dryRun(false)
         , logElapsedTime(false)
         , forceProbeExecution(false)
@@ -83,7 +83,7 @@ public:
     mutable QVariantMap buildConfigurationTree;
     mutable QVariantMap overriddenValuesTree;
     mutable QVariantMap finalBuildConfigTree;
-    bool ignoreDifferentProjectFilePath;
+    bool overrideBuildGraphData;
     bool dryRun;
     bool logElapsedTime;
     bool forceProbeExecution;
@@ -434,26 +434,6 @@ QVariantMap SetupProjectParameters::finalBuildConfigurationTree() const
     return d->finalBuildConfigTree;
 }
 
-/*!
- * \variable SetupProjectParameters::ignoreDifferentProjectFilePath
- * \brief Returns true iff the saved build graph should be used even if its path to the
- *        project file is different from \c SetupProjectParameters::projectFilePath()
- */
-bool SetupProjectParameters::ignoreDifferentProjectFilePath() const
-{
-    return d->ignoreDifferentProjectFilePath;
-}
-
-/*!
- * \brief Controls whether the path to the main project file may be different from the one
- *        stored in a possible build graph file.
- * The default is false.
- */
-void SetupProjectParameters::setIgnoreDifferentProjectFilePath(bool doIgnore)
-{
-    d->ignoreDifferentProjectFilePath = doIgnore;
-}
-
  /*!
   * \brief if true, qbs will not store the build graph of the resolved project.
   */
@@ -584,6 +564,28 @@ SetupProjectParameters::RestoreBehavior SetupProjectParameters::restoreBehavior(
 void SetupProjectParameters::setRestoreBehavior(SetupProjectParameters::RestoreBehavior behavior)
 {
     d->restoreBehavior = behavior;
+}
+
+/*!
+ * Returns true if and only if environment, project file path and overridden property values
+ * should be taken from this object even if a build graph already exists.
+ * If this function returns \c false and a build graph exists, then it is an error to provide a
+ * project file path or overridden property values that differ from the respective values
+ * in the build graph.
+ */
+bool SetupProjectParameters::overrideBuildGraphData() const
+{
+    return d->overrideBuildGraphData;
+}
+
+/*!
+ * If \c doOverride is true, then environment, project file path and overridden property values
+ * are taken from this object rather than from the build graph.
+ * The default is \c false.
+ */
+void SetupProjectParameters::setOverrideBuildGraphData(bool doOverride)
+{
+    d->overrideBuildGraphData = doOverride;
 }
 
 /*!
