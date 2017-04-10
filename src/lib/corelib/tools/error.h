@@ -91,6 +91,7 @@ public:
     ~ErrorInfo();
 
     void appendBacktrace(const QString &description, const CodeLocation &location = CodeLocation());
+    void append(const ErrorItem &item);
     void append(const QString &description, const CodeLocation &location = CodeLocation());
     void prepend(const QString &description, const CodeLocation &location = CodeLocation());
     QList<ErrorItem> items() const;
@@ -107,6 +108,7 @@ private:
     QSharedDataPointer<ErrorInfoPrivate> d;
 };
 
+void appendError(ErrorInfo &dst, const ErrorInfo &src);
 inline uint qHash(const ErrorInfo &e) { return qHash(e.toString()); }
 inline bool operator==(const ErrorInfo &e1, const ErrorInfo &e2) {
     return e1.toString() == e2.toString();

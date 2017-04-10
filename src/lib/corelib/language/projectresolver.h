@@ -141,7 +141,7 @@ private:
     mutable QHash<std::pair<QStringRef, QStringList>, QString> m_scriptFunctions;
     mutable QHash<QStringRef, QString> m_sourceCode;
     const SetupProjectParameters &m_setupParams;
-    const ModuleLoaderResult &m_loadResult;
+    ModuleLoaderResult m_loadResult;
     Set<CodeLocation> m_groupLocationWarnings;
     qint64 m_elapsedTimeModPropEval;
     qint64 m_elapsedTimeAllPropEval;

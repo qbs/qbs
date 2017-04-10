@@ -57,11 +57,11 @@ CppModule {
     }
 
     targetLinkerFlags: Gcc.targetFlags("linker", false,
-                                       target, targetArch, machineType)
+                                       target, targetArch, machineType, qbs.targetOS)
     targetAssemblerFlags: Gcc.targetFlags("assembler", assemblerHasTargetOption,
-                                          target, targetArch, machineType)
+                                          target, targetArch, machineType, qbs.targetOS)
     targetDriverFlags: Gcc.targetFlags("compiler", compilerHasTargetOption,
-                                       target, targetArch, machineType)
+                                       target, targetArch, machineType, qbs.targetOS)
 
     Probe {
         id: nmProbe
@@ -179,7 +179,7 @@ CppModule {
         return createSymlinks && internalVersion && ["macho", "elf"].contains(cpp.imageFormat);
     }
 
-    readonly property string internalVersion: {
+    property string internalVersion: {
         if (product.version === undefined)
             return undefined;
 
@@ -209,7 +209,12 @@ CppModule {
         return v.split('.')[0];
     }
 
-    property var buildEnv: ({})
+    property var buildEnv: {
+        var env = {};
+        if (qbs.toolchain.contains("mingw"))
+            env.PATH = [toolchainInstallPath]; // For libwinpthread etc
+        return env;
+    }
 
     exceptionHandlingModel: {
         if (qbs.toolchain.contains("mingw")) {
@@ -309,7 +314,7 @@ CppModule {
             "dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy", "debuginfo_dll"
         ]
         outputArtifacts: {
-            var lib = {
+            var artifacts = [{
                 filePath: product.destinationDirectory + "/"
                           + PathTools.dynamicLibraryFilePath(product),
                 fileTags: ["bundle.input", "dynamiclibrary"],
@@ -317,15 +322,16 @@ CppModule {
                     _bundleFilePath: product.destinationDirectory + "/"
                                      + PathTools.bundleExecutableFilePath(product)
                 }
-            };
-            var libCopy = {
+            }];
+            if (!product.qbs.toolchain.contains("mingw")) {
                 // List of libfoo's public symbols for smart re-linking.
-                filePath: product.destinationDirectory + "/.sosymbols/"
-                          + PathTools.dynamicLibraryFilePath(product),
-                fileTags: ["dynamiclibrary_copy"],
-                alwaysUpdated: false,
-            };
-            var artifacts = [lib, libCopy];
+                artifacts.push({
+                    filePath: product.destinationDirectory + "/.sosymbols/"
+                              + PathTools.dynamicLibraryFilePath(product),
+                    fileTags: ["dynamiclibrary_copy"],
+                    alwaysUpdated: false,
+                });
+            }
 
             if (product.cpp.shouldCreateSymlinks && (!product.bundle || !product.bundle.isBundle)) {
                 var maxVersionParts = Gcc.isNumericProductVersion(product.version) ? 3 : 1;

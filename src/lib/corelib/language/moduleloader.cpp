@@ -639,7 +639,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     Settings settings(m_parameters.settingsDirectory());
     for (int i = 0; i < profileNames.count(); ++i) {
         Profile profile(profileNames.at(i), &settings);
-        if (!profile.exists()) {
+        if (profile.name() != Profile::fallbackName() && !profile.exists()) {
             throw ErrorInfo(Tr::tr("The profile '%1' does not exist.").arg(profile.name()),
                             productItem->location()); // TODO: profilesValue->location() is invalid, why?
         }

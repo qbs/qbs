@@ -208,6 +208,11 @@ void ErrorInfo::appendBacktrace(const QString &description, const CodeLocation &
     d->items.append(ErrorItem(description, location, true));
 }
 
+void ErrorInfo::append(const ErrorItem &item)
+{
+    d->items.append(item);
+}
+
 void ErrorInfo::append(const QString &description, const CodeLocation &location)
 {
     d->items.append(ErrorItem(description, location));
@@ -275,6 +280,13 @@ void ErrorInfo::store(Internal::PersistentPool &pool) const
 {
     pool.store(d->items);
     pool.store(d->internalError);
+}
+
+void appendError(ErrorInfo &dst, const ErrorInfo &src)
+{
+    const QList<ErrorItem> &sourceItems = src.items();
+    for (const ErrorItem &item : sourceItems)
+        dst.append(item);
 }
 
 } // namespace qbs

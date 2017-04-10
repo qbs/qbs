@@ -32,8 +32,22 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qtimer.h>
 
+#ifdef Q_OS_WIN
+#include <QtCore/qt_windows.h>
+
+BOOL WINAPI consoleCtrlHandler(DWORD)
+{
+    // Ignore Ctrl-C / Ctrl-Break. Qbs will tell us to exit gracefully.
+    return TRUE;
+}
+#endif
+
 int main(int argc, char *argv[])
 {
+#ifdef Q_OS_WIN
+    SetConsoleCtrlHandler(consoleCtrlHandler, TRUE);
+#endif
+
     QCoreApplication app(argc, argv);
     if (app.arguments().count() != 2) {
         qbs::Internal::logError("Need exactly one argument (path to socket)");

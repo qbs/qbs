@@ -4016,21 +4016,6 @@ private:
     const QString m_defaultProfile;
 };
 
-void TestBlackbox::missingProfile()
-{
-    Settings settings((QString()));
-    TemporaryDefaultProfileRemover dpr(&settings);
-    settings.sync();
-    QVERIFY(settings.defaultProfile().isEmpty());
-    QDir::setCurrent(testDataDir + "/project_filepath_check");
-    QbsRunParameters params;
-    params.arguments = QStringList("-f") << "project1.qbs";
-    params.expectFailure = true;
-    params.useProfile = false;
-    QVERIFY(runQbs(params) != 0);
-    QVERIFY(m_qbsStderr.contains("No profile"));
-}
-
 void TestBlackbox::assembly()
 {
     Settings settings((QString()));

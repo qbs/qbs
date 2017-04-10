@@ -122,7 +122,7 @@ void RuleGraph::dump_impl(QByteArray &indent, int rootIndex) const
 
 int RuleGraph::insert(const RulePtr &rule)
 {
-    rule->ruleGraphId = m_rules.size();
+    rule->ruleGraphId = int(m_rules.size());
     m_rules.push_back(rule);
     return rule->ruleGraphId;
 }

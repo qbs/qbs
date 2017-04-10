@@ -851,11 +851,11 @@ function createSymbolCheckingCommand(product, outputs)
     cmd = new JavaScriptCommand();
     cmd.silent = true;
     cmd.sourceCode = function() {
+        if (!outputs.dynamiclibrary_copy)
+            return;
+
         var libFilePath = outputs.dynamiclibrary[0].filePath;
         var symbolFilePath = outputs.dynamiclibrary_copy[0].filePath;
-
-        if (product.qbs.toolchain.contains("mingw"))
-            return; // mingw's nm tool does not work correctly.
 
         var newNmResult = getSymbolInfo(product, libFilePath);
         if (!newNmResult.success)
@@ -1144,7 +1144,7 @@ function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSepar
     }
 }
 
-function targetFlags(tool, hasTargetOption, target, targetArch, machineType) {
+function targetFlags(tool, hasTargetOption, target, targetArch, machineType, targetOS) {
     var args = [];
     if (hasTargetOption) {
         if (target)
@@ -1156,8 +1156,8 @@ function targetFlags(tool, hasTargetOption, target, targetArch, machineType) {
                 "x86_64": ["-m64"],
             },
             "linker": {
-                "i386": ["-m", "elf_i386"],
-                "x86_64": ["-m", "elf_x86_64"],
+                "i386": ["-m", targetOS.contains("windows") ? "i386pe" : "elf_i386"],
+                "x86_64": ["-m", targetOS.contains("windows") ? "i386pep" : "elf_x86_64"],
             },
             "assembler": {
                 "i386": ["--32"],

@@ -58,7 +58,8 @@ LauncherSocket::LauncherSocket(QObject *parent) : QObject(parent)
 
 void LauncherSocket::sendData(const QByteArray &data)
 {
-    QBS_ASSERT(m_socket, return);
+    if (!isReady())
+        return;
     std::lock_guard<std::mutex> locker(m_requestsMutex);
     m_requests << data;
     if (m_requests.count() == 1)
@@ -85,12 +86,15 @@ void LauncherSocket::setSocket(QLocalSocket *socket)
             this, &LauncherSocket::handleSocketError);
     connect(m_socket, &QLocalSocket::readyRead,
             this, &LauncherSocket::handleSocketDataAvailable);
+    connect(m_socket, &QLocalSocket::disconnected,
+            this, &LauncherSocket::handleSocketDisconnected);
     emit ready();
 }
 
 void LauncherSocket::handleSocketError()
 {
-    handleError(Tr::tr("Socket error: %1").arg(m_socket->errorString()));
+    if (m_socket->error() != QLocalSocket::PeerClosedError)
+        handleError(Tr::tr("Socket error: %1").arg(m_socket->errorString()));
 }
 
 void LauncherSocket::handleSocketDataAvailable()
@@ -114,6 +118,11 @@ void LauncherSocket::handleSocketDataAvailable()
         return;
     }
     handleSocketDataAvailable();
+}
+
+void LauncherSocket::handleSocketDisconnected()
+{
+    handleError(Tr::tr("Launcher socket closed unexpectedly"));
 }
 
 void LauncherSocket::handleError(const QString &error)

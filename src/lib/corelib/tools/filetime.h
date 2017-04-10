@@ -47,7 +47,8 @@
 
 #if defined(Q_OS_UNIX)
 #include <time.h>
-#define HAS_CLOCK_GETTIME (_POSIX_C_SOURCE >= 199309L)
+#define HAS_CLOCK_GETTIME (_POSIX_C_SOURCE >= 199309L \
+        && (!defined(__APPLE__) || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200))
 #endif
 
 namespace qbs {

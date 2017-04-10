@@ -340,7 +340,7 @@ static QVariantMap expandedBuildConfigurationInternal(const QString &settingsBas
     QVariantMap buildConfig;
 
     // (1) Values from profile, if given.
-    if (!profileName.isEmpty()) {
+    if (!profileName.isEmpty() && profileName != Profile::fallbackName()) {
         ErrorInfo err;
         const Profile profile(profileName, &settings);
         const QStringList profileKeys = profile.allKeys(Profile::KeySelectionRecursive, &err);

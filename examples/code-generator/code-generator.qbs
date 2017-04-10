@@ -49,19 +49,13 @@ Project {
         name: "hello-world"
         Depends { name: "hwgen" }
         Rule {
-            inputs: ["qbs"]     // needed to trigger this rule
+            inputsFromDependencies: ["application"]
             Artifact {
                 filePath: "main.cpp"
                 fileTags: ["cpp"]
             }
             prepare: {
-                var hwgen;
-                for (var i in product.dependencies) {
-                    var dep = product.dependencies[i];
-                    if (dep.name != "hwgen")
-                        continue;
-                    hwgen = dep.buildDirectory + "/" + dep.targetName;
-                }
+                var hwgen = inputs["application"][0].filePath;
                 var cmd = new Command(hwgen, [output.filePath]);
                 cmd.description = "generating C++ source";
                 return cmd;

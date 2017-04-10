@@ -1353,7 +1353,7 @@ void TestApi::linkDynamicAndStaticLibs()
     qbs::Settings settings((QString()));
     const qbs::Profile buildProfile(profileName(), &settings);
     if (buildProfile.value("qbs.toolchain").toStringList().contains("gcc")) {
-        QRegularExpression appLinkCmdRex(" -o [^ ]*/HelloWorld ");
+        QRegularExpression appLinkCmdRex(" -o [^ ]*/HelloWorld" QBS_HOST_EXE_SUFFIX " ");
         QString appLinkCmd;
         for (const QString &line : qAsConst(bdr.descriptionLines)) {
             if (line.contains(appLinkCmdRex)) {
@@ -1381,7 +1381,7 @@ void TestApi::linkStaticAndDynamicLibs()
     qbs::Settings settings((QString()));
     const qbs::Profile buildProfile(profileName(), &settings);
     if (buildProfile.value("qbs.toolchain").toStringList().contains("gcc")) {
-        QRegularExpression appLinkCmdRex(" -o [^ ]*/HelloWorld ");
+        QRegularExpression appLinkCmdRex(" -o [^ ]*/HelloWorld" QBS_HOST_EXE_SUFFIX " ");
         QString appLinkCmd;
         for (const QString &line : qAsConst(bdr.descriptionLines)) {
             if (line.contains(appLinkCmdRex)) {
@@ -1390,7 +1390,8 @@ void TestApi::linkStaticAndDynamicLibs()
             }
         }
         QVERIFY(!appLinkCmd.isEmpty());
-        if (!buildProfile.value("qbs.targetOS").toStringList().contains("darwin")) {
+        const auto targetOs = buildProfile.value("qbs.targetOS").toStringList();
+        if (!targetOs.contains("darwin") && !targetOs.contains("windows")) {
             QRegularExpression rpathLinkRex(QString("-rpath-link=\\S*/")
                                             + relativeProductBuildDir("dynamic2"));
             QVERIFY(appLinkCmd.contains(rpathLinkRex));
@@ -1840,10 +1841,13 @@ void TestApi::propertiesBlocks()
 
 void TestApi::rc()
 {
-    BuildDescriptionReceiver receiver;
-    const qbs::ErrorInfo errorInfo = doBuildProject("rc", &receiver);
+    BuildDescriptionReceiver bdr;
+    ProcessResultReceiver prr;
+    const qbs::ErrorInfo errorInfo = doBuildProject("rc", &bdr, &prr);
+    if (errorInfo.hasError())
+        qDebug() << prr.output;
     VERIFY_NO_ERROR(errorInfo);
-    const bool rcFileWasCompiled = receiver.descriptions.contains("compiling test.rc");
+    const bool rcFileWasCompiled = bdr.descriptions.contains("compiling test.rc");
     QCOMPARE(rcFileWasCompiled, qbs::Internal::HostOsInfo::isWindowsHost());
 }
 

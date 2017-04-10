@@ -40,6 +40,7 @@
 #include "settings.h"
 
 #include "error.h"
+#include "profile.h"
 #include "settingscreator.h"
 
 #include <logging/translator.h>
@@ -97,6 +98,10 @@ QStringList Settings::allKeysWithPrefix(const QString &group) const
 
 void Settings::setValue(const QString &key, const QVariant &value)
 {
+    if (key.startsWith(QLatin1String("profiles.") + Profile::fallbackName()))  {
+        throw ErrorInfo(Tr::tr("Invalid use of special profile name '%1'.")
+                        .arg(Profile::fallbackName()));
+    }
     m_settings->setValue(internalRepresentation(key), value);
 }
 

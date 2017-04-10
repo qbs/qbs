@@ -289,7 +289,7 @@ struct PersistentPool::Helper<T, typename std::enable_if<IsSimpleContainer<T>::v
 {
     static void store(const T &container, PersistentPool *pool)
     {
-        pool->store<int>(container.size());
+        pool->store(int(container.size()));
         for (auto it = container.cbegin(); it != container.cend(); ++it)
             pool->store(*it);
     }

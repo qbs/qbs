@@ -104,8 +104,21 @@ void Command::parseOptions(QStringList &input)
 
         // Split up grouped short options.
         if (optionString.at(1) != QLatin1Char('-') && optionString.count() > 2) {
-            for (int i = optionString.count(); --i > 0;)
-                input.prepend(QLatin1Char('-') + optionString.at(i));
+            QString parameter;
+            for (int i = optionString.count(); --i > 0;) {
+                const QChar c = optionString.at(i);
+                if (c.isDigit()) {
+                    parameter.prepend(c);
+                } else {
+                    if (!parameter.isEmpty()) {
+                        input.prepend(parameter);
+                        parameter.clear();
+                    }
+                    input.prepend(QLatin1Char('-') + c);
+                }
+            }
+            if (!parameter.isEmpty())
+                throwError(Tr::tr("Unknown numeric option '%1'.").arg(parameter));
             continue;
         }
 

@@ -163,10 +163,9 @@ void CommandLineFrontend::start()
             if (profileName.isEmpty())
                 profileName = m_settings->defaultProfile();
             if (profileName.isEmpty()) {
-                ErrorInfo error(Tr::tr("No profile specified and no default profile exists."));
-                error.append(Tr::tr("To set a default profile, run "
-                                    "'qbs config defaultProfile <profile name>'."));
-                throw error;
+                qbsDebug() << Tr::tr("No profile specified and no default profile exists. "
+                                     "Using default property values.");
+                profileName = Profile::fallbackName();
             }
             const Preferences prefs(m_settings);
             params.setSearchPaths(prefs.searchPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
