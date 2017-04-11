@@ -4684,6 +4684,32 @@ void TestBlackbox::missingDependency()
     QVERIFY(m_qbsStderr.contains("false positive"));
 }
 
+void TestBlackbox::missingProjectFile()
+{
+    QDir::setCurrent(testDataDir + "/missing-project-file/empty-dir");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("No project file given and none found in current directory"),
+             m_qbsStderr.constData());
+    QDir::setCurrent(testDataDir + "/missing-project-file");
+    params.arguments << "-f" << "empty-dir";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("No project file found in directory"), m_qbsStderr.constData());
+    params.arguments = QStringList() << "-f" << "ambiguous-dir";
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("More than one project file found in directory"),
+             m_qbsStderr.constData());
+    params.expectFailure = false;
+    params.arguments = QStringList() << "-f" << "project-dir";
+    QCOMPARE(runQbs(params), 0);
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("project-dir/file.cpp");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling file.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::badInterpreter()
 {
     if (!HostOsInfo::isAnyUnixHost())

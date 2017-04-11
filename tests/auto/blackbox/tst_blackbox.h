@@ -122,6 +122,7 @@ private slots:
     void loadableModule();
     void lrelease();
     void missingDependency();
+    void missingProjectFile();
     void mixedBuildVariants();
     void mocFlags();
     void multipleChanges();
