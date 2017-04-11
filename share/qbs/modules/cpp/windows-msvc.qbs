@@ -81,6 +81,8 @@ CppModule {
         switch (qbs.architecture) {
         case "armv7":
             return "armasm.exe";
+        case "arm64":
+            return "armasm64.exe";
         case "ia64":
             return "ias.exe";
         case "x86":

@@ -297,6 +297,9 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     case "armv7":
         args.push("/MACHINE:ARM");
         break;
+    case "arm64":
+        args.push("/MACHINE:ARM64");
+        break;
     }
 
     var minimumWindowsVersion = product.cpp.minimumWindowsVersion;
