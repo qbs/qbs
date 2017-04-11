@@ -86,6 +86,7 @@ public:
     void setupProgress();
     void setupLogLevel();
     void setupBuildOptions();
+    void setupBuildConfigurations();
     bool checkForExistingBuildConfiguration(const QList<QVariantMap> &buildConfigs,
                                             const QString &configurationName);
     bool withNonDefaultProducts() const;
@@ -101,6 +102,7 @@ public:
     QString projectFilePath;
     QString projectBuildDirectory;
     BuildOptions buildOptions;
+    QList<QVariantMap> buildConfigurations;
     CommandLineOptionPool optionPool;
     CommandPool commandPool;
     bool showProgress;
@@ -290,61 +292,7 @@ static QString getBuildConfigurationName(const QVariantMap &buildConfig)
 
 QList<QVariantMap> CommandLineParser::buildConfigurations() const
 {
-    // first: configuration name, second: properties.
-    // Empty configuration name used for global properties.
-    typedef std::pair<QString, QVariantMap> PropertyListItem;
-    QList<PropertyListItem> propertiesPerConfiguration;
-
-    const QString configurationNameKey = QLatin1String("qbs.configurationName");
-    QString currentConfigurationName;
-    QVariantMap currentProperties;
-    foreach (const QString &arg, d->command->additionalArguments()) {
-        const int sepPos = arg.indexOf(QLatin1Char(':'));
-        if (sepPos == -1) { // New build configuration found.
-            propertiesPerConfiguration << std::make_pair(currentConfigurationName,
-                                                         currentProperties);
-            currentConfigurationName = arg;
-            currentProperties.clear();
-            continue;
-        }
-        const QString property = d->propertyName(arg.left(sepPos));
-        if (property.isEmpty()) {
-            qbsWarning() << Tr::tr("Ignoring empty property.");
-        } else if (property == configurationNameKey) {
-            qbsWarning() << Tr::tr("Refusing to overwrite special property '%1'.")
-                            .arg(configurationNameKey);
-        } else {
-            const QString rawString = arg.mid(sepPos + 1);
-            currentProperties.insert(property, representationToSettingsValue(rawString));
-        }
-    }
-    propertiesPerConfiguration << std::make_pair(currentConfigurationName, currentProperties);
-
-    if (propertiesPerConfiguration.count() == 1) // No configuration name specified on command line.
-        propertiesPerConfiguration << PropertyListItem(QStringLiteral("default"), QVariantMap());
-
-    const QVariantMap globalProperties = propertiesPerConfiguration.takeFirst().second;
-    QList<QVariantMap> buildConfigs;
-    foreach (const PropertyListItem &item, propertiesPerConfiguration) {
-        QVariantMap properties = item.second;
-        for (QVariantMap::ConstIterator globalPropIt = globalProperties.constBegin();
-                 globalPropIt != globalProperties.constEnd(); ++globalPropIt) {
-            if (!properties.contains(globalPropIt.key()))
-                properties.insert(globalPropIt.key(), globalPropIt.value());
-        }
-
-        const QString configurationName = item.first;
-        if (d->checkForExistingBuildConfiguration(buildConfigs, configurationName)) {
-            qbsWarning() << Tr::tr("Ignoring redundant request to build for configuration '%1'.")
-                            .arg(configurationName);
-            continue;
-        }
-
-        properties.insert(configurationNameKey, configurationName);
-        buildConfigs << properties;
-    }
-
-    return buildConfigs;
+    return d->buildConfigurations;
 }
 
 bool CommandLineParser::parseCommandLine(const QStringList &args)
@@ -397,6 +345,7 @@ void CommandLineParser::CommandLineParserPrivate::doParse()
 
     setupProjectFile();
     setupBuildDirectory();
+    setupBuildConfigurations();
     setupProgress();
     setupLogLevel();
     setupBuildOptions();
@@ -543,6 +492,65 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
     buildOptions.setEchoMode(echoMode());
     buildOptions.setInstall(!optionPool.noInstallOption()->enabled());
     buildOptions.setRemoveExistingInstallation(optionPool.removeFirstoption()->enabled());
+}
+
+void CommandLineParser::CommandLineParserPrivate::setupBuildConfigurations()
+{
+    // first: configuration name, second: properties.
+    // Empty configuration name used for global properties.
+    typedef std::pair<QString, QVariantMap> PropertyListItem;
+    QList<PropertyListItem> propertiesPerConfiguration;
+
+    const QString configurationNameKey = QLatin1String("qbs.configurationName");
+    QString currentConfigurationName;
+    QVariantMap currentProperties;
+    foreach (const QString &arg, command->additionalArguments()) {
+        const int sepPos = arg.indexOf(QLatin1Char(':'));
+        if (sepPos == -1) { // New build configuration found.
+            propertiesPerConfiguration << std::make_pair(currentConfigurationName,
+                                                         currentProperties);
+            currentConfigurationName = arg;
+            currentProperties.clear();
+            continue;
+        }
+        const QString property = propertyName(arg.left(sepPos));
+        if (property.isEmpty()) {
+            qbsWarning() << Tr::tr("Ignoring empty property.");
+        } else if (property == configurationNameKey) {
+            qbsWarning() << Tr::tr("Refusing to overwrite special property '%1'.")
+                            .arg(configurationNameKey);
+        } else {
+            const QString rawString = arg.mid(sepPos + 1);
+            currentProperties.insert(property, representationToSettingsValue(rawString));
+        }
+    }
+    propertiesPerConfiguration << std::make_pair(currentConfigurationName, currentProperties);
+
+    if (propertiesPerConfiguration.count() == 1) // No configuration name specified on command line.
+        propertiesPerConfiguration << PropertyListItem(QStringLiteral("default"), QVariantMap());
+
+    const QVariantMap globalProperties = propertiesPerConfiguration.takeFirst().second;
+    QList<QVariantMap> buildConfigs;
+    foreach (const PropertyListItem &item, propertiesPerConfiguration) {
+        QVariantMap properties = item.second;
+        for (QVariantMap::ConstIterator globalPropIt = globalProperties.constBegin();
+                 globalPropIt != globalProperties.constEnd(); ++globalPropIt) {
+            if (!properties.contains(globalPropIt.key()))
+                properties.insert(globalPropIt.key(), globalPropIt.value());
+        }
+
+        const QString configurationName = item.first;
+        if (checkForExistingBuildConfiguration(buildConfigs, configurationName)) {
+            qbsWarning() << Tr::tr("Ignoring redundant request to build for configuration '%1'.")
+                            .arg(configurationName);
+            continue;
+        }
+
+        properties.insert(configurationNameKey, configurationName);
+        buildConfigs << properties;
+    }
+
+    buildConfigurations = buildConfigs;
 }
 
 void CommandLineParser::CommandLineParserPrivate::setupProgress()
