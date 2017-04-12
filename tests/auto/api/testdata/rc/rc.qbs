@@ -3,7 +3,7 @@ import qbs 1.0
 Application {
     type: "application"
     consoleApplication: true
-    name: "rc"
+    name: "rctest"
 
     Depends { name: 'cpp' }
 
