@@ -3,7 +3,8 @@ import qbs.Utilities
 
 Project {
     Product {
-        name: {
+        name: "p1"
+        targetName: {
             if (qbs.hostOS.contains("macos")) {
                 return Utilities.getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductName");
             } else if (qbs.hostOS.contains("windows")) {
@@ -19,6 +20,7 @@ Project {
     }
 
     Product {
-        name: Utilities.getNativeSetting("/dev/null", undefined, "fallback");
+        name: "p2"
+        targetName: Utilities.getNativeSetting("/dev/null", undefined, "fallback");
     }
 }

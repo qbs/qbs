@@ -7,7 +7,7 @@ Project {
     property int qbsVersionPatch
 
     Product {
-        name: {
+        property bool dummy: {
             if (qbsVersion !== qbs.version ||
                 qbsVersionMajor !== qbs.versionMajor ||
                 qbsVersionMinor !== qbs.versionMinor ||
@@ -16,7 +16,7 @@ Project {
                     + [qbsVersion, qbsVersionMajor, qbsVersionMinor, qbsVersionPatch].join(", ")
                     + ", got "
                     + [qbs.version, qbs.versionMajor, qbs.versionMinor, qbs.versionPatch].join(", "));
-            return "foo";
+            return false;
         }
     }
 }

@@ -787,17 +787,19 @@ void TestLanguage::getNativeSetting()
         defaultParameters.setProjectFilePath(testProject("getNativeSetting.qbs"));
         project = loader->loadProject(defaultParameters);
 
-        QString expectedProductName;
+        QString expectedTargetName;
         if (HostOsInfo::isMacosHost())
-            expectedProductName = QLatin1String("Mac OS X");
+            expectedTargetName = QLatin1String("Mac OS X");
         else if (HostOsInfo::isWindowsHost())
-            expectedProductName = QLatin1String("Windows");
+            expectedTargetName = QLatin1String("Windows");
         else
-            expectedProductName = QLatin1String("Unix");
+            expectedTargetName = QLatin1String("Unix");
 
         QVERIFY(project);
-        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        ResolvedProductPtr product = products.value(expectedProductName);
+        QHash<QString, ResolvedProductPtr> products;
+        for (const ResolvedProductPtr &product : project->allProducts())
+            products.insert(product->targetName, product);
+        ResolvedProductPtr product = products.value(expectedTargetName);
         QVERIFY(product);
         ResolvedProductPtr product2 = products.value(QLatin1String("fallback"));
         QVERIFY(product2);
