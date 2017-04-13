@@ -5,11 +5,11 @@ CppApplication {
     property bool escapeLinkerFlags
     Properties {
         condition: escapeLinkerFlags
-        cpp.linkerFlags: ["-Wl,-z,defs"]
+        cpp.linkerFlags: ["-Wl,-s"]
     }
     Properties {
         condition: !escapeLinkerFlags
-        cpp.linkerFlags: ["-z", "defs"]
+        cpp.linkerFlags: ["-s"]
     }
     files: ["main.cpp"]
 }
