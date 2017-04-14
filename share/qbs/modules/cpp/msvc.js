@@ -262,9 +262,10 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var linkDLL = (outputs.dynamiclibrary ? true : false)
     var primaryOutput = (linkDLL ? outputs.dynamiclibrary[0] : outputs.application[0])
     var debugInformation = product.cpp.debugInformation;
-    var additionalManifestInputs = inputs["native.pe.manifest"].map(function (a) {
-        return a.filePath;
-    });
+    var additionalManifestInputs = Array.prototype.map.call(inputs["native.pe.manifest"],
+        function (a) {
+            return a.filePath;
+        });
     var generateManifestFiles = !linkDLL && product.cpp.generateManifestFile;
     var canEmbedManifest = (product.cpp.compilerVersionMajor >= 17);    // VS 2012
 
