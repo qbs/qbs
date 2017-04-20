@@ -83,6 +83,7 @@ private slots:
     void escapedLinkerFlags();
     void exportRule();
     void exportToOutsideSearchPath();
+    void externalLibs();
     void fileDependencies();
     void frameworkStructure();
     void generatedArtifactAsInputToDynamicRule();

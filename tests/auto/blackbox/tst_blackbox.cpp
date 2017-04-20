@@ -2791,6 +2791,12 @@ void TestBlackbox::exportToOutsideSearchPath()
             "dependencies for product 'theProduct'"), m_qbsStderr.constData());
 }
 
+void TestBlackbox::externalLibs()
+{
+    QDir::setCurrent(testDataDir + "/external-libs");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::fileDependencies()
 {
     QDir::setCurrent(testDataDir + "/fileDependencies");

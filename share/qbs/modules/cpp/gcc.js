@@ -109,14 +109,8 @@ function collectLibraryDependencies(product) {
         var externalLibs = [].concat(
                     ModUtils.sanitizedModuleProperty(obj, "cpp", "staticLibraries"),
                     ModUtils.sanitizedModuleProperty(obj, "cpp", "dynamicLibraries"));
-        for (var i = 0, len = externalLibs.length; i < len; ++i) {
-            var filePath = externalLibs[i];
-            var existing = objectByFilePath[filePath];
-            if (existing)
-                existing.direct = true;
-            else
-                addObject({ direct: true, filePath: filePath }, Array.prototype.push);
-        }
+        for (var i = 0, len = externalLibs.length; i < len; ++i)
+            addObject({ direct: true, filePath: externalLibs[i] }, Array.prototype.push);
     }
 
     function traverse(dep, isBelowIndirectDynamicLib) {
