@@ -277,6 +277,8 @@ static void createModules(Profile &profile, Settings *settings,
                              &allFiles);
         } else if (module.qbsName == QLatin1String("qml")) {
             moduleTemplateFileName = QLatin1String("qml.qbs");
+            copyTemplateFile(QLatin1String("qml.js"), qbsQtModuleDir, profile, qtEnvironment,
+                             &allFiles);
         } else if (module.qbsName == QLatin1String("phonon")) {
             moduleTemplateFileName = QLatin1String("phonon.qbs");
         } else if (module.isPlugin) {
