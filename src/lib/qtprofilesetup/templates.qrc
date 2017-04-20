@@ -12,5 +12,6 @@
         <file>templates/dbus.js</file>
         <file>templates/dbus.qbs</file>
         <file>templates/scxml.qbs</file>
+        <file>templates/qml.qbs</file>
     </qresource>
 </RCC>

@@ -181,6 +181,8 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
         content->replace("@defaultQpaPlugin@",
                         utf8JSLiteral(defaultQpaPlugin(profile, module, qtEnvironment)));
     }
+    if (module.qbsName == QLatin1String("qml"))
+        content->replace("@qmlPath@", pathToJSLiteral(qtEnvironment.qmlPath).toUtf8());
     if (module.isStaticLibrary) {
         if (!propertiesString.isEmpty())
             propertiesString += "\n    ";
@@ -256,6 +258,8 @@ static void createModules(Profile &profile, Settings *settings,
             moduleTemplateFileName = QLatin1String("dbus.qbs");
             copyTemplateFile(QLatin1String("dbus.js"), qbsQtModuleDir, profile, qtEnvironment,
                              &allFiles);
+        } else if (module.qbsName == QLatin1String("qml")) {
+            moduleTemplateFileName = QLatin1String("qml.qbs");
         } else if (module.qbsName == QLatin1String("phonon")) {
             moduleTemplateFileName = QLatin1String("phonon.qbs");
         } else if (module.isPlugin) {
