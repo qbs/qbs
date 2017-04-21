@@ -3043,6 +3043,15 @@ void TestBlackbox::combinedSources()
     QVERIFY(m_qbsStdout.contains("compiling amalgamated_theapp.cpp"));
 }
 
+void TestBlackbox::commandFile()
+{
+    QDir::setCurrent(testDataDir + "/command-file");
+    QbsRunParameters params(QStringList() << "-p" << "theLib");
+    QCOMPARE(runQbs(params), 0);
+    params.arguments = QStringList() << "-p" << "theApp";
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::jsExtensionsFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions-file");

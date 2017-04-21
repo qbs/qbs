@@ -144,7 +144,18 @@ void ProcessCommandExecutor::doStart()
                 return;
             }
             for (int i = cmd->responseFileArgumentIndex(); i < cmd->arguments().count(); ++i) {
-                responseFile.write(qbs::Internal::shellQuote(cmd->arguments().at(i)).toLocal8Bit());
+                const QString arg = cmd->arguments().at(i);
+                if (arg.startsWith(cmd->responseFileUsagePrefix())) {
+                    QFile f(arg.mid(cmd->responseFileUsagePrefix().count()));
+                    if (!f.open(QIODevice::ReadOnly)) {
+                        emit finished(ErrorInfo(Tr::tr("Cannot open command file '%1'.")
+                                                .arg(QDir::toNativeSeparators(f.fileName()))));
+                        return;
+                    }
+                    responseFile.write(f.readAll());
+                } else {
+                    responseFile.write(qbs::Internal::shellQuote(arg).toLocal8Bit());
+                }
                 responseFile.write("\n");
             }
             responseFile.close();
