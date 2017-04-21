@@ -109,14 +109,8 @@ function collectLibraryDependencies(product) {
         var externalLibs = [].concat(
                     ModUtils.sanitizedModuleProperty(obj, "cpp", "staticLibraries"),
                     ModUtils.sanitizedModuleProperty(obj, "cpp", "dynamicLibraries"));
-        for (var i = 0, len = externalLibs.length; i < len; ++i) {
-            var filePath = externalLibs[i];
-            var existing = objectByFilePath[filePath];
-            if (existing)
-                existing.direct = true;
-            else
-                addObject({ direct: true, filePath: filePath }, Array.prototype.push);
-        }
+        for (var i = 0, len = externalLibs.length; i < len; ++i)
+            addObject({ direct: true, filePath: externalLibs[i] }, Array.prototype.push);
     }
 
     function traverse(dep, isBelowIndirectDynamicLib) {
@@ -173,14 +167,11 @@ function collectLibraryDependencies(product) {
     return result;
 }
 
-function escapeLinkerFlags(product, inputs, linkerFlags, allowEscape) {
-    if (allowEscape === undefined)
-        allowEscape = true;
-
+function escapeLinkerFlags(product, inputs, linkerFlags) {
     if (!linkerFlags || linkerFlags.length === 0)
         return [];
 
-    if (useCompilerDriverLinker(product, inputs) && allowEscape) {
+    if (useCompilerDriverLinker(product, inputs)) {
         var sep = ",";
         var useXlinker = linkerFlags.some(function (f) { return f.contains(sep); });
         if (useXlinker) {
@@ -188,9 +179,21 @@ function escapeLinkerFlags(product, inputs, linkerFlags, allowEscape) {
             // Use -Xlinker to handle these
             var xlinkerFlags = [];
             linkerFlags.map(function (linkerFlag) {
+                if (product.cpp.enableSuspiciousLinkerFlagWarnings
+                        && linkerFlag.startsWith("-Wl,")) {
+                    console.warn("Encountered escaped linker flag '" + linkerFlag + "'. This may " +
+                                 "cause the target to fail to link. Please do not escape these " +
+                                 "flags manually; qbs does that for you.");
+                }
                 xlinkerFlags.push("-Xlinker", linkerFlag);
             });
             return xlinkerFlags;
+        }
+
+        if (product.cpp.enableSuspiciousLinkerFlagWarnings && linkerFlags.contains("-Xlinker")) {
+            console.warn("Encountered -Xlinker linker flag escape sequence. This may cause the " +
+                         "target to fail to link. Please do not escape these flags manually; " +
+                         "qbs does that for you.");
         }
 
         // If no linker arguments contain the separator character we can just use -Wl,
@@ -335,19 +338,10 @@ function linkerFlags(project, product, inputs, output) {
     if (isDarwin && product.cpp.warningLevel === "none")
         args.push('-w');
 
-    var allowEscape = !ModUtils.checkCompatibilityMode(project, "1.6",
-        "Enabling linker flags compatibility mode. cpp.linkerFlags and " +
-        "cpp.platformLinkerFlags escaping is handled automatically beginning in Qbs 1.6. " +
-        "When upgrading to Qbs 1.6, you should only pass raw linker flags to these " +
-        "properties; do not escape them using -Wl or -Xlinker. This allows Qbs to " +
-        "automatically supply the correct linker flags regardless of whether the " +
-        "linker chosen is the compiler driver or system linker (see the documentation for " +
-        "cpp.linkerMode for more information).");
-
     args = args.concat(configFlags(product, useCompilerDriverLinker(product, inputs)));
     args = args.concat(escapeLinkerFlags(
-                           product, inputs, product.cpp.platformLinkerFlags, allowEscape));
-    args = args.concat(escapeLinkerFlags(product, inputs, product.cpp.linkerFlags, allowEscape));
+                           product, inputs, product.cpp.platformLinkerFlags));
+    args = args.concat(escapeLinkerFlags(product, inputs, product.cpp.linkerFlags));
 
     args.push("-o", output.filePath);
 

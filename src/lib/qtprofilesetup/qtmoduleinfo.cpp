@@ -289,7 +289,11 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
             } else if (part == QLatin1String("-framework")) {
                 if (++i < parts.count())
                     frameworks << parts.at(i);
-            } else if (part.startsWith(QLatin1Char('-'))) { // Some other option, e.g. "-pthread".
+            } else if (part == QLatin1String("-pthread")) {
+                libs << QLatin1String("pthread");
+            } else if (part.startsWith(QLatin1Char('-'))) { // Some other option
+                qDebug("QMAKE_PRL_LIBS contains non-library option '%s' in file '%s'",
+                       qPrintable(part), qPrintable(prlFilePath));
                 flags << part;
             } else if (part.startsWith(QLatin1String("/LIBPATH:"))) {
                 libraryPaths << part.mid(9).replace(QLatin1String("\\\\"), QLatin1String("/"));

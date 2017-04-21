@@ -43,6 +43,7 @@ Module {
     property int compilerVersionPatch
     property string warningLevel : 'all' // 'none', 'all'
     property bool treatWarningsAsErrors : false
+    property bool enableSuspiciousLinkerFlagWarnings: true
     property string architecture: qbs.architecture
     property string machineType // undocumented
     property string imageFormat // undocumented

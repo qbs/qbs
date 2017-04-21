@@ -834,7 +834,7 @@
         \li Source files with this tag serve as inputs to a rule combining them into
             a single C++ file, which will then be compiled.
     \row
-        \li \\c{"c_pch_src"}, \c{"cpp_pch_src"}, \c{"objc_pch_src"}, \c{"objcpp_pch_src"}
+        \li \c{"c_pch_src"}, \c{"cpp_pch_src"}, \c{"objc_pch_src"}, \c{"objcpp_pch_src"}
         \li -
         \li 1.5
         \li Files with this tag will be turned into precompiled headers for C, C++, Objective-C
