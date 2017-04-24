@@ -75,8 +75,14 @@ public:
     QStringList stringListValue(const Item *item, const QString &name, bool *propertyWasSet = 0);
 
     QScriptValue scriptValue(const Item *item);
-    QScriptValue fileScope(const FileContextConstPtr &file);
-    QScriptValue importScope(const FileContextConstPtr &file);
+
+    struct FileContextScopes
+    {
+        QScriptValue fileScope;
+        QScriptValue importScope;
+    };
+
+    FileContextScopes fileContextScopes(const FileContextConstPtr &file);
 
     void setCachingEnabled(bool enabled);
 
@@ -93,8 +99,7 @@ private:
     ScriptEngine *m_scriptEngine;
     EvaluatorScriptClass *m_scriptClass;
     mutable QHash<const Item *, QScriptValue> m_scriptValueMap;
-    mutable QHash<FileContextConstPtr, QScriptValue> m_fileScopeMap;
-    mutable QHash<FileContextConstPtr, QScriptValue> m_importScopeMap;
+    mutable QHash<FileContextConstPtr, FileContextScopes> m_fileContextScopesMap;
 };
 
 class EvalCacheEnabler

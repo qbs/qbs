@@ -205,31 +205,26 @@ bool Evaluator::evaluateProperty(QScriptValue *result, const Item *item, const Q
     return true;
 }
 
-QScriptValue Evaluator::fileScope(const FileContextConstPtr &file)
+Evaluator::FileContextScopes Evaluator::fileContextScopes(const FileContextConstPtr &file)
 {
-    QScriptValue &result = m_fileScopeMap[file];
-    if (result.isObject()) {
-        // already initialized
-        return result;
+    FileContextScopes &result = m_fileContextScopesMap[file];
+    if (!result.fileScope.isObject()) {
+        if (file->idScope())
+            result.fileScope = scriptValue(file->idScope());
+        else
+            result.fileScope = m_scriptEngine->newObject();
+        result.fileScope.setProperty(QLatin1String("filePath"), file->filePath());
+        result.fileScope.setProperty(QLatin1String("path"), file->dirPath());
     }
-
-    if (file->idScope())
-        result = scriptValue(file->idScope());
-    else
-        result = m_scriptEngine->newObject();
-    result.setProperty(QLatin1String("filePath"), file->filePath());
-    result.setProperty(QLatin1String("path"), file->dirPath());
-    return result;
-}
-
-QScriptValue Evaluator::importScope(const FileContextConstPtr &file)
-{
-    QScriptValue &result = m_importScopeMap[file];
-    if (result.isObject())
-        return result;
-    result = m_scriptEngine->newObject();
-    m_scriptEngine->import(file, result);
-    JsExtensions::setupExtensions(file->jsExtensions(), result);
+    if (!result.importScope.isObject()) {
+        try {
+            result.importScope = m_scriptEngine->newObject();
+            m_scriptEngine->import(file, result.importScope);
+            JsExtensions::setupExtensions(file->jsExtensions(), result.importScope);
+        } catch (const ErrorInfo &e) {
+            result.importScope = m_scriptEngine->currentContext()->throwError(e.toString());
+        }
+    }
     return result;
 }
 

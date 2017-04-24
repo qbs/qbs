@@ -2253,8 +2253,10 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     ScriptEngine * const engine = m_evaluator->engine();
     QScriptValue scope = engine->newObject();
     engine->currentContext()->pushScope(m_evaluator->scriptValue(parent));
-    engine->currentContext()->pushScope(m_evaluator->fileScope(configureScript->file()));
-    engine->currentContext()->pushScope(m_evaluator->importScope(configureScript->file()));
+    const Evaluator::FileContextScopes fileCtxScopes
+            = m_evaluator->fileContextScopes(configureScript->file());
+    engine->currentContext()->pushScope(fileCtxScopes.fileScope);
+    engine->currentContext()->pushScope(fileCtxScopes.importScope);
     engine->currentContext()->pushScope(scope);
     for (const ProbeProperty &b : qAsConst(probeBindings))
         scope.setProperty(b.first, b.second);

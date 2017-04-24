@@ -101,15 +101,6 @@ public:
     }
 
 private:
-    QScriptValue importScope(Evaluator *evaluator, const FileContextConstPtr &file)
-    {
-        try {
-            return evaluator->importScope(file);
-        } catch (const ErrorInfo &e) {
-            return evaluator->engine()->currentContext()->throwError(e.toString());
-        }
-    }
-
     void setupConvenienceProperty(const QString &conveniencePropertyName, QScriptValue *extraScope,
                                   const QScriptValue &scriptValue)
     {
@@ -162,6 +153,8 @@ private:
         for (int i = 0; i < value->alternatives().count(); ++i) {
             const JSSourceValue::Alternative *alternative = 0;
             alternative = &value->alternatives().at(i);
+            const Evaluator::FileContextScopes fileCtxScopes
+                    = data->evaluator->fileContextScopes(value->file());
             if (!conditionScopeItem) {
                 // We have to differentiate between module instances and normal items here.
                 //
@@ -194,14 +187,14 @@ private:
                         ? data->item->scope() : data->item;
                 conditionScope = data->evaluator->scriptValue(conditionScopeItem);
                 QBS_ASSERT(conditionScope.isObject(), return);
-                conditionFileScope = data->evaluator->fileScope(value->file());
+                conditionFileScope = fileCtxScopes.fileScope;
             }
             scriptContext->pushScope(conditionFileScope);
             pushItemScopes(conditionScopeItem);
             if (alternative->value->definingItem())
                 pushItemScopes(alternative->value->definingItem());
             scriptContext->pushScope(conditionScope);
-            const QScriptValue theImportScope = importScope(data->evaluator, value->file());
+            const QScriptValue &theImportScope = fileCtxScopes.importScope;
             if (theImportScope.isError()) {
                 scriptContext->popScope();
                 scriptContext->popScope();
@@ -275,7 +268,9 @@ private:
             setupConvenienceProperty(QLatin1String("original"), &extraScope, originalValue);
         }
 
-        pushScope(data->evaluator->fileScope(value->file()));
+        const Evaluator::FileContextScopes fileCtxScopes
+                = data->evaluator->fileContextScopes(value->file());
+        pushScope(fileCtxScopes.fileScope);
         pushItemScopes(data->item);
         if (itemOfProperty && itemOfProperty->type() != ItemType::ModuleInstance) {
             // Own properties of module instances must not have the instance itself in the scope.
@@ -284,7 +279,7 @@ private:
         if (value->definingItem())
             pushItemScopes(value->definingItem());
         pushScope(extraScope);
-        const QScriptValue theImportScope = importScope(data->evaluator, value->file());
+        const QScriptValue &theImportScope = fileCtxScopes.importScope;
         if (theImportScope.isError()) {
             *result = theImportScope;
         } else {
