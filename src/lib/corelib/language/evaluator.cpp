@@ -58,9 +58,9 @@
 namespace qbs {
 namespace Internal {
 
-Evaluator::Evaluator(ScriptEngine *scriptEngine, const Logger &logger)
+Evaluator::Evaluator(ScriptEngine *scriptEngine)
     : m_scriptEngine(scriptEngine)
-    , m_scriptClass(new EvaluatorScriptClass(scriptEngine, logger))
+    , m_scriptClass(new EvaluatorScriptClass(scriptEngine, scriptEngine->logger()))
 {
 }
 

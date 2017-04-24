@@ -127,7 +127,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     }
 
     const FileTime resolveTime = FileTime::currentTime();
-    Evaluator evaluator(m_engine, m_logger);
+    Evaluator evaluator(m_engine);
     ModuleLoader moduleLoader(&evaluator, m_logger);
     moduleLoader.setProgressObserver(m_progressObserver);
     moduleLoader.setSearchPaths(m_searchPaths);

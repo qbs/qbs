@@ -1111,7 +1111,7 @@ void TestLanguage::itemPrototype()
     item->setProperty("y", sourceValueCreator.create("x + 1"));
     item->setProperty("z", sourceValueCreator.create("2"));
 
-    Evaluator evaluator(m_engine, m_logger);
+    Evaluator evaluator(m_engine);
     QCOMPARE(evaluator.property(proto, "x").toVariant().toInt(), 1);
     QCOMPARE(evaluator.property(proto, "y").toVariant().toInt(), 1);
     QVERIFY(!evaluator.property(proto, "z").isValid());
@@ -1135,7 +1135,7 @@ void TestLanguage::itemScope()
     item->setScope(scope2);
     item->setProperty("z", sourceValueCreator.create("x + y"));
 
-    Evaluator evaluator(m_engine, m_logger);
+    Evaluator evaluator(m_engine);
     QCOMPARE(evaluator.property(scope1, "x").toVariant().toInt(), 1);
     QCOMPARE(evaluator.property(scope2, "y").toVariant().toInt(), 2);
     QVERIFY(!evaluator.property(scope2, "x").isValid());
