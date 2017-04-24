@@ -54,11 +54,6 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
-QT_BEGIN_NAMESPACE
-class QScriptContext;
-class QScriptEngine;
-QT_END_NAMESPACE
-
 namespace qbs {
 
 class CodeLocation;
@@ -70,7 +65,6 @@ class Item;
 class ItemReader;
 class ProgressObserver;
 class QualifiedId;
-class ScriptEngine;
 
 struct ModuleLoaderResult
 {
