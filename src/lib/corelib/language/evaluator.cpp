@@ -144,7 +144,7 @@ QScriptValue Evaluator::scriptValue(const Item *item)
     EvaluationData *edata = new EvaluationData;
     edata->evaluator = this;
     edata->item = item;
-    edata->item->setPropertyObserver(this);
+    edata->item->setObserver(this);
 
     scriptValue = m_scriptEngine->newObject(m_scriptClass);
     attachPointerTo(scriptValue, edata);

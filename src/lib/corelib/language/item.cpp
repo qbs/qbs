@@ -59,7 +59,7 @@ namespace Internal {
 
 Item::Item(ItemPool *pool, ItemType type)
     : m_pool(pool)
-    , m_propertyObserver(0)
+    , m_observer(0)
     , m_prototype(0)
     , m_scope(0)
     , m_outerItem(0)
@@ -187,17 +187,17 @@ void Item::addModule(const Item::Module &module)
     m_modules.insert(it, module);
 }
 
-void Item::setPropertyObserver(ItemObserver *observer) const
+void Item::setObserver(ItemObserver *observer) const
 {
-    QBS_ASSERT(!observer || !m_propertyObserver, return);   // warn if accidentally overwritten
-    m_propertyObserver = observer;
+    QBS_ASSERT(!observer || !m_observer, return);   // warn if accidentally overwritten
+    m_observer = observer;
 }
 
 void Item::setProperty(const QString &name, const ValuePtr &value)
 {
     m_properties.insert(name, value);
-    if (m_propertyObserver)
-        m_propertyObserver->onItemPropertyChanged(this);
+    if (m_observer)
+        m_observer->onItemPropertyChanged(this);
 }
 
 void Item::dump() const

@@ -117,7 +117,7 @@ public:
     ItemValuePtr itemProperty(const QString &name, const Item *itemTemplate = nullptr);
     JSSourceValuePtr sourceProperty(const QString &name) const;
     VariantValuePtr variantProperty(const QString &name) const;
-    void setPropertyObserver(ItemObserver *observer) const;
+    void setObserver(ItemObserver *observer) const;
     void setProperty(const QString &name, const ValuePtr &value);
     void setProperties(const PropertyMap &props) { m_properties = props; }
     void removeProperty(const QString &name);
@@ -139,7 +139,7 @@ private:
     void dump(int indentation) const;
 
     ItemPool *m_pool;
-    mutable ItemObserver *m_propertyObserver;
+    mutable ItemObserver *m_observer;
     QString m_id;
     CodeLocation m_location;
     Item *m_prototype;
