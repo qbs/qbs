@@ -17,6 +17,24 @@ Product {
     }
 
     Group {
+        name: "Python executables"
+        files: ["../src/3rdparty/python/bin/dmgbuild"]
+        fileTags: []
+        qbs.install: true
+        qbs.installDir: qbsbuildconfig.libexecInstallDir
+    }
+
+    Group {
+        name: "Python packages"
+        prefix: "../src/3rdparty/python/**/"
+        files: ["*.py"]
+        fileTags: ["qbs resources"]
+        qbs.install: true
+        qbs.installDir: qbsbuildconfig.resourcesInstallDir + "/share/qbs/python"
+        qbs.installSourceBase: "../src/3rdparty/python/lib/python2.7/site-packages"
+    }
+
+    Group {
         name: "Modules and imports"
         files: ["qbs/**/*"]
         fileTags: ["qbs resources"]
@@ -37,9 +55,11 @@ Product {
     Rule {
         inputs: ["qbs resources"]
         Artifact {
-            filePath: FileInfo.joinPaths(project.buildDirectory,
-                     product.moduleProperty("qbsbuildconfig", "resourcesInstallDir"),
-                    "share", FileInfo.relativePath(product.sourceDirectory, input.filePath))
+            filePath: FileInfo.joinPaths(
+                          project.buildDirectory,
+                          input.moduleProperty("qbs", "installDir"),
+                          FileInfo.relativePath(input.moduleProperty("qbs", "installSourceBase"),
+                                                input.filePath))
             fileTags: ["copied qbs resources"]
         }
         prepare: {

@@ -38,4 +38,11 @@ else: \
 share.path = $${installPrefix}/share
 examples.files = examples
 examples.path = $${share.path}/qbs
-INSTALLS += share examples
+python_bin.files = $$files(src/3rdparty/python/bin/*)
+!isEmpty(QBS_LIBEXEC_INSTALL_DIR): \
+    python_bin.path = $${QBS_LIBEXEC_INSTALL_DIR}
+else: \
+    python_bin.path = $${QBS_INSTALL_PREFIX}/libexec/qbs
+python.files = $$files(src/3rdparty/python/lib/python2.7/site-packages/*)
+python.path = $${share.path}/qbs/python
+INSTALLS += share examples python_bin python
