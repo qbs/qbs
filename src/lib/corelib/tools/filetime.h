@@ -47,9 +47,15 @@
 
 #if defined(Q_OS_UNIX)
 #include <time.h>
-#define HAS_CLOCK_GETTIME (_POSIX_C_SOURCE >= 199309L \
-        && (!defined(__APPLE__) || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200))
-#endif
+#define BUILD_HOST_HAS_CLOCK_GETTIME (_POSIX_C_SOURCE >= 199309L)
+#ifdef __APPLE__
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+#define HAS_CLOCK_GETTIME BUILD_HOST_HAS_CLOCK_GETTIME
+#endif // __MAC_OS_X_VERSION_MIN_REQUIRED
+#else // __APPLE__
+#define HAS_CLOCK_GETTIME BUILD_HOST_HAS_CLOCK_GETTIME
+#endif // __APPLE__
+#endif // Q_OS_UNIX
 
 namespace qbs {
 namespace Internal {
