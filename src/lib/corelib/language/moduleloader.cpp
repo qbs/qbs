@@ -1603,16 +1603,10 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
             if (m_logger.traceEnabled())
                 m_logger.qbsTrace() << "product dependency loaded: " << moduleName.toString();
             const QString profilesKey = QLatin1String("profiles");
-            const QStringList profiles = m_evaluator->stringListValue(dependsItem, profilesKey);
-            if (profiles.isEmpty()) {
-                ModuleLoaderResult::ProductInfo::Dependency dependency;
-                dependency.name = moduleName.toString();
-                dependency.profile = QLatin1String("*");
-                dependency.isRequired = isRequired;
-                productResults->append(dependency);
-                continue;
-            }
-            for (const QString &profile : profiles) {
+            QStringList profiles = m_evaluator->stringListValue(dependsItem, profilesKey);
+            if (profiles.isEmpty())
+                profiles.append(QLatin1String("*"));
+            for (const QString &profile : qAsConst(profiles)) {
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
                 dependency.name = moduleName.toString();
                 dependency.profile = profile;
