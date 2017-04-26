@@ -506,8 +506,8 @@ function guessArchitecture(m) {
     var architecture;
     if (m) {
         // based on the search algorithm from qprocessordetection.h in qtbase
-        if (hasAnyOf(m, ["__arm__", "__TARGET_ARCH_ARM", "_M_ARM", "__aarch64__"])) {
-            if (hasAnyOf(m, ["__aarch64__"])) {
+        if (hasAnyOf(m, ["__arm__", "__TARGET_ARCH_ARM", "_M_ARM", "__aarch64__", "__ARM64__"])) {
+            if (hasAnyOf(m, ["__aarch64__", "__ARM64__"])) {
                 architecture = "arm64";
             } else {
                 architecture = "arm";
