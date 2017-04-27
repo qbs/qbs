@@ -1,7 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Copyright (C) 2015 Petroules Corporation.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of the examples of Qbs.
@@ -37,17 +36,48 @@
 ****************************************************************************/
 
 import qbs
-import qbs.Utilities
 
-Project {
-    references: [
-        "app.qbs"
-    ]
+CppApplication {
+    Depends { condition: product.condition; name: "ib" }
+    condition: qbs.targetOS.contains("macos")
+    name: "Cocoa Application"
 
-    SubProject {
-        filePath: "dmg.qbs"
-        Properties {
-            condition: Utilities.versionCompare(qbs.version, "1.9") >= 0
-        }
+    cpp.useObjcPrecompiledHeader: true
+
+    cpp.frameworks: ["Cocoa"]
+
+    Group {
+        prefix: "CocoaApplication/"
+        files: [
+            "AppDelegate.h",
+            "AppDelegate.m",
+            "CocoaApplication-Info.plist",
+            "CocoaApplication.xcassets",
+            "main.m"
+        ]
     }
+
+    Group {
+        name: "Supporting Files"
+        prefix: "CocoaApplication/en.lproj/"
+        files: [
+            "Credits.rtf",
+            "InfoPlist.strings",
+            "MainMenu.xib"
+        ]
+    }
+
+    Group {
+        files: ["CocoaApplication/CocoaApplication-Prefix.pch"]
+        fileTags: ["objc_pch_src"]
+    }
+
+    Group {
+        fileTagsFilter: ["bundle.content"]
+        qbs.install: true
+        qbs.installDir: "Applications"
+        qbs.installSourceBase: product.destinationDirectory
+    }
+
+    ib.appIconName: "AppIcon"
 }

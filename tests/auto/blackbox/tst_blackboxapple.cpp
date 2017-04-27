@@ -595,6 +595,12 @@ void TestBlackboxApple::deploymentTarget_data()
     }
 }
 
+void TestBlackboxApple::dmg()
+{
+    QDir::setCurrent(testDataDir + "/apple-dmg");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackboxApple::embedInfoPlist()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/embedInfoPlist"));

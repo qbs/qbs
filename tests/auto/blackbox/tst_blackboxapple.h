@@ -57,6 +57,7 @@ private slots:
     void bundleStructure_data();
     void deploymentTarget();
     void deploymentTarget_data();
+    void dmg();
     void embedInfoPlist();
     void frameworkStructure();
     void iconset();

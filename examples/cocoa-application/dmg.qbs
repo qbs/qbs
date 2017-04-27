@@ -1,7 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Copyright (C) 2015 Petroules Corporation.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of the examples of Qbs.
@@ -37,17 +36,37 @@
 ****************************************************************************/
 
 import qbs
-import qbs.Utilities
 
-Project {
-    references: [
-        "app.qbs"
+AppleApplicationDiskImage {
+    condition: qbs.targetOS.contains("macos")
+    name: "Cocoa Application DMG"
+    targetName: "cocoa-application-" + version
+    version: "1.0"
+
+    Depends { name: "Cocoa Application" }
+    Depends { name: "ib" }
+
+    files: [
+        "CocoaApplication/dmg.iconset",
+        "CocoaApplication/en_US.lproj/LICENSE",
     ]
 
-    SubProject {
-        filePath: "dmg.qbs"
-        Properties {
-            condition: Utilities.versionCompare(qbs.version, "1.9") >= 0
-        }
+    // set to false to use a solid-color background (see dmg.backgroundColor below)
+    property bool useImageBackground: true
+    Group {
+        condition: useImageBackground
+        files: ["CocoaApplication/background*"]
     }
+
+    dmg.backgroundColor: "#41cd52"
+    dmg.badgeVolumeIcon: true
+    dmg.iconPositions: [
+        {"x": 200, "y": 200, "path": "Cocoa Application.app"},
+        {"x": 400, "y": 200, "path": "Applications"}
+    ]
+    dmg.windowX: 420
+    dmg.windowY: 250
+    dmg.windowWidth: 600
+    dmg.windowHeight: 422 // this *includes* the macOS title bar height of 22
+    dmg.iconSize: 64
 }

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,18 +26,18 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \page application-item.html
-    \previouspage appleapplicationdiskimage-item.html
-    \nextpage applicationextension-item.html
+    \page applediskimage-item.html
+    \previouspage androidapk-item.html
+    \nextpage appleapplicationdiskimage-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
 
-    \title Application Item
-    \brief Represents a product of application type.
+    \title AppleDiskImage Item
+    \brief Represents a product that is an Apple disk image.
 
-    An \c Application item is a \c Product that has its type set to "application"
-    It exists for the convenience of project file authors.
+    An \c AppleDiskImage item is a convenience item that has a dependency on the
+    \l{Module dmg}{DMG module} and whose type is \c{["dmg.dmg"]}.
 
-    \note On Android, an \c Application item instead builds a shared library for
-    products whose \c consoleApplication property is set to \c false.
+    For single-application drag 'n' drop disk image installers, you'll probably want to use the
+    \l{AppleApplicationDiskImage Item}{AppleApplicationDiskImage} item instead.
 */

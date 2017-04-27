@@ -1,0 +1,106 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-convenience-items.html
+    \page appleapplicationdiskimage-item.html
+    \previouspage applediskimage-item.html
+    \nextpage application-item.html
+    \ingroup list-of-convenience-items
+    \ingroup list-of-items
+
+    \title AppleApplicationDiskImage Item
+    \brief Represents a product that is an Apple application drag 'n' drop disk image installer.
+
+    An \c AppleApplicationDiskImage item is a convenience item that has a dependency on the
+    \l{Module dmg}{DMG module} and whose type is \c{["dmg.dmg"]}, and also has rules and properties
+    specific to building drag 'n' drop disk image installers with an application bundle and symbolic
+    link to the /Applications directory.
+
+    Any artifacts of product dependencies which are tagged \c{"installable"} will be copied into the
+    disk image, provided their file paths are relative to the path specified by the \c{sourceBase}
+    property (i.e. are located in that directory). Any artifacts tagged \c{"installable"} and which
+    are not relative to \c{sourceBase} will be ignored.
+
+    Here is what the project file could look like for a simple DMG installer:
+    \code
+        import qbs
+
+        AppleApplicationDiskImage {
+            Depends { name: "myapp" }
+            name: "My App"
+            dmg.volumeName: name
+            dmg.iconSize: 128
+            dmg.windowWidth: 640
+            dmg.windowHeight: 280
+            dmg.iconPositions: [
+                {"path": "Applications", "x": 128, "y": 128},
+                {"path": "My App.app", "x": 256, "y": 128}
+            ]
+            files: ["background.tiff", "volume-icon.icns"]
+            Group {
+                files: ["*.lproj/**"] // licenses
+                fileTags: ["dmg.license.input"]
+            }
+        }
+    \endcode
+
+    For plain disk images whose contents are not a single application bundle, consider the base
+    \l{AppleDiskImage Item}{AppleDiskImage} item instead.
+
+    \section1 AppleApplicationDiskImage Properties
+    The following properties are available in addition to the ones inherited from \c AppleDiskImage.
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Since
+        \li Default
+        \li Description
+    \row
+        \li sourceBase
+        \li \c{string}
+        \li 1.9
+        \li /Applications
+        \li The base directory from which artifacts installed into the disk image will be copied.
+            This directory is always considered to be relative to \c{qbs.installRoot}.
+            For example, if the application Example.app exists at
+            \c{qbs.installRoot}/Applications/Example.app, and \c{sourceBase} is
+            \c{/Applications}, the application will be located at /Example.app
+            relative to the disk image root, and therefore its full path when the disk image is
+            mounted would be something like /Volumes/Example-1.0/Example.app.
+    \row
+        \li symlinks
+        \li \c{stringList}
+        \li 1.9
+        \li \c{["/Applications:Applications"]}
+        \li List of symlinks to create in the disk image. This is specified as a list of strings,
+            each string containing two file paths separated by a colon. The first path is the
+            symlink target, and the second path is the name of the symlink relative to the root of
+            the disk image.
+    \endtable
+*/
