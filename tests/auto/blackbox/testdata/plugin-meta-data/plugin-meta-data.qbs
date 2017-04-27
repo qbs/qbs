@@ -27,6 +27,7 @@ Project {
         cpp.defines: ["QT_PLUGIN"]
         cpp.cxxLanguageVersion: "c++11"
         cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
+        cpp.includePaths: ["."]
         Qt.core.pluginMetaData: ["theKey=theValue"]
 
         Group {
@@ -35,5 +36,10 @@ Project {
         }
 
         files: ["theplugin.cpp"]
+
+        Group {
+            files: ["metadata.json"]
+            fileTags: ["qt_plugin_metadata"]
+        }
     }
 }

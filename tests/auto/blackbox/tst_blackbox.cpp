@@ -2130,6 +2130,10 @@ void TestBlackbox::pluginMetaData()
     QVERIFY(app.waitForStarted());
     QVERIFY(app.waitForFinished());
     QVERIFY2(app.exitCode() == 0, app.readAllStandardError().constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("metadata.json");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("moc"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::probeChangeTracking()

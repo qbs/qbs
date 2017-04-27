@@ -32,7 +32,7 @@
 class ThePlugin : public QObject
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.qbs.ThePlugin")
+    Q_PLUGIN_METADATA(IID "org.qt-project.qbs.ThePlugin" FILE "metadata.json")
 };
 
 #include <theplugin.moc>

@@ -180,8 +180,7 @@ static void scanCppFile(void *opaq, CPlusPlus::Lexer &yylex, bool scanForFileTag
                         tc.equals(tk, qnamespaceLiteral))
                     {
                         opaque->hasQObjectMacro = true;
-                    } else if (opaque->fileType == Opaq::FT_HPP
-                            && tc.equals(tk, pluginMetaDataLiteral))
+                    } else if (tc.equals(tk, pluginMetaDataLiteral))
                     {
                         opaque->hasPluginMetaDataMacro = true;
                     }
@@ -277,6 +276,7 @@ static const char **additionalFileTags(void *opaq, int *size)
     static const char *thMocCpp[] = { "moc_cpp" };
     static const char *thMocHpp[] = { "moc_hpp" };
     static const char *thMocPluginHpp[] = { "moc_hpp_plugin" };
+    static const char *thMocPluginCpp[] = { "moc_cpp_plugin" };
 
     Opaq *opaque = static_cast<Opaq*>(opaq);
     if (opaque->hasQObjectMacro) {
@@ -284,7 +284,7 @@ static const char **additionalFileTags(void *opaq, int *size)
         switch (opaque->fileType) {
         case Opaq::FT_CPP:
         case Opaq::FT_OBJCPP:
-            return thMocCpp;
+            return opaque->hasPluginMetaDataMacro ? thMocPluginCpp : thMocCpp;
         case Opaq::FT_HPP:
             return opaque->hasPluginMetaDataMacro ? thMocPluginHpp : thMocHpp;
         default:
