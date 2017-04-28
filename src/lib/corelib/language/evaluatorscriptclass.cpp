@@ -55,6 +55,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qsettings.h>
 
+#include <QtScript/qscriptclasspropertyiterator.h>
 #include <QtScript/qscriptstring.h>
 #include <QtScript/qscriptvalue.h>
 
@@ -616,6 +617,59 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     if (m_valueCacheEnabled)
         data->valueCache.insert(name, result);
     return result;
+}
+
+class EvaluatorScriptClassPropertyIterator : public QScriptClassPropertyIterator
+{
+public:
+    EvaluatorScriptClassPropertyIterator(const QScriptValue &object, EvaluationData *data)
+        : QScriptClassPropertyIterator(object), m_it(data->item->properties())
+    {
+    }
+
+    bool hasNext() const override
+    {
+        return m_it.hasNext();
+    }
+
+    void next() override
+    {
+        m_it.next();
+    }
+
+    bool hasPrevious() const override
+    {
+        return m_it.hasPrevious();
+    }
+
+    void previous() override
+    {
+        m_it.previous();
+    }
+
+    void toFront() override
+    {
+        m_it.toFront();
+    }
+
+    void toBack() override
+    {
+        m_it.toBack();
+    }
+
+    QScriptString name() const
+    {
+        return object().engine()->toStringHandle(m_it.key());
+    }
+
+private:
+    QMapIterator<QString, ValuePtr> m_it;
+};
+
+QScriptClassPropertyIterator *EvaluatorScriptClass::newIterator(const QScriptValue &object)
+{
+    EvaluationData *const data = attachedPointer<EvaluationData>(object);
+    return data ? new EvaluatorScriptClassPropertyIterator(object, data) : nullptr;
 }
 
 void EvaluatorScriptClass::setValueCacheEnabled(bool enabled)

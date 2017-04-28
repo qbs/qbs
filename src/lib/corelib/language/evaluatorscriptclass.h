@@ -70,6 +70,7 @@ public:
                              QueryFlags flags, uint *id);
     QScriptValue property(const QScriptValue &object,
                           const QScriptString &name, uint id);
+    QScriptClassPropertyIterator *newIterator(const QScriptValue &object) override;
 
     void setValueCacheEnabled(bool enabled);
 

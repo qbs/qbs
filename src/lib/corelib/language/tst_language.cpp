@@ -468,6 +468,29 @@ void TestLanguage::derivedSubProject()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::enumerateProjectProperties()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("enum-project-props.qbs"));
+        auto project = loader->loadProject(params);
+        QVERIFY(project);
+        auto products = productsFromProject(project);
+        QCOMPARE(products.count(), 1);
+        auto product = products.values().first();
+        auto files = product->groups.first()->allFiles();
+        QCOMPARE(product->groups.count(), 1);
+        QCOMPARE(files.count(), 1);
+        auto fileName = FileInfo::fileName(files.first()->absoluteFilePath);
+        QCOMPARE(fileName, QString("dummy.txt"));
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::defaultValue()
 {
     bool exceptionCaught = false;
