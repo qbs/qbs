@@ -47,12 +47,9 @@
 #include "propertydeclaration.h"
 #include "value.h"
 #include <logging/translator.h>
-#include <tools/architectures.h>
 #include <tools/fileinfo.h>
-#include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
-#include <tools/shellutils.h>
 
 #include <QtCore/qbytearray.h>
 #include <QtCore/qdebug.h>
