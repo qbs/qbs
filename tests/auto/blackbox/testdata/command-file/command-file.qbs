@@ -5,6 +5,7 @@ Project {
         name: "theLib"
         destinationDirectory: project.buildDirectory
         Depends { name: "cpp" }
+        bundle.isBundle: false
         files: ["lib.cpp"]
     }
     CppApplication {
