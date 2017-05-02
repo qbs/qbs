@@ -4363,8 +4363,10 @@ void TestBlackbox::frameworkStructure()
     QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/PrivateHeaders"));
     QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Resources"));
 
+    params.command = "resolve";
     params.arguments = QStringList() << "project.includeHeaders:false";
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
 
     QVERIFY(!directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Headers"));
     QVERIFY(!directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/PrivateHeaders"));
