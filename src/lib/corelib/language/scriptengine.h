@@ -43,6 +43,7 @@
 #include "forward_decls.h"
 #include "property.h"
 #include <logging/logger.h>
+#include <tools/codelocation.h>
 #include <tools/filetime.h>
 #include <tools/set.h>
 
@@ -151,6 +152,10 @@ public:
         return v.isError() ? v : uncaughtException();
     }
     QString lastErrorString(const QScriptValue &v) const { return lastErrorValue(v).toString(); }
+    CodeLocation lastErrorLocation(const QScriptValue &v,
+                                   const CodeLocation &fallbackLocation = CodeLocation()) const;
+    ErrorInfo lastError(const QScriptValue &v,
+                        const CodeLocation &fallbackLocation = CodeLocation()) const;
 
     void cancel();
 

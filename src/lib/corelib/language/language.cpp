@@ -673,7 +673,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
                                   ? QLatin1String("build") : QLatin1String("run"));
             throw ErrorInfo(Tr::tr("Error while setting up %1 environment: %2")
                             .arg(envTypeStr, engine->lastErrorString(scriptValue)),
-                            setupScript->location);
+                            engine->lastErrorLocation(scriptValue, setupScript->location));
         }
     }
 

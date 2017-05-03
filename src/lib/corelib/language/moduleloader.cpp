@@ -2278,7 +2278,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     } else if (!resolvedProbe) {
         QScriptValue sv = engine->evaluate(configureScript->sourceCodeForEvaluation());
         if (Q_UNLIKELY(engine->hasErrorOrException(sv)))
-            evalError = ErrorInfo(engine->lastErrorString(sv), configureScript->location());
+            evalError = engine->lastError(sv, configureScript->location());
     }
     QVariantMap properties;
     for (const ProbeProperty &b : qAsConst(probeBindings)) {

@@ -1783,9 +1783,8 @@ void TestBlackbox::referenceErrorInExport()
     QbsRunParameters params;
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
-    QEXPECT_FAIL(0, "QBS-946", Abort);
     QVERIFY(m_qbsStderr.contains(
-        "referenceErrorInExport.qbs:17:31 ReferenceError: Can't find variable: includePaths"));
+        "referenceErrorInExport.qbs:17:12 ReferenceError: Can't find variable: includePaths"));
 }
 
 void TestBlackbox::reproducibleBuild()
