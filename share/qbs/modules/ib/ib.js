@@ -44,6 +44,71 @@ function artifactsFromInputs(inputs) {
     return artifacts;
 }
 
+function tiffutilScalesMap(inputs) {
+    return artifactsFromInputs(inputs).map(function (a) {
+        var m = a.filePath.match(/^(.+?)(@(\d+)x)?(\..+?)$/);
+        var basePath = m[1];
+        var scale = m[2] || "";
+        var nscale = m[3];
+        var extension = m[4];
+        if (scale && scale < 1)
+            throw new Error("Invalid scale '" + nscale + "' for image '" + a.filePath + "'");
+        return {
+            basePath: basePath,
+            extension: extension,
+            scale: scale
+        };
+    }).reduce(function (previous, current) {
+        previous[current["basePath"]] = (previous[current["basePath"]] || []).concat([{
+            extension: current["extension"],
+            scale: current["scale"]
+        }]);
+        return previous;
+    }, {});
+}
+
+function tiffutilOutputFilePath(product, basePath) {
+    return FileInfo.joinPaths(product.destinationDirectory,
+                              "hidpi-images",
+                              FileInfo.relativePath(product.sourceDirectory, basePath) +
+                              product.ib.tiffSuffix);
+}
+
+function tiffutilArtifacts(product, inputs) {
+    var artifacts = [];
+    var map = tiffutilScalesMap(inputs);
+    for (var key in map) {
+        artifacts.push({
+            filePath: tiffutilOutputFilePath(product, key),
+            fileTags: ["tiff"]
+        });
+    }
+    return artifacts;
+}
+
+function prepareTiffutil(project, product, inputs, outputs, input, output) {
+    var cmds = [];
+    var map = tiffutilScalesMap(inputs);
+    for (var key in map) {
+        var args = ["-cat" + (product.ib.combineHidpiImages ? "hidpicheck" : "")];
+        var count = 0;
+        map[key].forEach(function (obj) {
+            args.push(key + obj["scale"] + obj["extension"]);
+            ++count;
+        });
+        args.push("-out", tiffutilOutputFilePath(product, key));
+        var cmd = new Command(product.ib.tiffutilPath, args);
+        cmd.description = "creating " + output.fileName;
+        cmd.count = count;
+        cmd.outputFilePath = output.filePath;
+        cmd.stderrFilterFunction = function (output) {
+            return output.replace(count + " images written to " + outputFilePath + ".", "");
+        };
+        cmds.push(cmd);
+    }
+    return cmds;
+}
+
 function ibtooldArguments(product, inputs, input, outputs, overrideOutput) {
     var i;
     var args = [];

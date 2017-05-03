@@ -57,6 +57,11 @@ Module {
 
     property stringList flags
 
+    // tiffutil specific
+    property string tiffutilName: "tiffutil"
+    property string tiffutilPath: FileInfo.joinPaths("/usr/bin", tiffutilName)
+    property bool combineHidpiImages: true
+
     // iconutil specific
     property string iconutilName: "iconutil"
     property string iconutilPath: FileInfo.joinPaths("/usr/bin", iconutilName)
@@ -77,6 +82,7 @@ Module {
 
     // private properties
     property string outputFormat: "human-readable-text"
+    property string tiffSuffix: ".tiff"
     property string appleIconSuffix: ".icns"
     property string compiledAssetCatalogSuffix: ".car"
     property string compiledNibSuffix: ".nib"
@@ -107,6 +113,11 @@ Module {
     }
 
     FileTagger {
+        patterns: ["*.png"]
+        fileTags: ["png"]
+    }
+
+    FileTagger {
         patterns: ["*.iconset"] // bundle
         fileTags: ["iconset"]
     }
@@ -124,6 +135,16 @@ Module {
     FileTagger {
         patterns: ["*.xcassets"] // bundle
         fileTags: ["assetcatalog"]
+    }
+
+    Rule {
+        multiplex: true
+        inputs: ["png"]
+
+        outputFileTags: ["tiff"]
+        outputArtifacts: Ib.tiffutilArtifacts(product, inputs)
+
+        prepare: Ib.prepareTiffutil.apply(Ib, arguments)
     }
 
     Rule {
