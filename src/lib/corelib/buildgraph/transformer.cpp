@@ -231,13 +231,8 @@ void Transformer::createCommands(ScriptEngine *engine, const ScriptFunctionConst
     propertiesRequestedInPrepareScript = engine->propertiesRequestedInScript();
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
     engine->clearRequestedProperties();
-    if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue))) {
-        ErrorInfo errorInfo(engine->lastErrorString(scriptValue),
-                            engine->uncaughtExceptionBacktraceOrEmpty());
-        errorInfo.append(QStringLiteral("Rule.prepare"), script->location);
-        throw errorInfo;
-    }
-
+    if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue)))
+        throw engine->lastError(scriptValue, script->location);
     commands.clear();
     if (scriptValue.isArray()) {
         const int count = scriptValue.property(QLatin1String("length")).toInt32();

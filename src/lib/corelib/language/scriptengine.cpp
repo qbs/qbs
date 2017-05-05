@@ -517,6 +517,29 @@ QScriptValueList ScriptEngine::argumentList(const QStringList &argumentNames,
     return result;
 }
 
+CodeLocation ScriptEngine::lastErrorLocation(const QScriptValue &v,
+                                             const CodeLocation &fallbackLocation) const
+{
+    const QScriptValue &errorVal = lastErrorValue(v);
+    const CodeLocation errorLoc(errorVal.property(QLatin1String("fileName")).toString(),
+            errorVal.property(QLatin1String("lineNumber")).toInt32(),
+            errorVal.property(QLatin1String("expressionCaretOffset")).toInt32(),
+            false);
+    return errorLoc.isValid() ? errorLoc : fallbackLocation;
+}
+
+ErrorInfo ScriptEngine::lastError(const QScriptValue &v, const CodeLocation &fallbackLocation) const
+{
+    const QString msg = lastErrorString(v);
+    CodeLocation errorLocation = lastErrorLocation(v);
+    if (errorLocation.isValid())
+        return ErrorInfo(msg, errorLocation);
+    const QStringList backtrace = uncaughtExceptionBacktraceOrEmpty();
+    if (!backtrace.isEmpty())
+        return ErrorInfo(msg, backtrace);
+    return ErrorInfo(msg, fallbackLocation);
+}
+
 void ScriptEngine::cancel()
 {
     QTimer::singleShot(0, this, [this] { abort(); });

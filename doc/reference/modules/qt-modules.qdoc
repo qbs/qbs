@@ -147,7 +147,11 @@
     \row
         \li qml
         \li Qt QML
-        \li
+        \li For more information on the properties you can specify, see
+            \l{qml Properties}.
+
+            For more information on the relevant file tags, see
+            \l {qml File Tags}.
     \row
         \li script
         \li Qt Script
@@ -495,6 +499,27 @@
 
     \endtable
 
+    \section2 qml Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li qmlImportScannerName
+        \li \c{string}
+        \li \c{"qmlimportscanner"}
+        \li The base name of the QML import scanner. Set this if your system uses a different name.
+    \row
+        \li qmlPath
+        \li \c{string}
+        \li set by \c{qbs-setup-qt}
+        \li The absolute path to the directory where Qt's QML files are installed.
+    \endtable
+
+
     \section2 scxml Properties
 
     \table
@@ -633,6 +658,21 @@
         \li \c{*.ui}
         \li 1.0
         \li Source files with this tag serve as inputs to the rule running the \c uic tool.
+    \endtable
+
+    \section2 qml File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"qt.qml.qml"}
+        \li \c{*.qml}
+        \li 1.8
+        \li Source files with this tag serve as inputs to the QML plugin scanner.
     \endtable
 
     \section2 scxml File Tags

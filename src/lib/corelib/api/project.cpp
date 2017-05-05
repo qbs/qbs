@@ -304,12 +304,17 @@ void ProjectPrivate::setupInstallData(ArtifactData &artifact,
                 QLatin1String("qbs"), QLatin1String("installRoot")).toString();
     InstallOptions options;
     options.setInstallRoot(installRoot);
-    QString installFilePath = ProductInstaller::targetFilePath(product->topLevelProject(),
-            product->sourceDirectory, artifact.filePath(), artifact.properties().d->m_map, options);
-    if (!installRoot.isEmpty())
-        installFilePath.remove(0, installRoot.count());
     artifact.d->installData.d->installRoot = installRoot;
-    artifact.d->installData.d->installFilePath = installFilePath;
+    try {
+        QString installFilePath = ProductInstaller::targetFilePath(product->topLevelProject(),
+                product->sourceDirectory, artifact.filePath(), artifact.properties().d->m_map,
+                options);
+        if (!installRoot.isEmpty())
+            installFilePath.remove(0, installRoot.count());
+        artifact.d->installData.d->installFilePath = installFilePath;
+    } catch (const ErrorInfo &e) {
+        logger.printWarning(e);
+    }
 }
 
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES

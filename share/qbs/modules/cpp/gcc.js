@@ -365,7 +365,7 @@ function linkerFlags(project, product, inputs, output) {
     }
 
     args = args.concat(libraryDependencies.libraries.map(function(lib) {
-        return FileInfo.isAbsolutePath(lib)
+        return FileInfo.isAbsolutePath(lib) || lib.startsWith('@')
                 ? lib
                 : '-l' + lib;
     }));
