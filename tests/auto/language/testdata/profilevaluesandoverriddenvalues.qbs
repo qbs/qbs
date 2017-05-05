@@ -3,14 +3,14 @@ import qbs 1.0
 Project {
     Application {
         name: "product1"
-        type: {
+        property bool dummyProp: {
             if (!(dummy.cFlags instanceof Array))
                 throw new Error("dummy.cFlags: Array type expected.");
             if (!(dummy.cxxFlags instanceof Array))
                 throw new Error("dummy.cxxFlags: Array type expected.");
             if (!(dummy.defines instanceof Array))
                 throw new Error("dummy.defines: Array type expected.");
-            return "application";
+            return true;
         }
         consoleApplication: true
         Depends { name: "dummy" }

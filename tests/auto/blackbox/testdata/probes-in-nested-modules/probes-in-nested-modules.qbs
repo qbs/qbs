@@ -5,31 +5,34 @@ Project {
         name: "a"
         Depends { name: "outer" }
         inner.alt: true
-        type: {
+        property bool dummy: {
             console.info("product " + name + ", inner.something = " + inner.something);
             console.info("product " + name + ", outer.something = " + outer.something);
             console.info("product " + name + ", outer.somethingElse = " + outer.somethingElse);
-            return ["foo"];
+            return true;
         }
+        type: ["foo"]
     }
 
     Product {
         name: "b"
         Depends { name: "inner" }
         inner.alt: true
-        type: {
+        property bool dummy: {
             console.info("product " + name + ", inner.something = " + inner.something);
-            return ["foo"];
+            return true;
         }
+        type: ["foo"]
     }
 
     Product {
         name: "c"
         Depends { name: "inner" }
         inner.alt: false
-        type: {
+        property bool dummy: {
             console.info("product " + name + ", inner.something = " + inner.something);
-            return ["foo"];
+            return true;
         }
+        type: ["foo"]
     }
 }

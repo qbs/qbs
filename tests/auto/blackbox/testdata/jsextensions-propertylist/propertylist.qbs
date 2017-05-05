@@ -4,7 +4,8 @@ import qbs.PropertyList
 import qbs.TextFile
 
 Product {
-    type: {
+    type: ["Pineapple Steve"]
+    property bool dummy: {
         var plistobj = new PropertyList();
         if (!plistobj.isEmpty()) {
             throw "newly created PropertyList was not empty!";
@@ -124,6 +125,6 @@ Product {
             throw 'toString("xml1") and toXMLString() were not equivalent';
         }
 
-        return "Pineapple Steve";
+        return true;
     }
 }
