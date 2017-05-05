@@ -57,6 +57,8 @@
 #include <QtCore/qregularexpression.h>
 #include <QtCore/qtextstream.h>
 
+#include <queue>
+
 namespace qbs {
 using namespace Internal;
 
@@ -98,22 +100,37 @@ static QString defaultQpaPlugin(const Profile &profile, const QtModuleInfo &modu
                 + QStringLiteral("/QtGui")
                 + (qtEnv.frameworkBuild ? QStringLiteral(".framework/Headers") : QString())
                 + QStringLiteral("/qtgui-config.h");
-        QFile qtGuiConfigHeaderFile(qtGuiConfigHeader);
-        if (!qtGuiConfigHeaderFile.open(QIODevice::ReadOnly)) {
-            throw ErrorInfo(Tr::tr("Setting up Qt profile '%1' failed: Cannot open "
-                    "file '%2' (%3).")
-                    .arg(profile.name(), qtGuiConfigHeaderFile.fileName(),
-                         qtGuiConfigHeaderFile.errorString()));
-        }
-
-        const QRegularExpression regexp(
-                    QStringLiteral("^#define QT_QPA_DEFAULT_PLATFORM_NAME \"(?<name>.+)\""));
-        const QList<QByteArray> lines = qtGuiConfigHeaderFile.readAll().split('\n');
-        for (const QByteArray &line : lines) {
-            const QRegularExpressionMatch match = regexp.match(
-                        QString::fromLatin1(line.simplified()));
-            if (match.hasMatch())
-                return QLatin1Char('q') + match.captured(QStringLiteral("name"));
+        std::queue<QString> headerFiles;
+        headerFiles.push(qtGuiConfigHeader);
+        while (!headerFiles.empty()) {
+            QFile headerFile(headerFiles.front());
+            headerFiles.pop();
+            if (!headerFile.open(QIODevice::ReadOnly)) {
+                throw ErrorInfo(Tr::tr("Setting up Qt profile '%1' failed: Cannot open "
+                                       "file '%2' (%3).")
+                                .arg(profile.name(), headerFile.fileName(),
+                                     headerFile.errorString()));
+            }
+            static const QRegularExpression regexp(
+                        QStringLiteral("^#define QT_QPA_DEFAULT_PLATFORM_NAME \"(?<name>.+)\""));
+            static const QRegularExpression includeRegexp(
+                        QStringLiteral("^#include \"(?<header>.+)\""));
+            const QList<QByteArray> lines = headerFile.readAll().split('\n');
+            for (const QByteArray &line: lines) {
+                const QString lineStr = QString::fromLatin1(line.simplified());
+                QRegularExpressionMatch match = regexp.match(lineStr);
+                if (match.hasMatch())
+                    return QLatin1Char('q') + match.captured(QStringLiteral("name"));
+                match = includeRegexp.match(lineStr);
+                if (match.hasMatch()) {
+                    QString filePath = match.captured(QStringLiteral("header"));
+                    if (QFileInfo(filePath).isRelative()) {
+                        filePath = QDir::cleanPath(QFileInfo(headerFile.fileName()).absolutePath()
+                                                   + QLatin1Char('/') + filePath);
+                    }
+                    headerFiles.push(filePath);
+                }
+            }
         }
     }
 
@@ -181,6 +198,8 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
         content->replace("@defaultQpaPlugin@",
                         utf8JSLiteral(defaultQpaPlugin(profile, module, qtEnvironment)));
     }
+    if (module.qbsName == QLatin1String("qml"))
+        content->replace("@qmlPath@", pathToJSLiteral(qtEnvironment.qmlPath).toUtf8());
     if (module.isStaticLibrary) {
         if (!propertiesString.isEmpty())
             propertiesString += "\n    ";
@@ -255,6 +274,10 @@ static void createModules(Profile &profile, Settings *settings,
         } else if (module.qbsName == QLatin1String("dbus")) {
             moduleTemplateFileName = QLatin1String("dbus.qbs");
             copyTemplateFile(QLatin1String("dbus.js"), qbsQtModuleDir, profile, qtEnvironment,
+                             &allFiles);
+        } else if (module.qbsName == QLatin1String("qml")) {
+            moduleTemplateFileName = QLatin1String("qml.qbs");
+            copyTemplateFile(QLatin1String("qml.js"), qbsQtModuleDir, profile, qtEnvironment,
                              &allFiles);
         } else if (module.qbsName == QLatin1String("phonon")) {
             moduleTemplateFileName = QLatin1String("phonon.qbs");

@@ -241,7 +241,8 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
                 QString msg = QLatin1String("evaluating rule binding '%1': %2");
                 throw ErrorInfo(msg.arg(binding.name.join(QLatin1Char('.')),
-                                        engine()->lastErrorString(scriptValue)), binding.location);
+                                        engine()->lastErrorString(scriptValue)),
+                                engine()->lastErrorLocation(scriptValue, binding.location));
             }
             setConfigProperty(artifactModulesCfg, binding.name, scriptValue.toVariant());
         }
@@ -280,12 +281,8 @@ Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->filePath,
                                                   ruleArtifact->filePathLocation.filePath(),
                                                   ruleArtifact->filePathLocation.line());
-    if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
-        ErrorInfo errorInfo(engine()->lastErrorString(scriptValue),
-                            engine()->uncaughtExceptionBacktraceOrEmpty());
-        errorInfo.append(QStringLiteral("Artifact.filePath"), ruleArtifact->filePathLocation);
-        throw errorInfo;
-    }
+    if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue)))
+        throw engine()->lastError(scriptValue, ruleArtifact->filePathLocation);
     QString outputPath = FileInfo::resolvePath(m_product->buildDirectory(), scriptValue.toString());
     if (Q_UNLIKELY(!outputFilePaths->insert(outputPath).second)) {
         throw ErrorInfo(Tr::tr("Rule %1 already created '%2'.")
@@ -395,13 +392,8 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
         throw ErrorInfo(QLatin1String("Function expected."),
                         m_rule->outputArtifactsScript->location);
     QScriptValue res = fun.call(QScriptValue(), args);
-    if (engine()->hasErrorOrException(res)) {
-        ErrorInfo errorInfo(engine()->lastErrorString(res),
-                            engine()->uncaughtExceptionBacktraceOrEmpty());
-        errorInfo.append(QStringLiteral("Rule.outputArtifacts"),
-                         m_rule->outputArtifactsScript->location);
-        throw errorInfo;
-    }
+    if (engine()->hasErrorOrException(res))
+        throw engine()->lastError(res, m_rule->outputArtifactsScript->location);
     if (!res.isArray())
         throw ErrorInfo(Tr::tr("Rule.outputArtifacts must return an array of objects."),
                         m_rule->outputArtifactsScript->location);

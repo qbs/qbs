@@ -47,5 +47,11 @@ int main(int argc, char *argv[])
         qDebug() << "value is" << v;
         return 1;
     }
+    const QJsonValue v2 = loader.metaData().value(QLatin1String("MetaData")).toObject()
+            .value(QLatin1String("theOtherKey"));
+    if (v2.toString() != QLatin1String("theOtherValue")) {
+        qDebug() << "metadata:" << loader.metaData();
+        return 1;
+    }
     return 0;
 }

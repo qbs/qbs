@@ -63,6 +63,7 @@ struct CommonFileTags
     const FileTag cpp = "cpp";
     const FileTag hpp = "hpp";
     const FileTag moc_cpp = "moc_cpp";
+    const FileTag moc_cpp_plugin = "moc_cpp_plugin";
     const FileTag moc_hpp_plugin = "moc_hpp_plugin";
     const FileTag moc_hpp = "moc_hpp";
     const FileTag objcpp = "objcpp";
@@ -255,6 +256,10 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
         } else {
             if (scanResult.additionalFileTags.contains(m_tags.moc_cpp))
                 hasQObjectMacro = true;
+            if (scanResult.additionalFileTags.contains(m_tags.moc_cpp_plugin)) {
+                hasQObjectMacro = true;
+                hasPluginMetaDataMacro = true;
+            }
         }
     }
 

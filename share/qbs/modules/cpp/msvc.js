@@ -230,7 +230,7 @@ function collectLibraryDependencies(product) {
                     ModUtils.sanitizedModuleProperty(obj, "cpp", "staticLibraries"),
                     ModUtils.sanitizedModuleProperty(obj, "cpp", "dynamicLibraries"));
         externalLibs.forEach(function (libName) {
-            if (!libName.match(/\.lib$/i))
+            if (!libName.match(/\.lib$/i) && !libName.startsWith('@'))
                 libName += ".lib";
             addFilePath(libName);
         });

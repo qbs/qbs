@@ -1811,9 +1811,8 @@ void TestBlackbox::referenceErrorInExport()
     QbsRunParameters params;
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
-    QEXPECT_FAIL(0, "QBS-946", Abort);
     QVERIFY(m_qbsStderr.contains(
-        "referenceErrorInExport.qbs:17:31 ReferenceError: Can't find variable: includePaths"));
+        "referenceErrorInExport.qbs:17:12 ReferenceError: Can't find variable: includePaths"));
 }
 
 void TestBlackbox::reproducibleBuild()
@@ -2173,6 +2172,10 @@ void TestBlackbox::pluginMetaData()
     QVERIFY(app.waitForStarted());
     QVERIFY(app.waitForFinished());
     QVERIFY2(app.exitCode() == 0, app.readAllStandardError().constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("metadata.json");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("moc"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::probeChangeTracking()
@@ -3127,6 +3130,15 @@ void TestBlackbox::combinedSources()
     QVERIFY(!m_qbsStdout.contains("compiling combinable.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling uncombinable.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling amalgamated_theapp.cpp"));
+}
+
+void TestBlackbox::commandFile()
+{
+    QDir::setCurrent(testDataDir + "/command-file");
+    QbsRunParameters params(QStringList() << "-p" << "theLib");
+    QCOMPARE(runQbs(params), 0);
+    params.arguments = QStringList() << "-p" << "theApp";
+    QCOMPARE(runQbs(params), 0);
 }
 
 void TestBlackbox::jsExtensionsFile()
