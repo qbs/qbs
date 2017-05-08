@@ -152,17 +152,9 @@
         \li 1.4.2
         \li undefined
         \li The properties to add to the manifest file when building a JAR.
-            The contents of this property will be aggregated with the values from \c{manifestFile}.
-            If \c{manifest} and \c{manifestFile} contain the same key, the former will take
-            precedence. If undefined, will not be taken into account.
-    \row
-        \li manifestFile
-        \li path
-        \li 1.4.2
-        \li undefined
-        \li The manifest file to embed when building a JAR.
-            The contents of this file will be aggregated with the values in \c{manifest}.
-            If \c{manifestFile} and \c{manifest} contain the same key, the latter will take
+            The contents of this property will be aggregated with the values from any files tagged
+            \c{"java.manifest"} (see below).
+            If \c{manifest} and a manifest file contain the same key, the former will take
             precedence. If undefined, will not be taken into account.
     \row
         \li manifestClassPath
@@ -204,6 +196,13 @@
         \li \c{*.java}
         \li 1.4
         \li Source files with this tag serve as inputs to the rule running the \c javac tool.
+    \row
+        \li \c{"java.manifest"}
+        \li \c{*.mf}
+        \li 1.8
+        \li The contents of files with this tag will be aggregated with the values in
+            \c{java.manifest}. If a manifest file and \c{java.manifest} contain the same key, the
+            latter will take precedence. If undefined, will not be taken into account.
     \endtable
 
 */

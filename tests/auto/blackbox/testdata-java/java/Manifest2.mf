@@ -1,0 +1,2 @@
+Some-Property: Some-Value
+Additional-Property: Additional-Value

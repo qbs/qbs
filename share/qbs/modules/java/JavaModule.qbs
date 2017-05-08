@@ -89,10 +89,18 @@ Module {
         description: "properties to add to the manifest file when building a JAR"
     }
 
+    // TODO: Remove in 1.9
     property path manifestFile
     PropertyOptions {
         name: "manifestFile"
-        description: "manifest file to embed when building a JAR"
+        description: "Use files tagged \"java.manifest\" instead."
+        removalVersion: "1.9"
+    }
+    Group {
+        name: "Manifest"
+        prefix: product.sourceDirectory + "/"
+        files: java.manifestFile ? [java.manifestFile] : []
+        fileTags: ["java.manifest"]
     }
 
     property stringList manifestClassPath
@@ -175,6 +183,11 @@ Module {
         fileTags: ["java.java"]
     }
 
+    FileTagger {
+        patterns: ["*.mf"]
+        fileTags: ["java.manifest"]
+    }
+
     Group {
         name: "io.qt.qbs.internal.java-helper"
         files: {
@@ -226,7 +239,7 @@ Module {
     }
 
     Rule {
-        inputs: ["java.class"]
+        inputs: ["java.class", "java.manifest"]
         multiplex: true
 
         Artifact {
@@ -239,12 +252,28 @@ Module {
             var flags = "cf";
             var args = [output.filePath];
 
-            var manifestFile = ModUtils.moduleProperty(product, "manifestFile");
-            var manifest = ModUtils.moduleProperty(product, "manifest");
-            var aggregateManifest = JavaUtils.manifestContents(manifestFile) || {};
+            var aggregateManifest = {};
+            var manifestFiles = (inputs["java.manifest"] || []).map(function (a) { return a.filePath; });
+            manifestFiles.forEach(function (manifestFile) {
+                var mf = JavaUtils.manifestContents(manifestFile);
+                for (key in mf) {
+                    if (mf.hasOwnProperty(key)) {
+                        var oldValue = aggregateManifest[key];
+                        var newValue = mf[key];
+                        if (oldValue !== undefined && oldValue !== newValue) {
+                            throw new Error("Conflicting values '"
+                                            + oldValue + "' and '"
+                                            + newValue + "' for manifest file key '" + key + "'");
+                        }
+
+                        aggregateManifest[key] = newValue;
+                    }
+                }
+            });
 
             // Add local key-value pairs (overrides equivalent keys specified in the file if
             // one was given)
+            var manifest = product.java.manifest;
             for (key in manifest) {
                 if (manifest.hasOwnProperty(key))
                     aggregateManifest[key] = manifest[key];
@@ -256,9 +285,10 @@ Module {
             }
 
             // Use default manifest unless we actually have properties to set
-            var needsManifestFile = manifestFile !== undefined || aggregateManifest !== {"Manifest-Version": "1.0"};
+            var needsManifestFile = manifestFiles.length > 0
+                    || aggregateManifest !== {"Manifest-Version": "1.0"};
 
-            manifestFile = FileInfo.joinPaths(product.buildDirectory, "manifest.mf");
+            var manifestFile = FileInfo.joinPaths(product.buildDirectory, "manifest.mf");
 
             var mf;
             try {
