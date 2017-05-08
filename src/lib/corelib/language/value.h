@@ -95,6 +95,7 @@ class JSSourceValue : public Value
 {
     friend class ItemReaderASTVisitor;
     JSSourceValue(bool createdByPropertiesBlock);
+    JSSourceValue(const JSSourceValue &other);
 
     enum Flag
     {
@@ -140,6 +141,15 @@ public:
 
     struct Alternative
     {
+        Alternative() { }
+        Alternative(const QString &c, const QString &o, const JSSourceValuePtr &v)
+            : condition(c), overrideListProperties(o), value(v) {}
+        Alternative clone() const
+        {
+            return Alternative(condition, overrideListProperties,
+                               value->clone().staticCast<JSSourceValue>());
+        }
+
         QString condition;
         QString overrideListProperties;
         JSSourceValuePtr value;

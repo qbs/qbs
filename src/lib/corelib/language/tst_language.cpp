@@ -1861,6 +1861,27 @@ void TestLanguage::propertiesBlockInGroup()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::propertiesItemInModule()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(
+                    testProject("properties-item-in-module.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 2);
+        for (const ResolvedProductConstPtr &p : products) {
+            QCOMPARE(p->moduleProperties->moduleProperty("dummy", "productName").toString(),
+                     p->name);
+        }
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::qbsPropertiesInProjectCondition()
 {
     bool exceptionCaught = false;

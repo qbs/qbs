@@ -94,6 +94,19 @@ JSSourceValue::JSSourceValue(bool createdByPropertiesBlock)
 {
 }
 
+JSSourceValue::JSSourceValue(const JSSourceValue &other) : Value(other)
+{
+    m_sourceCode = other.m_sourceCode;
+    m_line = other.m_line;
+    m_column = other.m_column;
+    m_file = other.m_file;
+    m_flags = other.m_flags;
+    m_baseValue = other.m_baseValue ? other.m_baseValue->clone().staticCast<JSSourceValue>()
+                                    : JSSourceValuePtr();
+    for (const Alternative &otherAlt : qAsConst(other.m_alternatives))
+        m_alternatives << otherAlt.clone();
+}
+
 JSSourceValuePtr JSSourceValue::create(bool createdByPropertiesBlock)
 {
     return JSSourceValuePtr(new JSSourceValue(createdByPropertiesBlock));
