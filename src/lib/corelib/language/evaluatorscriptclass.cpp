@@ -657,7 +657,7 @@ public:
         m_it.toBack();
     }
 
-    QScriptString name() const
+    QScriptString name() const override
     {
         return object().engine()->toStringHandle(m_it.key());
     }
