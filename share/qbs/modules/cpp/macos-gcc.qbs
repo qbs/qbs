@@ -37,6 +37,7 @@ DarwinGCC {
 
     targetSystem: "macosx" + (minimumMacosVersion || "")
 
+    minimumOsxVersion: cxxStandardLibrary === "libc++" ? "10.7" : undefined
     minimumDarwinVersion: minimumMacosVersion
     minimumDarwinVersionCompilerFlag: "-mmacosx-version-min"
     minimumDarwinVersionLinkerFlag: "-macosx_version_min"
