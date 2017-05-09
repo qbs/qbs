@@ -96,6 +96,7 @@ QString ProjectBuildData::deriveBuildGraphFilePath(const QString &buildDir, cons
 static QString productNameForErrorMessage(const ResolvedProduct *product)
 {
     return product->profile == product->topLevelProject()->profile()
+            && product->multiplexConfigurationId.isEmpty()
             ? product->name : product->uniqueName();
 }
 

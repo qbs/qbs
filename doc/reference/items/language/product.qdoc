@@ -107,15 +107,6 @@
                 To change the name of your product's target artifact, modify \c{Product.targetName}
                 instead.
         \row
-            \li profiles
-            \li stringList
-            \li \c{[project.profile]}
-            \li The profiles for which the product should be built. For each profile listed here,
-                one instance of the product will be built according to the properties set in
-                the respective profile.
-                This property is only relevant for projects that require products being built for
-                different architectures. Otherwise it can be left at its default value.
-        \row
             \li type
             \li stringList
             \li empty list
@@ -167,6 +158,45 @@
             \li undefined
             \li The version number of the product. Used in shared library filenames and generated
                 Info.plist files in Apple application and framework bundles, for example.
+    \endtable
+
+    The following properties are relevant for product multiplexing only.
+    Unless multiplexing is desired, they can be left at their default values.
+
+    \note We do not promise backwards compatibility for multiplexing properties as they are likely
+    to change in future \QBS versions.
+
+    \table
+        \header
+            \li Property
+            \li Type
+            \li Default
+            \li Description
+        \row
+            \li aggregate
+            \li bool
+            \li \c{undefined}
+            \li If \c{true}, an aggregate product will be created that has dependencies on all
+                multiplex instances of this product.
+        \row
+            \li multiplexedType
+            \li stringList
+            \li \c{undefined}
+            \li Specifies the product type for the multiplexed product instances.
+        \row
+            \li multiplexByQbsProperties
+            \li stringList
+            \li \c{["profiles"]}
+            \li Specifies which properties of the qbs module will be used for product multiplexing.
+                Its value must be a subset of \c{["architectures", "buildVariants", "profiles"]}.
+        \row
+            \li profiles
+            \li stringList
+            \li \c{[project.profile]}
+            \li The profiles for which the product should be built. For each profile listed here,
+                one instance of the product will be built according to the properties set in
+                the respective profile.
+                This property is the same as \c{qbs.profiles} and takes precedence.
     \endtable
 
     The following properties are automatically set by \QBS and cannot be changed by the user:

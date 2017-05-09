@@ -189,6 +189,7 @@ public:
     QString targetName() const;
     QString version() const;
     QString profile() const;
+    QString multiplexConfigurationId() const;
     CodeLocation location() const;
     QString buildDirectory() const;
     QList<ArtifactData> generatedArtifacts() const;
@@ -200,6 +201,7 @@ public:
     PropertyMap moduleProperties() const;
     bool isEnabled() const;
     bool isRunnable() const;
+    bool isMultiplexed() const;
 
 private:
     QExplicitlySharedDataPointer<Internal::ProductDataPrivate> d;

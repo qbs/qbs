@@ -209,9 +209,19 @@ Module {
         return env;
     }
 
+    // Properties that can be set for multiplexing products.
+    property stringList profiles
+    property stringList architectures
+    property stringList buildVariants
+
     // internal properties
     readonly property string version: [versionMajor, versionMinor, versionPatch].join(".")
     readonly property int versionMajor: undefined // set internally
     readonly property int versionMinor: undefined // set internally
     readonly property int versionPatch: undefined // set internally
+    readonly property var multiplexMap: ({
+        profiles: "profile",
+        architectures: "architecture",
+        buildVariants: "buildVariant"
+    })
 }

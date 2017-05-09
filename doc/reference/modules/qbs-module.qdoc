@@ -323,5 +323,39 @@
             assume they will be in that location at run-time. For the same reason, this property
             must not be set from within project files.
     \endtable
+
+    \section1 Multiplexing Properties
+
+    This section lists properties specific to product multiplexing.
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Since
+        \li Default
+        \li Description
+    \row
+        \li architectures
+        \li \c{stringList}
+        \li 1.9
+        \li \c{undefined}
+        \li Specifies the architectures the product will be built for.
+    \row
+        \li buildVariants
+        \li \c{stringList}
+        \li 1.9
+        \li \c{undefined}
+        \li Specifies the build variants the product will be built for.
+    \row
+        \li profiles
+        \li \c{stringList}
+        \li 1.9
+        \li \c{[product.profile]}
+        \li The profiles for which the product should be built. For each profile listed here,
+            one instance of the product will be built according to the properties set in
+            the respective profile.
+            This property is the same as \c{product.profiles}, which takes precedence.
+    \endtable
 */
 

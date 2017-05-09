@@ -52,6 +52,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -1514,21 +1515,29 @@ void TestApi::multiArch()
     QCOMPARE(hostProductNames.count("p1"), 1);
     QCOMPARE(hostProductNames.count("p2"), 1);
 
+    const QString p1HostMultiplexCfgId = hostProducts.at(0).multiplexConfigurationId();
+    const QString p2HostMultiplexCfgId = hostProducts.at(1).multiplexConfigurationId();
+    const QString p1TargetMultiplexCfgId = targetProducts.at(0).multiplexConfigurationId();
+
     QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     const QString outputBaseDir = setupParams.buildRoot() + '/';
     QFile p1HostArtifact(outputBaseDir
-                         + relativeProductBuildDir("p1", "host") + "/host+target.output");
+                         + relativeProductBuildDir("p1", "host", p1HostMultiplexCfgId)
+                         + "/host+target.output");
     QVERIFY2(p1HostArtifact.exists(), qPrintable(p1HostArtifact.fileName()));
     QVERIFY2(p1HostArtifact.open(QIODevice::ReadOnly), qPrintable(p1HostArtifact.errorString()));
     QCOMPARE(p1HostArtifact.readAll().constData(), "host-arch");
-    QFile p1TargetArtifact(outputBaseDir + relativeProductBuildDir("p1", "target")
+    QFile p1TargetArtifact(outputBaseDir
+                           + relativeProductBuildDir("p1", "target", p1TargetMultiplexCfgId)
                            + "/host+target.output");
     QVERIFY2(p1TargetArtifact.exists(), qPrintable(p1TargetArtifact.fileName()));
     QVERIFY2(p1TargetArtifact.open(QIODevice::ReadOnly), qPrintable(p1TargetArtifact.errorString()));
     QCOMPARE(p1TargetArtifact.readAll().constData(), "target-arch");
-    QFile p2Artifact(outputBaseDir + relativeProductBuildDir("p2", "host") + "/host-tool.output");
+    QFile p2Artifact(outputBaseDir
+                     + relativeProductBuildDir("p2", "host", p2HostMultiplexCfgId)
+                     + "/host-tool.output");
     QVERIFY2(p2Artifact.exists(), qPrintable(p2Artifact.fileName()));
     QVERIFY2(p2Artifact.open(QIODevice::ReadOnly), qPrintable(p2Artifact.errorString()));
     QCOMPARE(p2Artifact.readAll().constData(), "host-arch");
@@ -1567,6 +1576,231 @@ void TestApi::multiArch()
     QVERIFY2(setupJob->error().toString().contains(targetProfile.name())
              && setupJob->error().toString().contains("not allowed"),
              qPrintable(setupJob->error().toString()));
+}
+
+struct ProductDataSelector
+{
+    void clear()
+    {
+        name.clear();
+        qbsProperties.clear();
+    }
+
+    bool matches(const qbs::ProductData &p) const
+    {
+        return name == p.name() && qbsPropertiesMatch(p);
+    }
+
+    bool qbsPropertiesMatch(const qbs::ProductData &p) const
+    {
+        for (auto it = qbsProperties.begin(); it != qbsProperties.end(); ++it) {
+            if (it.value() != p.moduleProperties().getModuleProperty("qbs", it.key()))
+                return false;
+        }
+        return true;
+    }
+
+    QString name;
+    QVariantMap qbsProperties;
+};
+
+static qbs::ProductData takeMatchingProduct(QList<qbs::ProductData> &products,
+                                            const ProductDataSelector &s)
+{
+    qbs::ProductData result;
+    auto it = std::find_if(products.begin(), products.end(),
+                           [&s] (const qbs::ProductData &pd) { return s.matches(pd); });
+    if (it != products.end()) {
+        result = *it;
+        products.erase(it);
+    }
+    return result;
+}
+
+void TestApi::multiplexing()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("multiplexing");
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(
+                qbs::Project().setupProject(setupParams, m_logSink, 0));
+    waitForFinished(setupJob.get());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    qbs::Project project = setupJob->project();
+    QList<qbs::ProductData> products = project.projectData().products();
+    qbs::ProductData product;
+    ProductDataSelector selector;
+    selector.name = "no-multiplexing";
+    product = takeMatchingProduct(products,  selector);
+    QVERIFY(product.isValid());
+    QVERIFY(!product.isMultiplexed());
+    QVERIFY(product.dependencies().isEmpty());
+
+    selector.clear();
+    selector.name = "multiplex-without-aggregator-2";
+    selector.qbsProperties["architecture"] = "TRS-80";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QVERIFY(product.dependencies().isEmpty());
+
+    selector.qbsProperties["architecture"] = "C64";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QVERIFY(product.dependencies().isEmpty());
+
+    selector.clear();
+    selector.name = "multiplex-with-export";
+    selector.qbsProperties["architecture"] = "TRS-80";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QVERIFY(product.dependencies().isEmpty());
+
+    selector.qbsProperties["architecture"] = "C64";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QVERIFY(product.dependencies().isEmpty());
+
+    selector.clear();
+    selector.name = "nonmultiplex-with-export";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(!product.isMultiplexed());
+    QVERIFY(product.dependencies().isEmpty());
+
+    selector.clear();
+    selector.name = "nonmultiplex-exporting-aggregation";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(!product.isMultiplexed());
+    QVERIFY(product.dependencies().isEmpty());
+
+    selector.clear();
+    selector.name = "multiplex-using-export";
+    selector.qbsProperties["architecture"] = "TRS-80";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 2);
+
+    selector.qbsProperties["architecture"] = "C64";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 2);
+
+    selector.clear();
+    selector.name = "multiplex-without-aggregator-2-depend-on-non-multiplexed";
+    selector.qbsProperties["architecture"] = "TRS-80";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 1);
+
+    selector.qbsProperties["architecture"] = "C64";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 1);
+
+    selector.clear();
+    selector.name = "multiplex-without-aggregator-4";
+    selector.qbsProperties["architecture"] = "C64";
+    selector.qbsProperties["buildVariant"] = "debug";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QVERIFY(product.dependencies().isEmpty());
+    selector.qbsProperties["buildVariant"] = "release";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QVERIFY(product.dependencies().isEmpty());
+    selector.qbsProperties["architecture"] = "TRS-80";
+    selector.qbsProperties["buildVariant"] = "debug";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QVERIFY(product.dependencies().isEmpty());
+    selector.qbsProperties["buildVariant"] = "release";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QVERIFY(product.dependencies().isEmpty());
+
+    selector.clear();
+    selector.name = "multiplex-with-aggregator-2";
+    selector.qbsProperties["architecture"] = "C64";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 0);
+    selector.qbsProperties["architecture"] = "TRS-80";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 0);
+    selector.qbsProperties["architecture"] = "Atari ST";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 2);
+
+    selector.clear();
+    selector.name = "multiplex-with-aggregator-2-dependent";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(!product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 1);
+
+    selector.clear();
+    selector.name = "non-multiplexed-with-dependencies-on-multiplexed";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(!product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 2);
+
+    selector.clear();
+    selector.name = "non-multiplexed-with-dependencies-on-multiplexed-via-export1";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(!product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 4);
+
+    selector.clear();
+    selector.name = "non-multiplexed-with-dependencies-on-multiplexed-via-export2";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(!product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 3);
+
+    selector.clear();
+    selector.name = "non-multiplexed-with-dependencies-on-aggregation-via-export";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(!product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 2);
+
+    selector.clear();
+    selector.name = "aggregate-with-dependencies-on-aggregation-via-export";
+    selector.qbsProperties["architecture"] = "C64";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 2);
+    selector.qbsProperties["architecture"] = "TRS-80";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 2);
+    selector.qbsProperties["architecture"] = "Atari ST";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().count(), 4);
+
+    QVERIFY(products.isEmpty());
 }
 
 void TestApi::newOutputArtifactInDependency()

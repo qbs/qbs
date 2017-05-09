@@ -474,6 +474,11 @@ QString ProductData::profile() const
     return d->profile;
 }
 
+QString ProductData::multiplexConfigurationId() const
+{
+   return d->multiplexConfigurationId;
+}
+
 /*!
  * \brief The location at which the product is defined in the source file.
  */
@@ -589,6 +594,12 @@ bool ProductData::isRunnable() const
     return d->isRunnable;
 }
 
+bool ProductData::isMultiplexed() const
+{
+    QBS_ASSERT(isValid(), return false);
+    return d->isMultiplexed;
+}
+
 bool operator==(const ProductData &lhs, const ProductData &rhs)
 {
     if (!lhs.isValid() && !rhs.isValid())
@@ -601,12 +612,14 @@ bool operator==(const ProductData &lhs, const ProductData &rhs)
             && lhs.version() == rhs.version()
             && lhs.dependencies() == rhs.dependencies()
             && lhs.profile() == rhs.profile()
+            && lhs.multiplexConfigurationId() == rhs.multiplexConfigurationId()
             && lhs.location() == rhs.location()
             && lhs.groups() == rhs.groups()
             && lhs.generatedArtifacts() == rhs.generatedArtifacts()
             && lhs.properties() == rhs.properties()
             && lhs.moduleProperties() == rhs.moduleProperties()
-            && lhs.isEnabled() == rhs.isEnabled();
+            && lhs.isEnabled() == rhs.isEnabled()
+            && lhs.isMultiplexed() == rhs.isMultiplexed();
 }
 
 bool operator!=(const ProductData &lhs, const ProductData &rhs)
@@ -621,7 +634,8 @@ bool operator<(const ProductData &lhs, const ProductData &rhs)
         return true;
     if (nameCmp > 0)
         return false;
-    return lhs.profile() < rhs.profile();
+    return lhs.profile() < rhs.profile()
+            && lhs.multiplexConfigurationId() < lhs.multiplexConfigurationId();
 }
 
 /*!

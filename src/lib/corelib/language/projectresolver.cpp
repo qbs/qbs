@@ -365,6 +365,8 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     productContext.buildDirectory = m_evaluator->stringValue(item, QLatin1String("buildDirectory"));
     product->profile = m_evaluator->stringValue(item, QLatin1String("profile"));
     QBS_CHECK(!product->profile.isEmpty());
+    product->multiplexConfigurationId
+            = m_evaluator->stringValue(item, QLatin1String("multiplexConfigurationId"));
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->uniqueName();
     m_productsByName.insert(product->uniqueName(), product);
     product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
@@ -972,6 +974,16 @@ void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext
     m_productContext->product->scanners += scanner;
 }
 
+static ModuleLoaderResult::ProductInfo::Dependency extractDependency(
+        const ResolvedProductConstPtr &product)
+{
+    ModuleLoaderResult::ProductInfo::Dependency dependency;
+    dependency.name = product->name;
+    dependency.profile = product->profile;
+    dependency.multiplexConfigurationId = product->multiplexConfigurationId;
+    return dependency;
+}
+
 ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
         const ResolvedProductConstPtr &product, const ModuleLoaderResult::ProductInfo &productInfo)
 {
@@ -990,10 +1002,7 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
                         continue;
                     }
                     result.dependencies.emplace_back(p, dependency.parameters);
-                    ModuleLoaderResult::ProductInfo::Dependency newDependency;
-                    newDependency.name = p->name;
-                    newDependency.profile = p->profile;
-                    dependencies << newDependency;
+                    dependencies << extractDependency(p);
                 }
             }
             dependencies.removeAt(i);
@@ -1004,10 +1013,7 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
                     continue;
                 }
                 result.dependencies.emplace_back(p, dependency.parameters);
-                ModuleLoaderResult::ProductInfo::Dependency newDependency;
-                newDependency.name = p->name;
-                newDependency.profile = p->profile;
-                dependencies << newDependency;
+                dependencies << extractDependency(p);
             }
             dependencies.removeAt(i);
         } else {

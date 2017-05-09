@@ -54,6 +54,9 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
+#include <map>
+#include <vector>
+
 namespace qbs {
 
 class CodeLocation;
@@ -79,6 +82,7 @@ struct ModuleLoaderResult
             FileTags productTypes;
             QString name;
             QString profile; // "*" <=> Match all profiles.
+            QString multiplexConfigurationId;
             QVariantMap parameters;
             bool limitToSubProject = false;
             bool isRequired = true;
@@ -150,7 +154,10 @@ private:
         ModuleLoaderResult::ProductInfo info;
         QString name;
         QString profileName;
+        QString multiplexConfigurationId;
         QVariantMap moduleProperties;
+
+        QString uniqueName() const;
     };
 
     class TopLevelProjectContext;
@@ -199,7 +206,27 @@ private:
     void handleProject(ModuleLoaderResult *loadResult,
             TopLevelProjectContext *topLevelProjectContext, Item *projectItem,
             const Set<QString> &referencedFilePaths);
+
+    typedef std::vector<VariantValuePtr> MultiplexRow;
+    typedef std::vector<MultiplexRow> MultiplexTable;
+
+    struct MultiplexInfo
+    {
+        std::vector<QString> properties;
+        MultiplexTable table;
+        bool aggregate = false;
+        VariantValuePtr multiplexedType;
+
+        static QString configurationStringFromId(const QString &idString);
+        QString toIdString(size_t row) const;
+    };
+
+    void dump(const MultiplexInfo &mpi);
+    static MultiplexTable combine(const MultiplexTable &table, const MultiplexRow &values);
+    MultiplexInfo extractMultiplexInfo(Item *productItem, Item *qbsModuleItem);
     QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);
+    void adjustDependenciesForMultiplexing(const ProjectContext &projectContext);
+
     void prepareProduct(ProjectContext *projectContext, Item *productItem);
     void setupProductDependencies(ProductContext *productContext);
     void handleProduct(ProductContext *productContext);
@@ -266,6 +293,7 @@ private:
     static void forwardScopeToItemValues(Item *item, Item *scope);
     void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                 const QVariantMap &buildConfig);
+    void addProductModuleDependencies(ProductContext *ctx, const Item::Module &module);
     void addTransitiveDependencies(ProductContext *ctx);
     Item *createNonPresentModule(const QString &name, const QString &reason, Item *module);
     void copyGroupsFromModuleToProduct(const ProductContext &productContext,
@@ -305,6 +333,7 @@ private:
     QHash<QString, QList<ProbeConstPtr>> m_oldProjectProbes;
     QHash<QString, QList<ProbeConstPtr>> m_oldProductProbes;
     QHash<CodeLocation, QList<ProbeConstPtr>> m_currentProbes;
+    std::multimap<QString, const ProductContext *> m_productsByName;
     SetupProjectParameters m_parameters;
     Version m_qbsVersion;
     Item *m_tempScopeItem = nullptr;

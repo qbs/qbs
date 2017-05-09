@@ -68,6 +68,8 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qdiriterator.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
 #include <QtScript/qscriptvalueiterator.h>
 
 #include <algorithm>
@@ -122,12 +124,12 @@ public:
 
     void apply()
     {
-        QHash<QString, ProductContext *> productsMap;
+        QHash<QString, std::vector<ProductContext *>> productsMap;
         QList<ProductContext *> allProducts;
         for (ProjectContext * const projectContext : qAsConst(m_tlp.projects)) {
             for (auto &product : projectContext->products) {
                 allProducts.push_back(&product);
-                productsMap.insert(product.name, &product);
+                productsMap[product.name].push_back(&product);
             }
         }
         Set<ProductContext *> allDependencies;
@@ -137,10 +139,45 @@ public:
                 if (!dep.productTypes.isEmpty())
                     continue;
                 QBS_CHECK(!dep.name.isEmpty());
-                ProductContext * const depProduct = productsMap.value(dep.name);
-                QBS_CHECK(depProduct);
-                productDependencies.push_back(depProduct);
-                allDependencies << depProduct;
+                const auto &deps = productsMap.value(dep.name);
+                if (dep.profile == QLatin1String("*")) {
+                    QBS_CHECK(!deps.empty());
+                    for (ProductContext *depProduct : deps) {
+                        if (depProduct == productContext)
+                            continue;
+                        productDependencies.push_back(depProduct);
+                        allDependencies << depProduct;
+                    }
+                } else {
+                    auto it = std::find_if(deps.begin(), deps.end(), [&dep] (ProductContext *p) {
+                            return p->multiplexConfigurationId == dep.multiplexConfigurationId;
+                        });
+                    if (it == deps.end()) {
+                        QBS_CHECK(!productContext->multiplexConfigurationId.isEmpty());
+                        ErrorInfo e(Tr::tr("Dependency from product '%1' to product '%2' not "
+                                           "fulfilled.")
+                                    .arg(productContext->name, dep.name),
+                                    productContext->item->location());
+                        const QString configJsonString = MultiplexInfo::configurationStringFromId(
+                                    productContext->multiplexConfigurationId);
+                        const QVariantMap config = QJsonDocument::fromJson(
+                                    configJsonString.toUtf8()).object().toVariantMap();
+                        QString userConfigString;
+                        for (auto it = config.cbegin(); it != config.cend(); ++it) {
+                            if (!userConfigString.isEmpty())
+                                userConfigString += QLatin1Char('\n');
+                            userConfigString.append(QLatin1String("\tqbs.") + it.key())
+                                    .append(QLatin1String(": "))
+                                    .append(it.value().toStringList().join(QLatin1Char(',')));
+                        }
+                        e.append(Tr::tr("No product '%1' found with a matching multiplex "
+                                        "configuration:\n%2").arg(dep.name, userConfigString));
+                        throw e;
+
+                    }
+                    productDependencies.push_back(*it);
+                    allDependencies << *it;
+                }
             }
         }
         const Set<ProductContext *> rootProducts
@@ -595,7 +632,115 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
             break;
         }
     }
+    adjustDependenciesForMultiplexing(projectContext);
     m_reader->popExtraSearchPaths();
+}
+
+QString ModuleLoader::MultiplexInfo::configurationStringFromId(const QString &idString)
+{
+    return QString::fromUtf8(QByteArray::fromBase64(idString.toUtf8()));
+}
+
+QString ModuleLoader::MultiplexInfo::toIdString(size_t row) const
+{
+    const auto &mprow = table.at(row);
+    QVariantMap multiplexConfiguration;
+    for (size_t column = 0; column < mprow.size(); ++column) {
+        const QString &propertyName = properties.at(column);
+        const VariantValuePtr &mpvalue = mprow.at(column);
+        multiplexConfiguration.insert(propertyName, mpvalue->value());
+    }
+    return QString::fromUtf8(QJsonDocument::fromVariant(multiplexConfiguration)
+                             .toJson(QJsonDocument::Compact)
+                             .toBase64());
+}
+
+void qbs::Internal::ModuleLoader::ModuleLoader::dump(const ModuleLoader::MultiplexInfo &mpi)
+{
+    QStringList header;
+    for (const auto &str : mpi.properties)
+        header << str;
+    qDebug() << header;
+
+    for (const auto &row : mpi.table) {
+        QVariantList values;
+        for (const auto &elem : row) {
+            values << elem->value();
+        }
+        qDebug() << values;
+    }
+}
+
+ModuleLoader::MultiplexTable ModuleLoader::combine(const MultiplexTable &table,
+                                                   const MultiplexRow &values)
+{
+    MultiplexTable result;
+    if (table.empty()) {
+        result.resize(values.size());
+        for (size_t i = 0; i < values.size(); ++i) {
+            MultiplexRow row;
+            row.resize(1);
+            row[0] = values.at(i);
+            result[i] = row;
+        }
+    } else {
+        for (const auto &row : table) {
+            for (const auto &value : values) {
+                MultiplexRow newRow = row;
+                newRow.push_back(value);
+                result.push_back(newRow);
+            }
+        }
+    }
+    return result;
+}
+
+ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem,
+                                                               Item *qbsModuleItem)
+{
+    const QString mpmKey = QLatin1String("multiplexMap");
+    const QString mbqpKey = QLatin1String("multiplexByQbsProperties");
+    const QString mptypeKey = QLatin1String("multiplexedType");
+    const QString aggregateKey = QLatin1String("aggregate");
+    const QString profilesKey = QLatin1String("profiles");
+
+    const QScriptValue multiplexMap = m_evaluator->value(qbsModuleItem, mpmKey);
+    QStringList multiplexByQbsProperties = m_evaluator->stringListValue(productItem, mbqpKey);
+
+    // Backwards compatibility. The profiles property is always set.
+    if (!multiplexByQbsProperties.contains(profilesKey))
+        multiplexByQbsProperties << profilesKey;
+
+    MultiplexInfo multiplexInfo;
+    multiplexInfo.aggregate = m_evaluator->boolValue(productItem, aggregateKey);
+
+    const QString multiplexedType = m_evaluator->stringValue(productItem, mptypeKey);
+    if (!multiplexedType.isEmpty())
+        multiplexInfo.multiplexedType = VariantValue::create(multiplexedType);
+
+    for (const QString &key : multiplexByQbsProperties) {
+        const QString mappedKey = multiplexMap.property(key).toString();
+        if (mappedKey.isEmpty())
+            throw ErrorInfo(Tr::tr("There is no entry for '%1' in 'qbs.multiplexMap'.").arg(key));
+
+        const QScriptValue arr = m_evaluator->value(qbsModuleItem, key);
+        if (arr.isUndefined())
+            continue;
+        if (!arr.isArray())
+            throw ErrorInfo(Tr::tr("Property '%1' must be an array.").arg(key));
+
+        const quint32 arrlen = arr.property(QLatin1String("length")).toUInt32();
+        if (arrlen == 0)
+            continue;
+
+        MultiplexRow mprow;
+        mprow.resize(arrlen);
+        for (quint32 i = 0; i < arrlen; ++i)
+            mprow[i] = VariantValue::create(arr.property(i).toVariant());
+        multiplexInfo.table = combine(multiplexInfo.table, mprow);
+        multiplexInfo.properties.push_back(mappedKey);
+    }
+    return multiplexInfo;
 }
 
 QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, Item *productItem)
@@ -606,20 +751,22 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     ValuePtr qbsValue = productItem->property(qbsKey); // Retrieve now to restore later.
     if (qbsValue)
         qbsValue = qbsValue->clone();
-    productItem->addModule(loadBaseModule(dummyContext, productItem));
+    const Item::Module qbsModule = loadBaseModule(dummyContext, productItem);
+    productItem->addModule(qbsModule);
 
     // Overriding the product item properties must be done here already, because otherwise
     // the "profiles" property would not be overridable.
-    QString productName = m_evaluator->stringValue(productItem, QLatin1String("name"));
+    const QString nameKey = QLatin1String("name");
+    QString productName = m_evaluator->stringValue(productItem, nameKey);
     if (productName.isEmpty()) {
         productName = FileInfo::completeBaseName(productItem->file()->filePath());
-        productItem->setProperty(QLatin1String("name"), VariantValue::create(productName));
+        productItem->setProperty(nameKey, VariantValue::create(productName));
     }
     overrideItemProperties(productItem, QLatin1String("products.") + productName,
                            m_parameters.overriddenValuesTree());
 
     const QString profilesKey = QLatin1String("profiles");
-    const ValueConstPtr profilesValue = productItem->property(profilesKey);
+    const ValuePtr profilesValue = productItem->property(profilesKey);
     QBS_CHECK(profilesValue); // Default value set in BuiltinDeclarations.
     const QStringList profileNames = m_evaluator->stringListValue(productItem, profilesKey);
     if (profileNames.isEmpty()) {
@@ -633,6 +780,10 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         }
     }
 
+    qbsModule.item->setProperty(profilesKey, profilesValue);    // Backward compatibility
+    const MultiplexInfo &multiplexInfo = extractMultiplexInfo(productItem, qbsModule.item);
+    //dump(multiplexInfo);
+
     // "Unload" the qbs module again.
     if (qbsValue)
         productItem->setProperty(qbsKey, qbsValue);
@@ -640,9 +791,6 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         productItem->removeProperty(qbsKey);
     productItem->removeModules();
 
-    QList<Item *> additionalProductItems;
-    const QString profileKey = QLatin1String("profile");
-    productItem->setProperty(profileKey, VariantValue::create(profileNames.first()));
     Settings settings(m_parameters.settingsDirectory());
     for (int i = 0; i < profileNames.count(); ++i) {
         Profile profile(profileNames.at(i), &settings);
@@ -650,13 +798,143 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
             throw ErrorInfo(Tr::tr("The profile '%1' does not exist.").arg(profile.name()),
                             productItem->location()); // TODO: profilesValue->location() is invalid, why?
         }
-        if (i == 0)
-            continue; // We use the original item for the first profile.
-        Item * const cloned = productItem->clone();
-        cloned->setProperty(profileKey, VariantValue::create(profileNames.at(i)));
-        additionalProductItems << cloned;
     }
+
+    if (multiplexInfo.table.size() > 1) {
+        const QString multiplexedKey = QStringLiteral("multiplexed");
+        const VariantValuePtr trueValue = VariantValue::create(true);
+        productItem->setProperty(multiplexedKey, trueValue);
+    }
+
+    const QString profileKey = QLatin1String("profile");
+    const QString multiplexConfigurationIdKey = QStringLiteral("multiplexConfigurationId");
+    VariantValuePtr productNameValue = VariantValue::create(productName);
+
+    // Backward compatibility
+    productItem->setProperty(profileKey, VariantValue::create(profileNames.first()));
+
+    Item *aggregator = multiplexInfo.aggregate ? productItem->clone() : nullptr;
+    QList<Item *> additionalProductItems;
+    std::vector<VariantValuePtr> multiplexConfigurationIdValues;
+    for (size_t row = 0; row < multiplexInfo.table.size(); ++row) {
+        Item *item = productItem;
+        const auto &mprow = multiplexInfo.table.at(row);
+        QBS_CHECK(mprow.size() == multiplexInfo.properties.size());
+        if (row > 0) {
+            item = productItem->clone();
+            additionalProductItems.append(item);
+        }
+        if (multiplexInfo.table.size() > 1 || aggregator) {
+            const QString multiplexConfigurationId = multiplexInfo.toIdString(row);
+            const VariantValuePtr multiplexConfigurationIdValue
+                = VariantValue::create(multiplexConfigurationId);
+            multiplexConfigurationIdValues.push_back(multiplexConfigurationIdValue);
+            item->setProperty(multiplexConfigurationIdKey, multiplexConfigurationIdValue);
+        }
+        if (multiplexInfo.multiplexedType)
+            item->setProperty(QStringLiteral("type"), multiplexInfo.multiplexedType);
+        for (size_t column = 0; column < mprow.size(); ++column) {
+            Item *qbsItem = moduleInstanceItem(item, qbsKey);
+            const QString &propertyName = multiplexInfo.properties.at(column);
+            const VariantValuePtr &mpvalue = mprow.at(column);
+            qbsItem->setProperty(propertyName, mpvalue);
+
+            // Backward compatibility
+            if (propertyName == profileKey)
+                item->setProperty(profileKey, mpvalue);
+        }
+    }
+
+    if (aggregator) {
+        additionalProductItems << aggregator;
+
+        // Add dependencies to all multiplexed instances.
+        for (const auto &v : multiplexConfigurationIdValues) {
+            Item *dependsItem = Item::create(aggregator->pool(), ItemType::Depends);
+            dependsItem->setProperty(nameKey, productNameValue);
+            dependsItem->setProperty(multiplexConfigurationIdKey, v);
+            dependsItem->setProperty(QStringLiteral("profiles"),
+                                     VariantValue::create(QStringLiteral("*")));
+            Item::addChild(aggregator, dependsItem);
+        }
+
+        // Backward compatibility
+        aggregator->setProperty(profileKey, VariantValue::create(profileNames.first()));
+    }
+
     return additionalProductItems;
+}
+
+void ModuleLoader::adjustDependenciesForMultiplexing(const ProjectContext &projectContext)
+{
+    for (const ProductContext &product : projectContext.products)
+        m_productsByName.insert({ product.name, &product });
+
+    const QString multiplexConfigurationIdKey = QStringLiteral("multiplexConfigurationId");
+    for (const ProductContext &product : projectContext.products) {
+        std::vector<Item *> additionalDependsItems;
+        for (Item *dependsItem : product.item->children()) {
+            if (dependsItem->type() != ItemType::Depends)
+                continue;
+            const QString name = m_evaluator->stringValue(dependsItem, QStringLiteral("name"));
+            const bool productIsMultiplexed = !product.multiplexConfigurationId.isEmpty();
+            if (name == product.name) {
+                QBS_CHECK(!productIsMultiplexed); // This product must be an aggregator.
+                continue;
+            }
+            const auto productRange = m_productsByName.equal_range(name);
+            std::vector<const ProductContext *> dependencies;
+            bool hasNonMultiplexedDependency = false;
+            for (auto it = productRange.first; it != productRange.second; ++it) {
+                if (!it->second->multiplexConfigurationId.isEmpty()) {
+                    dependencies.push_back(it->second);
+                    if (productIsMultiplexed)
+                        break;
+                } else {
+                    hasNonMultiplexedDependency = true;
+                    break;
+                }
+            }
+
+            // These are the allowed cases:
+            // (1) Normal dependency with no multiplexing whatsoever.
+            // (2) Both product and dependency are multiplexed.
+            // (3) The product is not multiplexed, but the dependency is.
+            //     (3a) The dependency has an aggregator. We want to depend on the aggregator.
+            //     (3b) The dependency does not have an aggregator. We want to depend on all the
+            //          multiplexed variants.
+            // (4) The product is multiplexed, but the dependency is not. This case is implicitly
+            //     handled, because we don't have to adapt any Depends items.
+
+            // (1) and (3a)
+            if (!productIsMultiplexed && hasNonMultiplexedDependency)
+                continue;
+
+            for (std::size_t i = 0; i < dependencies.size(); ++i) {
+                const QString depMultiplexId = dependencies.at(i)->multiplexConfigurationId;
+                if (i == 0) {
+                    if (productIsMultiplexed) { // (2)
+                        dependsItem->setProperty(multiplexConfigurationIdKey,
+                                product.item->property(multiplexConfigurationIdKey));
+                        break;
+                    }
+                    // (3b)
+                    dependsItem->setProperty(multiplexConfigurationIdKey,
+                                             VariantValue::create(depMultiplexId));
+                } else {
+                    // (3b)
+                    Item * const newDependsItem = dependsItem->clone();
+                    newDependsItem->setProperty(multiplexConfigurationIdKey,
+                                                VariantValue::create(depMultiplexId));
+                    dependsItem->setProperty(QStringLiteral("profiles"),
+                                             VariantValue::create(QStringLiteral("*")));
+                    additionalDependsItems.push_back(newDependsItem);
+                }
+            }
+        }
+        for (Item * const newDependsItem : additionalDependsItems)
+            Item::addChild(product.item, newDependsItem);
+    }
 }
 
 void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productItem)
@@ -671,6 +949,8 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     bool profilePropertySet;
     productContext.profileName = m_evaluator->stringValue(productItem, QLatin1String("profile"),
                                                          QString(), &profilePropertySet);
+    productContext.multiplexConfigurationId
+            = m_evaluator->stringValue(productItem, QLatin1String("multiplexConfigurationId"));
     QBS_CHECK(profilePropertySet);
     const auto it = projectContext->result->profileConfigs.constFind(productContext.profileName);
     if (it == projectContext->result->profileConfigs.constEnd()) {
@@ -951,7 +1231,8 @@ void ModuleLoader::handleModuleSetupError(ModuleLoader::ProductContext *productC
 
 void ModuleLoader::initProductProperties(const ProductContext &product)
 {
-    QString buildDir = ResolvedProduct::deriveBuildDirectoryName(product.name, product.profileName);
+    QString buildDir = ResolvedProduct::deriveBuildDirectoryName(product.name, product.profileName,
+                                                                 product.multiplexConfigurationId);
     buildDir = FileInfo::resolvePath(product.project->topLevelProject->buildDirectory, buildDir);
     product.item->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDir));
     const QString sourceDir = QFileInfo(product.item->file()->filePath()).absolutePath();
@@ -1743,10 +2024,14 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
             QStringList profiles = m_evaluator->stringListValue(dependsItem, profilesKey);
             if (profiles.isEmpty())
                 profiles.append(QLatin1String("*"));
+            const QString multiplexConfigurationId
+                    = m_evaluator->stringValue(dependsItem,
+                                               QStringLiteral("multiplexConfigurationId"));
             for (const QString &profile : qAsConst(profiles)) {
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
                 dependency.name = moduleName.toString();
                 dependency.profile = profile;
+                dependency.multiplexConfigurationId = multiplexConfigurationId;
                 dependency.isRequired = isRequired;
                 productResults->append(dependency);
             }
@@ -2077,7 +2362,9 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] trying to load " << fullModuleName << " from " << filePath;
 
-    const ModuleItemCache::key_type cacheKey(filePath, productContext->profileName);
+    const QString keyUniquifier = productContext->multiplexConfigurationId.isEmpty() ?
+                productContext->profileName : productContext->uniqueName();
+    const ModuleItemCache::key_type cacheKey(filePath, keyUniquifier);
     const ItemCacheValue cacheValue = m_modulePrototypeItemCache.value(cacheKey);
     if (cacheValue.module) {
         m_logger.qbsTrace() << "[LDR] loadModuleFile cache hit for " << filePath;
@@ -2147,6 +2434,15 @@ Item::Module ModuleLoader::loadBaseModule(ProductContext *productContext, Item *
     baseModuleDesc.name = baseModuleName;
     baseModuleDesc.item = loadModule(productContext, item, CodeLocation(), QString(),
                                      baseModuleName, true, &baseModuleDesc.isProduct, nullptr);
+    if (productContext->item) {
+        const Item * const qbsInstanceItem
+                = moduleInstanceItem(productContext->item, baseModuleName);
+        const Item::PropertyMap &props = qbsInstanceItem->properties();
+        for (auto it = props.cbegin(); it != props.cend(); ++it) {
+            if (it.value()->type() == Value::VariantValueType)
+                baseModuleDesc.item->setProperty(it.key(), it.value());
+        }
+    }
     QBS_CHECK(!baseModuleDesc.isProduct);
     if (Q_UNLIKELY(!baseModuleDesc.item))
         throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
@@ -2490,8 +2786,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     if (parent->type() == ItemType::Project) {
         resolvedProbe = findOldProjectProbe(probeId, condition, initialProperties, sourceCode);
     } else {
-        const QString &uniqueProductName
-                = ResolvedProduct::uniqueName(productContext->name, productContext->profileName);
+        const QString &uniqueProductName = productContext->uniqueName();
         resolvedProbe
                 = findOldProductProbe(uniqueProductName, condition, initialProperties, sourceCode);
     }
@@ -2692,6 +2987,55 @@ static std::vector<Item::Module> allModules(Item *item)
     return lst;
 }
 
+void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
+                                                const Item::Module &module)
+{
+    auto deps = productContext->project->topLevelProject->productModules.value(
+                    module.name.toString()).productDependencies;
+    const QString multiplexConfigurationIdKey = QStringLiteral("multiplexConfigurationId");
+    QList<ModuleLoaderResult::ProductInfo::Dependency> additionalDependencies;
+    const bool productIsMultiplexed = !productContext->multiplexConfigurationId.isEmpty();
+    for (auto &dep : deps) {
+        const auto productRange = m_productsByName.equal_range(dep.name);
+        std::vector<const ProductContext *> dependencies;
+        bool hasNonMultiplexedDependency = false;
+        for (auto it = productRange.first; it != productRange.second; ++it) {
+            if (!it->second->multiplexConfigurationId.isEmpty()) {
+                dependencies.push_back(it->second);
+                if (productIsMultiplexed)
+                    break;
+            } else {
+                hasNonMultiplexedDependency = true;
+                break;
+            }
+        }
+
+        if (!productIsMultiplexed && hasNonMultiplexedDependency)
+            continue;
+
+        for (std::size_t i = 0; i < dependencies.size(); ++i) {
+            if (i == 0) {
+                if (productIsMultiplexed) {
+                    dep.multiplexConfigurationId = productContext->item
+                            ->property(multiplexConfigurationIdKey)
+                            .staticCast<VariantValue>()->value().toString();
+                    break;
+                } else {
+                    dep.multiplexConfigurationId = dependencies.at(i)->multiplexConfigurationId;
+                }
+            } else {
+                ModuleLoaderResult::ProductInfo::Dependency newDependency = dep;
+                newDependency.multiplexConfigurationId
+                        = dependencies.at(i)->multiplexConfigurationId;
+                newDependency.profile = QLatin1String("*");
+                additionalDependencies << newDependency;
+            }
+        }
+    }
+    productContext->info.usedProducts.append(deps);
+    productContext->info.usedProducts.append(additionalDependencies);
+}
+
 void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
 {
     if (m_logger.traceEnabled())
@@ -2700,11 +3044,8 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
     std::vector<Item::Module> transitiveDeps = allModules(ctx->item);
     std::sort(transitiveDeps.begin(), transitiveDeps.end());
     for (const Item::Module &m : ctx->item->modules()) {
-        if (m.isProduct) {
-            ctx->info.usedProducts.append(
-                        ctx->project->topLevelProject->productModules.value(
-                            m.name.toString()).productDependencies);
-        }
+        if (m.isProduct)
+            addProductModuleDependencies(ctx, m);
 
         auto it = std::lower_bound(transitiveDeps.begin(), transitiveDeps.end(), m);
         QBS_CHECK(it != transitiveDeps.end() && it->name == m.name);
@@ -2713,9 +3054,7 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
     for (const Item::Module &module : qAsConst(transitiveDeps)) {
         if (module.isProduct) {
             ctx->item->addModule(module);
-            ctx->info.usedProducts.append(
-                        ctx->project->topLevelProject->productModules.value(
-                            module.name.toString()).productDependencies);
+            addProductModuleDependencies(ctx, module);
         } else {
             Item::Module dep;
             dep.item = loadModule(ctx, ctx->item, ctx->item->location(), QString(), module.name,
@@ -2786,7 +3125,12 @@ void ModuleLoader::copyGroupsFromModulesToProduct(const ProductContext &productC
 
 QString ModuleLoaderResult::ProductInfo::Dependency::uniqueName() const
 {
-    return ResolvedProduct::uniqueName(name, profile);
+    return ResolvedProduct::uniqueName(name, profile, multiplexConfigurationId);
+}
+
+QString ModuleLoader::ProductContext::uniqueName() const
+{
+    return ResolvedProduct::uniqueName(name, profileName, multiplexConfigurationId);
 }
 
 } // namespace Internal

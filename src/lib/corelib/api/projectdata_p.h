@@ -110,6 +110,7 @@ public:
     QString targetName;
     QString version;
     QString profile;
+    QString multiplexConfigurationId;
     CodeLocation location;
     QString buildDirectory;
     QList<GroupData> groups;
@@ -118,6 +119,7 @@ public:
     QList<ArtifactData> generatedArtifacts;
     bool isEnabled;
     bool isRunnable;
+    bool isMultiplexed;
     bool isValid;
 };
 

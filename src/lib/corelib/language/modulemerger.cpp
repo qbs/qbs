@@ -223,8 +223,11 @@ void ModuleMerger::insertProperties(Item::PropertyMap *dst, Item *srcItem, Prope
             for (Item::PropertyMap::const_iterator it = srcItem->properties().constBegin();
                  it != srcItem->properties().constEnd(); ++it) {
                 const ValuePtr &srcVal = it.value();
-                if (srcVal->type() != Value::JSSourceValueType)
+                if (srcVal->type() == Value::ItemValueType
+                        || it.key() == QLatin1String("_qbs_sourceDir")) {
                     continue;
+                }
+
                 const PropertyDeclaration srcDecl = srcItem->propertyDeclaration(it.key());
                 if (!srcDecl.isValid() || srcDecl.isScalar() != (type == ScalarProperties))
                     continue;

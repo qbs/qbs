@@ -217,6 +217,8 @@ void BuiltinDeclarations::addDependsItem()
     PropertyDeclaration limitDecl(QLatin1String("limitToSubProject"), PropertyDeclaration::Boolean);
     limitDecl.setInitialValueSource(QLatin1String("false"));
     item << limitDecl;
+    item << PropertyDeclaration(QLatin1String("multiplexConfigurationId"),
+                                PropertyDeclaration::String, PropertyDeclaration::ReadOnlyFlag);
     insert(item);
 }
 
@@ -353,6 +355,17 @@ void BuiltinDeclarations::addProductItem()
     item << PropertyDeclaration(QLatin1String("qbsSearchPaths"),
                                 PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("version"), PropertyDeclaration::String);
+
+    decl = PropertyDeclaration(QLatin1String("multiplexByQbsProperties"),
+                               PropertyDeclaration::StringList);
+    decl.setInitialValueSource(QLatin1String("[\"profiles\"]"));
+    item << decl;
+    item << PropertyDeclaration(QLatin1String("multiplexedType"), PropertyDeclaration::StringList);
+    item << PropertyDeclaration(QLatin1String("aggregate"), PropertyDeclaration::Boolean);
+    item << PropertyDeclaration(QLatin1String("multiplexed"), PropertyDeclaration::Boolean,
+                                PropertyDeclaration::ReadOnlyFlag);
+    item << PropertyDeclaration(QLatin1String("multiplexConfigurationId"),
+                                PropertyDeclaration::String, PropertyDeclaration::ReadOnlyFlag);
     insert(item);
 }
 

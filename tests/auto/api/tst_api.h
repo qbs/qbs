@@ -101,6 +101,7 @@ private slots:
     void missingSourceFile();
     void mocCppIncluded();
     void multiArch();
+    void multiplexing();
     void newOutputArtifactInDependency();
     void newPatternMatch();
     void nonexistingProjectPropertyFromCommandLine();

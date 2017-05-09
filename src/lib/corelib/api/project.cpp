@@ -203,14 +203,19 @@ QList<ResolvedProductPtr> ProjectPrivate::allEnabledInternalProducts(bool includ
     return enabledInternalProducts(internalProject, includingNonDefault);
 }
 
+static bool matches(const ProductData &product, const ResolvedProductConstPtr &rproduct)
+{
+    return product.name() == rproduct->name
+            && product.profile() == rproduct->profile
+            && product.multiplexConfigurationId() == rproduct->multiplexConfigurationId;
+}
+
 static ResolvedProductPtr internalProductForProject(const ResolvedProjectConstPtr &project,
                                                     const ProductData &product)
 {
     for (const ResolvedProductPtr &resolvedProduct : qAsConst(project->products)) {
-        if (product.name() == resolvedProduct->name
-                && product.profile() == resolvedProduct->profile) {
+        if (matches(product, resolvedProduct))
             return resolvedProduct;
-        }
     }
     for (const ResolvedProjectConstPtr &subProject : qAsConst(project->subProjects)) {
         const ResolvedProductPtr &p = internalProductForProject(subProject, product);
@@ -228,8 +233,11 @@ ResolvedProductPtr ProjectPrivate::internalProduct(const ProductData &product) c
 ProductData ProjectPrivate::findProductData(const ProductData &product) const
 {
     for (const ProductData &p : m_projectData.allProducts()) {
-        if (p.name() == product.name() && p.profile() == product.profile())
+        if (p.name() == product.name()
+                && p.profile() == product.profile()
+                && p.multiplexConfigurationId() == product.multiplexConfigurationId()) {
             return p;
+        }
     }
     return ProductData();
 }
@@ -756,6 +764,11 @@ static bool productIsRunnable(const ResolvedProductConstPtr &product)
     return product->fileTags.contains("application");
 }
 
+static bool productIsMultiplexed(const ResolvedProductConstPtr &product)
+{
+    return product->productProperties.value(QStringLiteral("multiplexed")).toBool();
+}
+
 void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                                          const ResolvedProjectConstPtr &internalProject)
 {
@@ -770,10 +783,12 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->version = resolvedProduct->productProperties
                                                         .value(QLatin1String("version")).toString();
         product.d->profile = resolvedProduct->profile;
+        product.d->multiplexConfigurationId = resolvedProduct->multiplexConfigurationId;
         product.d->location = resolvedProduct->location;
         product.d->buildDirectory = resolvedProduct->buildDirectory();
         product.d->isEnabled = resolvedProduct->enabled;
         product.d->isRunnable = productIsRunnable(resolvedProduct);
+        product.d->isMultiplexed = productIsMultiplexed(resolvedProduct);
         product.d->properties = resolvedProduct->productProperties;
         product.d->moduleProperties.d->m_map = resolvedProduct->moduleProperties;
         for (const GroupPtr &resolvedGroup : qAsConst(resolvedProduct->groups))

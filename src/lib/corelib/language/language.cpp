@@ -502,6 +502,7 @@ void ResolvedProduct::load(PersistentPool &pool)
     pool.load(fileTags);
     pool.load(name);
     pool.load(profile);
+    pool.load(multiplexConfigurationId);
     pool.load(targetName);
     pool.load(sourceDirectory);
     pool.load(destinationDirectory);
@@ -528,6 +529,7 @@ void ResolvedProduct::store(PersistentPool &pool) const
     pool.store(fileTags);
     pool.store(name);
     pool.store(profile);
+    pool.store(multiplexConfigurationId);
     pool.store(targetName);
     pool.store(sourceDirectory);
     pool.store(destinationDirectory);
@@ -762,15 +764,21 @@ TopLevelProject *ResolvedProduct::topLevelProject() const
     return project->topLevelProject();
 }
 
-QString ResolvedProduct::uniqueName(const QString &name, const QString &profile)
+QString ResolvedProduct::uniqueName(const QString &name, const QString &profile,
+                                    const QString &multiplexConfigurationId)
 {
     QBS_CHECK(!profile.isEmpty());
-    return name + QLatin1Char('.') + profile;
+    QString result = name + QLatin1Char('.') + profile;
+    if (!multiplexConfigurationId.isEmpty()) {
+        result.append(QLatin1Char('.'));
+        result.append(multiplexConfigurationId);
+    }
+    return result;
 }
 
 QString ResolvedProduct::uniqueName() const
 {
-    return uniqueName(name, profile);
+    return uniqueName(name, profile, multiplexConfigurationId);
 }
 
 static QStringList findGeneratedFiles(const Artifact *base, bool recursive, const FileTags &tags)
@@ -799,9 +807,10 @@ QStringList ResolvedProduct::generatedFiles(const QString &baseFile, bool recurs
     return QStringList();
 }
 
-QString ResolvedProduct::deriveBuildDirectoryName(const QString &name, const QString &profile)
+QString ResolvedProduct::deriveBuildDirectoryName(const QString &name, const QString &profile,
+                                                  const QString &multiplexConfigurationId)
 {
-    QString dirName = uniqueName(name, profile);
+    QString dirName = uniqueName(name, profile, multiplexConfigurationId);
     const QByteArray hash = QCryptographicHash::hash(dirName.toUtf8(), QCryptographicHash::Sha1);
     return HostOsInfo::rfc1034Identifier(dirName)
             .append(QLatin1Char('.'))

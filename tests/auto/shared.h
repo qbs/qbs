@@ -73,16 +73,27 @@ inline bool directoryExists(const QString &dirPath)
     return fi.exists() && fi.isDir();
 }
 
-inline QString uniqueProductName(const QString &productName, const QString &_profileName)
+template <typename T>
+inline QString prefixedIfNonEmpty(const T &prefix, const QString &str)
+{
+    if (str.isEmpty())
+        return QString();
+    return prefix + str;
+}
+
+inline QString uniqueProductName(const QString &productName, const QString &_profileName,
+                                 const QString &multiplexConfigurationId)
 {
     const QString p = _profileName.isEmpty() ? profileName() : _profileName;
-    return productName + '.' + p;
+    return productName + '.' + p + prefixedIfNonEmpty(QLatin1Char('.'), multiplexConfigurationId);
 }
 
 inline QString relativeProductBuildDir(const QString &productName,
-                                       const QString &productProfileName = QString())
+                                       const QString &productProfileName = QString(),
+                                       const QString &multiplexConfigurationId = QString())
 {
-    const QString fullName = uniqueProductName(productName, productProfileName);
+    const QString fullName = uniqueProductName(productName, productProfileName,
+                                               multiplexConfigurationId);
     QString dirName = qbs::Internal::HostOsInfo::rfc1034Identifier(fullName);
     const QByteArray hash = QCryptographicHash::hash(fullName.toUtf8(), QCryptographicHash::Sha1);
     dirName.append('.').append(hash.toHex().left(8));
