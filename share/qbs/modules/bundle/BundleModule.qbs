@@ -289,10 +289,6 @@ Module {
             cmd.qmakeEnv = ModUtils.moduleProperty(product, "qmakeEnv");
 
             cmd.buildEnv = product.moduleProperty("cpp", "buildEnv");
-            cmd.defines = product.moduleProperty("cpp", "defines");
-            cmd.platformDefines = product.moduleProperty("cpp", "platformDefines");
-            cmd.compilerDefines = product.moduleProperty("cpp", "compilerDefines");
-            cmd.allDefines = [].concat(cmd.defines || []).concat(cmd.platformDefines || []).concat(cmd.compilerDefines || []);
 
             cmd.developerPath = product.moduleProperty("xcode", "developerPath");
             cmd.platformInfoPlist = product.moduleProperty("xcode", "platformInfoPlist");
@@ -394,11 +390,6 @@ Module {
 
                     for (key in qmakeEnv)
                         env[key] = qmakeEnv[key];
-
-                    for (i = 0; i < allDefines.length; ++i) {
-                        var parts = allDefines[i].split('=');
-                        env[parts[0]] = parts[1];
-                    }
 
                     DarwinTools.expandPlistEnvironmentVariables(aggregatePlist, env, true);
 
