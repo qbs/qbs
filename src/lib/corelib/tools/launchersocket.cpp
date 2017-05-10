@@ -61,8 +61,8 @@ void LauncherSocket::sendData(const QByteArray &data)
     if (!isReady())
         return;
     std::lock_guard<std::mutex> locker(m_requestsMutex);
-    m_requests << data;
-    if (m_requests.count() == 1)
+    m_requests.push_back(data);
+    if (m_requests.size() == 1)
         QTimer::singleShot(0, this, &LauncherSocket::handleRequests);
 }
 
