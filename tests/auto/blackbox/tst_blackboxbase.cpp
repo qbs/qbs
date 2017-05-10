@@ -34,7 +34,6 @@
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 #include <tools/profile.h>
-#include <tools/settings.h>
 
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qjsondocument.h>
@@ -44,7 +43,6 @@ using qbs::Internal::HostOsInfo;
 using qbs::Internal::removeDirectoryWithContents;
 using qbs::InstallOptions;
 using qbs::Profile;
-using qbs::Settings;
 
 static QString initQbsExecutableFilePath()
 {
@@ -57,6 +55,10 @@ static bool supportsBuildDirectoryOption(const QString &command) {
     return !(QStringList() << "help" << "config" << "config-ui" << "qmltypes"
              << "setup-android" << "setup-qt" << "setup-toolchains" << "create-project")
             .contains(command);
+}
+
+static bool supportsSettingsDirOption(const QString &command) {
+    return !(QStringList() << "help" << "create-project"<< "qmltypes").contains(command);
 }
 
 TestBlackboxBase::TestBlackboxBase(const QString &testDataSrcDir, const QString &testName)
@@ -73,6 +75,9 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
     QStringList args;
     if (!params.command.isEmpty())
         args << params.command;
+    const QString settingsDir = settings()->baseDirectory();
+    if (!settingsDir.isEmpty() && supportsSettingsDirOption(params.command))
+        args << "--settings-dir" << settingsDir;
     if (supportsBuildDirectoryOption(params.command)) {
         args.append(QLatin1String("-d"));
         args.append(params.buildDirectory.isEmpty() ? QLatin1String(".") : params.buildDirectory);
@@ -163,12 +168,12 @@ void TestBlackboxBase::initTestCase()
 {
     QVERIFY(regularFileExists(qbsExecutableFilePath));
 
-    Settings settings((QString()));
-    if (!settings.profiles().contains(profileName()))
+    const SettingsPtr s = settings();
+    if (!s->profiles().contains(profileName()))
         QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
                          "' could not be found. Please set it up on your machine."));
 
-    Profile buildProfile(profileName(), &settings);
+    Profile buildProfile(profileName(), s.get());
     const QStringList searchPaths
             = buildProfile.value(QLatin1String("preferences.qbsSearchPaths")).toStringList();
     if (searchPaths.isEmpty())

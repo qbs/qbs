@@ -993,9 +993,9 @@ void TestApi::errorInSetupRunEnvironment()
 
     bool exceptionCaught = false;
     try {
-        qbs::Settings settings((QString()));
+        const SettingsPtr s = settings();
         qbs::RunEnvironment runEnv = project.getRunEnvironment(product, qbs::InstallOptions(),
-                                                               QProcessEnvironment(), &settings);
+                QProcessEnvironment(), s.get());
         qbs::ErrorInfo error;
         const QProcessEnvironment env = runEnv.runEnvironment(&error);
         QVERIFY(error.hasError());
@@ -1350,8 +1350,8 @@ void TestApi::linkDynamicAndStaticLibs()
     VERIFY_NO_ERROR(errorInfo);
 
     // The dependent static libs should not appear in the link command for the executable.
-    qbs::Settings settings((QString()));
-    const qbs::Profile buildProfile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    const qbs::Profile buildProfile(profileName(), s.get());
     if (buildProfile.value("qbs.toolchain").toStringList().contains("gcc")) {
         QRegularExpression appLinkCmdRex(" -o [^ ]*/HelloWorld" QBS_HOST_EXE_SUFFIX " ");
         QString appLinkCmd;
@@ -1378,8 +1378,8 @@ void TestApi::linkStaticAndDynamicLibs()
 
     // The dependencies libdynamic1.so and libstatic2.a must not appear in the link command for the
     // executable. The -rpath-link line for libdynamic1.so must be there.
-    qbs::Settings settings((QString()));
-    const qbs::Profile buildProfile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    const qbs::Profile buildProfile(profileName(), s.get());
     if (buildProfile.value("qbs.toolchain").toStringList().contains("gcc")) {
         QRegularExpression appLinkCmdRex(" -o [^ ]*/HelloWorld" QBS_HOST_EXE_SUFFIX " ");
         QString appLinkCmd;
@@ -1476,11 +1476,11 @@ void TestApi::mocCppIncluded()
 void TestApi::multiArch()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("multi-arch");
-    qbs::Settings settings((QString()));
-    qbs::Internal::TemporaryProfile tph("host", &settings);
+    const SettingsPtr s = settings();
+    qbs::Internal::TemporaryProfile tph("host", s.get());
     qbs::Profile hostProfile = tph.p;
     hostProfile.setValue("qbs.architecture", "host-arch");
-    qbs::Internal::TemporaryProfile tpt("target", &settings);
+    qbs::Internal::TemporaryProfile tpt("target", s.get());
     qbs::Profile targetProfile = tpt.p;
     targetProfile.setValue("qbs.architecture", "target-arch");
     QVariantMap overriddenValues;
@@ -1899,8 +1899,8 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &proje
     setupParams.setOverrideBuildGraphData(true);
     QDir::setCurrent(projectDirPath);
     setupParams.setBuildRoot(projectDirPath);
-    qbs::Settings settings((QString()));
-    const qbs::Preferences prefs(&settings, profileName());
+    const SettingsPtr s = settings();
+    const qbs::Preferences prefs(s.get(), profileName());
     setupParams.setSearchPaths(prefs.searchPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
             + QLatin1String("/" QBS_RELATIVE_SEARCH_PATH))));
     setupParams.setPluginPaths(prefs.pluginPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
@@ -1909,6 +1909,7 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &proje
             + QLatin1String("/" QBS_RELATIVE_LIBEXEC_PATH)));
     setupParams.setTopLevelProfile(profileName());
     setupParams.setConfigurationName(QStringLiteral("default"));
+    setupParams.setSettingsDirectory(settings()->baseDirectory());
     return setupParams;
 }
 

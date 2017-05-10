@@ -26,6 +26,8 @@
 **
 ****************************************************************************/
 
+#include "../shared.h"
+
 #include <language/tst_language.h>
 
 #include <app/shared/logging/consolelogger.h>
@@ -37,7 +39,8 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-    qbs::Internal::TestLanguage tl(ConsoleLogger::instance().logSink());
+    const SettingsPtr s = settings();
+    qbs::Internal::TestLanguage tl(ConsoleLogger::instance().logSink(), s.get());
     return QTest::qExec(&tl, argc, argv);
 }
 

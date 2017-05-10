@@ -54,11 +54,12 @@ class QBS_EXPORT TestLanguage : public QObject
 {
     Q_OBJECT
 public:
-    TestLanguage(ILogSink *logSink);
+    TestLanguage(ILogSink *logSink, Settings *settings);
     ~TestLanguage();
 
 private:
     ILogSink *m_logSink;
+    Settings * const m_settings;
     Logger m_logger;
     ScriptEngine *m_engine;
     Loader *loader;

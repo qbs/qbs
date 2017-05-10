@@ -32,7 +32,6 @@
 
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
-#include <tools/settings.h>
 #include <tools/shellutils.h>
 #include <tools/version.h>
 
@@ -55,7 +54,6 @@
 
 using qbs::Internal::HostOsInfo;
 using qbs::Profile;
-using qbs::Settings;
 
 class MacosTarHealer {
 public:
@@ -136,8 +134,8 @@ QString TestBlackbox::findArchiver(const QString &fileName, int *status)
 
     QString binary = findExecutable(QStringList(fileName));
     if (binary.isEmpty()) {
-        Settings s((QString()));
-        Profile p(profileName(), &s);
+        const SettingsPtr s = settings();
+        Profile p(profileName(), s.get());
         binary = findExecutable(p.value("archiver.command").toStringList());
     }
     return binary;
@@ -145,8 +143,8 @@ QString TestBlackbox::findArchiver(const QString &fileName, int *status)
 
 static bool isXcodeProfile(const QString &profileName)
 {
-    qbs::Settings settings((QString()));
-    qbs::Profile profile(profileName, &settings);
+    const SettingsPtr s = settings();
+    qbs::Profile profile(profileName, s.get());
     return profile.value("qbs.toolchain").toStringList().contains("xcode");
 }
 
@@ -836,10 +834,10 @@ void TestBlackbox::dependenciesProperty()
 void TestBlackbox::dependencyProfileMismatch()
 {
     QDir::setCurrent(testDataDir + "/dependency-profile-mismatch");
-    qbs::Settings s((QString()));
-    qbs::Internal::TemporaryProfile depProfile("qbs_autotests_profileMismatch", &s);
+    const SettingsPtr s = settings();
+    qbs::Internal::TemporaryProfile depProfile("qbs_autotests_profileMismatch", s.get());
     depProfile.p.setValue("qbs.architecture", "x86"); // Profiles must not be empty...
-    s.sync();
+    s->sync();
     QbsRunParameters params(QStringList() << ("project.mainProfile:" + profileName())
                             << ("project.depProfile:" + depProfile.p.name()));
     params.expectFailure = true;
@@ -1050,8 +1048,8 @@ void TestBlackbox::versionCheck_data()
 
 void TestBlackbox::versionScript()
 {
-    Settings settings((QString()));
-    Profile buildProfile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile buildProfile(profileName(), s.get());
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
     if (!toolchain.contains("gcc") || targetOs() != HostOsInfo::HostOsLinux)
         QSKIP("version script test only applies to Linux");
@@ -1282,8 +1280,8 @@ void TestBlackbox::separateDebugInfo()
     QDir::setCurrent(testDataDir + "/separate-debug-info");
     QCOMPARE(runQbs(), 0);
 
-    Settings settings((QString()));
-    Profile buildProfile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile buildProfile(profileName(), s.get());
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
     QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
     if (targetOS.contains("darwin") || (targetOS.isEmpty() && HostOsInfo::isMacosHost())) {
@@ -1525,8 +1523,8 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(m_qbsStdout.contains("compiling fileExists.cpp"));
 
     rmDirR(relativeBuildDir());
-    Settings s((QString()));
-    const Profile profile(profileName(), &s);
+    const SettingsPtr s = settings();
+    const Profile profile(profileName(), s.get());
     const QStringList toolchainTypes = profile.value("qbs.toolchain").toStringList();
     if (!toolchainTypes.contains("gcc"))
         QSKIP("Need GCC-like compiler to run this test");
@@ -1817,8 +1815,8 @@ void TestBlackbox::referenceErrorInExport()
 
 void TestBlackbox::reproducibleBuild()
 {
-    Settings s((QString()));
-    const Profile profile(profileName(), &s);
+    const SettingsPtr s = settings();
+    const Profile profile(profileName(), s.get());
     const QStringList toolchains = profile.value("qbs.toolchain").toStringList();
     if (!toolchains.contains("gcc") || toolchains.contains("clang"))
         QSKIP("reproducible builds only supported for gcc");
@@ -2630,8 +2628,8 @@ void TestBlackbox::qtBug51237()
     const QString profileName = "profile-qtBug51237";
     const QString propertyName = "mymodule.theProperty";
     {
-        Settings settings((QString()));
-        Profile profile(profileName, &settings);
+        const SettingsPtr s = settings();
+        Profile profile(profileName, s.get());
         profile.setValue(propertyName, QStringList());
     }
     QDir::setCurrent(testDataDir + "/QTBUG-51237");
@@ -2796,8 +2794,8 @@ void TestBlackbox::errorInfo()
 
 void TestBlackbox::escapedLinkerFlags()
 {
-    Settings settings((QString()));
-    const Profile buildProfile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    const Profile buildProfile(profileName(), s.get());
     const QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
     if (!toolchain.contains("gcc") || targetOs() == HostOsInfo::HostOsMacos)
         QSKIP("escaped linker flags test only applies with gcc and GNU ld");
@@ -2815,8 +2813,8 @@ void TestBlackbox::escapedLinkerFlags()
 
 void TestBlackbox::systemRunPaths()
 {
-    Settings settings((QString()));
-    const Profile buildProfile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    const Profile buildProfile(profileName(), s.get());
     switch (targetOs()) {
     case HostOsInfo::HostOsLinux:
     case HostOsInfo::HostOsMacos:
@@ -3065,8 +3063,8 @@ void TestBlackbox::cli()
     findCli(&status);
     QCOMPARE(status, 0);
 
-    Settings s((QString()));
-    Profile p("qbs_autotests-cli", &s);
+    const SettingsPtr s = settings();
+    Profile p("qbs_autotests-cli", s.get());
     const QStringList toolchain = p.value("qbs.toolchain").toStringList();
     if (!p.exists() || !(toolchain.contains("dotnet") || toolchain.contains("mono")))
         QSKIP("No suitable Common Language Infrastructure test profile");
@@ -3368,8 +3366,8 @@ void TestBlackbox::lexyacc()
 
 void TestBlackbox::linkerScripts()
 {
-    Settings settings((QString()));
-    Profile buildProfile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile buildProfile(profileName(), s.get());
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
     if (!toolchain.contains("gcc") || targetOs() != HostOsInfo::HostOsLinux)
         QSKIP("linker script test only applies to Linux ");
@@ -3436,8 +3434,8 @@ void TestBlackbox::requireDeprecated()
 void TestBlackbox::mixedBuildVariants()
 {
     QDir::setCurrent(testDataDir + "/mixed-build-variants");
-    Settings settings((QString()));
-    Profile profile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
     if (profile.value("qbs.toolchain").toStringList().contains("msvc")) {
         QbsRunParameters params;
         params.expectFailure = true;
@@ -3526,7 +3524,7 @@ void TestBlackbox::nonDefaultProduct()
     QVERIFY2(QFile::exists(nonDefaultAppExe), qPrintable(nonDefaultAppExe));
 }
 
-static void switchProfileContents(qbs::Profile &p, Settings *s, bool on)
+static void switchProfileContents(qbs::Profile &p, qbs::Settings *s, bool on)
 {
     const QString scalarKey = "leaf.scalarProp";
     const QString listKey = "leaf.listProp";
@@ -3556,10 +3554,10 @@ static void switchFileContents(QFile &f, bool on)
 void TestBlackbox::propertyPrecedence()
 {
     QDir::setCurrent(testDataDir + "/property-precedence");
-    qbs::Settings s((QString()));
-    qbs::Internal::TemporaryProfile profile("qbs_autotests_propPrecedence", &s);
+    const SettingsPtr s = settings();
+    qbs::Internal::TemporaryProfile profile("qbs_autotests_propPrecedence", s.get());
     profile.p.setValue("qbs.architecture", "x86"); // Profiles must not be empty...
-    s.sync();
+    s->sync();
     const QStringList args = QStringList() << "-f" << "property-precedence.qbs"
                                            << ("profile:" + profile.p.name());
     QbsRunParameters params(args);
@@ -3575,7 +3573,7 @@ void TestBlackbox::propertyPrecedence()
     params.arguments.clear();
 
     // Case 2: [cmdline=0,prod=0,export=0,nonleaf=0,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: profile\n")
@@ -3585,7 +3583,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 3: [cmdline=0,prod=0,export=0,nonleaf=1,profile=0]
     QFile nonleafFile("modules/nonleaf/nonleaf.qbs");
     QVERIFY2(nonleafFile.open(QIODevice::ReadWrite), qPrintable(nonleafFile.errorString()));
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
@@ -3594,7 +3592,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 4: [cmdline=0,prod=0,export=0,nonleaf=1,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: nonleaf\n")
@@ -3604,7 +3602,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 5: [cmdline=0,prod=0,export=1,nonleaf=0,profile=0]
     QFile depFile("dep.qbs");
     QVERIFY2(depFile.open(QIODevice::ReadWrite), qPrintable(depFile.errorString()));
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
@@ -3614,7 +3612,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 6: [cmdline=0,prod=0,export=1,nonleaf=0,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
@@ -3622,7 +3620,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 7: [cmdline=0,prod=0,export=1,nonleaf=1,profile=0]
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
@@ -3631,7 +3629,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 8: [cmdline=0,prod=0,export=1,nonleaf=1,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
@@ -3641,7 +3639,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 9: [cmdline=0,prod=1,export=0,nonleaf=0,profile=0]
     QFile productFile("property-precedence.qbs");
     QVERIFY2(productFile.open(QIODevice::ReadWrite), qPrintable(productFile.errorString()));
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, false);
     switchFileContents(productFile, true);
@@ -3652,7 +3650,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 10: [cmdline=0,prod=1,export=0,nonleaf=0,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
@@ -3660,7 +3658,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 11: [cmdline=0,prod=1,export=0,nonleaf=1,profile=0]
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
@@ -3669,7 +3667,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 12: [cmdline=0,prod=1,export=0,nonleaf=1,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
@@ -3677,7 +3675,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 13: [cmdline=0,prod=1,export=1,nonleaf=0,profile=0]
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
@@ -3687,7 +3685,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 14: [cmdline=0,prod=1,export=1,nonleaf=0,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
@@ -3695,7 +3693,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 15: [cmdline=0,prod=1,export=1,nonleaf=1,profile=0]
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
@@ -3704,7 +3702,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 16: [cmdline=0,prod=1,export=1,nonleaf=1,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
@@ -3713,7 +3711,7 @@ void TestBlackbox::propertyPrecedence()
 
     // Command line properties wipe everything, including lists.
     // Case 17: [cmdline=1,prod=0,export=0,nonleaf=0,profile=0]
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, false);
     switchFileContents(productFile, false);
@@ -3725,7 +3723,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 18: [cmdline=1,prod=0,export=0,nonleaf=0,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
@@ -3734,7 +3732,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 19: [cmdline=1,prod=0,export=0,nonleaf=1,profile=0]
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
@@ -3744,7 +3742,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 20: [cmdline=1,prod=0,export=0,nonleaf=1,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
@@ -3753,7 +3751,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 21: [cmdline=1,prod=0,export=1,nonleaf=0,profile=0]
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
@@ -3764,7 +3762,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 22: [cmdline=1,prod=0,export=1,nonleaf=0,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
@@ -3773,7 +3771,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 23: [cmdline=1,prod=0,export=1,nonleaf=1,profile=0]
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
@@ -3783,7 +3781,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 24: [cmdline=1,prod=0,export=1,nonleaf=1,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
@@ -3792,7 +3790,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 25: [cmdline=1,prod=1,export=0,nonleaf=0,profile=0]
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, false);
     switchFileContents(productFile, true);
@@ -3804,7 +3802,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 26: [cmdline=1,prod=1,export=0,nonleaf=0,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
@@ -3813,7 +3811,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 27: [cmdline=1,prod=1,export=0,nonleaf=1,profile=0]
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
@@ -3823,7 +3821,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 28: [cmdline=1,prod=1,export=0,nonleaf=1,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
@@ -3832,7 +3830,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 29: [cmdline=1,prod=1,export=1,nonleaf=0,profile=0]
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
@@ -3843,7 +3841,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 30: [cmdline=1,prod=1,export=1,nonleaf=0,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
@@ -3852,7 +3850,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 31: [cmdline=1,prod=1,export=1,nonleaf=1,profile=0]
-    switchProfileContents(profile.p, &s, false);
+    switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
@@ -3862,7 +3860,7 @@ void TestBlackbox::propertyPrecedence()
              m_qbsStdout.constData());
 
     // Case 32: [cmdline=1,prod=1,export=1,nonleaf=1,profile=1]
-    switchProfileContents(profile.p, &s, true);
+    switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(params), 0);
@@ -3875,8 +3873,8 @@ void TestBlackbox::qmlDebugging()
 {
     QDir::setCurrent(testDataDir + "/qml-debugging");
     QCOMPARE(runQbs(), 0);
-    Settings settings((QString()));
-    Profile profile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
     if (!profile.value("qbs.toolchain").toStringList().contains("gcc"))
         return;
     QProcess nm;
@@ -3995,15 +3993,15 @@ void TestBlackbox::radAfterIncompleteBuild()
 void TestBlackbox::subProfileChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/subprofile-change-tracking");
-    qbs::Settings settings((QString()));
-    qbs::Internal::TemporaryProfile subProfile("qbs-autotests-subprofile", &settings);
+    const SettingsPtr s = settings();
+    qbs::Internal::TemporaryProfile subProfile("qbs-autotests-subprofile", s.get());
     subProfile.p.setValue("baseProfile", profileName());
     subProfile.p.setValue("cpp.includePaths", QStringList("/tmp/include1"));
-    settings.sync();
+    s->sync();
     QCOMPARE(runQbs(), 0);
 
     subProfile.p.setValue("cpp.includePaths", QStringList("/tmp/include2"));
-    settings.sync();
+    s->sync();
     QbsRunParameters params;
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
@@ -4178,7 +4176,7 @@ void TestBlackbox::checkProjectFilePath()
 class TemporaryDefaultProfileRemover
 {
 public:
-    TemporaryDefaultProfileRemover(Settings *settings)
+    TemporaryDefaultProfileRemover(qbs::Settings *settings)
         : m_settings(settings), m_defaultProfile(settings->defaultProfile())
     {
         m_settings->remove(QLatin1String("defaultProfile"));
@@ -4191,14 +4189,14 @@ public:
     }
 
 private:
-    Settings *m_settings;
+    qbs::Settings *m_settings;
     const QString m_defaultProfile;
 };
 
 void TestBlackbox::assembly()
 {
-    Settings settings((QString()));
-    Profile profile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
     bool haveGcc = profile.value("qbs.toolchain").toStringList().contains("gcc");
     bool haveMSVC = profile.value("qbs.toolchain").toStringList().contains("msvc");
     QDir::setCurrent(testDataDir + "/assembly");
@@ -4441,8 +4439,8 @@ static bool haveWiX(const Profile &profile)
 
 void TestBlackbox::wix()
 {
-    Settings settings((QString()));
-    Profile profile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
 
     if (!haveWiX(profile)) {
         QSKIP("WiX is not installed");
@@ -4472,8 +4470,8 @@ void TestBlackbox::wix()
 
 void TestBlackbox::nodejs()
 {
-    Settings settings((QString()));
-    Profile p(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile p(profileName(), s.get());
 
     int status;
     findNodejs(&status);
@@ -4503,8 +4501,8 @@ void TestBlackbox::nodejs()
 
 void TestBlackbox::typescript()
 {
-    Settings settings((QString()));
-    Profile p(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile p(profileName(), s.get());
 
     int status;
     findTypeScript(&status);
@@ -4633,8 +4631,8 @@ static bool haveInnoSetup(const Profile &profile)
 
 void TestBlackbox::innoSetup()
 {
-    Settings settings((QString()));
-    Profile profile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
 
     if (!haveInnoSetup(profile)) {
         QSKIP("Inno Setup is not installed");

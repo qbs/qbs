@@ -31,14 +31,12 @@
 #include "../shared.h"
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
-#include <tools/settings.h>
 
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qtemporarydir.h>
 
 using qbs::Internal::HostOsInfo;
 using qbs::Profile;
-using qbs::Settings;
 
 QMap<QString, QString> TestBlackboxJava::findAndroid(int *status)
 {
@@ -79,8 +77,8 @@ void TestBlackboxJava::android()
         QSKIP("NDK samples directory not present");
 
     QDir::setCurrent(testDataDir + "/android/" + projectDir);
-    Settings s((QString()));
-    Profile p("qbs_autotests-android", &s);
+    const SettingsPtr s = settings();
+    Profile p("qbs_autotests-android", s.get());
     if (!p.exists() || (status != 0 && !p.value("Android.sdk.ndkDir").isValid()))
         QSKIP("No suitable Android test profile");
     QbsRunParameters params(QStringList("profile:" + p.name())
@@ -134,8 +132,8 @@ void TestBlackboxJava::java()
     QSKIP("QTBUG-3845");
 #endif
 
-    Settings settings((QString()));
-    Profile p(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile p(profileName(), s.get());
 
     int status;
     const auto jdkTools = findJdkTools(&status);
@@ -235,8 +233,8 @@ void TestBlackboxJava::javaDependencyTracking_data()
     QTest::addColumn<QString>("javaVersion");
     QTest::addColumn<QString>("flag");
 
-    Settings settings((QString()));
-    Profile p(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile p(profileName(), s.get());
 
     auto getSpecificJdkVersion = [](const QString &jdkVersion) -> QString {
         if (HostOsInfo::isMacosHost()) {
@@ -305,8 +303,8 @@ void TestBlackboxJava::javaDependencyTracking_data()
 
 void TestBlackboxJava::javaDependencyTrackingInnerClass()
 {
-    Settings settings((QString()));
-    Profile p(profileName(), &settings);
+    const SettingsPtr s = settings();
+    Profile p(profileName(), s.get());
 
     QDir::setCurrent(testDataDir + "/java/inner-class");
     QbsRunParameters params;

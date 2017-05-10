@@ -79,14 +79,16 @@ static QString testProject(const char *fileName) {
     return testDataDir() + QLatin1Char('/') + QLatin1String(fileName);
 }
 
-TestLanguage::TestLanguage(ILogSink *logSink)
+TestLanguage::TestLanguage(ILogSink *logSink, Settings *settings)
     : m_logSink(logSink)
+    , m_settings(settings)
     , m_wildcardsTestDirPath(QDir::tempPath() + QLatin1String("/_wildcards_test_dir_"))
 {
     qsrand(QTime::currentTime().msec());
     qRegisterMetaType<QList<bool> >("QList<bool>");
     defaultParameters.setBuildRoot("/some/build/directory");
     defaultParameters.setPropertyCheckingMode(ErrorHandlingMode::Strict);
+    defaultParameters.setSettingsDirectory(m_settings->baseDirectory());
 }
 
 TestLanguage::~TestLanguage()
@@ -425,10 +427,9 @@ void qbs::Internal::TestLanguage::dependencyOnAllProfiles()
     try {
         SetupProjectParameters params = defaultParameters;
         params.setProjectFilePath(testProject("dependencyOnAllProfiles.qbs"));
-        Settings settings((QString()));
-        TemporaryProfile p1("p1", &settings);
+        TemporaryProfile p1("p1", m_settings);
         p1.p.setValue("qbs.architecture", "arch1");
-        TemporaryProfile p2("p2", &settings);
+        TemporaryProfile p2("p2", m_settings);
         p2.p.setValue("qbs.architecture", "arch2");
         QVariantMap overriddenValues;
         overriddenValues.insert("project.profile1", "p1");
@@ -1651,8 +1652,7 @@ void TestLanguage::profileValuesAndOverriddenValues()
 {
     bool exceptionCaught = false;
     try {
-        Settings settings((QString()));
-        TemporaryProfile tp(QLatin1String("tst_lang_profile"), &settings);
+        TemporaryProfile tp(QLatin1String("tst_lang_profile"), m_settings);
         Profile profile = tp.p;
         profile.setValue("dummy.defines", "IN_PROFILE");
         profile.setValue("dummy.cFlags", "IN_PROFILE");

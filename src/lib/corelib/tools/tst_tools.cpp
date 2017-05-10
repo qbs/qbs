@@ -246,8 +246,7 @@ QString TestTools::setupSettingsDir3()
 
 void TestTools::testBuildConfigMerging()
 {
-    Settings settings((QString()));
-    TemporaryProfile tp(QLatin1String("tst_tools_profile"), &settings);
+    TemporaryProfile tp(QLatin1String("tst_tools_profile"), m_settings);
     Profile profile = tp.p;
     profile.setValue(QLatin1String("topLevelKey"), QLatin1String("topLevelValue"));
     profile.setValue(QLatin1String("qbs.toolchain"), QLatin1String("gcc"));
@@ -258,6 +257,7 @@ void TestTools::testBuildConfigMerging()
     overrideMap.insert(QLatin1String("qbs.toolchain"), QLatin1String("clang"));
     overrideMap.insert(QLatin1String("qbs.installRoot"), QLatin1String("/blubb"));
     SetupProjectParameters params;
+    params.setSettingsDirectory(m_settings->baseDirectory());
     params.setTopLevelProfile(profile.name());
     params.setConfigurationName(QLatin1String("debug"));
     params.setOverriddenValues(overrideMap);

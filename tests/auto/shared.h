@@ -37,9 +37,19 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qfileinfo.h>
+#include <QtCore/qstring.h>
 #include <QtCore/qtemporaryfile.h>
 
 #include <QtTest/qtest.h>
+
+#include <memory>
+
+using SettingsPtr = std::unique_ptr<qbs::Settings>;
+inline SettingsPtr settings()
+{
+    const QString settingsDir = QLatin1String(qgetenv("QBS_AUTOTEST_SETTINGS_DIR"));
+    return SettingsPtr(new qbs::Settings(settingsDir));
+}
 
 inline QString profileName() { return QLatin1String("qbs_autotests"); }
 inline QString relativeBuildDir(const QString &configurationName = QString())
@@ -127,8 +137,8 @@ inline void copyFileAndUpdateTimestamp(const QString &source, const QString &tar
 
 inline QString objectFileName(const QString &baseName, const QString &profileName)
 {
-    qbs::Settings settings((QString()));
-    qbs::Profile profile(profileName, &settings);
+    const SettingsPtr s = settings();
+    qbs::Profile profile(profileName, s.get());
     const QString suffix = profile.value("qbs.toolchain").toStringList().contains("msvc")
             ? "obj" : "o";
     return baseName + '.' + suffix;
@@ -153,8 +163,8 @@ inline QString testWorkDir(const QString &testName)
 
 inline qbs::Internal::HostOsInfo::HostOs targetOs()
 {
-    qbs::Settings settings((QString()));
-    const qbs::Profile buildProfile(profileName(), &settings);
+    const SettingsPtr s = settings();
+    const qbs::Profile buildProfile(profileName(), s.get());
     const QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
     if (targetOS.contains("windows"))
         return qbs::Internal::HostOsInfo::HostOsWindows;
