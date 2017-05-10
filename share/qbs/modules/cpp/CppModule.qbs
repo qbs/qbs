@@ -62,11 +62,15 @@ Module {
 
     property stringList defines
     property stringList platformDefines: qbs.enableDebugCode ? [] : ["NDEBUG"]
-    property stringList compilerDefines
+    property stringList compilerDefines: compilerDefinesByLanguage
+                                  ? ModUtils.flattenDictionary(compilerDefinesByLanguage["c"])
+                                  : []
+    property var compilerDefinesByLanguage: undefined
     PropertyOptions {
-        name: "compilerDefines"
+        name: "compilerDefinesByLanguage"
         description: "preprocessor macros that are defined when using this particular compiler"
     }
+    property stringList enableCompilerDefinesByLanguage: []
 
     property string windowsApiCharacterSet
     property string windowsApiFamily
@@ -434,6 +438,7 @@ Module {
         }, "'" + architecture + "' is invalid. You must use the canonical name '" +
         Utilities.canonicalArchitecture(architecture) + "'");
         validator.setRequiredProperty("endianness", endianness);
+        validator.setRequiredProperty("compilerDefinesByLanguage", compilerDefinesByLanguage);
         validator.setRequiredProperty("compilerVersion", compilerVersion);
         validator.setRequiredProperty("compilerVersionMajor", compilerVersionMajor);
         validator.setRequiredProperty("compilerVersionMinor", compilerVersionMinor);

@@ -69,7 +69,6 @@ UnixGCC {
     targetAbi: "macho"
     imageFormat: "macho"
 
-    compilerDefines: ["__GNUC__=4", "__APPLE__"]
     cxxStandardLibrary: libcxxAvailable ? "libc++" : base
     loadableModulePrefix: ""
     loadableModuleSuffix: ".bundle"

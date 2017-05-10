@@ -449,11 +449,23 @@ QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QS
     return context->throwError(QScriptContext::UnknownError,
         QLatin1String("msvcCompilerInfo is not available on this platform"));
 #else
-    if (Q_UNLIKELY(context->argumentCount() != 1))
+    if (Q_UNLIKELY(context->argumentCount() < 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("msvcCompilerInfo expects 1 argument"));
+                                   QLatin1String("msvcCompilerInfo expects at least 1 argument"));
 
     const QString compilerFilePath = context->argument(0).toString();
+    const QString compilerLanguage = context->argumentCount() > 1
+            ? context->argument(1).toString()
+            : QString();
+    MSVC::CompilerLanguage language;
+    if (compilerLanguage == QStringLiteral("c"))
+        language = MSVC::CLanguage;
+    else if (compilerLanguage == QStringLiteral("cpp"))
+        language = MSVC::CPlusPlusLanguage;
+    else
+        return context->throwError(QScriptContext::TypeError,
+            QStringLiteral("msvcCompilerInfo expects \"c\" or \"cpp\" as its second argument"));
+
     MSVC msvc(compilerFilePath);
     VsEnvironmentDetector envdetector;
     if (!envdetector.start(&msvc))
@@ -468,7 +480,7 @@ QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QS
 
         return engine->toScriptValue(QVariantMap {
             {QStringLiteral("buildEnvironment"), envMap},
-            {QStringLiteral("macros"), msvc.compilerDefines(compilerFilePath)},
+            {QStringLiteral("macros"), msvc.compilerDefines(compilerFilePath, language)},
         });
     } catch (const qbs::ErrorInfo &info) {
         return context->throwError(QScriptContext::UnknownError,

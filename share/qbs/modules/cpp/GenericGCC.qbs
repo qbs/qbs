@@ -60,7 +60,8 @@ CppModule {
 
     Probes.GccProbe {
         id: gccProbe
-        compilerFilePath: compilerPath
+        compilerFilePathByLanguage: compilerPathByLanguage
+        enableDefinesByLanguage: enableCompilerDefinesByLanguage
         environment: buildEnv
         flags: targetDriverFlags.concat(sysrootFlags)
         _sysroot: sysroot
@@ -97,6 +98,8 @@ CppModule {
 
     qbs.architecture: gccProbe.found ? gccProbe.architecture : original
     endianness: gccProbe.endianness
+
+    compilerDefinesByLanguage: gccProbe.compilerDefinesByLanguage
 
     compilerVersionMajor: gccVersionProbe.versionMajor
     compilerVersionMinor: gccVersionProbe.versionMinor

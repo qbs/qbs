@@ -43,8 +43,6 @@ CppModule {
                qbs.targetOS.contains('windows') &&
                qbs.toolchain && qbs.toolchain.contains('msvc')
 
-    id: module
-
     Probes.BinaryProbe {
         id: compilerPathProbe
         condition: !toolchainInstallPath
@@ -54,6 +52,7 @@ CppModule {
     Probes.MsvcProbe {
         id: msvcProbe
         compilerFilePath: compilerPath
+        enableDefinesByLanguage: enableCompilerDefinesByLanguage
         preferredArchitecture: qbs.architecture
     }
 
@@ -82,7 +81,7 @@ CppModule {
             flags.push("/FS");
         return flags;
     }
-    compilerDefines: ['_WIN32', MSVC.compilerVersionDefine(module)]
+    compilerDefinesByLanguage: msvcProbe.compilerDefinesByLanguage
     warningLevel: "default"
     compilerName: "cl.exe"
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)

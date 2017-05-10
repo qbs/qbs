@@ -60,6 +60,11 @@ namespace Internal {
 class MSVC
 {
 public:
+    enum CompilerLanguage {
+        CLanguage = 0,
+        CPlusPlusLanguage = 1
+    };
+
     QString version;
     Version internalVsVersion;
     Version compilerVersion;
@@ -88,7 +93,8 @@ public:
     QBS_EXPORT void init();
     QBS_EXPORT QString binPathForArchitecture(const QString &arch) const;
     QBS_EXPORT QString clPathForArchitecture(const QString &arch) const;
-    QBS_EXPORT QVariantMap compilerDefines(const QString &compilerFilePath) const;
+    QBS_EXPORT QVariantMap compilerDefines(const QString &compilerFilePath,
+                                           CompilerLanguage language) const;
 
 private:
     void determineCompilerVersion();

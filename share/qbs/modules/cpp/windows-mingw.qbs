@@ -47,7 +47,7 @@ GenericGCC {
     imageFormat: "pe"
     windowsApiCharacterSet: "unicode"
     platformDefines: base.concat(WindowsUtils.characterSetDefines(windowsApiCharacterSet))
-    compilerDefines: ['__GNUC__', 'WIN32', '_WIN32']
+                         .concat("WIN32")
 
     property string windresName: 'windres'
     property path windresPath: { return toolchainPathPrefix + windresName }

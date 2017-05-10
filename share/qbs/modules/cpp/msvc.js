@@ -34,15 +34,6 @@ var ModUtils = require("qbs.ModUtils");
 var Utilities = require("qbs.Utilities");
 var WindowsUtils = require("qbs.WindowsUtils");
 
-function compilerVersionDefine(cpp) {
-    var result = '_MSC_VER=' + cpp.compilerVersionMajor;
-    var s = cpp.compilerVersionMinor.toString();
-    while (s.length < 2)
-        s = '0' + s;
-    result += s;
-    return result;
-}
-
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var i;
     var debugInformation = input.cpp.debugInformation;

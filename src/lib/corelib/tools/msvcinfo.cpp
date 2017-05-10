@@ -138,16 +138,28 @@ static QStringList parseCommandLine(const QString &commandLine)
 #endif
 
 static QVariantMap getMsvcDefines(const QString &compilerFilePath,
-                                  const QProcessEnvironment &compilerEnv)
+                                  const QProcessEnvironment &compilerEnv,
+                                  MSVC::CompilerLanguage language)
 {
 #ifdef Q_OS_WIN
+    QString backendSwitch, languageSwitch;
+    switch (language) {
+    case MSVC::CLanguage:
+        backendSwitch = QStringLiteral("/B1");
+        languageSwitch = QStringLiteral("/TC");
+        break;
+    case MSVC::CPlusPlusLanguage:
+        backendSwitch = QStringLiteral("/Bx");
+        languageSwitch = QStringLiteral("/TP");
+        break;
+    }
     const QByteArray commands("set MSC_CMD_FLAGS\n");
     QStringList out = QString::fromLocal8Bit(runProcess(compilerFilePath, QStringList()
                << QStringLiteral("/nologo")
-               << QStringLiteral("/B1")
+               << backendSwitch
                << QString::fromWCharArray(_wgetenv(L"COMSPEC"))
                << QStringLiteral("/c")
-               << QStringLiteral("/TC")
+               << languageSwitch
                << QStringLiteral("NUL"),
                compilerEnv, true, commands)).split(QLatin1Char('\n'));
 
@@ -175,6 +187,7 @@ static QVariantMap getMsvcDefines(const QString &compilerFilePath,
 #else
     Q_UNUSED(compilerFilePath);
     Q_UNUSED(compilerEnv);
+    Q_UNUSED(language);
     return QVariantMap();
 #endif
 }
@@ -198,9 +211,10 @@ QString MSVC::clPathForArchitecture(const QString &arch) const
     return binPathForArchitecture(arch) + QLatin1String("/cl.exe");
 }
 
-QVariantMap MSVC::compilerDefines(const QString &compilerFilePath) const
+QVariantMap MSVC::compilerDefines(const QString &compilerFilePath,
+                                  MSVC::CompilerLanguage language) const
 {
-    return getMsvcDefines(compilerFilePath, environment);
+    return getMsvcDefines(compilerFilePath, environment, language);
 }
 
 void MSVC::determineCompilerVersion()

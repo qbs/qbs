@@ -37,6 +37,7 @@ import qbs.Utilities
 PathProbe {
     // Inputs
     property string compilerFilePath
+    property stringList enableDefinesByLanguage
     property string preferredArchitecture
 
     // Outputs
@@ -46,12 +47,28 @@ PathProbe {
     property int versionPatch
     property stringList includePaths
     property var buildEnv
+    property var compilerDefinesByLanguage
 
     configure: {
-        var info = Utilities.msvcCompilerInfo(compilerFilePath);
-        found = !!info && !!info.macros && !!info.buildEnvironment;
+        var languages = enableDefinesByLanguage;
+        if (!languages || languages.length === 0)
+            languages = ["c"];
 
-        var macros = info.macros;
+        var info = languages.contains("c")
+                ? Utilities.msvcCompilerInfo(compilerFilePath, "c") : {};
+        var infoCpp = languages.contains("cpp")
+                ? Utilities.msvcCompilerInfo(compilerFilePath, "cpp") : {};
+        found = (!languages.contains("c") ||
+                 (!!info && !!info.macros && !!info.buildEnvironment))
+             && (!languages.contains("cpp") ||
+                 (!!infoCpp && !!infoCpp.macros && !!infoCpp.buildEnvironment));
+
+        compilerDefinesByLanguage = {
+            "c": info.macros,
+            "cpp": infoCpp.macros,
+        };
+
+        var macros = info.macros || infoCpp.macros;
         architecture = ModUtils.guessArchitecture(macros);
 
         var ver = macros["_MSC_FULL_VER"];

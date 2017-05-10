@@ -1259,7 +1259,7 @@ function isNumericProductVersion(version) {
     return version && version.match(/^([0-9]+\.){0,3}[0-9]+$/);
 }
 
-function dumpMacros(env, compilerFilePath, args, nullDevice) {
+function dumpMacros(env, compilerFilePath, args, nullDevice, tag) {
     var p = new Process();
     try {
         p.setEnv("LC_ALL", "C");
@@ -1267,7 +1267,8 @@ function dumpMacros(env, compilerFilePath, args, nullDevice) {
             p.setEnv(key, env[key]);
         // qcc NEEDS the explicit -Wp, prefix to -dM; clang and gcc do not but all three accept it
         p.exec(compilerFilePath,
-               (args || []).concat(["-Wp,-dM", "-E", "-x", "c", nullDevice]), true);
+               (args || []).concat(["-Wp,-dM", "-E", "-x", languageName(tag || "c") , nullDevice]),
+               true);
         var map = {};
         p.readStdOut().trim().split("\n").map(function (line) {
             var parts = line.split(" ", 3);

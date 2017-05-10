@@ -2900,6 +2900,13 @@ void TestBlackbox::commandFile()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::compilerDefinesByLanguage()
+{
+    QDir::setCurrent(testDataDir + "/compilerDefinesByLanguage");
+    QbsRunParameters params(QStringList { "-f", "compilerDefinesByLanguage.qbs" });
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::jsExtensionsFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions-file");

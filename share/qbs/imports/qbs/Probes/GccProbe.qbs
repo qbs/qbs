@@ -35,7 +35,8 @@ import "../../../modules/cpp/gcc.js" as Gcc
 
 PathProbe {
     // Inputs
-    property string compilerFilePath
+    property var compilerFilePathByLanguage
+    property stringList enableDefinesByLanguage
     property stringList flags: []
     property var environment
 
@@ -49,15 +50,40 @@ PathProbe {
     property stringList includePaths
     property stringList libraryPaths
     property stringList frameworkPaths
+    property var compilerDefinesByLanguage
 
     configure: {
-        if (!File.exists(compilerFilePath)) {
-            found = false;
-            return;
+        compilerDefinesByLanguage = {};
+        var languages = enableDefinesByLanguage;
+        if (!languages || languages.length === 0)
+            languages = ["c"];
+        for (var i = 0; i < languages.length; ++i) {
+            var fp = compilerFilePathByLanguage[languages[i]];
+            if (fp && File.exists(fp)) {
+                try {
+                    compilerDefinesByLanguage[languages[i]] = Gcc.dumpMacros(environment, fp,
+                                                                             flags, _nullDevice,
+                                                                             languages[i]);
+                } catch (e) {
+                    // Only throw errors when determining the compiler defines for the C language;
+                    // for other languages we presume it is an indication that the language is not
+                    // installed (as is typically the case for Objective-C/C++ on non-Apple systems)
+                    if (languages[i] === "c")
+                        throw e;
+                }
+            } else if (languages[i] === "c") {
+                found = false;
+                return;
+            }
         }
 
-        var macros = Gcc.dumpMacros(environment, compilerFilePath, flags, _nullDevice);
-        var defaultPaths = Gcc.dumpDefaultPaths(environment, compilerFilePath, flags, _nullDevice,
+        var macros = compilerDefinesByLanguage["c"]
+                  || compilerDefinesByLanguage["cpp"]
+                  || compilerDefinesByLanguage["objc"]
+                  || compilerDefinesByLanguage["objcpp"];
+        var defaultPaths = Gcc.dumpDefaultPaths(environment, compilerFilePathByLanguage["cpp"] ||
+                                                compilerFilePathByLanguage["c"],
+                                                flags, _nullDevice,
                                                 _pathListSeparator, _sysroot);
         found = !!macros && !!defaultPaths;
 

@@ -92,6 +92,8 @@ Module {
                     ? "_qt_main_wrapper"
                     : undefined
     cpp.cxxLanguageVersion: Utilities.versionCompare(version, "5.7.0") >= 0 ? "c++11" : original
+    cpp.enableCompilerDefinesByLanguage: ["cpp"].concat(
+        qbs.targetOS.contains("darwin") ? ["objcpp"] : [])
     cpp.defines: {
         var defines = @defines@;
         // ### QT_NO_DEBUG must be added if the current build variant is derived

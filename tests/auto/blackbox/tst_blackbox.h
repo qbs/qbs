@@ -58,6 +58,7 @@ private slots:
     void cli();
     void combinedSources();
     void commandFile();
+    void compilerDefinesByLanguage();
     void concurrentExecutor();
     void conditionalExport();
     void conditionalFileTagger();

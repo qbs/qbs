@@ -771,12 +771,14 @@
         \li Whether to always use lipo when combining Mach-O output files on Apple platforms,
             even if there is only one CPU architecture. The should not normally need to be changed.
     \row
-        \li compilerDefines
-        \li \c{stringList}
-        \li 1.0
+        \li compilerDefinesByLanguage
+        \li \c{string} to \c{string} to \c{string} map
+        \li 1.10
         \li \c{undefined}
-        \li List of preprocessor macros that are used for all projects that are using the current
-            toolchain. User project files usually do not set this property.
+        \li Map of language tags to list of preprocessor macros that are used for all projects that
+            are using the current toolchain. User project files usually do not set this property.
+            \note See \c{cpp.enableCompilerDefinesByLanguage}. This property will not be usable
+            without also setting that one.
     \row
         \li compilerIncludePaths
         \li \c{pathList}
@@ -826,6 +828,14 @@
         \li List of distribution-specific library search paths, prioritized after \c{systemLibraryPaths}.
             Intended for use by module authors implementing support for new operating systems/distributions.
             User project files should not set this property.
+    \row
+        \li enableCompilerDefinesByLanguage
+        \li \c{stringList}
+        \li 1.10
+        \li \c{undefined}
+        \li List of languages (one or more of \c{"c"}, \c{"cpp"}, \c{"objc"}, \c{"objcpp"}) to
+            extract the list of default compiler defines for in \c{cpp.compilerDefinesByLanguage}.
+            Because this has performance implications, no languages are enabled by default.
     \endtable
 
 

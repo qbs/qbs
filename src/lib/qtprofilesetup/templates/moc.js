@@ -28,9 +28,17 @@
 **
 ****************************************************************************/
 
+var ModUtils = loadExtension("qbs.ModUtils");
+
 function args(product, input, outputFileName)
 {
-    var defines = product.cpp.compilerDefines;
+    var defines = product.cpp.compilerDefinesByLanguage;
+    if (input.fileTags.contains("objcpp"))
+        defines = ModUtils.flattenDictionary(defines["objcpp"]) || [];
+    else if (input.fileTags.contains("cpp"))
+        defines = ModUtils.flattenDictionary(defines["cpp"]) || [];
+    else
+        defines = [];
     defines = defines.uniqueConcat(product.cpp.platformDefines);
     defines = defines.uniqueConcat(input.cpp.defines);
     var includePaths = input.cpp.includePaths;
