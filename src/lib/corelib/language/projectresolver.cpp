@@ -61,9 +61,9 @@
 #include <tools/setupprojectparameters.h>
 
 #include <QtCore/qdir.h>
-#include <QtCore/qqueue.h>
 
 #include <algorithm>
+#include <queue>
 
 namespace qbs {
 namespace Internal {
@@ -455,17 +455,18 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
 {
     // Breadth first search needed here, because the product might set properties on the cpp module,
     // whose children must be evaluated in that context then.
-    QQueue<Item::Module> modules;
+    std::queue<Item::Module> modules;
     for (const Item::Module &m : item->modules())
-        modules.enqueue(m);
+        modules.push(m);
     Set<QualifiedId> seen;
-    while (!modules.isEmpty()) {
-        const Item::Module m = modules.takeFirst();
+    while (!modules.empty()) {
+        const Item::Module m = modules.front();
+        modules.pop();
         if (!seen.insert(m.name).second)
             continue;
         resolveModule(m.name, m.item, m.isProduct, projectContext);
         for (const Item::Module &childModule : m.item->modules())
-            modules.enqueue(childModule);
+            modules.push(childModule);
     }
     std::sort(m_productContext->product->modules.begin(), m_productContext->product->modules.end(),
               [](const ResolvedModuleConstPtr &m1, const ResolvedModuleConstPtr &m2) {

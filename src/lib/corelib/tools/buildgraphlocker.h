@@ -43,8 +43,9 @@
 #include <logging/logger.h>
 
 #include <QtCore/qlockfile.h>
-#include <QtCore/qqueue.h>
 #include <QtCore/qstring.h>
+
+#include <queue>
 
 namespace qbs {
 namespace Internal {
@@ -64,7 +65,7 @@ private:
 
     QLockFile m_lockFile;
     Logger m_logger;
-    QQueue<QString> m_createdParentDirs;
+    std::queue<QString> m_createdParentDirs;
 };
 
 } // namespace Internal

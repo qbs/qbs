@@ -28,10 +28,10 @@
 #ifndef QBS_FUZZYTESTER_H
 #define QBS_FUZZYTESTER_H
 
-#include <QtCore/qqueue.h>
 #include <QtCore/qstringlist.h>
 
 #include <exception>
+#include <queue>
 
 class TestError {
 public:
@@ -76,7 +76,7 @@ private:
     QString m_headCommit;
     QString m_currentCommit;
     QString m_currentActivity;
-    QQueue<QString> m_commitsWithLogFiles;
+    std::queue<QString> m_commitsWithLogFiles;
     QStringList m_unbuildableCommits;
     QStringList m_buildableCommits;
 };

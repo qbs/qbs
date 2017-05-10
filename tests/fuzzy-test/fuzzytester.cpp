@@ -200,18 +200,19 @@ bool FuzzyTester::runQbs(const QString &buildDir, const QString &command, QStrin
     QStringList commandLine = QStringList(command) << "-d" << buildDir;
     if (m_log) {
         commandLine << "-vv";
-        const int maxLoggedCommits = 2;
-        Q_ASSERT(m_commitsWithLogFiles.count() <= maxLoggedCommits + 1);
-        if (m_commitsWithLogFiles.count() == maxLoggedCommits + 1) {
+        const size_t maxLoggedCommits = 2;
+        Q_ASSERT(m_commitsWithLogFiles.size() <= maxLoggedCommits + 1);
+        if (m_commitsWithLogFiles.size() == maxLoggedCommits + 1) {
             static const QStringList allActivities = QStringList() << resolveIncrementalActivity()
                     << buildIncrementalActivity() << buildFromScratchActivity();
-            const QString oldCommit = m_commitsWithLogFiles.dequeue();
+            const QString oldCommit = m_commitsWithLogFiles.front();
+            m_commitsWithLogFiles.pop();
             foreach (const QString &a, allActivities)
                 QFile::remove(logFilePath(oldCommit, a));
         }
         qbs.setStandardErrorFile(logFilePath(m_currentCommit, m_currentActivity));
-        if (m_commitsWithLogFiles.isEmpty() || m_commitsWithLogFiles.last() != m_currentCommit)
-            m_commitsWithLogFiles.enqueue(m_currentCommit);
+        if (m_commitsWithLogFiles.empty() || m_commitsWithLogFiles.back() != m_currentCommit)
+            m_commitsWithLogFiles.push(m_currentCommit);
     } else {
         commandLine << "-qq";
     }

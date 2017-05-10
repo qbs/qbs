@@ -135,7 +135,7 @@ void BuildGraphLocker::rememberCreatedDirectories(const QString &buildDir)
 {
     QString parentDir = buildDir;
     while (!QFileInfo::exists(parentDir)) {
-        m_createdParentDirs.enqueue(parentDir);
+        m_createdParentDirs.push(parentDir);
         parentDir = QDir::cleanPath(parentDir + QLatin1String("/.."));
     }
 }
@@ -143,8 +143,9 @@ void BuildGraphLocker::rememberCreatedDirectories(const QString &buildDir)
 void BuildGraphLocker::removeEmptyCreatedDirectories()
 {
     QDir root = QDir::root();
-    while (!m_createdParentDirs.isEmpty()) {
-        const QString parentDir = m_createdParentDirs.dequeue();
+    while (!m_createdParentDirs.empty()) {
+        const QString parentDir = m_createdParentDirs.front();
+        m_createdParentDirs.pop();
         QDirIterator it(parentDir, QDir::AllEntries | QDir::NoDotAndDotDot | QDir::System,
                         QDirIterator::Subdirectories);
         if (it.hasNext())
