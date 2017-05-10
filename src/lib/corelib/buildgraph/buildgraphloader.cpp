@@ -284,11 +284,10 @@ void BuildGraphLoader::trackProjectChanges()
 
     checkAllProductsForChanges(allRestoredProducts, freshProductsByName, changedProducts);
 
-    QSharedPointer<ProjectBuildData> oldBuildData;
+    std::shared_ptr<ProjectBuildData> oldBuildData;
     ChildListHash childLists;
     if (!changedProducts.isEmpty()) {
-        oldBuildData = QSharedPointer<ProjectBuildData>(
-                    new ProjectBuildData(restoredProject->buildData.data()));
+        oldBuildData = std::make_shared<ProjectBuildData>(restoredProject->buildData.data());
         for (const ResolvedProductConstPtr &product : qAsConst(allRestoredProducts)) {
             if (!product->buildData)
                 continue;
@@ -365,13 +364,13 @@ void BuildGraphLoader::trackProjectChanges()
                            childLists, rescuableArtifactData.value(changedProduct->uniqueName()));
     }
 
-    EmptyDirectoriesRemover(m_result.newlyResolvedProject.data(), m_logger)
+    EmptyDirectoriesRemover(m_result.newlyResolvedProject.get(), m_logger)
             .removeEmptyParentDirectories(m_artifactsRemovedFromDisk);
 
     for (FileResourceBase * const f : qAsConst(m_objectsToDelete)) {
         Artifact * const a = dynamic_cast<Artifact *>(f);
         if (a)
-            a->product.clear(); // To help with the sanity checks.
+            a->product.reset(); // To help with the sanity checks.
     }
     doSanityChecks(m_result.newlyResolvedProject, m_logger);
 }

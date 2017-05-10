@@ -486,7 +486,7 @@ void CommandLineFrontend::build()
 void CommandLineFrontend::generate()
 {
     const QString generatorName = m_parser.generateOptions().generatorName();
-    QSharedPointer<ProjectGenerator> generator(ProjectGeneratorManager::findGenerator(generatorName));
+    auto generator = ProjectGeneratorManager::findGenerator(generatorName);
     if (!generator) {
         const QString generatorNames = ProjectGeneratorManager::loadedGeneratorNames()
                 .join(QLatin1String("\n\t"));

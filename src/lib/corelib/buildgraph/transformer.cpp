@@ -159,7 +159,7 @@ ResolvedProductPtr Transformer::product() const
 {
     if (outputs.isEmpty())
         return ResolvedProductPtr();
-    return (*outputs.cbegin())->product;
+    return (*outputs.cbegin())->product.lock();
 }
 
 void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,

@@ -39,94 +39,101 @@
 #ifndef QBS_LANG_FORWARD_DECLS_H
 #define QBS_LANG_FORWARD_DECLS_H
 
-#include <QtCore/qsharedpointer.h>
+#include <memory>
+
+#include <QtCore/qhash.h>
 
 namespace qbs {
 namespace Internal {
 
 class Value;
-typedef QSharedPointer<Value> ValuePtr;
-typedef QSharedPointer<const Value> ValueConstPtr;
+typedef std::shared_ptr<Value> ValuePtr;
+typedef std::shared_ptr<const Value> ValueConstPtr;
 
 class ItemValue;
-typedef QSharedPointer<ItemValue> ItemValuePtr;
-typedef QSharedPointer<const ItemValue> ItemValueConstPtr;
+typedef std::shared_ptr<ItemValue> ItemValuePtr;
+typedef std::shared_ptr<const ItemValue> ItemValueConstPtr;
 
 class JSSourceValue;
-typedef QSharedPointer<JSSourceValue> JSSourceValuePtr;
-typedef QSharedPointer<const JSSourceValue> JSSourceValueConstPtr;
+typedef std::shared_ptr<JSSourceValue> JSSourceValuePtr;
+typedef std::shared_ptr<const JSSourceValue> JSSourceValueConstPtr;
 
 class VariantValue;
-typedef QSharedPointer<VariantValue> VariantValuePtr;
-typedef QSharedPointer<const VariantValue> VariantValueConstPtr;
+typedef std::shared_ptr<VariantValue> VariantValuePtr;
+typedef std::shared_ptr<const VariantValue> VariantValueConstPtr;
 
 class FileContext;
-typedef QSharedPointer<FileContext> FileContextPtr;
-typedef QSharedPointer<const FileContext> FileContextConstPtr;
+typedef std::shared_ptr<FileContext> FileContextPtr;
+typedef std::shared_ptr<const FileContext> FileContextConstPtr;
 
 class FileContextBase;
-typedef QSharedPointer<FileContextBase> FileContextBasePtr;
-typedef QSharedPointer<const FileContextBase> FileContextBaseConstPtr;
+typedef std::shared_ptr<FileContextBase> FileContextBasePtr;
+typedef std::shared_ptr<const FileContextBase> FileContextBaseConstPtr;
 
 class Probe;
-typedef QSharedPointer<Probe> ProbePtr;
-typedef QSharedPointer<const Probe> ProbeConstPtr;
+typedef std::shared_ptr<Probe> ProbePtr;
+typedef std::shared_ptr<const Probe> ProbeConstPtr;
 
 class PropertyMapInternal;
-typedef QSharedPointer<PropertyMapInternal> PropertyMapPtr;
-typedef QSharedPointer<const PropertyMapInternal> PropertyMapConstPtr;
+typedef std::shared_ptr<PropertyMapInternal> PropertyMapPtr;
+typedef std::shared_ptr<const PropertyMapInternal> PropertyMapConstPtr;
 
 class FileTagger;
-typedef QSharedPointer<FileTagger> FileTaggerPtr;
-typedef QSharedPointer<const FileTagger> FileTaggerConstPtr;
+typedef std::shared_ptr<FileTagger> FileTaggerPtr;
+typedef std::shared_ptr<const FileTagger> FileTaggerConstPtr;
 
 class ResolvedProduct;
-typedef QSharedPointer<ResolvedProduct> ResolvedProductPtr;
-typedef QSharedPointer<const ResolvedProduct> ResolvedProductConstPtr;
+typedef std::shared_ptr<ResolvedProduct> ResolvedProductPtr;
+typedef std::shared_ptr<const ResolvedProduct> ResolvedProductConstPtr;
 
 class ResolvedProject;
-typedef QSharedPointer<ResolvedProject> ResolvedProjectPtr;
-typedef QSharedPointer<const ResolvedProject> ResolvedProjectConstPtr;
+typedef std::shared_ptr<ResolvedProject> ResolvedProjectPtr;
+typedef std::shared_ptr<const ResolvedProject> ResolvedProjectConstPtr;
 
 class TopLevelProject;
-typedef QSharedPointer<TopLevelProject> TopLevelProjectPtr;
-typedef QSharedPointer<const TopLevelProject> TopLevelProjectConstPtr;
+typedef std::shared_ptr<TopLevelProject> TopLevelProjectPtr;
+typedef std::shared_ptr<const TopLevelProject> TopLevelProjectConstPtr;
 
 class ResolvedFileContext;
-typedef QSharedPointer<ResolvedFileContext> ResolvedFileContextPtr;
-typedef QSharedPointer<const ResolvedFileContext> ResolvedFileContextConstPtr;
+typedef std::shared_ptr<ResolvedFileContext> ResolvedFileContextPtr;
+typedef std::shared_ptr<const ResolvedFileContext> ResolvedFileContextConstPtr;
 
 class Rule;
-typedef QSharedPointer<Rule> RulePtr;
-typedef QSharedPointer<const Rule> RuleConstPtr;
+typedef std::shared_ptr<Rule> RulePtr;
+typedef std::shared_ptr<const Rule> RuleConstPtr;
 
 class ResolvedScanner;
-typedef QSharedPointer<ResolvedScanner> ResolvedScannerPtr;
-typedef QSharedPointer<const ResolvedScanner> ResolvedScannerConstPtr;
+typedef std::shared_ptr<ResolvedScanner> ResolvedScannerPtr;
+typedef std::shared_ptr<const ResolvedScanner> ResolvedScannerConstPtr;
 
 class SourceArtifactInternal;
-typedef QSharedPointer<SourceArtifactInternal> SourceArtifactPtr;
-typedef QSharedPointer<const SourceArtifactInternal> SourceArtifactConstPtr;
+typedef std::shared_ptr<SourceArtifactInternal> SourceArtifactPtr;
+typedef std::shared_ptr<const SourceArtifactInternal> SourceArtifactConstPtr;
 
 class ScriptFunction;
-typedef QSharedPointer<ScriptFunction> ScriptFunctionPtr;
-typedef QSharedPointer<const ScriptFunction> ScriptFunctionConstPtr;
+typedef std::shared_ptr<ScriptFunction> ScriptFunctionPtr;
+typedef std::shared_ptr<const ScriptFunction> ScriptFunctionConstPtr;
 
 class RuleArtifact;
-typedef QSharedPointer<RuleArtifact> RuleArtifactPtr;
-typedef QSharedPointer<const RuleArtifact> RuleArtifactConstPtr;
+typedef std::shared_ptr<RuleArtifact> RuleArtifactPtr;
+typedef std::shared_ptr<const RuleArtifact> RuleArtifactConstPtr;
 
 class ResolvedModule;
-typedef QSharedPointer<ResolvedModule> ResolvedModulePtr;
-typedef QSharedPointer<const ResolvedModule> ResolvedModuleConstPtr;
+typedef std::shared_ptr<ResolvedModule> ResolvedModulePtr;
+typedef std::shared_ptr<const ResolvedModule> ResolvedModuleConstPtr;
 
 class ResolvedGroup;
-typedef QSharedPointer<ResolvedGroup> GroupPtr;
-typedef QSharedPointer<const ResolvedGroup> GroupConstPtr;
+typedef std::shared_ptr<ResolvedGroup> GroupPtr;
+typedef std::shared_ptr<const ResolvedGroup> GroupConstPtr;
 
 class ArtifactProperties;
-typedef QSharedPointer<ArtifactProperties> ArtifactPropertiesPtr;
-typedef QSharedPointer<const ArtifactProperties> ArtifactPropertiesConstPtr;
+typedef std::shared_ptr<ArtifactProperties> ArtifactPropertiesPtr;
+typedef std::shared_ptr<const ArtifactProperties> ArtifactPropertiesConstPtr;
+
+template <typename T> inline static uint qHash(const std::shared_ptr<T> &p, uint seed = 0)
+{
+    return ::qHash(p.get(), seed);
+}
 
 } // namespace Internal
 } // namespace qbs

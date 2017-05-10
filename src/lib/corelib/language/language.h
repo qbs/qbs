@@ -223,8 +223,8 @@ bool sourceArtifactSetsAreEqual(const QList<SourceArtifactPtr> &l1,
 class SourceWildCards : public PersistentObject
 {
 public:
-    typedef QSharedPointer<SourceWildCards> Ptr;
-    typedef QSharedPointer<const SourceWildCards> ConstPtr;
+    typedef std::shared_ptr<SourceWildCards> Ptr;
+    typedef std::shared_ptr<const SourceWildCards> ConstPtr;
 
     static Ptr create() { return Ptr(new SourceWildCards); }
 

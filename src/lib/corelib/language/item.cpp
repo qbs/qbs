@@ -150,7 +150,7 @@ ItemValuePtr Item::itemProperty(const QString &name, const Item *itemTemplate)
     ItemValuePtr result;
     ValuePtr v = property(name);
     if (v && v->type() == Value::ItemValueType) {
-        result = v.staticCast<ItemValue>();
+        result = std::static_pointer_cast<ItemValue>(v);
     } else if (itemTemplate) {
         result = ItemValue::create(Item::create(m_pool, itemTemplate->type()));
         setProperty(name, result);
@@ -163,7 +163,7 @@ JSSourceValuePtr Item::sourceProperty(const QString &name) const
     ValuePtr v = property(name);
     if (!v || v->type() != Value::JSSourceValueType)
         return JSSourceValuePtr();
-    return v.staticCast<JSSourceValue>();
+    return std::static_pointer_cast<JSSourceValue>(v);
 }
 
 VariantValuePtr Item::variantProperty(const QString &name) const
@@ -171,7 +171,7 @@ VariantValuePtr Item::variantProperty(const QString &name) const
     ValuePtr v = property(name);
     if (!v || v->type() != Value::VariantValueType)
         return VariantValuePtr();
-    return v.staticCast<VariantValue>();
+    return std::static_pointer_cast<VariantValue>(v);
 }
 
 PropertyDeclaration Item::propertyDeclaration(const QString &name) const
@@ -273,19 +273,19 @@ void Item::dump(int indentation) const
     for (auto it = m_properties.constBegin(); it != m_properties.constEnd(); ++it) {
         const QByteArray nextIndent(indentation + 4, ' ');
         qDebug("%skey: %s, value type: %s", nextIndent.constData(), qPrintable(it.key()),
-               valueType(it.value().data()));
+               valueType(it.value().get()));
         switch (it.value()->type()) {
         case Value::JSSourceValueType:
             qDebug("%svalue: %s", nextIndent.constData(),
-                   qPrintable(it.value().staticCast<JSSourceValue>()->sourceCodeForEvaluation()));
+                   qPrintable(std::static_pointer_cast<JSSourceValue>(it.value())->sourceCodeForEvaluation()));
             break;
         case Value::ItemValueType:
             qDebug("%svalue:", nextIndent.constData());
-            it.value().staticCast<ItemValue>()->item()->dump(indentation + 8);
+            std::static_pointer_cast<ItemValue>(it.value())->item()->dump(indentation + 8);
             break;
         case Value::VariantValueType:
             qDebug("%svalue: %s", nextIndent.constData(),
-                   qPrintable(it.value().staticCast<VariantValue>()->value().toString()));
+                   qPrintable(std::static_pointer_cast<VariantValue>(it.value())->value().toString()));
             break;
         }
     }

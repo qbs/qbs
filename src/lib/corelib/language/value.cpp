@@ -82,7 +82,7 @@ ValuePtr Value::next() const
 
 void Value::setNext(const ValuePtr &next)
 {
-    QBS_ASSERT(next.data() != this, return);
+    QBS_ASSERT(next.get() != this, return);
     m_next = next;
 }
 
@@ -101,8 +101,9 @@ JSSourceValue::JSSourceValue(const JSSourceValue &other) : Value(other)
     m_column = other.m_column;
     m_file = other.m_file;
     m_flags = other.m_flags;
-    m_baseValue = other.m_baseValue ? other.m_baseValue->clone().staticCast<JSSourceValue>()
-                                    : JSSourceValuePtr();
+    m_baseValue = other.m_baseValue
+            ? std::static_pointer_cast<JSSourceValue>(other.m_baseValue->clone())
+            : JSSourceValuePtr();
     for (const Alternative &otherAlt : qAsConst(other.m_alternatives))
         m_alternatives << otherAlt.clone();
 }

@@ -147,7 +147,7 @@ public:
         Alternative clone() const
         {
             return Alternative(condition, overrideListProperties,
-                               value->clone().staticCast<JSSourceValue>());
+                               std::static_pointer_cast<JSSourceValue>(value->clone()));
         }
 
         QString condition;

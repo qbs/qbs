@@ -74,10 +74,10 @@ public:
 
     Internal::VisualStudioVersionInfo versionInfo;
 
-    QSharedPointer<VisualStudioGuidPool> guidPool;
-    QSharedPointer<VisualStudioSolution> solution;
+    std::shared_ptr<VisualStudioGuidPool> guidPool;
+    std::shared_ptr<VisualStudioSolution> solution;
     QString solutionFilePath;
-    QMap<QString, QSharedPointer<MSBuildProject>> msbuildProjects;
+    QMap<QString, std::shared_ptr<MSBuildProject>> msbuildProjects;
     QMap<QString, VisualStudioSolutionFileProject *> solutionProjects;
     QMap<QString, VisualStudioSolutionFolderProject *> solutionFolders;
     QList<std::pair<QString, bool>> propertySheetNames;
@@ -106,7 +106,7 @@ public:
     void visitProject(const GeneratableProject &project) override {
         Q_UNUSED(project);
         nestedProjects = new VisualStudioSolutionGlobalSection(
-                    QStringLiteral("NestedProjects"), generator->d->solution.data());
+                    QStringLiteral("NestedProjects"), generator->d->solution.get());
         generator->d->solution->appendGlobalSection(nestedProjects);
     }
 
@@ -171,7 +171,7 @@ void VisualStudioGenerator::addPropertySheets(const GeneratableProject &project)
         const auto fileName = QStringLiteral("qbs.props");
         d->propertySheetNames.append({ fileName, true });
         d->msbuildProjects.insert(project.baseBuildDirectory().absoluteFilePath(fileName),
-                                QSharedPointer<MSBuildSolutionPropertiesProject>::create(
+                                std::make_shared<MSBuildSolutionPropertiesProject>(
                                     d->versionInfo, project,
                                     qbsExecutableFilePath(), qbsSettingsDir()));
     }
@@ -180,14 +180,14 @@ void VisualStudioGenerator::addPropertySheets(const GeneratableProject &project)
         const auto fileName = QStringLiteral("qbs-shared.props");
         d->propertySheetNames.append({ fileName, false });
         d->msbuildProjects.insert(project.baseBuildDirectory().absoluteFilePath(fileName),
-                                QSharedPointer<MSBuildSharedSolutionPropertiesProject>::create(
+                                std::make_shared<MSBuildSharedSolutionPropertiesProject>(
                                     d->versionInfo, project,
                                     qbsExecutableFilePath(), qbsSettingsDir()));
     }
 }
 
 void VisualStudioGenerator::addPropertySheets(
-        const QSharedPointer<MSBuildTargetProject> &targetProject)
+        const std::shared_ptr<MSBuildTargetProject> &targetProject)
 {
     for (const auto &pair : d->propertySheetNames) {
         targetProject->appendPropertySheet(
@@ -242,10 +242,10 @@ static void addDefaultGlobalSections(const GeneratableProject &topLevelProject,
                                          QStringLiteral("FALSE"));
 }
 
-static void writeProjectFiles(const QMap<QString, QSharedPointer<MSBuildProject>> &projects)
+static void writeProjectFiles(const QMap<QString, std::shared_ptr<MSBuildProject>> &projects)
 {
     // Write out all the MSBuild project files to disk
-    QMapIterator<QString, QSharedPointer<MSBuildProject>> it(projects);
+    QMapIterator<QString, std::shared_ptr<MSBuildProject>> it(projects);
     while (it.hasNext()) {
         it.next();
         const auto projectFilePath = it.key();
@@ -253,14 +253,14 @@ static void writeProjectFiles(const QMap<QString, QSharedPointer<MSBuildProject>
         if (!file.open())
             throw ErrorInfo(Tr::tr("Cannot open %s for writing").arg(projectFilePath));
 
-        QSharedPointer<MSBuildProject> project = it.value();
+        std::shared_ptr<MSBuildProject> project = it.value();
         MSBuildProjectWriter writer(file.device());
-        if (!(writer.write(project.data()) && file.commit()))
+        if (!(writer.write(project.get()) && file.commit()))
             throw ErrorInfo(Tr::tr("Failed to generate %1").arg(projectFilePath));
     }
 }
 
-static void writeSolution(const QSharedPointer<VisualStudioSolution> &solution,
+static void writeSolution(const std::shared_ptr<VisualStudioSolution> &solution,
                           const QString &solutionFilePath)
 {
     Internal::FileSaver file(solutionFilePath);
@@ -269,7 +269,7 @@ static void writeSolution(const QSharedPointer<VisualStudioSolution> &solution,
 
     VisualStudioSolutionWriter writer(file.device());
     writer.setProjectBaseDirectory(QFileInfo(solutionFilePath).path());
-    if (!(writer.write(solution.data()) && file.commit()))
+    if (!(writer.write(solution.get()) && file.commit()))
         throw ErrorInfo(Tr::tr("Failed to generate %1").arg(solutionFilePath));
 
     qDebug() << "Generated" << qPrintable(QFileInfo(solutionFilePath).fileName());
@@ -280,7 +280,7 @@ void VisualStudioGenerator::generate()
     GeneratableProjectIterator it(project());
     it.accept(this);
 
-    addDefaultGlobalSections(project(), d->solution.data());
+    addDefaultGlobalSections(project(), d->solution.get());
 
     // Second pass: connection solution project interdependencies and project nesting hierarchy
     SolutionDependenciesVisitor solutionDependenciesVisitor(this);
@@ -292,12 +292,12 @@ void VisualStudioGenerator::generate()
     d->reset();
 }
 
-std::vector<QSharedPointer<ProjectGenerator> > VisualStudioGenerator::createGeneratorList()
+std::vector<std::shared_ptr<ProjectGenerator> > VisualStudioGenerator::createGeneratorList()
 {
-    std::vector<QSharedPointer<ProjectGenerator> > result;
+    std::vector<std::shared_ptr<ProjectGenerator> > result;
     for (const auto &info : VisualStudioVersionInfo::knownVersions()) {
         if (info.usesMsBuild())
-            result.push_back(QSharedPointer<ProjectGenerator>(new VisualStudioGenerator(info)));
+            result.push_back(std::make_shared<VisualStudioGenerator>(info));
     }
     return result;
 }
@@ -308,18 +308,18 @@ void VisualStudioGenerator::visitProject(const GeneratableProject &project)
 
     const auto buildDir = project.baseBuildDirectory();
 
-    d->guidPool = QSharedPointer<VisualStudioGuidPool>::create(
+    d->guidPool = std::make_shared<VisualStudioGuidPool>(
                 buildDir.absoluteFilePath(project.name() + QStringLiteral(".guid.txt")));
 
     d->solutionFilePath = buildDir.absoluteFilePath(project.name() + QStringLiteral(".sln"));
-    d->solution = QSharedPointer<VisualStudioSolution>::create(d->versionInfo);
+    d->solution = std::make_shared<VisualStudioSolution>(d->versionInfo);
 
     // Create a helper project to re-run qbs generate
     const auto qbsGenerate = QStringLiteral("qbs-generate");
     const auto projectFilePath = targetFilePath(qbsGenerate, buildDir.absolutePath());
     const auto relativeProjectFilePath = QFileInfo(d->solutionFilePath).dir()
             .relativeFilePath(projectFilePath);
-    auto targetProject = QSharedPointer<MSBuildQbsGenerateProject>::create(project, d->versionInfo);
+    auto targetProject = std::make_shared<MSBuildQbsGenerateProject>(project, d->versionInfo);
     targetProject->setGuid(d->guidPool->drawProductGuid(relativeProjectFilePath));
     d->msbuildProjects.insert(projectFilePath, targetProject);
 
@@ -327,7 +327,7 @@ void VisualStudioGenerator::visitProject(const GeneratableProject &project)
 
     auto solutionProject = new VisualStudioSolutionFileProject(
                 targetFilePath(qbsGenerate, project.baseBuildDirectory().absolutePath()),
-                d->solution.data());
+                d->solution.get());
     solutionProject->setGuid(targetProject->guid());
     d->solution->appendProject(solutionProject);
     d->solutionProjects.insert(qbsGenerate, solutionProject);
@@ -337,7 +337,7 @@ void VisualStudioGenerator::visitProjectData(const GeneratableProject &project,
                                              const GeneratableProjectData &projectData)
 {
     Q_UNUSED(project);
-    auto solutionFolder = new VisualStudioSolutionFolderProject(d->solution.data());
+    auto solutionFolder = new VisualStudioSolutionFolderProject(d->solution.get());
     solutionFolder->setName(projectData.name());
     d->solution->appendProject(solutionFolder);
     d->solutionFolders.insert(projectData.name(), solutionFolder);
@@ -352,7 +352,7 @@ void VisualStudioGenerator::visitProduct(const GeneratableProject &project,
                                                 project.baseBuildDirectory().absolutePath());
     const auto relativeProjectFilePath = QFileInfo(d->solutionFilePath)
             .dir().relativeFilePath(projectFilePath);
-    auto targetProject = QSharedPointer<MSBuildQbsProductProject>::create(project, productData,
+    auto targetProject = std::make_shared<MSBuildQbsProductProject>(project, productData,
                                                                           d->versionInfo);
     targetProject->setGuid(d->guidPool->drawProductGuid(relativeProjectFilePath));
 
@@ -360,11 +360,11 @@ void VisualStudioGenerator::visitProduct(const GeneratableProject &project,
 
     d->msbuildProjects.insert(projectFilePath, targetProject);
     d->msbuildProjects.insert(projectFilePath + QStringLiteral(".filters"),
-                          QSharedPointer<MSBuildFiltersProject>::create(productData));
+                          std::make_shared<MSBuildFiltersProject>(productData));
 
     auto solutionProject = new VisualStudioSolutionFileProject(
                 targetFilePath(productData, project.baseBuildDirectory().absolutePath()),
-                d->solution.data());
+                d->solution.get());
     solutionProject->setGuid(targetProject->guid());
     d->solution->appendProject(solutionProject);
     d->solutionProjects.insert(productData.name(), solutionProject);

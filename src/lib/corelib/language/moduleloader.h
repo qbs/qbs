@@ -95,7 +95,7 @@ struct ModuleLoaderResult
         ErrorInfo delayedError;
     };
 
-    QSharedPointer<ItemPool> itemPool;
+    std::shared_ptr<ItemPool> itemPool;
     Item *root;
     QHash<Item *, ProductInfo> productInfos;
     QList<ProbeConstPtr> projectProbes;

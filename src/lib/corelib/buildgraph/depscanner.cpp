@@ -189,7 +189,7 @@ bool UserDependencyScanner::recursive() const
 
 const void *UserDependencyScanner::key() const
 {
-    return m_scanner.data();
+    return m_scanner.get();
 }
 
 QString UserDependencyScanner::createId() const
@@ -226,9 +226,9 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunc
 {
     ScriptEngineActiveFlagGuard guard(m_engine);
 
-    if (artifact->product.data() != m_product) {
-        m_product = artifact->product.data();
-        setupScriptEngineForProduct(m_engine, artifact->product,
+    if (artifact->product.get() != m_product) {
+        m_product = artifact->product.get();
+        setupScriptEngineForProduct(m_engine, artifact->product.lock(),
                                     m_scanner->module, m_global, &m_observer);
     }
 

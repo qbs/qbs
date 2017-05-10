@@ -248,7 +248,7 @@ void InternalSetupProjectJob::start()
         const QString buildDir
                 = TopLevelProject::deriveBuildDirectory(m_parameters.buildRoot(), projectId);
         if (m_existingProject && m_existingProject->buildDirectory != buildDir)
-            m_existingProject.clear();
+            m_existingProject.reset();
         if (!m_existingProject) {
             bgLocker = new BuildGraphLocker(ProjectBuildData::deriveBuildGraphFilePath(buildDir,
                                                                                        projectId),
@@ -261,7 +261,7 @@ void InternalSetupProjectJob::start()
         m_newProject->bgLocker = bgLocker;
         deleteLocker = false;
     } catch (const ErrorInfo &error) {
-        m_newProject.clear();
+        m_newProject.reset();
         setError(error);
 
         // Delete the build graph locker if and only if we allocated it here.
@@ -303,7 +303,7 @@ void InternalSetupProjectJob::execute()
         storeBuildGraph(m_newProject);
 
     // The evalutation context cannot be re-used for building, which runs in a different thread.
-    m_newProject->buildData->evaluationContext.clear();
+    m_newProject->buildData->evaluationContext.reset();
 }
 
 void InternalSetupProjectJob::resolveProjectFromScratch(ScriptEngine *engine)
@@ -386,7 +386,7 @@ void InternalBuildJob::build(const TopLevelProjectPtr &project,
 void InternalBuildJob::handleFinished()
 {
     setError(m_executor->error());
-    project()->buildData->evaluationContext.clear();
+    project()->buildData->evaluationContext.reset();
     storeBuildGraph();
     m_executor->deleteLater();
 }

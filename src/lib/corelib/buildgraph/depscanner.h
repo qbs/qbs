@@ -117,7 +117,7 @@ private:
     ScriptEngine *m_engine;
     PrepareScriptObserver m_observer;
     QScriptValue m_global;
-    void *m_product;
+    ResolvedProduct *m_product;
 };
 
 } // namespace Internal

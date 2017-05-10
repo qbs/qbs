@@ -84,7 +84,7 @@ ProductInstaller::ProductInstaller(const TopLevelProjectPtr &project,
         if (m_options.removeExistingInstallation())
             throw ErrorInfo(Tr::tr("Refusing to remove sysroot."));
     }
-    initInstallRoot(project.data(), m_options);
+    initInstallRoot(project.get(), m_options);
 }
 
 void ProductInstaller::install()
@@ -190,7 +190,7 @@ void ProductInstaller::copyFile(const Artifact *artifact)
                     .arg(m_products.first()->project->topLevelProject()->id()));
     }
 
-    const QString targetFilePath = this->targetFilePath(m_project.data(),
+    const QString targetFilePath = this->targetFilePath(m_project.get(),
             artifact->product->sourceDirectory, artifact->filePath(),
             artifact->properties, m_options);
     const QString targetDir = FileInfo::path(targetFilePath);

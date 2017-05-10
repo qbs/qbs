@@ -56,7 +56,7 @@ void RuleGraph::build(const Set<RulePtr> &rules, const FileTags &productFileTags
     m_rules.reserve(rules.size());
     for (const RulePtr &rule : rules) {
         for (const FileTag &fileTag : rule->collectedOutputFileTags())
-            m_outputFileTagToRule[fileTag].append(rule.data());
+            m_outputFileTagToRule[fileTag].append(rule.get());
         insert(rule);
     }
 
@@ -68,11 +68,11 @@ void RuleGraph::build(const Set<RulePtr> &rules, const FileTags &productFileTags
         inFileTags += rule->auxiliaryInputs;
         inFileTags += rule->explicitlyDependsOn;
         for (const FileTag &fileTag : qAsConst(inFileTags)) {
-            inputFileTagToRule[fileTag].append(rule.data());
+            inputFileTagToRule[fileTag].append(rule.get());
             for (const Rule * const producingRule : m_outputFileTagToRule.value(fileTag)) {
                 if (!producingRule->collectedOutputFileTags().intersects(
                         rule->excludedAuxiliaryInputs)) {
-                    connect(rule.data(), producingRule);
+                    connect(rule.get(), producingRule);
                 }
             }
         }

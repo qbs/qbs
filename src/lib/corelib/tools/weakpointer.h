@@ -39,30 +39,54 @@
 #ifndef QBS_WEAKPOINTER_H
 #define QBS_WEAKPOINTER_H
 
-#include <QtCore/qpointer.h>
+#include <memory>
 
 namespace qbs {
 namespace Internal {
 
-template<typename T> class WeakPointer : public QWeakPointer<T>
+template<typename T> class WeakPointer : public std::weak_ptr<T>
 {
 public:
-    WeakPointer() : QWeakPointer<T>() {}
-    WeakPointer(const QSharedPointer<T> &sharedPointer) : QWeakPointer<T>(sharedPointer) {}
-    template <class X> WeakPointer(const QSharedPointer<X> &sp) : QWeakPointer<T>(sp) { }
+    WeakPointer() : std::weak_ptr<T>() {}
+    WeakPointer(const std::shared_ptr<T> &sharedPointer) : std::weak_ptr<T>(sharedPointer) {}
+    template <class X> WeakPointer(const std::shared_ptr<X> &sp) : std::weak_ptr<T>(sp) { }
 
-
+    T *get() const { auto p = std::weak_ptr<T>::lock(); return p.get(); }
+    operator bool() const { return !std::weak_ptr<T>::expired(); }
+    bool operator!() const { return std::weak_ptr<T>::expired(); }
     operator T*() const { return checkedData(); }
     T *operator->() const { return checkedData(); }
     T operator*() const { return *checkedData(); }
 
 private:
     T *checkedData() const {
-        T * const d = QWeakPointer<T>::data();
+        T * const d = get();
         Q_ASSERT(d); // Calling code is not expecting this situation.
         return d;
     }
 };
+
+template <typename T> bool operator==(const WeakPointer<T> &a, const WeakPointer<T> &b)
+{
+    return a.get() == b.get();
+}
+
+template <typename T> bool operator!=(const WeakPointer<T> &a, const WeakPointer<T> &b)
+{
+    return a.get() != b.get();
+}
+
+template <typename T, typename V> bool operator==(const WeakPointer<T> &a,
+                                                  const std::shared_ptr<V> &b)
+{
+    return a.lock() == b;
+}
+
+template <typename T, typename V> bool operator!=(const WeakPointer<T> &a,
+                                                  const std::shared_ptr<V> &b)
+{
+    return a.lock() != b;
+}
 
 } // namespace Internal
 } // namespace qbs

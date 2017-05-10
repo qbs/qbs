@@ -337,7 +337,7 @@ bool operator==(const ScriptFunction &a, const ScriptFunction &b)
     return a.sourceCode == b.sourceCode
             && a.location == b.location
             && a.argumentNames == b.argumentNames
-            && equals(a.fileContext.data(), b.fileContext.data());
+            && equals(a.fileContext.get(), b.fileContext.get());
 }
 
 void ResolvedModule::load(PersistentPool &pool)
@@ -360,8 +360,8 @@ bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
 {
     return m1.name == m2.name
             && m1.moduleDependencies.toSet() == m2.moduleDependencies.toSet()
-            && equals(m1.setupBuildEnvironmentScript.data(), m2.setupBuildEnvironmentScript.data())
-            && equals(m1.setupRunEnvironmentScript.data(), m2.setupRunEnvironmentScript.data());
+            && equals(m1.setupBuildEnvironmentScript.get(), m2.setupBuildEnvironmentScript.get())
+            && equals(m1.setupRunEnvironmentScript.get(), m2.setupRunEnvironmentScript.get());
 }
 
 QString Rule::toString() const
@@ -600,7 +600,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
 {
     QMap<QString, const ResolvedModule *> moduleMap;
     for (const ResolvedModuleConstPtr &module : modules)
-        moduleMap.insert(module->name, module.data());
+        moduleMap.insert(module->name, module.get());
 
     QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleParents;
     QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleChildren;
@@ -608,16 +608,16 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
         for (const QString &moduleName : qAsConst(module->moduleDependencies)) {
             const ResolvedModule * const depmod = moduleMap.value(moduleName);
             QBS_ASSERT(depmod, return env);
-            moduleParents[depmod].append(module.data());
-            moduleChildren[module.data()].append(depmod);
+            moduleParents[depmod].append(module.get());
+            moduleChildren[module.get()].append(depmod);
         }
     }
 
     QList<const ResolvedModule *> rootModules;
     for (const ResolvedModuleConstPtr &module : modules) {
-        if (moduleParents.value(module.data()).isEmpty()) {
+        if (moduleParents.value(module.get()).isEmpty()) {
             QBS_ASSERT(module, return env);
-            rootModules.append(module.data());
+            rootModules.append(module.get());
         }
     }
 
@@ -824,9 +824,9 @@ QString ResolvedProduct::buildDirectory() const
 
 bool ResolvedProduct::isInParentProject(const ResolvedProductConstPtr &other) const
 {
-    for (const ResolvedProject *otherParent = other->project.data(); otherParent;
-         otherParent = otherParent->parentProject.data()) {
-        if (otherParent == project.data())
+    for (const ResolvedProject *otherParent = other->project.get(); otherParent;
+         otherParent = otherParent->parentProject.get()) {
+        if (otherParent == project.get())
             return true;
     }
     return false;
@@ -871,7 +871,7 @@ TopLevelProject *ResolvedProject::topLevelProject()
         m_topLevelProject = tlp;
         return m_topLevelProject;
     }
-    QBS_CHECK(!parentProject.isNull());
+    QBS_CHECK(!parentProject.expired());
     m_topLevelProject = parentProject->topLevelProject();
     return m_topLevelProject;
 }
@@ -1168,7 +1168,7 @@ template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
         const T value2 = map2.value(key);
         if (!value2)
             return false;
-        if (!equals(map1.value(key).data(), value2.data()))
+        if (!equals(map1.value(key).get(), value2.get()))
             return false;
     }
     return true;
@@ -1211,13 +1211,13 @@ bool operator==(const Rule &r1, const Rule &r2)
     if (r1.artifacts.count() != r2.artifacts.count())
         return false;
     for (int i = 0; i < r1.artifacts.count(); ++i) {
-        if (!equals(r1.artifacts.at(i).data(), r2.artifacts.at(i).data()))
+        if (!equals(r1.artifacts.at(i).get(), r2.artifacts.at(i).get()))
             return false;
     }
 
     return r1.module->name == r2.module->name
-            && equals(r1.prepareScript.data(), r2.prepareScript.data())
-            && equals(r1.outputArtifactsScript.data(), r2.outputArtifactsScript.data())
+            && equals(r1.prepareScript.get(), r2.prepareScript.get())
+            && equals(r1.outputArtifactsScript.get(), r2.outputArtifactsScript.get())
             && r1.inputs == r2.inputs
             && r1.outputFileTags == r2.outputFileTags
             && r1.auxiliaryInputs == r2.auxiliaryInputs

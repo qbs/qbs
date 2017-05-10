@@ -89,7 +89,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
 
     m_createdArtifacts.clear();
     m_invalidatedArtifacts.clear();
-    RulesEvaluationContext::Scope s(evalContext().data());
+    RulesEvaluationContext::Scope s(evalContext().get());
 
     m_rule = rule;
     m_completeInputSet = inputArtifacts;
@@ -197,7 +197,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             if (!outputArtifact)
                 continue;
             outputArtifacts << outputArtifact;
-            ruleArtifactArtifactMap << std::make_pair(ruleArtifact.data(), outputArtifact);
+            ruleArtifactArtifactMap << std::make_pair(ruleArtifact.get(), outputArtifact);
         }
     }
 
@@ -302,7 +302,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
 
     Artifact *outputArtifact = lookupArtifact(m_product, outputPath);
     if (outputArtifact) {
-        const Transformer * const transformer = outputArtifact->transformer.data();
+        const Transformer * const transformer = outputArtifact->transformer.get();
         if (transformer && transformer->rule != m_rule) {
             QString e = Tr::tr("Conflicting rules for producing %1 %2 \n")
                     .arg(outputArtifact->filePath(),

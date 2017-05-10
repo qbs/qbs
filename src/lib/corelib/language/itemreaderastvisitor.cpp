@@ -275,7 +275,7 @@ Item *ItemReaderASTVisitor::targetItemForBinding(const QStringList &bindingName,
             QString msg = Tr::tr("Binding to non-item property.");
             throw ErrorInfo(msg, value->location());
         }
-        targetItem = v.staticCast<ItemValue>()->item();
+        targetItem = std::static_pointer_cast<ItemValue>(v)->item();
     }
     return targetItem;
 }
@@ -310,17 +310,17 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
             continue;
         switch (v->type()) {
         case Value::JSSourceValueType: {
-            JSSourceValuePtr sv = v.staticCast<JSSourceValue>();
+            JSSourceValuePtr sv = std::static_pointer_cast<JSSourceValue>(v);
             QBS_CHECK(!sv->baseValue());
-            const JSSourceValuePtr baseValue = it.value().staticCast<JSSourceValue>();
+            const JSSourceValuePtr baseValue = std::static_pointer_cast<JSSourceValue>(it.value());
             sv->setBaseValue(baseValue);
             for (const JSSourceValue::Alternative &alt : qAsConst(sv->m_alternatives))
                 alt.value->setBaseValue(baseValue);
             break;
         }
         case Value::ItemValueType:
-            inheritItem(v.staticCast<ItemValue>()->item(),
-                        it.value().staticCast<const ItemValue>()->item());
+            inheritItem(std::static_pointer_cast<ItemValue>(v)->item(),
+                        std::static_pointer_cast<const ItemValue>(it.value())->item());
             break;
         default:
             QBS_CHECK(!"unexpected value type");

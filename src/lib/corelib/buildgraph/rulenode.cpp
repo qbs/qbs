@@ -73,7 +73,7 @@ void RuleNode::accept(BuildGraphVisitor *visitor)
 QString RuleNode::toString() const
 {
     return QLatin1String("RULE ") + m_rule->toString() + QLatin1String(" [")
-            + (!product.isNull() ? product->name : QLatin1String("<null>")) + QLatin1Char(']');
+            + (!product.expired() ? product->name : QLatin1String("<null>")) + QLatin1Char(']');
 }
 
 void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
@@ -134,7 +134,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         RulesApplicator::handleRemovedRuleOutputs(inputs, outputArtifactsToRemove, logger);
     }
     if (!inputs.isEmpty() || !m_rule->requiresInputs()) {
-        RulesApplicator applicator(product, logger);
+        RulesApplicator applicator(product.lock(), logger);
         applicator.applyRule(m_rule, inputs);
         result->createdNodes = applicator.createdArtifacts();
         result->invalidatedNodes = applicator.invalidatedArtifacts();

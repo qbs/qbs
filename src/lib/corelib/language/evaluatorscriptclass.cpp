@@ -228,7 +228,7 @@ private:
                 }
                 if (overrides.toBool())
                     value->setIsExclusiveListValue();
-                value = alternative->value.data();
+                value = alternative->value.get();
                 break;
             }
         }
@@ -355,7 +355,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
 {
     for (const Item *item = data->item; item; item = item->prototype()) {
         m_queryResult.value = item->ownProperty(name);
-        if (!m_queryResult.value.isNull()) {
+        if (m_queryResult.value) {
             m_queryResult.data = data;
             m_queryResult.itemOfProperty = item;
             return HandlesReadAccess;
@@ -393,7 +393,7 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
     QScriptValueList lst;
     Set<Value *> oldNextChain = m_currentNextChain;
     for (ValuePtr next = value; next; next = next->next())
-        m_currentNextChain.insert(next.data());
+        m_currentNextChain.insert(next.get());
 
     for (ValuePtr next = value; next; next = next->next()) {
         QScriptValue v = data->evaluator->property(next->definingItem(), propertyName);
@@ -406,7 +406,7 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
             continue;
         lst << v;
         if (next->type() == Value::JSSourceValueType
-                && next.staticCast<JSSourceValue>()->isExclusiveListValue()) {
+                && std::static_pointer_cast<JSSourceValue>(next)->isExclusiveListValue()) {
             lst = lst.mid(lst.length() - 2);
             break;
         }
@@ -589,7 +589,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     if (debugProperties)
         qDebug() << "[SC] property " << name;
 
-    PropertyStackManager propStackmanager(itemOfProperty, name, value.data(),
+    PropertyStackManager propStackmanager(itemOfProperty, name, value.get(),
                                           m_requestedProperties, m_propertyDependencies);
 
     QScriptValue result;
@@ -602,14 +602,14 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
         }
     }
 
-    if (value->next() && !m_currentNextChain.contains(value.data())) {
+    if (value->next() && !m_currentNextChain.contains(value.get())) {
         collectValuesFromNextChain(data, &result, name.toString(), value);
     } else {
         SVConverter converter(this, &object, value, itemOfProperty, &name, data, &result);
         converter.start();
 
         const PropertyDeclaration decl = data->item->propertyDeclaration(name.toString());
-        convertToPropertyType(data->item, decl, value.data(), result);
+        convertToPropertyType(data->item, decl, value.get(), result);
     }
 
     if (debugProperties)

@@ -60,7 +60,7 @@ class RawScanResults;
 class PropertyMapInternal;
 
 class DependencyScanner;
-typedef QSharedPointer<DependencyScanner> DependencyScannerPtr;
+typedef std::shared_ptr<DependencyScanner> DependencyScannerPtr;
 
 class ResolvedDependency
 {

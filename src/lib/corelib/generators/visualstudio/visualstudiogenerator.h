@@ -61,7 +61,7 @@ public:
     QString generatorName() const override;
     void generate() override;
 
-    static std::vector<QSharedPointer<ProjectGenerator> > createGeneratorList();
+    static std::vector<std::shared_ptr<ProjectGenerator> > createGeneratorList();
 
 private:
     virtual void visitProject(const GeneratableProject &project) override;
@@ -72,7 +72,7 @@ private:
                               const GeneratableProductData &productData) override;
 
     void addPropertySheets(const GeneratableProject &project);
-    void addPropertySheets(const QSharedPointer<MSBuildTargetProject> &targetProject);
+    void addPropertySheets(const std::shared_ptr<MSBuildTargetProject> &targetProject);
 
     QScopedPointer<VisualStudioGeneratorPrivate> d;
 };

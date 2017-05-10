@@ -72,7 +72,7 @@ static void resolveDepencency(const RawScannedDependency &dependency,
     if (!dependency.isClean())
         absDirPath = QDir::cleanPath(absDirPath);
 
-    ResolvedProject *project = product->project.data();
+    ResolvedProject *project = product->project.get();
     FileDependency *fileDependencyArtifact = 0;
     Artifact *dependencyInProduct = 0;
     Artifact *dependencyInOtherProduct = 0;
@@ -179,7 +179,7 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
 Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifact *artifact) const
 {
     Set<DependencyScanner *> scanners;
-    ResolvedProduct *product = artifact->product.data();
+    ResolvedProduct *product = artifact->product.get();
     ScriptEngine *engine = product->topLevelProject()->buildData->evaluationContext->engine();
     QHash<FileTag, InputArtifactScannerContext::DependencyScannerCacheItem> &scannerCache
             = m_context->scannersCache[product];
@@ -200,7 +200,7 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
             }
         }
         for (const DependencyScannerPtr &scanner : qAsConst(cache.scanners))
-            scanners += scanner.data();
+            scanners += scanner.get();
     }
     return scanners;
 }
@@ -262,13 +262,13 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
         cachedResolvedDependencyItem.valid = true;
 
         if (FileInfo::isAbsolute(dependencyFilePath)) {
-            resolveDepencency(dependency, inputArtifact->product.data(), &resolvedDependency);
+            resolveDepencency(dependency, inputArtifact->product.get(), &resolvedDependency);
             goto resolved;
         }
 
         // try include paths
         for (const QString &includePath : cache.searchPaths) {
-            resolveDepencency(dependency, inputArtifact->product.data(),
+            resolveDepencency(dependency, inputArtifact->product.get(),
                               &resolvedDependency, includePath);
             if (resolvedDependency.isValid())
                 goto resolved;
@@ -298,7 +298,7 @@ resolved:
 
 void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
 {
-    const ResolvedProductPtr product = m_artifact->product;
+    const ResolvedProductPtr product = m_artifact->product.lock();
     QBS_CHECK(m_artifact->artifactType == Artifact::Generated);
     QBS_CHECK(product);
 

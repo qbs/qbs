@@ -442,7 +442,7 @@ bool commandListsAreEqual(const QList<AbstractCommandPtr> &l1, const QList<Abstr
     if (l1.count() != l2.count())
         return false;
     for (int i = 0; i < l1.count(); ++i)
-        if (!l1.at(i)->equals(l2.at(i).data()))
+        if (!l1.at(i)->equals(l2.at(i).get()))
             return false;
     return true;
 }

@@ -231,9 +231,9 @@ void Executor::doBuild()
                     = m_project->buildData->lookupFiles(fileToConsider);
             for (const FileResourceBase * const file : files) {
                 const Artifact * const artifact = dynamic_cast<const Artifact *>(file);
-                if (artifact && m_productsToBuild.contains(artifact->product)) {
+                if (artifact && m_productsToBuild.contains(artifact->product.lock())) {
                     m_tagsOfFilesToConsider.unite(artifact->fileTags());
-                    m_productsOfFilesToConsider << artifact->product;
+                    m_productsOfFilesToConsider << artifact->product.lock();
                 }
             }
         }
@@ -717,7 +717,7 @@ void Executor::doSanityChecks()
     QBS_CHECK(!m_productsToBuild.isEmpty());
     for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
-        QBS_CHECK(product->topLevelProject() == m_project);
+        QBS_CHECK(product->topLevelProject() == m_project.get());
     }
 }
 
@@ -759,7 +759,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
     if (artifact->artifactType != Artifact::Generated)
         return;
 
-    ResolvedProduct * const product = artifact->product.data();
+    ResolvedProduct * const product = artifact->product.get();
     AllRescuableArtifactData::Iterator it
             = product->buildData->rescuableArtifactData.find(artifact->filePath());
     if (it == product->buildData->rescuableArtifactData.end())
@@ -950,7 +950,7 @@ void Executor::runTransformer(const TransformerPtr &transformer)
     for (Artifact * const artifact : qAsConst(transformer->outputs))
         artifact->buildState = BuildGraphNode::Building;
     m_processingJobs.insert(job, transformer);
-    job->run(transformer.data());
+    job->run(transformer.get());
 }
 
 void Executor::finishTransformer(const TransformerPtr &transformer)
@@ -1043,7 +1043,7 @@ void Executor::checkForUnbuiltProducts()
 
 bool Executor::checkNodeProduct(BuildGraphNode *node)
 {
-    if (!m_partialBuild || m_productsToBuild.contains(node->product))
+    if (!m_partialBuild || m_productsToBuild.contains(node->product.lock()))
         return true;
 
     // TODO: Turn this into a warning once we have a reliable C++ scanner.
@@ -1072,7 +1072,7 @@ void Executor::finish()
         m_cancelationTimer->stop();
     }
 
-    EmptyDirectoriesRemover(m_project.data(), m_logger)
+    EmptyDirectoriesRemover(m_project.get(), m_logger)
             .removeEmptyParentDirectories(m_artifactsRemovedFromDisk);
 
     if (m_buildOptions.logElapsedTime()) {
@@ -1159,10 +1159,10 @@ void Executor::setupForBuildingSelectedFiles(const BuildGraphNode *node)
         return;
     if (m_buildOptions.filesToConsider().isEmpty())
         return;
-    if (!m_productsOfFilesToConsider.contains(node->product))
+    if (!m_productsOfFilesToConsider.contains(node->product.lock()))
         return;
     const RuleNode * const ruleNode = static_cast<const RuleNode *>(node);
-    const Rule * const rule = ruleNode->rule().data();
+    const Rule * const rule = ruleNode->rule().get();
     if (rule->inputs.intersects(m_tagsOfFilesToConsider)) {
         FileTags otherInputs = rule->auxiliaryInputs;
         otherInputs.unite(rule->explicitlyDependsOn).subtract(rule->excludedAuxiliaryInputs);
@@ -1199,7 +1199,7 @@ void Executor::prepareReachableNodes_impl(BuildGraphNode *node)
 
 void Executor::prepareProducts()
 {
-    ProductPrioritySetter prioritySetter(m_project.data());
+    ProductPrioritySetter prioritySetter(m_project.get());
     prioritySetter.apply();
     for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild))
         product->setupBuildEnvironment(m_evalContext->engine(), m_project->environment);

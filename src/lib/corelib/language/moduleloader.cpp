@@ -311,7 +311,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_elapsedTimeProbes = 0;
 
     ModuleLoaderResult result;
-    m_pool = result.itemPool.data();
+    m_pool = result.itemPool.get();
     m_reader->setPool(m_pool);
 
     const QStringList topLevelSearchPaths = parameters.finalBuildConfigurationTree()
@@ -1393,7 +1393,7 @@ void ModuleLoader::handlePropertyOptions(Item *optionsItem)
 static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
 {
     if (value->type() == Value::ItemValueType) {
-        Item *valueItem = value.staticCast<ItemValue>()->item();
+        Item *valueItem = std::static_pointer_cast<ItemValue>(value)->item();
         Item *subItem = dst->itemProperty(name, valueItem)->item();
         for (QMap<QString, ValuePtr>::const_iterator it = valueItem->properties().constBegin();
                 it != valueItem->properties().constEnd(); ++it)
@@ -1404,8 +1404,9 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
             const ValuePtr baseValue = dst->property(name);
             if (baseValue) {
                 QBS_CHECK(baseValue->type() == Value::JSSourceValueType);
-                const JSSourceValuePtr jsBaseValue = baseValue->clone().staticCast<JSSourceValue>();
-                JSSourceValue *jsValue = static_cast<JSSourceValue *>(value.data());
+                const JSSourceValuePtr jsBaseValue = std::static_pointer_cast<JSSourceValue>(
+                            baseValue->clone());
+                JSSourceValue *jsValue = static_cast<JSSourceValue *>(value.get());
                 jsValue->setBaseValue(jsBaseValue);
             }
         }
@@ -1591,7 +1592,7 @@ bool ModuleLoader::isSomeModulePropertySet(const Item *item)
             }
             break;
         case Value::ItemValueType:
-            if (isSomeModulePropertySet(it.value().staticCast<ItemValue>()->item()))
+            if (isSomeModulePropertySet(std::static_pointer_cast<ItemValue>(it.value())->item()))
                 return true;
             break;
         default:
@@ -1796,7 +1797,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                             << ", new defining item is" << replacement
                             << " with scope" << replacement->scope()
                             << ", value source code is "
-                            << v.staticCast<JSSourceValue>()->sourceCode().toString();
+                            << std::static_pointer_cast<JSSourceValue>(v)->sourceCode().toString();
                 }
                 replacement->setPropertyDeclaration(propName, decl);
                 replacement->setProperty(propName, v);
@@ -2045,7 +2046,9 @@ void ModuleLoader::forwardParameterDeclarations(const Item *dependsItem,
     for (auto it = dependsItem->properties().begin(); it != dependsItem->properties().end(); ++it) {
         if (it.value()->type() != Value::ItemValueType)
             continue;
-        forwardParameterDeclarations(it.key(), it.value().staticCast<ItemValue>()->item(), modules);
+        forwardParameterDeclarations(it.key(),
+                                     std::static_pointer_cast<ItemValue>(it.value())->item(),
+                                     modules);
     }
 }
 
@@ -2062,7 +2065,8 @@ void ModuleLoader::forwardParameterDeclarations(const QualifiedId &moduleName, I
             if (it.value()->type() != Value::ItemValueType)
                 continue;
             forwardParameterDeclarations(QualifiedId(moduleName) << it.key(),
-                                         it.value().staticCast<ItemValue>()->item(), modules);
+                                         std::static_pointer_cast<ItemValue>(it.value())->item(),
+                                         modules);
         }
     }
 }
@@ -2148,7 +2152,7 @@ Item *ModuleLoader::moduleInstanceItem(Item *containerItem, const QualifiedId &m
         const QString &moduleNameSegment = moduleName.at(i);
         const ValuePtr v = instance->ownProperty(moduleName.at(i));
         if (v && v->type() == Value::ItemValueType) {
-            instance = v.staticCast<ItemValue>()->item();
+            instance = std::static_pointer_cast<ItemValue>(v)->item();
         } else {
             const ItemType itemType = i < moduleName.count() - 1 ? ItemType::ModulePrefix
                                                                  : ItemType::ModuleInstance;
@@ -2876,7 +2880,8 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
                 || it.key() == QLatin1String("sourceDirectory")
                 || it.key() == QLatin1String("minimumQbsVersion")) {
             const JSSourceValueConstPtr &v
-                    = targetProject->property(it.key()).dynamicCast<const JSSourceValue>();
+                    = std::dynamic_pointer_cast<const JSSourceValue>(
+                        targetProject->property(it.key()));
             QBS_ASSERT(v, continue);
             if (v->sourceCode() == QLatin1String("undefined"))
                 sourceProject->copyProperty(it.key(), targetProject);
@@ -2934,7 +2939,7 @@ void ModuleLoader::forwardScopeToItemValues(Item *item, Item *scope)
     for (const ValuePtr &v : itemProperties) {
         if (v->type() != Value::ItemValueType)
             continue;
-        Item *k = v.staticCast<ItemValue>()->item();
+        Item *k = std::static_pointer_cast<ItemValue>(v)->item();
         if (k->type() == ItemType::ModulePrefix)
             forwardScopeToItemValues(k, scope);
         else

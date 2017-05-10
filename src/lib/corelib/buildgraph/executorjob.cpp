@@ -139,7 +139,7 @@ void ExecutorJob::runNextCommand()
         qFatal("Missing implementation for command type %d", command->type());
     }
 
-    m_currentCommandExecutor->start(m_transformer, command.data());
+    m_currentCommandExecutor->start(m_transformer, command.get());
 }
 
 void ExecutorJob::onCommandFinished(const ErrorInfo &err)

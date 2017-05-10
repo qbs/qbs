@@ -190,7 +190,8 @@ QString ProjectResolver::verbatimValue(const ValueConstPtr &value, bool *propert
 {
     QString result;
     if (value && value->type() == Value::JSSourceValueType) {
-        const JSSourceValueConstPtr sourceValue = value.staticCast<const JSSourceValue>();
+        const JSSourceValueConstPtr sourceValue = std::static_pointer_cast<const JSSourceValue>(
+                    value);
         result = sourceCodeForEvaluation(sourceValue);
         if (propertyWasSet)
             *propertyWasSet = (result != QLatin1String("undefined"));
@@ -585,7 +586,7 @@ static void gatherAssignedProperties(ItemValue *iv, const QualifiedId &prefix,
             properties << (QualifiedId(prefix) << it.key());
             break;
         case Value::ItemValueType:
-            gatherAssignedProperties(it.value().staticCast<ItemValue>().data(),
+            gatherAssignedProperties(std::static_pointer_cast<ItemValue>(it.value()).get(),
                            QualifiedId(prefix) << it.key(), properties);
             break;
         default:
@@ -601,7 +602,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
     QList<QualifiedId> propsSetInGroup;
     for (auto it = group->properties().cbegin(); it != group->properties().cend(); ++it) {
         if (it.value()->type() == Value::ItemValueType) {
-            gatherAssignedProperties(it.value().staticCast<ItemValue>().data(),
+            gatherAssignedProperties(std::static_pointer_cast<ItemValue>(it.value()).get(),
                                      QualifiedId(it.key()), propsSetInGroup);
         }
     }
@@ -899,7 +900,8 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
         {
             if (it.value()->type() != Value::ItemValueType)
                 continue;
-            resolveRuleArtifactBinding(artifact, it.value().staticCast<ItemValue>()->item(),
+            resolveRuleArtifactBinding(artifact,
+                                       std::static_pointer_cast<ItemValue>(it.value())->item(),
                  QStringList(it.key()), &seenBindings);
         }
     }
@@ -916,13 +918,13 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
         const QStringList name = QStringList(namePrefix) << it.key();
         if (it.value()->type() == Value::ItemValueType) {
             resolveRuleArtifactBinding(ruleArtifact,
-                                       it.value().staticCast<ItemValue>()->item(), name,
+                                       std::static_pointer_cast<ItemValue>(it.value())->item(), name,
                                        seenBindings);
         } else if (it.value()->type() == Value::JSSourceValueType) {
             const auto insertResult = seenBindings->insert(name);
             if (!insertResult.second)
                 continue;
-            JSSourceValuePtr sourceValue = it.value().staticCast<JSSourceValue>();
+            JSSourceValuePtr sourceValue = std::static_pointer_cast<JSSourceValue>(it.value());
             RuleArtifact::Binding rab;
             rab.name = name;
             rab.code = sourceCodeForEvaluation(sourceValue);
@@ -1072,19 +1074,19 @@ static bool hasDependencyCycle(Set<ResolvedProduct *> *checked,
                                const ResolvedProductPtr &product,
                                ErrorInfo *error)
 {
-    if (branch->contains(product.data()))
+    if (branch->contains(product.get()))
         return true;
-    if (checked->contains(product.data()))
+    if (checked->contains(product.get()))
         return false;
-    checked->insert(product.data());
-    branch->insert(product.data());
+    checked->insert(product.get());
+    branch->insert(product.get());
     for (const ResolvedProductPtr &dep : qAsConst(product->dependencies)) {
         if (hasDependencyCycle(checked, branch, dep, error)) {
             error->prepend(dep->name, dep->location);
             return true;
         }
     }
-    branch->remove(product.data());
+    branch->remove(product.get());
     return false;
 }
 
@@ -1095,9 +1097,9 @@ void gatherDependencies(ResolvedProduct *product, DependencyMap &dependencies)
         return;
     Set<ResolvedProduct *> &productDeps = dependencies[product];
     for (const ResolvedProductPtr &dep : qAsConst(product->dependencies)) {
-        productDeps << dep.data();
-        gatherDependencies(dep.data(), dependencies);
-        productDeps += dependencies.value(dep.data());
+        productDeps << dep.get();
+        gatherDependencies(dep.get(), dependencies);
+        productDeps += dependencies.value(dep.get());
     }
 }
 
@@ -1107,7 +1109,7 @@ static DependencyMap allDependencies(const QList<ResolvedProductPtr> &products)
 {
     DependencyMap dependencies;
     for (const ResolvedProductPtr &product : products)
-        gatherDependencies(product.data(), dependencies);
+        gatherDependencies(product.get(), dependencies);
     return dependencies;
 }
 
@@ -1267,7 +1269,7 @@ QVariantMap ProjectResolver::evaluateProperties(const Item *item, const Item *pr
         {
             if (result.contains(it.key()))
                 break;
-            VariantValuePtr vvp = it.value().staticCast<VariantValue>();
+            VariantValuePtr vvp = std::static_pointer_cast<VariantValue>(it.value());
             QVariant v = vvp->value();
 
             if (v.isNull() && !item->propertyDeclaration(it.key()).isScalar()) // QTBUG-51237

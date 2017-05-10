@@ -113,10 +113,10 @@ void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)
                 error.append(Tr::tr("Conflicting artifacts for file path '%1'.")
                              .arg(artifact->filePath()));
                 error.append(Tr::tr("The first artifact comes from product '%1'.")
-                             .arg(productNameForErrorMessage(otherArtifact->product.data())),
+                             .arg(productNameForErrorMessage(otherArtifact->product.get())),
                              otherArtifact->product->location);
                 error.append(Tr::tr("The second artifact comes from product '%1'.")
-                             .arg(productNameForErrorMessage(artifact->product.data())),
+                             .arg(productNameForErrorMessage(artifact->product.get())),
                              artifact->product->location);
                 throw error;
             }
@@ -358,7 +358,7 @@ private:
 
     void visit(const RuleConstPtr &parentRule, const RuleConstPtr &rule)
     {
-        if (!m_rulesOnPath.insert(rule.data()).second) {
+        if (!m_rulesOnPath.insert(rule.get()).second) {
             QString pathstr;
             for (const Rule *r : qAsConst(m_rulePath)) {
                 pathstr += QLatin1Char('\n') + r->toString() + QLatin1Char('\t')
@@ -366,7 +366,7 @@ private:
             }
             throw ErrorInfo(Tr::tr("Cycle detected in rule dependencies: %1").arg(pathstr));
         }
-        m_rulePath.append(rule.data());
+        m_rulePath.append(rule.get());
         RuleNode *node = m_nodePerRule.value(rule);
         if (!node) {
             node = new RuleNode;
@@ -392,7 +392,7 @@ private:
 
     void endVisit(const RuleConstPtr &rule)
     {
-        m_rulesOnPath.remove(rule.data());
+        m_rulesOnPath.remove(rule.get());
         m_rulePath.removeLast();
     }
 };

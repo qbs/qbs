@@ -46,10 +46,10 @@
 #include <QtCore/qdatastream.h>
 #include <QtCore/qflags.h>
 #include <QtCore/qprocess.h>
-#include <QtCore/qsharedpointer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
 
+#include <memory>
 #include <type_traits>
 #include <vector>
 
@@ -99,7 +99,7 @@ private:
     typedef int PersistentObjectId;
 
     template <typename T> T *idLoad();
-    template <class T> QSharedPointer<T> idLoadS();
+    template <class T> std::shared_ptr<T> idLoadS();
 
     void storePersistentObject(const PersistentObject *object);
 
@@ -113,7 +113,7 @@ private:
     QDataStream m_stream;
     HeadData m_headData;
     std::vector<PersistentObject *> m_loadedRaw;
-    std::vector<QSharedPointer<PersistentObject> > m_loaded;
+    std::vector<std::shared_ptr<PersistentObject> > m_loaded;
     QHash<const PersistentObject *, int> m_storageIndices;
     PersistentObjectId m_lastStoredObjectId;
 
@@ -148,23 +148,23 @@ template <typename T> inline T *PersistentPool::idLoad()
     return t;
 }
 
-template <class T> inline QSharedPointer<T> PersistentPool::idLoadS()
+template <class T> inline std::shared_ptr<T> PersistentPool::idLoadS()
 {
     PersistentObjectId id;
     m_stream >> id;
 
     if (id < 0)
-        return QSharedPointer<T>();
+        return std::shared_ptr<T>();
 
     if (id < static_cast<PersistentObjectId>(m_loaded.size())) {
-        QSharedPointer<PersistentObject> obj = m_loaded.at(id);
-        return obj.dynamicCast<T>();
+        std::shared_ptr<PersistentObject> obj = m_loaded.at(id);
+        return std::dynamic_pointer_cast<T>(obj);
     }
 
     m_loaded.resize(id + 1);
-    const QSharedPointer<T> t = T::create();
+    const std::shared_ptr<T> t = T::create();
     m_loaded[id] = t;
-    PersistentObject * const po = t.data();
+    PersistentObject * const po = t.get();
     po->load(*this);
     return t;
 }
@@ -199,14 +199,14 @@ template<typename T> struct IsPersistentObject
 };
 
 template<typename T>
-struct PersistentPool::Helper<QSharedPointer<T>,
+struct PersistentPool::Helper<std::shared_ptr<T>,
                               typename std::enable_if<IsPersistentObject<T>::value>::type>
 {
-    static void store(const QSharedPointer<T> &value, PersistentPool *pool)
+    static void store(const std::shared_ptr<T> &value, PersistentPool *pool)
     {
-        pool->store(value.data());
+        pool->store(value.get());
     }
-    static void load(QSharedPointer<T> &value, PersistentPool *pool)
+    static void load(std::shared_ptr<T> &value, PersistentPool *pool)
     {
         value = pool->idLoadS<typename std::remove_const<T>::type>();
     }

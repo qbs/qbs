@@ -68,7 +68,7 @@ void ModuleMerger::replaceItemInValues(QualifiedId moduleName, Item *containerIt
     for (auto it = properties.begin(); it != properties.end(); ++it) {
         if (it.key() != moduleNamePrefix)
             continue;
-        Value * const val = it.value().data();
+        Value * const val = it.value().get();
         QBS_CHECK(val);
         QBS_CHECK(val->type() == Value::ItemValueType);
         ItemValue * const itemVal = static_cast<ItemValue *>(val);
@@ -189,10 +189,10 @@ void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap
             continue;
         }
         // possible conflict
-        JSSourceValuePtr dstVal = v.dynamicCast<JSSourceValue>();
+        JSSourceValuePtr dstVal = std::dynamic_pointer_cast<JSSourceValue>(v);
         if (!dstVal)
             continue;
-        JSSourceValuePtr srcVal = it.value().dynamicCast<JSSourceValue>();
+        JSSourceValuePtr srcVal = std::dynamic_pointer_cast<JSSourceValue>(it.value());
         if (!srcVal)
             continue;
 

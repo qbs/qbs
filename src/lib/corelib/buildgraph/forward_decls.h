@@ -39,7 +39,7 @@
 #ifndef QBS_BG_FORWARD_DECLS_H
 #define QBS_BG_FORWARD_DECLS_H
 
-#include <QtCore/qsharedpointer.h>
+#include <memory>
 
 namespace qbs {
 namespace Internal {
@@ -51,20 +51,20 @@ class ProductBuildData;
 class Node;
 
 class Transformer;
-typedef QSharedPointer<Transformer> TransformerPtr;
-typedef QSharedPointer<const Transformer> TransformerConstPtr;
+typedef std::shared_ptr<Transformer> TransformerPtr;
+typedef std::shared_ptr<const Transformer> TransformerConstPtr;
 
 class RulesEvaluationContext;
-typedef QSharedPointer<RulesEvaluationContext> RulesEvaluationContextPtr;
+typedef std::shared_ptr<RulesEvaluationContext> RulesEvaluationContextPtr;
 
 class AbstractCommand;
-typedef QSharedPointer<AbstractCommand> AbstractCommandPtr;
+typedef std::shared_ptr<AbstractCommand> AbstractCommandPtr;
 
 class ProcessCommand;
-typedef QSharedPointer<ProcessCommand> ProcessCommandPtr;
+typedef std::shared_ptr<ProcessCommand> ProcessCommandPtr;
 
 class JavaScriptCommand;
-typedef QSharedPointer<JavaScriptCommand> JavaScriptCommandPtr;
+typedef std::shared_ptr<JavaScriptCommand> JavaScriptCommandPtr;
 
 template<typename T> class Set;
 using ArtifactSet = Set<Artifact *>;

@@ -96,7 +96,7 @@ public:
     void init(QScriptValue &productScriptValue, const ResolvedProductConstPtr &product,
               PrepareScriptObserver *observer)
     {
-        QScriptValue depfunc = m_engine->newFunction(&js_productDependencies, product.data());
+        QScriptValue depfunc = m_engine->newFunction(&js_productDependencies, product.get());
         setObserver(depfunc, observer);
         productScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
                                        QScriptValue::ReadOnly | QScriptValue::Undeletable
@@ -266,7 +266,7 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
 {
     ModuleProperties::init(productScriptValue, product);
 
-    QScriptValue artifactsFunc = engine->newFunction(&js_productArtifacts, product.data());
+    QScriptValue artifactsFunc = engine->newFunction(&js_productArtifacts, product.get());
     productScriptValue.setProperty(QStringLiteral("artifacts"), artifactsFunc,
                                    QScriptValue::ReadOnly | QScriptValue::Undeletable
                                    | QScriptValue::PropertyGetter);
@@ -292,7 +292,8 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
                                  const ResolvedModuleConstPtr &module, QScriptValue targetObject,
                                  PrepareScriptObserver *observer)
 {
-    QScriptValue projectScriptValue = setupProjectScriptValue(engine, product->project, observer);
+    QScriptValue projectScriptValue = setupProjectScriptValue(engine, product->project.lock(),
+                                                              observer);
     targetObject.setProperty(QLatin1String("project"), projectScriptValue);
     if (observer)
         observer->setProjectObjectId(projectScriptValue.objectId());
@@ -553,10 +554,10 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
             QBS_CHECK(parent->children.contains(node));
         for (BuildGraphNode * const child : qAsConst(node->children)) {
             QBS_CHECK(child->parents.contains(node));
-            QBS_CHECK(!child->product.isNull());
+            QBS_CHECK(!child->product.expired());
             QBS_CHECK(!child->product->buildData.isNull());
             QBS_CHECK(child->product->buildData->nodes.contains(child));
-            QBS_CHECK(allProducts.contains(child->product));
+            QBS_CHECK(allProducts.contains(child->product.lock()));
         }
 
         Artifact * const artifact = dynamic_cast<Artifact *>(node);

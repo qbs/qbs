@@ -733,14 +733,14 @@ RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
                     case AbstractCommand::JavaScriptCommandType: {
                         externalCommand.d->type = RuleCommand::JavaScriptCommandType;
                         const JavaScriptCommandPtr &jsCmd
-                                = internalCommand.staticCast<JavaScriptCommand>();
+                                = std::static_pointer_cast<JavaScriptCommand>(internalCommand);
                         externalCommand.d->sourceCode = jsCmd->sourceCode();
                         break;
                     }
                     case AbstractCommand::ProcessCommandType: {
                         externalCommand.d->type = RuleCommand::ProcessCommandType;
                         const ProcessCommandPtr &procCmd
-                                = internalCommand.staticCast<ProcessCommand>();
+                                = std::static_pointer_cast<ProcessCommand>(internalCommand);
                         externalCommand.d->executable = procCmd->program();
                         externalCommand.d->arguments = procCmd->arguments();
                         externalCommand.d->workingDir = procCmd->workingDir();

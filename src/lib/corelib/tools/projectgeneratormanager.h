@@ -45,7 +45,6 @@
 #include <generators/generator.h>
 
 #include <QtCore/qmap.h>
-#include <QtCore/qsharedpointer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 
@@ -65,14 +64,14 @@ public:
     ~ProjectGeneratorManager();
     static ProjectGeneratorManager *instance();
     static QStringList loadedGeneratorNames();
-    static QSharedPointer<ProjectGenerator> findGenerator(const QString &generatorName);
+    static std::shared_ptr<ProjectGenerator> findGenerator(const QString &generatorName);
 
 private:
     ProjectGeneratorManager();
 
 private:
     QList<QLibrary *> m_libs;
-    QMap<QString, QSharedPointer<ProjectGenerator> > m_generators;
+    QMap<QString, std::shared_ptr<ProjectGenerator> > m_generators;
 };
 
 } // namespace qbs

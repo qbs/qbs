@@ -71,26 +71,26 @@ void Artifact::accept(BuildGraphVisitor *visitor)
 QString Artifact::toString() const
 {
     return QLatin1String("ARTIFACT ") + filePath() + QLatin1String(" [")
-            + (!product.isNull() ? product->name : QLatin1String("<null>")) + QLatin1Char(']');
+            + (!product.expired() ? product->name : QLatin1String("<null>")) + QLatin1Char(']');
 }
 
 void Artifact::addFileTag(const FileTag &t)
 {
     m_fileTags += t;
-    if (!product.isNull() && product->buildData)
+    if (!product.expired() && product->buildData)
         product->buildData->artifactsByFileTag[t] += this;
 }
 
 void Artifact::removeFileTag(const FileTag &t)
 {
     m_fileTags -= t;
-    if (!product.isNull() && product->buildData)
+    if (!product.expired() && product->buildData)
         removeArtifactFromSetByFileTag(this, t, product->buildData->artifactsByFileTag);
 }
 
 void Artifact::setFileTags(const FileTags &newFileTags)
 {
-    if (product.isNull() || !product->buildData) {
+    if (product.expired() || !product->buildData) {
         m_fileTags = newFileTags;
         return;
     }

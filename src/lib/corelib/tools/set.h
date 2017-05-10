@@ -42,13 +42,13 @@
 
 #include <tools/persistence.h>
 
-#include <QtCore/qsharedpointer.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvector.h>
 
 #include <algorithm>
 #include <functional>
 #include <iterator>
+#include <memory>
 #include <set>
 #include <type_traits>
 
@@ -62,7 +62,7 @@ template<typename T> Set<T> operator-(const Set<T> &set1, const Set<T> &set2);
 namespace helper {
 template<typename T> struct SortAfterLoad { static const bool required = false; };
 template<typename T> struct SortAfterLoad<T *> { static const bool required = true; };
-template<typename T> struct SortAfterLoad<QSharedPointer<T>> { static const bool required = true; };
+template<typename T> struct SortAfterLoad<std::shared_ptr<T>> { static const bool required = true; };
 }
 
 template<typename T> class Set

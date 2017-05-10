@@ -105,7 +105,7 @@ private:
                 continue;
             }
             if (it.value()->type() == Value::ItemValueType) {
-                Item * const innerVal = it.value().staticCast<ItemValue>()->item();
+                Item * const innerVal = std::static_pointer_cast<ItemValue>(it.value())->item();
                 ItemValuePtr outerVal = outer->itemProperty(it.key());
                 if (!outerVal) {
                     outerVal = ItemValue::create(Item::create(outer->pool(), innerVal->type()),
@@ -119,8 +119,8 @@ private:
                     throw ErrorInfo(Tr::tr("Incompatible value type in unconditional value at %1.")
                                     .arg(outerVal->location().toString()));
                 }
-                doApply(it.key(), outer, outerVal.staticCast<JSSourceValue>(),
-                        it.value().staticCast<JSSourceValue>());
+                doApply(it.key(), outer, std::static_pointer_cast<JSSourceValue>(outerVal),
+                        std::static_pointer_cast<JSSourceValue>(it.value()));
             } else {
                 QBS_CHECK(!"Unexpected value type in conditional value.");
             }
@@ -171,7 +171,7 @@ static QString getPropertyString(const Item *propertiesItem, const QString &name
         }
 
     }
-    const JSSourceValuePtr srcval = value.staticCast<JSSourceValue>();
+    const JSSourceValuePtr srcval = std::static_pointer_cast<JSSourceValue>(value);
     return srcval->sourceCodeForEvaluation();
 }
 

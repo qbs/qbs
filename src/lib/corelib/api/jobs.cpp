@@ -268,7 +268,7 @@ void SetupProjectJob::finish()
     // already transferred.
     if (m_existingProject.isValid()
             && (!error().hasError() || !m_existingProject.d->internalProject->buildData)) {
-        m_existingProject.d->internalProject.clear();
+        m_existingProject.d->internalProject.reset();
     }
 }
 
