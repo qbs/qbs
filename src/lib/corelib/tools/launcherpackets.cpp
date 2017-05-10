@@ -41,7 +41,6 @@
 
 #include <QtCore/qbytearray.h>
 #include <QtCore/qcoreapplication.h>
-#include <QtCore/qendian.h>
 
 namespace qbs {
 namespace Internal {
