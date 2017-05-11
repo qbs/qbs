@@ -55,10 +55,10 @@
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qlibrary.h>
 #include <QtCore/qregexp.h>
-#include <QtCore/qregularexpression.h>
 #include <QtCore/qtextstream.h>
 
 #include <queue>
+#include <regex>
 
 namespace qbs {
 using namespace Internal;
@@ -112,19 +112,18 @@ static QString defaultQpaPlugin(const Profile &profile, const QtModuleInfo &modu
                                 .arg(profile.name(), headerFile.fileName(),
                                      headerFile.errorString()));
             }
-            static const QRegularExpression regexp(
-                        QStringLiteral("^#define QT_QPA_DEFAULT_PLATFORM_NAME \"(?<name>.+)\""));
-            static const QRegularExpression includeRegexp(
-                        QStringLiteral("^#include \"(?<header>.+)\""));
+            static const std::regex regexp(
+                        "^#define QT_QPA_DEFAULT_PLATFORM_NAME \"(.+)\".*$");
+            static const std::regex includeRegexp(
+                        "^#include \"(.+)\".*$");
             const QList<QByteArray> lines = headerFile.readAll().split('\n');
             for (const QByteArray &line: lines) {
-                const QString lineStr = QString::fromLatin1(line.simplified());
-                QRegularExpressionMatch match = regexp.match(lineStr);
-                if (match.hasMatch())
-                    return QLatin1Char('q') + match.captured(QStringLiteral("name"));
-                match = includeRegexp.match(lineStr);
-                if (match.hasMatch()) {
-                    QString filePath = match.captured(QStringLiteral("header"));
+                const auto lineStr = QString::fromLatin1(line.simplified()).toStdString();
+                std::smatch match;
+                if (std::regex_match(lineStr, match, regexp))
+                    return QLatin1Char('q') + QString::fromStdString(match[1]);
+                if (std::regex_match(lineStr, match, includeRegexp)) {
+                    QString filePath = QString::fromStdString(match[1]);
                     if (QFileInfo(filePath).isRelative()) {
                         filePath = QDir::cleanPath(QFileInfo(headerFile.fileName()).absolutePath()
                                                    + QLatin1Char('/') + filePath);

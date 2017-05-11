@@ -42,12 +42,12 @@
 #include "persistence.h"
 #include "qttools.h"
 
-#include <QtCore/qregularexpression.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstringlist.h>
 
 #include <algorithm>
 #include <functional>
+#include <regex>
 
 namespace qbs {
 
@@ -181,13 +181,15 @@ ErrorInfo::ErrorInfo(const QString &description, const QStringList &backtrace)
 {
     append(description);
     for (const QString &traceLine : backtrace) {
-        QRegularExpression regexp(
-                    QStringLiteral("^(?<message>.+) at (?<file>.+):(?<line>\\-?[0-9]+)$"));
-        QRegularExpressionMatch match = regexp.match(traceLine);
-        if (match.hasMatch()) {
-            const CodeLocation location(match.captured(QStringLiteral("file")),
-                                        match.captured(QStringLiteral("line")).toInt());
-            appendBacktrace(match.captured(QStringLiteral("message")), location);
+        static const std::regex regexp("^(.+) at (.+):(\\-?[0-9]+)$");
+        std::smatch match;
+        const std::string tl = traceLine.toStdString();
+        if (std::regex_match(tl, match, regexp)) {
+            const QString message = QString::fromStdString(match[1]),
+                             file = QString::fromStdString(match[2]),
+                             line = QString::fromStdString(match[3]);
+            const CodeLocation location(file, line.toInt());
+            appendBacktrace(message, location);
         }
     }
 }

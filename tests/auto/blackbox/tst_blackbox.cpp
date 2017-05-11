@@ -42,13 +42,13 @@
 #include <QtCore/qjsonvalue.h>
 #include <QtCore/qlocale.h>
 #include <QtCore/qregexp.h>
-#include <QtCore/qregularexpression.h>
 #include <QtCore/qtemporarydir.h>
 #include <QtCore/qtemporaryfile.h>
 
 #include <QtXml/qdom.h>
 
 #include <functional>
+#include <regex>
 
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
@@ -3302,7 +3302,7 @@ void TestBlackbox::jsExtensionsFileInfo()
     QVERIFY(output.exists());
     QVERIFY(output.open(QIODevice::ReadOnly));
     const QList<QByteArray> lines = output.readAll().trimmed().split('\n');
-    QCOMPARE(lines.count(), 23);
+    QCOMPARE(lines.count(), 24);
     int i = 0;
     QCOMPARE(lines.at(i++).trimmed().constData(), "blubb");
     QCOMPARE(lines.at(i++).trimmed().constData(), "blubb.tar");
@@ -3315,6 +3315,7 @@ void TestBlackbox::jsExtensionsFileInfo()
     QCOMPARE(lines.at(i++).trimmed().constData(), "true");
     QCOMPARE(lines.at(i++).trimmed().constData(), "false");
     QCOMPARE(lines.at(i++).trimmed().constData(), "false");
+    QCOMPARE(lines.at(i++).trimmed().constData(), "/tmp/blubb.tar.gz");
     QCOMPARE(lines.at(i++).trimmed().constData(), "/tmp/blubb.tar.gz");
     QCOMPARE(lines.at(i++).trimmed().constData(), "/tmp");
     QCOMPARE(lines.at(i++).trimmed().constData(), "/tmp");
@@ -5149,7 +5150,7 @@ void TestBlackbox::xcode()
     QVERIFY2(xcodeSelect.exitCode() == 0, qPrintable(xcodeSelect.readAllStandardError().constData()));
     const QString developerPath(QString::fromLocal8Bit(xcodeSelect.readAllStandardOutput().trimmed()));
 
-    QMultiMap<QString, QString> sdks;
+    std::multimap<std::string, std::string> sdks;
 
     QProcess xcodebuildShowSdks;
     xcodebuildShowSdks.start("xcrun", QStringList() << "xcodebuild" << "-showsdks");
@@ -5157,16 +5158,17 @@ void TestBlackbox::xcode()
     QVERIFY2(xcodebuildShowSdks.waitForFinished(), qPrintable(xcodebuildShowSdks.errorString()));
     QVERIFY2(xcodebuildShowSdks.exitCode() == 0, qPrintable(xcodebuildShowSdks.readAllStandardError().constData()));
     for (const QString &line : QString::fromLocal8Bit(xcodebuildShowSdks.readAllStandardOutput().trimmed()).split('\n', QString::SkipEmptyParts)) {
-        static const QRegularExpression regexp(QStringLiteral("\\s+\\-sdk\\s+(?<platform>[a-z]+)(?<version>[0-9]+\\.[0-9]+)$"));
-        QRegularExpressionMatch match = regexp.match(line);
-        if (match.isValid()) {
-            sdks.insert(match.captured("platform"), match.captured("version"));
-        }
+        static const std::regex regexp("^.+\\s+\\-sdk\\s+([a-z]+)([0-9]+\\.[0-9]+)$");
+        const auto ln = line.toStdString();
+        std::smatch match;
+        if (std::regex_match(ln, match, regexp))
+            sdks.insert({ match[1], match[2] });
     }
 
-    // values() returns items with most recently added first; we want the reverse of that
-    QStringList sdkValues(sdks.values("macosx"));
-    std::reverse(std::begin(sdkValues), std::end(sdkValues));
+    auto range = sdks.equal_range("macosx");
+    QStringList sdkValues;
+    for (auto i = range.first; i != range.second; ++i)
+        sdkValues.push_back(QString::fromStdString(i->second));
 
     QDir::setCurrent(testDataDir + "/xcode");
     QbsRunParameters params;

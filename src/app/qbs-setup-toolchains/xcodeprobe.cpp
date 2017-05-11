@@ -53,7 +53,8 @@
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qsettings.h>
-#include <QtCore/qregularexpression.h>
+
+#include <regex>
 
 using namespace qbs;
 using Internal::Tr;
@@ -61,8 +62,8 @@ using Internal::Tr;
 namespace {
 static const QString defaultDeveloperPath =
         QStringLiteral("/Applications/Xcode.app/Contents/Developer");
-static const QRegularExpression defaultDeveloperPathRegex(
-        QStringLiteral("^/Applications/Xcode([a-zA-Z0-9 _-]+)\\.app/Contents/Developer$"));
+static const std::regex defaultDeveloperPathRegex(
+        "^/Applications/Xcode([a-zA-Z0-9 _-]+)\\.app/Contents/Developer$");
 
 class XcodeProbe
 {
@@ -215,13 +216,15 @@ void XcodeProbe::detectAll()
     int i = 1;
     detectDeveloperPaths();
     for (const QString &developerPath : developerPaths) {
-        QRegularExpressionMatch match(defaultDeveloperPathRegex.match(developerPath));
         QString profileName = QLatin1String("xcode");
         if (developerPath != defaultDeveloperPath) {
-            profileName += match.hasMatch()
-                    ? match.capturedTexts().value(1).toLower().replace(QLatin1Char(' '),
-                                                                       QLatin1Char('-'))
-                    : QString::number(i++);
+            const auto devPath = developerPath.toStdString();
+            std::smatch match;
+            if (std::regex_match(devPath, match, defaultDeveloperPathRegex))
+                profileName += QString::fromStdString(match[1]).toLower().replace(QLatin1Char(' '),
+                                                                                  QLatin1Char('-'));
+            else
+                profileName += QString::number(i++);
         }
         setupDefaultToolchains(developerPath, profileName);
     }
