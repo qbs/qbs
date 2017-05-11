@@ -165,9 +165,7 @@ private:
 
     struct ProductModuleInfo
     {
-        ProductModuleInfo() : exportItem() {}
-
-        Item *exportItem;
+        Item *exportItem = nullptr;
         QList<ModuleLoaderResult::ProductInfo::Dependency> productDependencies;
     };
 
