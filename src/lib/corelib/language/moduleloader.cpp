@@ -265,7 +265,6 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] load" << parameters.projectFilePath();
     m_parameters = parameters;
-    m_productModuleCache.clear();
     m_modulePrototypeItemCache.clear();
     m_disabledItems.clear();
     m_reader->clearExtraSearchPathsStack();
@@ -831,7 +830,8 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
     }
 
     if (!checkItemCondition(item)) {
-        Item * const productModule = m_productModuleCache.value(productContext->name);
+        Item * const productModule = productContext->project->topLevelProject
+                ->productModules.value(productContext->name).exportItem;
         if (productModule && productModule->isPresentModule())
             createNonPresentModule(productContext->name, QLatin1String("disabled"), productModule);
     }
@@ -1658,24 +1658,17 @@ Item *ModuleLoader::loadProductModule(ModuleLoader::ProductContext *productConte
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] loadProductModule name: " << moduleName;
-    Item *module = m_productModuleCache.value(moduleName);
-    if (module) {
-        if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "[MODLDR] loadProductModule cache hit.";
-        return module;
-    }
     ProductModuleInfo &pmi = productContext->project->topLevelProject->productModules[moduleName];
-    module = pmi.exportItem;
-    if (module) {
+    if (pmi.exportItem && !pmi.dependenciesResolved) {
         if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "[MODLDR] loadProductModule cache miss.";
+            m_logger.qbsTrace() << "[MODLDR] loadProductModule resolving dependencies.";
         DependsContext dependsContext;
         dependsContext.product = productContext;
         dependsContext.productDependencies = &pmi.productDependencies;
-        resolveDependencies(&dependsContext, module);
-        m_productModuleCache.insert(moduleName, module);
+        resolveDependencies(&dependsContext, pmi.exportItem);
+        pmi.dependenciesResolved = true;
     }
-    return module;
+    return pmi.exportItem;
 }
 
 class ModuleLoader::DependsChainManager

@@ -166,6 +166,7 @@ private:
     struct ProductModuleInfo
     {
         Item *exportItem = nullptr;
+        bool dependenciesResolved = false;
         QList<ModuleLoaderResult::ProductInfo::Dependency> productDependencies;
     };
 
@@ -282,7 +283,6 @@ private:
     Evaluator *m_evaluator;
     QStringList m_moduleSearchPaths;
     QMap<QString, QStringList> m_moduleDirListCache;
-    QHash<QString, Item *> m_productModuleCache;
     ModuleItemCache m_modulePrototypeItemCache;
     QHash<Item *, Set<QString>> m_validItemPropertyNamesPerItem;
     Set<Item *> m_disabledItems;
