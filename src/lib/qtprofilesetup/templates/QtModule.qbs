@@ -52,8 +52,5 @@ Module {
         cpp.frameworks: mFrameworks.concat(!isStaticLibrary && Qt.core.frameworkBuild
                         ? [libNameForLinker] : [])
         cpp.frameworkPaths: mFrameworkPaths
-        cpp.runtimeLibrary: qbs.toolchain.contains("msvc")
-            ? Qt.core.config.contains("static_runtime") ? "static" : "dynamic"
-            : original
     }
 }
