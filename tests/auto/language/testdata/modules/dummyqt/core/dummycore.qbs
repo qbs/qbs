@@ -14,4 +14,9 @@ Module {
     dummy.defines: ["QT_CORE"]
     dummy.rpaths: ["/opt/qt/lib"]
     dummy.cFlags: [zort]
+
+    Properties {
+        condition: true
+        dummy.productName: product.name
+    }
 }

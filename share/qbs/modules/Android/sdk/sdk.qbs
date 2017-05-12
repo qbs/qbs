@@ -273,7 +273,7 @@ Module {
         }
         prepare: {
             var args = ["-classpath", FileInfo.joinPaths(ModUtils.moduleProperty(product, "sdkDir"),
-                                                         "tools/lib/sdklib.jar"),
+                                                         "tools/lib/*"),
                         "com.android.sdklib.build.ApkBuilderMain", output.filePath,
                         "-z", inputs["android.ap_"][0].filePath,
                         "-f", inputs["android.dex"][0].filePath];

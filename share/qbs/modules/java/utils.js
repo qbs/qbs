@@ -330,12 +330,14 @@ function manifestContents(filePath) {
 
     if (contents) {
         var dict = {};
-        var lines = contents.split(/\r?\n/g);
+        var lines = contents.split(/\r?\n/g).filter(function (line) { return line.length > 0; });
         for (var i in lines) {
             var kv = lines[i].split(":");
             if (kv.length !== 2)
-                return undefined;
-            dict[kv[0]] = kv[1];
+                throw new Error("Syntax error in manifest file '"
+                                + filePath + "'; found \"" + lines[i] + "\" on line "
+                                + parseInt(i, 10) + "; expected format \"Key: Value\"");
+            dict[kv[0].trim()] = kv[1].trim();
         }
 
         return dict;

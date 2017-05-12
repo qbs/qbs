@@ -121,7 +121,7 @@ public:
     bool isEmpty() const { return m_data.empty(); }
     int count() const { return int(m_data.size()); }
     int size() const { return count(); }
-    int capacity() const { return m_data.capacity(); }
+    int capacity() const { return int(m_data.capacity()); }
     bool intersects(const Set<T> &other) const;
 
     bool remove(const T &v);

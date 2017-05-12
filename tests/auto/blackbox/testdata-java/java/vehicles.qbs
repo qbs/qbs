@@ -86,7 +86,13 @@ Project {
         Depends { name: "native" }
         name: "jar_file"
         entryPoint: "Vehicles"
-        files: ["Jet.java", "Ship.java", "Vehicles.java"]
+        files: ["Jet.java", "Ship.java", "Vehicles.java", "Manifest.mf", "Manifest2.mf"]
+
+        java.manifest: {
+            var mf = original;
+            mf["Extra-Property"] = "Crazy-Value";
+            return mf;
+        }
 
         Group {
             fileTagsFilter: ["java.jar"]

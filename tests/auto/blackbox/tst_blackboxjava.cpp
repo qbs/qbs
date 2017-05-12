@@ -197,6 +197,9 @@ void TestBlackboxJava::java()
         const QByteArray stdOut = process.readAllStandardOutput();
         QVERIFY2(stdOut.contains("Class-Path: car_jar.jar random_stuff.jar"), stdOut.constData());
         QVERIFY2(stdOut.contains("Main-Class: Vehicles"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Some-Property: Some-Value"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Additional-Property: Additional-Value"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Extra-Property: Crazy-Value"), stdOut.constData());
     }
 }
 
