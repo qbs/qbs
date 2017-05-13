@@ -51,11 +51,11 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qprocess.h>
-#include <QtCore/qstack.h>
 #include <QtCore/qstring.h>
 
 #include <QtScript/qscriptengine.h>
 
+#include <stack>
 #include <vector>
 
 namespace qbs {
@@ -237,8 +237,8 @@ private:
     QHash<QString, bool> m_fileExistsResult;
     QHash<std::pair<QString, quint32>, QStringList> m_directoryEntriesResult;
     QHash<QString, FileTime> m_fileLastModifiedResult;
-    QStack<QString> m_currentDirPathStack;
-    QStack<QStringList> m_extensionSearchPathsStack;
+    std::stack<QString> m_currentDirPathStack;
+    std::stack<QStringList> m_extensionSearchPathsStack;
     QScriptValue m_loadFileFunction;
     QScriptValue m_loadExtensionFunction;
     QScriptValue m_requireFunction;

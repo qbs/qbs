@@ -389,7 +389,7 @@ QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qt
 
     // First try to load a named module if the argument doesn't look like a file path
     if (!moduleName.contains(QLatin1Char('/'))) {
-        if (engine->m_extensionSearchPathsStack.isEmpty())
+        if (engine->m_extensionSearchPathsStack.empty())
             return context->throwError(
                         ScriptEngine::tr("require: internal error. No search paths."));
 
@@ -434,7 +434,7 @@ QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qt
         // file located in the current directory search path; try that next
     }
 
-    if (engine->m_currentDirPathStack.isEmpty()) {
+    if (engine->m_currentDirPathStack.empty()) {
         return context->throwError(
             ScriptEngine::tr("require: internal error. No current directory."));
     }

@@ -46,9 +46,9 @@
 #include <logging/logger.h>
 #include <tools/set.h>
 
-#include <QtCore/qstack.h>
-
 #include <QtScript/qscriptclass.h>
+
+#include <stack>
 
 QT_BEGIN_NAMESPACE
 class QScriptContext;
@@ -104,7 +104,7 @@ private:
     bool m_valueCacheEnabled;
     Set<Value *> m_currentNextChain;
     PropertyDependencies m_propertyDependencies;
-    QStack<QualifiedId> m_requestedProperties;
+    std::stack<QualifiedId> m_requestedProperties;
 };
 
 } // namespace Internal

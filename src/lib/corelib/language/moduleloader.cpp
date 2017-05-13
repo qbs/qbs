@@ -1837,16 +1837,16 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
 class RequiredChainManager
 {
 public:
-    RequiredChainManager(QStack<bool> &requiredChain, bool required)
+    RequiredChainManager(std::vector<bool> &requiredChain, bool required)
         : m_requiredChain(requiredChain)
     {
-        m_requiredChain.push(required);
+        m_requiredChain.push_back(required);
     }
 
-    ~RequiredChainManager() { m_requiredChain.pop(); }
+    ~RequiredChainManager() { m_requiredChain.pop_back(); }
 
 private:
-    QStack<bool> &m_requiredChain;
+    std::vector<bool> &m_requiredChain;
 };
 
 void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *parentItem,
@@ -1917,8 +1917,9 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
     Item::Module result;
     for (const QualifiedId &moduleName : qAsConst(moduleNames)) {
         bool isRequired = m_evaluator->boolValue(dependsItem, QLatin1String("required"));
-        for (int i = m_requiredChain.count() - 1; i >= 0 && isRequired; --i) {
-            if (!m_requiredChain.at(i))
+        for (auto it = m_requiredChain.crbegin(), end = m_requiredChain.crend();
+             it != end && isRequired; ++it) {
+            if (!(*it))
                 isRequired = false;
         }
         const Version minVersion = Version::fromString(
@@ -2138,7 +2139,7 @@ ModuleLoader::ProductModuleInfo ModuleLoader::loadProductModule(
 class ModuleLoader::DependsChainManager
 {
 public:
-    DependsChainManager(QStack<DependsChainEntry> &dependsChain, const QualifiedId &module,
+    DependsChainManager(std::vector<DependsChainEntry> &dependsChain, const QualifiedId &module,
                         const CodeLocation &dependsLocation)
         : m_dependsChain(dependsChain)
     {
@@ -2154,13 +2155,13 @@ public:
             error.append(module.toString(), dependsLocation);
             throw error;
         }
-        m_dependsChain.push(std::make_pair(module, dependsLocation));
+        m_dependsChain.push_back(std::make_pair(module, dependsLocation));
     }
 
-    ~DependsChainManager() { m_dependsChain.pop(); }
+    ~DependsChainManager() { m_dependsChain.pop_back(); }
 
 private:
-    QStack<DependsChainEntry> &m_dependsChain;
+    std::vector<DependsChainEntry> &m_dependsChain;
 };
 
 Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,

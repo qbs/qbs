@@ -50,11 +50,11 @@
 #include <tools/version.h>
 
 #include <QtCore/qmap.h>
-#include <QtCore/qstack.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
 #include <map>
+#include <stack>
 #include <unordered_map>
 #include <vector>
 
@@ -172,7 +172,7 @@ private:
         TopLevelProjectContext *topLevelProject;
         ModuleLoaderResult *result;
         std::vector<ProductContext> products;
-        QStack<QStringList> searchPathsStack;
+        std::vector<QStringList> searchPathsStack;
     };
 
     struct ProductModuleInfo
@@ -330,11 +330,11 @@ private:
     ModuleItemCache m_modulePrototypeItemCache;
     QHash<const Item *, Item::PropertyDeclarationMap> m_parameterDeclarations;
     Set<Item *> m_disabledItems;
-    QStack<bool> m_requiredChain;
+    std::vector<bool> m_requiredChain;
 
     using DependsChainEntry = std::pair<QualifiedId, CodeLocation>;
     class DependsChainManager;
-    QStack<DependsChainEntry> m_dependsChain;
+    std::vector<DependsChainEntry> m_dependsChain;
 
     QHash<QString, QList<ProbeConstPtr>> m_oldProjectProbes;
     QHash<QString, QList<ProbeConstPtr>> m_oldProductProbes;

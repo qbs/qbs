@@ -62,15 +62,15 @@ void ItemReader::setSearchPaths(const QStringList &searchPaths)
 
 void ItemReader::pushExtraSearchPaths(const QStringList &extraSearchPaths)
 {
-    m_extraSearchPaths.push(extraSearchPaths);
+    m_extraSearchPaths.push_back(extraSearchPaths);
 }
 
 void ItemReader::popExtraSearchPaths()
 {
-    m_extraSearchPaths.pop();
+    m_extraSearchPaths.pop_back();
 }
 
-QStack<QStringList> ItemReader::extraSearchPathsStack() const
+std::vector<QStringList> ItemReader::extraSearchPathsStack() const
 {
     return m_extraSearchPaths;
 }
@@ -78,8 +78,8 @@ QStack<QStringList> ItemReader::extraSearchPathsStack() const
 QStringList ItemReader::searchPaths() const
 {
     QStringList paths;
-    for (int i = m_extraSearchPaths.count(); --i >= 0;)
-        paths += m_extraSearchPaths.at(i);
+    for (auto it = m_extraSearchPaths.crbegin(), end = m_extraSearchPaths.crend(); it != end; ++it)
+        paths += *it;
     paths += m_searchPaths;
     return paths;
 }

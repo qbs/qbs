@@ -532,7 +532,7 @@ class PropertyStackManager
 {
 public:
     PropertyStackManager(const Item *itemOfProperty, const QScriptString &name, const Value *value,
-                         QStack<QualifiedId> &requestedProperties,
+                         std::stack<QualifiedId> &requestedProperties,
                          PropertyDependencies &propertyDependencies)
         : m_requestedProperties(requestedProperties)
     {
@@ -548,7 +548,7 @@ public:
                 m_stackUpdate = true;
                 const QualifiedId fullPropName
                         = QualifiedId::fromString(varValue->value().toString()) << name.toString();
-                if (!requestedProperties.isEmpty())
+                if (!requestedProperties.empty())
                     propertyDependencies[fullPropName].insert(requestedProperties.top());
                 m_requestedProperties.push(fullPropName);
             }
@@ -562,7 +562,7 @@ public:
     }
 
 private:
-    QStack<QualifiedId> &m_requestedProperties;
+    std::stack<QualifiedId> &m_requestedProperties;
     bool m_stackUpdate = false;
 };
 

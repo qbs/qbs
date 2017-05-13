@@ -44,8 +44,9 @@
 #include <logging/logger.h>
 #include <tools/set.h>
 
-#include <QtCore/qstack.h>
 #include <QtCore/qstringlist.h>
+
+#include <stack>
 
 namespace qbs {
 namespace Internal {
@@ -73,8 +74,8 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     void pushExtraSearchPaths(const QStringList &extraSearchPaths);
     void popExtraSearchPaths();
-    QStack<QStringList> extraSearchPathsStack() const;
-    void setExtraSearchPathsStack(const QStack<QStringList> &s) { m_extraSearchPaths = s; }
+    std::vector<QStringList> extraSearchPathsStack() const;
+    void setExtraSearchPathsStack(const std::vector<QStringList> &s) { m_extraSearchPaths = s; }
     void clearExtraSearchPathsStack() { m_extraSearchPaths.clear(); }
     QStringList searchPaths() const;
 
@@ -88,7 +89,7 @@ public:
 private:
     ItemPool *m_pool = nullptr;
     QStringList m_searchPaths;
-    QStack<QStringList> m_extraSearchPaths;
+    std::vector<QStringList> m_extraSearchPaths;
     ItemReaderVisitorState * const m_visitorState;
     qint64 m_elapsedTime = -1;
 };

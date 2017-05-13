@@ -42,8 +42,9 @@
 #include <logging/logger.h>
 #include <tools/set.h>
 
-#include <QtCore/qstack.h>
 #include <QtCore/qstringlist.h>
+
+#include <stack>
 
 namespace qbs {
 namespace Internal {
