@@ -1,14 +1,11 @@
 import qbs 1.0
 
 QbsLibrary {
-    Depends { name: "clangcompilationdbgenerator" }
-    Depends { name: "visualstudiogenerator" }
     Depends { name: "cpp" }
     Depends { name: "Qt"; submodules: ["core-private", "network", "script", "xml"] }
     Depends { condition: qbsbuildconfig.enableProjectFileUpdates; name: "Qt.gui" }
     Depends { condition: qbsbuildconfig.enableUnitTests; name: "Qt.testlib" }
-    Depends { condition: Qt.core.staticBuild; name: "qbs_cpp_scanner" }
-    Depends { condition: Qt.core.staticBuild; name: "qbs_qt_scanner" }
+    Depends { condition: Qt.core.staticBuild; productTypes: ["qbsplugin"] }
     name: "qbscore"
     cpp.includePaths: base.concat([
         ".",
@@ -386,6 +383,8 @@ QbsLibrary {
             "projectgeneratormanager.cpp",
             "qbsassert.cpp",
             "qbsassert.h",
+            "qbspluginmanager.cpp",
+            "qbspluginmanager.h",
             "qbsprocess.cpp",
             "qbsprocess.h",
             "qttools.cpp",

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,40 +37,28 @@
 **
 ****************************************************************************/
 
-#ifndef FILESAVER_H
-#define FILESAVER_H
+#include "clangcompilationdbgenerator.h"
 
-#include "qbs_export.h"
+#include <tools/projectgeneratormanager.h>
+#include <tools/qbspluginmanager.h>
 
-#include <QtCore/qbuffer.h>
-#include <QtCore/qbytearray.h>
-#include <QtCore/qscopedpointer.h>
-#include <QtCore/qstring.h>
+static void QbsClangDbGeneratorPluginLoad()
+{
+    qbs::ProjectGeneratorManager::registerGenerator(
+                std::make_shared<qbs::ClangCompilationDatabaseGenerator>());
+}
 
-namespace qbs {
-namespace Internal {
+static void QbsClangDbGeneratorPluginUnload()
+{
+}
 
-/*!
- * QSaveFile wrapper which doesn't update the target file if the contents are unchanged.
- */
-class QBS_EXPORT FileSaver {
-public:
-    FileSaver(const QString &filePath, bool overwriteIfUnchanged = false);
+#ifndef GENERATOR_EXPORT
+#if defined(WIN32) || defined(_WIN32)
+#define GENERATOR_EXPORT __declspec(dllexport)
+#else
+#define GENERATOR_EXPORT __attribute__((visibility("default")))
+#endif
+#endif
 
-    QIODevice *device();
-    bool open();
-    bool commit();
-    qint64 write(const QByteArray &data);
-
-private:
-    QByteArray m_newFileContents;
-    QByteArray m_oldFileContents;
-    QScopedPointer<QBuffer> m_memoryDevice;
-    const QString m_filePath;
-    const bool m_overwriteIfUnchanged;
-};
-
-} // namespace Internal
-} // namespace qbs
-
-#endif // FILESAVER_H
+QBS_REGISTER_STATIC_PLUGIN(extern "C" GENERATOR_EXPORT, QbsClangDbGeneratorPlugin,
+                           QbsClangDbGeneratorPluginLoad, QbsClangDbGeneratorPluginUnload)

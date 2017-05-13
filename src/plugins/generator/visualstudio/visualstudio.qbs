@@ -1,16 +1,10 @@
 import qbs
+import "../../qbsplugin.qbs" as QbsPlugin
 
-QbsLibrary {
-    type: ["staticlibrary"]
+QbsPlugin {
     name: "visualstudiogenerator"
-    install: false
 
-    cpp.includePaths: base.concat([
-        "../..",
-    ])
-
-    Depends { name: "cpp" }
-    Depends { name: "Qt.core" }
+    files: ["visualstudiogeneratorplugin.cpp"]
 
     Group {
         name: "Visual Studio generator"

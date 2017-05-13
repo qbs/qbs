@@ -52,14 +52,14 @@ typedef QMap<QString, Project> GeneratableProjectMap;
 typedef QMap<QString, ProjectData> GeneratableProjectDataMap;
 typedef QMap<QString, ProductData> GeneratableProductDataMap;
 
-struct GeneratableProductData {
+struct QBS_EXPORT GeneratableProductData {
     GeneratableProductDataMap data;
     QString name() const;
     CodeLocation location() const;
     QStringList dependencies() const;
 };
 
-struct GeneratableProjectData {
+struct QBS_EXPORT GeneratableProjectData {
     struct Id {
     private:
         friend struct GeneratableProjectData;
@@ -78,7 +78,7 @@ struct GeneratableProjectData {
     Id uniqueName() const;
 };
 
-struct GeneratableProject : public GeneratableProjectData {
+struct QBS_EXPORT GeneratableProject : public GeneratableProjectData {
     GeneratableProjectMap projects;
     QMap<QString, QVariantMap> buildConfigurations;
     QMap<QString, QStringList> commandLines;

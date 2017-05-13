@@ -1,2 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS = scanner
+SUBDIRS = generator scanner

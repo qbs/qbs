@@ -1,3 +1,9 @@
+include(../../plugins.pri)
+
+TARGET = visualstudiogenerator
+
+QT = core
+
 HEADERS += \
     $$PWD/msbuildfiltersproject.h \
     $$PWD/msbuildqbsgenerateproject.h \
@@ -17,6 +23,7 @@ SOURCES += \
     $$PWD/msbuildsolutionpropertiesproject.cpp \
     $$PWD/msbuildtargetproject.cpp \
     $$PWD/visualstudiogenerator.cpp \
+    $$PWD/visualstudiogeneratorplugin.cpp \
     $$PWD/visualstudioguidpool.cpp
 
 HEADERS += \

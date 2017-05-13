@@ -43,6 +43,9 @@
 
 using namespace CPlusPlus;
 
+#include <tools/qbspluginmanager.h>
+#include <tools/scannerpluginmanager.h>
+
 #ifdef Q_OS_UNIX
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -295,8 +298,6 @@ static const char **additionalFileTags(void *opaq, int *size)
     return 0;
 }
 
-extern "C" {
-
 ScannerPlugin includeScanner =
 {
     "include_scanner",
@@ -310,11 +311,15 @@ ScannerPlugin includeScanner =
 
 ScannerPlugin *cppScanners[] = { &includeScanner, NULL };
 
-#ifndef QBS_STATIC_LIB
-CPPSCANNER_EXPORT ScannerPlugin **getScanners()
+static void QbsCppScannerPluginLoad()
 {
-    return cppScanners;
+    qbs::Internal::ScannerPluginManager::instance()->registerPlugins(cppScanners);
 }
-#endif
 
-} // extern "C"
+static void QbsCppScannerPluginUnload()
+{
+}
+
+QBS_REGISTER_STATIC_PLUGIN(extern "C" CPPSCANNER_EXPORT, QbsCppScannerPlugin,
+                           QbsCppScannerPluginLoad, QbsCppScannerPluginUnload)
+

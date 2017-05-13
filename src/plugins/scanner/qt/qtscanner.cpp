@@ -40,10 +40,13 @@
 #if defined(WIN32) || defined(_WIN32)
 #define SCANNER_EXPORT __declspec(dllexport)
 #else
-#define SCANNER_EXPORT
+#define SCANNER_EXPORT __attribute__((visibility("default")))
 #endif
 
 #include "../scanner.h"
+
+#include <tools/qbspluginmanager.h>
+#include <tools/scannerpluginmanager.h>
 
 #include <QtCore/qglobal.h>
 
@@ -171,8 +174,6 @@ static const char **additionalFileTagsQrc(void *, int *size)
     return 0;
 }
 
-extern "C" {
-
 ScannerPlugin qrcScanner =
 {
     "qt_qrc_scanner",
@@ -186,11 +187,14 @@ ScannerPlugin qrcScanner =
 
 ScannerPlugin *qtScanners[] = {&qrcScanner, NULL};
 
-#ifndef QBS_STATIC_LIB
-SCANNER_EXPORT ScannerPlugin **getScanners()
+static void QbsQtScannerPluginLoad()
 {
-    return qtScanners;
+    qbs::Internal::ScannerPluginManager::instance()->registerPlugins(qtScanners);
 }
-#endif
 
-} // extern "C"
+static void QbsQtScannerPluginUnload()
+{
+}
+
+QBS_REGISTER_STATIC_PLUGIN(extern "C" SCANNER_EXPORT, QbsQtScannerPlugin,
+                           QbsQtScannerPluginLoad, QbsQtScannerPluginUnload)

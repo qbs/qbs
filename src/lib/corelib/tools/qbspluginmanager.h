@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,40 +37,60 @@
 **
 ****************************************************************************/
 
-#ifndef FILESAVER_H
-#define FILESAVER_H
+#ifndef QBS_PLUGINS_H
+#define QBS_PLUGINS_H
 
-#include "qbs_export.h"
+#include <language/filetags.h>
 
-#include <QtCore/qbuffer.h>
-#include <QtCore/qbytearray.h>
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qstring.h>
+
+QT_BEGIN_NAMESPACE
+class QLibrary;
+QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
+class Logger;
 
-/*!
- * QSaveFile wrapper which doesn't update the target file if the contents are unchanged.
- */
-class QBS_EXPORT FileSaver {
+typedef void (*QbsPluginLoadFunction)();
+typedef void (*QbsPluginUnloadFunction)();
+
+class QBS_EXPORT QbsPluginManager
+{
 public:
-    FileSaver(const QString &filePath, bool overwriteIfUnchanged = false);
+    ~QbsPluginManager();
+    static QbsPluginManager *instance();
+    void registerStaticPlugin(QbsPluginLoadFunction, QbsPluginUnloadFunction);
+    void loadStaticPlugins();
+    void unloadStaticPlugins();
+    void loadPlugins(const QStringList &paths, const Logger &logger);
 
-    QIODevice *device();
-    bool open();
-    bool commit();
-    qint64 write(const QByteArray &data);
+protected:
+    QbsPluginManager();
 
 private:
-    QByteArray m_newFileContents;
-    QByteArray m_oldFileContents;
-    QScopedPointer<QBuffer> m_memoryDevice;
-    const QString m_filePath;
-    const bool m_overwriteIfUnchanged;
+    struct QbsPlugin {
+        QbsPluginLoadFunction load;
+        QbsPluginUnloadFunction unload;
+        bool loaded;
+    };
+    std::vector<QbsPlugin> m_staticPlugins;
+    std::vector<QLibrary *> m_libs;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // FILESAVER_H
+#ifdef QBS_STATIC_LIB
+#define QBS_REGISTER_STATIC_PLUGIN(exportmacro, name, load, unload) \
+    static auto qbs_static_plugin_register##name = [] { \
+        qbs::Internal::QbsPluginManager::instance()->registerStaticPlugin(load, unload); \
+        return true; \
+    }();
+#else
+#define QBS_REGISTER_STATIC_PLUGIN(exportmacro, name, load, unload) \
+    exportmacro void QbsPluginLoad() { load(); } \
+    exportmacro void QbsPluginUnload() { unload(); }
+#endif
+
+#endif

@@ -39,25 +39,10 @@
 
 #include "scannerpluginmanager.h"
 
-#include <logging/logger.h>
-#include <logging/translator.h>
-#include <tools/hostosinfo.h>
-#include <tools/qttools.h>
-
-#include <QtCore/qcoreapplication.h>
-#include <QtCore/qdiriterator.h>
-#include <QtCore/qlibrary.h>
+#include <plugins/scanner/scanner.h>
 
 namespace qbs {
 namespace Internal {
-
-ScannerPluginManager::~ScannerPluginManager()
-{
-    for (QLibrary * const lib : qAsConst(m_libs)) {
-        lib->unload();
-        delete lib;
-    }
-}
 
 ScannerPluginManager *ScannerPluginManager::instance()
 {
@@ -74,60 +59,13 @@ QList<ScannerPlugin *> ScannerPluginManager::scannersForFileTag(const FileTag &f
     return instance()->m_scannerPlugins.value(fileTag);
 }
 
-void ScannerPluginManager::loadPlugins(ScannerPlugin **plugins)
+void ScannerPluginManager::registerPlugins(ScannerPlugin **plugins)
 {
     for (int i = 0; plugins[i] != 0; ++i) {
         const FileTags &fileTags = FileTags::fromStringList(
                     QString::fromLatin1(plugins[i]->fileTags).split(QLatin1Char(',')));
         for (const FileTag &tag : fileTags)
         m_scannerPlugins[tag] += plugins[i];
-    }
-}
-
-void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Logger &logger)
-{
-    QStringList filters;
-
-    if (HostOsInfo::isWindowsHost())
-        filters << QLatin1String("*.dll");
-    else if (HostOsInfo::isMacosHost())
-        filters << QLatin1String("*.dylib");
-    else
-        filters << QLatin1String("*.so");
-
-    for (const QString &pluginPath : pluginPaths) {
-        logger.qbsTrace() << QString::fromLatin1("pluginmanager: loading plugins from '%1'.")
-                             .arg(QDir::toNativeSeparators(pluginPath));
-        QDirIterator it(pluginPath, filters, QDir::Files);
-        while (it.hasNext()) {
-            const QString fileName = it.next();
-            QScopedPointer<QLibrary> lib(new QLibrary(fileName));
-            if (!lib->load()) {
-                logger.qbsWarning() << Tr::tr("Pluginmanager: Cannot load plugin '%1': %2")
-                                       .arg(QDir::toNativeSeparators(fileName), lib->errorString());
-                continue;
-            }
-
-            getScanners_f getScanners = reinterpret_cast<getScanners_f>(lib->resolve("getScanners"));
-            if (!getScanners) {
-                logger.qbsWarning() << Tr::tr("Pluginmanager: Cannot resolve "
-                        "symbol in '%1'.").arg(QDir::toNativeSeparators(fileName));
-                continue;
-            }
-
-            ScannerPlugin **plugins = getScanners();
-            if (plugins == 0) {
-                logger.qbsWarning() << Tr::tr("pluginmanager: no scanners "
-                        "returned from '%1'.").arg(QDir::toNativeSeparators(fileName));
-                continue;
-            }
-
-            logger.qbsTrace() << QString::fromLatin1("pluginmanager: scanner plugin '%1' loaded.")
-                                 .arg(QDir::toNativeSeparators(fileName));
-
-            loadPlugins(plugins);
-            m_libs.append(lib.take());
-        }
     }
 }
 

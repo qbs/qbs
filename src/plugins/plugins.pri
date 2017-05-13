@@ -10,7 +10,8 @@ DESTDIR = $${destdirPrefix}/qbs/plugins
 CONFIG(static, static|shared) {
     DEFINES += QBS_STATIC_LIB
 } else {
-    DEFINES += QBS_LIBRARY
+    isEmpty(QBSLIBDIR): QBSLIBDIR = $$OUT_PWD/../../../../$${QBS_LIBRARY_DIRNAME}
+    include($${PWD}/../lib/corelib/use_corelib.pri)
 }
 TEMPLATE = lib
 

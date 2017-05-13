@@ -100,8 +100,6 @@ public:
     int flags;
 };
 
-typedef ScannerPlugin **(*getScanners_f)();
-
 #ifdef __cplusplus
 }
 #endif

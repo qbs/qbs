@@ -34,6 +34,7 @@ HEADERS += \
     $$PWD/processutils.h \
     $$PWD/progressobserver.h \
     $$PWD/projectgeneratormanager.h \
+    $$PWD/qbspluginmanager.h \
     $$PWD/qbsprocess.h \
     $$PWD/shellutils.h \
     $$PWD/stlutils.h \
@@ -82,6 +83,7 @@ SOURCES += \
     $$PWD/profiling.cpp \
     $$PWD/progressobserver.cpp \
     $$PWD/projectgeneratormanager.cpp \
+    $$PWD/qbspluginmanager.cpp \
     $$PWD/qbsprocess.cpp \
     $$PWD/shellutils.cpp \
     $$PWD/buildoptions.cpp \
@@ -124,6 +126,7 @@ qbs_enable_unit_tests {
         $$PWD/generateoptions.h \
         $$PWD/generatorpluginmanager.h \
         $$PWD/installoptions.h \
+        $$PWD/qbspluginmanager.h \
         $$PWD/setupprojectparameters.h \
         $$PWD/toolchains.h
     tools_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/tools

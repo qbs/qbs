@@ -37,41 +37,33 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_PLUGINS_H
-#define QBS_PLUGINS_H
+#ifndef QBS_PLUGINS_SCANNER_H
+#define QBS_PLUGINS_SCANNER_H
+
+#include "qbs_export.h"
 
 #include <language/filetags.h>
-#include <plugins/scanner/scanner.h>
 
 #include <QtCore/qhash.h>
-#include <QtCore/qstring.h>
 
-QT_BEGIN_NAMESPACE
-class QLibrary;
-QT_END_NAMESPACE
+class ScannerPlugin;
 
 namespace qbs {
 namespace Internal {
-class Logger;
 
-class ScannerPluginManager
+class QBS_EXPORT ScannerPluginManager
 {
 public:
-    ~ScannerPluginManager();
     static ScannerPluginManager *instance();
     static QList<ScannerPlugin *> scannersForFileTag(const FileTag &fileTag);
-    void loadPlugins(ScannerPlugin **plugins);
-    void loadPlugins(const QStringList &paths, const Logger &logger);
+    void registerPlugins(ScannerPlugin **plugins);
 
 private:
     ScannerPluginManager();
-
-private:
-    QList<QLibrary *> m_libs;
     QHash<FileTag, QList<ScannerPlugin*> > m_scannerPlugins;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif
+#endif // QBS_PLUGINS_SCANNER_H

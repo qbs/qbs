@@ -45,7 +45,7 @@
 
 namespace qbs {
 
-class GeneratableProjectIterator {
+class QBS_EXPORT GeneratableProjectIterator {
     GeneratableProject project;
 
 public:

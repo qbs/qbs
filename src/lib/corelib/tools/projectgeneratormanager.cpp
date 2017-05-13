@@ -47,10 +47,6 @@
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdiriterator.h>
-#include <QtCore/qlibrary.h>
-
-#include "generators/clangcompilationdb/clangcompilationdbgenerator.h"
-#include "generators/visualstudio/visualstudiogenerator.h"
 
 namespace qbs {
 
@@ -58,10 +54,6 @@ using namespace Internal;
 
 ProjectGeneratorManager::~ProjectGeneratorManager()
 {
-    for (QLibrary * const lib : qAsConst(m_libs)) {
-        lib->unload();
-        delete lib;
-    }
 }
 
 ProjectGeneratorManager *ProjectGeneratorManager::instance()
@@ -72,12 +64,6 @@ ProjectGeneratorManager *ProjectGeneratorManager::instance()
 
 ProjectGeneratorManager::ProjectGeneratorManager()
 {
-    std::vector<std::shared_ptr<ProjectGenerator> > generators;
-    generators.push_back(std::make_shared<ClangCompilationDatabaseGenerator>());
-    const auto vsGenerators = qbs::VisualStudioGenerator::createGeneratorList();
-    std::copy(vsGenerators.cbegin(), vsGenerators.cend(), std::back_inserter(generators));
-    for (const auto &generator : qAsConst(generators))
-        m_generators[generator->generatorName()] = generator;
 }
 
 QStringList ProjectGeneratorManager::loadedGeneratorNames()
@@ -88,6 +74,12 @@ QStringList ProjectGeneratorManager::loadedGeneratorNames()
 std::shared_ptr<ProjectGenerator> ProjectGeneratorManager::findGenerator(const QString &generatorName)
 {
     return instance()->m_generators.value(generatorName);
+}
+
+void ProjectGeneratorManager::registerGenerator(const std::shared_ptr<ProjectGenerator> &generator)
+{
+    if (!findGenerator(generator->generatorName()))
+        instance()->m_generators.insert(generator->generatorName(), generator);
 }
 
 } // namespace qbs

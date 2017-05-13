@@ -71,7 +71,7 @@
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
 #include <tools/processresult.h>
-#include <tools/scannerpluginmanager.h>
+#include <tools/qbspluginmanager.h>
 #include <tools/scripttools.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/qbsassert.h>
@@ -82,11 +82,6 @@
 #include <QtCore/qshareddata.h>
 
 #include <mutex>
-
-#ifdef QBS_STATIC_LIB
-extern "C" ScannerPlugin *cppScanners[];
-extern "C" ScannerPlugin *qtScanners[];
-#endif
 
 namespace qbs {
 namespace Internal {
@@ -111,11 +106,9 @@ static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
             pluginPaths << pluginPath;
         }
     }
-    ScannerPluginManager::instance()->loadPlugins(pluginPaths, logger);
-#ifdef QBS_STATIC_LIB
-    ScannerPluginManager::instance()->loadPlugins(cppScanners);
-    ScannerPluginManager::instance()->loadPlugins(qtScanners);
-#endif
+    auto pluginManager = QbsPluginManager::instance();
+    pluginManager->loadStaticPlugins();
+    pluginManager->loadPlugins(pluginPaths, logger);
 
     qRegisterMetaType<ErrorInfo>("qbs::ErrorInfo");
     qRegisterMetaType<ProcessResult>("qbs::ProcessResult");

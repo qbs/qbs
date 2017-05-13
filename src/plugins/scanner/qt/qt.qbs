@@ -1,7 +1,7 @@
 import qbs 1.0
-import "../scannerplugin.qbs" as ScannerPlugin
+import "../../qbsplugin.qbs" as QbsPlugin
 
-ScannerPlugin {
+QbsPlugin {
     name: "qbs_qt_scanner"
     files: [
         "../scanner.h",

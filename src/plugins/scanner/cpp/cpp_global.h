@@ -43,7 +43,7 @@
 #if defined(WIN32) || defined(_WIN32)
 #define CPPSCANNER_EXPORT __declspec(dllexport)
 #else
-#define CPPSCANNER_EXPORT
+#define CPPSCANNER_EXPORT __attribute__((visibility("default")))
 #endif
 
 #endif // CPP_GLOBAL_H

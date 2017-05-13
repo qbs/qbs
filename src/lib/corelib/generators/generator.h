@@ -93,14 +93,4 @@ private:
 
 } // namespace qbs
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef qbs::ProjectGenerator **(*getGenerators_f)();
-
-#ifdef __cplusplus
-}
-#endif
-
 #endif // GENERATORPLUGIN_H

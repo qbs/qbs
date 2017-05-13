@@ -8,6 +8,3 @@ HEADERS += \
     $$PWD/generator.h \
     $$PWD/generatordata.h \
     $$PWD/igeneratableprojectvisitor.h
-
-include(clangcompilationdb/clangcompilationdb.pri)
-include(visualstudio/visualstudio.pri)

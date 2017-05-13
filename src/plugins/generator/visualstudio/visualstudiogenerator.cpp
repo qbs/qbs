@@ -293,16 +293,6 @@ void VisualStudioGenerator::generate()
     d->reset();
 }
 
-std::vector<std::shared_ptr<ProjectGenerator> > VisualStudioGenerator::createGeneratorList()
-{
-    std::vector<std::shared_ptr<ProjectGenerator> > result;
-    for (const auto &info : VisualStudioVersionInfo::knownVersions()) {
-        if (info.usesMsBuild())
-            result.push_back(std::make_shared<VisualStudioGenerator>(info));
-    }
-    return result;
-}
-
 void VisualStudioGenerator::visitProject(const GeneratableProject &project)
 {
     addPropertySheets(project);

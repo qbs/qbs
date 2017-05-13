@@ -48,10 +48,6 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 
-QT_BEGIN_NAMESPACE
-class QLibrary;
-QT_END_NAMESPACE
-
 namespace qbs {
 class ProjectGenerator;
 namespace Internal {
@@ -65,12 +61,12 @@ public:
     static ProjectGeneratorManager *instance();
     static QStringList loadedGeneratorNames();
     static std::shared_ptr<ProjectGenerator> findGenerator(const QString &generatorName);
+    static void registerGenerator(const std::shared_ptr<ProjectGenerator> &generator);
 
 private:
     ProjectGeneratorManager();
 
 private:
-    QList<QLibrary *> m_libs;
     QMap<QString, std::shared_ptr<ProjectGenerator> > m_generators;
 };
 
