@@ -284,7 +284,6 @@ private:
     QStringList m_moduleSearchPaths;
     QMap<QString, QStringList> m_moduleDirListCache;
     ModuleItemCache m_modulePrototypeItemCache;
-    QHash<Item *, Set<QString>> m_validItemPropertyNamesPerItem;
     Set<Item *> m_disabledItems;
     QStack<bool> m_requiredChain;
 
