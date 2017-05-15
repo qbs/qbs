@@ -83,12 +83,16 @@ function collectLibraryDependencies(product) {
         objectByFilePath[obj.filePath] = obj;
     }
 
-    function addPublicFilePath(filePath) {
+    function addPublicFilePath(filePath, dep) {
         var existing = objectByFilePath[filePath];
-        if (existing)
+        var wholeArchive = dep.parameters.cpp && dep.parameters.cpp.linkWholeArchive;
+        if (existing) {
             existing.direct = true;
-        else
-            addObject({ direct: true, filePath: filePath }, Array.prototype.unshift);
+            existing.wholeArchive = wholeArchive;
+        } else {
+            addObject({ direct: true, filePath: filePath, wholeArchive: wholeArchive },
+                      Array.prototype.unshift);
+        }
     }
 
     function addPrivateFilePath(filePath) {
@@ -102,7 +106,8 @@ function collectLibraryDependencies(product) {
         if (!artifacts)
             return;
         var artifactFilePaths = artifacts.map(function(a) { return a.filePath; });
-        artifactFilePaths.forEach(addFunction);
+        for (var i = 0; i < artifactFilePaths.length; ++i)
+           addFunction(artifactFilePaths[i], dep);
     }
 
     function addExternalLibs(obj) {
@@ -158,7 +163,8 @@ function collectLibraryDependencies(product) {
     objects.forEach(
                 function (obj) {
                     if (obj.direct) {
-                        result.libraries.push(obj.filePath);
+                        result.libraries.push({ filePath: obj.filePath,
+                                                wholeArchive: obj.wholeArchive });
                     } else {
                         var dirPath = FileInfo.path(obj.filePath);
                         if (!seenRPathLinkDirs.hasOwnProperty(dirPath)) {
@@ -367,11 +373,35 @@ function linkerFlags(project, product, inputs, output) {
             args = args.concat(['-weak_framework', weakFrameworks[i]]);
     }
 
-    args = args.concat(libraryDependencies.libraries.map(function(lib) {
-        return FileInfo.isAbsolutePath(lib) || lib.startsWith('@')
-                ? lib
-                : '-l' + lib;
-    }));
+    var wholeArchiveActive = false;
+    for (i = 0; i < libraryDependencies.libraries.length; ++i) {
+        var dep = libraryDependencies.libraries[i];
+        var lib = dep.filePath;
+        if (dep.wholeArchive && !wholeArchiveActive) {
+            var wholeArchiveFlag;
+            if (isDarwin) {
+                wholeArchiveFlag = "-force_load";
+            } else {
+                wholeArchiveFlag = "--whole-archive";
+                wholeArchiveActive = true;
+            }
+            Array.prototype.push.apply(args,
+                                       escapeLinkerFlags(product, inputs, [wholeArchiveFlag]));
+        }
+        if (!dep.wholeArchive && wholeArchiveActive) {
+            Array.prototype.push.apply(args,
+                                       escapeLinkerFlags(product, inputs, ["--no-whole-archive"]));
+            wholeArchiveActive = false;
+        }
+        if (FileInfo.isAbsolutePath(lib) || lib.startsWith('@'))
+            args.push(lib);
+        else
+            args.push('-l' + lib);
+    }
+    if (wholeArchiveActive) {
+        Array.prototype.push.apply(args,
+                                   escapeLinkerFlags(product, inputs, ["--no-whole-archive"]));
+    }
 
     if (product.cpp.useRPathLink) {
         args = args.concat(escapeLinkerFlags(

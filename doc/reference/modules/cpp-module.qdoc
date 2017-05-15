@@ -799,6 +799,14 @@
         \li If \c{false}, the dependency will not be linked, even if
             it is a valid input for a linker rule. This property
             affects library dependencies only.
+    \row
+        \li \c{linkWholeArchive}
+        \li \c{bool}
+        \li 1.9
+        \li undefined
+        \li If \c{true}, then if the dependency is a static library, all of its objects
+            will be pulled into target binary, even if their symbols do not appear to be used.
+            This parameter is mainly useful when creating a dynamic library from static libraries.
     \endtable
 
     \section1 Relevant File Tags

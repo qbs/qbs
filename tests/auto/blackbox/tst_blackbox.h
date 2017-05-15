@@ -211,6 +211,8 @@ private slots:
     void versionCheck();
     void versionCheck_data();
     void versionScript();
+    void wholeArchive();
+    void wholeArchive_data();
     void wildCardsAndRules();
     void wildcardRenaming();
     void wix();

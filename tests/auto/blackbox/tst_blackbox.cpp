@@ -1080,6 +1080,47 @@ void TestBlackbox::versionScript()
     QVERIFY2(globalSymbols.contains("dummyGlobal"), allSymbols.constData());
 }
 
+void TestBlackbox::wholeArchive()
+{
+    QDir::setCurrent(testDataDir + "/whole-archive");
+    QFETCH(QString, wholeArchiveString);
+    QFETCH(bool, ruleInvalidationExpected);
+    QFETCH(bool, dllLinkingExpected);
+    const QbsRunParameters resolveParams("resolve",
+            QStringList("-vv") << "products.dynamiclib.linkWholeArchive:" + wholeArchiveString);
+    QCOMPARE(runQbs(QbsRunParameters(resolveParams)), 0);
+    const QByteArray resolveStderr = m_qbsStderr;
+    QCOMPARE(runQbs(QbsRunParameters(QStringList({ "-p", "dynamiclib" }))), 0);
+    const bool wholeArchive = !wholeArchiveString.isEmpty();
+    const bool outdatedVisualStudio = wholeArchive && m_qbsStderr.contains("upgrade");
+    const QByteArray invalidationOutput
+            = "Value for property 'staticlib 1:cpp.linkWholeArchive' has changed.";
+    if (!outdatedVisualStudio)
+        QCOMPARE(resolveStderr.contains(invalidationOutput), ruleInvalidationExpected);
+    QCOMPARE(m_qbsStdout.contains("linking"), dllLinkingExpected && !outdatedVisualStudio);
+    QbsRunParameters buildParams(QStringList("-p"));
+    buildParams.expectFailure = !wholeArchive || outdatedVisualStudio;
+    buildParams.arguments << "app1";
+    QCOMPARE(runQbs(QbsRunParameters(buildParams)) == 0, wholeArchive && !outdatedVisualStudio);
+    buildParams.arguments.last() = "app2";
+    QCOMPARE(runQbs(QbsRunParameters(buildParams)) == 0, wholeArchive && !outdatedVisualStudio);
+    buildParams.arguments.last() = "app4";
+    QCOMPARE(runQbs(QbsRunParameters(buildParams)) == 0, wholeArchive && !outdatedVisualStudio);
+    buildParams.arguments.last() = "app3";
+    buildParams.expectFailure = true;
+    QVERIFY(runQbs(QbsRunParameters(buildParams)) != 0);
+}
+
+void TestBlackbox::wholeArchive_data()
+{
+    QTest::addColumn<QString>("wholeArchiveString");
+    QTest::addColumn<bool>("ruleInvalidationExpected");
+    QTest::addColumn<bool>("dllLinkingExpected");
+    QTest::newRow("link normally") << QString() << false << true;
+    QTest::newRow("link whole archive") << "true" << true << true;
+    QTest::newRow("link whole archive again") << "notfalse" << false << false;
+}
+
 static bool symlinkExists(const QString &linkFilePath)
 {
     return QFileInfo(linkFilePath).isSymLink();

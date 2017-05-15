@@ -31,6 +31,7 @@
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var ModUtils = require("qbs.ModUtils");
+var Utilities = require("qbs.Utilities");
 var WindowsUtils = require("qbs.WindowsUtils");
 
 function compilerVersionDefine(cpp) {
@@ -214,15 +215,17 @@ function collectLibraryDependencies(product) {
     var seen = {};
     var result = [];
 
-    function addFilePath(filePath) {
-        result.push(filePath);
+    function addFilePath(filePath, wholeArchive) {
+        result.push({ filePath: filePath, wholeArchive: wholeArchive });
     }
 
     function addArtifactFilePaths(dep, artifacts) {
         if (!artifacts)
             return;
         var artifactFilePaths = artifacts.map(function(a) { return a.filePath; });
-        artifactFilePaths.forEach(addFilePath);
+        var wholeArchive = dep.parameters.cpp && dep.parameters.cpp.linkWholeArchive;
+        for (var i = 0; i < artifactFilePaths.length; ++i)
+            addFilePath(artifactFilePaths[i], wholeArchive);
     }
 
     function addExternalLibs(obj) {
@@ -232,7 +235,7 @@ function collectLibraryDependencies(product) {
         externalLibs.forEach(function (libName) {
             if (!libName.match(/\.lib$/i) && !libName.startsWith('@'))
                 libName += ".lib";
-            addFilePath(libName);
+            addFilePath(libName, false);
         });
     }
 
@@ -259,6 +262,11 @@ function collectLibraryDependencies(product) {
     product.dependencies.forEach(traverse);
     addExternalLibs(product);
     return result;
+}
+
+function linkerSupportsWholeArchive(product)
+{
+    return Utilities.versionCompare(product.cpp.compilerVersion, "19.0.25123") >= 0
 }
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
@@ -352,8 +360,21 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         args.push(fileName)
     }
 
-    function toWindowsSeparator(filePath) { return FileInfo.toWindowsSeparators(filePath); }
-    args = args.concat(collectLibraryDependencies(product).map(toWindowsSeparator));
+    var wholeArchiveSupported = linkerSupportsWholeArchive(product);
+    var wholeArchiveRequested = false;
+    var libDeps = collectLibraryDependencies(product);
+    for (i = 0; i < libDeps.length; ++i) {
+        var dep = libDeps[i];
+        args.push((wholeArchiveSupported && dep.wholeArchive ? "/WHOLEARCHIVE:" : "")
+                  + FileInfo.toWindowsSeparators(dep.filePath));
+        if (dep.wholeArchive)
+            wholeArchiveRequested = true;
+    }
+    if (wholeArchiveRequested && !wholeArchiveSupported) {
+        console.warn("Product '" + product.name + "' sets cpp.linkWholeArchive on a dependency, "
+                     + "but your linker does not support the /WHOLEARCHIVE option. "
+                     + "Please upgrade to Visual Studio 2015 Update 2 or higher.");
+    }
 
     if (product.cpp.entryPoint)
         args.push("/ENTRY:" + product.cpp.entryPoint);

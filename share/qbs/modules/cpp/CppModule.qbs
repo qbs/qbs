@@ -466,4 +466,7 @@ Module {
     Parameter {
         property bool link
     }
+    Parameter {
+        property bool linkWholeArchive
+    }
 }
