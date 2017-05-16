@@ -1265,7 +1265,7 @@ void TestBlackbox::renameDependency()
 void TestBlackbox::separateDebugInfo()
 {
     QDir::setCurrent(testDataDir + "/separate-debug-info");
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("qbs.debugInformation:true"))), 0);
 
     Settings settings((QString()));
     Profile buildProfile(profileName(), &settings);
@@ -2306,7 +2306,7 @@ void TestBlackbox::propertyChanges()
 {
     QDir::setCurrent(testDataDir + "/propertyChanges");
     QFile projectFile("propertyChanges.qbs");
-    QbsRunParameters params(QStringList() << "-f" << "propertyChanges.qbs");
+    QbsRunParameters params(QStringList({"-f", "propertyChanges.qbs", "qbs.enableDebugCode:true"}));
 
     // Initial build.
     QCOMPARE(runQbs(params), 0);
@@ -3347,6 +3347,7 @@ void TestBlackbox::mixedBuildVariants()
     Profile profile(profileName(), &settings);
     if (profile.value("qbs.toolchain").toStringList().contains("msvc")) {
         QbsRunParameters params;
+        params.arguments << "qbs.buildVariant:debug";
         params.expectFailure = true;
         QVERIFY(runQbs(params) != 0);
         QVERIFY2(m_qbsStderr.contains("not allowed"), m_qbsStderr.constData());
