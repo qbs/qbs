@@ -79,6 +79,7 @@ public:
         Item *item;
         bool isProduct;
         bool required;
+        QVariantMap parameters;
         VersionRange versionRange;
     };
     typedef std::vector<Module> Modules;
@@ -122,6 +123,7 @@ public:
     void setProperties(const PropertyMap &props) { m_properties = props; }
     void removeProperty(const QString &name);
     void setPropertyDeclaration(const QString &name, const PropertyDeclaration &declaration);
+    void setPropertyDeclarations(const PropertyDeclarationMap &decls);
     void setLocation(const CodeLocation &location) { m_location = location; }
     void setPrototype(Item *prototype) { m_prototype = prototype; }
     void setFile(const FileContextPtr &file) { m_file = file; }

@@ -76,7 +76,7 @@ private:
     void addFileTaggerItem();
     void addGroupItem();
     void addModuleItem();
-    void addModuleLikeItem(ItemType type);
+    static ItemDeclaration moduleLikeItem(ItemType type);
     void addProbeItem();
     void addProductItem();
     void addProjectItem();

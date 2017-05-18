@@ -39,7 +39,12 @@
 #ifndef QBS_PREPARESCRIPTOBSERVER_H
 #define QBS_PREPARESCRIPTOBSERVER_H
 
+#include "qualifiedid.h"
 #include "scriptpropertyobserver.h"
+
+#include <QString>
+
+#include <unordered_map>
 
 namespace qbs {
 namespace Internal {
@@ -52,6 +57,11 @@ public:
 
     void setProductObjectId(qint64 productId) { m_productObjectId = productId; }
     void setProjectObjectId(qint64 projectId) { m_projectObjectId = projectId; }
+    void addParameterObjectId(qint64 id, const QString &depName, const QualifiedId &moduleName)
+    {
+        m_parameterObjects.insert(std::make_pair(id, depName + QLatin1Char(':')
+                                                 + moduleName.toString()));
+    }
 
 private:
     void onPropertyRead(const QScriptValue &object, const QString &name, const QScriptValue &value);
@@ -59,6 +69,7 @@ private:
     ScriptEngine * const m_engine;
     qint64 m_productObjectId;
     qint64 m_projectObjectId;
+    std::unordered_map<qint64, QString> m_parameterObjects;
 };
 
 } // namespace Internal

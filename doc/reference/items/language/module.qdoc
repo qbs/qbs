@@ -28,7 +28,7 @@
     \contentspage list-of-language-items.html
     \previouspage group-item.html
     \page module-item.html
-    \nextpage probe-item.html
+    \nextpage parameter-item.html
     \ingroup list-of-language-items
     \ingroup list-of-items
 
@@ -141,6 +141,41 @@
             files: ["somefile1", "somefile2"]
             mymodule.someProperty: outer.concat(["value"]) // => ["value1", "value2"]
         }
+    }
+    \endcode
+
+
+    \section1 Dependency Parameters
+
+    Modules can declare dependency parameters. Those parameters can be set
+    within \c{Depends} items. Rules of the module can read the parameters of
+    dependencies and act accordingly.
+
+    In the following example, the module \e{foo} declares the parameter
+    \c{ignore}. A dependency to \c{bar} then sets the parameter \c{foo.ignore}
+    to \c{true}. A rule in \c{foo} ignores all dependencies that have
+    \c{foo.ignore} set to true.
+
+    \code
+    Module {    // Definition of module 'foo'.
+        Parameter { property bool ignore }
+        Rule {
+            ...
+            prepare: {
+                for (i in product.dependencies) {
+                    var dep = product.dependencies[i];
+                    if (dep.foo.ignore)
+                        continue;
+                    // Do something with the dependency.
+                }
+            }
+        }
+        ...
+    }
+    ----------
+    Product {
+        Depends { name: "foo" }
+        Depends { name: "bar"; foo.ignore: true }
     }
     \endcode
 

@@ -336,5 +336,10 @@ void Item::setPropertyDeclaration(const QString &name, const PropertyDeclaration
     m_propertyDeclarations.insert(name, declaration);
 }
 
+void Item::setPropertyDeclarations(const Item::PropertyDeclarationMap &decls)
+{
+    m_propertyDeclarations = decls;
+}
+
 } // namespace Internal
 } // namespace qbs

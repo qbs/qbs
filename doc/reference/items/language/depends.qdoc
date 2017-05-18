@@ -62,6 +62,32 @@
     \endcode
 
 
+    \section1 Dependency Parameters
+
+    Sometimes it is desirable to have certain dependencies handled differently
+    than others.  For example, one might want to depend on a dynamic library
+    without linking it.
+
+    This can be done by setting the parameter \c{cpp.link} to \c{true} in the
+    dynamic library dependency:
+    \code
+    Product {
+        Depends { name: "cpp" }
+        Depends { name: "some_dynamic_lib"; cpp.link: false }
+
+        // ...
+    }
+    \endcode
+
+    Dependency parameters are a special type of property that can only be set
+    within \c{Depends} and \c{Parameters} items. Dependency parameters are
+    declared in the modules they belong to.
+
+    In the example above, the \c{cpp} module declares the parameter \c{link}.
+    The \c{Depends} item for \e{some_dynamic_lib} sets \c{cpp.link} to
+    \c{false}, which tells the linker rule to ignore this particular dependency.
+
+
     \section1 Depends Properties
 
     \table

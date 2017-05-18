@@ -79,6 +79,7 @@ struct ModuleLoaderResult
             FileTags productTypes;
             QString name;
             QString profile; // "*" <=> Match all profiles.
+            QVariantMap parameters;
             bool limitToSubProject = false;
             bool isRequired = true;
 
@@ -168,6 +169,7 @@ private:
         Item *exportItem = nullptr;
         bool dependenciesResolved = false;
         QList<ModuleLoaderResult::ProductInfo::Dependency> productDependencies;
+        QVariantMap defaultParameters;
     };
 
     class TopLevelProjectContext
@@ -201,6 +203,7 @@ private:
     void prepareProduct(ProjectContext *projectContext, Item *productItem);
     void setupProductDependencies(ProductContext *productContext);
     void handleProduct(ProductContext *productContext);
+    void checkDependencyParameterDeclarations(const ProductContext *productContext) const;
     void handleModuleSetupError(ProductContext *productContext, const Item::Module &module,
                                 const ErrorInfo &error);
     void initProductProperties(const ProductContext &product);
@@ -227,11 +230,17 @@ private:
     class ItemModuleList;
     void resolveDependsItem(DependsContext *dependsContext, Item *parentItem, Item *dependsItem,
                             ItemModuleList *moduleResults, ProductDependencyResults *productResults);
+    void forwardParameterDeclarations(const Item *dependsItem, const ItemModuleList &modules);
+    void forwardParameterDeclarations(const QualifiedId &moduleName, Item *item,
+                                      const ItemModuleList &modules);
+    void resolveParameterDeclarations(const Item *module);
+    QVariantMap extractParameters(Item *dependsItem) const;
     Item *moduleInstanceItem(Item *containerItem, const QualifiedId &moduleName);
-    Item *loadProductModule(ProductContext *productContext, const QString &moduleName);
+    ProductModuleInfo loadProductModule(ProductContext *productContext, const QString &moduleName);
     Item *loadModule(ProductContext *productContext, Item *item,
             const CodeLocation &dependsItemLocation, const QString &moduleId,
-            const QualifiedId &moduleName, bool isRequired, bool *isModuleDependency);
+            const QualifiedId &moduleName, bool isRequired, bool *isProductDependency,
+            QVariantMap *defaultParameters);
     Item *searchAndLoadModuleFile(ProductContext *productContext,
             const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
             const QStringList &extraSearchPaths, bool isRequired, bool *cacheHit);
@@ -254,6 +263,7 @@ private:
     static QString findExistingModulePath(const QString &searchPath,
             const QualifiedId &moduleName);
     static void setScopeForDescendants(Item *item, Item *scope);
+    static void forwardScopeToItemValues(Item *item, Item *scope);
     void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                 const QVariantMap &buildConfig);
     void addTransitiveDependencies(ProductContext *ctx);
@@ -284,6 +294,7 @@ private:
     QStringList m_moduleSearchPaths;
     QMap<QString, QStringList> m_moduleDirListCache;
     ModuleItemCache m_modulePrototypeItemCache;
+    QHash<const Item *, Item::PropertyDeclarationMap> m_parameterDeclarations;
     Set<Item *> m_disabledItems;
     QStack<bool> m_requiredChain;
 

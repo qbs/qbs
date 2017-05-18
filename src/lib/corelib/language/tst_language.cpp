@@ -586,6 +586,10 @@ void TestLanguage::erroneousFiles_data()
             << "Can't find variable: outer";
     QTest::newRow("invalid_file")
             << "does not exist";
+    QTest::newRow("invalid-parameter-rhs")
+            << "ReferenceError: Can't find variable: access";
+    QTest::newRow("invalid-parameter-type")
+            << "Value assigned to property 'stringParameter' does not have type 'string'.";
     QTest::newRow("invalid_property_type")
             << "Unknown type 'nonsense' in property declaration.";
     QTest::newRow("reserved_name_in_import")
@@ -610,6 +614,11 @@ void TestLanguage::erroneousFiles_data()
             << "Element at index 1 of list property 'files' is undefined. String expected.";
     QTest::newRow("undeclared_item")
             << "Item 'cpp' is not declared.";
+    QTest::newRow("undeclared-parameter1")
+            << "Parameter 'prefix2.suffix.nope' is not declared.";
+    QTest::newRow("undeclared-parameter2")
+            << "Cannot set parameter 'foo.bar', "
+               "because 'myproduct' does not have a dependency on 'foo'.";
     QTest::newRow("undeclared_property_wrapper")
             << "Property 'doesntexist' is not declared.";
     QTest::newRow("undeclared_property_in_export_item")

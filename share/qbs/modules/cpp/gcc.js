@@ -117,6 +117,9 @@ function collectLibraryDependencies(product) {
         if (publicDeps[dep.name])
             return;
 
+        if (dep.parameters.cpp && dep.parameters.cpp.link === false)
+            return;
+
         var isStaticLibrary = typeof dep.artifacts["staticlibrary"] !== "undefined";
         var isDynamicLibrary = !isStaticLibrary
                 && typeof dep.artifacts["dynamiclibrary"] !== "undefined";

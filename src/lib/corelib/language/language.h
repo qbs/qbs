@@ -413,8 +413,10 @@ public:
     PropertyMapPtr moduleProperties;
     Set<RulePtr> rules;
     Set<ResolvedProductPtr> dependencies;
+    QHash<ResolvedProductConstPtr, QVariantMap> dependencyParameters;
     QList<FileTaggerConstPtr> fileTaggers;
     QList<ResolvedModuleConstPtr> modules;
+    QHash<ResolvedModuleConstPtr, QVariantMap> moduleParameters;
     QList<ResolvedScannerConstPtr> scanners;
     QList<GroupPtr> groups;
     QList<ProbeConstPtr> probes;

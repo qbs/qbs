@@ -240,6 +240,10 @@ function collectLibraryDependencies(product) {
         if (seen.hasOwnProperty(dep.name))
             return;
         seen[dep.name] = true;
+
+        if (dep.parameters.cpp && dep.parameters.cpp.link === false)
+            return;
+
         var staticLibraryArtifacts = dep.artifacts["staticlibrary"];
         var dynamicLibraryArtifacts = staticLibraryArtifacts
                 ? null : dep.artifacts["dynamiclibrary_import"];

@@ -462,4 +462,8 @@ Module {
             v.set();
         }
     }
+
+    Parameter {
+        property bool link
+    }
 }

@@ -67,6 +67,8 @@ BuiltinDeclarations::BuiltinDeclarations()
         { QLatin1String("FileTagger"), ItemType::FileTagger },
         { QLatin1String("Group"), ItemType::Group },
         { QLatin1String("Module"), ItemType::Module },
+        { QLatin1String("Parameter"), ItemType::Parameter },
+        { QLatin1String("Parameters"), ItemType::Parameters },
         { QLatin1String("Probe"), ItemType::Probe },
         { QLatin1String("Product"), ItemType::Product },
         { QLatin1String("Project"), ItemType::Project },
@@ -220,7 +222,11 @@ void BuiltinDeclarations::addDependsItem()
 
 void BuiltinDeclarations::addExportItem()
 {
-    addModuleLikeItem(ItemType::Export);
+    ItemDeclaration item = moduleLikeItem(ItemType::Export);
+    auto allowedChildTypes = item.allowedChildTypes();
+    allowedChildTypes.insert(ItemType::Parameters);
+    item.setAllowedChildTypes(allowedChildTypes);
+    insert(item);
 }
 
 void BuiltinDeclarations::addFileTaggerItem()
@@ -260,10 +266,10 @@ void BuiltinDeclarations::addGroupItem()
 
 void BuiltinDeclarations::addModuleItem()
 {
-    addModuleLikeItem(ItemType::Module);
+    insert(moduleLikeItem(ItemType::Module));
 }
 
-void BuiltinDeclarations::addModuleLikeItem(ItemType type)
+ItemDeclaration BuiltinDeclarations::moduleLikeItem(ItemType type)
 {
     ItemDeclaration item(type);
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
@@ -271,6 +277,7 @@ void BuiltinDeclarations::addModuleLikeItem(ItemType type)
             << ItemType::Depends
             << ItemType::FileTagger
             << ItemType::Rule
+            << ItemType::Parameter
             << ItemType::Probe
             << ItemType::PropertyOptions
             << ItemType::Scanner);
@@ -291,7 +298,7 @@ void BuiltinDeclarations::addModuleLikeItem(ItemType type)
     PropertyDeclaration presentDecl(QLatin1String("present"), PropertyDeclaration::Boolean);
     presentDecl.setInitialValueSource(QLatin1String("true"));
     item << presentDecl;
-    insert(item);
+    return item;
 }
 
 void BuiltinDeclarations::addProbeItem()

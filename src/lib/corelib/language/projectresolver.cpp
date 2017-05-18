@@ -464,7 +464,7 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
         modules.pop();
         if (!seen.insert(m.name).second)
             continue;
-        resolveModule(m.name, m.item, m.isProduct, projectContext);
+        resolveModule(m.name, m.item, m.isProduct, m.parameters, projectContext);
         for (const Item::Module &childModule : m.item->modules())
             modules.push(childModule);
     }
@@ -475,7 +475,7 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
 }
 
 void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
-                                    ProjectContext *projectContext)
+                                    const QVariantMap &parameters, ProjectContext *projectContext)
 {
     checkCancelation();
     if (!m_evaluator->boolValue(item, QLatin1String("present")))
@@ -501,8 +501,11 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
             module->moduleDependencies += m.name.toString();
     }
 
-    if (!isProduct)
+    if (!isProduct) {
         m_productContext->product->modules += module;
+        if (!parameters.isEmpty())
+            m_productContext->product->moduleParameters[module] = parameters;
+    }
 
     static const ItemFuncMap mapping {
         { ItemType::Group, &ProjectResolver::ignoreItem },
@@ -511,6 +514,7 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
         { ItemType::Scanner, &ProjectResolver::resolveScanner },
         { ItemType::PropertyOptions, &ProjectResolver::ignoreItem },
         { ItemType::Depends, &ProjectResolver::ignoreItem },
+        { ItemType::Parameter, &ProjectResolver::ignoreItem },
         { ItemType::Probe, &ProjectResolver::ignoreItem }
     };
     for (Item *child : item->children())
@@ -968,11 +972,12 @@ void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext
     m_productContext->product->scanners += scanner;
 }
 
-QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const ResolvedProductConstPtr &product,
-        const ModuleLoaderResult::ProductInfo &productInfo, bool &disabledDependency)
+ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
+        const ResolvedProductConstPtr &product, const ModuleLoaderResult::ProductInfo &productInfo)
 {
+    ProductDependencyInfos result;
+    result.dependencies.reserve(productInfo.usedProducts.size());
     QList<ModuleLoaderResult::ProductInfo::Dependency> dependencies = productInfo.usedProducts;
-    QList<ResolvedProductPtr> usedProducts;
     for (int i = dependencies.count() - 1; i >= 0; --i) {
         const ModuleLoaderResult::ProductInfo::Dependency &dependency = dependencies.at(i);
         QBS_CHECK(dependency.name.isEmpty() != dependency.productTypes.isEmpty());
@@ -984,7 +989,7 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
                             || (dependency.limitToSubProject && !product->isInParentProject(p))) {
                         continue;
                     }
-                    usedProducts << p;
+                    result.dependencies.emplace_back(p, dependency.parameters);
                     ModuleLoaderResult::ProductInfo::Dependency newDependency;
                     newDependency.name = p->name;
                     newDependency.profile = p->profile;
@@ -998,7 +1003,7 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
                         || (dependency.limitToSubProject && !product->isInParentProject(p))) {
                     continue;
                 }
-                usedProducts << p;
+                result.dependencies.emplace_back(p, dependency.parameters);
                 ModuleLoaderResult::ProductInfo::Dependency newDependency;
                 newDependency.name = p->name;
                 newDependency.profile = p->profile;
@@ -1022,12 +1027,12 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
                              usedProduct->location);
                 if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
                     throw e;
-                disabledDependency = true;
+                result.hasDisabledDependency = true;
             }
-            usedProducts << usedProduct;
+            result.dependencies.emplace_back(usedProduct, dependency.parameters);
         }
     }
-    return usedProducts;
+    return result;
 }
 
 void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
@@ -1111,9 +1116,13 @@ void ProjectResolver::resolveProductDependencies(const ProjectContext &projectCo
         Item *productItem = m_productItemMap.value(rproduct);
         const ModuleLoaderResult::ProductInfo &productInfo
                 = m_loadResult.productInfos.value(productItem);
-        for (const ResolvedProductPtr &usedProduct :
-                 getProductDependencies(rproduct, productInfo, disabledDependency)) {
-            rproduct->dependencies.insert(usedProduct);
+        const ProductDependencyInfos &depInfos = getProductDependencies(rproduct, productInfo);
+        if (depInfos.hasDisabledDependency)
+            disabledDependency = true;
+        for (const auto &dep : depInfos.dependencies) {
+            rproduct->dependencies.insert(dep.product);
+            if (!dep.parameters.isEmpty())
+                rproduct->dependencyParameters.insert(dep.product, dep.parameters);
         }
     }
 

@@ -42,6 +42,8 @@
 #include "property.h"
 #include "scriptengine.h"
 
+#include <tools/stlutils.h>
+
 #include <QtScript/qscriptvalue.h>
 
 namespace qbs {
@@ -57,14 +59,20 @@ PrepareScriptObserver::PrepareScriptObserver(ScriptEngine *engine)
 void PrepareScriptObserver::onPropertyRead(const QScriptValue &object, const QString &name,
                                            const QScriptValue &value)
 {
-    if (object.objectId() == m_productObjectId) {
+    const auto objectId = object.objectId();
+    if (objectId == m_productObjectId) {
         m_engine->addPropertyRequestedInScript(
                     Property(QString(), name, value.toVariant(), Property::PropertyInProduct));
-    } else if (object.objectId() == m_projectObjectId) {
+    } else if (objectId == m_projectObjectId) {
         m_engine->addPropertyRequestedInScript(
                     Property(QString(), name, value.toVariant(), Property::PropertyInProject));
+    } else {
+        const auto it = m_parameterObjects.find(objectId);
+        if (it != m_parameterObjects.cend()) {
+            m_engine->addPropertyRequestedInScript(
+                    Property(it->second, name, value.toVariant(), Property::PropertyInParameters));
+        }
     }
-
 }
 
 

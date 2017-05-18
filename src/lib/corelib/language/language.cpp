@@ -511,8 +511,10 @@ void ResolvedProduct::load(PersistentPool &pool)
     pool.load(moduleProperties);
     pool.load(rules);
     pool.load(dependencies);
+    pool.load(dependencyParameters);
     pool.load(fileTaggers);
     pool.load(modules);
+    pool.load(moduleParameters);
     pool.load(scanners);
     pool.load(groups);
     pool.load(artifactProperties);
@@ -535,8 +537,10 @@ void ResolvedProduct::store(PersistentPool &pool) const
     pool.store(moduleProperties);
     pool.store(rules);
     pool.store(dependencies);
+    pool.store(dependencyParameters);
     pool.store(fileTaggers);
     pool.store(modules);
+    pool.store(moduleParameters);
     pool.store(scanners);
     pool.store(groups);
     pool.store(artifactProperties);

@@ -97,7 +97,7 @@ private:
     void resolveProduct(Item *item, ProjectContext *projectContext);
     void resolveModules(const Item *item, ProjectContext *projectContext);
     void resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
-                       ProjectContext *projectContext);
+                       const QVariantMap &parameters, ProjectContext *projectContext);
     QVariantMap resolveAdditionalModuleProperties(const Item *group,
                                                   const QVariantMap &currentValues);
     void resolveGroup(Item *item, ProjectContext *projectContext);
@@ -119,8 +119,27 @@ private:
     QString convertPathProperty(const QString &path, const QString &dirPath) const;
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
-    QList<ResolvedProductPtr> getProductDependencies(const ResolvedProductConstPtr &product,
-            const ModuleLoaderResult::ProductInfo &productInfo, bool &disabledDependency);
+
+    struct ProductDependencyInfo
+    {
+        ProductDependencyInfo(const ResolvedProductPtr &product,
+                              const QVariantMap &parameters = QVariantMap())
+            : product(product), parameters(parameters)
+        {
+        }
+
+        ResolvedProductPtr product;
+        QVariantMap parameters;
+    };
+
+    struct ProductDependencyInfos
+    {
+        std::vector<ProductDependencyInfo> dependencies;
+        bool hasDisabledDependency = false;
+    };
+
+    ProductDependencyInfos getProductDependencies(const ResolvedProductConstPtr &product,
+            const ModuleLoaderResult::ProductInfo &productInfo);
     QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
                                  const PropertyDeclaration &decl) const;
     QString sourceCodeForEvaluation(const JSSourceValueConstPtr &value) const;

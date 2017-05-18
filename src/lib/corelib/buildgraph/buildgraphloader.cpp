@@ -51,6 +51,7 @@
 #include <language/language.h>
 #include <language/loader.h>
 #include <language/propertymapinternal.h>
+#include <language/qualifiedid.h>
 #include <language/resolvedfilecontext.h>
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
@@ -728,15 +729,35 @@ static SourceArtifactConstPtr findSourceArtifact(const ResolvedProductConstPtr &
     return artifact;
 }
 
-static QVariantMap propertyMapByKind(const ResolvedProductConstPtr &product, Property::Kind kind)
+template<typename T> static QVariantMap getParameterValue(
+        const QHash<T, QVariantMap> &parameters,
+        const QString &depName)
 {
-    switch (kind) {
+    for (auto it = parameters.cbegin(); it != parameters.cend(); ++it) {
+        if (it.key()->name == depName)
+            return it.value();
+    }
+    return QVariantMap();
+}
+
+static QVariantMap propertyMapByKind(const ResolvedProductConstPtr &product,
+                                     const Property &property)
+{
+    switch (property.kind) {
     case Property::PropertyInModule:
         return product->moduleProperties->value();
     case Property::PropertyInProduct:
         return product->productProperties;
     case Property::PropertyInProject:
         return product->project->projectProperties();
+    case Property::PropertyInParameters: {
+        const int sepIndex = property.moduleName.indexOf(QLatin1Char(':'));
+        const QString depName = property.moduleName.left(sepIndex);
+        QVariantMap v = getParameterValue(product->dependencyParameters, depName);
+        if (!v.isEmpty())
+            return v;
+        return getParameterValue(product->moduleParameters, depName);
+    }
     default:
         QBS_CHECK(false);
     }
@@ -756,7 +777,7 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
 {
     // This check must come first, as it can prevent build data rescuing.
     for (const Property &property : qAsConst(restoredTrafo->propertiesRequestedInCommands)) {
-        if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property.kind))) {
+        if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property))) {
             invalidateTransformer(restoredTrafo);
             return true;
         }
@@ -778,7 +799,7 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
     }
 
     for (const Property &property : qAsConst(restoredTrafo->propertiesRequestedInPrepareScript)) {
-        if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property.kind)))
+        if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property)))
             return true;
     }
 
@@ -810,6 +831,15 @@ bool BuildGraphLoader::checkForPropertyChange(const Property &restoredProperty,
         v = moduleProperty(newProperties, restoredProperty.moduleName,
                            restoredProperty.propertyName);
         break;
+    case Property::PropertyInParameters: {
+        const int sepIndex = restoredProperty.moduleName.indexOf(QLatin1Char(':'));
+        QualifiedId moduleName
+                = QualifiedId::fromString(restoredProperty.moduleName.mid(sepIndex + 1));
+        QVariantMap map = newProperties;
+        while (!moduleName.isEmpty())
+            map = map.value(moduleName.takeFirst()).toMap();
+        v = map.value(restoredProperty.propertyName);
+    }
     }
     if (restoredProperty.value != v) {
         m_logger.qbsDebug() << "Value for property '" << restoredProperty.moduleName << "."

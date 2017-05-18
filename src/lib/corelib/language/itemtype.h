@@ -54,6 +54,8 @@ enum class ItemType {
     FileTagger,
     Group,
     Module,
+    Parameter,
+    Parameters,
     Probe,
     Product,
     Project,

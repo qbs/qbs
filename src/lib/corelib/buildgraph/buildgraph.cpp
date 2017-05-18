@@ -93,19 +93,21 @@ public:
     {
     }
 
-    void init(QScriptValue &productScriptValue, const ResolvedProductConstPtr &product)
+    void init(QScriptValue &productScriptValue, const ResolvedProductConstPtr &product,
+              PrepareScriptObserver *observer)
     {
         QScriptValue depfunc = m_engine->newFunction(&js_productDependencies, product.data());
-        setProduct(depfunc, product.data());
+        setObserver(depfunc, observer);
         productScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
                                        QScriptValue::ReadOnly | QScriptValue::Undeletable
                                        | QScriptValue::PropertyGetter);
     }
 
 private:
-    static QScriptValue js_productDependencies(QScriptContext *, ScriptEngine *engine,
+    static QScriptValue js_productDependencies(QScriptContext *ctx, ScriptEngine *engine,
                                                const ResolvedProduct * const product)
     {
+        const QString parametersKey = QStringLiteral("parameters");
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
         QList<ResolvedProductPtr> productDeps = product->dependencies.toList();
@@ -113,15 +115,28 @@ private:
                   [](const ResolvedProductPtr &p1, const ResolvedProductPtr &p2) {
                           return p1->name < p2->name;
                   });
+        PrepareScriptObserver *observer = getObserver(ctx->callee());
         for (const ResolvedProductPtr &dependency : qAsConst(productDeps)) {
             QScriptValue obj = engine->newObject();
             setupProductScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency, 0);
+
+            const QVariantMap &params = product->dependencyParameters.value(dependency);
+            obj.setProperty(parametersKey, params.isEmpty()
+                            ? engine->newObject() : toScriptValue(engine, observer, params,
+                                                                  dependency->name));
+
             result.setProperty(idx++, obj);
         }
         for (const ResolvedModuleConstPtr &dependency : qAsConst(product->modules)) {
             QScriptValue obj = engine->newObject();
             setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj,
                                    product->moduleProperties->value(), dependency->name);
+
+            const QVariantMap &params = product->moduleParameters.value(dependency);
+            obj.setProperty(parametersKey, params.isEmpty()
+                            ? engine->newObject() : toScriptValue(engine, observer, params,
+                                                                  dependency->name));
+
             result.setProperty(idx++, obj);
         }
         return result;
@@ -163,14 +178,42 @@ private:
         moduleScriptValue.setProperty(QStringLiteral("artifacts"), engine->newObject());
     }
 
-    static void setProduct(QScriptValue scriptValue, const ResolvedProduct *product)
+    static void setObserver(QScriptValue scriptValue, PrepareScriptObserver *observer)
     {
-        attachPointerTo(scriptValue, product);
+        attachPointerTo(scriptValue, observer);
     }
 
-    static const ResolvedProduct *getProduct(const QScriptValue &scriptValue)
+    static PrepareScriptObserver *getObserver(const QScriptValue &scriptValue)
     {
-        return attachedPointer<const ResolvedProduct>(scriptValue);
+        return attachedPointer<PrepareScriptObserver>(scriptValue);
+    }
+
+    static QScriptValue toScriptValue(QScriptEngine *qScriptEngine, PrepareScriptObserver *observer,
+                                      const QVariantMap &v, const QString &depName)
+    {
+        return toScriptValue(static_cast<ScriptEngine *>(qScriptEngine), observer, v, depName);
+    }
+
+    static QScriptValue toScriptValue(ScriptEngine *engine, PrepareScriptObserver *observer,
+                                      const QVariantMap &v, const QString &depName,
+                                      const QualifiedId &moduleName = QualifiedId())
+    {
+        QScriptValue obj = engine->newObject();
+        bool objIdAddedToObserver = false;
+        for (auto it = v.begin(); it != v.end(); ++it) {
+            if (it.value().type() == QVariant::Map) {
+                obj.setProperty(it.key(), toScriptValue(engine, observer, it.value().toMap(),
+                        depName, QualifiedId(moduleName) << it.key()));
+            } else {
+                if (observer && !objIdAddedToObserver) {
+                    objIdAddedToObserver = true;
+                    observer->addParameterObjectId(obj.objectId(), depName, moduleName);
+                }
+                engine->setObservedProperty(obj, it.key(), engine->toScriptValue(it.value()),
+                                            observer);
+            }
+        }
+        return obj;
     }
 
     ScriptEngine *m_engine;
@@ -228,7 +271,7 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
                                    QScriptValue::ReadOnly | QScriptValue::Undeletable
                                    | QScriptValue::PropertyGetter);
 
-    DependenciesFunction(engine).init(productScriptValue, product);
+    DependenciesFunction(engine).init(productScriptValue, product, observer);
     if (observer)
         observer->setProductObjectId(productScriptValue.objectId());
     const QVariantMap &propMap = product->productProperties;
