@@ -65,6 +65,7 @@
 #include <QtCore/qprocess.h>
 
 #include <algorithm>
+#include <utility>
 #include <vector>
 
 Q_DECLARE_METATYPE(QList<bool>)
@@ -1182,7 +1183,7 @@ void TestLanguage::jsExtensions()
 
 void TestLanguage::jsImportUsedInMultipleScopes_data()
 {
-    QTest::addColumn<QString>("configurationName");
+    QTest::addColumn<QString>("buildVariant");
     QTest::addColumn<QString>("expectedProductName");
     QTest::newRow("debug") << QString("debug") << QString("MyProduct_debug");
     QTest::newRow("release") << QString("release") << QString("MyProduct");
@@ -1190,14 +1191,15 @@ void TestLanguage::jsImportUsedInMultipleScopes_data()
 
 void TestLanguage::jsImportUsedInMultipleScopes()
 {
-    QFETCH(QString, configurationName);
+    QFETCH(QString, buildVariant);
     QFETCH(QString, expectedProductName);
 
     bool exceptionCaught = false;
     try {
         SetupProjectParameters params = defaultParameters;
         params.setProjectFilePath(testProject("jsimportsinmultiplescopes.qbs"));
-        params.setConfigurationName(configurationName);
+        params.setOverriddenValues({std::make_pair(QLatin1String("qbs.buildVariant"),
+                                                   buildVariant)});
         params.expandBuildConfiguration();
         TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(project);

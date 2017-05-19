@@ -397,21 +397,21 @@ QString settingsValueToRepresentation(const QVariant &value)
     return toJSLiteral(value);
 }
 
-static QVariant variantFromString(const QString &str)
+static QVariant variantFromString(const QString &str, bool &ok)
 {
     // ### use Qt5's JSON reader at some point.
     QScriptEngine engine;
     QScriptValue sv = engine.evaluate(QLatin1String("(function(){return ")
                                       + str + QLatin1String(";})()"));
-    if (sv.isError())
-        return QVariant();
+    ok = !sv.isError();
     return sv.toVariant();
 }
 
 QVariant representationToSettingsValue(const QString &representation)
 {
-    const QVariant variant = variantFromString(representation);
-    if (variant.isValid())
+    bool ok;
+    const QVariant variant = variantFromString(representation, ok);
+    if (ok)
         return variant;
 
     // If it's not valid JavaScript, interpret the value as a string.
