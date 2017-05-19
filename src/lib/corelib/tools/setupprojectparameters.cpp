@@ -171,7 +171,7 @@ void SetupProjectParameters::setProjectFilePath(const QString &projectFilePath)
 
     const QString canonicalProjectFilePath = QFileInfo(d->projectFilePath).canonicalFilePath();
     if (!canonicalProjectFilePath.isEmpty())
-        d->projectFilePath = projectFilePath;
+        d->projectFilePath = canonicalProjectFilePath;
 }
 
 /*!
