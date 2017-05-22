@@ -820,6 +820,15 @@
         \li If \c{true}, then if the dependency is a static library, all of its objects
             will be pulled into target binary, even if their symbols do not appear to be used.
             This parameter is mainly useful when creating a dynamic library from static libraries.
+    \row
+        \li \c{symbolLinkMode}
+        \li \c{string}
+        \li 1.9
+        \li undefined
+        \li Attribute specifying how the library or framework will be linked.
+            May contain the values: "weak", "lazy", "reexport", and "upward"; refer to the Apple
+            ld64 man page for full details. \c{undefined} uses normal linking.
+            Currently only applies when linking for Apple platforms.
     \endtable
 
     \section1 Relevant File Tags

@@ -183,6 +183,7 @@ private slots:
     void soVersion_data();
     void subProfileChangeTracking();
     void successiveChanges();
+    void symbolLinkMode();
     void symlinkRemoval();
     void renameDependency();
     void separateDebugInfo();

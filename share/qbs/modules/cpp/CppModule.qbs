@@ -470,4 +470,7 @@ Module {
     Parameter {
         property bool linkWholeArchive
     }
+    Parameter {
+        property string symbolLinkMode
+    }
 }

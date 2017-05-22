@@ -86,11 +86,14 @@ function collectLibraryDependencies(product) {
     function addPublicFilePath(filePath, dep) {
         var existing = objectByFilePath[filePath];
         var wholeArchive = dep.parameters.cpp && dep.parameters.cpp.linkWholeArchive;
+        var symbolLinkMode = dep.parameters.cpp && dep.parameters.cpp.symbolLinkMode;
         if (existing) {
             existing.direct = true;
             existing.wholeArchive = wholeArchive;
+            existing.symbolLinkMode = symbolLinkMode;
         } else {
-            addObject({ direct: true, filePath: filePath, wholeArchive: wholeArchive },
+            addObject({ direct: true, filePath: filePath,
+                        wholeArchive: wholeArchive, symbolLinkMode: symbolLinkMode },
                       Array.prototype.unshift);
         }
     }
@@ -164,7 +167,8 @@ function collectLibraryDependencies(product) {
                 function (obj) {
                     if (obj.direct) {
                         result.libraries.push({ filePath: obj.filePath,
-                                                wholeArchive: obj.wholeArchive });
+                                                wholeArchive: obj.wholeArchive,
+                                                symbolLinkMode: obj.symbolLinkMode });
                     } else {
                         var dirPath = FileInfo.path(obj.filePath);
                         if (!seenRPathLinkDirs.hasOwnProperty(dirPath)) {
@@ -393,10 +397,24 @@ function linkerFlags(project, product, inputs, output) {
                                        escapeLinkerFlags(product, inputs, ["--no-whole-archive"]));
             wholeArchiveActive = false;
         }
-        if (FileInfo.isAbsolutePath(lib) || lib.startsWith('@'))
+
+        var symbolLinkMode = dep.symbolLinkMode;
+        if (isDarwin && symbolLinkMode) {
+            if (!["lazy", "reexport", "upward", "weak"].contains(symbolLinkMode))
+                throw new Error("unknown value '" + symbolLinkMode + "' for cpp.symbolLinkMode");
+
+            var flags;
+            if (FileInfo.isAbsolutePath(lib) || lib.startsWith('@'))
+                flags = ["-" + symbolLinkMode + "_library", lib];
+            else
+                flags = ["-" + symbolLinkMode + "-l" + lib];
+
+            Array.prototype.push.apply(args, escapeLinkerFlags(product, inputs, flags));
+        } else if (FileInfo.isAbsolutePath(lib) || lib.startsWith('@')) {
             args.push(lib);
-        else
+        } else {
             args.push('-l' + lib);
+        }
     }
     if (wholeArchiveActive) {
         Array.prototype.push.apply(args,

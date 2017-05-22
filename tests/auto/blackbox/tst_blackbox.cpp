@@ -3422,6 +3422,47 @@ void TestBlackbox::ld()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::symbolLinkMode()
+{
+    if (!HostOsInfo::isAnyUnixHost())
+        QSKIP("only applies on Unix");
+
+    QDir::setCurrent(testDataDir + "/symbolLinkMode");
+
+    QbsRunParameters params;
+
+    rmDirR(relativeBuildDir());
+    params.command = "run";
+    params.arguments = QStringList() << "-p" << "driver"
+                                     << "project.shouldInstallLibrary:true";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("somefunction existed and it returned 42"),
+             m_qbsStdout.constData());
+
+    rmDirR(relativeBuildDir());
+    params.command = "run";
+    params.arguments = QStringList() << "-p" << "driver"
+                                     << "project.shouldInstallLibrary:false";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("somefunction did not exist"), m_qbsStdout.constData());
+
+    rmDirR(relativeBuildDir());
+    params.command = "run";
+    params.arguments = QStringList() << "-p" << "driver"
+                                     << "project.lazy:false";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("Lib was loaded!\nmeow\n"), m_qbsStdout.constData());
+
+    if (HostOsInfo::isMacosHost()) {
+        rmDirR(relativeBuildDir());
+        params.command = "run";
+        params.arguments = QStringList() << "-p" << "driver"
+                                         << "project.lazy:true";
+        QCOMPARE(runQbs(params), 0);
+        QVERIFY2(m_qbsStdout.contains("meow\nLib was loaded!\n"), m_qbsStdout.constData());
+    }
+}
+
 void TestBlackbox::linkerMode()
 {
     if (!HostOsInfo::isAnyUnixHost())
