@@ -164,6 +164,7 @@ void TestApi::initTestCase()
 void TestApi::init()
 {
     m_logSink->warnings.clear();
+    m_logSink->setLogLevel(qbs::LoggerInfo);
 }
 
 void TestApi::addQObjectMacroToCppFile()
@@ -1422,7 +1423,7 @@ void TestApi::missingSourceFile()
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters("missing-source-file/missing-source-file.qbs");
     setupParams.setProductErrorMode(qbs::ErrorHandlingMode::Relaxed);
-
+    m_logSink->setLogLevel(qbs::LoggerMinLevel);
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -1858,6 +1859,7 @@ void TestApi::referencedFileErrors()
     params.setDryRun(true);
     params.setProductErrorMode(relaxedMode ? qbs::ErrorHandlingMode::Relaxed
                                            : qbs::ErrorHandlingMode::Strict);
+    m_logSink->setLogLevel(qbs::LoggerMinLevel);
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(params, m_logSink, 0));
     waitForFinished(job.data());
     QVERIFY2(job->error().hasError() != relaxedMode, qPrintable(job->error().toString()));

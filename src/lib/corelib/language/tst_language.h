@@ -73,6 +73,7 @@ private:
     void handleInitCleanupDataTags(const char *projectFileName, bool *handled);
 
 private slots:
+    void init();
     void initTestCase();
     void cleanupTestCase();
 

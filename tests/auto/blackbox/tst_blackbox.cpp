@@ -2818,43 +2818,51 @@ void TestBlackbox::errorInfo()
     QDir::setCurrent(testDataDir + "/error-info");
     QCOMPARE(runQbs(), 0);
 
-    QbsRunParameters params;
-    params.expectFailure = true;
+    QbsRunParameters resolveParams;
+    QbsRunParameters buildParams;
+    buildParams.expectFailure = true;
 
-    params.command = "resolve";
-    params.arguments = QStringList() << "project.fail1:true";
-    QCOMPARE(runQbs(params), 0);
-    QVERIFY(runQbs() != 0);
+    resolveParams.command = "resolve";
+    resolveParams.arguments = QStringList() << "project.fail1:true";
+    QCOMPARE(runQbs(resolveParams), 0);
+    buildParams.arguments = resolveParams.arguments;
+    QVERIFY(runQbs(buildParams) != 0);
     QVERIFY2(m_qbsStderr.contains("error-info.qbs:25"), m_qbsStderr);
 
-    params.arguments = QStringList() << "project.fail2:true";
-    QCOMPARE(runQbs(params), 0);
-    QVERIFY(runQbs() != 0);
+    resolveParams.arguments = QStringList() << "project.fail2:true";
+    QCOMPARE(runQbs(resolveParams), 0);
+    buildParams.arguments = resolveParams.arguments;
+    QVERIFY(runQbs(buildParams) != 0);
     QVERIFY2(m_qbsStderr.contains("error-info.qbs:37"), m_qbsStderr);
 
-    params.arguments = QStringList() << "project.fail3:true";
-    QCOMPARE(runQbs(params), 0);
-    QVERIFY(runQbs() != 0);
+    resolveParams.arguments = QStringList() << "project.fail3:true";
+    QCOMPARE(runQbs(resolveParams), 0);
+    buildParams.arguments = resolveParams.arguments;
+    QVERIFY(runQbs(buildParams) != 0);
     QVERIFY2(m_qbsStderr.contains("error-info.qbs:52"), m_qbsStderr);
 
-    params.arguments = QStringList() << "project.fail4:true";
-    QCOMPARE(runQbs(params), 0);
-    QVERIFY(runQbs() != 0);
+    resolveParams.arguments = QStringList() << "project.fail4:true";
+    QCOMPARE(runQbs(resolveParams), 0);
+    buildParams.arguments = resolveParams.arguments;
+    QVERIFY(runQbs(buildParams) != 0);
     QVERIFY2(m_qbsStderr.contains("error-info.qbs:67"), m_qbsStderr);
 
-    params.arguments = QStringList() << "project.fail5:true";
-    QCOMPARE(runQbs(params), 0);
-    QVERIFY(runQbs() != 0);
+    resolveParams.arguments = QStringList() << "project.fail5:true";
+    QCOMPARE(runQbs(resolveParams), 0);
+    buildParams.arguments = resolveParams.arguments;
+    QVERIFY(runQbs(buildParams) != 0);
     QVERIFY2(m_qbsStderr.contains("helper.js:4"), m_qbsStderr);
 
-    params.arguments = QStringList() << "project.fail6:true";
-    QCOMPARE(runQbs(params), 0);
-    QVERIFY(runQbs() != 0);
+    resolveParams.arguments = QStringList() << "project.fail6:true";
+    QCOMPARE(runQbs(resolveParams), 0);
+    buildParams.arguments = resolveParams.arguments;
+    QVERIFY(runQbs(buildParams) != 0);
     QVERIFY2(m_qbsStderr.contains("helper.js:8"), m_qbsStderr);
 
-    params.arguments = QStringList() << "project.fail7:true";
-    QCOMPARE(runQbs(params), 0);
-    QVERIFY(runQbs() != 0);
+    resolveParams.arguments = QStringList() << "project.fail7:true";
+    QCOMPARE(runQbs(resolveParams), 0);
+    buildParams.arguments = resolveParams.arguments;
+    QVERIFY(runQbs(buildParams) != 0);
     QVERIFY2(m_qbsStderr.contains("JavaScriptCommand.sourceCode"), m_qbsStderr);
     QVERIFY2(m_qbsStderr.contains("error-info.qbs:58"), m_qbsStderr);
 }

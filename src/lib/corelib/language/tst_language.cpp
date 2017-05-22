@@ -145,6 +145,11 @@ void TestLanguage::handleInitCleanupDataTags(const char *projectFileName, bool *
     }
 }
 
+void TestLanguage::init()
+{
+    m_logSink->setLogLevel(LoggerInfo);
+}
+
 #define HANDLE_INIT_CLEANUP_DATATAGS(fn) {\
     bool handled;\
     handleInitCleanupDataTags(fn, &handled);\
@@ -1938,6 +1943,7 @@ void TestLanguage::qbsPropertiesInProjectCondition()
 
 void TestLanguage::relaxedErrorMode()
 {
+    m_logSink->setLogLevel(LoggerMinLevel);
     QFETCH(bool, strictMode);
     try {
         SetupProjectParameters params = defaultParameters;
