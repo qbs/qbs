@@ -169,7 +169,7 @@ UnixGCC {
 
     Rule {
         condition: qbs.targetOS.contains("darwin")
-        inputs: ["qbs"]
+        multiplex: true
 
         Artifact {
             filePath: product.name + "-cpp-Info.plist"

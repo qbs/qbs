@@ -6,7 +6,7 @@ Product {
     Depends { name: "typescript"; required: false }
     type: ["json"]
     Rule {
-        inputs: ["qbs"]
+        multiplex: true
         Artifact {
             filePath: ["typescript.json"]
             fileTags: ["json"]

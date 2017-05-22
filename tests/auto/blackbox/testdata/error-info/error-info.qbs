@@ -15,7 +15,7 @@ Project {
         type: ["foo", "bar"]
 
         Rule {
-            inputs: ["qbs"]
+            multiplex: true
 
             Artifact {
                 fileTags: ["foo"]
@@ -42,7 +42,7 @@ Project {
         }
 
         Rule {
-            inputs: ["qbs"]
+            multiplex: true
 
             outputFileTags: ["bar"]
             outputArtifacts: {

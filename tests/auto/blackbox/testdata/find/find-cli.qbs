@@ -5,7 +5,7 @@ Product {
     Depends { name: "cli"; required: false }
     type: ["json"]
     Rule {
-        inputs: ["qbs"]
+        multiplex: true
         Artifact {
             filePath: ["cli.json"]
             fileTags: ["json"]

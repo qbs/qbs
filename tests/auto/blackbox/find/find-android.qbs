@@ -8,7 +8,7 @@ Product {
     Depends { name: "Android.ndk"; required: false }
     type: ["json"]
     Rule {
-        inputs: ["qbs"]
+        multiplex: true
         Artifact {
             filePath: ["android.json"]
             fileTags: ["json"]

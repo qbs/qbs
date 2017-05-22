@@ -5,7 +5,7 @@ Product {
     Depends { name: "nodejs"; required: false }
     type: ["json"]
     Rule {
-        inputs: ["qbs"]
+        multiplex: true
         Artifact {
             filePath: ["nodejs.json"]
             fileTags: ["json"]

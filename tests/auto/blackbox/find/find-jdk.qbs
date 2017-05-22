@@ -5,7 +5,7 @@ Product {
     Depends { name: "java"; required: false }
     type: ["json"]
     Rule {
-        inputs: ["qbs"]
+        multiplex: true
         Artifact {
             filePath: ["jdk.json"]
             fileTags: ["json"]
