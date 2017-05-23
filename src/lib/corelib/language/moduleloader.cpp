@@ -3021,9 +3021,9 @@ void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
         for (std::size_t i = 0; i < dependencies.size(); ++i) {
             if (i == 0) {
                 if (productIsMultiplexed) {
-                    dep.multiplexConfigurationId = productContext->item
-                            ->property(multiplexConfigurationIdKey)
-                            .staticCast<VariantValue>()->value().toString();
+                    dep.multiplexConfigurationId = std::static_pointer_cast<VariantValue>(
+                                productContext->item->property(
+                                    multiplexConfigurationIdKey))->value().toString();
                     break;
                 } else {
                     dep.multiplexConfigurationId = dependencies.at(i)->multiplexConfigurationId;
