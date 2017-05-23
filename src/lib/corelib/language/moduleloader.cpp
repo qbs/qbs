@@ -1821,7 +1821,8 @@ static QVariantMap safeToVariant(const QScriptValue &v)
         QScriptValue u = it.value();
         if (u.isError())
             throw ErrorInfo(u.toString());
-        result[it.name()] = u.isObject() ? safeToVariant(u) : it.value().toVariant();
+        result[it.name()] = (u.isObject() && !u.isArray() && !u.isRegExp())
+                ? safeToVariant(u) : it.value().toVariant();
     }
     return result;
 }

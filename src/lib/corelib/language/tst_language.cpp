@@ -1633,6 +1633,20 @@ void TestLanguage::outerInGroup()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::parameterTypes()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("parameter-types.qbs"));
+        loader->loadProject(defaultParameters);
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::pathProperties()
 {
     bool exceptionCaught = false;
