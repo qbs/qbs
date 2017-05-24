@@ -89,20 +89,12 @@ Module {
         description: "properties to add to the manifest file when building a JAR"
     }
 
-    // TODO: Remove in 1.9
     property path manifestFile
     PropertyOptions {
         name: "manifestFile"
         description: "Use files tagged \"java.manifest\" instead."
         removalVersion: "1.9"
     }
-    Group {
-        name: "Manifest"
-        prefix: product.sourceDirectory + "/"
-        files: java.manifestFile ? [java.manifestFile] : []
-        fileTags: ["java.manifest"]
-    }
-
     property stringList manifestClassPath
     PropertyOptions {
         name: "manifestClassPath"
