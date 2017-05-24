@@ -576,42 +576,20 @@ static QualifiedIdSet propertiesToEvaluate(const QList<QualifiedId> &initialProp
     return allProperties;
 }
 
-static void gatherAssignedProperties(ItemValue *iv, const QualifiedId &prefix,
-                                     QList<QualifiedId> &properties)
-{
-    const Item::PropertyMap &props = iv->item()->properties();
-    for (auto it = props.cbegin(); it != props.cend(); ++it) {
-        switch (it.value()->type()) {
-        case Value::JSSourceValueType:
-            properties << (QualifiedId(prefix) << it.key());
-            break;
-        case Value::ItemValueType:
-            gatherAssignedProperties(std::static_pointer_cast<ItemValue>(it.value()).get(),
-                           QualifiedId(prefix) << it.key(), properties);
-            break;
-        default:
-            break;
-        }
-    }
-}
-
 QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group,
                                                                const QVariantMap &currentValues)
 {
-    // Step 1: Gather the properties directly set in the group
-    QList<QualifiedId> propsSetInGroup;
-    for (auto it = group->properties().cbegin(); it != group->properties().cend(); ++it) {
-        if (it.value()->type() == Value::ItemValueType) {
-            gatherAssignedProperties(std::static_pointer_cast<ItemValue>(it.value()).get(),
-                                     QualifiedId(it.key()), propsSetInGroup);
-        }
-    }
-    if (propsSetInGroup.isEmpty())
+    // Step 1: Retrieve the properties directly set in the group
+    const ModulePropertiesPerGroup &mp = m_loadResult.productInfos.value(m_productContext->item)
+            .modulePropertiesSetInGroups;
+    const auto it = mp.find(group);
+    if (it == mp.end())
         return QVariantMap();
+    const QualifiedIdSet &propsSetInGroup = it->second;
 
     // Step 2: Gather all properties that depend on these properties.
     const QualifiedIdSet &propsToEval
-            = propertiesToEvaluate(propsSetInGroup, m_evaluator->propertyDependencies());
+            = propertiesToEvaluate(propsSetInGroup.toList(), m_evaluator->propertyDependencies());
 
     // Step 3: Evaluate all these properties and replace their values in the map
     QVariantMap modulesMap = currentValues.value(QLatin1String("modules")).toMap();

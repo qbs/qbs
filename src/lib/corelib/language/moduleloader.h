@@ -55,6 +55,7 @@
 #include <QtCore/qvariant.h>
 
 #include <map>
+#include <unordered_map>
 #include <vector>
 
 namespace qbs {
@@ -68,6 +69,8 @@ class Item;
 class ItemReader;
 class ProgressObserver;
 class QualifiedId;
+
+using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
 
 struct ModuleLoaderResult
 {
@@ -92,6 +95,7 @@ struct ModuleLoaderResult
 
         QList<ProbeConstPtr> probes;
         QList<Dependency> usedProducts;
+        ModulePropertiesPerGroup modulePropertiesSetInGroups;
         ErrorInfo delayedError;
     };
 
@@ -247,8 +251,10 @@ private:
     void setupReverseModuleDependencies(const Item::Module &module, ModuleDependencies &deps,
                                         QualifiedIdSet &seenModules);
     ModuleDependencies setupReverseModuleDependencies(const Item *product);
-    void handleGroup(Item *groupItem, const ModuleDependencies &reverseDepencencies);
-    void propagateModulesFromParent(Item *groupItem, const ModuleDependencies &reverseDepencencies);
+    void handleGroup(ProductContext *productContext, Item *groupItem,
+                     const ModuleDependencies &reverseDepencencies);
+    void propagateModulesFromParent(ProductContext *productContext, Item *groupItem,
+                                    const ModuleDependencies &reverseDepencencies);
     void adjustDefiningItemsInGroupModuleInstances(const Item::Module &module,
                                                    const Item::Modules &dependentModules);
 
@@ -311,7 +317,7 @@ private:
 
     void printProfilingInfo();
     void handleProductError(const ErrorInfo &error, ProductContext *productContext);
-    bool isSomeModulePropertySet(const Item *item);
+    QualifiedIdSet gatherModulePropertiesSetInGroup(const Item *group);
     Item *loadItemFromFile(const QString &filePath);
 
     ItemPool *m_pool;

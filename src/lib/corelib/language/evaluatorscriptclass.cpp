@@ -538,7 +538,8 @@ public:
     {
         if (value->type() == Value::JSSourceValueType
                 && (itemOfProperty->type() == ItemType::ModuleInstance
-                    || itemOfProperty->type() == ItemType::Module)) {
+                    || itemOfProperty->type() == ItemType::Module
+                    || itemOfProperty->type() == ItemType::Export)) {
             const VariantValueConstPtr varValue
                     = itemOfProperty->variantProperty(QLatin1String("name"));
             // QBS_CHECK(varValue);

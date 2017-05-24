@@ -1133,7 +1133,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
         if (child->type() == ItemType::Group) {
             if (reverseModuleDeps.isEmpty())
                 reverseModuleDeps = setupReverseModuleDependencies(item);
-            handleGroup(child, reverseModuleDeps);
+            handleGroup(productContext, child, reverseModuleDeps);
         }
     }
     productContext->project->result->productInfos.insert(item, productContext->info);
@@ -1335,14 +1335,15 @@ QList<Item *> ModuleLoader::loadReferencedFile(const QString &relativePath,
     return loadedItems;
 }
 
-void ModuleLoader::handleGroup(Item *groupItem, const ModuleDependencies &reverseDepencencies)
+void ModuleLoader::handleGroup(ProductContext *productContext, Item *groupItem,
+                               const ModuleDependencies &reverseDepencencies)
 {
     checkCancelation();
-    propagateModulesFromParent(groupItem, reverseDepencencies);
+    propagateModulesFromParent(productContext, groupItem, reverseDepencencies);
     checkItemCondition(groupItem);
     for (Item * const child : groupItem->children()) {
         if (child->type() == ItemType::Group)
-            handleGroup(child, reverseDepencencies);
+            handleGroup(productContext, child, reverseDepencencies);
     }
 }
 
@@ -1575,31 +1576,8 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
             ? productContext.item->location() : exportItems.back()->location());
     Item::addChild(productContext.item, merged);
     merged->setupForBuiltinType(m_logger);
+    merged->setProperty(QLatin1String("name"), VariantValue::create(productContext.name));
     pmi.exportItem = merged;
-}
-
-bool ModuleLoader::isSomeModulePropertySet(const Item *item)
-{
-    for (auto it = item->properties().cbegin(); it != item->properties().cend(); ++it) {
-        switch (it.value()->type()) {
-        case Value::JSSourceValueType:
-            if (item->type() == ItemType::ModuleInstance) {
-                if (m_logger.traceEnabled()) {
-                    m_logger.qbsTrace() << "[LDR] scope adaptation for group module items "
-                                           "necessary because of property " << it.key();
-                }
-                return true;
-            }
-            break;
-        case Value::ItemValueType:
-            if (isSomeModulePropertySet(std::static_pointer_cast<ItemValue>(it.value())->item()))
-                return true;
-            break;
-        default:
-            break;
-        }
-    }
-    return false;
 }
 
 Item *ModuleLoader::loadItemFromFile(const QString &filePath)
@@ -1609,7 +1587,7 @@ Item *ModuleLoader::loadItemFromFile(const QString &filePath)
     return item;
 }
 
-void ModuleLoader::propagateModulesFromParent(Item *groupItem,
+void ModuleLoader::propagateModulesFromParent(ProductContext *productContext, Item *groupItem,
                                               const ModuleDependencies &reverseDepencencies)
 {
     QBS_CHECK(groupItem->type() == ItemType::Group);
@@ -1654,8 +1632,11 @@ void ModuleLoader::propagateModulesFromParent(Item *groupItem,
         module.item->setModules(adaptedModules);
     }
 
-    if (!isSomeModulePropertySet(groupItem))
+    const QualifiedIdSet &propsSetInGroup = gatherModulePropertiesSetInGroup(groupItem);
+    if (propsSetInGroup.isEmpty())
         return;
+    productContext->info.modulePropertiesSetInGroups
+            .insert(std::make_pair(groupItem, propsSetInGroup));
 
     // Step 3: Adapt defining items in values. This is potentially necessary if module properties
     //         get assigned on the group level.
@@ -3100,6 +3081,40 @@ void ModuleLoader::handleProductError(const ErrorInfo &error,
     productContext->project->result->productInfos.insert(productContext->item,
                                                          productContext->info);
     m_disabledItems << productContext->item;
+}
+
+static void gatherAssignedProperties(ItemValue *iv, const QualifiedId &prefix,
+                                     QualifiedIdSet &properties)
+{
+    const Item::PropertyMap &props = iv->item()->properties();
+    for (auto it = props.cbegin(); it != props.cend(); ++it) {
+        switch (it.value()->type()) {
+        case Value::JSSourceValueType:
+            properties << (QualifiedId(prefix) << it.key());
+            break;
+        case Value::ItemValueType:
+            if (iv->item()->type() == ItemType::ModulePrefix) {
+                gatherAssignedProperties(std::static_pointer_cast<ItemValue>(it.value()).get(),
+                                         QualifiedId(prefix) << it.key(), properties);
+            }
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+QualifiedIdSet ModuleLoader::gatherModulePropertiesSetInGroup(const Item *group)
+{
+    QualifiedIdSet propsSetInGroup;
+    const Item::PropertyMap &props = group->properties();
+    for (auto it = props.cbegin(); it != props.cend(); ++it) {
+        if (it.value()->type() == Value::ItemValueType) {
+            gatherAssignedProperties(std::static_pointer_cast<ItemValue>(it.value()).get(),
+                                     QualifiedId(it.key()), propsSetInGroup);
+        }
+    }
+    return propsSetInGroup;
 }
 
 void ModuleLoader::copyGroupsFromModuleToProduct(const ProductContext &productContext,
