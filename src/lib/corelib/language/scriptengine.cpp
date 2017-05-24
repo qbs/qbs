@@ -352,12 +352,11 @@ QScriptValue ScriptEngine::js_loadExtension(QScriptContext *context, QScriptEngi
                                      "an extension name."));
     }
 
-    // TODO: Enable in 1.9
-    // ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
-    // ErrorInfo deprWarning(Tr::tr("The loadExtension() function is deprecated and will be "
-    //                              "removed in a future version of Qbs. Use require() "
-    //                              "instead."), context->backtrace());
-    // engine->logger().printWarning(deprWarning);
+    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    ErrorInfo deprWarning(Tr::tr("The loadExtension() function is deprecated and will be "
+                                 "removed in a future version of Qbs. Use require() "
+                                 "instead."), context->backtrace());
+    engine->logger().printWarning(deprWarning);
 
     return js_require(context, qtengine);
 }
@@ -369,12 +368,11 @@ QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *q
                     ScriptEngine::tr("The loadFile function requires a file path."));
     }
 
-    // TODO: Enable in 1.9
-    // ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
-    // ErrorInfo deprWarning(Tr::tr("The loadFile() function is deprecated and will be "
-    //                              "removed in a future version of Qbs. Use require() "
-    //                              "instead."), context->backtrace());
-    // engine->logger().printWarning(deprWarning);
+    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    ErrorInfo deprWarning(Tr::tr("The loadFile() function is deprecated and will be "
+                                 "removed in a future version of Qbs. Use require() "
+                                 "instead."), context->backtrace());
+    engine->logger().printWarning(deprWarning);
 
     return js_require(context, qtengine);
 }
