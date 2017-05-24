@@ -363,7 +363,7 @@ FileInfo::FileInfo(const QString &fileName)
 
 bool FileInfo::exists() const
 {
-    return m_stat.st_mtime != 0;
+    return m_stat.st_mode != 0;
 }
 
 FileTime FileInfo::lastModified() const
