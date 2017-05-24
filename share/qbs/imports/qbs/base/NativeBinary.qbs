@@ -41,8 +41,15 @@ Product {
         ? architectures.map(function(arch) { return project.profile + '-' + arch; })
         : [project.profile]
 
-    aggregate: ((qbs.architectures && qbs.architectures.length > 1)
-                || (qbs.buildVariants && qbs.buildVariants.length > 1)) && isForDarwin
+    aggregate: {
+        if (!isForDarwin)
+            return false;
+        var archs = qbs.architectures;
+        if (!archs || archs.length < 2)
+            return false;
+        var variants = qbs.buildVariants;
+        return variants && variants.length > 1;
+    }
 
     multiplexByQbsProperties: {
         if (isForDarwin)
