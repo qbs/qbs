@@ -678,7 +678,7 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("mismatching-multiplex-dependency")
             << "mismatching-multiplex-dependency.qbs:9:5 Dependency from product 'b' to "
                "product 'a' not fulfilled.\nNo product 'a' found with a matching multiplex "
-               "configuration:\n\tqbs.architecture: mips\n\tqbs.profile: qbs_autotests";
+               "configuration:\n\tqbs.architecture: mips";
 }
 
 void TestLanguage::erroneousFiles()

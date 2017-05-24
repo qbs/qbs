@@ -335,9 +335,12 @@ void BuiltinDeclarations::addProductItem()
     decl.setInitialValueSource(QLatin1String("true"));
     item << decl;
     decl = PropertyDeclaration(QLatin1String("profiles"), PropertyDeclaration::StringList);
-    decl.setInitialValueSource(QLatin1String("[project.profile]"));
+    decl.setDeprecationInfo(DeprecationInfo(Version::fromString(QLatin1String("1.9.0")),
+                                            Tr::tr("Use qbs.profiles instead.")));
     item << decl;
-    item << PropertyDeclaration(QLatin1String("profile"), PropertyDeclaration::String); // Internal
+    decl = PropertyDeclaration(QLatin1String("profile"), PropertyDeclaration::String); // Internal
+    decl.setInitialValueSource(QLatin1String("project.profile"));
+    item << decl;
     decl = PropertyDeclaration(QLatin1String("targetName"), PropertyDeclaration::String);
     decl.setInitialValueSource(QLatin1String("new String(name)"
                                              ".replace(/[/\\\\?%*:|\"<>]/g, '_').valueOf()"));

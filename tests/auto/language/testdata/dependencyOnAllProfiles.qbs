@@ -6,14 +6,13 @@ Project {
 
     Product {
         name: "dep"
-        profiles: [project.profile1, project.profile2]
+        qbs.profiles: [project.profile1, project.profile2]
     }
 
     Product {
         name: "main"
         Depends {
             name: "dep"
-            profiles: []
         }
     }
 }

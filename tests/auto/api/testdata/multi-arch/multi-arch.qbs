@@ -6,9 +6,10 @@ Project {
     property string hostProfile
     property string targetProfile
     Product {
+        property stringList myProfiles
         name: "p1"
         type: "output"
-        profiles: [project.targetProfile, project.hostProfile]
+        qbs.profiles: myProfiles ? myProfiles : [project.targetProfile, project.hostProfile]
         Group {
             files: "host+target.input"
             fileTags: "input"
@@ -16,13 +17,13 @@ Project {
         Group {
             fileTagsFilter: "output"
             qbs.install: true
-            qbs.installDir: profile
+            qbs.installDir: qbs.profile
         }
     }
     Product {
         name: "p2"
         type: "output"
-        profiles: project.hostProfile
+        qbs.profiles: [project.hostProfile]
         Group {
             files: "host-tool.input"
             fileTags: "input"
@@ -30,7 +31,7 @@ Project {
         Group {
             fileTagsFilter: "output"
             qbs.install: true
-            qbs.installDir: profile
+            qbs.installDir: qbs.profile
         }
     }
 

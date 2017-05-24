@@ -37,7 +37,7 @@ Product {
 
     Depends { name: "bundle" }
 
-    profiles: architectures
+    qbs.profiles: architectures
         ? architectures.map(function(arch) { return project.profile + '-' + arch; })
         : [project.profile]
 

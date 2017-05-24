@@ -1560,21 +1560,19 @@ void TestApi::multiArch()
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
     QVERIFY(setupJob->error().hasError());
-    QVERIFY2(setupJob->error().toString().contains(hostProfile.name())
-             && setupJob->error().toString().contains("not allowed"),
+    QVERIFY2(setupJob->error().toString().contains("Duplicate product name 'p1'"),
              qPrintable(setupJob->error().toString()));
 
     // Error check: Try to build for the same profile twice, this time attaching
     // the properties via the product name.
-    overriddenValues.clear();
-    overriddenValues.insert("products.p1.profiles",
+    overriddenValues.remove(QLatin1String("project.targetProfile"));
+    overriddenValues.insert("products.p1.myProfiles",
                             targetProfile.name() + ',' + targetProfile.name());
     setupParams.setOverriddenValues(overriddenValues);
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
     QVERIFY(setupJob->error().hasError());
-    QVERIFY2(setupJob->error().toString().contains(targetProfile.name())
-             && setupJob->error().toString().contains("not allowed"),
+    QVERIFY2(setupJob->error().toString().contains("Duplicate product name 'p1'"),
              qPrintable(setupJob->error().toString()));
 }
 

@@ -702,14 +702,9 @@ ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem
     const QString mbqpKey = QLatin1String("multiplexByQbsProperties");
     const QString mptypeKey = QLatin1String("multiplexedType");
     const QString aggregateKey = QLatin1String("aggregate");
-    const QString profilesKey = QLatin1String("profiles");
 
     const QScriptValue multiplexMap = m_evaluator->value(qbsModuleItem, mpmKey);
     QStringList multiplexByQbsProperties = m_evaluator->stringListValue(productItem, mbqpKey);
-
-    // Backwards compatibility. The profiles property is always set.
-    if (!multiplexByQbsProperties.contains(profilesKey))
-        multiplexByQbsProperties << profilesKey;
 
     MultiplexInfo multiplexInfo;
     multiplexInfo.aggregate = m_evaluator->boolValue(productItem, aggregateKey);
@@ -746,7 +741,7 @@ ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem
 QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, Item *productItem)
 {
     // Temporarily attach the qbs module here, in case we need to access one of its properties
-    // to evaluate the profiles property.
+    // to evaluate properties needed for multiplexing.
     const QString qbsKey = QLatin1String("qbs");
     ValuePtr qbsValue = productItem->property(qbsKey); // Retrieve now to restore later.
     if (qbsValue)
@@ -754,8 +749,8 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     const Item::Module qbsModule = loadBaseModule(dummyContext, productItem);
     productItem->addModule(qbsModule);
 
-    // Overriding the product item properties must be done here already, because otherwise
-    // the "profiles" property would not be overridable.
+    // Overriding the product item properties must be done here already, because multiplexing
+    // properties might depend on product properties.
     const QString nameKey = QLatin1String("name");
     QString productName = m_evaluator->stringValue(productItem, nameKey);
     if (productName.isEmpty()) {
@@ -765,22 +760,6 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     overrideItemProperties(productItem, QLatin1String("products.") + productName,
                            m_parameters.overriddenValuesTree());
 
-    const QString profilesKey = QLatin1String("profiles");
-    const ValuePtr profilesValue = productItem->property(profilesKey);
-    QBS_CHECK(profilesValue); // Default value set in BuiltinDeclarations.
-    const QStringList profileNames = m_evaluator->stringListValue(productItem, profilesKey);
-    if (profileNames.isEmpty()) {
-        throw ErrorInfo(Tr::tr("The 'profiles' property cannot be an empty list."),
-                        profilesValue->location());
-    }
-    for (const QString &profileName : profileNames) {
-        if (profileNames.count(profileName) > 1) {
-            throw ErrorInfo(Tr::tr("The profile '%1' appears in the 'profiles' list twice, "
-                    "which is not allowed.").arg(profileName), profilesValue->location());
-        }
-    }
-
-    qbsModule.item->setProperty(profilesKey, profilesValue);    // Backward compatibility
     const MultiplexInfo &multiplexInfo = extractMultiplexInfo(productItem, qbsModule.item);
     //dump(multiplexInfo);
 
@@ -791,15 +770,6 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         productItem->removeProperty(qbsKey);
     productItem->removeModules();
 
-    Settings settings(m_parameters.settingsDirectory());
-    for (int i = 0; i < profileNames.count(); ++i) {
-        Profile profile(profileNames.at(i), &settings);
-        if (profile.name() != Profile::fallbackName() && !profile.exists()) {
-            throw ErrorInfo(Tr::tr("The profile '%1' does not exist.").arg(profile.name()),
-                            productItem->location()); // TODO: profilesValue->location() is invalid, why?
-        }
-    }
-
     if (multiplexInfo.table.size() > 1) {
         const QString multiplexedKey = QStringLiteral("multiplexed");
         const VariantValuePtr trueValue = VariantValue::create(true);
@@ -809,9 +779,6 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     const QString profileKey = QLatin1String("profile");
     const QString multiplexConfigurationIdKey = QStringLiteral("multiplexConfigurationId");
     VariantValuePtr productNameValue = VariantValue::create(productName);
-
-    // Backward compatibility
-    productItem->setProperty(profileKey, VariantValue::create(profileNames.first()));
 
     Item *aggregator = multiplexInfo.aggregate ? productItem->clone() : nullptr;
     QList<Item *> additionalProductItems;
@@ -857,9 +824,6 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
                                      VariantValue::create(QStringLiteral("*")));
             Item::addChild(aggregator, dependsItem);
         }
-
-        // Backward compatibility
-        aggregator->setProperty(profileKey, VariantValue::create(profileNames.first()));
     }
 
     return additionalProductItems;

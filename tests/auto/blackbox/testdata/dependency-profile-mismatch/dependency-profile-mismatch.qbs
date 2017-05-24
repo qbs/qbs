@@ -5,7 +5,7 @@ Project {
     property string depProfile
     Product {
         name: "dep"
-        profiles: [project.depProfile]
+        qbs.profiles: [project.depProfile]
     }
     Product {
         name: "main"
