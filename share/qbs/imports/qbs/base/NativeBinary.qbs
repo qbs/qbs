@@ -45,8 +45,8 @@ Product {
         if (!isForDarwin)
             return false;
         var archs = qbs.architectures;
-        if (!archs || archs.length < 2)
-            return false;
+        if (archs && archs.length > 1)
+            return true;
         var variants = qbs.buildVariants;
         return variants && variants.length > 1;
     }
