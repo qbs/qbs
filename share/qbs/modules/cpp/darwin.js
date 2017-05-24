@@ -28,11 +28,11 @@
 **
 ****************************************************************************/
 
-var File = loadExtension("qbs.File");
-var FileInfo = loadExtension("qbs.FileInfo");
+var File = require("qbs.File");
+var FileInfo = require("qbs.FileInfo");
 var Gcc = require("./gcc.js");
-var ModUtils = loadExtension("qbs.ModUtils");
-var PathTools = loadExtension("qbs.PathTools");
+var ModUtils = require("qbs.ModUtils");
+var PathTools = require("qbs.PathTools");
 
 function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
     var buildVariants = [];
