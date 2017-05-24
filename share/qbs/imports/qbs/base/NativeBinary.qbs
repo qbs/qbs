@@ -54,8 +54,6 @@ Product {
     multiplexByQbsProperties: {
         if (isForDarwin)
             return ["profiles", "architectures", "buildVariants"];
-        if (isForAndroid)
-            return ["profiles"];
-        return base;
+        return ["profiles"];
     }
 }
