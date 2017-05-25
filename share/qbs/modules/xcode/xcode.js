@@ -28,10 +28,70 @@
 **
 ****************************************************************************/
 
+var DarwinTools = require("qbs.DarwinTools");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var Process = require("qbs.Process");
 var PropertyList = require("qbs.PropertyList");
+var Utilities = require("qbs.Utilities");
+
+var XcodeArchSpecsReader = (function () {
+    function XcodeArchSpecsReader(specsPath) {
+        var plist = new PropertyList();
+        try {
+            plist.readFromFile(specsPath);
+            this.specsObject = plist.toObject();
+        } finally {
+            plist.clear();
+        }
+    }
+    XcodeArchSpecsReader.prototype.getArchitectureSettings = function () {
+        if (this.specsObject) {
+            var names = [];
+            for (var i = 0; i < this.specsObject.length; ++i) {
+                var dict = this.specsObject[i];
+                var name = dict["ArchitectureSetting"];
+                if (name)
+                    names.push(name);
+            }
+            return names;
+        }
+    };
+    XcodeArchSpecsReader.prototype.getArchitectureSettingValue = function (settingName) {
+        // settingName can be: ARCHS_STANDARD, ARCHS_STANDARD_32_BIT, ARCHS_STANDARD_64_BIT,
+        // ARCHS_STANDARD_32_64_BIT, ARCHS_STANDARD_INCLUDING_64_BIT, or ARCHS_UNIVERSAL_IPHONE_OS.
+        // NATIVE_ARCH_ACTUAL doesn't have a RealArchitectures property since it's determined by
+        // Xcode programmatically.
+        if (this.specsObject) {
+            for (var i = 0; i < this.specsObject.length; ++i) {
+                var dict = this.specsObject[i];
+                if (dict["ArchitectureSetting"] === settingName) {
+                    var realArchs = dict["RealArchitectures"];
+                    if (realArchs) {
+                        var effectiveRealArchs = [];
+                        for (var j = 0; j < realArchs.length; ++j) {
+                            var re = /^\$\(([A-Za-z0-9_]+)\)$/;
+                            var match = realArchs[j].match(re);
+                            if (match) {
+                                var val = this.getArchitectureSettingValue(match[1]);
+                                // Don't silently omit values if missing. For example, if
+                                // ARCHS_FOO=[x86_64, $(ARCHS_BAR)], return 'undefined' instead of
+                                // simply [x86_64]. Not known to have any real world occurrences.
+                                if (!val)
+                                    return undefined;
+                                Array.prototype.push.apply(effectiveRealArchs, val);
+                            } else {
+                                effectiveRealArchs.push(realArchs[j]);
+                            }
+                        }
+                        return effectiveRealArchs;
+                    }
+                }
+            }
+        }
+    };
+    return XcodeArchSpecsReader;
+}());
 
 function sdkInfoList(sdksPath) {
     var sdkInfo = [];
@@ -128,4 +188,38 @@ function provisioningProfilePlistContents(filePath) {
     } finally {
         plist.clear();
     }
+}
+
+function archsSpecsPath(version, targetOS, platformType, platformPath, devicePlatformPath) {
+    var _specsPluginBaseName;
+    if (Utilities.versionCompare(version, "7") >= 0) {
+        if (targetOS.contains("ios"))
+            _specsPluginBaseName = "iOSPlatform";
+        if (targetOS.contains("tvos"))
+            _specsPluginBaseName = "AppleTV";
+        if (targetOS.contains("watchos"))
+            _specsPluginBaseName = "Watch";
+    }
+
+    var _archSpecsDir = _specsPluginBaseName
+            ? FileInfo.joinPaths(devicePlatformPath, "Developer", "Library", "Xcode",
+                                 "PrivatePlugIns",
+                                 "IDE" + _specsPluginBaseName + "SupportCore.ideplugin", "Contents",
+                                 "Resources")
+            : FileInfo.joinPaths(platformPath, "Developer", "Library", "Xcode", "Specifications");
+
+    var _archSpecsFileBaseName = targetOS.contains("ios")
+            ? (targetOS.contains("ios-simulator") ? "iPhone Simulator " : "iPhoneOS")
+            : DarwinTools.applePlatformDirectoryName(targetOS, platformType) + " ";
+
+    if (_specsPluginBaseName) {
+        switch (platformType) {
+        case "device":
+            return FileInfo.joinPaths(_archSpecsDir, "Device.xcspec");
+        case "simulator":
+            return FileInfo.joinPaths(_archSpecsDir, "Simulator.xcspec");
+        }
+    }
+
+    return FileInfo.joinPaths(_archSpecsDir, _archSpecsFileBaseName + "Architectures.xcspec");
 }

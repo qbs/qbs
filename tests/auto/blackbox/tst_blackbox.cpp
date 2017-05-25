@@ -997,7 +997,8 @@ void TestBlackbox::deploymentTarget_data()
                          << "-triple x86_64-apple-macosx10.4"
                          << "-macosx_version_min 10.4";
 
-    if (findXcodeVersion() >= qbs::Internal::Version(6))
+    const auto xcodeVersion = findXcodeVersion();
+    if (xcodeVersion >= qbs::Internal::Version(6))
         QTest::newRow("macos x86_64h") << "macosx" << macos << "x86_64h"
                              << "-triple x86_64h-apple-macosx10.12"
                              << "-macosx_version_min 10.12";
@@ -1018,19 +1019,23 @@ void TestBlackbox::deploymentTarget_data()
                              << "-triple x86_64-apple-ios7.0"
                              << "-ios_simulator_version_min 7.0";
 
-    QTest::newRow("tvos arm64") << "appletvos" << tvos << "arm64"
-                         << "-triple arm64-apple-tvos9.0"
-                         << "-tvos_version_min 9.0";
-    QTest::newRow("tvos-simulator x86_64") << "appletvsimulator" << tvos_sim << "x86_64"
-                             << "-triple x86_64-apple-tvos9.0"
-                             << "-tvos_simulator_version_min 9.0";
+    if (xcodeVersion >= qbs::Internal::Version(7)) {
+        if (xcodeVersion >= qbs::Internal::Version(7, 1)) {
+            QTest::newRow("tvos arm64") << "appletvos" << tvos << "arm64"
+                                 << "-triple arm64-apple-tvos9.0"
+                                 << "-tvos_version_min 9.0";
+            QTest::newRow("tvos-simulator x86_64") << "appletvsimulator" << tvos_sim << "x86_64"
+                                     << "-triple x86_64-apple-tvos9.0"
+                                     << "-tvos_simulator_version_min 9.0";
+        }
 
-    QTest::newRow("watchos armv7k") << "watchos" << watchos << "armv7k"
-                         << "-triple thumbv7k-apple-watchos2.0"
-                         << "-watchos_version_min 2.0";
-    QTest::newRow("watchos-simulator x86") << "watchsimulator" << watchos_sim << "x86"
-                             << "-triple i386-apple-watchos2.0"
-                             << "-watchos_simulator_version_min 2.0";
+        QTest::newRow("watchos armv7k") << "watchos" << watchos << "armv7k"
+                             << "-triple thumbv7k-apple-watchos2.0"
+                             << "-watchos_version_min 2.0";
+        QTest::newRow("watchos-simulator x86") << "watchsimulator" << watchos_sim << "x86"
+                                 << "-triple i386-apple-watchos2.0"
+                                 << "-watchos_simulator_version_min 2.0";
+    }
 }
 
 void TestBlackbox::deprecatedProperty()

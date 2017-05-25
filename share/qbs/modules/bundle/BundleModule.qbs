@@ -84,7 +84,10 @@ Module {
                                                           specsSeparator,
                                                           additionalSettings,
                                                           !qbs.targetOS.contains("macos"));
-            var settings = reader.expandedSettings(_productTypeIdentifier);
+            var settings = reader.expandedSettings(_productTypeIdentifier,
+                                                   xcode.present
+                                                   ? xcode._architectureSettings
+                                                   : {});
             var chain = reader.productTypeIdentifierChain(_productTypeIdentifier);
             if (settings && chain) {
                 xcodeSettings = settings;

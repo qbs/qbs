@@ -137,6 +137,16 @@ function packageType(productTypeIdentifier) {
     }
 }
 
+function _assign(target, source) {
+    if (source) {
+        for (var k in source) {
+            if (source.hasOwnProperty(k))
+                target[k] = source[k];
+        }
+        return target;
+    }
+}
+
 var XcodeBuildSpecsReader = (function () {
     function XcodeBuildSpecsReader(specsPath, separator, additionalSettings, useShallowBundles) {
         this._additionalSettings = additionalSettings;
@@ -246,16 +256,18 @@ var XcodeBuildSpecsReader = (function () {
             return obj[settingName];
         }
     };
-    XcodeBuildSpecsReader.prototype.expandedSettings = function (typeIdentifier) {
+    XcodeBuildSpecsReader.prototype.expandedSettings = function (typeIdentifier, baseSettings) {
         var obj = this.settings(typeIdentifier, true);
         if (obj) {
             for (var k in obj)
-                obj[k] = this.expandedSetting(typeIdentifier, k);
+                obj[k] = this.expandedSetting(typeIdentifier, baseSettings, k);
             return obj;
         }
     };
-    XcodeBuildSpecsReader.prototype.expandedSetting = function (typeIdentifier, settingName) {
-        var obj = this.settings(typeIdentifier, true);
+    XcodeBuildSpecsReader.prototype.expandedSetting = function (typeIdentifier, baseSettings,
+                                                                settingName) {
+        var obj = baseSettings || {};
+        obj = _assign(obj, this.settings(typeIdentifier, true));
         if (obj) {
             for (var x in this._additionalSettings) {
                 var additionalSetting = this._additionalSettings[x];

@@ -15,6 +15,9 @@ Module {
     Probes.XcodeProbe {
         id: xcodeProbe
         developerPath: xcodeModule.developerPath
+        platformType: xcodeModule.platformType
+        platformPath: xcodeModule.platformPath
+        devicePlatformPath: xcodeModule.devicePlatformPath
         xcodebuildPath: xcodeModule.xcodebuildPath
         sdksPath: xcodeModule.sdksPath
     }
@@ -102,6 +105,16 @@ Module {
                                                             DarwinTools.applePlatformDirectoryName(
                                                                 qbs.targetOS, platformType)
                                                             + ".platform")
+    readonly property path devicePlatformPath: FileInfo.joinPaths(
+                                                   platformsPath,
+                                                   DarwinTools.applePlatformDirectoryName(
+                                                       qbs.targetOS, "device")
+                                                   + ".platform")
+    readonly property path simulatorPlatformPath: FileInfo.joinPaths(
+                                                      platformsPath,
+                                                      DarwinTools.applePlatformDirectoryName(
+                                                          qbs.targetOS, "simulator")
+                                                      + ".platform")
     readonly property path sdkPath: FileInfo.joinPaths(sdksPath,
                                                        DarwinTools.applePlatformDirectoryName(
                                                            qbs.targetOS, platformType, sdkVersion)
@@ -133,6 +146,10 @@ Module {
     property path provisioningProfilesPath: {
         return FileInfo.joinPaths(Environment.getEnv("HOME"), "Library/MobileDevice/Provisioning Profiles");
     }
+
+    readonly property stringList standardArchitectures: _architectureSettings["ARCHS_STANDARD"]
+
+    readonly property var _architectureSettings: xcodeProbe.architectureSettings
 
     readonly property var _availableSdks: xcodeProbe.availableSdks
 

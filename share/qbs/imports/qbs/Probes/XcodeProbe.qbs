@@ -40,9 +40,14 @@ Probe {
     property string sdksPath
     property string developerPath
     property string xcodebuildPath
+    property stringList targetOS: qbs.targetOS
+    property string platformType
+    property string platformPath
+    property string devicePlatformPath
     property string _xcodeInfoPlist: FileInfo.joinPaths(developerPath, "..", "Info.plist")
 
     // Outputs
+    property var architectureSettings
     property var availableSdks
     property string xcodeVersion
 
@@ -81,6 +86,16 @@ Probe {
                 process.close();
             }
         }
+
+        architectureSettings = {};
+        var archSpecsPath = Xcode.archsSpecsPath(xcodeVersion, targetOS, platformType,
+                                                 platformPath, devicePlatformPath);
+        var archSpecsReader = new Xcode.XcodeArchSpecsReader(archSpecsPath);
+        archSpecsReader.getArchitectureSettings().map(function (setting) {
+            var val = archSpecsReader.getArchitectureSettingValue(setting);
+            if (val)
+                architectureSettings[setting] = val;
+        });
 
         availableSdks = Xcode.sdkInfoList(sdksPath);
         found = !!xcodeVersion;
