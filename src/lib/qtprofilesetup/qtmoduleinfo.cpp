@@ -371,10 +371,10 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
             << QtModuleInfo(QLatin1String("QtScript"), QLatin1String("script"))
             << QtModuleInfo(QLatin1String("QtScript"), QLatin1String("script-private"),
                             QStringList() << QLatin1String("script"))
-            << QtModuleInfo(QLatin1String("QtScriptTools"), QLatin1String("scripttols"),
+            << QtModuleInfo(QLatin1String("QtScriptTools"), QLatin1String("scripttools"),
                             QStringList() << QLatin1String("script") << QLatin1String("gui"))
-            << QtModuleInfo(QLatin1String("QtScriptTools"), QLatin1String("scripttols-private"),
-                            QStringList() << QLatin1String("scripttols"))
+            << QtModuleInfo(QLatin1String("QtScriptTools"), QLatin1String("scripttools-private"),
+                            QStringList() << QLatin1String("scripttools"))
             << QtModuleInfo(QLatin1String("QtSql"), QLatin1String("sql"))
             << QtModuleInfo(QLatin1String("QtSql"), QLatin1String("sql-private"),
                             QStringList() << QLatin1String("sql"))
