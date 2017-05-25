@@ -77,6 +77,7 @@ public slots:
     void initTestCase();
 
 protected:
+    virtual void validateTestProfile() { }
     int runQbs(const QbsRunParameters &params = QbsRunParameters());
     void rmDirR(const QString &dir);
     static QByteArray unifiedLineEndings(const QByteArray &ba);

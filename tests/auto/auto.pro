@@ -12,4 +12,5 @@ SUBDIRS += \
     blackbox/blackbox.pro \
     blackbox/blackbox-clangdb.pro \
     blackbox/blackbox-java.pro \
+    blackbox/blackbox-qt.pro \
     api

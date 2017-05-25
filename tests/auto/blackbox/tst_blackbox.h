@@ -46,7 +46,6 @@ private slots:
     void assembly();
     void assetCatalog();
     void assetCatalog_data();
-    void autoQrc();
     void badInterpreter();
     void buildDirectories();
     void bundleStructure();
@@ -58,16 +57,12 @@ private slots:
     void checkProjectFilePath();
     void clean();
     void cli();
-    void combinedMoc();
     void combinedSources();
     void commandFile();
     void concurrentExecutor();
     void conditionalExport();
     void conditionalFileTagger();
     void conflictingArtifacts();
-    void createProject();
-    void dbusAdaptors();
-    void dbusInterfaces();
     void dependenciesProperty();
     void dependencyProfileMismatch();
     void deploymentTarget();
@@ -124,11 +119,8 @@ private slots:
     void listPropertiesWithOuter();
     void listPropertyOrder();
     void loadableModule();
-    void lrelease();
     void missingDependency();
     void missingProjectFile();
-    void mixedBuildVariants();
-    void mocFlags();
     void multipleChanges();
     void nestedGroups();
     void nestedProperties();
@@ -145,7 +137,6 @@ private slots:
     void pkgConfigProbe_data();
     void pkgConfigProbeSysroot();
     void pluginDependency();
-    void pluginMetaData();
     void probeChangeTracking();
     void probeProperties();
     void probeInExportedModule();
@@ -159,11 +150,7 @@ private slots:
     void properQuoting();
     void propertiesInExportItems();
     void qbsVersion();
-    void qmlDebugging();
-    void qobjectInObjectiveCpp();
     void qtBug51237();
-    void qtKeywords();
-    void qtScxml();
     void radAfterIncompleteBuild();
     void radAfterIncompleteBuild_data();
     void recursiveRenaming();
@@ -188,7 +175,6 @@ private slots:
     void renameDependency();
     void separateDebugInfo();
     void sevenZip();
-    void staticQtPluginLinking();
     void suspiciousCalls();
     void suspiciousCalls_data();
     void systemRunPaths();
@@ -196,11 +182,8 @@ private slots:
     void tar();
     void toolLookup();
     void topLevelSearchPath();
-    void track_qobject_change();
-    void track_qrc();
     void trackAddFile();
     void trackAddFileTag();
-    void trackAddMocInclude();
     void trackAddProduct();
     void trackExternalProductChanges();
     void trackGroupConditionChange();
