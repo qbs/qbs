@@ -1,7 +1,7 @@
 import qbs
 
 Project {
-    QtApplication {
+    CppApplication {
         name: "public_tool"
         Depends { name: "mylib" }
         files: ["main.cpp"]
@@ -11,14 +11,14 @@ Project {
             qbs.installDir: "bin"
         }
     }
-    QtApplication {
+    CppApplication {
         name: "internal_tool"
         Depends { name: "mylib" }
         files: ["main.cpp"]
     }
     DynamicLibrary {
+        Depends { name: "cpp" }
         name: "mylib"
-        Depends { name: "Qt.core" }
         files: ["lib.cpp"]
         Group {
             name: "public headers"

@@ -49,16 +49,39 @@
 **
 ****************************************************************************/
 
-#include <QtCore/QDebug>
-#include <QtCore/QLibrary>
+#include <iostream>
+
+#ifdef _WIN32
+#include <windows.h>
+#define PREFIX ""
+#define SUFFIX ".dll"
+#define dlopen(path, mode) LoadLibraryA(path)
+#define dlsym(handle, symbol) GetProcAddress(handle, symbol)
+#define dlclose(handle) FreeLibrary(handle)
+#elif defined(__APPLE__)
+#define PREFIX ""
+#define SUFFIX ".bundle"
+#else
+#define PREFIX "lib"
+#define SUFFIX ".so"
+#endif
+
+#ifndef _WIN32
+#include <dlfcn.h>
+#endif
 
 int main() {
-    QLibrary lib("CoolPlugIn");
-    if (lib.load()) {
-        QFunctionPointer fptr = lib.resolve("foo");
-        if (fptr) {
-            qDebug() << "foo =" << ((int (*)(void))fptr)();
-        }
+    auto lib = dlopen(PREFIX "CoolPlugIn" SUFFIX, RTLD_LAZY);
+    if (lib) {
+        auto fptr = dlsym(lib, "foo");
+        if (fptr)
+            std::cout << "foo = " << ((int (*)(void))fptr)() << std::endl;
+        else
+            std::cout << "function foo not found in CoolPlugIn" << std::endl;
+        dlclose(lib);
+        return fptr ? 0 : 1;
+    } else {
+        std::cout << "CoolPlugIn not loaded" << std::endl;
     }
-    return 0;
+    return 1;
 }

@@ -5017,7 +5017,10 @@ void TestBlackbox::loadableModule()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/loadablemodule"));
 
-    QCOMPARE(runQbs(), 0);
+    QbsRunParameters params;
+    params.command = "run";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("foo = 42"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::lrelease()

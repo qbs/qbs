@@ -4,7 +4,6 @@ Project {
     LoadableModule {
         Depends { name: "cpp" }
         Depends { name: "bundle" }
-        Depends { name: "Qt.core" }
         bundle.isBundle: false
         name: "CoolPlugIn"
         files: ["exported.cpp", "exported.h"]
@@ -17,12 +16,18 @@ Project {
 
     CppApplication {
         Depends { name: "cpp" }
-        Depends { name: "CoolPlugIn" }
+        Depends { name: "CoolPlugIn"; cpp.link: false }
         Depends { name: "bundle" }
-        Depends { name: "Qt.core" }
         bundle.isBundle: false
         name: "CoolApp"
         files: ["main.cpp"]
+
+        cpp.dynamicLibraries: [qbs.targetOS.contains("windows") ? "kernel32" : "dl"]
+
+        Properties {
+            condition: qbs.targetOS.contains("unix") && !qbs.targetOS.contains("darwin")
+            cpp.rpaths: ["$ORIGIN"]
+        }
 
         Group {
             fileTagsFilter: product.type

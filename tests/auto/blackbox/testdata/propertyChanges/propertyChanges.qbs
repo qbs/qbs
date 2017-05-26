@@ -24,8 +24,8 @@ Project {
         files: "source3.cpp"
     }
     DynamicLibrary {
+        Depends { name: "cpp" }
         name: "library"
-        Depends { name: "Qt.core" }
         files: "lib.cpp"
         bundle.isBundle: false
     }

@@ -26,12 +26,18 @@
 **
 ****************************************************************************/
 
-#include <QtGlobal>
-
 #ifdef MYLIB
-#define MYLIB_EXPORT Q_DECL_EXPORT
+#  if defined(_WIN32) || defined(WIN32)
+#   define MYLIB_EXPORT __declspec(dllexport)
+#  else
+#   define MYLIB_EXPORT __attribute__((visibility("default")))
+#  endif
 #else
-#define MYLIB_EXPORT Q_DECL_IMPORT
+#  if defined(_WIN32) || defined(WIN32)
+#   define MYLIB_EXPORT __declspec(dllimport)
+#  else
+#   define MYLIB_EXPORT
+#  endif
 #endif
 
 MYLIB_EXPORT void f();
