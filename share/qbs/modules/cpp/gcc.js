@@ -722,11 +722,6 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
         args.push('-W');
 
     var tag = "asm";
-    if (tag !== languageTagFromFileExtension(product.qbs.toolchain,
-                                             input.fileName))
-        // Only push '-x language' if we have to.
-        args.push("-x", languageName(tag));
-
     args = args.concat(ModUtils.moduleProperty(input, 'platformFlags', tag),
                        ModUtils.moduleProperty(input, 'flags', tag));
 

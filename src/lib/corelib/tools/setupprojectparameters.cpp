@@ -45,6 +45,7 @@
 #include <tools/scripttools.h>
 #include <tools/settings.h>
 
+#include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
 
 namespace qbs {
@@ -170,7 +171,7 @@ void SetupProjectParameters::setProjectFilePath(const QString &projectFilePath)
 
     const QString canonicalProjectFilePath = QFileInfo(d->projectFilePath).canonicalFilePath();
     if (!canonicalProjectFilePath.isEmpty())
-        d->projectFilePath = projectFilePath;
+        d->projectFilePath = canonicalProjectFilePath;
 }
 
 /*!
@@ -193,6 +194,11 @@ QString SetupProjectParameters::buildRoot() const
 void SetupProjectParameters::setBuildRoot(const QString &buildRoot)
 {
     d->buildRoot = buildRoot;
+
+    // We don't do error checking here, as this is not a convenient place to report an error.
+    // If creation of the build directory is not possible, we will get sensible error messages
+    // later, e.g. from the code that attempts to store the build graph.
+    QDir::root().mkpath(buildRoot);
 
     const QString canonicalBuildRoot = QFileInfo(d->buildRoot).canonicalFilePath();
     if (!canonicalBuildRoot.isEmpty())
