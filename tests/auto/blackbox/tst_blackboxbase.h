@@ -74,7 +74,7 @@ public:
     TestBlackboxBase(const QString &testDataSrcDir, const QString &testName);
 
 public slots:
-    void initTestCase();
+    virtual void initTestCase();
 
 protected:
     virtual void validateTestProfile() { }

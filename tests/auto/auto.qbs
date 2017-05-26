@@ -5,6 +5,7 @@ Project {
     references: [
         "api/api.qbs",
         "blackbox/blackbox.qbs",
+        "blackbox/blackbox-apple.qbs",
         "blackbox/blackbox-qt.qbs",
         "buildgraph/buildgraph.qbs",
         "cmdlineparser/cmdlineparser.qbs",

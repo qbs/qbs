@@ -41,15 +41,10 @@ public:
 private slots:
     void alwaysRun();
     void alwaysRun_data();
-    void appleMultiConfig();
     void artifactScanning();
     void assembly();
-    void assetCatalog();
-    void assetCatalog_data();
     void badInterpreter();
     void buildDirectories();
-    void bundleStructure();
-    void bundleStructure_data();
     void changedFiles_data();
     void changedFiles();
     void changeInDisabledProduct();
@@ -65,12 +60,9 @@ private slots:
     void conflictingArtifacts();
     void dependenciesProperty();
     void dependencyProfileMismatch();
-    void deploymentTarget();
-    void deploymentTarget_data();
     void deprecatedProperty();
     void dynamicMultiplexRule();
     void dynamicRuleOutputs();
-    void embedInfoPlist();
     void enableExceptions();
     void enableExceptions_data();
     void enableRtti();
@@ -82,15 +74,11 @@ private slots:
     void exportToOutsideSearchPath();
     void externalLibs();
     void fileDependencies();
-    void frameworkStructure();
     void generatedArtifactAsInputToDynamicRule();
     void groupsInModules();
-    void iconset();
-    void iconsetApp();
     void importInPropertiesCondition();
     void importingProduct();
     void importsConflict();
-    void infoPlist();
     void innoSetup();
     void inputsFromDependencies();
     void installable();
@@ -129,7 +117,6 @@ private slots:
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();
     void nsis();
-    void objcArc();
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
     void pchChangeTracking();
@@ -201,7 +188,6 @@ private slots:
     void wildCardsAndRules();
     void wildcardRenaming();
     void wix();
-    void xcode();
     void zip();
     void zip_data();
     void zipInvalid();

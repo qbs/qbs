@@ -5,7 +5,6 @@ Project {
 
     QbsAutotest {
         testName: "blackbox"
-        Depends { name: "Qt.xml" }
         Depends { name: "qbs_app" }
         Depends { name: "qbs-setup-toolchains" }
         Group {
