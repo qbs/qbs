@@ -13,6 +13,7 @@ Product {
     Depends { name: "qbs-setup-qt" }
     Depends { name: "qbs-setup-toolchains" }
     Depends { name: "qbs_app" }
+    Depends { name: "qbs_processlauncher" }
     Depends { name: "qbscore" }
     Depends { name: "qbsqtprofilesetup" }
     Depends { name: "qbs_cpp_scanner" }
