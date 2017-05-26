@@ -1,6 +1,32 @@
 import qbs 1.0
+import qbs.TextFile
 
 Project {
+    Product {
+        type: ["properties"]
+        Depends { name: "cpp" }
+        Rule {
+            multiplex: true
+            Artifact {
+                filePath: "properties.json"
+                fileTags: ["properties"]
+            }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.outputFilePath = outputs.properties[0].filePath;
+                cmd.tc = product.qbs.toolchain;
+                cmd.sourceCode = function () {
+                    var tf = new TextFile(outputFilePath, TextFile.WriteOnly);
+                    try {
+                        tf.writeLine(JSON.stringify({ "qbs.toolchain": tc }, undefined, 4));
+                    } finally {
+                        tf.close();
+                    }
+                };
+                return [cmd];
+            }
+        }
+    }
     StaticLibrary {
         name : "testa"
         files : [ "testa.s" ]

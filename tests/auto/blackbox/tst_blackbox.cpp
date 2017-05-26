@@ -4335,12 +4335,21 @@ private:
 
 void TestBlackbox::assembly()
 {
-    const SettingsPtr s = settings();
-    Profile profile(profileName(), s.get());
-    bool haveGcc = profile.value("qbs.toolchain").toStringList().contains("gcc");
-    bool haveMSVC = profile.value("qbs.toolchain").toStringList().contains("msvc");
     QDir::setCurrent(testDataDir + "/assembly");
     QVERIFY(runQbs() == 0);
+
+    const QVariantMap properties = ([&]() {
+        QFile propertiesFile(relativeProductBuildDir("assembly") + "/properties.json");
+        if (propertiesFile.open(QIODevice::ReadOnly))
+            return QJsonDocument::fromJson(propertiesFile.readAll()).toVariant().toMap();
+        return QVariantMap();
+    })();
+    QVERIFY(!properties.isEmpty());
+    const auto toolchain = properties.value("qbs.toolchain").toStringList();
+    QVERIFY(!toolchain.isEmpty());
+    const bool haveGcc = toolchain.contains("gcc");
+    const bool haveMSVC = toolchain.contains("msvc");
+
     QCOMPARE(m_qbsStdout.contains("assembling testa.s"), haveGcc);
     QCOMPARE(m_qbsStdout.contains("compiling testb.S"), haveGcc);
     QCOMPARE(m_qbsStdout.contains("compiling testc.sx"), haveGcc);
