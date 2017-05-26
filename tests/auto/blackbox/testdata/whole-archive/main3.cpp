@@ -1,4 +1,4 @@
-void unusedFunc3();
+DLLIMPORT void unusedFunc3();
 
 int main()
 {

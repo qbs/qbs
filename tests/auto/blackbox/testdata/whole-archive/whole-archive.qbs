@@ -1,45 +1,33 @@
 import qbs
 
 Project {
-    Product {
-        name: "nmPathRetriever"
-        type: ["custom"]
-        Depends { name: "cpp" }
-        Rule {
-            multiplex: true
-            Artifact {
-                filePath: "dummy.txt"
-                fileTags: ["custom"]
-            }
-            prepare: {
-                var cmd = new JavaScriptCommand();
-                cmd.silent = true;
-                cmd.sourceCode = function() {
-                    console.warn("---" + product.cpp.nmPath + "---");
-                }
-                return [cmd];
-            }
-        }
-    }
+    property string importSymbol: qbs.targetOS.contains("windows") ? "__declspec(dllimport)" : ""
+    property string importDefine: "DLLIMPORT=" + importSymbol
+    property string exportSymbol: qbs.targetOS.contains("windows") ? "__declspec(dllexport)" : ""
+    property string exportDefine: "DLLEXPORT=" + exportSymbol
 
     StaticLibrary {
         name: "staticlib 1"
         Depends { name: "cpp" }
+        cpp.defines: [project.exportDefine]
         files: ["unused1.cpp", "used.cpp"]
     }
     StaticLibrary {
         name: "staticlib2"
         Depends { name: "cpp" }
+        cpp.defines: [project.exportDefine]
         files: ["unused2.cpp"]
     }
     StaticLibrary {
         name: "staticlib3"
         Depends { name: "cpp" }
+        cpp.defines: [project.exportDefine]
         files: ["unused3.cpp"]
     }
     StaticLibrary {
         name: "staticlib4"
         Depends { name: "cpp" }
+        cpp.defines: [project.exportDefine]
         files: ["unused4.cpp"]
     }
 
@@ -57,22 +45,26 @@ Project {
     CppApplication {
         name: "app1"
         Depends { name: "dynamiclib" }
+        cpp.defines: [project.importDefine]
         files: ["main1.cpp"]
     }
 
     CppApplication {
         name: "app2"
         Depends { name: "dynamiclib" }
+        cpp.defines: [project.importDefine]
         files: ["main2.cpp"]
     }
     CppApplication {
         name: "app3"
         Depends { name: "dynamiclib" }
+        cpp.defines: [project.importDefine]
         files: ["main3.cpp"]
     }
     CppApplication {
         name: "app4"
         Depends { name: "dynamiclib" }
+        cpp.defines: [project.importDefine]
         files: ["main4.cpp"]
     }
 }

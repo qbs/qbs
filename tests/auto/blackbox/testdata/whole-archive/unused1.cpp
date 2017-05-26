@@ -1,1 +1,1 @@
-void unusedFunc1() { }
+DLLEXPORT void unusedFunc1() { }
