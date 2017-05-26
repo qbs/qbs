@@ -223,7 +223,7 @@ private:
                     if (value->sourceUsesBase())
                         outerValue->setSourceUsesBaseFlag();
                     outerValue->setLocation(value->line(), value->column());
-                    outerItem = Item::create(data->item->pool(), ItemType::ModuleInstance);
+                    outerItem = Item::create(data->item->pool(), ItemType::Outer);
                     outerItem->setProperty(propertyName->toString(), outerValue);
                 }
                 if (overrides.toBool())
@@ -542,16 +542,13 @@ public:
                     || itemOfProperty->type() == ItemType::Export)) {
             const VariantValueConstPtr varValue
                     = itemOfProperty->variantProperty(QLatin1String("name"));
-            // QBS_CHECK(varValue);
-            // TODO: Check why the base module sometimes has no name. Code suggests it has to have one.
-            if (varValue) {
-                m_stackUpdate = true;
-                const QualifiedId fullPropName
-                        = QualifiedId::fromString(varValue->value().toString()) << name.toString();
-                if (!requestedProperties.empty())
-                    propertyDependencies[fullPropName].insert(requestedProperties.top());
-                m_requestedProperties.push(fullPropName);
-            }
+            QBS_ASSERT(varValue, return);
+            m_stackUpdate = true;
+            const QualifiedId fullPropName
+                    = QualifiedId::fromString(varValue->value().toString()) << name.toString();
+            if (!requestedProperties.empty())
+                propertyDependencies[fullPropName].insert(requestedProperties.top());
+            m_requestedProperties.push(fullPropName);
         }
     }
 

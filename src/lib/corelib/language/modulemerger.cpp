@@ -257,6 +257,8 @@ void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QStr
     if (!m_clonedModulePrototype) {
         m_clonedModulePrototype = Item::create(moduleProto->pool(), ItemType::Module);
         m_clonedModulePrototype->setScope(m_mergedModule.item);
+        m_clonedModulePrototype->setLocation(moduleProto->location());
+        moduleProto->copyProperty(QStringLiteral("name"), m_clonedModulePrototype);
     }
     const ValuePtr &protoValue = moduleProto->property(propertyName);
     QBS_CHECK(protoValue);

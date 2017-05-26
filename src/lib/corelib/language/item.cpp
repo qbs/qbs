@@ -106,7 +106,9 @@ QString Item::typeName() const
     switch (type()) {
     case ItemType::IdScope: return QLatin1String("[IdScope]");
     case ItemType::ModuleInstance: return QLatin1String("[ModuleInstance]");
+    case ItemType::ModuleParameters: return QLatin1String("[ModuleParametersInstance]");
     case ItemType::ModulePrefix: return QLatin1String("[ModulePrefix]");
+    case ItemType::Outer: return QLatin1String("[Outer]");
     case ItemType::Scope: return QLatin1String("[Scope]");
     default: return BuiltinDeclarations::instance().nameForType(type());
     }

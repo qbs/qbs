@@ -268,6 +268,7 @@ Item *ItemReaderASTVisitor::targetItemForBinding(const QStringList &bindingName,
         if (!v) {
             const ItemType itemType = i < c - 1 ? ItemType::ModulePrefix : ItemType::ModuleInstance;
             Item *newItem = Item::create(m_itemPool, itemType);
+            newItem->setLocation(value->location());
             v = ItemValue::create(newItem);
             targetItem->setProperty(bindingName.at(i), v);
         }

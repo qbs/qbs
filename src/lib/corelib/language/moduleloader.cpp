@@ -1478,6 +1478,20 @@ static void mergeParameters(QVariantMap &dst, const QVariantMap &src)
     }
 }
 
+static void adjustParametersItemTypes(Item *item)
+{
+    if (item->type() == ItemType::ModuleInstance) {
+        item->setType(ItemType::ModuleParameters);
+        return;
+    }
+
+    for (auto value : item->properties()) {
+        if (value->type() != Value::ItemValueType)
+            continue;
+        adjustParametersItemTypes(std::static_pointer_cast<ItemValue>(value)->item());
+    }
+}
+
 void ModuleLoader::mergeExportItems(const ProductContext &productContext)
 {
     std::vector<Item *> exportItems;
@@ -1499,6 +1513,9 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
         productContext.item->setChildren(children);
 
     Item *merged = Item::create(productContext.item->pool(), ItemType::Export);
+    const QString nameKey = QStringLiteral("name");
+    const ValuePtr nameValue = VariantValue::create(productContext.name);
+    merged->setProperty(nameKey, nameValue);
     Set<FileContextConstPtr> filesWithExportItem;
     ProductModuleInfo &pmi
             = productContext.project->topLevelProject->productModules[productContext.name];
@@ -1507,11 +1524,13 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
         if (Q_UNLIKELY(filesWithExportItem.contains(exportItem->file())))
             throw ErrorInfo(Tr::tr("Multiple Export items in one product are prohibited."),
                         exportItem->location());
+        exportItem->setProperty(nameKey, nameValue);
         if (!checkExportItemCondition(exportItem, productContext))
             continue;
         filesWithExportItem += exportItem->file();
         for (Item * const child : exportItem->children()) {
             if (child->type() == ItemType::Parameters) {
+                adjustParametersItemTypes(child);
                 mergeParameters(pmi.defaultParameters,
                                 m_evaluator->scriptValue(child).toVariant().toMap());
             } else {
@@ -1540,7 +1559,6 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
             ? productContext.item->location() : exportItems.back()->location());
     Item::addChild(productContext.item, merged);
     merged->setupForBuiltinType(m_logger);
-    merged->setProperty(QLatin1String("name"), VariantValue::create(productContext.name));
     pmi.exportItem = merged;
 }
 
@@ -1618,6 +1636,14 @@ void ModuleLoader::propagateModulesFromParent(ProductContext *productContext, It
         }
         adjustDefiningItemsInGroupModuleInstances(module, dependentModules);
     }
+}
+
+static Item *createReplacementForDefiningItem(const Item *definingItem, ItemType type)
+{
+    Item *replacement = Item::create(definingItem->pool(), type);
+    replacement->setLocation(definingItem->location());
+    definingItem->copyProperty(QStringLiteral("name"), replacement);
+    return replacement;
 }
 
 void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module &module,
@@ -1699,8 +1725,8 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                 // (plus potential values from the prototype and other module instances,
                 // which are different Value objects in the "next chain").
                 if (!replacement) {
-                    replacement = Item::create(v->definingItem()->pool(),
-                                               v->definingItem()->type());
+                    replacement = createReplacementForDefiningItem(v->definingItem(),
+                                                                   v->definingItem()->type());
                     Item * const scope = Item::create(v->definingItem()->pool(), ItemType::Scope);
                     scope->setProperties(module.item->scope()->properties());
                     Item * const scopeScope
@@ -1728,8 +1754,8 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                 QBS_CHECK(!v->next());
                 Item *& replacement = definingItemReplacements[v->definingItem()];
                 if (!replacement) {
-                    replacement = Item::create(v->definingItem()->pool(),
-                                                        ItemType::Module);
+                    replacement = createReplacementForDefiningItem(v->definingItem(),
+                                                                   ItemType::Module);
                     replacement->setScope(module.item);
                 }
                 QBS_CHECK(!replacement->hasOwnProperty(caseA));
@@ -1764,8 +1790,8 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                     found = true;
                     Item *& replacement = definingItemReplacements[v->definingItem()];
                     if (!replacement) {
-                        replacement = Item::create(v->definingItem()->pool(),
-                                                   v->definingItem()->type());
+                        replacement = createReplacementForDefiningItem(v->definingItem(),
+                                                                       v->definingItem()->type());
                         replacement->setProperties(v->definingItem()->properties());
                         for (const auto &decl : v->definingItem()->propertyDeclarations())
                             replacement->setPropertyDeclaration(decl.name(), decl);
@@ -1813,6 +1839,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     for (Item * const dependsItem : dependsItemPerLoadedModule) {
         if (dependsItem == lastDependsItem)
             continue;
+        adjustParametersItemTypes(dependsItem);
         forwardParameterDeclarations(dependsItem, loadedModules);
         lastDependsItem = dependsItem;
     }
@@ -2328,6 +2355,9 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         return 0;
     }
 
+    // Set the name before evaluating any properties. EvaluatorScriptClass reads the module name.
+    module->setProperty(QLatin1String("name"), VariantValue::create(fullModuleName));
+
     if (!isBaseModule) {
         DependsContext dependsContext;
         dependsContext.product = productContext;
@@ -2368,7 +2398,6 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     for (const ErrorInfo &error : qAsConst(unknownProfilePropertyErrors))
         handlePropertyError(error, m_parameters, m_logger);
 
-    module->setProperty(QLatin1String("name"), VariantValue::create(fullModuleName));
     m_modulePrototypeItemCache.insert(cacheKey, ItemCacheValue(module, true));
     return module;
 }
@@ -3029,6 +3058,7 @@ Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &r
     if (!module) {
         module = Item::create(m_pool, ItemType::ModuleInstance);
         module->setFile(FileContext::create());
+        module->setProperty(QStringLiteral("name"), VariantValue::create(name));
     }
     module->setProperty(QLatin1String("present"), VariantValue::create(false));
     return module;
