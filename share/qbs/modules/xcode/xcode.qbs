@@ -10,14 +10,11 @@ import qbs.PropertyList
 import 'xcode.js' as Xcode
 
 Module {
-    Probe {
-        id: xcodeProbe
-        configure: {
-            availableSdks = Xcode.sdkInfoList(sdksPath);
-            found = true;
-        }
+    id: xcodeModule
 
-        property var availableSdks
+    Probes.XcodeProbe {
+        id: xcodeProbe
+        sdksPath: xcodeModule.sdksPath
     }
 
     condition: qbs.targetOS.contains("darwin") &&
