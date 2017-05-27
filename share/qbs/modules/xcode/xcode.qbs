@@ -14,11 +14,15 @@ Module {
 
     Probes.XcodeProbe {
         id: xcodeProbe
+        developerPath: xcodeModule.developerPath
+        xcodebuildPath: xcodeModule.xcodebuildPath
         sdksPath: xcodeModule.sdksPath
     }
 
     condition: qbs.targetOS.contains("darwin") &&
                qbs.toolchain && qbs.toolchain.contains("xcode")
+
+    version: xcodeProbe.xcodeVersion
 
     property path developerPath: "/Applications/Xcode.app/Contents/Developer"
     property string sdk: DarwinTools.applePlatformName(qbs.targetOS, platformType)
@@ -81,6 +85,9 @@ Module {
     property string signingTimestamp: "none"
 
     property string provisioningProfile
+
+    property string xcodebuildName: "xcodebuild"
+    property string xcodebuildPath: FileInfo.joinPaths(developerPath, "usr", "bin", xcodebuildName)
 
     property string securityName: "security"
     property string securityPath: securityName

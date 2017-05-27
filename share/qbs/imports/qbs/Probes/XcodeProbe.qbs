@@ -29,17 +29,60 @@
 ****************************************************************************/
 
 import qbs
+import qbs.File
+import qbs.FileInfo
+import qbs.Process
+import qbs.PropertyList
 import "../../../modules/xcode/xcode.js" as Xcode
 
 Probe {
     // Inputs
     property string sdksPath
+    property string developerPath
+    property string xcodebuildPath
+    property string _xcodeInfoPlist: FileInfo.joinPaths(developerPath, "..", "Info.plist")
 
     // Outputs
     property var availableSdks
+    property string xcodeVersion
 
     configure: {
+        if (File.exists(_xcodeInfoPlist)) {
+            // Optimized case (no forking): reads CFBundleShortVersionString from
+            // Xcode.app/Contents/Info.plist
+            var propertyList = new PropertyList();
+            try {
+                propertyList.readFromFile(_xcodeInfoPlist);
+
+                var plist = propertyList.toObject();
+                if (plist)
+                    xcodeVersion = plist["CFBundleShortVersionString"];
+            } finally {
+                propertyList.clear();
+            }
+        } else {
+            // Fallback case: execute xcodebuild -version if Xcode.app/Contents/Info.plist is
+            // missing; this can happen if developerPath is /, for example
+            var process;
+            try {
+                process = new Process();
+                process.exec(xcodebuildPath, ["-version"], true);
+                var lines = process.readStdOut().trim().split(/\r?\n/g).filter(function (line) {
+                    return line.length > 0;
+                });
+                for (var l = 0; l < lines.length; ++l) {
+                    var m = lines[l].match(/^Xcode ([0-9\.]+)$/);
+                    if (m) {
+                        xcodeVersion = m[1];
+                        break;
+                    }
+                }
+            } finally {
+                process.close();
+            }
+        }
+
         availableSdks = Xcode.sdkInfoList(sdksPath);
-        found = true;
+        found = !!xcodeVersion;
     }
 }
