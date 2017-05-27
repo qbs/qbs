@@ -33,6 +33,7 @@ import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Probes
+import qbs.Utilities
 
 import "utils.js" as NdkUtils
 
@@ -70,6 +71,8 @@ Module {
     property string hostArch: ndkProbe.hostArch
     property string ndkDir: ndkProbe.path
     property string platform: "android-9"
+
+    property bool useUnifiedHeaders: Utilities.versionCompare(version, "14") >= 0
 
     // Internal properties.
     property stringList availableToolchains: ndkProbe.toolchains

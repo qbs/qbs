@@ -89,11 +89,13 @@ LinuxGCC {
                                              toolchainDir, "prebuilt",
                                              Android.ndk.hostArch, "bin")
 
+    property string toolchainTriple: [targetAbi === "androideabi" ? "arm" : targetArch,
+                                      targetSystem, targetAbi].join("-")
+
     toolchainPrefix: {
         if (qbs.toolchain && qbs.toolchain.contains("clang"))
             return undefined;
-        return [targetAbi === "androideabi" ? "arm" : targetArch,
-                                              targetSystem, targetAbi].join("-") + "-";
+        return toolchainTriple + "-";
     }
 
     machineType: {
@@ -138,6 +140,10 @@ LinuxGCC {
     }
     systemIncludePaths: {
         var includes = [];
+        if (Android.ndk.useUnifiedHeaders) {
+            // Might not be needed with Clang in a future NDK release
+            includes.push(FileInfo.joinPaths(sysroot, "usr", "include", toolchainTriple));
+        }
         if (Android.ndk.appStl === "system") {
             includes.push(FileInfo.joinPaths(cxxStlBaseDir, "system", "include"));
         } else if (Android.ndk.appStl.startsWith("gabi++")) {
@@ -154,9 +160,20 @@ LinuxGCC {
         }
         return includes;
     }
-    defines: ["ANDROID"]
-    sysroot: FileInfo.joinPaths(Android.ndk.ndkDir, "platforms", Android.ndk.platform,
-                                "arch-" + NdkUtils.abiNameToDirName(Android.ndk.abi))
+    defines: {
+        var list = ["ANDROID"];
+        if (Android.ndk.useUnifiedHeaders) {
+            // Might be superseded by an -mandroid-version or similar Clang compiler flag in future
+            list.push("__ANDROID_API__=" + Android.ndk.platformVersion);
+        }
+        return list;
+    }
+    syslibroot: FileInfo.joinPaths(Android.ndk.ndkDir, "platforms",
+                                   Android.ndk.platform, "arch-"
+                                   + NdkUtils.abiNameToDirName(Android.ndk.abi))
+    sysroot: !Android.ndk.useUnifiedHeaders
+             ? syslibroot
+             : FileInfo.joinPaths(Android.ndk.ndkDir, "sysroot")
 
     targetArch: {
         switch (qbs.architecture) {
