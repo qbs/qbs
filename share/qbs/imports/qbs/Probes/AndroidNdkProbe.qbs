@@ -32,6 +32,7 @@ import qbs
 import qbs.Environment
 import qbs.File
 import qbs.FileInfo
+import qbs.TextFile
 
 PathProbe {
     // Inputs
@@ -58,6 +59,7 @@ PathProbe {
     // Outputs
     property var hostArch
     property stringList toolchains: []
+    property string ndkVersion
 
     configure: {
         var i, j, allPaths = (environmentPaths || []).concat(platformPaths || []);
@@ -75,8 +77,37 @@ PathProbe {
                     hostArch = platforms[j];
                     toolchains = File.directoryEntries(FileInfo.joinPaths(path, "toolchains"),
                                                        File.Dirs | File.NoDotAndDotDot);
-                    found = true;
-                    return;
+
+                    // NDK r11 and above
+                    var tf = new TextFile(path + "/source.properties", TextFile.ReadOnly);
+                    try {
+                        var lines = tf.readAll().trim().split(/\r?\n/g).filter(function (line) {
+                            return line.length > 0;
+                        });
+                        for (var l = 0; l < lines.length; ++l) {
+                            var m = lines[l].match(/^Pkg\.Revision\s*=\s*([0-9\.]+)$/);
+                            if (m) {
+                                ndkVersion = m[1];
+                                found = true;
+                                return;
+                            }
+                        }
+                    } finally {
+                        tf.close();
+                    }
+
+                    // NDK r10 and below
+                    tf = new TextFile(path + "/RELEASE.txt", TextFile.ReadOnly);
+                    try {
+                        var m = tf.readAll().trim().match(/^r([0-9]+[a-z]?)( \(64-bit\))?$/);
+                        if (m) {
+                            ndkVersion = m[1];
+                            found = true;
+                            return;
+                        }
+                    } finally {
+                        tf.close();
+                    }
                 }
             }
         }

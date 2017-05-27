@@ -42,6 +42,8 @@ Module {
         environmentPaths: (ndkDir ? [ndkDir] : []).concat(base)
     }
 
+    version: ndkProbe.ndkVersion
+
     readonly property string abi: NdkUtils.androidAbi(qbs.architecture)
     PropertyOptions {
         name: "abi"
