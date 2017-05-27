@@ -54,6 +54,7 @@ QMap<QString, QString> TestBlackboxJava::findAndroid(int *status)
     return QMap<QString, QString> {
         {"sdk", QDir::fromNativeSeparators(tools["sdk"].toString())},
         {"ndk", QDir::fromNativeSeparators(tools["ndk"].toString())},
+        {"ndk-samples", QDir::fromNativeSeparators(tools["ndk-samples"].toString())},
     };
 }
 
@@ -71,8 +72,9 @@ void TestBlackboxJava::android()
     const auto androidPaths = findAndroid(&status);
 
     const auto ndkPath = androidPaths["ndk"];
+    const auto ndkSamplesPath = androidPaths["ndk-samples"];
     static const QStringList ndkSamplesDirs = QStringList() << "teapot" << "no-native";
-    if (!ndkPath.isEmpty() && !QFileInfo(ndkPath + "/samples").isDir()
+    if (!ndkPath.isEmpty() && !QFileInfo(ndkSamplesPath).isDir()
             && ndkSamplesDirs.contains(projectDir))
         QSKIP("NDK samples directory not present");
 

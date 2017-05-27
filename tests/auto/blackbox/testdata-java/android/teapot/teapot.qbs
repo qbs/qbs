@@ -1,4 +1,5 @@
 import qbs
+import qbs.File
 
 Project {
     minimumQbsVersion: qbs.version
@@ -62,9 +63,24 @@ Project {
         Depends { name: "native-glue" }
         Depends { name: "ndk-helper" }
 
+        Probe {
+            id: teapotProbeJni
+            property string samplesDir: Android.ndk.ndkSamplesDir
+            property string jniDir
+            configure: {
+                var paths = ["/teapots/classic-teapot/src/main/cpp/", "/Teapot/app/src/main/jni/"];
+                for (var i = 0; i < paths.length; ++i) {
+                    if (File.exists(samplesDir + paths[i])) {
+                        jniDir = samplesDir + paths[i];
+                        break;
+                    }
+                }
+            }
+        }
+
         Group {
             name: "C++ sources"
-            prefix: Android.ndk.ndkDir + "/samples/Teapot/app/src/main/jni/"
+            prefix: teapotProbeJni.jniDir
             files: [
                 "TeapotNativeActivity.cpp",
                 "TeapotRenderer.cpp",
@@ -81,8 +97,23 @@ Project {
     }
 
     AndroidApk {
+        Probe {
+            id: teapotProbe
+            property string samplesDir: Android.sdk.ndkSamplesDir
+            property string dir
+            configure: {
+                var paths = ["/teapots/classic-teapot/src/main", "/Teapot/app/src/main"];
+                for (var i = 0; i < paths.length; ++i) {
+                    if (File.exists(samplesDir + paths[i])) {
+                        dir = samplesDir + paths[i];
+                        break;
+                    }
+                }
+            }
+        }
+
         name: "com.sample.teapot"
-        sourceSetDir: Android.sdk.ndkDir + "/samples/Teapot/app/src/main"
+        sourceSetDir: teapotProbe.dir
         Depends { productTypes: ["android.nativelibrary"] }
     }
 }

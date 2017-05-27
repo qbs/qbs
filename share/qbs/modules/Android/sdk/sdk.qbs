@@ -51,6 +51,7 @@ Module {
 
     property path sdkDir: sdkProbe.path
     property path ndkDir: ndkProbe.path
+    property path ndkSamplesDir: ndkProbe.samplesDir
     property string buildToolsVersion: sdkProbe.buildToolsVersion
     property var buildToolsVersionParts: buildToolsVersion ? buildToolsVersion.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int buildToolsVersionMajor: buildToolsVersionParts[0]

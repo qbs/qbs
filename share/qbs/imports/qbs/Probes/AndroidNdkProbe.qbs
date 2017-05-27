@@ -57,6 +57,7 @@ PathProbe {
     }
 
     // Outputs
+    property string samplesDir
     property var hostArch
     property stringList toolchains: []
     property string ndkVersion
@@ -74,6 +75,8 @@ PathProbe {
             for (j in platforms) {
                 if (File.exists(FileInfo.joinPaths(allPaths[i], "prebuilt", platforms[j]))) {
                     path = allPaths[i];
+                    if (File.exists(FileInfo.joinPaths(path, "samples")))
+                        samplesDir = FileInfo.joinPaths(path, "samples"); // removed in r11
                     hostArch = platforms[j];
                     toolchains = File.directoryEntries(FileInfo.joinPaths(path, "toolchains"),
                                                        File.Dirs | File.NoDotAndDotDot);

@@ -24,6 +24,7 @@ Product {
 
                 if (product.moduleProperty("Android.ndk", "present")) {
                     tools["ndk"] = product.moduleProperty("Android.ndk", "ndkDir");
+                    tools["ndk-samples"] = product.Android.ndk.ndkSamplesDir;
                 }
 
                 var tf;
