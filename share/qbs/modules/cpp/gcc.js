@@ -262,7 +262,7 @@ function linkerFlags(project, product, inputs, output) {
     if (targetLinkerFlags)
         args = args.concat(escapeLinkerFlags(product, inputs, targetLinkerFlags));
 
-    var sysroot = product.cpp.sysroot;
+    var sysroot = product.cpp.syslibroot;
     if (sysroot) {
         if (product.qbs.toolchain.contains("qcc"))
             args = args.concat(escapeLinkerFlags(product, inputs, ["--sysroot=" + sysroot]));

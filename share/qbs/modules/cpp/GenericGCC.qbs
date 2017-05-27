@@ -111,7 +111,8 @@ CppModule {
     property string stripName: "strip"
     property string dsymutilName: "dsymutil"
     property string lipoName: "lipo"
-    property path sysroot: qbs.sysroot
+    property string sysroot: qbs.sysroot
+    property string syslibroot: sysroot
 
     property string linkerMode: "automatic"
     PropertyOptions {
