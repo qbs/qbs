@@ -423,6 +423,7 @@
       "com.apple.package-type.bundle.unit-test"
     ],
     "CanEmbedCompilerSanitizerLibraries" : "YES",
+    "IsUnitTest" : "YES",
     "Type" : "ProductType",
     "BasedOn" : "com.apple.product-type.bundle",
     "Name" : "Unit Test Bundle",
@@ -445,6 +446,7 @@
       "com.apple.package-type.bundle.unit-test"
     ],
     "ProvisioningProfileSupported" : "YES",
+    "IsUITest" : "YES",
     "Type" : "ProductType",
     "BasedOn" : "com.apple.product-type.bundle.unit-test",
     "Name" : "UI Testing Bundle",
@@ -459,6 +461,7 @@
     "PackageTypes" : [
       "com.apple.package-type.bundle.ocunit-test"
     ],
+    "IsUnitTest" : "YES",
     "Type" : "ProductType",
     "BasedOn" : "com.apple.product-type.bundle",
     "Name" : "OCUnit Test Bundle",
