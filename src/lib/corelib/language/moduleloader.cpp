@@ -1916,12 +1916,8 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
 
     Item::Module result;
     for (const QualifiedId &moduleName : qAsConst(moduleNames)) {
-        bool isRequired = m_evaluator->boolValue(dependsItem, QLatin1String("required"));
-        for (auto it = m_requiredChain.crbegin(), end = m_requiredChain.crend();
-             it != end && isRequired; ++it) {
-            if (!(*it))
-                isRequired = false;
-        }
+        const bool isRequired = m_evaluator->boolValue(dependsItem, QLatin1String("required"))
+                && !contains(m_requiredChain, false);
         const Version minVersion = Version::fromString(
                     m_evaluator->stringValue(dependsItem, QLatin1String("versionAtLeast")));
         const Version maxVersion = Version::fromString(
