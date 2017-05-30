@@ -204,6 +204,11 @@ bool PropertyDeclaration::isDeprecated() const
     return d->deprecationInfo.isValid();
 }
 
+bool PropertyDeclaration::isExpired() const
+{
+    return isDeprecated() && deprecationInfo().removalVersion() <= Version::qbsVersion();
+}
+
 const DeprecationInfo &PropertyDeclaration::deprecationInfo() const
 {
     return d->deprecationInfo;

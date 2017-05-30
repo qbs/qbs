@@ -442,7 +442,7 @@ private:
                 const DeprecationInfo &di = decl.deprecationInfo();
                 QString message;
                 bool warningOnly;
-                if (di.removalVersion() <= Version::qbsVersion()) {
+                if (decl.isExpired()) {
                     message = Tr::tr("The property '%1' can no longer be used. "
                                      "It was removed in Qbs %2.")
                             .arg(decl.name(), di.removalVersion().toString());
@@ -1335,10 +1335,6 @@ void ModuleLoader::handlePropertyOptions(Item *optionsItem)
         throw ErrorInfo(Tr::tr("PropertyOptions item needs a name property"),
                         optionsItem->location());
     }
-    if (!optionsItem->parent()->hasProperty(name)) {
-        throw ErrorInfo(Tr::tr("PropertyOptions item refers to non-existing property '%1'")
-                        .arg(name), optionsItem->location());
-    }
     const QString description = m_evaluator->stringValue(optionsItem, QLatin1String("description"));
     const auto removalVersion = Version::fromString(m_evaluator->stringValue(optionsItem,
             QLatin1String("removalVersion")));
@@ -1352,6 +1348,21 @@ void ModuleLoader::handlePropertyOptions(Item *optionsItem)
         DeprecationInfo di(removalVersion, description);
         decl.setDeprecationInfo(di);
     }
+    const ValuePtr property = optionsItem->parent()->property(name);
+    if (!property && !decl.isExpired()) {
+        throw ErrorInfo(Tr::tr("PropertyOptions item refers to non-existing property '%1'")
+                        .arg(name), optionsItem->location());
+    }
+    // TODO: Uncomment in 1.10
+//    if (property && decl.isExpired()) {
+//        ErrorInfo e(Tr::tr("Property '%1' was scheduled for removal in version %2, but "
+//                           "is still present.")
+//                    .arg(name).arg(removalVersion.toString()),
+//                    property->location());
+//        e.append(Tr::tr("Removal version for '%1' specified here.").arg(name),
+//                 optionsItem->location());
+//        m_logger.printWarning(e);
+//    }
     optionsItem->parent()->setPropertyDeclaration(name, decl);
 }
 

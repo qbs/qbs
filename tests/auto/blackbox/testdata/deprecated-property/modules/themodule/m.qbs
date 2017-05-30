@@ -3,7 +3,7 @@ import qbs
 Module {
     property bool newProp
     property bool oldProp
-    property bool veryOldProp
+    property bool forgottenProp
 
     PropertyOptions {
         name: "newProp"
@@ -18,5 +18,10 @@ Module {
         name: "veryOldProp"
         description: "Use newProp instead."
         removalVersion: "1.3"
+    }
+    PropertyOptions {
+        name: "forgottenProp"
+        description: "Use newProp instead."
+        removalVersion: "1.8"
     }
 }

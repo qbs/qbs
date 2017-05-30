@@ -107,6 +107,7 @@ public:
     void setFunctionArgumentNames(const QStringList &lst);
 
     bool isDeprecated() const;
+    bool isExpired() const;
     const DeprecationInfo &deprecationInfo() const;
     void setDeprecationInfo(const DeprecationInfo &deprecationInfo);
 
