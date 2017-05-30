@@ -1,12 +1,12 @@
 import qbs
 
 QbsAutotest {
-    testName: "blackbox"
+    testName: "blackbox-java"
     Depends { name: "qbs_app" }
     Depends { name: "qbs-setup-toolchains" }
     Group {
         name: "testdata"
-        prefix: "testdata/"
+        prefix: "testdata-java/"
         files: ["**/*"]
         fileTags: []
     }
@@ -14,8 +14,8 @@ QbsAutotest {
         "../shared.h",
         "tst_blackboxbase.cpp",
         "tst_blackboxbase.h",
-        "tst_blackbox.cpp",
-        "tst_blackbox.h",
+        "tst_blackboxjava.cpp",
+        "tst_blackboxjava.h",
     ]
     // TODO: Use Utilities.cStringQuote
     cpp.defines: base.concat(['SRCDIR="' + path + '"'])
