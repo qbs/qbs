@@ -22,6 +22,7 @@ Project {
         name: "CoolApp"
         files: ["main.cpp"]
 
+        cpp.cxxLanguageVersion: "c++11"
         cpp.dynamicLibraries: [qbs.targetOS.contains("windows") ? "kernel32" : "dl"]
 
         Properties {
