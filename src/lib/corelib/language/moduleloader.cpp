@@ -1969,9 +1969,14 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
                                       dependsItem->id(), moduleName, isRequired, &result.isProduct,
                                       &defaultParameters);
         if (!moduleItem) {
-            throw ErrorInfo(Tr::tr("Dependency '%1' not found for product '%2'.")
-                            .arg(moduleName.toString(), dependsContext->product->name),
-                            dependsItem->location());
+            ErrorInfo e(Tr::tr("Dependency '%1' not found for product '%2'.")
+                        .arg(moduleName.toString(), dependsContext->product->name),
+                        dependsItem->location());
+            if (moduleName.count() == 2 && moduleName.first() == QLatin1String("Qt")) {
+                e.append(Tr::tr("Please create a Qt profile using the qbs-setup-qt tool "
+                                "if you haven't already done so."));
+            }
+            throw e;
         }
         if (result.isProduct && parentItem->type() == ItemType::Module) {
             throw ErrorInfo(Tr::tr("Invalid dependency on product '%1': Modules cannot depend on "
