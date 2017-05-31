@@ -1,10 +1,9 @@
 import qbs
-import QbsFunctions
 
 QbsProduct {
     Depends { name: "cpp" }
     Depends { name: "bundle" }
-    version: QbsFunctions.qbsVersion()
+    version: qbsversion.version
     type: Qt.core.staticBuild ? "staticlibrary" : "dynamiclibrary"
     targetName: (qbs.enableDebugCode && qbs.targetOS.contains("windows")) ? (name + 'd') : name
     destinationDirectory: qbs.targetOS.contains("windows") ? "bin" : qbsbuildconfig.libDirName

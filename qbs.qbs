@@ -25,6 +25,11 @@ Project {
     }
 
     Product {
+        name: "version"
+        files: ["VERSION"]
+    }
+
+    Product {
         name: "qmake project files for qbs"
         files: ["**/*.pr[io]"]
     }

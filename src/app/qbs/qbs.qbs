@@ -1,5 +1,4 @@
 import qbs 1.0
-import QbsFunctions
 
 QbsApp {
     name: "qbs_app"
@@ -7,7 +6,7 @@ QbsApp {
     targetName: "qbs"
     // TODO: Use Utilities.cStringQuote
     cpp.defines: base.concat([
-        'QBS_VERSION="' + QbsFunctions.qbsVersion() + '"',
+        'QBS_VERSION="' + qbsversion.version + '"',
         'QBS_RELATIVE_LIBEXEC_PATH="' + qbsbuildconfig.relativeLibexecPath + '"',
         'QBS_RELATIVE_SEARCH_PATH="' + qbsbuildconfig.relativeSearchPath + '"',
         'QBS_RELATIVE_PLUGINS_PATH="' + qbsbuildconfig.relativePluginsPath + '"',

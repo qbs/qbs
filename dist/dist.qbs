@@ -3,7 +3,6 @@ import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Process
 import qbs.TextFile
-import QbsFunctions
 
 Product {
     Depends { name: "qbs-config" }
@@ -14,6 +13,7 @@ Product {
     Depends { name: "qbs-setup-toolchains" }
     Depends { name: "qbs_app" }
     Depends { name: "qbs_processlauncher" }
+    Depends { name: "qbsversion" }
     Depends { name: "qbscore" }
     Depends { name: "qbsqtprofilesetup" }
     Depends { name: "qbs_cpp_scanner" }
@@ -50,7 +50,7 @@ Product {
     condition: qbs.targetOS.contains("windows")
     builtByDefault: false
     type: ["archiver.archive"]
-    targetName: "qbs-windows-" + qbs.architecture + "-" + QbsFunctions.qbsVersion()
+    targetName: "qbs-windows-" + qbs.architecture + "-" + qbsversion.version
     destinationDirectory: project.buildDirectory
 
     archiver.type: "zip"

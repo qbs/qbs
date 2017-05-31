@@ -2,6 +2,7 @@ import qbs
 
 Product {
     Depends { name: "qbsbuildconfig" }
+    Depends { name: "qbsversion" }
     Depends { name: "Qt.core"; versionAtLeast: minimumQtVersion }
     property string minimumQtVersion: "5.6.0"
     property bool install: true
