@@ -38,16 +38,19 @@
 using qbs::Internal::HostOsInfo;
 using qbs::Profile;
 
-QMap<QString, QString> TestBlackboxJava::findAndroid(int *status)
+QMap<QString, QString> TestBlackboxJava::findAndroid(int *status, const QString &profile)
 {
     QTemporaryDir temp;
     QDir::setCurrent(testDataDir + "/find");
-    QbsRunParameters params = QStringList() << "-f" << "find-android.qbs";
+    QbsRunParameters params = QStringList({"-f", "find-android.qbs", "profile:" + profile,
+                                           "qbs.architecture:x86"});
+    params.useProfile = false;
     params.buildDirectory = temp.path();
     const int res = runQbs(params);
     if (status)
         *status = res;
-    QFile file(temp.path() + "/" + relativeProductBuildDir("find-android") + "/android.json");
+    QFile file(temp.path() + "/" + relativeProductBuildDir("find-android", profile)
+               + "/android.json");
     if (!file.open(QIODevice::ReadOnly))
         return QMap<QString, QString> { };
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
@@ -68,8 +71,13 @@ void TestBlackboxJava::android()
     QFETCH(QStringList, productNames);
     QFETCH(QList<int>, apkFileCounts);
 
+    const SettingsPtr s = settings();
+    Profile p("qbs_autotests-android", s.get());
+    if (!p.exists())
+        QSKIP("No Android test profile");
     int status;
-    const auto androidPaths = findAndroid(&status);
+    const auto androidPaths = findAndroid(&status, p.name());
+    QCOMPARE(status, 0);
 
     const auto ndkPath = androidPaths["ndk"];
     const auto ndkSamplesPath = androidPaths["ndk-samples"];
@@ -79,10 +87,6 @@ void TestBlackboxJava::android()
         QSKIP("NDK samples directory not present");
 
     QDir::setCurrent(testDataDir + "/android/" + projectDir);
-    const SettingsPtr s = settings();
-    Profile p("qbs_autotests-android", s.get());
-    if (!p.exists() || (status != 0 && !p.value("Android.sdk.ndkDir").isValid()))
-        QSKIP("No suitable Android test profile");
     QbsRunParameters params(QStringList("profile:" + p.name())
                             << "Android.ndk.platform:android-21");
     params.useProfile = false;

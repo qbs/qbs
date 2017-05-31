@@ -47,7 +47,7 @@ private slots:
     void javaDependencyTrackingInnerClass();
 
 private:
-    QMap<QString, QString> findAndroid(int *status);
+    QMap<QString, QString> findAndroid(int *status, const QString &profile);
 };
 
 #endif // TST_BLACKBOX_H
