@@ -1,9 +1,8 @@
 import qbs
-import qbs.Utilities
 
 Product {
     Depends { name: "qbsbuildconfig" }
-    Depends { name: "Qt.core" }
+    Depends { name: "Qt.core"; versionAtLeast: minimumQtVersion }
     property string minimumQtVersion: "5.6.0"
     property bool install: true
     cpp.defines: {
@@ -15,5 +14,4 @@ Product {
         return res;
     }
     cpp.enableExceptions: true
-    condition: Utilities.versionCompare(Qt.core.version, minimumQtVersion) >= 0
 }
