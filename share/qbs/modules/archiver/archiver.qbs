@@ -223,8 +223,10 @@ Module {
                 args = args.concat(product.moduleProperty("archiver", "flags"));
             } else if (["tar", "zip", "jar"].contains(binaryName)) {
                 throw binaryName + ": unrecognized archive type: '" + type + "'";
-            } else {
+            } else if (binaryName) {
                 throw "unrecognized archive tool: '" + binaryName + "'";
+            } else {
+                throw "no archive tool available to produce archive type: '" + type + "'";
             }
 
             var archiverCommand = new Command(binary, args);
