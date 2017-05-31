@@ -1,5 +1,5 @@
 import qbs
-import QbsFunctions
+import qbs.Utilities
 
 Product {
     Depends { name: "qbsbuildconfig" }
@@ -15,5 +15,5 @@ Product {
         return res;
     }
     cpp.enableExceptions: true
-    condition: QbsFunctions.versionIsAtLeast(Qt.core.version, minimumQtVersion)
+    condition: Utilities.versionCompare(Qt.core.version, minimumQtVersion) >= 0
 }
