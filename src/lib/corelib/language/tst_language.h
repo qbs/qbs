@@ -115,6 +115,7 @@ private slots:
     void moduleProperties_data();
     void moduleProperties();
     void modulePropertiesInGroups();
+    void modulePropertyOverridesPerProduct();
     void moduleScope();
     void modules_data();
     void modules();

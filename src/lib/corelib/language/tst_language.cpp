@@ -1476,6 +1476,45 @@ void TestLanguage::modulePropertiesInGroups()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::modulePropertyOverridesPerProduct()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setOverriddenValues({
+                std::make_pair("modules.dummy.someString", "m"),
+                std::make_pair("products.b.dummy.someString", "b"),
+                std::make_pair("products.c.dummy.someString", "c")
+        });
+        params.setProjectFilePath(
+                    testProject("module-property-overrides-per-product.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(!!project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 3);
+        const ResolvedProductConstPtr a = products.value("a");
+        QVERIFY(!!a);
+        const ResolvedProductConstPtr b = products.value("b");
+        QVERIFY(!!b);
+        const ResolvedProductConstPtr c = products.value("c");
+        QVERIFY(!!c);
+
+        const auto propertyValue = [](const ResolvedProductConstPtr &p) -> QString
+        {
+            return p->moduleProperties->moduleProperty("dummy", "someString").toString();
+        };
+
+        QCOMPARE(propertyValue(a), QString("m"));
+        QCOMPARE(propertyValue(b), QString("b"));
+        QCOMPARE(propertyValue(c), QString("c"));
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::moduleScope()
 {
     bool exceptionCaught = false;

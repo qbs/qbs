@@ -2695,7 +2695,11 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
                         moduleInstance->property(pd.name())->location());
     }
 
-    overrideItemProperties(moduleInstance, QLatin1String("modules.") + fullName,
+    const QString generalverrideKey = QLatin1String("modules.") + fullName;
+    overrideItemProperties(moduleInstance, generalverrideKey, m_parameters.overriddenValuesTree());
+    const QString perProductOverrideKey = QLatin1String("products.") + productContext->name
+            + QLatin1Char('.') + fullName;
+    overrideItemProperties(moduleInstance, perProductOverrideKey,
                            m_parameters.overriddenValuesTree());
 }
 
