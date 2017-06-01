@@ -477,7 +477,8 @@ function compilerFlags(project, product, input, output) {
     var sysroot = product.cpp.sysroot;
     if (sysroot) {
         if (product.qbs.toolchain.contains("qcc"))
-            args.push("-I" + FileInfo.joinPaths(sysroot, "usr", "include"));
+            args.push(product.cpp.systemIncludeFlag
+                      + FileInfo.joinPaths(sysroot, "usr", "include"));
         else if (product.qbs.targetOS.contains("darwin"))
             args.push("-isysroot", sysroot);
         else
@@ -593,15 +594,20 @@ function compilerFlags(project, product, input, output) {
     if (defines)
         allDefines = allDefines.uniqueConcat(defines);
     args = args.concat(allDefines.map(function(define) { return '-D' + define }));
-    if (includePaths)
-        args = args.concat([].uniqueConcat(includePaths).map(function(path) { return '-I' + path }));
+    if (includePaths) {
+        args = args.concat([].uniqueConcat(includePaths).map(function(path) {
+            return input.cpp.includeFlag + path;
+        }));
+    }
 
     var allSystemIncludePaths = [];
     if (systemIncludePaths)
         allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(systemIncludePaths);
     if (distributionIncludePaths)
         allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(distributionIncludePaths);
-    args = args.concat(allSystemIncludePaths.map(function(path) { return '-isystem' + path }));
+    args = args.concat(allSystemIncludePaths.map(function(path) {
+        return input.cpp.systemIncludeFlag + path;
+    }));
 
     var minimumWindowsVersion = input.cpp.minimumWindowsVersion;
     if (minimumWindowsVersion && product.qbs.targetOS.contains("windows")) {
@@ -699,7 +705,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
         allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
     if (distributionIncludePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(distributionIncludePaths);
-    args = args.concat(allIncludePaths.map(function(path) { return '-I' + path }));
+    args = args.concat(allIncludePaths.map(function(path) { return input.cpp.includeFlag + path }));
 
     args.push("-o", output.filePath);
     args.push(input.filePath);

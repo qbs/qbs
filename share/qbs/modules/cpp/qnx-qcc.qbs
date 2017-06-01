@@ -48,6 +48,8 @@ UnixGCC {
 
     targetDriverFlags: qnxTarget ? ["-V" + qnxTarget] : []
 
+    systemIncludeFlag: !qnx.qnx7 ? includeFlag : base
+
     property string qnxTarget: qbs.architecture
                                ? qnx.compilerName + "_" + targetSystem + qnxTargetArchName
                                : undefined

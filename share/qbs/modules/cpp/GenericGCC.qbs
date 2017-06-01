@@ -175,6 +175,9 @@ CppModule {
     property string dsymutilPath: toolchainPathPrefix + dsymutilName
     property stringList dsymutilFlags
 
+    property string includeFlag: "-I"
+    property string systemIncludeFlag: "-isystem"
+
     readonly property bool shouldCreateSymlinks: {
         return createSymlinks && internalVersion && ["macho", "elf"].contains(cpp.imageFormat);
     }
