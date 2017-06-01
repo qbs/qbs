@@ -1234,8 +1234,6 @@ void TestLanguage::moduleProperties()
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(product);
     const QVariant value = product->moduleProperties->moduleProperty("dummy", propertyName);
-    QEXPECT_FAIL("shadowed-list-property", "QBS-1117", Continue);
-    QEXPECT_FAIL("shadowed-scalar-property", "QBS-1117", Continue);
     QCOMPARE(value, expectedValue);
 }
 

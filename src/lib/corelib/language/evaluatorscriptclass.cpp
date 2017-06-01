@@ -376,6 +376,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
         parentdata.item = data->item->parent();
         const QueryFlags qf = queryItemProperty(&parentdata, name, true);
         if (qf.testFlag(HandlesReadAccess)) {
+            m_queryResult.foundInParent = true;
             m_queryResult.data = data;
             return qf;
         }
@@ -575,8 +576,10 @@ private:
 QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QScriptString &name,
                                             uint id)
 {
+    const bool foundInParent = m_queryResult.foundInParent;
     const EvaluationData *data = m_queryResult.data;
     const Item * const itemOfProperty = m_queryResult.itemOfProperty;
+    m_queryResult.foundInParent = false;
     m_queryResult.data = 0;
     m_queryResult.itemOfProperty = 0;
     QBS_ASSERT(data, return QScriptValue());
@@ -612,7 +615,11 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     if (value->next() && !m_currentNextChain.contains(value.data())) {
         collectValuesFromNextChain(data, &result, name.toString(), value);
     } else {
-        SVConverter converter(this, &object, value, itemOfProperty, &name, data, &result);
+        QScriptValue parentObject;
+        if (foundInParent)
+            parentObject = data->evaluator->scriptValue(data->item->parent());
+        SVConverter converter(this, foundInParent ? &parentObject : &object, value, itemOfProperty,
+                              &name, data, &result);
         converter.start();
 
         const PropertyDeclaration decl = data->item->propertyDeclaration(name.toString());

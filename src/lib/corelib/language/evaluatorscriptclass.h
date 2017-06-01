@@ -94,6 +94,7 @@ private:
             return !data;
         }
 
+        bool foundInParent = false;
         const EvaluationData *data;
         const Item *itemOfProperty;     // The item that owns the property.
         ValuePtr value;
