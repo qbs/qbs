@@ -2684,22 +2684,8 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
                         moduleInstance->property(pd.name())->location());
     }
 
-    // override module properties given on the command line
-    const QVariantMap userModuleProperties = m_parameters.overriddenValuesTree()
-            .value(QLatin1String("modules.") + fullName).toMap();
-    for (QVariantMap::const_iterator vmit = userModuleProperties.begin();
-         vmit != userModuleProperties.end(); ++vmit) {
-        if (Q_UNLIKELY(!moduleInstance->hasProperty(vmit.key()))) {
-            const ErrorInfo error(Tr::tr("Unknown property: %1.%2")
-                                  .arg(moduleName.toString(), vmit.key()));
-            handlePropertyError(error, m_parameters, m_logger);
-            continue;
-        }
-        const PropertyDeclaration decl = moduleInstance->propertyDeclaration(vmit.key());
-        moduleInstance->setProperty(vmit.key(),
-                VariantValue::create(convertToPropertyType(vmit.value(), decl.type(), moduleName,
-                        vmit.key())));
-    }
+    overrideItemProperties(moduleInstance, QLatin1String("modules.") + fullName,
+                           m_parameters.overriddenValuesTree());
 }
 
 void ModuleLoader::createChildInstances(Item *instance, Item *prototype,
@@ -2932,7 +2918,7 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
     const QVariantMap overridden = buildConfigValue.toMap();
     for (QVariantMap::const_iterator it = overridden.constBegin(); it != overridden.constEnd();
             ++it) {
-        const PropertyDeclaration decl = item->propertyDeclarations().value(it.key());
+        const PropertyDeclaration decl = item->propertyDeclaration(it.key());
         if (!decl.isValid()) {
             ErrorInfo error(Tr::tr("Unknown property: %1.%2").arg(buildConfigKey, it.key()));
             handlePropertyError(error, m_parameters, m_logger);
