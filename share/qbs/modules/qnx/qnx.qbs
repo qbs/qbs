@@ -71,7 +71,7 @@ Module {
 
     version: qnxSdkProbe.found ? qnxSdkProbe.fileName.substr(3, 3).split("").join(".") : undefined
 
-    readonly property bool qnx7: Utilities.versionCompare(version, "7") >= 0
+    readonly property bool qnx7: version ? Utilities.versionCompare(version, "7") >= 0 : false
 
     property string sdkDir: qnxSdkProbe.filePath
 
