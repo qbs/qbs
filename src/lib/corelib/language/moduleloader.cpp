@@ -922,7 +922,7 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
                     m_parameters.settingsDirectory(), productContext.profileName,
                     m_parameters.configurationName());
         productContext.moduleProperties = SetupProjectParameters::finalBuildConfigurationTree(
-                    buildConfig, m_parameters.overriddenValues(), m_parameters.buildRoot());
+                    buildConfig, m_parameters.overriddenValues());
         projectContext->result->profileConfigs.insert(productContext.profileName,
                                                       productContext.moduleProperties);
     } else {

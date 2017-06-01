@@ -125,6 +125,8 @@ QString ProductInstaller::targetFilePath(const TopLevelProject *project,
             = properties->qbsPropertyValue(QLatin1String("installSourceBase")).toString();
     initInstallRoot(project, options);
     QString targetDir = options.installRoot();
+    if (targetDir.isEmpty())
+        targetDir = properties->qbsPropertyValue(QLatin1String("installRoot")).toString();
     targetDir.append(QLatin1Char('/')).append(installPrefix)
             .append(QLatin1Char('/')).append(relativeInstallDir);
     targetDir = QDir::cleanPath(targetDir);

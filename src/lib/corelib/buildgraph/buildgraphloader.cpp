@@ -907,7 +907,7 @@ bool BuildGraphLoader::checkConfigCompatibility()
         const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
                     m_parameters.settingsDirectory(), it.key(), m_parameters.configurationName());
         const QVariantMap newConfig = SetupProjectParameters::finalBuildConfigurationTree(
-                    buildConfig, m_parameters.overriddenValues(), m_parameters.buildRoot());
+                    buildConfig, m_parameters.overriddenValues());
         if (newConfig != it.value()) {
             if (m_parameters.overrideBuildGraphData())
                 return false;

@@ -100,7 +100,7 @@ public:
     QVariantMap buildConfigurationTree() const;
 
     static QVariantMap finalBuildConfigurationTree(const QVariantMap &buildConfig,
-            const QVariantMap &overriddenValues, const QString &buildRoot);
+            const QVariantMap &overriddenValues);
     QVariantMap finalBuildConfigurationTree() const;
 
     bool overrideBuildGraphData() const;

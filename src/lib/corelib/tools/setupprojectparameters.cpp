@@ -406,21 +406,12 @@ ErrorInfo SetupProjectParameters::expandBuildConfiguration()
 }
 
 QVariantMap SetupProjectParameters::finalBuildConfigurationTree(const QVariantMap &buildConfig,
-        const QVariantMap &overriddenValues, const QString &buildRoot)
+        const QVariantMap &overriddenValues)
 {
     QVariantMap flatBuildConfig = buildConfig;
     for (QVariantMap::ConstIterator it = overriddenValues.constBegin();
          it != overriddenValues.constEnd(); ++it) {
         flatBuildConfig.insert(it.key(), it.value());
-    }
-
-    const QString installRootKey = QLatin1String("qbs.installRoot");
-    QString installRoot = flatBuildConfig.value(installRootKey).toString();
-    if (installRoot.isEmpty()) {
-        installRoot = buildRoot + QLatin1Char('/')
-                + flatBuildConfig.value(QLatin1String("qbs.configurationName")).toString()
-                + QLatin1Char('/') + InstallOptions::defaultInstallRoot();
-        flatBuildConfig.insert(installRootKey, installRoot);
     }
 
     QVariantMap buildConfigTree;
@@ -435,7 +426,7 @@ QVariantMap SetupProjectParameters::finalBuildConfigurationTree() const
 {
     if (d->finalBuildConfigTree.isEmpty()) {
         d->finalBuildConfigTree = finalBuildConfigurationTree(buildConfiguration(),
-                overriddenValues(), buildRoot());
+                                                              overriddenValues());
     }
     return d->finalBuildConfigTree;
 }
