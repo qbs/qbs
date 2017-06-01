@@ -87,6 +87,7 @@ private slots:
     void installedSourceFiles();
     void installedTransformerOutput();
     void installPackage();
+    void installRootFromProjectFile();
     void installTree();
     void invalidCommandProperty();
     void invalidExtensionInstantiation();

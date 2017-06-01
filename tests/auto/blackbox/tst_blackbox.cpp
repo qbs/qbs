@@ -2530,6 +2530,16 @@ void TestBlackbox::installPackage()
     }
 }
 
+void TestBlackbox::installRootFromProjectFile()
+{
+    QDir::setCurrent(testDataDir + "/install-root-from-project-file");
+    const QString installRoot = QDir::currentPath() + '/' + relativeBuildDir()
+            + "/my-install-root/";
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("products.p.installRoot:" + installRoot))), 0);
+    const QString installedFile = installRoot + "/install-prefix/install-dir/file.txt";
+    QVERIFY2(QFile::exists(installedFile), qPrintable(installedFile));
+}
+
 void TestBlackbox::installable()
 {
     QDir::setCurrent(testDataDir + "/installable");
