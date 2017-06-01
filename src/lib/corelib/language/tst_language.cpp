@@ -1217,7 +1217,7 @@ void TestLanguage::moduleProperties_data()
             << QVariant(QStringList() << "PRODUCT_STUFF");
     QTest::newRow("shadowed-list-property")
             << "defines"
-            << QVariant(QString("MyProject_shadowed-list-property"));
+            << QVariant(QStringList() << "MyProject" << "shadowed-list-property");
     QTest::newRow("shadowed-scalar-property")
             << "someString"
             << QVariant(QString("MyProject_shadowed-scalar-property"));
