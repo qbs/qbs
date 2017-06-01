@@ -40,8 +40,9 @@ Module {
     Probes.PathProbe {
         id: qnxSdkProbe
         names: ["qnx700", "qnx660", "qnx650"]
-        pathPrefixes: [Environment.getEnv("HOME"),
-            qbs.targetOS.contains("windows") ? "C:/" : "/opt"]
+        pathPrefixes: qbs.hostOS.contains("windows")
+                      ? [Environment.getEnv("USERPROFILE"), "C:/"]
+                      : [Environment.getEnv("HOME"), "/opt"]
     }
 
     Probe {
