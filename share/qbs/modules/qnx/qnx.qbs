@@ -34,6 +34,7 @@ import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Probes
+import qbs.Utilities
 
 Module {
     Probes.PathProbe {
