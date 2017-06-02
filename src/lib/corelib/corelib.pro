@@ -1,7 +1,10 @@
 TARGET = qbscore
 include(../library.pri)
 
-isEmpty(QBS_RELATIVE_LIBEXEC_PATH):QBS_RELATIVE_LIBEXEC_PATH=../libexec/qbs
+isEmpty(QBS_RELATIVE_LIBEXEC_PATH) {
+    win32:QBS_RELATIVE_LIBEXEC_PATH=../bin
+    else:QBS_RELATIVE_LIBEXEC_PATH=../libexec/qbs
+}
 DEFINES += QBS_RELATIVE_LIBEXEC_PATH=\\\"$${QBS_RELATIVE_LIBEXEC_PATH}\\\"
 
 QT += core-private network script

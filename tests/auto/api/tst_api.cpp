@@ -45,6 +45,7 @@
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qscopedpointer.h>
 #include <QtCore/qstringlist.h>
+#include <QtCore/qthread.h>
 #include <QtCore/qtimer.h>
 
 #include <QtTest/qtest.h>
@@ -307,6 +308,7 @@ void TestApi::buildGraphLocking()
 
     // Case 4: Changing the build directory again, but cancelling the job.
     setupJob.reset(project3.setupProject(setupParams2, m_logSink, 0));
+    QThread::sleep(1);
     setupJob->cancel();
     waitForFinished(setupJob.data());
     QVERIFY(setupJob->error().hasError());

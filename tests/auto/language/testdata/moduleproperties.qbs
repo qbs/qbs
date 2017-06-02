@@ -1,6 +1,9 @@
 import qbs 1.0
 
 Project {
+    name: "MyProject"
+    property string projectName: name
+
     Product {
         name: "merge_lists"
         Depends { name: "dummyqt"; submodules: ["gui", "network"] }
@@ -46,5 +49,19 @@ Project {
             overrideListProperties: true
             dummy.listProp: ["PRODUCT_STUFF"]
         }
+    }
+
+    Product {
+        name: "shadowed-list-property"
+        property string productName: name
+        Depends { name: "dummy" }
+        dummy.defines: [projectName, productName]
+    }
+
+    Product {
+        name: "shadowed-scalar-property"
+        property string productName: name
+        Depends { name: "dummy" }
+        dummy.someString: projectName + "_" + productName
     }
 }

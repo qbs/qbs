@@ -196,7 +196,7 @@ void InternalJobThreadWrapper::start()
     setTimed(m_job->timed());
     m_thread.start();
     m_running = true;
-    emit startRequested();
+    QTimer::singleShot(0, this, &InternalJobThreadWrapper::startRequested);
 }
 
 void InternalJobThreadWrapper::handleFinished()

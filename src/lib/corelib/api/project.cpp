@@ -153,6 +153,7 @@ BuildJob *ProjectPrivate::buildProducts(const QList<ResolvedProductPtr> &product
 
     BuildJob * const job = new BuildJob(logger, jobOwner);
     job->build(internalProject, productsToBuild, options);
+    QBS_ASSERT(job->state() == AbstractJob::StateRunning,);
     return job;
 }
 
@@ -161,6 +162,7 @@ CleanJob *ProjectPrivate::cleanProducts(const QList<ResolvedProductPtr> &product
 {
     CleanJob * const job = new CleanJob(logger, jobOwner);
     job->clean(internalProject, products, options);
+    QBS_ASSERT(job->state() == AbstractJob::StateRunning,);
     return job;
 }
 
@@ -172,6 +174,7 @@ InstallJob *ProjectPrivate::installProducts(const QList<ResolvedProductPtr> &pro
         addDependencies(productsToInstall);
     InstallJob * const job = new InstallJob(logger, jobOwner);
     job->install(internalProject, productsToInstall, options);
+    QBS_ASSERT(job->state() == AbstractJob::StateRunning,);
     return job;
 }
 
@@ -916,6 +919,7 @@ SetupProjectJob *Project::setupProject(const SetupProjectParameters &parameters,
     try {
         loadPlugins(parameters.pluginPaths(), logger);
         job->resolve(*this, parameters);
+        QBS_ASSERT(job->state() == AbstractJob::StateRunning,);
     } catch (const ErrorInfo &error) {
         // Throwing from here would complicate the API, so let's report the error the same way
         // as all others, via AbstractJob::error().

@@ -1237,44 +1237,51 @@ void TestLanguage::jsImportUsedInMultipleScopes()
 void TestLanguage::moduleProperties_data()
 {
     QTest::addColumn<QString>("propertyName");
-    QTest::addColumn<QStringList>("expectedValues");
-    QTest::newRow("init") << QString() << QStringList();
+    QTest::addColumn<QVariant>("expectedValue");
+    QTest::newRow("init") << QString() << QVariant();
     QTest::newRow("merge_lists")
             << "defines"
-            << (QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
+            << QVariant(QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
     QTest::newRow("merge_lists_and_values")
             << "defines"
-            << (QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
+            << QVariant(QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
     QTest::newRow("merge_lists_with_duplicates")
             << "cxxFlags"
-            << (QStringList() << "-foo" << "BAR" << "-foo" << "BAZ");
+            << QVariant(QStringList() << "-foo" << "BAR" << "-foo" << "BAZ");
     QTest::newRow("merge_lists_with_prototype_values")
             << "rpaths"
-            << (QStringList() << "/opt/qt/lib" << "$ORIGIN");
+            << QVariant(QStringList() << "/opt/qt/lib" << "$ORIGIN");
     QTest::newRow("list_property_that_references_product")
             << "listProp"
-            << (QStringList() << "x" << "123");
+            << QVariant(QStringList() << "x" << "123");
     QTest::newRow("list_property_depending_on_overridden_property")
             << "listProp2"
-            << (QStringList() << "PRODUCT_STUFF" << "DEFAULT_STUFF" << "EXTRA_STUFF");
-    QTest::newRow("overridden_list_property") << "listProp" << (QStringList() << "PRODUCT_STUFF");
-    QTest::newRow("cleanup") << QString() << QStringList();
+            << QVariant(QStringList() << "PRODUCT_STUFF" << "DEFAULT_STUFF" << "EXTRA_STUFF");
+    QTest::newRow("overridden_list_property")
+            << "listProp"
+            << QVariant(QStringList() << "PRODUCT_STUFF");
+    QTest::newRow("shadowed-list-property")
+            << "defines"
+            << QVariant(QStringList() << "MyProject" << "shadowed-list-property");
+    QTest::newRow("shadowed-scalar-property")
+            << "someString"
+            << QVariant(QString("MyProject_shadowed-scalar-property"));
+    QTest::newRow("cleanup") << QString() << QVariant();
 }
 
 void TestLanguage::moduleProperties()
 {
     HANDLE_INIT_CLEANUP_DATATAGS("moduleproperties.qbs");
     QFETCH(QString, propertyName);
-    QFETCH(QStringList, expectedValues);
+    QFETCH(QVariant, expectedValue);
     QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
     const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(!!product);
-    QVariant values = product->moduleProperties->moduleProperty("dummy", propertyName);
-    QStringList valueStrings;
-    foreach (const QVariant &v, values.toList())
-        valueStrings += v.toString();
-    QCOMPARE(valueStrings, expectedValues);
+    const QVariant value = product->moduleProperties->moduleProperty("dummy", propertyName);
+    QEXPECT_FAIL("shadowed-list-property", "QBS-1117", Continue);
+    QEXPECT_FAIL("shadowed-scalar-property", "QBS-1117", Continue);
+    QCOMPARE(value, expectedValue);
 }
 
 void TestLanguage::modulePropertiesInGroups()
