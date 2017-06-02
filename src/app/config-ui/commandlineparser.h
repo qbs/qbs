@@ -52,9 +52,9 @@ public:
     QString usageString() const;
 
 private:
-    void throwError(const QString &message);
+    Q_NORETURN void throwError(const QString &message);
     void assignOptionArgument(const QString &option, QString &argument);
-    void complainAboutExtraArguments();
+    Q_NORETURN void complainAboutExtraArguments();
 
     bool m_helpRequested;
     QString m_settingsDir;

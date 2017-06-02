@@ -65,7 +65,7 @@ protected:
     void addAllToAdditionalArguments(QStringList &input);
     void addOneToAdditionalArguments(const QString &argument);
     QString supportedOptionsDescription() const;
-    void throwError(const QString &reason);
+    Q_NORETURN void throwError(const QString &reason);
 
 private:
     QList<CommandLineOption::Type> actualSupportedOptions() const;

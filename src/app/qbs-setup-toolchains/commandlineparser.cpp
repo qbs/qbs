@@ -91,7 +91,6 @@ void CommandLineParser::parse(const QStringList &commandLine)
     case 0:
     case 1:
         throwError(Tr::tr("Not enough command-line arguments provided."));
-        break;
     case 2:
         m_compilerPath = m_commandLine.at(0);
         m_profileName = m_commandLine.at(1);
