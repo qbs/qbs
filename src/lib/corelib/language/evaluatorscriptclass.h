@@ -85,10 +85,6 @@ private:
 
     struct QueryResult
     {
-        QueryResult()
-            : data(0), itemOfProperty(0)
-        {}
-
         bool isNull() const
         {
             static const QueryResult pristine;
@@ -104,8 +100,8 @@ private:
         }
 
         bool foundInParent = false;
-        const EvaluationData *data;
-        const Item *itemOfProperty;     // The item that owns the property.
+        const EvaluationData *data = nullptr;
+        const Item *itemOfProperty = nullptr;     // The item that owns the property.
         ValuePtr value;
     };
     QueryResult m_queryResult;
