@@ -91,7 +91,16 @@ private:
 
         bool isNull() const
         {
-            return !data;
+            static const QueryResult pristine;
+            return *this == pristine;
+        }
+
+        bool operator==(const QueryResult &rhs) const
+        {
+            return foundInParent == rhs.foundInParent
+                    && data == rhs.data
+                    && itemOfProperty == rhs.itemOfProperty
+                    && value == rhs.value;
         }
 
         bool foundInParent = false;
