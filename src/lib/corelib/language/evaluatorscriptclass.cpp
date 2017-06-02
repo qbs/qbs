@@ -277,7 +277,7 @@ private:
 
         pushScope(data->evaluator->fileScope(value->file()));
         pushItemScopes(data->item);
-        if (itemOfProperty && itemOfProperty->type() != ItemType::ModuleInstance) {
+        if (itemOfProperty->type() != ItemType::ModuleInstance) {
             // Own properties of module instances must not have the instance itself in the scope.
             pushScope(*object);
         }
