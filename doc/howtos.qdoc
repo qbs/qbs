@@ -1,0 +1,105 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage index.html
+    \previouspage custom-modules.html
+    \nextpage reference.html
+    \page howtos.html
+
+    \title How-tos
+
+    This page provides concrete instructions for common scenarios.
+
+    \list
+    \li \l{How do I build a Qt-based project?}
+    \li \l{How do I make my app build against my library?}
+    \endlist
+
+    \section1 How do I build a Qt-based project?
+
+    First of all, your project files need to declare a Qt dependency.
+    See \l{Qt Modules} for how to do that.
+
+    To build the project, you need a matching \e profile. The following commands
+    set up and use a Qt-specific profile:
+    \code
+    $ qbs setup-qt /usr/bin/qmake qt
+    $ cd my_project
+    $ qbs profile:qt
+    \endcode
+    If you plan to use this profile a lot, consider making it the default one:
+    \code
+    $ qbs config defaultProfile qt
+    $ cd my_project
+    $ qbs
+    \endcode
+    See \l{Managing Qt Versions} for more details.
+    \note These instructions are only relevant for building from the command line.
+    If you use Qt Creator, profiles are set up automatically from the information in the Kit.
+
+    \section1 How do I make my app build against my library?
+
+    This is achieved by introducing a \e dependency between the two products using the
+    \l{Depends Item}{Depends item}. Here is a simple, but complete example:
+    \code
+    import qbs
+    Project {
+        CppApplication {
+            name : "the-app"
+            files : [ "main.cpp" ]
+            Depends { name: "the-lib" }
+        }
+        DynamicLibrary {
+            name: "the-lib"
+            Depends { name: "cpp" }
+            files: [
+                "lib.cpp",
+                "lib.h",
+            ]
+           Export {
+               Depends { name: "cpp" }
+               cpp.includePaths: [product.sourceDirectory]
+           }
+        }
+    }
+    \endcode
+
+    The product \c the-lib is a dynamic library. It expects other products to build against it, and
+    for that purpose, it exports an include path (via an \l{Export Item}{Export item}), so that the
+    source files in these products can include the library's header file.
+
+    The product \c the-app is an application that expresses its intent to link against \c the-lib
+    by declaring a dependency on it. Now \c main.cpp can include \c lib.h (because of the exported
+    include path) and the application binary will link against the library (because the linker
+    \l{Rule Item}{rule} in the \l{Module cpp}{cpp module} considers library dependencies as inputs).
+    \note In a non-trivial project, the two products would not be defined in the same file.
+          Instead, you would put them into files of their own and use the
+          \l{Project Item}{Project item}'s \c references property to pull them into the project.
+          The product definitions would stay exactly the same. In particular, their location
+          in the project tree is irrelevant to the relationship between them.
+
+*/

@@ -71,6 +71,7 @@
                \li  \l{Generators}
                \li  \l{Custom Modules and Items}
            \endlist
+       \li  \l{How-tos}
        \li  \l{Reference}
     \endlist
 */
@@ -808,7 +809,7 @@
     \contentspage index.html
     \previouspage generators.html
     \page custom-modules.html
-    \nextpage reference.html
+    \nextpage howtos.html
 
     \title Custom Modules and Items
 

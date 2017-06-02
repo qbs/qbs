@@ -9,6 +9,7 @@ Product {
     Depends { name: "qbsversion" }
 
     files: [
+        "howtos.qdoc",
         "qbs.qdoc",
         "config/*.qdocconf",
         "reference/**/*",
