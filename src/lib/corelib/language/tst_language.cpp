@@ -1003,10 +1003,14 @@ void TestLanguage::idUsage()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 3);
+        QCOMPARE(products.count(), 4);
         QVERIFY(products.contains("product1_1"));
         QVERIFY(products.contains("product2_2"));
         QVERIFY(products.contains("product3_3"));
+        ResolvedProductPtr product4 = products.value("product4_4");
+        QVERIFY(product4);
+        QEXPECT_FAIL("", "QBS-1016", Continue);
+        QCOMPARE(product4->productProperties.value("productName").toString(), product4->name);
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;

@@ -17,4 +17,9 @@ Project {
         property int nr: product2.nr + 1
         name: "product3_" + nr
     }
+    DerivedProduct {
+        id: product4
+        nr: product3.nr + 1
+        name: "product4_" + nr
+    }
 }
