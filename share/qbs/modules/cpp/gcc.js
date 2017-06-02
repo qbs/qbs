@@ -772,6 +772,47 @@ function nativeConfigString(product) {
     return props.length > 0 ? (" (" + props.join(", ") + ")") : "";
 }
 
+function compilerEnvVars(config, compilerInfo)
+{
+    if (config.qbs.toolchain.contains("qcc"))
+        return ["QCC_CONF_PATH"];
+
+    var list = ["CPATH", "TMPDIR"];
+    if (compilerInfo.tag === "c")
+        list.push("C_INCLUDE_PATH");
+    else if (compilerInfo.tag === "cpp")
+        list.push("CPLUS_INCLUDE_PATH");
+    else if (compilerInfo.tag === "objc")
+        list.push("OBJC_INCLUDE_PATH");
+    else if (compilerInfo.tag === "objccpp")
+        list.push("OBJCPLUS_INCLUDE_PATH");
+    if (config.qbs.targetOS.contains("macos"))
+        list.push("MACOSX_DEPLOYMENT_TARGET");
+    else if (config.qbs.targetOS.contains("ios"))
+        list.push("IPHONEOS_DEPLOYMENT_TARGET");
+    else if (config.qbs.targetOS.contains("tvos"))
+        list.push("TVOS_DEPLOYMENT_TARGET");
+    else if (config.qbs.targetOS.contains("watchos"))
+        list.push("WATCHOS_DEPLOYMENT_TARGET");
+    if (config.qbs.toolchain.contains("clang")) {
+        list.push("TEMP", "TMP");
+    } else {
+        list.push("LANG", "LC_CTYPE", "LC_MESSAGES", "LC_ALL", "GCC_COMPARE_DEBUG",
+                  "GCC_EXEC_PREFIX", "COMPILER_PATH", "SOURCE_DATE_EPOCH");
+    }
+    return list;
+}
+
+function linkerEnvVars(config, inputs)
+{
+    if (config.qbs.toolchain.contains("clang") || config.qbs.toolchain.contains("qcc"))
+        return [];
+    var list = ["GNUTARGET", "LDEMULATION", "COLLECT_NO_DEMANGLE"];
+    if (useCompilerDriverLinker(config, inputs))
+        list.push("LIBRARY_PATH");
+    return list;
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output) {
     var compilerInfo = effectiveCompilerInfo(product.qbs.toolchain,
                                              input, output);
@@ -794,6 +835,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         cmd.description += ' (' + compilerInfo.tag + ')';
     cmd.description += nativeConfigString(product);
     cmd.highlight = "compiler";
+    cmd.relevantEnvironmentVariables = compilerEnvVars(input, compilerInfo);
     cmd.responseFileArgumentIndex = wrapperArgsLength;
     cmd.responseFileUsagePrefix = '@';
     return cmd;
@@ -998,6 +1040,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     cmd = new Command(linkerPath, args);
     cmd.description = 'linking ' + primaryOutput.fileName + nativeConfigString(product);
     cmd.highlight = 'linker';
+    cmd.relevantEnvironmentVariables = linkerEnvVars(product, inputs);
     cmd.responseFileArgumentIndex = wrapperArgsLength;
     cmd.responseFileUsagePrefix = '@';
     commands.push(cmd);

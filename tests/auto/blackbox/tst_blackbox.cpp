@@ -451,6 +451,40 @@ void TestBlackbox::buildDirectories()
     QVERIFY2(outputLines.contains(projectDir), m_qbsStdout.constData());
 }
 
+void TestBlackbox::buildEnvChange()
+{
+    QDir::setCurrent(testDataDir + "/buildenv-change");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments << "-k";
+    QVERIFY(runQbs(params) != 0);
+    const bool isMsvc = m_qbsStdout.contains("msvc");
+    QVERIFY2(m_qbsStdout.contains("compiling file.c"), m_qbsStdout.constData());
+    QString includePath = QDir::currentPath() + "/subdir";
+    params.environment.insert("CPLUS_INCLUDE_PATH", includePath);
+    params.environment.insert("CL", "/I" + includePath);
+    QVERIFY(runQbs(params) != 0);
+    params.command = "resolve";
+    params.expectFailure = false;
+    params.arguments.clear();
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QCOMPARE(m_qbsStdout.contains("compiling file.c"), isMsvc);
+    includePath = QDir::currentPath() + "/subdir2";
+    params.environment.insert("CPLUS_INCLUDE_PATH", includePath);
+    params.environment.insert("CL", "/I" + includePath);
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QCOMPARE(m_qbsStdout.contains("compiling file.c"), isMsvc);
+    params.environment = QProcessEnvironment::systemEnvironment();
+    QCOMPARE(runQbs(params), 0);
+    params.command = "build";
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+}
+
 void TestBlackbox::changedFiles_data()
 {
     QTest::addColumn<bool>("useChangedFilesForInitialBuild");

@@ -103,12 +103,13 @@ private:
                                            const ResolvedProductPtr &newlyResolvedProduct);
     bool checkForPropertyChanges(const ResolvedProductPtr &restoredProduct,
                                  const ResolvedProductPtr &newlyResolvedProduct);
-    bool checkTransformersForPropertyChanges(const ResolvedProductPtr &restoredProduct,
+    bool checkTransformersForChanges(const ResolvedProductPtr &restoredProduct,
                                              const ResolvedProductPtr &newlyResolvedProduct);
     void onProductRemoved(const ResolvedProductPtr &product, ProjectBuildData *projectBuildData,
                           bool removeArtifactsFromDisk = true);
     bool checkForPropertyChanges(const TransformerPtr &restoredTrafo,
             const ResolvedProductPtr &freshProduct);
+    bool checkForEnvChanges(const TransformerPtr &restoredTrafo);
     bool checkForPropertyChange(const Property &restoredProperty,
                                 const QVariantMap &newProperties);
     void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
@@ -140,6 +141,8 @@ private:
 
     // These must only be deleted at the end so we can still peek into the old look-up table.
     QList<FileResourceBase *> m_objectsToDelete;
+
+    bool m_envChange = false;
 };
 
 } // namespace Internal

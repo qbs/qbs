@@ -122,6 +122,7 @@ public:
     int responseFileArgumentIndex() const { return m_responseFileArgumentIndex; }
     QString responseFileUsagePrefix() const { return m_responseFileUsagePrefix; }
     QProcessEnvironment environment() const { return m_environment; }
+    QStringList relevantEnvVars() const;
     QString stdoutFilePath() const { return m_stdoutFilePath; }
     QString stderrFilePath() const { return m_stderrFilePath; }
 
@@ -143,6 +144,7 @@ private:
     int m_responseFileArgumentIndex;
     QString m_responseFileUsagePrefix;
     QProcessEnvironment m_environment;
+    QStringList m_relevantEnvVars;
     QString m_stdoutFilePath;
     QString m_stderrFilePath;
 };

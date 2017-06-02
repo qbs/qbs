@@ -282,6 +282,7 @@ void BuildGraphLoader::trackProjectChanges()
     for (const ResolvedProductPtr &cp : qAsConst(allNewlyResolvedProducts))
         freshProductsByName.insert(cp->uniqueName(), cp);
 
+    m_envChange = restoredProject->environment != m_result.newlyResolvedProject->environment;
     checkAllProductsForChanges(allRestoredProducts, freshProductsByName, changedProducts);
 
     std::shared_ptr<ProjectBuildData> oldBuildData;
@@ -650,7 +651,7 @@ bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restore
         return false;
 
     // This check must come first, as it can prevent build data rescuing.
-    if (checkTransformersForPropertyChanges(restoredProduct, newlyResolvedProduct))
+    if (checkTransformersForChanges(restoredProduct, newlyResolvedProduct))
         return true;
 
     if (restoredProduct->fileTags != newlyResolvedProduct->fileTags) {
@@ -668,7 +669,7 @@ bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restore
     return false;
 }
 
-bool BuildGraphLoader::checkTransformersForPropertyChanges(const ResolvedProductPtr &restoredProduct,
+bool BuildGraphLoader::checkTransformersForChanges(const ResolvedProductPtr &restoredProduct,
         const ResolvedProductPtr &newlyResolvedProduct)
 {
     bool transformerChanges = false;
@@ -677,11 +678,12 @@ bool BuildGraphLoader::checkTransformersForPropertyChanges(const ResolvedProduct
         const TransformerPtr transformer = artifact->transformer;
         if (!transformer || !seenTransformers.insert(transformer).second)
             continue;
-        if (checkForPropertyChanges(transformer, newlyResolvedProduct))
+        if (checkForPropertyChanges(transformer, newlyResolvedProduct)
+                || checkForEnvChanges(transformer))
             transformerChanges = true;
     }
     if (transformerChanges) {
-        m_logger.qbsDebug() << "Property changes in product '"
+        m_logger.qbsDebug() << "Property or environment changes in product '"
                             << newlyResolvedProduct->uniqueName() << "'.";
     }
     return transformerChanges;
@@ -812,6 +814,25 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
         for (const Property &property : qAsConst(it.value())) {
             if (checkForPropertyChange(property, artifact->properties->value()))
                 return true;
+        }
+    }
+    return false;
+}
+
+bool BuildGraphLoader::checkForEnvChanges(const TransformerPtr &restoredTrafo)
+{
+    if (!m_envChange)
+        return false;
+    // TODO: Also check results of getEnv() from commands here; we currently do not track them
+    for (const AbstractCommandPtr &c : qAsConst(restoredTrafo->commands)) {
+        if (c->type() != AbstractCommand::ProcessCommandType)
+            continue;
+        for (const QString &var : std::static_pointer_cast<ProcessCommand>(c)->relevantEnvVars()) {
+            if (restoredTrafo->product()->topLevelProject()->environment.value(var)
+                    != m_result.newlyResolvedProject->environment.value(var)) {
+                invalidateTransformer(restoredTrafo);
+                return true;
+            }
         }
     }
     return false;

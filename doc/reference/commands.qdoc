@@ -145,6 +145,13 @@
         \li The binary to invoke. Explicitly setting this property overrides a path provided when
             instantiating the object.
     \row
+        \li \c relevantEnvironmentVariables
+        \li stringList
+        \li undefined
+        \li Names of environment variables that the invoked binary considers.
+            If one of these variables changes in the build environment, the command will be
+            re-run even if the input files are still up to date.
+    \row
         \li \c responseFileThreshold
         \li int
         \li 32000 on Windows, -1 elsewhere

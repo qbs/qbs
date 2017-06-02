@@ -40,6 +40,7 @@
 #include "rulecommands.h"
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
@@ -235,6 +236,7 @@ bool ProcessCommand::equals(const AbstractCommand *otherAbstractCommand) const
             && m_responseFileUsagePrefix == other->m_responseFileUsagePrefix
             && m_stdoutFilePath == other->m_stdoutFilePath
             && m_stderrFilePath == other->m_stderrFilePath
+            && m_relevantEnvVars == other->m_relevantEnvVars
             && m_environment == other->m_environment;
 }
 
@@ -259,6 +261,8 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
                 + QLatin1String(")()");
     else
         m_stderrFilterFunction = stderrFilterFunction.toString();
+    m_relevantEnvVars = scriptValue->property(QLatin1String("relevantEnvironmentVariables"))
+            .toVariant().toStringList();
     m_responseFileThreshold = scriptValue->property(QLatin1String("responseFileThreshold"))
             .toInt32();
     m_responseFileArgumentIndex = scriptValue->property(QLatin1String("responseFileArgumentIndex"))
@@ -287,6 +291,14 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
     applyCommandProperties(scriptValue);
 }
 
+QStringList ProcessCommand::relevantEnvVars() const
+{
+    QStringList vars = m_relevantEnvVars;
+    if (!FileInfo::isAbsolute(program()))
+        vars << QLatin1String("PATH");
+    return vars;
+}
+
 void ProcessCommand::load(PersistentPool &pool)
 {
     AbstractCommand::load(pool);
@@ -300,6 +312,7 @@ void ProcessCommand::load(PersistentPool &pool)
     pool.load(m_maxExitCode);
     pool.load(m_responseFileThreshold);
     pool.load(m_responseFileArgumentIndex);
+    pool.load(m_relevantEnvVars);
     pool.load(m_stdoutFilePath);
     pool.load(m_stderrFilePath);
 }
@@ -317,6 +330,7 @@ void ProcessCommand::store(PersistentPool &pool) const
     pool.store(m_maxExitCode);
     pool.store(m_responseFileThreshold);
     pool.store(m_responseFileArgumentIndex);
+    pool.store(m_relevantEnvVars);
     pool.store(m_stdoutFilePath);
     pool.store(m_stderrFilePath);
 }

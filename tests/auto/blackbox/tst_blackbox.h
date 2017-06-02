@@ -45,6 +45,7 @@ private slots:
     void assembly();
     void badInterpreter();
     void buildDirectories();
+    void buildEnvChange();
     void changedFiles_data();
     void changedFiles();
     void changeInDisabledProduct();

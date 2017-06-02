@@ -204,6 +204,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     cmd.responseFileUsagePrefix = '@';
     // cl.exe outputs the cpp file name. We filter that out.
     cmd.inputFileName = input.fileName;
+    cmd.relevantEnvironmentVariables = ["CL", "_CL_", "INCLUDE"];
     cmd.stdoutFilterFunction = function(output) {
         return output.split(inputFileName + "\r\n").join("");
     };
@@ -402,6 +403,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var cmd = new Command(linkerPath, args)
     cmd.description = 'linking ' + primaryOutput.fileName;
     cmd.highlight = 'linker';
+    cmd.relevantEnvironmentVariables = ["LINK", "_LINK_", "LIB", "TMP"];
     cmd.workingDirectory = FileInfo.path(primaryOutput.filePath)
     cmd.responseFileUsagePrefix = '@';
     cmd.stdoutFilterFunction = function(output) {
