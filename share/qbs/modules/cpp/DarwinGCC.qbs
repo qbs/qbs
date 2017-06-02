@@ -59,6 +59,7 @@ UnixGCC {
     toolchainInstallPath: xcode.present
                           ? FileInfo.joinPaths(xcode.toolchainPath, "usr", "bin") : base
     sysroot: xcode.present ? xcode.sdkPath : base
+    sysrootFlags: sysroot ? ["-isysroot", sysroot] : []
 
     setupBuildEnvironment: {
         for (var key in buildEnv) {

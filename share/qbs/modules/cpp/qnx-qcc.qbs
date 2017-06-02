@@ -42,6 +42,7 @@ UnixGCC {
     toolchainInstallPath: FileInfo.joinPaths(qnx.hostDir, "usr", "bin")
 
     sysroot: qnx.targetDir
+    sysrootFlags: sysroot ? [systemIncludeFlag + FileInfo.joinPaths(sysroot, "usr", "include")] : []
 
     cCompilerName: "qcc" + compilerExtension
     cxxCompilerName: (qnx.qnx7 ? "q++" : "QCC") + compilerExtension

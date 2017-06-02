@@ -41,7 +41,6 @@ PathProbe {
     property string _nullDevice: qbs.nullDevice
     property stringList _toolchain: qbs.toolchain
     property string _pathListSeparator: qbs.pathListSeparator
-    property stringList _targetOS: qbs.targetOS
     property string _sysroot: qbs.sysroot
 
     // Outputs
@@ -56,7 +55,7 @@ PathProbe {
     configure: {
         var macros = Gcc.dumpMacros(environment, compilerFilePath, flags, _nullDevice);
         var defaultPaths = Gcc.dumpDefaultPaths(environment, compilerFilePath, flags, _nullDevice,
-                                                _pathListSeparator, _targetOS, _sysroot);
+                                                _pathListSeparator, _sysroot);
         found = !!macros && !!defaultPaths;
 
         includePaths = defaultPaths.includePaths;

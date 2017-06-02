@@ -53,7 +53,8 @@ CppModule {
         id: gccProbe
         compilerFilePath: compilerPath
         environment: buildEnv
-        flags: targetDriverFlags
+        flags: targetDriverFlags.concat(sysrootFlags)
+        _sysroot: sysroot
     }
 
     targetLinkerFlags: Gcc.targetFlags("linker", false,
@@ -111,6 +112,7 @@ CppModule {
     property string stripName: "strip"
     property string dsymutilName: "dsymutil"
     property path sysroot: qbs.sysroot
+    property stringList sysrootFlags: sysroot ? ["--sysroot=" + sysroot] : []
 
     property string linkerMode: "automatic"
     PropertyOptions {

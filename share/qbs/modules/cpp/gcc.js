@@ -505,16 +505,7 @@ function compilerFlags(project, product, input, output) {
 
     var args = additionalCompilerAndLinkerFlags(product);
 
-    var sysroot = product.cpp.sysroot;
-    if (sysroot) {
-        if (product.qbs.toolchain.contains("qcc"))
-            args.push(product.cpp.systemIncludeFlag
-                      + FileInfo.joinPaths(sysroot, "usr", "include"));
-        else if (product.qbs.targetOS.contains("darwin"))
-            args.push("-isysroot", sysroot);
-        else
-            args.push("--sysroot=" + sysroot);
-    }
+    Array.prototype.push.apply(args, product.cpp.sysrootFlags);
 
     if (input.cpp.debugInformation)
         args.push('-g');
@@ -1110,20 +1101,13 @@ function dumpMacros(env, compilerFilePath, args, nullDevice) {
     }
 }
 
-function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSeparator, targetOS,
-                          sysroot) {
+function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSeparator, sysroot) {
     var p = new Process();
     try {
         p.setEnv("LC_ALL", "C");
         for (var key in env)
             p.setEnv(key, env[key]);
         args = args || [];
-        if (sysroot) {
-            if (targetOS.contains("darwin"))
-                args.push("-isysroot", sysroot);
-            else
-                args.push("--sysroot=" + sysroot);
-        }
         p.exec(compilerFilePath, args.concat(["-v", "-E", "-x", "c++", nullDevice]), true);
         var suffix = " (framework directory)";
         var includePaths = [];

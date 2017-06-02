@@ -100,6 +100,8 @@ Module {
         "QNX_CONFIGURATION": configurationDir
     })
 
+    qbs.sysroot: targetDir
+
     validate: {
         var validator = new ModUtils.PropertyValidator("qnx");
         validator.setRequiredProperty("sdkDir", sdkDir);
