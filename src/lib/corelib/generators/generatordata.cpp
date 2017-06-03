@@ -92,6 +92,29 @@ QString GeneratableProjectData::name() const
     return name;
 }
 
+CodeLocation GeneratableProjectData::location() const
+{
+    CodeLocation location;
+    QMapIterator<QString, ProjectData> it(data);
+    while (it.hasNext()) {
+        it.next();
+        CodeLocation oldLocation = location;
+        location = it.value().location();
+        if (oldLocation.isValid() && oldLocation != location)
+            throw ErrorInfo(QLatin1String("Projects with different code locations "
+                                          "per-configuration are not compatible with this "
+                                          "generator."));
+    }
+    return location;
+}
+
+GeneratableProjectData::Id GeneratableProjectData::uniqueName() const
+{
+    GeneratableProjectData::Id id;
+    id.value = name() + QLatin1Char('-') + location().toString();
+    return id;
+}
+
 QDir GeneratableProject::baseBuildDirectory() const
 {
     Internal::Set<QString> baseBuildDirectory;

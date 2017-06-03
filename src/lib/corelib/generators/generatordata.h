@@ -59,10 +59,22 @@ struct GeneratableProductData {
 };
 
 struct GeneratableProjectData {
+    struct Id {
+    private:
+        friend class GeneratableProjectData;
+        Id() { }
+        QString value;
+
+    public:
+        bool operator<(const Id &id) const { return value < id.value; }
+    };
+
     GeneratableProjectDataMap data;
     QList<GeneratableProjectData> subProjects;
     QList<GeneratableProductData> products;
     QString name() const;
+    CodeLocation location() const;
+    Id uniqueName() const;
 };
 
 struct GeneratableProject : public GeneratableProjectData {

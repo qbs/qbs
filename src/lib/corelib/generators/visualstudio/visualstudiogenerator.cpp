@@ -79,7 +79,7 @@ public:
     QString solutionFilePath;
     QMap<QString, QSharedPointer<MSBuildProject>> msbuildProjects;
     QMap<QString, VisualStudioSolutionFileProject *> solutionProjects;
-    QMap<QString, VisualStudioSolutionFolderProject *> solutionFolders;
+    QMap<GeneratableProjectData::Id, VisualStudioSolutionFolderProject *> solutionFolders;
     QList<std::pair<QString, bool>> propertySheetNames;
 
     void reset();
@@ -118,9 +118,9 @@ public:
         // as its parent object (so skip giving it a parent folder)
         if (!parentProjectData.name().isEmpty()) {
             nestedProjects->appendProperty(
-                        generator->d->solutionFolders.value(projectData.name())->guid()
+                        generator->d->solutionFolders.value(projectData.uniqueName())->guid()
                             .toString(),
-                        generator->d->solutionFolders.value(parentProjectData.name())->guid()
+                        generator->d->solutionFolders.value(parentProjectData.uniqueName())->guid()
                             .toString());
         }
     }
@@ -138,7 +138,8 @@ public:
 
         nestedProjects->appendProperty(
                     generator->d->solutionProjects.value(productData.name())->guid().toString(),
-                    generator->d->solutionFolders.value(projectData.name())->guid().toString());
+                    generator->d->solutionFolders.value(projectData.uniqueName())->guid()
+                        .toString());
     }
 
 private:
@@ -340,7 +341,8 @@ void VisualStudioGenerator::visitProjectData(const GeneratableProject &project,
     auto solutionFolder = new VisualStudioSolutionFolderProject(d->solution.data());
     solutionFolder->setName(projectData.name());
     d->solution->appendProject(solutionFolder);
-    d->solutionFolders.insert(projectData.name(), solutionFolder);
+    QBS_CHECK(!d->solutionFolders.contains(projectData.uniqueName()));
+    d->solutionFolders.insert(projectData.uniqueName(), solutionFolder);
 }
 
 void VisualStudioGenerator::visitProduct(const GeneratableProject &project,
