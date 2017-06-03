@@ -61,6 +61,22 @@ QString GeneratableProductData::name() const
     return name;
 }
 
+CodeLocation GeneratableProductData::location() const
+{
+    CodeLocation location;
+    QMapIterator<QString, ProductData> it(data);
+    while (it.hasNext()) {
+        it.next();
+        CodeLocation oldLocation = location;
+        location = it.value().location();
+        if (oldLocation.isValid() && oldLocation != location)
+            throw ErrorInfo(QLatin1String("Products with different code locations "
+                                          "per-configuration are not compatible with this "
+                                          "generator."));
+    }
+    return location;
+}
+
 QStringList GeneratableProductData::dependencies() const
 {
     QStringList list;

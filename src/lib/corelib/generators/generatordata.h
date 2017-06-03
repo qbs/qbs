@@ -55,6 +55,7 @@ typedef QMap<QString, ProductData> GeneratableProductDataMap;
 struct GeneratableProductData {
     GeneratableProductDataMap data;
     QString name() const;
+    CodeLocation location() const;
     QStringList dependencies() const;
 };
 
