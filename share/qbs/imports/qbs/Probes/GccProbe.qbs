@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs
+import qbs.File
 import qbs.ModUtils
 import "../../../modules/cpp/gcc.js" as Gcc
 
@@ -53,6 +54,11 @@ PathProbe {
     property stringList frameworkPaths
 
     configure: {
+        if (!File.exists(compilerFilePath)) {
+            found = false;
+            return;
+        }
+
         var macros = Gcc.dumpMacros(environment, compilerFilePath, flags, _nullDevice);
         var defaultPaths = Gcc.dumpDefaultPaths(environment, compilerFilePath, flags, _nullDevice,
                                                 _pathListSeparator, _sysroot);

@@ -242,6 +242,17 @@ CppModule {
     }
 
     validate: {
+        if (!File.exists(compilerPath)) {
+            var pathMessage = FileInfo.isAbsolutePath(compilerPath)
+                    ? "at '" + compilerPath + "'"
+                    : "'" + compilerPath + "' in PATH";
+            throw ModUtils.ModuleError("Could not find selected C++ compiler " + pathMessage + ". "
+                                       + "Ensure that the compiler is properly "
+                                       + "installed, or set cpp.toolchainInstallPath to a valid "
+                                       + "toolchain path, or consider whether you meant to set "
+                                       + "cpp.compilerName instead.");
+        }
+
         var validator = new ModUtils.PropertyValidator("cpp");
         validator.setRequiredProperty("architecture", architecture,
                                       "you might want to re-run 'qbs-setup-toolchains'");
