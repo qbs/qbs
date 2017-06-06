@@ -212,7 +212,7 @@ void ProjectCreator::getFlagsFromFileContents(const ProjectCreator::Project &pro
     for (const QString &fileName : qAsConst(project.fileNames)) {
         QFile f (project.dirPath + QLatin1Char('/') + fileName);
         if (!f.open(QIODevice::ReadOnly)) {
-            qDebug() << "Ingoring failure to read" << f.fileName();
+            qDebug() << "Ignoring failure to read" << f.fileName();
             continue;
         }
         while (!f.atEnd()) {

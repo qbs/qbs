@@ -127,7 +127,7 @@ BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingPr
     trackProjectChanges();
     if (m_parameters.logElapsedTime()) {
         m_logger.qbsLog(LoggerInfo, true) << "\t"
-                << Tr::tr("Wilcard expansion took %1.")
+                << Tr::tr("Wildcard expansion took %1.")
                    .arg(elapsedTimeString(m_wildcardExpansionEffort));
         m_logger.qbsLog(LoggerInfo, true) << "\t"
                 << Tr::tr("Comparing property values took %1.")
