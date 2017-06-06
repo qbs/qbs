@@ -103,11 +103,26 @@ Module {
     qbs.sysroot: targetDir
 
     validate: {
-        var validator = new ModUtils.PropertyValidator("qnx");
-        validator.setRequiredProperty("sdkDir", sdkDir);
-        validator.setRequiredProperty("hostArch", hostArch);
-        validator.setRequiredProperty("hostOs", hostOs);
-        validator.setRequiredProperty("targetOs", targetOs);
-        return validator.validate();
+        if (!sdkDir) {
+            throw ModUtils.ModuleError("Could not find a QNX SDK in any of the following "
+                                       + "locations:\n\t" + qnxSdkProbe.candidatePaths.join("\n\t")
+                                       + "\nInstall the QNX SDK to one of the above locations, "
+                                       + "or set the qnx.sdkDir property to a valid QNX SDK "
+                                       + "location.");
+        }
+
+        if (!hostOs) {
+            throw ModUtils.ModuleError("Host operating system '" + qbs.hostOS
+                                       + "' is not supported by the QNX SDK.");
+        } else if (!File.exists(hostDir)) {
+            throw ModUtils.ModuleError("Detected host tools operating system '" + hostOs
+                                       + "' and architecture '" + hostArch + "' directory is not "
+                                       + "present in the QNX SDK installed at '" + sdkDir
+                                       + "' in the expected location '" + hostDir
+                                       + "'; did you forget to install it?");
+        }
+
+        if (!targetOs)
+            throw ModUtils.ModuleError("Could not find any QNX targets in '" + targetDir + "'");
     }
 }
