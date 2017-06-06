@@ -38,7 +38,7 @@ Probe {
     property var nameFilter
     property pathList pathPrefixes
     property stringList pathSuffixes
-    property pathList platformPaths: [ '/usr', '/usr/local' ]
+    property pathList platformPaths: qbs.hostOS.contains("unix") ? ['/usr', '/usr/local'] : []
     property pathList environmentPaths
     property pathList platformEnvironmentPaths
     property string pathListSeparator: qbs.pathListSeparator
