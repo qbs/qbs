@@ -70,6 +70,7 @@ BinaryProbe {
         }
 
         found = result.found;
+        candidatePaths = result.candidatePaths;
         path = result.path;
         filePath = result.filePath;
         fileName = result.fileName;
