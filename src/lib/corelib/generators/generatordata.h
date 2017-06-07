@@ -62,7 +62,7 @@ struct GeneratableProductData {
 struct GeneratableProjectData {
     struct Id {
     private:
-        friend class GeneratableProjectData;
+        friend struct GeneratableProjectData;
         Id() { }
         QString value;
 
