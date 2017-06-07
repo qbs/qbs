@@ -1,4 +1,5 @@
 import qbs
+import qbs.Environment
 import qbs.FileInfo
 
 Project {
@@ -43,7 +44,9 @@ Project {
                     pathVar = "LD_LIBRARY_PATH";
                     pathValue = input.Qt.core.libPath;
                 }
-                cmd.environment = [pathVar + '=' + pathValue];
+                var oldValue = Environment.getEnv(pathVar) || "";
+                var newValue = pathValue + product.qbs.pathListSeparator + oldValue;
+                cmd.environment = [pathVar + '=' + newValue];
                 return [cmd];
             }
         }
