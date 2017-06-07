@@ -1,3 +1,3 @@
 /.gitignore export-ignore
 /.gitattributes export-ignore
-/make-release-archive.sh export-ignore
+/scripts/make-release-archive.sh export-ignore
