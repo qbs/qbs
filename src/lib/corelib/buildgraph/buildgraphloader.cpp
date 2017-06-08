@@ -274,6 +274,8 @@ void BuildGraphLoader::trackProjectChanges()
     for (const auto &restoredProduct : qAsConst(allRestoredProducts))
         restoredProbes.insert(restoredProduct->uniqueName(), restoredProduct->probes);
     ldr.setOldProductProbes(restoredProbes);
+    if (!m_parameters.overrideBuildGraphData())
+        ldr.setStoredProfiles(restoredProject->profileConfigs);
     m_result.newlyResolvedProject = ldr.loadProject(m_parameters);
 
     QMap<QString, ResolvedProductPtr> freshProductsByName;
@@ -915,29 +917,18 @@ bool BuildGraphLoader::checkConfigCompatibility()
         m_parameters.setTopLevelProfile(restoredProject->profile());
         m_parameters.expandBuildConfiguration();
     }
-    if (m_parameters.finalBuildConfigurationTree() != restoredProject->buildConfiguration()) {
-        if (m_parameters.overrideBuildGraphData())
-            return false;
-        throw ErrorInfo(Tr::tr("The current set of properties for configuration '%1' differs "
-                               "from the one used in the last build. Use the 'resolve' "
-                               "command if you really want to rebuild with the new properties.")
-                        .arg(m_parameters.configurationName()));
-    }
+    if (!m_parameters.overrideBuildGraphData())
+        return true;
+    if (m_parameters.finalBuildConfigurationTree() != restoredProject->buildConfiguration())
+        return false;
     for (QVariantMap::ConstIterator it = restoredProject->profileConfigs.constBegin();
          it != restoredProject->profileConfigs.constEnd(); ++it) {
         const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
                     m_parameters.settingsDirectory(), it.key(), m_parameters.configurationName());
         const QVariantMap newConfig = SetupProjectParameters::finalBuildConfigurationTree(
                     buildConfig, m_parameters.overriddenValues());
-        if (newConfig != it.value()) {
-            if (m_parameters.overrideBuildGraphData())
-                return false;
-            throw ErrorInfo(Tr::tr("The current set of properties for configuration '%1' differs "
-                                   "in profile '%2' from the one used for the last build. "
-                                   "Use the 'resolve' command if you really want to rebuild "
-                                   "with the new properties.")
-                            .arg(m_parameters.configurationName(), it.key()));
-        }
+        if (newConfig != it.value())
+            return false;
     }
     return true;
 }

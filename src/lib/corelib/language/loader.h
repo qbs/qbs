@@ -61,6 +61,7 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     void setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes);
+    void setStoredProfiles(const QVariantMap &profiles);
     TopLevelProjectPtr loadProject(const SetupProjectParameters &parameters);
 
 private:
@@ -70,6 +71,7 @@ private:
     QStringList m_searchPaths;
     QList<ProbeConstPtr> m_oldProjectProbes;
     QHash<QString, QList<ProbeConstPtr>> m_oldProductProbes;
+    QVariantMap m_storedProfiles;
 };
 
 } // namespace Internal

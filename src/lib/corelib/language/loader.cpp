@@ -98,6 +98,11 @@ void Loader::setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &old
     m_oldProductProbes = oldProbes;
 }
 
+void Loader::setStoredProfiles(const QVariantMap &profiles)
+{
+    m_storedProfiles = profiles;
+}
+
 TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters)
 {
     QBS_CHECK(QFileInfo(_parameters.projectFilePath()).isAbsolute());
@@ -147,6 +152,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
     moduleLoader.setSearchPaths(m_searchPaths);
     moduleLoader.setOldProjectProbes(m_oldProjectProbes);
     moduleLoader.setOldProductProbes(m_oldProductProbes);
+    moduleLoader.setStoredProfiles(m_storedProfiles);
     const ModuleLoaderResult loadResult = moduleLoader.load(parameters);
     ProjectResolver resolver(&evaluator, loadResult, parameters, m_logger);
     resolver.setProgressObserver(m_progressObserver);

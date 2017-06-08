@@ -123,6 +123,7 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     void setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes);
+    void setStoredProfiles(const QVariantMap &profiles);
     Evaluator *evaluator() const { return m_evaluator; }
 
     ModuleLoaderResult load(const SetupProjectParameters &parameters);
@@ -339,6 +340,7 @@ private:
     QHash<QString, QList<ProbeConstPtr>> m_oldProjectProbes;
     QHash<QString, QList<ProbeConstPtr>> m_oldProductProbes;
     QHash<CodeLocation, QList<ProbeConstPtr>> m_currentProbes;
+    QVariantMap m_storedProfiles;
     std::multimap<QString, const ProductContext *> m_productsByName;
     SetupProjectParameters m_parameters;
     Version m_qbsVersion;

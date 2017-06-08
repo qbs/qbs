@@ -304,6 +304,11 @@ void ModuleLoader::setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>
     m_oldProductProbes = oldProbes;
 }
 
+void ModuleLoader::setStoredProfiles(const QVariantMap &profiles)
+{
+    m_storedProfiles = profiles;
+}
+
 ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
 {
     TimedActivityLogger moduleLoaderTimer(m_logger, Tr::tr("ModuleLoader"),
@@ -342,6 +347,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     }
 
     ModuleLoaderResult result;
+    result.profileConfigs = m_storedProfiles;
     m_pool = result.itemPool.get();
     m_reader->setPool(m_pool);
 
@@ -977,8 +983,9 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
 
     QStringList extraSearchPaths = readExtraSearchPaths(item);
     Settings settings(m_parameters.settingsDirectory());
-    const QStringList prefsSearchPaths
-            = Preferences(&settings, productContext->profileName).searchPaths();
+    const QVariantMap profileContents = productContext->project->result->profileConfigs
+            .value(productContext->profileName).toMap();
+    const QStringList prefsSearchPaths = Preferences(&settings, profileContents).searchPaths();
     for (const QString &p : prefsSearchPaths) {
         if (!m_moduleSearchPaths.contains(p) && FileInfo(p).exists())
             extraSearchPaths << p;

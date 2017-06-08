@@ -643,6 +643,75 @@ void TestBlackbox::deprecatedProperty()
     QVERIFY2(m_qbsStderr.count("was removed") == 1, m_qbsStderr.constData());
 }
 
+void TestBlackbox::disappearedProfile()
+{
+    QDir::setCurrent(testDataDir + "/disappeared-profile");
+    QbsRunParameters resolveParams;
+
+    // First, we need to fail, because we don't tell qbs where the module is.
+    resolveParams.expectFailure = true;
+    QVERIFY(runQbs(resolveParams) != 0);
+
+    // Now we set up a profile with all the necessary information, and qbs succeeds.
+    qbs::Settings settings(QDir::currentPath() + "/settings-dir");
+    qbs::Profile profile("p", &settings);
+    profile.setValue("m.p1", "p1 from profile");
+    profile.setValue("m.p2", "p2 from profile");
+    profile.setValue("preferences.qbsSearchPaths",
+                     QStringList({QDir::currentPath() + "/modules-dir"}));
+    settings.sync();
+    resolveParams.command = "resolve";
+    resolveParams.expectFailure = false;
+    resolveParams.useProfile = false;
+    resolveParams.arguments << "--settings-dir" << settings.baseDirectory()
+                     << ("profile:" + profile.name());
+    QCOMPARE(runQbs(resolveParams), 0);
+
+    // Now we change a property in the profile, but because we don't use the "resolve" command,
+    // the old profile contents stored in the build graph are used.
+    profile.setValue("m.p2", "p2 new from profile");
+    settings.sync();
+    QbsRunParameters buildParams;
+    buildParams.useProfile = false;
+    QCOMPARE(runQbs(buildParams), 0);
+    QVERIFY2(m_qbsStdout.contains("Creating dummy1.txt with p1 from profile"),
+             m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("Creating dummy2.txt with p2 from profile"),
+             m_qbsStdout.constData());
+
+    // Now we do use the "resolve" command, so the new property value is taken into account.
+    QCOMPARE(runQbs(resolveParams), 0);
+    QCOMPARE(runQbs(buildParams), 0);
+    QVERIFY2(!m_qbsStdout.contains("Creating dummy1.txt"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("Creating dummy2.txt with p2 new from profile"),
+             m_qbsStdout.constData());
+
+    // Now we change the profile again without a "resolve" command. However, this time we
+    // force re-resolving indirectly by changing a project file. The updated property value
+    // must still not be taken into account.
+    profile.setValue("m.p1", "p1 new from profile");
+    settings.sync();
+    QFile f(QDir::currentPath() + "/modules-dir/modules/m/m.qbs");
+    QVERIFY2(f.open(QIODevice::ReadWrite), qPrintable(f.errorString()));
+    QByteArray contents = f.readAll();
+    contents.replace("property string p1", "property string p1: 'p1 from module'");
+    f.seek(0);
+    f.write(contents);
+    f.close();
+    QCOMPARE(runQbs(buildParams), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("Creating dummy1.txt"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("Creating dummy2.txt"), m_qbsStdout.constData());
+
+    // Now we run the "resolve" command without giving the necessary settings path to find
+    // the profile.
+    resolveParams.expectFailure = true;
+    resolveParams.arguments.removeFirst();
+    resolveParams.arguments.removeFirst();
+    QVERIFY(runQbs(resolveParams) != 0);
+    QVERIFY2(m_qbsStderr.contains("profile"), m_qbsStderr.constData());
+}
+
 void TestBlackbox::symlinkRemoval()
 {
     if (HostOsInfo::isWindowsHost())
@@ -3591,12 +3660,6 @@ void TestBlackbox::subProfileChangeTracking()
     subProfile.p.setValue("cpp.includePaths", QStringList("/tmp/include2"));
     s->sync();
     QbsRunParameters params;
-    params.expectFailure = true;
-    QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("The current set of properties for configuration 'default' "
-                                  "differs in profile 'qbs-autotests-subprofile'"),
-             m_qbsStderr.constData());
-    params.expectFailure = false;
     params.command = "resolve";
     QCOMPARE(runQbs(params), 0);
     params.command = "build";

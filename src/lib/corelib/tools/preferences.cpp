@@ -56,6 +56,11 @@ Preferences::Preferences(Settings *settings, const QString &profileName)
 {
 }
 
+Preferences::Preferences(Settings *settings, const QVariantMap &profileContents)
+    : m_settings(settings), m_profileContents(profileContents)
+{
+}
+
 
 /*!
  * \brief Returns true <=> colored output should be used for printing messages.
@@ -120,7 +125,8 @@ QStringList Preferences::pluginPaths(const QString &baseDir) const
 
 QVariant Preferences::getPreference(const QString &key, const QVariant &defaultValue) const
 {
-    const QString fullKey = QLatin1String("preferences.") + key;
+    static const QString keyPrefix = QLatin1String("preferences");
+    const QString fullKey = keyPrefix + QLatin1Char('.') + key;
     if (!m_profile.isEmpty()) {
         QVariant value = Profile(m_profile, m_settings).value(fullKey);
         if (value.isValid()) {
@@ -128,6 +134,13 @@ QVariant Preferences::getPreference(const QString &key, const QVariant &defaultV
                 value = value.toStringList() + m_settings->value(fullKey).toStringList();
             return value;
         }
+    }
+
+    QVariant value = m_profileContents.value(keyPrefix).toMap().value(key);
+    if (value.isValid()) {
+        if (key == QLatin1String("qbsSearchPaths")) // Merge with top-level value
+            value = value.toStringList() + m_settings->value(fullKey).toStringList();
+        return value;
     }
 
     return m_settings->value(fullKey, defaultValue);
