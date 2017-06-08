@@ -4719,6 +4719,17 @@ void TestBlackbox::missingDependency()
     QVERIFY(m_qbsStderr.contains("false positive"));
 }
 
+void TestBlackbox::missingOverridePrefix()
+{
+    QDir::setCurrent(testDataDir + "/missing-override-prefix");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments << "blubb.whatever:false";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStderr.contains("Property override key 'blubb.whatever' not understood"),
+             m_qbsStderr.constData());
+}
+
 void TestBlackbox::badInterpreter()
 {
     if (!HostOsInfo::isAnyUnixHost())

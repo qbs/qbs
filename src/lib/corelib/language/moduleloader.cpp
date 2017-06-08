@@ -76,6 +76,14 @@
 namespace qbs {
 namespace Internal {
 
+static void handlePropertyError(const ErrorInfo &error, const SetupProjectParameters &params,
+                                Logger &logger)
+{
+    if (params.propertyCheckingMode() == ErrorHandlingMode::Strict)
+        throw error;
+    logger.printWarning(error);
+}
+
 class ModuleLoader::ItemModuleList : public QList<Item::Module> {};
 
 const QString moduleSearchSubDir = QLatin1String("modules");
@@ -273,6 +281,29 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_reader->setEnableTiming(parameters.logElapsedTime());
     m_elapsedTimeProbes = 0;
 
+    for (const QString &key : m_parameters.overriddenValues().keys()) {
+        static const QStringList prefixes({ QLatin1String("project"), QLatin1String("projects"),
+                                            QLatin1String("products"), QLatin1String("modules"),
+                                            QLatin1String("qbs")});
+        bool ok = false;
+        for (const auto &prefix : prefixes) {
+            if (key.startsWith(prefix + QLatin1Char('.'))) {
+                ok = true;
+                break;
+            }
+        }
+        if (ok)
+            continue;
+        ErrorInfo e(Tr::tr("Property override key '%1' not understood.").arg(key));
+        e.append(Tr::tr("Please use one of the following:"));
+        e.append(QLatin1Char('\t') + Tr::tr("projects.<project-name>.<property-name>:value"));
+        e.append(QLatin1Char('\t') + Tr::tr("products.<product-name>.<property-name>:value"));
+        e.append(QLatin1Char('\t') + Tr::tr("modules.<module-name>.<property-name>:value"));
+        e.append(QLatin1Char('\t') + Tr::tr("products.<product-name>.<module-name>."
+                                            "<property-name>:value"));
+        handlePropertyError(e, m_parameters, m_logger);
+    }
+
     ModuleLoaderResult result;
     m_pool = result.itemPool.data();
     m_reader->setPool(m_pool);
@@ -312,14 +343,6 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     result.qbsFiles = m_reader->filesRead();
     printProfilingInfo();
     return result;
-}
-
-static void handlePropertyError(const ErrorInfo &error, const SetupProjectParameters &params,
-                                Logger &logger)
-{
-    if (params.propertyCheckingMode() == ErrorHandlingMode::Strict)
-        throw error;
-    logger.printWarning(error);
 }
 
 class PropertyDeclarationCheck : public ValueHandler
