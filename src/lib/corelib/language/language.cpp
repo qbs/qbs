@@ -764,21 +764,17 @@ TopLevelProject *ResolvedProduct::topLevelProject() const
     return project->topLevelProject();
 }
 
-QString ResolvedProduct::uniqueName(const QString &name, const QString &profile,
-                                    const QString &multiplexConfigurationId)
+QString ResolvedProduct::uniqueName(const QString &name, const QString &multiplexConfigurationId)
 {
-    QBS_CHECK(!profile.isEmpty());
-    QString result = name + QLatin1Char('.') + profile;
-    if (!multiplexConfigurationId.isEmpty()) {
-        result.append(QLatin1Char('.'));
-        result.append(multiplexConfigurationId);
-    }
+    QString result = name;
+    if (!multiplexConfigurationId.isEmpty())
+        result.append(QLatin1Char('.')).append(multiplexConfigurationId);
     return result;
 }
 
 QString ResolvedProduct::uniqueName() const
 {
-    return uniqueName(name, profile, multiplexConfigurationId);
+    return uniqueName(name, multiplexConfigurationId);
 }
 
 static QStringList findGeneratedFiles(const Artifact *base, bool recursive, const FileTags &tags)
@@ -807,10 +803,10 @@ QStringList ResolvedProduct::generatedFiles(const QString &baseFile, bool recurs
     return QStringList();
 }
 
-QString ResolvedProduct::deriveBuildDirectoryName(const QString &name, const QString &profile,
+QString ResolvedProduct::deriveBuildDirectoryName(const QString &name,
                                                   const QString &multiplexConfigurationId)
 {
-    QString dirName = uniqueName(name, profile, multiplexConfigurationId);
+    QString dirName = uniqueName(name, multiplexConfigurationId);
     const QByteArray hash = QCryptographicHash::hash(dirName.toUtf8(), QCryptographicHash::Sha1);
     return HostOsInfo::rfc1034Identifier(dirName)
             .append(QLatin1Char('.'))

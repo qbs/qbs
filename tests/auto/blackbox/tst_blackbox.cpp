@@ -616,8 +616,9 @@ void TestBlackbox::dependencyProfileMismatch()
     QbsRunParameters params(QStringList() << ("project.mainProfile:" + profileName())
                             << ("project.depProfile:" + depProfile.p.name()));
     params.expectFailure = true;
-    QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains(profileName().toLocal8Bit() + "', which does not exist"),
+    QVERIFY2(runQbs(params) != 0, m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.contains(profileName().toLocal8Bit())
+             && m_qbsStderr.contains("', which does not exist"),
              m_qbsStderr.constData());
 }
 

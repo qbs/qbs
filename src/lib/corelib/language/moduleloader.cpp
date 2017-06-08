@@ -1195,7 +1195,7 @@ void ModuleLoader::handleModuleSetupError(ModuleLoader::ProductContext *productC
 
 void ModuleLoader::initProductProperties(const ProductContext &product)
 {
-    QString buildDir = ResolvedProduct::deriveBuildDirectoryName(product.name, product.profileName,
+    QString buildDir = ResolvedProduct::deriveBuildDirectoryName(product.name,
                                                                  product.multiplexConfigurationId);
     buildDir = FileInfo::resolvePath(product.project->topLevelProject->buildDirectory, buildDir);
     product.item->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDir));
@@ -3142,12 +3142,12 @@ void ModuleLoader::copyGroupsFromModulesToProduct(const ProductContext &productC
 
 QString ModuleLoaderResult::ProductInfo::Dependency::uniqueName() const
 {
-    return ResolvedProduct::uniqueName(name, profile, multiplexConfigurationId);
+    return ResolvedProduct::uniqueName(name, multiplexConfigurationId);
 }
 
 QString ModuleLoader::ProductContext::uniqueName() const
 {
-    return ResolvedProduct::uniqueName(name, profileName, multiplexConfigurationId);
+    return ResolvedProduct::uniqueName(name, multiplexConfigurationId);
 }
 
 } // namespace Internal

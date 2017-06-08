@@ -997,11 +997,24 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
             }
             dependencies.removeAt(i);
         } else {
-            const ResolvedProductPtr &usedProduct
-                    = m_productsByName.value(dependency.uniqueName());
+            ResolvedProductPtr usedProduct;
+            if (!dependency.multiplexConfigurationId.isEmpty()) {
+                usedProduct = m_productsByName.value(dependency.uniqueName());
+            } else {
+                for (const ResolvedProductPtr &p : qAsConst(m_productsByName)) {
+                    if (p->name == dependency.name && p->profile == dependency.profile) {
+                        usedProduct = p;
+                        break;
+                    }
+                }
+            }
             if (!usedProduct) {
-                throw ErrorInfo(Tr::tr("Product '%1' depends on '%2', which does not exist.")
-                                .arg(product->name, dependency.uniqueName()), product->location);
+                const ResolvedProductConstPtr p = m_productsByName.value(dependency.uniqueName());
+                ErrorInfo e(Tr::tr("Product '%1' depends on '%2', which does not exist.")
+                            .arg(product->name, dependency.uniqueName()), product->location);
+                if (p)
+                    e.append(Tr::tr("Requested profile was '%1'.").arg(dependency.profile));
+                throw e;
             }
             if (!usedProduct->enabled) {
                 if (!dependency.isRequired)

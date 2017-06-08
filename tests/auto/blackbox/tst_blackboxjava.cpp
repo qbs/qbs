@@ -94,7 +94,7 @@ void TestBlackboxJava::android()
     for (int i = 0; i < productNames.count(); ++i) {
         const QString productName = productNames.at(i);
         QVERIFY(m_qbsStdout.contains("Creating " + productName.toLocal8Bit() + ".apk"));
-        const QString apkFilePath = relativeProductBuildDir(productName, p.name())
+        const QString apkFilePath = relativeProductBuildDir(productName)
                 + '/' + productName + ".apk";
         QVERIFY2(regularFileExists(apkFilePath), qPrintable(apkFilePath));
         const QString jarFilePath = findExecutable(QStringList("jar"));

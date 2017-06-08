@@ -81,19 +81,16 @@ inline QString prefixedIfNonEmpty(const T &prefix, const QString &str)
     return prefix + str;
 }
 
-inline QString uniqueProductName(const QString &productName, const QString &_profileName,
+inline QString uniqueProductName(const QString &productName,
                                  const QString &multiplexConfigurationId)
 {
-    const QString p = _profileName.isEmpty() ? profileName() : _profileName;
-    return productName + '.' + p + prefixedIfNonEmpty(QLatin1Char('.'), multiplexConfigurationId);
+    return productName + prefixedIfNonEmpty(QLatin1Char('.'), multiplexConfigurationId);
 }
 
 inline QString relativeProductBuildDir(const QString &productName,
-                                       const QString &productProfileName = QString(),
                                        const QString &multiplexConfigurationId = QString())
 {
-    const QString fullName = uniqueProductName(productName, productProfileName,
-                                               multiplexConfigurationId);
+    const QString fullName = uniqueProductName(productName, multiplexConfigurationId);
     QString dirName = qbs::Internal::HostOsInfo::rfc1034Identifier(fullName);
     const QByteArray hash = QCryptographicHash::hash(fullName.toUtf8(), QCryptographicHash::Sha1);
     dirName.append('.').append(hash.toHex().left(8));

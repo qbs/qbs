@@ -445,13 +445,13 @@ public:
 
     TopLevelProject *topLevelProject() const;
 
-    static QString uniqueName(const QString &name, const QString &profile,
+    static QString uniqueName(const QString &name,
                               const QString &multiplexConfigurationId);
     QString uniqueName() const;
 
     QStringList generatedFiles(const QString &baseFile, bool recursive, const FileTags &tags) const;
 
-    static QString deriveBuildDirectoryName(const QString &name, const QString &profile,
+    static QString deriveBuildDirectoryName(const QString &name,
                                             const QString &multiplexConfigurationId);
     QString buildDirectory() const;
 
