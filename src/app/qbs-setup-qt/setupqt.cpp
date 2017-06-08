@@ -47,6 +47,7 @@
 #include <tools/profile.h>
 #include <tools/set.h>
 #include <tools/settings.h>
+#include <tools/stlutils.h>
 #include <tools/version.h>
 
 #include <QtCore/qbytearraymatcher.h>
@@ -60,6 +61,7 @@
 #include <algorithm>
 
 namespace qbs {
+using Internal::contains;
 using Internal::HostOsInfo;
 using Internal::Tr;
 using Internal::Version;
@@ -484,18 +486,33 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
     return match;
 }
 
-static bool isMsvcCrossCompilerProfile(const QString &profileName)
+QString profileNameWithoutHostArch(const QString &profileName)
 {
-    return profileName.contains(QLatin1Char('_'));
+    QString result;
+    int i = profileName.indexOf(QLatin1Char('-'));
+    if (i == -1)
+        return result;
+    ++i;
+    int j = profileName.indexOf(QLatin1Char('_'), i);
+    if (j == -1)
+        return result;
+    result = profileName.mid(0, i) + profileName.mid(j + 1);
+    return result;
 }
 
+// "Compressing" MSVC profiles means that if MSVC2017-x64 and MSVC2017-x86_x64 fully match,
+// then we drop the crosscompiling toolchain MSVC2017-x86_x64.
 static void compressMsvcProfiles(QStringList &profiles)
 {
-    if (std::all_of(profiles.constBegin(), profiles.constEnd(), isMsvcCrossCompilerProfile))
-        return;
-
-    profiles.erase(std::remove_if(profiles.begin(), profiles.end(), isMsvcCrossCompilerProfile),
-                   profiles.end());
+    auto it = std::remove_if(profiles.begin(), profiles.end(),
+                             [&profiles] (const QString &profileName) {
+        int idx = profileName.indexOf(QLatin1Char('_'));
+        if (idx == -1)
+            return false;
+        return contains(profiles, profileNameWithoutHostArch(profileName));
+    });
+    if (it != profiles.end())
+        profiles.erase(it, profiles.end());
 }
 
 void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironment &qtEnvironment,
@@ -541,7 +558,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
         }
     }
 
-    if (msvcCompilerVersion.isValid() && fullMatches.size() > 1)
+    if (fullMatches.size() > 1)
         compressMsvcProfiles(fullMatches);
 
     QString bestMatch;
