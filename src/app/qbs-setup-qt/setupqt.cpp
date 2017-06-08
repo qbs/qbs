@@ -187,6 +187,41 @@ static QString pathQueryValue(const QueryMap &queryMap, const QByteArray &key)
     return QDir::fromNativeSeparators(QString::fromLocal8Bit(queryMap.value(key)));
 }
 
+static const QString msvcPrefix = QLatin1String("win32-msvc");
+
+static bool isMsvcQt(const QtEnvironment &env)
+{
+    return env.mkspecName.startsWith(msvcPrefix);
+}
+
+static Version msvcCompilerVersionForYear(int year)
+{
+    switch (year)
+    {
+    case 2005:
+        return Version(14);
+    case 2008:
+        return Version(15);
+    case 2010:
+        return Version(16);
+    case 2012:
+        return Version(17);
+    case 2013:
+        return Version(18);
+    case 2015:
+        return Version(19);
+    case 2017:
+        return Version(19, 1);
+    default:
+        return Version();
+    }
+}
+
+static Version msvcCompilerVersionFromMkspecName(const QString &mkspecName)
+{
+    return msvcCompilerVersionForYear(mkspecName.mid(msvcPrefix.size()).toInt());
+}
+
 QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
 {
     QtEnvironment qtEnvironment;
@@ -273,6 +308,26 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
         int idx = qtEnvironment.mkspecName.lastIndexOf(QLatin1Char('/'));
         if (idx != -1)
             qtEnvironment.mkspecName.remove(0, idx + 1);
+    }
+
+    // determine MSVC version
+    if (isMsvcQt(qtEnvironment)) {
+        bool ok;
+        qtEnvironment.msvcVersion.setMajorVersion(
+                    configVariable(qconfigContent,
+                                   QLatin1String("QT_MSVC_MAJOR_VERSION")).toInt(&ok));
+        if (ok) {
+            qtEnvironment.msvcVersion.setMinorVersion(
+                        configVariable(qconfigContent,
+                                       QLatin1String("QT_MSVC_MINOR_VERSION")).toInt(&ok));
+        }
+        if (ok) {
+            qtEnvironment.msvcVersion.setPatchLevel(
+                        configVariable(qconfigContent,
+                                       QLatin1String("QT_MSVC_PATCH_VERSION")).toInt(&ok));
+        }
+        if (!ok)
+            qtEnvironment.msvcVersion = msvcCompilerVersionFromMkspecName(qtEnvironment.mkspecName);
     }
 
     // determine whether we have a framework build
@@ -402,47 +457,9 @@ static QStringList qbsToolchainFromQtMkspec(const QString &mkspec)
     return QStringList();
 }
 
-static const QString msvcPrefix = QLatin1String("win32-msvc");
-
-static bool isMsvcQt(const QtEnvironment &env)
-{
-    return env.mkspecName.startsWith(msvcPrefix);
-}
-
-static Version msvcCompilerVersionForYear(int year)
-{
-    switch (year)
-    {
-    case 2005:
-        return Version(14);
-    case 2008:
-        return Version(15);
-    case 2010:
-        return Version(16);
-    case 2012:
-        return Version(17);
-    case 2013:
-        return Version(18);
-    case 2015:
-        return Version(19);
-    case 2017:
-        return Version(19, 1);
-    default:
-        return Version();
-    }
-}
-
-static Version msvcCompilerVersionForYear(const QtEnvironment &env)
-{
-    return isMsvcQt(env)
-            ? msvcCompilerVersionForYear(env.mkspecName.mid(msvcPrefix.size()).toInt())
-            : Version();
-}
-
 enum Match { MatchFull, MatchPartial, MatchNone };
 
-static Match compatibility(const QtEnvironment &env, const Profile &toolchainProfile,
-                           const Version &msvcCompilerVersion)
+static Match compatibility(const QtEnvironment &env, const Profile &toolchainProfile)
 {
     Match match = MatchFull;
 
@@ -472,15 +489,15 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
                                          canonicalArchitecture(toolchainArchitecture)))
         return MatchNone;
 
-    if (msvcCompilerVersion.isValid()) {
+    if (env.msvcVersion.isValid()) {
         // We want to know for sure that MSVC compiler versions match,
         // because it's especially important for this toolchain
-        const Version fullCompilerVersion = Version::fromString(
+        const Version compilerVersion = Version::fromString(
             toolchainProfile.value(QLatin1String("cpp.compilerVersion")).toString());
-        const Version shortCompilerVersion = Version(fullCompilerVersion.majorVersion(),
-                                                     fullCompilerVersion.minorVersion());
-        if (msvcCompilerVersion != shortCompilerVersion)
+        if (env.msvcVersion.majorVersion() != compilerVersion.majorVersion()
+                || env.msvcVersion.minorVersion() != compilerVersion.minorVersion()) {
             return MatchNone;
+        }
     }
 
     return match;
@@ -538,7 +555,6 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
 
     QStringList fullMatches;
     QStringList partialMatches;
-    const Version msvcCompilerVersion = msvcCompilerVersionForYear(qtEnvironment);
     foreach (const QString &profileName, settings->profiles()) {
         const Profile otherProfile(profileName, settings);
         if (profileName == profile.name()
@@ -546,7 +562,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
                 || isQtProfile(otherProfile))
             continue;
 
-        switch (compatibility(qtEnvironment, otherProfile, msvcCompilerVersion)) {
+        switch (compatibility(qtEnvironment, otherProfile)) {
         case MatchFull:
             fullMatches << profileName;
             break;

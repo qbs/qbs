@@ -40,6 +40,7 @@
 #define QBS_QTENVIRONMENT_H
 
 #include <tools/qbs_export.h>
+#include <tools/version.h>
 
 #include <QtCore/qstringlist.h>
 
@@ -71,6 +72,7 @@ public:
     int qtMajorVersion;
     int qtMinorVersion;
     int qtPatchVersion;
+    Internal::Version msvcVersion;
     bool staticBuild = false;
     bool frameworkBuild = false;
 };
