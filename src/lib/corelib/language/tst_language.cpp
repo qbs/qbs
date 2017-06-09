@@ -1053,7 +1053,7 @@ void TestLanguage::idUsage()
         QVERIFY(products.contains("product2_2"));
         QVERIFY(products.contains("product3_3"));
         ResolvedProductPtr product4 = products.value("product4_4");
-        QVERIFY(product4);
+        QVERIFY(!!product4);
         QEXPECT_FAIL("", "QBS-1016", Continue);
         QCOMPARE(product4->productProperties.value("productName").toString(), product4->name);
     }
