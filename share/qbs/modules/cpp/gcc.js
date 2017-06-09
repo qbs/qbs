@@ -217,7 +217,7 @@ function escapeLinkerFlags(product, inputs, linkerFlags) {
     return linkerFlags;
 }
 
-function linkerFlags(project, product, inputs, output) {
+function linkerFlags(project, product, inputs, output, linkerPath) {
     var libraryPaths = product.cpp.libraryPaths;
     var distributionLibraryPaths = product.cpp.distributionLibraryPaths;
     var libraryDependencies = collectLibraryDependencies(product);
@@ -256,6 +256,13 @@ function linkerFlags(project, product, inputs, output) {
         else
             args = args.concat(escapeLinkerFlags(product, inputs,
                                                  ["--as-needed"]));
+    }
+
+    if (isLegacyQnxSdk(product)) {
+        ["c", "cpp"].map(function (tag) {
+            if (linkerPath === product.cpp.compilerPathByLanguage[tag])
+                args = args.concat(qnxLangArgs(product, tag));
+        });
     }
 
     var targetLinkerFlags = product.cpp.targetLinkerFlags;
@@ -483,6 +490,12 @@ function languageTagFromFileExtension(toolchain, fileName) {
     return m[fileName.substring(i + 1)];
 }
 
+// Older versions of the QNX SDK have C and C++ compilers whose filenames differ only by case,
+// which won't work in case insensitive environments like Win32+NTFS, HFS+ and APFS
+function isLegacyQnxSdk(config) {
+    return config.qbs.toolchain.contains("qcc") && config.qnx && !config.qnx.qnx7;
+}
+
 function effectiveCompilerInfo(toolchain, input, output) {
     var compilerPath, language;
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
@@ -493,8 +506,14 @@ function effectiveCompilerInfo(toolchain, input, output) {
     var compilerPathByLanguage = input.cpp.compilerPathByLanguage;
     if (compilerPathByLanguage)
         compilerPath = compilerPathByLanguage[tag];
-    if (!compilerPath || tag !== languageTagFromFileExtension(toolchain, input.fileName))
-        language = languageName(tag) + (pchOutput ? '-header' : '');
+    if (!compilerPath
+            || tag !== languageTagFromFileExtension(toolchain, input.fileName)
+            || isLegacyQnxSdk(input)) {
+        if (input.qbs.toolchain.contains("qcc"))
+            language = qnxLangArgs(input, tag);
+        else
+            language = ["-x", languageName(tag) + (pchOutput ? '-header' : '')];
+    }
     if (!compilerPath)
         // fall back to main compiler
         compilerPath = input.cpp.compilerPath;
@@ -503,6 +522,18 @@ function effectiveCompilerInfo(toolchain, input, output) {
         language: language,
         tag: tag
     };
+}
+
+
+function qnxLangArgs(config, tag) {
+    switch (tag) {
+    case "c":
+        return ["-lang-c"];
+    case "cpp":
+        return ["-lang-c++"];
+    default:
+        return [];
+    }
 }
 
 function compilerFlags(project, product, input, output) {
@@ -525,15 +556,7 @@ function compilerFlags(project, product, input, output) {
 
     var args = additionalCompilerAndLinkerFlags(product);
 
-    var sysroot = product.cpp.sysroot;
-    if (sysroot) {
-        if (product.qbs.toolchain.contains("qcc"))
-            args.push("-I" + FileInfo.joinPaths(sysroot, "usr", "include"));
-        else if (product.qbs.targetOS.contains("darwin"))
-            args.push("-isysroot", sysroot);
-        else
-            args.push("--sysroot=" + sysroot);
-    }
+    Array.prototype.push.apply(args, product.cpp.sysrootFlags);
 
     if (input.cpp.debugInformation)
         args.push('-g');
@@ -615,8 +638,8 @@ function compilerFlags(project, product, input, output) {
     }
 
     if (compilerInfo.language)
-        // Only push '-x language' if we have to.
-        args.push("-x", compilerInfo.language);
+        // Only push language arguments if we have to.
+        Array.prototype.push.apply(args, compilerInfo.language);
 
     args = args.concat(ModUtils.moduleProperty(input, 'platformFlags'),
                        ModUtils.moduleProperty(input, 'flags'),
@@ -644,15 +667,20 @@ function compilerFlags(project, product, input, output) {
     if (defines)
         allDefines = allDefines.uniqueConcat(defines);
     args = args.concat(allDefines.map(function(define) { return '-D' + define }));
-    if (includePaths)
-        args = args.concat([].uniqueConcat(includePaths).map(function(path) { return '-I' + path }));
+    if (includePaths) {
+        args = args.concat([].uniqueConcat(includePaths).map(function(path) {
+            return input.cpp.includeFlag + path;
+        }));
+    }
 
     var allSystemIncludePaths = [];
     if (systemIncludePaths)
         allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(systemIncludePaths);
     if (distributionIncludePaths)
         allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(distributionIncludePaths);
-    args = args.concat(allSystemIncludePaths.map(function(path) { return '-isystem' + path }));
+    args = args.concat(allSystemIncludePaths.map(function(path) {
+        return input.cpp.systemIncludeFlag + path;
+    }));
 
     var minimumWindowsVersion = input.cpp.minimumWindowsVersion;
     if (minimumWindowsVersion && product.qbs.targetOS.contains("windows")) {
@@ -750,7 +778,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
         allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
     if (distributionIncludePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(distributionIncludePaths);
-    args = args.concat(allIncludePaths.map(function(path) { return '-I' + path }));
+    args = args.concat(allIncludePaths.map(function(path) { return input.cpp.includeFlag + path }));
 
     args.push("-o", output.filePath);
     args.push(input.filePath);
@@ -1027,7 +1055,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
     var linkerPath = effectiveLinkerPath(product, inputs)
 
-    var args = linkerFlags(project, product, inputs, primaryOutput)
+    var args = linkerFlags(project, product, inputs, primaryOutput, linkerPath);
     var wrapperArgsLength = 0;
     var wrapperArgs = product.cpp.linkerWrapper;
     if (wrapperArgs && wrapperArgs.length > 0) {
@@ -1205,20 +1233,13 @@ function dumpMacros(env, compilerFilePath, args, nullDevice) {
     }
 }
 
-function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSeparator, targetOS,
-                          sysroot) {
+function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSeparator, sysroot) {
     var p = new Process();
     try {
         p.setEnv("LC_ALL", "C");
         for (var key in env)
             p.setEnv(key, env[key]);
         args = args || [];
-        if (sysroot) {
-            if (targetOS.contains("darwin"))
-                args.push("-isysroot", sysroot);
-            else
-                args.push("--sysroot=" + sysroot);
-        }
         p.exec(compilerFilePath, args.concat(["-v", "-E", "-x", "c++", nullDevice]), true);
         var suffix = " (framework directory)";
         var includePaths = [];

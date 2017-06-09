@@ -111,6 +111,7 @@ private slots:
     void loadableModule();
     void missingDependency();
     void missingProjectFile();
+    void missingOverridePrefix();
     void multipleChanges();
     void nestedGroups();
     void nestedProperties();

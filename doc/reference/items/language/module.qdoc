@@ -131,7 +131,8 @@
 
     \section2 \c outer
     This value is used in nested items, where it refers to the value of the respective property
-    in the surrounding item. It is often encountered in \l{Group Item}{groups}:
+    in the surrounding item. It is only valid in \l{Group Item}{groups} and
+    \l{Properties Item}{Properties items}:
     \code
     Product {
         Depends { name: "mymodule" }

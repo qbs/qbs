@@ -40,6 +40,7 @@
 namespace qbs {
 
 class MSBuildImportGroup;
+class MSBuildItemGroup;
 class MSBuildProperty;
 
 class VisualStudioGenerator;
@@ -63,6 +64,8 @@ private:
     void addItemDefGroup(const Project &project,
                          const ProductData &productData);
     void addFiles(const GeneratableProject &project, const GeneratableProductData &product);
+    void addQbsFile(const GeneratableProject &project, const GeneratableProductData &product,
+                    MSBuildItemGroup *itemGroup);
 };
 
 } // namespace qbs

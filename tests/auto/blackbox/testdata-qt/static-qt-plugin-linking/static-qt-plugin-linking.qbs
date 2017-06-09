@@ -1,6 +1,7 @@
 import qbs
 
 StaticLibrary {
+    name: "somelib"
     Probe {
         id: staticQtChecker
         property bool staticQt: Qt.core.staticBuild

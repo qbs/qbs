@@ -4229,6 +4229,17 @@ void TestBlackbox::missingProjectFile()
     QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::missingOverridePrefix()
+{
+    QDir::setCurrent(testDataDir + "/missing-override-prefix");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments << "blubb.whatever:false";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStderr.contains("Property override key 'blubb.whatever' not understood"),
+             m_qbsStderr.constData());
+}
+
 void TestBlackbox::badInterpreter()
 {
     if (!HostOsInfo::isAnyUnixHost())

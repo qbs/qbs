@@ -354,6 +354,8 @@ void MSBuildQbsProductProject::addFiles(const GeneratableProject &project,
 {
     auto itemGroup = new MSBuildItemGroup(this);
 
+    addQbsFile(project, product, itemGroup);
+
     std::map<QString, MSBuildFileItem *> sourceFileNodes;
     std::map<QString, QStringList> sourceFileEnabledConfigurations;
 
@@ -405,5 +407,19 @@ void MSBuildQbsProductProject::addFiles(const GeneratableProject &project,
     auto import = new MSBuildImport(this);
     import->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.targets"));
 }
+
+void MSBuildQbsProductProject::addQbsFile(const GeneratableProject &project,
+                                          const GeneratableProductData &product,
+                                          MSBuildItemGroup *itemGroup)
+{
+    auto fileItem = new MSBuildNone(itemGroup);
+    QString path = project.baseBuildDirectory().relativeFilePath(product.location().filePath());
+    // The path still might not be relative (for example if the file item is
+    // located on a different drive)
+    if (QFileInfo(path).isRelative())
+        path = QStringLiteral("$(ProjectDir)") + path;
+    fileItem->setFilePath(path);
+}
+
 
 } // namespace qbs

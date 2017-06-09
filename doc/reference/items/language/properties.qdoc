@@ -89,6 +89,21 @@
     }
     \endcode
 
+    In \c Properties items one can access the \l{Module Item#outer}{outer value} of a property.
+    \code
+    Product {
+        Properties {
+            condition: qbs.targetOS.contains("windows")
+            cpp.defines: outer.concat("ON_WINDOWS")     // === ["FOO", "ON_WINDOWS"]
+        }
+        Properties {
+            condition: qbs.targetOS.contains("linux")
+            cpp.defines: ["ON_LINUX"]                   // === ["ON_LINUX"]
+        }
+        cpp.defines: ["FOO"]
+    }
+    \endcode
+
     We suggest to use the \c Properties item for mutually exclusive conditions only. It is
     especially useful if there are several properties to set, based on the same condition.
 

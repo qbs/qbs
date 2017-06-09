@@ -53,7 +53,8 @@ CppModule {
         id: gccProbe
         compilerFilePath: compilerPath
         environment: buildEnv
-        flags: targetDriverFlags
+        flags: targetDriverFlags.concat(sysrootFlags)
+        _sysroot: sysroot
     }
 
     targetLinkerFlags: Gcc.targetFlags("linker", false,
@@ -113,6 +114,7 @@ CppModule {
     property string lipoName: "lipo"
     property string sysroot: qbs.sysroot
     property string syslibroot: sysroot
+    property stringList sysrootFlags: sysroot ? ["--sysroot=" + sysroot] : []
 
     property string linkerMode: "automatic"
     PropertyOptions {
@@ -179,6 +181,8 @@ CppModule {
     property stringList dsymutilFlags
 
     property bool alwaysUseLipo: false
+    property string includeFlag: "-I"
+    property string systemIncludeFlag: "-isystem"
 
     readonly property bool shouldCreateSymlinks: {
         return createSymlinks && internalVersion && ["macho", "elf"].contains(cpp.imageFormat);
@@ -242,6 +246,17 @@ CppModule {
     }
 
     validate: {
+        if (!File.exists(compilerPath)) {
+            var pathMessage = FileInfo.isAbsolutePath(compilerPath)
+                    ? "at '" + compilerPath + "'"
+                    : "'" + compilerPath + "' in PATH";
+            throw ModUtils.ModuleError("Could not find selected C++ compiler " + pathMessage + ". "
+                                       + "Ensure that the compiler is properly "
+                                       + "installed, or set cpp.toolchainInstallPath to a valid "
+                                       + "toolchain path, or consider whether you meant to set "
+                                       + "cpp.compilerName instead.");
+        }
+
         var validator = new ModUtils.PropertyValidator("cpp");
         validator.setRequiredProperty("architecture", architecture,
                                       "you might want to re-run 'qbs-setup-toolchains'");

@@ -263,6 +263,12 @@ function flattenDictionary(dict, separator) {
     return list;
 }
 
+function ModuleError(message) {
+    var e = new Error(message);
+    e.fileName = "";
+    return e;
+}
+
 var EnvironmentVariable = (function () {
     function EnvironmentVariable(name, separator, convertPathSeparators) {
         if (!name)

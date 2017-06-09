@@ -182,7 +182,7 @@ void CommandLineFrontend::start()
          * Progress reporting on the terminal gets a bit tricky when resolving several projects
          * concurrently, since we cannot show multiple progress bars at the same time. Instead,
          * we just set the total effort to the number of projects and increase the progress
-         * every time one of them finishes, ingoring the progress reports from the jobs themselves.
+         * every time one of them finishes, ignoring the progress reports from the jobs themselves.
          * (Yes, that does mean it will take disproportionately long for the first progress
          * notification to arrive.)
          */

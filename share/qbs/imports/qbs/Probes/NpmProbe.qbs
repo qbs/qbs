@@ -49,6 +49,7 @@ NodeJsProbe {
         result.npmPrefix = result.found ? NodeJs.findLocation(result.filePath, "prefix") : undefined;
 
         found = result.found;
+        candidatePaths = result.candidatePaths;
         path = result.path;
         filePath = result.filePath;
         fileName = result.fileName;

@@ -34,13 +34,15 @@ import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Probes
+import qbs.Utilities
 
 Module {
     Probes.PathProbe {
         id: qnxSdkProbe
         names: ["qnx700", "qnx660", "qnx650"]
-        pathPrefixes: [Environment.getEnv("HOME"),
-            qbs.targetOS.contains("windows") ? "C:/" : "/opt"]
+        pathPrefixes: qbs.hostOS.contains("windows")
+                      ? [Environment.getEnv("USERPROFILE"), "C:/"]
+                      : [Environment.getEnv("HOME"), "/opt"]
     }
 
     Probe {
@@ -69,7 +71,7 @@ Module {
 
     version: qnxSdkProbe.found ? qnxSdkProbe.fileName.substr(3, 3).split("").join(".") : undefined
 
-    readonly property bool qnx7: Utilities.versionCompare(version, "7") >= 0
+    readonly property bool qnx7: version ? Utilities.versionCompare(version, "7") >= 0 : false
 
     property string sdkDir: qnxSdkProbe.filePath
 
@@ -98,12 +100,29 @@ Module {
         "QNX_CONFIGURATION": configurationDir
     })
 
+    qbs.sysroot: targetDir
+
     validate: {
-        var validator = new ModUtils.PropertyValidator("qnx");
-        validator.setRequiredProperty("sdkDir", sdkDir);
-        validator.setRequiredProperty("hostArch", hostArch);
-        validator.setRequiredProperty("hostOs", hostOs);
-        validator.setRequiredProperty("targetOs", targetOs);
-        return validator.validate();
+        if (!sdkDir) {
+            throw ModUtils.ModuleError("Could not find a QNX SDK in any of the following "
+                                       + "locations:\n\t" + qnxSdkProbe.candidatePaths.join("\n\t")
+                                       + "\nInstall the QNX SDK to one of the above locations, "
+                                       + "or set the qnx.sdkDir property to a valid QNX SDK "
+                                       + "location.");
+        }
+
+        if (!hostOs) {
+            throw ModUtils.ModuleError("Host operating system '" + qbs.hostOS
+                                       + "' is not supported by the QNX SDK.");
+        } else if (!File.exists(hostDir)) {
+            throw ModUtils.ModuleError("Detected host tools operating system '" + hostOs
+                                       + "' and architecture '" + hostArch + "' directory is not "
+                                       + "present in the QNX SDK installed at '" + sdkDir
+                                       + "' in the expected location '" + hostDir
+                                       + "'; did you forget to install it?");
+        }
+
+        if (!targetOs)
+            throw ModUtils.ModuleError("Could not find any QNX targets in '" + targetDir + "'");
     }
 }

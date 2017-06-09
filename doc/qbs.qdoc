@@ -176,7 +176,7 @@
     \endcode
 
     Now you should be ready to build your first project with \QBS.
-    Go into qbs/tests/manual/hello and type:
+    Go into examples/helloworld-minimal and type:
 
     \code
     qbs profile:<profile name>
@@ -695,7 +695,7 @@
     To build applications from the command line, enter the following commands:
 
     \code
-    cd tests/manual/collidingmice
+    cd examples/collidingmice
     qbs
     \endcode
 

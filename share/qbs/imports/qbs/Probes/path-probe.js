@@ -35,6 +35,7 @@ var ModUtils = require("qbs.ModUtils");
 
 function configure(names, nameSuffixes, nameFilter, pathPrefixes, pathSuffixes, platformPaths,
                    environmentPaths, platformEnvironmentPaths, pathListSeparator) {
+    var result = { found: false, candidatePaths: [] };
     if (!names)
         throw '"names" must be specified';
     var _names = ModUtils.concatAll(names);
@@ -59,24 +60,24 @@ function configure(names, nameSuffixes, nameFilter, pathPrefixes, pathSuffixes, 
         for (var j = 0; j < _paths.length; ++j) {
             for (var k = 0; k < _suffixes.length; ++k) {
                 var _filePath = FileInfo.joinPaths(_paths[j], _suffixes[k], _names[i]);
+                result.candidatePaths.push(_filePath);
                 if (File.exists(_filePath)) {
-                    return {
-                        found: true,
-                        filePath: _filePath,
+                    result.found = true;
+                    result.filePath = _filePath;
 
-                        // Manually specify the path components that constitute _filePath rather
-                        // than using the FileInfo.path and FileInfo.fileName functions because we
-                        // want to break _filePath into its constituent parts based on the input
-                        // originally given by the user. For example, the FileInfo functions would
-                        // produce a different result if any of the items in the names property
-                        // contained more than a single path component.
-                        fileName: _names[i],
-                        path: FileInfo.joinPaths(_paths[j], _suffixes[k]),
-                    }
+                    // Manually specify the path components that constitute _filePath rather
+                    // than using the FileInfo.path and FileInfo.fileName functions because we
+                    // want to break _filePath into its constituent parts based on the input
+                    // originally given by the user. For example, the FileInfo functions would
+                    // produce a different result if any of the items in the names property
+                    // contained more than a single path component.
+                    result.fileName = _names[i];
+                    result.path = FileInfo.joinPaths(_paths[j], _suffixes[k]);
+                    return result;
                 }
             }
         }
     }
 
-    return { found: false };
+    return result;
 }

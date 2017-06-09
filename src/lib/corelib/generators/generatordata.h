@@ -55,14 +55,27 @@ typedef QMap<QString, ProductData> GeneratableProductDataMap;
 struct GeneratableProductData {
     GeneratableProductDataMap data;
     QString name() const;
+    CodeLocation location() const;
     QStringList dependencies() const;
 };
 
 struct GeneratableProjectData {
+    struct Id {
+    private:
+        friend struct GeneratableProjectData;
+        Id() { }
+        QString value;
+
+    public:
+        bool operator<(const Id &id) const { return value < id.value; }
+    };
+
     GeneratableProjectDataMap data;
     QList<GeneratableProjectData> subProjects;
     QList<GeneratableProductData> products;
     QString name() const;
+    CodeLocation location() const;
+    Id uniqueName() const;
 };
 
 struct GeneratableProject : public GeneratableProjectData {

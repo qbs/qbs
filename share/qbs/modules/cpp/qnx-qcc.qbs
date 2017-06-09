@@ -42,11 +42,14 @@ UnixGCC {
     toolchainInstallPath: FileInfo.joinPaths(qnx.hostDir, "usr", "bin")
 
     sysroot: qnx.targetDir
+    sysrootFlags: sysroot ? [systemIncludeFlag + FileInfo.joinPaths(sysroot, "usr", "include")] : []
 
     cCompilerName: "qcc" + compilerExtension
     cxxCompilerName: (qnx.qnx7 ? "q++" : "QCC") + compilerExtension
 
     targetDriverFlags: qnxTarget ? ["-V" + qnxTarget] : []
+
+    systemIncludeFlag: !qnx.qnx7 ? includeFlag : base
 
     property string qnxTarget: qbs.architecture
                                ? qnx.compilerName + "_" + targetSystem + qnxTargetArchName
