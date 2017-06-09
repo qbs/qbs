@@ -31,6 +31,12 @@
 
 #include "tst_blackboxbase.h"
 
+namespace qbs {
+namespace Internal {
+class Version;
+} // namespace Internal
+} // namespace qbs
+
 class TestBlackboxApple : public TestBlackboxBase
 {
     Q_OBJECT
@@ -56,6 +62,10 @@ private slots:
     void infoPlist();
     void objcArc();
     void xcode();
+
+private:
+    QVariantMap findXcode(int *status = nullptr);
+    qbs::Internal::Version findXcodeVersion();
 };
 
 #endif // TST_BLACKBOXAPPLE_H

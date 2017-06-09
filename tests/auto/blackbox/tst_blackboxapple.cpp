@@ -32,6 +32,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 
+#include <QtCore/qjsondocument.h>
 #include <QtXml/qdom.h>
 
 #include <regex>
@@ -49,28 +50,6 @@ public:
     bool isFileSymLink() const { return isFile() && isSymLink(); }
     bool isDirSymLink() const { return isDir() && isSymLink(); }
 };
-
-static qbs::Internal::Version findXcodeVersion()
-{
-    QProcess process;
-    process.start("pkgutil", QStringList("--pkg-info-plist=com.apple.pkg.Xcode"));
-    process.waitForFinished();
-
-    QDomDocument xcodeVersionDoc;
-    if (xcodeVersionDoc.setContent(process.readAllStandardOutput())) {
-        QDomNodeList nodes = xcodeVersionDoc.elementsByTagName(QStringLiteral("key"));
-        for (int i = 0; i < nodes.count(); ++i) {
-            QDomElement elem = nodes.at(i).toElement();
-            if (elem.text().compare(QStringLiteral("pkg-version")) == 0) {
-                return qbs::Internal::Version::fromString(
-                            QStringList(elem.nextSiblingElement().text().split(
-                                QLatin1Char('.')).mid(0, 3)).join(QLatin1Char('.')), true);
-            }
-        }
-    }
-
-    return qbs::Internal::Version();
-}
 
 static QString getEmbeddedBinaryPlist(const QString &file)
 {
@@ -727,3 +706,25 @@ void TestBlackboxApple::xcode()
 }
 
 QTEST_MAIN(TestBlackboxApple)
+
+QVariantMap TestBlackboxApple::findXcode(int *status)
+{
+    QTemporaryDir temp;
+    QbsRunParameters params = QStringList({"-f", testDataDir + "/find/find-xcode.qbs",
+                                           "profile:none"});
+    params.useProfile = false;
+    params.buildDirectory = temp.path();
+    const int res = runQbs(params);
+    if (status)
+        *status = res;
+    QFile file(temp.path() + "/" + relativeProductBuildDir("find-xcode", "none")
+               + "/xcode.json");
+    if (!file.open(QIODevice::ReadOnly))
+        return QVariantMap { };
+    return QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
+}
+
+qbs::Internal::Version TestBlackboxApple::findXcodeVersion()
+{
+    return qbs::Internal::Version::fromString(findXcode().value("version").toString());
+}
