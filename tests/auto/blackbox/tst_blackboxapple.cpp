@@ -254,9 +254,10 @@ void TestBlackboxApple::bundleStructure()
     if (isShallow) {
         // Coerce shallow bundles - don't set bundle.isShallow directly because we want to test the
         // automatic detection
+        const auto xcode5 = findXcodeVersion() >= qbs::Internal::Version(5);
         params.arguments
                 << "qbs.targetOS:ios,darwin,bsd,unix"
-                << "qbs.architectures:arm64";
+                << (xcode5 ? "qbs.architectures:arm64" : "qbs.architectures:armv7a");
     }
 
     if (productName == "ABadApple" || productName == "ABadThirdParty")
@@ -546,15 +547,17 @@ void TestBlackboxApple::deploymentTarget_data()
     QTest::newRow("ios armv7s") << "iphoneos" <<ios << "armv7s"
                          << "-triple thumbv7s-apple-ios7.0"
                          << "-iphoneos_version_min 7.0";
-    QTest::newRow("ios arm64") << "iphoneos" <<ios << "arm64"
-                         << "-triple arm64-apple-ios7.0"
-                         << "-iphoneos_version_min 7.0";
+    if (xcodeVersion >= qbs::Internal::Version(5))
+        QTest::newRow("ios arm64") << "iphoneos" <<ios << "arm64"
+                             << "-triple arm64-apple-ios7.0"
+                             << "-iphoneos_version_min 7.0";
     QTest::newRow("ios-simulator x86") << "iphonesimulator" << ios_sim << "x86"
                              << "-triple i386-apple-ios6.0"
                              << "-ios_simulator_version_min 6.0";
-    QTest::newRow("ios-simulator x86_64") << "iphonesimulator" << ios_sim << "x86_64"
-                             << "-triple x86_64-apple-ios7.0"
-                             << "-ios_simulator_version_min 7.0";
+    if (xcodeVersion >= qbs::Internal::Version(5))
+        QTest::newRow("ios-simulator x86_64") << "iphonesimulator" << ios_sim << "x86_64"
+                                 << "-triple x86_64-apple-ios7.0"
+                                 << "-ios_simulator_version_min 7.0";
 
     if (xcodeVersion >= qbs::Internal::Version(7)) {
         if (xcodeVersion >= qbs::Internal::Version(7, 1)) {
