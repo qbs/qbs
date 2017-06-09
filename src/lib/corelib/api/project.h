@@ -41,6 +41,7 @@
 
 #include "rulecommand.h"
 #include "../language/forward_decls.h"
+#include "../tools/error.h"
 #include "../tools/qbs_export.h"
 
 #include <QtCore/qshareddata.h>
@@ -62,7 +63,6 @@ class BuildJob;
 class BuildOptions;
 class CleanJob;
 class CleanOptions;
-class ErrorInfo;
 class GroupData;
 class ILogSink;
 class InstallJob;
@@ -138,6 +138,20 @@ public:
                                  const QString &outputFileTag, ErrorInfo *error = 0) const;
 
     ErrorInfo dumpNodesTree(QIODevice &outDevice, const QList<ProductData> &products);
+
+
+    class BuildGraphInfo
+    {
+    public:
+        QString bgFilePath;
+        QVariantMap overriddenProperties;
+        QVariantMap profileData;
+        QVariantMap requestedProperties;
+        ErrorInfo error;
+    };
+    static BuildGraphInfo getBuildGraphInfo(const QString &bgFilePath,
+                                            const QStringList &requestedProperties);
+
 
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     ErrorInfo addGroup(const ProductData &product, const QString &groupName);

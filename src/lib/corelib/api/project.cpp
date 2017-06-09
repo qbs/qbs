@@ -51,6 +51,7 @@
 #include "runenvironment.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildgraph.h>
+#include <buildgraph/buildgraphloader.h>
 #include <buildgraph/emptydirectoriesremover.h>
 #include <buildgraph/nodetreedumper.h>
 #include <buildgraph/productbuilddata.h>
@@ -82,6 +83,8 @@
 #include <QtCore/qshareddata.h>
 
 #include <mutex>
+#include <utility>
+#include <vector>
 
 namespace qbs {
 namespace Internal {
@@ -1130,6 +1133,44 @@ ErrorInfo Project::dumpNodesTree(QIODevice &outDevice, const QList<ProductData> 
         return e;
     }
     return ErrorInfo();
+}
+
+Project::BuildGraphInfo Project::getBuildGraphInfo(const QString &bgFilePath,
+                                                   const QStringList &requestedProperties)
+{
+    BuildGraphInfo info;
+    try {
+        const Internal::TopLevelProjectConstPtr project = BuildGraphLoader::loadProject(bgFilePath);
+        info.bgFilePath = bgFilePath;
+        info.overriddenProperties = project->overriddenValues;
+        info.profileData = project->profileConfigs;
+        std::vector<std::pair<QString, QString>> props;
+        for (const QString &prop : requestedProperties) {
+            QStringList components = prop.split(QLatin1Char('.'));
+            const QString propName = components.takeLast();
+            props.push_back(std::make_pair(components.join(QLatin1Char('.')), propName));
+        }
+        for (const ResolvedProductConstPtr &product : project->allProducts()) {
+            if (props.empty())
+                break;
+            if (product->profile != project->profile())
+                continue;
+            for (auto it = props.begin(); it != props.end();) {
+                const QVariant value
+                        = product->moduleProperties->moduleProperty(it->first, it->second);
+                if (value.isValid()) {
+                    info.requestedProperties.insert(it->first + QLatin1Char('.') + it->second,
+                                                    value);
+                    it = props.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+        }
+    } catch (const ErrorInfo &e) {
+        info.error = e;
+    }
+    return info;
 }
 
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES

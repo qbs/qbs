@@ -255,6 +255,41 @@ void TestApi::baseProperties()
     VERIFY_NO_ERROR(errorInfo);
 }
 
+void TestApi::buildGraphInfo()
+{
+    SettingsPtr s = settings();
+    qbs::Internal::TemporaryProfile p("bgInfoProfile", s.get());
+    p.p.setValue("qbs.targetOS", QStringList{"xenix"});
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("buildgraph-info");
+    setupParams.setTopLevelProfile(p.p.name());
+    setupParams.setOverriddenValues({std::make_pair("qbs.architecture", "arm")});
+    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    const QString bgFilePath = setupParams.buildRoot() + QLatin1Char('/')
+            + relativeBuildGraphFilePath();
+    QVERIFY2(QFileInfo::exists(bgFilePath), qPrintable(bgFilePath));
+    qbs::Project::BuildGraphInfo bgInfo
+            = qbs::Project::getBuildGraphInfo(bgFilePath, QStringList());
+    QVERIFY(bgInfo.error.hasError()); // Build graph is still locked.
+    setupJob.reset(nullptr);
+    const QStringList requestedProperties({"qbs.architecture", "qbs.shellPath", "qbs.targetOS"});
+    bgInfo = qbs::Project::getBuildGraphInfo(bgFilePath, requestedProperties);
+    QVERIFY2(!bgInfo.error.hasError(), qPrintable(bgInfo.error.toString()));
+    QCOMPARE(bgFilePath, bgInfo.bgFilePath);
+    QCOMPARE(bgInfo.profileData.count(), 1);
+    QCOMPARE(bgInfo.profileData.value(p.p.name()).toMap().count(), 1);
+    QCOMPARE(bgInfo.profileData.value(p.p.name()).toMap().value("qbs").toMap().value("targetOS"),
+             p.p.value("qbs.targetOS"));
+    QCOMPARE(bgInfo.overriddenProperties, setupParams.overriddenValues());
+    QCOMPARE(bgInfo.requestedProperties.count(), requestedProperties.count());
+    QCOMPARE(bgInfo.requestedProperties.value("qbs.architecture").toString(), QString("arm"));
+    QCOMPARE(bgInfo.requestedProperties.value("qbs.shellPath").toString(), QString("/bin/bash"));
+    QCOMPARE(bgInfo.requestedProperties.value("qbs.targetOS").toStringList(), QStringList("xenix"));
+}
+
 void TestApi::buildGraphLocking()
 {
     qbs::SetupProjectParameters setupParams

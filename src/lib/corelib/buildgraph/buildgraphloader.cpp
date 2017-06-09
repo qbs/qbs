@@ -54,6 +54,7 @@
 #include <language/qualifiedid.h>
 #include <language/resolvedfilecontext.h>
 #include <logging/translator.h>
+#include <tools/buildgraphlocker.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/profiling.h>
@@ -136,6 +137,21 @@ BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingPr
                    .arg(elapsedTimeString(m_propertyComparisonEffort));
     }
     return m_result;
+}
+
+TopLevelProjectConstPtr BuildGraphLoader::loadProject(const QString &bgFilePath)
+{
+    class LogSink : public ILogSink {
+        void doPrintMessage(LoggerLevel, const QString &, const QString &) override { }
+    } dummySink;
+    Logger dummyLogger(&dummySink);
+    BuildGraphLocker bgLocker(bgFilePath, dummyLogger, false, nullptr);
+    PersistentPool pool(dummyLogger);
+    pool.load(bgFilePath);
+    const TopLevelProjectPtr project = TopLevelProject::create();
+    project->load(pool);
+    project->setBuildConfiguration(pool.headData().projectConfig);
+    return project;
 }
 
 void BuildGraphLoader::loadBuildGraphFromDisk()

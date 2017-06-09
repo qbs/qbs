@@ -84,7 +84,7 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
     m_lockFile.setStaleLockTime(0);
     int attemptsToGetInfo = 0;
     do {
-        if (observer->canceled())
+        if (observer && observer->canceled())
             break;
         tryCreateBuildDirectory(buildDir, buildGraphFilePath);
         if (m_lockFile.tryLock(250))

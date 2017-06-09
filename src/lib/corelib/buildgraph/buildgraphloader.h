@@ -77,6 +77,8 @@ public:
                               const SetupProjectParameters &parameters,
                               const RulesEvaluationContextPtr &evalContext);
 
+    static TopLevelProjectConstPtr loadProject(const QString &bgFilePath);
+
 private:
     void loadBuildGraphFromDisk();
     bool checkBuildGraphCompatibility(const TopLevelProjectConstPtr &project);
