@@ -691,6 +691,7 @@ void TestBlackbox::disappearedProfile()
     // must still not be taken into account.
     profile.setValue("m.p1", "p1 new from profile");
     settings.sync();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile f(QDir::currentPath() + "/modules-dir/modules/m/m.qbs");
     QVERIFY2(f.open(QIODevice::ReadWrite), qPrintable(f.errorString()));
     QByteArray contents = f.readAll();
