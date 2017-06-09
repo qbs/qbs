@@ -592,6 +592,28 @@
     \endtable
 
 
+    \section1 Overriding Property Values from the Command Line
+
+    Property values set in project files or profiles can be overridden on the command line.
+    The syntax is \c{<prefix>.<prop-name>:<prop-value>}. The following command lines
+    demonstrate how to set different kinds of properties:
+    \code
+    $ qbs projects.someProject.projectProperty:false # set a property of a project
+    $ qbs products.someProduct.productProperty:false # set a property of a product
+    $ qbs modules.cpp.treatWarningsAsErrors:true     # set a module property for all products
+    \endcode
+
+    Property values on the command line can also be expressed in JavaScript form, the same way
+    as you would write them in a project file. Make sure to take care of proper
+    quoting, so that the shell does not interpret any of the values itself. Properties of type
+    \c stringList can also be provided as comma-separated values, if none of the strings contain
+    special characters:
+    \code
+    $ qbs projects.someProject.listProp:'["a", "b", "c"]'
+    $ qbs projects.someProject.listProp:a,b,c               # same as above
+    $ qbs projects.someProject.listProp:'["a b", "c"]'      # no CSV equivalent
+    \endcode
+
     \section1 File Tags and Taggers
 
     \QBS itself knows nothing about C++ files or file extensions. All source files
