@@ -145,7 +145,7 @@ void TestBlackbox::sevenZip()
     QString binary = findArchiver("7z");
     if (binary.isEmpty())
         QSKIP("7zip not found");
-    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "archiver.type:7zip")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "modules.archiver.type:7zip")), 0);
     const QString outputFile = relativeProductBuildDir("archivable") + "/archivable.7z";
     QVERIFY2(regularFileExists(outputFile), qPrintable(outputFile));
     QProcess listContents;
@@ -198,7 +198,7 @@ void TestBlackbox::tar()
     QString binary = findArchiver("tar");
     if (binary.isEmpty())
         QSKIP("tar not found");
-    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "archiver.type:tar")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "modules.archiver.type:tar")), 0);
     const QString outputFile = relativeProductBuildDir("archivable") + "/archivable.tar.gz";
     QVERIFY2(regularFileExists(outputFile), qPrintable(outputFile));
     QProcess listContents;
@@ -230,7 +230,7 @@ void TestBlackbox::zip()
     QDir::setCurrent(testDataDir + "/archiver");
     rmDirR(relativeBuildDir());
     QbsRunParameters params(QStringList()
-                            << "archiver.type:zip" << "archiver.command:" + binary);
+                            << "modules.archiver.type:zip" << "modules.archiver.command:" + binary);
     QCOMPARE(runQbs(params), 0);
     const QString outputFile = relativeProductBuildDir("archivable") + "/archivable.zip";
     QVERIFY2(regularFileExists(outputFile), qPrintable(outputFile));
@@ -251,7 +251,7 @@ void TestBlackbox::zip()
 
     // Make sure the module is still loaded when the java/jar fallback is not available
     params.command = "resolve";
-    params.arguments << "java.jdkPath:/blubb";
+    params.arguments << "modules.java.jdkPath:/blubb";
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(runQbs(), 0);
 }
@@ -267,8 +267,8 @@ void TestBlackbox::zipInvalid()
 {
     QDir::setCurrent(testDataDir + "/archiver");
     rmDirR(relativeBuildDir());
-    QbsRunParameters params(QStringList() << "archiver.type:zip"
-                            << "archiver.command:/bin/something");
+    QbsRunParameters params(QStringList() << "modules.archiver.type:zip"
+                            << "modules.archiver.command:/bin/something");
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QVERIFY2(m_qbsStderr.contains("unrecognized archive tool: 'something'"), m_qbsStderr.constData());
@@ -420,7 +420,7 @@ void TestBlackbox::artifactScanning()
     WAIT_FOR_NEW_TIMESTAMP();
     touch("p1.cpp");
     params.command = "resolve";
-    params.arguments << "cpp.treatSystemHeadersAsDependencies:true";
+    params.arguments << "modules.cpp.treatSystemHeadersAsDependencies:true";
     QCOMPARE(runQbs(params), 0);
     params.command = "build";
     QCOMPARE(runQbs(params), 0);
@@ -897,11 +897,13 @@ void TestBlackbox::clean()
 
     // Remove all, with a forced re-resolve in between.
     // This checks that rescuable artifacts are also removed.
-    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList() << "cpp.optimization:none")), 0);
+    QCOMPARE(runQbs(QbsRunParameters("resolve",
+                                     QStringList() << "modules.cpp.optimization:none")), 0);
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
-    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList() << "cpp.optimization:fast")), 0);
+    QCOMPARE(runQbs(QbsRunParameters("resolve",
+                                     QStringList() << "modules.cpp.optimization:fast")), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
     QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
@@ -1512,7 +1514,7 @@ void TestBlackbox::reproducibleBuild()
 
     QDir::setCurrent(testDataDir + "/reproducible-build");
     QbsRunParameters params;
-    params.arguments << QString("cpp.enableReproducibleBuilds:")
+    params.arguments << QString("modules.cpp.enableReproducibleBuilds:")
                         + (reproducible ? "true" : "false");
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(params), 0);
@@ -1583,7 +1585,7 @@ void TestBlackbox::ruleWithNoInputs()
     QVERIFY2(m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
     QVERIFY2(runQbs() == 0, m_qbsStderr.constData());
     QVERIFY2(!m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
-    QbsRunParameters params("resolve", QStringList() << "theProduct.version:1");
+    QbsRunParameters params("resolve", QStringList() << "products.theProduct.version:1");
     QVERIFY2(runQbs(params) == 0, m_qbsStderr.constData());
     params.command = "build";
     QVERIFY2(runQbs(params) == 0, m_qbsStderr.constData());
@@ -2772,13 +2774,13 @@ void TestBlackbox::cli()
 void TestBlackbox::combinedSources()
 {
     QDir::setCurrent(testDataDir + "/combined-sources");
-    QbsRunParameters params(QStringList("cpp.combineCxxSources:false"));
+    QbsRunParameters params(QStringList("modules.cpp.combineCxxSources:false"));
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling combinable.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling uncombinable.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling amalgamated_theapp.cpp"));
-    params.arguments = QStringList("cpp.combineCxxSources:true");
+    params.arguments = QStringList("modules.cpp.combineCxxSources:true");
     params.command = "resolve";
     QCOMPARE(runQbs(params), 0);
     WAIT_FOR_NEW_TIMESTAMP();
@@ -3059,11 +3061,11 @@ void TestBlackbox::lexyacc()
 
     params.expectFailure = false;
     params.command = "resolve";
-    params.arguments << (QStringList() << "lex_yacc.uniqueSymbolPrefix:true");
+    params.arguments << (QStringList() << "modules.lex_yacc.uniqueSymbolPrefix:true");
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(runQbs(), 0);
     QVERIFY2(!m_qbsStderr.contains("whatever"), m_qbsStderr.constData());
-    params.arguments << "lex_yacc.enableCompilerWarnings:true";
+    params.arguments << "modules.lex_yacc.enableCompilerWarnings:true";
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStderr.contains("whatever"), m_qbsStderr.constData());
@@ -3673,7 +3675,7 @@ void TestBlackbox::successiveChanges()
     QDir::setCurrent(testDataDir + "/successive-changes");
     QCOMPARE(runQbs(), 0);
 
-    QbsRunParameters params("resolve", QStringList() << "theProduct.type:output,blubb");
+    QbsRunParameters params("resolve", QStringList() << "products.theProduct.type:output,blubb");
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(runQbs(), 0);
 
@@ -3917,8 +3919,9 @@ void TestBlackbox::enableExceptions()
     QDir::setCurrent(testDataDir + QStringLiteral("/enableExceptions"));
 
     QbsRunParameters params;
-    params.arguments = QStringList() << "-f" << file << (QStringLiteral("cpp.enableExceptions:")
-                                                         + (enable ? "true" : "false"));
+    params.arguments = QStringList() << "-f" << file
+                                     << (QStringLiteral("modules.cpp.enableExceptions:")
+                                         + (enable ? "true" : "false"));
     params.expectFailure = !expectSuccess;
     rmDirR(relativeBuildDir());
     if (!params.expectFailure)
@@ -3955,24 +3958,26 @@ void TestBlackbox::enableRtti()
 
     QbsRunParameters params;
 
-    params.arguments = QStringList() << "cpp.enableRtti:true";
+    params.arguments = QStringList() << "modules.cpp.enableRtti:true";
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(params), 0);
 
     if (HostOsInfo::isMacosHost()) {
-        params.arguments = QStringList() << "cpp.enableRtti:true" << "project.treatAsObjcpp:true";
+        params.arguments = QStringList() << "modules.cpp.enableRtti:true"
+                                         << "project.treatAsObjcpp:true";
         rmDirR(relativeBuildDir());
         QCOMPARE(runQbs(params), 0);
     }
 
     params.expectFailure = true;
 
-    params.arguments = QStringList() << "cpp.enableRtti:false";
+    params.arguments = QStringList() << "modules.cpp.enableRtti:false";
     rmDirR(relativeBuildDir());
     QVERIFY(runQbs(params) != 0);
 
     if (HostOsInfo::isMacosHost()) {
-        params.arguments = QStringList() << "cpp.enableRtti:false" << "project.treatAsObjcpp:true";
+        params.arguments = QStringList() << "modules.cpp.enableRtti:false"
+                                         << "project.treatAsObjcpp:true";
         rmDirR(relativeBuildDir());
         QVERIFY(runQbs(params) != 0);
     }

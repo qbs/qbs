@@ -76,7 +76,7 @@ void TestBlackboxQt::combinedMoc()
     QVERIFY(m_qbsStdout.contains("compiling moc_theobject.cpp"));
     QVERIFY(!m_qbsStdout.contains("creating amalgamated_moc_theapp.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling amalgamated_moc_theapp.cpp"));
-    QbsRunParameters params(QStringList("Qt.core.combineMocOutput:true"));
+    QbsRunParameters params(QStringList("modules.Qt.core.combineMocOutput:true"));
     params.command = "resolve";
     QCOMPARE(runQbs(params), 0);
     params.command = "build";
@@ -121,7 +121,7 @@ void TestBlackboxQt::lrelease()
     QVERIFY(regularFileExists(relativeProductBuildDir("lrelease-test") + "/hu.qm"));
 
     QCOMPARE(runQbs(QString("clean")), 0);
-    QbsRunParameters params(QStringList({ "Qt.core.lreleaseMultiplexMode:true"}));
+    QbsRunParameters params(QStringList({"modules.Qt.core.lreleaseMultiplexMode:true"}));
     params.command = "resolve";
     QCOMPARE(runQbs(params), 0);
     params.command = "build";
@@ -132,7 +132,7 @@ void TestBlackboxQt::lrelease()
 
     QCOMPARE(runQbs(QString("clean")), 0);
     params.command = "resolve";
-    params.arguments << "Qt.core.qmBaseName:somename";
+    params.arguments << "modules.Qt.core.qmBaseName:somename";
     QCOMPARE(runQbs(params), 0);
     params.command = "build";
     params.arguments.clear();
@@ -221,7 +221,7 @@ void TestBlackboxQt::qobjectInObjectiveCpp()
 void TestBlackboxQt::qtKeywords()
 {
     QDir::setCurrent(testDataDir + "/qt-keywords");
-    QbsRunParameters params(QStringList("Qt.core.enableKeywords:false"));
+    QbsRunParameters params(QStringList("modules.Qt.core.enableKeywords:false"));
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     params.arguments.clear();

@@ -88,7 +88,7 @@ void TestBlackboxJava::android()
 
     QDir::setCurrent(testDataDir + "/android/" + projectDir);
     QbsRunParameters params(QStringList("profile:" + p.name())
-                            << "Android.ndk.platform:android-21");
+                            << "modules.Android.ndk.platform:android-21");
     params.useProfile = false;
     QCOMPARE(runQbs(params), 0);
     for (int i = 0; i < productNames.count(); ++i) {
@@ -234,9 +234,9 @@ void TestBlackboxJava::javaDependencyTracking()
     QbsRunParameters rp;
     rp.arguments.append(flag);
     if (!jdkPath.isEmpty())
-        rp.arguments << ("java.jdkPath:" + jdkPath);
+        rp.arguments << ("modules.java.jdkPath:" + jdkPath);
     if (!javaVersion.isEmpty())
-        rp.arguments << ("java.languageVersion:'" + javaVersion + "'");
+        rp.arguments << ("modules.java.languageVersion:'" + javaVersion + "'");
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(rp), 0);
 }
