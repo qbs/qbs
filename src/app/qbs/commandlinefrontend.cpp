@@ -147,6 +147,7 @@ void CommandLineFrontend::start()
         params.setLogElapsedTime(m_parser.logTime());
         params.setSettingsDirectory(m_settings->baseDirectory());
         params.setOverrideBuildGraphData(m_parser.command() == ResolveCommandType);
+        params.setPropertyCheckingMode(ErrorHandlingMode::Strict);
         if (!m_parser.buildBeforeInstalling() || m_parser.command() == DumpNodesTreeCommandType)
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
