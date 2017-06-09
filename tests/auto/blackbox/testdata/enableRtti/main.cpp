@@ -28,6 +28,10 @@
 
 #include <typeinfo>
 
+#if defined(__GNUC__) && !(defined(__cpp_rtti) || defined(__GXX_RTTI))
+#error RTTI is disabled!
+#endif
+
 class I {
 public:
     virtual ~I() { }

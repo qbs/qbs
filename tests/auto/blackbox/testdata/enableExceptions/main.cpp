@@ -28,6 +28,10 @@
 
 #include <stdexcept>
 
+#if defined(__GNUC__) && !(defined(__cpp_exceptions) || defined(__EXCEPTIONS))
+#error Exceptions are disabled!
+#endif
+
 int main() {
 #ifdef FORCE_FAIL_VS
 #error "Microsoft Visual C++ cannot disable exceptions at compile-time"
