@@ -51,6 +51,8 @@ private slots:
     void appleMultiConfig();
     void assetCatalog();
     void assetCatalog_data();
+    void assetCatalogsEmpty();
+    void assetCatalogsMultiple();
     void bundleStructure();
     void bundleStructure_data();
     void deploymentTarget();

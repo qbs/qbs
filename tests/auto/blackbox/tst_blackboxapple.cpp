@@ -139,8 +139,7 @@ void TestBlackboxApple::assetCatalog()
 {
     QFETCH(bool, flatten);
 
-    if (HostOsInfo::hostOsVersion() < qbs::Internal::Version(10, 9))
-        QSKIP("This test needs at least macOS 10.9.");
+    const auto xcodeVersion = findXcodeVersion();
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/assetcatalog"));
 
@@ -158,7 +157,8 @@ void TestBlackboxApple::assetCatalog()
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
-    QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
+    if (xcodeVersion >= qbs::Internal::Version(5))
+        QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
 
     // should not produce a CAR since minimumMacosVersion will be < 10.9
     QVERIFY(!regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
@@ -168,8 +168,21 @@ void TestBlackboxApple::assetCatalog()
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
-    QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
-    QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
+    if (xcodeVersion >= qbs::Internal::Version(5)) {
+        QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
+        // No matter what, we need a 10.9 host to build CAR files
+        if (HostOsInfo::hostOsVersion() >= qbs::Internal::Version(10, 9)) {
+            QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
+                                      + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
+        } else {
+            QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
+                                      + "/assetcatalogempty.app/Contents/Resources/empty.icns"));
+            QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
+                                      + "/assetcatalogempty.app/Contents/Resources/other.png"));
+            QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
+                                      + "/assetcatalogempty.app/Contents/Resources/other@2x.png"));
+        }
+    }
 
     // this asset catalog happens to have an embedded icon set,
     // but this should NOT be built since it is not in the files list
@@ -219,20 +232,6 @@ void TestBlackboxApple::assetCatalog()
     QCOMPARE(runQbs(params2), 0);
     QCOMPARE(QDir(nib).entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name), QStringList());
     QCOMPARE(QDir(storyboardc).entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name), QStringList());
-
-    QDir::setCurrent(testDataDir + QLatin1String("/ib/multiple-asset-catalogs"));
-    rmDirR(relativeBuildDir());
-    params.arguments = QStringList();
-    QCOMPARE(runQbs(params), 0);
-    QVERIFY2(m_qbsStdout.contains("compiling assetcatalog1.xcassets"), m_qbsStdout);
-    QVERIFY2(m_qbsStdout.contains("compiling assetcatalog2.xcassets"), m_qbsStdout);
-
-    QDir::setCurrent(testDataDir + QLatin1String("/ib/empty-asset-catalogs"));
-    rmDirR(relativeBuildDir());
-    params.arguments = QStringList();
-    QCOMPARE(runQbs(params), 0);
-    QVERIFY2(!m_qbsStdout.contains("compiling assetcatalog1.xcassets"), m_qbsStdout);
-    QVERIFY2(!m_qbsStdout.contains("compiling assetcatalog2.xcassets"), m_qbsStdout);
 }
 
 void TestBlackboxApple::assetCatalog_data()
@@ -240,6 +239,24 @@ void TestBlackboxApple::assetCatalog_data()
     QTest::addColumn<bool>("flatten");
     QTest::newRow("flattened") << true;
     QTest::newRow("unflattened") << false;
+}
+
+void TestBlackboxApple::assetCatalogsEmpty() {
+    if (findXcodeVersion() < qbs::Internal::Version(5))
+        QSKIP("requires Xcode 5 or above");
+    QDir::setCurrent(testDataDir + QLatin1String("/ib/empty-asset-catalogs"));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling assetcatalog1.xcassets"), m_qbsStdout);
+    QVERIFY2(!m_qbsStdout.contains("compiling assetcatalog2.xcassets"), m_qbsStdout);
+}
+
+void TestBlackboxApple::assetCatalogsMultiple() {
+    if (findXcodeVersion() < qbs::Internal::Version(5))
+        QSKIP("requires Xcode 5 or above");
+    QDir::setCurrent(testDataDir + QLatin1String("/ib/multiple-asset-catalogs"));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling assetcatalog1.xcassets"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("compiling assetcatalog2.xcassets"), m_qbsStdout);
 }
 
 void TestBlackboxApple::bundleStructure()
