@@ -146,7 +146,7 @@ void TestBlackboxApple::assetCatalog()
     rmDirR(relativeBuildDir());
 
     QbsRunParameters params;
-    const QString flattens = "ib.flatten:" + QString(flatten ? "true" : "false");
+    const QString flattens = "modules.ib.flatten:" + QString(flatten ? "true" : "false");
 
     // Make sure a dry run does not write anything
     params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs" << "--dry-run" << flattens;
