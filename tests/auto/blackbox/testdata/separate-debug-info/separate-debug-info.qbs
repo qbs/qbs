@@ -46,7 +46,10 @@ Project {
         type: ["application"]
         files: ["main.cpp"]
         cpp.separateDebugInformation: true
-        cpp.dsymutilFlags: ["--flat"]
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            cpp.dsymutilFlags: ["--flat"]
+        }
     }
     DynamicLibrary {
         Depends { name: "cpp" }
@@ -54,14 +57,20 @@ Project {
         type: ["dynamiclibrary"]
         files: ["foo.cpp"]
         cpp.separateDebugInformation: true
-        cpp.dsymutilFlags: ["--flat"]
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            cpp.dsymutilFlags: ["--flat"]
+        }
     }
     LoadableModule {
         Depends { name: "cpp" }
         name: "bar3"
         files: ["foo.cpp"]
         cpp.separateDebugInformation: true
-        cpp.dsymutilFlags: ["--flat"]
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            cpp.dsymutilFlags: ["--flat"]
+        }
     }
 
     CppApplication {
@@ -93,7 +102,10 @@ Project {
         files: ["main.cpp"]
         bundle.isBundle: false
         cpp.separateDebugInformation: true
-        cpp.dsymutilFlags: ["--flat"]
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            cpp.dsymutilFlags: ["--flat"]
+        }
     }
     DynamicLibrary {
         Depends { name: "cpp" }
@@ -102,7 +114,10 @@ Project {
         files: ["foo.cpp"]
         bundle.isBundle: false
         cpp.separateDebugInformation: true
-        cpp.dsymutilFlags: ["--flat"]
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            cpp.dsymutilFlags: ["--flat"]
+        }
     }
     LoadableModule {
         Depends { name: "cpp" }
@@ -110,6 +125,9 @@ Project {
         files: ["foo.cpp"]
         bundle.isBundle: false
         cpp.separateDebugInformation: true
-        cpp.dsymutilFlags: ["--flat"]
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            cpp.dsymutilFlags: ["--flat"]
+        }
     }
 }
