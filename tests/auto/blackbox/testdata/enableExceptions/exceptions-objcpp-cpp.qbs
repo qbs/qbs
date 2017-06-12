@@ -1,6 +1,8 @@
 import qbs
 
 CppApplication {
-    files: ["main.cpp"]
-    fileTags: ["objcpp"]
+    Group {
+        files: ["main.cpp"]
+        fileTags: ["objcpp"]
+    }
 }
