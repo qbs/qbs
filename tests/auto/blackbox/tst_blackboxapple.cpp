@@ -720,7 +720,7 @@ void TestBlackboxApple::xcode()
     QDir::setCurrent(testDataDir + "/xcode");
     QbsRunParameters params;
     params.arguments = (QStringList()
-                        << (QStringLiteral("xcode.developerPath:") + developerPath)
+                        << (QStringLiteral("modules.xcode.developerPath:") + developerPath)
                         << (QStringLiteral("project.sdks:['") + sdkValues.join("','") + "']"));
     QCOMPARE(runQbs(params), 0);
 }
