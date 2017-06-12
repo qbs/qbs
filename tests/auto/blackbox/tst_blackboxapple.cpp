@@ -730,9 +730,8 @@ QTEST_MAIN(TestBlackboxApple)
 QVariantMap TestBlackboxApple::findXcode(int *status)
 {
     QTemporaryDir temp;
-    QbsRunParameters params = QStringList({"-f", testDataDir + "/find/find-xcode.qbs",
-                                           "profile:none"});
-    params.useProfile = false;
+    QbsRunParameters params = QStringList({"-f", testDataDir + "/find/find-xcode.qbs"});
+    params.profile = "none";
     params.buildDirectory = temp.path();
     const int res = runQbs(params);
     if (status)

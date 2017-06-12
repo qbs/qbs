@@ -75,16 +75,15 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
     QStringList args;
     if (!params.command.isEmpty())
         args << params.command;
-    const QString settingsDir = settings()->baseDirectory();
-    if (params.useProfile && !settingsDir.isEmpty() && supportsSettingsDirOption(params.command))
-        args << "--settings-dir" << settingsDir;
+    if (!params.settingsDir.isEmpty() && supportsSettingsDirOption(params.command))
+        args << "--settings-dir" << params.settingsDir;
     if (supportsBuildDirectoryOption(params.command)) {
         args.append(QLatin1String("-d"));
         args.append(params.buildDirectory.isEmpty() ? QLatin1String(".") : params.buildDirectory);
     }
     args << params.arguments;
-    if (params.useProfile)
-        args.append(QLatin1String("profile:") + profileName());
+    if (!params.profile.isEmpty())
+        args.append(QLatin1String("profile:") + params.profile);
     QProcess process;
     process.setProcessEnvironment(params.environment);
     process.start(qbsExecutableFilePath, args);

@@ -92,7 +92,7 @@ void TestBlackboxQt::createProject()
     QVERIFY(QFile::copy(SRCDIR "/../../../examples/helloworld-qt/main.cpp",
                         QDir::currentPath() + "/main.cpp"));
     QbsRunParameters createParams("create-project");
-    createParams.useProfile = false;
+    createParams.profile.clear();
     QCOMPARE(runQbs(createParams), 0);
     createParams.expectFailure = true;
     QVERIFY(runQbs(createParams) != 0);

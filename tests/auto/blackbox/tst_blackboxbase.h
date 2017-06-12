@@ -28,6 +28,8 @@
 #ifndef TST_BLACKBOXBASE_H
 #define TST_BLACKBOXBASE_H
 
+#include "../shared.h"
+
 #include <QtCore/qmap.h>
 #include <QtCore/qprocess.h>
 #include <QtCore/qstringlist.h>
@@ -55,7 +57,8 @@ public:
     void init()
     {
         expectFailure = false;
-        useProfile = true;
+        profile = profileName();
+        settingsDir = settings()->baseDirectory();
         environment = QProcessEnvironment::systemEnvironment();
     }
 
@@ -63,8 +66,9 @@ public:
     QStringList arguments;
     QString buildDirectory;
     QProcessEnvironment environment;
+    QString profile;
+    QString settingsDir;
     bool expectFailure;
-    bool useProfile;
 };
 
 class TestBlackboxBase : public QObject

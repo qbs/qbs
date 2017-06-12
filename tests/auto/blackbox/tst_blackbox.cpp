@@ -662,9 +662,8 @@ void TestBlackbox::disappearedProfile()
     settings.sync();
     resolveParams.command = "resolve";
     resolveParams.expectFailure = false;
-    resolveParams.useProfile = false;
-    resolveParams.arguments << "--settings-dir" << settings.baseDirectory()
-                     << ("profile:" + profile.name());
+    resolveParams.settingsDir = settings.baseDirectory();
+    resolveParams.profile = profile.name();
     QCOMPARE(runQbs(resolveParams), 0);
 
     // Now we change a property in the profile, but because we don't use the "resolve" command,
@@ -672,7 +671,7 @@ void TestBlackbox::disappearedProfile()
     profile.setValue("m.p2", "p2 new from profile");
     settings.sync();
     QbsRunParameters buildParams;
-    buildParams.useProfile = false;
+    buildParams.profile.clear();
     QCOMPARE(runQbs(buildParams), 0);
     QVERIFY2(m_qbsStdout.contains("Creating dummy1.txt with p1 from profile"),
              m_qbsStdout.constData());
@@ -707,8 +706,8 @@ void TestBlackbox::disappearedProfile()
     // Now we run the "resolve" command without giving the necessary settings path to find
     // the profile.
     resolveParams.expectFailure = true;
-    resolveParams.arguments.removeFirst();
-    resolveParams.arguments.removeFirst();
+    resolveParams.settingsDir.clear();
+    resolveParams.profile.clear();
     QVERIFY(runQbs(resolveParams) != 0);
     QVERIFY2(m_qbsStderr.contains("profile"), m_qbsStderr.constData());
 }
@@ -2323,8 +2322,7 @@ void TestBlackbox::qtBug51237()
     }
     QDir::setCurrent(testDataDir + "/QTBUG-51237");
     QbsRunParameters params;
-    params.arguments << "profile:" + profileName;
-    params.useProfile = false;
+    params.profile = profileName;
     QCOMPARE(runQbs(params), 0);
 }
 
@@ -2753,9 +2751,8 @@ void TestBlackbox::cli()
         QSKIP("No suitable Common Language Infrastructure test profile");
 
     QDir::setCurrent(testDataDir + "/cli");
-    QbsRunParameters params(QStringList() << "-f" << "dotnettest.qbs"
-                            << "profile:" + p.name());
-    params.useProfile = false;
+    QbsRunParameters params(QStringList() << "-f" << "dotnettest.qbs");
+    params.profile = p.name();
 
     status = runQbs(params);
     if (p.value("cli.toolchainInstallPath").toString().isEmpty()
@@ -2765,9 +2762,8 @@ void TestBlackbox::cli()
     QCOMPARE(status, 0);
     rmDirR(relativeBuildDir());
 
-    QbsRunParameters params2(QStringList() << "-f" << "fshello.qbs"
-                             << "profile:" + p.name());
-    params2.useProfile = false;
+    QbsRunParameters params2(QStringList() << "-f" << "fshello.qbs");
+    params2.profile = p.name();
     QCOMPARE(runQbs(params2), 0);
     rmDirR(relativeBuildDir());
 }
@@ -3236,10 +3232,9 @@ void TestBlackbox::propertyPrecedence()
     qbs::Internal::TemporaryProfile profile("qbs_autotests_propPrecedence", s.get());
     profile.p.setValue("qbs.architecture", "x86"); // Profiles must not be empty...
     s->sync();
-    const QStringList args = QStringList() << "-f" << "property-precedence.qbs"
-                                           << ("profile:" + profile.p.name());
+    const QStringList args = QStringList() << "-f" << "property-precedence.qbs";
     QbsRunParameters params(args);
-    params.useProfile = false;
+    params.profile = profile.p.name();
     QbsRunParameters resolveParams = params;
     resolveParams.command = "resolve";
 
@@ -3789,7 +3784,7 @@ void TestBlackbox::installedSourceFiles()
 void TestBlackbox::toolLookup()
 {
     QbsRunParameters params(QLatin1String("setup-toolchains"), QStringList("--help"));
-    params.useProfile = false;
+    params.profile.clear();
     QCOMPARE(runQbs(params), 0);
 }
 

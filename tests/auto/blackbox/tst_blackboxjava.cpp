@@ -42,9 +42,8 @@ QMap<QString, QString> TestBlackboxJava::findAndroid(int *status, const QString 
 {
     QTemporaryDir temp;
     QDir::setCurrent(testDataDir + "/find");
-    QbsRunParameters params = QStringList({"-f", "find-android.qbs", "profile:" + profile,
-                                           "qbs.architecture:x86"});
-    params.useProfile = false;
+    QbsRunParameters params = QStringList({"-f", "find-android.qbs", "qbs.architecture:x86"});
+    params.profile = profile;
     params.buildDirectory = temp.path();
     const int res = runQbs(params);
     if (status)
@@ -87,9 +86,8 @@ void TestBlackboxJava::android()
         QSKIP("NDK samples directory not present");
 
     QDir::setCurrent(testDataDir + "/android/" + projectDir);
-    QbsRunParameters params(QStringList("profile:" + p.name())
-                            << "modules.Android.ndk.platform:android-21");
-    params.useProfile = false;
+    QbsRunParameters params(QStringList() << "modules.Android.ndk.platform:android-21");
+    params.profile = p.name();
     QCOMPARE(runQbs(params), 0);
     for (int i = 0; i < productNames.count(); ++i) {
         const QString productName = productNames.at(i);
