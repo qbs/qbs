@@ -30,10 +30,13 @@
 
 var Process = require("qbs.Process");
 
-function findLocation(packageManagerFilePath, location) {
+function findLocation(packageManagerFilePath, location, nodejsPath) {
     var p = new Process();
     try {
-        p.exec(packageManagerFilePath, [location, "-g"]);
+        if (nodejsPath)
+            p.setEnv("PATH", nodejsPath);
+        if (p.exec(packageManagerFilePath, [location, "-g"]) !== 0)
+            console.error(p.readStdErr().trim());
         return p.readStdOut().trim();
     } finally {
         p.close();

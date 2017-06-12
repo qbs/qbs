@@ -280,11 +280,14 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
     }
 
     if (completeSuffix == QLatin1String("js")) {
-        // The Node.js binary is called nodejs on Debian/Ubuntu-family operating systems due to a
-        // conflict with another package containing a binary named node
-        targetExecutable = findExecutable(QStringList()
-                                          << QLatin1String("nodejs")
-                                          << QLatin1String("node"));
+        targetExecutable = d->resolvedProduct->moduleProperties->moduleProperty(
+                    QLatin1String("nodejs"), QLatin1String("interpreterFilePath")).toString();
+        if (targetExecutable.isEmpty())
+            // The Node.js binary is called nodejs on Debian/Ubuntu-family operating systems due to
+            // conflict with another package containing a binary named node
+            targetExecutable = findExecutable(QStringList()
+                                              << QLatin1String("nodejs")
+                                              << QLatin1String("node"));
         targetArguments.prepend(targetBin);
     }
 

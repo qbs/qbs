@@ -60,9 +60,14 @@ BinaryProbe {
 
         var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, pathPrefixes,
                                                   pathSuffixes, platformPaths, environmentPaths,
-                                                  platformEnvironmentPaths, qbs.pathListSeparator);
+                                                  platformEnvironmentPaths, pathListSeparator);
+
+        var v = new ModUtils.EnvironmentVariable("PATH", pathListSeparator,
+                                                 hostOS.contains("windows"));
+        v.prepend(interpreterPath);
+
         result.version = result.found
-                ? TypeScript.findTscVersion(result.filePath, interpreterPath)
+                ? TypeScript.findTscVersion(result.filePath, v.value)
                 : undefined;
         if (FileInfo.fromNativeSeparators(packageManagerBinPath) !== result.path ||
                 !File.exists(FileInfo.fromNativeSeparators(packageManagerRootPath, "typescript"))) {

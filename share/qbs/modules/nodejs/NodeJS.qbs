@@ -48,6 +48,7 @@ Module {
     Probes.NpmProbe {
         id: npm
         pathPrefixes: toolchainInstallPath ? [toolchainInstallPath] : []
+        interpreterPath: FileInfo.path(nodejs.filePath)
     }
 
     property path applicationFile

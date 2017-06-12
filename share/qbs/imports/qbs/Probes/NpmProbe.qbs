@@ -29,11 +29,15 @@
 ****************************************************************************/
 
 import qbs
+import qbs.ModUtils
 import "path-probe.js" as PathProbeConfigure
 import "../../../modules/nodejs/nodejs.js" as NodeJs
 
 NodeJsProbe {
     names: ["npm"]
+
+    // Inputs
+    property string interpreterPath
 
     // Outputs
     property path npmBin
@@ -41,12 +45,26 @@ NodeJsProbe {
     property path npmPrefix
 
     configure: {
+        if (!interpreterPath)
+            throw '"interpreterPath" must be specified';
+
         var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, pathPrefixes,
                                                   pathSuffixes, platformPaths, environmentPaths,
                                                   platformEnvironmentPaths, pathListSeparator);
-        result.npmBin = result.found ? NodeJs.findLocation(result.filePath, "bin") : undefined;
-        result.npmRoot = result.found ? NodeJs.findLocation(result.filePath, "root") : undefined;
-        result.npmPrefix = result.found ? NodeJs.findLocation(result.filePath, "prefix") : undefined;
+
+        var v = new ModUtils.EnvironmentVariable("PATH", pathListSeparator,
+                                                 hostOS.contains("windows"));
+        v.prepend(interpreterPath);
+
+        result.npmBin = result.found
+                ? NodeJs.findLocation(result.filePath, "bin", v.value)
+                : undefined;
+        result.npmRoot = result.found
+                ? NodeJs.findLocation(result.filePath, "root", v.value)
+                : undefined;
+        result.npmPrefix = result.found
+                ? NodeJs.findLocation(result.filePath, "prefix", v.value)
+                : undefined;
 
         found = result.found;
         candidatePaths = result.candidatePaths;
