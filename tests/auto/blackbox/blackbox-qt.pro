@@ -3,6 +3,7 @@ TARGET = tst_blackbox-qt
 HEADERS = tst_blackboxqt.h tst_blackboxbase.h
 SOURCES = tst_blackboxqt.cpp tst_blackboxbase.cpp
 OBJECTS_DIR = qt
+MOC_DIR = $${OBJECTS_DIR}-moc
 
 include(../auto.pri)
 

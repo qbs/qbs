@@ -3,6 +3,7 @@ TARGET = tst_blackbox-apple
 HEADERS = tst_blackboxapple.h tst_blackboxbase.h
 SOURCES = tst_blackboxapple.cpp tst_blackboxbase.cpp
 OBJECTS_DIR = apple
+MOC_DIR = $${OBJECTS_DIR}-moc
 
 include(../auto.pri)
 
