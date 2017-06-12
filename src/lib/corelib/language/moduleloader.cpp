@@ -341,8 +341,9 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
         e.append(QLatin1Char('\t') + Tr::tr("projects.<project-name>.<property-name>:value"));
         e.append(QLatin1Char('\t') + Tr::tr("products.<product-name>.<property-name>:value"));
         e.append(QLatin1Char('\t') + Tr::tr("modules.<module-name>.<property-name>:value"));
-        e.append(QLatin1Char('\t') + Tr::tr("products.<product-name>.<module-name>."
-                                            "<property-name>:value"));
+        // TODO: Uncomment in master.
+//        e.append(QLatin1Char('\t') + Tr::tr("products.<product-name>.<module-name>."
+//                                            "<property-name>:value"));
         handlePropertyError(e, m_parameters, m_logger);
     }
 
