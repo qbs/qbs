@@ -1316,3 +1316,8 @@ function targetFlags(tool, hasTargetOption, target, targetArch, machineType, tar
     }
     return args;
 }
+
+function toolNames(rawToolName, toolchainPrefix)
+{
+    return [toolchainPrefix ? toolchainPrefix + rawToolName : rawToolName];
+}

@@ -57,6 +57,37 @@ CppModule {
         _sysroot: sysroot
     }
 
+    Probes.BinaryProbe {
+        id: asPathProbe
+        condition: !File.exists(assemblerPath)
+        names: Gcc.toolNames(assemblerName, toolchainPrefix)
+    }
+    Probes.BinaryProbe {
+        id: ldPathProbe
+        condition: !File.exists(linkerPath)
+        names: Gcc.toolNames(linkerName, toolchainPrefix)
+    }
+    Probes.BinaryProbe {
+        id: arPathProbe
+        condition: !File.exists(archiverPath)
+        names: Gcc.toolNames(archiverName, toolchainPrefix)
+    }
+    Probes.BinaryProbe {
+        id: nmPathProbe
+        condition: !File.exists(nmPath)
+        names: Gcc.toolNames(nmName, toolchainPrefix)
+    }
+    Probes.BinaryProbe {
+        id: objcopyPathProbe
+        condition: !File.exists(objcopyPath)
+        names: Gcc.toolNames(objcopyName, toolchainPrefix)
+    }
+    Probes.BinaryProbe {
+        id: stripPathProbe
+        condition: !File.exists(stripPath)
+        names: Gcc.toolNames(stripName, toolchainPrefix)
+    }
+
     targetLinkerFlags: Gcc.targetFlags("linker", false,
                                        target, targetArch, machineType, qbs.targetOS)
     targetAssemblerFlags: Gcc.targetFlags("assembler", assemblerHasTargetOption,
@@ -168,14 +199,17 @@ CppModule {
         "asm_cpp": toolchainPathPrefix + cCompilerName
     })
 
-    assemblerPath: toolchainPathPrefix + assemblerName
+    assemblerPath: asPathProbe.found ? asPathProbe.filePath : toolchainPathPrefix + assemblerName
     compilerPath: toolchainPathPrefix + compilerName
-    linkerPath: toolchainPathPrefix + linkerName
-    property string archiverPath: toolchainPathPrefix + archiverName
-    property string nmPath: toolchainPathPrefix + nmName
+    linkerPath: ldPathProbe.found ? ldPathProbe.filePath : toolchainPathPrefix + linkerName
+    property string archiverPath: arPathProbe.found ? arPathProbe.filePath
+                                                    : toolchainPathPrefix + archiverName
+    property string nmPath: nmPathProbe.found ? nmPathProbe.filePath : toolchainPathPrefix + nmName
     property bool _nmHasDynamicOption: nmProbe.hasDynamicOption
-    property string objcopyPath: toolchainPathPrefix + objcopyName
-    property string stripPath: toolchainPathPrefix + stripName
+    property string objcopyPath: objcopyPathProbe.found ? objcopyPathProbe.filePath
+                                                        : toolchainPathPrefix + objcopyName
+    property string stripPath: stripPathProbe.found ? stripPathProbe.filePath
+                                                      : toolchainPathPrefix + stripName
     property string dsymutilPath: toolchainPathPrefix + dsymutilName
     property string lipoPath: toolchainPathPrefix + lipoName
     property stringList dsymutilFlags
