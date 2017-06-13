@@ -424,6 +424,8 @@ template<typename T> Set<T> operator&(const Set<T> &set1, const Set<T> &set2)
     return result;
 }
 
+template<> inline QString Set<QString>::toString(const QString &value) const { return value; }
+
 } // namespace Internal
 } // namespace qbs
 
