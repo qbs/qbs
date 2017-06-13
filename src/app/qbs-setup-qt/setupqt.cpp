@@ -356,15 +356,11 @@ static bool isToolchainProfile(const Profile &profile)
 
 static bool isQtProfile(const Profile &profile)
 {
-    bool hasQtKey = false;
-    foreach (const QString &key, profile.allKeys(Profile::KeySelectionRecursive)) {
-        if (key.startsWith(QLatin1String("Qt."))) {
-            hasQtKey = true;
-            break;
-        }
-    }
-
-    return hasQtKey;
+    const QStringList searchPaths
+            = profile.value(QStringLiteral("preferences.qbsSearchPaths")).toStringList();
+    return std::any_of(searchPaths.cbegin(), searchPaths.cend(), [] (const QString &path) {
+        return QFileInfo(path + QStringLiteral("/modules/Qt")).isDir();
+    });
 }
 
 template <typename T> bool areProfilePropertiesIncompatible(const T &set1, const T &set2)
