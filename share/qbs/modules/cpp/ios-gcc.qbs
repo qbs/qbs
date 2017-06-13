@@ -40,7 +40,6 @@ DarwinGCC {
 
     targetSystem: "ios" + (minimumIosVersion || "")
 
-    minimumIosVersion: cxxStandardLibrary === "libc++" ? "5.0" : undefined
     minimumDarwinVersion: minimumIosVersion
     minimumDarwinVersionCompilerFlag: qbs.targetOS.contains("ios-simulator")
                                       ? "-mios-simulator-version-min"
