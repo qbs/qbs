@@ -2,6 +2,7 @@ include(../install_prefix.pri)
 
 QT = core
 TEMPLATE = app
+DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_PROCESS_COMBINED_ARGUMENT_START
 !isEmpty(QBS_APPS_DESTDIR):DESTDIR = $${QBS_APPS_DESTDIR}
 else:DESTDIR = ../../../bin
 
