@@ -164,7 +164,7 @@ void TestBlackboxApple::assetCatalog()
     QVERIFY(!regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
 
     rmDirR(relativeBuildDir());
-    params.arguments.append("cpp.minimumMacosVersion:10.9"); // force CAR generation
+    params.arguments.append("modules.cpp.minimumMacosVersion:10.9"); // force CAR generation
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
