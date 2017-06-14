@@ -1598,7 +1598,8 @@ void TestBlackbox::responseFiles()
     QFile file("installed/response-file-content.txt");
     QVERIFY(file.open(QIODevice::ReadOnly));
     const QList<QByteArray> expected = QList<QByteArray>()
-            << "foo" <<  qbs::Internal::shellQuote("with space").toUtf8() << "bar" << "";
+            << "foo" << qbs::Internal::shellQuote(QStringLiteral("with space")).toUtf8()
+            << "bar" << "";
     QList<QByteArray> lines = file.readAll().split('\n');
     for (int i = 0; i < lines.count(); ++i)
         lines[i] = lines.at(i).trimmed();

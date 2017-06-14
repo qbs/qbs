@@ -152,6 +152,11 @@ QString shellQuote(const QString &arg, HostOsInfo::HostOs os)
     return os == HostOsInfo::HostOsWindows ? shellQuoteWin(arg) : shellQuoteUnix(arg);
 }
 
+std::string shellQuote(const std::string &arg, HostOsInfo::HostOs os)
+{
+    return shellQuote(QString::fromStdString(arg), os).toStdString();
+}
+
 QString shellQuote(const QStringList &args, HostOsInfo::HostOs os)
 {
     QString result;
@@ -159,6 +164,21 @@ QString shellQuote(const QStringList &args, HostOsInfo::HostOs os)
         result += shellQuote(args.at(0), os);
         for (int i = 1; i < args.size(); ++i)
             result += QLatin1Char(' ') + shellQuote(args.at(i), os);
+    }
+    return result;
+}
+
+std::string shellQuote(const std::vector<std::string> &args, HostOsInfo::HostOs os)
+{
+    std::string result;
+    if (!args.empty()) {
+        auto it = args.cbegin();
+        const auto end = args.cend();
+        result += shellQuote(*it++, os);
+        for (; it != end; ++it) {
+            result.push_back(' ');
+            result.append(shellQuote(*it, os));
+        }
     }
     return result;
 }
@@ -177,9 +197,20 @@ void CommandLine::setProgram(const QString &program, bool raw)
     m_isRawProgram = raw;
 }
 
+void CommandLine::setProgram(const std::string &program, bool raw)
+{
+    m_program = QString::fromStdString(program);
+    m_isRawProgram = raw;
+}
+
 void CommandLine::appendArgument(const QString &value)
 {
     m_arguments.push_back(value);
+}
+
+void CommandLine::appendArgument(const std::string &value)
+{
+    m_arguments.push_back(QString::fromStdString(value));
 }
 
 void CommandLine::appendArguments(const QList<QString> &args)
@@ -193,6 +224,11 @@ void CommandLine::appendRawArgument(const QString &value)
     Argument arg(value);
     arg.shouldQuote = false;
     m_arguments.push_back(arg);
+}
+
+void CommandLine::appendRawArgument(const std::string &value)
+{
+    appendRawArgument(QString::fromStdString(value));
 }
 
 void CommandLine::appendPathArgument(const QString &value)

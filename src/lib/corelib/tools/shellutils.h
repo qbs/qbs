@@ -51,9 +51,12 @@ namespace qbs {
 namespace Internal {
 
 QBS_EXPORT QString shellInterpreter(const QString &filePath);
+QBS_EXPORT std::string shellQuote(const std::string &arg, HostOsInfo::HostOs os = HostOsInfo::hostOs());
 QBS_EXPORT QString shellQuote(const QString &arg, HostOsInfo::HostOs os = HostOsInfo::hostOs());
 QBS_EXPORT QString shellQuote(const QStringList &args,
                               HostOsInfo::HostOs os = HostOsInfo::hostOs());
+QBS_EXPORT std::string shellQuote(const std::vector<std::string> &args,
+                                  HostOsInfo::HostOs os = HostOsInfo::hostOs());
 QBS_EXPORT QString shellQuote(const QString &program, const QStringList &args,
                               HostOsInfo::HostOs os = HostOsInfo::hostOs());
 
@@ -61,9 +64,12 @@ class QBS_EXPORT CommandLine
 {
 public:
     void setProgram(const QString &program, bool raw = false);
+    void setProgram(const std::string &program, bool raw = false);
     void appendArgument(const QString &value);
+    void appendArgument(const std::string &value);
     void appendArguments(const QList<QString> &args);
     void appendRawArgument(const QString &value);
+    void appendRawArgument(const std::string &value);
     void appendPathArgument(const QString &value);
     void clearArguments();
     QString toCommandLine(HostOsInfo::HostOs os = HostOsInfo::hostOs()) const;
