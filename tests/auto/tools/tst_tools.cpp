@@ -52,6 +52,7 @@
 #include <tools/set.h>
 #include <tools/settings.h>
 #include <tools/setupprojectparameters.h>
+#include <tools/stringutils.h>
 #include <tools/version.h>
 
 #include <QtCore/qdir.h>
@@ -946,6 +947,194 @@ void TestTools::set_intersects()
     QVERIFY(!s1.intersects(s3));
     s3 << 200;
     QVERIFY(s1.intersects(s3));
+}
+
+void TestTools::stringutils_join()
+{
+    QFETCH(std::vector<std::string>, input);
+    QFETCH(std::string, separator);
+    QFETCH(std::string, expectedResult);
+
+    QCOMPARE(join(input, separator), expectedResult);
+}
+
+void TestTools::stringutils_join_data()
+{
+    QTest::addColumn<std::vector<std::string>>("input");
+    QTest::addColumn<std::string>("separator");
+    QTest::addColumn<std::string>("expectedResult");
+
+    QTest::newRow("data1")
+                << std::vector<std::string>()
+                << std::string()
+                << std::string();
+
+    QTest::newRow("data2")
+                << std::vector<std::string>()
+                << std::string("separator")
+                << std::string();
+
+    QTest::newRow("data3")
+                << std::vector<std::string>({"one"})
+                << std::string("separator")
+                << std::string("one");
+
+    QTest::newRow("data4")
+                << std::vector<std::string>({"one"})
+                << std::string("separator")
+                << std::string("one");
+
+
+    QTest::newRow("data5")
+                << std::vector<std::string>({"a", "b"})
+                << std::string(" ")
+                << std::string("a b");
+
+    QTest::newRow("data6")
+                << std::vector<std::string>({"a", "b", "c"})
+                << std::string(" ")
+                << std::string("a b c");
+}
+
+void TestTools::stringutils_join_empty()
+{
+    std::vector<std::string> list;
+    std::string string = join(list, std::string());
+
+    QVERIFY(string.empty());
+}
+
+void TestTools::stringutils_join_char()
+{
+    QFETCH(std::vector<std::string>, input);
+    QFETCH(char, separator);
+    QFETCH(std::string, expectedResult);
+
+    QCOMPARE(join(input, separator), expectedResult);
+}
+
+void TestTools::stringutils_join_char_data()
+{
+    QTest::addColumn<std::vector<std::string>>("input");
+    QTest::addColumn<char>("separator");
+    QTest::addColumn<std::string>("expectedResult");
+
+    QTest::newRow("data1")
+                << std::vector<std::string>()
+                << ' '
+                << std::string();
+
+    QTest::newRow("data5")
+                << std::vector<std::string>({"a", "b"})
+                << ' '
+                << std::string("a b");
+
+    QTest::newRow("data6")
+                << std::vector<std::string>({"a", "b", "c"})
+                << ' '
+                << std::string("a b c");
+}
+
+void TestTools::stringutils_startsWith()
+{
+    std::string a;
+    a = "AB";
+    QVERIFY( startsWith(a, "A") );
+    QVERIFY( startsWith(a, "AB") );
+    QVERIFY( !startsWith(a, "C") );
+    QVERIFY( !startsWith(a, "ABCDEF") );
+    QVERIFY( startsWith(a, "") );
+    QVERIFY( startsWith(a, 'A') );
+    QVERIFY( !startsWith(a, 'C') );
+    QVERIFY( !startsWith(a, char()) );
+
+    QVERIFY( startsWith(a, "A") );
+    QVERIFY( startsWith(a, "AB") );
+    QVERIFY( !startsWith(a, "C") );
+    QVERIFY( !startsWith(a, "ABCDEF") );
+    QVERIFY( startsWith(a, "") );
+
+    a = "";
+    QVERIFY( startsWith(a, "") );
+    QVERIFY( !startsWith(a, "ABC") );
+
+    QVERIFY( startsWith(a, "") );
+    QVERIFY( !startsWith(a, "ABC") );
+
+    QVERIFY( !startsWith(a, 'x') );
+    QVERIFY( !startsWith(a, char()) );
+
+    a = std::string();
+    QVERIFY( startsWith(a, "") ); // different from QString::startsWith
+    QVERIFY( !startsWith(a, "ABC") );
+
+    QVERIFY( !startsWith(a, 'x') );
+    QVERIFY( !startsWith(a, char()) );
+
+    a = u8"\xc3\xa9";
+    QVERIFY( startsWith(a, u8"\xc3\xa9") );
+    QVERIFY( !startsWith(a, u8"\xc3\xa1") );
+}
+
+void TestTools::stringutils_endsWith()
+{
+    std::string a;
+    a = "AB";
+    QVERIFY( endsWith(a, "B") );
+    QVERIFY( endsWith(a, "AB") );
+    QVERIFY( !endsWith(a, "C") );
+    QVERIFY( !endsWith(a, "ABCDEF") );
+    QVERIFY( endsWith(a, "") );
+    QVERIFY( endsWith(a, 'B') );
+    QVERIFY( !endsWith(a, 'C') );
+    QVERIFY( !endsWith(a, char()) );
+
+    QVERIFY( endsWith(a, "B") );
+    QVERIFY( endsWith(a, "AB") );
+    QVERIFY( !endsWith(a, "C") );
+    QVERIFY( !endsWith(a, "ABCDEF") );
+    QVERIFY( endsWith(a, "") );
+
+    a = "";
+    QVERIFY( endsWith(a, "") );
+    QVERIFY( !endsWith(a, "ABC") );
+    QVERIFY( !endsWith(a, 'x') );
+    QVERIFY( !endsWith(a, char()) );
+
+    QVERIFY( endsWith(a, "") );
+    QVERIFY( !endsWith(a, "ABC") );
+
+    a = std::string();
+    QVERIFY( endsWith(a, "") ); // different from QString::endsWith
+    QVERIFY( !endsWith(a, "ABC") );
+
+    QVERIFY( !endsWith(a, 'x') );
+    QVERIFY( !endsWith(a, char()) );
+
+    a = u8"\xc3\xa9";
+    QVERIFY( endsWith(a, u8"\xc3\xa9") );
+    QVERIFY( !endsWith(a, u8"\xc3\xa1") );
+}
+
+void TestTools::stringutils_trimmed()
+{
+    std::string a;
+    a = "Text";
+    QCOMPARE(a, std::string("Text"));
+    QCOMPARE(trimmed(a), std::string("Text"));
+    QCOMPARE(a, std::string("Text"));
+    a = " ";
+    QCOMPARE(trimmed(a), std::string(""));
+    QCOMPARE(a, std::string(" "));
+    a = " a   ";
+    QCOMPARE(trimmed(a), std::string("a"));
+
+    a = "Text";
+    QCOMPARE(trimmed(std::move(a)), std::string("Text"));
+    a = " ";
+    QCOMPARE(trimmed(std::move(a)), std::string(""));
+    a = " a   ";
+    QCOMPARE(trimmed(std::move(a)), std::string("a"));
 }
 
 int main(int argc, char *argv[])

@@ -38,6 +38,7 @@ HEADERS += \
     $$PWD/qbsprocess.h \
     $$PWD/shellutils.h \
     $$PWD/stlutils.h \
+    $$PWD/stringutils.h \
     $$PWD/toolchains.h \
     $$PWD/hostosinfo.h \
     $$PWD/buildoptions.h \

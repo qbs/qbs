@@ -85,6 +85,15 @@ private slots:
     void set_initializerList();
     void set_intersects();
 
+    void stringutils_join();
+    void stringutils_join_data();
+    void stringutils_join_empty();
+    void stringutils_join_char();
+    void stringutils_join_char_data();
+    void stringutils_startsWith();
+    void stringutils_endsWith();
+    void stringutils_trimmed();
+
 private:
     QString setupSettingsDir1();
     QString setupSettingsDir2();

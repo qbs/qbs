@@ -403,6 +403,7 @@ QbsLibrary {
             "shellutils.cpp",
             "shellutils.h",
             "stlutils.h",
+            "stringutils.h",
             "toolchains.cpp",
             "version.cpp",
             "visualstudioversioninfo.cpp",
