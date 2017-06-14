@@ -61,9 +61,23 @@ bool contains(const C &container, const typename C::value_type &v)
 }
 
 template <class C>
+bool containsKey(const C &container, const typename C::key_type &v)
+{
+    const auto &end = container.cend();
+    return container.find(v) != end;
+}
+
+template <class C>
 C &operator<<(C &container, const typename C::value_type &v)
 {
     container.push_back(v);
+    return container;
+}
+
+template <class C>
+C &operator<<(C &container, const C &other)
+{
+    container.insert(container.end(), other.cbegin(), other.cend());
     return container;
 }
 
