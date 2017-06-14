@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "generator.h"
+#include <logging/logger.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
@@ -52,6 +53,7 @@ public:
     QList<QVariantMap> buildConfigurations;
     InstallOptions installOptions;
     QString qbsSettingsDir;
+    Internal::Logger logger = Internal::Logger(nullptr);
 };
 
 ProjectGenerator::ProjectGenerator()
@@ -79,7 +81,8 @@ static QString _configurationName(const QVariantMap &buildConfiguration)
 void ProjectGenerator::generate(const QList<Project> &projects,
                                 const QList<QVariantMap> &buildConfigurations,
                                 const InstallOptions &installOptions,
-                                const QString &qbsSettingsDir)
+                                const QString &qbsSettingsDir,
+                                const Internal::Logger &logger)
 {
     d->projects = projects;
     std::sort(d->projects.begin(), d->projects.end(),
@@ -91,6 +94,7 @@ void ProjectGenerator::generate(const QList<Project> &projects,
                   return _configurationName(a) < _configurationName(b); });
     d->installOptions = installOptions;
     d->qbsSettingsDir = qbsSettingsDir;
+    d->logger = logger;
     generate();
 }
 
@@ -231,6 +235,11 @@ QFileInfo ProjectGenerator::qbsExecutableFilePath() const
 QString ProjectGenerator::qbsSettingsDir() const
 {
     return d->qbsSettingsDir;
+}
+
+const Internal::Logger &ProjectGenerator::logger() const
+{
+    return d->logger;
 }
 
 } // namespace qbs

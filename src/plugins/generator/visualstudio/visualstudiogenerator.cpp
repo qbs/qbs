@@ -56,7 +56,6 @@
 #include <tools/visualstudioversioninfo.h>
 
 #include <QtCore/qcoreapplication.h>
-#include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qfileinfo.h>
@@ -262,7 +261,8 @@ static void writeProjectFiles(const QMap<QString, std::shared_ptr<MSBuildProject
 }
 
 static void writeSolution(const std::shared_ptr<VisualStudioSolution> &solution,
-                          const QString &solutionFilePath)
+                          const QString &solutionFilePath,
+                          const Internal::Logger &logger)
 {
     Internal::FileSaver file(solutionFilePath);
     if (!file.open())
@@ -273,7 +273,7 @@ static void writeSolution(const std::shared_ptr<VisualStudioSolution> &solution,
     if (!(writer.write(solution.get()) && file.commit()))
         throw ErrorInfo(Tr::tr("Failed to generate %1").arg(solutionFilePath));
 
-    qDebug() << "Generated" << qPrintable(QFileInfo(solutionFilePath).fileName());
+    logger.qbsInfo() << Tr::tr("Generated %1").arg(QFileInfo(solutionFilePath).fileName());
 }
 
 void VisualStudioGenerator::generate()
@@ -288,7 +288,7 @@ void VisualStudioGenerator::generate()
     it.accept(&solutionDependenciesVisitor);
 
     writeProjectFiles(d->msbuildProjects);
-    writeSolution(d->solution, d->solutionFilePath);
+    writeSolution(d->solution, d->solutionFilePath, logger());
 
     d->reset();
 }

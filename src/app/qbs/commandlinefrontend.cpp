@@ -504,7 +504,8 @@ void CommandLineFrontend::generate()
     generator->generate(m_projects,
                         m_parser.buildConfigurations(),
                         m_parser.installOptions(QString()),
-                        m_parser.settingsDir());
+                        m_parser.settingsDir(),
+                        ConsoleLogger::instance(m_settings));
 }
 
 int CommandLineFrontend::runTarget()

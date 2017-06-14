@@ -71,7 +71,8 @@ public:
     void generate(const QList<Project> &projects,
                   const QList<QVariantMap> &buildConfigurations,
                   const InstallOptions &installOptions,
-                  const QString &qbsSettingsDir);
+                  const QString &qbsSettingsDir,
+                  const Internal::Logger &logger);
 
     const GeneratableProject project() const;
     QFileInfo qbsExecutableFilePath() const;
@@ -86,6 +87,8 @@ private:
 
 protected:
     ProjectGenerator();
+
+    const Internal::Logger &logger() const;
 
 private:
     ProjectGeneratorPrivate *d;
