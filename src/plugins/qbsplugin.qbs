@@ -7,7 +7,10 @@ QbsProduct {
     Depends { name: "qbsbuildconfig" }
     Depends { name: "qbscore"; condition: !Qt.core.staticBuild }
     type: (Qt.core.staticBuild ? ["staticlibrary"] : ["dynamiclibrary"]).concat(["qbsplugin"])
-    cpp.defines: base.concat(type.contains("staticlibrary") ? ["QBS_STATIC_LIB"] : ["QBS_LIBRARY"])
+    Properties {
+        condition: Qt.core.staticBuild
+        cpp.defines: ["QBS_STATIC_LIB"]
+    }
     cpp.cxxLanguageVersion: "c++11"
     cpp.includePaths: base.concat(["../../../lib/corelib"])
     cpp.visibility: "hidden"
