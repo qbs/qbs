@@ -357,6 +357,7 @@ QbsLibrary {
             "hostosinfo.h",
             "id.cpp",
             "id.h",
+            "iosutils.h",
             "jsliterals.cpp",
             "jsliterals.h",
             "installoptions.cpp",

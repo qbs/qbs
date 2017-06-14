@@ -14,6 +14,7 @@ HEADERS += \
     $$PWD/filetime.h \
     $$PWD/generateoptions.h \
     $$PWD/id.h \
+    $$PWD/iosutils.h \
     $$PWD/jsliterals.h \
     $$PWD/launcherinterface.h \
     $$PWD/launcherpackets.h \
