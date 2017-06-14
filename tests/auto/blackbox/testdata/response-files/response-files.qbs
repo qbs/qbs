@@ -34,4 +34,39 @@ Project {
             }
         }
     }
+    Product {
+        name: "lotsofobjects"
+        type: ["dynamiclibrary"]
+        Depends { name: "cpp" }
+        Rule {
+            multiplex: true
+            outputFileTags: ["cpp"]
+            outputArtifacts: {
+                var artifacts = [];
+                for (var i = 0; i < 1000; ++i)
+                    artifacts.push({filePath: "source-" + i + ".cpp", fileTags: ["cpp"]});
+                return artifacts;
+            }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.description = "generating " + outputs["cpp"].length + " dummy source files";
+                cmd.outputFilePaths = outputs["cpp"].map(function (a) {
+                    return a.filePath;
+                });
+                cmd.sourceCode = function () {
+                    var index = 0;
+                    outputFilePaths.map(function (fp) {
+                        var tf = new TextFile(fp, TextFile.WriteOnly);
+                        try {
+                            tf.writeLine("extern int foo" + index + "() { return 0; }");
+                            ++index;
+                        } finally {
+                            tf.close();
+                        }
+                    });
+                };
+                return [cmd];
+            }
+        }
+    }
 }
