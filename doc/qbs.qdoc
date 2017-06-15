@@ -601,9 +601,10 @@
     The syntax is \c{<prefix>.<prop-name>:<prop-value>}. The following command lines
     demonstrate how to set different kinds of properties:
     \code
-    $ qbs projects.someProject.projectProperty:false # set a property of a project
-    $ qbs products.someProduct.productProperty:false # set a property of a product
-    $ qbs modules.cpp.treatWarningsAsErrors:true     # set a module property for all products
+    $ qbs projects.someProject.projectProperty:false          # set a property of a project
+    $ qbs products.someProduct.productProperty:false          # set a property of a product
+    $ qbs modules.cpp.treatWarningsAsErrors:true              # set a module property for all products
+    $ qbs products.someProduct.cpp.treatWarningsAsErrors:true # set a module property for one product
     \endcode
 
     Property values on the command line can also be expressed in JavaScript form, the same way
