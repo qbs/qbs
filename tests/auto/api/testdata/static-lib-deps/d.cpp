@@ -31,6 +31,7 @@
 #elif defined(WITH_LEX_YACC)
 extern "C" int yywrap(void);
 extern "C" void yyerror(char const *s);
+extern void printGreeting();
 #elif defined(WITH_SETUPAPI)
 #include <windows.h>
 #include <Setupapi.h>
@@ -50,6 +51,7 @@ int d()
 #elif defined(WITH_LEX_YACC)
     yywrap();
     yyerror("no error");
+    printGreeting();
     return 0;
 #elif defined(WITH_SETUPAPI)
     CABINET_INFO ci;

@@ -73,7 +73,7 @@ function useCompilerDriverLinker(product, inputs) {
     return linker === product.cpp.compilerPath;
 }
 
-function collectLibraryDependencies(product) {
+function collectLibraryDependencies(product, isDarwin) {
     var publicDeps = {};
     var objects = [];
     var objectByFilePath = {};
@@ -119,6 +119,18 @@ function collectLibraryDependencies(product) {
                     ModUtils.sanitizedModuleProperty(obj, "cpp", "dynamicLibraries"));
         for (var i = 0, len = externalLibs.length; i < len; ++i)
             addObject({ direct: true, filePath: externalLibs[i] }, Array.prototype.push);
+        if (isDarwin) {
+            externalLibs = [].concat(
+                        ModUtils.sanitizedModuleProperty(obj, "cpp", "frameworks"));
+            for (var i = 0, len = externalLibs.length; i < len; ++i)
+                addObject({ direct: true, filePath: externalLibs[i], framework: true },
+                        Array.prototype.push);
+            externalLibs = [].concat(
+                        ModUtils.sanitizedModuleProperty(obj, "cpp", "weakFrameworks"));
+            for (var i = 0, len = externalLibs.length; i < len; ++i)
+                addObject({ direct: true, filePath: externalLibs[i], framework: true,
+                            symbolLinkMode: "weak" }, Array.prototype.push);
+        }
     }
 
     function traverse(dep, isBelowIndirectDynamicLib) {
@@ -168,7 +180,8 @@ function collectLibraryDependencies(product) {
                     if (obj.direct) {
                         result.libraries.push({ filePath: obj.filePath,
                                                 wholeArchive: obj.wholeArchive,
-                                                symbolLinkMode: obj.symbolLinkMode });
+                                                symbolLinkMode: obj.symbolLinkMode,
+                                                framework: obj.framework });
                     } else {
                         var dirPath = FileInfo.path(obj.filePath);
                         if (!seenRPathLinkDirs.hasOwnProperty(dirPath)) {
@@ -220,12 +233,12 @@ function escapeLinkerFlags(product, inputs, linkerFlags) {
 function linkerFlags(project, product, inputs, output, linkerPath) {
     var libraryPaths = product.cpp.libraryPaths;
     var distributionLibraryPaths = product.cpp.distributionLibraryPaths;
-    var libraryDependencies = collectLibraryDependencies(product);
+    var isDarwin = product.qbs.targetOS.contains("darwin");
+    var libraryDependencies = collectLibraryDependencies(product, isDarwin);
     var frameworks = product.cpp.frameworks;
     var weakFrameworks = product.cpp.weakFrameworks;
     var rpaths = (product.cpp.useRPaths !== false) ? product.cpp.rpaths : undefined;
     var systemRunPaths = product.cpp.systemRunPaths || [];
-    var isDarwin = product.qbs.targetOS.contains("darwin");
     var i, args = additionalCompilerAndLinkerFlags(product);
 
     if (output.fileTags.contains("dynamiclibrary")) {
@@ -413,12 +426,16 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
             var flags;
             if (FileInfo.isAbsolutePath(lib) || lib.startsWith('@'))
                 flags = ["-" + symbolLinkMode + "_library", lib];
+            else if (dep.framework)
+                flags = ["-" + symbolLinkMode + "_framework", lib];
             else
                 flags = ["-" + symbolLinkMode + "-l" + lib];
 
             Array.prototype.push.apply(args, escapeLinkerFlags(product, inputs, flags));
         } else if (FileInfo.isAbsolutePath(lib) || lib.startsWith('@')) {
-            args.push(lib);
+            args.push(dep.framework ? PathTools.frameworkExecutablePath(lib) : lib);
+        } else if (dep.framework) {
+            args.push("-framework", lib);
         } else {
             args.push('-l' + lib);
         }

@@ -45,6 +45,11 @@ Project {
             "d.cpp",
         ]
 
+        Group {
+            condition: qbs.targetOS.contains("macos")
+            files: ["d.mm"]
+        }
+
         Properties {
             condition: qbs.targetOS.contains("windows")
             cpp.defines: ["WITH_SETUPAPI"]
@@ -54,6 +59,7 @@ Project {
             condition: qbs.targetOS.contains("macos")
             cpp.defines: ["WITH_LEX_YACC"]
             cpp.staticLibraries: ["l", "y"]
+            cpp.frameworks: ["Foundation"]
         }
         Properties {
             condition: qbs.targetOS.contains("linux")
