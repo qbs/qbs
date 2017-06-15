@@ -58,34 +58,10 @@ CppModule {
     }
 
     Probes.BinaryProbe {
-        id: asPathProbe
-        condition: !File.exists(assemblerPath)
-        names: Gcc.toolNames(assemblerName, toolchainPrefix)
-    }
-    Probes.BinaryProbe {
-        id: ldPathProbe
-        condition: !File.exists(linkerPath)
-        names: Gcc.toolNames(linkerName, toolchainPrefix)
-    }
-    Probes.BinaryProbe {
-        id: arPathProbe
-        condition: !File.exists(archiverPath)
-        names: Gcc.toolNames(archiverName, toolchainPrefix)
-    }
-    Probes.BinaryProbe {
-        id: nmPathProbe
-        condition: !File.exists(nmPath)
-        names: Gcc.toolNames(nmName, toolchainPrefix)
-    }
-    Probes.BinaryProbe {
-        id: objcopyPathProbe
-        condition: !File.exists(objcopyPath)
-        names: Gcc.toolNames(objcopyName, toolchainPrefix)
-    }
-    Probes.BinaryProbe {
-        id: stripPathProbe
-        condition: !File.exists(stripPath)
-        names: Gcc.toolNames(stripName, toolchainPrefix)
+        id: binutilsProbe
+        condition: File.exists(archiverPath)
+        names: Gcc.toolNames([archiverName, assemblerName, linkerName, nmName,
+                              objcopyName, stripName], toolchainPrefix)
     }
 
     targetLinkerFlags: Gcc.targetFlags("linker", false,
@@ -134,6 +110,8 @@ CppModule {
     property string toolchainPrefix
     property string toolchainInstallPath: compilerPathProbe.found ? compilerPathProbe.path
                                                                   : undefined
+    property string binutilsPath: binutilsProbe.found ? binutilsProbe.path : toolchainInstallPath
+
     assemblerName: 'as'
     compilerName: cxxCompilerName
     linkerName: 'ld'
@@ -173,17 +151,8 @@ CppModule {
             + "such as \"--no-undefined\", then you should set this property to \"strict\"."
     }
 
-    property string toolchainPathPrefix: {
-        var path = ''
-        if (toolchainInstallPath) {
-            path += toolchainInstallPath
-            if (path.substr(-1) !== '/')
-                path += '/'
-        }
-        if (toolchainPrefix)
-            path += toolchainPrefix
-        return path
-    }
+    property string toolchainPathPrefix: Gcc.pathPrefix(toolchainInstallPath, toolchainPrefix)
+    property string binutilsPathPrefix: Gcc.pathPrefix(binutilsPath, toolchainPrefix)
 
     property string compilerExtension: qbs.hostOS.contains("windows") ? ".exe" : ""
     property string cCompilerName: (qbs.toolchain.contains("clang") ? "clang" : "gcc")
@@ -199,17 +168,14 @@ CppModule {
         "asm_cpp": toolchainPathPrefix + cCompilerName
     })
 
-    assemblerPath: asPathProbe.found ? asPathProbe.filePath : toolchainPathPrefix + assemblerName
+    assemblerPath: binutilsPathPrefix + assemblerName
     compilerPath: toolchainPathPrefix + compilerName
-    linkerPath: ldPathProbe.found ? ldPathProbe.filePath : toolchainPathPrefix + linkerName
-    property string archiverPath: arPathProbe.found ? arPathProbe.filePath
-                                                    : toolchainPathPrefix + archiverName
-    property string nmPath: nmPathProbe.found ? nmPathProbe.filePath : toolchainPathPrefix + nmName
+    linkerPath: binutilsPathPrefix + linkerName
+    property string archiverPath: binutilsPathPrefix + archiverName
+    property string nmPath: binutilsPathPrefix + nmName
     property bool _nmHasDynamicOption: nmProbe.hasDynamicOption
-    property string objcopyPath: objcopyPathProbe.found ? objcopyPathProbe.filePath
-                                                        : toolchainPathPrefix + objcopyName
-    property string stripPath: stripPathProbe.found ? stripPathProbe.filePath
-                                                      : toolchainPathPrefix + stripName
+    property string objcopyPath: binutilsPathPrefix + objcopyName
+    property string stripPath: binutilsPathPrefix + stripName
     property string dsymutilPath: toolchainPathPrefix + dsymutilName
     property string lipoPath: toolchainPathPrefix + lipoName
     property stringList dsymutilFlags

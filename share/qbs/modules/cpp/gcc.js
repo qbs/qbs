@@ -1317,7 +1317,22 @@ function targetFlags(tool, hasTargetOption, target, targetArch, machineType, tar
     return args;
 }
 
-function toolNames(rawToolName, toolchainPrefix)
+function toolNames(rawToolNames, toolchainPrefix)
 {
-    return [toolchainPrefix ? toolchainPrefix + rawToolName : rawToolName];
+    return toolchainPrefix
+            ? rawToolNames.map(function(rawName) { return toolchainPrefix + rawName; })
+            : rawToolNames;
+}
+
+function pathPrefix(baseDir, prefix)
+{
+    var path = '';
+    if (baseDir) {
+        path += baseDir;
+        if (path.substr(-1) !== '/')
+            path += '/';
+    }
+    if (prefix)
+        path += prefix;
+    return path;
 }
