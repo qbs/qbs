@@ -158,9 +158,16 @@ Item *ItemReaderVisitorState::readFile(const QString &filePath, const QStringLis
     file->setSearchPaths(searchPaths);
 
     ItemReaderASTVisitor astVisitor(*this, file, itemPool, m_logger);
-    cacheValue.setProcessingFlag(true);
-    cacheValue.ast()->accept(&astVisitor);
-    cacheValue.setProcessingFlag(false);
+    {
+        class ProcessingFlagManager {
+        public:
+            ProcessingFlagManager(ASTCacheValue &v) : m_cacheValue(v) { v.setProcessingFlag(true); }
+            ~ProcessingFlagManager() { m_cacheValue.setProcessingFlag(false); }
+        private:
+            ASTCacheValue &m_cacheValue;
+        } processingFlagManager(cacheValue);
+        cacheValue.ast()->accept(&astVisitor);
+    }
     astVisitor.checkItemTypes();
     return astVisitor.rootItem();
 }

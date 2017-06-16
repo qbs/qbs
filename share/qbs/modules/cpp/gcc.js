@@ -1065,12 +1065,25 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         args = wrapperArgs.concat(args);
     }
 
+    var responseFileArgumentIndex = wrapperArgsLength;
+
+    // qcc doesn't properly handle response files, so we have to do it manually
+    var useQnxResponseFileHack = product.qbs.toolchain.contains("qcc")
+            && useCompilerDriverLinker(product, inputs);
+    if (useQnxResponseFileHack) {
+        // qcc needs to see at least one object/library file to think it has something to do,
+        // so start the response file at the second object file (so, 3 after the last -o option)
+        var idx = args.lastIndexOf("-o");
+        if (idx !== -1 && idx + 3 < args.length)
+            responseFileArgumentIndex += idx + 3;
+    }
+
     cmd = new Command(linkerPath, args);
     cmd.description = 'linking ' + primaryOutput.fileName + nativeConfigString(product);
     cmd.highlight = 'linker';
     cmd.relevantEnvironmentVariables = linkerEnvVars(product, inputs);
-    cmd.responseFileArgumentIndex = wrapperArgsLength;
-    cmd.responseFileUsagePrefix = '@';
+    cmd.responseFileArgumentIndex = responseFileArgumentIndex;
+    cmd.responseFileUsagePrefix = useQnxResponseFileHack ? "-Wl,@" : "@";
     commands.push(cmd);
 
     var debugInfo = outputs.debuginfo_app || outputs.debuginfo_dll
