@@ -48,30 +48,17 @@ Project {
         Properties {
             condition: qbs.targetOS.contains("windows")
             cpp.defines: ["WITH_SETUPAPI"]
+            cpp.staticLibraries: ["setupapi"]
         }
         Properties {
             condition: qbs.targetOS.contains("macos")
             cpp.defines: ["WITH_LEX_YACC"]
+            cpp.staticLibraries: ["l", "y"]
         }
         Properties {
             condition: qbs.targetOS.contains("linux")
             cpp.defines: ["WITH_PTHREAD"]
-        }
-
-        Export {
-            Depends { name: "cpp" }
-            Properties {
-                condition: qbs.targetOS.contains("linux")
-                cpp.staticLibraries: ["pthread"]
-            }
-            Properties {
-                condition: qbs.targetOS.contains("macos")
-                cpp.staticLibraries: ["l", "y"]
-            }
-            Properties {
-                condition: qbs.targetOS.contains("windows")
-                cpp.staticLibraries: ["setupapi"]
-            }
+            cpp.staticLibraries: ["pthread"]
         }
     }
     StaticLibrary {
