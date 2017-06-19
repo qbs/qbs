@@ -580,7 +580,7 @@ static QScriptValue js_consoleError(QScriptContext *context, QScriptEngine *engi
 {
     if (Q_UNLIKELY(context->argumentCount() != 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("error expects 1 argument"));
+                                   QLatin1String("console.error() expects 1 argument"));
     logger->qbsLog(LoggerError) << context->argument(0).toString();
     return engine->undefinedValue();
 }
@@ -589,7 +589,7 @@ static QScriptValue js_consoleWarn(QScriptContext *context, QScriptEngine *engin
 {
     if (Q_UNLIKELY(context->argumentCount() != 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("error expects 1 argument"));
+                                   QLatin1String("console.warn() expects 1 argument"));
     logger->qbsWarning() << context->argument(0).toString();
     return engine->undefinedValue();
 }
@@ -598,7 +598,7 @@ static QScriptValue js_consoleInfo(QScriptContext *context, QScriptEngine *engin
 {
     if (Q_UNLIKELY(context->argumentCount() != 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("error expects 1 argument"));
+                                   QLatin1String("console.info() expects 1 argument"));
     logger->qbsInfo() << context->argument(0).toString();
     return engine->undefinedValue();
 }
@@ -607,7 +607,7 @@ static QScriptValue js_consoleDebug(QScriptContext *context, QScriptEngine *engi
 {
     if (Q_UNLIKELY(context->argumentCount() != 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("error expects 1 argument"));
+                                   QLatin1String("console.debug() expects 1 argument"));
     logger->qbsDebug() << context->argument(0).toString();
     return engine->undefinedValue();
 }
