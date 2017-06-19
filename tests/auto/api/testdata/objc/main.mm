@@ -1,11 +1,10 @@
 #import <Foundation/Foundation.h>
-#include <QCoreApplication>
+#include <iostream>
 
 int main(int argc, char **argv)
 {
     // We support both C++
-    QCoreApplication app(argc, argv);
-    Q_UNUSED(app);
+    std::cout << "Hello from C++" << std::endl;
     // And Objective-C
     NSDictionary *version = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
     NSString *productVersion = [version objectForKey:@"ProductVersion"];

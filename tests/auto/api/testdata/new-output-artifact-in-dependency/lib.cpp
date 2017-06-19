@@ -26,6 +26,11 @@
 **
 ****************************************************************************/
 
-#include <QtGlobal>
+#if defined(_WIN32) || defined(WIN32)
+#   define EXPORT __declspec(dllexport)
+#else
+#   define EXPORT __attribute__((visibility("default")))
+#endif
 
-Q_DECL_EXPORT void f() {}
+
+EXPORT void f() {}

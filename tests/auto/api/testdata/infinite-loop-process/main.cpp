@@ -26,15 +26,10 @@
 **
 ****************************************************************************/
 
-#include <QThread>
-
-class MyThread : public QThread
-{
-public:
-    static void mySleep(unsigned long secs) { sleep(secs); } // sleep() is protected in Qt 4.
-};
+#include <chrono>
+#include <thread>
 
 int main()
 {
-    MyThread::mySleep(700);
+    std::this_thread::sleep_for(std::chrono::seconds(700));
 }

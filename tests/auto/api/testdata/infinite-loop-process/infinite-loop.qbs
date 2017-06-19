@@ -1,7 +1,7 @@
 import qbs
 
 Project {
-    QtApplication {
+    CppApplication {
         type: "application"
         consoleApplication: true // suppress bundle generation
         files: "main.cpp"
