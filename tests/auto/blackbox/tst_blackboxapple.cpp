@@ -742,7 +742,7 @@ QVariantMap TestBlackboxApple::findXcode(int *status)
     const int res = runQbs(params);
     if (status)
         *status = res;
-    QFile file(temp.path() + "/" + relativeProductBuildDir("find-xcode", "none")
+    QFile file(temp.path() + "/" + relativeProductBuildDir("find-xcode")
                + "/xcode.json");
     if (!file.open(QIODevice::ReadOnly))
         return QVariantMap { };

@@ -48,7 +48,7 @@ QMap<QString, QString> TestBlackboxJava::findAndroid(int *status, const QString 
     const int res = runQbs(params);
     if (status)
         *status = res;
-    QFile file(temp.path() + "/" + relativeProductBuildDir("find-android", profile)
+    QFile file(temp.path() + "/" + relativeProductBuildDir("find-android")
                + "/android.json");
     if (!file.open(QIODevice::ReadOnly))
         return QMap<QString, QString> { };
