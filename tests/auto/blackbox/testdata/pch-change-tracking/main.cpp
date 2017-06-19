@@ -31,5 +31,6 @@
 
 int main()
 {
-    std::cout << "Tach." << std::endl;
+    printGreeting();
+    printPersonalGreeting();
 }

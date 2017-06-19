@@ -4,6 +4,7 @@ CppApplication {
     cpp.useCxxPrecompiledHeader: true
     files: [
         "header1.h",
+        "header2.cpp",
         "header2.h",
         "main.cpp",
     ]

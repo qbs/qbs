@@ -1766,15 +1766,17 @@ void TestBlackbox::pchChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/pch-change-tracking");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("compiling pch.h"));
+    QVERIFY(m_qbsStdout.contains("precompiling pch.h (cpp)"));
     WAIT_FOR_NEW_TIMESTAMP();
     touch("header1.h");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("compiling pch.h"));
+    QVERIFY(m_qbsStdout.contains("precompiling pch.h (cpp)"));
+    QVERIFY(m_qbsStdout.contains("compiling header2.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
     WAIT_FOR_NEW_TIMESTAMP();
     touch("header2.h");
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(!m_qbsStdout.contains("compiling pch.h"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("precompiling pch.h (cpp)"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::pkgConfigProbe()

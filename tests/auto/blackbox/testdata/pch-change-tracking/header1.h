@@ -26,4 +26,10 @@
 **
 ****************************************************************************/
 
+#pragma once
 #include <iostream>
+
+inline void printGreeting()
+{
+    std::cout << "Tach." << std::endl;
+}

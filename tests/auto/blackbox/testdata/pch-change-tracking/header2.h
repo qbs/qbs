@@ -25,3 +25,6 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+
+#pragma once
+void printPersonalGreeting();
