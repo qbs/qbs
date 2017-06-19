@@ -132,10 +132,6 @@ CppModule {
             fileTags: ['c_pch']
             filePath: ".obj/" + product.name + '_c.pch'
         }
-        Artifact {
-            fileTags: ['c_pch_copy']
-            filePath: ".obj/" + product.name + '_c.pch_copy'
-        }
         prepare: {
             return MSVC.prepareCompiler.apply(MSVC, arguments);
         }
@@ -154,11 +150,6 @@ CppModule {
             fileTags: ['cpp_pch']
             filePath: ".obj/" + product.name + '_cpp.pch'
         }
-        Artifact {
-            fileTags: ['cpp_pch_copy']
-            filePath: ".obj/" + product.name + '_cpp.pch_copy'
-        }
-
         prepare: {
             return MSVC.prepareCompiler.apply(MSVC, arguments);
         }

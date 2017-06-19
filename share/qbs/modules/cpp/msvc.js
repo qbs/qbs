@@ -165,21 +165,20 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
             args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.filePath));
             args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.filePath));
             args.push(FileInfo.toWindowsSeparators(input.filePath));
-            var copyCmd = new JavaScriptCommand();
-            copyCmd.tag = tag;
-            copyCmd.silent = true;
-            copyCmd.sourceCode = function() {
-                File.copy(input.filePath, outputs[tag + "_pch_copy"][0].filePath);
-            };
-            commands.push(copyCmd);
         } else {
             // use PCH
-            var pchHeaderFilePath = ".obj/" + product.name + '_' + tag + '.pch_copy';
-            var pchFilePath = FileInfo.toWindowsSeparators(product.buildDirectory
-                + "\\.obj\\" + product.name + "_" + tag + ".pch");
-            args.push("/FI" + pchHeaderFilePath);
-            args.push("/Yu" + pchHeaderFilePath);
-            args.push("/Fp" + pchFilePath);
+            var pchSourceArtifacts = product.artifacts[tag + "_pch_src"];
+            if (pchSourceArtifacts && pchSourceArtifacts.length > 0) {
+                var pchSourceFilePath = pchSourceArtifacts[0].filePath;
+                var pchFilePath = FileInfo.toWindowsSeparators(product.buildDirectory
+                    + "\\.obj\\" + product.name + "_" + tag + ".pch");
+                args.push("/FI" + pchSourceFilePath);
+                args.push("/Yu" + pchSourceFilePath);
+                args.push("/Fp" + pchFilePath);
+            } else {
+                console.warning("products." + product.name + ".usePrecompiledHeader is true, "
+                                + "but there is no " + tag + "_pch_src artifact.");
+            }
         }
     }
 
