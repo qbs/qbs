@@ -2858,8 +2858,7 @@ void TestBlackbox::jsExtensionsFileInfo()
 void TestBlackbox::jsExtensionsProcess()
 {
     QDir::setCurrent(testDataDir + "/jsextensions-process");
-    QbsRunParameters params(QStringList() << "-f" << "process.qbs" << "project.qbsFilePath:"
-                            + qbsExecutableFilePath);
+    QbsRunParameters params(QStringList() << "-f" << "process.qbs");
     QCOMPARE(runQbs(params), 0);
     QFile output("output.txt");
     QVERIFY(output.exists());

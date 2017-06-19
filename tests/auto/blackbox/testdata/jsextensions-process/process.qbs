@@ -4,12 +4,14 @@ import qbs.Process
 import qbs.TextFile
 
 Project {
-    property string qbsFilePath
     Product {
-        Depends { name: "Qt.core" }
+        Depends { name: "cpp" }
         type: ["dummy"]
+        name: "dummy"
+        files: ["main.cpp"]
         Rule {
             multiplex: true
+            inputs: ["application"]
             Artifact {
                 filePath: "dummy.txt"
                 fileTags: ["dummy"]
@@ -18,12 +20,16 @@ Project {
                 var cmd = new JavaScriptCommand();
                 cmd.silent = true;
                 cmd.sourceCode = function() {
+                    var exeFilePath = FileInfo.joinPaths(product.buildDirectory,
+                                                         product.cpp.executablePrefix
+                                                         + "dummy"
+                                                         + product.cpp.executableSuffix);
+
                     // Synchronous run, successful.
                     var process = new Process();
-                    var pathVal = [process.getEnv("PATH"), product.Qt.core.binPath]
-                                   .join(product.qbs.pathListSeparator);
-                    process.setEnv("PATH", pathVal);
-                    process.exec(project.qbsFilePath, ["help"], true);
+                    var pathVal = "why, hello!";
+                    process.setEnv("SOME_ENV", pathVal);
+                    process.exec(exeFilePath, ["help"], true);
                     var output = new TextFile("output.txt", TextFile.WriteOnly);
                     output.writeLine(process.exitCode());
                     output.writeLine(process.readLine());
@@ -31,8 +37,8 @@ Project {
 
                     // Asynchronous run, successful.
                     process = new Process();
-                    process.setEnv("PATH", pathVal);
-                    output.writeLine(process.start(project.qbsFilePath, ["help"]));
+                    process.setEnv("SOME_ENV", pathVal);
+                    output.writeLine(process.start(exeFilePath, ["help"]));
                     output.writeLine(process.waitForFinished());
                     output.writeLine(process.exitCode());
                     output.writeLine(process.readLine());
