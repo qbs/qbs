@@ -9,4 +9,7 @@ CONFIG -= app_bundle
 CONFIG += c++11
 target.CONFIG += no_default_install
 
+dev_lib_frameworks=$$QMAKE_XCODE_DEVELOPER_PATH/Library/Frameworks
+exists($$dev_lib_frameworks): LIBS += -F$$dev_lib_frameworks
+
 include(../../src/lib/corelib/use_corelib.pri)
