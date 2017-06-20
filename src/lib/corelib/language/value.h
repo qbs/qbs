@@ -109,7 +109,7 @@ class JSSourceValue : public Value
     Q_DECLARE_FLAGS(Flags, Flag)
 
 public:
-    static JSSourceValuePtr create(bool createdByPropertiesBlock = false);
+    static JSSourceValuePtr QBS_AUTOTEST_EXPORT create(bool createdByPropertiesBlock = false);
     ~JSSourceValue();
 
     void apply(ValueHandler *handler) { handler->handle(this); }

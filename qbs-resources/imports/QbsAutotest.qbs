@@ -9,7 +9,10 @@ QtApplication {
     Depends { name: "Qt.testlib" }
     Depends { name: "qbscore" }
     Depends { name: "qbsbuildconfig" }
-    cpp.includePaths: "../../../src"
+    cpp.includePaths: [
+        "../../../src",
+        "../../../src/app/shared", // for the logger
+    ]
     cpp.cxxLanguageVersion: "c++11"
     destinationDirectory: "bin"
     Group {

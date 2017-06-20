@@ -1,9 +1,12 @@
 TARGET = tst_language
 
 SOURCES = tst_language.cpp
+HEADERS = tst_language.h
 
 include(../auto.pri)
 include(../../../src/app/shared/logging/logging.pri)
+
+QT += script
 
 DATA_DIRS = testdata
 

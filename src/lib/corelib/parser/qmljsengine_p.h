@@ -54,6 +54,7 @@
 #include "qmljsglobal_p.h"
 #include "qmljsastfwd_p.h"
 #include "qmljsmemorypool_p.h"
+#include <tools/qbs_export.h>
 
 #include <QtCore/qstring.h>
 
@@ -87,7 +88,7 @@ public:
     QString message;
 };
 
-class QML_PARSER_EXPORT Engine
+class QML_PARSER_EXPORT QBS_AUTOTEST_EXPORT Engine
 {
     Lexer *_lexer;
     Directives *_directives;

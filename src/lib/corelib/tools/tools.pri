@@ -104,11 +104,6 @@ osx {
     LIBS += -framework Security
 }
 
-qbs_enable_unit_tests {
-    HEADERS += $$PWD/tst_tools.h
-    SOURCES += $$PWD/tst_tools.cpp
-}
-
 !qbs_no_dev_install {
     tools_headers.files = \
         $$PWD/architectures.h \

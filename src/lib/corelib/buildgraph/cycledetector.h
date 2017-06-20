@@ -49,7 +49,7 @@ namespace Internal {
 
 class BuildGraphNode;
 
-class CycleDetector : private BuildGraphVisitor
+class QBS_AUTOTEST_EXPORT CycleDetector : private BuildGraphVisitor
 {
 public:
     CycleDetector(const Logger &logger);

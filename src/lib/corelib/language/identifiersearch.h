@@ -42,13 +42,14 @@
 
 #include <parser/qmljsastfwd_p.h>
 #include <parser/qmljsastvisitor_p.h>
+#include <tools/qbs_export.h>
 #include <QtCore/qmap.h>
 #include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {
 
-class IdentifierSearch : private QbsQmlJS::AST::Visitor
+class QBS_AUTOTEST_EXPORT IdentifierSearch : private QbsQmlJS::AST::Visitor
 {
 public:
     IdentifierSearch();

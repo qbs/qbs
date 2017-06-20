@@ -1,7 +1,7 @@
 TEMPLATE = app
 DESTDIR = ../../../bin
 DEFINES += SRCDIR=\\\"$$_PRO_FILE_PWD_\\\"
-INCLUDEPATH += $$PWD/../../src
+INCLUDEPATH += $$PWD/../../src $$PWD/../../src/app/shared
 
 QT = core testlib
 CONFIG += depend_includepath testcase console

@@ -55,7 +55,7 @@ QT_FORWARD_DECLARE_CLASS(QFileInfo)
 namespace qbs {
 namespace Internal {
 
-class FileInfo
+class QBS_AUTOTEST_EXPORT FileInfo
 {
 public:
     FileInfo(const QString &fileName);

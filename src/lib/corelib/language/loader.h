@@ -52,7 +52,7 @@ class Logger;
 class ProgressObserver;
 class ScriptEngine;
 
-class Loader
+class QBS_AUTOTEST_EXPORT Loader
 {
 public:
     Loader(ScriptEngine *engine, const Logger &logger);

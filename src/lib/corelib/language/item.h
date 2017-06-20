@@ -60,7 +60,7 @@ class ItemObserver;
 class ItemPool;
 class Logger;
 
-class Item : public QbsQmlJS::Managed
+class QBS_AUTOTEST_EXPORT Item : public QbsQmlJS::Managed
 {
     friend class ASTPropertiesItemHandler;
     friend class ItemPool;

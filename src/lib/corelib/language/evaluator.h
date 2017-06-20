@@ -55,7 +55,7 @@ class FileTags;
 class Logger;
 class ScriptEngine;
 
-class Evaluator : private ItemObserver
+class QBS_AUTOTEST_EXPORT Evaluator : private ItemObserver
 {
     friend class SVConverter;
 

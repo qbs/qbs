@@ -40,6 +40,8 @@
 #ifndef QBS_TOOLS_ID_H
 #define QBS_TOOLS_ID_H
 
+#include "qbs_export.h"
+
 #include <QtCore/qmetatype.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
@@ -47,7 +49,7 @@
 namespace qbs {
 namespace Internal {
 
-class Id
+class QBS_AUTOTEST_EXPORT Id
 {
 public:
     enum { IdsPerPlugin = 10000, ReservedPlugins = 1000 };

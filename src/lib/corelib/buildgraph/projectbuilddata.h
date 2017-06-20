@@ -59,7 +59,7 @@ class FileDependency;
 class FileResourceBase;
 class ScriptEngine;
 
-class ProjectBuildData : public PersistentObject
+class QBS_AUTOTEST_EXPORT ProjectBuildData : public PersistentObject
 {
 public:
     ProjectBuildData(const ProjectBuildData *other = 0);

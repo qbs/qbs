@@ -54,7 +54,7 @@ namespace qbs {
 namespace Internal {
 class PersistentPool;
 
-class RescuableArtifactData
+class QBS_AUTOTEST_EXPORT RescuableArtifactData
 {
 public:
     ~RescuableArtifactData();

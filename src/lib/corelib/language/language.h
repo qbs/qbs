@@ -252,7 +252,7 @@ private:
     void store(PersistentPool &pool) const;
 };
 
-class ResolvedGroup : public PersistentObject
+class QBS_AUTOTEST_EXPORT ResolvedGroup : public PersistentObject
 {
 public:
     static GroupPtr create() { return GroupPtr(new ResolvedGroup); }
@@ -393,7 +393,7 @@ private:
 class TopLevelProject;
 class ScriptEngine;
 
-class ResolvedProduct : public PersistentObject
+class QBS_AUTOTEST_EXPORT ResolvedProduct : public PersistentObject
 {
 public:
     static ResolvedProductPtr create() { return ResolvedProductPtr(new ResolvedProduct); }
@@ -471,7 +471,7 @@ private:
     mutable std::mutex m_executablePathCacheLock;
 };
 
-class ResolvedProject : public PersistentObject
+class QBS_AUTOTEST_EXPORT ResolvedProject : public PersistentObject
 {
 public:
     static ResolvedProjectPtr create() { return ResolvedProjectPtr(new ResolvedProject); }
@@ -502,7 +502,7 @@ private:
     TopLevelProject *m_topLevelProject;
 };
 
-class TopLevelProject : public ResolvedProject
+class QBS_AUTOTEST_EXPORT TopLevelProject : public ResolvedProject
 {
     friend class BuildGraphLoader;
 public:

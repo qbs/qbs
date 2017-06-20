@@ -41,6 +41,7 @@
 #define QBS_ITEMPOOL_H
 
 #include <parser/qmljsmemorypool_p.h>
+#include <tools/qbs_export.h>
 
 #include <QtCore/qlist.h>
 
@@ -50,7 +51,7 @@ namespace Internal {
 class Item;
 enum class ItemType;
 
-class ItemPool
+class QBS_AUTOTEST_EXPORT ItemPool
 {
     Q_DISABLE_COPY(ItemPool)
 public:

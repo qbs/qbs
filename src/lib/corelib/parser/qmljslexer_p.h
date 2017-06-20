@@ -53,6 +53,7 @@
 
 #include "qmljsglobal_p.h"
 #include "qmljsgrammar_p.h"
+#include <tools/qbs_export.h>
 #include <QtCore/qstring.h>
 
 namespace QbsQmlJS {
@@ -81,7 +82,7 @@ public:
     }
 };
 
-class QML_PARSER_EXPORT Lexer: public QmlJSGrammar
+class QML_PARSER_EXPORT QBS_AUTOTEST_EXPORT Lexer: public QmlJSGrammar
 {
 public:
     enum {

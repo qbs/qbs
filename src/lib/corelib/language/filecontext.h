@@ -53,7 +53,7 @@ class ItemPool;
 class FileContext : public FileContextBase
 {
 public:
-    static FileContextPtr create();
+    static FileContextPtr QBS_AUTOTEST_EXPORT create();
 
     void setContent(const QString &content) { m_content = content; }
     const QString &content() const { return m_content; }

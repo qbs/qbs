@@ -76,7 +76,7 @@ public:
 };
 using DubiousContextList = std::vector<DubiousContext>;
 
-class ScriptEngine : public QScriptEngine
+class QBS_AUTOTEST_EXPORT ScriptEngine : public QScriptEngine
 {
     Q_OBJECT
 public:

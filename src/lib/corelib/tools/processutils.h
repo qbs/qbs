@@ -40,13 +40,15 @@
 #ifndef QBS_PROCESSUTILS_H
 #define QBS_PROCESSUTILS_H
 
+#include <tools/qbs_export.h>
+
 #include <QtCore/qglobal.h>
 #include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {
 
-QString processNameByPid(qint64 pid);
+QString QBS_AUTOTEST_EXPORT processNameByPid(qint64 pid);
 
 } // namespace Internal
 } // namespace qbs

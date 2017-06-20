@@ -8,7 +8,6 @@ isEmpty(QBS_RELATIVE_LIBEXEC_PATH) {
 DEFINES += QBS_RELATIVE_LIBEXEC_PATH=\\\"$${QBS_RELATIVE_LIBEXEC_PATH}\\\"
 
 QT += core-private network script
-qbs_enable_unit_tests:QT += testlib
 qbs_enable_project_file_updates: QT += gui
 
 INCLUDEPATH += $$PWD

@@ -70,11 +70,6 @@ HEADERS += \
     $$PWD/timestampsupdater.h \
     $$PWD/transformer.h
 
-qbs_enable_unit_tests {
-    HEADERS += $$PWD/tst_buildgraph.h
-    SOURCES += $$PWD/tst_buildgraph.cpp
-}
-
 !qbs_no_dev_install {
     buildgraph_headers.files = $$PWD/forward_decls.h
     buildgraph_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/buildgraph

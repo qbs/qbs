@@ -53,7 +53,7 @@ namespace Internal {
 
 class Logger;
 
-class ProductBuildData : public PersistentObject
+class QBS_AUTOTEST_EXPORT ProductBuildData : public PersistentObject
 {
 public:
     ~ProductBuildData();

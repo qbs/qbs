@@ -61,6 +61,7 @@
 #include "qmljsgrammar_p.h"
 #include "qmljsast_p.h"
 #include "qmljsengine_p.h"
+#include <tools/qbs_export.h>
 
 #include <QtCore/qlist.h>
 #include <QtCore/qstring.h>
@@ -69,7 +70,7 @@ namespace QbsQmlJS {
 
 class Engine;
 
-class QML_PARSER_EXPORT Parser: protected QmlJSGrammar
+class QML_PARSER_EXPORT QBS_AUTOTEST_EXPORT Parser: protected QmlJSGrammar
 {
 public:
     union Value {

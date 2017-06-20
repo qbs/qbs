@@ -53,11 +53,12 @@
 
 #include "qmljsastfwd_p.h"
 #include "qmljsglobal_p.h"
+#include <tools/qbs_export.h>
 
 namespace QbsQmlJS {
 namespace AST {
 
-class QML_PARSER_EXPORT Visitor
+class QML_PARSER_EXPORT QBS_AUTOTEST_EXPORT Visitor
 {
 public:
     Visitor();

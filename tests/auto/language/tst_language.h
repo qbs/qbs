@@ -44,32 +44,31 @@
 #include <language/loader.h>
 #include <logging/ilogsink.h>
 #include <tools/setupprojectparameters.h>
-#include <tools/qbs_export.h>
+
 #include <QtTest/qtest.h>
 
-namespace qbs {
-namespace Internal {
-
-class QBS_EXPORT TestLanguage : public QObject
+class TestLanguage : public QObject
 {
     Q_OBJECT
 public:
-    TestLanguage(ILogSink *logSink, Settings *settings);
+    TestLanguage(qbs::ILogSink *logSink, qbs::Settings *settings);
     ~TestLanguage();
 
 private:
-    ILogSink *m_logSink;
-    Settings * const m_settings;
-    Logger m_logger;
-    ScriptEngine *m_engine;
-    Loader *loader;
-    TopLevelProjectPtr project;
-    SetupProjectParameters defaultParameters;
+    qbs::ILogSink *m_logSink;
+    qbs::Settings * const m_settings;
+    qbs::Internal::Logger m_logger;
+    qbs::Internal::ScriptEngine *m_engine;
+    qbs::Internal::Loader *loader;
+    qbs::Internal::TopLevelProjectPtr project;
+    qbs::SetupProjectParameters defaultParameters;
     const QString m_wildcardsTestDirPath;
 
-    QHash<QString, ResolvedProductPtr> productsFromProject(ResolvedProjectPtr project);
-    ResolvedModuleConstPtr findModuleByName(ResolvedProductPtr product, const QString &name);
-    QVariant productPropertyValue(ResolvedProductPtr product, QString propertyName);
+    QHash<QString, qbs::Internal::ResolvedProductPtr> productsFromProject(
+            qbs::Internal::ResolvedProjectPtr project);
+    qbs::Internal::ResolvedModuleConstPtr findModuleByName(
+            qbs::Internal::ResolvedProductPtr product, const QString &name);
+    QVariant productPropertyValue(qbs::Internal::ResolvedProductPtr product, QString propertyName);
     void handleInitCleanupDataTags(const char *projectFileName, bool *handled);
 
 private slots:
@@ -148,7 +147,5 @@ private slots:
     void wildcards();
 };
 
-} // namespace Internal
-} // namespace qbs
-
 #endif // TST_LANGUAGE_H
+

@@ -49,7 +49,7 @@
 namespace qbs {
 namespace Internal {
 
-class QualifiedId : public QStringList
+class QBS_AUTOTEST_EXPORT QualifiedId : public QStringList
 {
 public:
     QualifiedId();
@@ -60,7 +60,7 @@ public:
     QString toString() const;
 };
 
-bool operator<(const QualifiedId &a, const QualifiedId &b);
+bool QBS_AUTOTEST_EXPORT operator<(const QualifiedId &a, const QualifiedId &b);
 inline uint qHash(const QualifiedId &qid) { return qHash(qid.toString()); }
 
 using QualifiedIdSet = Set<QualifiedId>;

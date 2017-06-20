@@ -4,7 +4,6 @@ QbsLibrary {
     Depends { name: "cpp" }
     Depends { name: "Qt"; submodules: ["core-private", "network", "script", "xml"] }
     Depends { condition: qbsbuildconfig.enableProjectFileUpdates; name: "Qt.gui" }
-    Depends { condition: qbsbuildconfig.enableUnitTests; name: "Qt.testlib" }
     Depends { condition: Qt.core.staticBuild; productTypes: ["qbsplugin"] }
     name: "qbscore"
     cpp.includePaths: base.concat([
@@ -13,13 +12,14 @@ QbsLibrary {
     ])
     property stringList projectFileUpdateDefines:
         qbsbuildconfig.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : []
+    property stringList enableUnitTestsDefines:
+        qbsbuildconfig.enableUnitTests ? ["QBS_ENABLE_UNIT_TESTS"] : []
     // TODO: Use Utilities.cStringQuote
     cpp.defines: base.concat([
         'QBS_RELATIVE_LIBEXEC_PATH="' + qbsbuildconfig.relativeLibexecPath + '"',
         "QBS_VERSION=\"" + version + "\"",
         "QT_CREATOR", "QML_BUILD_STATIC_LIB",   // needed for QmlJS
-        "SRCDIR=\"" + path + "\""
-    ]).concat(projectFileUpdateDefines)
+    ]).concat(projectFileUpdateDefines).concat(enableUnitTestsDefines)
 
     Properties {
         condition: qbs.targetOS.contains("windows")
@@ -454,19 +454,6 @@ QbsLibrary {
         ]
         qbs.install: qbsbuildconfig.installApiHeaders
         qbs.installDir: headerInstallPrefix
-    }
-    Group {
-        condition: qbsbuildconfig.enableUnitTests
-        name: "tests"
-        cpp.defines: outer.filter(function(def) { return def !== "QT_NO_CAST_FROM_ASCII"; })
-        files: [
-            "buildgraph/tst_buildgraph.cpp",
-            "buildgraph/tst_buildgraph.h",
-            "language/tst_language.cpp",
-            "language/tst_language.h",
-            "tools/tst_tools.h",
-            "tools/tst_tools.cpp"
-        ]
     }
     Export {
         Depends { name: "cpp" }

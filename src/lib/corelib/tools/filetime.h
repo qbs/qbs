@@ -60,7 +60,7 @@
 namespace qbs {
 namespace Internal {
 
-class FileTime
+class QBS_AUTOTEST_EXPORT FileTime
 {
 public:
 #if defined(Q_OS_UNIX)

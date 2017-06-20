@@ -36,65 +36,35 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "qbs_export.h"
+#ifndef TST_BUILDGRAPH_H
+#define TST_BUILDGRAPH_H
+
+#include <buildgraph/forward_decls.h>
+#include <language/forward_decls.h>
+#include <logging/ilogsink.h>
 
 #include <QtCore/qlist.h>
 #include <QtCore/qobject.h>
 
-QT_BEGIN_NAMESPACE
-class QTemporaryDir;
-QT_END_NAMESPACE
-
-namespace qbs {
-class Settings;
-
-namespace Internal {
-
-class QBS_EXPORT TestTools : public QObject
+class TestBuildGraph : public QObject
 {
     Q_OBJECT
-
 public:
-    TestTools(Settings *settings);
-    ~TestTools();
+    TestBuildGraph(qbs::ILogSink *logSink);
 
 private slots:
-    void fileCaseCheck();
-    void testBuildConfigMerging();
-    void testFileInfo();
-    void testProcessNameByPid();
-    void testProfiles();
-    void testSettingsMigration();
-    void testSettingsMigration_data();
-
-    void set_operator_eq();
-    void set_swap();
-    void set_size();
-    void set_capacity();
-    void set_reserve();
-    void set_clear();
-    void set_remove();
-    void set_contains();
-    void set_containsSet();
-    void set_begin();
-    void set_end();
-    void set_insert();
-    void set_reverseIterators();
-    void set_stlIterator();
-    void set_stlMutableIterator();
-    void set_setOperations();
-    void set_makeSureTheComfortFunctionsCompile();
-    void set_initializerList();
-    void set_intersects();
+    void initTestCase();
+    void cleanupTestCase();
+    void testCycle();
 
 private:
-    QString setupSettingsDir1();
-    QString setupSettingsDir2();
-    QString setupSettingsDir3();
+    qbs::Internal::ResolvedProductConstPtr productWithDirectCycle();
+    qbs::Internal::ResolvedProductConstPtr productWithLessDirectCycle();
+    qbs::Internal::ResolvedProductConstPtr productWithNoCycle();
+    bool cycleDetected(const qbs::Internal::ResolvedProductConstPtr &product);
 
-    Settings * const m_settings;
-    QList<QTemporaryDir *> m_tmpDirs;
+    qbs::ILogSink * const m_logSink;
 };
 
-} // namespace Internal
-} // namespace qbs
+#endif // TST_BUILDGRAPH_H
+

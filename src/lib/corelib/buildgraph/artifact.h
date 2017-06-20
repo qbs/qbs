@@ -64,7 +64,7 @@ using ArtifactSet = Set<Artifact *>;
  *
  *
  */
-class Artifact : public FileResourceBase, public BuildGraphNode
+class QBS_AUTOTEST_EXPORT Artifact : public FileResourceBase, public BuildGraphNode
 {
 public:
     Artifact();

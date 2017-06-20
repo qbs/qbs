@@ -73,11 +73,6 @@ SOURCES += \
     $$PWD/scriptimporter.cpp \
     $$PWD/value.cpp
 
-qbs_enable_unit_tests {
-    HEADERS += $$PWD/tst_language.h
-    SOURCES += $$PWD/tst_language.cpp
-}
-
 !qbs_no_dev_install {
     language_headers.files = $$PWD/forward_decls.h
     language_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/language

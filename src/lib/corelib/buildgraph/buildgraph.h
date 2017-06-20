@@ -41,6 +41,7 @@
 
 #include "forward_decls.h"
 #include <language/forward_decls.h>
+#include <tools/qbs_export.h>
 
 #include <QtCore/qstringlist.h>
 
@@ -73,7 +74,7 @@ void dumpProductBuildData(const ResolvedProductConstPtr &product);
 
 
 bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode*> &path);
-void connect(BuildGraphNode *p, BuildGraphNode *c);
+void QBS_AUTOTEST_EXPORT connect(BuildGraphNode *p, BuildGraphNode *c);
 void loggedConnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger);
 bool safeConnect(Artifact *u, Artifact *v, const Logger &logger);
 void removeGeneratedArtifactFromDisk(Artifact *artifact, const Logger &logger);

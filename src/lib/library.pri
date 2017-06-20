@@ -13,6 +13,7 @@ CONFIG(static, static|shared) {
     DEFINES += QBS_LIBRARY
 }
 DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_PROCESS_COMBINED_ARGUMENT_START
+qbs_enable_unit_tests:DEFINES += QBS_ENABLE_UNIT_TESTS
 INCLUDEPATH += $${PWD}/../
 contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 win32:CONFIG(debug, debug|release):TARGET = $${TARGET}d

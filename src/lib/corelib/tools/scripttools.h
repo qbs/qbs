@@ -63,7 +63,7 @@ QScriptValue toScriptValue(QScriptEngine *scriptEngine, const C &container)
 }
 
 void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value);
-QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name);
+QVariant QBS_AUTOTEST_EXPORT getConfigProperty(const QVariantMap &cfg, const QStringList &name);
 
 template <class T>
 void attachPointerTo(QScriptValue &scriptValue, T *ptr)

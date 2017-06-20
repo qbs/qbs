@@ -43,11 +43,22 @@
 
 #ifdef QBS_STATIC_LIB
 #   define QBS_EXPORT
+#   define QBS_AUTOTEST_EXPORT
 #else
 #   ifdef QBS_LIBRARY
 #       define QBS_EXPORT Q_DECL_EXPORT
+#       ifdef QBS_ENABLE_UNIT_TESTS
+#           define QBS_AUTOTEST_EXPORT Q_DECL_EXPORT
+#       else
+#           define QBS_AUTOTEST_EXPORT
+#       endif
 #   else
 #       define QBS_EXPORT Q_DECL_IMPORT
+#       ifdef QBS_ENABLE_UNIT_TESTS
+#           define QBS_AUTOTEST_EXPORT Q_DECL_IMPORT
+#       else
+#           define QBS_AUTOTEST_EXPORT
+#       endif
 #   endif
 #endif
 

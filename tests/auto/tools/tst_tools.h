@@ -36,41 +36,60 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef TST_BUILDGRAPH_H
-#define TST_BUILDGRAPH_H
-
-#include <buildgraph/forward_decls.h>
-#include <language/forward_decls.h>
-#include <logging/ilogsink.h>
-#include <tools/qbs_export.h>
 
 #include <QtCore/qlist.h>
 #include <QtCore/qobject.h>
 
-namespace qbs {
-namespace Internal {
+QT_BEGIN_NAMESPACE
+class QTemporaryDir;
+QT_END_NAMESPACE
 
-class QBS_EXPORT TestBuildGraph : public QObject
+namespace qbs {
+class Settings;
+}
+
+class TestTools : public QObject
 {
     Q_OBJECT
+
 public:
-    TestBuildGraph(ILogSink *logSink);
+    TestTools(qbs::Settings *settings);
+    ~TestTools();
 
 private slots:
-    void initTestCase();
-    void cleanupTestCase();
-    void testCycle();
+    void fileCaseCheck();
+    void testBuildConfigMerging();
+    void testFileInfo();
+    void testProcessNameByPid();
+    void testProfiles();
+    void testSettingsMigration();
+    void testSettingsMigration_data();
+
+    void set_operator_eq();
+    void set_swap();
+    void set_size();
+    void set_capacity();
+    void set_reserve();
+    void set_clear();
+    void set_remove();
+    void set_contains();
+    void set_containsSet();
+    void set_begin();
+    void set_end();
+    void set_insert();
+    void set_reverseIterators();
+    void set_stlIterator();
+    void set_stlMutableIterator();
+    void set_setOperations();
+    void set_makeSureTheComfortFunctionsCompile();
+    void set_initializerList();
+    void set_intersects();
 
 private:
-    ResolvedProductConstPtr productWithDirectCycle();
-    ResolvedProductConstPtr productWithLessDirectCycle();
-    ResolvedProductConstPtr productWithNoCycle();
-    bool cycleDetected(const ResolvedProductConstPtr &product);
+    QString setupSettingsDir1();
+    QString setupSettingsDir2();
+    QString setupSettingsDir3();
 
-    ILogSink * const m_logSink;
+    qbs::Settings * const m_settings;
+    QList<QTemporaryDir *> m_tmpDirs;
 };
-
-} // namespace Internal
-} // namespace qbs
-
-#endif // TST_BUILDGRAPH_H

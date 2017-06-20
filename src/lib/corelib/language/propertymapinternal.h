@@ -42,12 +42,13 @@
 
 #include "forward_decls.h"
 #include <tools/persistentobject.h>
+#include <tools/qbs_export.h>
 #include <QtCore/qvariant.h>
 
 namespace qbs {
 namespace Internal {
 
-class PropertyMapInternal : public PersistentObject
+class QBS_AUTOTEST_EXPORT PropertyMapInternal : public PersistentObject
 {
 public:
     static PropertyMapPtr create() { return PropertyMapPtr(new PropertyMapInternal); }
@@ -76,8 +77,9 @@ inline bool operator==(const PropertyMapInternal &lhs, const PropertyMapInternal
     return lhs.m_value == rhs.m_value;
 }
 
-QVariant moduleProperty(const QVariantMap &properties, const QString &moduleName,
-                        const QString &key);
+QVariant QBS_AUTOTEST_EXPORT moduleProperty(const QVariantMap &properties,
+                                            const QString &moduleName,
+                                            const QString &key);
 
 } // namespace Internal
 } // namespace qbs
