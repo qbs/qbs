@@ -242,7 +242,18 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
     var i, args = additionalCompilerAndLinkerFlags(product);
 
     if (output.fileTags.contains("dynamiclibrary")) {
-        args.push(isDarwin ? "-dynamiclib" : "-shared");
+        if (isDarwin) {
+            args.push((function () {
+                var tags = ["c", "cpp", "objc", "objcpp", "asm_cpp"];
+                for (var i = 0; i < tags.length; ++i) {
+                    if (linkerPath === product.cpp.compilerPathByLanguage[tags[i]])
+                        return "-dynamiclib";
+                }
+                return "-dylib"; // for ld64
+            })());
+        } else {
+            args.push("-shared");
+        }
 
         if (isDarwin) {
             var internalVersion = product.cpp.internalVersion;
