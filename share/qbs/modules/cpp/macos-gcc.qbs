@@ -30,6 +30,7 @@
 
 import qbs 1.0
 import qbs.ModUtils
+import qbs.Utilities
 
 DarwinGCC {
     condition: qbs.targetOS.contains('macos') &&
@@ -40,4 +41,8 @@ DarwinGCC {
     minimumDarwinVersion: minimumMacosVersion
     minimumDarwinVersionCompilerFlag: "-mmacosx-version-min"
     minimumDarwinVersionLinkerFlag: "-macosx_version_min"
+
+    libcxxAvailable: base
+                     && minimumDarwinVersion
+                     && Utilities.versionCompare(minimumDarwinVersion, "10.7") >= 0
 }

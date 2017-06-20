@@ -33,6 +33,7 @@ import qbs.DarwinTools
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Utilities
 
 DarwinGCC {
     condition: qbs.targetOS.contains('ios') &&
@@ -47,6 +48,10 @@ DarwinGCC {
     minimumDarwinVersionLinkerFlag: qbs.targetOS.contains("ios-simulator")
                                     ? "-ios_simulator_version_min"
                                     : "-iphoneos_version_min"
+
+    libcxxAvailable: base
+                     && minimumDarwinVersion
+                     && Utilities.versionCompare(minimumDarwinVersion, "5") >= 0
 
     platformObjcFlags: base.concat(simulatorObjcFlags)
     platformObjcxxFlags: base.concat(simulatorObjcFlags)

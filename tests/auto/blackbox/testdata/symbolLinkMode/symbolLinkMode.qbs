@@ -28,6 +28,7 @@ Project {
             return ["WEAK_IMPORT=", installLib];
         }
         cpp.cxxLanguageVersion: "c++11"
+        cpp.minimumMacosVersion: "10.5"
         cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path/../lib"] : ["$ORIGIN/../lib"]
 
         Group {
@@ -46,6 +47,7 @@ Project {
         name: "functions"
         files: ["lib.cpp"]
         cpp.cxxLanguageVersion: "c++11"
+        cpp.minimumMacosVersion: "10.5"
         cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path"] : ["$ORIGIN"]
 
         Properties {
@@ -85,6 +87,7 @@ Project {
         name: "indirect"
         files: ["indirect.cpp"]
         cpp.cxxLanguageVersion: "c++11"
+        cpp.minimumMacosVersion: "10.5"
 
         Properties {
             condition: qbs.targetOS.contains("darwin")

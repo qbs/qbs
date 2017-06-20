@@ -11,6 +11,7 @@ Project {
         targetName: "singleapp"
         files: ["app.c"]
         cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path/../../../"] : []
+        cpp.minimumMacosVersion: "10.5"
 
         // Turn off multiplexing
         aggregate: false
@@ -30,6 +31,7 @@ Project {
         targetName: "singleapp_agg"
         files: ["app.c"]
         cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path/../../../"] : []
+        cpp.minimumMacosVersion: "10.5"
 
         // Force aggregation when not needed
         aggregate: true
@@ -70,6 +72,7 @@ Project {
         targetName: "multiapp"
         files: ["app.c"]
         cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path/../../../"] : []
+        cpp.minimumMacosVersion: "10.5"
 
         Group {
             fileTagsFilter: ["bundle.content"]
@@ -85,6 +88,7 @@ Project {
         targetName: "fatmultiapp"
         files: ["app.c"]
         cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path/../../../"] : []
+        cpp.minimumMacosVersion: "10.5"
         qbs.architectures: ["x86", "x86_64"]
 
         Group {
