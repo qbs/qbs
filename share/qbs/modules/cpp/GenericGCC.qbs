@@ -120,7 +120,7 @@ CppModule {
     property string objcopyName: "objcopy"
     property string stripName: "strip"
     property string dsymutilName: "dsymutil"
-    property string lipoName: "lipo"
+    property string lipoName
     property string sysroot: qbs.sysroot
     property string syslibroot: sysroot
     property stringList sysrootFlags: sysroot ? ["--sysroot=" + sysroot] : []
@@ -177,7 +177,7 @@ CppModule {
     property string objcopyPath: binutilsPathPrefix + objcopyName
     property string stripPath: binutilsPathPrefix + stripName
     property string dsymutilPath: toolchainPathPrefix + dsymutilName
-    property string lipoPath: toolchainPathPrefix + lipoName
+    property string lipoPath
     property stringList dsymutilFlags
 
     property bool alwaysUseLipo: false

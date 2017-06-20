@@ -34,6 +34,7 @@ import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.PathTools
+import qbs.Probes
 import qbs.PropertyList
 import qbs.TextFile
 import "darwin.js" as Darwin
@@ -43,6 +44,24 @@ UnixGCC {
     condition: false
 
     Depends { name: "xcode"; required: qbs.toolchain && qbs.toolchain.contains("xcode") }
+
+    Probes.BinaryProbe {
+        id: lipoProbe
+        names: [lipoName]
+        platformPaths: {
+            var paths = (xcode.present && xcode.devicePlatformPath)
+                    ? [xcode.devicePlatformPath + "/Developer/usr/bin"]
+                    : [];
+            return paths.concat([toolchainInstallPath, "/usr/bin"]);
+        }
+    }
+
+    property string lipoPathPrefix: Gcc.pathPrefix(lipoProbe.found
+                                                   ? lipoProbe.path
+                                                   : toolchainInstallPath, toolchainPrefix)
+
+    lipoName: "lipo"
+    lipoPath: lipoPathPrefix + lipoName
 
     targetVendor: "apple"
     targetSystem: "darwin"
