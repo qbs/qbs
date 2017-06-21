@@ -3869,6 +3869,15 @@ void TestBlackbox::assembly()
     QCOMPARE(m_qbsStdout.contains("creating testd.lib"), haveMSVC);
 }
 
+void TestBlackbox::auxiliaryInputsFromDependencies()
+{
+    QDir::setCurrent(testDataDir + "/aux-inputs-from-deps");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QEXPECT_FAIL(0, "QBS-1113", Abort);
+    QVERIFY(runQbs(params) == 0);
+}
+
 void TestBlackbox::nsis()
 {
     QStringList regKeys;

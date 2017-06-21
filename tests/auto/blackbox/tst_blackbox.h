@@ -43,6 +43,7 @@ private slots:
     void alwaysRun_data();
     void artifactScanning();
     void assembly();
+    void auxiliaryInputsFromDependencies();
     void badInterpreter();
     void buildDirectories();
     void buildEnvChange();
