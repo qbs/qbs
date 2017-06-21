@@ -213,6 +213,8 @@
             that produces artifacts that are compatible with \a{auxiliaryInputs}.
             Unlike \a{inputs}, the property \a{auxiliaryInputs} has no effect on the content of the
             \a{inputs} variable in the \a{prepare} script.
+            All rules in this product and rules of product dependencies that produce target
+            artifacts are considered.
     \row
         \li excludedAuxiliaryInputs
         \li string list
@@ -271,7 +273,8 @@
         \li string list
         \li undefined
         \li Each artifact that matches the file tags in \a explicitlyDependsOn
-           is added to the dependencies of each output node.
+           is added to the dependencies of each output node. All artifacts in the current product
+           and target artifact of products that this product depends on are considered.
     \row
         \li prepare
         \li script

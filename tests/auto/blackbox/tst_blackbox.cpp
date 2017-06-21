@@ -3899,10 +3899,13 @@ void TestBlackbox::assembly()
 void TestBlackbox::auxiliaryInputsFromDependencies()
 {
     QDir::setCurrent(testDataDir + "/aux-inputs-from-deps");
-    QbsRunParameters params;
-    params.expectFailure = true;
-    QEXPECT_FAIL(0, "QBS-1113", Abort);
-    QVERIFY(runQbs(params) == 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating dummy.out"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("products.dep.sleep:false"))), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating dummy.out"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::nsis()

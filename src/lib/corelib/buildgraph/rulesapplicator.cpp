@@ -206,9 +206,16 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
 
     for (Artifact * const outputArtifact : qAsConst(outputArtifacts)) {
         // connect artifacts that match the file tags in explicitlyDependsOn
-        for (const FileTag &fileTag : qAsConst(m_rule->explicitlyDependsOn))
+        for (const FileTag &fileTag : qAsConst(m_rule->explicitlyDependsOn)) {
             for (Artifact *dependency : m_product->lookupArtifactsByFileTag(fileTag))
                 loggedConnect(outputArtifact, dependency, m_logger);
+            for (const ResolvedProductConstPtr &depProduct : qAsConst(m_product->dependencies)) {
+                for (Artifact * const ta : depProduct->targetArtifacts()) {
+                    if (ta->fileTags().contains(fileTag))
+                        loggedConnect(outputArtifact, ta, m_logger);
+                }
+            }
+        }
 
         outputArtifact->product->unregisterArtifactWithChangedInputs(outputArtifact);
     }

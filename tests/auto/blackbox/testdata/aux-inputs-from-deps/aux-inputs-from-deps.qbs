@@ -11,19 +11,42 @@ Project {
         Depends { name: "dep" }
     }
     Product {
+        name: "p"
+        type: ["p.out"]
+        Depends { name: "dep" }
+        Rule {
+            multiplex: true
+            explicitlyDependsOn: ["hpp"]
+            Artifact {
+                filePath: "dummy.out"
+                fileTags: ["p.out"]
+            }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.description = "generating dummy.out";
+                cmd.sourceCode = function() {
+                    File.copy(project.buildDirectory + "/dummy.h", output.filePath);
+                };
+                return [cmd];
+            }
+        }
+    }
+    Product {
         name: "dep"
         type: ["hpp"]
+        property bool sleep: true
         Rule {
             inputs: ["blubb.in"]
             Artifact {
-                filePath: "dummy.h"
+                filePath: project.buildDirectory + "/dummy.h"
                 fileTags: ["hpp"]
             }
             prepare: {
                 var cmd = new JavaScriptCommand();
                 cmd.description = "generating header";
                 cmd.sourceCode = function() {
-                    Utils.sleep(1000);
+                    if (product.sleep)
+                        Utils.sleep(1000);
                     File.copy(input.filePath, output.filePath);
                 }
                 return [cmd];
@@ -37,9 +60,10 @@ Project {
             }
             prepare: {
                 var cmd = new JavaScriptCommand();
-                cmd.description = "blubb.in";
+                cmd.description = "generating blubb.in";
                 cmd.sourceCode = function() {
-                    Utils.sleep(1000);
+                    if (product.sleep)
+                        Utils.sleep(1000);
                     var f = new TextFile(output.filePath, TextFile.WriteOnly);
                     f.close();
                 }
@@ -48,7 +72,7 @@ Project {
         }
         Export {
             Depends { name: "cpp" }
-            cpp.includePaths: [product.buildDirectory]
+            cpp.includePaths: [project.buildDirectory]
         }
     }
 }
