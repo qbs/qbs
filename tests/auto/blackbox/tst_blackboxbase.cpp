@@ -87,8 +87,7 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
     QProcess process;
     process.setProcessEnvironment(params.environment);
     process.start(qbsExecutableFilePath, args);
-    const int waitTime = 10 * 60000;
-    if (!process.waitForStarted() || !process.waitForFinished(waitTime)
+    if (!process.waitForStarted() || !process.waitForFinished(testTimeoutInMsecs())
             || process.exitStatus() != QProcess::NormalExit) {
         m_qbsStderr = process.readAllStandardError();
         QTest::qFail("qbs did not run correctly", __FILE__, __LINE__);

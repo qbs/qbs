@@ -44,6 +44,15 @@
 
 #include <memory>
 
+inline int testTimeoutInMsecs()
+{
+    bool ok;
+    int timeoutInSecs = qEnvironmentVariableIntValue("QBS_AUTOTEST_TIMEOUT", &ok);
+    if (!ok)
+        timeoutInSecs = 600;
+    return timeoutInSecs * 1000;
+}
+
 using SettingsPtr = std::unique_ptr<qbs::Settings>;
 inline SettingsPtr settings()
 {
