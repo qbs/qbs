@@ -44,6 +44,7 @@
 #include <logging/translator.h>
 #include <tools/architectures.h>
 #include <tools/error.h>
+#include <tools/hostosinfo.h>
 #include <tools/jsliterals.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
@@ -313,6 +314,13 @@ static void createModules(Profile &profile, Settings *settings,
             moduleTemplateFileName = QLatin1String("qml.qbs");
             copyTemplateFile(QLatin1String("qml.js"), qbsQtModuleDir, profile, qtEnvironment,
                              &allFiles);
+            const QString qmlcacheStr = QStringLiteral("qmlcache");
+            if (QFileInfo::exists(HostOsInfo::appendExecutableSuffix(
+                                      qtEnvironment.binaryPath + QStringLiteral("/qmlcachegen")))) {
+                copyTemplateFile(qmlcacheStr + QStringLiteral(".qbs"),
+                                 qbsQtModuleBaseDir + QLatin1Char('/') + qmlcacheStr, profile,
+                                 qtEnvironment, &allFiles);
+            }
         } else if (module.qbsName == QLatin1String("phonon")) {
             moduleTemplateFileName = QLatin1String("phonon.qbs");
         } else if (module.isPlugin) {

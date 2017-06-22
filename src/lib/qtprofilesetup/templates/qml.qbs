@@ -11,6 +11,14 @@ QtModule {
     property string qmlImportScannerFilePath: Qt.core.binPath + '/' + qmlImportScannerName
     property string qmlPath: @qmlPath@
 
+    property bool generateCacheFiles: false
+    Depends { name: "Qt.qmlcache"; condition: generateCacheFiles; required: false }
+    readonly property bool cachingEnabled: generateCacheFiles && Qt.qmlcache.present
+    property string qmlCacheGenPath
+    Qt.qmlcache.qmlCacheGenPath: qmlCacheGenPath || original
+    property string cacheFilesInstallDir
+    Qt.qmlcache.installDir: cacheFilesInstallDir || original
+
     readonly property string pluginListFilePathDebug: product.buildDirectory + "/plugins.list.d"
     readonly property string pluginListFilePathRelease: product.buildDirectory + "/plugins.list"
 
@@ -38,6 +46,11 @@ QtModule {
     FileTagger {
         patterns: ["*.qml"]
         fileTags: ["qt.qml.qml"]
+    }
+
+    FileTagger {
+        patterns: ["*.js"]
+        fileTags: ["qt.qml.js"]
     }
 
     Rule {

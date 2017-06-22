@@ -519,6 +519,41 @@
         \li The absolute path to the directory where Qt's QML files are installed.
     \endtable
 
+    The following properties control the generation of QML cache files.
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li generateCacheFiles
+        \li \c{bool}
+        \li \c{false}
+        \li Enables the generation of QML cache files.
+    \row
+        \li cachingEnabled
+        \li \c{readonly bool}
+        \li \c{false}
+        \li Is true if \c{generateCacheFiles} is \c{true}
+            and the platform supports QML cache generation.
+    \row
+        \li qmlCacheGenPath
+        \li \c{string}
+        \li set by \c{qbs-setup-qt}
+        \li The absolute path to the qmlcachegen executable.
+    \row
+        \li cacheFilesInstallDir
+        \li \c{string}
+        \li \c{undefined}
+        \li The path to the directory where the cache files are installed.
+            If this property is set then QML cache files are automatically installed.
+    \endtable
+
+    \note If the current value of qbs.architecture is not supported
+          by qmlcachegen then the cache generator rule is disabled.
+
 
     \section2 scxml Properties
 
@@ -668,6 +703,12 @@
         \li Auto-tagged File Names
         \li Since
         \li Description
+    \row
+        \li \c{"qt.qml.js"}
+        \li \c{*.js}
+        \li 1.10
+        \li QML companion JavaScript files. Source files with this tag serve as input for the QML
+            cache file generator.
     \row
         \li \c{"qt.qml.qml"}
         \li \c{*.qml}

@@ -69,6 +69,20 @@ void TestBlackboxQt::autoQrc()
              m_qbsStdout.constData());
 }
 
+void TestBlackboxQt::cachedQml()
+{
+    QDir::setCurrent(testDataDir + "/cached-qml");
+    QCOMPARE(runQbs(), 0);
+    QString dataDir = relativeBuildDir() + "/install-root/data";
+    if (QFile::exists(dataDir + "/main.cpp")) {
+        // If C++ source files were installed then Qt.qmlcache is not available. See project file.
+        QSKIP("No QML cache files generated.");
+    }
+    QVERIFY(QFile::exists(dataDir + "/main.qmlc"));
+    QVERIFY(QFile::exists(dataDir + "/MainForm.ui.qmlc"));
+    QVERIFY(QFile::exists(dataDir + "/stuff.jsc"));
+}
+
 void TestBlackboxQt::combinedMoc()
 {
     QDir::setCurrent(testDataDir + "/combined-moc");

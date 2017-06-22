@@ -43,6 +43,7 @@ protected:
 
 private slots:
     void autoQrc();
+    void cachedQml();
     void combinedMoc();
     void createProject();
     void dbusAdaptors();
