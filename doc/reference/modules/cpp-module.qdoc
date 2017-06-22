@@ -671,7 +671,7 @@
         \li useRPathLink
         \li \c{bool}
         \li 1.8
-        \li \c{true} on non-Darwin Unix platforms.
+        \li \c{true} on non-Darwin Unix platforms or when targeting macOS 10.4.x and older.
         \li Use the \c{-rpath-link} linker option for transitive shared objects.
     \row
         \li visibility

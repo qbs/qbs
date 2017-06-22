@@ -37,6 +37,7 @@ import qbs.PathTools
 import qbs.Probes
 import qbs.PropertyList
 import qbs.TextFile
+import qbs.Utilities
 import "darwin.js" as Darwin
 import "gcc.js" as Gcc
 
@@ -83,7 +84,9 @@ UnixGCC {
     separateDebugInformation: true
     debugInfoBundleSuffix: ".dSYM"
     debugInfoSuffix: ".dwarf"
-    useRPathLink: false
+    useRPathLink: !minimumDarwinVersion
+                  || Utilities.versionCompare(minimumDarwinVersion, "10.5") < 0
+    rpathLinkFlag: "-L"
 
     toolchainInstallPath: xcode.present
                           ? FileInfo.joinPaths(xcode.toolchainPath, "usr", "bin") : base
