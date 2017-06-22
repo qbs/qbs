@@ -44,5 +44,6 @@ GenericGCC {
     imageFormat: "elf"
     systemRunPaths: ["/lib", "/usr/lib"]
     useRPathLink: true
+    rpathLinkFlag: "-rpath-link="
 }
 

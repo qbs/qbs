@@ -457,11 +457,13 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
     }
 
     if (product.cpp.useRPathLink) {
+        if (!product.cpp.rpathLinkFlag)
+            throw new Error("Using rpath-link but cpp.rpathLinkFlag is not defined");
         args = args.concat(escapeLinkerFlags(
                                product, inputs,
                                libraryDependencies.rpath_link.map(
                                    function(dir) {
-                                       return "-rpath-link=" + dir;
+                                       return product.cpp.rpathLinkFlag + dir;
                                    })));
     }
 

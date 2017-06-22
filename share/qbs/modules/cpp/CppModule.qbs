@@ -174,6 +174,7 @@ Module {
     property string sonamePrefix
     property bool useRPaths: true
     property bool useRPathLink
+    property string rpathLinkFlag
 
     property stringList assemblerFlags
     PropertyOptions {
