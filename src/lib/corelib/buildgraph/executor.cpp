@@ -723,7 +723,8 @@ void Executor::doSanityChecks()
 
 void Executor::handleError(const ErrorInfo &error)
 {
-    m_error.append(error.toString());
+    for (const ErrorItem &ei : error.items())
+        m_error.append(ei);
     if (m_processingJobs.isEmpty())
         finish();
     else

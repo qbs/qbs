@@ -59,6 +59,7 @@ private slots:
     void addQObjectMacroToCppFile();
     void addedFilePersistent();
     void baseProperties();
+    void buildErrorCodeLocation();
     void buildGraphLocking();
     void buildProject();
     void buildProject_data();
