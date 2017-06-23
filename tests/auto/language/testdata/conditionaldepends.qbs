@@ -49,6 +49,17 @@ Project {
     }
 
     Product {
+        name: "multilevel_module_props_true"
+        Depends { name: "dummy3" }
+        dummy3.loadDummy: true
+    }
+
+    Product {
+        name: "multilevel_module_props_false"
+        Depends { name: "dummy3" }
+    }
+
+    Product {
         name: "contradictory_conditions1"
         Depends { condition: false; name: "dummy" }
         Depends { condition: true; name: "dummy" }  // this one wins

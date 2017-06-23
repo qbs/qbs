@@ -371,6 +371,21 @@ void TestLanguage::conditionalDepends()
         dependency = findModuleByName(product, "dummy");
         QCOMPARE(dependency, ResolvedModuleConstPtr());
 
+        product = products.value("multilevel_module_props_true");
+        QVERIFY(!!product);
+        dependency = findModuleByName(product, "dummy3");
+        QVERIFY(!!dependency);
+        dependency = findModuleByName(product, "dummy");
+        QEXPECT_FAIL("", "This is broken. Sad!", Continue);
+        QVERIFY(!!dependency);
+
+        product = products.value("multilevel_module_props_false");
+        QVERIFY(!!product);
+        dependency = findModuleByName(product, "dummy3");
+        QVERIFY(!!dependency);
+        dependency = findModuleByName(product, "dummy");
+        QCOMPARE(dependency, ResolvedModuleConstPtr());
+
         product = products.value("contradictory_conditions1");
         QVERIFY(!!product);
         dependency = findModuleByName(product, "dummy");
