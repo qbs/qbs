@@ -387,6 +387,9 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
                            product, inputs, product.cpp.platformLinkerFlags));
     args = args.concat(escapeLinkerFlags(product, inputs, product.cpp.linkerFlags));
 
+    // Note: due to the QCC response files hack in prepareLinker(), at least one object file or
+    // library file must follow the output file path so that QCC has something to process before
+    // sending the rest of the arguments through the response file.
     args.push("-o", output.filePath);
 
     if (inputs.obj)
