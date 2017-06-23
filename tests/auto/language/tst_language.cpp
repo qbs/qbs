@@ -377,7 +377,6 @@ void TestLanguage::conditionalDepends()
         dependency = findModuleByName(product, "dummy3");
         QVERIFY(!!dependency);
         dependency = findModuleByName(product, "dummy");
-        QEXPECT_FAIL("", "This is broken. Sad!", Continue);
         QVERIFY(!!dependency);
 
         product = products.value("multilevel_module_props_false");
@@ -386,6 +385,15 @@ void TestLanguage::conditionalDepends()
         QVERIFY(!!dependency);
         dependency = findModuleByName(product, "dummy");
         QCOMPARE(dependency, ResolvedModuleConstPtr());
+
+        product = products.value("multilevel2_module_props_true");
+        QVERIFY(!!product);
+        dependency = findModuleByName(product, "dummy3_loader");
+        QVERIFY(!!dependency);
+        dependency = findModuleByName(product, "dummy3");
+        QVERIFY(!!dependency);
+        dependency = findModuleByName(product, "dummy");
+        QVERIFY(!!dependency);
 
         product = products.value("contradictory_conditions1");
         QVERIFY(!!product);
@@ -727,7 +735,7 @@ void TestLanguage::exports()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 19);
+        QCOMPARE(products.count(), 22);
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(!!product);
@@ -819,6 +827,15 @@ void TestLanguage::exports()
         QCOMPARE(product->modules.count(), 2);
         for (const ResolvedModuleConstPtr &m : qAsConst(product->modules)) {
             QVERIFY2(m->name == QString("qbs") || m->name == QString("dependency"),
+                     qPrintable(m->name));
+        }
+
+        product = products.value("broken_cycle3");
+        QVERIFY(!!product);
+        QCOMPARE(product->modules.count(), 3);
+        for (const ResolvedModuleConstPtr &m : qAsConst(product->modules)) {
+            QVERIFY2(m->name == QString("qbs") || m->name == QString("broken_cycle1")
+                     || m->name == QString("broken_cycle2"),
                      qPrintable(m->name));
         }
     }

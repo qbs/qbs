@@ -75,12 +75,13 @@ public:
     void setNext(const ValuePtr &next);
 
     bool createdByPropertiesBlock() const { return m_createdByPropertiesBlock; }
+    void setCreatedByPropertiesBlock(bool b) { m_createdByPropertiesBlock = b; }
 
 private:
     Type m_type;
     Item *m_definingItem;
     ValuePtr m_next;
-    const bool m_createdByPropertiesBlock;
+    bool m_createdByPropertiesBlock;
 };
 
 class ValueHandler

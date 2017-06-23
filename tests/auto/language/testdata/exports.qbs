@@ -115,4 +115,22 @@ Project {
         name: "depender"
         Depends { name: "dependency" }
     }
+
+    Product {
+        name: "broken_cycle1"
+        Export {
+            property bool depend: true
+            Depends { name: "broken_cycle3"; condition: depend }                                                                                                                                                                                                }
+        }
+    Product {
+        name: "broken_cycle2"
+        Export {
+            Depends { name: "broken_cycle1" }
+            broken_cycle1.depend: false
+       }
+    }
+    Product {
+        name: "broken_cycle3"
+        Depends { name: "broken_cycle2" }
+    }
 }

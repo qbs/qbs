@@ -393,6 +393,8 @@ class PropertyDeclarationCheck : public ValueHandler
     const Set<Item *> &m_disabledItems;
     Set<Item *> m_handledItems;
     Item *m_parentItem;
+    Item *m_currentModuleInstance = nullptr;
+    QualifiedId m_currentModuleName;
     QString m_currentName;
     SetupProjectParameters m_params;
     Logger &m_logger;
@@ -423,9 +425,28 @@ private:
 
     void handle(ItemValue *value)
     {
+        if (checkItemValue(value))
+            handleItem(value->item());
+    }
+
+    bool checkItemValue(ItemValue *value)
+    {
         // TODO: Remove once QBS-1030 is fixed.
         if (m_parentItem->type() == ItemType::Artifact)
-            return;
+            return false;
+
+        if (m_parentItem->type() == ItemType::Export) {
+            // Export item prototypes do not have instantiated modules.
+            // The module instances are where the Export is used.
+            QBS_ASSERT(m_currentModuleInstance, return false);
+            auto it = std::find_if(m_currentModuleInstance->modules().cbegin(),
+                                   m_currentModuleInstance->modules().cend(),
+                                   [this] (const Item::Module &m) {
+                return m.name == m_currentModuleName;
+            });
+            if (it != m_currentModuleInstance->modules().cend())
+                return true;
+        }
 
         if ((value->item()->type() != ItemType::ModuleInstance || !value->item()->scope())
                 && value->item()->type() != ItemType::ModulePrefix
@@ -438,9 +459,10 @@ private:
                                   value->location().isValid() ? value->location()
                                                               : m_parentItem->location());
             handlePropertyError(error, m_params, m_logger);
-        } else {
-            handleItem(value->item());
+            return false;
         }
+
+        return true;
     }
 
     void handleItem(Item *item)
@@ -491,7 +513,12 @@ private:
                 continue;
             }
             m_currentName = it.key();
+            const QualifiedId oldModuleName = m_currentModuleName;
+            if (m_parentItem->type() != ItemType::ModulePrefix)
+                m_currentModuleName.clear();
+            m_currentModuleName.append(m_currentName);
             it.value()->apply(this);
+            m_currentModuleName = oldModuleName;
         }
         m_parentItem = oldParentItem;
         for (Item * const child : item->children()) {
@@ -510,8 +537,12 @@ private:
         // only exist in the prototype of an Export item, not in the instance.
         // Example 1 - setting a property of an unknown module: Export { abc.def: true }
         // Example 2 - setting a non-existing Export property: Export { blubb: true }
-        if (item->type() == ItemType::ModuleInstance && item->prototype())
+        if (item->type() == ItemType::ModuleInstance && item->prototype()) {
+            Item *oldInstance = m_currentModuleInstance;
+            m_currentModuleInstance = item;
             handleItem(item->prototype());
+            m_currentModuleInstance = oldInstance;
+        }
     }
 
     void handle(VariantValue *) { /* only created internally - no need to check */ }
@@ -2003,11 +2034,10 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
             continue;
         }
 
-        RequiredChainManager requiredChainManager(m_requiredChain, isRequired);
-
         QVariantMap defaultParameters;
-        Item *moduleItem = loadModule(dependsContext->product, parentItem, dependsItem->location(),
-                                      dependsItem->id(), moduleName, isRequired, &result.isProduct,
+        Item *moduleItem = loadModule(dependsContext->product, dependsContext->exportingProductItem,
+                                      parentItem, dependsItem->location(), dependsItem->id(),
+                                      moduleName, isRequired, &result.isProduct,
                                       &defaultParameters);
         if (!moduleItem) {
             ErrorInfo e(Tr::tr("Dependency '%1' not found for product '%2'.")
@@ -2019,7 +2049,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
             }
             throw e;
         }
-        if (result.isProduct && parentItem->type() == ItemType::Module) {
+        if (result.isProduct && !m_dependsChain.empty() && !m_dependsChain.back().isProduct) {
             throw ErrorInfo(Tr::tr("Invalid dependency on product '%1': Modules cannot depend on "
                                    "products. You may want to turn your module into a product and "
                                    "add the dependency in that product's Export item.")
@@ -2187,22 +2217,39 @@ Item *ModuleLoader::moduleInstanceItem(Item *containerItem, const QualifiedId &m
     return instance;
 }
 
-ModuleLoader::ProductModuleInfo ModuleLoader::loadProductModule(
-        ModuleLoader::ProductContext *productContext, const QString &moduleName)
+ModuleLoader::ProductModuleInfo *ModuleLoader::productModule(ProductContext *productContext,
+                                                             const QString &name)
 {
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[MODLDR] loadProductModule name: " << moduleName;
-    ProductModuleInfo &pmi = productContext->project->topLevelProject->productModules[moduleName];
-    if (pmi.exportItem && !pmi.dependenciesResolved) {
-        if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "[MODLDR] loadProductModule resolving dependencies.";
-        DependsContext dependsContext;
-        dependsContext.product = productContext;
-        dependsContext.productDependencies = &pmi.productDependencies;
-        resolveDependencies(&dependsContext, pmi.exportItem);
-        pmi.dependenciesResolved = true;
+    return &productContext->project->topLevelProject->productModules[name];
+}
+
+ModuleLoader::ProductModuleInfo *ModuleLoader::productModule(ProductContext *productContext,
+                                                             const Item::Module &module)
+{
+    return module.isProduct ? productModule(productContext, module.name.toString()) : nullptr;
+}
+
+ModuleLoader::ProductContext *ModuleLoader::product(ProjectContext *projectContext,
+                                                    const QString &name)
+{
+    auto itEnd = projectContext->products.end();
+    auto it = std::find_if(projectContext->products.begin(), itEnd,
+                           [&name] (const ProductContext &ctx) {
+        return ctx.name == name;
+    });
+    return it == itEnd ? nullptr : &*it;
+}
+
+ModuleLoader::ProductContext *ModuleLoader::product(TopLevelProjectContext *tlpContext,
+                                                    const QString &name)
+{
+    ProductContext *result = nullptr;
+    for (auto prj : tlpContext->projects) {
+        result = product(prj, name);
+        if (result)
+            break;
     }
-    return pmi;
+    return result;
 }
 
 class ModuleLoader::DependsChainManager
@@ -2214,17 +2261,17 @@ public:
     {
         const bool alreadyInChain = std::any_of(dependsChain.cbegin(), dependsChain.cend(),
                                                 [&module](const DependsChainEntry &e) {
-            return e.first == module;
+            return e.name == module;
         });
         if (alreadyInChain) {
             ErrorInfo error;
             error.append(Tr::tr("Cyclic dependencies detected:"));
             for (const DependsChainEntry &e : qAsConst(m_dependsChain))
-                error.append(e.first.toString(), e.second);
+                error.append(e.name.toString(), e.location);
             error.append(module.toString(), dependsLocation);
             throw error;
         }
-        m_dependsChain.push_back(std::make_pair(module, dependsLocation));
+        m_dependsChain.emplace_back(module, dependsLocation);
     }
 
     ~DependsChainManager() { m_dependsChain.pop_back(); }
@@ -2233,14 +2280,21 @@ private:
     std::vector<DependsChainEntry> &m_dependsChain;
 };
 
-Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
-        const CodeLocation &dependsItemLocation,
-        const QString &moduleId, const QualifiedId &moduleName, bool isRequired,
-        bool *isProductDependency, QVariantMap *defaultParameters)
+static bool isBaseModule(const QualifiedId &moduleName)
+{
+    return moduleName.count() == 1 && moduleName.first() == QLatin1String("qbs");
+}
+
+Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingProductItem,
+                               Item *item, const CodeLocation &dependsItemLocation,
+                               const QString &moduleId, const QualifiedId &moduleName,
+                               bool isRequired, bool *isProductDependency,
+                               QVariantMap *defaultParameters)
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] loadModule name: " << moduleName << ", id: " << moduleId;
 
+    RequiredChainManager requiredChainManager(m_requiredChain, isRequired);
     DependsChainManager dependsChainManager(m_dependsChain, moduleName, dependsItemLocation);
 
     Item *moduleInstance = moduleId.isEmpty()
@@ -2258,12 +2312,14 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
     QBS_CHECK(moduleInstance->type() == ItemType::ModuleInstance);
 
     *isProductDependency = true;
-    const ProductModuleInfo &pmi = loadProductModule(productContext, moduleName.toString());
-    Item *modulePrototype = pmi.exportItem;
+    ProductModuleInfo *pmi = productModule(productContext, moduleName.toString());
+    Item *modulePrototype = pmi->exportItem;
     if (modulePrototype) {
+        m_dependsChain.back().isProduct = true;
         if (defaultParameters)
-            *defaultParameters = pmi.defaultParameters;
+            *defaultParameters = pmi->defaultParameters;
     } else {
+        pmi = nullptr;
         *isProductDependency = false;
         QStringList moduleSearchPaths;
         for (const QString &searchPath : m_reader->searchPaths())
@@ -2277,8 +2333,9 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
     }
     if (!modulePrototype)
         return 0;
-    instantiateModule(productContext, nullptr, item, moduleInstance, modulePrototype,
-                      moduleName, *isProductDependency);
+
+    instantiateModule(productContext, exportingProductItem, item, moduleInstance, modulePrototype,
+                      moduleName, pmi);
     return moduleInstance;
 }
 
@@ -2305,10 +2362,8 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         }
         for (const QString &filePath : qAsConst(moduleFileNames)) {
             triedToLoadModule = true;
-            Item *module = loadModuleFile(productContext, fullName,
-                                            moduleName.count() == 1
-                                                && moduleName.first() == QLatin1String("qbs"),
-                                            filePath, cacheHit, &triedToLoadModule);
+            Item *module = loadModuleFile(productContext, fullName, isBaseModule(moduleName),
+                                          filePath, cacheHit, &triedToLoadModule);
             if (module)
                 return module;
             if (!triedToLoadModule)
@@ -2405,10 +2460,8 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     module->setProperty(QLatin1String("name"), VariantValue::create(fullModuleName));
 
     if (!isBaseModule) {
-        DependsContext dependsContext;
-        dependsContext.product = productContext;
-        dependsContext.productDependencies = &productContext->info.usedProducts;
-        resolveDependencies(&dependsContext, module);
+        // We need the base module for the Module.condition check below.
+        loadBaseModule(productContext, module);
     }
 
     // Module properties that are defined in the profile are used as default values.
@@ -2453,7 +2506,7 @@ Item::Module ModuleLoader::loadBaseModule(ProductContext *productContext, Item *
     const QualifiedId baseModuleName(QLatin1String("qbs"));
     Item::Module baseModuleDesc;
     baseModuleDesc.name = baseModuleName;
-    baseModuleDesc.item = loadModule(productContext, item, CodeLocation(), QString(),
+    baseModuleDesc.item = loadModule(productContext, nullptr, item, CodeLocation(), QString(),
                                      baseModuleName, true, &baseModuleDesc.isProduct, nullptr);
     if (productContext->item) {
         const Item * const qbsInstanceItem
@@ -2625,12 +2678,40 @@ static QList<Item *> collectItemsWithId(Item *item)
     return result;
 }
 
+static std::vector<std::pair<QualifiedId, ItemValuePtr>> instanceItemProperties(Item *item)
+{
+    std::vector<std::pair<QualifiedId, ItemValuePtr>> result;
+    QualifiedId name;
+    std::function<void(Item *)> f = [&] (Item *item) {
+        for (auto it = item->properties().begin(); it != item->properties().end(); ++it) {
+            if (it.value()->type() != Value::ItemValueType)
+                continue;
+            ItemValuePtr itemValue = std::static_pointer_cast<ItemValue>(it.value());
+            if (!itemValue->item())
+                continue;
+            name.append(it.key());
+            if (itemValue->item()->type() == ItemType::ModulePrefix)
+                f(itemValue->item());
+            else
+                result.push_back(std::make_pair(name, itemValue));
+            name.removeLast();
+        }
+    };
+    f(item);
+    return result;
+}
+
 void ModuleLoader::instantiateModule(ProductContext *productContext, Item *exportingProduct,
         Item *instanceScope, Item *moduleInstance, Item *modulePrototype,
-        const QualifiedId &moduleName, bool isProduct)
+        const QualifiedId &moduleName, ProductModuleInfo *productModuleInfo)
 {
-    const QString fullName = moduleName.toString();
-    moduleInstance->setPrototype(modulePrototype);
+    Item *deepestModuleInstance = moduleInstance;
+    while (deepestModuleInstance->prototype()
+           && deepestModuleInstance->prototype()->type() == ItemType::ModuleInstance) {
+        deepestModuleInstance = deepestModuleInstance->prototype();
+    }
+    deepestModuleInstance->setPrototype(modulePrototype);
+
     moduleInstance->setFile(modulePrototype->file());
     moduleInstance->setLocation(modulePrototype->location());
     QBS_CHECK(moduleInstance->type() == ItemType::ModuleInstance);
@@ -2647,14 +2728,8 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     else
         QBS_CHECK(moduleName.toString() == QLatin1String("qbs")); // Dummy product.
 
-    if (isProduct) {
-        exportingProduct = 0;
-        for (Item *exportItem = modulePrototype; exportItem && !exportingProduct;
-             exportItem = exportItem->prototype()) {
-            // exportItem is either of type ModuleInstance or Export. Only the latter has
-            // a parent item, which is always of type Product.
-            exportingProduct = exportItem->parent();
-        }
+    if (productModuleInfo) {
+        exportingProduct = productModuleInfo->exportItem->parent();
         QBS_CHECK(exportingProduct);
         QBS_CHECK(exportingProduct->type() == ItemType::Product);
     }
@@ -2675,7 +2750,6 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
         ValuePtr v = exportingProduct->property(QLatin1String("sourceDirectory"))->clone();
         moduleInstance->setProperty(pd.name(), v);
     }
-
     moduleInstance->setScope(moduleScope);
 
     QHash<Item *, Item *> prototypeInstanceMap;
@@ -2695,24 +2769,35 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
         }
     }
 
-    // create module instances for the dependencies of this module
-    for (Item::Module m : modulePrototype->modules()) {
-        Item *depinst = moduleInstanceItem(moduleInstance, m.name);
-        const bool safetyCheck = true;
-        if (safetyCheck) {
-            Item *obj = moduleInstance;
-            for (int i = 0; i < m.name.count(); ++i) {
-                ItemValuePtr iv = obj->itemProperty(m.name.at(i));
-                QBS_CHECK(iv);
-                obj = iv->item();
-            }
-            QBS_CHECK(obj == depinst);
+    // For foo.bar in modulePrototype create an item foo in moduleInstance.
+    for (auto iip : instanceItemProperties(modulePrototype)) {
+        if (iip.second->item()->properties().isEmpty())
+            continue;
+        if (m_logger.traceEnabled()) {
+            m_logger.qbsTrace() << "[MODLDR] The prototype of " << moduleName
+                                << " sets properties on " << iip.first.toString();
         }
-        QBS_ASSERT(depinst != m.item, continue);
-        instantiateModule(productContext, isProduct ? exportingProduct : nullptr, moduleInstance,
-                          depinst, m.item, m.name, m.isProduct);
-        m.item = depinst;
-        moduleInstance->addModule(m);
+        Item *item = moduleInstanceItem(moduleInstance, iip.first);
+        item->setPrototype(iip.second->item());
+        if (iip.second->createdByPropertiesBlock()) {
+            ItemValuePtr itemValue = moduleInstance->itemProperty(iip.first.first());
+            for (int i = 1; i < iip.first.size(); ++i)
+                itemValue = itemValue->item()->itemProperty(iip.first.at(i));
+            itemValue->setCreatedByPropertiesBlock(true);
+        }
+    }
+
+    // Resolve dependencies of this module instance.
+    DependsContext dependsContext;
+    dependsContext.product = productContext;
+    dependsContext.exportingProductItem = exportingProduct;
+    QBS_ASSERT(moduleInstance->modules().empty(), moduleInstance->removeModules());
+    if (productModuleInfo) {
+        dependsContext.productDependencies = &productModuleInfo->productDependencies;
+        resolveDependencies(&dependsContext, moduleInstance);
+    } else if (!isBaseModule(moduleName)) {
+        dependsContext.productDependencies = &productContext->info.usedProducts;
+        resolveDependencies(&dependsContext, moduleInstance);
     }
 
     // Check readonly properties.
@@ -2725,6 +2810,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
                         moduleInstance->property(pd.name())->location());
     }
 
+    const QString fullName = moduleName.toString();
     const QString generalverrideKey = QLatin1String("modules.") + fullName;
     overrideItemProperties(moduleInstance, generalverrideKey, m_parameters.overriddenValuesTree());
     const QString perProductOverrideKey = QLatin1String("products.") + productContext->name
@@ -3069,8 +3155,8 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
             addProductModuleDependencies(ctx, module);
         } else {
             Item::Module dep;
-            dep.item = loadModule(ctx, ctx->item, ctx->item->location(), QString(), module.name,
-                                  module.required, &dep.isProduct, &dep.parameters);
+            dep.item = loadModule(ctx, nullptr, ctx->item, ctx->item->location(), QString(),
+                                  module.name, module.required, &dep.isProduct, &dep.parameters);
             if (!dep.item) {
                 throw ErrorInfo(Tr::tr("Module '%1' not found when setting up transitive "
                                        "dependencies for product '%2'.").arg(module.name.toString(),

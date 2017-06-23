@@ -2576,8 +2576,8 @@ void TestBlackbox::exportToOutsideSearchPath()
     QbsRunParameters params;
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("Module 'aModule' not found when setting up transitive "
-            "dependencies for product 'theProduct'"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.contains("Dependency 'aModule' not found for product 'theProduct'."),
+             m_qbsStderr.constData());
 }
 
 void TestBlackbox::externalLibs()

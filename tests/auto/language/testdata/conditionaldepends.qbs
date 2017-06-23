@@ -60,6 +60,11 @@ Project {
     }
 
     Product {
+        name: "multilevel2_module_props_true"
+        Depends { name: "dummy3_loader" }
+    }
+
+    Product {
         name: "contradictory_conditions1"
         Depends { condition: false; name: "dummy" }
         Depends { condition: true; name: "dummy" }  // this one wins

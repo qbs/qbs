@@ -179,7 +179,6 @@ private:
     struct ProductModuleInfo
     {
         Item *exportItem = nullptr;
-        bool dependenciesResolved = false;
         QList<ModuleLoaderResult::ProductInfo::Dependency> productDependencies;
         QVariantMap defaultParameters;
     };
@@ -200,7 +199,8 @@ private:
     class DependsContext
     {
     public:
-        ProductContext *product;
+        ProductContext *product = nullptr;
+        Item *exportingProductItem = nullptr;
         QList<ModuleLoaderResult::ProductInfo::Dependency> *productDependencies;
     };
 
@@ -270,8 +270,12 @@ private:
     void resolveParameterDeclarations(const Item *module);
     QVariantMap extractParameters(Item *dependsItem) const;
     Item *moduleInstanceItem(Item *containerItem, const QualifiedId &moduleName);
-    ProductModuleInfo loadProductModule(ProductContext *productContext, const QString &moduleName);
-    Item *loadModule(ProductContext *productContext, Item *item,
+    static ProductModuleInfo *productModule(ProductContext *productContext, const QString &name);
+    static ProductModuleInfo *productModule(ProductContext *productContext,
+                                            const Item::Module &module);
+    static ProductContext *product(ProjectContext *projectContext, const QString &name);
+    static ProductContext *product(TopLevelProjectContext *tlpContext, const QString &name);
+    Item *loadModule(ProductContext *productContext, Item *exportingProductItem, Item *item,
             const CodeLocation &dependsItemLocation, const QString &moduleId,
             const QualifiedId &moduleName, bool isRequired, bool *isProductDependency,
             QVariantMap *defaultParameters);
@@ -284,7 +288,7 @@ private:
     void setupBaseModulePrototype(Item *prototype);
     void instantiateModule(ProductContext *productContext, Item *exportingProductItem,
             Item *instanceScope, Item *moduleInstance, Item *modulePrototype,
-            const QualifiedId &moduleName, bool isProduct);
+            const QualifiedId &moduleName, ProductModuleInfo *productModuleInfo);
     void createChildInstances(Item *instance, Item *prototype,
                               QHash<Item *, Item *> *prototypeInstanceMap) const;
     void resolveProbes(ProductContext *productContext, Item *item);
@@ -333,7 +337,17 @@ private:
     Set<Item *> m_disabledItems;
     std::vector<bool> m_requiredChain;
 
-    using DependsChainEntry = std::pair<QualifiedId, CodeLocation>;
+    struct DependsChainEntry
+    {
+        DependsChainEntry(const QualifiedId &name, const CodeLocation &location)
+            : name(name), location(location)
+        {
+        }
+
+        QualifiedId name;
+        CodeLocation location;
+        bool isProduct = false;
+    };
     class DependsChainManager;
     std::vector<DependsChainEntry> m_dependsChain;
 
