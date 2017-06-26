@@ -290,6 +290,20 @@ void TestApi::buildGraphInfo()
     QCOMPARE(bgInfo.requestedProperties.value("qbs.targetOS").toStringList(), QStringList("xenix"));
 }
 
+void TestApi::buildErrorCodeLocation()
+{
+    const qbs::ErrorInfo errorInfo
+            = doBuildProject("build-error-code-location/build-error-code-location.qbs");
+    QVERIFY(errorInfo.hasError());
+    const qbs::ErrorItem errorItem = errorInfo.items().first();
+    QCOMPARE(errorItem.description(),
+             QString("Rule.outputArtifacts must return an array of objects."));
+    const qbs::CodeLocation errorLoc = errorItem.codeLocation();
+    QCOMPARE(QFileInfo(errorLoc.filePath()).fileName(), QString("build-error-code-location.qbs"));
+    QCOMPARE(errorLoc.line(), 9);
+    QCOMPARE(errorLoc.column(), 26);
+}
+
 void TestApi::buildGraphLocking()
 {
     qbs::SetupProjectParameters setupParams
