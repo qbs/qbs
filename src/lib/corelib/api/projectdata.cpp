@@ -537,6 +537,16 @@ QList<ArtifactData> ProductData::installableArtifacts() const
 QString ProductData::targetExecutable() const
 {
     QBS_ASSERT(isValid(), return QString());
+    if (d->moduleProperties.getModuleProperty(QLatin1String("bundle"),
+                                              QLatin1String("isBundle")).toBool()) {
+        for (const ArtifactData &ta : targetArtifacts()) {
+            if (ta.fileTags().contains(QLatin1String("bundle.application-executable"))) {
+                if (ta.installData().isInstallable())
+                    return ta.installData().localInstallFilePath();
+                return ta.filePath();
+            }
+        }
+    }
     for (const ArtifactData &ta : targetArtifacts()) {
         if (ta.isExecutable()) {
             if (ta.installData().isInstallable())

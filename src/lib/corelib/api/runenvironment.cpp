@@ -219,23 +219,8 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
     QStringList targetArguments = arguments;
     const QString completeSuffix = QFileInfo(targetBin).completeSuffix();
 
-    if (targetOS.contains(QLatin1String("ios"))) {
-        QString bundlePath = d->resolvedProduct->buildDirectory();
-        const bool install = d->resolvedProduct->moduleProperties->qbsPropertyValue(
-                    QLatin1String("install")).toBool();
-        if (install) {
-            bundlePath = d->installOptions.installRoot();
-            const QString installDir = d->resolvedProduct->moduleProperties->qbsPropertyValue(
-                        QLatin1String("installDir")).toString();
-            bundlePath += QLatin1Char('/') + installDir;
-        }
-
-        const QString bundleName = d->resolvedProduct->moduleProperties->moduleProperty(
-                    QLatin1String("bundle"),
-                    QLatin1String("bundleName")).toString();
-        bundlePath += QLatin1Char('/') + bundleName;
-
-        QBS_CHECK(targetExecutable.startsWith(bundlePath));
+    if (targetOS.contains(QLatin1String("ios")) || targetOS.contains(QLatin1String("tvos"))) {
+        const QString bundlePath = targetBin + QLatin1String("/..");
 
         if (QFileInfo(targetExecutable = findExecutable(QStringList()
                     << QStringLiteral("iostool"))).isExecutable()) {
@@ -256,7 +241,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
                 targetArguments << QStringLiteral("--args") << arguments;
         } else {
             d->logger.qbsLog(LoggerError)
-                    << Tr::tr("No suitable iOS deployment tools were found in the environment. "
+                    << Tr::tr("No suitable deployment tools were found in the environment. "
                               "Consider installing ios-deploy.");
             return EXIT_FAILURE;
         }
