@@ -46,6 +46,7 @@
 namespace qbs {
 
 QString canonicalTargetArchitecture(const QString &architecture,
+                                    const QString &endianness,
                                     const QString &vendor,
                                     const QString &system,
                                     const QString &abi)
@@ -76,6 +77,19 @@ QString canonicalTargetArchitecture(const QString &architecture,
             return QStringLiteral("i586");
         return QStringLiteral("i386");
     }
+
+    if (arch == QStringLiteral("mips") || arch == QStringLiteral("mips64")) {
+        if (endianness == QStringLiteral("big"))
+            return arch + QStringLiteral("eb");
+        if (endianness == QStringLiteral("little"))
+            return arch + QStringLiteral("el");
+    }
+
+    if (arch == QStringLiteral("ppc"))
+        return QStringLiteral("powerpc");
+
+    if (arch == QStringLiteral("ppc64") && endianness == QStringLiteral("little"))
+        return arch + QStringLiteral("le");
 
     return arch;
 }
@@ -115,10 +129,17 @@ QString canonicalArchitecture(const QString &architecture)
         << QLatin1String("powerpc"));
 
     archMap.insert(QLatin1String("ppc64"), QStringList()
-        << QLatin1String("powerpc64"));
-
-    archMap.insert(QLatin1String("ppc64le"), QStringList()
+        << QLatin1String("ppc64le")
+        << QLatin1String("powerpc64")
         << QLatin1String("powerpc64le"));
+
+    archMap.insert(QLatin1String("mips"), QStringList()
+        << QLatin1String("mipseb")
+        << QLatin1String("mipsel"));
+
+    archMap.insert(QLatin1String("mips64"), QStringList()
+        << QLatin1String("mips64eb")
+        << QLatin1String("mips64el"));
 
     QMapIterator<QString, QStringList> i(archMap);
     while (i.hasNext()) {

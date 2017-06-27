@@ -96,6 +96,7 @@ CppModule {
     }
 
     qbs.architecture: gccProbe.found ? gccProbe.architecture : original
+    endianness: gccProbe.endianness
 
     compilerVersionMajor: gccVersionProbe.versionMajor
     compilerVersionMinor: gccVersionProbe.versionMinor
@@ -113,7 +114,8 @@ CppModule {
                             ? [targetArch, targetVendor, targetSystem, targetAbi].join("-")
                             : undefined
     property string targetArch: Utilities.canonicalTargetArchitecture(
-                                    qbs.architecture, targetVendor, targetSystem, targetAbi)
+                                    qbs.architecture, endianness,
+                                    targetVendor, targetSystem, targetAbi)
     property string targetVendor: "unknown"
     property string targetSystem: "unknown"
     property string targetAbi: "unknown"
@@ -282,6 +284,15 @@ CppModule {
             if (architecture)
                 console.warn("Unknown architecture '" + architecture + "' " +
                              "may not be supported by this compiler.");
+        }
+
+        if (gccProbe.endianness) {
+            validator.addCustomValidator("endianness", endianness, function (value) {
+                return endianness === gccProbe.endianness;
+            }, "'" + endianness + "' differs from the endianness produced by this compiler (" +
+            gccProbe.endianness + ")");
+        } else if (endianness) {
+            console.warn("Could not detect endianness ('" + endianness + "' given)");
         }
 
         var validateFlagsFunction = function (value) {

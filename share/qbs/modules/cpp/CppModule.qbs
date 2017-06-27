@@ -45,6 +45,7 @@ Module {
     property bool treatWarningsAsErrors : false
     property bool enableSuspiciousLinkerFlagWarnings: true
     property string architecture: qbs.architecture
+    property string endianness
     property string machineType // undocumented
     property string imageFormat // undocumented
     property string optimization: qbs.optimization
@@ -429,6 +430,7 @@ Module {
             return !architecture || architecture === Utilities.canonicalArchitecture(architecture);
         }, "'" + architecture + "' is invalid. You must use the canonical name '" +
         Utilities.canonicalArchitecture(architecture) + "'");
+        validator.setRequiredProperty("endianness", endianness);
         validator.setRequiredProperty("compilerVersion", compilerVersion);
         validator.setRequiredProperty("compilerVersionMajor", compilerVersionMajor);
         validator.setRequiredProperty("compilerVersionMinor", compilerVersionMinor);

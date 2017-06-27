@@ -140,15 +140,20 @@ QScriptValue UtilitiesExtension::js_canonicalTargetArchitecture(QScriptContext *
     if (arch.isUndefined() || arch.isNull())
         return arch;
 
-    const QScriptValue vendor = context->argument(1);
-    const QScriptValue system = context->argument(2);
-    const QScriptValue abi = context->argument(3);
+    QScriptValue endianness = context->argument(1);
+    if (endianness.isUndefined() || endianness.isNull())
+        endianness = QString();
+    const QScriptValue vendor = context->argument(2);
+    const QScriptValue system = context->argument(3);
+    const QScriptValue abi = context->argument(4);
 
-    if (!arch.isString() || !vendor.isString() || !system.isString() || !abi.isString())
+    if (!arch.isString() || !endianness.isString()
+            || !vendor.isString() || !system.isString() || !abi.isString())
         return context->throwError(QScriptContext::SyntaxError,
-            QStringLiteral("canonicalTargetArchitecture expects 1 to 4 arguments of type string"));
+            QStringLiteral("canonicalTargetArchitecture expects 1 to 5 arguments of type string"));
 
-    return engine->toScriptValue(canonicalTargetArchitecture(arch.toString(), vendor.toString(),
+    return engine->toScriptValue(canonicalTargetArchitecture(arch.toString(), endianness.toString(),
+                                                             vendor.toString(),
                                                              system.toString(), abi.toString()));
 }
 

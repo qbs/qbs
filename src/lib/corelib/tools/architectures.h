@@ -44,6 +44,7 @@
 namespace qbs {
 
 QBS_EXPORT QString canonicalTargetArchitecture(const QString &architecture,
+                                               const QString &endianness,
                                                const QString &vendor,
                                                const QString &system,
                                                const QString &abi);

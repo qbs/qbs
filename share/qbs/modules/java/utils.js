@@ -103,7 +103,8 @@ function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
             if (arch) {
                 // Hardcoding apple/macosx/macho here is fine because we know we're on macOS
                 args.push("--arch",
-                          Utilities.canonicalTargetArchitecture(arch, "apple", "macosx", "macho"));
+                          Utilities.canonicalTargetArchitecture(arch, undefined,
+                                                                "apple", "macosx", "macho"));
             }
 
             // --failfast doesn't print the default JVM if nothing matches the filter(s).

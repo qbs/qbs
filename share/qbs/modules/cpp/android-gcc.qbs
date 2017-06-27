@@ -200,6 +200,8 @@ LinuxGCC {
     targetSystem: "linux"
     targetAbi: "android" + (["armeabi", "armeabi-v7a"].contains(Android.ndk.abi) ? "eabi" : "")
 
+    endianness: "little"
+
     Rule {
         inputs: ["dynamiclibrary"]
         outputFileTags: ["android.nativelibrary", "android.gdbserver-info", "android.stl-info"]

@@ -45,6 +45,7 @@ PathProbe {
 
     // Outputs
     property string architecture
+    property string endianness
     property stringList includePaths
     property stringList libraryPaths
     property stringList frameworkPaths
@@ -67,5 +68,14 @@ PathProbe {
         // We have to dump the compiler's macros; -dumpmachine is not suitable because it is not
         // always complete (for example, the subarch is not included for arm architectures).
         architecture = ModUtils.guessArchitecture(macros);
+
+        switch (macros["__BYTE_ORDER__"]) {
+            case "__ORDER_BIG_ENDIAN__":
+                endianness = "big";
+                break;
+            case "__ORDER_LITTLE_ENDIAN__":
+                endianness = "little";
+                break;
+        }
     }
 }

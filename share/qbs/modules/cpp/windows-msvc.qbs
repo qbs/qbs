@@ -100,6 +100,7 @@ CppModule {
     property string toolchainInstallPath: compilerPathProbe.found ? compilerPathProbe.path
                                                                   : undefined
     architecture: qbs.architecture
+    endianness: "little"
     staticLibraryPrefix: ""
     dynamicLibraryPrefix: ""
     executablePrefix: ""
