@@ -6,6 +6,7 @@ Project {
         "lib/libs.qbs",
         "libexec/libexec.qbs",
         "packages/packages.qbs",
-        "plugins/plugins.qbs"
+        "plugins/plugins.qbs",
+        "shared/json/json.qbs"
     ]
 }
