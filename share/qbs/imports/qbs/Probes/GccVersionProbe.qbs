@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of the Qt Build Suite.
@@ -30,24 +30,20 @@
 
 import qbs
 import qbs.File
-import qbs.ModUtils
 import "../../../modules/cpp/gcc.js" as Gcc
 
 PathProbe {
     // Inputs
     property string compilerFilePath
-    property stringList flags: []
     property var environment
 
     property string _nullDevice: qbs.nullDevice
-    property string _pathListSeparator: qbs.pathListSeparator
-    property string _sysroot: qbs.sysroot
+    property stringList _toolchain: qbs.toolchain
 
     // Outputs
-    property string architecture
-    property stringList includePaths
-    property stringList libraryPaths
-    property stringList frameworkPaths
+    property int versionMajor
+    property int versionMinor
+    property int versionPatch
 
     configure: {
         if (!File.exists(compilerFilePath)) {
@@ -55,17 +51,18 @@ PathProbe {
             return;
         }
 
-        var macros = Gcc.dumpMacros(environment, compilerFilePath, flags, _nullDevice);
-        var defaultPaths = Gcc.dumpDefaultPaths(environment, compilerFilePath, flags, _nullDevice,
-                                                _pathListSeparator, _sysroot);
-        found = !!macros && !!defaultPaths;
+        var macros = Gcc.dumpMacros(environment, compilerFilePath, undefined, _nullDevice);
 
-        includePaths = defaultPaths.includePaths;
-        libraryPaths = defaultPaths.libraryPaths;
-        frameworkPaths = defaultPaths.frameworkPaths;
-
-        // We have to dump the compiler's macros; -dumpmachine is not suitable because it is not
-        // always complete (for example, the subarch is not included for arm architectures).
-        architecture = ModUtils.guessArchitecture(macros);
+        if (_toolchain.contains("clang")) {
+            versionMajor = parseInt(macros["__clang_major__"], 10);
+            versionMinor = parseInt(macros["__clang_minor__"], 10);
+            versionPatch = parseInt(macros["__clang_patchlevel__"], 10);
+            found = true;
+        } else {
+            versionMajor = parseInt(macros["__GNUC__"], 10);
+            versionMinor = parseInt(macros["__GNUC_MINOR__"], 10);
+            versionPatch = parseInt(macros["__GNUC_PATCHLEVEL__"], 10);
+            found = true;
+        }
     }
 }

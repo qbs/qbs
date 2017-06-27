@@ -49,6 +49,15 @@ CppModule {
         names: [compilerName]
     }
 
+    // Find the version as early as possible in case other things depend on it,
+    // for example the question of whether certain flags are supported and which need to be used
+    // in the GccProbe itself.
+    Probes.GccVersionProbe {
+        id: gccVersionProbe
+        compilerFilePath: compilerPath
+        environment: buildEnv
+    }
+
     Probes.GccProbe {
         id: gccProbe
         compilerFilePath: compilerPath
@@ -88,9 +97,9 @@ CppModule {
 
     qbs.architecture: gccProbe.found ? gccProbe.architecture : original
 
-    compilerVersionMajor: gccProbe.versionMajor
-    compilerVersionMinor: gccProbe.versionMinor
-    compilerVersionPatch: gccProbe.versionPatch
+    compilerVersionMajor: gccVersionProbe.versionMajor
+    compilerVersionMinor: gccVersionProbe.versionMinor
+    compilerVersionPatch: gccVersionProbe.versionPatch
 
     compilerIncludePaths: gccProbe.includePaths
     compilerFrameworkPaths: gccProbe.frameworkPaths
@@ -100,7 +109,9 @@ CppModule {
                                            && Utilities.versionCompare(compilerVersion, "3.1") >= 0
     property bool assemblerHasTargetOption: qbs.toolchain.contains("xcode")
                                             && Utilities.versionCompare(compilerVersion, "7") >= 0
-    property string target: [targetArch, targetVendor, targetSystem, targetAbi].join("-")
+    property string target: targetArch
+                            ? [targetArch, targetVendor, targetSystem, targetAbi].join("-")
+                            : undefined
     property string targetArch: Utilities.canonicalTargetArchitecture(
                                     qbs.architecture, targetVendor, targetSystem, targetAbi)
     property string targetVendor: "unknown"
