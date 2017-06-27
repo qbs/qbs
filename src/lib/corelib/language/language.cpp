@@ -346,6 +346,7 @@ void ResolvedModule::load(PersistentPool &pool)
     pool.load(moduleDependencies);
     pool.load(setupBuildEnvironmentScript);
     pool.load(setupRunEnvironmentScript);
+    pool.load(isProduct);
 }
 
 void ResolvedModule::store(PersistentPool &pool) const
@@ -354,11 +355,13 @@ void ResolvedModule::store(PersistentPool &pool) const
     pool.store(moduleDependencies);
     pool.store(setupBuildEnvironmentScript);
     pool.store(setupRunEnvironmentScript);
+    pool.store(isProduct);
 }
 
 bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
 {
     return m1.name == m2.name
+            && m1.isProduct == m2.isProduct
             && m1.moduleDependencies.toSet() == m2.moduleDependencies.toSet()
             && equals(m1.setupBuildEnvironmentScript.get(), m2.setupBuildEnvironmentScript.get())
             && equals(m1.setupRunEnvironmentScript.get(), m2.setupRunEnvironmentScript.get());

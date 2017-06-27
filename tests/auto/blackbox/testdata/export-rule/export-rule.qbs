@@ -6,14 +6,17 @@ Project {
         name: "MyApp"
         files: ["myapp.blubb"]
         Depends { name: "blubber" }
-        Depends { name: "cpp" }
     }
     StaticLibrary {
         name: "blubber"
         files: ["blubber.cpp"]
         Depends { name: "cpp" }
         Export {
+            Depends { name: "cpp" }
+            property bool enableTagger
+            property string description: "Creating C++ source file.";
             FileTagger {
+                condition: enableTagger
                 patterns: ["*.blubb"]
                 fileTags: ["blubb"]
             }
@@ -25,7 +28,7 @@ Project {
                 }
                 prepare: {
                     var cmd = new JavaScriptCommand();
-                    cmd.description = "Creating C++ source file.";
+                    cmd.description = product.blubber.description;
                     cmd.sourceCode = function() {
                         File.copy(input.filePath, output.filePath);
                     }

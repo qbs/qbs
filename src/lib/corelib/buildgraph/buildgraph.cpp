@@ -128,6 +128,8 @@ private:
             result.setProperty(idx++, obj);
         }
         for (const ResolvedModuleConstPtr &dependency : qAsConst(product->modules)) {
+            if (dependency->isProduct)
+                continue;
             QScriptValue obj = engine->newObject();
             setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj,
                                    product->moduleProperties->value(), dependency->name);

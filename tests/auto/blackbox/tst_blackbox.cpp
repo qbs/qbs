@@ -2534,8 +2534,16 @@ void TestBlackbox::systemRunPaths_data()
 void TestBlackbox::exportRule()
 {
     QDir::setCurrent(testDataDir + "/export-rule");
-    QbsRunParameters params;
+    QbsRunParameters params(QStringList{"modules.blubber.enableTagger:false"});
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    params.command = "resolve";
+    params.arguments = QStringList{"modules.blubber.enableTagger:true"};
+    params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Creating C++ source file"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling myapp.cpp"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::exportToOutsideSearchPath()

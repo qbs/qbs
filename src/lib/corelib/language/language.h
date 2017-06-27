@@ -313,6 +313,7 @@ public:
     QStringList moduleDependencies;
     ScriptFunctionPtr setupBuildEnvironmentScript;
     ScriptFunctionPtr setupRunEnvironmentScript;
+    bool isProduct;
 
 private:
     ResolvedModule() {}

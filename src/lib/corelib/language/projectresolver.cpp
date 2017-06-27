@@ -491,6 +491,7 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
 
     const ResolvedModulePtr &module = moduleContext.module;
     module->name = moduleName.toString();
+    module->isProduct = isProduct;
     module->setupBuildEnvironmentScript = scriptFunctionValue(item,
                                                             QLatin1String("setupBuildEnvironment"));
     module->setupRunEnvironmentScript = scriptFunctionValue(item,
@@ -504,11 +505,9 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
             module->moduleDependencies += m.name.toString();
     }
 
-    if (!isProduct) {
-        m_productContext->product->modules += module;
-        if (!parameters.isEmpty())
-            m_productContext->product->moduleParameters[module] = parameters;
-    }
+    m_productContext->product->modules += module;
+    if (!parameters.isEmpty())
+        m_productContext->product->moduleParameters[module] = parameters;
 
     static const ItemFuncMap mapping {
         { ItemType::Group, &ProjectResolver::ignoreItem },
