@@ -1,0 +1,23 @@
+Features:
+    * Added a generator for Visual Studio projects.
+    * The Group item is now nestable.
+    * Stricter type checking for properties.
+    * Added support for generating qrc files.
+    * Added full support for the QtScxml module.
+    * Introduced cpp.soVersion.
+    * Added support for building Inno Setup packages.
+    * Tentative support for Visual Studio 2017.
+    * We now assume UTF-8 encoding for project files.
+    * In Scanner items, input.fileName now contains
+      a filename rather than the full path.
+    * Warnings encountered during project resolving are now stored
+      and re-displayed when the project is loaded.
+    * Documentation was improved in several places, most
+      notably for the Rule item.
+    * Support for the deprecated Transformer item was removed.
+Important bug fixes:
+    * Long paths on Windows are handled (QBS-1068).
+    * Cyclic module dependencies are detected (QBS-1044).
+    * The libqbscore soname now includes the minor version,
+      so that it will not stay the same across ABI changes
+      (QBS-1002).

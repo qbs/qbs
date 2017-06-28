@@ -1,0 +1,33 @@
+Features:
+    * General:
+        * It is no longer strictly required to provide a profile.
+        * Sub-second timestamp resolutions are now supported on Unix
+          systems.
+        * Added a convenient replacement for
+          product.moduleProperty("module", "property"), namely
+          product.module.property.
+        * The loadFile and loadExtension functions are deprecated in
+          favor of the new require function, which accepts arguments of either
+          form accepted by the deprecated functions.
+        * Added new tool qbs-create-project to set up a new qbs
+          project from an existing source tree.
+        * FileTagger items can now have conditions.
+        * Probe items can now appear directly under a Project item.
+    * Cpp module:
+        * Added support for QNX and the QCC toolchain
+        * Added the cpp.useRPathLink property to control whether
+          to use the -rpath-link linker option.
+        * Provided the means to easily combine source files for the C
+          language family in order to support "amalgamation builds".
+        * Introduced cpp.treatSystemHeadersAsDependencies.
+    * Qt modules:
+        * Introduced property Qt.core.combineMocOutput.
+        * Introduced Qt.core.enableKeywords for simple disabling of
+          the "signals", "slots" and "emit" symbols.
+Important bug fixes:
+    * Improved scalability of parallel builds on Linux by starting
+      Process commands via a dedicated launcher process.
+Behavior changes:
+    * The base directory for source files changed from the product
+      source directory to the parent directory of the file where the files are
+      listed.

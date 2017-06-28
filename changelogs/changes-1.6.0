@@ -1,0 +1,16 @@
+* Added lex_yacc module.
+* Introduced property cpp.systemRunPaths.
+* Introduced the ability to check a module's version in a Depends item.
+* Introduced cpp.driverFlags, which allows specifying flags to be
+  passed to the compiler driver (in any mode), but never the system linker.
+* Introduced cpp.linkerMode property to allow selection of the
+  correct linker (C driver, C++ driver, or system linker) based on the
+  objects being linked.
+* Added automatic escaping of arguments passed to the
+  cpp.linkerFlags and cpp.platformLinkerFlags properties using the -Wl
+  or -Xlinker syntaxes. To revert to the old behavior,
+  Project.minimumQbsVersion can be set to a version lower than 1.6.
+* Each build configuration now requires a unique name, which
+  is specified on the command line in the same place that qbs.buildVariant
+  used to be specified. This allows building for multiple configurations
+  with the same variant.
