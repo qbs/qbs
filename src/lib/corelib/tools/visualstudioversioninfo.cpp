@@ -131,12 +131,6 @@ int VisualStudioVersionInfo::marketingVersion() const
     }
 }
 
-Version VisualStudioVersionInfo::clCompilerVersion() const
-{
-    return Version(m_version.majorVersion() + (m_version.majorVersion() >= 14 ? 5 : 6),
-                   m_version.minorVersion() * 10);
-}
-
 QString VisualStudioVersionInfo::solutionVersion() const
 {
     // Visual Studio 2012 finally stabilized the solution version
