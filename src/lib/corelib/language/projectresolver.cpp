@@ -836,6 +836,11 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     rule->inputs = m_evaluator->fileTagsValue(item, QLatin1String("inputs"));
     rule->inputsFromDependencies
             = m_evaluator->fileTagsValue(item, QLatin1String("inputsFromDependencies"));
+    bool requiresInputsSet = false;
+    rule->requiresInputs = m_evaluator->boolValue(item, QLatin1String("requiresInputs"), true,
+                                                  &requiresInputsSet);
+    if (!requiresInputsSet)
+        rule->requiresInputs = rule->declaresInputs();
     rule->auxiliaryInputs
             = m_evaluator->fileTagsValue(item, QLatin1String("auxiliaryInputs"));
     rule->excludedAuxiliaryInputs
@@ -843,12 +848,19 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     rule->explicitlyDependsOn
             = m_evaluator->fileTagsValue(item, QLatin1String("explicitlyDependsOn"));
     rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
-    if (!rule->multiplex && !rule->requiresInputs()) {
-        const QString message = Tr::tr("Rule has no inputs, but is not a multiplex rule.");
-        ErrorInfo error(message, item->location());
-        if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
-            throw error;
-        m_logger.printWarning(error);
+    if (!rule->multiplex && !rule->declaresInputs()) {
+        handleError(ErrorInfo(Tr::tr("Rule has no inputs, but is not a multiplex rule."),
+                              item->location()));
+        return;
+    }
+    if (!rule->multiplex && !rule->requiresInputs) {
+        handleError(ErrorInfo(Tr::tr("Rule.requiresInputs is false for non-multiplex rule.")
+                              , item->location()));
+        return;
+    }
+    if (!rule->declaresInputs() && rule->requiresInputs) {
+        handleError(ErrorInfo(Tr::tr("Rule.requiresInputs is true, but the rule "
+                                     "does not declare any input tags."), item->location()));
         return;
     }
     if (m_productContext)
@@ -1057,6 +1069,13 @@ void ProjectResolver::printProfilingInfo()
                                       << Tr::tr("Resolving groups (without module property "
                                                 "evaluation) took %1.")
                                          .arg(elapsedTimeString(m_elapsedTimeGroups));
+}
+
+void ProjectResolver::handleError(const ErrorInfo &error)
+{
+    if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
+        throw error;
+    m_logger.printWarning(error);
 }
 
 static bool hasDependencyCycle(Set<ResolvedProduct *> *checked,

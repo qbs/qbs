@@ -156,6 +156,7 @@ private slots:
     void ruleConditions();
     void ruleCycle();
     void ruleWithNoInputs();
+    void ruleWithNonRequiredInputs();
     void smartRelinking();
     void smartRelinking_data();
     void soVersion();

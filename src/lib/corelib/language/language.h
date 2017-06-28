@@ -349,6 +349,7 @@ public:
     FileTags inputsFromDependencies;
     FileTags explicitlyDependsOn;
     bool multiplex;
+    bool requiresInputs;
     QList<RuleArtifactPtr> artifacts;           // unused, if outputFileTags/outputArtifactsScript is non-empty
     bool alwaysRun;
 
@@ -360,7 +361,7 @@ public:
     FileTags staticOutputFileTags() const;
     FileTags collectedOutputFileTags() const;
     bool isDynamic() const;
-    bool requiresInputs() const;
+    bool declaresInputs() const;
 private:
     Rule() : multiplex(false), alwaysRun(false), ruleGraphId(-1) {}
 

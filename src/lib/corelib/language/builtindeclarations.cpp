@@ -421,6 +421,9 @@ void BuiltinDeclarations::addRuleItem()
     PropertyDeclaration decl(QLatin1String("multiplex"), PropertyDeclaration::Boolean);
     decl.setInitialValueSource(QLatin1String("false"));
     item << decl;
+    PropertyDeclaration requiresInputsDecl(QLatin1String("requiresInputs"),
+                                           PropertyDeclaration::Boolean);
+    item << requiresInputsDecl;
     item << PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String);
     item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("outputFileTags"), PropertyDeclaration::StringList);

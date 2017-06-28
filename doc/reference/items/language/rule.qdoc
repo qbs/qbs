@@ -282,6 +282,14 @@
             The argument \c{input} is \c{undefined} if there's more than one input artifact for this
             rule. Similarly, \c{output} is only defined if there's exactly one output artifact.
     \row
+        \li requiresInputs
+        \li bool
+        \li \c true if the rule declares any inputs, \c false otherwise
+        \li Specifies whether a rule's commands should be created even if no inputs are available.
+            Enabling this property can be useful in cases where you potentially have input files,
+            but it is possible that there are none and you want to create the output file in
+            any case.
+    \row
         \li alwaysRun
         \li bool
         \li false

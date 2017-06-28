@@ -40,29 +40,11 @@ QtModule {
         fileTags: ["qt.qml.qml"]
     }
 
-    // This is needed for the case that there are no QML files in the project.
     Rule {
         condition: isStaticLibrary
         multiplex: true
-        Artifact {
-            filePath: "qml_plugin_import.dummy"
-            fileTags: ["qt.qml.import_dummy"]
-        }
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.silent = true;
-            cmd.sourceCode = function() {
-                var f = new TextFile(output.filePath, TextFile.WriteOnly);
-                f.close();
-            }
-            return [cmd];
-        }
-    }
-
-    Rule {
-        condition: isStaticLibrary
-        multiplex: true
-        inputs: ["qt.qml.qml", "qt.qml.import_dummy"]
+        requiresInputs: false
+        inputs: ["qt.qml.qml"]
         outputFileTags: ["cpp", "qt.qml.pluginlist"]
         outputArtifacts: {
             var list = [];

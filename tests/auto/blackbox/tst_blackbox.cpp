@@ -1598,6 +1598,25 @@ void TestBlackbox::ruleWithNoInputs()
     QVERIFY2(m_qbsStdout.contains("creating output"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::ruleWithNonRequiredInputs()
+{
+    QDir::setCurrent(testDataDir + "/rule-with-non-required-inputs");
+    QbsRunParameters params("build", {"products.p.enableTagger:false"});
+    QCOMPARE(runQbs(params), 0);
+    QFile outFile(relativeProductBuildDir("p") + "/output.txt");
+    QVERIFY2(outFile.open(QIODevice::ReadOnly), qPrintable(outFile.errorString()));
+    QByteArray output = outFile.readAll();
+    QCOMPARE(output, QByteArray("()"));
+    outFile.close();
+    params.command = "resolve";
+    params.arguments = QStringList({"products.p.enableTagger:true"});
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(outFile.open(QIODevice::ReadOnly), qPrintable(outFile.errorString()));
+    output = outFile.readAll();
+    QCOMPARE(output, QByteArray("(a.inp,b.inp,c.inp,)"));
+}
+
 void TestBlackbox::smartRelinking()
 {
     QDir::setCurrent(testDataDir + "/smart-relinking");

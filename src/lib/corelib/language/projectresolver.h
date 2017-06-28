@@ -146,6 +146,7 @@ private:
     static void matchArtifactProperties(const ResolvedProductPtr &product,
             const QList<SourceArtifactPtr> &artifacts);
     void printProfilingInfo();
+    void handleError(const ErrorInfo &error);
 
     Evaluator *m_evaluator;
     Logger &m_logger;

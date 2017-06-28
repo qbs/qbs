@@ -403,7 +403,7 @@ bool Rule::isDynamic() const
     return outputArtifactsScript->isValid();
 }
 
-bool Rule::requiresInputs() const
+bool Rule::declaresInputs() const
 {
     return !inputs.isEmpty() || !inputsFromDependencies.isEmpty();
 }
@@ -421,6 +421,7 @@ void Rule::load(PersistentPool &pool)
     pool.load(inputsFromDependencies);
     pool.load(explicitlyDependsOn);
     pool.load(multiplex);
+    pool.load(requiresInputs);
     pool.load(alwaysRun);
     pool.load(artifacts);
 }
@@ -438,6 +439,7 @@ void Rule::store(PersistentPool &pool) const
     pool.store(inputsFromDependencies);
     pool.store(explicitlyDependsOn);
     pool.store(multiplex);
+    pool.store(requiresInputs);
     pool.store(alwaysRun);
     pool.store(artifacts);
 }
@@ -1224,6 +1226,7 @@ bool operator==(const Rule &r1, const Rule &r2)
             && r1.inputsFromDependencies == r2.inputsFromDependencies
             && r1.explicitlyDependsOn == r2.explicitlyDependsOn
             && r1.multiplex == r2.multiplex
+            && r1.requiresInputs == r2.requiresInputs
             && r1.alwaysRun == r2.alwaysRun;
 }
 
