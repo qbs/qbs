@@ -68,6 +68,41 @@ template <typename U> struct IMultiplexableContainer {
         return value;
     }
 
+    void forEach(const std::function<void(const QString &configurationName,
+                                          const U &data)> &func) const
+    {
+        QMapIterator<QString, U> it(data);
+        while (it.hasNext()) {
+            it.next();
+            func(it.key(), it.value());
+        }
+    }
+
+    void forEach(const std::function<void(const std::string &configurationName,
+                                          const U &data)> &func) const
+    {
+        QMapIterator<QString, U> it(data);
+        while (it.hasNext()) {
+            it.next();
+            func(it.key().toStdString(), it.value());
+        }
+    }
+
+    const U operator[](const QString &configurationName)
+    {
+        return data[configurationName];
+    }
+
+    const U operator[](const std::string &configurationName)
+    {
+        return data[QString::fromStdString(configurationName)];
+    }
+
+    bool isValid() const
+    {
+        return !data.isEmpty();
+    }
+
 protected:
     IMultiplexableContainer() { }
 };
@@ -107,6 +142,51 @@ struct QBS_EXPORT GeneratableProject : public GeneratableProjectData {
     QFileInfo filePath() const;
     bool hasMultipleConfigurations() const;
     QStringList commandLine() const;
+
+    void forEach(const std::function<void(const QString &configurationName,
+                                          const Project &data)> &func) const
+    {
+        QMapIterator<QString, Project> it(projects);
+        while (it.hasNext()) {
+            it.next();
+            func(it.key(), it.value());
+        }
+    }
+
+    void forEach(const std::function<void(const std::string &configurationName,
+                                          const Project &data)> &func) const
+    {
+        QMapIterator<QString, Project> it(projects);
+        while (it.hasNext()) {
+            it.next();
+            func(it.key().toStdString(), it.value());
+        }
+    }
+
+    const Project operator[](const QString &configurationName) const
+    {
+        return projects[configurationName];
+    }
+
+    const Project operator[](const std::string &configurationName) const
+    {
+        return projects[QString::fromStdString(configurationName)];
+    }
+
+    bool isValid() const
+    {
+        return !data.isEmpty() && !projects.isEmpty();
+    }
+
+    const ProjectData projectData(const QString &configurationName) const
+    {
+        return data[configurationName];
+    }
+
+    const ProjectData projectData(const std::string &configurationName) const
+    {
+        return data[QString::fromStdString(configurationName)];
+    }
 };
 
 } // namespace qbs
