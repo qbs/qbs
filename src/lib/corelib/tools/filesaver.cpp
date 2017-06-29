@@ -38,36 +38,42 @@
 ****************************************************************************/
 
 #include "filesaver.h"
+#include "stlutils.h"
 
 #include <QtCore/qfile.h>
 #include <QtCore/qsavefile.h>
 
+#include <tools/iosutils.h>
+
+#include <fstream>
+
 namespace qbs {
 namespace Internal {
 
-FileSaver::FileSaver(const QString &filePath, bool overwriteIfUnchanged)
+FileSaver::FileSaver(const std::string &filePath, bool overwriteIfUnchanged)
     : m_filePath(filePath), m_overwriteIfUnchanged(overwriteIfUnchanged)
 {
 }
 
-QIODevice *FileSaver::device()
+std::ostream *FileSaver::device()
 {
-    return m_memoryDevice.data();
+    return m_memoryDevice.get();
 }
 
 bool FileSaver::open()
 {
     if (!m_overwriteIfUnchanged) {
-        QFile file(m_filePath);
-        if (file.open(QIODevice::ReadOnly))
-            m_oldFileContents = file.readAll();
+        std::ifstream file(utf8_to_native_path(m_filePath));
+        if (file.is_open())
+            m_oldFileContents.assign(std::istreambuf_iterator<std::ifstream::char_type>(file),
+                                     std::istreambuf_iterator<std::ifstream::char_type>());
         else
             m_oldFileContents.clear();
     }
 
     m_newFileContents.clear();
-    m_memoryDevice.reset(new QBuffer(&m_newFileContents));
-    return m_memoryDevice->open(QIODevice::WriteOnly);
+    m_memoryDevice = std::make_shared<std::ostringstream>(m_newFileContents);
+    return true;
 }
 
 bool FileSaver::commit()
@@ -75,17 +81,26 @@ bool FileSaver::commit()
     if (!m_overwriteIfUnchanged && m_oldFileContents == m_newFileContents)
         return true; // no need to write unchanged data
 
-    QSaveFile saveFile(m_filePath);
-    if (!saveFile.open(QIODevice::WriteOnly))
+    const std::string tempFilePath = std::tmpnam(nullptr);
+    std::ofstream tempFile(utf8_to_native_path(tempFilePath));
+    if (!tempFile.is_open())
         return false;
 
-    saveFile.write(m_newFileContents);
-    return saveFile.commit();
+    tempFile.write(m_newFileContents.data(), m_newFileContents.size());
+    if (!tempFile.good())
+        return false;
+
+    return Internal::rename(tempFilePath, m_filePath) == 0;
 }
 
-qint64 FileSaver::write(const QByteArray &data)
+size_t FileSaver::write(const std::vector<char> &data)
 {
-    return device()->write(data);
+    return fwrite(data, device());
+}
+
+size_t FileSaver::write(const std::string &data)
+{
+    return fwrite(data, device());
 }
 
 } // namespace Internal

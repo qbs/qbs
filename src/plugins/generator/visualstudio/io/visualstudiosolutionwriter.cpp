@@ -37,26 +37,28 @@
 
 #include <tools/hostosinfo.h>
 #include <tools/pathutils.h>
+#include <tools/stlutils.h>
 #include <tools/visualstudioversioninfo.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qtextstream.h>
 #include <QtCore/quuid.h>
 
 #include <vector>
 
 namespace qbs {
 
+using namespace Internal;
+
 class VisualStudioSolutionWriterPrivate
 {
 public:
-    QIODevice *device;
-    QString baseDir;
+    std::ostream *device;
+    std::string baseDir;
 };
 
-VisualStudioSolutionWriter::VisualStudioSolutionWriter(QIODevice *device)
+VisualStudioSolutionWriter::VisualStudioSolutionWriter(std::ostream *device)
     : d(new VisualStudioSolutionWriterPrivate)
 {
     d->device = device;
@@ -66,81 +68,99 @@ VisualStudioSolutionWriter::~VisualStudioSolutionWriter()
 {
 }
 
-QString VisualStudioSolutionWriter::projectBaseDirectory() const
+std::string VisualStudioSolutionWriter::projectBaseDirectory() const
 {
     return d->baseDir;
 }
 
-void VisualStudioSolutionWriter::setProjectBaseDirectory(const QString &dir)
+void VisualStudioSolutionWriter::setProjectBaseDirectory(const std::string &dir)
 {
     d->baseDir = dir;
 }
 
 bool VisualStudioSolutionWriter::write(const VisualStudioSolution *solution)
 {
-    QTextStream out(d->device);
-    out << QString(QLatin1String("Microsoft Visual Studio Solution File, "
-                                 "Format Version %1\n"
-                                 "# Visual Studio %2\n"))
-           .arg(solution->versionInfo().solutionVersion())
-           .arg(solution->versionInfo().version().majorVersion());
+    auto &out = *d->device;
+    out << u8"Microsoft Visual Studio Solution File, Format Version "
+        << solution->versionInfo().solutionVersion().toStdString()
+        << u8"\n# Visual Studio "
+        << solution->versionInfo().version().majorVersion()
+        << u8"\n";
 
     for (const auto &project : solution->fileProjects()) {
-        auto projectFilePath = project->filePath();
+        auto projectFilePath = project->filePath().toStdString();
 
         // Try to make the project file path relative to the
         // solution file path if we're writing to a file device
-        if (!d->baseDir.isEmpty()) {
-            const QDir solutionDir(d->baseDir);
+        if (!d->baseDir.empty()) {
+            const QDir solutionDir(QString::fromStdString(d->baseDir));
             projectFilePath = Internal::PathUtils::toNativeSeparators(
-                        solutionDir.relativeFilePath(projectFilePath),
-                        Internal::HostOsInfo::HostOsWindows);
+                        solutionDir.relativeFilePath(QString::fromStdString(projectFilePath)),
+                        Internal::HostOsInfo::HostOsWindows).toStdString();
         }
 
-        out << QStringLiteral("Project(\"%1\") = \"%2\", \"%3\", \"%4\"\n")
-               .arg(project->projectTypeGuid().toString())
-               .arg(QFileInfo(projectFilePath).baseName())
-               .arg(projectFilePath)
-               .arg(project->guid().toString());
+        out << u8"Project(\""
+            << project->projectTypeGuid().toString().toStdString()
+            << u8"\") = \""
+            << QFileInfo(QString::fromStdString(projectFilePath)).baseName().toStdString()
+            << u8"\", \""
+            << projectFilePath
+            << u8"\", \""
+            << project->guid().toString().toStdString()
+            << u8"\"\n";
 
         const auto dependencies = solution->dependencies(project);
         if (!dependencies.isEmpty()) {
-            out << "\tProjectSection(ProjectDependencies) = postProject\n";
+            out << u8"\tProjectSection(ProjectDependencies) = postProject\n";
 
             for (const auto &dependency : dependencies)
-                out << QStringLiteral("\t\t%1 = %1\n").arg(dependency->guid().toString());
+                out << u8"\t\t"
+                    << dependency->guid().toString().toStdString()
+                    << u8" = "
+                    << dependency->guid().toString().toStdString()
+                    << u8"\n";
 
-            out << "\tEndProjectSection\n";
+            out << u8"\tEndProjectSection\n";
         }
 
-        out << "EndProject\n";
+        out << u8"EndProject\n";
     }
 
     for (const auto &project : solution->folderProjects()) {
-        out << QStringLiteral("Project(\"%1\") = \"%2\", \"%3\", \"%4\"\n")
-               .arg(project->projectTypeGuid().toString())
-               .arg(project->name())
-               .arg(project->name())
-               .arg(project->guid().toString());
-        out << QStringLiteral("EndProject\n");
+        out << u8"Project(\""
+            << project->projectTypeGuid().toString().toStdString()
+            << u8"\") = \""
+            << project->name().toStdString()
+            << u8"\", \""
+            << project->name().toStdString()
+            << u8"\", \""
+            << project->guid().toString().toStdString()
+            << u8"\"\n";
+
+        out << u8"EndProject\n";
     }
 
-    out << "Global\n";
+    out << u8"Global\n";
 
     for (const auto &globalSection : solution->globalSections()) {
-        out << QStringLiteral("\tGlobalSection(%1) = %2\n")
-               .arg(globalSection->name())
-               .arg(globalSection->isPost()
-                    ? QStringLiteral("postSolution")
-                    : QStringLiteral("preSolution"));
+        out << u8"\tGlobalSection("
+            << globalSection->name().toStdString()
+            << u8") = "
+            << (globalSection->isPost() ? u8"postSolution" : u8"preSolution")
+            << u8"\n";
         for (const auto &property : globalSection->properties())
-            out << QStringLiteral("\t\t%1 = %2\n").arg(property.first).arg(property.second);
-        out << "\tEndGlobalSection\n";
+            out << u8"\t\t"
+                << property.first.toStdString()
+                << u8" = "
+                << property.second.toStdString()
+                << u8"\n";
+
+        out << u8"\tEndGlobalSection\n";
     }
 
-    out << "EndGlobal\n";
+    out << u8"EndGlobal\n";
 
-    return out.status() == QTextStream::Ok;
+    return out.good();
 }
 
 } // namespace qbs

@@ -31,7 +31,9 @@
 #ifndef MSBUILDPROJECTWRITER_H
 #define MSBUILDPROJECTWRITER_H
 
-#include <QtCore/qiodevice.h>
+#include <ostream>
+
+#include <QtCore/qglobal.h>
 
 namespace qbs {
 
@@ -42,7 +44,7 @@ class MSBuildProjectWriter
 {
     Q_DISABLE_COPY(MSBuildProjectWriter)
 public:
-    explicit MSBuildProjectWriter(QIODevice *device);
+    explicit MSBuildProjectWriter(std::ostream *device);
     ~MSBuildProjectWriter();
 
     bool write(const MSBuildProject *project);

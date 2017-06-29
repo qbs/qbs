@@ -30,9 +30,11 @@
 
 #include "visualstudioguidpool.h"
 #include <tools/filesaver.h>
-#include <QtCore/qfile.h>
+#include <QtCore/quuid.h>
 
+#include <fstream>
 #include <map>
+#include <memory>
 
 #include <json.h>
 
@@ -43,17 +45,20 @@ namespace qbs {
 class VisualStudioGuidPoolPrivate
 {
 public:
-    QString storeFilePath;
+    std::string storeFilePath;
     std::map<std::string, QUuid> productGuids;
 };
 
-VisualStudioGuidPool::VisualStudioGuidPool(const QString &storeFilePath)
-    : d(new VisualStudioGuidPoolPrivate)
+VisualStudioGuidPool::VisualStudioGuidPool(const std::string &storeFilePath)
+    : d(std::make_shared<VisualStudioGuidPoolPrivate>())
 {
     // Read any existing GUIDs from the on-disk store
-    QFile file(d->storeFilePath = storeFilePath);
-    if (file.exists() && file.open(QIODevice::ReadOnly)) {
-        const auto data = JsonDocument::fromJson(file.readAll().toStdString()).object();
+    std::ifstream file(d->storeFilePath = storeFilePath);
+    if (file.is_open()) {
+        const auto data = JsonDocument::fromJson(std::string {
+            std::istreambuf_iterator<std::ifstream::char_type>(file),
+            std::istreambuf_iterator<std::ifstream::char_type>()
+        }).object();
         for (auto it = data.constBegin(), end = data.constEnd(); it != end; ++it) {
             d->productGuids.insert({
                 it.key(),
@@ -72,16 +77,16 @@ VisualStudioGuidPool::~VisualStudioGuidPool()
             productData.insert(it.first, it.second.toString().toStdString());
 
         const auto data = JsonDocument(productData).toJson();
-        file.write(QByteArray::fromRawData(data.data(), int(data.size())));
+        file.write(std::vector<char> { data.cbegin(), data.cend() });
         file.commit();
     }
 }
 
-QUuid VisualStudioGuidPool::drawProductGuid(const QString &productName)
+QUuid VisualStudioGuidPool::drawProductGuid(const std::string &productName)
 {
-    if (d->productGuids.find(productName.toStdString()) == d->productGuids.cend())
-        d->productGuids.insert({ productName.toStdString(), QUuid::createUuid() });
-    return d->productGuids.at(productName.toStdString());
+    if (d->productGuids.find(productName) == d->productGuids.cend())
+        d->productGuids.insert({ productName, QUuid::createUuid() });
+    return d->productGuids.at(productName);
 }
 
 } // namespace qbs

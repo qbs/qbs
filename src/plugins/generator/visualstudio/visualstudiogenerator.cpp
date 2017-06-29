@@ -249,7 +249,7 @@ static void writeProjectFiles(const QMap<QString, std::shared_ptr<MSBuildProject
     while (it.hasNext()) {
         it.next();
         const auto projectFilePath = it.key();
-        Internal::FileSaver file(projectFilePath);
+        Internal::FileSaver file(projectFilePath.toStdString());
         if (!file.open())
             throw ErrorInfo(Tr::tr("Cannot open %s for writing").arg(projectFilePath));
 
@@ -264,12 +264,12 @@ static void writeSolution(const std::shared_ptr<VisualStudioSolution> &solution,
                           const QString &solutionFilePath,
                           const Internal::Logger &logger)
 {
-    Internal::FileSaver file(solutionFilePath);
+    Internal::FileSaver file(solutionFilePath.toStdString());
     if (!file.open())
         throw ErrorInfo(Tr::tr("Cannot open %s for writing").arg(solutionFilePath));
 
     VisualStudioSolutionWriter writer(file.device());
-    writer.setProjectBaseDirectory(QFileInfo(solutionFilePath).path());
+    writer.setProjectBaseDirectory(QFileInfo(solutionFilePath).path().toStdString());
     if (!(writer.write(solution.get()) && file.commit()))
         throw ErrorInfo(Tr::tr("Failed to generate %1").arg(solutionFilePath));
 
@@ -300,7 +300,8 @@ void VisualStudioGenerator::visitProject(const GeneratableProject &project)
     const auto buildDir = project.baseBuildDirectory();
 
     d->guidPool = std::make_shared<VisualStudioGuidPool>(
-                buildDir.absoluteFilePath(project.name() + QStringLiteral(".guid.txt")));
+                buildDir.absoluteFilePath(project.name()
+                                          + QStringLiteral(".guid.txt")).toStdString());
 
     d->solutionFilePath = buildDir.absoluteFilePath(project.name() + QStringLiteral(".sln"));
     d->solution = std::make_shared<VisualStudioSolution>(d->versionInfo);
@@ -311,7 +312,7 @@ void VisualStudioGenerator::visitProject(const GeneratableProject &project)
     const auto relativeProjectFilePath = QFileInfo(d->solutionFilePath).dir()
             .relativeFilePath(projectFilePath);
     auto targetProject = std::make_shared<MSBuildQbsGenerateProject>(project, d->versionInfo);
-    targetProject->setGuid(d->guidPool->drawProductGuid(relativeProjectFilePath));
+    targetProject->setGuid(d->guidPool->drawProductGuid(relativeProjectFilePath.toStdString()));
     d->msbuildProjects.insert(projectFilePath, targetProject);
 
     addPropertySheets(targetProject);
@@ -346,7 +347,7 @@ void VisualStudioGenerator::visitProduct(const GeneratableProject &project,
             .dir().relativeFilePath(projectFilePath);
     auto targetProject = std::make_shared<MSBuildQbsProductProject>(project, productData,
                                                                           d->versionInfo);
-    targetProject->setGuid(d->guidPool->drawProductGuid(relativeProjectFilePath));
+    targetProject->setGuid(d->guidPool->drawProductGuid(relativeProjectFilePath.toStdString()));
 
     addPropertySheets(targetProject);
 

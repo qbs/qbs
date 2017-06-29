@@ -31,8 +31,8 @@
 #ifndef VISUALSTUDIOGUIDPOOL_H
 #define VISUALSTUDIOGUIDPOOL_H
 
-#include <QtCore/qobject.h>
-#include <QtCore/qscopedpointer.h>
+#include <memory>
+
 #include <QtCore/quuid.h>
 
 namespace qbs {
@@ -48,13 +48,13 @@ class VisualStudioGuidPoolPrivate;
 class VisualStudioGuidPool
 {
 public:
-    explicit VisualStudioGuidPool(const QString &storeFilePath);
+    explicit VisualStudioGuidPool(const std::string &storeFilePath);
     ~VisualStudioGuidPool();
 
-    QUuid drawProductGuid(const QString &productName);
+    QUuid drawProductGuid(const std::string &productName);
 
 private:
-    QScopedPointer<VisualStudioGuidPoolPrivate> d;
+    std::shared_ptr<VisualStudioGuidPoolPrivate> d;
 };
 
 } // namespace qbs

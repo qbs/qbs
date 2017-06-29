@@ -31,8 +31,11 @@
 #ifndef VISUALSTUDIOSOLUTIONWRITER_H
 #define VISUALSTUDIOSOLUTIONWRITER_H
 
-#include <QtCore/qiodevice.h>
-#include <QtCore/qscopedpointer.h>
+#include <memory>
+#include <ostream>
+#include <string>
+
+#include <QtCore/qglobal.h>
 
 namespace qbs {
 
@@ -45,18 +48,18 @@ class VisualStudioSolutionWriter
 {
     Q_DISABLE_COPY(VisualStudioSolutionWriter)
 public:
-    explicit VisualStudioSolutionWriter(QIODevice *device);
+    explicit VisualStudioSolutionWriter(std::ostream *device);
     ~VisualStudioSolutionWriter();
 
-    QString projectBaseDirectory() const;
-    void setProjectBaseDirectory(const QString &dir);
+    std::string projectBaseDirectory() const;
+    void setProjectBaseDirectory(const std::string &dir);
 
     bool write(const VisualStudioSolution *solution);
 
 private:
     void addDefaultGlobalSections();
 
-    QScopedPointer<VisualStudioSolutionWriterPrivate> d;
+    std::unique_ptr<VisualStudioSolutionWriterPrivate> d;
 };
 
 } // namespace qbs

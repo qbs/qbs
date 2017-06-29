@@ -43,6 +43,15 @@
 #include <cstdio>
 #include <ostream>
 
+#if defined(_WIN32)
+#include <codecvt>
+#define QBS_RENAME_IMPL ::_wrename
+typedef std::wstring qbs_filesystem_path_string_type;
+#else
+#define QBS_RENAME_IMPL ::rename
+typedef std::string qbs_filesystem_path_string_type;
+#endif
+
 namespace qbs {
 namespace Internal {
 
@@ -61,6 +70,23 @@ bool fwrite(const C &container, std::ostream *stream)
 static inline bool fwrite(const char *s, std::ostream *stream)
 {
     return fwrite(s, strlen(s), stream);
+}
+
+static inline qbs_filesystem_path_string_type utf8_to_native_path(const std::string &str)
+{
+#if defined(_WIN32)
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+    return converter.from_bytes(str);
+#else
+    return str;
+#endif
+}
+
+static int rename(const std::string &oldName, const std::string &newName)
+{
+    const auto wOldName = utf8_to_native_path(oldName);
+    const auto wNewName = utf8_to_native_path(newName);
+    return QBS_RENAME_IMPL(wOldName.c_str(), wNewName.c_str());
 }
 
 } // namespace Internal

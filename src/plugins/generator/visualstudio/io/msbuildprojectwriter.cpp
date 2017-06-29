@@ -51,6 +51,8 @@ static const QString kMSBuildSchemaURI =
 class MSBuildProjectWriterPrivate : public IMSBuildNodeVisitor
 {
 public:
+    std::ostream *device;
+    QByteArray buffer;
     QScopedPointer<QXmlStreamWriter> writer;
 
     void visitStart(const MSBuildImport *import) override;
@@ -81,10 +83,11 @@ public:
     void visitEnd(const MSBuildPropertyGroup *propertyGroup) override;
 };
 
-MSBuildProjectWriter::MSBuildProjectWriter(QIODevice *device)
+MSBuildProjectWriter::MSBuildProjectWriter(std::ostream *device)
     : d(new MSBuildProjectWriterPrivate)
 {
-    d->writer.reset(new QXmlStreamWriter(device));
+    d->device = device;
+    d->writer.reset(new QXmlStreamWriter(&d->buffer));
     d->writer->setAutoFormatting(true);
 }
 
@@ -95,10 +98,14 @@ MSBuildProjectWriter::~MSBuildProjectWriter()
 
 bool MSBuildProjectWriter::write(const MSBuildProject *project)
 {
+    d->buffer.clear();
     d->writer->writeStartDocument();
     project->accept(d);
     d->writer->writeEndDocument();
-    return !d->writer->hasError();
+    if (d->writer->hasError())
+        return false;
+    d->device->write(&*std::begin(d->buffer), d->buffer.size());
+    return d->device->good();
 }
 
 void MSBuildProjectWriterPrivate::visitStart(const MSBuildImport *import)

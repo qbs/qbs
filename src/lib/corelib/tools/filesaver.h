@@ -42,10 +42,10 @@
 
 #include "qbs_export.h"
 
-#include <QtCore/qbuffer.h>
-#include <QtCore/qbytearray.h>
-#include <QtCore/qscopedpointer.h>
-#include <QtCore/qstring.h>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
 
 namespace qbs {
 namespace Internal {
@@ -55,18 +55,19 @@ namespace Internal {
  */
 class QBS_EXPORT FileSaver {
 public:
-    FileSaver(const QString &filePath, bool overwriteIfUnchanged = false);
+    FileSaver(const std::string &filePath, bool overwriteIfUnchanged = false);
 
-    QIODevice *device();
+    std::ostream *device();
     bool open();
     bool commit();
-    qint64 write(const QByteArray &data);
+    size_t write(const std::vector<char> &data);
+    size_t write(const std::string &data);
 
 private:
-    QByteArray m_newFileContents;
-    QByteArray m_oldFileContents;
-    QScopedPointer<QBuffer> m_memoryDevice;
-    const QString m_filePath;
+    std::string m_newFileContents;
+    std::string m_oldFileContents;
+    std::shared_ptr<std::ostringstream> m_memoryDevice;
+    const std::string m_filePath;
     const bool m_overwriteIfUnchanged;
 };
 
