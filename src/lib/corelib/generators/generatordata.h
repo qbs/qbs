@@ -76,6 +76,8 @@ struct QBS_EXPORT GeneratableProductData : public IMultiplexableContainer<Produc
     QString name() const;
     CodeLocation location() const;
     QStringList dependencies() const;
+    QStringList type() const;
+    QString buildDirectory() const;
 };
 
 struct QBS_EXPORT GeneratableProjectData : public IMultiplexableContainer<ProjectData> {

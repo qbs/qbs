@@ -66,6 +66,20 @@ QStringList GeneratableProductData::dependencies() const
                       "compatible with this generator."));
 }
 
+QStringList GeneratableProductData::type() const
+{
+    return uniqueValue<QStringList>(&ProductData::type,
+        QLatin1String("Products with different types per configuration are not "
+                      "compatible with this generator."));
+}
+
+QString GeneratableProductData::buildDirectory() const
+{
+    return uniqueValue<QString>(&ProductData::buildDirectory,
+        QLatin1String("GeneratableProductData::buildDirectory: "
+                      "internal bug; this should not happen."));
+}
+
 QString GeneratableProjectData::name() const
 {
     return uniqueValue<QString>(&ProjectData::name,
@@ -83,7 +97,7 @@ CodeLocation GeneratableProjectData::location() const
         location = it.value().location();
         if (oldLocation.isValid() && oldLocation != location)
             throw ErrorInfo(QLatin1String("Projects with different code locations "
-                                          "per-configuration are not compatible with this "
+                                          "per configuration are not compatible with this "
                                           "generator."));
     }
     return location;
