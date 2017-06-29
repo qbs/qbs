@@ -47,65 +47,30 @@ namespace qbs {
 
 QString GeneratableProductData::name() const
 {
-    QString name;
-    QMapIterator<QString, ProductData> it(data);
-    while (it.hasNext()) {
-        it.next();
-        QString oldName = name;
-        name = it.value().name();
-        if (!oldName.isEmpty() && oldName != name)
-            throw ErrorInfo(QLatin1String("Products with different names per-configuration "
-                                          "are not compatible with this generator. Consider "
-                                          "using the targetName property instead."));
-    }
-    return name;
+    return uniqueValue<QString>(&ProductData::name,
+        QLatin1String("Products with different names per configuration are not "
+                      "compatible with this generator. "
+                      "Consider using the targetName property instead."));
 }
 
 CodeLocation GeneratableProductData::location() const
 {
-    CodeLocation location;
-    QMapIterator<QString, ProductData> it(data);
-    while (it.hasNext()) {
-        it.next();
-        CodeLocation oldLocation = location;
-        location = it.value().location();
-        if (oldLocation.isValid() && oldLocation != location)
-            throw ErrorInfo(QLatin1String("Products with different code locations "
-                                          "per-configuration are not compatible with this "
-                                          "generator."));
-    }
-    return location;
+    return uniqueValue<CodeLocation>(&ProductData::location,
+        QLatin1String("GeneratableProductData::location: internal bug; this should not happen."));
 }
 
 QStringList GeneratableProductData::dependencies() const
 {
-    QStringList list;
-    QMapIterator<QString, ProductData> it(data);
-    while (it.hasNext()) {
-        it.next();
-        QStringList oldList = list;
-        list = it.value().dependencies();
-        if (!oldList.isEmpty() && oldList != list)
-            throw ErrorInfo(QLatin1String("Products with different dependency lists "
-                                          "per-configuration are not compatible with this "
-                                          "generator."));
-    }
-    return list;
+    return uniqueValue<QStringList>(&ProductData::dependencies,
+        QLatin1String("Products with different dependency lists per configuration are not "
+                      "compatible with this generator."));
 }
 
 QString GeneratableProjectData::name() const
 {
-    QString name;
-    QMapIterator<QString, ProjectData> it(data);
-    while (it.hasNext()) {
-        it.next();
-        QString oldName = name;
-        name = it.value().name();
-        if (!oldName.isEmpty() && oldName != name)
-            throw ErrorInfo(QLatin1String("Projects with different names per-configuration "
-                                          "are not compatible with this generator."));
-    }
-    return name;
+    return uniqueValue<QString>(&ProjectData::name,
+        QLatin1String("Projects with different names per configuration are not "
+                      "compatible with this generator."));
 }
 
 CodeLocation GeneratableProjectData::location() const

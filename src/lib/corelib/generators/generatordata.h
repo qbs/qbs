@@ -44,22 +44,41 @@
 #include <QtCore/qmap.h>
 #include <api/project.h>
 #include <api/projectdata.h>
+#include <tools/error.h>
 #include <tools/installoptions.h>
+#include <tools/set.h>
+#include <functional>
 
 namespace qbs {
 
 typedef QMap<QString, Project> GeneratableProjectMap;
-typedef QMap<QString, ProjectData> GeneratableProjectDataMap;
-typedef QMap<QString, ProductData> GeneratableProductDataMap;
 
-struct QBS_EXPORT GeneratableProductData {
-    GeneratableProductDataMap data;
+template <typename U> struct IMultiplexableContainer {
+    QMap<QString, U> data;
+
+    template <typename T> T uniqueValue(const std::function<T(const U &data)> &func,
+                                        const QString &errorMessage) const
+    {
+        auto it = data.begin(), end = data.end();
+        auto value = func(*it++);
+        for (; it != end; ++it) {
+            if (value != func(*it))
+                throw ErrorInfo(errorMessage);
+        }
+        return value;
+    }
+
+protected:
+    IMultiplexableContainer() { }
+};
+
+struct QBS_EXPORT GeneratableProductData : public IMultiplexableContainer<ProductData> {
     QString name() const;
     CodeLocation location() const;
     QStringList dependencies() const;
 };
 
-struct QBS_EXPORT GeneratableProjectData {
+struct QBS_EXPORT GeneratableProjectData : public IMultiplexableContainer<ProjectData> {
     struct Id {
     private:
         friend struct GeneratableProjectData;
@@ -70,7 +89,6 @@ struct QBS_EXPORT GeneratableProjectData {
         bool operator<(const Id &id) const { return value < id.value; }
     };
 
-    GeneratableProjectDataMap data;
     QList<GeneratableProjectData> subProjects;
     QList<GeneratableProductData> products;
     QString name() const;
