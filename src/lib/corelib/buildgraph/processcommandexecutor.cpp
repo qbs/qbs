@@ -336,11 +336,14 @@ void ProcessCommandExecutor::onProcessFinished()
 static QString environmentVariableString(const QString &key, const QString &value)
 {
     QString str;
-    if (HostOsInfo::isAnyUnixHost())
-        str += QStringLiteral("export ");
     if (HostOsInfo::isWindowsHost())
         str += QStringLiteral("set ");
-    return str + shellQuote(key + QLatin1Char('=') + value) + QLatin1Char('\n');
+    str += shellQuote(key + QLatin1Char('=') + value);
+    if (HostOsInfo::isWindowsHost())
+        str += QLatin1Char('\n');
+    else
+        str += QLatin1Char(' ');
+    return str;
 }
 
 void ProcessCommandExecutor::doReportCommandDescription()
