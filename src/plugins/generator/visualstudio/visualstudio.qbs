@@ -2,6 +2,8 @@ import qbs
 import "../../qbsplugin.qbs" as QbsPlugin
 
 QbsPlugin {
+    Depends { name: "qbsjson" }
+
     name: "visualstudiogenerator"
 
     files: ["visualstudiogeneratorplugin.cpp"]
