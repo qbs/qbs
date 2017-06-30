@@ -1615,6 +1615,12 @@ void TestBlackbox::ruleWithNonRequiredInputs()
     QVERIFY2(outFile.open(QIODevice::ReadOnly), qPrintable(outFile.errorString()));
     output = outFile.readAll();
     QCOMPARE(output, QByteArray("(a.inp,b.inp,c.inp,)"));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("Generating"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("a.inp");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Generating"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::smartRelinking()

@@ -346,7 +346,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
                               (*inputArtifacts.cbegin())->filePath()));
             throw error;
         }
-        if (m_rule->declaresInputs())
+        if (m_rule->declaresInputs() && m_rule->requiresInputs)
             outputArtifact->clearTimestamp();
         m_invalidatedArtifacts += outputArtifact;
     } else {
