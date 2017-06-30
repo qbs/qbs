@@ -500,9 +500,11 @@ Module {
                     var fp = inputs["bundle.input"][i].moduleProperty("bundle", "_bundleFilePath");
                     if (!fp)
                         throw("Artifact " + inputs["bundle.input"][i].filePath + " has no associated bundle file path");
+                    var extraTags = inputs["bundle.input"][i].fileTags.contains("application")
+                            ? ["bundle.application-executable"] : [];
                     artifacts.push({
                         filePath: fp,
-                        fileTags: ["bundle.content", "bundle.content.copied"]
+                        fileTags: ["bundle.content", "bundle.content.copied"].concat(extraTags)
                     });
                 }
 

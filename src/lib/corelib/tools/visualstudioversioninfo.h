@@ -68,7 +68,6 @@ public:
 
     Version version() const;
     int marketingVersion() const;
-    Version clCompilerVersion() const;
 
     QString solutionVersion() const;
     QString toolsVersion() const;
