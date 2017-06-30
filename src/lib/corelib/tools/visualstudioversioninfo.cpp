@@ -59,7 +59,7 @@ VisualStudioVersionInfo::VisualStudioVersionInfo(const Version &version)
 Set<VisualStudioVersionInfo> VisualStudioVersionInfo::knownVersions()
 {
     Set<VisualStudioVersionInfo> known;
-    known << Version(14) << Version(12) << Version(11)
+    known << Version(15) << Version(14) << Version(12) << Version(11)
           << Version(10) << Version(9) << Version(8)
           << Version(7, 1) << Version(7) << Version(6);
     return known;
@@ -129,12 +129,6 @@ int VisualStudioVersionInfo::marketingVersion() const
                    << m_version.toString();
         return 0;
     }
-}
-
-Version VisualStudioVersionInfo::clCompilerVersion() const
-{
-    return Version(m_version.majorVersion() + (m_version.majorVersion() >= 14 ? 5 : 6),
-                   m_version.minorVersion() * 10);
 }
 
 QString VisualStudioVersionInfo::solutionVersion() const
