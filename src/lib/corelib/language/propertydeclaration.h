@@ -41,9 +41,9 @@
 #define QBS_PROPERTYDECLARATION_H
 
 #include <QtCore/qshareddata.h>
+#include <QtCore/qstring.h>
 
 QT_BEGIN_NAMESPACE
-class QString;
 class QStringList;
 QT_END_NAMESPACE
 
@@ -76,7 +76,8 @@ public:
     Q_DECLARE_FLAGS(Flags, Flag)
 
     PropertyDeclaration();
-    PropertyDeclaration(const QString &name, Type type, Flags flags = DefaultFlags);
+    PropertyDeclaration(const QString &name, Type type, const QString &initialValue = QString(),
+                        Flags flags = DefaultFlags);
     PropertyDeclaration(const PropertyDeclaration &other);
     ~PropertyDeclaration();
 

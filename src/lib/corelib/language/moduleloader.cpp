@@ -2671,7 +2671,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
                                  ItemValue::create(exportingProduct->parent()));
 
         PropertyDeclaration pd(QLatin1String("_qbs_sourceDir"), PropertyDeclaration::String,
-                               PropertyDeclaration::PropertyNotAvailableInConfig);
+                               QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
         moduleInstance->setPropertyDeclaration(pd.name(), pd);
         ValuePtr v = exportingProduct->property(QLatin1String("sourceDirectory"))->clone();
         moduleInstance->setProperty(pd.name(), v);

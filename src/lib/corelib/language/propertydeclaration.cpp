@@ -71,11 +71,13 @@ PropertyDeclaration::PropertyDeclaration()
 {
 }
 
-PropertyDeclaration::PropertyDeclaration(const QString &name, Type type, Flags flags)
+PropertyDeclaration::PropertyDeclaration(const QString &name, Type type,
+                                         const QString &initialValue, Flags flags)
     : d(new PropertyDeclarationData)
 {
     d->name = name;
     d->type = type;
+    d->initialValueSource = initialValue;
     d->flags = flags;
 }
 
