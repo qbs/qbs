@@ -31,6 +31,7 @@
 import qbs
 import qbs.BundleTools
 import qbs.DarwinTools
+import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Process
@@ -215,8 +216,11 @@ Module {
         outputFileTags: ["bundle.input", "compiled_assetcatalog", "partial_infoplist"]
 
         prepare: {
-            var mkdir = new Command("mkdir", ["-p", product.buildDirectory + "/actool.dir"]);
+            var mkdir = new JavaScriptCommand();
             mkdir.silent = true;
+            mkdir.sourceCode = function () {
+                File.makePath(FileInfo.joinPaths(product.buildDirectory, "actool.dir"));
+            };
 
             var cmd = new Command(ModUtils.moduleProperty(product, "actoolPath"),
                                   Ib.ibtooldArguments(product, inputs, input, outputs));
