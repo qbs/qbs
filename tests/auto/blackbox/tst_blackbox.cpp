@@ -3909,6 +3909,7 @@ void TestBlackbox::auxiliaryInputsFromDependencies()
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("generating dummy.out"), m_qbsStdout.constData());
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("products.dep.sleep:false"))), 0);
+    WAIT_FOR_NEW_TIMESTAMP();
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("generating dummy.out"), m_qbsStdout.constData());
