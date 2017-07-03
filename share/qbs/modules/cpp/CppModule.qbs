@@ -53,10 +53,10 @@ Module {
     property bool enableReproducibleBuilds: false
     property bool separateDebugInformation: false
     property pathList prefixHeaders
-    property bool useCPrecompiledHeader: false
-    property bool useCxxPrecompiledHeader: false
-    property bool useObjcPrecompiledHeader: false
-    property bool useObjcxxPrecompiledHeader: false
+    property bool useCPrecompiledHeader: true
+    property bool useCxxPrecompiledHeader: true
+    property bool useObjcPrecompiledHeader: true
+    property bool useObjcxxPrecompiledHeader: true
 
     property bool treatSystemHeadersAsDependencies: false
 

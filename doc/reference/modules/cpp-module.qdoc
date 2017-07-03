@@ -195,7 +195,7 @@
             useObjcxxPrecompiledHeader
         \li \c bool
         \li 1.5
-        \li \c false
+        \li \c true
         \li Specifies whether to use a precompiled header for the respective language, if one
             is present (see \l{Relevant File Tags}{below} for the associated file tags).
     \row

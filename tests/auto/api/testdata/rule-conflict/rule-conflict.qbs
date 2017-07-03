@@ -1,7 +1,6 @@
 import qbs
 
 CppApplication {
-    cpp.useCxxPrecompiledHeader: true
     files: "main.cpp"
     Group {
         name: "pch files"

@@ -5,7 +5,6 @@ CppApplication {
     name: "MyApp"
     consoleApplication: true
     cpp.includePaths: [product.buildDirectory]
-    cpp.useCxxPrecompiledHeader: true
     Group {
         files: ["pch.h"]
         fileTags: ["cpp_pch_src"]

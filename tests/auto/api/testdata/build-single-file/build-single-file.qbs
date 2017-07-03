@@ -4,7 +4,6 @@ import qbs.TextFile
 CppApplication {
     files: ["ignored1.cpp", "ignored2.cpp", "compiled.cpp"]
 
-    cpp.useCxxPrecompiledHeader: true
     cpp.includePaths: [buildDirectory]
     Group {
         files: ["pch.h"]
