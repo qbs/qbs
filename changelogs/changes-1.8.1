@@ -1,0 +1,12 @@
+Important bug fixes:
+    * Qbs-specific build errors are now correctly linked
+      in Qt Creator's issues pane (QBS-1151).
+    * Fixed automatic base profile assignment for
+      MSVC Qt installations (QBS-1141)
+    * Various QNX fixes (QBS-1136, QBS-1137, QBS-1138, QBS-1139, QBS-1143).
+
+Behavior changes:
+    * Users now get early error messages if they forget
+      the "modules", "products" or "projects" prefix
+      in command line property overrides such as
+      "modules.cpp.enableExceptions:false".
