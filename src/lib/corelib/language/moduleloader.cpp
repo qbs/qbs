@@ -979,7 +979,7 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
     checkCancelation();
     Item *item = productContext->item;
     if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[MODLDR] handleProduct " << item->file()->filePath();
+        m_logger.qbsTrace() << "[MODLDR] setupProductDependencies " << item->file()->filePath();
 
     QStringList extraSearchPaths = readExtraSearchPaths(item);
     Settings settings(m_parameters.settingsDirectory());
