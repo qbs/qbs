@@ -200,6 +200,14 @@ void Transformer::setupOutputs(ScriptEngine *scriptEngine, QScriptValue targetSc
     targetScriptValue.setProperty(QLatin1String("output"), outputScriptValue);
 }
 
+void Transformer::setupExplicitlyDependsOn(QScriptValue targetScriptValue)
+{
+    ScriptEngine * const scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
+    QScriptValue scriptValue = translateInOutputs(scriptEngine, explicitlyDependsOn,
+                                                  rule->module->name);
+    targetScriptValue.setProperty(QLatin1String("explicitlyDependsOn"), scriptValue);
+}
+
 static AbstractCommandPtr createCommandFromScriptValue(const QScriptValue &scriptValue,
                                                        const CodeLocation &codeLocation)
 {
@@ -256,6 +264,7 @@ void Transformer::load(PersistentPool &pool)
     pool.load(rule);
     pool.load(inputs);
     pool.load(outputs);
+    pool.load(explicitlyDependsOn);
     pool.load(propertiesRequestedInPrepareScript);
     pool.load(propertiesRequestedInCommands);
     pool.load(propertiesRequestedFromArtifactInPrepareScript);
@@ -269,6 +278,7 @@ void Transformer::store(PersistentPool &pool) const
     pool.store(rule);
     pool.store(inputs);
     pool.store(outputs);
+    pool.store(explicitlyDependsOn);
     pool.store(propertiesRequestedInPrepareScript);
     pool.store(propertiesRequestedInCommands);
     pool.store(propertiesRequestedFromArtifactInPrepareScript);

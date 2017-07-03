@@ -121,6 +121,7 @@ private:
                                     &observer);
         transformer->setupInputs(scope);
         transformer->setupOutputs(scriptEngine, scope);
+        transformer->setupExplicitlyDependsOn(scope);
 
         for (QVariantMap::const_iterator it = cmd->properties().constBegin();
                 it != cmd->properties().constEnd(); ++it) {

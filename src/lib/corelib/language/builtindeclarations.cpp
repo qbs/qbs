@@ -176,7 +176,8 @@ static PropertyDeclaration prepareScriptProperty()
                 QStringList()
                 << QLatin1String("project") << QLatin1String("product")
                 << QLatin1String("inputs") << QLatin1String("outputs")
-                << QLatin1String("input") << QLatin1String("output"));
+                << QLatin1String("input") << QLatin1String("output")
+                << QLatin1String("explicitlyDependsOn"));
     return decl;
 }
 

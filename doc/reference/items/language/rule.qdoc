@@ -281,7 +281,7 @@
         \li undefined
         \li Script that prepares the commands to transform the inputs to outputs.
             The code in this script is treated as a function with the signature
-            \c{function(project, product, inputs, outputs, input, output)}.
+            \c{function(project, product, inputs, outputs, input, output, explicitlyDependsOn)}.
             The argument \c{input} is \c{undefined} if there's more than one input artifact for this
             rule. Similarly, \c{output} is only defined if there's exactly one output artifact.
     \row

@@ -1140,18 +1140,34 @@ void TestApi::explicitlyDependsOn()
     BuildDescriptionReceiver receiver;
     qbs::ErrorInfo errorInfo = doBuildProject("explicitly-depends-on", &receiver);
     VERIFY_NO_ERROR(errorInfo);
-    QVERIFY(receiver.descriptions.contains("Creating output artifact"));
+    QVERIFY2(receiver.descriptions.contains("compiling compiler.cpp"),
+             qPrintable(receiver.descriptions));
+    QVERIFY2(receiver.descriptions.contains("compiling a.in"), qPrintable(receiver.descriptions));
+    QVERIFY2(receiver.descriptions.contains("compiling b.in"), qPrintable(receiver.descriptions));
+    QVERIFY2(receiver.descriptions.contains("compiling c.in"), qPrintable(receiver.descriptions));
+    QFile txtFile(relativeProductBuildDir("p") + "/compiler-name.txt");
+    QVERIFY2(txtFile.open(QIODevice::ReadOnly), qPrintable(txtFile.errorString()));
+    const QByteArray content = txtFile.readAll();
+    QCOMPARE(content, QByteArray("compiler file name: compiler"));
     receiver.descriptions.clear();
 
     errorInfo = doBuildProject("explicitly-depends-on", &receiver);
+    QVERIFY2(!receiver.descriptions.contains("compiling compiler.cpp"),
+             qPrintable(receiver.descriptions));
+    QVERIFY2(!receiver.descriptions.contains("compiling a.in"), qPrintable(receiver.descriptions));
+    QVERIFY2(!receiver.descriptions.contains("compiling b.in"), qPrintable(receiver.descriptions));
+    QVERIFY2(!receiver.descriptions.contains("compiling c.in"), qPrintable(receiver.descriptions));
     VERIFY_NO_ERROR(errorInfo);
-    QVERIFY(!receiver.descriptions.contains("Creating output artifact"));
 
     WAIT_FOR_NEW_TIMESTAMP();
-    touch("dependency.txt");
+    touch("compiler.cpp");
     errorInfo = doBuildProject("explicitly-depends-on", &receiver);
     VERIFY_NO_ERROR(errorInfo);
-    QVERIFY(receiver.descriptions.contains("Creating output artifact"));
+    QVERIFY2(receiver.descriptions.contains("compiling compiler.cpp"),
+             qPrintable(receiver.descriptions));
+    QVERIFY2(receiver.descriptions.contains("compiling a.in"), qPrintable(receiver.descriptions));
+    QVERIFY2(receiver.descriptions.contains("compiling b.in"), qPrintable(receiver.descriptions));
+    QVERIFY2(receiver.descriptions.contains("compiling c.in"), qPrintable(receiver.descriptions));
 }
 
 void TestApi::exportSimple()

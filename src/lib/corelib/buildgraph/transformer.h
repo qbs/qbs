@@ -64,6 +64,7 @@ public:
 
     ArtifactSet inputs; // Subset of "children of all outputs".
     ArtifactSet outputs;
+    ArtifactSet explicitlyDependsOn;
     RuleConstPtr rule;
     QList<AbstractCommandPtr> commands;
     PropertySet propertiesRequestedInPrepareScript;
@@ -84,6 +85,7 @@ public:
             const QString &defaultModuleName);
     void setupInputs(QScriptValue targetScriptValue);
     void setupOutputs(ScriptEngine *scriptEngine, QScriptValue targetScriptValue);
+    void setupExplicitlyDependsOn(QScriptValue targetScriptValue);
     void createCommands(ScriptEngine *engine, const ScriptFunctionConstPtr &script,
                         const QScriptValueList &args);
 

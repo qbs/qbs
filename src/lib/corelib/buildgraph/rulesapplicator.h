@@ -73,6 +73,7 @@ public:
 private:
     void doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext);
     ArtifactSet collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const;
+    ArtifactSet collectExplicitlyDependsOn();
     Artifact *createOutputArtifactFromRuleArtifact(const RuleArtifactConstPtr &ruleArtifact,
             const ArtifactSet &inputArtifacts, Set<QString> *outputFilePaths);
     Artifact *createOutputArtifact(const QString &filePath, const FileTags &fileTags,

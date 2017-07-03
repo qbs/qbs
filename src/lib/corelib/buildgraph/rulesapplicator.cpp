@@ -173,12 +173,15 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     m_transformer = Transformer::create();
     m_transformer->rule = m_rule;
     m_transformer->inputs = inputArtifacts;
+    m_transformer->explicitlyDependsOn = collectExplicitlyDependsOn();
     m_transformer->alwaysRun = m_rule->alwaysRun;
 
     // create the output artifacts from the set of input artifacts
     Transformer::setupInputs(prepareScriptContext, inputArtifacts, m_rule->module->name);
+    m_transformer->setupExplicitlyDependsOn(prepareScriptContext);
     copyProperty(QLatin1String("inputs"), prepareScriptContext, scope());
     copyProperty(QLatin1String("input"), prepareScriptContext, scope());
+    copyProperty(QLatin1String("explicitlyDependsOn"), prepareScriptContext, scope());
     copyProperty(QLatin1String("product"), prepareScriptContext, scope());
     copyProperty(QLatin1String("project"), prepareScriptContext, scope());
     if (m_rule->isDynamic()) {
@@ -205,18 +208,8 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         return;
 
     for (Artifact * const outputArtifact : qAsConst(outputArtifacts)) {
-        // connect artifacts that match the file tags in explicitlyDependsOn
-        for (const FileTag &fileTag : qAsConst(m_rule->explicitlyDependsOn)) {
-            for (Artifact *dependency : m_product->lookupArtifactsByFileTag(fileTag))
-                loggedConnect(outputArtifact, dependency, m_logger);
-            for (const ResolvedProductConstPtr &depProduct : qAsConst(m_product->dependencies)) {
-                for (Artifact * const ta : depProduct->targetArtifacts()) {
-                    if (ta->fileTags().contains(fileTag))
-                        loggedConnect(outputArtifact, ta, m_logger);
-                }
-            }
-        }
-
+        for (Artifact * const dependency : qAsConst(m_transformer->explicitlyDependsOn))
+            loggedConnect(outputArtifact, dependency, m_logger);
         outputArtifact->product->unregisterArtifactWithChangedInputs(outputArtifact);
     }
 
@@ -279,6 +272,22 @@ ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputA
         }
     }
     return result;
+}
+
+ArtifactSet RulesApplicator::collectExplicitlyDependsOn()
+{
+    ArtifactSet artifacts;
+    for (const FileTag &fileTag : qAsConst(m_rule->explicitlyDependsOn)) {
+        for (Artifact *dependency : m_product->lookupArtifactsByFileTag(fileTag))
+            artifacts << dependency;
+        for (const ResolvedProductConstPtr &depProduct : qAsConst(m_product->dependencies)) {
+            for (Artifact * const ta : depProduct->targetArtifacts()) {
+                if (ta->fileTags().contains(fileTag))
+                    artifacts << ta;
+            }
+        }
+    }
+    return artifacts;
 }
 
 Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
