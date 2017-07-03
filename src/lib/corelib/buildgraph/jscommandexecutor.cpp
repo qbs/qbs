@@ -120,7 +120,7 @@ private:
         setupScriptEngineForProduct(scriptEngine, transformer->product(), transformer->rule->module, scope,
                                     &observer);
         transformer->setupInputs(scope);
-        transformer->setupOutputs(scriptEngine, scope);
+        transformer->setupOutputs(scope);
         transformer->setupExplicitlyDependsOn(scope);
 
         for (QVariantMap::const_iterator it = cmd->properties().constBegin();

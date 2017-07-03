@@ -184,8 +184,9 @@ void Transformer::setupInputs(QScriptValue targetScriptValue)
     setupInputs(targetScriptValue, inputs, rule->module->name);
 }
 
-void Transformer::setupOutputs(ScriptEngine *scriptEngine, QScriptValue targetScriptValue)
+void Transformer::setupOutputs(QScriptValue targetScriptValue)
 {
+    ScriptEngine * const scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     const QString &defaultModuleName = rule->module->name;
     QScriptValue scriptValue = translateInOutputs(scriptEngine, outputs, defaultModuleName);
     targetScriptValue.setProperty(QLatin1String("outputs"), scriptValue);

@@ -177,7 +177,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     m_transformer->alwaysRun = m_rule->alwaysRun;
 
     // create the output artifacts from the set of input artifacts
-    Transformer::setupInputs(prepareScriptContext, inputArtifacts, m_rule->module->name);
+    m_transformer->setupInputs(prepareScriptContext);
     m_transformer->setupExplicitlyDependsOn(prepareScriptContext);
     copyProperty(QLatin1String("inputs"), prepareScriptContext, scope());
     copyProperty(QLatin1String("input"), prepareScriptContext, scope());
@@ -253,7 +253,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     if (!ruleArtifactArtifactMap.isEmpty())
         engine()->setGlobalObject(prepareScriptContext.prototype());
 
-    m_transformer->setupOutputs(engine(), prepareScriptContext);
+    m_transformer->setupOutputs(prepareScriptContext);
     m_transformer->createCommands(engine(), m_rule->prepareScript,
             ScriptEngine::argumentList(m_rule->prepareScript->argumentNames, prepareScriptContext));
     if (Q_UNLIKELY(m_transformer->commands.isEmpty()))

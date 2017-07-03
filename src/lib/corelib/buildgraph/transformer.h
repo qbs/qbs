@@ -76,21 +76,21 @@ public:
     static QScriptValue translateFileConfig(ScriptEngine *scriptEngine,
                                             const Artifact *artifact,
                                             const QString &defaultModuleName);
-    static QScriptValue translateInOutputs(ScriptEngine *scriptEngine,
-                                           const ArtifactSet &artifacts,
-                                           const QString &defaultModuleName);
-
     ResolvedProductPtr product() const;
-    static void setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,
-            const QString &defaultModuleName);
     void setupInputs(QScriptValue targetScriptValue);
-    void setupOutputs(ScriptEngine *scriptEngine, QScriptValue targetScriptValue);
+    void setupOutputs(QScriptValue targetScriptValue);
     void setupExplicitlyDependsOn(QScriptValue targetScriptValue);
     void createCommands(ScriptEngine *engine, const ScriptFunctionConstPtr &script,
                         const QScriptValueList &args);
 
 private:
     Transformer();
+
+    static void setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,
+            const QString &defaultModuleName);
+    static QScriptValue translateInOutputs(ScriptEngine *scriptEngine,
+                                           const ArtifactSet &artifacts,
+                                           const QString &defaultModuleName);
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
