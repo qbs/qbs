@@ -569,7 +569,7 @@ function qnxLangArgs(config, tag) {
     }
 }
 
-function compilerFlags(project, product, input, output) {
+function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     var i;
 
     var includePaths = input.cpp.includePaths;
@@ -679,10 +679,14 @@ function compilerFlags(project, product, input, output) {
                        ModUtils.moduleProperty(input, 'platformFlags', tag),
                        ModUtils.moduleProperty(input, 'flags', tag));
 
-    var pchOutput = output.fileTags.contains(compilerInfo.tag + "_pch");
-
-    if (!pchOutput && ModUtils.moduleProperty(input, 'usePrecompiledHeader', tag)) {
-        var pchFilePath = FileInfo.joinPaths(product.buildDirectory, product.name + "_" + tag);
+    var pchTag = compilerInfo.tag + "_pch";
+    var pchOutput = output.fileTags.contains(pchTag);
+    var pchInputs = explicitlyDependsOn[pchTag];
+    if (!pchOutput && pchInputs && pchInputs.length === 1
+            && ModUtils.moduleProperty(input, 'usePrecompiledHeader', tag)) {
+        var pchInput = pchInputs[0];
+        var pchFilePath = FileInfo.joinPaths(FileInfo.path(pchInput.filePath),
+                                             pchInput.completeBaseName);
         args.push('-include', pchFilePath);
     }
 
@@ -874,13 +878,13 @@ function linkerEnvVars(config, inputs)
     return list;
 }
 
-function prepareCompiler(project, product, inputs, outputs, input, output) {
+function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var compilerInfo = effectiveCompilerInfo(product.qbs.toolchain,
                                              input, output);
     var compilerPath = compilerInfo.path;
     var pchOutput = output.fileTags.contains(compilerInfo.tag + "_pch");
 
-    var args = compilerFlags(project, product, input, output);
+    var args = compilerFlags(project, product, input, output, explicitlyDependsOn);
     var wrapperArgsLength = 0;
     var wrapperArgs = product.cpp.compilerWrapper;
     if (wrapperArgs && wrapperArgs.length > 0) {

@@ -43,7 +43,7 @@ function compilerVersionDefine(cpp) {
     return result;
 }
 
-function prepareCompiler(project, product, inputs, outputs, input, output) {
+function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var i;
     var debugInformation = input.cpp.debugInformation;
     var args = ['/nologo', '/c']
@@ -52,9 +52,6 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(Object.keys(outputs)));
     if (!["c", "cpp"].contains(tag))
         throw ("unsupported source language");
-
-    // Whether we're compiling a precompiled header or normal source file
-    var pchOutput = outputs[tag + "_pch"] ? outputs[tag + "_pch"][0] : undefined;
 
     var enableExceptions = input.cpp.enableExceptions;
     if (enableExceptions) {
@@ -156,29 +153,28 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     else if (tag === "c")
         args.push("/TC");
 
-    var commands = [];
-    var usePch = ModUtils.moduleProperty(input, "usePrecompiledHeader", tag);
-    if (usePch) {
-        if (pchOutput) {
-            // create PCH
-            args.push("/Yc");
-            args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.filePath));
-            args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.filePath));
-            args.push(FileInfo.toWindowsSeparators(input.filePath));
+    // Whether we're compiling a precompiled header or normal source file
+    var pchOutput = outputs[tag + "_pch"] ? outputs[tag + "_pch"][0] : undefined;
+    var pchInputs = explicitlyDependsOn[tag + "_pch"];
+    if (pchOutput) {
+        // create PCH
+        args.push("/Yc");
+        args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.filePath));
+        args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.filePath));
+        args.push(FileInfo.toWindowsSeparators(input.filePath));
+    } else if (pchInputs && pchInputs.length === 1
+               && ModUtils.moduleProperty(input, "usePrecompiledHeader", tag)) {
+        // use PCH
+        var pchSourceArtifacts = product.artifacts[tag + "_pch_src"];
+        if (pchSourceArtifacts && pchSourceArtifacts.length > 0) {
+            var pchSourceFilePath = pchSourceArtifacts[0].filePath;
+            var pchFilePath = FileInfo.toWindowsSeparators(pchInputs[0].filePath);
+            args.push("/FI" + pchSourceFilePath);
+            args.push("/Yu" + pchSourceFilePath);
+            args.push("/Fp" + pchFilePath);
         } else {
-            // use PCH
-            var pchSourceArtifacts = product.artifacts[tag + "_pch_src"];
-            if (pchSourceArtifacts && pchSourceArtifacts.length > 0) {
-                var pchSourceFilePath = pchSourceArtifacts[0].filePath;
-                var pchFilePath = FileInfo.toWindowsSeparators(product.buildDirectory
-                    + "\\.obj\\" + product.name + "_" + tag + ".pch");
-                args.push("/FI" + pchSourceFilePath);
-                args.push("/Yu" + pchSourceFilePath);
-                args.push("/Fp" + pchFilePath);
-            } else {
-                console.warning("products." + product.name + ".usePrecompiledHeader is true, "
-                                + "but there is no " + tag + "_pch_src artifact.");
-            }
+            console.warning("products." + product.name + ".usePrecompiledHeader is true, "
+                            + "but there is no " + tag + "_pch_src artifact.");
         }
     }
 
@@ -207,8 +203,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     cmd.stdoutFilterFunction = function(output) {
         return output.split(inputFileName + "\r\n").join("");
     };
-    commands.push(cmd);
-    return commands;
+    return [cmd];
 }
 
 function collectLibraryDependencies(product) {
