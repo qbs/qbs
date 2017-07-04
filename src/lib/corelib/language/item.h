@@ -116,6 +116,7 @@ public:
     ValuePtr property(const QString &name) const;
     ValuePtr ownProperty(const QString &name) const;
     ItemValuePtr itemProperty(const QString &name, const Item *itemTemplate = nullptr);
+    ItemValuePtr itemProperty(const QString &name, const ItemValueConstPtr &value);
     JSSourceValuePtr sourceProperty(const QString &name) const;
     VariantValuePtr variantProperty(const QString &name) const;
     void setObserver(ItemObserver *observer) const;
@@ -138,6 +139,9 @@ public:
     void copyProperty(const QString &propertyName, Item *target) const;
 
 private:
+    ItemValuePtr itemProperty(const QString &name, const Item *itemTemplate,
+                              const ItemValueConstPtr &itemValue);
+
     void dump(int indentation) const;
 
     ItemPool *m_pool;

@@ -726,7 +726,7 @@ void TestLanguage::exports()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 17);
+        QCOMPARE(products.count(), 19);
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(!!product);
@@ -812,6 +812,14 @@ void TestLanguage::exports()
         propertyName = QStringList() << "modules" << "dummy" << "productName";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toString(), QString("libE"));
+
+        product = products.value("depender");
+        QVERIFY(!!product);
+        QCOMPARE(product->modules.count(), 2);
+        for (const ResolvedModuleConstPtr &m : qAsConst(product->modules)) {
+            QVERIFY2(m->name == QString("qbs") || m->name == QString("dependency"),
+                     qPrintable(m->name));
+        }
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;

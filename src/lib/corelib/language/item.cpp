@@ -149,14 +149,26 @@ ValuePtr Item::ownProperty(const QString &name) const
 
 ItemValuePtr Item::itemProperty(const QString &name, const Item *itemTemplate)
 {
-    ItemValuePtr result;
-    ValuePtr v = property(name);
-    if (v && v->type() == Value::ItemValueType) {
-        result = std::static_pointer_cast<ItemValue>(v);
-    } else if (itemTemplate) {
-        result = ItemValue::create(Item::create(m_pool, itemTemplate->type()));
-        setProperty(name, result);
-    }
+    return itemProperty(name, itemTemplate, ItemValueConstPtr());
+}
+
+ItemValuePtr Item::itemProperty(const QString &name, const ItemValueConstPtr &value)
+{
+    return itemProperty(name, value->item(), value);
+}
+
+ItemValuePtr Item::itemProperty(const QString &name, const Item *itemTemplate,
+                                const ItemValueConstPtr &itemValue)
+{
+    const ValuePtr v = property(name);
+    if (v && v->type() == Value::ItemValueType)
+        return std::static_pointer_cast<ItemValue>(v);
+    if (!itemTemplate)
+        return ItemValuePtr();
+    const bool createdByPropertiesBlock = itemValue && itemValue->createdByPropertiesBlock();
+    const ItemValuePtr result = ItemValue::create(Item::create(m_pool, itemTemplate->type()),
+                                                 createdByPropertiesBlock);
+    setProperty(name, result);
     return result;
 }
 

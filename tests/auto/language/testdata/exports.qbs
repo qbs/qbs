@@ -102,4 +102,17 @@ Project {
             qbs.install: false
         }
     }
+
+    Product {
+        name: "dependency"
+        Export {
+            property bool depend: false
+            Depends { condition: depend; name: "cpp" }
+            Properties { condition: depend; cpp.includePaths: ["."] }
+        }
+    }
+    Product {
+        name: "depender"
+        Depends { name: "dependency" }
+    }
 }

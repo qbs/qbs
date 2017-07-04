@@ -1399,8 +1399,9 @@ void ModuleLoader::handlePropertyOptions(Item *optionsItem)
 static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
 {
     if (value->type() == Value::ItemValueType) {
-        Item *valueItem = std::static_pointer_cast<ItemValue>(value)->item();
-        Item *subItem = dst->itemProperty(name, valueItem)->item();
+        const ItemValueConstPtr itemValue = std::static_pointer_cast<ItemValue>(value);
+        const Item * const valueItem = itemValue->item();
+        Item * const subItem = dst->itemProperty(name, itemValue)->item();
         for (QMap<QString, ValuePtr>::const_iterator it = valueItem->properties().constBegin();
                 it != valueItem->properties().constEnd(); ++it)
             mergeProperty(subItem, it.key(), it.value());
