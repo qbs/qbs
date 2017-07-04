@@ -60,6 +60,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/jsliterals.h>
 #include <tools/profile.h>
+#include <tools/qttools.h>
 #include <tools/settings.h>
 
 #include "../shared/logging/consolelogger.h"
