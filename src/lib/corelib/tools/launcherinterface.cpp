@@ -50,8 +50,27 @@
 #include <QtCore/qprocess.h>
 #include <QtNetwork/qlocalserver.h>
 
+#ifdef Q_OS_UNIX
+#include <unistd.h>
+#endif
+
 namespace qbs {
 namespace Internal {
+
+class LauncherProcess : public QProcess
+{
+public:
+    LauncherProcess(QObject *parent) : QProcess(parent) { }
+
+private:
+    void setupChildProcess() override
+    {
+#ifdef Q_OS_UNIX
+        const pid_t pid = static_cast<pid_t>(processId());
+        setpgid(pid, pid);
+#endif
+    }
+};
 
 static QString launcherSocketName()
 {
@@ -87,7 +106,7 @@ void LauncherInterface::doStart()
         emit errorOccurred(ErrorInfo(m_server->errorString()));
         return;
     }
-    m_process = new QProcess(this);
+    m_process = new LauncherProcess(this);
     connect(m_process,
             static_cast<void (QProcess::*)(QProcess::ProcessError)>(&QProcess::error),
             this, &LauncherInterface::handleProcessError);

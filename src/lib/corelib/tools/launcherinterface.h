@@ -43,13 +43,13 @@
 #include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
-class QProcess;
 class QLocalServer;
 QT_END_NAMESPACE
 
 namespace qbs {
 class ErrorInfo;
 namespace Internal {
+class LauncherProcess;
 class LauncherSocket;
 
 class LauncherInterface : public QObject
@@ -78,7 +78,7 @@ private:
 
     QLocalServer * const m_server;
     LauncherSocket * const m_socket;
-    QProcess * m_process = nullptr;
+    LauncherProcess * m_process = nullptr;
     int m_startRequests = 0;
 };
 
