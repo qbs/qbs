@@ -1383,16 +1383,15 @@ void ModuleLoader::handlePropertyOptions(Item *optionsItem)
         throw ErrorInfo(Tr::tr("PropertyOptions item refers to non-existing property '%1'")
                         .arg(name), optionsItem->location());
     }
-    // TODO: Uncomment in 1.10
-//    if (property && decl.isExpired()) {
-//        ErrorInfo e(Tr::tr("Property '%1' was scheduled for removal in version %2, but "
-//                           "is still present.")
-//                    .arg(name).arg(removalVersion.toString()),
-//                    property->location());
-//        e.append(Tr::tr("Removal version for '%1' specified here.").arg(name),
-//                 optionsItem->location());
-//        m_logger.printWarning(e);
-//    }
+    if (property && decl.isExpired()) {
+        ErrorInfo e(Tr::tr("Property '%1' was scheduled for removal in version %2, but "
+                           "is still present.")
+                    .arg(name).arg(removalVersion.toString()),
+                    property->location());
+        e.append(Tr::tr("Removal version for '%1' specified here.").arg(name),
+                 optionsItem->location());
+        m_logger.printWarning(e);
+    }
     optionsItem->parent()->setPropertyDeclaration(name, decl);
 }
 
