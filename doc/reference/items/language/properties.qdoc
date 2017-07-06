@@ -31,6 +31,7 @@
     \nextpage propertyoptions-item.html
     \ingroup list-of-language-items
     \ingroup list-of-items
+    \keyword QML.Properties
 
     \title Properties Item
     \brief Provides conditional setting of properties.

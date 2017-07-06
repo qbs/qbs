@@ -31,6 +31,7 @@
     \nextpage cppapplication-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
+    \keyword QML.AutotestRunner
 
     \title AutotestRunner Item
     \brief A product that runs all autotests in the project.

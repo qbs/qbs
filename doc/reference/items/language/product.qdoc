@@ -31,6 +31,7 @@
     \nextpage project-item.html
     \ingroup list-of-language-items
     \ingroup list-of-items
+    \keyword QML.Product
 
     \title Product Item
     \brief Represents the result of a build process.

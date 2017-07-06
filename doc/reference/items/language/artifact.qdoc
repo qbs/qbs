@@ -30,6 +30,7 @@
     \nextpage depends-item.html
     \ingroup list-of-language-items
     \ingroup list-of-items
+    \keyword QML.Artifact
 
     \title Artifact Item
     \brief Describes a file produced by a \c Rule.

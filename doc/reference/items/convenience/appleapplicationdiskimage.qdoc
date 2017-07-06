@@ -31,6 +31,7 @@
     \nextpage application-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
+    \keyword QML.AppleApplicationDiskImage
 
     \title AppleApplicationDiskImage Item
     \brief Represents a product that is an Apple application drag 'n' drop disk image installer.

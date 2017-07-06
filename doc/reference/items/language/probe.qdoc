@@ -31,6 +31,7 @@
     \nextpage product-item.html
     \ingroup list-of-language-items
     \ingroup list-of-items
+    \keyword QML.Probe
 
     \title Probe Item
     \brief Locates files outside the project.

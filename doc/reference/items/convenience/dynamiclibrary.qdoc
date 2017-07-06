@@ -31,6 +31,7 @@
     \nextpage innosetup-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
+    \keyword QML.DynamicLibrary
 
     \title DynamicLibrary Item
     \brief Represents a product that is a dynamic library.

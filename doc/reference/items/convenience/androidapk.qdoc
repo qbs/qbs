@@ -30,6 +30,7 @@
     \nextpage applediskimage-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
+    \keyword QML.AndroidApk
 
     \title AndroidApk Item
     \brief Represents an Android application package.

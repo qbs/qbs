@@ -31,6 +31,7 @@
     \nextpage rule-item.html
     \ingroup list-of-language-items
     \ingroup list-of-items
+    \keyword QML.PropertyOptions
 
     \title PropertyOptions Item
     \brief Provides inline documentation for properties within product and module items.

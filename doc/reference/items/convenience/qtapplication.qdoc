@@ -31,6 +31,7 @@
     \nextpage qtguiapplication-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
+    \keyword QML.QtApplication
 
     \title QtApplication Item
     \brief Represents a product of application type with a dependency to the Qt Core module.
