@@ -91,6 +91,10 @@ public:
 
     void handleEvaluationError(const Item *item, const QString &name,
             const QScriptValue &scriptValue);
+
+    void setPathPropertiesBaseDir(const QString &dirPath);
+    void clearPathPropertiesBaseDir();
+
 private:
     void onItemPropertyChanged(Item *item);
     bool evaluateProperty(QScriptValue *result, const Item *item, const QString &name,

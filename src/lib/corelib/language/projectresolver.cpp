@@ -600,6 +600,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
         propsPerModule[moduleName] << fullPropName.last();
     }
     EvalCacheEnabler cachingEnabler(m_evaluator);
+    m_evaluator->setPathPropertiesBaseDir(m_productContext->product->sourceDirectory);
     for (const Item::Module &module : group->modules()) {
         const QString &fullModName = module.name.toString();
         const QStringList propsForModule = propsPerModule.take(fullModName);
@@ -611,6 +612,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
         modulesMap.insert(fullModName,
                           evaluateProperties(module.item, module.item, reusableValues, true));
     }
+    m_evaluator->clearPathPropertiesBaseDir();
     QVariantMap newValues = currentValues;
     newValues.insert(QLatin1String("modules"), modulesMap);
     return newValues;
@@ -1263,14 +1265,12 @@ QVariantMap ProjectResolver::evaluateProperties(const Item *item, const Item *pr
             // NOTE: Loses type information if scriptValue.isUndefined == true,
             //       as such QScriptValues become invalid QVariants.
             QVariant v = scriptValue.toVariant();
-            if (pd.type() == PropertyDeclaration::Path && v.isValid())
-                v = convertPathProperty(v.toString(),
-                                        m_productContext->product->sourceDirectory);
-            else if (pd.type() == PropertyDeclaration::PathList)
-                v = convertPathListProperty(v.toStringList(),
-                                            m_productContext->product->sourceDirectory);
-            else if (pd.type() == PropertyDeclaration::StringList)
+            if (pd.type() == PropertyDeclaration::Path && v.isValid()) {
+                v = v.toString();
+            } else if (pd.type() == PropertyDeclaration::PathList
+                       || pd.type() == PropertyDeclaration::StringList) {
                 v = v.toStringList();
+            }
             result[it.key()] = v;
             break;
         }
@@ -1297,23 +1297,11 @@ QVariantMap ProjectResolver::evaluateProperties(const Item *item, const Item *pr
 QVariantMap ProjectResolver::createProductConfig()
 {
     EvalCacheEnabler cachingEnabler(m_evaluator);
+    m_evaluator->setPathPropertiesBaseDir(m_productContext->product->sourceDirectory);
     QVariantMap cfg = evaluateModuleValues(m_productContext->item);
     cfg = evaluateProperties(m_productContext->item, m_productContext->item, cfg);
+    m_evaluator->clearPathPropertiesBaseDir();
     return cfg;
-}
-
-QString ProjectResolver::convertPathProperty(const QString &path, const QString &dirPath) const
-{
-    return path.isEmpty() ? path : QDir::cleanPath(FileInfo::resolvePath(dirPath, path));
-}
-
-QStringList ProjectResolver::convertPathListProperty(const QStringList &paths,
-                                                     const QString &dirPath) const
-{
-    QStringList result;
-    for (const QString &path : paths)
-        result += convertPathProperty(path, dirPath);
-    return result;
 }
 
 void ProjectResolver::callItemFunction(const ItemFuncMap &mappings, Item *item,

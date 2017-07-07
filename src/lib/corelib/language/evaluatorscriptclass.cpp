@@ -429,10 +429,10 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
     }
 }
 
-static QString overriddenSourceDirectory(const Item *item)
+static QString overriddenSourceDirectory(const Item *item, const QString &defaultValue)
 {
     const VariantValuePtr v = item->variantProperty(QLatin1String("_qbs_sourceDir"));
-    return v ? v->value().toString() : QString();
+    return v ? v->value().toString() : defaultValue;
 }
 
 static void makeTypeError(const ErrorInfo &error, QScriptValue &v)
@@ -449,7 +449,8 @@ static void makeTypeError(const PropertyDeclaration &decl, const CodeLocation &l
     makeTypeError(error, v);
 }
 
-static void convertToPropertyType(const Item *item, const PropertyDeclaration& decl,
+static void convertToPropertyType(const QString &pathPropertiesBaseDir, const Item *item,
+                                  const PropertyDeclaration& decl,
                                   const Value *value, QScriptValue &v)
 {
     if (value->type() == Value::VariantValueType && v.isUndefined() && !decl.isScalar()) {
@@ -479,9 +480,10 @@ static void convertToPropertyType(const Item *item, const PropertyDeclaration& d
             makeTypeError(decl, location, v);
             break;
         }
-        const QString srcDir = overriddenSourceDirectory(item);
+        const QString srcDir = overriddenSourceDirectory(item, pathPropertiesBaseDir);
         if (!srcDir.isEmpty())
-            v = v.engine()->toScriptValue(FileInfo::resolvePath(srcDir, v.toString()));
+            v = v.engine()->toScriptValue(QDir::cleanPath(
+                                              FileInfo::resolvePath(srcDir, v.toString())));
         break;
     }
     case PropertyDeclaration::String:
@@ -489,7 +491,7 @@ static void convertToPropertyType(const Item *item, const PropertyDeclaration& d
             makeTypeError(decl, location, v);
         break;
     case PropertyDeclaration::PathList:
-        srcDir = overriddenSourceDirectory(item);
+        srcDir = overriddenSourceDirectory(item, pathPropertiesBaseDir);
         // Fall-through.
     case PropertyDeclaration::StringList:
     {
@@ -521,7 +523,8 @@ static void convertToPropertyType(const Item *item, const PropertyDeclaration& d
             }
             if (srcDir.isEmpty())
                 continue;
-            elem = v.engine()->toScriptValue(FileInfo::resolvePath(srcDir, elem.toString()));
+            elem = v.engine()->toScriptValue(
+                        QDir::cleanPath(FileInfo::resolvePath(srcDir, elem.toString())));
             v.setProperty(i, elem);
         }
         break;
@@ -614,7 +617,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
         converter.start();
 
         const PropertyDeclaration decl = data->item->propertyDeclaration(name.toString());
-        convertToPropertyType(data->item, decl, value.get(), result);
+        convertToPropertyType(m_pathPropertiesBaseDir, data->item, decl, value.get(), result);
     }
 
     if (debugProperties)

@@ -190,6 +190,16 @@ void Evaluator::handleEvaluationError(const Item *item, const QString &name,
     throw ErrorInfo(message, CodeLocation(filePath, line, -1, false));
 }
 
+void Evaluator::setPathPropertiesBaseDir(const QString &dirPath)
+{
+    m_scriptClass->setPathPropertiesBaseDir(dirPath);
+}
+
+void Evaluator::clearPathPropertiesBaseDir()
+{
+    m_scriptClass->clearPathPropertiesBaseDir();
+}
+
 bool Evaluator::evaluateProperty(QScriptValue *result, const Item *item, const QString &name,
         bool *propertyWasSet)
 {

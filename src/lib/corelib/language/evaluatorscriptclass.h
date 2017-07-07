@@ -77,6 +77,9 @@ public:
     PropertyDependencies propertyDependencies() const { return m_propertyDependencies; }
     void clearPropertyDependencies() { m_propertyDependencies.clear(); }
 
+    void setPathPropertiesBaseDir(const QString &dirPath) { m_pathPropertiesBaseDir = dirPath; }
+    void clearPathPropertiesBaseDir() { m_pathPropertiesBaseDir.clear(); }
+
 private:
     QueryFlags queryItemProperty(const EvaluationData *data,
                                  const QString &name,
@@ -115,6 +118,7 @@ private:
     Set<Value *> m_currentNextChain;
     PropertyDependencies m_propertyDependencies;
     std::stack<QualifiedId> m_requestedProperties;
+    QString m_pathPropertiesBaseDir;
 };
 
 } // namespace Internal

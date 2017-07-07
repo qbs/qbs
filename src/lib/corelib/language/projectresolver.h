@@ -116,8 +116,6 @@ private:
     QVariantMap evaluateProperties(const Item *item, const Item *propertiesContainer,
                                    const QVariantMap &tmplt, bool lookupPrototype = true);
     QVariantMap createProductConfig();
-    QString convertPathProperty(const QString &path, const QString &dirPath) const;
-    QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
 
     struct ProductDependencyInfo
