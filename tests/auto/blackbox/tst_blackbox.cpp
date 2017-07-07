@@ -625,7 +625,9 @@ void TestBlackbox::dependencyProfileMismatch()
 void TestBlackbox::deprecatedProperty()
 {
     QDir::setCurrent(testDataDir + "/deprecated-property");
-    QVERIFY(runQbs(QStringList("-q")) != 0);
+    QbsRunParameters params(QStringList("-q"));
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
     QVERIFY2(m_qbsStderr.contains("deprecated-property.qbs:6:24 The property 'oldProp' is "
             "deprecated and will be removed in Qbs 99.9.0."), m_qbsStderr.constData());
     QVERIFY2(m_qbsStderr.contains("deprecated-property.qbs:7:28 The property 'veryOldProp' can no "
