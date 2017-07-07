@@ -72,6 +72,11 @@ static void tryCreateBuildDirectory(const QString &buildDir, const QString &buil
     }
 }
 
+static bool appNamesAreEqual(const QString &app1, const QString &app2)
+{
+    return QString::compare(app1, app2, HostOsInfo::fileNameCaseSensitivity()) == 0;
+}
+
 BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logger &logger,
                                    bool waitIndefinitely, ProgressObserver *observer)
     : m_lockFile(buildGraphFilePath + QLatin1String(".lock"))
@@ -97,7 +102,7 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
             QString hostName;
             QString appName;
             if (m_lockFile.getLockInfo(&pid, &hostName, &appName)) {
-                if ((!hasQtBug53392()) || appName == processNameByPid(pid)) {
+                if ((!hasQtBug53392()) || appNamesAreEqual(appName, processNameByPid(pid))) {
                     throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': "
                                            "Already locked by '%2' (PID %3).")
                                     .arg(buildGraphFilePath, appName).arg(pid));
