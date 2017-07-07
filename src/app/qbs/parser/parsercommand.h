@@ -213,6 +213,19 @@ private:
     QList<CommandLineOption::Type> supportedOptions() const Q_DECL_OVERRIDE;
 };
 
+class ListProductsCommand : public Command
+{
+public:
+    ListProductsCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
+
+private:
+    CommandType type() const override { return ListProductsCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
+};
+
 class HelpCommand : public Command
 {
 public:

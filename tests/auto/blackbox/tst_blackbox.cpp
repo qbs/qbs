@@ -3169,6 +3169,20 @@ void TestBlackbox::linkerScripts()
     QVERIFY2(nmOutput.contains("TEST_SYMBOL2"), nmOutput.constData());
 }
 
+void TestBlackbox::listProducts()
+{
+    QDir::setCurrent(testDataDir + "/list-products");
+    QCOMPARE(runQbs(QbsRunParameters("list-products")), 0);
+    m_qbsStdout.replace("\r\n", "\n");
+    QVERIFY2(m_qbsStdout.contains(
+                 "a\n"
+                 "b {\"architecture\":\"mips\",\"buildVariant\":\"debug\"}\n"
+                 "b {\"architecture\":\"mips\",\"buildVariant\":\"release\"}\n"
+                 "b {\"architecture\":\"vax\",\"buildVariant\":\"debug\"}\n"
+                 "b {\"architecture\":\"vax\",\"buildVariant\":\"release\"}\n"
+                 "c\n"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::listPropertiesWithOuter()
 {
     QDir::setCurrent(testDataDir + "/list-properties-with-outer");

@@ -109,6 +109,7 @@ private slots:
     void linkerMode();
     void lexyacc();
     void linkerScripts();
+    void listProducts();
     void listPropertiesWithOuter();
     void listPropertyOrder();
     void loadableModule();

@@ -373,6 +373,7 @@ QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() cons
             << commandPool.getCommand(UpdateTimestampsCommandType)
             << commandPool.getCommand(InstallCommandType)
             << commandPool.getCommand(DumpNodesTreeCommandType)
+            << commandPool.getCommand(ListProductsCommandType)
             << commandPool.getCommand(HelpCommandType);
 }
 
@@ -597,7 +598,7 @@ bool CommandLineParser::CommandLineParserPrivate::withNonDefaultProducts() const
 
 bool CommandLineParser::CommandLineParserPrivate::dryRun() const
 {
-     if (command->type() == GenerateCommandType)
+     if (command->type() == GenerateCommandType || command->type() == ListProductsCommandType)
          return true;
      return optionPool.dryRunOption()->enabled();
 }

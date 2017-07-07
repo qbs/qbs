@@ -120,6 +120,7 @@ void CommandLineFrontend::start()
         case StatusCommandType:
         case InstallCommandType:
         case DumpNodesTreeCommandType:
+        case ListProductsCommandType:
             if (m_parser.buildConfigurations().count() > 1) {
                 QString error = Tr::tr("Invalid use of command '%1': There can be only one "
                                "build configuration.\n").arg(m_parser.commandName());
@@ -393,6 +394,10 @@ void CommandLineFrontend::handleProjectsResolved()
         dumpNodesTree();
         qApp->quit();
         break;
+    case ListProductsCommandType:
+        listProducts();
+        qApp->quit();
+        break;
     case HelpCommandType:
         Q_ASSERT_X(false, Q_FUNC_INFO, "Impossible.");
     }
@@ -539,6 +544,23 @@ void CommandLineFrontend::dumpNodesTree()
                                                              .value(m_projects.first()));
     if (error.hasError())
         throw error;
+}
+
+void CommandLineFrontend::listProducts()
+{
+    const QList<ProductData> products = productsToUse().begin().value();
+    QStringList output;
+    for (const ProductData &p : products) {
+        QString line = p.name();
+        if (!p.multiplexConfigurationId().isEmpty()) {
+            const QString humanReadableConfig = QString::fromUtf8(
+                        QByteArray::fromBase64(p.multiplexConfigurationId().toUtf8()));
+            line += QLatin1Char(' ') + humanReadableConfig;
+        }
+        output += line;
+    }
+    output.sort();
+    qbsInfo() << output.join(QLatin1Char('\n'));
 }
 
 void CommandLineFrontend::connectBuildJobs()

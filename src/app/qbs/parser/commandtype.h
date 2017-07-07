@@ -44,7 +44,7 @@ namespace qbs {
 enum CommandType {
     ResolveCommandType, BuildCommandType, CleanCommandType, RunCommandType, ShellCommandType,
     StatusCommandType, UpdateTimestampsCommandType, DumpNodesTreeCommandType,
-    InstallCommandType, HelpCommandType, GenerateCommandType
+    InstallCommandType, HelpCommandType, GenerateCommandType, ListProductsCommandType,
 };
 
 } // namespace qbs

@@ -524,6 +524,30 @@ QList<CommandLineOption::Type> DumpNodesTreeCommand::supportedOptions() const
             << CommandLineOption::ProductsOptionType;
 }
 
+QString ListProductsCommand::shortDescription() const
+{
+    return Tr::tr("Lists all products in the project, including sub-projects.");
+}
+
+QString ListProductsCommand::longDescription() const
+{
+    QString description = Tr::tr("qbs %1 [options] [[configuration-name] "
+                                 "[property:value] ...] ...\n").arg(representation());
+    return description += supportedOptionsDescription();
+}
+
+QString ListProductsCommand::representation() const
+{
+    return QLatin1String("list-products");
+}
+
+QList<CommandLineOption::Type> ListProductsCommand::supportedOptions() const
+{
+    return QList<CommandLineOption::Type>()
+            << CommandLineOption::FileOptionType
+            << CommandLineOption::BuildDirectoryOptionType;
+}
+
 QString HelpCommand::shortDescription() const
 {
     return Tr::tr("Show general or command-specific help.");
