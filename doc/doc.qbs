@@ -1,7 +1,7 @@
 import qbs 1.0
 
 Product {
-    name: "documentation"
+    name: "qbs documentation"
     builtByDefault: false
     type: "qch"
     Depends { name: "Qt.core" }
