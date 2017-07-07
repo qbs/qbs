@@ -47,6 +47,7 @@ private slots:
     void badInterpreter();
     void buildDirectories();
     void buildEnvChange();
+    void buildGraphVersions();
     void changedFiles_data();
     void changedFiles();
     void changeInDisabledProduct();

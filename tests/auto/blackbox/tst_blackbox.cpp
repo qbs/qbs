@@ -485,6 +485,36 @@ void TestBlackbox::buildEnvChange()
     QVERIFY(runQbs(params) != 0);
 }
 
+void TestBlackbox::buildGraphVersions()
+{
+    QDir::setCurrent(testDataDir + "/build-graph-versions");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QFile bgFile(relativeBuildGraphFilePath());
+    QVERIFY2(bgFile.open(QIODevice::ReadWrite), qPrintable(bgFile.errorString()));
+    bgFile.write("blubb");
+    bgFile.close();
+
+    // The first attempt at simple rebuilding as well as subsequent ones must fail.
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("Cannot use stored build graph"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.contains("Use the 'resolve' command"), m_qbsStderr.constData());
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("Cannot use stored build graph"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.contains("Use the 'resolve' command"), m_qbsStderr.constData());
+
+    // On re-resolving, the error turns into a warning and a new build graph is created.
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    QVERIFY2(m_qbsStderr.contains("Cannot use stored build graph"), m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStderr.contains("Use the 'resolve' command"), m_qbsStderr.constData());
+
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStderr.contains("Cannot use stored build graph"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::changedFiles_data()
 {
     QTest::addColumn<bool>("useChangedFilesForInitialBuild");

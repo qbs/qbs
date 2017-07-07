@@ -64,6 +64,8 @@ public:
     void setStoredProfiles(const QVariantMap &profiles);
     TopLevelProjectPtr loadProject(const SetupProjectParameters &parameters);
 
+    static void setupProjectFilePath(SetupProjectParameters &parameters);
+
 private:
     Logger m_logger;
     ProgressObserver *m_progressObserver;
