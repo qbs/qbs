@@ -626,6 +626,7 @@ void TestBlackbox::deprecatedProperty()
 {
     QDir::setCurrent(testDataDir + "/deprecated-property");
     QVERIFY(runQbs(QStringList("-q")) != 0);
+    m_qbsStderr = QDir::fromNativeSeparators(QString::fromLocal8Bit(m_qbsStderr)).toLocal8Bit();
     QVERIFY2(m_qbsStderr.contains("deprecated-property.qbs:6:24 The property 'oldProp' is "
             "deprecated and will be removed in Qbs 99.9.0."), m_qbsStderr.constData());
     QVERIFY2(m_qbsStderr.contains("deprecated-property.qbs:7:28 The property 'veryOldProp' can no "
