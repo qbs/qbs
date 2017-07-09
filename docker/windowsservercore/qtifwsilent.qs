@@ -23,6 +23,11 @@ Controller.prototype.TargetDirectoryPageCallback = function() {
 }
 
 Controller.prototype.ComponentSelectionPageCallback = function() {
+    var widget = gui.currentPageWidget();
+    widget.selectComponent("qt.591.win32_msvc2015");
+    widget.selectComponent("qt.591.win64_msvc2015_64");
+    widget.selectComponent("qt.tools.vcredist_msvc2015_x86");
+    widget.selectComponent("qt.tools.vcredist_msvc2015_x64");
     gui.clickButton(buttons.NextButton);
 }
 
