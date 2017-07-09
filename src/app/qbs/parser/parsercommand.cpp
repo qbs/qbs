@@ -73,7 +73,8 @@ void Command::addAllToAdditionalArguments(QStringList &input)
 void Command::addOneToAdditionalArguments(const QString &argument)
 {
     if (argument.startsWith(QLatin1Char('-'))) {
-        throwError(Tr::tr("Encountered option '%1', expected a build variant or property.")
+        throwError(Tr::tr("Encountered option '%1', expected a build "
+                          "configuration name or property.")
                    .arg(argument));
     }
     m_additionalArguments << argument;
@@ -177,7 +178,8 @@ QString ResolveCommand::shortDescription() const
 
 QString ResolveCommand::longDescription() const
 {
-    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
+    QString description = Tr::tr(
+                "qbs %1 [options] [[configuration-name] [property:value] ...] ...\n")
             .arg(representation());
     description += Tr::tr("Resolves a project in one or more configuration(s).\n");
     return description += supportedOptionsDescription();
@@ -216,7 +218,8 @@ QString GenerateCommand::shortDescription() const
 
 QString GenerateCommand::longDescription() const
 {
-    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
+    QString description = Tr::tr(
+                "qbs %1 [options] [[configuration-name] [property:value] ...] ...\n")
             .arg(representation());
     description += Tr::tr("Generates files to build the project using another build tool.\n");
     return description += supportedOptionsDescription();
@@ -248,7 +251,8 @@ QString BuildCommand::shortDescription() const
 
 QString BuildCommand::longDescription() const
 {
-    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
+    QString description = Tr::tr(
+                "qbs %1 [options] [[configuration-name] [property:value] ...] ...\n")
             .arg(representation());
     description += Tr::tr("Builds a project in one or more configuration(s).\n");
     return description += supportedOptionsDescription();
@@ -289,7 +293,8 @@ QString CleanCommand::shortDescription() const
 
 QString CleanCommand::longDescription() const
 {
-    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
+    QString description = Tr::tr(
+                "qbs %1 [options] [[configuration-name] [property:value] ...] ...\n")
             .arg(representation());
     description += Tr::tr("Removes build artifacts for the given project and configuration(s).\n");
     return description += supportedOptionsDescription();
@@ -317,7 +322,8 @@ QString InstallCommand::shortDescription() const
 
 QString InstallCommand::longDescription() const
 {
-    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...]\n")
+    QString description = Tr::tr(
+                "qbs %1 [options] [[configuration-name] [property:value] ...]\n")
             .arg(representation());
     description += Tr::tr("Install all files marked as installable "
                           "to their respective destinations.\n"
@@ -352,7 +358,8 @@ QString RunCommand::shortDescription() const
 
 QString RunCommand::longDescription() const
 {
-    QString description = Tr::tr("qbs %1 [options] [variant] [property:value] ... "
+    QString description = Tr::tr(
+                "qbs %1 [options] [configuration-name] [property:value] ... "
                                  "[ -- <arguments>]\n").arg(representation());
     description += Tr::tr("Run the specified product's executable with the specified arguments.\n");
     description += Tr::tr("If the project has only one product, the '%1' option may be omitted.\n")
@@ -393,7 +400,8 @@ QString ShellCommand::shortDescription() const
 
 QString ShellCommand::longDescription() const
 {
-    QString description = Tr::tr("qbs %1 [options] [variant] [property:value] ...\n")
+    QString description = Tr::tr(
+                "qbs %1 [options] [configuration-name] [property:value] ...\n")
             .arg(representation());
     description += Tr::tr("Opens a shell in the same environment that a build with the given "
                           "parameters would use.\n");
@@ -427,7 +435,8 @@ QString StatusCommand::shortDescription() const
 
 QString StatusCommand::longDescription() const
 {
-    QString description = Tr::tr("qbs %1 [options] [variant] [property:value] ...\n")
+    QString description = Tr::tr(
+                "qbs %1 [options] [configuration-name] [property:value] ...\n")
             .arg(representation());
     description += Tr::tr("Lists all the files in the project directory and shows whether "
                           "they are known to qbs in the respective configuration.\n");
@@ -457,7 +466,8 @@ QString UpdateTimestampsCommand::shortDescription() const
 
 QString UpdateTimestampsCommand::longDescription() const
 {
-    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
+    QString description = Tr::tr(
+                "qbs %1 [options] [[configuration-name] [property:value] ...] ...\n")
             .arg(representation());
     description += Tr::tr("Update the timestamps of all build artifacts, causing the next "
             "builds of the project to do nothing if no updates to source files happen in between.\n"
@@ -491,7 +501,8 @@ QString DumpNodesTreeCommand::shortDescription() const
 
 QString DumpNodesTreeCommand::longDescription() const
 {
-    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
+    QString description = Tr::tr(
+                "qbs %1 [options] [[configuration-name] [property:value] ...] ...\n")
             .arg(representation());
     description += Tr::tr("Internal command; for debugging purposes only.\n");
     return description += supportedOptionsDescription();
