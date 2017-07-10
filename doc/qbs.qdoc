@@ -142,6 +142,86 @@
                                         implies a dependency to the Qt GUI module.
     \endtable
 
+    \section1 Docker
+
+    A set of Docker images for developing \QBS (which are maintained by the \QBS team) is available
+    \l{https://hub.docker.com/u/qbsbuild/}{on Docker Hub}.
+    Both Windows Server Core and Debian Linux container types are available.
+
+    \note The source code for the \QBS development Docker images is located in the \c{docker/}
+    directory of the \QBS source tree, if you wish to build them yourself.
+
+    \section2 Linux Containers
+
+    The easiest way to get started is to build \QBS using a Linux container. These types of
+    containers are supported out of the box on all the supported host platforms: Windows, macOS,
+    and Linux. Run the following to download the \QBS development image based on Debian 9
+    \e Stretch:
+
+    \code
+        docker pull qbsbuild/qbsdev:stretch
+    \endcode
+
+    You can then create a new container with the \QBS source directory mounted from your host
+    machine's file system, by running:
+
+    \code
+        docker run -it -v $PWD:/qbs -w /qbs qbsbuild/qbsdev:stretch
+    \endcode
+
+    Or with a slightly different syntax for Windows:
+
+    \code
+        docker run -it -v %CD%:/qbs -w /qbs qbsbuild/qbsdev:stretch
+    \endcode
+
+    You will now be in an interactive Linux shell where you can develop and build \QBS.
+
+    \section2 Windows Containers
+
+    To build \QBS for Windows using Windows containers, your host OS must be running Windows 10 Pro
+    and have Hyper-V enabled. \l{https://docs.docker.com/docker-for-windows/#switch-between-windows-and-linux-containers}{Switch your Docker environment to use Windows containers}, then run the
+    following command to download the Windows 10 \QBS development image:
+
+    \code
+        docker pull qbsbuild/qbsdev:windowsservercore
+    \endcode
+
+    You can then create a new container with the \QBS source directory mounted from your host
+    machine's file system, by running:
+
+    \code
+        docker run -it -v %CD%:C:\qbs -w C:\qbs qbsbuild/qbsdev:windowsservercore
+    \endcode
+
+    If you want to use Windows containers on a macOS or Linux host, you will have to create a
+    virtual machine running Windows 10 and register it with \c{docker-machine}. There is at least
+    \l{https://github.com/StefanScherer/windows-docker-machine}{one Open Source project}
+    that helps to facilitate this by using using Packer, Vagrant, and VirtualBox.
+
+    The \c{docker run} command to spawn a Windows container on a Unix host will look slightly
+    different (assuming \c windows is the name of the Docker machine associated with the Windows
+    container hosting VM):
+
+    \code
+        eval $(docker-machine env windows)
+        docker run -it -v C:$PWD:C:\\qbs -w C:\\qbs qbsbuild/qbsdev:windowsservercore
+    \endcode
+
+    \section2 Building Release Packages
+
+    Release packages for \QBS for Windows can be built using the following command on Windows:
+
+    \code
+        docker run --rm -v %CD%:C:\qbs -w C:\qbs qbsbuild/qbsdev:windowsservercore cmd /c scripts\make-release-archives
+    \endcode
+
+    For building release packages for Windows on macOS or Linux:
+
+    \code
+        eval $(docker-machine env windows)
+        docker run --rm -v C:$PWD:C:\\qbs -w C:\\qbs qbsbuild/qbsdev:windowsservercore cmd /c scripts\\make-release-archives
+    \endcode
 */
 
 

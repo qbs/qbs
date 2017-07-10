@@ -32,21 +32,5 @@ Installation ("make install") is not needed. It is however possible, using
 
     make install INSTALL_ROOT=$INSTALL_DIRECTORY
 
-You can also build Qbs for Windows using Docker on Windows 10 systems.
-Switch your Docker environment to use Windows containers, then run the
-following to download the Windows 10 Qbs development image:
-
-    docker pull qtproject/qbswindowsservercore
-
-The Dockerfile from which this image is built is located in the docker
-directory of the qbs source tree, should you wish to build it yourself.
-
-You can then use the image to perform builds and develop Qbs. For example:
-
-    # Run a container interactively with cmd shell access,
-    # mounting the current directory inside at C:\qbs
-    docker run -i -v %CD%:C:\qbs -w C:\qbs qtproject/qbswindowsservercore
-
-    # Perform a release build with a temporary container instance,
-    # and copy the output artifacts to the working directory
-    docker run --rm -v %CD%:C:\qbs -w C:\qbs qtproject/qbswindowsservercore cmd /c scripts\make-release-archives
+You can also build and develop Qbs using Docker. For more information,
+see "Appendix A: Building Qbs" in the Qbs Manual.
