@@ -16,7 +16,7 @@ Project {
             name: "Scripts"
             prefix: "../../scripts/"
             files: [
-                "make-release-archive.sh",
+                "make-release-archives.sh",
                 "make-release-archives.bat",
             ]
         }
