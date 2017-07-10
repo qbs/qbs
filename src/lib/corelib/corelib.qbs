@@ -405,7 +405,6 @@ QbsLibrary {
             "stlutils.h",
             "toolchains.cpp",
             "version.cpp",
-            "version.h",
             "visualstudioversioninfo.cpp",
             "visualstudioversioninfo.h",
             "vsenvironmentdetector.cpp",
@@ -435,6 +434,7 @@ QbsLibrary {
             "settingsmodel.h",
             "setupprojectparameters.h",
             "toolchains.h",
+            "version.h",
         ]
         qbs.install: qbsbuildconfig.installApiHeaders
         qbs.installDir: headerInstallPrefix + "/tools"

@@ -125,7 +125,8 @@ qbs_enable_unit_tests {
         $$PWD/generatorpluginmanager.h \
         $$PWD/installoptions.h \
         $$PWD/setupprojectparameters.h \
-        $$PWD/toolchains.h
+        $$PWD/toolchains.h \
+        $$PWD/version.h
     tools_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/tools
     INSTALLS += tools_headers
 }
