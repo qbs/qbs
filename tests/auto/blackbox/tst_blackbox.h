@@ -126,6 +126,7 @@ private slots:
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
     void pchChangeTracking();
+    void perGroupDefineInExportItem();
     void pkgConfigProbe();
     void pkgConfigProbe_data();
     void pkgConfigProbeSysroot();

@@ -1836,6 +1836,15 @@ void TestBlackbox::pchChangeTracking()
     QVERIFY2(!m_qbsStdout.contains("precompiling pch.h (cpp)"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::perGroupDefineInExportItem()
+{
+    QDir::setCurrent(testDataDir + "/per-group-define-in-export-item");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QEXPECT_FAIL(0, "Declaration check is overeager", Abort);
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::pkgConfigProbe()
 {
     const QString exe = findExecutable(QStringList() << "pkg-config");
