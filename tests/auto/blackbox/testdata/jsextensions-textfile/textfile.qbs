@@ -26,6 +26,7 @@ Product {
                     file2.writeLine(line);
                 }
                 file1.truncate();
+                file2.writeLine(file1.filePath());
                 file2.writeLine(file1.atEof());
                 file1.close();
                 file2.close();

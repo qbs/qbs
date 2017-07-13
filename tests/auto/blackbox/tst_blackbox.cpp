@@ -2959,12 +2959,13 @@ void TestBlackbox::jsExtensionsTextFile()
     QVERIFY(file2.exists());
     QVERIFY(file2.open(QIODevice::ReadOnly));
     const QList<QByteArray> lines = file2.readAll().trimmed().split('\n');
-    QCOMPARE(lines.count(), 5);
+    QCOMPARE(lines.count(), 6);
     QCOMPARE(lines.at(0).trimmed().constData(), "false");
     QCOMPARE(lines.at(1).trimmed().constData(), "First line.");
     QCOMPARE(lines.at(2).trimmed().constData(), "Second line.");
     QCOMPARE(lines.at(3).trimmed().constData(), "Third line.");
-    QCOMPARE(lines.at(4).trimmed().constData(), "true");
+    QCOMPARE(lines.at(4).trimmed().constData(), qPrintable(QDir::currentPath() + "/file1.txt"));
+    QCOMPARE(lines.at(5).trimmed().constData(), "true");
 }
 
 void TestBlackbox::ld()

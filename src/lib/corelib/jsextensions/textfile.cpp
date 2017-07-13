@@ -44,6 +44,7 @@
 #include <tools/hostosinfo.h>
 
 #include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/qvariant.h>
@@ -66,6 +67,7 @@ public:
     ~TextFile();
 
     Q_INVOKABLE void close();
+    Q_INVOKABLE QString filePath();
     Q_INVOKABLE void setCodec(const QString &codec);
     Q_INVOKABLE QString readLine();
     Q_INVOKABLE QString readAll();
@@ -173,6 +175,13 @@ void TextFile::close()
     m_file = 0;
     delete m_stream;
     m_stream = 0;
+}
+
+QString TextFile::filePath()
+{
+    if (checkForClosed())
+        return QString();
+    return QFileInfo(*m_file).absoluteFilePath();
 }
 
 void TextFile::setCodec(const QString &codec)
