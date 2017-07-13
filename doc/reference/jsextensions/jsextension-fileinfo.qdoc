@@ -44,6 +44,13 @@
     \endcode
     Returns the file name of \c filePath up to (but not including) the first '.' character.
 
+    \section2 cleanPath
+    \code
+    FileInfo.cleanPath(filePath: string): string
+    \endcode
+    Returns \c filePath without redundant separators and with resolved occurrences of
+    \c{.} and \c{..} components. For instance, \c{//usr/local/../bin/} becomes \c{/usr/bin}.
+
     \section2 completeBaseName
     \code
     FileInfo.completeBaseName(filePath: string): string
