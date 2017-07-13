@@ -69,6 +69,11 @@ void PrepareScriptObserver::onPropertyRead(const QScriptValue &object, const QSt
         engine()->addImportRequestedInScript(object.objectId());
         return;
     }
+    const auto exportsIt = m_exportsObjectIds.find(value.objectId());
+    if (exportsIt != m_exportsObjectIds.cend()) {
+        engine()->addRequestedExport(exportsIt->second);
+        return;
+    }
     const auto it = m_parameterObjects.find(objectId);
     if (it != m_parameterObjects.cend()) {
         engine()->addPropertyRequestedInScript(

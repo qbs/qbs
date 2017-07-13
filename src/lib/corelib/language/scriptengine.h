@@ -129,12 +129,14 @@ public:
         m_requestedArtifacts.setArtifactsForTag(product, tag);
     }
     void addPropertyRequestedFromArtifact(const Artifact *artifact, const Property &property);
+    void addRequestedExport(const ResolvedProduct *product) { m_requestedExports.insert(product); }
     void clearRequestedProperties() {
         m_propertiesRequestedInScript.clear();
         m_propertiesRequestedFromArtifact.clear();
         m_importsRequestedInScript.clear();
         m_productsWithRequestedDependencies.clear();
         m_requestedArtifacts.clear();
+        m_requestedExports.clear();
     }
     PropertySet propertiesRequestedInScript() const { return m_propertiesRequestedInScript; }
     QHash<QString, PropertySet> propertiesRequestedFromArtifact() const {
@@ -149,6 +151,7 @@ public:
         return RequestedDependencies(m_productsWithRequestedDependencies);
     }
     RequestedArtifacts requestedArtifacts() const { return m_requestedArtifacts; }
+    Set<const ResolvedProduct *> requestedExports() const { return m_requestedExports; }
 
     void addImportRequestedInScript(qint64 importValueId);
     std::vector<QString> importedFilesUsedInScript() const;
@@ -327,8 +330,8 @@ private:
     std::vector<qint64> m_importsRequestedInScript;
     Set<const ResolvedProduct *> m_productsWithRequestedDependencies;
     RequestedArtifacts m_requestedArtifacts;
+    Set<const ResolvedProduct *> m_requestedExports;
     ObserveMode m_observeMode = ObserveMode::Disabled;
-
     std::unordered_map<const ResolvedProduct *, QScriptValue> m_productScriptValues;
     std::unordered_map<const ResolvedProject *, QScriptValue> m_projectScriptValues;
     std::unordered_map<const ResolvedModule *, QScriptValue> m_moduleScriptValues;

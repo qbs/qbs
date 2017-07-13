@@ -67,3 +67,29 @@
     the Export item. Use the \c{importingProduct} variable to refer to the product that
     pulls in the resulting module.
 */
+
+/*!
+    \qmlproperty var Export::prefixMapping
+
+    This property allows to provide a translation of exported values between non-deployed and
+    deployed contexts. It is an array of objects with properties \c prefix and \c replacement.
+    The array's elements get applied to all other properties set in this item such that if the
+    property's value start with \c prefix, that prefix gets replaced with \c replacement.
+    It is typically used for C/C++ include paths. For instance, in a library that provides
+    header files for inclusion both directly from its source directory (when building it
+    as part of a bigger project) and from some installed location (when building an unrelated
+    project against it), you would write something like the following:
+    \code
+    Export {
+        Depends { name: cpp" }
+        cpp.includePaths: [product.sourceDirectory]
+        prefixMapping: [{
+                prefix: product.sourceDirectory,
+                replacement: FileInfo.joinPaths(qbs.installPrefix, "include")
+        }]
+    }
+    \endcode
+
+    \defaultvalue \c undefined
+    \since 1.12
+*/

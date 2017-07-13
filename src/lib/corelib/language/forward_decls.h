@@ -131,7 +131,13 @@ class ArtifactProperties;
 typedef std::shared_ptr<ArtifactProperties> ArtifactPropertiesPtr;
 typedef std::shared_ptr<const ArtifactProperties> ArtifactPropertiesConstPtr;
 
+class ExportedItem;
+using ExportedItemPtr = std::shared_ptr<ExportedItem>;
+class ExportedModule;
+class ExportedModuleDependency;
+class ExportedProperty;
 class PersistentPool;
+
 } // namespace Internal
 } // namespace qbs
 

@@ -47,6 +47,7 @@
 
 #include <language/filetags.h>
 #include <language/forward_decls.h>
+#include <language/language.h>
 #include <language/property.h>
 #include <language/propertymapinternal.h>
 #include <tools/filetime.h>
@@ -74,6 +75,8 @@ public:
                                      depsRequestedInPrepareScript, depsRequestedInCommands,
                                      commands, artifactsMapRequestedInPrepareScript,
                                      artifactsMapRequestedInCommands,
+                                     exportedModulesAccessedInPrepareScript,
+                                     exportedModulesAccessedInCommands,
                                      lastPrepareScriptExecutionTime,
                                      lastCommandExecutionTime, fileTags, properties);
     }
@@ -117,6 +120,8 @@ public:
     RequestedArtifacts artifactsMapRequestedInCommands;
     FileTime lastPrepareScriptExecutionTime;
     FileTime lastCommandExecutionTime;
+    std::unordered_map<QString, ExportedModule> exportedModulesAccessedInPrepareScript;
+    std::unordered_map<QString, ExportedModule> exportedModulesAccessedInCommands;
 
     // Only needed for API purposes
     FileTags fileTags;

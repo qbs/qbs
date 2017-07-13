@@ -266,7 +266,7 @@ private:
     void adjustDefiningItemsInGroupModuleInstances(const Item::Module &module,
                                                    const Item::Modules &dependentModules);
 
-    void mergeExportItems(const ProductContext &productContext);
+    bool mergeExportItems(const ProductContext &productContext);
     void resolveDependencies(DependsContext *dependsContext, Item *item);
     class ItemModuleList;
     void resolveDependsItem(DependsContext *dependsContext, Item *parentItem, Item *dependsItem,

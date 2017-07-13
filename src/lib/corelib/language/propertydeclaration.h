@@ -89,6 +89,7 @@ public:
 
     static Type propertyTypeFromString(const QString &typeName);
     QString typeString() const;
+    static QString typeString(Type t);
 
     const QString &name() const;
     void setName(const QString &name);

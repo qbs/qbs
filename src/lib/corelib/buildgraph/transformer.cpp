@@ -250,6 +250,10 @@ void Transformer::createCommands(ScriptEngine *engine, const PrivateScriptFuncti
     depsRequestedInPrepareScript = engine->requestedDependencies();
     artifactsMapRequestedInPrepareScript = engine->requestedArtifacts();
     lastPrepareScriptExecutionTime = FileTime::currentTime();
+    for (const ResolvedProduct * const p : engine->requestedExports()) {
+        exportedModulesAccessedInPrepareScript.insert(std::make_pair(p->uniqueName(),
+                                                                     p->exportedModule));
+    }
     engine->clearRequestedProperties();
     if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue)))
         throw engine->lastError(scriptValue, script.location());
@@ -292,6 +296,8 @@ void Transformer::rescueChangeTrackingData(const TransformerConstPtr &other)
     lastPrepareScriptExecutionTime = other->lastPrepareScriptExecutionTime;
     prepareScriptNeedsChangeTracking = other->prepareScriptNeedsChangeTracking;
     commandsNeedChangeTracking = other->commandsNeedChangeTracking;
+    exportedModulesAccessedInPrepareScript = other->exportedModulesAccessedInPrepareScript;
+    exportedModulesAccessedInCommands = other->exportedModulesAccessedInCommands;
 }
 
 } // namespace Internal

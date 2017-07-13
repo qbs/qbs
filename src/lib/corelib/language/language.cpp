@@ -940,5 +940,63 @@ bool operator==(const PrivateScriptFunction &a, const PrivateScriptFunction &b)
     return equals(a.m_sharedData.get(), b.m_sharedData.get());
 }
 
+bool operator==(const ExportedProperty &p1, const ExportedProperty &p2)
+{
+    return p1.fullName == p2.fullName
+            && p1.type == p2.type
+            && p1.sourceCode == p2.sourceCode
+            && p1.isBuiltin == p2.isBuiltin;
+}
+
+bool operator==(const ExportedModuleDependency &d1, const ExportedModuleDependency &d2)
+{
+    return d1.name == d2.name && d1.moduleProperties == d2.moduleProperties;
+}
+
+bool equals(const std::vector<ExportedItemPtr> &l1, const std::vector<ExportedItemPtr> &l2)
+{
+    static const auto cmp = [](const ExportedItemPtr &p1, const ExportedItemPtr &p2) {
+        return *p1 == *p2;
+    };
+    return l1.size() == l2.size() && std::equal(l1.cbegin(), l1.cend(), l2.cbegin(), cmp);
+}
+
+bool operator==(const ExportedItem &i1, const ExportedItem &i2)
+{
+    return i1.name == i2.name
+            && i1.properties == i2.properties
+            && equals(i1.children, i2.children);
+}
+
+bool operator==(const ExportedModule &m1, const ExportedModule &m2)
+{
+    static const auto cmpProductsByName = [](
+            const ResolvedProductConstPtr &p1,
+            const ResolvedProductConstPtr &p2) {
+        return p1->name == p2->name;
+    };
+    static const auto depMapsEqual = [](const QHash<ResolvedProductConstPtr, QVariantMap> &m1,
+            const QHash<ResolvedProductConstPtr, QVariantMap> &m2) {
+        if (m1.size() != m2.size())
+            return false;
+        for (auto it1 = m1.cbegin(), it2 = m2.cbegin(); it1 != m1.cend(); ++it1, ++it2) {
+            if (it1.key()->name != it2.key()->name)
+                return false;
+            if (it1.value() != it2.value())
+                return false;
+        }
+        return true;
+    };
+    return m1.propertyValues == m2.propertyValues
+            && m1.modulePropertyValues == m2.modulePropertyValues
+            && equals(m1.children, m2.children)
+            && m1.m_properties == m2.m_properties
+            && m1.importStatements == m2.importStatements
+            && m1.productDependencies.size() == m2.productDependencies.size()
+            && std::equal(m1.productDependencies.cbegin(), m1.productDependencies.cend(),
+                          m2.productDependencies.cbegin(), cmpProductsByName)
+            && depMapsEqual(m1.dependencyParameters, m2.dependencyParameters);
+}
+
 } // namespace Internal
 } // namespace qbs

@@ -255,6 +255,24 @@ void ModuleProperties::init(QScriptValue artifactObject, const Artifact *artifac
     setupModules(artifactObject, artifact->product.get(), artifact);
 }
 
+void ModuleProperties::setModuleScriptValue(QScriptValue targetObject,
+        const QScriptValue &moduleObject, const QString &moduleName)
+{
+    ScriptEngine * const e = static_cast<ScriptEngine *>(targetObject.engine());
+    const QualifiedId name = QualifiedId::fromString(moduleName);
+    QScriptValue obj = targetObject;
+    for (int i = 0; i < name.size() - 1; ++i) {
+        QScriptValue tmp = obj.property(name.at(i));
+        if (!tmp.isObject())
+            tmp = e->newObject();
+        obj.setProperty(name.at(i), tmp);
+        obj = tmp;
+    }
+    obj.setProperty(name.last(), moduleObject);
+    if (moduleName.size() > 1)
+        targetObject.setProperty(moduleName, moduleObject);
+}
+
 void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
                             const QString &type)
 {
@@ -279,18 +297,7 @@ void ModuleProperties::setupModules(QScriptValue &object, const ResolvedProduct 
         QScriptValue moduleObject = engine->newObject(modulePropertyScriptClass);
         moduleObject.setPrototype(moduleObjectPrototype);
         moduleObject.setData(getDataForModuleScriptValue(engine, product, artifact, module.get()));
-        const QualifiedId moduleName = QualifiedId::fromString(module->name);
-        QScriptValue obj = object;
-        for (int i = 0; i < moduleName.size() - 1; ++i) {
-            QScriptValue tmp = obj.property(moduleName.at(i));
-            if (!tmp.isObject())
-                tmp = engine->newObject();
-            obj.setProperty(moduleName.at(i), tmp);
-            obj = tmp;
-        }
-        obj.setProperty(moduleName.last(), moduleObject);
-        if (moduleName.size() > 1)
-            object.setProperty(moduleName.toString(), moduleObject);
+        setModuleScriptValue(object, moduleObject, module->name);
     }
 }
 

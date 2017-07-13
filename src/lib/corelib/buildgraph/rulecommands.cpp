@@ -70,7 +70,6 @@ static QString responseFileUsagePrefixProperty()
     return QStringLiteral("responseFileUsagePrefix");
 }
 static QString silentProperty() { return QStringLiteral("silent"); }
-static QString sourceCodeProperty() { return QStringLiteral("sourceCode"); }
 static QString stderrFilePathProperty() { return QStringLiteral("stderrFilePath"); }
 static QString stderrFilterFunctionProperty() { return QStringLiteral("stderrFilterFunction"); }
 static QString stdoutFilePathProperty() { return QStringLiteral("stdoutFilePath"); }
@@ -370,7 +369,7 @@ static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine 
     QScriptValue cmd = js_CommandBase(context, engine);
     cmd.setProperty(StringConstants::classNameProperty(),
                     engine->toScriptValue(StringConstants::javaScriptCommandType()));
-    cmd.setProperty(sourceCodeProperty(),
+    cmd.setProperty(StringConstants::sourceCodeProperty(),
                     engine->toScriptValue(commandPrototype->sourceCode()));
     cmd.setProperty(StringConstants::importScopeNamePropertyInternal(),
                     engine->toScriptValue(currentImportScopeName(context)));
@@ -407,10 +406,11 @@ void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, con
     if (importScope.isString())
         m_scopeName = importScope.toString();
 
-    const QScriptValue sourceCode = scriptValue->property(sourceCodeProperty());
+    const QScriptValue sourceCode = scriptValue->property(StringConstants::sourceCodeProperty());
     m_sourceCode = invokedSourceCode(sourceCode);
 
-    m_predefinedProperties << StringConstants::classNameProperty() << sourceCodeProperty()
+    m_predefinedProperties << StringConstants::classNameProperty()
+                           << StringConstants::sourceCodeProperty()
                            << StringConstants::importScopeNamePropertyInternal();
     applyCommandProperties(scriptValue);
 }

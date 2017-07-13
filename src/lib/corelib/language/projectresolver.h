@@ -53,6 +53,7 @@
 #include <QtCore/qstringlist.h>
 
 #include <utility>
+#include <vector>
 
 namespace qbs {
 namespace Internal {
@@ -106,6 +107,10 @@ private:
                                                   const QVariantMap &currentValues);
     void resolveGroup(Item *item, ProjectContext *projectContext);
     void resolveGroupFully(Item *item, ProjectContext *projectContext, bool isEnabled);
+    void resolveShadowProduct(Item *item, ProjectContext *);
+    void resolveExport(Item *exportItem, ProjectContext *);
+    std::unique_ptr<ExportedItem> resolveExportChild(const Item *item,
+                                                     const ExportedModule &module);
     void resolveRule(Item *item, ProjectContext *projectContext);
     void resolveRuleArtifact(const RulePtr &rule, Item *item);
     void resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact, Item *item,
@@ -117,11 +122,16 @@ private:
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
     QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true);
-    QVariantMap evaluateProperties(Item *item, bool lookupPrototype = true);
+    QVariantMap evaluateProperties(Item *item, bool lookupPrototype, bool checkErrors);
     QVariantMap evaluateProperties(const Item *item, const Item *propertiesContainer,
-                                   const QVariantMap &tmplt, bool lookupPrototype = true);
+                                   const QVariantMap &tmplt, bool lookupPrototype,
+                                   bool checkErrors);
+    void evaluateProperty(const Item *item, const QString &propName, const ValuePtr &propValue,
+                          QVariantMap &result, bool checkErrors);
     void createProductConfig(ResolvedProduct *product);
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
+    void adaptExportedPropertyValues();
+    void collectExportedProductDependencies();
 
     struct ProductDependencyInfo
     {
@@ -150,6 +160,14 @@ private:
             const QList<SourceArtifactPtr> &artifacts);
     void printProfilingInfo();
 
+    void collectPropertiesForExportItem(Item *productModuleInstance);
+    void collectPropertiesForModuleInExportItem(const Item::Module &module);
+
+    void collectPropertiesForExportItem(const QualifiedId &moduleName,
+            const ValuePtr &value, Item *moduleInstance, QVariantMap &moduleProps);
+    void setupExportedProperties(const Item *item, const QString &namePrefix,
+                                 std::vector<ExportedProperty> &properties);
+
     Evaluator *m_evaluator;
     Logger &m_logger;
     ScriptEngine *m_engine;
@@ -166,6 +184,7 @@ private:
     const SetupProjectParameters &m_setupParams;
     ModuleLoaderResult m_loadResult;
     Set<CodeLocation> m_groupLocationWarnings;
+    std::vector<std::pair<ResolvedProductPtr, Item *>> m_productExportInfo;
     qint64 m_elapsedTimeModPropEval;
     qint64 m_elapsedTimeAllPropEval;
     qint64 m_elapsedTimeGroups;

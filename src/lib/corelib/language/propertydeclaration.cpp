@@ -142,7 +142,12 @@ PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QStr
 
 QString PropertyDeclaration::typeString() const
 {
-    switch (type()) {
+    return typeString(type());
+}
+
+QString PropertyDeclaration::typeString(PropertyDeclaration::Type t)
+{
+    switch (t) {
     case Boolean: return boolString();
     case Integer: return intString();
     case Path: return StringConstants::pathType();

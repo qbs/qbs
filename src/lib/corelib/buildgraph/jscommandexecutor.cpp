@@ -152,6 +152,10 @@ private:
                     importFilesUsedInCommand.cbegin(), importFilesUsedInCommand.cend());
         transformer->depsRequestedInCommands.add(scriptEngine->productsWithRequestedDependencies());
         transformer->artifactsMapRequestedInCommands.unite(scriptEngine->requestedArtifacts());
+        for (const ResolvedProduct * const p : scriptEngine->requestedExports()) {
+            transformer->exportedModulesAccessedInCommands.insert(
+                        std::make_pair(p->uniqueName(), p->exportedModule));
+        }
         scriptEngine->clearRequestedProperties();
         if (scriptEngine->hasUncaughtException()) {
             // ### We don't know the line number of the command's sourceCode property assignment.

@@ -81,6 +81,8 @@
 namespace qbs {
 namespace Internal {
 
+static QString shadowProductPrefix() { return QStringLiteral("__shadow__"); }
+
 static QString multiplexConfigurationIdPropertyInternal()
 {
     return QStringLiteral("__multiplexConfigIdForModulePrototypes");
@@ -915,14 +917,26 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ModuleLoader::Product
         //          multiplexed variants.
         // (4) The product is multiplexed, but the dependency is not. This case is implicitly
         //     handled, because we don't have to adapt any Depends items.
+        // (5) The product is a "shadow product". In that case, we know which product
+        //     it should have a dependency on, and we make sure we depend on that.
 
         // (1) and (3a)
         if (!productIsMultiplexed && hasNonMultiplexedDependency)
             continue;
 
         QStringList multiplexIds;
+        const bool isShadowProduct = product.name.startsWith(shadowProductPrefix())
+                && product.name.mid(shadowProductPrefix().size()) == name;
         for (const ProductContext *dependency : dependencies) {
+            const bool depMatchesShadowProduct = isShadowProduct
+                    && dependency->item == product.item->parent();
             const QString depMultiplexId = dependency->multiplexConfigurationId;
+            if (depMatchesShadowProduct) { // (5)
+                dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
+                                         VariantValue::create(depMultiplexId));
+                multiplexIds.clear();
+                break;
+            }
             if (productIsMultiplexed) { // (2)
                 const ValuePtr &multiplexId = product.item->property(
                             StringConstants::multiplexConfigurationIdProperty());
@@ -985,11 +999,34 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     productContext.scope->setFile(productItem->file());
     productContext.scope->setScope(productContext.project->scope);
 
-    mergeExportItems(productContext);
+    const bool hasExportItems = mergeExportItems(productContext);
 
     setScopeForDescendants(productItem, productContext.scope);
 
     projectContext->products.push_back(productContext);
+
+    if (!hasExportItems || productContext.name.startsWith(shadowProductPrefix()))
+        return;
+
+    // This "shadow product" exists only to pull in a dependency on the actual product
+    // and nothing else, thus providing us with the pure environment that we need to
+    // evaluate the product's exported properties in isolation in the project resolver.
+    Item * const importer = Item::create(productItem->pool(), ItemType::Product);
+    importer->setProperty(QLatin1String("name"),
+                          VariantValue::create(shadowProductPrefix() + productContext.name));
+    importer->setFile(productItem->file());
+    importer->setLocation(productItem->location());
+    importer->setScope(projectContext->scope);
+    importer->setupForBuiltinType(m_logger);
+    Item * const dependsItem = Item::create(productItem->pool(), ItemType::Depends);
+    dependsItem->setProperty(QLatin1String("name"), VariantValue::create(productContext.name));
+    dependsItem->setProperty(QLatin1String("required"), VariantValue::create(false));
+    dependsItem->setFile(importer->file());
+    dependsItem->setLocation(importer->location());
+    dependsItem->setupForBuiltinType(m_logger);
+    Item::addChild(importer, dependsItem);
+    Item::addChild(productItem, importer);
+    prepareProduct(projectContext, importer);
 }
 
 void ModuleLoader::setupProductDependencies(ProductContext *productContext)
@@ -1632,7 +1669,7 @@ static void adjustParametersScopes(Item *item, Item *scope)
     }
 }
 
-void ModuleLoader::mergeExportItems(const ProductContext &productContext)
+bool ModuleLoader::mergeExportItems(const ProductContext &productContext)
 {
     std::vector<Item *> exportItems;
     QList<Item *> children = productContext.item->children();
@@ -1701,6 +1738,7 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
     pmi.exportItem = merged;
     pmi.multiplexId = productContext.multiplexConfigurationId;
     productContext.project->topLevelProject->productModules.insert(productContext.name, pmi);
+    return exportItems.size() > 0;
 }
 
 Item *ModuleLoader::loadItemFromFile(const QString &filePath)

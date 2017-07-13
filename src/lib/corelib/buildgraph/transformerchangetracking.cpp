@@ -69,6 +69,9 @@ private:
     bool checkForImportFileChange(const std::vector<QString> &importedFiles,
                                   const FileTime &referenceTime,
                                   const char *context) const;
+    bool isExportedModuleUpToDate(const QString &productName, const ExportedModule &module) const;
+    bool areExportedModulesUpToDate(
+            const std::unordered_map<QString, ExportedModule> exportedModules) const;
     const Artifact *getArtifact(const QString &filePath, const QString &productName) const;
     const ResolvedProduct *getProduct(const QString &name) const;
 
@@ -182,6 +185,33 @@ bool TrafoChangeTracker::checkForImportFileChange(const std::vector<QString> &im
     return false;
 }
 
+bool TrafoChangeTracker::isExportedModuleUpToDate(const QString &productName,
+                                                  const ExportedModule &module) const
+{
+    const ResolvedProduct * const product = getProduct(productName);
+    if (!product) {
+        qCDebug(lcBuildGraph) << "product" << productName
+                              << "does not exist anymore, need to re-run";
+        return false;
+    }
+    if (product->exportedModule != module) {
+        qCDebug(lcBuildGraph) << "exported module has changed for product" << productName
+                              << ", need to re-run";
+        return false;
+    }
+    return true;
+}
+
+bool TrafoChangeTracker::areExportedModulesUpToDate(
+        const std::unordered_map<QString, ExportedModule> exportedModules) const
+{
+    for (auto it = exportedModules.begin(); it != exportedModules.end(); ++it) {
+        if (!isExportedModuleUpToDate(it->first, it->second))
+            return false;
+    }
+    return true;
+}
+
 const Artifact *TrafoChangeTracker::getArtifact(const QString &filePath,
                                                 const QString &productName) const
 {
@@ -252,6 +282,8 @@ bool TrafoChangeTracker::prepareScriptNeedsRerun() const
                 m_product->topLevelProject())) {
         return true;
     }
+    if (!areExportedModulesUpToDate(m_transformer->exportedModulesAccessedInPrepareScript))
+        return true;
 
     return false;
 }
@@ -283,6 +315,8 @@ bool TrafoChangeTracker::commandsNeedRerun() const
     if (!m_transformer->depsRequestedInCommands.isUpToDate(m_product->topLevelProject()))
         return true;
     if (!m_transformer->artifactsMapRequestedInCommands.isUpToDate(m_product->topLevelProject()))
+        return true;
+    if (!areExportedModulesUpToDate(m_transformer->exportedModulesAccessedInCommands))
         return true;
 
     // TODO: Also track env access in JS commands and prepare scripts

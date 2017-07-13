@@ -50,6 +50,7 @@
 
 namespace qbs {
 namespace Internal {
+class ResolvedProduct;
 class ScriptEngine;
 
 class PrepareScriptObserver : public ScriptPropertyObserver
@@ -60,6 +61,11 @@ public:
     void addProjectObjectId(qint64 projectId, const QString &projectName)
     {
         m_projectObjectIds.insert(std::make_pair(projectId, projectName));
+    }
+
+    void addExportsObjectId(qint64 exportsId, const ResolvedProduct *product)
+    {
+        m_exportsObjectIds.insert(std::make_pair(exportsId, product));
     }
 
     bool addImportId(qint64 importId) { return m_importIds.insert(importId).second; }
@@ -77,6 +83,7 @@ private:
 
     std::unordered_map<qint64, QString> m_projectObjectIds;
     std::unordered_map<qint64, std::pair<QString, QString>> m_parameterObjects;
+    std::unordered_map<qint64, const ResolvedProduct *> m_exportsObjectIds;
     Set<qint64> m_importIds;
 };
 

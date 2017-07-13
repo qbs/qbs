@@ -89,6 +89,9 @@ public:
     QBS_STRING_CONSTANT(filesProperty, "files")
     QBS_STRING_CONSTANT(filesAreTargetsProperty, "filesAreTargets")
     QBS_STRING_CONSTANT(foundProperty, "found")
+    QBS_STRING_CONSTANT(imports, "imports")
+    static const QString &importsDir() { return imports(); }
+    static const QString &importsProperty() { return imports(); }
     QBS_STRING_CONSTANT(inheritPropertiesProperty, "inheritProperties")
     static const QString &inputsProperty() { return inputs(); }
     QBS_STRING_CONSTANT(inputsFromDependenciesProperty, "inputsFromDependencies")
@@ -115,6 +118,7 @@ public:
     QBS_STRING_CONSTANT(parametersProperty, "parameters")
     static const QString &pathProperty() { return path(); }
     QBS_STRING_CONSTANT(patternsProperty, "patterns")
+    QBS_STRING_CONSTANT(prefixMappingProperty, "prefixMapping")
     QBS_STRING_CONSTANT(prefixProperty, "prefix")
     QBS_STRING_CONSTANT(prepareProperty, "prepare")
     QBS_STRING_CONSTANT(presentProperty, "present")
@@ -132,6 +136,7 @@ public:
     QBS_STRING_CONSTANT(searchPathsProperty, "searchPaths")
     QBS_STRING_CONSTANT(setupBuildEnvironmentProperty, "setupBuildEnvironment")
     QBS_STRING_CONSTANT(setupRunEnvironmentProperty, "setupRunEnvironment")
+    QBS_STRING_CONSTANT(sourceCodeProperty, "sourceCode")
     QBS_STRING_CONSTANT(sourceDirectoryProperty, "sourceDirectory")
     QBS_STRING_CONSTANT(submodulesProperty, "submodules")
     QBS_STRING_CONSTANT(targetNameProperty, "targetName")

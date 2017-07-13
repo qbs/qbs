@@ -248,6 +248,8 @@ void BuiltinDeclarations::addDependsItem()
 void BuiltinDeclarations::addExportItem()
 {
     ItemDeclaration item = moduleLikeItem(ItemType::Export);
+    item << PropertyDeclaration(StringConstants::prefixMappingProperty(),
+                                PropertyDeclaration::Variant);
     auto allowedChildTypes = item.allowedChildTypes();
     allowedChildTypes.insert(ItemType::Parameters);
     allowedChildTypes.insert(ItemType::Properties);

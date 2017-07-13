@@ -185,7 +185,7 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
             for (const QString &searchPath : m_file->searchPaths()) {
                 const QFileInfo fi(FileInfo::resolvePath(
                                        FileInfo::resolvePath(searchPath,
-                                                             QStringLiteral("imports")),
+                                                             StringConstants::importsDir()),
                                        importPath));
                 if (fi.isDir()) {
                     // ### versioning, qbsdir file, etc.

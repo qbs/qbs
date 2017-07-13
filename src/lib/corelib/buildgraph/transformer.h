@@ -46,6 +46,7 @@
 #include "requesteddependencies.h"
 #include "rulecommands.h"
 #include <language/forward_decls.h>
+#include <language/language.h>
 #include <language/property.h>
 #include <language/scriptengine.h>
 #include <tools/filetime.h>
@@ -83,6 +84,8 @@ public:
     RequestedArtifacts artifactsMapRequestedInCommands;
     FileTime lastPrepareScriptExecutionTime;
     FileTime lastCommandExecutionTime;
+    std::unordered_map<QString, ExportedModule> exportedModulesAccessedInPrepareScript;
+    std::unordered_map<QString, ExportedModule> exportedModulesAccessedInCommands;
     bool alwaysRun;
     bool prepareScriptNeedsChangeTracking = false;
     bool commandsNeedChangeTracking = false;
@@ -109,9 +112,11 @@ public:
                                      depsRequestedInPrepareScript, depsRequestedInCommands,
                                      commands, artifactsMapRequestedInPrepareScript,
                                      artifactsMapRequestedInCommands,
-                                     lastPrepareScriptExecutionTime,
-                                     lastCommandExecutionTime, alwaysRun,
-                                     prepareScriptNeedsChangeTracking, commandsNeedChangeTracking);
+                                     lastPrepareScriptExecutionTime, lastCommandExecutionTime,
+                                     exportedModulesAccessedInPrepareScript,
+                                     exportedModulesAccessedInCommands,
+                                     alwaysRun, prepareScriptNeedsChangeTracking,
+                                     commandsNeedChangeTracking);
     }
 
 private:

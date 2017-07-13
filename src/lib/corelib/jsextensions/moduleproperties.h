@@ -67,6 +67,8 @@ class ModuleProperties
 public:
     static void init(QScriptValue productObject, const ResolvedProduct *product);
     static void init(QScriptValue artifactObject, const Artifact *artifact);
+    static void setModuleScriptValue(QScriptValue targetObject, const QScriptValue &moduleObject,
+                                     const QString &moduleName);
 
 private:
     static void init(QScriptValue objectWithProperties, const void *ptr, const QString &type);

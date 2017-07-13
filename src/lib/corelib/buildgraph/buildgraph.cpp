@@ -76,6 +76,9 @@
 namespace qbs {
 namespace Internal {
 
+static QString childItemsProperty() { return QStringLiteral("childItems"); }
+static QString exportsProperty() { return QStringLiteral("exports"); }
+
 // TODO: Introduce productscriptvalue.{h,cpp}.
 static QScriptValue getDataForProductScriptValue(QScriptEngine *engine,
                                                  const ResolvedProduct *product)
@@ -105,7 +108,8 @@ private:
             return HandlesReadAccess;
         }
         if (name == StringConstants::dependenciesProperty()
-                || name == StringConstants::artifactsProperty()) {
+                || name == StringConstants::artifactsProperty()
+                || name == exportsProperty()) {
             // The prototype is not backed by a QScriptClass.
             m_result = object.prototype().property(name);
             return HandlesReadAccess;
@@ -139,7 +143,8 @@ private:
 
         // These two are in the prototype and are thus common to all product script values.
         std::vector<QString> additionalProperties({StringConstants::artifactsProperty(),
-                                                  StringConstants::dependenciesProperty()});
+                                                   StringConstants::dependenciesProperty(),
+                                                   exportsProperty()});
 
         // The "moduleName" convenience property is only available for the "main product" in a rule,
         // and the "parameters" property exists only for elements of the "dependencies" array for
@@ -196,22 +201,30 @@ public:
     {
     }
 
-    void init(QScriptValue &productScriptValue, const ResolvedProduct *product)
+    void init(QScriptValue &productScriptValue, QScriptValue &exportsScriptValue,
+              const ResolvedProduct *product)
     {
-        QScriptValue depfunc = m_engine->newFunction(&js_productDependencies, product);
+        QScriptValue depfunc = m_engine->newFunction(&js_internalProductDependencies, product);
         productScriptValue.setProperty(StringConstants::dependenciesProperty(), depfunc,
+                                       QScriptValue::ReadOnly | QScriptValue::Undeletable
+                                       | QScriptValue::PropertyGetter);
+        depfunc = m_engine->newFunction(&js_exportedProductDependencies, product);
+        exportsScriptValue.setProperty(StringConstants::dependenciesProperty(), depfunc,
                                        QScriptValue::ReadOnly | QScriptValue::Undeletable
                                        | QScriptValue::PropertyGetter);
     }
 
 private:
+    enum class DependencyType { Internal, Exported };
     static QScriptValue js_productDependencies(QScriptContext *, ScriptEngine *engine,
-                                               const ResolvedProduct * const product)
+            const ResolvedProduct *product, DependencyType depType)
     {
-        engine->addDependenciesArrayRequested(product);
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
-        QList<ResolvedProductPtr> productDeps = product->dependencies.toList();
+        const bool exportCase = depType == DependencyType::Exported;
+        QList<ResolvedProductPtr> productDeps = (exportCase
+                                                 ? product->exportedModule.productDependencies
+                                                 : product->dependencies).toList();
         std::sort(productDeps.begin(), productDeps.end(),
                   [](const ResolvedProductPtr &p1, const ResolvedProductPtr &p2) {
                           return p1->name < p2->name;
@@ -220,12 +233,36 @@ private:
             QScriptValue obj = engine->newObject(engine->productPropertyScriptClass());
             obj.setPrototype(setupProductScriptValue(static_cast<ScriptEngine *>(engine),
                                                      dependency.get()));
-            const QVariantMap &params = product->dependencyParameters.value(dependency);
+            const QVariantMap &params
+                    = (exportCase ? product->exportedModule.dependencyParameters
+                                  : product->dependencyParameters).value(dependency);
             QScriptValue data = getDataForProductScriptValue(engine, dependency.get());
             data.setProperty(DependencyParametersKey, dependencyParametersValue(
                                  product->uniqueName(), dependency->name, params, engine));
             obj.setData(data);
             result.setProperty(idx++, obj);
+        }
+        if (exportCase) {
+            for (const ExportedModuleDependency &m : product->exportedModule.moduleDependencies) {
+                QScriptValue obj = engine->newObject();
+                obj.setProperty(StringConstants::nameProperty(), m.name);
+                QScriptValue exportsValue = engine->newObject();
+                obj.setProperty(exportsProperty(), exportsValue);
+                exportsValue.setProperty(StringConstants::dependenciesProperty(),
+                                         engine->newArray());
+                for (auto modIt = m.moduleProperties.begin(); modIt != m.moduleProperties.end();
+                     ++modIt) {
+                    const QVariantMap entries = modIt.value().toMap();
+                    if (entries.empty())
+                        continue;
+                    QScriptValue moduleObj = engine->newObject();
+                    ModuleProperties::setModuleScriptValue(exportsValue, moduleObj, modIt.key());
+                    for (auto valIt = entries.begin(); valIt != entries.end(); ++valIt)
+                        moduleObj.setProperty(valIt.key(), engine->toScriptValue(valIt.value()));
+                }
+                result.setProperty(idx++, obj);
+            }
+            return result;
         }
         for (const ResolvedModuleConstPtr &dependency : qAsConst(product->modules)) {
             if (dependency->isProduct)
@@ -248,8 +285,92 @@ private:
         return result;
     }
 
+    static QScriptValue js_internalProductDependencies(QScriptContext *ctx, ScriptEngine *engine,
+                                                       const ResolvedProduct * const product)
+    {
+        engine->addDependenciesArrayRequested(product);
+        return js_productDependencies(ctx, engine, product, DependencyType::Internal);
+    }
+
+    static QScriptValue js_exportedProductDependencies(QScriptContext *ctx, ScriptEngine *engine,
+                                                       const ResolvedProduct * const product)
+    {
+        return js_productDependencies(ctx, engine, product, DependencyType::Exported);
+    }
+
     ScriptEngine *m_engine;
 };
+
+static QScriptValue setupExportedPropertyScriptValue(const ExportedProperty &property,
+                                                     ScriptEngine *engine)
+{
+    QScriptValue propertyScriptValue = engine->newObject();
+    propertyScriptValue.setProperty(StringConstants::nameProperty(), property.fullName);
+    propertyScriptValue.setProperty(StringConstants::typeProperty(),
+                                    PropertyDeclaration::typeString(property.type));
+    propertyScriptValue.setProperty(StringConstants::sourceCodeProperty(), property.sourceCode);
+    propertyScriptValue.setProperty(QStringLiteral("isBuiltin"), property.isBuiltin);
+    return propertyScriptValue;
+}
+
+static void setupExportedPropertiesScriptValue(QScriptValue &parentObject,
+                                               const std::vector<ExportedProperty> &properties,
+                                               ScriptEngine *engine)
+{
+    QScriptValue propertiesScriptValue = engine->newArray(properties.size());
+    parentObject.setProperty(QStringLiteral("properties"), propertiesScriptValue);
+    quint32 arrayIndex = 0;
+    for (const ExportedProperty &p : properties) {
+        propertiesScriptValue.setProperty(arrayIndex++,
+                                          setupExportedPropertyScriptValue(p, engine));
+    }
+}
+
+static QScriptValue setupExportedItemScriptValue(const ExportedItem *item, ScriptEngine *engine)
+{
+    QScriptValue itemScriptValue = engine->newObject();
+    itemScriptValue.setProperty(StringConstants::nameProperty(), item->name);
+    setupExportedPropertiesScriptValue(itemScriptValue, item->properties, engine);
+    QScriptValue childrenScriptValue = engine->newArray(item->children.size());
+    itemScriptValue.setProperty(childItemsProperty(), childrenScriptValue);
+    quint32 arrayIndex = 0;
+    for (const auto &childItem : item->children) {
+        childrenScriptValue.setProperty(arrayIndex++,
+                                        setupExportedItemScriptValue(childItem.get(), engine));
+    }
+    return itemScriptValue;
+}
+
+static QScriptValue setupExportsScriptValue(const ExportedModule &module, ScriptEngine *engine)
+{
+    QScriptValue exportsScriptValue = engine->newObject();
+    for (auto it = module.propertyValues.cbegin(); it != module.propertyValues.cend(); ++it)
+        exportsScriptValue.setProperty(it.key(), engine->toScriptValue(it.value()));
+    setupExportedPropertiesScriptValue(exportsScriptValue, module.m_properties, engine);
+    QScriptValue childrenScriptValue = engine->newArray(module.children.size());
+    exportsScriptValue.setProperty(childItemsProperty(), childrenScriptValue);
+    quint32 arrayIndex = 0;
+    for (const auto &exportedItem : module.children) {
+        childrenScriptValue.setProperty(arrayIndex++,
+                                        setupExportedItemScriptValue(exportedItem.get(), engine));
+    }
+    QScriptValue importsScriptValue = engine->newArray(module.importStatements.size());
+    exportsScriptValue.setProperty(StringConstants::importsProperty(), importsScriptValue);
+    arrayIndex = 0;
+    for (const QString &importStatement : module.importStatements)
+        importsScriptValue.setProperty(arrayIndex++, importStatement);
+    for (auto it = module.modulePropertyValues.cbegin(); it != module.modulePropertyValues.cend();
+         ++it) {
+        const QVariantMap entries = it.value().toMap();
+        if (entries.empty())
+            continue;
+        QScriptValue moduleObject = engine->newObject();
+        ModuleProperties::setModuleScriptValue(exportsScriptValue, moduleObject, it.key());
+        for (auto valIt = entries.begin(); valIt != entries.end(); ++valIt)
+            moduleObject.setProperty(valIt.key(), engine->toScriptValue(valIt.value()));
+    }
+    return exportsScriptValue;
+}
 
 static QScriptValue setupProductScriptValue(ScriptEngine *engine, const ResolvedProduct *product)
 {
@@ -264,7 +385,10 @@ static QScriptValue setupProductScriptValue(ScriptEngine *engine, const Resolved
                                    QScriptValue::ReadOnly | QScriptValue::Undeletable
                                    | QScriptValue::PropertyGetter);
 
-    DependenciesFunction(engine).init(productScriptValue, product);
+    QScriptValue exportsScriptValue = setupExportsScriptValue(product->exportedModule, engine);
+    DependenciesFunction(engine).init(productScriptValue, exportsScriptValue, product);
+    engine->setObservedProperty(productScriptValue, exportsProperty(), exportsScriptValue);
+    engine->observer()->addExportsObjectId(exportsScriptValue.objectId(), product);
     return productScriptValue;
 }
 

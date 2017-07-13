@@ -43,6 +43,7 @@
 #include "filetags.h"
 #include "forward_decls.h"
 #include "jsimports.h"
+#include "propertydeclaration.h"
 #include "resolvedfilecontext.h"
 
 #include <buildgraph/forward_decls.h>
@@ -467,6 +468,86 @@ private:
     {}
 };
 
+class ExportedProperty
+{
+public:
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(fullName, type, sourceCode, isBuiltin);
+    }
+
+    QString fullName;
+    PropertyDeclaration::Type type;
+    QString sourceCode;
+    bool isBuiltin = false;
+};
+
+bool operator==(const ExportedProperty &p1, const ExportedProperty &p2);
+inline bool operator!=(const ExportedProperty &p1, const ExportedProperty &p2)
+{
+    return !(p1 == p2);
+}
+
+class ExportedItem
+{
+public:
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(name, properties, children);
+    }
+
+    static ExportedItemPtr create() { return std::make_shared<ExportedItem>(); }
+
+    QString name;
+    std::vector<ExportedProperty> properties;
+    std::vector<ExportedItemPtr> children;
+};
+
+bool equals(const std::vector<ExportedItemPtr> &l1, const std::vector<ExportedItemPtr> &l2);
+bool operator==(const ExportedItem &i1, const ExportedItem &i2);
+inline bool operator!=(const ExportedItem &i1, const ExportedItem &i2) { return !(i1 == i2); }
+
+class ExportedModuleDependency
+{
+public:
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(name, moduleProperties);
+    };
+
+    QString name;
+    QVariantMap moduleProperties;
+};
+
+bool operator==(const ExportedModuleDependency &d1, const ExportedModuleDependency &d2);
+inline bool operator!=(const ExportedModuleDependency &d1, const ExportedModuleDependency &d2)
+{
+    return !(d1 == d2);
+}
+
+class ExportedModule
+{
+public:
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(propertyValues, modulePropertyValues, children,
+                                     productDependencies, moduleDependencies, m_properties,
+                                     dependencyParameters, importStatements);
+    };
+
+    QVariantMap propertyValues;
+    QVariantMap modulePropertyValues;
+    std::vector<ExportedItemPtr> children;
+    Set<ResolvedProductPtr> productDependencies;
+    std::vector<ExportedModuleDependency> moduleDependencies;
+    std::vector<ExportedProperty> m_properties;
+    QHash<ResolvedProductConstPtr, QVariantMap> dependencyParameters;
+    QStringList importStatements;
+};
+
+bool operator==(const ExportedModule &m1, const ExportedModule &m2);
+inline bool operator!=(const ExportedModule &m1, const ExportedModule &m2) { return !(m1 == m2); }
+
 class TopLevelProject;
 class ScriptEngine;
 
@@ -501,6 +582,8 @@ public:
     QList<ArtifactPropertiesPtr> artifactProperties;
     QStringList missingSourceFiles;
     std::unique_ptr<ProductBuildData> buildData;
+
+    ExportedModule exportedModule;
 
     QProcessEnvironment buildEnvironment; // must not be saved
     QProcessEnvironment runEnvironment; // must not be saved
@@ -551,7 +634,7 @@ private:
                                      missingSourceFiles, location, productProperties,
                                      moduleProperties, rules, dependencies, dependencyParameters,
                                      fileTaggers, modules, moduleParameters, scanners, groups,
-                                     artifactProperties, probes, buildData);
+                                     artifactProperties, probes, exportedModule, buildData);
     }
 
     QHash<QString, QString> m_executablePathCache;

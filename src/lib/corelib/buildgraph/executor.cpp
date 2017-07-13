@@ -844,6 +844,10 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
                 = rad.artifactsMapRequestedInPrepareScript;
         artifact->transformer->artifactsMapRequestedInCommands
                 = rad.artifactsMapRequestedInCommands;
+        artifact->transformer->exportedModulesAccessedInPrepareScript
+                = rad.exportedModulesAccessedInPrepareScript;
+        artifact->transformer->exportedModulesAccessedInCommands
+                = rad.exportedModulesAccessedInCommands;
         artifact->transformer->lastCommandExecutionTime = rad.lastCommandExecutionTime;
         artifact->transformer->lastPrepareScriptExecutionTime = rad.lastPrepareScriptExecutionTime;
         artifact->transformer->commandsNeedChangeTracking = true;
