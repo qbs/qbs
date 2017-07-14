@@ -123,7 +123,8 @@ osx {
         $$PWD/installoptions.h \
         $$PWD/qbspluginmanager.h \
         $$PWD/setupprojectparameters.h \
-        $$PWD/toolchains.h
+        $$PWD/toolchains.h \
+        $$PWD/version.h
     tools_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/tools
     INSTALLS += tools_headers
 }
