@@ -71,5 +71,6 @@ qbs build --settings-dir "%builddir%\.settings"^
  release "qbs.installRoot:%builddir%\qbs-windows-x86-%version%" profile:qt^
  release-64 "qbs.installRoot:%builddir%\qbs-windows-x86_64-%version%" profile:qt64 || exit /b
 
+copy /y "%builddir%\build\release\qbs.%version%.nupkg" dist || exit /b
 copy /y "%builddir%\build\release\qbs-windows-x86-%version%.zip" dist || exit /b
 copy /y "%builddir%\build\release-64\qbs-windows-x86_64-%version%.zip" dist || exit /b
