@@ -98,6 +98,7 @@ private:
     void resolveModules(const Item *item, ProjectContext *projectContext);
     void resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
                        const QVariantMap &parameters, ProjectContext *projectContext);
+    void gatherProductTypes(ResolvedProduct *product, Item *item);
     QVariantMap resolveAdditionalModuleProperties(const Item *group,
                                                   const QVariantMap &currentValues);
     void resolveGroup(Item *item, ProjectContext *projectContext);

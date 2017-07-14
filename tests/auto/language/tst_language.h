@@ -76,6 +76,7 @@ private slots:
     void initTestCase();
     void cleanupTestCase();
 
+    void additionalProductTypes();
     void baseProperty();
     void baseValidation();
     void buildConfigStringListSyntax();

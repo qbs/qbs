@@ -88,7 +88,6 @@ struct ProjectResolver::ProductContext
 {
     ResolvedProductPtr product;
     QString buildDirectory;
-    FileTags additionalFileTags;
     Item *item;
     typedef std::pair<ArtifactPropertiesPtr, CodeLocation> ArtifactPropertiesInfo;
     QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
@@ -392,7 +391,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         pi.delayedError.clear();
         return;
     }
-    product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
+    gatherProductTypes(product.get(), item);
     product->targetName = m_evaluator->stringValue(item, QLatin1String("targetName"));
     product->sourceDirectory = m_evaluator->stringValue(item, QLatin1String("sourceDirectory"));
     const QString destDirKey = QLatin1String("destinationDirectory");
@@ -444,7 +443,6 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         callItemFunction(mapping, child, projectContext);
 
     resolveModules(item, projectContext);
-    product->fileTags += productContext.additionalFileTags;
 
     for (const FileTag &t : qAsConst(product->fileTags))
         m_productsByType[t] << product;
@@ -480,9 +478,6 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
     module->setupRunEnvironmentScript = scriptFunctionValue(item,
                                                             QLatin1String("setupRunEnvironment"));
 
-    m_productContext->additionalFileTags +=
-            m_evaluator->fileTagsValue(item, QLatin1String("additionalProductTypes"));
-
     for (const Item::Module &m : item->modules()) {
         if (m_evaluator->boolValue(m.item, QLatin1String("present")))
             module->moduleDependencies += m.name.toString();
@@ -506,6 +501,19 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
         callItemFunction(mapping, child, projectContext);
 
     m_moduleContext = oldModuleContext;
+}
+
+void ProjectResolver::gatherProductTypes(ResolvedProduct *product, Item *item)
+{
+    product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
+    for (const Item::Module &m : item->modules()) {
+        if (m.item->isPresentModule()) {
+            product->fileTags += m_evaluator->fileTagsValue(m.item,
+                    QLatin1String("additionalProductTypes"));
+        }
+    }
+    item->setProperty(QLatin1String("type"),
+                      VariantValue::create(product->fileTags.toStringList()));
 }
 
 SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr &rproduct,

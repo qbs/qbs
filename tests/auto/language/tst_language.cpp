@@ -181,6 +181,28 @@ void TestLanguage::cleanupTestCase()
     delete loader;
 }
 
+void TestLanguage::additionalProductTypes()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("additional-product-types.qbs"));
+        project = loader->loadProject(defaultParameters);
+        QVERIFY(!!project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        const ResolvedProductConstPtr product = products.value("p");
+        QVERIFY(!!product);
+        const QVariantMap cfg = product->productProperties;
+        QVERIFY(cfg.value("hasTag1").toBool());
+        QVERIFY(cfg.value("hasTag2").toBool());
+        QVERIFY(cfg.value("hasTag3").toBool());
+        QVERIFY(!cfg.value("hasTag4").toBool());
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::baseProperty()
 {
     bool exceptionCaught = false;
