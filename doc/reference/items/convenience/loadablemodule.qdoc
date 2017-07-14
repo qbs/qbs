@@ -32,6 +32,7 @@
     \nextpage qtapplication-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
+    \keyword QML.LoadableModule
 
     \title LoadableModule Item
     \brief Represents a product that is a loadable module.

@@ -30,6 +30,7 @@
     \page subproject-item.html
     \ingroup list-of-language-items
     \ingroup list-of-items
+    \keyword QML.SubProject
 
     \title SubProject Item
     \brief Adds a project from a different file.

@@ -126,6 +126,8 @@ private slots:
     void productConditions();
     void productDirectories();
     void profileValuesAndOverriddenValues();
+    void projectFileLookup();
+    void projectFileLookup_data();
     void propertiesBlocks_data();
     void propertiesBlocks();
     void propertiesBlockInGroup();

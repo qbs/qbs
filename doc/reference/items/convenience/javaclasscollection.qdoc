@@ -31,6 +31,7 @@
     \nextpage javajarfile-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
+    \keyword QML.JavaClassCollection
 
     \title JavaClassCollection Item
     \brief Represents a collection of Java class files not bundled in a jar file.

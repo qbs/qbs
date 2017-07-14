@@ -31,6 +31,7 @@
     \nextpage xpcservice-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
+    \keyword QML.StaticLibrary
 
     \title StaticLibrary Item
     \brief Represents a product that is a static library.

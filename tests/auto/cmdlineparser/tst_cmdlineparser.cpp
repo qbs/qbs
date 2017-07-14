@@ -165,25 +165,6 @@ private slots:
         QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "-123")); // Unknown numeric argument.
     }
 
-    void testProjectFileLookup()
-    {
-        const QString srcDir = QLatin1String(SRCDIR);
-        const QString noProjectsDir = srcDir + QLatin1String("/data/dirwithnoprojects");
-        const QString oneProjectDir = srcDir + QLatin1String("/data/dirwithoneproject");
-        const QString multiProjectsDir = srcDir + QLatin1String("/data/dirwithmultipleprojects");
-        QVERIFY(QDir(noProjectsDir).exists() && QDir(oneProjectDir).exists()
-                && QDir(multiProjectsDir).exists());
-        CommandLineParser parser;
-        const QStringList args(QLatin1String("-f"));
-        QString projectFilePath = multiProjectsDir + QLatin1String("/project.qbs");
-        QVERIFY(parser.parseCommandLine(args + QStringList(projectFilePath)));
-        QCOMPARE(projectFilePath, parser.projectFilePath());
-        projectFilePath = oneProjectDir + QLatin1String("/project.qbs");
-        QVERIFY(parser.parseCommandLine(args + QStringList(oneProjectDir)));
-        QCOMPARE(projectFilePath, parser.projectFilePath());
-        QVERIFY(!parser.parseCommandLine(args + QStringList(noProjectsDir)));
-        QVERIFY(!parser.parseCommandLine(args + QStringList(multiProjectsDir)));
-    }
 };
 
 QTEST_MAIN(TestCmdLineParser)

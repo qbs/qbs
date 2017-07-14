@@ -31,6 +31,7 @@
     \nextpage filetagger-item.html
     \ingroup list-of-language-items
     \ingroup list-of-items
+    \keyword QML.Export
 
     \title Export Item
     \brief Exports dependencies and properties to other products.

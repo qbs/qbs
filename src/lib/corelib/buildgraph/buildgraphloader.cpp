@@ -166,12 +166,18 @@ void BuildGraphLoader::loadBuildGraphFromDisk()
     m_logger.qbsDebug() << "[BG] trying to load: " << buildGraphFilePath;
     try {
         pool.load(buildGraphFilePath);
-    } catch (const ErrorInfo &loadError) {
-        if (m_parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly
-                || m_parameters.projectFilePath().isEmpty()) {
+    } catch (const NoBuildGraphError &e) {
+        if (m_parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
             throw;
+        m_logger.qbsInfo() << e.toString();
+        return;
+    } catch (const ErrorInfo &loadError) {
+        if (!m_parameters.overrideBuildGraphData()) {
+            ErrorInfo fullError = loadError;
+            fullError.append(Tr::tr("Use the 'resolve' command to set up a new build graph."));
+            throw fullError;
         }
-        m_logger.qbsInfo() << loadError.toString();
+        m_logger.qbsWarning() << loadError.toString();
         return;
     }
 
@@ -198,6 +204,8 @@ bool BuildGraphLoader::checkBuildGraphCompatibility(const TopLevelProjectConstPt
 {
     if (m_parameters.projectFilePath().isEmpty())
         m_parameters.setProjectFilePath(project->location.filePath());
+    else
+        Loader::setupProjectFilePath(m_parameters);
     if (QFileInfo(project->location.filePath()) == QFileInfo(m_parameters.projectFilePath()))
         return true;
     QString message = Tr::tr("Stored build graph at '%1' is for project file '%2', but "

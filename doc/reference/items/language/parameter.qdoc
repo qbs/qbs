@@ -31,6 +31,7 @@
     \nextpage parameters-item.html
     \ingroup list-of-language-items
     \ingroup list-of-items
+    \keyword QML.Parameter
 
     \title Parameter Item
     \brief Declares a dependency parameter.

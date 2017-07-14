@@ -428,66 +428,6 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
 void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
 {
     projectFilePath = optionPool.fileOption()->projectFilePath();
-    if (projectFilePath.isEmpty()) {
-        bool allBuildGraphsExist = true;
-        foreach (const QVariantMap &buildConfig, buildConfigurations) {
-            const QString configName = buildConfig.value(QLatin1String("qbs.configurationName"))
-                    .toString();
-            const QString profile = buildConfig.value(QLatin1String("qbs.profile")).toString();
-            QString buildDir = projectBuildDirectory;
-            Settings settings(settingsDir());
-            if (buildDir.isEmpty()) {
-                buildDir = Preferences(&settings, profile).defaultBuildDirectory();
-                if (buildDir.isEmpty())
-                    buildDir = QDir::currentPath();
-            }
-            if (!QFile::exists(buildDir + QLatin1Char('/') + configName + QLatin1Char('/')
-                               + configName + QLatin1String(".bg"))) {
-                allBuildGraphsExist = false;
-                break;
-            }
-        }
-        if (allBuildGraphsExist) {
-            qbsDebug() << "No project file given; using the one from the build graph.";
-            return;
-        }
-        qbsDebug() << "No project file given; looking in current directory.";
-        projectFilePath = QDir::currentPath();
-    }
-
-    const QFileInfo projectFileInfo(projectFilePath);
-    if (!projectFileInfo.exists())
-        throw ErrorInfo(Tr::tr("Project file '%1' cannot be found.").arg(projectFilePath));
-    if (projectFileInfo.isRelative())
-        projectFilePath = projectFileInfo.absoluteFilePath();
-    if (projectFileInfo.isFile())
-        return;
-    if (!projectFileInfo.isDir())
-        throw ErrorInfo(Tr::tr("Project file '%1' has invalid type.").arg(projectFilePath));
-
-    const QStringList namePatterns = QStringList()
-            << QLatin1String("*.qbs");
-
-    const QStringList &actualFileNames
-            = QDir(projectFilePath).entryList(namePatterns, QDir::Files);
-    if (actualFileNames.isEmpty()) {
-        QString error;
-        if (optionPool.fileOption()->projectFilePath().isEmpty())
-            error = Tr::tr("No project file given and none found in current directory.\n");
-        else
-            error = Tr::tr("No project file found in directory '%1'.").arg(projectFilePath);
-        throw ErrorInfo(error);
-    }
-    if (actualFileNames.count() > 1) {
-        throw ErrorInfo(Tr::tr("More than one project file found in directory '%1'.")
-                .arg(projectFilePath));
-    }
-    projectFilePath.append(QLatin1Char('/')).append(actualFileNames.first());
-
-    projectFilePath = QDir::current().filePath(projectFilePath);
-    projectFilePath = QDir::cleanPath(projectFilePath);
-
-    qbsDebug() << "Using project file '" << QDir::toNativeSeparators(projectFilePath) << "'.";
 }
 
 void CommandLineParser::CommandLineParserPrivate::setupBuildDirectory()

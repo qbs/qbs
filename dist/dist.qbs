@@ -18,7 +18,7 @@ Product {
     Depends { name: "qbsqtprofilesetup" }
     Depends { name: "qbs_cpp_scanner" }
     Depends { name: "qbs_qt_scanner" }
-    Depends { name: "documentation" }
+    Depends { name: "qbs documentation" }
     Depends { name: "qbs resources" }
 
     Depends { name: "archiver" }

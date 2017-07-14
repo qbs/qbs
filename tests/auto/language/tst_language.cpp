@@ -1814,6 +1814,42 @@ void TestLanguage::profileValuesAndOverriddenValues()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::projectFileLookup()
+{
+    QFETCH(QString, projectFileInput);
+    QFETCH(QString, projectFileOutput);
+    QFETCH(bool, failureExpected);
+
+    try {
+        SetupProjectParameters params;
+        params.setProjectFilePath(projectFileInput);
+        Loader::setupProjectFilePath(params);
+        QVERIFY(!failureExpected);
+        QCOMPARE(params.projectFilePath(), projectFileOutput);
+    } catch (const ErrorInfo &) {
+        QVERIFY(failureExpected);
+    }
+}
+
+void TestLanguage::projectFileLookup_data()
+{
+    QTest::addColumn<QString>("projectFileInput");
+    QTest::addColumn<QString>("projectFileOutput");
+    QTest::addColumn<bool>("failureExpected");
+
+    const QString baseDir = QLatin1String(SRCDIR) + "/testdata";
+    const QString multiProjectsDir = baseDir + "/dirwithmultipleprojects";
+    const QString noProjectsDir = baseDir + "/dirwithnoprojects";
+    const QString oneProjectDir = baseDir + "/dirwithoneproject";
+    QVERIFY(QDir(noProjectsDir).exists() && QDir(oneProjectDir).exists()
+            && QDir(multiProjectsDir).exists());
+    const QString fullFilePath = multiProjectsDir + "/project.qbs";
+    QTest::newRow("full file path") << fullFilePath << fullFilePath << false;
+    QTest::newRow("base dir ") << oneProjectDir << (oneProjectDir + "/project.qbs") << false;
+    QTest::newRow("empty dir") << noProjectsDir << QString() << true;
+    QTest::newRow("ambiguous dir") << multiProjectsDir << QString() << true;
+}
+
 void TestLanguage::productConditions()
 {
     bool exceptionCaught = false;

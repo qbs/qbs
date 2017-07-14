@@ -52,6 +52,11 @@ namespace Internal {
 
 static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-103";
 
+NoBuildGraphError::NoBuildGraphError()
+    : ErrorInfo(Tr::tr("No build graph exists yet for this configuration."))
+{
+}
+
 PersistentPool::PersistentPool(Logger &logger) : m_logger(logger)
 {
     Q_UNUSED(m_logger);
@@ -67,7 +72,7 @@ void PersistentPool::load(const QString &filePath)
 {
     QScopedPointer<QFile> file(new QFile(filePath));
     if (!file->exists())
-        throw ErrorInfo(Tr::tr("No build graph exists yet for this configuration."));
+        throw NoBuildGraphError();
     if (!file->open(QFile::ReadOnly)) {
         throw ErrorInfo(Tr::tr("Could not open open build graph file '%1': %2")
                     .arg(filePath, file->errorString()));
@@ -77,8 +82,6 @@ void PersistentPool::load(const QString &filePath)
     QByteArray magic;
     m_stream >> magic;
     if (magic != QBS_PERSISTENCE_MAGIC) {
-        file->close();
-        file->remove();
         m_stream.setDevice(0);
         throw ErrorInfo(Tr::tr("Cannot use stored build graph at '%1': Incompatible file format. "
                            "Expected magic token '%2', got '%3'.")

@@ -31,6 +31,7 @@
     \previouspage staticlibrary-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
+    \keyword QML.XPCService
 
     \title XPCService Item
     \brief Represents a product that is a macOS, iOS, tvOS, or watchOS XPC service.

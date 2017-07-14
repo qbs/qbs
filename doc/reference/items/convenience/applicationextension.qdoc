@@ -32,6 +32,7 @@
     \nextpage autotestrunner-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
+    \keyword QML.ApplicationExtension
 
     \title ApplicationExtension Item
     \brief Represents a product that is an iOS, macOS, tvOS, or watchOS Application Extension.

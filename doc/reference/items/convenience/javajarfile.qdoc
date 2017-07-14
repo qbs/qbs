@@ -31,6 +31,7 @@
     \nextpage loadablemodule-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
+    \keyword QML.JavaJarFile
 
     \title JavaJarFile Item
     \brief Represents a collection of Java class files bundled in a jar file.

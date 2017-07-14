@@ -31,6 +31,7 @@
     \nextpage staticlibrary-item.html
     \ingroup list-of-convenience-items
     \ingroup list-of-items
+    \keyword QML.QtGuiApplication
 
     \title QtGuiApplication Item
     \brief Represents a product of application type with a dependency to the Qt GUI module.

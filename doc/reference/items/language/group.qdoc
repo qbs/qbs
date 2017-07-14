@@ -32,6 +32,7 @@
     \nextpage module-item.html
     \ingroup list-of-language-items
     \ingroup list-of-items
+    \keyword QML.Group
 
     \title Group Item
     \brief Groups files in a product.

@@ -47,6 +47,7 @@ private slots:
     void badInterpreter();
     void buildDirectories();
     void buildEnvChange();
+    void buildGraphVersions();
     void changedFiles_data();
     void changedFiles();
     void changeInDisabledProduct();
@@ -125,6 +126,7 @@ private slots:
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
     void pchChangeTracking();
+    void perGroupDefineInExportItem();
     void pkgConfigProbe();
     void pkgConfigProbe_data();
     void pkgConfigProbeSysroot();

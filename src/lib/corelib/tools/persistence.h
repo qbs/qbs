@@ -40,6 +40,7 @@
 #ifndef QBS_PERSISTENCE
 #define QBS_PERSISTENCE
 
+#include "error.h"
 #include "persistentobject.h"
 #include <logging/logger.h>
 
@@ -55,6 +56,12 @@
 
 namespace qbs {
 namespace Internal {
+
+class NoBuildGraphError : public ErrorInfo
+{
+public:
+    NoBuildGraphError();
+};
 
 class PersistentPool
 {
