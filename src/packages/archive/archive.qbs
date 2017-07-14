@@ -49,6 +49,7 @@ Product {
 
     condition: qbs.targetOS.contains("windows")
     builtByDefault: false
+    name: "qbs archive"
     type: ["archiver.archive"]
     targetName: "qbs-windows-" + qbs.architecture + "-" + qbsversion.version
     destinationDirectory: project.buildDirectory

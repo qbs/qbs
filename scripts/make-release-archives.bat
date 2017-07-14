@@ -67,7 +67,7 @@ REM where the current directory is a symlink
 
 qbs build --settings-dir "%builddir%\.settings"^
  -f "%builddir%\source" -d "%builddir%\build"^
- -p dist qbs.buildVariant:release products.dist.includeTopLevelDir:true^
+ -p dist qbs.buildVariant:release "products.qbs archive.includeTopLevelDir:true"^
  release "qbs.installRoot:%builddir%\qbs-windows-x86-%version%" profile:qt^
  release-64 "qbs.installRoot:%builddir%\qbs-windows-x86_64-%version%" profile:qt64 || exit /b
 
