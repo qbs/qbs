@@ -456,25 +456,8 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 
 void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectContext)
 {
-    // Breadth first search needed here, because the product might set properties on the cpp module,
-    // whose children must be evaluated in that context then.
-    std::queue<Item::Module> modules;
     for (const Item::Module &m : item->modules())
-        modules.push(m);
-    Set<QualifiedId> seen;
-    while (!modules.empty()) {
-        const Item::Module m = modules.front();
-        modules.pop();
-        if (!seen.insert(m.name).second)
-            continue;
         resolveModule(m.name, m.item, m.isProduct, m.parameters, projectContext);
-        for (const Item::Module &childModule : m.item->modules())
-            modules.push(childModule);
-    }
-    std::sort(m_productContext->product->modules.begin(), m_productContext->product->modules.end(),
-              [](const ResolvedModuleConstPtr &m1, const ResolvedModuleConstPtr &m2) {
-                      return m1->name < m2->name;
-              });
 }
 
 void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
