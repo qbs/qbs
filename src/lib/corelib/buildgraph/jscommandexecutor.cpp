@@ -93,12 +93,14 @@ signals:
 public:
     void start(const JavaScriptCommand *cmd, Transformer *transformer)
     {
+        m_running = true;
         try {
             doStart(cmd, transformer);
         } catch (const qbs::ErrorInfo &error) {
             setError(error.toString(), cmd->codeLocation());
         }
 
+        m_running = false;
         emit finished();
     }
 
@@ -163,6 +165,7 @@ private:
     Logger m_logger;
     ScriptEngine *m_scriptEngine;
     JavaScriptCommandResult m_result;
+    bool m_running = false;
 };
 
 
@@ -224,7 +227,7 @@ void JsCommandExecutor::doStart()
 
 void JsCommandExecutor::cancel()
 {
-    if (!dryRun())
+    if (m_running && !dryRun())
         QTimer::singleShot(0, m_objectInThread, [this] { m_objectInThread->cancel(); });
 }
 
