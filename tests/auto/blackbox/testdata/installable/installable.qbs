@@ -11,7 +11,7 @@ Project {
         }
 
         Group {
-            fileTagsFilter: product.type
+            fileTagsFilter: ["application"]
             qbs.install: true
         }
     }
