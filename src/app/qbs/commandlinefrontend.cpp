@@ -116,7 +116,7 @@ void CommandLineFrontend::start()
                                    "product.\nUsage: %2")
                             .arg(m_parser.commandName(), m_parser.commandDescription()));
             }
-            // Fall-through intended.
+            Q_FALLTHROUGH();
         case StatusCommandType:
         case InstallCommandType:
         case DumpNodesTreeCommandType:
