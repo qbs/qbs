@@ -49,6 +49,7 @@
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
 #include <tools/projectgeneratormanager.h>
+#include <tools/qttools.h>
 #include <tools/shellutils.h>
 
 #include <QtCore/qdir.h>
