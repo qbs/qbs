@@ -56,8 +56,7 @@
        \li  \l{Introduction}
        \li  \l{Setup}
            \list
-               \li  \l{System Requirements}
-               \li  \l{Building}
+               \li  \l{Installing}
                \li  \l{Configuring}
                \li  \l{Managing Qt Versions}
            \endlist
@@ -73,6 +72,7 @@
            \endlist
        \li  \l{How-tos}
        \li  \l{Reference}
+       \li  \l{Appendix A: Building Qbs}
     \endlist
 */
 
@@ -96,39 +96,29 @@
     \contentspage index.html
     \previouspage overview.html
     \page setup.html
-    \nextpage system-requirements.html
+    \nextpage installing.html
 
     \title Setup
 
     \list
-        \li  \l{System Requirements}
-        \li  \l{Building}
+        \li  \l{Installing}
         \li  \l{Configuring}
         \li  \l{Managing Qt Versions}
     \endlist
 */
 
-
 /*!
     \contentspage index.html
-    \previouspage setup.html
-    \page system-requirements.html
-    \nextpage building.html
+    \previouspage reference.html
+    \page building-qbs.html
 
-    \title System Requirements
+    \title Appendix A: Building Qbs
+
+    \section1 System Requirements
 
     To build \QBS from the source, you need Qt 5.6.0, or later
 
-*/
-
-
-/*!
-    \contentspage index.html
-    \previouspage system-requirements.html
-    \page building.html
-    \nextpage configuring.html
-
-    \title Building
+    \section1 Building
 
     To build \QBS, enter the following command:
 
@@ -157,7 +147,64 @@
 
 /*!
     \contentspage index.html
-    \previouspage building.html
+    \previouspage setup.html
+    \page installing.html
+    \nextpage configuring.html
+
+    \title Installing
+
+    \QBS binaries are available for Windows, macOS, Linux, and FreeBSD.
+
+    On all platforms, \QBS binaries are part of the \l{Qt Creator} and \l{Qt SDK}
+    installers. You can find the \c qbs executable in the \c bin directory of
+    Qt Creator, or within the application bundle's \c MacOS directory on macOS.
+
+    \QBS can also be built locally from sources. For more information, see
+    \l{Appendix A: Building Qbs}.
+
+    \section1 Windows
+
+    The Qt Project provides prebuilt binaries for Windows (x86 and x64) at
+    \l{https://download.qt.io/official_releases/qbs/}. For commercial customers of
+    The Qt Company, the binaries are available in the \l {Qt Account}.
+    The binaries are packaged in a .zip folder that can be extracted to a location
+    of your choice.
+
+    \QBS is also available as a \l Chocolatey package, which can be installed in
+    the usual way:
+
+    \code
+    choco install qbs
+    \endcode
+
+    The \c .nupkg file can also be downloaded directly from
+    \l{https://download.qt.io/official_releases/qbs/} for
+    \l{https://chocolatey.org/security#organizational-use-of-chocolatey}{offline installation}.
+
+    \section1 macOS
+
+    \QBS can be conveniently installed on macOS with the \l{MacPorts} or \l{Homebrew}
+    package managers:
+
+    \code
+    brew install qbs
+    \endcode
+
+    or
+
+    \code
+    port install qbs
+    \endcode
+
+    \section1 Linux and FreeBSD
+
+    \QBS is \l{https://repology.org/metapackage/qbs/versions}{available via the
+    package management systems} of Linux distributions, and FreeBSD.
+*/
+
+/*!
+    \contentspage index.html
+    \previouspage installing.html
     \page configuring.html
     \nextpage qt-versions.html
 

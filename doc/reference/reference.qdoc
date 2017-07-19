@@ -28,6 +28,7 @@
     \contentspage index.html
     \previouspage howtos.html
     \page reference.html
+    \nextpage building-qbs.html
 
     \title Reference
 
