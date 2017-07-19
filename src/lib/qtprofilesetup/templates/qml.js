@@ -22,7 +22,7 @@ function getPrlRhs(line)
     return line.split('=')[1].trim();
 }
 
-function getLibsForPlugin(pluginData, buildVariant, targetOS, toolchain)
+function getLibsForPlugin(pluginData, buildVariant, targetOS, toolchain, qtLibDir)
 {
     if (!pluginData.path)
         return "";
@@ -53,6 +53,7 @@ function getLibsForPlugin(pluginData, buildVariant, targetOS, toolchain)
                     otherLibsLine = otherLibsLine.replace(/ -L/g, " /LIBPATH:");
                     otherLibsLine = otherLibsLine.replace(/-l([^ ]+)/g, "$1" + ".lib");
                 }
+                otherLibsLine = otherLibsLine.replace(/\$\$\[QT_INSTALL_LIBS\]/g, qtLibDir);
                 otherLibs += otherLibsLine;
             }
         }
