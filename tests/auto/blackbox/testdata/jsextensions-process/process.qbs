@@ -1,4 +1,5 @@
 import qbs
+import qbs.Environment
 import qbs.FileInfo
 import qbs.Process
 import qbs.TextFile
@@ -52,7 +53,8 @@ Project {
                     // closeWriteChannel test
                     process = new Process();
                     if (product.qbs.hostOS.contains("windows"))
-                        process.start("cmd", ["/C", "c:\\windows\\system32\\sort.exe"]);
+                        process.start(product.qbs.windowsShellPath,
+                            ["/C", product.qbs.windowsSystemRoot + "\\system32\\sort.exe"]);
                     else
                         process.start("cat", []);
                     process.writeLine("should be");
