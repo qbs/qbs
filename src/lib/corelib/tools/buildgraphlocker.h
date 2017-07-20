@@ -52,6 +52,22 @@ namespace Internal {
 
 class ProgressObserver;
 
+class DirectoryManager
+{
+public:
+    DirectoryManager(const QString &dir, const Logger &logger);
+    ~DirectoryManager();
+    QString dir() const { return m_dir; }
+
+private:
+    void rememberCreatedDirectories();
+    void removeEmptyCreatedDirectories();
+
+    std::queue<QString> m_createdParentDirs;
+    const QString m_dir;
+    Logger m_logger;
+};
+
 class BuildGraphLocker
 {
 public:
@@ -60,12 +76,9 @@ public:
     ~BuildGraphLocker();
 
 private:
-    void rememberCreatedDirectories(const QString &buildDir);
-    void removeEmptyCreatedDirectories();
-
     QLockFile m_lockFile;
     Logger m_logger;
-    std::queue<QString> m_createdParentDirs;
+    DirectoryManager m_dirManager;
 };
 
 } // namespace Internal

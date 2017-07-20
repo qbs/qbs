@@ -55,6 +55,43 @@
 namespace qbs {
 namespace Internal {
 
+DirectoryManager::DirectoryManager(const QString &dir, const Logger &logger)
+    : m_dir(dir), m_logger(logger)
+{
+    rememberCreatedDirectories();
+}
+
+DirectoryManager::~DirectoryManager()
+{
+    removeEmptyCreatedDirectories();
+}
+
+void DirectoryManager::rememberCreatedDirectories()
+{
+    QString parentDir = m_dir;
+    while (!QFileInfo::exists(parentDir)) {
+        m_createdParentDirs.push(parentDir);
+        parentDir = QDir::cleanPath(parentDir + QLatin1String("/.."));
+    }
+}
+
+void DirectoryManager::removeEmptyCreatedDirectories()
+{
+    QDir root = QDir::root();
+    while (!m_createdParentDirs.empty()) {
+        const QString parentDir = m_createdParentDirs.front();
+        m_createdParentDirs.pop();
+        QDirIterator it(parentDir, QDir::AllEntries | QDir::NoDotAndDotDot | QDir::System,
+                        QDirIterator::Subdirectories);
+        if (it.hasNext())
+            break;
+        if (!root.rmdir(parentDir) && m_logger.logSink()) {
+            m_logger.printWarning(ErrorInfo(Tr::tr("Failed to remove empty directory '%1'.")
+                                             .arg(parentDir)));
+        }
+    }
+}
+
 static bool hasQtBug53392()
 {
     if (!HostOsInfo::isWindowsHost())
@@ -81,9 +118,8 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
                                    bool waitIndefinitely, ProgressObserver *observer)
     : m_lockFile(buildGraphFilePath + QLatin1String(".lock"))
     , m_logger(logger)
+    , m_dirManager(QFileInfo(buildGraphFilePath).absolutePath(), logger)
 {
-    const QString buildDir = QFileInfo(buildGraphFilePath).absolutePath();
-    rememberCreatedDirectories(buildDir);
     if (waitIndefinitely)
         m_logger.qbsDebug() << "Waiting to acquire lock file...";
     m_lockFile.setStaleLockTime(0);
@@ -91,7 +127,7 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
     do {
         if (observer && observer->canceled())
             break;
-        tryCreateBuildDirectory(buildDir, buildGraphFilePath);
+        tryCreateBuildDirectory(m_dirManager.dir(), buildGraphFilePath);
         if (m_lockFile.tryLock(250))
             return;
         switch (m_lockFile.error()) {
@@ -133,33 +169,6 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
 BuildGraphLocker::~BuildGraphLocker()
 {
     m_lockFile.unlock();
-    removeEmptyCreatedDirectories();
-}
-
-void BuildGraphLocker::rememberCreatedDirectories(const QString &buildDir)
-{
-    QString parentDir = buildDir;
-    while (!QFileInfo::exists(parentDir)) {
-        m_createdParentDirs.push(parentDir);
-        parentDir = QDir::cleanPath(parentDir + QLatin1String("/.."));
-    }
-}
-
-void BuildGraphLocker::removeEmptyCreatedDirectories()
-{
-    QDir root = QDir::root();
-    while (!m_createdParentDirs.empty()) {
-        const QString parentDir = m_createdParentDirs.front();
-        m_createdParentDirs.pop();
-        QDirIterator it(parentDir, QDir::AllEntries | QDir::NoDotAndDotDot | QDir::System,
-                        QDirIterator::Subdirectories);
-        if (it.hasNext())
-            break;
-        if (!root.rmdir(parentDir)) {
-            m_logger.printWarning(ErrorInfo(Tr::tr("Failed to remove empty directory '%1'.")
-                                            .arg(parentDir)));
-        }
-    }
 }
 
 } // namespace Internal
