@@ -11,6 +11,7 @@ Project {
         Depends { name: "qbs archive"; required: false }
         Depends { name: "qbs chocolatey"; required: false }
         name: "dist"
+        builtByDefault: false
 
         Group {
             name: "Scripts"
