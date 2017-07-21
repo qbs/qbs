@@ -385,6 +385,8 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
                   Set<QString>() << QDir::cleanPath(parameters.projectFilePath()));
     result.root = root;
     result.qbsFiles = m_reader->filesRead();
+    for (auto it = m_localProfiles.cbegin(); it != m_localProfiles.cend(); ++it)
+        result.profileConfigs.remove(it.key());
     printProfilingInfo();
     return result;
 }
@@ -633,6 +635,8 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
                                "this is qbs version %2.").arg(minVersion.toString(),
                                                               m_qbsVersion.toString()));
     }
+
+    handleProfileItems(projectItem, &projectContext);
 
     QList<Item *> multiplexedProducts;
     for (Item * const child : projectItem->children()) {
@@ -969,6 +973,8 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
         m_logger.qbsTrace() << "[MODLDR] prepareProduct " << productItem->file()->filePath();
 
     ProductContext productContext;
+    productContext.item = productItem;
+    productContext.project = projectContext;
     productContext.name = m_evaluator->stringValue(productItem, QLatin1String("name"));
     QBS_CHECK(!productContext.name.isEmpty());
     bool profilePropertySet;
@@ -979,7 +985,13 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     QBS_CHECK(profilePropertySet);
     const auto it = projectContext->result->profileConfigs.constFind(productContext.profileName);
     if (it == projectContext->result->profileConfigs.constEnd()) {
-        const Profile profile(productContext.profileName, m_settings.get());
+        const Profile profile(productContext.profileName, m_settings.get(), m_localProfiles);
+        if (!profile.exists()) {
+            ErrorInfo error(Tr::tr("Profile '%1' does not exist.").arg(profile.name()),
+                             productItem->location());
+            handleProductError(error, &productContext);
+            return;
+        }
         const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
                     profile, m_parameters.configurationName());
         productContext.moduleProperties = SetupProjectParameters::finalBuildConfigurationTree(
@@ -989,8 +1001,6 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     } else {
         productContext.moduleProperties = it.value().toMap();
     }
-    productContext.item = productItem;
-    productContext.project = projectContext;
     initProductProperties(productContext);
 
     ItemValuePtr itemValue = ItemValue::create(productItem);
@@ -1356,8 +1366,10 @@ QList<Item *> ModuleLoader::loadReferencedFile(const QString &relativePath,
     subItem->setParent(dummyContext.project->item);
     QList<Item *> loadedItems;
     loadedItems << subItem;
-    if (subItem->type() == ItemType::Product)
+    if (subItem->type() == ItemType::Product) {
+        handleProfileItems(subItem, dummyContext.project);
         loadedItems << multiplexProductItem(&dummyContext, subItem);
+    }
     return loadedItems;
 }
 
@@ -1640,6 +1652,97 @@ Item *ModuleLoader::loadItemFromFile(const QString &filePath)
     Item * const item = m_reader->readFile(filePath);
     handleAllPropertyOptionsItems(item);
     return item;
+}
+
+void ModuleLoader::handleProfileItems(Item *item, ProjectContext *projectContext)
+{
+    const std::vector<Item *> profileItems = collectProfileItems(item, projectContext);
+    for (Item * const profileItem : profileItems) {
+        try {
+            handleProfile(profileItem);
+        } catch (const ErrorInfo &e) {
+            handlePropertyError(e, m_parameters, m_logger);
+        }
+    }
+}
+
+std::vector<Item *> ModuleLoader::collectProfileItems(Item *item, ProjectContext *projectContext)
+{
+    QList<Item *> childItems = item->children();
+    std::vector<Item *> profileItems;
+    Item * scope = item->type() == ItemType::Project ? projectContext->scope : nullptr;
+    for (auto it = childItems.begin(); it != childItems.end();) {
+        Item * const childItem = *it;
+        if (childItem->type() == ItemType::Profile) {
+            if (!scope) {
+                const ItemValuePtr itemValue = ItemValue::create(item);
+                scope = Item::create(m_pool, ItemType::Scope);
+                scope->setProperty(QLatin1String("product"), itemValue);
+                scope->setFile(item->file());
+                scope->setScope(projectContext->scope);
+            }
+            childItem->setScope(scope);
+            profileItems.push_back(childItem);
+            it = childItems.erase(it);
+        } else {
+            if (childItem->type() == ItemType::Product) {
+                for (Item * const profileItem : collectProfileItems(childItem, projectContext))
+                    profileItems.push_back(profileItem);
+            }
+            ++it;
+        }
+    }
+    if (!profileItems.empty())
+        item->setChildren(childItems);
+    return profileItems;
+}
+
+void ModuleLoader::evaluateProfileValues(const QualifiedId &namePrefix, Item *item,
+                                         Item *profileItem, QVariantMap &values)
+{
+    const Item::PropertyMap &props = item->properties();
+    for (auto it = props.begin(); it != props.end(); ++it) {
+        QualifiedId name = namePrefix;
+        name << it.key();
+        switch (it.value()->type()) {
+        case Value::ItemValueType:
+            evaluateProfileValues(name, std::static_pointer_cast<ItemValue>(it.value())->item(),
+                                  profileItem, values);
+            break;
+        case Value::VariantValueType:
+            values.insert(name.join(QLatin1Char('.')),
+                          std::static_pointer_cast<VariantValue>(it.value())->value());
+            break;
+        case Value::JSSourceValueType:
+            item->setType(ItemType::ModulePrefix); // TODO: Introduce new item type
+            if (item != profileItem)
+                item->setScope(profileItem);
+            values.insert(name.join(QLatin1Char('.')),
+                          m_evaluator->value(item, it.key()).toVariant());
+            break;
+        }
+    }
+}
+
+void ModuleLoader::handleProfile(Item *profileItem)
+{
+    QVariantMap values;
+    evaluateProfileValues(QualifiedId(), profileItem, profileItem, values);
+    const bool condition = values.take(QLatin1String("condition")).toBool();
+    if (!condition)
+        return;
+    const QString profileName = values.take(QLatin1String("name")).toString();
+    if (profileName.isEmpty())
+        throw ErrorInfo(Tr::tr("Every Profile item must have a name"), profileItem->location());
+    if (profileName == Profile::fallbackName()) {
+        throw ErrorInfo(Tr::tr("Reserved name '%1' cannot be used for an actual profile.")
+                        .arg(profileName), profileItem->location());
+    }
+    if (m_localProfiles.contains(profileName)) {
+        throw ErrorInfo(Tr::tr("Local profile '%1' redefined.").arg(profileName),
+                        profileItem->location());
+    }
+    m_localProfiles.insert(profileName, values);
 }
 
 void ModuleLoader::propagateModulesFromParent(ProductContext *productContext, Item *groupItem,

@@ -100,6 +100,8 @@ private slots:
     void linkDynamicAndStaticLibs();
     void linkStaticAndDynamicLibs();
     void listBuildSystemFiles();
+    void localProfiles();
+    void localProfiles_data();
     void missingSourceFile();
     void mocCppIncluded();
     void multiArch();

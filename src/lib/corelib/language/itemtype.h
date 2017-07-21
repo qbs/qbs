@@ -58,6 +58,7 @@ enum class ItemType {
     Parameters,
     Probe,
     Product,
+    Profile,
     Project,
     Properties,
     PropertiesInSubProject,

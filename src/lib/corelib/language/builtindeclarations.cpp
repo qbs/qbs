@@ -71,6 +71,7 @@ BuiltinDeclarations::BuiltinDeclarations()
         { QLatin1String("Parameters"), ItemType::Parameters },
         { QLatin1String("Probe"), ItemType::Probe },
         { QLatin1String("Product"), ItemType::Product },
+        { QLatin1String("Profile"), ItemType::Profile },
         { QLatin1String("Project"), ItemType::Project },
         { QLatin1String("Properties"), ItemType::Properties }, // Callers have to handle the SubProject case.
         { QLatin1String("PropertyOptions"), ItemType::PropertyOptions },
@@ -88,6 +89,7 @@ BuiltinDeclarations::BuiltinDeclarations()
     addModuleItem();
     addProbeItem();
     addProductItem();
+    addProfileItem();
     addProjectItem();
     addPropertiesItem();
     addPropertyOptionsItem();
@@ -317,6 +319,7 @@ void BuiltinDeclarations::addProductItem()
             << ItemType::FileTagger
             << ItemType::Export
             << ItemType::Probe
+            << ItemType::Profile
             << ItemType::PropertyOptions
             << ItemType::Rule);
     item << conditionProperty();
@@ -359,6 +362,15 @@ void BuiltinDeclarations::addProductItem()
     insert(item);
 }
 
+void BuiltinDeclarations::addProfileItem()
+{
+    ItemDeclaration item(ItemType::Profile);
+    item << conditionProperty();
+    item << nameProperty();
+    item << PropertyDeclaration(QLatin1String("baseProfile"), PropertyDeclaration::String);
+    insert(item);
+}
+
 void BuiltinDeclarations::addProjectItem()
 {
     ItemDeclaration item(ItemType::Project);
@@ -367,6 +379,7 @@ void BuiltinDeclarations::addProjectItem()
             << ItemType::PropertyOptions
             << ItemType::SubProject
             << ItemType::Product
+            << ItemType::Profile
             << ItemType::Probe
             << ItemType::FileTagger
             << ItemType::Rule);

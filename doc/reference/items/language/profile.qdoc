@@ -1,0 +1,95 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-language-items.html
+    \previouspage product-item.html
+    \page profile-item.html
+    \nextpage project-item.html
+    \ingroup list-of-language-items
+    \ingroup list-of-items
+    \keyword QML.Properties
+
+    \title Profile Item
+    \brief Creates a profile within the project
+
+    The profiles used by \QBS are normally set up on a user's machine and are then available
+    to all projects. See the \l Configuring section for information on how to set up and
+    use profiles on the command line.
+    In some rare cases, however, the creator of a project has complete knowledge about the system
+    on which that project is to be built. Then it can make sense to integrate the profile into
+    the project:
+
+    \code
+    Product {
+        // ...
+        Profile {
+            name: "my-special-profile"
+            qbs.toolchain: ["gcc"]
+            qbs.targetOS: ["linux"]
+            qbs.architecture: "arm"
+            cpp.toolchainInstallPath: "/opt/special-gcc/bin"
+            cpp.toolchainPrefix: "arm-linux-special-"
+        }
+        qbs.profiles: ["my-special-profile"]
+        // ...
+    }
+    \endcode
+
+    The project in the above example can be built in a particular well-known environment
+    without any additional setup.
+
+    \c Profile items can appear inside \l{Product Item}{Product} and \l{Project Item}{Project}
+    items.
+
+    \section1 Profile Properties
+
+    \table
+        \header
+            \li Property
+            \li Type
+            \li Default
+            \li Description
+        \row
+            \li baseProfile
+            \li \c string
+            \li \c undefined
+            \li The name of a profile from which this profile inherits. If the same property is
+                set in both this profile and the base profile, the value from this profile
+                takes precedence.
+        \row
+            \li condition
+            \li \c bool
+            \li \c true
+            \li If this property is set to \c false, the profile cannot be used.
+        \row
+            \li name
+            \li \c string
+            \li \c undefined
+            \li The name under which the profile can be referenced later. Setting this property
+                is required. The value must be unique among all profiles in an entire project.
+    \endtable
+*/

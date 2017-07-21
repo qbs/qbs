@@ -327,6 +327,12 @@ private:
     QualifiedIdSet gatherModulePropertiesSetInGroup(const Item *group);
     Item *loadItemFromFile(const QString &filePath);
 
+    void handleProfileItems(Item *item, ProjectContext *projectContext);
+    std::vector<Item *> collectProfileItems(Item *item, ProjectContext *projectContext);
+    void evaluateProfileValues(const QualifiedId &namePrefix, Item *item, Item *profileItem,
+                               QVariantMap &values);
+    void handleProfile(Item *profileItem);
+
     ItemPool *m_pool;
     Logger &m_logger;
     ProgressObserver *m_progressObserver;
@@ -357,6 +363,7 @@ private:
     QHash<QString, QList<ProbeConstPtr>> m_oldProductProbes;
     QHash<CodeLocation, QList<ProbeConstPtr>> m_currentProbes;
     QVariantMap m_storedProfiles;
+    QVariantMap m_localProfiles;
     std::multimap<QString, const ProductContext *> m_productsByName;
     SetupProjectParameters m_parameters;
     std::unique_ptr<Settings> m_settings;

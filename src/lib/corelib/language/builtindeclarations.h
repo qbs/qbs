@@ -79,6 +79,7 @@ private:
     static ItemDeclaration moduleLikeItem(ItemType type);
     void addProbeItem();
     void addProductItem();
+    void addProfileItem();
     void addProjectItem();
     void addPropertiesItem();
     void addPropertyOptionsItem();

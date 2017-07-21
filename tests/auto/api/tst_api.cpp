@@ -1489,6 +1489,126 @@ void TestApi::listBuildSystemFiles()
                                       + "/subproject2/subproject3/subproject3.qbs"));
 }
 
+void TestApi::localProfiles()
+{
+    QFETCH(bool, enableProfiles);
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("local-profiles/local-profiles.qbs");
+    setupParams.setOverriddenValues(
+        {std::make_pair(QString("project.enableProfiles"), enableProfiles)});
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+                                                                        m_logSink, 0));
+    QString taskDescriptions;
+    const auto taskDescHandler = [&taskDescriptions](const QString &desc, int, qbs::AbstractJob *) {
+        taskDescriptions += '\n' + desc;
+    };
+    connect(job.data(), &qbs::AbstractJob::taskStarted, taskDescHandler);
+    waitForFinished(job.data());
+    const QString error = job->error().toString();
+    QVERIFY2(job->error().hasError() == !enableProfiles, qPrintable(error));
+    if (!enableProfiles) {
+        QVERIFY2(error.contains("does not exist"), qPrintable(error));
+        return;
+    }
+    QVERIFY2(taskDescriptions.contains("Resolving"), qPrintable(taskDescriptions));
+
+    qbs::ProjectData project = job->project().projectData();
+    QList<qbs::ProductData> products = project.allProducts();
+    QCOMPARE(products.count(), 4);
+    qbs::ProductData libMingw;
+    qbs::ProductData libClang;
+    qbs::ProductData appDebug;
+    qbs::ProductData appRelease;
+    for (const qbs::ProductData &p : qAsConst(products)) {
+        if (p.name() == "lib") {
+            if (p.profile() == "mingwProfile")
+                libMingw = p;
+            else if (p.profile() == "clangProfile")
+                libClang = p;
+        } else if (p.name() == "app") {
+            const QString buildVariant
+                    = p.moduleProperties().getModuleProperty("qbs", "buildVariant").toString();
+            if (buildVariant == "debug")
+                appDebug = p;
+            else if (buildVariant == "release")
+                appRelease = p;
+
+        }
+    }
+    QVERIFY(libMingw.isValid());
+    QVERIFY((libClang.isValid()));
+    QVERIFY(appDebug.isValid());
+    QVERIFY(appRelease.isValid());
+    QCOMPARE(appDebug.profile(), QLatin1String("mingwProfile"));
+    QCOMPARE(appRelease.profile(), QLatin1String("mingwProfile"));
+
+    qbs::PropertyMap moduleProps = libMingw.moduleProperties();
+    QCOMPARE(moduleProps.getModuleProperty("qbs", "targetOS").toStringList(),
+             QStringList({"windows"}));
+    QCOMPARE(moduleProps.getModuleProperty("qbs", "toolchain").toStringList(),
+             QStringList({"mingw", "gcc"}));
+    if (moduleProps.getModuleProperty("cpp", "present").toBool()) {
+        QCOMPARE(moduleProps.getModuleProperty("cpp", "cxxCompilerName").toString(),
+                 QString("g++"));
+    }
+    moduleProps = libClang.moduleProperties();
+    QCOMPARE(moduleProps.getModuleProperty("qbs", "targetOS").toStringList(),
+             QStringList({"linux", "unix"}));
+    QCOMPARE(moduleProps.getModuleProperty("qbs", "toolchain").toStringList(),
+             QStringList({"clang", "llvm", "gcc"}));
+    if (moduleProps.getModuleProperty("cpp", "present").toBool()) {
+        QCOMPARE(moduleProps.getModuleProperty("cpp", "cxxCompilerName").toString(),
+                 QString("clang++"));
+    }
+    moduleProps = appDebug.moduleProperties();
+    if (moduleProps.getModuleProperty("cpp", "present").toBool())
+        QCOMPARE(moduleProps.getModuleProperty("cpp", "optimization").toString(), QString("none"));
+    moduleProps = appRelease.moduleProperties();
+    if (moduleProps.getModuleProperty("cpp", "present").toBool())
+        QCOMPARE(moduleProps.getModuleProperty("cpp", "optimization").toString(), QString("fast"));
+
+    taskDescriptions.clear();
+    job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
+    connect(job.data(), &qbs::AbstractJob::taskStarted, taskDescHandler);
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    QVERIFY2(!taskDescriptions.contains("Resolving"), qPrintable(taskDescriptions));
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    QFile projectFile(setupParams.projectFilePath());
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray content = projectFile.readAll();
+    content.replace("\"clang\", \"llvm\", ", QByteArray());
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    project = job->project().projectData();
+    products = project.allProducts();
+    QCOMPARE(products.count(), 4);
+    int clangProfiles = 0;
+    for (const qbs::ProductData &p : qAsConst(products)) {
+        if (p.profile() == "clangProfile") {
+            ++clangProfiles;
+            moduleProps = p.moduleProperties();
+            if (moduleProps.getModuleProperty("cpp", "present").toBool()) {
+                QCOMPARE(moduleProps.getModuleProperty("cpp", "cxxCompilerName").toString(),
+                         QString("g++"));
+            }
+        }
+    }
+    QCOMPARE(clangProfiles, 1);
+}
+
+void TestApi::localProfiles_data()
+{
+    QTest::addColumn<bool>("enableProfiles");
+    QTest::newRow("profiles enabled") << true;
+    QTest::newRow("profiles disabled") << false;
+}
+
 void TestApi::missingSourceFile()
 {
     qbs::SetupProjectParameters setupParams
