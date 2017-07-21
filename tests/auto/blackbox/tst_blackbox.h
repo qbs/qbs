@@ -171,6 +171,7 @@ private slots:
     void renameDependency();
     void separateDebugInfo();
     void sevenZip();
+    void staticLibWithoutSources();
     void suspiciousCalls();
     void suspiciousCalls_data();
     void systemRunPaths();

@@ -109,7 +109,8 @@ QtModule {
                         var libs = Qml.getLibsForPlugin(scannerData[p],
                                                         product.Qt.core.qtBuildVariant,
                                                         product.qbs.targetOS,
-                                                        product.qbs.toolchain);
+                                                        product.qbs.toolchain,
+                                                        product.Qt.core.libPath);
                         listFile.write(libs + ' ');
                     }
                 } finally {

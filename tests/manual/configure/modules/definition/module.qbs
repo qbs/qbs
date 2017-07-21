@@ -11,7 +11,7 @@ Module {
             var cmd;
             var args;
             if (qbs.targetOS.contains("windows")) {
-                cmd = "cmd";
+                cmd = qbs.windowsShellPath;
                 args = ["/c", "date", "/t"];
             } else {
                 cmd = 'date';

@@ -415,8 +415,10 @@ CppModule {
         outputFileTags: ["bundle.input", "staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
         outputArtifacts: {
             var tags = ["bundle.input", "staticlibrary"];
-            for (var i = 0; i < inputs["obj"].length; ++i) {
-                var ft = inputs["obj"][i].fileTags;
+            var objs = inputs["obj"];
+            var objCount = objs ? objs.length : 0;
+            for (var i = 0; i < objCount; ++i) {
+                var ft = objs[i].fileTags;
                 if (ft.contains("c_obj"))
                     tags.push("c_staticlibrary");
                 if (ft.contains("cpp_obj"))

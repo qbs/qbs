@@ -159,6 +159,12 @@ void TestBlackbox::sevenZip()
     QVERIFY2(output.contains("archivable.qbs"), output.constData());
 }
 
+void TestBlackbox::staticLibWithoutSources()
+{
+    QDir::setCurrent(testDataDir + "/static-lib-without-sources");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::suspiciousCalls()
 {
     const QString projectDir = testDataDir + "/suspicious-calls";

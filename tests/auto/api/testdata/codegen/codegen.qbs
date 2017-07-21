@@ -58,12 +58,12 @@ Project {
             var args = ['echo ' + code + '>' + output.filePath]
             var cmd
             if (product.moduleProperty("qbs", "hostOS").contains('windows')) {
-                cmd = new Command('cmd.exe', ['/C'].concat(args));
+                cmd = new Command(product.qbs.windowsShellPath, ['/C'].concat(args));
             } else {
                 args[0] = args[0].replace(/\(/g, '\\(')
                 args[0] = args[0].replace(/\)/g, '\\)')
                 args[0] = args[0].replace(/;/g, '\\;')
-                cmd = new Command('/bin/sh', ['-c'].concat(args))
+                cmd = new Command(product.qbs.shellPath, ['-c'].concat(args))
             }
             cmd.description = 'generate\t' + FileInfo.fileName(output.filePath);
             cmd.highlight = 'codegen';

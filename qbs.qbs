@@ -8,7 +8,6 @@ Project {
     property stringList autotestWrapper: []
 
     references: [
-        "dist/dist.qbs",
         "doc/doc.qbs",
         "share/share.qbs",
         "src/src.qbs",

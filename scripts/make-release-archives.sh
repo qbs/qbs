@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 #############################################################################
 ##
@@ -39,11 +40,11 @@
 ##
 #############################################################################
 
-test $# -eq 2 || { echo "Usage: $(basename $0) <archive format> <tag>" >&2; exit 1; }
+test $# -eq 1 || { echo "Usage: $(basename "$0") <tag>" >&2; exit 1; }
 
-format=${1}
-tag=${2}
+tag=${1}
 version=${tag#v}
-dir_name=qbs-src-${version}
+dir_name=dist/qbs-src-${version}
 
-git archive --format=${format} --prefix=${dir_name}/ -o ${dir_name}.${format} ${tag}
+git archive --format=tar.gz "--prefix=${dir_name}/" -o "${dir_name}.tar.gz" "${tag}"
+git archive --format=zip "--prefix=${dir_name}/" -o "${dir_name}.zip" "${tag}"

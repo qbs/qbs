@@ -38,7 +38,9 @@
 ****************************************************************************/
 #include "setupprojectparameters.h"
 
+#include <logging/logger.h>
 #include <logging/translator.h>
+#include <tools/buildgraphlocker.h>
 #include <tools/installoptions.h>
 #include <tools/profile.h>
 #include <tools/qbsassert.h>
@@ -194,6 +196,11 @@ QString SetupProjectParameters::buildRoot() const
 void SetupProjectParameters::setBuildRoot(const QString &buildRoot)
 {
     d->buildRoot = buildRoot;
+
+    // Calling mkpath() may be necessary to get the canonical build root, but if we do it,
+    // it must be reverted immediately afterwards as not to create directories needlessly,
+    // e.g in the case of a dry run build.
+    Internal::DirectoryManager dirManager(buildRoot, Internal::Logger());
 
     // We don't do error checking here, as this is not a convenient place to report an error.
     // If creation of the build directory is not possible, we will get sensible error messages

@@ -49,6 +49,7 @@
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
 #include <tools/projectgeneratormanager.h>
+#include <tools/qttools.h>
 #include <tools/shellutils.h>
 
 #include <QtCore/qdir.h>
@@ -116,7 +117,7 @@ void CommandLineFrontend::start()
                                    "product.\nUsage: %2")
                             .arg(m_parser.commandName(), m_parser.commandDescription()));
             }
-            // Fall-through intended.
+            Q_FALLTHROUGH();
         case StatusCommandType:
         case InstallCommandType:
         case DumpNodesTreeCommandType:
