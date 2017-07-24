@@ -482,8 +482,6 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
             qtEnvironment.androidVersion = QLatin1String("1.6"); // Necessitas
     }
 
-    // ### TODO: wince, winphone, blackberry
-
     Profile profile(profileName, settings);
     profile.removeProfile();
     createModules(profile, settings, qtEnvironment);

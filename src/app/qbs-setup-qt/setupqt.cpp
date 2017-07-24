@@ -377,9 +377,6 @@ static QStringList qbsTargetOsFromQtMkspec(const QString &mkspec)
     if (mkspec.startsWith(QLatin1String("android-")))
         return QStringList()  << QLatin1String("android") << QLatin1String("linux")
                               << QLatin1String("unix");
-    if (mkspec.startsWith(QLatin1String("blackberry")))
-        return QStringList()  << QLatin1String("blackberry") << QLatin1String("qnx")
-                              << QLatin1String("unix");
     if (mkspec.startsWith(QLatin1String("darwin-")))
         return QStringList() << QLatin1String("darwin") << QLatin1String("bsd")
                              << QLatin1String("unix");
@@ -425,10 +422,6 @@ static QStringList qbsTargetOsFromQtMkspec(const QString &mkspec)
         return QStringList() << QLatin1String("vxworks") << QLatin1String("unix");
     if (mkspec.startsWith(QLatin1String("win32-")))
         return QStringList() << QLatin1String("windows");
-    if (mkspec.startsWith(QLatin1String("wince")))
-        return QStringList() << QLatin1String("windowsce") << QLatin1String("windows");
-    if (mkspec.startsWith(QLatin1String("winphone-")))
-        return QStringList() << QLatin1String("windowsphone") << QLatin1String("winrt") << QLatin1String("windows");
     if (mkspec.startsWith(QLatin1String("winrt-")))
         return QStringList() << QLatin1String("winrt") << QLatin1String("windows");
     return QStringList();

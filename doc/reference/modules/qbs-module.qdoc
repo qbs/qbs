@@ -87,7 +87,6 @@
             Possible values include one or more of the following:
             \c{"aix"},
             \c{"android"},
-            \c{"blackberry"},
             \c{"bsd"},
             \c{"bsd4"},
             \c{"bsdi"},
@@ -123,8 +122,6 @@
             \c{"unixware"},
             \c{"vxworks"},
             \c{"windows"},
-            \c{"windowsce"},
-            \c{"windowsphone"},
             \c{"winrt"}
     \row
         \li architecture

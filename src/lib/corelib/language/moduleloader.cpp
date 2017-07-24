@@ -2533,9 +2533,6 @@ static QStringList hostOS()
 #if defined(Q_OS_ANDROID)
     hostSystem << QLatin1String("android");
 #endif
-#if defined(Q_OS_BLACKBERRY)
-    hostSystem << QLatin1String("blackberry");
-#endif
 #if defined(Q_OS_BSD4)
     hostSystem << QLatin1String("bsd") << QLatin1String("bsd4");
 #endif
@@ -2634,12 +2631,6 @@ static QStringList hostOS()
 #endif
 #if defined(Q_OS_WIN32)
     hostSystem << QLatin1String("windows");
-#endif
-#if defined(Q_OS_WINCE)
-    hostSystem << QLatin1String("windowsce");
-#endif
-#if defined(Q_OS_WINPHONE)
-    hostSystem << QLatin1String("windowsphone");
 #endif
 #if defined(Q_OS_WINRT)
     hostSystem << QLatin1String("winrt");

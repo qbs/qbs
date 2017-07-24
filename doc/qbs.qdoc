@@ -518,7 +518,7 @@
         \li platform-dependent
         \li The target operating system.
             May contain "windows", "linux", "macos", "darwin", "unix",
-            "ios", "android", "blackberry", "qnx", etc.
+            "ios", "android", "qnx", etc.
     \endtable
 
     You can set these properties on the command line or by using a profile.
