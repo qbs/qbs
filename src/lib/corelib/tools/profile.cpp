@@ -62,14 +62,18 @@ namespace qbs {
 /*!
  * \brief Creates an object giving access to the settings for profile \c name.
  */
-Profile::Profile(const QString &name, Settings *settings) : m_name(name), m_settings(settings)
+Profile::Profile(const QString &name, Settings *settings, const QVariantMap &profiles)
+    : m_name(name),
+      m_settings(settings),
+      m_values(profiles.value(name).toMap()),
+      m_profiles(profiles)
 {
     QBS_ASSERT(name == cleanName(name), return);
 }
 
 bool Profile::exists() const
 {
-    return !m_settings->allKeysWithPrefix(profileKey()).isEmpty();
+    return !m_values.isEmpty() || !m_settings->allKeysWithPrefix(profileKey()).isEmpty();
 }
 
 /*!
@@ -192,7 +196,10 @@ void Profile::checkBaseProfileExistence(const Profile &baseProfile) const
 
 QVariant Profile::localValue(const QString &key) const
 {
-    return m_settings->value(fullyQualifiedKey(key));
+    QVariant val = m_values.value(key);
+    if (!val.isValid())
+        val = m_settings->value(fullyQualifiedKey(key));
+    return val;
 }
 
 QString Profile::fullyQualifiedKey(const QString &key) const
@@ -210,7 +217,7 @@ QVariant Profile::possiblyInheritedValue(const QString &key, const QVariant &def
     const QString baseProfileName = baseProfile();
     if (baseProfileName.isEmpty())
         return defaultValue;
-    Profile parentProfile(baseProfileName, m_settings);
+    Profile parentProfile(baseProfileName, m_settings, m_profiles);
     checkBaseProfileExistence(parentProfile);
     return parentProfile.possiblyInheritedValue(key, defaultValue, profileChain);
 }
@@ -219,13 +226,15 @@ QStringList Profile::allKeysInternal(Profile::KeySelection selection,
                                      QStringList profileChain) const
 {
     extendAndCheckProfileChain(profileChain);
-    QStringList keys = m_settings->allKeysWithPrefix(profileKey());
+    QStringList keys = m_values.keys();
+    if (keys.isEmpty())
+        keys = m_settings->allKeysWithPrefix(profileKey());
     if (selection == KeySelectionNonRecursive)
         return keys;
     const QString baseProfileName = baseProfile();
     if (baseProfileName.isEmpty())
         return keys;
-    Profile parentProfile(baseProfileName, m_settings);
+    Profile parentProfile(baseProfileName, m_settings, m_profiles);
     checkBaseProfileExistence(parentProfile);
     keys += parentProfile.allKeysInternal(KeySelectionRecursive, profileChain);
     keys.removeDuplicates();

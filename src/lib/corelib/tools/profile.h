@@ -52,7 +52,7 @@ class Settings;
 class QBS_EXPORT Profile
 {
 public:
-    explicit Profile(const QString &name, Settings *settings);
+    Profile(const QString &name, Settings *settings, const QVariantMap &profiles = QVariantMap());
 
     bool exists() const;
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant(),
@@ -88,6 +88,8 @@ private:
 
     QString m_name;
     Settings *m_settings;
+    QVariantMap m_values;
+    QVariantMap m_profiles;
 };
 
 namespace Internal {
