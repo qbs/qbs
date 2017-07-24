@@ -194,6 +194,8 @@ void ModuleProperties::setupModules(QScriptValue &object, const ResolvedProductC
             obj = tmp;
         }
         obj.setProperty(moduleName.last(), moduleObject);
+        if (moduleName.count() > 1)
+            object.setProperty(moduleName.toString(), moduleObject);
     }
 }
 

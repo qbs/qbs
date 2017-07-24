@@ -39,10 +39,10 @@ Project {
                 var pathValue;
                 if (product.qbs.hostOS.contains("windows")) {
                     pathVar = "PATH";
-                    pathValue = FileInfo.toWindowsSeparators(input.Qt.core.binPath);
+                    pathValue = FileInfo.toWindowsSeparators(input["Qt.core"].binPath);
                 } else {
                     pathVar = "LD_LIBRARY_PATH";
-                    pathValue = input.Qt.core.libPath;
+                    pathValue = input["Qt.core"].libPath;
                 }
                 var oldValue = Environment.getEnv(pathVar) || "";
                 var newValue = pathValue + product.qbs.pathListSeparator + oldValue;
