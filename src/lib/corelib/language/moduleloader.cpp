@@ -322,6 +322,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_reader->clearExtraSearchPathsStack();
     m_reader->setEnableTiming(parameters.logElapsedTime());
     m_elapsedTimeProbes = 0;
+    m_settings.reset(new Settings(parameters.settingsDirectory()));
 
     for (const QString &key : m_parameters.overriddenValues().keys()) {
         static const QStringList prefixes({ QLatin1String("project"), QLatin1String("projects"),
@@ -978,9 +979,9 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     QBS_CHECK(profilePropertySet);
     const auto it = projectContext->result->profileConfigs.constFind(productContext.profileName);
     if (it == projectContext->result->profileConfigs.constEnd()) {
+        const Profile profile(productContext.profileName, m_settings.get());
         const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
-                    m_parameters.settingsDirectory(), productContext.profileName,
-                    m_parameters.configurationName());
+                    profile, m_parameters.configurationName());
         productContext.moduleProperties = SetupProjectParameters::finalBuildConfigurationTree(
                     buildConfig, m_parameters.overriddenValues());
         projectContext->result->profileConfigs.insert(productContext.profileName,

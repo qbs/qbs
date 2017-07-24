@@ -50,6 +50,7 @@
 
 namespace qbs {
 
+class Profile;
 class Settings;
 
 namespace Internal { class SetupProjectParametersPrivate; }
@@ -93,8 +94,7 @@ public:
     void setOverriddenValues(const QVariantMap &values);
     QVariantMap overriddenValuesTree() const;
 
-    static QVariantMap expandedBuildConfiguration(const QString &settingsBaseDir,
-            const QString &profileName, const QString &configurationName, ErrorInfo *errorInfo = 0);
+    static QVariantMap expandedBuildConfiguration(const Profile &profile, const QString &configurationName, ErrorInfo *errorInfo = 0);
     ErrorInfo expandBuildConfiguration();
     QVariantMap buildConfiguration() const;
     QVariantMap buildConfigurationTree() const;

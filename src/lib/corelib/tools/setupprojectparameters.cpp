@@ -345,21 +345,19 @@ QVariantMap SetupProjectParameters::buildConfigurationTree() const
     return d->buildConfigurationTree;
 }
 
-static QVariantMap expandedBuildConfigurationInternal(const QString &settingsBaseDir,
-        const QString &profileName, const QString &configurationName)
+static QVariantMap expandedBuildConfigurationInternal(const Profile &profile,
+                                                      const QString &configurationName)
 {
-    Settings settings(settingsBaseDir);
     QVariantMap buildConfig;
 
     // (1) Values from profile, if given.
-    if (!profileName.isEmpty() && profileName != Profile::fallbackName()) {
+    if (profile.exists() && profile.name() != Profile::fallbackName()) {
         ErrorInfo err;
-        const Profile profile(profileName, &settings);
         const QStringList profileKeys = profile.allKeys(Profile::KeySelectionRecursive, &err);
         if (err.hasError())
             throw err;
         if (profileKeys.isEmpty())
-            throw ErrorInfo(Internal::Tr::tr("Unknown or empty profile '%1'.").arg(profileName));
+            throw ErrorInfo(Internal::Tr::tr("Unknown or empty profile '%1'.").arg(profile.name()));
         for (const QString &profileKey : profileKeys) {
             buildConfig.insert(profileKey, profile.value(profileKey, QVariant(), &err));
                 if (err.hasError())
@@ -375,11 +373,11 @@ static QVariantMap expandedBuildConfigurationInternal(const QString &settingsBas
 }
 
 
-QVariantMap SetupProjectParameters::expandedBuildConfiguration(const QString &settingsBaseDir,
-        const QString &profileName, const QString &configurationName, ErrorInfo *errorInfo)
+QVariantMap SetupProjectParameters::expandedBuildConfiguration(const Profile &profile,
+        const QString &configurationName, ErrorInfo *errorInfo)
 {
     try {
-        return expandedBuildConfigurationInternal(settingsBaseDir, profileName, configurationName);
+        return expandedBuildConfigurationInternal(profile, configurationName);
     } catch (const ErrorInfo &err) {
         if (errorInfo)
             *errorInfo = err;
@@ -401,8 +399,9 @@ QVariantMap SetupProjectParameters::expandedBuildConfiguration(const QString &se
 ErrorInfo SetupProjectParameters::expandBuildConfiguration()
 {
     ErrorInfo err;
-    QVariantMap expandedConfig = expandedBuildConfiguration(d->settingsBaseDir, topLevelProfile(),
-                                                            configurationName(), &err);
+    Settings settings(d->settingsBaseDir);
+    Profile profile(topLevelProfile(), &settings);
+    QVariantMap expandedConfig = expandedBuildConfiguration(profile, configurationName(), &err);
     if (err.hasError())
         return err;
     if (d->buildConfiguration != expandedConfig) {

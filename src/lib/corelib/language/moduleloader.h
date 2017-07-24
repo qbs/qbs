@@ -54,6 +54,7 @@
 #include <QtCore/qvariant.h>
 
 #include <map>
+#include <memory>
 #include <stack>
 #include <unordered_map>
 #include <vector>
@@ -61,6 +62,7 @@
 namespace qbs {
 
 class CodeLocation;
+class Settings;
 
 namespace Internal {
 
@@ -357,6 +359,7 @@ private:
     QVariantMap m_storedProfiles;
     std::multimap<QString, const ProductContext *> m_productsByName;
     SetupProjectParameters m_parameters;
+    std::unique_ptr<Settings> m_settings;
     Version m_qbsVersion;
     Item *m_tempScopeItem = nullptr;
     qint64 m_elapsedTimeProbes;

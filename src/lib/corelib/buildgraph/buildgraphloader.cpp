@@ -57,9 +57,11 @@
 #include <tools/buildgraphlocker.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
+#include <tools/profile.h>
 #include <tools/profiling.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/settings.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
@@ -945,10 +947,12 @@ bool BuildGraphLoader::checkConfigCompatibility()
         return true;
     if (m_parameters.finalBuildConfigurationTree() != restoredProject->buildConfiguration())
         return false;
+    Settings settings(m_parameters.settingsDirectory());
     for (QVariantMap::ConstIterator it = restoredProject->profileConfigs.constBegin();
          it != restoredProject->profileConfigs.constEnd(); ++it) {
+        const Profile profile(it.key(), &settings);
         const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
-                    m_parameters.settingsDirectory(), it.key(), m_parameters.configurationName());
+                    profile, m_parameters.configurationName());
         const QVariantMap newConfig = SetupProjectParameters::finalBuildConfigurationTree(
                     buildConfig, m_parameters.overriddenValues());
         if (newConfig != it.value())
