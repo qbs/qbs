@@ -78,15 +78,17 @@ class FileTagger : public PersistentObject
 {
 public:
     static FileTaggerPtr create() { return FileTaggerPtr(new FileTagger); }
-    static FileTaggerPtr create(const QStringList &patterns, const FileTags &fileTags) {
-        return FileTaggerPtr(new FileTagger(patterns, fileTags));
+    static FileTaggerPtr create(const QStringList &patterns, const FileTags &fileTags,
+                                int priority) {
+        return FileTaggerPtr(new FileTagger(patterns, fileTags, priority));
     }
 
     const QList<QRegExp> &patterns() const { return m_patterns; }
     const FileTags &fileTags() const { return m_fileTags; }
+    int priority() const { return m_priority; }
 
 private:
-    FileTagger(const QStringList &patterns, const FileTags &fileTags);
+    FileTagger(const QStringList &patterns, const FileTags &fileTags, int priority);
     FileTagger() {}
 
     void setPatterns(const QStringList &patterns);
@@ -96,6 +98,7 @@ private:
 
     QList<QRegExp> m_patterns;
     FileTags m_fileTags;
+    int m_priority = 0;
 };
 
 class Probe : public PersistentObject

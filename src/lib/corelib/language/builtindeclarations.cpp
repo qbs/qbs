@@ -235,6 +235,7 @@ void BuiltinDeclarations::addFileTaggerItem()
     item << conditionProperty();
     item << PropertyDeclaration(QLatin1String("patterns"), PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::StringList);
+    item << PropertyDeclaration(QLatin1String("priority"), PropertyDeclaration::Integer);
     insert(item);
 }
 

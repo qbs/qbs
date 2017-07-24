@@ -69,6 +69,8 @@ public:
     QScriptValue value(const Item *item, const QString &name, bool *propertySet = 0);
     bool boolValue(const Item *item, const QString &name, bool defaultValue = false,
                    bool *propertyWasSet = 0);
+    int intValue(const Item *item, const QString &name, int defaultValue = 0,
+                 bool *propertyWasSet = 0);
     FileTags fileTagsValue(const Item *item, const QString &name, bool *propertySet = 0);
     QString stringValue(const Item *item, const QString &name,
                         const QString &defaultValue = QString(), bool *propertyWasSet = 0);

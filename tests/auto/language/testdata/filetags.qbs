@@ -58,4 +58,24 @@ Project {
             fileTags: ["zzz"]
         }
     }
+
+    Product {
+        name: "prioritized_filetagger"
+        files: ["main.cpp"]
+        FileTagger {
+            patterns: ["*.cpp"]
+            fileTags: ["cpp1"]
+            priority: 3
+        }
+        FileTagger {
+            patterns: ["*.cpp"]
+            fileTags: ["cpp2"]
+            priority: 3
+        }
+        FileTagger {
+            patterns: ["*.cpp"]
+            fileTags: ["ignored"]
+            priority: 2
+        }
+    }
 }

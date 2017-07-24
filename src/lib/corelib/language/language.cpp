@@ -69,6 +69,7 @@
 #include <QtScript/qscriptvalue.h>
 
 #include <algorithm>
+#include <memory>
 #include <mutex>
 
 namespace qbs {
@@ -84,8 +85,8 @@ template<typename T> bool equals(const T *v1, const T *v2)
 }
 
 
-FileTagger::FileTagger(const QStringList &patterns, const FileTags &fileTags)
-    : m_fileTags(fileTags)
+FileTagger::FileTagger(const QStringList &patterns, const FileTags &fileTags, int priority)
+    : m_fileTags(fileTags), m_priority(priority)
 {
     setPatterns(patterns);
 }
@@ -107,6 +108,7 @@ void FileTagger::load(PersistentPool &pool)
 {
     setPatterns(pool.load<QStringList>());
     pool.load(m_fileTags);
+    pool.load(m_priority);
 }
 
 void FileTagger::store(PersistentPool &pool) const
@@ -116,6 +118,7 @@ void FileTagger::store(PersistentPool &pool) const
         patterns << regExp.pattern();
     pool.store(patterns);
     pool.store(m_fileTags);
+    pool.store(m_priority);
 }
 
 
@@ -501,9 +504,19 @@ QList<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
 FileTags ResolvedProduct::fileTagsForFileName(const QString &fileName) const
 {
     FileTags result;
+    std::unique_ptr<int> priority;
     for (const FileTaggerConstPtr &tagger : qAsConst(fileTaggers)) {
         for (const QRegExp &pattern : tagger->patterns()) {
             if (FileInfo::globMatches(pattern, fileName)) {
+                if (priority) {
+                    if (*priority != tagger->priority()) {
+                        // The taggers are expected to be sorted by priority.
+                        QBS_ASSERT(*priority > tagger->priority(), return result);
+                        return result;
+                    }
+                } else {
+                    priority.reset(new int(tagger->priority()));
+                }
                 result.unite(tagger->fileTags());
                 break;
             }

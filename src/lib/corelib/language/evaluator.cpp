@@ -92,6 +92,15 @@ bool Evaluator::boolValue(const Item *item, const QString &name, bool defaultVal
     return v.toBool();
 }
 
+int Evaluator::intValue(const Item *item, const QString &name, int defaultValue,
+                        bool *propertyWasSet)
+{
+    QScriptValue v;
+    if (!evaluateProperty(&v, item, name, propertyWasSet))
+        return defaultValue;
+    return v.toInt32();
+}
+
 FileTags Evaluator::fileTagsValue(const Item *item, const QString &name, bool *propertySet)
 {
     return FileTags::fromStringList(stringListValue(item, name, propertySet));

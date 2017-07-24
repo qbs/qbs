@@ -2305,6 +2305,7 @@ void TestLanguage::fileTags_data()
     QTest::newRow("set_file_tag_via_group") << 2 << (QStringList() << "c++");
     QTest::newRow("override_file_tag_via_group") << 2 << (QStringList() << "c++");
     QTest::newRow("add_file_tag_via_group") << 2 << (QStringList() << "cpp" << "zzz");
+    QTest::newRow("prioritized_filetagger") << 1 << (QStringList() << "cpp1" << "cpp2");
     QTest::newRow("cleanup") << 0 << QStringList();
 }
 

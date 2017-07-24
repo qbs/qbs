@@ -943,7 +943,9 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
         if (pattern.isEmpty())
             throw ErrorInfo(Tr::tr("A FileTagger pattern must not be empty."), item->location());
     }
-    fileTaggers += FileTagger::create(patterns, fileTags);
+
+    const int priority = m_evaluator->intValue(item, QLatin1String("priority"));
+    fileTaggers += FileTagger::create(patterns, fileTags, priority);
 }
 
 void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext *projectContext)
@@ -1185,6 +1187,10 @@ void ProjectResolver::postProcess(const ResolvedProductPtr &product,
                                   ProjectContext *projectContext) const
 {
     product->fileTaggers += projectContext->fileTaggers;
+    std::sort(std::begin(product->fileTaggers), std::end(product->fileTaggers),
+              [] (const FileTaggerConstPtr &a, const FileTaggerConstPtr &b) {
+        return a->priority() > b->priority();
+    });
     for (const RulePtr &rule : qAsConst(projectContext->rules)) {
         RulePtr clonedRule = rule->clone();
         clonedRule->product = product.get();

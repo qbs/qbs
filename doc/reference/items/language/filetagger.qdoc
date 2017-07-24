@@ -34,9 +34,21 @@
     \keyword QML.FileTagger
 
     \title FileTagger Item
-    \brief Maps file patterns to tags.
+    \brief Assigns file tags to files.
 
-    This item maps file patterns to tags. It can be attached to a product or a module.
+    This item assigns file tags to files.
+    The FileTagger item can appear in \c{Product} items or \c{Module} items.
+
+    For every source artifact that has no file tag, \QBS will search for a
+    FileTagger with a pattern that matches the file name of the source
+    artifact. If a matching file tagger is found, then the file tags specified
+    in the FileTagger item are assigned to the source artifact.
+
+    If there is more than one matching FileTagger, all file taggers with the
+    same highest priority are taken into account and their file tags are
+    accumulated.
+
+    The FileTagger item can be attached to a product or a module.
     In the latter case, its effect is the same as if it had been attached to all products having
     a dependency on the respective module. For instance, the cpp module of \QBS has, among others,
     the following file tagger:
@@ -71,17 +83,27 @@
         \li Property
         \li Type
         \li Default
+        \li Since
         \li Description
     \row
         \li patterns
         \li stringList
         \li none
+        \li 1.0
         \li The patterns to match against. Supports the usual wildcards '*', '?' and '[]'.
             Neither the list itself nor any of its elements may be empty.
     \row
         \li fileTags
         \li list
         \li empty list
+        \li 1.0
         \li Tags to attach to a product's files. These can then be matched by a rule.
+    \row
+        \li priority
+        \li int
+        \li 0
+        \li 1.10
+        \li The priority of the FileTagger. A higher numerical value means
+            higher priority.
     \endtable
 */
