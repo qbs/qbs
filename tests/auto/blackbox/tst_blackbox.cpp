@@ -2413,6 +2413,14 @@ void TestBlackbox::dynamicMultiplexRule()
     QVERIFY(regularFileExists(outputFilePath));
 }
 
+void TestBlackbox::dynamicProject()
+{
+    const QString testDir = testDataDir + "/dynamic-project";
+    QDir::setCurrent(testDir);
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("compiling main.cpp"), 2);
+}
+
 void TestBlackbox::dynamicRuleOutputs()
 {
     const QString testDir = testDataDir + "/dynamicRuleOutputs";
