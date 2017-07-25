@@ -50,6 +50,7 @@
 #include <buildgraph/rulegraph.h> // TODO: Move to language?
 #include <buildgraph/transformer.h>
 #include <jsextensions/jsextensions.h>
+#include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>
 #include <tools/hostosinfo.h>
@@ -979,11 +980,11 @@ void TopLevelProject::store(Logger logger) const
     if (!buildData)
         return;
     if (!buildData->isDirty) {
-        logger.qbsDebug() << "[BG] build graph is unchanged in project " << id() << ".";
+        qCDebug(lcBuildGraph) << "build graph is unchanged in project" << id();
         return;
     }
     const QString fileName = buildGraphFilePath();
-    logger.qbsDebug() << "[BG] storing: " << fileName;
+    qCDebug(lcBuildGraph) << "storing:" << fileName;
     PersistentPool pool(logger);
     PersistentPool::HeadData headData;
     headData.projectConfig = buildConfiguration();

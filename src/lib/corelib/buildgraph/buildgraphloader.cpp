@@ -53,6 +53,7 @@
 #include <language/propertymapinternal.h>
 #include <language/qualifiedid.h>
 #include <language/resolvedfilecontext.h>
+#include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>
 #include <tools/fileinfo.h>
@@ -165,7 +166,7 @@ void BuildGraphLoader::loadBuildGraphFromDisk()
             = ProjectBuildData::deriveBuildGraphFilePath(buildDir, projectId);
 
     PersistentPool pool(m_logger);
-    m_logger.qbsDebug() << "[BG] trying to load: " << buildGraphFilePath;
+    qCDebug(lcBuildGraph) << "trying to load:" << buildGraphFilePath;
     try {
         pool.load(buildGraphFilePath);
     } catch (const NoBuildGraphError &e) {
@@ -435,9 +436,9 @@ bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &rest
     newEnv.remove(QLatin1String("LD_PRELOAD"));
 
     if (oldEnv != newEnv) {
-        m_logger.qbsDebug() << "Set of environment variables changed. Must re-resolve project.";
-        m_logger.qbsTrace() << "old: " << restoredProject->environment.toStringList() << "\nnew:"
-                            << m_parameters.adjustedEnvironment().toStringList();
+        qCDebug(lcBuildGraph) << "Set of environment variables changed. Must re-resolve project."
+                              << "\nold:" << restoredProject->environment.toStringList()
+                              << "\nnew:" << m_parameters.adjustedEnvironment().toStringList();
         return true;
     }
     return false;
@@ -448,8 +449,8 @@ bool BuildGraphLoader::hasCanonicalFilePathResultChanged(const TopLevelProjectCo
     for (auto it = restoredProject->canonicalFilePathResults.constBegin();
          it != restoredProject->canonicalFilePathResults.constEnd(); ++it) {
         if (QFileInfo(it.key()).canonicalFilePath() != it.value()) {
-            m_logger.qbsDebug() << "Canonical file path for file '" << it.key()
-                                << "' changed, must re-resolve project.";
+            qCDebug(lcBuildGraph) << "Canonical file path for file" << it.key()
+                                  << "changed, must re-resolve project.";
             return true;
         }
     }
@@ -462,8 +463,8 @@ bool BuildGraphLoader::hasFileExistsResultChanged(const TopLevelProjectConstPtr 
     for (QHash<QString, bool>::ConstIterator it = restoredProject->fileExistsResults.constBegin();
          it != restoredProject->fileExistsResults.constEnd(); ++it) {
         if (FileInfo(it.key()).exists() != it.value()) {
-            m_logger.qbsDebug() << "Existence check for file '" << it.key()
-                                << " 'changed, must re-resolve project.";
+            qCDebug(lcBuildGraph) << "Existence check for file" << it.key()
+                                  << "changed, must re-resolve project.";
             return true;
         }
     }
@@ -477,10 +478,9 @@ bool BuildGraphLoader::hasDirectoryEntriesResultChanged(const TopLevelProjectCon
          it != restoredProject->directoryEntriesResults.constEnd(); ++it) {
         if (QDir(it.key().first).entryList(static_cast<QDir::Filters>(it.key().second), QDir::Name)
                 != it.value()) {
-            m_logger.qbsDebug() << "Entry list for directory '" << it.key().first
-                                << "' ("
-                                << static_cast<QDir::Filters>(it.key().second)
-                                << ") changed, must re-resolve project.";
+            qCDebug(lcBuildGraph) << "Entry list for directory" << it.key().first
+                                  << static_cast<QDir::Filters>(it.key().second)
+                                  << "changed, must re-resolve project.";
             return true;
         }
     }
@@ -494,8 +494,8 @@ bool BuildGraphLoader::hasFileLastModifiedResultChanged(const TopLevelProjectCon
          = restoredProject->fileLastModifiedResults.constBegin();
          it != restoredProject->fileLastModifiedResults.constEnd(); ++it) {
         if (FileInfo(it.key()).lastModified() != it.value()) {
-            m_logger.qbsDebug() << "Timestamp for file '" << it.key()
-                                << " 'changed, must re-resolve project.";
+            qCDebug(lcBuildGraph) << "Timestamp for file" << it.key()
+                                  << "changed, must re-resolve project.";
             return true;
         }
     }
@@ -513,17 +513,17 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
         const FileInfo pfi(filePath);
         remainingBuildSystemFiles.remove(filePath);
         if (!pfi.exists()) {
-            m_logger.qbsDebug() << "A product was removed, must re-resolve project";
+            qCDebug(lcBuildGraph) << "A product was removed, must re-resolve project";
             hasChanged = true;
         } else if (referenceTime < pfi.lastModified()) {
-            m_logger.qbsDebug() << "A product was changed, must re-resolve project";
+            qCDebug(lcBuildGraph) << "A product was changed, must re-resolve project";
             hasChanged = true;
         } else if (!changedProducts.contains(product)) {
             bool foundMissingSourceFile = false;
             for (const QString &file : qAsConst(product->missingSourceFiles)) {
                 if (FileInfo(file).exists()) {
-                    m_logger.qbsDebug() << "Formerly missing file " << file << " in product "
-                                        << product->name << " exists now, must re-resolve project";
+                    qCDebug(lcBuildGraph) << "Formerly missing file" << file << "in product"
+                                          << product->name << "exists now, must re-resolve project";
                     foundMissingSourceFile = true;
                     break;
                 }
@@ -573,7 +573,7 @@ bool BuildGraphLoader::hasBuildSystemFileChanged(const Set<QString> &buildSystem
     for (const QString &file : buildSystemFiles) {
         const FileInfo fi(file);
         if (!fi.exists() || referenceTime < fi.lastModified()) {
-            m_logger.qbsDebug() << "A qbs or js file changed, must re-resolve project.";
+            qCDebug(lcBuildGraph) << "A qbs or js file changed, must re-resolve project.";
             return true;
         }
     }
@@ -590,16 +590,16 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
         if (!newlyResolvedProduct)
             continue;
         if (newlyResolvedProduct->enabled != restoredProduct->enabled) {
-            m_logger.qbsDebug() << "Condition of product '" << restoredProduct->uniqueName()
-                                << "' was changed, must set up build data from scratch";
+            qCDebug(lcBuildGraph) << "Condition of product" << restoredProduct->uniqueName()
+                                  << "was changed, must set up build data from scratch";
             if (!changedProducts.contains(restoredProduct))
                 changedProducts << restoredProduct;
             continue;
         }
 
         if (checkProductForChanges(restoredProduct, newlyResolvedProduct)) {
-            m_logger.qbsDebug() << "Product '" << restoredProduct->uniqueName()
-                                << "' was changed, must set up build data from scratch";
+            qCDebug(lcBuildGraph) << "Product" << restoredProduct->uniqueName()
+                                  << "was changed, must set up build data from scratch";
             if (!changedProducts.contains(restoredProduct))
                 changedProducts << restoredProduct;
             continue;
@@ -607,8 +607,8 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
 
         if (!sourceArtifactSetsAreEqual(restoredProduct->allEnabledFiles(),
                                         newlyResolvedProduct->allEnabledFiles())) {
-            m_logger.qbsDebug() << "File list of product '" << restoredProduct->uniqueName()
-                                << "' was changed.";
+            qCDebug(lcBuildGraph) << "File list of product" << restoredProduct->uniqueName()
+                                  << "was changed.";
             if (!changedProducts.contains(restoredProduct))
                 changedProducts << restoredProduct;
         }
@@ -661,7 +661,8 @@ bool BuildGraphLoader::checkProductForInstallInfoChanges(const ResolvedProductPt
     for (const QString &key : specialProperties) {
         if (restoredProduct->moduleProperties->qbsPropertyValue(key)
                 != newlyResolvedProduct->moduleProperties->qbsPropertyValue(key)) {
-            m_logger.qbsDebug() << "Product property 'qbs." << key << "' changed.";
+            qCDebug(lcBuildGraph).noquote().nospace()
+                    << "Product property 'qbs." << key << "' changed.";
             return true;
         }
     }
@@ -673,8 +674,8 @@ bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restore
 {
     AccumulatingTimer propertyComparisonTimer(m_parameters.logElapsedTime()
                                               ? &m_propertyComparisonEffort: nullptr);
-    m_logger.qbsDebug() << "Checking for changes in properties requested in prepare scripts for "
-                           "product '"  << restoredProduct->uniqueName() << "'.";
+    qCDebug(lcBuildGraph) << "Checking for changes in properties requested in prepare scripts for "
+                             "product"  << restoredProduct->uniqueName();
     if (!restoredProduct->buildData)
         return false;
 
@@ -683,8 +684,8 @@ bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restore
         return true;
 
     if (restoredProduct->fileTags != newlyResolvedProduct->fileTags) {
-        m_logger.qbsTrace() << "Product type changed from " << restoredProduct->fileTags
-                            << "to " << newlyResolvedProduct->fileTags;
+        qCDebug(lcBuildGraph) << "Product type changed from" << restoredProduct->fileTags
+                              << "to" << newlyResolvedProduct->fileTags;
         return true;
     }
 
@@ -711,8 +712,8 @@ bool BuildGraphLoader::checkTransformersForChanges(const ResolvedProductPtr &res
             transformerChanges = true;
     }
     if (transformerChanges) {
-        m_logger.qbsDebug() << "Property or environment changes in product '"
-                            << newlyResolvedProduct->uniqueName() << "'.";
+        qCDebug(lcBuildGraph) << "Property or environment changes in product"
+                              << newlyResolvedProduct->uniqueName();
     }
     return transformerChanges;
 }
@@ -720,7 +721,7 @@ bool BuildGraphLoader::checkTransformersForChanges(const ResolvedProductPtr &res
 void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
         ProjectBuildData *projectBuildData, bool removeArtifactsFromDisk)
 {
-    m_logger.qbsDebug() << "[BG] product '" << product->uniqueName() << "' removed.";
+    qCDebug(lcBuildGraph) << "product" << product->uniqueName() << "removed.";
 
     product->project->products.removeOne(product);
     if (product->buildData) {
@@ -890,10 +891,11 @@ bool BuildGraphLoader::checkForPropertyChange(const Property &restoredProperty,
     }
     }
     if (restoredProperty.value != v) {
-        m_logger.qbsDebug() << "Value for property '" << restoredProperty.moduleName << "."
-                            << restoredProperty.propertyName << "' has changed.";
-        m_logger.qbsDebug() << "Old value was '" << restoredProperty.value << "'.";
-        m_logger.qbsDebug() << "New value is '" << v << "'.";
+        qCDebug(lcBuildGraph).noquote().nospace()
+                << "Value for property '" << restoredProperty.moduleName << "."
+                << restoredProperty.propertyName << "' has changed.\n"
+                << "Old value was '" << restoredProperty.value << "'.\n"
+                << "New value is '" << v << "'.";
         return true;
     }
     return false;
@@ -902,17 +904,14 @@ bool BuildGraphLoader::checkForPropertyChange(const Property &restoredProperty,
 void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
         FileDependency *filedep, Artifact *artifact)
 {
-    if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace()
-            << QString::fromLatin1("[BG] replace file dependency '%1' with artifact of type '%2'")
-               .arg(filedep->filePath()).arg(artifact->artifactType);
-    }
+    qCDebug(lcBuildGraph) << "replace file dependency" << filedep->filePath()
+                          << "with artifact of type" << toString(artifact->artifactType);
     for (const ResolvedProductPtr &product : fileDepProduct->topLevelProject()->allProducts()) {
         if (!product->buildData)
             continue;
         for (Artifact *artifactInProduct : filterByType<Artifact>(product->buildData->nodes)) {
             if (artifactInProduct->fileDependencies.remove(filedep))
-                loggedConnect(artifactInProduct, artifact, m_logger);
+                connect(artifactInProduct, artifact);
         }
     }
     fileDepProduct->topLevelProject()->buildData->fileDependencies.remove(filedep);
@@ -968,8 +967,8 @@ bool BuildGraphLoader::isPrepareScriptUpToDate(const ScriptFunctionConstPtr &scr
     for (const JsImport &jsImport : script->fileContext->jsImports()) {
         for (const QString &filePath : qAsConst(jsImport.filePaths)) {
             if (FileInfo(filePath).lastModified() > referenceTime) {
-                m_logger.qbsDebug() << "Change in import '" << filePath
-                        << "' potentially influences prepare script, marking as out of date";
+                qCDebug(lcBuildGraph) << "Change in import" << filePath
+                        << "potentially influences prepare script, marking as out of date";
                 return false;
             }
         }
@@ -985,10 +984,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
     if (!restoredProduct->enabled || !newlyResolvedProduct->enabled)
         return;
 
-    if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace() << QString::fromLatin1("[BG] rescue data of product '%1'")
-                               .arg(restoredProduct->uniqueName());
-    }
+    qCDebug(lcBuildGraph) << "rescue data of product" << restoredProduct->uniqueName();
     QBS_CHECK(newlyResolvedProduct->buildData);
     QBS_CHECK(newlyResolvedProduct->buildData->rescuableArtifactData.isEmpty());
     newlyResolvedProduct->buildData->rescuableArtifactData = existingRad;

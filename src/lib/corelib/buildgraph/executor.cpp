@@ -55,6 +55,7 @@
 #include <language/language.h>
 #include <language/propertymapinternal.h>
 #include <language/scriptengine.h>
+#include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -524,7 +525,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
         for (BuildGraphNode *node : qAsConst(result.createdNodes)) {
             if (m_doDebug)
                 m_logger.qbsDebug() << "[EXEC] rule created " << node->toString();
-            loggedConnect(node, ruleNode, m_logger);
+            Internal::connect(node, ruleNode);
             Artifact *outputArtifact = dynamic_cast<Artifact *>(node);
             if (!outputArtifact)
                 continue;
@@ -532,10 +533,10 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
                 product->buildData->roots += outputArtifact;
 
             for (Artifact *inputArtifact : qAsConst(outputArtifact->transformer->inputs))
-                loggedConnect(ruleNode, inputArtifact, m_logger);
+                Internal::connect(ruleNode, inputArtifact);
 
             for (RuleNode *parentRule : qAsConst(parentRules))
-                loggedConnect(parentRule, outputArtifact, m_logger);
+                Internal::connect(parentRule, outputArtifact);
         }
         updateLeaves(result.createdNodes);
         updateLeaves(result.invalidatedNodes);
@@ -767,10 +768,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         return;
 
     const RescuableArtifactData &rad = it.value();
-    if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace() << QString::fromLatin1("[BG] Attempting to rescue data of "
-                                                   "artifact '%1'").arg(artifact->fileName());
-    }
+    qCDebug(lcBuildGraph) << "Attempting to rescue data of artifact" << artifact->fileName();
 
     typedef std::pair<Artifact *, bool> ChildArtifactData;
     QList<ChildArtifactData> childrenToConnect;
@@ -805,13 +803,11 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
             QBS_CHECK(newChildCount >= rad.children.count());
             if (newChildCount > rad.children.count()) {
                 canRescue = false;
-                if (m_logger.traceEnabled())
-                    m_logger.qbsTrace() << "Artifact has children not present in rescue data";
+                qCDebug(lcBuildGraph) << "Artifact has children not present in rescue data.";
             }
         }
     } else {
-        if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "Transformer commands changed.";
+        qCDebug(lcBuildGraph) << "Transformer commands changed.";
     }
 
     if (canRescue) {
@@ -827,17 +823,15 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         if (childrenAdded && !childrenToConnect.isEmpty())
             *childrenAdded = true;
         for (const ChildArtifactData &cad : qAsConst(childrenToConnect)) {
-            safeConnect(artifact, cad.first, m_logger);
+            safeConnect(artifact, cad.first);
             if (cad.second)
                 artifact->childrenAddedByScanner << cad.first;
         }
-        if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "Data was rescued.";
+        qCDebug(lcBuildGraph) << "Data was rescued.";
     } else {
         removeGeneratedArtifactFromDisk(artifact, m_logger);
         m_artifactsRemovedFromDisk << artifact->filePath();
-        if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "Data not rescued.";
+        qCDebug(lcBuildGraph) << "Data not rescued.";
     }
     product->buildData->rescuableArtifactData.erase(it);
 }

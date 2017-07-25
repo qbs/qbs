@@ -68,19 +68,19 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact 
                          bool compareByName);
 
 Artifact *createArtifact(const ResolvedProductPtr &product,
-                         const SourceArtifactConstPtr &sourceArtifact, const Logger &logger);
-void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const Logger &logger);
+                         const SourceArtifactConstPtr &sourceArtifact);
+void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact);
 void dumpProductBuildData(const ResolvedProductConstPtr &product);
 
 
 bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode*> &path);
 void QBS_AUTOTEST_EXPORT connect(BuildGraphNode *p, BuildGraphNode *c);
-void loggedConnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger);
-bool safeConnect(Artifact *u, Artifact *v, const Logger &logger);
+void connect(BuildGraphNode *c, BuildGraphNode *p);
+bool safeConnect(Artifact *u, Artifact *v);
 void removeGeneratedArtifactFromDisk(Artifact *artifact, const Logger &logger);
 void removeGeneratedArtifactFromDisk(const QString &filePath, const Logger &logger);
 
-void disconnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger);
+void disconnect(BuildGraphNode *u, BuildGraphNode *v);
 
 void setupScriptEngineForFile(ScriptEngine *engine, const ResolvedFileContextConstPtr &fileContext,
         QScriptValue targetObject);

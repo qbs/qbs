@@ -139,7 +139,7 @@ void InputArtifactScanner::scan()
     const Set<Artifact *> childrenAddedByScanner = m_artifact->childrenAddedByScanner;
     m_artifact->childrenAddedByScanner.clear();
     for (Artifact * const dependency : childrenAddedByScanner)
-        disconnect(m_artifact, dependency, m_logger);
+        disconnect(m_artifact, dependency);
 
     for (Artifact * const inputArtifact : qAsConst(m_artifact->transformer->inputs))
         scanForFileDependencies(inputArtifact);
@@ -347,7 +347,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
     } else {
         if (m_artifact->children.contains(artifactDependency))
             return;
-        safeConnect(m_artifact, artifactDependency, m_logger);
+        safeConnect(m_artifact, artifactDependency);
         m_artifact->childrenAddedByScanner += artifactDependency;
         m_newDependencyAdded = true;
     }

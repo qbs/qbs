@@ -53,6 +53,7 @@
 #include <language/preparescriptobserver.h>
 #include <language/propertymapinternal.h>
 #include <language/scriptengine.h>
+#include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -120,10 +121,8 @@ void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts
     ArtifactSet artifactsToRemove;
     const TopLevelProject *project = 0;
     for (Artifact * const removedArtifact : outputArtifactsToRemove) {
-        if (logger.traceEnabled()) {
-            logger.qbsTrace() << "[BG] dynamic rule removed output artifact "
-                                << removedArtifact->toString();
-        }
+        qCDebug(lcBuildGraph) << "dynamic rule removed output artifact"
+                              << removedArtifact->toString();
         if (!project)
             project = removedArtifact->product->topLevelProject();
         project->buildData->removeArtifactAndExclusiveDependents(removedArtifact, logger, true,
@@ -161,11 +160,8 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
 {
     evalContext()->checkForCancelation();
 
-    if (m_logger.debugEnabled()) {
-        m_logger.qbsDebug() << QString::fromLatin1("[BG] apply rule ") << m_rule->toString()
-                            << QString::fromLatin1(" ")
-                            << toStringList(inputArtifacts).join(QLatin1String(",\n            "));
-    }
+    qCDebug(lcBuildGraph) << "apply rule" << m_rule->toString()
+                          << toStringList(inputArtifacts).join(QLatin1String(",\n            "));
 
     QList<std::pair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
@@ -209,7 +205,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
 
     for (Artifact * const outputArtifact : qAsConst(outputArtifacts)) {
         for (Artifact * const dependency : qAsConst(m_transformer->explicitlyDependsOn))
-            loggedConnect(outputArtifact, dependency, m_logger);
+            connect(outputArtifact, dependency);
         outputArtifact->product->unregisterArtifactWithChangedInputs(outputArtifact);
     }
 
@@ -362,7 +358,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         QScopedPointer<Artifact> newArtifact(new Artifact);
         newArtifact->artifactType = Artifact::Generated;
         newArtifact->setFilePath(outputPath);
-        insertArtifact(m_product, newArtifact.data(), m_logger);
+        insertArtifact(m_product, newArtifact.data());
         m_createdArtifacts += newArtifact.data();
         outputArtifact = newArtifact.take();
     }
@@ -387,7 +383,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
 
     for (Artifact * const inputArtifact : inputArtifacts) {
         QBS_CHECK(outputArtifact != inputArtifact);
-        loggedConnect(outputArtifact, inputArtifact, m_logger);
+        connect(outputArtifact, inputArtifact);
     }
 
     outputArtifact->transformer = m_transformer;
@@ -504,7 +500,7 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValu
                 obj.property(QLatin1String("explicitlyDependsOn")).toVariant().toStringList());
     for (const FileTag &tag : explicitlyDependsOn) {
         for (Artifact * const dependency : m_product->lookupArtifactsByFileTag(tag))
-            loggedConnect(output, dependency, m_logger);
+            connect(output, dependency);
     }
     ArtifactBindingsExtractor().apply(output, obj);
     return output;

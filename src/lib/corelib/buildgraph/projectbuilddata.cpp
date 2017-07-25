@@ -51,6 +51,7 @@
 #include <language/language.h>
 #include <language/preparescriptobserver.h>
 #include <language/scriptengine.h>
+#include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -155,24 +156,18 @@ void ProjectBuildData::insertFileDependency(FileDependency *dependency)
     insertIntoLookupTable(dependency);
 }
 
-static void disconnectArtifactChildren(Artifact *artifact, const Logger &logger)
+static void disconnectArtifactChildren(Artifact *artifact)
 {
-    if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLatin1("[BG] disconnectChildren: '%1'")
-                             .arg(relativeArtifactFileName(artifact));
-    }
+    qCDebug(lcBuildGraph) << "disconnect children of" << relativeArtifactFileName(artifact);
     for (BuildGraphNode * const child : qAsConst(artifact->children))
         child->parents.remove(artifact);
     artifact->children.clear();
     artifact->childrenAddedByScanner.clear();
 }
 
-static void disconnectArtifactParents(Artifact *artifact, const Logger &logger)
+static void disconnectArtifactParents(Artifact *artifact)
 {
-    if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLatin1("[BG] disconnectParents: '%1'")
-                             .arg(relativeArtifactFileName(artifact));
-    }
+    qCDebug(lcBuildGraph) << "disconnect parents of" << relativeArtifactFileName(artifact);
     for (BuildGraphNode * const parent : qAsConst(artifact->parents)) {
         parent->children.remove(artifact);
         Artifact *parentArtifact = dynamic_cast<Artifact *>(parent);
@@ -187,10 +182,10 @@ static void disconnectArtifactParents(Artifact *artifact, const Logger &logger)
     artifact->parents.clear();
 }
 
-static void disconnectArtifact(Artifact *artifact, const Logger &logger)
+static void disconnectArtifact(Artifact *artifact)
 {
-    disconnectArtifactChildren(artifact, logger);
-    disconnectArtifactParents(artifact, logger);
+    disconnectArtifactChildren(artifact);
+    disconnectArtifactParents(artifact);
 }
 
 /*!
@@ -210,7 +205,7 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
     const NodeSet parentsCopy = artifact->parents;
     for (Artifact *parent : filterByType<Artifact>(parentsCopy)) {
         bool removeParent = false;
-        disconnect(parent, artifact, logger);
+        disconnect(parent, artifact);
         if (parent->children.isEmpty()) {
             removeParent = true;
         } else if (parent->transformer) {
@@ -229,7 +224,7 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
     removeArtifact(artifact, logger, removeFromDisk, removeFromProduct);
 }
 
-static void removeFromRuleNodes(Artifact *artifact, const Logger &logger)
+static void removeFromRuleNodes(Artifact *artifact)
 {
     for (const ResolvedProductPtr &product : artifact->product->topLevelProject()->allProducts()) {
         if (!product->buildData)
@@ -238,10 +233,8 @@ static void removeFromRuleNodes(Artifact *artifact, const Logger &logger)
             if (n->type() != BuildGraphNode::RuleNodeType)
                 continue;
             RuleNode * const ruleNode = static_cast<RuleNode *>(n);
-            if (logger.traceEnabled()) {
-                logger.qbsTrace() << "[BG] remove old input " << artifact->filePath()
-                                  << " from rule " << ruleNode->rule()->toString();
-            }
+            qCDebug(lcBuildGraph) << "remove old input" << artifact->filePath()
+                                  << "from rule" << ruleNode->rule()->toString();
             ruleNode->removeOldInputArtifact(artifact);
         }
     }
@@ -250,14 +243,12 @@ static void removeFromRuleNodes(Artifact *artifact, const Logger &logger)
 void ProjectBuildData::removeArtifact(Artifact *artifact,
         const Logger &logger, bool removeFromDisk, bool removeFromProduct)
 {
-    if (logger.traceEnabled())
-        logger.qbsTrace() << "[BG] remove artifact " << relativeArtifactFileName(artifact);
-
+    qCDebug(lcBuildGraph) << "remove artifact" << relativeArtifactFileName(artifact);
     if (removeFromDisk)
         removeGeneratedArtifactFromDisk(artifact, logger);
     removeFromLookupTable(artifact);
-    removeFromRuleNodes(artifact, logger);
-    disconnectArtifact(artifact, logger);
+    removeFromRuleNodes(artifact);
+    disconnectArtifact(artifact);
     if (artifact->transformer) {
         artifact->product->unregisterArtifactWithChangedInputs(artifact);
         artifact->transformer->outputs.remove(artifact);
@@ -368,15 +359,13 @@ private:
             node->product = m_product;
             node->setRule(rule);
             m_product->buildData->nodes += node;
-            if (m_logger.debugEnabled()) {
-                m_logger.qbsDebug() << "[BG] create " << node->toString()
-                                    << " for product " << m_product->uniqueName();
-            }
+            qCDebug(lcBuildGraph) << "create" << node->toString()
+                                  << "for product" << m_product->uniqueName();
         }
         if (parentRule) {
             RuleNode *parent = m_nodePerRule.value(parentRule);
             QBS_CHECK(parent);
-            loggedConnect(parent, node, m_logger);
+            connect(parent, node);
         } else {
             m_product->buildData->roots += node;
         }
@@ -424,7 +413,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         qbsFileArtifact->artifactType = Artifact::SourceFile;
         qbsFileArtifact->setFilePath(product->location.filePath());
         qbsFileArtifact->properties = product->moduleProperties;
-        insertArtifact(product, qbsFileArtifact, m_logger);
+        insertArtifact(product, qbsFileArtifact);
     }
     qbsFileArtifact->addFileTag("qbs");
     artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
@@ -435,7 +424,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         if (lookupArtifact(product, filePath))
             continue; // ignore duplicate artifacts
 
-        Artifact *artifact = createArtifact(product, sourceArtifact, m_logger);
+        Artifact *artifact = createArtifact(product, sourceArtifact);
         for (const FileTag &fileTag : artifact->fileTags())
             artifactsPerFileTag[fileTag].insert(artifact);
     }
@@ -471,7 +460,7 @@ void BuildDataResolver::connectRulesToDependencies(const ResolvedProductPtr &pro
                 if (areRulesCompatible(ruleNode, depRuleNode)
                         || (ruleNode->rule()->inputsFromDependencies.contains(installableTag)
                             && isRootRuleNode(depRuleNode))) {
-                    loggedConnect(ruleNode, depRuleNode, m_logger);
+                    connect(ruleNode, depRuleNode);
                 }
             }
         }

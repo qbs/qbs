@@ -295,6 +295,8 @@ QbsLibrary {
         name: "logging"
         prefix: name + '/'
         files: [
+            "categories.cpp",
+            "categories.h",
             "ilogsink.cpp",
             "logger.cpp",
             "logger.h",

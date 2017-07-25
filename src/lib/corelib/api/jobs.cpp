@@ -44,6 +44,7 @@
 #include <tools/launcherinterface.h>
 #include <tools/qbsassert.h>
 
+#include <QtCore/qloggingcategory.h>
 #include <QtCore/qtimer.h>
 
 namespace qbs {
@@ -217,6 +218,8 @@ void AbstractJob::handleFinished()
 SetupProjectJob::SetupProjectJob(const Logger &logger, QObject *parent)
     : AbstractJob(new InternalJobThreadWrapper(new InternalSetupProjectJob(logger)), parent)
 {
+    if (logger.logSink()->logLevel() == LoggerDebug || logger.logSink()->logLevel() == LoggerTrace)
+        QLoggingCategory::setFilterRules(QStringLiteral("qbs.*.debug=true"));
 }
 
 /*!

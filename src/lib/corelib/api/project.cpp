@@ -516,7 +516,7 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         }
         if (resolvedProduct->enabled) {
             for (const auto &pair : qAsConst(addedSourceArtifacts))
-                createArtifact(resolvedProduct, pair.first, logger);
+                createArtifact(resolvedProduct, pair.first);
         }
     }
     doSanityChecks(internalProject, logger);

@@ -51,6 +51,7 @@
 #include <language/propertymapinternal.h>
 #include <language/resolvedfilecontext.h>
 #include <language/scriptengine.h>
+#include <logging/categories.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -343,6 +344,7 @@ bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode *> &pat
 void connect(BuildGraphNode *p, BuildGraphNode *c)
 {
     QBS_CHECK(p != c);
+    qCDebug(lcBuildGraph) << "connect" << p->toString() << "->" << c->toString();
     if (Artifact *ac = dynamic_cast<Artifact *>(c)) {
         for (const Artifact *child : filterByType<Artifact>(p->children)) {
             if (child != ac && child->filePath() == ac->filePath()) {
@@ -356,16 +358,6 @@ void connect(BuildGraphNode *p, BuildGraphNode *c)
     p->children.insert(c);
     c->parents.insert(p);
     p->product->topLevelProject()->buildData->isDirty = true;
-}
-
-void loggedConnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger)
-{
-    QBS_CHECK(u != v);
-    if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLatin1("[BG] connect '%1' -> '%2'")
-                             .arg(u->toString(), v->toString());
-    }
-    connect(u, v);
 }
 
 static bool existsPath_impl(BuildGraphNode *u, BuildGraphNode *v, NodeSet *seen)
@@ -398,18 +390,16 @@ static QStringList toStringList(const QList<BuildGraphNode *> &path)
     return lst;
 }
 
-bool safeConnect(Artifact *u, Artifact *v, const Logger &logger)
+bool safeConnect(Artifact *u, Artifact *v)
 {
     QBS_CHECK(u != v);
-    if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLatin1("[BG] safeConnect: '%1' '%2'")
-                             .arg(relativeArtifactFileName(u), relativeArtifactFileName(v));
-    }
+    qCDebug(lcBuildGraph) << "safeConnect:" << relativeArtifactFileName(u)
+                          << "->" << relativeArtifactFileName(v);
 
     if (existsPath(v, u)) {
         QList<BuildGraphNode *> circle;
         findPath(v, u, circle);
-        logger.qbsTrace() << "[BG] safeConnect: circle detected " << toStringList(circle);
+        qCDebug(lcBuildGraph) << "safeConnect: circle detected " << toStringList(circle);
         return false;
     }
 
@@ -417,12 +407,9 @@ bool safeConnect(Artifact *u, Artifact *v, const Logger &logger)
     return true;
 }
 
-void disconnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger)
+void disconnect(BuildGraphNode *u, BuildGraphNode *v)
 {
-    if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLatin1("[BG] disconnect: '%1' '%2'")
-                             .arg(u->toString(), v->toString());
-    }
+    qCDebug(lcBuildGraph) << "disconnect:" << u->toString() << v->toString();
     u->children.remove(v);
     v->parents.remove(u);
     u->onChildDisconnected(v);
@@ -503,19 +490,20 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact 
 }
 
 Artifact *createArtifact(const ResolvedProductPtr &product,
-                         const SourceArtifactConstPtr &sourceArtifact, const Logger &logger)
+                         const SourceArtifactConstPtr &sourceArtifact)
 {
     Artifact *artifact = new Artifact;
     artifact->artifactType = Artifact::SourceFile;
     artifact->setFilePath(sourceArtifact->absoluteFilePath);
     artifact->setFileTags(sourceArtifact->fileTags);
     artifact->properties = sourceArtifact->properties;
-    insertArtifact(product, artifact, logger);
+    insertArtifact(product, artifact);
     return artifact;
 }
 
-void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const Logger &logger)
+void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact)
 {
+    qCDebug(lcBuildGraph) << "insert artifact" << artifact->filePath();
     QBS_CHECK(!artifact->product);
     QBS_CHECK(!artifact->filePath().isEmpty());
     QBS_CHECK(!product->buildData->nodes.contains(artifact));
@@ -524,33 +512,26 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
     product->topLevelProject()->buildData->isDirty = true;
     product->buildData->nodes.insert(artifact);
     addArtifactToSet(artifact, product->buildData->artifactsByFileTag);
-
-    if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLatin1("[BG] insert artifact '%1'")
-                             .arg(artifact->filePath());
-    }
 }
 
 static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
         const Set<ResolvedProductPtr> &allProducts, const Logger &logger)
 {
-    logger.qbsTrace() << "Sanity checking product '" << product->uniqueName() << "'";
+    qCDebug(lcBuildGraph) << "Sanity checking product" << product->uniqueName();
     CycleDetector cycleDetector(logger);
     cycleDetector.visitProduct(product);
     const ProductBuildData * const buildData = product->buildData.data();
-    if (logger.traceEnabled())
-        logger.qbsTrace() << "enabled: " << product->enabled << "; build data: " << buildData;
+    qCDebug(lcBuildGraph) << "enabled:" << product->enabled << "build data:" << buildData;
     QBS_CHECK(!!product->enabled == !!buildData);
     if (!product->enabled)
         return;
     for (BuildGraphNode * const node : qAsConst(buildData->roots)) {
-        if (logger.traceEnabled())
-            logger.qbsTrace() << "Checking root node '" << node->toString() << "'.";
+        qCDebug(lcBuildGraph) << "Checking root node" << node->toString();
         QBS_CHECK(buildData->nodes.contains(node));
     }
     Set<QString> filePaths;
     for (BuildGraphNode * const node : qAsConst(buildData->nodes)) {
-        logger.qbsTrace() << "Sanity checking node '" << node->toString() << "'";
+        qCDebug(lcBuildGraph) << "Sanity checking node" << node->toString();
         QBS_CHECK(node->product == product);
         for (const BuildGraphNode * const parent : qAsConst(node->parents))
             QBS_CHECK(parent->children.contains(node));
@@ -577,8 +558,8 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
 
         QBS_CHECK(transformer);
         QBS_CHECK(transformer->outputs.contains(artifact));
-        logger.qbsTrace() << "The transformer has " << transformer->outputs.count()
-                          << " outputs.";
+        qCDebug(lcBuildGraph)
+                << "The transformer has" << transformer->outputs.count() << "outputs.";
         ArtifactSet transformerOutputChildren;
         for (const Artifact * const output : qAsConst(transformer->outputs)) {
             QBS_CHECK(output->transformer == transformer);
@@ -592,13 +573,13 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
                 }
             }
         }
-        if (logger.traceEnabled()) {
-            logger.qbsTrace() << "The transformer output children are:";
+        if (lcBuildGraph().isDebugEnabled()) {
+            qCDebug(lcBuildGraph) << "The transformer output children are:";
             for (const Artifact * const a : qAsConst(transformerOutputChildren))
-                logger.qbsTrace() << "\t" << a->fileName();
-            logger.qbsTrace() << "The transformer inputs are:";
+                qCDebug(lcBuildGraph) << "\t" << a->fileName();
+            qCDebug(lcBuildGraph) << "The transformer inputs are:";
             for (const Artifact * const a : qAsConst(transformer->inputs))
-                logger.qbsTrace() << "\t" << a->fileName();
+                qCDebug(lcBuildGraph) << "\t" << a->fileName();
         }
         QBS_CHECK(transformer->inputs.count() <= transformerOutputChildren.count());
         for (Artifact * const transformerInput : qAsConst(transformer->inputs))

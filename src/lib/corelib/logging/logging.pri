@@ -1,11 +1,13 @@
 include(../../../install_prefix.pri)
 
 HEADERS += \
+    $$PWD/categories.h \
     $$PWD/logger.h \
     $$PWD/translator.h \
     $$PWD/ilogsink.h
 
 SOURCES += \
+    $$PWD/categories.cpp \
     $$PWD/logger.cpp \
     $$PWD/ilogsink.cpp
 

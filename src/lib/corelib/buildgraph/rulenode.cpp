@@ -47,6 +47,7 @@
 #include "transformer.h"
 
 #include <language/language.h>
+#include <logging/categories.h>
 #include <logging/logger.h>
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
@@ -85,24 +86,21 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
     result->upToDate = changedInputs.isEmpty() && addedInputs.isEmpty() && removedInputs.isEmpty()
             && m_rule->declaresInputs() && m_rule->requiresInputs;
 
-    if (logger.traceEnabled()) {
-        logger.qbsTrace()
-                << "[BG] consider " << (m_rule->isDynamic() ? "dynamic " : "")
-                << (m_rule->multiplex ? "multiplex " : "")
-                << "rule node " << m_rule->toString()
-                << "\n\tchanged: " << changedInputs.toString()
-                << "\n\tcompatible: " << allCompatibleInputs.toString()
-                << "\n\tadded: " << addedInputs.toString()
-                << "\n\tremoved: " << removedInputs.toString();
-    }
+    qCDebug(lcBuildGraph).noquote().nospace()
+            << "consider " << (m_rule->isDynamic() ? "dynamic " : "")
+            << (m_rule->multiplex ? "multiplex " : "")
+            << "rule node " << m_rule->toString()
+            << "\n\tchanged: " << changedInputs.toString()
+            << "\n\tcompatible: " << allCompatibleInputs.toString()
+            << "\n\tadded: " << addedInputs.toString()
+            << "\n\tremoved: " << removedInputs.toString();
 
     ArtifactSet inputs = changedInputs;
     if (product->isMarkedForReapplication(m_rule)) {
         QBS_CHECK(m_rule->multiplex);
         result->upToDate = false;
         product->unmarkForReapplication(m_rule);
-        if (logger.traceEnabled())
-            logger.qbsTrace() << "[BG] rule is marked for reapplication " << m_rule->toString();
+        qCDebug(lcBuildGraph) << "rule is marked for reapplication " << m_rule->toString();
     }
 
     if (m_rule->multiplex)

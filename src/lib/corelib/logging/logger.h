@@ -45,6 +45,7 @@
 #include <tools/error.h>
 
 #include <QtCore/qbytearray.h>
+#include <QtCore/qloggingcategory.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 
