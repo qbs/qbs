@@ -220,6 +220,20 @@ struct PersistentPool::Helper<std::shared_ptr<T>,
 };
 
 template<typename T>
+struct PersistentPool::Helper<std::unique_ptr<T>,
+                              typename std::enable_if<IsPersistentObject<T>::value>::type>
+{
+    static void store(const std::unique_ptr<T> &value, PersistentPool *pool)
+    {
+        pool->store(value.get());
+    }
+    static void load(std::unique_ptr<T> &ptr, PersistentPool *pool)
+    {
+        ptr.reset(pool->idLoad<typename std::remove_const<T>::type>());
+    }
+};
+
+template<typename T>
 struct PersistentPool::Helper<T *, typename std::enable_if<IsPersistentObject<T>::value>::type>
 {
     static void store(const T *value, PersistentPool *pool) { pool->storePersistentObject(value); }
