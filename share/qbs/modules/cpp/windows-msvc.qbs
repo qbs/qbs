@@ -65,8 +65,17 @@ CppModule {
     compilerIncludePaths: msvcProbe.includePaths
 
     windowsApiCharacterSet: "unicode"
-    platformDefines: base.concat(WindowsUtils.characterSetDefines(windowsApiCharacterSet))
-                         .concat("WIN32")
+    platformDefines: {
+        var defines = base.concat(WindowsUtils.characterSetDefines(windowsApiCharacterSet))
+                          .concat("WIN32");
+        var def = WindowsUtils.winapiFamilyDefine(windowsApiFamily);
+        if (def)
+            defines.push("WINAPI_FAMILY=WINAPI_FAMILY_" + def);
+        (windowsApiAdditionalPartitions || []).map(function (name) {
+            defines.push("WINAPI_PARTITION_" + WindowsUtils.winapiPartitionDefine(name) + "=1");
+        });
+        return defines;
+    }
     platformCommonCompilerFlags: {
         var flags = base;
         if (compilerVersionMajor >= 18) // 2013

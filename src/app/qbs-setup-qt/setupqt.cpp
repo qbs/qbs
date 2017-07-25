@@ -420,10 +420,8 @@ static QStringList qbsTargetOsFromQtMkspec(const QString &mkspec)
         return QStringList() << QLatin1String("unixware") << QLatin1String("unix");
     if (mkspec.startsWith(QLatin1String("vxworks-")))
         return QStringList() << QLatin1String("vxworks") << QLatin1String("unix");
-    if (mkspec.startsWith(QLatin1String("win32-")))
+    if (mkspec.startsWith(QLatin1String("win32-")) || mkspec.startsWith(QLatin1String("winrt-")))
         return QStringList() << QLatin1String("windows");
-    if (mkspec.startsWith(QLatin1String("winrt-")))
-        return QStringList() << QLatin1String("winrt") << QLatin1String("windows");
     return QStringList();
 }
 

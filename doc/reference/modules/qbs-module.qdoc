@@ -121,8 +121,7 @@
             \c{"unix"},
             \c{"unixware"},
             \c{"vxworks"},
-            \c{"windows"},
-            \c{"winrt"}
+            \c{"windows"}
     \row
         \li architecture
         \li \c{string}

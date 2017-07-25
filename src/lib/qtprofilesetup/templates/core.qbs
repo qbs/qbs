@@ -23,6 +23,7 @@ Module {
     property path incPath: @incPath@
     property path libPath: @libPath@
     property path pluginPath: @pluginPath@
+    property string mkspecName: @mkspecName@
     property path mkspecPath: @mkspecPath@
     property string mocName: "moc"
     property stringList mocFlags: []
@@ -174,6 +175,11 @@ Module {
     cpp.minimumMacosVersion: @minMacVersion@
     cpp.minimumIosVersion: @minIosVersion@
     cpp.minimumAndroidVersion: @minAndroidVersion@
+
+    // Universal Windows Platform support
+    cpp.windowsApiFamily: mkspecName.startsWith("winrt-") ? "pc" : undefined
+    cpp.windowsApiFamilyAdditionalPartitions: mkspecPath.startsWith("winrt-") ? ["phone"] : undefined
+    cpp.requireAppContainer: mkspecName.startsWith("winrt-")
 
     additionalProductTypes: ["qm"]
 

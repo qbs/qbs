@@ -166,6 +166,7 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
     content->replace("@pluginPath@", utf8JSLiteral(qtEnvironment.pluginPath));
     content->replace("@incPath@", utf8JSLiteral(qtEnvironment.includePath));
     content->replace("@docPath@", utf8JSLiteral(qtEnvironment.documentationPath));
+    content->replace("@mkspecName@", utf8JSLiteral(qtEnvironment.mkspecName));
     content->replace("@mkspecPath@", utf8JSLiteral(qtEnvironment.mkspecPath));
     content->replace("@version@", utf8JSLiteral(qtEnvironment.qtVersion));
     content->replace("@libInfix@", utf8JSLiteral(qtEnvironment.qtLibInfix));
@@ -347,7 +348,7 @@ static void createModules(Profile &profile, Settings *settings,
 static QString guessMinimumWindowsVersion(const QtEnvironment &qt)
 {
     if (qt.mkspecName.startsWith(QLatin1String("winrt-")))
-        return QLatin1String("6.2");
+        return QLatin1String("10.0");
 
     if (!qt.mkspecName.startsWith(QLatin1String("win32-")))
         return QString();

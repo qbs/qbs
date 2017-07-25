@@ -69,6 +69,9 @@ Module {
     }
 
     property string windowsApiCharacterSet
+    property string windowsApiFamily
+    property stringList windowsApiAdditionalPartitions
+    property bool requireAppContainer
 
     property string minimumWindowsVersion
     PropertyOptions {

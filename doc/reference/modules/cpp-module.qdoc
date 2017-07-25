@@ -708,6 +708,40 @@
             preprocessor symbols UNICODE and _UNICODE, "mbcs" will define _MBCS, and
             setting the value to undefined will use the default character set.
     \row
+        \li windowsApiFamily
+        \li \c{string}
+        \li 1.10
+        \li \c{undefined}
+        \li Specifies the Windows API family that the application or library is targeting.
+            This is used when building Universal Windows Platform applications.
+            Possible values include: \c{"desktop"}, \c{"pc"}, \c{"phone"}, \c{"server"},
+            and \c{"system"}, which are mapped to the corresponding set of possible values for the
+            \c WINAPI_FAMILY preprocessor define in the Windows SDK. The default is \c undefined,
+            which lets the Windows SDK headers determine the default.
+    \row
+        \li windowsApiAdditionalPartitions
+        \li \c{stringList}
+        \li 1.10
+        \li \c{undefined}
+        \li List of additional Windows API partitions to enable in addition to the ones implicitly
+            enabled by the value of \c cpp.windowsApiFamily (\c WINAPI_FAMILY). This is used when
+            building Windows Store applications. For example, setting \c cpp.windowsApiFamily to
+            \c{"pc"} and \c cpp.windowsApiAdditionalPartitions to \c{["phone"]} will allow you to
+            create Windows Store applications that target all Universal Windows Platform device
+            families ("Universal" apps). Possible values include: \c{"app"}, \c{"desktop"},
+            \c{"pc"}, \c{"phone"}, \c{"server"}, and \c{"system"}, which are mapped to the
+            corresponding set of possible \c WINAPI_PARTITION_* preprocessor defines in the Windows
+            SDK. The default is \c undefined, which lets the Windows SDK headers determine the
+            default partitions based on the value of \c WINAPI_FAMILY (see \c cpp.windowsApiFamily).
+    \row
+        \li requireAppContainer
+        \li \c{bool}
+        \li 1.10
+        \li \c{undefined}
+        \li Whether the generated executable or dynamic-link library \e requires an AppContainer
+            execution environment. This should be used when creating Universal Windows Platform
+            applications.
+    \row
         \li minimumWindowsVersion
         \li \c{string}
         \li 1.0

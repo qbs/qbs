@@ -28,6 +28,27 @@
 **
 ****************************************************************************/
 
+function winapiFamilyDefine(name) {
+    return {
+        "desktop": "DESKTOP_APP",
+        "phone": "PHONE_APP",
+        "pc": "PC_APP",
+        "server": "SERVER",
+        "system": "SYSTEM"
+    }[name];
+}
+
+function winapiPartitionDefine(name) {
+    return {
+        "app": "APP",
+        "desktop": "DESKTOP",
+        "phone": "PHONE_APP",
+        "pc": "PC_APP",
+        "server": "SERVER",
+        "system": "SYSTEM"
+    }[name];
+}
+
 function characterSetDefines(charset) {
     var defines = [];
     if (charset === "unicode")

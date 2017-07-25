@@ -2733,11 +2733,8 @@ static QStringList hostOS()
 #if defined(Q_OS_VXWORKS)
     hostSystem << QLatin1String("vxworks");
 #endif
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN)
     hostSystem << QLatin1String("windows");
-#endif
-#if defined(Q_OS_WINRT)
-    hostSystem << QLatin1String("winrt");
 #endif
 
     return hostSystem;

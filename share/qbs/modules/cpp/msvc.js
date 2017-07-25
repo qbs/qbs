@@ -309,6 +309,10 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         break;
     }
 
+    var requireAppContainer = product.cpp.requireAppContainer;
+    if (requireAppContainer !== undefined)
+        args.push("/APPCONTAINER" + (requireAppContainer ? "" : ":NO"));
+
     var minimumWindowsVersion = product.cpp.minimumWindowsVersion;
     var subsystemSwitch = undefined;
     if (minimumWindowsVersion || product.consoleApplication !== undefined) {
