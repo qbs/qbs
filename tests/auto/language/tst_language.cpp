@@ -2522,10 +2522,9 @@ void TestLanguage::wildcards()
         }
         QVERIFY(!!group);
         QCOMPARE(group->files.count(), 0);
-        SourceWildCards::Ptr wildcards = group->wildcards;
-        QVERIFY(!!wildcards);
+        QVERIFY(!!group->wildcards);
         QStringList actualFilePaths;
-        foreach (const SourceArtifactConstPtr &artifact, wildcards->files) {
+        foreach (const SourceArtifactConstPtr &artifact, group->wildcards->files) {
             QString str = artifact->absoluteFilePath;
             int idx = str.indexOf(m_wildcardsTestDirPath);
             if (idx != -1)

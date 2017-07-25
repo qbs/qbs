@@ -223,25 +223,16 @@ bool sourceArtifactSetsAreEqual(const QList<SourceArtifactPtr> &l1,
 class SourceWildCards : public PersistentObject
 {
 public:
-    typedef std::shared_ptr<SourceWildCards> Ptr;
-    typedef std::shared_ptr<const SourceWildCards> ConstPtr;
-
-    static Ptr create() { return Ptr(new SourceWildCards); }
-
     Set<QString> expandPatterns(const GroupConstPtr &group, const QString &baseDir,
                                  const QString &buildDir);
 
-    // TODO: Use back pointer to Group instead?
-    QString prefix;
-
+    const ResolvedGroup *group = nullptr;       // The owning group.
     QStringList patterns;
     QStringList excludePatterns;
     std::vector<std::pair<QString, FileTime>> dirTimeStamps;
     QList<SourceArtifactPtr> files;
 
 private:
-    SourceWildCards() {}
-
     Set<QString> expandPatterns(const GroupConstPtr &group, const QStringList &patterns,
                                  const QString &baseDir, const QString &buildDir);
     void expandPatterns(Set<QString> &result, const GroupConstPtr &group,
@@ -263,7 +254,7 @@ public:
     bool enabled;
     QString prefix;
     QList<SourceArtifactPtr> files;
-    SourceWildCards::Ptr wildcards;
+    std::unique_ptr<SourceWildCards> wildcards;
     PropertyMapPtr properties;
     FileTags fileTags;
     bool overrideTags;

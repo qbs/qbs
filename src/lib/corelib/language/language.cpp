@@ -166,7 +166,6 @@ void SourceArtifactInternal::store(PersistentPool &pool) const
 
 void SourceWildCards::load(PersistentPool &pool)
 {
-    pool.load(prefix);
     pool.load(patterns);
     pool.load(excludePatterns);
     pool.load(dirTimeStamps);
@@ -175,7 +174,6 @@ void SourceWildCards::load(PersistentPool &pool)
 
 void SourceWildCards::store(PersistentPool &pool) const
 {
-    pool.store(prefix);
     pool.store(patterns);
     pool.store(excludePatterns);
     pool.store(dirTimeStamps);
@@ -220,6 +218,8 @@ void ResolvedGroup::load(PersistentPool &pool)
     pool.load(prefix);
     pool.load(files);
     pool.load(wildcards);
+    if (wildcards)
+        wildcards->group = this;
     pool.load(properties);
     pool.load(fileTags);
     pool.load(overrideTags);
@@ -1069,7 +1069,7 @@ Set<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
         const QStringList &patterns, const QString &baseDir, const QString &buildDir)
 {
     Set<QString> files;
-    QString expandedPrefix = prefix;
+    QString expandedPrefix = group->prefix;
     if (expandedPrefix.startsWith(QLatin1String("~/")))
         expandedPrefix.replace(0, 1, QDir::homePath());
     for (QString pattern : patterns) {

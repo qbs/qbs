@@ -687,12 +687,12 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     const CodeLocation filesLocation = item->property(QLatin1String("files"))->location();
     ErrorInfo fileError;
     if (!patterns.isEmpty()) {
-        SourceWildCards::Ptr wildcards = SourceWildCards::create();
+        group->wildcards = std::unique_ptr<SourceWildCards>(new SourceWildCards);
+        SourceWildCards *wildcards = group->wildcards.get();
+        wildcards->group = group.get();
         wildcards->excludePatterns = m_evaluator->stringListValue(item,
                                                                   QLatin1String("excludeFiles"));
-        wildcards->prefix = group->prefix;
         wildcards->patterns = patterns;
-        group->wildcards = wildcards;
         const Set<QString> files = wildcards->expandPatterns(group,
                 FileInfo::path(item->file()->filePath()),
                 projectContext->project->topLevelProject()->buildDirectory);
