@@ -209,15 +209,13 @@ void BuiltinDeclarations::addDependsItem()
                                 QLatin1String("true"));
     item << PropertyDeclaration(QLatin1String("versionAtLeast"), PropertyDeclaration::String);
     item << PropertyDeclaration(QLatin1String("versionBelow"), PropertyDeclaration::String);
-    PropertyDeclaration profileDecl(QLatin1String("profiles"), PropertyDeclaration::StringList);
-    profileDecl.setInitialValueSource(QLatin1String("[product.profile]"));
-    item << profileDecl;
+    item << PropertyDeclaration(QLatin1String("profiles"), PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("productTypes"), PropertyDeclaration::StringList);
     PropertyDeclaration limitDecl(QLatin1String("limitToSubProject"), PropertyDeclaration::Boolean);
     limitDecl.setInitialValueSource(QLatin1String("false"));
     item << limitDecl;
-    item << PropertyDeclaration(QLatin1String("multiplexConfigurationId"),
-                                PropertyDeclaration::String, QString(),
+    item << PropertyDeclaration(QLatin1String("multiplexConfigurationIds"),
+                                PropertyDeclaration::StringList, QString(),
                                 PropertyDeclaration::ReadOnlyFlag);
     insert(item);
 }

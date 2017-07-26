@@ -883,7 +883,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
             dependsItem->setProperty(nameKey, productNameValue);
             dependsItem->setProperty(multiplexConfigurationIdKey, v);
             dependsItem->setProperty(QStringLiteral("profiles"),
-                                     VariantValue::create(QStringLiteral("*")));
+                                     VariantValue::create(QStringList()));
             Item::addChild(aggregator, dependsItem);
         }
     }
@@ -897,8 +897,8 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProjectContext &proje
         m_productsByName.insert({ product.name, &product });
 
     const QString multiplexConfigurationIdKey = QStringLiteral("multiplexConfigurationId");
+    const QString multiplexConfigurationIdsKey = QStringLiteral("multiplexConfigurationIds");
     for (const ProductContext &product : projectContext.products) {
-        std::vector<Item *> additionalDependsItems;
         for (Item *dependsItem : product.item->children()) {
             if (dependsItem->type() != ItemType::Depends)
                 continue;
@@ -936,30 +936,22 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProjectContext &proje
             if (!productIsMultiplexed && hasNonMultiplexedDependency)
                 continue;
 
+            QStringList multiplexIds;
             for (std::size_t i = 0; i < dependencies.size(); ++i) {
                 const QString depMultiplexId = dependencies.at(i)->multiplexConfigurationId;
-                if (i == 0) {
-                    if (productIsMultiplexed) { // (2)
-                        dependsItem->setProperty(multiplexConfigurationIdKey,
-                                product.item->property(multiplexConfigurationIdKey));
-                        break;
-                    }
-                    // (3b)
-                    dependsItem->setProperty(multiplexConfigurationIdKey,
-                                             VariantValue::create(depMultiplexId));
-                } else {
-                    // (3b)
-                    Item * const newDependsItem = dependsItem->clone();
-                    newDependsItem->setProperty(multiplexConfigurationIdKey,
-                                                VariantValue::create(depMultiplexId));
-                    dependsItem->setProperty(QStringLiteral("profiles"),
-                                             VariantValue::create(QStringLiteral("*")));
-                    additionalDependsItems.push_back(newDependsItem);
+                if (productIsMultiplexed) { // (2)
+                    dependsItem->setProperty(multiplexConfigurationIdsKey,
+                                             product.item->property(multiplexConfigurationIdKey));
+                    break;
                 }
+                // (3b)
+                multiplexIds << depMultiplexId;
+            }
+            if (!multiplexIds.isEmpty()) {
+                dependsItem->setProperty(multiplexConfigurationIdsKey,
+                                         VariantValue::create(multiplexIds));
             }
         }
-        for (Item * const newDependsItem : additionalDependsItems)
-            Item::addChild(product.item, newDependsItem);
     }
 }
 
@@ -2159,19 +2151,29 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         if (result.isProduct) {
             qCDebug(lcModuleLoader) << "product dependency loaded:" << moduleName.toString();
             const QString profilesKey = QLatin1String("profiles");
-            QStringList profiles = m_evaluator->stringListValue(dependsItem, profilesKey);
-            if (profiles.isEmpty())
-                profiles.append(QLatin1String("*"));
-            const QString multiplexConfigurationId
-                    = m_evaluator->stringValue(dependsItem,
-                                               QStringLiteral("multiplexConfigurationId"));
+            bool profilesPropertyWasSet = false;
+            QStringList profiles = m_evaluator->stringListValue(dependsItem, profilesKey,
+                                                                &profilesPropertyWasSet);
+            if (profiles.isEmpty()) {
+                if (profilesPropertyWasSet)
+                    profiles.append(QLatin1String("*"));
+                else
+                    profiles.append(QString());
+            }
+            QStringList multiplexConfigurationIds
+                    = m_evaluator->stringListValue(dependsItem,
+                                                   QStringLiteral("multiplexConfigurationIds"));
+            if (multiplexConfigurationIds.isEmpty())
+                multiplexConfigurationIds << QString();
             for (const QString &profile : qAsConst(profiles)) {
-                ModuleLoaderResult::ProductInfo::Dependency dependency;
-                dependency.name = moduleName.toString();
-                dependency.profile = profile;
-                dependency.multiplexConfigurationId = multiplexConfigurationId;
-                dependency.isRequired = isRequired;
-                productResults->append(dependency);
+                for (const QString &multiplexId : multiplexConfigurationIds) {
+                    ModuleLoaderResult::ProductInfo::Dependency dependency;
+                    dependency.name = moduleName.toString();
+                    dependency.profile = profile;
+                    dependency.multiplexConfigurationId = multiplexId;
+                    dependency.isRequired = isRequired;
+                    productResults->append(dependency);
+                }
             }
         }
     }
@@ -3199,7 +3201,6 @@ void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
                 ModuleLoaderResult::ProductInfo::Dependency newDependency = dep;
                 newDependency.multiplexConfigurationId
                         = dependencies.at(i)->multiplexConfigurationId;
-                newDependency.profile = QLatin1String("*");
                 additionalDependencies << newDependency;
             }
         }

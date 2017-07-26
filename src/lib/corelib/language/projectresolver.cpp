@@ -1003,24 +1003,26 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
             }
             dependencies.removeAt(i);
         } else {
-            ResolvedProductPtr usedProduct;
-            if (!dependency.multiplexConfigurationId.isEmpty()) {
-                usedProduct = m_productsByName.value(dependency.uniqueName());
-            } else {
+            ResolvedProductPtr usedProduct = m_productsByName.value(dependency.uniqueName());
+            if (!usedProduct) {
+                // TODO: Proper error message with expanded configuration
+                throw ErrorInfo(Tr::tr("Product '%1' depends on '%2', which does not exist.")
+                                .arg(product->name, dependency.uniqueName()), product->location);
+            }
+            if (!dependency.profile.isEmpty() && usedProduct->profile != dependency.profile) {
+                usedProduct.reset();
                 for (const ResolvedProductPtr &p : qAsConst(m_productsByName)) {
                     if (p->name == dependency.name && p->profile == dependency.profile) {
                         usedProduct = p;
                         break;
                     }
                 }
-            }
-            if (!usedProduct) {
-                const ResolvedProductConstPtr p = m_productsByName.value(dependency.uniqueName());
-                ErrorInfo e(Tr::tr("Product '%1' depends on '%2', which does not exist.")
-                            .arg(product->name, dependency.uniqueName()), product->location);
-                if (p)
-                    e.append(Tr::tr("Requested profile was '%1'.").arg(dependency.profile));
-                throw e;
+                if (!usedProduct) {
+                    throw ErrorInfo(Tr::tr("Product '%1' depends on '%2', which does not exist "
+                                           "for the requested profile '%3'.")
+                                    .arg(product->name, dependency.name, dependency.profile),
+                                    product->location);
+                }
             }
             if (!usedProduct->enabled) {
                 if (!dependency.isRequired)

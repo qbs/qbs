@@ -1669,6 +1669,32 @@ void TestLanguage::modules()
     QCOMPARE(product->productProperties.value("foo").toString(), expectedProductProperty);
 }
 
+void TestLanguage::multiplexingByProfile()
+{
+    QFETCH(QString, projectFileName);
+    QFETCH(bool, successExpected);
+    SetupProjectParameters params = defaultParameters;
+    params.setProjectFilePath(testDataDir() + "/multiplexing-by-profile/" + projectFileName);
+    try {
+        params.setDryRun(true);
+        const TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(successExpected);
+        QVERIFY(!!project);
+    } catch (const ErrorInfo &e) {
+        QVERIFY2(!successExpected, qPrintable(e.toString()));
+    }
+}
+
+void TestLanguage::multiplexingByProfile_data()
+{
+    QTest::addColumn<QString>("projectFileName");
+    QTest::addColumn<bool>("successExpected");
+    QTest::newRow("same profile") << "p1.qbs" << true;
+    QTest::newRow("dependency on non-multiplexed") << "p2.qbs" << true;
+    QTest::newRow("dependency by non-multiplexed") << "p3.qbs" << false;
+    QTest::newRow("dependency by non-multiplexed with Depends.profile") << "p4.qbs" << true;
+}
+
 void TestLanguage::nonRequiredProducts()
 {
     bool exceptionCaught = false;
