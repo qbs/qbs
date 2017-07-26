@@ -69,8 +69,8 @@ QBS_EXPORT bool operator!=(const PropertyMap &pm1, const PropertyMap &pm2);
 class QBS_EXPORT PropertyMap
 {
     friend class Internal::ProjectPrivate;
-    friend bool operator==(const PropertyMap &, const PropertyMap &);
-    friend bool operator!=(const PropertyMap &, const PropertyMap &);
+    friend QBS_EXPORT bool operator==(const PropertyMap &, const PropertyMap &);
+    friend QBS_EXPORT bool operator!=(const PropertyMap &, const PropertyMap &);
 
 public:
     PropertyMap();
