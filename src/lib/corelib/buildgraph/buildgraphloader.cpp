@@ -921,6 +921,8 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
 bool BuildGraphLoader::checkConfigCompatibility()
 {
     const TopLevelProjectConstPtr restoredProject = m_result.loadedProject;
+    if (m_parameters.topLevelProfile().isEmpty())
+        m_parameters.setTopLevelProfile(restoredProject->profile());
     if (!m_parameters.overrideBuildGraphData()) {
         if (!m_parameters.overriddenValues().isEmpty()
                 && m_parameters.overriddenValues() != restoredProject->overriddenValues) {
@@ -929,8 +931,7 @@ bool BuildGraphLoader::checkConfigCompatibility()
                                    "you really want to rebuild with the new properties."));
             }
         m_parameters.setOverriddenValues(restoredProject->overriddenValues);
-        if (!m_parameters.topLevelProfile().isEmpty()
-                && m_parameters.topLevelProfile() != restoredProject->profile()) {
+        if (m_parameters.topLevelProfile() != restoredProject->profile()) {
             throw ErrorInfo(Tr::tr("The current profile is '%1', but profile '%2' was used "
                                    "when last building for configuration '%3'. Use  the "
                                    "'resolve' command if you really want to rebuild with a "
