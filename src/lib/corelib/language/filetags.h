@@ -86,6 +86,7 @@ public:
 };
 
 LogWriter operator <<(LogWriter w, const FileTags &tags);
+QDebug operator<<(QDebug debug, const FileTags &tags);
 
 } // namespace Internal
 } // namespace qbs

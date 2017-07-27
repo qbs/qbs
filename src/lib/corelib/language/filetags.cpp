@@ -83,5 +83,11 @@ LogWriter operator <<(LogWriter w, const FileTags &tags)
     return w;
 }
 
+QDebug operator<<(QDebug debug, const FileTags &tags)
+{
+    QDebugStateSaver saver(debug);
+    return debug.resetFormat().noquote() << tags.toStringList();
+}
+
 } // namespace Internal
 } // namespace qbs
