@@ -1528,6 +1528,26 @@ void TestBlackbox::recursiveWildcards()
     QCOMPARE(runQbs(QbsRunParameters("install")), 0);
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file1.txt").exists());
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file2.txt").exists());
+    QFile outputFile(defaultInstallRoot + "/output.txt");
+    QVERIFY2(outputFile.open(QIODevice::ReadOnly), qPrintable(outputFile.errorString()));
+    QCOMPARE(outputFile.readAll(), QByteArray("file1.txtfile2.txt"));
+    outputFile.close();
+    QFile newFile("dir/subdir/file3.txt");
+    QVERIFY2(newFile.open(QIODevice::WriteOnly), qPrintable(newFile.errorString()));
+    newFile.close();
+    QCOMPARE(runQbs(QbsRunParameters("install")), 0);
+    QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file3.txt").exists());
+    QVERIFY2(outputFile.open(QIODevice::ReadOnly), qPrintable(outputFile.errorString()));
+    QCOMPARE(outputFile.readAll(), QByteArray("file1.txtfile2.txtfile3.txt"));
+    outputFile.close();
+    QVERIFY2(newFile.remove(), qPrintable(newFile.errorString()));
+    QVERIFY2(!newFile.exists(), qPrintable(newFile.fileName()));
+    QCOMPARE(runQbs(QbsRunParameters("install", QStringList{ "--clean-install-root"})), 0);
+    QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file1.txt").exists());
+    QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file2.txt").exists());
+    QVERIFY(!QFileInfo(defaultInstallRoot + "/dir/file3.txt").exists());
+    QVERIFY2(outputFile.open(QIODevice::ReadOnly), qPrintable(outputFile.errorString()));
+    QCOMPARE(outputFile.readAll(), QByteArray("file1.txtfile2.txt"));
 }
 
 void TestBlackbox::referenceErrorInExport()
