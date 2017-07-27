@@ -343,18 +343,12 @@ public:
     {
     }
 
-    const Set<RuleNode *> &leaves() const
-    {
-        return m_leaves;
-    }
-
 private:
     const ResolvedProductPtr &m_product;
     const Logger &m_logger;
     QHash<RuleConstPtr, RuleNode *> m_nodePerRule;
     Set<const Rule *> m_rulesOnPath;
     QList<const Rule *> m_rulePath;
-    Set<RuleNode *> m_leaves;
 
     void visit(const RuleConstPtr &parentRule, const RuleConstPtr &rule)
     {
@@ -370,7 +364,6 @@ private:
         RuleNode *node = m_nodePerRule.value(rule);
         if (!node) {
             node = new RuleNode;
-            m_leaves.insert(node);
             m_nodePerRule.insert(rule, node);
             node->product = m_product;
             node->setRule(rule);
@@ -384,7 +377,6 @@ private:
             RuleNode *parent = m_nodePerRule.value(parentRule);
             QBS_CHECK(parent);
             loggedConnect(parent, node, m_logger);
-            m_leaves.remove(parent);
         } else {
             m_product->buildData->roots += node;
         }
