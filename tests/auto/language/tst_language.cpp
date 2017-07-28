@@ -1511,9 +1511,11 @@ void TestLanguage::modulePropertyOverridesPerProduct()
     try {
         SetupProjectParameters params = defaultParameters;
         params.setOverriddenValues({
+                std::make_pair("modules.dummy.rpaths", QStringList({"/usr/lib"})),
                 std::make_pair("modules.dummy.someString", "m"),
                 std::make_pair("products.b.dummy.someString", "b"),
-                std::make_pair("products.c.dummy.someString", "c")
+                std::make_pair("products.c.dummy.someString", "c"),
+                std::make_pair("products.c.dummy.rpaths", QStringList({"/home", "/tmp"}))
         });
         params.setProjectFilePath(
                     testProject("module-property-overrides-per-product.qbs"));
@@ -1528,14 +1530,28 @@ void TestLanguage::modulePropertyOverridesPerProduct()
         const ResolvedProductConstPtr c = products.value("c");
         QVERIFY(!!c);
 
-        const auto propertyValue = [](const ResolvedProductConstPtr &p) -> QString
+        const auto stringPropertyValue = [](const ResolvedProductConstPtr &p) -> QString
         {
             return p->moduleProperties->moduleProperty("dummy", "someString").toString();
         };
+        const auto listPropertyValue = [](const ResolvedProductConstPtr &p) -> QStringList
+        {
+            return p->moduleProperties->moduleProperty("dummy", "rpaths").toStringList();
+        };
+        const auto productPropertyValue = [](const ResolvedProductConstPtr &p) -> QStringList
+        {
+            return p->productProperties.value("rpaths").toStringList();
+        };
 
-        QCOMPARE(propertyValue(a), QString("m"));
-        QCOMPARE(propertyValue(b), QString("b"));
-        QCOMPARE(propertyValue(c), QString("c"));
+        QCOMPARE(stringPropertyValue(a), QString("m"));
+        QCOMPARE(stringPropertyValue(b), QString("b"));
+        QCOMPARE(stringPropertyValue(c), QString("c"));
+        QCOMPARE(listPropertyValue(a), QStringList({"/usr/lib"}));
+        QCOMPARE(listPropertyValue(b), QStringList({"/usr/lib"}));
+        QCOMPARE(listPropertyValue(c), QStringList({"/home", "/tmp"}));
+        QCOMPARE(listPropertyValue(a), productPropertyValue(a));
+        QCOMPARE(listPropertyValue(b), productPropertyValue(b));
+        QCOMPARE(listPropertyValue(c), productPropertyValue(c));
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
