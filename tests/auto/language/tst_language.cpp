@@ -725,9 +725,9 @@ void TestLanguage::erroneousFiles_data()
             << "overwrite-readonly-module-property.qbs"
                ":5:30.*Cannot set read-only property 'readOnlyString'.";
     QTest::newRow("mismatching-multiplex-dependency")
-            << "mismatching-multiplex-dependency.qbs:9:5 Dependency from product 'b' to "
-               "product 'a' not fulfilled.\nNo product 'a' found with a matching multiplex "
-               "configuration:\n\tqbs.architecture: mips";
+            << "mismatching-multiplex-dependency.qbs:9:5 Dependency from product "
+               "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
+               " not fulfilled.";
 }
 
 void TestLanguage::erroneousFiles()

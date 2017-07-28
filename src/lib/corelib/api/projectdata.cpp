@@ -40,6 +40,7 @@
 
 #include "projectdata_p.h"
 #include "propertymap_p.h"
+#include <language/language.h>
 #include <language/propertymapinternal.h>
 #include <tools/fileinfo.h>
 #include <tools/jsliterals.h>
@@ -448,6 +449,16 @@ QStringList ProductData::dependencies() const
 QString ProductData::name() const
 {
     return d->name;
+}
+
+/*!
+  The name of the product as given in the qbs source file, plus information
+  about which properties it was multiplexed on and the values of these properties.
+  If the product was not multiplexed, the returned value is the same as \c name().
+ */
+QString ProductData::fullDisplayName() const
+{
+    return Internal::ResolvedProduct::fullDisplayName(name(), multiplexConfigurationId());
 }
 
 /*!

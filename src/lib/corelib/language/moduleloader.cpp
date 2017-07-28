@@ -163,26 +163,13 @@ public:
                         });
                     if (it == deps.end()) {
                         QBS_CHECK(!productContext->multiplexConfigurationId.isEmpty());
-                        ErrorInfo e(Tr::tr("Dependency from product '%1' to product '%2' not "
-                                           "fulfilled.")
-                                    .arg(productContext->name, dep.name),
-                                    productContext->item->location());
-                        const QString configJsonString = MultiplexInfo::configurationStringFromId(
-                                    productContext->multiplexConfigurationId);
-                        const QVariantMap config = QJsonDocument::fromJson(
-                                    configJsonString.toUtf8()).object().toVariantMap();
-                        QString userConfigString;
-                        for (auto it = config.cbegin(); it != config.cend(); ++it) {
-                            if (!userConfigString.isEmpty())
-                                userConfigString += QLatin1Char('\n');
-                            userConfigString.append(QLatin1String("\tqbs.") + it.key())
-                                    .append(QLatin1String(": "))
-                                    .append(it.value().toStringList().join(QLatin1Char(',')));
-                        }
-                        e.append(Tr::tr("No product '%1' found with a matching multiplex "
-                                        "configuration:\n%2").arg(dep.name, userConfigString));
-                        throw e;
-
+                        const QString productName = ResolvedProduct::fullDisplayName(
+                                    productContext->name, productContext->multiplexConfigurationId);
+                        const QString depName = ResolvedProduct::fullDisplayName(
+                                    dep.name, dep.multiplexConfigurationId);
+                        throw ErrorInfo(Tr::tr("Dependency from product '%1' to product '%2' not "
+                                               "fulfilled.").arg(productName, depName),
+                                        productContext->item->location());
                     }
                     productDependencies.push_back(*it);
                     allDependencies << *it;
@@ -696,11 +683,6 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     }
     adjustDependenciesForMultiplexing(projectContext);
     m_reader->popExtraSearchPaths();
-}
-
-QString ModuleLoader::MultiplexInfo::configurationStringFromId(const QString &idString)
-{
-    return QString::fromUtf8(QByteArray::fromBase64(idString.toUtf8()));
 }
 
 QString ModuleLoader::MultiplexInfo::toIdString(size_t row) const

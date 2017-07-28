@@ -1004,10 +1004,12 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
             dependencies.removeAt(i);
         } else {
             ResolvedProductPtr usedProduct = m_productsByName.value(dependency.uniqueName());
+            const QString depDisplayName = ResolvedProduct::fullDisplayName(dependency.name,
+                    dependency.multiplexConfigurationId);
             if (!usedProduct) {
-                // TODO: Proper error message with expanded configuration
                 throw ErrorInfo(Tr::tr("Product '%1' depends on '%2', which does not exist.")
-                                .arg(product->name, dependency.uniqueName()), product->location);
+                                .arg(product->fullDisplayName(), depDisplayName),
+                                product->location);
             }
             if (!dependency.profile.isEmpty() && usedProduct->profile != dependency.profile) {
                 usedProduct.reset();
@@ -1020,7 +1022,8 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
                 if (!usedProduct) {
                     throw ErrorInfo(Tr::tr("Product '%1' depends on '%2', which does not exist "
                                            "for the requested profile '%3'.")
-                                    .arg(product->name, dependency.name, dependency.profile),
+                                    .arg(product->fullDisplayName(), depDisplayName,
+                                         dependency.profile),
                                     product->location);
                 }
             }

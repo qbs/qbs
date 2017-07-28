@@ -94,13 +94,6 @@ QString ProjectBuildData::deriveBuildGraphFilePath(const QString &buildDir, cons
     return buildDir + QLatin1Char('/') + projectId + QLatin1String(".bg");
 }
 
-static QString productNameForErrorMessage(const ResolvedProduct *product)
-{
-    return product->profile == product->topLevelProject()->profile()
-            && product->multiplexConfigurationId.isEmpty()
-            ? product->name : product->uniqueName();
-}
-
 void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)
 {
     QList<FileResourceBase *> &lst
@@ -114,10 +107,10 @@ void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)
                 error.append(Tr::tr("Conflicting artifacts for file path '%1'.")
                              .arg(artifact->filePath()));
                 error.append(Tr::tr("The first artifact comes from product '%1'.")
-                             .arg(productNameForErrorMessage(otherArtifact->product.get())),
+                             .arg(otherArtifact->product->fullDisplayName()),
                              otherArtifact->product->location);
                 error.append(Tr::tr("The second artifact comes from product '%1'.")
-                             .arg(productNameForErrorMessage(artifact->product.get())),
+                             .arg(artifact->product->fullDisplayName()),
                              artifact->product->location);
                 throw error;
             }

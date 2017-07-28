@@ -186,6 +186,7 @@ public:
     QStringList type() const;
     QStringList dependencies() const;
     QString name() const;
+    QString fullDisplayName() const;
     QString targetName() const;
     QString version() const;
     QString profile() const;

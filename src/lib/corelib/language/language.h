@@ -443,6 +443,8 @@ public:
     static QString uniqueName(const QString &name,
                               const QString &multiplexConfigurationId);
     QString uniqueName() const;
+    static QString fullDisplayName(const QString &name, const QString &multiplexConfigurationId);
+    QString fullDisplayName() const;
 
     QStringList generatedFiles(const QString &baseFile, bool recursive, const FileTags &tags) const;
 
@@ -552,6 +554,8 @@ private:
 
 bool artifactPropertyListsAreEqual(const QList<ArtifactPropertiesPtr> &l1,
                                    const QList<ArtifactPropertiesPtr> &l2);
+
+QString multiplexIdToString(const QString &id);
 
 } // namespace Internal
 } // namespace qbs

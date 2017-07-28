@@ -790,6 +790,20 @@ QString ResolvedProduct::uniqueName() const
     return uniqueName(name, multiplexConfigurationId);
 }
 
+QString ResolvedProduct::fullDisplayName(const QString &name,
+                                         const QString &multiplexConfigurationId)
+{
+    QString result = name;
+    if (!multiplexConfigurationId.isEmpty())
+        result.append(QLatin1Char(' ')).append(multiplexIdToString(multiplexConfigurationId));
+    return result;
+}
+
+QString ResolvedProduct::fullDisplayName() const
+{
+    return fullDisplayName(name, multiplexConfigurationId);
+}
+
 static QStringList findGeneratedFiles(const Artifact *base, bool recursive, const FileTags &tags)
 {
     QStringList result;
@@ -1284,6 +1298,11 @@ void ResolvedScanner::store(PersistentPool &pool) const
     pool.store(recursive);
     pool.store(searchPathsScript);
     pool.store(scanScript);
+}
+
+QString multiplexIdToString(const QString &id)
+{
+    return QString::fromUtf8(QByteArray::fromBase64(id.toUtf8()));
 }
 
 } // namespace Internal

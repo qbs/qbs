@@ -224,7 +224,6 @@ private:
         bool aggregate = false;
         VariantValuePtr multiplexedType;
 
-        static QString configurationStringFromId(const QString &idString);
         QString toIdString(size_t row) const;
     };
 

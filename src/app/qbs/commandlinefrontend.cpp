@@ -551,15 +551,8 @@ void CommandLineFrontend::listProducts()
 {
     const QList<ProductData> products = productsToUse().begin().value();
     QStringList output;
-    for (const ProductData &p : products) {
-        QString line = p.name();
-        if (!p.multiplexConfigurationId().isEmpty()) {
-            const QString humanReadableConfig = QString::fromUtf8(
-                        QByteArray::fromBase64(p.multiplexConfigurationId().toUtf8()));
-            line += QLatin1Char(' ') + humanReadableConfig;
-        }
-        output += line;
-    }
+    for (const ProductData &p : products)
+        output += p.fullDisplayName();
     output.sort();
     qbsInfo() << output.join(QLatin1Char('\n'));
 }
