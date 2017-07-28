@@ -50,7 +50,7 @@
 namespace qbs {
 namespace Internal {
 
-static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-104";
+static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE_105";
 
 NoBuildGraphError::NoBuildGraphError()
     : ErrorInfo(Tr::tr("No build graph exists yet for this configuration."))

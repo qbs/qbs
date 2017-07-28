@@ -407,7 +407,7 @@ public:
     WeakPointer<ResolvedProject> project;
     QVariantMap productProperties;
     PropertyMapPtr moduleProperties;
-    Set<RulePtr> rules;
+    QList<RulePtr> rules;
     Set<ResolvedProductPtr> dependencies;
     QHash<ResolvedProductConstPtr, QVariantMap> dependencyParameters;
     QList<FileTaggerConstPtr> fileTaggers;

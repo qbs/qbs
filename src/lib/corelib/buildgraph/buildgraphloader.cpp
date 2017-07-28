@@ -638,7 +638,7 @@ bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restored
     // within commands).
     if (checkForPropertyChanges(restoredProduct, newlyResolvedProduct))
         return true;
-    if (!ruleListsAreEqual(restoredProduct->rules.toList(), newlyResolvedProduct->rules.toList()))
+    if (!ruleListsAreEqual(restoredProduct->rules, newlyResolvedProduct->rules))
         return true;
     if (!dependenciesAreEqual(restoredProduct, newlyResolvedProduct))
         return true;
