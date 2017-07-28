@@ -367,6 +367,11 @@ bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
             && equals(m1.setupRunEnvironmentScript.get(), m2.setupRunEnvironmentScript.get());
 }
 
+RulePtr Rule::clone() const
+{
+    return std::make_shared<Rule>(*this);
+}
+
 QString Rule::toString() const
 {
     QStringList outputTagsSorted = collectedOutputFileTags().toStringList();
@@ -516,6 +521,8 @@ void ResolvedProduct::load(PersistentPool &pool)
     pool.load(productProperties);
     pool.load(moduleProperties);
     pool.load(rules);
+    for (const RulePtr &rule : rules)
+        rule->product = this;
     pool.load(dependencies);
     pool.load(dependencyParameters);
     pool.load(fileTaggers);

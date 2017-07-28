@@ -856,10 +856,12 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
                                      "does not declare any input tags."), item->location()));
         return;
     }
-    if (m_productContext)
+    if (m_productContext) {
+        rule->product = m_productContext->product.get();
         m_productContext->product->rules += rule;
-    else
+    } else {
         projectContext->rules += rule;
+    }
 }
 
 void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
@@ -1175,8 +1177,11 @@ void ProjectResolver::postProcess(const ResolvedProductPtr &product,
                                   ProjectContext *projectContext) const
 {
     product->fileTaggers += projectContext->fileTaggers;
-    for (const RulePtr &rule : qAsConst(projectContext->rules))
-        product->rules += rule;
+    for (const RulePtr &rule : qAsConst(projectContext->rules)) {
+        RulePtr clonedRule = rule->clone();
+        clonedRule->product = product.get();
+        product->rules += clonedRule;
+    }
 }
 
 void ProjectResolver::applyFileTaggers(const ResolvedProductPtr &product) const

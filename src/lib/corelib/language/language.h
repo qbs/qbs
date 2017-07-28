@@ -328,7 +328,9 @@ class Rule : public PersistentObject
 {
 public:
     static RulePtr create() { return RulePtr(new Rule); }
+    RulePtr clone() const;
 
+    ResolvedProduct *product = nullptr;         // The owning product.
     ResolvedModuleConstPtr module;
     QString name;
     ScriptFunctionPtr prepareScript;
