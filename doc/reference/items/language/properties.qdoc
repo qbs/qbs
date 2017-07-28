@@ -108,6 +108,8 @@
     We suggest to use the \c Properties item for mutually exclusive conditions only. It is
     especially useful if there are several properties to set, based on the same condition.
 
+    \section1 List of Properties
+
     \table
         \header
             \li Property

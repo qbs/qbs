@@ -68,6 +68,8 @@
     Any property \c prop attached to this item is available in sub-items as \c product.prop, as
     well as in modules that are loaded from this product.
 
+    \section1 Product Properties
+
     \table
         \header
             \li Property
