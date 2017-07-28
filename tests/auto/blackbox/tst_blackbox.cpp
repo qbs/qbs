@@ -284,6 +284,17 @@ TestBlackbox::TestBlackbox() : TestBlackboxBase (SRCDIR "/testdata", "blackbox")
 {
 }
 
+void TestBlackbox::addFileTagToGeneratedArtifact()
+{
+    QDir::setCurrent(testDataDir + "/add-filetag-to-generated-artifact");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compressing my_app"), m_qbsStdout.constData());
+    const QString compressedAppFilePath
+            = relativeProductBuildDir("my_compressed_app") + '/'
+            + qbs::Internal::HostOsInfo::appendExecutableSuffix("compressed-my_app");
+    QVERIFY(regularFileExists(compressedAppFilePath));
+}
+
 void TestBlackbox::alwaysRun()
 {
     QFETCH(QString, projectFile);

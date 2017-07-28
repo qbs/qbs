@@ -401,7 +401,12 @@ FileTags Rule::staticOutputFileTags() const
 
 FileTags Rule::collectedOutputFileTags() const
 {
-    return outputFileTags.isEmpty() ? staticOutputFileTags() : outputFileTags;
+    FileTags result = outputFileTags.isEmpty() ? staticOutputFileTags() : outputFileTags;
+    for (const auto &ap : qAsConst(product->artifactProperties)) {
+        if (ap->fileTagsFilter().intersects(result))
+            result += ap->extraFileTags();
+    }
+    return result;
 }
 
 bool Rule::isDynamic() const

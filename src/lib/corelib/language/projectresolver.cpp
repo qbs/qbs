@@ -630,6 +630,9 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     if (m_productContext->currentGroup)
         isEnabled = isEnabled && m_productContext->currentGroup->enabled;
     QStringList files = m_evaluator->stringListValue(item, QLatin1String("files"));
+    bool fileTagsSet;
+    const FileTags fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"),
+                                                         &fileTagsSet);
     const QStringList fileTagsFilter
             = m_evaluator->stringListValue(item, QLatin1String("fileTagsFilter"));
     if (!fileTagsFilter.isEmpty()) {
@@ -654,6 +657,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
             return;
         ArtifactPropertiesPtr aprops = ArtifactProperties::create();
         aprops->setFileTagsFilter(FileTags::fromStringList(fileTagsFilter));
+        aprops->setExtraFileTags(fileTags);
         aprops->setPropertyMapInternal(moduleProperties);
         m_productContext->product->artifactProperties += aprops;
         m_productContext->artifactPropertiesPerFilter.insert(fileTagsFilter,
@@ -674,8 +678,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     group->location = item->location();
     group->enabled = isEnabled;
     group->properties = moduleProperties;
-    bool fileTagsSet;
-    group->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"), &fileTagsSet);
+    group->fileTags = fileTags;
     group->overrideTags = m_evaluator->boolValue(item, QLatin1String("overrideTags"));
     if (group->overrideTags && fileTagsSet) {
         if (group->fileTags.isEmpty() )

@@ -132,7 +132,12 @@
         \li empty list
         \li Artifact file tags to match. Any properties set in this group will be applied
             to the product's artifacts whose file tags intersect with the ones
-            listed here. Mutually exclusive with files.
+            listed here.
+
+            The file tags that the group's \c{fileTags} property specifies will
+            be added to the matching artifacts.
+
+            This property is mutually exclusive with \c{files}.
     \row
         \li condition
         \li bool
@@ -153,6 +158,8 @@
             If this property is true, then the file tags set via the group
             replace the ones set via the product or parent group.
             If it is false, the "group tags" are added to the "parent tags".
+
+            This property is ignored if \c{fileTagsFilter} is set.
     \row
         \li excludeFiles
         \li list

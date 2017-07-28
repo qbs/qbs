@@ -56,18 +56,31 @@ ArtifactProperties::ArtifactProperties()
 void ArtifactProperties::load(PersistentPool &pool)
 {
     pool.load(m_fileTagsFilter);
+    pool.load(m_extraFileTags);
     pool.load(m_propertyMap);
 }
 
 void ArtifactProperties::store(PersistentPool &pool) const
 {
     pool.store(m_fileTagsFilter);
+    pool.store(m_extraFileTags);
     pool.store(m_propertyMap);
+}
+
+FileTags ArtifactProperties::extraFileTags() const
+{
+    return m_extraFileTags;
+}
+
+void ArtifactProperties::setExtraFileTags(const FileTags &extraFileTags)
+{
+    m_extraFileTags = extraFileTags;
 }
 
 bool operator==(const ArtifactProperties &ap1, const ArtifactProperties &ap2)
 {
     return ap1.fileTagsFilter() == ap2.fileTagsFilter()
+            && ap1.extraFileTags() == ap2.extraFileTags()
             && *ap1.propertyMap() == *ap2.propertyMap();
 }
 

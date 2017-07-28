@@ -39,6 +39,7 @@ public:
     TestBlackbox();
 
 private slots:
+    void addFileTagToGeneratedArtifact();
     void alwaysRun();
     void alwaysRun_data();
     void artifactScanning();

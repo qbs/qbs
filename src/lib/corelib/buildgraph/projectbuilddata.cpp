@@ -48,6 +48,7 @@
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
 
+#include <language/artifactproperties.h>
 #include <language/language.h>
 #include <language/preparescriptobserver.h>
 #include <language/scriptengine.h>

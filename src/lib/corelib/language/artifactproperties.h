@@ -59,6 +59,9 @@ public:
     PropertyMapPtr propertyMap() const { return m_propertyMap; }
     void setPropertyMapInternal(const PropertyMapPtr &pmap) { m_propertyMap = pmap; }
 
+    FileTags extraFileTags() const;
+    void setExtraFileTags(const FileTags &extraFileTags);
+
 private:
     ArtifactProperties();
 
@@ -66,6 +69,7 @@ private:
     void store(PersistentPool &) const;
 
     FileTags m_fileTagsFilter;
+    FileTags m_extraFileTags;
     PropertyMapPtr m_propertyMap;
 };
 
