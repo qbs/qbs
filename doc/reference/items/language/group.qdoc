@@ -40,65 +40,65 @@
     This item is attached to a product and used to group files that have something in common.
     For example:
 
-     \code
-     Application {
-         Group {
-             name: "common files"
-             files: ["myclass.h", "myclass_common_impl.cpp"]
-         }
-         Group {
-             name: "Windows files"
-             condition: qbs.targetOS.contains("windows")
-             files: "myclass_win_impl.cpp"
-         }
-         Group {
-             name: "Unix files"
-             condition: qbs.targetOS.contains("unix")
-             files: "unixhelper.cpp"
-             Group {
-                 name: "Linux files"
-                 condition: qbs.targetOS.contains("linux")
-                 files: "myclass_linux_impl.cpp"
-             }
-             Group {
-                 name: "FreeBSD files"
-                 condition: qbs.targetOS.contains("freebsd")
-                 files: "myclass_freebsd_impl.cpp"
-             }
-         }
-         Group {
-             name: "Files to install"
-             qbs.install: true
-             qbs.installDir: "share"
-             files: "runtime_resource.txt"
-         }
-     }
-     \endcode
-     When specifying files, you can use the wildcards "*", "?" and "[]", which have their usual meaning.
-     By default, matching files are only picked up directly from the parent directory, but you can tell \QBS to
-     consider the whole directory tree. It is also possible to exclude certain files from the list.
-     The pattern ** used in a pathname expansion context will match all files and zero or more
-     directories and subdirectories.
-     For example:
-     \snippet reference/items/language/group.qbs 0
+    \code
+    Application {
+        Group {
+            name: "common files"
+            files: ["myclass.h", "myclass_common_impl.cpp"]
+        }
+        Group {
+            name: "Windows files"
+            condition: qbs.targetOS.contains("windows")
+            files: "myclass_win_impl.cpp"
+        }
+        Group {
+            name: "Unix files"
+            condition: qbs.targetOS.contains("unix")
+            files: "unixhelper.cpp"
+            Group {
+                name: "Linux files"
+                condition: qbs.targetOS.contains("linux")
+                files: "myclass_linux_impl.cpp"
+            }
+            Group {
+                name: "FreeBSD files"
+                condition: qbs.targetOS.contains("freebsd")
+                files: "myclass_freebsd_impl.cpp"
+            }
+        }
+        Group {
+            name: "Files to install"
+            qbs.install: true
+            qbs.installDir: "share"
+            files: "runtime_resource.txt"
+        }
+    }
+    \endcode
+    When specifying files, you can use the wildcards "*", "?" and "[]", which have their usual meaning.
+    By default, matching files are only picked up directly from the parent directory, but you can tell \QBS to
+    consider the whole directory tree. It is also possible to exclude certain files from the list.
+    The pattern ** used in a pathname expansion context will match all files and zero or more
+    directories and subdirectories.
+    For example:
+    \snippet reference/items/language/group.qbs 0
 
-     A group can also be used to attach properties to build artifacts such as executables or
-     libraries. In the following example, an application is installed to "<install root>/bin".
-     \code
-     Application {
-         Group {
-             fileTagsFilter: "application"
-             qbs.install: true
-             qbs.installDir: "bin"
-         }
-     }
-     \endcode
+    A group can also be used to attach properties to build artifacts such as executables or
+    libraries. In the following example, an application is installed to "<install root>/bin".
+    \code
+    Application {
+        Group {
+            fileTagsFilter: "application"
+            qbs.install: true
+            qbs.installDir: "bin"
+        }
+    }
+    \endcode
 
-     Groups may also appear in modules, which causes the respective sources to be added to the
-     products depending on said module.
-     Groups can be nested. In this case, child groups inherit the module properties and the file
-     tags of their parent group. The condition of a child group gets logically ANDed with the one
-     of its parent group.
+    Groups may also appear in modules, which causes the respective sources to be added to the
+    products depending on said module.
+    Groups can be nested. In this case, child groups inherit the module properties and the file
+    tags of their parent group. The condition of a child group gets logically ANDed with the one
+    of its parent group.
 
     \section1 Group Properties
 
