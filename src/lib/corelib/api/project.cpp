@@ -463,11 +463,11 @@ ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const P
 }
 
 static SourceArtifactPtr createSourceArtifact(const QString &filePath,
-        const ResolvedProductPtr &product, const GroupPtr &group, bool wildcard, Logger &logger)
+        const ResolvedProductPtr &product, const GroupPtr &group, bool wildcard)
 {
     const SourceArtifactPtr artifact
             = ProjectResolver::createSourceArtifact(product, filePath, group, wildcard);
-    ProjectResolver::applyFileTaggers(artifact, product, logger);
+    ProjectResolver::applyFileTaggers(artifact, product);
     return artifact;
 }
 
@@ -505,13 +505,13 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         const GroupPtr &resolvedGroup = groupContext.resolvedGroups.at(i);
         for (const QString &file : qAsConst(filesContext.absoluteFilePaths)) {
             const SourceArtifactPtr sa = createSourceArtifact(file, resolvedProduct, resolvedGroup,
-                                                              false, logger);
+                                                              false);
             addedSourceArtifacts.insert(file, std::make_pair(sa, resolvedProduct));
         }
         for (const QString &file : qAsConst(filesContext.absoluteFilePathsFromWildcards)) {
             QBS_CHECK(resolvedGroup->wildcards);
             const SourceArtifactPtr sa = createSourceArtifact(file, resolvedProduct, resolvedGroup,
-                    true, logger);
+                    true);
             addedSourceArtifacts.insert(file, std::make_pair(sa, resolvedProduct));
         }
         if (resolvedProduct->enabled) {

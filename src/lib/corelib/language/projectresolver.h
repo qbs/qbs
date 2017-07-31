@@ -73,7 +73,7 @@ public:
     TopLevelProjectPtr resolve();
 
     static void applyFileTaggers(const SourceArtifactPtr &artifact,
-            const ResolvedProductConstPtr &product, Logger &logger);
+            const ResolvedProductConstPtr &product);
 
     static SourceArtifactPtr createSourceArtifact(const ResolvedProductPtr &rproduct,
             const QString &fileName, const GroupPtr &group, bool wildcard,

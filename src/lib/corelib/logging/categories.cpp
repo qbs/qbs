@@ -47,6 +47,7 @@ Q_LOGGING_CATEGORY(lcDepScan, "qbs.depscan", QtCriticalMsg)
 Q_LOGGING_CATEGORY(lcExec, "qbs.exec", QtCriticalMsg)
 Q_LOGGING_CATEGORY(lcMocScan, "qbs.mocscan", QtCriticalMsg)
 Q_LOGGING_CATEGORY(lcPluginManager, "qbs.pluginmanager", QtCriticalMsg)
+Q_LOGGING_CATEGORY(lcProjectResolver, "qbs.projectresolver", QtCriticalMsg)
 Q_LOGGING_CATEGORY(lcUpToDateCheck, "qbs.uptodate", QtCriticalMsg)
 
 } // namespace Internal

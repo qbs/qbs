@@ -50,6 +50,7 @@
 #include "value.h"
 
 #include <jsextensions/moduleproperties.h>
+#include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -145,8 +146,7 @@ TopLevelProjectPtr ProjectResolver::resolve()
 {
     TimedActivityLogger projectResolverTimer(m_logger, Tr::tr("ProjectResolver"),
                                              m_setupParams.logElapsedTime());
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[PR] resolving " << m_loadResult.root->file()->filePath();
+    qCDebug(lcProjectResolver) << "resolving" << m_loadResult.root->file()->filePath();
 
     m_productContext = 0;
     m_moduleContext = 0;
@@ -367,7 +367,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     QBS_CHECK(!product->profile.isEmpty());
     product->multiplexConfigurationId
             = m_evaluator->stringValue(item, QLatin1String("multiplexConfigurationId"));
-    m_logger.qbsTrace() << "[PR] resolveProduct " << product->uniqueName();
+    qCDebug(lcProjectResolver) << "resolveProduct" << product->uniqueName();
     m_productsByName.insert(product->uniqueName(), product);
     product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
     ModuleLoaderResult::ProductInfo &pi = m_loadResult.productInfos[item];
@@ -711,7 +711,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
                 throw ErrorInfo(fileError);
             m_logger.printWarning(fileError);
         } else {
-            m_logger.qbsDebug() << fileError.toString();
+            qCDebug(lcProjectResolver) << "error for disabled group:" << fileError.toString();
         }
     }
     group->name = m_evaluator->stringValue(item, QLatin1String("name"));
@@ -947,7 +947,7 @@ void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext
 {
     checkCancelation();
     if (!m_evaluator->boolValue(item, QLatin1String("condition"))) {
-        m_logger.qbsTrace() << "[PR] scanner condition is false";
+        qCDebug(lcProjectResolver) << "scanner condition is false";
         return;
     }
 
@@ -1187,11 +1187,11 @@ void ProjectResolver::postProcess(const ResolvedProductPtr &product,
 void ProjectResolver::applyFileTaggers(const ResolvedProductPtr &product) const
 {
     for (const SourceArtifactPtr &artifact : product->allEnabledFiles())
-        applyFileTaggers(artifact, product, m_logger);
+        applyFileTaggers(artifact, product);
 }
 
 void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
-        const ResolvedProductConstPtr &product, Logger &logger)
+        const ResolvedProductConstPtr &product)
 {
     if (!artifact->overrideFileTags || artifact->fileTags.isEmpty()) {
         const QString fileName = FileInfo::fileName(artifact->absoluteFilePath);
@@ -1199,9 +1199,8 @@ void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
         artifact->fileTags.unite(fileTags);
         if (artifact->fileTags.isEmpty())
             artifact->fileTags.insert(unknownFileTag());
-        if (logger.traceEnabled())
-            logger.qbsTrace() << "[PR] adding file tags " << artifact->fileTags
-                       << " to " << fileName;
+        qCDebug(lcProjectResolver) << "adding file tags" << artifact->fileTags
+                                   << "to" << fileName;
     }
 }
 
