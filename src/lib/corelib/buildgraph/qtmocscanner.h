@@ -41,7 +41,6 @@
 #define QBS_QTMOCSCANNER_H
 
 #include <language/language.h>
-#include <logging/logger.h>
 
 #include <QtCore/qhash.h>
 #include <QtCore/qstring.h>
@@ -63,8 +62,7 @@ struct CommonFileTags;
 class QtMocScanner
 {
 public:
-    explicit QtMocScanner(const ResolvedProductPtr &product, QScriptValue targetScriptValue,
-            const Logger &logger);
+    explicit QtMocScanner(const ResolvedProductPtr &product, QScriptValue targetScriptValue);
     ~QtMocScanner();
 
 private:
@@ -76,7 +74,6 @@ private:
     const CommonFileTags &m_tags;
     const ResolvedProductPtr &m_product;
     QScriptValue m_targetScriptValue;
-    const Logger &m_logger;
     QHash<QString, QString> m_includedMocCppFiles;
     ScannerPlugin *m_cppScanner;
     ScannerPlugin *m_objcppScanner;

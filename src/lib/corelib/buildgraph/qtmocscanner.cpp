@@ -45,6 +45,7 @@
 #include "projectbuilddata.h"
 #include "rawscanresults.h"
 #include <language/scriptengine.h>
+#include <logging/categories.h>
 #include <logging/translator.h>
 #include <plugins/scanner/scanner.h>
 #include <tools/fileinfo.h>
@@ -93,12 +94,10 @@ private:
     const QString m_id;
 };
 
-QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targetScriptValue,
-        const Logger &logger)
+QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targetScriptValue)
     : m_tags(*commonFileTags())
     , m_product(product)
     , m_targetScriptValue(targetScriptValue)
-    , m_logger(logger)
     , m_cppScanner(0)
     , m_hppScanner(0)
 {
@@ -177,8 +176,7 @@ void QtMocScanner::findIncludedMocCppFiles()
     if (!m_includedMocCppFiles.isEmpty())
         return;
 
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[QtMocScanner] looking for included moc_XXX.cpp files";
+    qCDebug(lcMocScan) << "looking for included moc_XXX.cpp files";
 
     static const FileTags mocCppTags = {m_tags.cpp, m_tags.objcpp};
     for (Artifact *artifact : m_product->lookupArtifactsByFileTags(mocCppTags)) {
@@ -188,9 +186,7 @@ void QtMocScanner::findIncludedMocCppFiles()
             QString includedFileName = dependency.fileName();
             if (includedFileName.startsWith(QLatin1String("moc_"))
                     && includedFileName.endsWith(QLatin1String(".cpp"))) {
-                if (m_logger.traceEnabled())
-                    m_logger.qbsTrace() << "[QtMocScanner] " << artifact->fileName()
-                                        << " includes " << includedFileName;
+                qCDebug(lcMocScan) << artifact->fileName() << "includes" << includedFileName;
                 includedFileName.remove(0, 4);
                 includedFileName.chop(4);
                 m_includedMocCppFiles.insert(includedFileName, artifact->fileName());
@@ -233,8 +229,7 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
 
     findIncludedMocCppFiles();
 
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[QtMocScanner] scanning " << artifact->toString();
+    qCDebug(lcMocScan) << "scanning" << artifact->toString();
 
     bool hasQObjectMacro = false;
     bool mustCompile = false;
@@ -264,11 +259,9 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
         }
     }
 
-    if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace() << "[QtMocScanner] hasQObjectMacro: " << hasQObjectMacro
-                            << " mustCompile: " << mustCompile
-                            << " hasPluginMetaDataMacro: " << hasPluginMetaDataMacro;
-    }
+    qCDebug(lcMocScan) << "hasQObjectMacro:" << hasQObjectMacro
+                          << "mustCompile:" << mustCompile
+                          << "hasPluginMetaDataMacro:" << hasPluginMetaDataMacro;
 
     QScriptValue obj = engine->newObject();
     obj.setProperty(QLatin1String("hasQObjectMacro"), hasQObjectMacro);

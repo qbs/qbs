@@ -96,7 +96,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
     m_completeInputSet = inputArtifacts;
     if (rule->name == QLatin1String("QtCoreMocRule")) {
         delete m_mocScanner;
-        m_mocScanner = new QtMocScanner(m_product, scope(), m_logger);
+        m_mocScanner = new QtMocScanner(m_product, scope());
     }
     QScriptValue prepareScriptContext = engine()->newObject();
     prepareScriptContext.setPrototype(engine()->globalObject());
