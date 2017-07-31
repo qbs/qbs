@@ -55,6 +55,8 @@
 
     \note If your project consists of only one product, the \c Project item can be omitted.
 
+    \section1 Project Properties
+
     \table
         \header
             \li Property

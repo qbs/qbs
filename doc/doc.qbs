@@ -9,6 +9,7 @@ Product {
     Depends { name: "qbsversion" }
 
     files: [
+        "external-resources.qdoc",
         "howtos.qdoc",
         "qbs.qdoc",
         "config/*.qdocconf",

@@ -54,6 +54,8 @@
 
     It is also possible to nest \c Project items directly in the same file.
 
+    \section1 SubProject Properties
+
     \table
         \header
             \li Property
