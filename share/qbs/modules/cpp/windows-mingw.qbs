@@ -53,13 +53,13 @@ GenericGCC {
     property path windresPath: { return toolchainPathPrefix + windresName }
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", ";", true);
+        var v = new ModUtils.EnvironmentVariable("PATH", qbs.pathListSeparator, true);
         v.prepend(toolchainInstallPath);
         v.set();
     }
 
     setupRunEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", ";", true);
+        var v = new ModUtils.EnvironmentVariable("PATH", qbs.pathListSeparator, true);
         v.prepend(toolchainInstallPath);
         v.set();
     }
