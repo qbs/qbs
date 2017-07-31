@@ -51,6 +51,7 @@
 #include "value.h"
 
 #include <language/language.h>
+#include <logging/categories.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -285,11 +286,8 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
     for (const QString &path : searchPaths)
         addExtraModuleSearchPath(m_moduleSearchPaths, path);
 
-    if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace() << "[MODLDR] module search paths:";
-        for (const QString &path : qAsConst(m_moduleSearchPaths))
-            m_logger.qbsTrace() << "    " << path;
-    }
+    qCDebug(lcModuleLoader) << "module search paths:"
+                            << m_moduleSearchPaths.join(QLatin1String("    \n"));
 }
 
 void ModuleLoader::setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes)
@@ -313,8 +311,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
 {
     TimedActivityLogger moduleLoaderTimer(m_logger, Tr::tr("ModuleLoader"),
                                           parameters.logElapsedTime());
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[MODLDR] load" << parameters.projectFilePath();
+    qCDebug(lcModuleLoader) << "load" << parameters.projectFilePath();
     m_parameters = parameters;
     m_modulePrototypeItemCache.clear();
     m_parameterDeclarations.clear();
@@ -969,8 +966,7 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProjectContext &proje
 void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productItem)
 {
     checkCancelation();
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[MODLDR] prepareProduct " << productItem->file()->filePath();
+    qCDebug(lcModuleLoader) << "prepareProduct" << productItem->file()->filePath();
 
     ProductContext productContext;
     productContext.item = productItem;
@@ -1020,8 +1016,7 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
 {
     checkCancelation();
     Item *item = productContext->item;
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[MODLDR] setupProductDependencies " << item->file()->filePath();
+    qCDebug(lcModuleLoader) << "setupProductDependencies" << item->file()->filePath();
 
     QStringList extraSearchPaths = readExtraSearchPaths(item);
     Settings settings(m_parameters.settingsDirectory());
@@ -1278,8 +1273,7 @@ void ModuleLoader::initProductProperties(const ProductContext &product)
 void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext, Item *projectItem,
         const Set<QString> &referencedFilePaths)
 {
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[MODLDR] handleSubProject " << projectItem->file()->filePath();
+    qCDebug(lcModuleLoader) << "handleSubProject" << projectItem->file()->filePath();
 
     Item * const propertiesItem = projectItem->child(ItemType::PropertiesInSubProject);
     bool subProjectEnabled = true;
@@ -1935,17 +1929,16 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                     replacement->setScope(module.item);
                 }
                 QBS_CHECK(!replacement->hasOwnProperty(caseA));
-                if (m_logger.traceEnabled()) {
-                    m_logger.qbsTrace() << "[LDR] replacing defining item for prototype; module is "
-                            << module.name.toString() << module.item
-                            << ", property is " << propName
-                            << ", old defining item was " << v->definingItem()
-                            << " with scope" << v->definingItem()->scope()
-                            << ", new defining item is" << replacement
-                            << " with scope" << replacement->scope()
-                            << ", value source code is "
-                            << std::static_pointer_cast<JSSourceValue>(v)->sourceCode().toString();
-                }
+                qCDebug(lcModuleLoader).noquote().nospace()
+                        << "replacing defining item for prototype; module is "
+                        << module.name.toString() << module.item
+                        << ", property is " << propName
+                        << ", old defining item was " << v->definingItem()
+                        << " with scope" << v->definingItem()->scope()
+                        << ", new defining item is" << replacement
+                        << " with scope" << replacement->scope()
+                        << ", value source code is "
+                        << std::static_pointer_cast<JSSourceValue>(v)->sourceCode().toString();
                 replacement->setPropertyDeclaration(propName, decl);
                 replacement->setProperty(propName, v);
             } else {
@@ -1977,11 +1970,9 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                         replacement->scope()->setScope(depMod.item);
                     }
                     QBS_CHECK(!replacement->hasOwnProperty(caseA));
-                    if (m_logger.traceEnabled()) {
-                        m_logger.qbsTrace() << "[LDR] reset instance scope of module "
-                                << depMod.name.toString() << " in property "
-                                << propName << " of module " << module.name;
-                    }
+                    qCDebug(lcModuleLoader) << "reset instance scope of module"
+                            << depMod.name.toString() << "in property"
+                            << propName << "of module" << module.name;
                 }
                 QBS_CHECK(found);
             }
@@ -2058,8 +2049,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
 {
     checkCancelation();
     if (!checkItemCondition(dependsItem)) {
-        if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "Depends item disabled, ignoring.";
+        qCDebug(lcModuleLoader) << "Depends item disabled, ignoring.";
         return;
     }
     bool productTypesIsSet;
@@ -2082,7 +2072,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
                                    "exclusive."), dependsItem->location());
         }
         if (productTypes.isEmpty()) {
-            m_logger.qbsTrace() << "Ignoring Depends item with empty productTypes list.";
+            qCDebug(lcModuleLoader) << "Ignoring Depends item with empty productTypes list.";
             return;
         }
 
@@ -2096,7 +2086,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         return;
     }
     if (submodules.isEmpty() && submodulesPropertySet) {
-        m_logger.qbsTrace() << "Ignoring Depends item with empty submodules list.";
+        qCDebug(lcModuleLoader) << "Ignoring Depends item with empty submodules list.";
         return;
     }
     if (Q_UNLIKELY(submodules.count() > 1 && !dependsItem->id().isEmpty())) {
@@ -2159,8 +2149,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
                                    "add the dependency in that product's Export item.")
                             .arg(moduleName.toString()), dependsItem->location());
         }
-        if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "module loaded: " << moduleName.toString();
+        qCDebug(lcModuleLoader) << "module loaded:" << moduleName.toString();
         result.name = moduleName;
         result.item = moduleItem;
         result.required = isRequired;
@@ -2168,8 +2157,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         result.versionRange = versionRange;
         moduleResults->append(result);
         if (result.isProduct) {
-            if (m_logger.traceEnabled())
-                m_logger.qbsTrace() << "product dependency loaded: " << moduleName.toString();
+            qCDebug(lcModuleLoader) << "product dependency loaded:" << moduleName.toString();
             const QString profilesKey = QLatin1String("profiles");
             QStringList profiles = m_evaluator->stringListValue(dependsItem, profilesKey);
             if (profiles.isEmpty())
@@ -2395,8 +2383,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
                                bool isRequired, bool *isProductDependency,
                                QVariantMap *defaultParameters)
 {
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[MODLDR] loadModule name: " << moduleName << ", id: " << moduleId;
+    qCDebug(lcModuleLoader) << "loadModule name: " << moduleName << ", id: " << moduleId;
 
     RequiredChainManager requiredChainManager(m_requiredChain, isRequired);
     DependsChainManager dependsChainManager(m_dependsChain, moduleName, dependsItemLocation);
@@ -2537,25 +2524,22 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 {
     checkCancelation();
 
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[MODLDR] trying to load " << fullModuleName << " from " << filePath;
+    qCDebug(lcModuleLoader) << "trying to load " << fullModuleName << " from " << filePath;
 
     const QString keyUniquifier = productContext->multiplexConfigurationId.isEmpty() ?
                 productContext->profileName : productContext->uniqueName();
     const ModuleItemCache::key_type cacheKey(filePath, keyUniquifier);
     const ItemCacheValue cacheValue = m_modulePrototypeItemCache.value(cacheKey);
     if (cacheValue.module) {
-        m_logger.qbsTrace() << "[LDR] loadModuleFile cache hit for " << filePath;
+        qCDebug(lcModuleLoader) << "[LDR] loadModuleFile cache hit for " << filePath;
         *cacheHit = true;
         return cacheValue.enabled ? cacheValue.module : 0;
     }
     *cacheHit = false;
     Item * const module = loadItemFromFile(filePath);
     if (module->type() != ItemType::Module) {
-        if (m_logger.traceEnabled()) {
-            m_logger.qbsTrace() << "[MODLDR] Alleged module " << fullModuleName << " has type '"
-                                << module->typeName() << "', so it's not a module after all.";
-        }
+        qCDebug(lcModuleLoader) << "Alleged module " << fullModuleName << " has type '"
+                            << module->typeName() << "', so it's not a module after all.";
         *triedToLoad = false;
         return 0;
     }
@@ -2590,7 +2574,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     // Check the condition last in case the condition needs to evaluate other properties that were
     // set by the profile
     if (!checkItemCondition(module)) {
-        m_logger.qbsTrace() << "[LDR] module condition is false";
+        qCDebug(lcModuleLoader) << "[LDR] module condition is false";
         m_modulePrototypeItemCache.insert(cacheKey, ItemCacheValue(module, false));
         return 0;
     }
@@ -2865,10 +2849,8 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     for (auto iip : instanceItemProperties(modulePrototype)) {
         if (iip.second->item()->properties().isEmpty())
             continue;
-        if (m_logger.traceEnabled()) {
-            m_logger.qbsTrace() << "[MODLDR] The prototype of " << moduleName
-                                << " sets properties on " << iip.first.toString();
-        }
+        qCDebug(lcModuleLoader) << "The prototype of " << moduleName
+                            << " sets properties on " << iip.first.toString();
         Item *item = moduleInstanceItem(moduleInstance, iip.first);
         item->setPrototype(iip.second->item());
         if (iip.second->createdByPropertiesBlock()) {
@@ -2937,7 +2919,7 @@ void ModuleLoader::resolveProbes(ProductContext *productContext, Item *item)
 
 void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, Item *probe)
 {
-    m_logger.qbsTrace() << "Resolving Probe at " << probe->location().toString();
+    qCDebug(lcModuleLoader) << "Resolving Probe at " << probe->location().toString();
     const QString &probeId = probeGlobalId(probe);
     if (Q_UNLIKELY(probeId.isEmpty()))
         throw ErrorInfo(Tr::tr("Probe.id must be set."), probe->location());
@@ -2983,7 +2965,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         resolvedProbe = findCurrentProbe(probe->location(), condition, initialProperties);
     ErrorInfo evalError;
     if (!condition) {
-        m_logger.qbsDebug() << "Probe disabled; skipping";
+        qCDebug(lcModuleLoader) << "Probe disabled; skipping";
     } else if (!resolvedProbe) {
         QScriptValue sv = engine->evaluate(configureScript->sourceCodeForEvaluation());
         if (Q_UNLIKELY(engine->hasErrorOrException(sv)))
@@ -3228,8 +3210,7 @@ void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
 
 void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
 {
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[MODLDR] addTransitiveDependencies";
+    qCDebug(lcModuleLoader) << "addTransitiveDependencies";
 
     std::vector<Item::Module> transitiveDeps = allModules(ctx->item);
     std::sort(transitiveDeps.begin(), transitiveDeps.end());
@@ -3265,10 +3246,8 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
 
 Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &reason, Item *module)
 {
-    if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace() << "Non-required module '" << name << "' not loaded (" << reason << ")."
-                            << "Creating dummy module for presence check.";
-    }
+    qCDebug(lcModuleLoader) << "Non-required module '" << name << "' not loaded (" << reason << ")."
+                        << "Creating dummy module for presence check.";
     if (!module) {
         module = Item::create(m_pool, ItemType::ModuleInstance);
         module->setFile(FileContext::create());
