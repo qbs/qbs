@@ -194,7 +194,7 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
             for (const ResolvedScannerConstPtr &scanner : qAsConst(product->scanners)) {
                 if (scanner->inputs.contains(fileTag)) {
                     cache.scanners += DependencyScannerPtr(
-                                new UserDependencyScanner(scanner, m_logger, engine));
+                                new UserDependencyScanner(scanner, engine));
                     break;
                 }
             }

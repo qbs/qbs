@@ -98,8 +98,7 @@ private:
 class UserDependencyScanner : public DependencyScanner
 {
 public:
-    UserDependencyScanner(const ResolvedScannerConstPtr &scanner, const Logger &logger,
-                          ScriptEngine *engine);
+    UserDependencyScanner(const ResolvedScannerConstPtr &scanner, ScriptEngine *engine);
 
 private:
     QStringList collectSearchPaths(Artifact *artifact);
@@ -113,7 +112,6 @@ private:
     QStringList evaluate(Artifact *artifact, const ScriptFunctionPtr &script);
 
     ResolvedScannerConstPtr m_scanner;
-    Logger m_logger;
     ScriptEngine *m_engine;
     PrepareScriptObserver m_observer;
     QScriptValue m_global;
