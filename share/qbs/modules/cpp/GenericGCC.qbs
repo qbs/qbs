@@ -46,7 +46,7 @@ CppModule {
     Probes.BinaryProbe {
         id: compilerPathProbe
         condition: !toolchainInstallPath
-        names: [compilerName]
+        names: [toolchainPrefix ? toolchainPrefix + compilerName : compilerName]
     }
 
     // Find the version as early as possible in case other things depend on it,
