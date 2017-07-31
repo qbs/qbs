@@ -41,7 +41,6 @@
 #define QBS_EXECUTABLEFINDER_H
 
 #include <language/language.h>
-#include <logging/logger.h>
 
 #include <QtCore/qprocess.h>
 
@@ -54,8 +53,7 @@ namespace Internal {
 class ExecutableFinder
 {
 public:
-    ExecutableFinder(const ResolvedProductPtr &product, const QProcessEnvironment &env,
-                     const Logger &logger);
+    ExecutableFinder(const ResolvedProductPtr &product, const QProcessEnvironment &env);
 
     QString findExecutable(const QString &path, const QString &workingDirPath);
 
@@ -71,7 +69,6 @@ private:
 
     ResolvedProductPtr m_product;
     const QProcessEnvironment &m_environment;
-    Logger m_logger;
 };
 
 } // namespace Internal

@@ -45,6 +45,7 @@
 
 #include <language/language.h>
 #include <language/scriptengine.h>
+#include <logging/categories.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/commandechomode.h>
@@ -81,7 +82,7 @@ void ProcessCommandExecutor::doSetup()
 {
     const ProcessCommand * const cmd = processCommand();
     const QString program = ExecutableFinder(transformer()->product(),
-                                             transformer()->product()->buildEnvironment, logger())
+                                             transformer()->product()->buildEnvironment)
             .findExecutable(cmd->program(), cmd->workingDir());
 
     QProcessEnvironment env = m_buildEnvironment;
@@ -126,11 +127,9 @@ void ProcessCommandExecutor::doStart()
     if (!cmd->responseFileUsagePrefix().isEmpty()) {
         const int commandLineLength = m_shellInvocation.length();
         if (cmd->responseFileThreshold() >= 0 && commandLineLength > cmd->responseFileThreshold()) {
-            if (logger().debugEnabled()) {
-                logger().qbsDebug() << QString::fromLatin1("[EXEC] Using response file. "
+            qCDebug(lcExec) << QString::fromUtf8("Using response file. "
                         "Threshold is %1. Command line length %2.")
                         .arg(cmd->responseFileThreshold()).arg(commandLineLength);
-            }
 
             // The QTemporaryFile keeps a handle on the file, even if closed.
             // On Windows, some commands (e.g. msvc link.exe) won't accept that.
@@ -167,15 +166,9 @@ void ProcessCommandExecutor::doStart()
         }
     }
 
-    if (logger().debugEnabled()) {
-        logger().qbsDebug() << "[EXEC] Running external process; full command line is: "
-                            << m_shellInvocation;
-    }
+    qCDebug(lcExec) << "Running external process; full command line is:" << m_shellInvocation;
     const QProcessEnvironment &additionalVariables = cmd->environment();
-    if (logger().traceEnabled()) {
-        logger().qbsTrace() << "[EXEC] Additional environment:"
-                            << additionalVariables.toStringList();
-    }
+    qCDebug(lcExec) << "Additional environment:" << additionalVariables.toStringList();
     m_process.setWorkingDirectory(workingDir);
     m_process.start(m_program, arguments);
 }

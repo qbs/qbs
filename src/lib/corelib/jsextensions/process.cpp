@@ -40,7 +40,6 @@
 #include "jsextensions_p.h"
 
 #include <language/scriptengine.h>
-#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/executablefinder.h>
 #include <tools/hostosinfo.h>
@@ -96,7 +95,6 @@ public:
     static QScriptValue js_shellQuote(QScriptContext *context, QScriptEngine *engine);
 
 private:
-    Logger logger() const;
     QString findExecutable(const QString &filePath) const;
 
     QProcess *m_qProcess;
@@ -290,15 +288,9 @@ int Process::exitCode() const
     return m_qProcess->exitCode();
 }
 
-Logger Process::logger() const
-{
-    ScriptEngine *scriptEngine = static_cast<ScriptEngine *>(engine());
-    return scriptEngine->logger();
-}
-
 QString Process::findExecutable(const QString &filePath) const
 {
-    ExecutableFinder exeFinder(ResolvedProductPtr(), m_environment, logger());
+    ExecutableFinder exeFinder(ResolvedProductPtr(), m_environment);
     return exeFinder.findExecutable(filePath, m_workingDirectory);
 }
 

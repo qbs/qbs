@@ -178,8 +178,6 @@ private:
     qint64 m_elapsedTimeRules;
     qint64 m_elapsedTimeScanners;
     qint64 m_elapsedTimeInstalling;
-    const bool m_doTrace;
-    const bool m_doDebug;
 };
 
 } // namespace Internal

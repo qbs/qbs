@@ -88,8 +88,6 @@ Executor::Executor(const Logger &logger, QObject *parent)
     , m_progressObserver(0)
     , m_state(ExecutorIdle)
     , m_cancelationTimer(new QTimer(this))
-    , m_doTrace(logger.traceEnabled())
-    , m_doDebug(logger.debugEnabled())
 {
     m_inputArtifactScanContext = new InputArtifactScannerContext;
     m_cancelationTimer->setSingleShot(false);
@@ -208,8 +206,8 @@ void Executor::doBuild()
 {
     if (m_buildOptions.maxJobCount() <= 0) {
         m_buildOptions.setMaxJobCount(BuildOptions::defaultMaxJobCount());
-        m_logger.qbsDebug() << "max job count not explicitly set, using value of "
-                            << m_buildOptions.maxJobCount();
+        qCDebug(lcExec) << "max job count not explicitly set, using value of"
+                        << m_buildOptions.maxJobCount();
     }
     QBS_CHECK(m_state == ExecutorIdle);
     m_leaves = Leaves();
@@ -243,7 +241,7 @@ void Executor::doBuild()
     setState(ExecutorRunning);
 
     if (m_productsToBuild.isEmpty()) {
-        m_logger.qbsTrace() << "No products to build, finishing.";
+        qCDebug(lcExec) << "No products to build, finishing.";
         QTimer::singleShot(0, this, &Executor::finish); // Don't call back on the caller.
         return;
     }
@@ -275,7 +273,7 @@ void Executor::doBuild()
     setupProgressObserver();
     initLeaves();
     if (!scheduleJobs()) {
-        m_logger.qbsTrace() << "Nothing to do at all, finishing.";
+        qCDebug(lcExec) << "Nothing to do at all, finishing.";
         QTimer::singleShot(0, this, &Executor::finish); // Don't call back on the caller.
     }
     if (m_progressObserver)
@@ -323,8 +321,7 @@ void Executor::updateLeaves(BuildGraphNode *node, NodeSet &seenNodes)
     }
 
     if (isLeaf) {
-        if (m_doDebug)
-            m_logger.qbsDebug() << "[EXEC] adding leaf " << node->toString();
+        qCDebug(lcExec) << "adding leaf" << node->toString();
         m_leaves.push(node);
     }
 }
@@ -347,16 +344,12 @@ bool Executor::scheduleJobs()
             nodeToBuild->accept(this);
             break;
         case BuildGraphNode::Building:
-            if (m_doDebug) {
-                m_logger.qbsDebug() << "[EXEC] " << nodeToBuild->toString();
-                m_logger.qbsDebug() << "[EXEC] node is currently being built. Skipping.";
-            }
+            qCDebug(lcExec) << nodeToBuild->toString();
+            qCDebug(lcExec) << "node is currently being built. Skipping.";
             break;
         case BuildGraphNode::Built:
-            if (m_doDebug) {
-                m_logger.qbsDebug() << "[EXEC] " << nodeToBuild->toString();
-                m_logger.qbsDebug() << "[EXEC] node already built. Skipping.";
-            }
+            qCDebug(lcExec) << nodeToBuild->toString();
+            qCDebug(lcExec) << "node already built. Skipping.";
             break;
         }
     }
@@ -367,32 +360,25 @@ bool Executor::isUpToDate(Artifact *artifact) const
 {
     QBS_CHECK(artifact->artifactType == Artifact::Generated);
 
-    if (m_doDebug) {
-        m_logger.qbsDebug() << "[UTD] check " << artifact->filePath() << " "
-                            << artifact->timestamp().toString();
-    }
+    qCDebug(lcUpToDateCheck) << "check" << artifact->filePath()
+                             << artifact->timestamp().toString();
 
     if (m_buildOptions.forceTimestampCheck()) {
         artifact->setTimestamp(FileInfo(artifact->filePath()).lastModified());
-        if (m_doDebug) {
-            m_logger.qbsDebug() << "[UTD] timestamp retrieved from filesystem: "
-                                << artifact->timestamp().toString();
-        }
+        qCDebug(lcUpToDateCheck) << "timestamp retrieved from filesystem:"
+                                 << artifact->timestamp().toString();
     }
 
     if (!artifact->timestamp().isValid()) {
-        if (m_doDebug)
-            m_logger.qbsDebug() << "[UTD] invalid timestamp. Out of date.";
+        qCDebug(lcUpToDateCheck) << "invalid timestamp. Out of date.";
         return false;
     }
 
     for (Artifact *childArtifact : filterByType<Artifact>(artifact->children)) {
         QBS_CHECK(childArtifact->timestamp().isValid());
-        if (m_doDebug) {
-            m_logger.qbsDebug() << "[UTD] child timestamp "
-                                << childArtifact->timestamp().toString() << " "
-                                << childArtifact->filePath();
-        }
+        qCDebug(lcUpToDateCheck) << "child timestamp"
+                                 << childArtifact->timestamp().toString()
+                                 << childArtifact->filePath();
         if (artifact->timestamp() < childArtifact->timestamp())
             return false;
     }
@@ -402,18 +388,14 @@ bool Executor::isUpToDate(Artifact *artifact) const
             FileInfo fi(fileDependency->filePath());
             fileDependency->setTimestamp(fi.lastModified());
             if (!fileDependency->timestamp().isValid()) {
-                if (m_doDebug) {
-                    m_logger.qbsDebug() << "[UTD] file dependency doesn't exist "
-                                        << fileDependency->filePath();
-                }
+                qCDebug(lcUpToDateCheck) << "file dependency doesn't exist"
+                                         << fileDependency->filePath();
                 return false;
             }
         }
-        if (m_doDebug) {
-            m_logger.qbsDebug() << "[UTD] file dependency timestamp "
-                                << fileDependency->timestamp().toString() << " "
-                                << fileDependency->filePath();
-        }
+        qCDebug(lcUpToDateCheck) << "file dependency timestamp"
+                                 << fileDependency->timestamp().toString()
+                                 << fileDependency->filePath();
         if (artifact->timestamp() < fileDependency->timestamp())
             return false;
     }
@@ -442,8 +424,7 @@ bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
 
 void Executor::buildArtifact(Artifact *artifact)
 {
-    if (m_doDebug)
-        m_logger.qbsDebug() << "[EXEC] " << relativeArtifactFileName(artifact);
+    qCDebug(lcExec) << relativeArtifactFileName(artifact);
 
     QBS_CHECK(artifact->buildState == BuildGraphNode::Buildable);
 
@@ -458,9 +439,7 @@ void Executor::buildArtifact(Artifact *artifact)
         if (artifact->artifactType == Artifact::SourceFile && !artifact->timestampRetrieved)
             retrieveSourceFileTimestamp(artifact);
 
-        if (m_doDebug)
-            m_logger.qbsDebug() << QString::fromLatin1("[EXEC] artifact type %1. Skipping.")
-                                   .arg(toString(artifact->artifactType));
+        qCDebug(lcExec) << "artifact type" << toString(artifact->artifactType) << "Skipping.";
         finishArtifact(artifact);
         return;
     }
@@ -508,12 +487,9 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
     ruleNode->apply(m_logger, changedInputArtifacts, &result);
 
     if (result.upToDate) {
-        if (m_doDebug)
-            m_logger.qbsDebug() << "[EXEC] " << ruleNode->toString()
-                                << " is up to date. Skipping.";
+        qCDebug(lcExec) << ruleNode->toString() << "is up to date. Skipping.";
     } else {
-        if (m_doDebug)
-            m_logger.qbsDebug() << "[EXEC] " << ruleNode->toString();
+        qCDebug(lcExec) << ruleNode->toString();
         const WeakPointer<ResolvedProduct> &product = ruleNode->product;
         Set<RuleNode *> parentRules;
         if (!result.createdNodes.isEmpty()) {
@@ -523,8 +499,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
             }
         }
         for (BuildGraphNode *node : qAsConst(result.createdNodes)) {
-            if (m_doDebug)
-                m_logger.qbsDebug() << "[EXEC] rule created " << node->toString();
+            qCDebug(lcExec) << "rule created" << node->toString();
             Internal::connect(node, ruleNode);
             Artifact *outputArtifact = dynamic_cast<Artifact *>(node);
             if (!outputArtifact)
@@ -588,21 +563,21 @@ void Executor::finishJob(ExecutorJob *job, bool success)
         cancelJobs();
 
     if (m_state == ExecutorRunning && m_progressObserver && m_progressObserver->canceled()) {
-        m_logger.qbsTrace() << "Received cancel request; canceling build.";
+        qCDebug(lcExec) << "Received cancel request; canceling build.";
         m_explicitlyCanceled = true;
         cancelJobs();
     }
 
     if (m_state == ExecutorCanceling) {
         if (m_processingJobs.isEmpty()) {
-            m_logger.qbsTrace() << "All pending jobs are done, finishing.";
+            qCDebug(lcExec) << "All pending jobs are done, finishing.";
             finish();
         }
         return;
     }
 
     if (!scheduleJobs()) {
-        m_logger.qbsTrace() << "Nothing left to build; finishing.";
+        qCDebug(lcExec) << "Nothing left to build; finishing.";
         finish();
     }
 }
@@ -618,24 +593,18 @@ void Executor::finishNode(BuildGraphNode *leaf)
     leaf->buildState = BuildGraphNode::Built;
     for (BuildGraphNode * const parent : qAsConst(leaf->parents)) {
         if (parent->buildState != BuildGraphNode::Buildable) {
-            if (m_doTrace) {
-                m_logger.qbsTrace() << "[EXEC] parent " << parent->toString()
-                                    << " build state: " << toString(parent->buildState);
-            }
+            qCDebug(lcExec) << "parent" << parent->toString()
+                            << "build state:" << toString(parent->buildState);
             continue;
         }
 
         if (allChildrenBuilt(parent)) {
             m_leaves.push(parent);
-            if (m_doTrace) {
-                m_logger.qbsTrace() << "[EXEC] finishNode adds leaf "
-                        << parent->toString() << " " << toString(parent->buildState);
-            }
+            qCDebug(lcExec) << "finishNode adds leaf"
+                            << parent->toString() << toString(parent->buildState);
         } else {
-            if (m_doTrace) {
-                m_logger.qbsTrace() << "[EXEC] parent " << parent->toString()
-                                    << " build state: " << toString(parent->buildState);
-            }
+            qCDebug(lcExec) << "parent" << parent->toString()
+                            << "build state:" << toString(parent->buildState);
         }
     }
 }
@@ -643,9 +612,7 @@ void Executor::finishNode(BuildGraphNode *leaf)
 void Executor::finishArtifact(Artifact *leaf)
 {
     QBS_CHECK(leaf);
-    if (m_doTrace)
-        m_logger.qbsTrace() << "[EXEC] finishArtifact " << relativeArtifactFileName(leaf);
-
+    qCDebug(lcExec) << "finishArtifact" << relativeArtifactFileName(leaf);
     finishNode(leaf);
 }
 
@@ -693,7 +660,7 @@ void Executor::cancelJobs()
 {
     if (m_state == ExecutorCanceling)
         return;
-    m_logger.qbsTrace() << "Canceling all jobs.";
+    qCDebug(lcExec) << "Canceling all jobs.";
     setState(ExecutorCanceling);
     for (ExecutorJob *job : m_processingJobs.keys())
         job->cancel();
@@ -734,8 +701,7 @@ void Executor::handleError(const ErrorInfo &error)
 
 void Executor::addExecutorJobs()
 {
-    m_logger.qbsDebug() << QString::fromLatin1("[EXEC] preparing executor for %1 jobs in parallel")
-                           .arg(m_buildOptions.maxJobCount());
+    qCDebug(lcExec) << "preparing executor for %1 jobs in parallel" << m_buildOptions.maxJobCount();
     for (int i = 1; i <= m_buildOptions.maxJobCount(); i++) {
         ExecutorJob *job = new ExecutorJob(m_logger, this);
         job->setMainThreadScriptEngine(m_evalContext->engine());
@@ -786,9 +752,8 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
                 // If a child has disappeared, we must re-build even if the commands
                 // are the same. Example: Header file included in cpp file does not exist anymore.
                 canRescue = false;
-                if (m_logger.traceEnabled())
-                    m_logger.qbsTrace() << "Former child artifact '" << cd.childFilePath
-                                        << "' does not exist anymore";
+                qCDebug(lcBuildGraph) << "Former child artifact" << cd.childFilePath
+                                      << "does not exist anymore.";
                 break;
             }
             // TODO: Shouldn't addedByScanner always be true here? Otherwise the child would be
@@ -844,17 +809,11 @@ bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
         switch (dependency->buildState) {
         case BuildGraphNode::Untouched:
         case BuildGraphNode::Buildable:
-            if (m_logger.debugEnabled()) {
-                m_logger.qbsDebug() << "[EXEC] unbuilt dependency: "
-                                    << dependency->toString();
-            }
+            qCDebug(lcExec) << "unbuilt dependency:" << dependency->toString();
             unbuiltDependencies += dependency;
             break;
         case BuildGraphNode::Building: {
-            if (m_logger.debugEnabled()) {
-                m_logger.qbsDebug() << "[EXEC] dependency in state 'Building': "
-                                    << dependency->toString();
-            }
+            qCDebug(lcExec) << "dependency in state 'Building':" << dependency->toString();
             buildingDependenciesFound = true;
             break;
         }
@@ -887,22 +846,19 @@ void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
     }
 
     if (!transformerHasMatchingOutputTags(transformer)) {
-        if (m_doDebug)
-            m_logger.qbsDebug() << "[EXEC] file tags do not match. Skipping.";
+        qCDebug(lcExec) << "file tags do not match. Skipping.";
         finishTransformer(transformer);
         return;
     }
 
     if (!transformerHasMatchingInputFiles(transformer)) {
-        if (m_doDebug)
-            m_logger.qbsDebug() << "[EXEC] input files do not match. Skipping.";
+        qCDebug(lcExec) << "input files do not match. Skipping.";
         finishTransformer(transformer);
         return;
     }
 
     if (!mustExecuteTransformer(transformer)) {
-        if (m_doDebug)
-            m_logger.qbsDebug() << "[EXEC] Up to date. Skipping.";
+        qCDebug(lcExec) << "Up to date. Skipping.";
         finishTransformer(transformer);
         return;
     }
@@ -974,8 +930,8 @@ void Executor::onJobFinished(const qbs::ErrorInfo &err)
         ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
         QBS_CHECK(job);
         if (m_evalContext->engine()->isActive()) {
-            m_logger.qbsDebug() << "Executor job finished while rule execution is pausing. "
-                                   "Delaying slot execution.";
+            qCDebug(lcExec) << "Executor job finished while rule execution is pausing. "
+                               "Delaying slot execution.";
             QTimer::singleShot(0, job, [job, err] { job->finished(err); });
             return;
         }
@@ -1042,10 +998,10 @@ bool Executor::checkNodeProduct(BuildGraphNode *node)
         return true;
 
     // TODO: Turn this into a warning once we have a reliable C++ scanner.
-    m_logger.qbsTrace() << "Ignoring node " << node->toString() << ", which belongs to a "
-                            "product that is not part of the list of products to build. "
-                            "Possible reasons are an erroneous project design or a false "
-                            "positive from a dependency scanner.";
+    qCDebug(lcExec) << "Ignoring node " << node->toString() << ", which belongs to a "
+                       "product that is not part of the list of products to build. "
+                       "Possible reasons are an erroneous project design or a false "
+                       "positive from a dependency scanner.";
     finishNode(node);
     return false;
 }

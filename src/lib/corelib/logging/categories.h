@@ -47,6 +47,8 @@ namespace Internal {
 
 Q_DECLARE_LOGGING_CATEGORY(lcBuildGraph)
 Q_DECLARE_LOGGING_CATEGORY(lcDepScan)
+Q_DECLARE_LOGGING_CATEGORY(lcExec)
+Q_DECLARE_LOGGING_CATEGORY(lcUpToDateCheck)
 
 } // namespace Internal
 } // namespace qbs

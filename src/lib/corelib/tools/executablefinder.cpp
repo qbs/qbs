@@ -42,6 +42,8 @@
 #include "fileinfo.h"
 #include "hostosinfo.h"
 
+#include <logging/categories.h>
+
 #include <QtCore/qdir.h>
 
 namespace qbs {
@@ -61,10 +63,9 @@ static QStringList populateExecutableSuffixes()
 QStringList ExecutableFinder::m_executableSuffixes = populateExecutableSuffixes();
 
 ExecutableFinder::ExecutableFinder(const ResolvedProductPtr &m_product,
-        const QProcessEnvironment &env, const Logger &logger)
+        const QProcessEnvironment &env)
     : m_product(m_product)
     , m_environment(env)
-    , m_logger(logger)
 {
 }
 
@@ -86,8 +87,7 @@ QString ExecutableFinder::findBySuffix(const QString &filePath) const
         return fullProgramPath;
 
     fullProgramPath = filePath;
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[EXEC] looking for executable by suffix " << fullProgramPath;
+    qCDebug(lcExec) << "looking for executable by suffix" << fullProgramPath;
     const QString emptyDirectory;
     candidateCheck(emptyDirectory, fullProgramPath, fullProgramPath);
     cacheFilePath(filePath, fullProgramPath);
@@ -100,8 +100,7 @@ bool ExecutableFinder::candidateCheck(const QString &directory, const QString &p
 {
     for (int i = 0; i < m_executableSuffixes.count(); ++i) {
         QString candidate = directory + program + m_executableSuffixes.at(i);
-        if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "[EXEC] candidate: " << candidate;
+        qCDebug(lcExec) << "candidate:" << candidate;
         QFileInfo fi(candidate);
         if (fi.isFile() && fi.isExecutable()) {
             fullProgramPath = candidate;
@@ -118,8 +117,7 @@ QString ExecutableFinder::findInPath(const QString &filePath, const QString &wor
         return fullProgramPath;
 
     fullProgramPath = filePath;
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[EXEC] looking for executable in PATH " << fullProgramPath;
+    qCDebug(lcExec) << "looking for executable in PATH" << fullProgramPath;
     QStringList pathEnv = m_environment.value(QLatin1String("PATH"))
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
     if (HostOsInfo::isWindowsHost())
