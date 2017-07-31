@@ -43,6 +43,7 @@ namespace qbs {
 namespace Internal {
 
 Q_LOGGING_CATEGORY(lcBuildGraph, "qbs.buildgraph", QtCriticalMsg)
+Q_LOGGING_CATEGORY(lcDepScan, "qbs.depscan", QtCriticalMsg)
 
 } // namespace Internal
 } // namespace qbs

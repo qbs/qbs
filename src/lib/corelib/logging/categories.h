@@ -46,6 +46,7 @@ namespace qbs {
 namespace Internal {
 
 Q_DECLARE_LOGGING_CATEGORY(lcBuildGraph)
+Q_DECLARE_LOGGING_CATEGORY(lcDepScan)
 
 } // namespace Internal
 } // namespace qbs

@@ -48,6 +48,7 @@
 #include "rulesevaluationcontext.h"
 
 #include <language/language.h>
+#include <logging/categories.h>
 #include <tools/fileinfo.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/qbsassert.h>
@@ -121,13 +122,8 @@ void InputArtifactScanner::scan()
     if (m_artifact->inputsScanned)
         return;
 
-    if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace()
-                << QString::fromLatin1("[DEPSCAN] inputs for %1 [%2] in product '%3'")
-                   .arg(m_artifact->filePath(),
-                        m_artifact->fileTags().toStringList().join(QLatin1String(", ")),
-                        m_artifact->product->name);
-    }
+    qCDebug(lcDepScan) << "scan inputs for" << m_artifact->filePath() << m_artifact->fileTags()
+                       << "in product" << m_artifact->product->name;
 
     m_artifact->inputsScanned = true;
 
@@ -147,12 +143,8 @@ void InputArtifactScanner::scan()
 
 void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
 {
-    if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace()
-                << QString::fromLatin1("[DEPSCAN] input artifact %1 [%2]")
-                   .arg(inputArtifact->filePath(),
-                        inputArtifact->fileTags().toStringList().join(QLatin1String(", ")));
-    }
+    qCDebug(lcDepScan) << "input artifact" << inputArtifact->filePath()
+                       << inputArtifact->fileTags();
 
     InputArtifactScannerContext::CacheItem &cacheItem = m_context->cache[inputArtifact->properties];
     Set<QString> visitedFilePaths;
@@ -210,30 +202,23 @@ void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *sca
         QList<FileResourceBase *> *filesToScan,
         InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache)
 {
-    if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace() << QString::fromLatin1("[DEPSCAN] file %1")
-                .arg(fileToBeScanned->filePath());
-    }
+    qCDebug(lcDepScan) << "file" << fileToBeScanned->filePath();
 
     const bool cacheHit = cache.valid;
     if (!cacheHit) {
         cache.valid = true;
         cache.searchPaths = scanner->collectSearchPaths(inputArtifact);
     }
-    if (m_logger.traceEnabled()) {
-        m_logger.qbsTrace()
-                << "[DEPSCAN] include paths (cache " << (cacheHit ? "hit)" : "miss)");
-        for (const QString &s : qAsConst(cache.searchPaths))
-            m_logger.qbsTrace() << "    " << s;
-    }
+    qCDebug(lcDepScan) << "include paths (cache" << (cacheHit ? "hit)" : "miss)");
+    for (const QString &s : qAsConst(cache.searchPaths))
+        qCDebug(lcDepScan) << "    " << s;
 
     const QString &filePathToBeScanned = fileToBeScanned->filePath();
     RawScanResults::ScanData &scanData = m_rawScanResults.findScanData(fileToBeScanned, scanner,
                                                                        m_artifact->properties);
     if (scanData.lastScanTime < fileToBeScanned->timestamp()) {
         try {
-            if (m_logger.traceEnabled())
-                m_logger.qbsTrace() << "scanning " << FileInfo::fileName(filePathToBeScanned);
+            qCDebug(lcDepScan) << "scanning" << FileInfo::fileName(filePathToBeScanned);
             scanWithScannerPlugin(scanner, fileToBeScanned, &scanData.rawScanResult);
             scanData.lastScanTime = FileTime::currentTime();
         } catch (const ErrorInfo &error) {
@@ -275,8 +260,7 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
         }
 
 unresolved:
-        if (m_logger.traceEnabled())
-            m_logger.qbsWarning() << "[DEPSCAN] unresolved dependency " << dependencyFilePath;
+        qCWarning(lcDepScan) << "unresolved dependency " << dependencyFilePath;
         continue;
 
 resolved:
@@ -309,8 +293,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
 
     if (!dependency.file) {
         // The dependency is an existing file but does not exist in the build graph.
-        if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "[DEPSCAN] add new file dependency " << dependency.filePath;
+        qCDebug(lcDepScan) << "add new file dependency" << dependency.filePath;
 
         fileDependency = new FileDependency();
         dependency.file = fileDependency;
@@ -318,23 +301,17 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         product->topLevelProject()->buildData->insertFileDependency(fileDependency);
     } else if (fileDependency) {
         // The dependency exists in the project's list of file dependencies.
-        if (m_logger.traceEnabled()) {
-            m_logger.qbsTrace() << "[DEPSCAN] add existing file dependency "
-                                << dependency.filePath;
-        }
+        qCDebug(lcDepScan) << "add existing file dependency" << dependency.filePath;
     } else if (artifactDependency->product == product) {
         // The dependency is in our product.
-        if (m_logger.traceEnabled()) {
-            m_logger.qbsTrace() << "[DEPSCAN] add artifact dependency " << dependency.filePath
-                                << " (from this product)";
-        }
+        qCDebug(lcDepScan) << "add artifact dependency" << dependency.filePath <<
+                              "(from this product)";
     } else {
         // The dependency is in some other product.
         ResolvedProduct * const otherProduct = artifactDependency->product;
-        if (m_logger.traceEnabled()) {
-            m_logger.qbsTrace() << "[DEPSCAN] add artifact dependency " << dependency.filePath
-                                << " (from product " << otherProduct->uniqueName() << ')';
-        }
+        qCDebug(lcDepScan)
+                << "add artifact dependency" << dependency.filePath
+                << " (from product" << otherProduct->uniqueName() << ')';
     }
 
     if (m_artifact == dependency.file)
