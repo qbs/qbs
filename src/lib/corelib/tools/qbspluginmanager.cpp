@@ -40,6 +40,7 @@
 #include "qbspluginmanager.h"
 
 #include <logging/logger.h>
+#include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
@@ -115,8 +116,7 @@ void QbsPluginManager::loadPlugins(const QStringList &pluginPaths, const Logger 
         filters << QLatin1String("*.so");
 
     for (const QString &pluginPath : pluginPaths) {
-        logger.qbsTrace() << QString::fromLatin1("plugin manager: loading plugins from '%1'.")
-                             .arg(QDir::toNativeSeparators(pluginPath));
+        qCDebug(lcPluginManager) << "loading plugins from" << QDir::toNativeSeparators(pluginPath);
         QDirIterator it(pluginPath, filters, QDir::Files);
         while (it.hasNext()) {
             const QString fileName = it.next();
@@ -131,8 +131,8 @@ void QbsPluginManager::loadPlugins(const QStringList &pluginPaths, const Logger 
                         lib->resolve("QbsPluginLoad"));
             if (load) {
                 load();
-                logger.qbsTrace() << QString::fromLatin1("pluginmanager: plugin '%1' loaded.")
-                                     .arg(QDir::toNativeSeparators(fileName));
+                qCDebug(lcPluginManager) << "plugin" << QDir::toNativeSeparators(fileName)
+                                         << "loaded.";
                 m_libs.push_back(lib.take());
             } else {
                 logger.qbsWarning() << Tr::tr("plugin manager: not a qbs plugin");
