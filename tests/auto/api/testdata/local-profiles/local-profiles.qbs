@@ -19,6 +19,7 @@ Project {
     Application {
         name: "app"
         Depends { name: "cpp"; required: false }
+        aggregate: false
         multiplexByQbsProperties: ["buildVariants", "profiles"]
         qbs.buildVariants: ["debug", "release"]
         qbs.profiles: ["mingwProfile"]
