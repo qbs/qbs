@@ -34,10 +34,35 @@ var ModUtils = require("qbs.ModUtils");
 var Utilities = require("qbs.Utilities");
 var WindowsUtils = require("qbs.WindowsUtils");
 
+function handleCpuFeatures(input, flags) {
+    if (!input.qbs.architecture)
+        return;
+    if (input.qbs.architecture.startsWith("x86")) {
+        if (input.qbs.architecture === "x86") {
+            var sse2 = input.cpufeatures.x86_sse2;
+            if (sse2 === true)
+                flags.push("/arch:SSE2");
+            if (sse2 === false)
+                flags.push("/arch:IA32");
+        }
+        if (input.cpufeatures.x86_avx === true)
+            flags.push("/arch:AVX");
+        if (input.cpufeatures.x86_avx2 === true)
+            flags.push("/arch:AVX2");
+    } else if (input.qbs.architecture.startsWith("arm")) {
+        if (input.cpufeatures.arm_vfpv4 === true)
+            flags.push("/arch:VFPv4");
+        if (input.cpp.machineType === "armv7ve")
+            flags.push("/arch:ARMv7VE");
+    }
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var i;
     var debugInformation = input.cpp.debugInformation;
     var args = ['/nologo', '/c']
+
+    handleCpuFeatures(input, args);
 
     // Determine which C-language we're compiling
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(Object.keys(outputs)));

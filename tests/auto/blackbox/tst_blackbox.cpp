@@ -1242,6 +1242,37 @@ void TestBlackbox::conflictingArtifacts()
     QVERIFY2(m_qbsStderr.contains("Conflicting artifacts"), m_qbsStderr.constData());
 }
 
+void TestBlackbox::cpuFeatures()
+{
+    QDir::setCurrent(testDataDir + "/cpu-features");
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    const bool isX86 = m_qbsStdout.contains("is x86: true");
+    const bool isX64 = m_qbsStdout.contains("is x64: true");
+    if (!isX86 && !isX64) {
+        QVERIFY2(m_qbsStdout.contains("is x86: false") && m_qbsStdout.contains("is x64: false"),
+                 m_qbsStdout.constData());
+        QSKIP("Not an x86 host");
+    }
+    const bool isGcc = m_qbsStdout.contains("is gcc: true");
+    const bool isMsvc = m_qbsStdout.contains("is msvc: true");
+    if (!isGcc && !isMsvc) {
+        QVERIFY2(m_qbsStdout.contains("is gcc: false") && m_qbsStdout.contains("is msvc: false"),
+                 m_qbsStdout.constData());
+        QSKIP("Neither GCC nor MSVC");
+    }
+    QbsRunParameters params(QStringList{"--command-echo-mode", "command-line"});
+    params.expectFailure = true;
+    runQbs(params);
+    if (isGcc) {
+        QVERIFY2(m_qbsStdout.contains("-msse2") && m_qbsStdout.contains("-mavx")
+                 && m_qbsStdout.contains("-mno-avx512f"), m_qbsStdout.constData());
+    } else {
+        QVERIFY2(m_qbsStdout.contains("/arch:AVX"), m_qbsStdout.constData());
+        QVERIFY2(!m_qbsStdout.contains("/arch:AVX2"), m_qbsStdout.constData());
+        QVERIFY2(m_qbsStdout.contains("/arch:SSE2") == isX86, m_qbsStdout.constData());
+    }
+}
+
 void TestBlackbox::renameDependency()
 {
     QDir::setCurrent(testDataDir + "/renameDependency");

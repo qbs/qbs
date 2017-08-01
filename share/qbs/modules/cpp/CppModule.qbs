@@ -35,6 +35,9 @@ import qbs.WindowsUtils
 
 Module {
     condition: false
+
+    Depends { name: "cpufeatures" }
+
     version: compilerVersion
     property string compilerVersion:
         [compilerVersionMajor, compilerVersionMinor, compilerVersionPatch].join(".")

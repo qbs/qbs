@@ -40,7 +40,7 @@ Project {
     }
 
     StaticLibrary {
-        name: "cpufeatures"
+        name: "android_cpufeatures"
         Depends { name: "cpp" }
         Group {
             id: cpufeatures_sources
@@ -59,7 +59,7 @@ Project {
         name: "TeapotNativeActivity"
         Depends { name: "Android.ndk" }
         Depends { name: "cpp" }
-        Depends { name: "cpufeatures" }
+        Depends { name: "android_cpufeatures" }
         Depends { name: "native-glue" }
         Depends { name: "ndk-helper" }
 

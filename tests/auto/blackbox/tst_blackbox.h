@@ -65,6 +65,7 @@ private slots:
     void conditionalFileTagger();
     void configure();
     void conflictingArtifacts();
+    void cpuFeatures();
     void dependenciesProperty();
     void dependencyProfileMismatch();
     void deprecatedProperty();

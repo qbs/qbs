@@ -560,6 +560,46 @@ function qnxLangArgs(config, tag) {
     }
 }
 
+function handleCpuFeatures(input, flags) {
+    function potentiallyAddFlagForFeature(propName, flagName) {
+        var propValue = input.cpufeatures[propName];
+        if (propValue === true)
+            flags.push("-m" + flagName);
+        else if (propValue === false)
+            flags.push("-mno-" + flagName);
+    }
+
+    if (!input.qbs.architecture)
+        return;
+    if (input.qbs.architecture.startsWith("x86")) {
+        potentiallyAddFlagForFeature("x86_avx", "avx");
+        potentiallyAddFlagForFeature("x86_avx2", "avx2");
+        potentiallyAddFlagForFeature("x86_avx512bw", "avx512bw");
+        potentiallyAddFlagForFeature("x86_avx512cd", "avx512cd");
+        potentiallyAddFlagForFeature("x86_avx512dq", "avx512dq");
+        potentiallyAddFlagForFeature("x86_avx512er", "avx512er");
+        potentiallyAddFlagForFeature("x86_avx512f", "avx512f");
+        potentiallyAddFlagForFeature("x86_avx512ifma", "avx512ifma");
+        potentiallyAddFlagForFeature("x86_avx512pf", "avx512pf");
+        potentiallyAddFlagForFeature("x86_avx512vbmi", "avx512vbmi");
+        potentiallyAddFlagForFeature("x86_avx512vl", "avx512vl");
+        potentiallyAddFlagForFeature("x86_f16c", "f16c");
+        potentiallyAddFlagForFeature("x86_sse2", "sse2");
+        potentiallyAddFlagForFeature("x86_sse3", "sse3");
+        potentiallyAddFlagForFeature("x86_sse4_1", "sse4.1");
+        potentiallyAddFlagForFeature("x86_sse4_2", "sse4.2");
+        potentiallyAddFlagForFeature("x86_ssse3", "ssse3");
+    } else if (input.qbs.architecture.startsWith("arm")) {
+        if (input.cpufeatures.arm_neon === true)
+            flags.push("-mfpu=neon");
+        if (input.cpufeatures.arm_vfpv4 === true)
+            flags.push("-mfpu=vfpv4");
+    } else if (input.qbs.architecture.startsWith("mips")) {
+        potentiallyAddFlagForFeature("mips_dsp", "dsp");
+        potentiallyAddFlagForFeature("mips_dspr2", "dspr2");
+    }
+}
+
 function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     var i;
 
@@ -581,6 +621,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     var args = additionalCompilerAndLinkerFlags(product);
 
     Array.prototype.push.apply(args, product.cpp.sysrootFlags);
+    handleCpuFeatures(input, args);
 
     if (input.cpp.debugInformation)
         args.push('-g');
