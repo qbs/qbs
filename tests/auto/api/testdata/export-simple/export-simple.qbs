@@ -44,7 +44,10 @@ Project {
             files : [ "lib1.cpp" ]
         }
         Depends { name: "cpp" }
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
     }
 }
 

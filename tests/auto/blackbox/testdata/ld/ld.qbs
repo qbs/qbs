@@ -6,10 +6,9 @@ Project {
         name: "coreutils"
         targetName: "qbs can handle any file paths, even the crazy ones! ;)"
         files: ["coreutils.cpp", "coreutils.h"]
-        bundle.isBundle: false
-
         Properties {
             condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
             cpp.sonamePrefix: "@rpath"
         }
 

@@ -77,7 +77,7 @@ Project {
         name: "app4"
         type: ["application"]
         files: ["main.cpp"]
-        bundle.isBundle: false
+        consoleApplication: true
         cpp.separateDebugInformation: true
     }
     DynamicLibrary {
@@ -85,14 +85,20 @@ Project {
         name: "foo4"
         type: ["dynamiclibrary"]
         files: ["foo.cpp"]
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         cpp.separateDebugInformation: true
     }
     LoadableModule {
         Depends { name: "cpp" }
         name: "bar4"
         files: ["foo.cpp"]
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         cpp.separateDebugInformation: true
     }
 
@@ -100,7 +106,10 @@ Project {
         name: "app5"
         type: ["application"]
         files: ["main.cpp"]
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         cpp.separateDebugInformation: true
         Properties {
             condition: qbs.targetOS.contains("darwin")
@@ -112,7 +121,10 @@ Project {
         name: "foo5"
         type: ["dynamiclibrary"]
         files: ["foo.cpp"]
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         cpp.separateDebugInformation: true
         Properties {
             condition: qbs.targetOS.contains("darwin")
@@ -123,7 +135,10 @@ Project {
         Depends { name: "cpp" }
         name: "bar5"
         files: ["foo.cpp"]
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         cpp.separateDebugInformation: true
         Properties {
             condition: qbs.targetOS.contains("darwin")

@@ -2,7 +2,6 @@ import qbs
 
 QbsProduct {
     Depends { name: "cpp" }
-    Depends { name: "bundle" }
     version: qbsversion.version
     type: Qt.core.staticBuild ? "staticlibrary" : "dynamiclibrary"
     targetName: (qbs.enableDebugCode && qbs.targetOS.contains("windows")) ? (name + 'd') : name
@@ -13,7 +12,6 @@ QbsProduct {
     //cpp.soVersion: version.replace(/\.\d+$/, '')
     cpp.visibility: "minimal"
     cpp.cxxLanguageVersion: "c++11"
-    bundle.isBundle: false
     property bool visibilityType: Qt.core.staticBuild ? "static" : "dynamic"
     property string headerInstallPrefix: "/include/qbs"
     Group {
@@ -25,6 +23,11 @@ QbsProduct {
         fileTagsFilter: ["dynamiclibrary_import"]
         qbs.install: install
         qbs.installDir: qbsbuildconfig.importLibInstallDir
+    }
+
+    Properties {
+        condition: qbs.targetOS.contains("darwin")
+        bundle.isBundle: false
     }
 
     Export {

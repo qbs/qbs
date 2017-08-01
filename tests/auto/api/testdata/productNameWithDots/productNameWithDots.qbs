@@ -1,13 +1,10 @@
 import qbs
 Project {
-    Product {
-        Depends { name: "cpp" }
-        Depends { name: "bundle" }
-        type: ["application"]
+    CppApplication {
         name: "myapp"
+        consoleApplication: true
         Depends { name: "foo.bar.bla" }
         files: ["app.cpp"]
-        bundle.isBundle: false
     }
     StaticLibrary {
         Depends { name: "cpp" }

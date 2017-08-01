@@ -39,11 +39,13 @@ Project {
     }
 
     DynamicLibrary {
-        Depends { name: "bundle" }
         Depends { name: "cpp" }
         Depends { name: "indirect"; cpp.symbolLinkMode: "reexport" }
 
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         name: "functions"
         files: ["lib.cpp"]
         cpp.cxxLanguageVersion: "c++11"
@@ -80,10 +82,12 @@ Project {
     }
 
     DynamicLibrary {
-        Depends { name: "bundle" }
         Depends { name: "cpp" }
 
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         name: "indirect"
         files: ["indirect.cpp"]
         cpp.cxxLanguageVersion: "c++11"

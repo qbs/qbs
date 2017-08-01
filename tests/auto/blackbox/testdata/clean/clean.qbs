@@ -6,7 +6,10 @@ Project {
         version: "1.1.0"
         name: "dep"
         files: "dep.cpp"
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
     }
 
     CppApplication {
