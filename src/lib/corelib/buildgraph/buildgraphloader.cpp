@@ -43,6 +43,7 @@
 #include "emptydirectoriesremover.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
+#include "rulenode.h"
 #include "rulecommands.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
@@ -68,6 +69,7 @@
 #include <QtCore/qfileinfo.h>
 
 #include <algorithm>
+#include <unordered_map>
 
 namespace qbs {
 namespace Internal {
@@ -254,6 +256,38 @@ static void makeChangedProductsListComplete(QList<ResolvedProductPtr> &changedPr
         checkProductForChangedDependency(changedProducts, seenProducts, p);
 }
 
+static void updateProductAndRulePointers(const ResolvedProductPtr &newProduct)
+{
+    std::unordered_map<RuleConstPtr, RuleConstPtr> ruleMap;
+    for (BuildGraphNode *node : qAsConst(newProduct->buildData->nodes)) {
+        node->product = newProduct;
+        const auto findNewRule = [&ruleMap, &newProduct](const RuleConstPtr &oldRule) {
+            const auto it = ruleMap.find(oldRule);
+            if (it != ruleMap.cend())
+                return it->second;
+            for (const RuleConstPtr &r : qAsConst(newProduct->rules)) {
+                if (*r == *oldRule) {
+                    ruleMap.insert(std::make_pair(oldRule, r));
+                    return r;
+                }
+            }
+            QBS_CHECK(false);
+            return RuleConstPtr();
+        };
+        if (node->type() == BuildGraphNode::RuleNodeType) {
+            RuleNode * const ruleNode = static_cast<RuleNode *>(node);
+            ruleNode->setRule(findNewRule(ruleNode->rule()));
+        } else {
+            QBS_CHECK(node->type() == BuildGraphNode::ArtifactNodeType);
+            Artifact * const artifact = static_cast<Artifact *>(node);
+            if (artifact->artifactType == Artifact::Generated) {
+                QBS_CHECK(artifact->transformer);
+                artifact->transformer->rule = findNewRule(artifact->transformer->rule);
+            }
+        }
+    }
+}
+
 void BuildGraphLoader::trackProjectChanges()
 {
     TimedActivityLogger trackingTimer(m_logger, Tr::tr("Change tracking"),
@@ -360,10 +394,8 @@ void BuildGraphLoader::trackProjectChanges()
             if (newlyResolvedProduct->uniqueName() == restoredProduct->uniqueName()) {
                 if (newlyResolvedProduct->enabled)
                     newlyResolvedProduct->buildData.swap(restoredProduct->buildData);
-                if (newlyResolvedProduct->buildData) {
-                    for (BuildGraphNode *node : qAsConst(newlyResolvedProduct->buildData->nodes))
-                        node->product = newlyResolvedProduct;
-                }
+                if (newlyResolvedProduct->buildData)
+                    updateProductAndRulePointers(newlyResolvedProduct);
 
                 // Keep in list if build data still needs to be resolved.
                 if (!newlyResolvedProduct->enabled || newlyResolvedProduct->buildData)
