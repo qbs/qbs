@@ -80,6 +80,25 @@
         \li The SDK base directory.
     \endtable
 
+    \section1 Dependency Parameters
+
+    \table
+    \header
+        \li Parameter
+        \li Type
+        \li Since
+        \li Default
+        \li Description
+    \row
+        \li \c{embedJar}
+        \li \c{bool}
+        \li 1.10
+        \li \c{true}
+        \li If \c{true}, then if the dependency is a JAR file, its classes and the classes of its
+            dependencies (if \c{embedJar} is also true for them) will be recursively processed by
+            \c{dex} and included in the final APK.
+    \endtable
+
     \section1 Relevant File Tags
 
     \table

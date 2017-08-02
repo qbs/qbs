@@ -97,3 +97,32 @@ function availableBuildToolsVersions(sdkDir) {
 
     return versions;
 }
+
+function prepareDex(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+    var dxFilePath = product.Android.sdk.dxFilePath;
+    var args = ["--dex", "--output", output.filePath, product.java.classFilesDir];
+
+    var jarFiles = [];
+    function traverseJarDeps(dep) {
+        if (dep.parameters.Android && dep.parameters.Android.sdk
+                && dep.parameters.Android.sdk.embedJar === false)
+            return;
+
+        var isJar = typeof dep.artifacts["java.jar"] !== "undefined";
+        if (!isJar)
+            return;
+
+        dep.artifacts["java.jar"].forEach(function(artifact) {
+            if (!jarFiles.contains(artifact.filePath))
+                jarFiles.push(artifact.filePath);
+        });
+        dep.dependencies.forEach(traverseJarDeps);
+    }
+    product.dependencies.forEach(traverseJarDeps);
+
+    args = args.concat(jarFiles);
+
+    var cmd = new Command(dxFilePath, args);
+    cmd.description = "Creating " + output.fileName;
+    return [cmd];
+}

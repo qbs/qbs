@@ -101,6 +101,9 @@ Module {
         fileTags: ["android.aidl"]
     }
 
+    Parameter {
+        property bool embedJar: true
+    }
 
     Rule {
         inputs: ["android.aidl"]
@@ -190,18 +193,12 @@ Module {
     Rule {
         multiplex: true
         inputs: ["java.class"]
+        inputsFromDependencies: ["java.jar"]
         Artifact {
             filePath: "classes.dex"
             fileTags: ["android.dex"]
         }
-        prepare: {
-            var dxFilePath = ModUtils.moduleProperty(product, "dxFilePath");
-            var args = ["--dex", "--output", output.filePath,
-                        product.moduleProperty("java", "classFilesDir")];
-            var cmd = new Command(dxFilePath, args);
-            cmd.description = "Creating " + output.fileName;
-            return [cmd];
-        }
+        prepare: SdkUtils.prepareDex.apply(SdkUtils, arguments)
     }
 
     Rule {

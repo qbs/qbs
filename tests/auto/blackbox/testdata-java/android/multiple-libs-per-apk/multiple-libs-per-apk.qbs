@@ -19,9 +19,51 @@ Project {
         cpp.useRPaths: false
     }
 
+    JavaJarFile {
+        Depends { name: "Android.sdk" }
+        Depends { name: "lib6" }
+        Depends { name: "lib8" }
+        name: "lib3"
+        files: ["io/qbs/lib3/lib3.java"]
+    }
+
+    JavaJarFile {
+        Depends { name: "Android.sdk" }
+        name: "lib4"
+        files: ["lib4.java"]
+    }
+
+    JavaJarFile {
+        Depends { name: "Android.sdk" }
+        name: "lib5"
+        files: ["lib5.java"]
+    }
+
+    JavaJarFile {
+        Depends { name: "Android.sdk" }
+        name: "lib6"
+        files: ["lib6.java"]
+    }
+
+    JavaJarFile {
+        Depends { name: "Android.sdk" }
+        name: "lib7"
+        files: ["lib7.java"]
+    }
+
+    JavaJarFile {
+        Depends { name: "Android.sdk" }
+        Depends { name: "lib7"; Android.sdk.embedJar: false }
+        name: "lib8"
+        files: ["lib8.java"]
+    }
+
     AndroidApk {
         name: "twolibs"
         packageName: "io.qt.dummy"
         Depends { productTypes: ["android.nativelibrary"] }
+        Depends { name: "lib3"; Android.sdk.embedJar: true }
+        Depends { name: "lib4"; Android.sdk.embedJar: false }
+        Depends { name: "lib5" }
     }
 }

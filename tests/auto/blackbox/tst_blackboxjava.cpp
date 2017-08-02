@@ -55,6 +55,7 @@ QMap<QString, QString> TestBlackboxJava::findAndroid(int *status, const QString 
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
     return QMap<QString, QString> {
         {"sdk", QDir::fromNativeSeparators(tools["sdk"].toString())},
+        {"sdk-build-tools-dx", QDir::fromNativeSeparators(tools["sdk-build-tools-dx"].toString())},
         {"ndk", QDir::fromNativeSeparators(tools["ndk"].toString())},
         {"ndk-samples", QDir::fromNativeSeparators(tools["ndk-samples"].toString())},
     };
@@ -86,12 +87,13 @@ void TestBlackboxJava::android()
         QSKIP("NDK samples directory not present");
 
     QDir::setCurrent(testDataDir + "/android/" + projectDir);
-    QbsRunParameters params(QStringList() << "modules.Android.ndk.platform:android-21");
+    QbsRunParameters params(QStringList { "--command-echo-mode", "command-line",
+                                          "modules.Android.ndk.platform:android-21" });
     params.profile = p.name();
     QCOMPARE(runQbs(params), 0);
     for (int i = 0; i < productNames.count(); ++i) {
         const QString productName = productNames.at(i);
-        QVERIFY(m_qbsStdout.contains("Creating " + productName.toLocal8Bit() + ".apk"));
+        QVERIFY(m_qbsStdout.contains(productName.toLocal8Bit() + ".apk"));
         const QString apkFilePath = relativeProductBuildDir(productName)
                 + '/' + productName + ".apk";
         QVERIFY2(regularFileExists(apkFilePath), qPrintable(apkFilePath));
@@ -103,6 +105,23 @@ void TestBlackboxJava::android()
         QVERIFY2(jar.waitForFinished(), qPrintable(jar.errorString()));
         QVERIFY2(jar.exitCode() == 0, qPrintable(jar.readAllStandardError().constData()));
         QCOMPARE(jar.readAllStandardOutput().trimmed().split('\n').count(), apkFileCounts.at(i));
+    }
+
+    if (projectDir == "multiple-libs-per-apk") {
+        const auto dxPath = androidPaths["sdk-build-tools-dx"];
+        QVERIFY(!dxPath.isEmpty());
+        const auto lines = m_qbsStdout.split('\n');
+        const auto it = std::find_if(lines.cbegin(), lines.cend(), [&](const QByteArray &line) {
+            return !line.isEmpty() && line.startsWith(dxPath.toUtf8());
+        });
+        QVERIFY2(it != lines.cend(), qPrintable(m_qbsStdout.constData()));
+        const auto line = *it;
+        QVERIFY2(line.contains("lib3.jar"), qPrintable(line.constData()));
+        QVERIFY2(!line.contains("lib4.jar"), qPrintable(line.constData()));
+        QVERIFY2(line.contains("lib5.jar"), qPrintable(line.constData()));
+        QVERIFY2(line.contains("lib6.jar"), qPrintable(line.constData()));
+        QVERIFY2(!line.contains("lib7.jar"), qPrintable(line.constData()));
+        QVERIFY2(line.contains("lib8.jar"), qPrintable(line.constData()));
     }
 }
 

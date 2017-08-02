@@ -20,6 +20,7 @@ Product {
                 var tools = {};
                 if (product.moduleProperty("Android.sdk", "present")) {
                     tools["sdk"] = product.moduleProperty("Android.sdk", "sdkDir");
+                    tools["sdk-build-tools-dx"] = product.Android.sdk.dxFilePath;
                 }
 
                 if (product.moduleProperty("Android.ndk", "present")) {
