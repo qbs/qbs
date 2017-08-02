@@ -303,15 +303,11 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
             args.push("--sysroot=" + sysroot); // do not escape, compiler-as-linker also needs it
     }
 
-    if (isDarwin) {
-        var unresolvedSymbolsAction;
-        unresolvedSymbolsAction = product.cpp.allowUnresolvedSymbols
-                                    ? "suppress" : "error";
-        args = args.concat(escapeLinkerFlags(product, inputs,
-                                             ["-undefined", unresolvedSymbolsAction]));
-    } else if (product.cpp.allowUnresolvedSymbols) {
-        args = args.concat(escapeLinkerFlags(product, inputs,
-                                             ["--unresolved-symbols=ignore-all"]));
+    if (product.cpp.allowUnresolvedSymbols) {
+        args = args.concat(escapeLinkerFlags(
+                               product, inputs, isDarwin
+                               ? ["-undefined", "suppress"]
+                               : ["--unresolved-symbols=ignore-all"]));
     }
 
     for (i in rpaths) {

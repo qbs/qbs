@@ -318,7 +318,7 @@ Module {
         description: "whether to require app-extension-safe APIs only"
     }
 
-    property bool allowUnresolvedSymbols: false
+    property bool allowUnresolvedSymbols
 
     property bool combineCSources: false
     property bool combineCxxSources: false
