@@ -261,7 +261,8 @@ static void updateProductAndRulePointers(const ResolvedProductPtr &newProduct)
     std::unordered_map<RuleConstPtr, RuleConstPtr> ruleMap;
     for (BuildGraphNode *node : qAsConst(newProduct->buildData->nodes)) {
         node->product = newProduct;
-        const auto findNewRule = [&ruleMap, &newProduct](const RuleConstPtr &oldRule) {
+        const auto findNewRule = [&ruleMap, &newProduct]
+                (const RuleConstPtr &oldRule) -> RuleConstPtr {
             const auto it = ruleMap.find(oldRule);
             if (it != ruleMap.cend())
                 return it->second;
