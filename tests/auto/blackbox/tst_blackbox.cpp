@@ -1532,6 +1532,7 @@ void TestBlackbox::recursiveWildcards()
     QVERIFY2(outputFile.open(QIODevice::ReadOnly), qPrintable(outputFile.errorString()));
     QCOMPARE(outputFile.readAll(), QByteArray("file1.txtfile2.txt"));
     outputFile.close();
+    WAIT_FOR_NEW_TIMESTAMP();
     QFile newFile("dir/subdir/file3.txt");
     QVERIFY2(newFile.open(QIODevice::WriteOnly), qPrintable(newFile.errorString()));
     newFile.close();
@@ -1540,6 +1541,7 @@ void TestBlackbox::recursiveWildcards()
     QVERIFY2(outputFile.open(QIODevice::ReadOnly), qPrintable(outputFile.errorString()));
     QCOMPARE(outputFile.readAll(), QByteArray("file1.txtfile2.txtfile3.txt"));
     outputFile.close();
+    WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY2(newFile.remove(), qPrintable(newFile.errorString()));
     QVERIFY2(!newFile.exists(), qPrintable(newFile.fileName()));
     QCOMPARE(runQbs(QbsRunParameters("install", QStringList{ "--clean-install-root"})), 0);
