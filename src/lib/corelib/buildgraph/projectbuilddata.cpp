@@ -323,14 +323,13 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevel
 class CreateRuleNodes : public RuleGraphVisitor
 {
 public:
-    CreateRuleNodes(const ResolvedProductPtr &product, const Logger &logger)
-        : m_product(product), m_logger(logger)
+    CreateRuleNodes(const ResolvedProductPtr &product)
+        : m_product(product)
     {
     }
 
 private:
     const ResolvedProductPtr &m_product;
-    const Logger &m_logger;
     QHash<RuleConstPtr, RuleNode *> m_nodePerRule;
     Set<const Rule *> m_rulesOnPath;
     QList<const Rule *> m_rulePath;
@@ -425,7 +424,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
 
     RuleGraph ruleGraph;
     ruleGraph.build(product->rules, product->fileTags);
-    CreateRuleNodes crn(product, m_logger);
+    CreateRuleNodes crn(product);
     ruleGraph.accept(&crn);
 
     connectRulesToDependencies(product, product->dependencies);
