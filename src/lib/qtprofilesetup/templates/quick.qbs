@@ -40,6 +40,7 @@ QtModule {
     Depends { name: "Qt"; submodules: @dependencies@.concat("qml-private") }
 
     hasLibrary: @has_library@
+    architecture: @arch@
     staticLibsDebug: @staticLibsDebug@
     staticLibsRelease: @staticLibsRelease@
     dynamicLibsDebug: @dynamicLibsDebug@
