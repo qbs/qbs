@@ -84,7 +84,7 @@ Module {
                                                          "android.jar")
     property path generatedJavaFilesBaseDir: FileInfo.joinPaths(product.buildDirectory, "gen")
     property path generatedJavaFilesDir: FileInfo.joinPaths(generatedJavaFilesBaseDir,
-                                         product.packageName.split('.').join('/'))
+                                         (product.packageName || "").split('.').join('/'))
 
     Depends { name: "java" }
     java.languageVersion: platformJavaVersion
