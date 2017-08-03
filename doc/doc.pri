@@ -2,6 +2,7 @@ include(../src/install_prefix.pri)
 
 include(doc_shared.pri)
 
+DOC_SRCDIR = $$PWD/..
 DOC_OUTDIR_POSTFIX = /html
 DOC_HTML_INSTALLDIR = $$QBS_INSTALL_PREFIX/share/doc/qbs
 DOC_QCH_OUTDIR = $$OUT_PWD/doc
