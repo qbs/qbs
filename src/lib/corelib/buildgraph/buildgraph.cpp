@@ -42,6 +42,7 @@
 #include "cycledetector.h"
 #include "projectbuilddata.h"
 #include "productbuilddata.h"
+#include "rulenode.h"
 #include "transformer.h"
 
 #include <jsextensions/jsextensions.h>
@@ -544,8 +545,16 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
         }
 
         Artifact * const artifact = dynamic_cast<Artifact *>(node);
-        if (!artifact)
+        if (!artifact) {
+            RuleNode * const ruleNode = dynamic_cast<RuleNode *>(node);
+            QBS_CHECK(ruleNode);
+            QBS_CHECK(ruleNode->rule());
+            QBS_CHECK(ruleNode->rule()->product);
+            QBS_CHECK(ruleNode->rule()->product == ruleNode->product.get());
+            QBS_CHECK(ruleNode->rule()->product == product.get());
+            QBS_CHECK(product->rules.contains(std::const_pointer_cast<Rule>(ruleNode->rule())));
             continue;
+        }
 
         QBS_CHECK(!filePaths.contains(artifact->filePath()));
         filePaths << artifact->filePath();
@@ -557,7 +566,12 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
             continue;
 
         QBS_CHECK(transformer);
+        QBS_CHECK(transformer->rule);
+        QBS_CHECK(transformer->rule->product);
+        QBS_CHECK(transformer->rule->product == artifact->product.get());
+        QBS_CHECK(transformer->rule->product == product.get());
         QBS_CHECK(transformer->outputs.contains(artifact));
+        QBS_CHECK(product->rules.contains(std::const_pointer_cast<Rule>(transformer->rule)));
         qCDebug(lcBuildGraph)
                 << "The transformer has" << transformer->outputs.count() << "outputs.";
         ArtifactSet transformerOutputChildren;
