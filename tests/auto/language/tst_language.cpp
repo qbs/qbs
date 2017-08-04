@@ -1730,6 +1730,36 @@ void TestLanguage::outerInGroup()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::overriddenPropertiesAndPrototypes()
+{
+    bool exceptionCaught = false;
+    try {
+        QFETCH(QString, osName);
+        QFETCH(QString, backendName);
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("overridden-properties-and-prototypes.qbs"));
+        params.setOverriddenValues({std::make_pair("modules.qbs.targetOS", osName)});
+        TopLevelProjectConstPtr project = loader->loadProject(params);
+        QVERIFY(project);
+        QCOMPARE(project->products.count(), 1);
+        QCOMPARE(project->products.first()->moduleProperties->moduleProperty(
+                     "multiple-backends", "prop").toString(), backendName);
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::overriddenPropertiesAndPrototypes_data()
+{
+    QTest::addColumn<QString>("osName");
+    QTest::addColumn<QString>("backendName");
+    QTest::newRow("first backend") << "os1" << "backend 1";
+    QTest::newRow("second backend") << "os2" << "backend 2";
+}
+
 void TestLanguage::parameterTypes()
 {
     bool exceptionCaught = false;
