@@ -2766,9 +2766,11 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
         const QualifiedId &moduleName, ProductModuleInfo *productModuleInfo)
 {
     Item *deepestModuleInstance = moduleInstance;
+    std::vector<Item *> instanceList{ moduleInstance };
     while (deepestModuleInstance->prototype()
            && deepestModuleInstance->prototype()->type() == ItemType::ModuleInstance) {
         deepestModuleInstance = deepestModuleInstance->prototype();
+        instanceList.push_back(deepestModuleInstance);
     }
     deepestModuleInstance->setPrototype(modulePrototype);
 
@@ -2869,12 +2871,14 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     }
 
     const QString fullName = moduleName.toString();
-    const QString generalverrideKey = QLatin1String("modules.") + fullName;
-    overrideItemProperties(moduleInstance, generalverrideKey, m_parameters.overriddenValuesTree());
+    const QString generalOverrideKey = QLatin1String("modules.") + fullName;
     const QString perProductOverrideKey = QLatin1String("products.") + productContext->name
             + QLatin1Char('.') + fullName;
-    overrideItemProperties(moduleInstance, perProductOverrideKey,
-                           m_parameters.overriddenValuesTree());
+    for (Item * const instance : instanceList) {
+        overrideItemProperties(instance, generalOverrideKey, m_parameters.overriddenValuesTree());
+        overrideItemProperties(instance, perProductOverrideKey,
+                               m_parameters.overriddenValuesTree());
+    }
 }
 
 void ModuleLoader::createChildInstances(Item *instance, Item *prototype,
