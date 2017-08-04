@@ -73,7 +73,8 @@ Profile::Profile(const QString &name, Settings *settings, const QVariantMap &pro
 
 bool Profile::exists() const
 {
-    return !m_values.isEmpty() || !m_settings->allKeysWithPrefix(profileKey()).isEmpty();
+    return m_name == fallbackName() || !m_values.isEmpty()
+            || !m_settings->allKeysWithPrefix(profileKey()).isEmpty();
 }
 
 /*!

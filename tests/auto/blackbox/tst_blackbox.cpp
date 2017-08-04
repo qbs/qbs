@@ -3287,6 +3287,15 @@ void TestBlackbox::newOutputArtifact()
     QVERIFY(regularFileExists(the100thArtifact));
 }
 
+void TestBlackbox::noProfile()
+{
+    QDir::setCurrent(testDataDir + "/no-profile");
+    QbsRunParameters params;
+    params.profile = "none";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("profile: none"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::nonBrokenFilesInBrokenProduct()
 {
     QDir::setCurrent(testDataDir + "/non-broken-files-in-broken-product");

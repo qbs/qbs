@@ -122,6 +122,7 @@ private slots:
     void nestedGroups();
     void nestedProperties();
     void newOutputArtifact();
+    void noProfile();
     void nodejs();
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();
