@@ -11,6 +11,7 @@ Module {
     property string importLibInstallDir: libDirName
     property string libexecInstallDir: qbs.targetOS.contains("windows") ? appInstallDir
                                                                         : "libexec/qbs"
+    property bool installManPage: qbs.targetOS.contains("unix")
     property bool installHtml: true
     property bool installQch: false
     property string docInstallDir: "share/doc/qbs/html"

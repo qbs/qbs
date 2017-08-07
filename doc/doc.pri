@@ -14,3 +14,5 @@ fixnavi.commands = \
     perl fixnavi.pl -Dqcmanual -Dqtquick \
         qbs.qdoc
 QMAKE_EXTRA_TARGETS += fixnavi
+
+include(man/man.pri)

@@ -152,6 +152,7 @@
                                         such as Fedora.
     \row    \li qbs_no_dev_install  \li Exclude header files from installation, that is, perform a
                                         non-developer build.
+    \row    \li qbs_no_man_install  \li Exclude the man page from installation.
     \row    \li qbs_enable_project_file_updates \li Enable API for updating project files. This
                                         implies a dependency to the Qt GUI module.
     \endtable

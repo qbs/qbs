@@ -1,0 +1,11 @@
+[SEE ALSO]
+For detailed help on a command, use the
+.B help
+command. For instance:
+.IP
+qbs help build
+.PP
+
+The full documentation for
+.B qbs
+is available at <http://qbs.io>.
