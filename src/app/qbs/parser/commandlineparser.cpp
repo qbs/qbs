@@ -390,7 +390,7 @@ static QString extractToolDescription(const QString &tool, const QString &output
 QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
 {
     QString help = Tr::tr("Usage: qbs [command] [command parameters]\n");
-    help += Tr::tr("Internal commands:\n");
+    help += Tr::tr("Built-in commands:\n");
     const int rhsIndentation = 30;
 
     // Sorting the commands by name is nicer for the user.
