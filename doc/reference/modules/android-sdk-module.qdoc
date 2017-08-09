@@ -42,9 +42,6 @@
 
     \section1 Android.sdk Properties
 
-    These properties are set automatically when creating an Android profile via the
-    \c setup-android tool.
-
     \table
     \header
         \li Property
@@ -57,8 +54,8 @@
         \li string
         \li 1.4
         \li undefined
-        \li The version of the build tools such as aapt and dx. The \c setup-android
-            tool sets this to the highest version available in the SDK.
+        \li The version of the build tools such as aapt and dx. By default,
+            this is set to the highest version available in the SDK.
     \row
         \li ndkDir
         \li string
@@ -70,8 +67,8 @@
         \li string
         \li 1.4
         \li undefined
-        \li The versioned platform name (e.g. "android-21"). The \c setup-android
-            tool sets this to the highest version available in the SDK.
+        \li The versioned platform name (e.g. "android-21"). By default,
+            this is set to the highest version available in the SDK.
     \row
         \li sdkDir
         \li string

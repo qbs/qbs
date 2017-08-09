@@ -62,9 +62,6 @@
 
     \section1 Android.ndk Properties
 
-    These properties are set automatically when creating an Android profile via the
-    \c setup-android tool.
-
     \table
     \header
         \li Property
