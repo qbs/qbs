@@ -1321,7 +1321,7 @@ void TestLanguage::modulePropertiesInGroups()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        const ResolvedProductPtr product = products.value("grouptest");
+        ResolvedProductPtr product = products.value("grouptest");
         QVERIFY(!!product);
         GroupConstPtr g1;
         GroupConstPtr g11;
@@ -1498,6 +1498,27 @@ void TestLanguage::modulePropertiesInGroups()
         QEXPECT_FAIL(0, "re-eval not triggered", Continue);
         QCOMPARE(g211Gmod2List, QStringList() << "g2.1.1" << "commonName_in_gmod1"
                  << "g2.1.1_gmod4_g2.1.1_gmod3" << "g2.1.1_gmod3" << "gmod2_list_proto");
+
+        product = products.value("grouptest2");
+        QVERIFY(!!product);
+        g1.reset();
+        g11.reset();
+        foreach (const GroupConstPtr &g, product->groups) {
+            if (g->name == "g1")
+                g1= g;
+            else if (g->name == "g1.1")
+                g11 = g;
+        }
+        QVERIFY(!!g1);
+        QVERIFY(!!g11);
+        QCOMPARE(moduleProperty(g1->properties->value(), "gmod.gmod1", "gmod1_list2")
+                 .toStringList(), QStringList({"G1"}));
+        QCOMPARE(moduleProperty(g11->properties->value(), "gmod.gmod1", "gmod1_list2")
+                 .toStringList(),
+                 moduleProperty(g1->properties->value(), "gmod.gmod1", "gmod1_list2")
+                 .toStringList());
+        QCOMPARE(moduleProperty(g11->properties->value(), "gmod.gmod1", "gmod1_string").toString(),
+                 QString("G1.1"));
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
