@@ -4,7 +4,7 @@ import qbs.ModUtils
 import qbs.Process
 import qbs.TextFile
 
-Product {
+QbsProduct {
     Depends { name: "qbs-config" }
     Depends { name: "qbs-config-ui" }
     Depends { name: "qbs-qmltypes" }
@@ -13,7 +13,6 @@ Product {
     Depends { name: "qbs-setup-toolchains" }
     Depends { name: "qbs_app" }
     Depends { name: "qbs_processlauncher" }
-    Depends { name: "qbsversion" }
     Depends { name: "qbscore" }
     Depends { name: "qbsqtprofilesetup" }
     Depends { name: "qbs_cpp_scanner" }
@@ -22,20 +21,14 @@ Product {
     Depends { name: "qbs resources" }
 
     Depends { name: "archiver" }
-    Depends { name: "Qt.core" }
-
-    readonly property bool hasQt56: {
-        if (Qt.core.versionMajor === 5)
-            return Qt.core.versionMinor >= 6;
-        return Qt.core.versionMajor > 5;
-    }
 
     property stringList windeployqtArgs: [
         "--no-svg",
         "--no-system-d3d-compiler",
         "--no-angle",
         "--no-compiler-runtime",
-    ].concat(hasQt56 ? ["--no-opengl-sw"] : [])
+        "--no-opengl-sw",
+    ]
 
     // List of path prefixes to be excluded from the generated archive
     property stringList excludedPathPrefixes: [
