@@ -40,21 +40,85 @@ QbsProduct {
     ]
     property bool includeTopLevelDir: false
 
-    condition: qbs.targetOS.contains("windows")
+    condition: qbs.targetOS.containsAny(["windows", "macos"])
     builtByDefault: false
     name: "qbs archive"
     type: ["archiver.archive"]
-    targetName: "qbs-windows-" + qbs.architecture + "-" + qbsversion.version
+    targetName: "qbs-" + qbs.targetOS[0] + "-" + qbs.architecture + "-" + qbsversion.version
     destinationDirectory: project.buildDirectory
 
-    archiver.type: "zip"
+    archiver.type: qbs.targetOS.contains("windows") ? "zip" : "tar"
     Properties {
         condition: includeTopLevelDir
         archiver.workingDirectory: qbs.installRoot + "/.."
     }
     archiver.workingDirectory: qbs.installRoot
 
+    Group {
+        name: "qt.conf"
+        files: ["qt.conf"]
+        qbs.install: true
+        qbs.installDir: qbsbuildconfig.appInstallDir
+    }
+
+    Group {
+        condition: qbs.targetOS.contains("macos")
+        prefix: Qt.core.libPath + "/"
+        name: "Qt libraries"
+        files: {
+            if (Qt.core.frameworkBuild) {
+                return [
+                    "QtCore.framework/**",
+                    "QtGui.framework/**",
+                    "QtNetwork.framework/**",
+                    "QtPrintSupport.framework/**",
+                    "QtScript.framework/**",
+                    "QtWidgets.framework/**",
+                    "QtXml.framework/**",
+                ];
+            } else if (!Qt.core.staticBuild) {
+                return [
+                    "libQt5Core*.dylib",
+                    "libQt5Gui*.dylib",
+                    "libQt5Network*.dylib",
+                    "libQt5PrintSupport*.dylib",
+                    "libQt5Script*.dylib",
+                    "libQt5Widgets*.dylib",
+                    "libQt5Xml*.dylib",
+                ];
+            }
+            return [];
+        }
+
+        excludeFiles: [
+            "**/*.prl",
+            "**/*_debug*",
+        ].concat(!qbsbuildconfig.installApiHeaders ? ["**/Headers", "**/Headers/**"] : [])
+
+        qbs.install: true
+        qbs.installDir: qbsbuildconfig.libInstallDir
+        qbs.installSourceBase: prefix
+    }
+
+    Group {
+        condition: qbs.targetOS.contains("macos")
+        prefix: Qt.core.pluginPath + "/"
+        name: "Qt platform plugins"
+        files: [
+            "platforms/libq*.dylib",
+        ]
+
+        excludeFiles: [
+            "**/*_debug.dylib",
+        ]
+
+        qbs.install: true
+        qbs.installDir: "plugins"
+        qbs.installSourceBase: prefix
+    }
+
     Rule {
+        condition: qbs.targetOS.contains("windows")
         multiplex: true
         inputsFromDependencies: ["installable"]
 
@@ -105,7 +169,7 @@ QbsProduct {
 
     Rule {
         multiplex: true
-        inputs: ["dependencies.json"]
+        inputs: ["dependencies.json", "installable"]
         inputsFromDependencies: ["installable"]
 
         Artifact {
@@ -124,7 +188,7 @@ QbsProduct {
             cmd.baseDirectory = product.moduleProperty("archiver", "workingDirectory");
             cmd.sourceCode = function() {
                 var tf;
-                for (var i = 0; i < inputs["dependencies.json"].length; ++i) {
+                for (var i = 0; i < (inputs["dependencies.json"] || []).length; ++i) {
                     try {
                         tf = new TextFile(inputs["dependencies.json"][i].filePath,
                                           TextFile.ReadOnly);
