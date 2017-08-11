@@ -167,7 +167,7 @@ void TestBlackboxBase::initTestCase()
     QVERIFY(regularFileExists(qbsExecutableFilePath));
 
     const SettingsPtr s = settings();
-    if (!s->profiles().contains(profileName()))
+    if (profileName() != "none" && !s->profiles().contains(profileName()))
         QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
                          "' could not be found. Please set it up on your machine."));
 

@@ -60,7 +60,12 @@ inline SettingsPtr settings()
     return SettingsPtr(new qbs::Settings(settingsDir));
 }
 
-inline QString profileName() { return QLatin1String("qbs_autotests"); }
+inline QString profileName()
+{
+    const QString profile = QLatin1String(qgetenv("QBS_AUTOTEST_PROFILE"));
+    return !profile.isEmpty() ? profile : QLatin1String("none");
+}
+
 inline QString relativeBuildDir(const QString &configurationName = QString())
 {
     return !configurationName.isEmpty() ? configurationName : QLatin1String("default");

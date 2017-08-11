@@ -30,6 +30,7 @@
 
 #include "../shared.h"
 #include <tools/hostosinfo.h>
+#include <tools/preferences.h>
 #include <tools/profile.h>
 
 #include <QtCore/qjsondocument.h>
@@ -46,19 +47,21 @@ TestBlackboxQt::TestBlackboxQt() : TestBlackboxBase (SRCDIR "/testdata-qt", "bla
 void TestBlackboxQt::validateTestProfile()
 {
     const SettingsPtr s = settings();
-    if (!s->profiles().contains(profileName()))
+    if (profileName() != "none" && !s->profiles().contains(profileName()))
         QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
                          "' could not be found. Please set it up on your machine."));
 
-    Profile buildProfile(profileName(), s.get());
     const QStringList searchPaths
-            = buildProfile.value(QLatin1String("preferences.qbsSearchPaths")).toStringList();
-    if (searchPaths.isEmpty())
-        QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
-                         "' is not a valid Qt profile."));
-    if (!QFileInfo(searchPaths.first()).isDir())
-        QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
-                         "' points to an invalid qbs search path."));
+            = qbs::Preferences(s.get(), profileName()).searchPaths(
+                QDir::cleanPath(QCoreApplication::applicationDirPath()));
+    for (const auto &searchPath : searchPaths) {
+        if (QFileInfo(searchPath + "/modules/Qt").isDir())
+            return;
+    }
+
+    QSKIP(QByteArray("The build profile '" + profileName().toLocal8Bit() +
+                     "' is not a valid Qt profile and Qt was not found "
+                     "in the global search paths."));
 }
 
 void TestBlackboxQt::autoQrc()
