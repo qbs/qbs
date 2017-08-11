@@ -56,6 +56,7 @@ private slots:
     void qobjectInObjectiveCpp();
     void qtKeywords();
     void qtScxml();
+    void removeMocHeaderFromFileList();
     void staticQtPluginLinking();
     void trackAddMocInclude();
     void track_qobject_change();

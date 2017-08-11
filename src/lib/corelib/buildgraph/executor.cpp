@@ -728,12 +728,10 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         return;
 
     ResolvedProduct * const product = artifact->product.get();
-    AllRescuableArtifactData::Iterator it
-            = product->buildData->rescuableArtifactData.find(artifact->filePath());
-    if (it == product->buildData->rescuableArtifactData.end())
+    const RescuableArtifactData rad
+            = product->buildData->rescuableArtifactData.take(artifact->filePath());
+    if (!rad.isValid())
         return;
-
-    const RescuableArtifactData &rad = it.value();
     qCDebug(lcBuildGraph) << "Attempting to rescue data of artifact" << artifact->fileName();
 
     typedef std::pair<Artifact *, bool> ChildArtifactData;
@@ -754,11 +752,17 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
                 canRescue = false;
                 qCDebug(lcBuildGraph) << "Former child artifact" << cd.childFilePath
                                       << "does not exist anymore.";
-                break;
+                const RescuableArtifactData childRad
+                        = product->buildData->rescuableArtifactData.take(cd.childFilePath);
+                if (childRad.isValid()) {
+                    m_artifactsRemovedFromDisk << artifact->filePath();
+                    removeGeneratedArtifactFromDisk(cd.childFilePath, m_logger);
+                }
             }
             // TODO: Shouldn't addedByScanner always be true here? Otherwise the child would be
             //       in the list already, no?
-            childrenToConnect << std::make_pair(child, cd.addedByScanner);
+            if (canRescue)
+                childrenToConnect << std::make_pair(child, cd.addedByScanner);
         }
 
         if (canRescue) {
@@ -798,7 +802,6 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         m_artifactsRemovedFromDisk << artifact->filePath();
         qCDebug(lcBuildGraph) << "Data not rescued.";
     }
-    product->buildData->rescuableArtifactData.erase(it);
 }
 
 bool Executor::checkForUnbuiltDependencies(Artifact *artifact)

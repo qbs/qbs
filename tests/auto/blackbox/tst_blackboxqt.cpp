@@ -256,6 +256,31 @@ void TestBlackboxQt::qtScxml()
              m_qbsStdout.constData());
 }
 
+void TestBlackboxQt::removeMocHeaderFromFileList()
+{
+    QDir::setCurrent(testDataDir + "/remove-moc-header-from-file-list");
+    QCOMPARE(runQbs(), 0);
+    WAIT_FOR_NEW_TIMESTAMP();
+    QFile projectFile("remove-moc-header-from-file-list.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray content = projectFile.readAll();
+    content.replace("\"file.h\"", "// \"file.h\"");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    WAIT_FOR_NEW_TIMESTAMP();
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    content = projectFile.readAll();
+    content.replace("// \"file.h\"", "\"file.h\"");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+}
+
 
 void TestBlackboxQt::staticQtPluginLinking()
 {

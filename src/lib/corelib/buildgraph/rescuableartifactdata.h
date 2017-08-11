@@ -62,6 +62,8 @@ public:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 
+    bool isValid() const { return !!properties; }
+
     struct ChildData
     {
         ChildData(const QString &n = QString(), const QString &p = QString(),
