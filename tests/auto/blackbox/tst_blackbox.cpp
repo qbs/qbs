@@ -598,6 +598,19 @@ void TestBlackbox::changeInImportedFile()
     QVERIFY2(!m_qbsStdout.contains("output"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::changeTrackingAndMultiplexing()
+{
+    QDir::setCurrent(testDataDir + "/change-tracking-and-multiplexing");
+    QCOMPARE(runQbs(QStringList("modules.cpp.staticLibraryPrefix:prefix1")), 0);
+    QCOMPARE(m_qbsStdout.count("compiling lib.cpp"), 2);
+    QCOMPARE(m_qbsStdout.count("creating prefix1l"), 2);
+    QCOMPARE(runQbs(QbsRunParameters("resolve",
+                                     QStringList("modules.cpp.staticLibraryPrefix:prefix2"))), 0);
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("compiling lib.cpp"), 0);
+    QCOMPARE(m_qbsStdout.count("creating prefix2l"), 2);
+}
+
 static QJsonObject findByName(const QJsonArray &objects, const QString &name)
 {
     for (const QJsonValue v : objects) {

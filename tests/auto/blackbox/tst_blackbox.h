@@ -52,6 +52,7 @@ private slots:
     void changedFiles();
     void changeInDisabledProduct();
     void changeInImportedFile();
+    void changeTrackingAndMultiplexing();
     void checkProjectFilePath();
     void clean();
     void cli();
