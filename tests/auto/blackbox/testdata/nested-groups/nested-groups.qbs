@@ -3,8 +3,10 @@ import qbs
 CppApplication {
     consoleApplication: true
     Depends { name: "themodule" }
+    cpp.includePaths: ["subdir"]
     files: ["main.cpp"]
     Group {
+        prefix: "subdir/"
         cpp.defines: ["REQUIRED_FOR_FILE1", "BREAKS_FILE2"]
 
         fileTags: ["cpp"]

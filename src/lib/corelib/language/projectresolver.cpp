@@ -670,7 +670,11 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
             patterns.append(files.takeAt(i));
     }
     GroupPtr group = ResolvedGroup::create();
-    group->prefix = m_evaluator->stringValue(item, QLatin1String("prefix"));
+    bool prefixWasSet = false;
+    group->prefix = m_evaluator->stringValue(item, QLatin1String("prefix"), QString(),
+                                             &prefixWasSet);
+    if (!prefixWasSet && m_productContext->currentGroup)
+        group->prefix = m_productContext->currentGroup->prefix;
     if (!group->prefix.isEmpty()) {
         for (int i = files.count(); --i >= 0;)
                 files[i].prepend(group->prefix);

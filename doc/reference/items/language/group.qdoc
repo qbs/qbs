@@ -96,9 +96,9 @@
 
     Groups may also appear in modules, which causes the respective sources to be added to the
     products depending on said module.
-    Groups can be nested. In this case, child groups inherit the module properties and the file
-    tags of their parent group. The condition of a child group gets logically ANDed with the one
-    of its parent group.
+    Groups can be nested. In this case, child groups inherit the module properties and file
+    tags as well as the prefix of their parent group. The condition of a child group gets logically
+    ANDed with the one of its parent group.
 
     \section1 Group Properties
 
@@ -124,7 +124,7 @@
     \row
         \li prefix
         \li string
-        \li empty string
+        \li prefix of the parent group if one exists, otherwise empty
         \li A string to prepend to all files. Slashes are allowed and have directory semantics.
     \row
         \li fileTagsFilter
