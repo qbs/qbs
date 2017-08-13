@@ -207,10 +207,12 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
                                                      QLatin1String("platformsupport"));
             libs << platformSupportModule.libNameForLinker(qtEnv, debugBuild);
         }
-        flags << QLatin1String("-force_load")
-              << qtEnv.pluginPath + QLatin1String("/platforms/")
-                 + libBaseName(QLatin1String("libqios"), debugBuild, qtEnv)
-                 + QLatin1String(".a");
+        if (name == QStringLiteral("qios")) {
+            flags << QLatin1String("-force_load")
+                  << qtEnv.pluginPath + QLatin1String("/platforms/")
+                     + libBaseName(QLatin1String("libqios"), debugBuild, qtEnv)
+                     + QLatin1String(".a");
+        }
     }
 
     QString prlFilePath = isPlugin
