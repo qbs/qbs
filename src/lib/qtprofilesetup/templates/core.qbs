@@ -176,6 +176,8 @@ Module {
     cpp.minimumWindowsVersion: @minWinVersion@
     cpp.minimumMacosVersion: @minMacVersion@
     cpp.minimumIosVersion: @minIosVersion@
+    cpp.minimumTvosVersion: @minTvosVersion@
+    cpp.minimumWatchosVersion: @minWatchosVersion@
     cpp.minimumAndroidVersion: @minAndroidVersion@
 
     // Universal Windows Platform support

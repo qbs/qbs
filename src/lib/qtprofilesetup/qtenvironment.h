@@ -72,6 +72,8 @@ public:
     QString windowsVersion;
     QString macosVersion;
     QString iosVersion;
+    QString tvosVersion;
+    QString watchosVersion;
     QString androidVersion;
     int qtMajorVersion;
     int qtMinorVersion;

@@ -199,6 +199,8 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
     content->replace("@minWinVersion@", minVersionJsString(qtEnvironment.windowsVersion));
     content->replace("@minMacVersion@", minVersionJsString(qtEnvironment.macosVersion));
     content->replace("@minIosVersion@", minVersionJsString(qtEnvironment.iosVersion));
+    content->replace("@minTvosVersion@", minVersionJsString(qtEnvironment.tvosVersion));
+    content->replace("@minWatchosVersion@", minVersionJsString(qtEnvironment.watchosVersion));
     content->replace("@minAndroidVersion@", minVersionJsString(qtEnvironment.androidVersion));
 
     QByteArray propertiesString;
@@ -440,7 +442,42 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
         qtEnvironment.entryPointLibsRelease = fillEntryPointLibs(qtEnvironment, qtVersion, false);
     } else if (qtEnvironment.mkspecPath.contains(QLatin1String("macx"))) {
         if (qtEnvironment.qtMajorVersion >= 5) {
-            qtEnvironment.macosVersion = QLatin1String("10.6");
+            QFile qmakeConf(qtEnvironment.mkspecPath + QStringLiteral("/qmake.conf"));
+            if (qmakeConf.open(QIODevice::ReadOnly)) {
+                static const std::regex re(
+                            "^QMAKE_(MACOSX|IOS|TVOS|WATCHOS)_DEPLOYMENT_TARGET\\s*=\\s*(.*)\\s*$");
+                while (!qmakeConf.atEnd()) {
+                    std::smatch match;
+                    const auto line = qmakeConf.readLine().trimmed().toStdString();
+                    if (std::regex_match(line, match, re)) {
+                        const auto platform = QString::fromStdString(match[1]);
+                        const auto version = QString::fromStdString(match[2]);
+                        if (platform == QStringLiteral("MACOSX"))
+                            qtEnvironment.macosVersion = version;
+                        else if (platform == QStringLiteral("IOS"))
+                            qtEnvironment.iosVersion = version;
+                        else if (platform == QStringLiteral("TVOS"))
+                            qtEnvironment.tvosVersion = version;
+                        else if (platform == QStringLiteral("WATCHOS"))
+                            qtEnvironment.watchosVersion = version;
+                    }
+                }
+            }
+
+            const bool isMac = qtEnvironment.mkspecName != QStringLiteral("macx-ios-clang")
+                    && qtEnvironment.mkspecName != QStringLiteral("macx-tvos-clang")
+                    && qtEnvironment.mkspecName != QStringLiteral("macx-watchos-clang");
+            if (isMac) {
+                // Qt 5.0.x placed the minimum version in a different file
+                if (qtEnvironment.macosVersion.isEmpty()) {
+                    qtEnvironment.macosVersion = QLatin1String("10.6");
+                }
+
+                // If we're using C++11 with libc++, make sure the deployment target is >= 10.7
+                if (Version::fromString(qtEnvironment.macosVersion) < Version(10, 7)
+                        && qtEnvironment.qtConfigItems.contains(QLatin1String("c++11")))
+                    qtEnvironment.macosVersion = QLatin1String("10.7");
+            }
         } else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 6) {
             QDir qconfigDir;
             if (qtEnvironment.frameworkBuild) {
@@ -475,17 +512,7 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
                                                  "whether Qt is using Cocoa or Carbon"));
             }
         }
-
-        if (qtEnvironment.qtConfigItems.contains(QLatin1String("c++11")))
-            qtEnvironment.macosVersion = QLatin1String("10.7");
-    }
-
-    if (qtEnvironment.mkspecPath.contains(QLatin1String("ios"))
-            && qtEnvironment.qtMajorVersion >= 5) {
-        qtEnvironment.iosVersion = QLatin1String("5.0");
-    }
-
-    if (qtEnvironment.mkspecPath.contains(QLatin1String("android"))) {
+    } else if (qtEnvironment.mkspecPath.contains(QLatin1String("android"))) {
         if (qtEnvironment.qtMajorVersion >= 5)
             qtEnvironment.androidVersion = QLatin1String("2.3");
         else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 8)
