@@ -28,7 +28,7 @@
 **
 ****************************************************************************/
 
-var ModUtils = loadExtension("qbs.ModUtils");
+var ModUtils = require("qbs.ModUtils");
 
 function args(product, input, outputFileName)
 {
