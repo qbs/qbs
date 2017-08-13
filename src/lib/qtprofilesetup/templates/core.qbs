@@ -8,10 +8,11 @@ import "moc.js" as Moc
 import "qdoc.js" as Qdoc
 
 Module {
-    condition: (!qbs.architecture || architecture === qbs.architecture) &&
+    condition: (!qbs.architecture || architectures.contains(qbs.architecture)) &&
                (qbs.targetPlatform === targetPlatform || isCombinedUIKitBuild)
 
     readonly property bool isCombinedUIKitBuild: ["ios", "tvos", "watchos"].contains(targetPlatform)
+        && ["x86", "x86_64"].contains(qbs.architecture)
         && qbs.targetPlatform === targetPlatform + "-simulator"
 
     id: qtcore
@@ -19,7 +20,7 @@ Module {
     Depends { name: "cpp" }
 
     version: @version@
-    property string architecture: @arch@
+    property stringList architectures: @archs@
     property string targetPlatform: @targetPlatform@
     property string libInfix: @libInfix@
     property stringList config: @config@

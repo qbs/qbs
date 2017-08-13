@@ -23,7 +23,7 @@ QtModule {
     readonly property string pluginListFilePathRelease: product.buildDirectory + "/plugins.list"
 
     hasLibrary: @has_library@
-    architecture: @arch@
+    architectures: @archs@
     targetPlatform: @targetPlatform@
     staticLibsDebug: (isStaticLibrary ? ['@' + pluginListFilePathDebug] : []).concat(@staticLibsDebug@)
     staticLibsRelease: (isStaticLibrary ? ['@' + pluginListFilePathRelease] : []).concat(@staticLibsRelease@)
