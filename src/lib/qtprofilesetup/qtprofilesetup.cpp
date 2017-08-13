@@ -159,6 +159,8 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
         const QtModuleInfo &module, const QtEnvironment &qtEnvironment)
 {
     content->replace("@arch@", utf8JSLiteral(extractQbsArch(qtEnvironment)));
+    content->replace("@targetPlatform@", utf8JSLiteral(qbsTargetPlatformFromQtMkspec(
+                                                           qtEnvironment.mkspecName)));
     content->replace("@config@", utf8JSLiteral(qtEnvironment.configItems));
     content->replace("@qtConfig@", utf8JSLiteral(qtEnvironment.qtConfigItems));
     content->replace("@binPath@", utf8JSLiteral(qtEnvironment.binaryPath));
@@ -526,6 +528,52 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
         qtEnvironment.hasQtQuickCompiler = true;
     }
     createModules(profile, settings, qtEnvironment);
+}
+
+QString qbsTargetPlatformFromQtMkspec(const QString &mkspec)
+{
+    if (mkspec.startsWith(QLatin1String("aix-")))
+        return QLatin1String("aix");
+    if (mkspec.startsWith(QLatin1String("android-")))
+        return QLatin1String("android");
+    if (mkspec.startsWith(QLatin1String("cygwin-")))
+        return QLatin1String("windows");
+    if (mkspec.startsWith(QLatin1String("darwin-")))
+        return QLatin1String("macos");
+    if (mkspec.startsWith(QLatin1String("freebsd-")))
+        return QLatin1String("freebsd");
+    if (mkspec.startsWith(QLatin1String("haiku-")))
+        return QLatin1String("haiku");
+    if (mkspec.startsWith(QLatin1String("hpux-")) || mkspec.startsWith(QLatin1String("hpuxi-")))
+        return QLatin1String("hpux");
+    if (mkspec.startsWith(QLatin1String("hurd-")))
+        return QLatin1String("hurd");
+    if (mkspec.startsWith(QLatin1String("integrity-")))
+        return QLatin1String("integrity");
+    if (mkspec.startsWith(QLatin1String("linux-")))
+        return QLatin1String("linux");
+    if (mkspec.startsWith(QLatin1String("macx-"))) {
+        if (mkspec.startsWith(QLatin1String("macx-ios-")))
+            return QLatin1String("ios");
+        if (mkspec.startsWith(QLatin1String("macx-tvos-")))
+            return QLatin1String("tvos");
+        if (mkspec.startsWith(QLatin1String("macx-watchos-")))
+            return QLatin1String("watchos");
+        return QLatin1String("macos");
+    }
+    if (mkspec.startsWith(QLatin1String("netbsd-")))
+        return QLatin1String("netbsd");
+    if (mkspec.startsWith(QLatin1String("openbsd-")))
+        return QLatin1String("openbsd");
+    if (mkspec.startsWith(QLatin1String("qnx-")))
+        return QLatin1String("qnx");
+    if (mkspec.startsWith(QLatin1String("solaris-")))
+        return QLatin1String("solaris");
+    if (mkspec.startsWith(QLatin1String("vxworks-")))
+        return QLatin1String("vxworks");
+    if (mkspec.startsWith(QLatin1String("win32-")) || mkspec.startsWith(QLatin1String("winrt-")))
+        return QLatin1String("windows");
+    return QString();
 }
 
 ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,

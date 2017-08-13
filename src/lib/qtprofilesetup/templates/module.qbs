@@ -6,6 +6,7 @@ QtModule {
     Depends { name: "Qt"; submodules: @dependencies@}
 
     architecture: @arch@
+    targetPlatform: @targetPlatform@
     hasLibrary: @has_library@
     staticLibsDebug: @staticLibsDebug@
     staticLibsRelease: @staticLibsRelease@

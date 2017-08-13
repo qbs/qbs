@@ -24,6 +24,7 @@ QtModule {
 
     hasLibrary: @has_library@
     architecture: @arch@
+    targetPlatform: @targetPlatform@
     staticLibsDebug: (isStaticLibrary ? ['@' + pluginListFilePathDebug] : []).concat(@staticLibsDebug@)
     staticLibsRelease: (isStaticLibrary ? ['@' + pluginListFilePathRelease] : []).concat(@staticLibsRelease@)
     dynamicLibsDebug: @dynamicLibsDebug@

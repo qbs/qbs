@@ -8,7 +8,11 @@ import "moc.js" as Moc
 import "qdoc.js" as Qdoc
 
 Module {
-    condition: !qbs.architecture || architecture === qbs.architecture
+    condition: (!qbs.architecture || architecture === qbs.architecture) &&
+               (qbs.targetPlatform === targetPlatform || isCombinedUIKitBuild)
+
+    readonly property bool isCombinedUIKitBuild: ["ios", "tvos", "watchos"].contains(targetPlatform)
+        && qbs.targetPlatform === targetPlatform + "-simulator"
 
     id: qtcore
 
@@ -16,6 +20,7 @@ Module {
 
     version: @version@
     property string architecture: @arch@
+    property string targetPlatform: @targetPlatform@
     property string libInfix: @libInfix@
     property stringList config: @config@
     property stringList qtConfig: @qtConfig@

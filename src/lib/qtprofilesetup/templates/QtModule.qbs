@@ -2,7 +2,12 @@ import qbs 1.0
 import qbs.FileInfo
 
 Module {
-    condition: !qbs.architecture || architecture === qbs.architecture
+    condition: (qbs.targetPlatform === targetPlatform || isCombinedUIKitBuild)
+               && (!qbs.architecture
+                   || architecture === qbs.architecture)
+
+    readonly property bool isCombinedUIKitBuild: ["ios", "tvos", "watchos"].contains(targetPlatform)
+        && qbs.targetPlatform === targetPlatform + "-simulator"
 
     Depends { name: "cpp" }
     Depends { name: "Qt.core" }
@@ -26,6 +31,7 @@ Module {
     property bool isPlugin: false
 
     property string architecture
+    property string targetPlatform
     property stringList staticLibsDebug
     property stringList staticLibsRelease
     property stringList dynamicLibsDebug

@@ -43,11 +43,13 @@
 
 #include <tools/qbs_export.h>
 
-#include <QtCore/qstringlist.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 class ErrorInfo;
 class Settings;
+
+QBS_EXPORT QString qbsTargetPlatformFromQtMkspec(const QString &mkspec);
 
 QBS_EXPORT ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
                                     const QtEnvironment &qtEnvironment);

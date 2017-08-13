@@ -7,6 +7,7 @@ QtPlugin {
 
     className: @className@
     architecture: @arch@
+    targetPlatform: @targetPlatform@
     staticLibsDebug: @staticLibsDebug@
     staticLibsRelease: @staticLibsRelease@
     dynamicLibsDebug: @dynamicLibsDebug@

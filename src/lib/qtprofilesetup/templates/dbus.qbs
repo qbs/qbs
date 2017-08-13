@@ -48,6 +48,7 @@ QtModule {
     }
 
     architecture: @arch@
+    targetPlatform: @targetPlatform@
     staticLibsDebug: @staticLibsDebug@
     staticLibsRelease: @staticLibsRelease@
     dynamicLibsDebug: @dynamicLibsDebug@
