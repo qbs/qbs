@@ -182,14 +182,14 @@ UnixGCC {
 
         // Set the corresponding environment variable even if the minimum OS version is undefined,
         // because this indicates the default deployment target for that OS
-        if (qbs.targetOS.contains("ios"))
-            env["IPHONEOS_DEPLOYMENT_TARGET"] = minimumIosVersion || "";
-        if (qbs.targetOS.contains("macos"))
-            env["MACOSX_DEPLOYMENT_TARGET"] = minimumMacosVersion || "";
-        if (qbs.targetOS.contains("watchos"))
-            env["WATCHOS_DEPLOYMENT_TARGET"] = minimumWatchosVersion || "";
-        if (qbs.targetOS.contains("tvos"))
-            env["TVOS_DEPLOYMENT_TARGET"] = minimumTvosVersion || "";
+        if (qbs.targetOS.contains("ios") && minimumIosVersion)
+            env["IPHONEOS_DEPLOYMENT_TARGET"] = minimumIosVersion;
+        if (qbs.targetOS.contains("macos") && minimumMacosVersion)
+            env["MACOSX_DEPLOYMENT_TARGET"] = minimumMacosVersion;
+        if (qbs.targetOS.contains("watchos") && minimumWatchosVersion)
+            env["WATCHOS_DEPLOYMENT_TARGET"] = minimumWatchosVersion;
+        if (qbs.targetOS.contains("tvos") && minimumTvosVersion)
+            env["TVOS_DEPLOYMENT_TARGET"] = minimumTvosVersion;
 
         if (xcode.present)
             env["TARGETED_DEVICE_FAMILY"] = DarwinTools.targetedDeviceFamily(xcode.targetDevices);
