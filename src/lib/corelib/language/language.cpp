@@ -1180,14 +1180,18 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
     QDirIterator it(baseDir, QStringList(filePattern), itFilters, itFlags);
     while (it.hasNext()) {
         const QString filePath = it.next();
-        if (it.fileInfo().dir().path().startsWith(buildDir))
+        const QString parentDir = it.fileInfo().dir().path();
+        if (parentDir.startsWith(buildDir))
             continue; // See above.
         if (!isDir && it.fileInfo().isDir() && !it.fileInfo().isSymLink())
             continue;
-        if (isDir)
+        if (isDir) {
             expandPatterns(result, group, changed_parts, filePath, buildDir);
-        else
+        } else {
+            if (parentDir != baseDir)
+                dirTimeStamps.push_back({parentDir, FileInfo(baseDir).lastModified()});
             result += QDir::cleanPath(filePath);
+        }
     }
 }
 

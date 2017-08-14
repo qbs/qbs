@@ -123,14 +123,19 @@ inline void waitForNewTimestamp(const QString &testDir)
         if (!f1.open())
             qFatal("Failed to open temp file");
         const QDateTime initialTime = QFileInfo(f1).lastModified();
-        while (true) {
-            QTest::qWait(50);
+        int totalMsPassed = 0;
+        while (totalMsPassed <= 2000) {
+            static const int increment = 50;
+            QTest::qWait(increment);
+            totalMsPassed += increment;
             QTemporaryFile f2(nameTemplate);
             if (!f2.open())
                 qFatal("Failed to open temp file");
             if (QFileInfo(f2).lastModified() > initialTime)
-                break;
+                return;
         }
+        qWarning("Got no new timestamp after two seconds, going ahead anyway. Subsequent "
+                 "test failure might not be genuine.");
     }
 }
 

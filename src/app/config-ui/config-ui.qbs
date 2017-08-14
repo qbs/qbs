@@ -26,6 +26,8 @@ QbsApp {
         cpp.frameworks: ["ApplicationServices", "Cocoa"]
     }
 
-    Depends { name: "bundle" }
-    bundle.isBundle: false
+    Properties {
+        condition: qbs.targetOS.contains("darwin")
+        bundle.isBundle: false
+    }
 }

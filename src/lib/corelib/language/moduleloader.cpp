@@ -1842,10 +1842,8 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
         bool hasDefiningItem = false;
         for (ValueConstPtr v = propValue; v && !hasDefiningItem; v = v->next())
             hasDefiningItem = v->definingItem();
-        if (!hasDefiningItem) {
-            QBS_CHECK(decl.isScalar() || instanceWithProperty == modulePrototype);
+        if (!hasDefiningItem)
             continue;
-        }
 
         const ValuePtr clonedValue = propValue->clone();
         for (ValuePtr v = clonedValue; v; v = v->next()) {

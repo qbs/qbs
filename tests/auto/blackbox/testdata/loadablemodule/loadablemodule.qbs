@@ -3,8 +3,10 @@ import qbs
 Project {
     LoadableModule {
         Depends { name: "cpp" }
-        Depends { name: "bundle" }
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         name: "CoolPlugIn"
         files: ["exported.cpp", "exported.h"]
 
@@ -17,8 +19,7 @@ Project {
     CppApplication {
         Depends { name: "cpp" }
         Depends { name: "CoolPlugIn"; cpp.link: false }
-        Depends { name: "bundle" }
-        bundle.isBundle: false
+        consoleApplication: true
         name: "CoolApp"
         files: ["main.cpp"]
 

@@ -66,15 +66,15 @@ public:
 
     struct ChildData
     {
-        ChildData(const QString &n = QString(), const QString &p = QString(),
+        ChildData(const QString &n = QString(), const QString &m = QString(),
                   const QString &c = QString(), bool byScanner = false)
-            : productName(n), productProfile(p), childFilePath(c), addedByScanner(byScanner)
+            : productName(n), productMultiplexId(m), childFilePath(c), addedByScanner(byScanner)
         {}
 
         void load(PersistentPool &pool)
         {
             pool.load(productName);
-            pool.load(productProfile);
+            pool.load(productMultiplexId);
             pool.load(childFilePath);
             pool.load(addedByScanner);
         }
@@ -82,13 +82,13 @@ public:
         void store(PersistentPool &pool) const
         {
             pool.store(productName);
-            pool.store(productProfile);
+            pool.store(productMultiplexId);
             pool.store(childFilePath);
             pool.store(addedByScanner);
         }
 
         QString productName;
-        QString productProfile;
+        QString productMultiplexId;
         QString childFilePath;
         bool addedByScanner;
     };

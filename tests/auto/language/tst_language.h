@@ -124,6 +124,8 @@ private slots:
     void nonRequiredProducts();
     void nonRequiredProducts_data();
     void outerInGroup();
+    void overriddenPropertiesAndPrototypes();
+    void overriddenPropertiesAndPrototypes_data();
     void parameterTypes();
     void pathProperties();
     void productConditions();

@@ -7,7 +7,10 @@ Project {
         name: "lib1"
         destinationDirectory: project.libDir
         Depends { name: "cpp" }
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         files: ["lib1.cpp"]
     }
     StaticLibrary {
@@ -15,7 +18,10 @@ Project {
         destinationDirectory: project.libDir
         Depends { name: "cpp" }
         Depends { name: "lib1" }
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         files: ["lib2.cpp"]
     }
     CppApplication {

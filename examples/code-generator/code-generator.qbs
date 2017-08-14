@@ -53,8 +53,8 @@ Project {
     // A code generator that outputs a "Hello World" C++ program.
     CppApplication {
         name: "hwgen"
+        consoleApplication: true
         files: ["hwgen.cpp"]
-        bundle.isBundle: false
     }
 
     // Generate and build a hello-world application.

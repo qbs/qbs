@@ -8,7 +8,8 @@ Project {
         Depends { name: "Qt"; submodules: ["core", "gui", "widgets"] }
 
         name: "window"
-        targetName: bundle.isBundle ? "Window" : "window"
+        property bool isBundle: qbs.targetOS.contains("darwin") && bundle.isBundle
+        targetName: isBundle ? "Window" : "window"
         files: [
             "main.cpp",
             "assetcatalog1.xcassets",
@@ -19,9 +20,9 @@ Project {
         ]
 
         Group {
-            fileTagsFilter: bundle.isBundle ? ["bundle.content"] : ["application"]
+            fileTagsFilter: isBundle ? ["bundle.content"] : ["application"]
             qbs.install: true
-            qbs.installDir: bundle.isBundle ? "Applications" : (qbs.targetOS.contains("windows") ? "" : "bin")
+            qbs.installDir: isBundle ? "Applications" : (qbs.targetOS.contains("windows") ? "" : "bin")
             qbs.installSourceBase: product.buildDirectory
         }
     }
@@ -30,13 +31,14 @@ Project {
         Depends { name: "cpp" }
 
         name: "coreutils"
-        targetName: bundle.isBundle ? "CoreUtils" : "coreutils"
+        property bool isBundle: qbs.targetOS.contains("darwin") && bundle.isBundle
+        targetName: isBundle ? "CoreUtils" : "coreutils"
         files: ["coreutils.cpp", "coreutils.h"]
 
         Group {
-            fileTagsFilter: bundle.isBundle ? ["bundle.content"] : ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_import"]
+            fileTagsFilter: isBundle ? ["bundle.content"] : ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_import"]
             qbs.install: true
-            qbs.installDir: bundle.isBundle ? "Library/Frameworks" : (qbs.targetOS.contains("windows") ? "" : "lib")
+            qbs.installDir: isBundle ? "Library/Frameworks" : (qbs.targetOS.contains("windows") ? "" : "lib")
             qbs.installSourceBase: product.buildDirectory
         }
     }

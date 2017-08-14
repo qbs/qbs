@@ -20,7 +20,10 @@ Project {
         files : [ "dynamic1.cpp" ]
         Depends { name: "cpp" }
         Depends { name: "static2" }
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
     }
 
     StaticLibrary {
@@ -35,7 +38,10 @@ Project {
         files: [ "dynamic2.cpp" ]
         Depends { name: "cpp" }
         cpp.visibility: 'hidden'
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
     }
 }
 

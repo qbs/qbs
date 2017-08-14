@@ -32,21 +32,30 @@ Project {
         files : [ "testa.s" ]
         Depends { name: "cpp" }
         condition: qbs.toolchain.contains("gcc")
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
     }
     StaticLibrary {
         name : "testb"
         files : [ "testb.S" ]
         Depends { name: "cpp" }
         condition: qbs.toolchain.contains("gcc")
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
     }
     StaticLibrary {
         name : "testc"
         files : [ "testc.sx" ]
         Depends { name: "cpp" }
         condition: qbs.toolchain.contains("gcc")
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
     }
     StaticLibrary {
         name: "testd"
@@ -57,7 +66,10 @@ Project {
         Depends { name: "cpp" }
         condition: qbs.toolchain.contains("msvc")
                    && (qbs.architecture === "x86" || qbs.architecture === "x86_64")
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
     }
 }
 

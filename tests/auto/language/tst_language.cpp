@@ -1360,7 +1360,7 @@ void TestLanguage::modulePropertiesInGroups()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        const ResolvedProductPtr product = products.value("grouptest");
+        ResolvedProductPtr product = products.value("grouptest");
         QVERIFY(!!product);
         GroupConstPtr g1;
         GroupConstPtr g11;
@@ -1537,6 +1537,27 @@ void TestLanguage::modulePropertiesInGroups()
         QEXPECT_FAIL(0, "re-eval not triggered", Continue);
         QCOMPARE(g211Gmod2List, QStringList() << "g2.1.1" << "commonName_in_gmod1"
                  << "g2.1.1_gmod4_g2.1.1_gmod3" << "g2.1.1_gmod3" << "gmod2_list_proto");
+
+        product = products.value("grouptest2");
+        QVERIFY(!!product);
+        g1.reset();
+        g11.reset();
+        foreach (const GroupConstPtr &g, product->groups) {
+            if (g->name == "g1")
+                g1= g;
+            else if (g->name == "g1.1")
+                g11 = g;
+        }
+        QVERIFY(!!g1);
+        QVERIFY(!!g11);
+        QCOMPARE(moduleProperty(g1->properties->value(), "gmod.gmod1", "gmod1_list2")
+                 .toStringList(), QStringList({"G1"}));
+        QCOMPARE(moduleProperty(g11->properties->value(), "gmod.gmod1", "gmod1_list2")
+                 .toStringList(),
+                 moduleProperty(g1->properties->value(), "gmod.gmod1", "gmod1_list2")
+                 .toStringList());
+        QCOMPARE(moduleProperty(g11->properties->value(), "gmod.gmod1", "gmod1_string").toString(),
+                 QString("G1.1"));
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
@@ -1550,9 +1571,11 @@ void TestLanguage::modulePropertyOverridesPerProduct()
     try {
         SetupProjectParameters params = defaultParameters;
         params.setOverriddenValues({
+                std::make_pair("modules.dummy.rpaths", QStringList({"/usr/lib"})),
                 std::make_pair("modules.dummy.someString", "m"),
                 std::make_pair("products.b.dummy.someString", "b"),
-                std::make_pair("products.c.dummy.someString", "c")
+                std::make_pair("products.c.dummy.someString", "c"),
+                std::make_pair("products.c.dummy.rpaths", QStringList({"/home", "/tmp"}))
         });
         params.setProjectFilePath(
                     testProject("module-property-overrides-per-product.qbs"));
@@ -1567,14 +1590,28 @@ void TestLanguage::modulePropertyOverridesPerProduct()
         const ResolvedProductConstPtr c = products.value("c");
         QVERIFY(!!c);
 
-        const auto propertyValue = [](const ResolvedProductConstPtr &p) -> QString
+        const auto stringPropertyValue = [](const ResolvedProductConstPtr &p) -> QString
         {
             return p->moduleProperties->moduleProperty("dummy", "someString").toString();
         };
+        const auto listPropertyValue = [](const ResolvedProductConstPtr &p) -> QStringList
+        {
+            return p->moduleProperties->moduleProperty("dummy", "rpaths").toStringList();
+        };
+        const auto productPropertyValue = [](const ResolvedProductConstPtr &p) -> QStringList
+        {
+            return p->productProperties.value("rpaths").toStringList();
+        };
 
-        QCOMPARE(propertyValue(a), QString("m"));
-        QCOMPARE(propertyValue(b), QString("b"));
-        QCOMPARE(propertyValue(c), QString("c"));
+        QCOMPARE(stringPropertyValue(a), QString("m"));
+        QCOMPARE(stringPropertyValue(b), QString("b"));
+        QCOMPARE(stringPropertyValue(c), QString("c"));
+        QCOMPARE(listPropertyValue(a), QStringList({"/usr/lib"}));
+        QCOMPARE(listPropertyValue(b), QStringList({"/usr/lib"}));
+        QCOMPARE(listPropertyValue(c), QStringList({"/home", "/tmp"}));
+        QCOMPARE(listPropertyValue(a), productPropertyValue(a));
+        QCOMPARE(listPropertyValue(b), productPropertyValue(b));
+        QCOMPARE(listPropertyValue(c), productPropertyValue(c));
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -1777,6 +1814,36 @@ void TestLanguage::outerInGroup()
         qDebug() << e.toString();
     }
     QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::overriddenPropertiesAndPrototypes()
+{
+    bool exceptionCaught = false;
+    try {
+        QFETCH(QString, osName);
+        QFETCH(QString, backendName);
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("overridden-properties-and-prototypes.qbs"));
+        params.setOverriddenValues({std::make_pair("modules.qbs.targetOS", osName)});
+        TopLevelProjectConstPtr project = loader->loadProject(params);
+        QVERIFY(!!project);
+        QCOMPARE(project->products.count(), 1);
+        QCOMPARE(project->products.first()->moduleProperties->moduleProperty(
+                     "multiple-backends", "prop").toString(), backendName);
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::overriddenPropertiesAndPrototypes_data()
+{
+    QTest::addColumn<QString>("osName");
+    QTest::addColumn<QString>("backendName");
+    QTest::newRow("first backend") << "os1" << "backend 1";
+    QTest::newRow("second backend") << "os2" << "backend 2";
 }
 
 void TestLanguage::parameterTypes()

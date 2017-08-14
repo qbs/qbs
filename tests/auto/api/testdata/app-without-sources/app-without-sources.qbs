@@ -24,6 +24,7 @@ Project {
 
     CppApplication {
         name: "appWithoutSources"
+        consoleApplication: true
 
         // HACK: cpp.entryPoint currently not working 100% with gcc
         Properties {
@@ -31,7 +32,6 @@ Project {
             cpp.entryPoint: "main"
         }
         cpp.entryPoint: undefined
-        bundle.isBundle: false
 
         Depends { name: "a" }
         Depends { name: "b" }

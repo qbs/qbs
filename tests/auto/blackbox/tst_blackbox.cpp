@@ -609,6 +609,19 @@ void TestBlackbox::changeInImportedFile()
     QVERIFY2(!m_qbsStdout.contains("output"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::changeTrackingAndMultiplexing()
+{
+    QDir::setCurrent(testDataDir + "/change-tracking-and-multiplexing");
+    QCOMPARE(runQbs(QStringList("modules.cpp.staticLibraryPrefix:prefix1")), 0);
+    QCOMPARE(m_qbsStdout.count("compiling lib.cpp"), 2);
+    QCOMPARE(m_qbsStdout.count("creating prefix1l"), 2);
+    QCOMPARE(runQbs(QbsRunParameters("resolve",
+                                     QStringList("modules.cpp.staticLibraryPrefix:prefix2"))), 0);
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("compiling lib.cpp"), 0);
+    QCOMPARE(m_qbsStdout.count("creating prefix2l"), 2);
+}
+
 static QJsonObject findByName(const QJsonArray &objects, const QString &name)
 {
     for (const QJsonValue v : objects) {
@@ -1536,6 +1549,28 @@ void TestBlackbox::recursiveWildcards()
     QCOMPARE(runQbs(QbsRunParameters("install")), 0);
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file1.txt").exists());
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file2.txt").exists());
+    QFile outputFile(defaultInstallRoot + "/output.txt");
+    QVERIFY2(outputFile.open(QIODevice::ReadOnly), qPrintable(outputFile.errorString()));
+    QCOMPARE(outputFile.readAll(), QByteArray("file1.txtfile2.txt"));
+    outputFile.close();
+    WAIT_FOR_NEW_TIMESTAMP();
+    QFile newFile("dir/subdir/file3.txt");
+    QVERIFY2(newFile.open(QIODevice::WriteOnly), qPrintable(newFile.errorString()));
+    newFile.close();
+    QCOMPARE(runQbs(QbsRunParameters("install")), 0);
+    QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file3.txt").exists());
+    QVERIFY2(outputFile.open(QIODevice::ReadOnly), qPrintable(outputFile.errorString()));
+    QCOMPARE(outputFile.readAll(), QByteArray("file1.txtfile2.txtfile3.txt"));
+    outputFile.close();
+    WAIT_FOR_NEW_TIMESTAMP();
+    QVERIFY2(newFile.remove(), qPrintable(newFile.errorString()));
+    QVERIFY2(!newFile.exists(), qPrintable(newFile.fileName()));
+    QCOMPARE(runQbs(QbsRunParameters("install", QStringList{ "--clean-install-root"})), 0);
+    QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file1.txt").exists());
+    QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file2.txt").exists());
+    QVERIFY(!QFileInfo(defaultInstallRoot + "/dir/file3.txt").exists());
+    QVERIFY2(outputFile.open(QIODevice::ReadOnly), qPrintable(outputFile.errorString()));
+    QCOMPARE(outputFile.readAll(), QByteArray("file1.txtfile2.txt"));
 }
 
 void TestBlackbox::referenceErrorInExport()

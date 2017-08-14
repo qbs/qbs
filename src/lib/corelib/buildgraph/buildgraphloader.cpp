@@ -1044,7 +1044,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
             const ChildrenInfo &childrenInfo = childLists.value(oldArtifact);
             for (Artifact * const child : qAsConst(childrenInfo.children)) {
                 rad.children << RescuableArtifactData::ChildData(child->product->name,
-                        child->product->profile, child->filePath(),
+                        child->product->multiplexConfigurationId, child->filePath(),
                         childrenInfo.childrenAddedByScanner.contains(child));
             }
             newlyResolvedProduct->buildData->rescuableArtifactData.insert(

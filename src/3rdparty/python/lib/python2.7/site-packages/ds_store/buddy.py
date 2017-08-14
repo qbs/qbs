@@ -158,7 +158,7 @@ class Allocator(object):
         count = self._root.read('>I')[0]
         for n in range(count):
             nlen = self._root.read('B')[0]
-            name = str(self._root.read(nlen))
+            name = bytes(self._root.read(nlen))
             value = self._root.read('>I')[0]
             self._toc[name] = value
 
@@ -347,9 +347,8 @@ class Allocator(object):
 
         block.write('>I', len(keys))
         for k in keys:
-            b = k.encode('utf-8')
-            block.write('B', len(b))
-            block.write(b)
+            block.write('B', len(k))
+            block.write(k)
             block.write('>I', self._toc[k])
 
         # Free list
@@ -445,17 +444,23 @@ class Allocator(object):
     def __getitem__(self, key):
         if not isinstance(key, (str, unicode)):
             raise TypeError('Keys must be of string type')
+        if not isinstance(key, bytes):
+            key = key.encode('latin_1')
         return self._toc[key]
 
     def __setitem__(self, key, value):
         if not isinstance(key, (str, unicode)):
             raise TypeError('Keys must be of string type')
+        if not isinstance(key, bytes):
+            key = key.encode('latin_1')
         self._toc[key] = value
         self._dirty = True
 
     def __delitem__(self, key):
         if not isinstance(key, (str, unicode)):
             raise TypeError('Keys must be of string type')
+        if not isinstance(key, bytes):
+            key = key.encode('latin_1')
         del self._toc[key]
         self._dirty = True
 
@@ -464,7 +469,7 @@ class Allocator(object):
 
     def keys(self):
         return iterkeys(self._toc)
-        
+
     def __iter__(self):
         return iterkeys(self._toc)
 

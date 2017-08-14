@@ -5,7 +5,10 @@ Project {
         name: "theLib"
         destinationDirectory: project.buildDirectory
         Depends { name: "cpp" }
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         files: ["lib.cpp"]
     }
     CppApplication {

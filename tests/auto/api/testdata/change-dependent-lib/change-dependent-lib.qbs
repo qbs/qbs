@@ -18,7 +18,11 @@ Project {
         }
         Depends { name: "cpp" }
         cpp.defines: ["XXXX"]
-        bundle.isBundle: false
+
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
     }
 }
 

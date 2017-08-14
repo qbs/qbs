@@ -5,7 +5,10 @@ Project {
     DynamicLibrary {
         Depends { name: "cpp" }
         Depends { name: "car_jar" }
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
 
         name: "native"
         files: ["engine.c"]

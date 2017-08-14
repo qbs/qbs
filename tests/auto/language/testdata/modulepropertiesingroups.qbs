@@ -70,4 +70,16 @@ Project {
             }
         }
     }
+    Product {
+        name: "grouptest2"
+        Depends { name: "gmod.gmod1" }
+        Group {
+            name: "g1"
+            gmod.gmod1.gmod1_list2: ["G1"]
+            Group {
+                name: "g1.1"
+                gmod.gmod1.gmod1_string: "G1.1"
+            }
+        }
+    }
 }

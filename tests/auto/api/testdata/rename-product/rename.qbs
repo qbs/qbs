@@ -12,6 +12,9 @@ Project {
         Depends { name: "cpp" }
         cpp.defines: "MY_EXPORT=EXPORT"
         files: "lib.cpp"
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
     }
 }

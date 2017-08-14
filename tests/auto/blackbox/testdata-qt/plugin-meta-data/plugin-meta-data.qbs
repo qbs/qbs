@@ -24,7 +24,10 @@ Project {
         Depends { name: "cpp" }
         Depends { name: "Qt.core" }
 
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         cpp.defines: [Qt.core.staticBuild ? "QT_STATICPLUGIN" : "QT_PLUGIN"]
         cpp.cxxLanguageVersion: "c++11"
         cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
