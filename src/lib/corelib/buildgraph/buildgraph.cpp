@@ -334,13 +334,7 @@ bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode *> &pat
 }
 
 /*
- *  c must be built before p
- *  p ----> c
- *  p.children = c
- *  c.parents = p
- *
- * also:  children means i depend on or i am produced by
- *        parent means "produced by me" or "depends on me"
+ * Creates the build graph edge p -> c, which represents the dependency "c must be built before p".
  */
 void connect(BuildGraphNode *p, BuildGraphNode *c)
 {
