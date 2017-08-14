@@ -75,7 +75,6 @@ void dumpProductBuildData(const ResolvedProductConstPtr &product);
 
 bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode*> &path);
 void QBS_AUTOTEST_EXPORT connect(BuildGraphNode *p, BuildGraphNode *c);
-void connect(BuildGraphNode *c, BuildGraphNode *p);
 bool safeConnect(Artifact *u, Artifact *v);
 void removeGeneratedArtifactFromDisk(Artifact *artifact, const Logger &logger);
 void removeGeneratedArtifactFromDisk(const QString &filePath, const Logger &logger);
