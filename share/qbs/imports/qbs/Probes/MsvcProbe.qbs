@@ -77,7 +77,7 @@ PathProbe {
         versionMinor = parseInt(ver.substr(2, 2), 10);
         versionPatch = parseInt(ver.substr(4), 10);
 
-        buildEnv = info.buildEnvironment;
+        buildEnv = info.buildEnvironment || infoCpp.buildEnvironment;
         var clParentDir = FileInfo.joinPaths(FileInfo.path(compilerFilePath), "..");
         var inclPath = FileInfo.joinPaths(clParentDir, "INCLUDE");
         if (!File.exists(inclPath))
