@@ -1740,7 +1740,7 @@ void TestLanguage::overriddenPropertiesAndPrototypes()
         params.setProjectFilePath(testProject("overridden-properties-and-prototypes.qbs"));
         params.setOverriddenValues({std::make_pair("modules.qbs.targetOS", osName)});
         TopLevelProjectConstPtr project = loader->loadProject(params);
-        QVERIFY(project);
+        QVERIFY(!!project);
         QCOMPARE(project->products.count(), 1);
         QCOMPARE(project->products.first()->moduleProperties->moduleProperty(
                      "multiple-backends", "prop").toString(), backendName);
