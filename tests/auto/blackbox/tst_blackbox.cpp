@@ -797,6 +797,129 @@ void TestBlackbox::usingsAsSoleInputsNonMultiplexed()
     QVERIFY(regularFileExists(p3BuildDir + "/custom2.out.plus"));
 }
 
+void TestBlackbox::vcsGit()
+{
+    const QString gitFilePath = findExecutable(QStringList("git"));
+    if (gitFilePath.isEmpty())
+        QSKIP("git not found");
+
+    QDir::setCurrent(testDataDir + "/vcs");
+
+    // Set up repo.
+    QProcess git;
+    git.start(gitFilePath, QStringList("init"));
+    QVERIFY2(git.waitForStarted(), qPrintable(git.errorString()));
+    QVERIFY2(git.waitForFinished(), qPrintable(git.errorString()));
+
+    // First qbs run fails: No git metadata yet.
+    QbsRunParameters failParams;
+    failParams.expectFailure = true;
+    QVERIFY(runQbs(failParams) != 0);
+
+    // Initial commit
+    git.start(gitFilePath, QStringList({"add", "main.cpp"}));
+    QVERIFY2(git.waitForStarted(), qPrintable(git.errorString()));
+    QVERIFY2(git.waitForFinished(), qPrintable(git.errorString()));
+    git.start(gitFilePath, QStringList({"commit", "-m", "initial commit"}));
+    QVERIFY2(git.waitForStarted(), qPrintable(git.errorString()));
+    QVERIFY2(git.waitForFinished(), qPrintable(git.errorString()));
+
+    // Initial run.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+
+    // Run with no changes.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+
+    // Run with changed source file.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("main.cpp");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+
+    // Add new file to repo.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("blubb.txt");
+    git.start(gitFilePath, QStringList({"add", "blubb.txt"}));
+    QVERIFY2(git.waitForStarted(), qPrintable(git.errorString()));
+    QVERIFY2(git.waitForFinished(), qPrintable(git.errorString()));
+    git.start(gitFilePath, QStringList({"commit", "-m", "blubb!"}));
+    QVERIFY2(git.waitForStarted(), qPrintable(git.errorString()));
+    QVERIFY2(git.waitForFinished(), qPrintable(git.errorString()));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+}
+
+void TestBlackbox::vcsSubversion()
+{
+    const QString svnadminFilePath = findExecutable(QStringList("svnadmin"));
+    if (svnadminFilePath.isEmpty())
+        QSKIP("svnadmin not found");
+    const QString svnFilePath = findExecutable(QStringList("svn"));
+    if (svnFilePath.isEmpty())
+        QSKIP("svn not found");
+
+    // Set up repo.
+    QTemporaryDir repoDir;
+    QVERIFY(repoDir.isValid());
+    QProcess proc;
+    proc.setWorkingDirectory(repoDir.path());
+    proc.start(svnadminFilePath, QStringList({"create", "vcstest"}));
+    QVERIFY2(proc.waitForStarted(), qPrintable(proc.errorString()));
+    QVERIFY2(proc.waitForFinished(), qPrintable(proc.errorString()));
+    const QString projectUrl = "file://" + repoDir.path() + "/vcstest/trunk";
+    proc.start(svnFilePath, QStringList({"import", testDataDir + "/vcs", projectUrl, "-m",
+                                         "initial import"}));
+    QVERIFY2(proc.waitForStarted(), qPrintable(proc.errorString()));
+    QVERIFY2(proc.waitForFinished(), qPrintable(proc.errorString()));
+    QTemporaryDir checkoutDir;
+    QVERIFY(checkoutDir.isValid());
+    proc.setWorkingDirectory(checkoutDir.path());
+    proc.start(svnFilePath, QStringList({"co", projectUrl, "."}));
+    QVERIFY2(proc.waitForStarted(), qPrintable(proc.errorString()));
+    QVERIFY2(proc.waitForFinished(), qPrintable(proc.errorString()));
+
+    // Initial runs
+    QDir::setCurrent(checkoutDir.path());
+    QbsRunParameters failParams;
+    failParams.command = "run";
+    failParams.expectFailure = true;
+    const int retval = runQbs(failParams);
+    if (m_qbsStderr.contains("svn too old"))
+        QSKIP("svn too old");
+    QCOMPARE(retval, 0);
+    QVERIFY2(m_qbsStdout.contains("I was built from 1"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("run")), 0);
+    QVERIFY2(!m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("I was built from 1"), m_qbsStdout.constData());
+
+    // Run with changed source file.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("main.cpp");
+    QCOMPARE(runQbs(QbsRunParameters("run")), 0);
+    QVERIFY2(!m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("I was built from 1"), m_qbsStdout.constData());
+
+    // Add new file to repo.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("blubb.txt");
+    proc.start(svnFilePath, QStringList({"add", "blubb.txt"}));
+    QVERIFY2(proc.waitForStarted(), qPrintable(proc.errorString()));
+    QVERIFY2(proc.waitForFinished(), qPrintable(proc.errorString()));
+    proc.start(svnFilePath, QStringList({"commit", "-m", "blubb!"}));
+    QVERIFY2(proc.waitForStarted(), qPrintable(proc.errorString()));
+    QVERIFY2(proc.waitForFinished(), qPrintable(proc.errorString()));
+    QCOMPARE(runQbs(QbsRunParameters("run")), 0);
+    QVERIFY2(m_qbsStdout.contains("I was built from 2"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::versionCheck()
 {
     QDir::setCurrent(testDataDir + "/versioncheck");
