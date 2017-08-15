@@ -60,6 +60,7 @@ Application {
     }
 
     files : [
+        "images/cheese.jpg",
         "main.cpp",
         "mouse.cpp",
         "mouse.h",

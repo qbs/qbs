@@ -57,6 +57,7 @@ Project {
         "cocoa-touch-application/CocoaTouchApplication.qbs",
         "code-generator/code-generator.qbs",
         "collidingmice/collidingmice.qbs",
+        "compiled-qml/myapp.qbs",
         "helloworld-complex/hello.qbs",
         "helloworld-minimal/hello.qbs",
         "helloworld-qt/hello.qbs",

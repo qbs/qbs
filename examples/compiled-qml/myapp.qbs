@@ -54,6 +54,7 @@ CppApplication {
     Depends { name: "Qt.quick" }
 
     files: [
+        "cheese.jpg",
         "main.cpp",
         "qml.qrc"
     ]

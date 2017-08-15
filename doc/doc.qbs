@@ -9,11 +9,17 @@ Product {
     Depends { name: "qbsversion" }
 
     files: [
+        "../README",
+        "classic.css",
         "external-resources.qdoc",
+        "fixnavi.pl",
         "howtos.qdoc",
         "qbs.qdoc",
+        "qbs-online.qdocconf",
         "config/*.qdocconf",
+        "config/style/qt5-sidebar.html",
         "reference/**/*",
+        "templates/**/*",
     ]
     Group {
         name: "main qdocconf file"

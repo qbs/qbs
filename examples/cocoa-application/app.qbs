@@ -81,6 +81,13 @@ CppApplication {
     }
 
     Group {
+        name: "Xcode Project"
+        files: [
+            "CocoaApplication.xcodeproj/project.pbxproj"
+        ]
+    }
+
+    Group {
         files: ["CocoaApplication/CocoaApplication-Prefix.pch"]
         fileTags: ["objc_pch_src"]
     }
