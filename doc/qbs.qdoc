@@ -1044,13 +1044,14 @@
 
     \title Generators
 
-    Generators are a \QBS sub-tool and set of APIs which enable arbitrary processing to be performed
-    on the build graph. Currently they are used to implement IDE integration with popular IDEs like
-    Visual Studio.
+    Generators are a \QBS sub-tool and set of APIs that enable arbitrary
+    processing to be performed on the build graph. Currently, they are used to
+    integrate \QBS with popular IDEs, such as Microsoft Visual Studio, and to
+    generate Clang compilation databases.
 
-    \section1 Using Generators
+    \section1 Generating Projects
 
-    To generate a project for another build system like Visual Studio, use the
+    To generate a project for another build system, such as Microsoft Visual Studio, use the
     \c qbs-generate sub-command and specify a generator using the \c{-g} option. For example:
 
     \code
@@ -1059,21 +1060,32 @@
     \endcode
 
     \QBS will then generate a series of files in the current directory, based on the generator that
-    was chosen. For the Visual Studio generator, the resulting project files can be
-    opened in the respective IDEs and all work can be performed there.
+    was chosen. The resulting project files can be opened in the respective IDE
+    and all work can be performed there.
 
     The project files will expose as much information as possible to the IDE and will use \QBS to
-    perform the actual build. \note You cannot modify build system files and expect the changes
+    perform the actual build.
+
+    \note You cannot modify build system files and expect the changes
     to be reflected in \QBS; you must edit your \QBS project files and re-run \c{qbs-generate} in
     order for the changes to be reflected in your IDE.
 
+    \section1 Generating Clang Compilation Databases
+
+    To generate a \l{https://clang.llvm.org/docs/JSONCompilationDatabase.html}
+    {Clang compilation database (clangdb)}, use the following command:
+
+    \code
+    qbs generate --generator clangdb
+    \endcode
+
     \section1 Limitations
 
-    Due to the high flexibility of the Qbs project format and build engine, some projects may be too
+    Due to the high flexibility of the \QBS project format and build engine, some projects may be too
     complex to produce an equivalent project file for another build system.
 
     This list of limitations aims to be as small as possible, but one of the most notable (at least
-    for the Visual Studio generator) is that certain properties must contain the same
+    for the Microsoft Visual Studio generator) is that certain properties must contain the same
     value across all build configurations. For example, the following is not allowed:
 
     \code
@@ -1085,7 +1097,7 @@
     }
     \endcode
 
-    Note that this limitation only applies when property values are varied on the configuration
+    \note This limitation only applies when property values are varied on the configuration
     name. For example, the following is OK (as long as the value of xyz itself does not vary across
     configurations):
 
@@ -1104,7 +1116,8 @@
         \li \l{Module bundle}{bundle}.isBundle
     \endlist
 
-    If a simple workaround is possible in a particular case (e.g. varying Product.targetName across
-    configuration instead of Product.name), the generator will typically suggest it in the error
+    If a simple workaround is possible in a particular case (for example,
+    varying \c Product.targetName across configuration instead of
+    \c Product.name), the generator will typically suggest it in the error
     message.
 */
