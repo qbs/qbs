@@ -208,6 +208,8 @@ private slots:
     void transitiveOptionalDependencies();
     void typescript();
     void usingsAsSoleInputsNonMultiplexed();
+    void variantSuffix();
+    void variantSuffix_data();
     void vcsGit();
     void vcsSubversion();
     void versionCheck();

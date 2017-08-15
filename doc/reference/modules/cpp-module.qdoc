@@ -682,6 +682,22 @@
         \li \c{true} on non-Darwin Unix platforms or when targeting macOS 10.4.x and older.
         \li Use the \c{-rpath-link} linker option for transitive shared objects.
     \row
+        \li variantSuffix
+        \li \c{string}
+        \li 1.10
+        \li platform-specific; see below
+        \li A suffix to add to a product's target name if that product is of type
+            \c staticlibrary or \c dynamiclibrary. Additionally, on Darwin platforms,
+            applications and loadable modules are also affected. By default, it is empty on
+            all platforms unless the product is multiplexed over the \c {qbs.buildVariants}
+            property. In that case, for the debug variant of the product, the default value
+            is \c{"d"} on Windows and \c{"_debug"} on Darwin platforms such as macOS. On all other
+            platforms and in release mode, the default value is empty.
+
+            For example, building a dynamic library called \c MyLib that is multiplexed over the
+            \c{qbs.buildVariants} property with MSVC will produce files called \c{MyLib.dll}
+            (for the release version of the product) and \c{MyLibd.dll} (for the debug version).
+    \row
         \li visibility
         \li \c{string}
         \li 1.0

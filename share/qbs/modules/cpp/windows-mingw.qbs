@@ -49,6 +49,14 @@ GenericGCC {
     platformDefines: base.concat(WindowsUtils.characterSetDefines(windowsApiCharacterSet))
                          .concat("WIN32")
 
+    Properties {
+        condition: product.multiplexByQbsProperties.contains("buildVariants")
+                   && qbs.buildVariants && qbs.buildVariants.length > 1
+                   && qbs.buildVariant !== "release"
+                   && product.type.containsAny(["staticlibrary", "dynamiclibrary"])
+        variantSuffix: "d"
+    }
+
     property string windresName: 'windres'
     property path windresPath: { return toolchainPathPrefix + windresName }
 

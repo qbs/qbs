@@ -118,6 +118,13 @@ CppModule {
     debugInfoSuffix: ".pdb"
     property string dynamicLibraryImportSuffix: ".lib"
     imageFormat: "pe"
+    Properties {
+        condition: product.multiplexByQbsProperties.contains("buildVariants")
+                   && qbs.buildVariants && qbs.buildVariants.length > 1
+                   && qbs.buildVariant !== "release"
+                   && product.type.containsAny(["staticlibrary", "dynamiclibrary"])
+        variantSuffix: "d"
+    }
 
     property var buildEnv: msvcProbe.buildEnv
 

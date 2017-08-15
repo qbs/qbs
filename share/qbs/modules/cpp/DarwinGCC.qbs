@@ -73,11 +73,13 @@ UnixGCC {
     loadableModulePrefix: ""
     loadableModuleSuffix: ".bundle"
     dynamicLibrarySuffix: ".dylib"
-    variantSuffix: {
-        // "release" corresponds to the "normal" (non-suffixed) variant
-        if (qbs.buildVariant !== "release")
-            return "_" + qbs.buildVariant;
-        return "";
+
+    Properties {
+        condition: product.multiplexByQbsProperties.contains("buildVariants")
+                   && qbs.buildVariants && qbs.buildVariants.length > 1
+                   && (!product.aggregate || !!product.multiplexConfigurationId)
+                   && qbs.buildVariant !== "release"
+        variantSuffix: "_" + qbs.buildVariant
     }
 
     separateDebugInformation: true

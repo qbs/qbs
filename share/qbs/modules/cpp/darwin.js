@@ -51,7 +51,8 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
                 filePath: product.destinationDirectory + "/.sosymbols/"
                     + PathTools.dynamicLibraryFilePath(product, variant.suffix),
                 fileTags: ["dynamiclibrary_copy"],
-                qbs: { buildVariant: variant.name, variantSuffix: variant.suffix },
+                qbs: { buildVariant: variant.name },
+                cpp: { variantSuffix: variant.suffix },
                 alwaysUpdated: false
             };
         }));
@@ -70,7 +71,9 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
     // Finder/LaunchServices can launch it normally but for simplicity we'll just use the symlink
     // approach for all bundle types.
     var defaultVariant;
-    if (!buildVariants.some(function (x) { return x.name === "release"; })) {
+    if (!buildVariants.some(function (x) { return x.name === "release"; })
+            && product.multiplexByQbsProperties.contains("buildVariants")
+            && product.qbs.buildVariants && product.qbs.buildVariants.length > 1) {
         var defaultBuildVariant = product.qbs.defaultBuildVariant;
         buildVariants.map(function (variant) {
             if (variant.name === defaultBuildVariant)
@@ -103,7 +106,6 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
             fileTags: tags,
             qbs: {
                 buildVariant: variant.name,
-                variantSuffix: variant.suffix,
                 _buildVariantFileName: variant.isSymLink && defaultVariant
                                        ? FileInfo.fileName(PathTools.linkerOutputFilePath(
                                                                fileTag, product,
@@ -113,6 +115,9 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
             bundle: {
                 _bundleFilePath: product.destinationDirectory + "/"
                                  + PathTools.bundleExecutableFilePath(product, variant.suffix)
+            },
+            cpp: {
+                variantSuffix: variant.suffix
             }
         };
     }));

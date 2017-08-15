@@ -98,6 +98,24 @@ Project {
         }
     }
 
+    CppApplication {
+        Depends { name: "multilib" }
+        Depends { name: "bundle" }
+        name: "fatmultiappmultivariant"
+        targetName: "fatmultiappmultivariant"
+        files: ["app.c"]
+        cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path/../../../"] : []
+        cpp.minimumMacosVersion: "10.5"
+        qbs.architectures: ["x86", "x86_64"]
+        qbs.buildVariants: ["debug", "profile"]
+
+        Group {
+            fileTagsFilter: ["bundle.content"]
+            qbs.install: true
+            qbs.installSourceBase: product.buildDirectory
+        }
+    }
+
     DynamicLibrary {
         Depends { name: "cpp" }
         Depends { name: "bundle" }

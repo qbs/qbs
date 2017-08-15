@@ -31,14 +31,20 @@
 var FileInfo = require("qbs.FileInfo");
 
 function _bundleExecutableTemporaryFilePath(product, variantSuffix) {
+    if (variantSuffix === undefined)
+        variantSuffix = product.cpp.variantSuffix;
     return ".tmp/" + FileInfo.fileName(bundleExecutableFilePath(product, variantSuffix));
 }
 
 function bundleExecutableFilePath(product, variantSuffix) {
+    if (variantSuffix === undefined)
+        variantSuffix = product.cpp.variantSuffix;
     return product.moduleProperty("bundle", "executablePath") + (variantSuffix || "");
 }
 
 function applicationFilePath(product, variantSuffix) {
+    if (variantSuffix === undefined)
+        variantSuffix = product.cpp.variantSuffix;
     if (product.moduleProperty("bundle", "isBundle"))
         return _bundleExecutableTemporaryFilePath(product, variantSuffix);
 
@@ -48,6 +54,8 @@ function applicationFilePath(product, variantSuffix) {
 }
 
 function loadableModuleFilePath(product, variantSuffix) {
+    if (variantSuffix === undefined)
+        variantSuffix = product.cpp.variantSuffix;
     if (product.moduleProperty("bundle", "isBundle"))
         return _bundleExecutableTemporaryFilePath(product, variantSuffix);
 
@@ -57,6 +65,8 @@ function loadableModuleFilePath(product, variantSuffix) {
 }
 
 function staticLibraryFilePath(product, variantSuffix) {
+    if (variantSuffix === undefined)
+        variantSuffix = product.cpp.variantSuffix;
     if (product.moduleProperty("bundle", "isBundle"))
         return _bundleExecutableTemporaryFilePath(product, variantSuffix);
 
@@ -66,6 +76,8 @@ function staticLibraryFilePath(product, variantSuffix) {
 }
 
 function dynamicLibraryFilePath(product, variantSuffix, version, maxParts) {
+    if (variantSuffix === undefined)
+        variantSuffix = product.cpp.variantSuffix;
     if (product.moduleProperty("bundle", "isBundle"))
         return _bundleExecutableTemporaryFilePath(product, variantSuffix);
 
@@ -123,6 +135,7 @@ function linkerOutputFilePath(fileTag, product, variantSuffix, version, maxParts
 function importLibraryFilePath(product) {
     return product.moduleProperty("cpp", "dynamicLibraryPrefix")
          + product.targetName
+         + (product.cpp.variantSuffix || "")
          + product.moduleProperty("cpp", "dynamicLibraryImportSuffix");
 }
 

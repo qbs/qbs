@@ -100,10 +100,20 @@ void TestBlackboxApple::appleMultiConfig()
     QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/Contents/Info.plist").isRegularFile());
     QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/Contents/PkgInfo").isRegularFile());
 
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/MacOS/fatmultiapp").isFileSymLink());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/MacOS/fatmultiapp_debug").isExecutable());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/MacOS/fatmultiapp").isExecutable());
     QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/Info.plist").isRegularFile());
     QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/PkgInfo").isRegularFile());
+
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
+                                            "fatmultiappmultivariant").isFileSymLink());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
+                                            "fatmultiappmultivariant_debug").isExecutable());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
+                                            "fatmultiappmultivariant_profile").isExecutable());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/Info.plist")
+            .isRegularFile());
+    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/PkgInfo")
+            .isRegularFile());
 
     QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/multilib").isFileSymLink());
     QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Resources").isDirSymLink());

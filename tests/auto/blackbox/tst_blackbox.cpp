@@ -47,6 +47,7 @@
 
 #include <functional>
 #include <regex>
+#include <utility>
 
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
@@ -842,6 +843,78 @@ void TestBlackbox::usingsAsSoleInputsNonMultiplexed()
     const QString p3BuildDir = relativeProductBuildDir("p3");
     QVERIFY(regularFileExists(p3BuildDir + "/custom1.out.plus"));
     QVERIFY(regularFileExists(p3BuildDir + "/custom2.out.plus"));
+}
+
+void TestBlackbox::variantSuffix()
+{
+    QDir::setCurrent(testDataDir + "/variant-suffix");
+    QFETCH(bool, multiplex);
+    QFETCH(bool, expectFailure);
+    QFETCH(QString, variantSuffix);
+    QFETCH(QString, buildVariant);
+    QFETCH(QVariantMap, fileNames);
+    QbsRunParameters params;
+    params.command = "resolve";
+    params.arguments << "--force-probe-execution";
+    if (multiplex)
+        params.arguments << "products.l.multiplex:true";
+    else
+        params.arguments << ("modules.qbs.buildVariant:" + buildVariant);
+    if (!variantSuffix.isEmpty())
+        params.arguments << ("modules.cpp.variantSuffix:" + variantSuffix);
+    QCOMPARE(runQbs(params), 0);
+    const QString fileNameMapKey = m_qbsStdout.contains("is Windows: true")
+            ? "windows" : m_qbsStdout.contains("is Apple: true") ? "apple" : "unix";
+    if (variantSuffix.isEmpty() && multiplex && fileNameMapKey == "unix")
+        expectFailure = true;
+    params.command = "build";
+    params.expectFailure = expectFailure;
+    params.arguments = QStringList("--clean-install-root");
+    QCOMPARE(runQbs(params) == 0, !expectFailure);
+    if (expectFailure)
+        return;
+    const QStringList fileNameList = fileNames.value(fileNameMapKey).toStringList();
+    for (const QString &fileName : fileNameList) {
+        QFile libFile("default/install-root/lib/" + fileName);
+        QVERIFY2(libFile.exists(), qPrintable(libFile.fileName()));
+    }
+}
+
+void TestBlackbox::variantSuffix_data()
+{
+    QTest::addColumn<bool>("multiplex");
+    QTest::addColumn<bool>("expectFailure");
+    QTest::addColumn<QString>("variantSuffix");
+    QTest::addColumn<QString>("buildVariant");
+    QTest::addColumn<QVariantMap>("fileNames");
+
+    QTest::newRow("default suffix, debug") << false << false << QString() << QString("debug")
+            << QVariantMap({std::make_pair(QString("windows"), QStringList("libl.ext")),
+                            std::make_pair(QString("apple"), QStringList("libl.ext")),
+                            std::make_pair(QString("unix"), QStringList("libl.ext"))});
+    QTest::newRow("default suffix, release") << false << false << QString() << QString("release")
+            << QVariantMap({std::make_pair(QString("windows"), QStringList("libl.ext")),
+                            std::make_pair(QString("apple"), QStringList("libl.ext")),
+                            std::make_pair(QString("unix"), QStringList("libl.ext"))});
+    QTest::newRow("custom suffix, debug") << false << false << QString("blubb") << QString("debug")
+            << QVariantMap({std::make_pair(QString("windows"), QStringList("liblblubb.ext")),
+                            std::make_pair(QString("apple"), QStringList("liblblubb.ext")),
+                            std::make_pair(QString("unix"), QStringList("liblblubb.ext"))});
+    QTest::newRow("custom suffix, release") << false << false << QString("blubb")
+            << QString("release")
+            << QVariantMap({std::make_pair(QString("windows"), QStringList("liblblubb.ext")),
+                            std::make_pair(QString("apple"), QStringList("liblblubb.ext")),
+                            std::make_pair(QString("unix"), QStringList("liblblubb.ext"))});
+    QTest::newRow("default suffix, multiplex") << true << false << QString() << QString()
+            << QVariantMap({std::make_pair(QString("windows"),
+                            QStringList({"libl.ext", "libld.ext"})),
+                            std::make_pair(QString("apple"),
+                            QStringList({"libl.ext", "libl_debug.ext"})),
+                            std::make_pair(QString("unix"), QStringList())});
+    QTest::newRow("custom suffix, multiplex") << true << true << QString("blubb") << QString()
+            << QVariantMap({std::make_pair(QString("windows"), QStringList()),
+                            std::make_pair(QString("apple"), QStringList()),
+                            std::make_pair(QString("unix"), QStringList())});
 }
 
 static bool waitForProcessSuccess(QProcess &p)
