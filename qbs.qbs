@@ -9,6 +9,7 @@ Project {
 
     references: [
         "doc/doc.qbs",
+        "docker/docker.qbs",
         "share/share.qbs",
         "src/src.qbs",
         "scripts/scripts.qbs",
