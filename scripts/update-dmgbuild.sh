@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 #############################################################################
 ##
@@ -39,12 +40,10 @@
 ##
 #############################################################################
 
-# Update build specs from Xcode - this script should be run when new Xcode releases are made.
-specs_dir="$(xcrun --sdk macosx --show-sdk-platform-path)/Developer/Library/Xcode/Specifications"
-spec_files=("MacOSX Package Types.xcspec" "MacOSX Product Types.xcspec")
-for spec_file in "${spec_files[@]}" ; do
-    printf "%s\n" "$(plutil -convert json -r -o - "$specs_dir/$spec_file")" > "${spec_file// /-}"
+python_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../src/3rdparty/python"
+repos=(biplist.git@v1.0.2 dmgbuild.git@v1.3.1 ds_store@v1.1.2 mac_alias.git@v2.0.6)
+for repo in "${repos[@]}" ; do
+    pip install -U --isolated "--prefix=$python_dir" --no-binary :all: --no-compile --no-deps \
+        "git+git://github.com/qbs/$repo"
 done
-xcode_version="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' \
-    "$(xcode-select --print-path)/../Info.plist")"
-echo "Updated build specs from Xcode $xcode_version"
+rm "$python_dir/lib/python2.7/site-packages/dmgbuild/resources/"*.tiff

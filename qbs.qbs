@@ -11,6 +11,7 @@ Project {
         "doc/doc.qbs",
         "share/share.qbs",
         "src/src.qbs",
+        "scripts/scripts.qbs",
         "tests/auto/auto.qbs",
         "tests/fuzzy-test/fuzzy-test.qbs",
         "tests/benchmarker/benchmarker.qbs",
