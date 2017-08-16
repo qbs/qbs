@@ -62,6 +62,18 @@ QbsProduct {
     }
 
     Group {
+        name: "Licenses"
+        prefix: "../../../"
+        files: [
+            "LGPL_EXCEPTION.txt",
+            "LICENSE.LGPLv3",
+            "LICENSE.LGPLv21",
+        ]
+        qbs.install: true
+        qbs.installDir: "share/doc/qbs"
+    }
+
+    Group {
         condition: qbs.targetOS.contains("macos")
         prefix: Qt.core.libPath + "/"
         name: "Qt libraries"
