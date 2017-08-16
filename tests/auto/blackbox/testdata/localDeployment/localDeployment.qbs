@@ -7,7 +7,13 @@ Project {
         name: "HelloWorld"
         destinationDirectory: "bin"
 
-        Depends { name: "Qt.core"}
+        Depends { name: "cpp" }
+
+        Group {
+            fileTagsFilter: product.type
+            qbs.install: true
+            qbs.installDir: "bin"
+        }
 
         Group {
             qbs.install: true

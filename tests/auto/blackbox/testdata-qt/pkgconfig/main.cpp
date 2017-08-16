@@ -26,15 +26,21 @@
 **
 ****************************************************************************/
 
-#include <QFile>
+#ifdef QT_CORE_LIB
 #include <QCoreApplication>
 #include <QDebug>
+#else
+#include <iostream>
+#endif
 
 int main(int argc, char **argv)
 {
+#ifdef QT_CORE_LIB
     QCoreApplication app(argc, argv);
-    QFile f(app.applicationDirPath() + "/../share/main.cpp");
-    f.open(QFile::ReadOnly);
-    qDebug() << f.readAll();
+    qDebug() << "Hello world!";
+#else
+    (void)argc;
+    (void)argv;
+    std::cout << "Skip this test" << std::endl;
+#endif
 }
-

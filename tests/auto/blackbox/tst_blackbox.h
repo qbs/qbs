@@ -63,6 +63,7 @@ private slots:
     void concurrentExecutor();
     void conditionalExport();
     void conditionalFileTagger();
+    void configure();
     void conflictingArtifacts();
     void dependenciesProperty();
     void dependencyProfileMismatch();
@@ -87,6 +88,7 @@ private slots:
     void importInPropertiesCondition();
     void importingProduct();
     void importsConflict();
+    void includeLookup();
     void innoSetup();
     void inputsFromDependencies();
     void installable();
@@ -117,6 +119,9 @@ private slots:
     void listPropertiesWithOuter();
     void listPropertyOrder();
     void loadableModule();
+    void localDeployment();
+    void minimumSystemVersion();
+    void minimumSystemVersion_data();
     void missingDependency();
     void missingProjectFile();
     void missingOverridePrefix();

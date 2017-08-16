@@ -190,6 +190,16 @@ void TestBlackboxQt::mocFlags()
     QVERIFY(runQbs(params) != 0);
 }
 
+void TestBlackboxQt::pkgconfig()
+{
+    QDir::setCurrent(testDataDir + "/pkgconfig");
+    QbsRunParameters params;
+    params.command = "run";
+    QCOMPARE(runQbs(params), 0);
+    if (m_qbsStdout.contains("Skip this test"))
+        QSKIP("pkgconfig or Qt not found");
+}
+
 void TestBlackboxQt::pluginMetaData()
 {
     QDir::setCurrent(testDataDir + "/plugin-meta-data");

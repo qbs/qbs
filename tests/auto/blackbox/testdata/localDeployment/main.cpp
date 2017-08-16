@@ -26,11 +26,18 @@
 **
 ****************************************************************************/
 
-#include <QCoreApplication>
-#include <QDebug>
+#include <fstream>
+#include <iostream>
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
-    QCoreApplication app(argc, argv);
-    qDebug() << "Hello world!";
+    if (argc != 1)
+        return 1;
+
+    std::string s = argv[0];
+    std::ifstream in(s.substr(0, s.find_last_of("/")) + "/../share/main.cpp");
+    std::string str((std::istreambuf_iterator<char>(in)),
+                     std::istreambuf_iterator<char>());
+    std::cout << str << std::endl;
+    return 0;
 }

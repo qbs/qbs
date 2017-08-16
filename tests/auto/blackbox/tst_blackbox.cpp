@@ -1184,6 +1184,15 @@ void TestBlackbox::conditionalFileTagger()
     QVERIFY(m_qbsStdout.contains("compiling"));
 }
 
+void TestBlackbox::configure()
+{
+    QDir::setCurrent(testDataDir + "/configure");
+    QbsRunParameters params;
+    params.command = "run";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("Configured at"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::conflictingArtifacts()
 {
     QDir::setCurrent(testDataDir + "/conflicting-artifacts");
@@ -4464,6 +4473,15 @@ void TestBlackbox::importsConflict()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::includeLookup()
+{
+    QDir::setCurrent(testDataDir + "/includeLookup");
+    QbsRunParameters params;
+    params.command = "run";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("definition.."), m_qbsStdout.constData());
+}
+
 static bool haveInnoSetup(const Profile &profile)
 {
     if (profile.value("innosetup.toolchainInstallPath").isValid())
@@ -4561,6 +4579,77 @@ void TestBlackbox::loadableModule()
     params.command = "run";
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("foo = 42"), m_qbsStdout.constData());
+}
+
+void TestBlackbox::localDeployment()
+{
+    QDir::setCurrent(testDataDir + "/localDeployment");
+    QFile main("main.cpp");
+    QVERIFY(main.open(QIODevice::ReadOnly));
+    const QByteArray content = main.readAll();
+    QbsRunParameters params;
+    params.command = "run";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains(content), m_qbsStdout.constData());
+}
+
+void TestBlackbox::minimumSystemVersion()
+{
+    rmDirR(relativeBuildDir());
+    QDir::setCurrent(testDataDir + "/minimumSystemVersion");
+    QFETCH(QString, file);
+    QFETCH(QString, output);
+    QbsRunParameters params({ "-f", file + ".qbs" });
+    params.command = "run";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains(output.toUtf8()), m_qbsStdout.constData());
+}
+
+void TestBlackbox::minimumSystemVersion_data()
+{
+    QTest::addColumn<QString>("file");
+    QTest::addColumn<QString>("output");
+
+    const QString unspecified = []() -> QString {
+        if (HostOsInfo::isMacosHost()) {
+            QSettings settings("/System/Library/CoreServices/SystemVersion.plist",
+                               QSettings::NativeFormat);
+            auto v = qbs::Internal::Version::fromString(
+                settings.value("ProductVersion").toString());
+
+            return "__MAC_OS_X_VERSION_MIN_REQUIRED=10"
+                    + QString::number(v.minorVersion()) + (v.minorVersion() >= 10 ? "00" : "0")
+                    + "\nversion "
+                    + QString::number(v.majorVersion()) + "." + QString::number(v.minorVersion())
+                    + "\n";
+        }
+
+        if (HostOsInfo::isWindowsHost())
+            return "WINVER is not defined\n";
+
+        return "";
+    }();
+
+    const QString specific = []() -> QString {
+        if (HostOsInfo::isMacosHost())
+            return "__MAC_OS_X_VERSION_MIN_REQUIRED=1060\nversion 10.6\n";
+
+        if (HostOsInfo::isWindowsHost())
+            return "WINVER=1536\n6.00 operating system version\n6.00 subsystem version\n";
+
+        return "";
+    }();
+
+    QTest::newRow("unspecified") << "unspecified" << unspecified;
+    QTest::newRow("unspecified-forced") << "unspecified-forced" << unspecified;
+    if (HostOsInfo::isWindowsHost() || HostOsInfo::isMacosHost())
+        QTest::newRow("specific") << "specific" << specific;
+    if (HostOsInfo::isWindowsHost())
+        QTest::newRow("fakewindows") << "fakewindows" << "WINVER=1283\n5.03 operating system "
+                                                         "version\n5.03 subsystem version\n";
+    if (HostOsInfo::isMacosHost())
+        QTest::newRow("macappstore") << "macappstore" << "__MAC_OS_X_VERSION_MIN_REQUIRED=1068\n"
+                                                         "version 10.6.8\n";
 }
 
 void TestBlackbox::missingDependency()
