@@ -56,7 +56,7 @@
 namespace qbs {
 namespace Internal {
 
-class TextFile : public QObject, public QScriptable
+class TextFile : public QObject, public QScriptable, public ResourceAcquiringScriptObject
 {
     Q_OBJECT
     Q_ENUMS(OpenMode)
@@ -87,6 +87,9 @@ private:
              const QString &codec = QLatin1String("UTF8"));
 
     bool checkForClosed() const;
+
+    // ResourceAcquiringScriptObject implementation
+    void releaseResources() override;
 
     QFile *m_file;
     QTextStream *m_stream;
@@ -129,12 +132,13 @@ QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
     }
 
     ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    se->addResourceAcquiringScriptObject(t);
     const DubiousContextList dubiousContexts({
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
     });
     se->checkContext(QLatin1String("qbs.TextFile"), dubiousContexts);
 
-    return engine->newQObject(t, QScriptEngine::ScriptOwnership);
+    return engine->newQObject(t, QScriptEngine::QtOwnership);
 }
 
 TextFile::~TextFile()
@@ -241,8 +245,16 @@ bool TextFile::checkForClosed() const
 {
     if (m_file)
         return false;
-    context()->throwError(Tr::tr("Access to TextFile object that was already closed."));
+    QScriptContext *ctx = context();
+    if (ctx)
+        ctx->throwError(Tr::tr("Access to TextFile object that was already closed."));
     return true;
+}
+
+void TextFile::releaseResources()
+{
+    close();
+    deleteLater();
 }
 
 } // namespace Internal

@@ -64,6 +64,7 @@
 #include <QtScript/qscriptclass.h>
 #include <QtScript/qscriptvalueiterator.h>
 
+#include <functional>
 #include <set>
 
 namespace qbs {
@@ -118,6 +119,20 @@ ScriptEngine::~ScriptEngine()
                                              .arg(elapsedTimeString(m_elapsedTimeImporting));
     }
     delete m_modulePropertyScriptClass;
+}
+
+QScriptValue ScriptEngine::evaluate(const QString &program, const QString &fileName, int lineNumber)
+{
+    QScriptValue result = QScriptEngine::evaluate(program, fileName, lineNumber);
+    releaseResourcesOfScriptObjects();
+    return result;
+}
+
+QScriptValue ScriptEngine::evaluate(const QScriptProgram &program)
+{
+    QScriptValue result = QScriptEngine::evaluate(program);
+    releaseResourcesOfScriptObjects();
+    return result;
 }
 
 void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject)
@@ -466,6 +481,11 @@ void ScriptEngine::setModulePropertyScriptClass(QScriptClass *modulePropertyScri
     m_modulePropertyScriptClass = modulePropertyScriptClass;
 }
 
+void ScriptEngine::addResourceAcquiringScriptObject(ResourceAcquiringScriptObject *obj)
+{
+    m_resourceAcquiringScriptObjects.push_back(obj);
+}
+
 void ScriptEngine::addEnvironmentVariable(const QString &name, const QString &value)
 {
     m_usedEnvironment.insert(name, value);
@@ -546,6 +566,13 @@ void ScriptEngine::cancel()
 void ScriptEngine::abort()
 {
     abortEvaluation(m_cancelationError);
+}
+
+void ScriptEngine::releaseResourcesOfScriptObjects()
+{
+    std::for_each(m_resourceAcquiringScriptObjects.begin(), m_resourceAcquiringScriptObjects.end(),
+                  std::mem_fn(&ResourceAcquiringScriptObject::releaseResources));
+    m_resourceAcquiringScriptObjects.clear();
 }
 
 class JSTypeExtender

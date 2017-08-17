@@ -16,7 +16,7 @@ Product {
             cmd.sourceCode = function() {
                 var file1 = new TextFile("file1.txt", TextFile.WriteOnly);
                 file1.write("First line.\n");
-                file1.close();
+                // Do not close the file to test the auto close functionality.
             };
             commands.push(cmd);
             cmd = new JavaScriptCommand();

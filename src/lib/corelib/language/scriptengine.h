@@ -76,12 +76,28 @@ public:
 };
 using DubiousContextList = std::vector<DubiousContext>;
 
+
+/*
+ * ScriptObject that acquires resources, for example a file handle.
+ * The ScriptObject should have QtOwnership and deleteLater() itself in releaseResources.
+ */
+class ResourceAcquiringScriptObject
+{
+public:
+    virtual void releaseResources() = 0;
+};
+
+
 class QBS_AUTOTEST_EXPORT ScriptEngine : public QScriptEngine
 {
     Q_OBJECT
 public:
     ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent = 0);
     ~ScriptEngine();
+
+    QScriptValue evaluate(const QString &program, const QString &fileName = QString(),
+                          int lineNumber = 1);
+    QScriptValue evaluate(const QScriptProgram &program);
 
     Logger &logger() const { return m_logger; }
     void import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject);
@@ -184,10 +200,13 @@ public:
     QScriptClass *modulePropertyScriptClass() const;
     void setModulePropertyScriptClass(QScriptClass *modulePropertyScriptClass);
 
+    void addResourceAcquiringScriptObject(ResourceAcquiringScriptObject *obj);
+
 private:
     QScriptValue newFunction(FunctionWithArgSignature signature, void *arg) Q_DECL_EQ_DELETE;
 
     void abort();
+    void releaseResourcesOfScriptObjects();
 
     void installQbsBuiltins();
     void extendJavaScriptBuiltins();
@@ -248,6 +267,7 @@ private:
     QList<QVariantMap *> m_ownedVariantMaps;
     qint64 m_elapsedTimeImporting = -1;
     EvalContext m_evalContext;
+    std::vector<ResourceAcquiringScriptObject *> m_resourceAcquiringScriptObjects;
 };
 
 class EvalContextSwitcher
