@@ -825,6 +825,10 @@ void TestBlackbox::vcsGit()
     QProcess git;
     git.start(gitFilePath, QStringList("init"));
     QVERIFY(waitForProcessSuccess(git));
+    git.start(gitFilePath, QStringList({"config", "user.name", "My Name"}));
+    QVERIFY(waitForProcessSuccess(git));
+    git.start(gitFilePath, QStringList({"config", "user.email", "me@example.com"}));
+    QVERIFY(waitForProcessSuccess(git));
 
     // First qbs run fails: No git metadata yet.
     QbsRunParameters failParams;
