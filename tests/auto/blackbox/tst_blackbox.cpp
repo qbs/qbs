@@ -803,9 +803,12 @@ void TestBlackbox::vcsGit()
     if (gitFilePath.isEmpty())
         QSKIP("git not found");
 
-    QDir::setCurrent(testDataDir + "/vcs");
-
     // Set up repo.
+    QTemporaryDir repoDir;
+    QVERIFY(repoDir.isValid());
+    ccp(testDataDir + "/vcs", repoDir.path());
+    QDir::setCurrent(repoDir.path());
+
     QProcess git;
     git.start(gitFilePath, QStringList("init"));
     QVERIFY2(git.waitForStarted(), qPrintable(git.errorString()));
