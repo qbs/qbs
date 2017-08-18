@@ -61,7 +61,13 @@ class TextFile : public QObject, public QScriptable
     Q_OBJECT
     Q_ENUMS(OpenMode)
 public:
-    enum OpenMode { ReadOnly, WriteOnly, ReadWrite };
+    enum OpenMode
+    {
+        ReadOnly = 1,
+        WriteOnly = 2,
+        ReadWrite = ReadOnly | WriteOnly,
+        Append = 4
+    };
 
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
     ~TextFile();
@@ -145,19 +151,13 @@ TextFile::TextFile(QScriptContext *context, const QString &filePath, OpenMode mo
 
     m_file = new QFile(filePath);
     m_stream = new QTextStream(m_file);
-    QIODevice::OpenMode m;
-    switch (mode) {
-    case ReadWrite:
-        m = QIODevice::ReadWrite;
-        break;
-    case ReadOnly:
-        m = QIODevice::ReadOnly;
-        break;
-    case WriteOnly:
-        m = QIODevice::WriteOnly;
-        break;
-    }
-
+    QIODevice::OpenMode m = QIODevice::NotOpen;
+    if (mode & ReadOnly)
+        m |= QIODevice::ReadOnly;
+    if (mode & WriteOnly)
+        m |= QIODevice::WriteOnly;
+    if (mode & Append)
+        m |= QIODevice::Append;
     if (Q_UNLIKELY(!m_file->open(m))) {
         context->throwError(Tr::tr("Unable to open file '%1': %2")
                             .arg(filePath, m_file->errorString()));

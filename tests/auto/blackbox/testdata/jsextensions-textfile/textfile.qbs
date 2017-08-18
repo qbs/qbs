@@ -10,11 +10,20 @@ Product {
             fileTags: ["dummy"]
         }
         prepare: {
+            var commands = [];
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.sourceCode = function() {
                 var file1 = new TextFile("file1.txt", TextFile.WriteOnly);
-                file1.write("First line.\nSecond line.\nThird line.");
+                file1.write("First line.\n");
+                file1.close();
+            };
+            commands.push(cmd);
+            cmd = new JavaScriptCommand();
+            cmd.silent = true;
+            cmd.sourceCode = function() {
+                var file1 = new TextFile("file1.txt", TextFile.WriteOnly | TextFile.Append);
+                file1.write("Second line.\nThird line.");
                 file1.close();
                 file1 = new TextFile("file1.txt", TextFile.ReadWrite);
                 var file2 = new TextFile("file2.txt", TextFile.WriteOnly);
@@ -31,7 +40,8 @@ Product {
                 file1.close();
                 file2.close();
             };
-            return [cmd];
+            commands.push(cmd);
+            return commands;
         }
     }
 }

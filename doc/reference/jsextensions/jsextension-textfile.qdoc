@@ -39,9 +39,11 @@
 
     \section2 TextFile.OpenMode
     \code
-    enum TextFile.OpenMode { ReadOnly, WriteOnly, ReadWrite }
+    enum TextFile.OpenMode { ReadOnly, WriteOnly, ReadWrite, Append }
     \endcode
     List of modes that a file may be opened in.
+
+    The OpenMode values can be combined with the bitwise or operator.
 
     \section1 Available operations
 
