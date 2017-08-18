@@ -201,14 +201,18 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
     QString &libFilePath = debugBuild ? libFilePathDebug : libFilePathRelease;
 
     if (qtEnv.mkspecName.contains(QLatin1String("ios")) && isStaticLibrary) {
-        const QtModuleInfo platformSupportModule(QLatin1String("QtPlatformSupport"),
-                                                 QLatin1String("platformsupport"));
-        libs << QLatin1String("z") << QLatin1String("m")
-             << platformSupportModule.libNameForLinker(qtEnv, debugBuild);
-        flags << QLatin1String("-force_load")
-              << qtEnv.pluginPath + QLatin1String("/platforms/")
-                 + libBaseName(QLatin1String("libqios"), debugBuild, qtEnv)
-                 + QLatin1String(".a");
+        libs << QLatin1String("z") << QLatin1String("m");
+        if (qtEnv.qtMajorVersion == 5 && qtEnv.qtMinorVersion < 8) {
+            const QtModuleInfo platformSupportModule(QLatin1String("QtPlatformSupport"),
+                                                     QLatin1String("platformsupport"));
+            libs << platformSupportModule.libNameForLinker(qtEnv, debugBuild);
+        }
+        if (name == QStringLiteral("qios")) {
+            flags << QLatin1String("-force_load")
+                  << qtEnv.pluginPath + QLatin1String("/platforms/")
+                     + libBaseName(QLatin1String("libqios"), debugBuild, qtEnv)
+                     + QLatin1String(".a");
+        }
     }
 
     QString prlFilePath = isPlugin

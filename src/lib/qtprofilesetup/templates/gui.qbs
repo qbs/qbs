@@ -56,7 +56,7 @@ QtModule {
     Properties {
         condition: Qt.core.staticBuild && qbs.targetOS.contains("ios")
         cpp.frameworks: base.concat(["UIKit", "QuartzCore", "CoreText", "CoreGraphics",
-                                     "Foundation", "CoreFoundation"])
+                                     "Foundation", "CoreFoundation", "AudioToolbox"])
     }
     cpp.frameworks: base
     @special_properties@
