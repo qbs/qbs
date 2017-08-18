@@ -274,11 +274,8 @@ template<typename T> void Set<T>::load(PersistentPool &pool)
 template<typename T> void Set<T>::store(PersistentPool &pool) const
 {
     pool.store(count());
-
-    // Does not work; reason unknown.
-//    std::for_each(m_data.cbegin(), m_data.cend(), std::bind(&Set<T>::storeElem, this,
-//                                                            std::ref(pool), std::placeholders::_2));
-    std::for_each(m_data.cbegin(), m_data.cend(), [this, &pool](const T &e) { storeElem(pool, e); });
+    std::for_each(m_data.cbegin(), m_data.cend(),
+                  std::bind(&Set<T>::storeElem, this, std::ref(pool), std::placeholders::_1));
 }
 
 template<typename T> QStringList Set<T>::toStringList() const
