@@ -797,6 +797,19 @@ void TestBlackbox::usingsAsSoleInputsNonMultiplexed()
     QVERIFY(regularFileExists(p3BuildDir + "/custom2.out.plus"));
 }
 
+static bool waitForProcessSuccess(QProcess &p)
+{
+    if (!p.waitForStarted() || !p.waitForFinished()) {
+        qDebug() << p.errorString();
+        return false;
+    }
+    if (p.exitCode() != 0) {
+        qDebug() << p.readAllStandardError();
+        return false;
+    }
+    return true;
+}
+
 void TestBlackbox::vcsGit()
 {
     const QString gitFilePath = findExecutable(QStringList("git"));
@@ -811,8 +824,7 @@ void TestBlackbox::vcsGit()
 
     QProcess git;
     git.start(gitFilePath, QStringList("init"));
-    QVERIFY2(git.waitForStarted(), qPrintable(git.errorString()));
-    QVERIFY2(git.waitForFinished(), qPrintable(git.errorString()));
+    QVERIFY(waitForProcessSuccess(git));
 
     // First qbs run fails: No git metadata yet.
     QbsRunParameters failParams;
@@ -821,11 +833,9 @@ void TestBlackbox::vcsGit()
 
     // Initial commit
     git.start(gitFilePath, QStringList({"add", "main.cpp"}));
-    QVERIFY2(git.waitForStarted(), qPrintable(git.errorString()));
-    QVERIFY2(git.waitForFinished(), qPrintable(git.errorString()));
+    QVERIFY(waitForProcessSuccess(git));
     git.start(gitFilePath, QStringList({"commit", "-m", "initial commit"}));
-    QVERIFY2(git.waitForStarted(), qPrintable(git.errorString()));
-    QVERIFY2(git.waitForFinished(), qPrintable(git.errorString()));
+    QVERIFY(waitForProcessSuccess(git));
 
     // Initial run.
     QCOMPARE(runQbs(), 0);
@@ -848,11 +858,9 @@ void TestBlackbox::vcsGit()
     WAIT_FOR_NEW_TIMESTAMP();
     touch("blubb.txt");
     git.start(gitFilePath, QStringList({"add", "blubb.txt"}));
-    QVERIFY2(git.waitForStarted(), qPrintable(git.errorString()));
-    QVERIFY2(git.waitForFinished(), qPrintable(git.errorString()));
+    QVERIFY(waitForProcessSuccess(git));
     git.start(gitFilePath, QStringList({"commit", "-m", "blubb!"}));
-    QVERIFY2(git.waitForStarted(), qPrintable(git.errorString()));
-    QVERIFY2(git.waitForFinished(), qPrintable(git.errorString()));
+    QVERIFY(waitForProcessSuccess(git));
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
@@ -873,19 +881,16 @@ void TestBlackbox::vcsSubversion()
     QProcess proc;
     proc.setWorkingDirectory(repoDir.path());
     proc.start(svnadminFilePath, QStringList({"create", "vcstest"}));
-    QVERIFY2(proc.waitForStarted(), qPrintable(proc.errorString()));
-    QVERIFY2(proc.waitForFinished(), qPrintable(proc.errorString()));
+    QVERIFY(waitForProcessSuccess(proc));
     const QString projectUrl = "file://" + repoDir.path() + "/vcstest/trunk";
     proc.start(svnFilePath, QStringList({"import", testDataDir + "/vcs", projectUrl, "-m",
                                          "initial import"}));
-    QVERIFY2(proc.waitForStarted(), qPrintable(proc.errorString()));
-    QVERIFY2(proc.waitForFinished(), qPrintable(proc.errorString()));
+    QVERIFY(waitForProcessSuccess(proc));
     QTemporaryDir checkoutDir;
     QVERIFY(checkoutDir.isValid());
     proc.setWorkingDirectory(checkoutDir.path());
     proc.start(svnFilePath, QStringList({"co", projectUrl, "."}));
-    QVERIFY2(proc.waitForStarted(), qPrintable(proc.errorString()));
-    QVERIFY2(proc.waitForFinished(), qPrintable(proc.errorString()));
+    QVERIFY(waitForProcessSuccess(proc));
 
     // Initial runs
     QDir::setCurrent(checkoutDir.path());
@@ -914,11 +919,9 @@ void TestBlackbox::vcsSubversion()
     WAIT_FOR_NEW_TIMESTAMP();
     touch("blubb.txt");
     proc.start(svnFilePath, QStringList({"add", "blubb.txt"}));
-    QVERIFY2(proc.waitForStarted(), qPrintable(proc.errorString()));
-    QVERIFY2(proc.waitForFinished(), qPrintable(proc.errorString()));
+    QVERIFY(waitForProcessSuccess(proc));
     proc.start(svnFilePath, QStringList({"commit", "-m", "blubb!"}));
-    QVERIFY2(proc.waitForStarted(), qPrintable(proc.errorString()));
-    QVERIFY2(proc.waitForFinished(), qPrintable(proc.errorString()));
+    QVERIFY(waitForProcessSuccess(proc));
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     QVERIFY2(m_qbsStdout.contains("I was built from 2"), m_qbsStdout.constData());
 }
