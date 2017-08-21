@@ -2693,6 +2693,15 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
         instanceList.push_back(deepestModuleInstance);
     }
     deepestModuleInstance->setPrototype(modulePrototype);
+    const QString fullName = moduleName.toString();
+    const QString generalOverrideKey = QLatin1String("modules.") + fullName;
+    const QString perProductOverrideKey = QLatin1String("products.") + productContext->name
+            + QLatin1Char('.') + fullName;
+    for (Item * const instance : instanceList) {
+        overrideItemProperties(instance, generalOverrideKey, m_parameters.overriddenValuesTree());
+        overrideItemProperties(instance, perProductOverrideKey,
+                               m_parameters.overriddenValuesTree());
+    }
 
     moduleInstance->setFile(modulePrototype->file());
     moduleInstance->setLocation(modulePrototype->location());
@@ -2708,7 +2717,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     if (productContext->scope)
         productContext->scope->copyProperty(QLatin1String("product"), moduleScope);
     else
-        QBS_CHECK(moduleName.toString() == QLatin1String("qbs")); // Dummy product.
+        QBS_CHECK(fullName == QLatin1String("qbs")); // Dummy product.
 
     if (productModuleInfo) {
         exportingProduct = productModuleInfo->exportItem->parent();
@@ -2788,16 +2797,6 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
             continue;
         throw ErrorInfo(Tr::tr("Cannot set read-only property '%1'.").arg(pd.name()),
                         moduleInstance->property(pd.name())->location());
-    }
-
-    const QString fullName = moduleName.toString();
-    const QString generalOverrideKey = QLatin1String("modules.") + fullName;
-    const QString perProductOverrideKey = QLatin1String("products.") + productContext->name
-            + QLatin1Char('.') + fullName;
-    for (Item * const instance : instanceList) {
-        overrideItemProperties(instance, generalOverrideKey, m_parameters.overriddenValuesTree());
-        overrideItemProperties(instance, perProductOverrideKey,
-                               m_parameters.overriddenValuesTree());
     }
 }
 

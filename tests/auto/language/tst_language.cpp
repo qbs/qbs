@@ -345,8 +345,11 @@ void TestLanguage::conditionalDepends()
     ResolvedProductPtr product;
     ResolvedModuleConstPtr dependency;
     try {
-        defaultParameters.setProjectFilePath(testProject("conditionaldepends.qbs"));
-        project = loader->loadProject(defaultParameters);
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("conditionaldepends.qbs"));
+        params.setOverriddenValues({std::make_pair(QString("products."
+                                    "multilevel_module_props_overridden.dummy3.loadDummy"), true)});
+        project = loader->loadProject(params);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
 
@@ -407,6 +410,13 @@ void TestLanguage::conditionalDepends()
         QVERIFY(!!dependency);
         dependency = findModuleByName(product, "dummy");
         QCOMPARE(dependency, ResolvedModuleConstPtr());
+
+        product = products.value("multilevel_module_props_overridden");
+        QVERIFY(!!product);
+        dependency = findModuleByName(product, "dummy3");
+        QVERIFY(!!dependency);
+        dependency = findModuleByName(product, "dummy");
+        QVERIFY(!!dependency);
 
         product = products.value("multilevel2_module_props_true");
         QVERIFY(!!product);

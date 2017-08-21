@@ -60,6 +60,11 @@ Project {
     }
 
     Product {
+        name: "multilevel_module_props_overridden"
+        Depends { name: "dummy3" }
+    }
+
+    Product {
         name: "multilevel2_module_props_true"
         Depends { name: "dummy3_loader" }
     }
