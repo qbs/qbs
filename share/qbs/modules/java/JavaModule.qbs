@@ -89,7 +89,6 @@ Module {
         description: "properties to add to the manifest file when building a JAR"
     }
 
-    property path manifestFile
     PropertyOptions {
         name: "manifestFile"
         description: "Use files tagged \"java.manifest\" instead."
