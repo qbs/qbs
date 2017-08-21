@@ -156,6 +156,7 @@ private slots:
     void reproducibleBuild_data();
     void require();
     void requireDeprecated();
+    void rescueTransformerData();
     void responseFiles();
     void ruleConditions();
     void ruleCycle();

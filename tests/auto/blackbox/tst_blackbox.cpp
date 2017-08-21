@@ -3258,6 +3258,23 @@ void TestBlackbox::requireDeprecated()
              m_qbsStderr.constData());
 }
 
+void TestBlackbox::rescueTransformerData()
+{
+    QDir::setCurrent(testDataDir + "/rescue-transformer-data");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp") && m_qbsStdout.contains("m.p: undefined"),
+             m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("main.cpp");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp") && !m_qbsStdout.contains("m.p: "),
+             m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("modules.m.p:true"))), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp") && m_qbsStdout.contains("m.p: true"),
+             m_qbsStdout.constData());
+}
+
 void TestBlackbox::multipleChanges()
 {
     QDir::setCurrent(testDataDir + "/multiple-changes");

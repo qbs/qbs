@@ -358,6 +358,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         if (m_rule->declaresInputs() && m_rule->requiresInputs)
             outputArtifact->clearTimestamp();
         m_invalidatedArtifacts += outputArtifact;
+        m_transformer->rescueChangeTrackingData(outputArtifact->transformer);
     } else {
         QScopedPointer<Artifact> newArtifact(new Artifact);
         newArtifact->artifactType = Artifact::Generated;
