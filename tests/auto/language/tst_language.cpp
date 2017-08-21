@@ -236,6 +236,29 @@ void TestLanguage::baseValidation()
     }
 }
 
+void TestLanguage::brokenDependencyCycle()
+{
+    qbs::SetupProjectParameters params = defaultParameters;
+    QFETCH(QString, projectFileName);
+    QFETCH(bool, currentlyBroken);
+    params.setProjectFilePath(testProject(qPrintable(projectFileName)));
+    try {
+        project = loader->loadProject(params);
+    } catch (const qbs::ErrorInfo &e) {
+        if (currentlyBroken)
+            QEXPECT_FAIL("", "FIXME", Abort);
+        QVERIFY2(false, qPrintable(e.toString()));
+    }
+}
+
+void TestLanguage::brokenDependencyCycle_data()
+{
+    QTest::addColumn<QString>("projectFileName");
+    QTest::addColumn<bool>("currentlyBroken");
+    QTest::newRow("one order of products") << "broken-dependency-cycle1.qbs" << false;
+    QTest::newRow("another order of products") << "broken-dependency-cycle2.qbs" << true;
+}
+
 void TestLanguage::buildConfigStringListSyntax()
 {
     bool exceptionCaught = false;

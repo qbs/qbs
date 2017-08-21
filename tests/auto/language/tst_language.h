@@ -79,6 +79,8 @@ private slots:
     void additionalProductTypes();
     void baseProperty();
     void baseValidation();
+    void brokenDependencyCycle();
+    void brokenDependencyCycle_data();
     void buildConfigStringListSyntax();
     void builtinFunctionInSearchPathsProperty();
     void chainedProbes();
