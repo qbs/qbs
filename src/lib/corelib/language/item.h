@@ -101,7 +101,7 @@ public:
     Item *child(ItemType type, bool checkForMultiple = true) const;
     const PropertyMap &properties() const { return m_properties; }
     const PropertyDeclarationMap &propertyDeclarations() const { return m_propertyDeclarations; }
-    PropertyDeclaration propertyDeclaration(const QString &name) const;
+    PropertyDeclaration propertyDeclaration(const QString &name, bool allowExpired = true) const;
     const Modules &modules() const { return m_modules; }
     void addModule(const Module &module);
     void removeModules() { m_modules.clear(); }
@@ -156,6 +156,7 @@ private:
     FileContextPtr m_file;
     PropertyMap m_properties;
     PropertyDeclarationMap m_propertyDeclarations;
+    PropertyDeclarationMap m_expiredPropertyDeclarations;
     Modules m_modules;
     ItemType m_type;
 };

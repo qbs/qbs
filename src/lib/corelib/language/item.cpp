@@ -188,10 +188,17 @@ VariantValuePtr Item::variantProperty(const QString &name) const
     return std::static_pointer_cast<VariantValue>(v);
 }
 
-PropertyDeclaration Item::propertyDeclaration(const QString &name) const
+PropertyDeclaration Item::propertyDeclaration(const QString &name, bool allowExpired) const
 {
-    const PropertyDeclaration decl = m_propertyDeclarations.value(name);
-    return (!decl.isValid() && m_prototype) ? m_prototype->propertyDeclaration(name) : decl;
+    PropertyDeclaration decl = m_propertyDeclarations.value(name);
+    if (decl.isValid())
+        return decl;
+    if (allowExpired) {
+        decl = m_expiredPropertyDeclarations.value(name);
+        if (decl.isValid())
+            return decl;
+    }
+    return m_prototype ? m_prototype->propertyDeclaration(name) : decl;
 }
 
 void Item::addModule(const Item::Module &module)
@@ -347,7 +354,12 @@ void Item::addChild(Item *parent, Item *child)
 
 void Item::setPropertyDeclaration(const QString &name, const PropertyDeclaration &declaration)
 {
-    m_propertyDeclarations.insert(name, declaration);
+    if (declaration.isExpired()) {
+        m_propertyDeclarations.remove(name);
+        m_expiredPropertyDeclarations.insert(name, declaration);
+    } else {
+        m_propertyDeclarations.insert(name, declaration);
+    }
 }
 
 void Item::setPropertyDeclarations(const Item::PropertyDeclarationMap &decls)
