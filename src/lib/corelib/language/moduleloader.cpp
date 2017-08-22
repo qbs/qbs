@@ -1961,7 +1961,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     // Resolve all Depends items.
     ItemModuleList loadedModules;
     QList<Item *> dependsItemPerLoadedModule;
-    ProductDependencyResults productDependencies;
+    ProductDependencies productDependencies;
     const auto &itemChildren = item->children();
     for (Item * const child : itemChildren) {
         if (child->type() != ItemType::Depends)
@@ -2017,7 +2017,7 @@ private:
 
 void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *parentItem,
         Item *dependsItem, ItemModuleList *moduleResults,
-        ProductDependencyResults *productResults)
+        ProductDependencies *productResults)
 {
     checkCancelation();
     if (!checkItemCondition(dependsItem)) {

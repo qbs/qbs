@@ -178,10 +178,12 @@ private:
         std::vector<QStringList> searchPathsStack;
     };
 
+    typedef QList<ModuleLoaderResult::ProductInfo::Dependency> ProductDependencies;
+
     struct ProductModuleInfo
     {
         Item *exportItem = nullptr;
-        QList<ModuleLoaderResult::ProductInfo::Dependency> productDependencies;
+        ProductDependencies productDependencies;
         QVariantMap defaultParameters;
     };
 
@@ -203,10 +205,8 @@ private:
     public:
         ProductContext *product = nullptr;
         Item *exportingProductItem = nullptr;
-        QList<ModuleLoaderResult::ProductInfo::Dependency> *productDependencies;
+        ProductDependencies *productDependencies;
     };
-
-    typedef QList<ModuleLoaderResult::ProductInfo::Dependency> ProductDependencyResults;
 
     void handleTopLevelProject(ModuleLoaderResult *loadResult, Item *projectItem,
             const QString &buildDirectory, const Set<QString> &referencedFilePaths);
@@ -264,7 +264,7 @@ private:
     void resolveDependencies(DependsContext *dependsContext, Item *item);
     class ItemModuleList;
     void resolveDependsItem(DependsContext *dependsContext, Item *parentItem, Item *dependsItem,
-                            ItemModuleList *moduleResults, ProductDependencyResults *productResults);
+                            ItemModuleList *moduleResults, ProductDependencies *productResults);
     void forwardParameterDeclarations(const Item *dependsItem, const ItemModuleList &modules);
     void forwardParameterDeclarations(const QualifiedId &moduleName, Item *item,
                                       const ItemModuleList &modules);
