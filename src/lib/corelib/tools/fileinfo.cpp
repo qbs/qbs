@@ -131,6 +131,15 @@ bool FileInfo::exists(const QString &fp)
     return FileInfo(fp).exists();
 }
 
+// Whether a path is the special "current drive path" path type,
+// which is neither truly relative nor absolute
+static bool isCurrentDrivePath(const QString &path, HostOsInfo::HostOs hostOs)
+{
+    return hostOs == HostOsInfo::HostOsWindows
+            ? path.size() == 2 && path.at(1) == QLatin1Char(':') && path.at(0).isLetter()
+            : false;
+}
+
 // from creator/src/shared/proparser/ioutils.cpp
 bool FileInfo::isAbsolute(const QString &path, HostOsInfo::HostOs hostOs)
 {
@@ -176,11 +185,12 @@ bool FileInfo::isPattern(const QStringRef &str)
  * This function assumes that both paths are clean, that is they don't contain
  * double slashes or redundant dot parts.
  */
-QString FileInfo::resolvePath(const QString &base, const QString &rel)
+QString FileInfo::resolvePath(const QString &base, const QString &rel, HostOsInfo::HostOs hostOs)
 {
-    QBS_ASSERT(isAbsolute(base), qDebug("base: %s, rel: %s", qPrintable(base), qPrintable(rel));
+    QBS_ASSERT(isAbsolute(base, hostOs) && !isCurrentDrivePath(rel, hostOs),
+               qDebug("base: %s, rel: %s", qPrintable(base), qPrintable(rel));
             return QString());
-    if (isAbsolute(rel))
+    if (isAbsolute(rel, hostOs))
         return rel;
     if (rel.size() == 1 && rel.at(0) == QLatin1Char('.'))
         return base;
@@ -204,12 +214,13 @@ QString FileInfo::resolvePath(const QString &base, const QString &rel)
         int idx = r.lastIndexOf(QLatin1Char('/'));
         if (idx >= 0)
             r.truncate(idx);
-        return r;
+        s.clear();
     }
-
-    r.reserve(r.length() + 1 + s.length());
-    r += QLatin1Char('/');
-    r += s;
+    if (!s.isEmpty() || isCurrentDrivePath(r, hostOs)) {
+        r.reserve(r.length() + 1 + s.length());
+        r += QLatin1Char('/');
+        r += s;
+    }
     return r;
 }
 

@@ -151,11 +151,14 @@ QString ProductInstaller::targetFilePath(const TopLevelProject *project,
                                                                                 localAbsBasePath));
         }
 
-        targetFilePath.remove(0, localAbsBasePath.length() + 1);
+        // Since there is a difference between X: and X:\\ on Windows, absolute paths can sometimes
+        // end with a slash, so only remove an extra character if there is no ending slash
+        targetFilePath.remove(0, localAbsBasePath.length()
+                                 + (localAbsBasePath.endsWith(QLatin1Char('/')) ? 0 : 1));
     }
 
     targetFilePath.prepend(targetDir + QLatin1Char('/'));
-    return targetFilePath;
+    return QDir::cleanPath(targetFilePath);
 }
 
 void ProductInstaller::initInstallRoot(const TopLevelProject *project,
