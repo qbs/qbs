@@ -43,6 +43,25 @@ function compilerVersionDefine(cpp) {
     return result;
 }
 
+function addLanguageVersionFlag(input, args) {
+    var cxxVersion = input.cpp.cxxLanguageVersion;
+    if (!cxxVersion)
+        return;
+
+    // Visual C++ 2013, Update 3
+    var hasStdOption = Utilities.versionCompare(input.cpp.compilerVersion, "18.00.30723") >= 0;
+    if (!hasStdOption)
+        return;
+
+    var flag;
+    if (cxxVersion === "c++14")
+        flag = "/std:c++14";
+    else if (cxxVersion !== "c++11" && cxxVersion !== "c++98")
+        flag = "/std:c++latest";
+    if (flag)
+        args.push(flag);
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var i;
     var debugInformation = input.cpp.debugInformation;
@@ -148,10 +167,12 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         args.push("/FI" + FileInfo.toWindowsSeparators(prefixHeaders[i]));
 
     // Language
-    if (tag === "cpp")
+    if (tag === "cpp") {
         args.push("/TP");
-    else if (tag === "c")
+        addLanguageVersionFlag(input, args);
+    } else if (tag === "c") {
         args.push("/TC");
+    }
 
     // Whether we're compiling a precompiled header or normal source file
     var pchOutput = outputs[tag + "_pch"] ? outputs[tag + "_pch"][0] : undefined;

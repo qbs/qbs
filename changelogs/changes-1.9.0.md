@@ -41,6 +41,8 @@
   upward (see the `ld64` man page for more information).
 * The property `cpp.useCxxPrecompiledHeader`, as well as the variants for the
   other languages, now defaults to true.
+* The property `cpp.cxxLanguageVersion` now gets mapped to MSVC's `/std` option,
+  if applicable.
 
 # Apple
 * Added support for building macOS disk images.

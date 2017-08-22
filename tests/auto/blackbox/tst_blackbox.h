@@ -62,6 +62,8 @@ private slots:
     void conditionalExport();
     void conditionalFileTagger();
     void conflictingArtifacts();
+    void cxxLanguageVersion();
+    void cxxLanguageVersion_data();
     void dependenciesProperty();
     void dependencyProfileMismatch();
     void deprecatedProperty();
