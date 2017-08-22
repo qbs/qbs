@@ -974,9 +974,7 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
 {
     ProductDependencyInfos result;
     result.dependencies.reserve(productInfo.usedProducts.size());
-    QList<ModuleLoaderResult::ProductInfo::Dependency> dependencies = productInfo.usedProducts;
-    for (int i = dependencies.count() - 1; i >= 0; --i) {
-        const ModuleLoaderResult::ProductInfo::Dependency &dependency = dependencies.at(i);
+    for (const auto &dependency : productInfo.usedProducts) {
         QBS_CHECK(dependency.name.isEmpty() != dependency.productTypes.isEmpty());
         if (!dependency.productTypes.isEmpty()) {
             for (const FileTag &tag : dependency.productTypes) {

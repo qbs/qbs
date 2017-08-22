@@ -1997,7 +1997,9 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
         });
     }
 
-    dependsContext->productDependencies->append(productDependencies);
+    dependsContext->productDependencies->insert(
+                dependsContext->productDependencies->end(),
+                productDependencies.cbegin(), productDependencies.cend());
 }
 
 class RequiredChainManager
@@ -2054,7 +2056,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         dependency.productTypes = productTypes;
         dependency.limitToSubProject
                 = m_evaluator->boolValue(dependsItem, QLatin1String("limitToSubProject"));
-        productResults->append(dependency);
+        productResults->push_back(dependency);
         return;
     }
     if (submodules.isEmpty() && submodulesPropertySet) {
@@ -2152,7 +2154,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
                     dependency.profile = profile;
                     dependency.multiplexConfigurationId = multiplexId;
                     dependency.isRequired = isRequired;
-                    productResults->append(dependency);
+                    productResults->push_back(dependency);
                 }
             }
         }
@@ -3109,8 +3111,10 @@ void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
             }
         }
     }
-    productContext->info.usedProducts.append(deps);
-    productContext->info.usedProducts.append(additionalDependencies);
+    productContext->info.usedProducts.insert(productContext->info.usedProducts.end(),
+                deps.cbegin(), deps.cend());
+    productContext->info.usedProducts.insert(productContext->info.usedProducts.end(),
+                additionalDependencies.cbegin(), additionalDependencies.cend());
 }
 
 void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)

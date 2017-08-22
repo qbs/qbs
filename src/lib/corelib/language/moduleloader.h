@@ -96,7 +96,7 @@ struct ModuleLoaderResult
         };
 
         QList<ProbeConstPtr> probes;
-        QList<Dependency> usedProducts;
+        std::vector<Dependency> usedProducts;
         ModulePropertiesPerGroup modulePropertiesSetInGroups;
         ErrorInfo delayedError;
     };
@@ -154,7 +154,7 @@ private:
 
     class ProjectContext;
 
-    typedef QList<ModuleLoaderResult::ProductInfo::Dependency> ProductDependencies;
+    typedef std::vector<ModuleLoaderResult::ProductInfo::Dependency> ProductDependencies;
 
     class ProductContext : public ContextBase
     {
