@@ -85,6 +85,13 @@ LinuxGCC {
         ? FileInfo.joinPaths(stlLibsDir, staticLibraryPrefix + Android.ndk.appStl + staticLibrarySuffix)
         : undefined
 
+    Group {
+        name: "Android STL"
+        condition: product.cpp.sharedStlFilePath
+        files: product.cpp.sharedStlFilePath ? [product.cpp.sharedStlFilePath] : []
+        fileTags: ["android.unstripped-stl"]
+    }
+
     toolchainInstallPath: FileInfo.joinPaths(Android.ndk.ndkDir, "toolchains",
                                              toolchainDir, "prebuilt",
                                              Android.ndk.hostArch, "bin")
@@ -203,7 +210,22 @@ LinuxGCC {
     endianness: "little"
 
     Rule {
+        inputs: ["android.unstripped-stl"]
+        Artifact {
+            filePath: FileInfo.joinPaths("stripped-libs", input.fileName);
+            fileTags: ["android.stripped-stl"]
+        }
+        prepare: {
+            var args = ["--strip-unneeded", "-o", output.filePath, input.filePath];
+            var cmd = new Command(product.cpp.stripPath, args);
+            cmd.description = "stripping " + input.fileName;
+            return [cmd];
+        }
+    }
+
+    Rule {
         inputs: ["dynamiclibrary"]
+        explicitlyDependsOn: ["android.stripped-stl"];
         outputFileTags: ["android.nativelibrary", "android.gdbserver-info", "android.stl-info"]
         outputArtifacts: {
             var artifacts = [{
@@ -217,17 +239,14 @@ LinuxGCC {
                         fileTags: ["android.gdbserver-info"]
                 });
             }
-            var stlFilePath = product.moduleProperty("cpp", "sharedStlFilePath");
-            if (stlFilePath)
+            if (explicitlyDependsOn["android.stripped-stl"])
                 artifacts.push({filePath: "android.stl-info.txt", fileTags: ["android.stl-info"]});
             return artifacts;
         }
 
         prepare: {
-            var stlFilePath = product.moduleProperty("cpp", "sharedStlFilePath");
             var copyCmd = new JavaScriptCommand();
             copyCmd.silent = true;
-            copyCmd.stlFilePath = stlFilePath;
             copyCmd.sourceCode = function() {
                 File.copy(inputs["dynamiclibrary"][0].filePath,
                           outputs["android.nativelibrary"][0].filePath);
@@ -246,8 +265,9 @@ LinuxGCC {
                     infoFile.writeLine(targetPath);
                     infoFile.close();
                 }
-                if (stlFilePath) {
-                    var srcPath = stlFilePath;
+                var strippedStlList = explicitlyDependsOn["android.stripped-stl"];
+                if (strippedStlList) {
+                    var srcPath = strippedStlList[0].filePath;
                     var targetPath = FileInfo.joinPaths(destDir, FileInfo.fileName(srcPath));
                     var infoFile = new TextFile(outputs["android.stl-info"][0].filePath,
                                                 TextFile.WriteOnly);
@@ -257,8 +277,6 @@ LinuxGCC {
                 }
             }
             var stripArgs = ["--strip-unneeded", outputs["android.nativelibrary"][0].filePath];
-            if (stlFilePath)
-                stripArgs.push(stlFilePath);
             var stripCmd = new Command(product.moduleProperty("cpp", "stripPath"), stripArgs);
             stripCmd.description = "Stripping unneeded symbols from "
                     + outputs["android.nativelibrary"][0].fileName;
