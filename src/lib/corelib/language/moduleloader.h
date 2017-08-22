@@ -154,6 +154,8 @@ private:
 
     class ProjectContext;
 
+    typedef QList<ModuleLoaderResult::ProductInfo::Dependency> ProductDependencies;
+
     class ProductContext : public ContextBase
     {
     public:
@@ -163,6 +165,7 @@ private:
         QString profileName;
         QString multiplexConfigurationId;
         QVariantMap moduleProperties;
+        std::map<QString, ProductDependencies> productModuleDependencies;
 
         QString uniqueName() const;
     };
@@ -178,12 +181,9 @@ private:
         std::vector<QStringList> searchPathsStack;
     };
 
-    typedef QList<ModuleLoaderResult::ProductInfo::Dependency> ProductDependencies;
-
     struct ProductModuleInfo
     {
         Item *exportItem = nullptr;
-        ProductDependencies productDependencies;
         QVariantMap defaultParameters;
     };
 

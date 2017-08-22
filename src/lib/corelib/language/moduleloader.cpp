@@ -2782,7 +2782,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     dependsContext.exportingProductItem = exportingProduct;
     QBS_ASSERT(moduleInstance->modules().empty(), moduleInstance->removeModules());
     if (productModuleInfo) {
-        dependsContext.productDependencies = &productModuleInfo->productDependencies;
+        dependsContext.productDependencies = &productContext->productModuleDependencies[fullName];
         resolveDependencies(&dependsContext, moduleInstance);
     } else if (!isBaseModule(moduleName)) {
         dependsContext.productDependencies = &productContext->info.usedProducts;
@@ -3069,8 +3069,7 @@ static std::vector<Item::Module> allModules(Item *item)
 void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
                                                 const Item::Module &module)
 {
-    auto deps = productContext->project->topLevelProject->productModules.value(
-                    module.name.toString()).productDependencies;
+    auto deps = productContext->productModuleDependencies.at(module.name.toString());
     const QString multiplexConfigurationIdKey = QStringLiteral("multiplexConfigurationId");
     QList<ModuleLoaderResult::ProductInfo::Dependency> additionalDependencies;
     const bool productIsMultiplexed = !productContext->multiplexConfigurationId.isEmpty();
