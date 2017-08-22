@@ -969,16 +969,6 @@ void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext
     m_productContext->product->scanners += scanner;
 }
 
-static ModuleLoaderResult::ProductInfo::Dependency extractDependency(
-        const ResolvedProductConstPtr &product)
-{
-    ModuleLoaderResult::ProductInfo::Dependency dependency;
-    dependency.name = product->name;
-    dependency.profile = product->profile;
-    dependency.multiplexConfigurationId = product->multiplexConfigurationId;
-    return dependency;
-}
-
 ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
         const ResolvedProductConstPtr &product, const ModuleLoaderResult::ProductInfo &productInfo)
 {
@@ -997,10 +987,8 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
                         continue;
                     }
                     result.dependencies.emplace_back(p, dependency.parameters);
-                    dependencies << extractDependency(p);
                 }
             }
-            dependencies.removeAt(i);
         } else if (dependency.profile == QLatin1String("*")) {
             for (const ResolvedProductPtr &p : qAsConst(m_productsByName)) {
                 if (p->name != dependency.name || p == product || !p->enabled
@@ -1008,9 +996,7 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
                     continue;
                 }
                 result.dependencies.emplace_back(p, dependency.parameters);
-                dependencies << extractDependency(p);
             }
-            dependencies.removeAt(i);
         } else {
             ResolvedProductPtr usedProduct = m_productsByName.value(dependency.uniqueName());
             const QString depDisplayName = ResolvedProduct::fullDisplayName(dependency.name,
