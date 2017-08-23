@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
         return 1;
 
     std::string s = argv[0];
-    std::ifstream in(s.substr(0, s.find_last_of("/")) + "/../share/main.cpp");
+    std::ifstream in(std::string(s.substr(0, s.find_last_of("/")) + "/../share/main.cpp").c_str());
     std::string str((std::istreambuf_iterator<char>(in)),
                      std::istreambuf_iterator<char>());
     std::cout << str << std::endl;
