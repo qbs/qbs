@@ -7,7 +7,7 @@ project     = "Qbs"
 description = "Qbs Manual"
 
 headerdirs =
-sourcedirs = .. $BUILDDIR
+sourcedirs = ..
 imagedirs = ../images ../templates/images
 exampledirs = ..
 

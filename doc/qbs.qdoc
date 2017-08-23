@@ -85,7 +85,6 @@
            \endlist
 
        \li  \l{Appendix A: Building Qbs}
-       \li  \l{Appendix B: Code Attributions}
     \endlist
 */
 
@@ -124,7 +123,6 @@
     \contentspage index.html
     \previouspage reference.html
     \page building-qbs.html
-    \nextpage attributions.html
 
     \title Appendix A: Building Qbs
 
@@ -1109,15 +1107,4 @@
     If a simple workaround is possible in a particular case (e.g. varying Product.targetName across
     configuration instead of Product.name), the generator will typically suggest it in the error
     message.
-*/
-
-/*!
-    \contentspage index.html
-    \previouspage building-qbs.html
-    \page attributions.html
-
-    \title Appendix B: Code Attributions
-
-    \QBS contains third-party code, which we gratefully acknowledge:
-    \generatelist{groupsbymodule attributions-qbs}
 */

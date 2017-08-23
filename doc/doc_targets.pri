@@ -6,7 +6,6 @@
 # QDOC_ENV            - environment variables to set for the qdoc call (see example below)
 # DOC_INDEX_PATHS     - list of paths where qdoc should search for index files of dependent
 #                       modules (Qt index path is included by default)
-# DOC_SRCDIR          - source directory
 # DOC_FILES           - list of qdocconf files
 # DOC_OUTDIR_POSTFIX  - html is generated in $$OUT_PWD/<qdocconf_name>$$DOC_OUTDIR_POSTFIX
 # DOC_HTML_INSTALLDIR - path were to install the directory of html files
@@ -22,7 +21,6 @@
 # QDOC_ENV = ver foo
 
 isEmpty(DOC_FILES): error("Set DOC_FILES before including doc_targets.pri")
-isEmpty(DOC_SRCDIR): error("Set DOC_SRCDIR before including doc_targets.pri")
 isEmpty(DOC_HTML_INSTALLDIR): error("Set DOC_HTML_INSTALLDIR before including doc_targets.pri")
 isEmpty(DOC_QCH_OUTDIR): error("Set DOC_QCH_OUTDIR before including doc_targets.pri")
 isEmpty(DOC_QCH_INSTALLDIR): error("Set DOC_QCH_INSTALLDIR before including doc_targets.pri")
@@ -33,21 +31,12 @@ QT_TOOL_ENV =
 
 !build_online_docs: qtPrepareTool(QHELPGENERATOR, qhelpgenerator)
 
-qtPrepareTool(QTATTRIBUTIONSSCANNER, qtattributionsscanner)
-
 DOCS_BASE_OUTDIR = $$OUT_PWD/doc
 DOC_INDEXES += -indexdir $$shell_quote($$[QT_INSTALL_DOCS])
 for (index_path, DOC_INDEX_PATHS): \
     DOC_INDEXES += -indexdir $$shell_quote($$index_path)
 
 DTP = $$DOC_TARGET_PREFIX
-
-$${DTP}qtattributionsscanner.target = qtattributionsscanner
-$${DTP}qtattributionsscanner.commands += $$QTATTRIBUTIONSSCANNER $$shell_quote($$DOC_SRCDIR) \
-   -o $$shell_quote($$OUT_PWD/codeattributions.qdoc)
-$${DTP}qtattributionsscanner.CONFIG += phony
-QMAKE_EXTRA_TARGETS += $${DTP}qtattributionsscanner
-
 for (doc_file, DOC_FILES) {
     !exists($$doc_file): error("Cannot find documentation specification file $$doc_file")
     DOC_TARGET = $$replace(doc_file, ^(.*/)?(.*)\\.qdocconf$, \\2)
@@ -59,7 +48,6 @@ for (doc_file, DOC_FILES) {
 
     !isEmpty($${DTP}html_docs.commands): $${DTP}html_docs.commands += &&
     $${DTP}html_docs.commands += $$eval($${DTP}html_docs_$${DOC_TARGET}.commands)
-    $${DTP}html_docs.depends += $${DTP}qtattributionsscanner
 
     $${DTP}inst_html_docs.files += $$DOC_OUTPUTDIR
 
