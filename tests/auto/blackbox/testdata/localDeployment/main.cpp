@@ -36,7 +36,17 @@ int main(int argc, char *argv[])
         return 1;
 
     std::string s = argv[0];
-    std::ifstream in(std::string(s.substr(0, s.find_last_of("/")) + "/../share/main.cpp").c_str());
+    for (auto &c : s) {
+        if (c == '\\')
+            c = '/';
+    }
+    const std::string mainFilePath =
+            std::string(s.substr(0, s.find_last_of("/")) + "/../share/main.cpp");
+    std::ifstream in(mainFilePath.c_str());
+    if (!in.is_open()) {
+        std::cerr << "Failed to open file: " << mainFilePath;
+        return 1;
+    }
     std::string str((std::istreambuf_iterator<char>(in)),
                      std::istreambuf_iterator<char>());
     std::cout << str << std::endl;

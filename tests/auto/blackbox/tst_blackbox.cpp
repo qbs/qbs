@@ -4586,7 +4586,8 @@ void TestBlackbox::localDeployment()
     QDir::setCurrent(testDataDir + "/localDeployment");
     QFile main("main.cpp");
     QVERIFY(main.open(QIODevice::ReadOnly));
-    const QByteArray content = main.readAll();
+    QByteArray content = main.readAll();
+    content.replace('\r', "");
     QbsRunParameters params;
     params.command = "run";
     QCOMPARE(runQbs(params), 0);
