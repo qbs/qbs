@@ -8,6 +8,7 @@ Project {
         destinationDirectory: "bin"
 
         Depends { name: "cpp" }
+        cpp.cxxLanguageVersion: "c++11"
 
         Group {
             fileTagsFilter: product.type
