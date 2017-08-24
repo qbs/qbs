@@ -241,6 +241,8 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
     var systemRunPaths = product.cpp.systemRunPaths || [];
     var i, args = additionalCompilerAndLinkerFlags(product);
 
+    var escapableLinkerFlags = [];
+
     if (output.fileTags.contains("dynamiclibrary")) {
         if (isDarwin) {
             args.push((function () {
@@ -259,14 +261,9 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
             var internalVersion = product.cpp.internalVersion;
             if (internalVersion && isNumericProductVersion(internalVersion))
                 args.push("-current_version", internalVersion);
-
-            args = args.concat(escapeLinkerFlags(product, inputs, [
-                                                     "-install_name",
-                                                     UnixUtils.soname(product, output.fileName)]));
+            escapableLinkerFlags.push("-install_name", UnixUtils.soname(product, output.fileName));
         } else {
-            args = args.concat(escapeLinkerFlags(product, inputs, [
-                                                     "-soname=" +
-                                                     UnixUtils.soname(product, output.fileName)]));
+            escapableLinkerFlags.push("-soname=" + UnixUtils.soname(product, output.fileName));
         }
     }
 
@@ -275,11 +272,9 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
 
     if (output.fileTags.containsAny(["dynamiclibrary", "loadablemodule"])) {
         if (isDarwin)
-            args = args.concat(escapeLinkerFlags(product, inputs,
-                                                 ["-headerpad_max_install_names"]));
+            escapableLinkerFlags.push("-headerpad_max_install_names");
         else
-            args = args.concat(escapeLinkerFlags(product, inputs,
-                                                 ["--as-needed"]));
+            escapableLinkerFlags.push("--as-needed");
     }
 
     if (isLegacyQnxSdk(product)) {
@@ -291,41 +286,37 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
 
     var targetLinkerFlags = product.cpp.targetLinkerFlags;
     if (targetLinkerFlags)
-        args = args.concat(escapeLinkerFlags(product, inputs, targetLinkerFlags));
+        Array.prototype.push.apply(escapableLinkerFlags, targetLinkerFlags);
 
     var sysroot = product.cpp.syslibroot;
     if (sysroot) {
         if (product.qbs.toolchain.contains("qcc"))
-            args = args.concat(escapeLinkerFlags(product, inputs, ["--sysroot=" + sysroot]));
+            escapableLinkerFlags.push("--sysroot=" + sysroot);
         else if (isDarwin)
-            args = args.concat(escapeLinkerFlags(product, inputs, ["-syslibroot", sysroot]));
+            escapableLinkerFlags.push("-syslibroot", sysroot);
         else
             args.push("--sysroot=" + sysroot); // do not escape, compiler-as-linker also needs it
     }
 
     if (product.cpp.allowUnresolvedSymbols) {
-        args = args.concat(escapeLinkerFlags(
-                               product, inputs, isDarwin
-                               ? ["-undefined", "suppress"]
-                               : ["--unresolved-symbols=ignore-all"]));
+        if (isDarwin)
+            escapableLinkerFlags.push("-undefined", "suppress");
+        else
+            escapableLinkerFlags.push("--unresolved-symbols=ignore-all");
     }
 
     for (i in rpaths) {
         if (systemRunPaths.indexOf(rpaths[i]) === -1)
-            args = args.concat(escapeLinkerFlags(product, inputs, ["-rpath", rpaths[i]]));
+            escapableLinkerFlags.push("-rpath", rpaths[i]);
     }
 
     if (product.cpp.entryPoint)
-        args = args.concat(escapeLinkerFlags(product, inputs,
-                                             ["-e", product.cpp.entryPoint]));
+        escapableLinkerFlags.push("-e", product.cpp.entryPoint);
 
     if (product.qbs.toolchain.contains("mingw")) {
         if (product.consoleApplication !== undefined)
-            args = args.concat(escapeLinkerFlags(product, inputs, [
-                                                     "-subsystem",
-                                                     product.consoleApplication
-                                                        ? "console"
-                                                        : "windows"]));
+            escapableLinkerFlags.push("-subsystem",
+                                      product.consoleApplication ? "console" : "windows");
 
         var minimumWindowsVersion = product.cpp.minimumWindowsVersion;
         if (minimumWindowsVersion) {
@@ -335,14 +326,10 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
                 var minor = subsystemVersion.split('.')[1];
 
                 // http://sourceware.org/binutils/docs/ld/Options.html
-                args = args.concat(escapeLinkerFlags(product, inputs,
-                                                     ["--major-subsystem-version", major]));
-                args = args.concat(escapeLinkerFlags(product, inputs,
-                                                     ["--minor-subsystem-version", minor]));
-                args = args.concat(escapeLinkerFlags(product, inputs,
-                                                     ["--major-os-version", major]));
-                args = args.concat(escapeLinkerFlags(product, inputs,
-                                                     ["--minor-os-version", minor]));
+                escapableLinkerFlags.push("--major-subsystem-version", major,
+                                          "--minor-subsystem-version", minor,
+                                          "--major-os-version", major,
+                                          "--minor-os-version", minor);
             }
         }
     }
@@ -367,21 +354,20 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
 
     var linkerScripts = inputs.linkerscript
             ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
-    args = args.concat(escapeLinkerFlags(product, inputs, [].uniqueConcat(linkerScripts)
-                                         .map(function(path) { return '-T' + path })));
+    Array.prototype.push.apply(escapableLinkerFlags, [].uniqueConcat(linkerScripts)
+                               .map(function(path) { return '-T' + path }));
 
     var versionScripts = inputs.versionscript
             ? inputs.versionscript.map(function(a) { return a.filePath; }) : [];
-    args = args.concat(escapeLinkerFlags(product, inputs, [].uniqueConcat(versionScripts)
-                       .map(function(path) { return '--version-script=' + path })));
+    Array.prototype.push.apply(escapableLinkerFlags, [].uniqueConcat(versionScripts)
+                               .map(function(path) { return '--version-script=' + path }));
 
     if (isDarwin && product.cpp.warningLevel === "none")
         args.push('-w');
 
     args = args.concat(configFlags(product, useCompilerDriverLinker(product, inputs)));
-    args = args.concat(escapeLinkerFlags(
-                           product, inputs, product.cpp.platformLinkerFlags));
-    args = args.concat(escapeLinkerFlags(product, inputs, product.cpp.linkerFlags));
+    Array.prototype.push.apply(escapableLinkerFlags, product.cpp.platformLinkerFlags);
+    Array.prototype.push.apply(escapableLinkerFlags, product.cpp.linkerFlags);
 
     // Note: due to the QCC response files hack in prepareLinker(), at least one object file or
     // library file must follow the output file path so that QCC has something to process before
@@ -433,15 +419,12 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
             if (!["lazy", "reexport", "upward", "weak"].contains(symbolLinkMode))
                 throw new Error("unknown value '" + symbolLinkMode + "' for cpp.symbolLinkMode");
 
-            var flags;
             if (FileInfo.isAbsolutePath(lib) || lib.startsWith('@'))
-                flags = ["-" + symbolLinkMode + "_library", lib];
+                escapableLinkerFlags.push("-" + symbolLinkMode + "_library", lib);
             else if (dep.framework)
-                flags = ["-" + symbolLinkMode + "_framework", lib];
+                escapableLinkerFlags.push("-" + symbolLinkMode + "_framework", lib);
             else
-                flags = ["-" + symbolLinkMode + "-l" + lib];
-
-            Array.prototype.push.apply(args, escapeLinkerFlags(product, inputs, flags));
+                escapableLinkerFlags.push("-" + symbolLinkMode + "-l" + lib);
         } else if (FileInfo.isAbsolutePath(lib) || lib.startsWith('@')) {
             args.push(dep.framework ? PathTools.frameworkExecutablePath(lib) : lib);
         } else if (dep.framework) {
@@ -458,15 +441,15 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
     if (product.cpp.useRPathLink) {
         if (!product.cpp.rpathLinkFlag)
             throw new Error("Using rpath-link but cpp.rpathLinkFlag is not defined");
-        args = args.concat(escapeLinkerFlags(
-                               product, inputs,
-                               libraryDependencies.rpath_link.map(
-                                   function(dir) {
-                                       return product.cpp.rpathLinkFlag + dir;
-                                   })));
+        Array.prototype.push.apply(escapableLinkerFlags, libraryDependencies.rpath_link.map(
+                                       function(dir) {
+                                           return product.cpp.rpathLinkFlag + dir;
+                                       }));
     }
 
-    return args;
+    var escapedLinkerFlags = escapeLinkerFlags(product, inputs, escapableLinkerFlags);
+    Array.prototype.push.apply(escapedLinkerFlags, args);
+    return escapedLinkerFlags;
 }
 
 // for compiler AND linker
