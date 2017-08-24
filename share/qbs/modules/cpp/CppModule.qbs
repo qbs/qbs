@@ -183,6 +183,7 @@ Module {
     property bool useRPaths: true
     property bool useRPathLink
     property string rpathLinkFlag
+    property bool discardUnusedData
 
     property stringList assemblerFlags
     PropertyOptions {

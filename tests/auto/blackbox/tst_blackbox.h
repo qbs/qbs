@@ -69,6 +69,8 @@ private slots:
     void dependencyProfileMismatch();
     void deprecatedProperty();
     void disappearedProfile();
+    void discardUnusedData();
+    void discardUnusedData_data();
     void dynamicMultiplexRule();
     void dynamicProject();
     void dynamicRuleOutputs();

@@ -1,0 +1,3 @@
+void unusedFunc() {}
+
+int main() {}

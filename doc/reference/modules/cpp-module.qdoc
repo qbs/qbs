@@ -107,6 +107,14 @@
         \li Like \c combineCSources, but for Objective-C++. The relevant file tags are \c{"objcpp"}
             and \c{"objcpp.combine"}.
     \row
+        \li discardUnusedData
+        \li \c{bool}
+        \li 1.10
+        \li \c undefined
+        \li If this property is \c true, the linker will discard data from objects
+            that it determines to be unused. With MSVC and on Apple platforms, the granularity is
+            per symbol, elsewhere it is per section.
+    \row
         \li separateDebugInformation
         \li \c{bool}
         \li 1.4

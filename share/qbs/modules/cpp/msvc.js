@@ -255,6 +255,14 @@ function linkerSupportsWholeArchive(product)
     return Utilities.versionCompare(product.cpp.compilerVersion, "19.0.25123") >= 0
 }
 
+function handleDiscardProperty(product, flags) {
+    var discardUnusedData = product.cpp.discardUnusedData;
+    if (discardUnusedData === true)
+        flags.push("/OPT:REF");
+    else if (discardUnusedData === false)
+        flags.push("/OPT:NOREF");
+}
+
 function prepareLinker(project, product, inputs, outputs, input, output) {
     var i;
     var linkDLL = (outputs.dynamiclibrary ? true : false)
@@ -376,6 +384,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     for (i in libraryPaths) {
         args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
     }
+    handleDiscardProperty(product, args);
     var linkerFlags = product.cpp.platformLinkerFlags.concat(product.cpp.linkerFlags);
     args = args.concat(linkerFlags);
     if (product.cpp.allowUnresolvedSymbols)

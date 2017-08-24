@@ -771,6 +771,46 @@ void TestBlackbox::disappearedProfile()
     QVERIFY2(m_qbsStderr.contains("profile"), m_qbsStderr.constData());
 }
 
+void TestBlackbox::discardUnusedData()
+{
+    QDir::setCurrent(testDataDir + "/discard-unused-data");
+    rmDirR(relativeBuildDir());
+    QFETCH(QString, discardString);
+    QFETCH(bool, symbolPresent);
+    QbsRunParameters params;
+    if (!discardString.isEmpty())
+        params.arguments << ("modules.cpp.discardUnusedData:" + discardString);
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("is Darwin"), m_qbsStdout.constData());
+    const bool isDarwin = m_qbsStdout.contains("is Darwin: true");
+    const QString output = QString::fromLocal8Bit(m_qbsStdout);
+    QRegExp pattern(".*---(.*)---.*");
+    QVERIFY2(pattern.exactMatch(output), qPrintable(output));
+    QCOMPARE(pattern.captureCount(), 1);
+    const QString nmPath = pattern.capturedTexts().at(1);
+    if (!QFile::exists(nmPath))
+        QSKIP("Cannot check for symbol presence: No nm found.");
+    QProcess nm;
+    nm.start(nmPath, QStringList(QDir::currentPath() + '/' + relativeExecutableFilePath("app")));
+    QVERIFY(nm.waitForStarted());
+    QVERIFY(nm.waitForFinished());
+    const QByteArray nmOutput = nm.readAllStandardOutput();
+    QVERIFY2(nm.exitCode() == 0, nm.readAllStandardError().constData());
+    if (!symbolPresent && !isDarwin)
+        QSKIP("Unused symbol detection only supported on Darwin");
+    QVERIFY2(nmOutput.contains("unusedFunc") == symbolPresent, nmOutput.constData());
+}
+
+void TestBlackbox::discardUnusedData_data()
+{
+    QTest::addColumn<QString>("discardString");
+    QTest::addColumn<bool>("symbolPresent");
+
+    QTest::newRow("discard") << QString("true") << false;
+    QTest::newRow("don't discard") << QString("false") << true;
+    QTest::newRow("default") << QString() << true;
+}
+
 void TestBlackbox::symlinkRemoval()
 {
     if (HostOsInfo::isWindowsHost())

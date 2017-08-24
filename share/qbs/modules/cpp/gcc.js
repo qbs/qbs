@@ -437,6 +437,18 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
         Array.prototype.push.apply(args,
                                    escapeLinkerFlags(product, inputs, ["--no-whole-archive"]));
     }
+    var discardUnusedData = product.cpp.discardUnusedData;
+    if (discardUnusedData !== undefined) {
+        var flags = [];
+        if (discardUnusedData === true) {
+            if (isDarwin)
+                escapableLinkerFlags.push("-dead_strip");
+            else
+                escapableLinkerFlags.push("--gc-sections");
+        } else if (!isDarwin) {
+            escapableLinkerFlags.push("--no-gc-sections");
+        }
+    }
 
     if (product.cpp.useRPathLink) {
         if (!product.cpp.rpathLinkFlag)
