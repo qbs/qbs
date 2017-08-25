@@ -4040,6 +4040,20 @@ void TestBlackbox::checkProjectFilePath()
     QVERIFY2(m_qbsStdout.contains("main2.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::checkTimestamps()
+{
+    QDir::setCurrent(testDataDir + "/check-timestamps");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling file.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY(QFile::remove(relativeBuildGraphFilePath()));
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("file.h");
+    QCOMPARE(runQbs(QStringList("--check-timestamps")), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling file.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+}
+
 class TemporaryDefaultProfileRemover
 {
 public:

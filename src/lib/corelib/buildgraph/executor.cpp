@@ -906,7 +906,8 @@ void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
         return;
     }
 
-    if (!mustExecuteTransformer(transformer)) {
+    const bool mustExecute = mustExecuteTransformer(transformer);
+    if (!mustExecute && !m_buildOptions.forceTimestampCheck()) {
         if (m_doDebug)
             m_logger.qbsDebug() << "[EXEC] Up to date. Skipping.";
         finishTransformer(transformer);
@@ -923,6 +924,13 @@ void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
         scanTimer.stop();
         if (scanner.newDependencyAdded() && checkForUnbuiltDependencies(output))
             return;
+    }
+
+    if (!mustExecute) {
+        if (m_doDebug)
+            m_logger.qbsDebug() << "[EXEC] Up to date. Skipping.";
+        finishTransformer(transformer);
+        return;
     }
 
     if (m_buildOptions.executeRulesOnly())

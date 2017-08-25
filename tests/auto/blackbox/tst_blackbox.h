@@ -54,6 +54,7 @@ private slots:
     void changeInImportedFile();
     void changeTrackingAndMultiplexing();
     void checkProjectFilePath();
+    void checkTimestamps();
     void clean();
     void cli();
     void combinedSources();
