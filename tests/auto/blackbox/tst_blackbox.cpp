@@ -4643,7 +4643,49 @@ void TestBlackbox::minimumSystemVersion()
     QbsRunParameters params({ "-f", file + ".qbs" });
     params.command = "run";
     QCOMPARE(runQbs(params), 0);
-    QVERIFY2(m_qbsStdout.contains(output.toUtf8()), m_qbsStdout.constData());
+    if (!m_qbsStdout.contains(output.toUtf8())) {
+        qDebug() << "expected output:" << qPrintable(output);
+        qDebug() << "actual output:" << m_qbsStdout.constData();
+    }
+    QVERIFY(m_qbsStdout.contains(output.toUtf8()));
+}
+
+static qbs::Internal::Version fromMinimumDeploymentTargetValue(int v, bool isMacOS)
+{
+    if (isMacOS && v < 100000)
+        return qbs::Internal::Version(v / 100, v / 10 % 10, v % 10);
+    return qbs::Internal::Version(v / 10000, v / 100 % 100, v % 100);
+}
+
+static int toMinimumDeploymentTargetValue(const qbs::Internal::Version &v, bool isMacOS)
+{
+    if (isMacOS && v < qbs::Internal::Version(10, 10))
+        return (v.majorVersion() * 100) + (v.minorVersion() * 10) + v.patchLevel();
+    return (v.majorVersion() * 10000) + (v.minorVersion() * 100) + v.patchLevel();
+}
+
+static qbs::Internal::Version defaultClangMinimumDeploymentTarget()
+{
+    QProcess process;
+    process.start("/usr/bin/xcrun", {"-sdk", "macosx", "clang++",
+                                     "-target", "x86_64-apple-macosx-macho",
+                                     "-dM", "-E", "-x", "objective-c++", "/dev/null"});
+    if (waitForProcessSuccess(process)) {
+        const auto lines = process.readAllStandardOutput().split('\n');
+        for (const auto &line : lines) {
+            static const QByteArray prefix =
+                "#define __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ ";
+            if (line.startsWith(prefix)) {
+                bool ok = false;
+                int v = line.mid(prefix.size()).trimmed().toInt(&ok);
+                if (ok)
+                    return fromMinimumDeploymentTargetValue(v, true);
+                break;
+            }
+        }
+    }
+
+    return qbs::Internal::Version();
 }
 
 void TestBlackbox::minimumSystemVersion_data()
@@ -4651,18 +4693,16 @@ void TestBlackbox::minimumSystemVersion_data()
     QTest::addColumn<QString>("file");
     QTest::addColumn<QString>("output");
 
+    // Don't check for the full "version X.Y.Z\n" on macOS as some older versions of otool don't
+    // show the patch version. Instead, simply check for "version X.Y" with no trailing \n.
+
     const QString unspecified = []() -> QString {
         if (HostOsInfo::isMacosHost()) {
-            QSettings settings("/System/Library/CoreServices/SystemVersion.plist",
-                               QSettings::NativeFormat);
-            auto v = qbs::Internal::Version::fromString(
-                settings.value("ProductVersion").toString());
-
-            return "__MAC_OS_X_VERSION_MIN_REQUIRED=10"
-                    + QString::number(v.minorVersion()) + (v.minorVersion() >= 10 ? "00" : "0")
+            const auto v = defaultClangMinimumDeploymentTarget();
+            return "__MAC_OS_X_VERSION_MIN_REQUIRED="
+                    + QString::number(toMinimumDeploymentTargetValue(v, true))
                     + "\nversion "
-                    + QString::number(v.majorVersion()) + "." + QString::number(v.minorVersion())
-                    + "\n";
+                    + QString::number(v.majorVersion()) + "." + QString::number(v.minorVersion());
         }
 
         if (HostOsInfo::isWindowsHost())
@@ -4690,7 +4730,7 @@ void TestBlackbox::minimumSystemVersion_data()
                                                          "version\n5.03 subsystem version\n";
     if (HostOsInfo::isMacosHost())
         QTest::newRow("macappstore") << "macappstore" << "__MAC_OS_X_VERSION_MIN_REQUIRED=1068\n"
-                                                         "version 10.6.8\n";
+                                                         "version 10.6";
 }
 
 void TestBlackbox::missingDependency()
