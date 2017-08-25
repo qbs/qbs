@@ -5,7 +5,7 @@
     <id>qbs</id>
     <title>Qbs</title>
     <authors>Qt Project</authors>
-    <owners>jakepetroules</owners>
+    <owners>qbs</owners>
     <summary>Build tool that helps simplify the build process for developing projects across multiple platforms.</summary>
     <description>Qbs is a tool that helps simplify the build process for developing projects across multiple platforms.</description>
     <projectUrl>https://wiki.qt.io/Qbs</projectUrl>
