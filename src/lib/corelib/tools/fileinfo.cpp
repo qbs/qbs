@@ -328,7 +328,7 @@ static QString resolveSymlinks(const QString &fileName)
 {
     QFileInfo fi(fileName);
     while (fi.isSymLink())
-        fi.setFile(fi.symLinkTarget());
+        fi.setFile(fi.dir(), fi.symLinkTarget());
     return fi.absoluteFilePath();
 }
 
