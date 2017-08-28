@@ -55,6 +55,7 @@ private slots:
     void changeInImportedFile();
     void changeTrackingAndMultiplexing();
     void checkProjectFilePath();
+    void checkTimestamps();
     void clean();
     void cli();
     void combinedSources();
@@ -65,6 +66,8 @@ private slots:
     void conditionalFileTagger();
     void configure();
     void conflictingArtifacts();
+    void cxxLanguageVersion();
+    void cxxLanguageVersion_data();
     void cpuFeatures();
     void dependenciesProperty();
     void dependencyProfileMismatch();
@@ -168,6 +171,7 @@ private slots:
     void reproducibleBuild_data();
     void require();
     void requireDeprecated();
+    void rescueTransformerData();
     void responseFiles();
     void ruleConditions();
     void ruleCycle();

@@ -18,7 +18,6 @@ QbsLibrary {
     cpp.defines: base.concat([
         'QBS_RELATIVE_LIBEXEC_PATH="' + qbsbuildconfig.relativeLibexecPath + '"',
         "QBS_VERSION=\"" + version + "\"",
-        "QT_CREATOR", "QML_BUILD_STATIC_LIB",   // needed for QmlJS
     ]).concat(projectFileUpdateDefines).concat(enableUnitTestsDefines)
 
     Properties {

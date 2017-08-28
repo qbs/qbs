@@ -14,4 +14,9 @@ QbsApp {
         "xcodeprobe.cpp",
         "xcodeprobe.h",
     ]
+    Group {
+        name: "MinGW specific files"
+        condition: qbs.toolchain.contains("mingw")
+        files: ["qbs-setup-toolchains.exe.manifest", "qbs-setup-toolchains.rc"]
+    }
 }

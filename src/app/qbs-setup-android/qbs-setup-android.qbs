@@ -9,4 +9,9 @@ QbsApp {
         "commandlineparser.h",
         "main.cpp",
     ]
+    Group {
+        name: "MinGW specific files"
+        condition: qbs.toolchain.contains("mingw")
+        files: ["qbs-setup-android.exe.manifest", "qbs-setup-android.rc"]
+    }
 }

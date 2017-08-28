@@ -13,7 +13,6 @@ qbs_enable_project_file_updates: QT += gui
 INCLUDEPATH += $$PWD
 
 CONFIG += depend_includepath
-DEFINES += QT_CREATOR QML_BUILD_STATIC_LIB      # needed for QmlJS
 
 DEFINES += SRCDIR=\\\"$$PWD\\\"
 

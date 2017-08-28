@@ -860,22 +860,25 @@ void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
         return;
     }
 
-    if (!mustExecuteTransformer(transformer)) {
+    const bool mustExecute = mustExecuteTransformer(transformer);
+    if (mustExecute || m_buildOptions.forceTimestampCheck()) {
+        for (Artifact * const output : qAsConst(transformer->outputs)) {
+            // Scan all input artifacts. If new dependencies were found during scanning, delay
+            // execution of this transformer.
+            InputArtifactScanner scanner(output, m_inputArtifactScanContext, m_logger);
+            AccumulatingTimer scanTimer(m_buildOptions.logElapsedTime()
+                                        ? &m_elapsedTimeScanners : nullptr);
+            scanner.scan();
+            scanTimer.stop();
+            if (scanner.newDependencyAdded() && checkForUnbuiltDependencies(output))
+                return;
+        }
+    }
+
+    if (!mustExecute) {
         qCDebug(lcExec) << "Up to date. Skipping.";
         finishTransformer(transformer);
         return;
-    }
-
-    for (Artifact * const output : qAsConst(transformer->outputs)) {
-        // Scan all input artifacts. If new dependencies were found during scanning, delay
-        // execution of this transformer.
-        InputArtifactScanner scanner(output, m_inputArtifactScanContext, m_logger);
-        AccumulatingTimer scanTimer(m_buildOptions.logElapsedTime()
-                                    ? &m_elapsedTimeScanners : nullptr);
-        scanner.scan();
-        scanTimer.stop();
-        if (scanner.newDependencyAdded() && checkForUnbuiltDependencies(output))
-            return;
     }
 
     if (m_buildOptions.executeRulesOnly())

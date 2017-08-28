@@ -82,6 +82,7 @@ public:
     void setupExplicitlyDependsOn(QScriptValue targetScriptValue);
     void createCommands(ScriptEngine *engine, const ScriptFunctionConstPtr &script,
                         const QScriptValueList &args);
+    void rescueChangeTrackingData(const TransformerConstPtr &other);
 
 private:
     Transformer();

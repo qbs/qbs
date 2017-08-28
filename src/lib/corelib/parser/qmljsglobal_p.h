@@ -41,6 +41,15 @@
 
 #include <QtCore/qglobal.h>
 
+// Force QML_PARSER_EXPORT to be always empty.
+#ifndef QT_CREATOR
+#   define QT_CREATOR
+#endif
+#ifdef QML_BUILD_STATIC_LIB
+#   undef QML_BUILD_STATIC_LIB
+#endif
+#define QML_BUILD_STATIC_LIB 1
+
 #ifdef QT_CREATOR
 #  ifdef QMLJS_BUILD_DIR
 #    define QML_PARSER_EXPORT Q_DECL_EXPORT

@@ -88,7 +88,7 @@ public:
     QString message;
 };
 
-class QML_PARSER_EXPORT QBS_AUTOTEST_EXPORT Engine
+class QBS_AUTOTEST_EXPORT Engine
 {
     Lexer *_lexer;
     Directives *_directives;

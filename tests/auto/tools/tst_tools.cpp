@@ -88,12 +88,21 @@ void TestTools::testFileInfo()
         QCOMPARE(FileInfo::path("C:/fileInDriveRoot"), QString("C:/"));
     QVERIFY(!FileInfo::isAbsolute("bla/lol"));
     QVERIFY(FileInfo::isAbsolute("/bla/lol"));
-    if (HostOsInfo::isWindowsHost())
+    if (HostOsInfo::isWindowsHost()) {
         QVERIFY(FileInfo::isAbsolute("C:\\bla\\lol"));
+        QVERIFY(FileInfo::isAbsolute("C:\\"));
+        QVERIFY(FileInfo::isAbsolute("C:/"));
+        QVERIFY(!FileInfo::isAbsolute("C:"));
+    }
     QCOMPARE(FileInfo::resolvePath("/abc/lol", "waffl"), QString("/abc/lol/waffl"));
     QCOMPARE(FileInfo::resolvePath("/abc/def/ghi/jkl/", "../foo/bar"), QString("/abc/def/ghi/foo/bar"));
     QCOMPARE(FileInfo::resolvePath("/abc/def/ghi/jkl/", "../../foo/bar"), QString("/abc/def/foo/bar"));
     QCOMPARE(FileInfo::resolvePath("/abc", "../../../foo/bar"), QString("/foo/bar"));
+    if (HostOsInfo::isWindowsHost()) {
+        QCOMPARE(FileInfo::resolvePath("C:/share", ".."), QString("C:/"));
+        QCOMPARE(FileInfo::resolvePath("C:/share", "D:/"), QString("D:/"));
+        QCOMPARE(FileInfo::resolvePath("C:/share", "D:"), QString()); // should soft-assert
+    }
     QCOMPARE(FileInfo("/does/not/exist").lastModified(), FileTime());
 }
 

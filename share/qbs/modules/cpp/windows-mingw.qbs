@@ -85,15 +85,17 @@ GenericGCC {
         }
 
         prepare: {
+            var inputList = inputs["native.pe.manifest"];
             // TODO: Emulate manifest merging like Microsoft's mt.exe tool does
-            if (inputs.length !== 1)
+            if (inputList.length !== 1) {
                 throw("The MinGW toolchain does not support manifest merging; " +
                       "you may only specify a single manifest file to embed into your assembly.");
+            }
 
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.productType = product.type;
-            cmd.inputFilePath = inputs[0].filePath;
+            cmd.inputFilePath = inputList[0].filePath;
             cmd.outputFilePath = output.filePath;
             cmd.sourceCode = function() {
                 var tf;

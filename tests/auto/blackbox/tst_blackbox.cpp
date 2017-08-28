@@ -1242,6 +1242,83 @@ void TestBlackbox::conflictingArtifacts()
     QVERIFY2(m_qbsStderr.contains("Conflicting artifacts"), m_qbsStderr.constData());
 }
 
+void TestBlackbox::cxxLanguageVersion()
+{
+    QDir::setCurrent(testDataDir + "/cxx-language-version");
+    rmDirR(relativeBuildDir());
+    QFETCH(QString, version);
+    QFETCH(QVariantMap, requiredFlags);
+    QFETCH(QVariantMap, forbiddenFlags);
+    QbsRunParameters resolveParams;
+    resolveParams.command = "resolve";
+    resolveParams.arguments << "--force-probe-execution";
+    if (!version.isEmpty())
+        resolveParams.arguments << ("modules.cpp.cxxLanguageVersion:" + version);
+    QCOMPARE(runQbs(resolveParams), 0);
+    QString mapKey;
+    if (m_qbsStdout.contains("is newer MSVC: true"))
+        mapKey = "msvc-new";
+    else if (m_qbsStdout.contains("is older MSVC: true"))
+        mapKey = "msvc_old";
+    else if (m_qbsStdout.contains("is GCC: true"))
+        mapKey = "gcc";
+    QVERIFY2(!mapKey.isEmpty(), m_qbsStdout.constData());
+    QbsRunParameters buildParams;
+    buildParams.expectFailure = mapKey == "gcc" && (version == "c++17" || version == "c++21");
+    buildParams.arguments = QStringList({"--command-echo-mode", "command-line"});
+    const int retVal = runQbs(buildParams);
+    if (!buildParams.expectFailure)
+        QCOMPARE(retVal, 0);
+    const QString requiredFlag = requiredFlags.value(mapKey).toString();
+    if (!requiredFlag.isEmpty())
+        QVERIFY2(m_qbsStdout.contains(requiredFlag.toLocal8Bit()), m_qbsStdout.constData());
+    const QString forbiddenFlag = forbiddenFlags.value(mapKey).toString();
+    if (!forbiddenFlag.isEmpty())
+        QVERIFY2(!m_qbsStdout.contains(forbiddenFlag.toLocal8Bit()), m_qbsStdout.constData());
+}
+
+void TestBlackbox::cxxLanguageVersion_data()
+{
+    QTest::addColumn<QString>("version");
+    QTest::addColumn<QVariantMap>("requiredFlags");
+    QTest::addColumn<QVariantMap>("forbiddenFlags");
+
+    QTest::newRow("C++98")
+            << QString("c++98")
+            << QVariantMap({std::make_pair(QString("gcc"), QString("-std=c++98"))})
+            << QVariantMap({std::make_pair(QString("msvc-old"), QString("/std:")),
+                            std::make_pair(QString("msvc-new"), QString("/std:"))});
+    QTest::newRow("C++11")
+            << QString("c++11")
+            << QVariantMap({std::make_pair(QString("gcc"), QString("-std=c++0x"))})
+            << QVariantMap({std::make_pair(QString("msvc-old"), QString("/std:")),
+                            std::make_pair(QString("msvc-new"), QString("/std:"))});
+    QTest::newRow("C++14")
+            << QString("c++14")
+            << QVariantMap({std::make_pair(QString("gcc"), QString("-std=c++1y")),
+                            std::make_pair(QString("msvc-new"), QString("/std:c++14"))
+                           })
+            << QVariantMap({std::make_pair(QString("msvc-old"), QString("/std:"))});
+    QTest::newRow("C++17")
+            << QString("c++17")
+            << QVariantMap({std::make_pair(QString("gcc"), QString("-std=c++17")),
+                            std::make_pair(QString("msvc-new"), QString("/std:c++latest"))
+                           })
+            << QVariantMap({std::make_pair(QString("msvc-old"), QString("/std:"))});
+    QTest::newRow("C++21")
+            << QString("c++21")
+            << QVariantMap({std::make_pair(QString("gcc"), QString("-std=c++21")),
+                            std::make_pair(QString("msvc-new"), QString("/std:c++latest"))
+                           })
+            << QVariantMap({std::make_pair(QString("msvc-old"), QString("/std:"))});
+    QTest::newRow("default")
+            << QString()
+            << QVariantMap()
+            << QVariantMap({std::make_pair(QString("gcc"), QString("-std=")),
+                            std::make_pair(QString("msvc-old"), QString("/std:")),
+                            std::make_pair(QString("msvc-new"), QString("/std:"))});
+}
+
 void TestBlackbox::cpuFeatures()
 {
     QDir::setCurrent(testDataDir + "/cpu-features");
@@ -3503,6 +3580,23 @@ void TestBlackbox::requireDeprecated()
              m_qbsStderr.constData());
 }
 
+void TestBlackbox::rescueTransformerData()
+{
+    QDir::setCurrent(testDataDir + "/rescue-transformer-data");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp") && m_qbsStdout.contains("m.p: undefined"),
+             m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("main.cpp");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp") && !m_qbsStdout.contains("m.p: "),
+             m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("modules.m.p:true"))), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp") && m_qbsStdout.contains("m.p: true"),
+             m_qbsStdout.constData());
+}
+
 void TestBlackbox::multipleChanges()
 {
     QDir::setCurrent(testDataDir + "/multiple-changes");
@@ -4198,6 +4292,20 @@ void TestBlackbox::checkProjectFilePath()
     params.command = "build";
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("main2.cpp"), m_qbsStdout.constData());
+}
+
+void TestBlackbox::checkTimestamps()
+{
+    QDir::setCurrent(testDataDir + "/check-timestamps");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling file.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY(QFile::remove(relativeBuildGraphFilePath()));
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("file.h");
+    QCOMPARE(runQbs(QStringList("--check-timestamps")), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling file.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }
 
 class TemporaryDefaultProfileRemover

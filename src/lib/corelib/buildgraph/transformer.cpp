@@ -260,6 +260,17 @@ void Transformer::createCommands(ScriptEngine *engine, const ScriptFunctionConst
     }
 }
 
+void Transformer::rescueChangeTrackingData(const TransformerConstPtr &other)
+{
+    if (!other)
+        return;
+    propertiesRequestedInPrepareScript = other->propertiesRequestedInPrepareScript;
+    propertiesRequestedInCommands = other->propertiesRequestedInCommands;
+    propertiesRequestedFromArtifactInPrepareScript
+            = other->propertiesRequestedFromArtifactInPrepareScript;
+    propertiesRequestedFromArtifactInCommands = other->propertiesRequestedFromArtifactInCommands;
+}
+
 void Transformer::load(PersistentPool &pool)
 {
     pool.load(rule);

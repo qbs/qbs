@@ -58,7 +58,7 @@
 namespace QbsQmlJS {
 namespace AST {
 
-class QML_PARSER_EXPORT QBS_AUTOTEST_EXPORT Visitor
+class QBS_AUTOTEST_EXPORT Visitor
 {
 public:
     Visitor();
