@@ -10,6 +10,7 @@ qbs_enable_unit_tests {
 SUBDIRS += \
     cmdlineparser \
     blackbox/blackbox.pro \
+    blackbox/blackbox-android.pro \
     blackbox/blackbox-apple.pro \
     blackbox/blackbox-clangdb.pro \
     blackbox/blackbox-java.pro \

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -31,18 +31,22 @@
 
 #include "tst_blackboxbase.h"
 
-class TestBlackboxJava : public TestBlackboxBase
+class TestBlackboxAndroid : public TestBlackboxBase
 {
     Q_OBJECT
 
 public:
-    TestBlackboxJava();
+    TestBlackboxAndroid();
+
+protected:
+    void validateTestProfile() override;
 
 private slots:
-    void java();
-    void javaDependencyTracking();
-    void javaDependencyTracking_data();
-    void javaDependencyTrackingInnerClass();
+    void android();
+    void android_data();
+
+private:
+    QMap<QString, QString> findAndroid(int *status, const QString &profile);
 };
 
 #endif // TST_BLACKBOX_H
