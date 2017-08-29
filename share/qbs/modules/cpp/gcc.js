@@ -747,9 +747,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
         allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(systemIncludePaths);
     if (distributionIncludePaths)
         allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(distributionIncludePaths);
-    args = args.concat(allSystemIncludePaths.map(function(path) {
-        return input.cpp.systemIncludeFlag + path;
-    }));
+    allSystemIncludePaths.forEach(function(v) { args.push(input.cpp.systemIncludeFlag, v); });
 
     var minimumWindowsVersion = input.cpp.minimumWindowsVersion;
     if (minimumWindowsVersion && product.qbs.targetOS.contains("windows")) {
