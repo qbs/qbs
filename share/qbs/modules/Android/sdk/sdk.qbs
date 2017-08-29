@@ -166,7 +166,9 @@ Module {
     }
 
     Rule {
-        inputs: ["android.manifest"] // FIXME: Workaround for the fact that rules need inputs
+        multiplex: true
+        condition: !!product.packageName
+
         Artifact {
             filePath: FileInfo.joinPaths(ModUtils.moduleProperty(product, "generatedJavaFilesDir"),
                                          "BuildConfig.java")
