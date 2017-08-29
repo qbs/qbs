@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs
+import qbs.File
 import qbs.FileInfo
 
 Product {
@@ -44,7 +45,10 @@ Product {
     property path resourcesDir: FileInfo.joinPaths(sourceSetDir, "res")
     property path assetsDir: FileInfo.joinPaths(sourceSetDir, "assets")
     property path sourcesDir: FileInfo.joinPaths(sourceSetDir, legacyLayout ? "src" : "java")
-    property path manifestFile: FileInfo.joinPaths(sourceSetDir, "AndroidManifest.xml")
+    property path manifestFile: defaultManifestFile
+
+    readonly property path defaultManifestFile: FileInfo.joinPaths(sourceSetDir,
+                                                                   "AndroidManifest.xml")
 
     Group {
         name: "java sources"
@@ -72,6 +76,9 @@ Product {
     Group {
         name: "manifest"
         condition: product.automaticSources
-        files: [manifestFile]
+        fileTags: ["android.manifest"]
+        files: manifestFile && manifestFile !== defaultManifestFile
+               ? [manifestFile]
+               : (File.exists(defaultManifestFile) ? [defaultManifestFile] : [])
     }
 }
