@@ -9,5 +9,8 @@ CppApplication {
     files: ["main.cpp"]
     consoleApplication: true
     cpp.minimumWindowsVersion: "5.3"
-    cpp.defines: ["TOOLCHAIN_INSTALL_PATH=" + Utilities.cStringQuote(cpp.toolchainInstallPath)]
+    cpp.defines: [
+        "QBS_WINVER=0x503",
+        "TOOLCHAIN_INSTALL_PATH=" + Utilities.cStringQuote(cpp.toolchainInstallPath)
+    ]
 }

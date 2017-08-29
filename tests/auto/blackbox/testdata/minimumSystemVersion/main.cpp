@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
         return 1;
 
 #ifdef _WIN32
-#ifdef WINVER
+#if defined(WINVER) && defined(QBS_WINVER)
     std::cout << "WINVER=" << WINVER << std::endl;
     std::string command = TOOLCHAIN_INSTALL_PATH;
     std::replace(command.begin(), command.end(), '/', '\\');

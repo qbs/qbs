@@ -12,7 +12,10 @@ CppApplication {
     Properties {
         condition: qbs.targetOS.contains("windows")
         cpp.minimumWindowsVersion: "6.0"
-        cpp.defines: ["TOOLCHAIN_INSTALL_PATH=" + Utilities.cStringQuote(cpp.toolchainInstallPath)]
+        cpp.defines: [
+            "QBS_WINVER=0x600",
+            "TOOLCHAIN_INSTALL_PATH=" + Utilities.cStringQuote(cpp.toolchainInstallPath)
+        ]
     }
 
     Properties {
