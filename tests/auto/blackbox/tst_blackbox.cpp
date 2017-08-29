@@ -5307,6 +5307,133 @@ void TestBlackbox::groupsInModules()
     QCOMPARE(output.readAll().trimmed(), QByteArray("diamond"));
 }
 
+void TestBlackbox::ico()
+{
+    QDir::setCurrent(testDataDir + "/ico");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments << "--command-echo-mode" << "command-line";
+    const int status = runQbs(params);
+    if (status != 0) {
+        if (m_qbsStderr.contains("Could not find icotool in any of the following locations:"))
+            QSKIP("icotool is not installed");
+        if (!m_qbsStderr.isEmpty())
+            qDebug("%s", m_qbsStderr.constData());
+        if (!m_qbsStdout.isEmpty())
+            qDebug("%s", m_qbsStdout.constData());
+    }
+    QCOMPARE(status, 0);
+
+    QVERIFY(QFileInfo::exists(relativeProductBuildDir("icon") + "/icon.ico"));
+    {
+        QFile f(relativeProductBuildDir("icon") + "/icon.ico");
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const auto b = f.readAll().toStdString();
+        QCOMPARE(b.at(2), '\x1'); // icon
+        QCOMPARE(b.at(4), '\x2'); // 2 images
+        QVERIFY(b.find("\x89PNG") == std::string::npos);
+    }
+
+    QVERIFY(QFileInfo::exists(relativeProductBuildDir("icon-alpha") + "/icon-alpha.ico"));
+    {
+        QFile f(relativeProductBuildDir("icon-alpha") + "/icon-alpha.ico");
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const auto b = f.readAll().toStdString();
+        QCOMPARE(b.at(2), '\x1'); // icon
+        QCOMPARE(b.at(4), '\x2'); // 2 images
+        QVERIFY(b.find("\x89PNG") == std::string::npos);
+        QVERIFY2(m_qbsStdout.contains("--alpha-threshold="), m_qbsStdout.constData());
+    }
+
+    QVERIFY(QFileInfo::exists(relativeProductBuildDir("icon-big") + "/icon-big.ico"));
+    {
+        QFile f(relativeProductBuildDir("icon-big") + "/icon-big.ico");
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const auto b = f.readAll().toStdString();
+        QCOMPARE(b.at(2), '\x1'); // icon
+        QCOMPARE(b.at(4), '\x5'); // 5 images
+        QVERIFY(b.find("\x89PNG") != std::string::npos);
+    }
+
+    QVERIFY(QFileInfo::exists(relativeProductBuildDir("cursor") + "/cursor.cur"));
+    {
+        QFile f(relativeProductBuildDir("cursor") + "/cursor.cur");
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const auto b = f.readAll();
+        QVERIFY(b.size() > 0);
+        QCOMPARE(b.at(2), '\x2'); // cursor
+        QCOMPARE(b.at(4), '\x2'); // 2 images
+        QCOMPARE(b.at(10), '\0');
+        QCOMPARE(b.at(12), '\0');
+        QCOMPARE(b.at(26), '\0');
+        QCOMPARE(b.at(28), '\0');
+    }
+
+    QVERIFY(QFileInfo::exists(relativeProductBuildDir("cursor-hotspot") + "/cursor-hotspot.cur"));
+    {
+        QFile f(relativeProductBuildDir("cursor-hotspot") + "/cursor-hotspot.cur");
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const auto b = f.readAll();
+        QVERIFY(b.size() > 0);
+        QCOMPARE(b.at(2), '\x2'); // cursor
+        QCOMPARE(b.at(4), '\x2'); // 2 images
+        const bool hasCursorHotspotBug = m_qbsStderr.contains(
+                                                              "does not support setting the hotspot for cursor files with multiple images");
+        if (hasCursorHotspotBug) {
+            QCOMPARE(b.at(10), '\0');
+            QCOMPARE(b.at(12), '\0');
+            QCOMPARE(b.at(26), '\0');
+            QCOMPARE(b.at(28), '\0');
+            QWARN("this version of icoutil does not support setting the hotspot "
+                  "for cursor files with multiple images");
+        } else {
+            QCOMPARE(b.at(10), '\x8');
+            QCOMPARE(b.at(12), '\x9');
+            QCOMPARE(b.at(26), '\x10');
+            QCOMPARE(b.at(28), '\x11');
+        }
+    }
+
+    QVERIFY(QFileInfo::exists(relativeProductBuildDir("cursor-hotspot-single")
+                              + "/cursor-hotspot-single.cur"));
+    {
+        QFile f(relativeProductBuildDir("cursor-hotspot-single") + "/cursor-hotspot-single.cur");
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const auto b = f.readAll();
+        QVERIFY(b.size() > 0);
+        QCOMPARE(b.at(2), '\x2'); // cursor
+        QCOMPARE(b.at(4), '\x1'); // 1 image
+
+        // No version check needed because the hotspot can always be set if there's only one image
+        QCOMPARE(b.at(10), '\x8');
+        QCOMPARE(b.at(12), '\x9');
+    }
+
+    QVERIFY(QFileInfo::exists(relativeProductBuildDir("iconset") + "/dmg.ico"));
+    {
+        QFile f(relativeProductBuildDir("iconset") + "/dmg.ico");
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const auto b = f.readAll();
+        QVERIFY(b.size() > 0);
+        QCOMPARE(b.at(2), '\x1'); // icon
+        QCOMPARE(b.at(4), '\x5'); // 5 images
+    }
+
+    QVERIFY(QFileInfo::exists(relativeProductBuildDir("iconset") + "/dmg.cur"));
+    {
+        QFile f(relativeProductBuildDir("iconset") + "/dmg.cur");
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const auto b = f.readAll();
+        QVERIFY(b.size() > 0);
+        QCOMPARE(b.at(2), '\x2'); // cursor
+        QCOMPARE(b.at(4), '\x5'); // 5 images
+        QCOMPARE(b.at(10), '\0');
+        QCOMPARE(b.at(12), '\0');
+        QCOMPARE(b.at(26), '\0');
+        QCOMPARE(b.at(28), '\0');
+    }
+}
+
 void TestBlackbox::importChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/import-change-tracking");

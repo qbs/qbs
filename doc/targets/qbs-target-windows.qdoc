@@ -39,6 +39,11 @@
     recommend that you use MSBuild and the tools shipped with the various
     implementations of the .NET platform.
 
+    \section1 Windows Resources
+
+    The \l{Module ico}{ico} module contains rules and properties for building
+    Windows icon (.ico) and cursor (.cur) files from a set of raw PNGs.
+
     \section1 Universal Windows Platform
 
     Building applications for the Universal Windows Platform is currently only
