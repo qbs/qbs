@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2015 Jake Petroules.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -63,6 +64,20 @@ PathProbe {
     property string ndkVersion
 
     configure: {
+        function readFileContent(filePath) {
+            var result = null;
+            if (!File.exists(filePath))
+                return result;
+            try {
+                var tf = new TextFile(filePath, TextFile.ReadOnly);
+                result = tf.readAll();
+            } finally {
+                if (tf)
+                    tf.close();
+            }
+            return result;
+        }
+
         var i, j, allPaths = (environmentPaths || []).concat(platformPaths || []);
         for (i in allPaths) {
             var platforms = [];
@@ -82,9 +97,9 @@ PathProbe {
                                                        File.Dirs | File.NoDotAndDotDot);
 
                     // NDK r11 and above
-                    var tf = new TextFile(path + "/source.properties", TextFile.ReadOnly);
-                    try {
-                        var lines = tf.readAll().trim().split(/\r?\n/g).filter(function (line) {
+                    var content = readFileContent(path + "/source.properties");
+                    if (content) {
+                        var lines = content.trim().split(/\r?\n/g).filter(function (line) {
                             return line.length > 0;
                         });
                         for (var l = 0; l < lines.length; ++l) {
@@ -95,21 +110,21 @@ PathProbe {
                                 return;
                             }
                         }
-                    } finally {
-                        tf.close();
                     }
 
                     // NDK r10 and below
-                    tf = new TextFile(path + "/RELEASE.txt", TextFile.ReadOnly);
-                    try {
-                        var m = tf.readAll().trim().match(/^r([0-9]+[a-z]?)( \(64-bit\))?$/);
+                    var releaseTextFileCandidates = ["RELEASE.txt", "RELEASE.TXT"]
+                            .map(function(v) { return FileInfo.joinPaths(path, v); })
+                            .filter(File.exists);
+                    content = releaseTextFileCandidates.length
+                            ? readFileContent(releaseTextFileCandidates[0]) : null;
+                    if (content) {
+                        var m = content.trim().match(/^r([0-9]+[a-z]?).*/);
                         if (m) {
                             ndkVersion = m[1];
                             found = true;
                             return;
                         }
-                    } finally {
-                        tf.close();
                     }
                 }
             }
