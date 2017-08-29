@@ -194,6 +194,13 @@ void TestBlackbox::suspiciousCalls_data()
     QTest::newRow("File.directoryEntries() in command") << "direntries-command.qbs" << QByteArray();
 }
 
+void TestBlackbox::systemIncludePaths()
+{
+    const QString projectDir = testDataDir + "/system-include-paths";
+    QDir::setCurrent(projectDir);
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::tar()
 {
     if (HostOsInfo::hostOs() == HostOsInfo::HostOsWindows)

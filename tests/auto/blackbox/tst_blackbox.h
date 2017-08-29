@@ -191,6 +191,7 @@ private slots:
     void staticLibWithoutSources();
     void suspiciousCalls();
     void suspiciousCalls_data();
+    void systemIncludePaths();
     void systemRunPaths();
     void systemRunPaths_data();
     void tar();
