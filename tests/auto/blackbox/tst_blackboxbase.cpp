@@ -82,8 +82,10 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
         args.append(params.buildDirectory.isEmpty() ? QLatin1String(".") : params.buildDirectory);
     }
     args << params.arguments;
-    if (!params.profile.isEmpty())
+    if (!params.profile.isEmpty() && (params.command.isEmpty() || params.command == "resolve"
+                                      || params.command == "build")) {
         args.append(QLatin1String("profile:") + params.profile);
+    }
     QProcess process;
     process.setProcessEnvironment(params.environment);
     process.start(qbsExecutableFilePath, args);

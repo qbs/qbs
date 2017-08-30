@@ -128,6 +128,7 @@ private:
     QString longDescription() const;
     QString representation() const;
     QList<CommandLineOption::Type> supportedOptions() const;
+    void parseMore(QStringList &input);
 };
 
 class InstallCommand : public Command

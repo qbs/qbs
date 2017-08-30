@@ -294,9 +294,9 @@ QString CleanCommand::shortDescription() const
 QString CleanCommand::longDescription() const
 {
     QString description = Tr::tr(
-                "qbs %1 [options] [[configuration-name] [property:value] ...] ...\n")
+                "qbs %1 [options] [configuration-name] ...\n")
             .arg(representation());
-    description += Tr::tr("Removes build artifacts for the given project and configuration(s).\n");
+    description += Tr::tr("Removes build artifacts for the given configuration(s).\n");
     return description += supportedOptionsDescription();
 }
 
@@ -307,12 +307,28 @@ QString CleanCommand::representation() const
 
 QList<CommandLineOption::Type> CleanCommand::supportedOptions() const
 {
-    QList<CommandLineOption::Type> options = buildOptions();
-    options.removeOne(CommandLineOption::ChangedFilesOptionType);
-    options.removeOne(CommandLineOption::JobsOptionType);
-    options.removeOne(CommandLineOption::BuildNonDefaultOptionType);
-    options.removeOne(CommandLineOption::CommandEchoModeOptionType);
-    return options;
+    return QList<CommandLineOption::Type>{
+        CommandLineOption::BuildDirectoryOptionType,
+        CommandLineOption::DryRunOptionType,
+        CommandLineOption::KeepGoingOptionType,
+        CommandLineOption::LogTimeOptionType,
+        CommandLineOption::ProductsOptionType,
+        CommandLineOption::QuietOptionType,
+        CommandLineOption::SettingsDirOptionType,
+        CommandLineOption::ShowProgressOptionType,
+        CommandLineOption::VerboseOptionType,
+    };
+}
+
+void CleanCommand::parseMore(QStringList &input)
+{
+    addAllToAdditionalArguments(input);
+    for (const QString &param : additionalArguments()) {
+        if (param.contains(QLatin1Char(':'))) {
+            throw ErrorInfo(Tr::tr("The '%1' command does not support property assignments.")
+                            .arg(representation()));
+        }
+    }
 }
 
 QString InstallCommand::shortDescription() const

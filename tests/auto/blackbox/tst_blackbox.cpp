@@ -1901,16 +1901,14 @@ void TestBlackbox::reproducibleBuild()
     QVERIFY2(object.open(QIODevice::ReadOnly), qPrintable(object.fileName()));
     const QByteArray oldContents = object.readAll();
     object.close();
-    QbsRunParameters cleanParams = params;
-    cleanParams.command = "clean";
-    QCOMPARE(runQbs(cleanParams), 0);
+    QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
     QVERIFY(!object.exists());
     QCOMPARE(runQbs(params), 0);
     QVERIFY(object.open(QIODevice::ReadOnly));
     const QByteArray newContents = object.readAll();
     QCOMPARE(oldContents == newContents, reproducible);
     object.close();
-    QCOMPARE(runQbs(cleanParams), 0);
+    QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
 }
 
 void TestBlackbox::reproducibleBuild_data()
