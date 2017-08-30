@@ -486,11 +486,6 @@ void ScriptEngine::addResourceAcquiringScriptObject(ResourceAcquiringScriptObjec
     m_resourceAcquiringScriptObjects.push_back(obj);
 }
 
-void ScriptEngine::addEnvironmentVariable(const QString &name, const QString &value)
-{
-    m_usedEnvironment.insert(name, value);
-}
-
 void ScriptEngine::addCanonicalFilePathResult(const QString &filePath,
                                               const QString &resultFilePath)
 {

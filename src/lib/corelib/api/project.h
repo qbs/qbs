@@ -130,7 +130,6 @@ public:
                                bool recursive, const QStringList &tags = QStringList()) const;
 
     QVariantMap projectConfiguration() const;
-    QHash<QString, QString> usedEnvironment() const;
 
     std::set<QString> buildSystemFiles() const;
 

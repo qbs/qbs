@@ -112,12 +112,6 @@ QScriptValue EnvironmentExtension::js_getEnv(QScriptContext *context, QScriptEng
 
     const QString name = context->argument(0).toString();
     const QString value = procenv->value(name);
-
-    // Don't track environment variable access inside environment setup scripts
-    // since change tracking is irrelevant for them
-    if (procenv == &env)
-        static_cast<ScriptEngine *>(engine)->addEnvironmentVariable(name, value);
-
     return value.isNull() ? engine->undefinedValue() : value;
 }
 

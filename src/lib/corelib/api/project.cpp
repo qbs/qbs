@@ -1097,13 +1097,6 @@ QVariantMap Project::projectConfiguration() const
     return d->internalProject->buildConfiguration();
 }
 
-QHash<QString, QString> Project::usedEnvironment() const
-{
-    typedef QHash<QString, QString> EnvType;
-    QBS_ASSERT(isValid(), return EnvType());
-    return d->internalProject->usedEnvironment;
-}
-
 std::set<QString> Project::buildSystemFiles() const
 {
     QBS_ASSERT(isValid(), return std::set<QString>());

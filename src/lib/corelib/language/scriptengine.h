@@ -138,8 +138,6 @@ public:
 
     QProcessEnvironment environment() const;
     void setEnvironment(const QProcessEnvironment &env);
-    void addEnvironmentVariable(const QString &name, const QString &value);
-    QHash<QString, QString> usedEnvironment() const { return m_usedEnvironment; }
     void addCanonicalFilePathResult(const QString &filePath, const QString &resultFilePath);
     void addFileExistsResult(const QString &filePath, bool exists);
     void addDirectoryEntriesResult(const QString &path, QDir::Filters filters,
@@ -251,7 +249,6 @@ private:
     QScriptValue m_definePropertyFunction;
     QScriptValue m_emptyFunction;
     QProcessEnvironment m_environment;
-    QHash<QString, QString> m_usedEnvironment;
     QHash<QString, QString> m_canonicalFilePathResult;
     QHash<QString, bool> m_fileExistsResult;
     QHash<std::pair<QString, quint32>, QStringList> m_directoryEntriesResult;

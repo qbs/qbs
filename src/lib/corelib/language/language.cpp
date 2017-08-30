@@ -1031,7 +1031,6 @@ void TopLevelProject::load(PersistentPool &pool)
 {
     ResolvedProject::load(pool);
     pool.load(m_id);
-    pool.load(usedEnvironment);
     pool.load(canonicalFilePathResults);
     pool.load(fileExistsResults);
     pool.load(directoryEntriesResults);
@@ -1052,7 +1051,6 @@ void TopLevelProject::store(PersistentPool &pool) const
 {
     ResolvedProject::store(pool);
     pool.store(m_id);
-    pool.store(usedEnvironment);
     pool.store(canonicalFilePathResults);
     pool.store(fileExistsResults);
     pool.store(directoryEntriesResults);
