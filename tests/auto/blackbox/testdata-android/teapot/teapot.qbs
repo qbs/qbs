@@ -68,7 +68,8 @@ Project {
             property string samplesDir: Android.ndk.ndkSamplesDir
             property string jniDir
             configure: {
-                var paths = ["/teapots/classic-teapot/src/main/cpp/", "/Teapot/app/src/main/jni/"];
+                var paths = ["/teapots/classic-teapot/src/main/cpp/", "/Teapot/app/src/main/jni/",
+                             "/Teapot/jni/"];
                 for (var i = 0; i < paths.length; ++i) {
                     if (File.exists(samplesDir + paths[i])) {
                         jniDir = samplesDir + paths[i];
@@ -102,7 +103,7 @@ Project {
             property string samplesDir: Android.sdk.ndkSamplesDir
             property string dir
             configure: {
-                var paths = ["/teapots/classic-teapot/src/main", "/Teapot/app/src/main"];
+                var paths = ["/teapots/classic-teapot/src/main", "/Teapot/app/src/main", "/Teapot"];
                 for (var i = 0; i < paths.length; ++i) {
                     if (File.exists(samplesDir + paths[i])) {
                         dir = samplesDir + paths[i];
