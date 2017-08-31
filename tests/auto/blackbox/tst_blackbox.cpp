@@ -1122,6 +1122,11 @@ void TestBlackbox::clean()
 
     QDir::setCurrent(testDataDir + "/clean");
 
+    // Can't clean without a build graph.
+    QbsRunParameters failParams("clean");
+    failParams.expectFailure = true;
+    QVERIFY(runQbs(failParams) != 0);
+
     // Default behavior: Remove all.
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
