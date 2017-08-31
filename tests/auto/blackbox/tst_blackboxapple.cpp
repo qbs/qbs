@@ -227,9 +227,7 @@ void TestBlackboxApple::assetCatalog()
 
     QCOMPARE(QDir(nib).entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name), nibFiles);
     QCOMPARE(QDir(storyboardc).entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name), storyboardcFiles);
-    QbsRunParameters params2 = params;
-    params2.command = "clean";
-    QCOMPARE(runQbs(params2), 0);
+    QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
     QCOMPARE(QDir(nib).entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name), QStringList());
     QCOMPARE(QDir(storyboardc).entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name), QStringList());
 }

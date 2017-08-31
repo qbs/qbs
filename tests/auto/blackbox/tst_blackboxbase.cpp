@@ -82,8 +82,9 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
         args.append(params.buildDirectory.isEmpty() ? QLatin1String(".") : params.buildDirectory);
     }
     args << params.arguments;
-    if (!params.profile.isEmpty() && (params.command.isEmpty() || params.command == "resolve"
-                                      || params.command == "build")) {
+    const bool commandImpliesResolve = params.command.isEmpty() || params.command == "resolve"
+            || params.command == "build" || params.command == "install" || params.command == "run";
+    if (!params.profile.isEmpty() && commandImpliesResolve) {
         args.append(QLatin1String("profile:") + params.profile);
     }
     QProcess process;
