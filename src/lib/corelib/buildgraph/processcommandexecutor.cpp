@@ -293,6 +293,12 @@ void ProcessCommandExecutor::sendProcessOutput()
 
 void ProcessCommandExecutor::onProcessError()
 {
+    if (scriptEngine()->isActive()) {
+        qCDebug(lcExec) << "Command error while rule execution is pausing. "
+                           "Delaying slot execution.";
+        QTimer::singleShot(0, this, &ProcessCommandExecutor::onProcessError);
+        return;
+    }
     switch (m_process.error()) {
     case QProcess::FailedToStart: {
         removeResponseFile();
@@ -321,6 +327,12 @@ void ProcessCommandExecutor::onProcessError()
 
 void ProcessCommandExecutor::onProcessFinished()
 {
+    if (scriptEngine()->isActive()) {
+        qCDebug(lcExec) << "Command finished while rule execution is pausing. "
+                           "Delaying slot execution.";
+        QTimer::singleShot(0, this, &ProcessCommandExecutor::onProcessFinished);
+        return;
+    }
     removeResponseFile();
     sendProcessOutput();
 }
