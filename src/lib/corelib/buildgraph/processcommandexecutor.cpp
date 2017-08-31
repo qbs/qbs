@@ -63,7 +63,6 @@
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qtimer.h>
 
-#include <QtScript/qscriptengine.h>
 #include <QtScript/qscriptvalue.h>
 
 namespace qbs {
