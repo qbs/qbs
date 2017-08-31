@@ -25,12 +25,30 @@ Project {
         Depends { name: "cpp" }
         Depends { name: "native-glue" }
 
+        Probe {
+            id: ndkHelperProbe
+            property string ndkDir: Android.ndk.ndkDir
+            property string samplesDir: Android.ndk.ndkSamplesDir
+            property string dir
+            configure: {
+                var paths = [samplesDir + "/teapots/common/ndk_helper/",
+                             ndkDir + "/sources/android/ndk_helper/"];
+                for (var i = 0; i < paths.length; ++i) {
+                    if (File.exists(paths[i])) {
+                        dir = paths[i];
+                        break;
+                    }
+                }
+            }
+        }
+
         Group {
             id: ndkhelper_sources
-            prefix: Android.ndk.ndkDir + "/sources/android/ndk_helper/"
+            prefix: ndkHelperProbe.dir
             files: ["*.c", "*.cpp", "*.h"]
         }
-        Android.ndk.appStl: "stlport_shared"
+        Android.ndk.appStl: "gnustl_shared"
+        cpp.cxxLanguageVersion: "c++11"
 
         Export {
             Depends { name: "cpp" }
@@ -92,9 +110,14 @@ Project {
 
         FileTagger { patterns: ["*.inl"]; fileTags: ["hpp"] }
 
-        Android.ndk.appStl: "stlport_shared"
+        Android.ndk.appStl: "gnustl_shared"
+        cpp.cxxLanguageVersion: "c++11"
         cpp.dynamicLibraries: ["log", "android", "EGL", "GLESv2"]
         cpp.useRPaths: false
+
+        // Export ANativeActivity_onCreate(),
+        // Refer to: https://github.com/android-ndk/ndk/issues/381
+        cpp.linkerFlags: ["-u", "ANativeActivity_onCreate"]
     }
 
     AndroidApk {
