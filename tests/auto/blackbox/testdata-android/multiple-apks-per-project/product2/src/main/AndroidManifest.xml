@@ -3,10 +3,8 @@
     <uses-sdk android:minSdkVersion="11" android:targetSdkVersion="19"/>
     <uses-feature android:glEsVersion="0x00020000"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <application android:allowBackup="true" android:hasCode="true" android:name="io.qt.dummy">
-        <activity android:name="dummy" android:debuggable="true" android:configChanges="orientation|keyboardHidden">
-            <!-- Tell NativeActivity the name of or .so -->
-            <meta-data android:name="android.app.lib_name" android:value="dummy2"/>
+    <application android:allowBackup="true" android:hasCode="true">
+        <activity android:name=".Dummy" android:debuggable="true" android:configChanges="orientation|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
