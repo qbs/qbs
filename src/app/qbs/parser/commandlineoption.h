@@ -63,7 +63,6 @@ public:
         ProductsOptionType,
         NoInstallOptionType,
         InstallRootOptionType, RemoveFirstOptionType, NoBuildOptionType,
-        ForceOptionType,
         ForceTimestampCheckOptionType,
         ForceOutputCheckOptionType,
         BuildNonDefaultOptionType,
@@ -230,13 +229,6 @@ class NoInstallOption : public OnOffOption
 class ShowProgressOption : public OnOffOption
 {
 public:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
-};
-
-class ForceOption : public OnOffOption
-{
     QString description(CommandType command) const;
     QString shortRepresentation() const { return QString(); }
     QString longRepresentation() const;

@@ -60,7 +60,6 @@ private slots:
         args.append("-v");
         args << "--products" << "blubb";
         args << "--changed-files" << "foo,bar" << fileArgs;
-        args << "--force";
         args << "--check-timestamps";
         args << "--check-outputs";
         CommandLineParser parser;
@@ -71,7 +70,6 @@ private slots:
         QCOMPARE(parser.products(), QStringList() << "blubb");
         QCOMPARE(parser.buildOptions(QString()).changedFiles().count(), 2);
         QVERIFY(parser.buildOptions(QString()).keepGoing());
-        QVERIFY(parser.force());
         QVERIFY(parser.forceTimestampCheck());
         QVERIFY(parser.forceOutputCheck());
         QVERIFY(!parser.logTime());
@@ -79,7 +77,6 @@ private slots:
 
         QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqq" << fileArgs));
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), defaultLogLevel());
-        QVERIFY(!parser.force());
 
         QVERIFY(parser.parseCommandLine(QStringList() << "-t" << fileArgs));
         QVERIFY(parser.logTime());

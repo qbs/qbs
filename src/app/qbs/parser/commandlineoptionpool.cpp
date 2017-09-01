@@ -98,9 +98,6 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::NoBuildOptionType:
             option = new NoBuildOption;
             break;
-        case CommandLineOption::ForceOptionType:
-            option = new ForceOption;
-            break;
         case CommandLineOption::ForceTimestampCheckOptionType:
             option = new ForceTimeStampCheckOption;
             break;
@@ -213,11 +210,6 @@ RemoveFirstOption *CommandLineOptionPool::removeFirstoption() const
 NoBuildOption *CommandLineOptionPool::noBuildOption() const
 {
     return static_cast<NoBuildOption *>(getOption(CommandLineOption::NoBuildOptionType));
-}
-
-ForceOption *CommandLineOptionPool::forceOption() const
-{
-    return static_cast<ForceOption *>(getOption(CommandLineOption::ForceOptionType));
 }
 
 ForceTimeStampCheckOption *CommandLineOptionPool::forceTimestampCheckOption() const

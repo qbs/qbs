@@ -67,7 +67,6 @@ public:
     InstallRootOption *installRootOption() const;
     RemoveFirstOption *removeFirstoption() const;
     NoBuildOption *noBuildOption() const;
-    ForceOption *forceOption() const;
     ForceTimeStampCheckOption *forceTimestampCheckOption() const;
     ForceOutputCheckOption *forceOutputCheckOption() const;
     BuildNonDefaultOption *buildNonDefaultOption() const;

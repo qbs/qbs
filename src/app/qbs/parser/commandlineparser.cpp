@@ -204,11 +204,6 @@ InstallOptions CommandLineParser::installOptions(const QString &profile) const
     return options;
 }
 
-bool CommandLineParser::force() const
-{
-    return d->optionPool.forceOption()->enabled();
-}
-
 bool CommandLineParser::forceTimestampCheck() const
 {
     return d->optionPool.forceTimestampCheckOption()->enabled();

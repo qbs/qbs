@@ -202,8 +202,7 @@ static QList<CommandLineOption::Type> resolveOptions()
             << CommandLineOption::JobsOptionType
             << CommandLineOption::DryRunOptionType
             << CommandLineOption::ForceProbesOptionType
-            << CommandLineOption::LogTimeOptionType
-            << CommandLineOption::ForceOptionType;
+            << CommandLineOption::LogTimeOptionType;
 }
 
 QList<CommandLineOption::Type> ResolveCommand::supportedOptions() const
