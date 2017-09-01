@@ -156,4 +156,30 @@
         \li Directory where the compiler binary is located. This should not normally need to be
             changed.
     \endtable
+
+    \section1 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"nsh"}
+        \li \c{*.nsh}
+        \li 1.2
+        \li This tag is attached to NSIS header files.
+    \row
+        \li \c{"nsi"}
+        \li \c{*.nsi}
+        \li 1.2
+        \li This tag is attached to NSIS script files.
+    \row
+        \li \c{"nsissetup"}
+        \li -
+        \li 1.2
+        \li The rule that creates the NSIS setup executable attaches this tag to its output
+            artifact.
+    \endtable
 */

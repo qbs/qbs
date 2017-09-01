@@ -520,7 +520,7 @@ function guessArchitecture(m) {
                 architecture = "arm";
 
                 var foundSubarch = false;
-                for (var i = 7; i >= 4; --i) {
+                for (var i = 8; i >= 4; --i) {
                     var codes = ["zk", "tej", "te", "t2"].concat([].concat.apply([],
                         new Array(26)).map(function(_, i) { return String.fromCharCode(122 - i); }));
                     for (var j = 0; j < codes.length; ++j) {

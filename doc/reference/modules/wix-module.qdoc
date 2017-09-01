@@ -227,4 +227,47 @@
         \li Directory where the linker binary is located.
             This should not normally need to be changed.
     \endtable
+
+    \section1 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"msi"}
+        \li -
+        \li 1.2
+        \li The rule that creates the Microsoft Installer setup file attaches this tag to its output
+            artifact.
+    \row
+        \li \c{"wixpdb"}
+        \li -
+        \li 1.2
+        \li The rule that creates the Microsoft Installer setup file or WiX setup executable
+            attaches this tag to the associated debug symbol file.
+    \row
+        \li \c{"wixsetup"}
+        \li -
+        \li 1.2
+        \li The rule that creates the WiX setup executable attaches this tag to its output artifact.
+    \row
+        \li \c{"wxi"}
+        \li \c{*.wxi}
+        \li 1.2
+        \li This tag is attached to WiX include files.
+    \row
+        \li \c{"wxl"}
+        \li \c{*.wxl}
+        \li 1.2
+        \li This tag is attached to WiX localization files.
+    \row
+        \li \c{"wxs"}
+        \li \c{*.wxs}
+        \li 1.2
+        \li This tag is attached to WiX source files.
+            Each source file will be compiled into one WiX object file.
+    \endtable
 */

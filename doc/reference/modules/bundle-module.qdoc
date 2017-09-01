@@ -307,5 +307,11 @@
         \li -
         \li 1.8
         \li This tag is attached to the output artifacts of the rule that produces the bundle.
+    \row
+        \li \c{"infoplist"}
+        \li \c{Info.plist}, \c{*-Info.plist}
+        \li 1.5
+        \li Source files with this tag are Info property lists files or fragments that are merged
+            into the bundle's final Info.plist.
     \endtable
 */

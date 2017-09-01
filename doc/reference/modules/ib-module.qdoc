@@ -195,4 +195,53 @@
         \li Directory where the iconutil binary is located.
             This should not normally need to be changed.
     \endtable
+
+    \section1 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"assetcatalog"}
+        \li \c{*.xcassets}
+        \li 1.3
+        \li This tag is attached to directories that will be compiled into compiled asset catalog
+            archives (.car files) on supported platforms, or a collection of loose resource files.
+            The resulting files will be automatically tagged \c{bundle.input}. If the current
+            product is a bundle, the files will be included in the bundle's resources directory.
+    \row
+        \li \c{"iconset"}
+        \li \c{*.iconset}
+        \li 1.3
+        \li This tag is attached to directories that will be compiled into Apple ICNS files.
+            The resulting files will be automatically tagged \c{bundle.input}. If the current
+            product is a bundle, the files will be included in the bundle's resources directory.
+    \row
+        \li \c{"nib"}
+        \li \c{*.nib}, \c{*.xib}
+        \li 1.1
+        \li This tag is attached to "NIB" and "XIB" files that will be compiled.
+            The output may be a flat file or a bundle (directory structure).
+            The resulting files will be automatically tagged \c{bundle.input}. If the current
+            product is a bundle, the files will be included in the bundle's resources directory.
+    \row
+        \li \c{"png"}
+        \li \c{*.png}
+        \li 1.9
+        \li This tag is attached to PNG files that may be converted into multi-resolution TIFFs.
+            Source files should adopt the \l{Adopt the @2x Naming Convention}{@2x naming convention}
+            in order to be properly grouped.
+            The resulting files will be given the \c{tiff} file tag.
+    \row
+        \li \c{"storyboard"}
+        \li \c{*.storyboard}
+        \li 1.3
+        \li This tag is attached to storyboard files that will be compiled.
+            The output may be a flat file or a bundle (directory structure).
+            The resulting files will be automatically tagged \c{bundle.input}. If the current
+            product is a bundle, the files will be included in the bundle's resources directory.
+    \endtable
 */
