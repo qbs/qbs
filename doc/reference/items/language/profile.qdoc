@@ -49,10 +49,10 @@
         Profile {
             name: "my-special-profile"
             qbs.toolchain: ["gcc"]
-            qbs.targetOS: ["linux"]
-            qbs.architecture: "arm"
+            qbs.targetOS: ["linux", "unix"]
+            qbs.architecture: "armv7a"
             cpp.toolchainInstallPath: "/opt/special-gcc/bin"
-            cpp.toolchainPrefix: "arm-linux-special-"
+            cpp.toolchainPrefix: "arm-linux-gnueabi-"
         }
         qbs.profiles: ["my-special-profile"]
         // ...
