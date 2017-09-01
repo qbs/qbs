@@ -47,6 +47,7 @@
 #include "scriptengine.h"
 #include "value.h"
 
+#include <buildgraph/buildgraph.h>
 #include <jsextensions/jsextensions.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -238,8 +239,7 @@ Evaluator::FileContextScopes Evaluator::fileContextScopes(const FileContextConst
     if (!result.importScope.isObject()) {
         try {
             result.importScope = m_scriptEngine->newObject();
-            m_scriptEngine->import(file, result.importScope);
-            JsExtensions::setupExtensions(file->jsExtensions(), result.importScope);
+            setupScriptEngineForFile(m_scriptEngine, file, result.importScope);
         } catch (const ErrorInfo &e) {
             result.importScope = m_scriptEngine->currentContext()->throwError(e.toString());
         }

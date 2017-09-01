@@ -45,6 +45,7 @@
 #include "scriptengine.h"
 
 #include <buildgraph/artifact.h>
+#include <buildgraph/buildgraph.h>
 #include <buildgraph/productbuilddata.h>
 #include <buildgraph/projectbuilddata.h>
 #include <buildgraph/rulegraph.h> // TODO: Move to language?
@@ -683,9 +684,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
                 setupScript = module->setupRunEnvironmentScript;
         }
 
-        // handle imports
-        engine->import(setupScript->fileContext, scope);
-        JsExtensions::setupExtensions(setupScript->fileContext->jsExtensions(), scope);
+        setupScriptEngineForFile(engine, setupScript->fileContext, scope);
 
         // expose properties of direct module dependencies
         QScriptValue scriptValue;
