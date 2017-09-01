@@ -58,7 +58,7 @@
 namespace qbs {
 namespace Internal {
 
-class Process : public QObject, public QScriptable
+class Process : public QObject, public QScriptable, public ResourceAcquiringScriptObject
 {
     Q_OBJECT
 public:
@@ -97,6 +97,9 @@ public:
 private:
     QString findExecutable(const QString &filePath) const;
 
+    // ResourceAcquiringScriptObject implementation
+    void releaseResources() override;
+
     QProcess *m_qProcess;
     QProcessEnvironment m_environment;
     QString m_workingDirectory;
@@ -125,12 +128,13 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
     }
 
     ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    se->addResourceAcquiringScriptObject(t);
     const DubiousContextList dubiousContexts ({
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
     });
     se->checkContext(QLatin1String("qbs.Process"), dubiousContexts);
 
-    QScriptValue obj = engine->newQObject(t, QScriptEngine::ScriptOwnership);
+    QScriptValue obj = engine->newQObject(t, QScriptEngine::QtOwnership);
 
     // Get environment
     QVariant v = engine->property("_qbs_procenv");
@@ -230,6 +234,8 @@ int Process::exec(const QString &program, const QStringList &arguments, bool thr
 
 void Process::close()
 {
+    if (!m_qProcess)
+        return;
     Q_ASSERT(thisObject().engine() == engine());
     delete m_textStream;
     m_textStream = 0;
@@ -292,6 +298,12 @@ QString Process::findExecutable(const QString &filePath) const
 {
     ExecutableFinder exeFinder(ResolvedProductPtr(), m_environment);
     return exeFinder.findExecutable(filePath, m_workingDirectory);
+}
+
+void Process::releaseResources()
+{
+    close();
+    deleteLater();
 }
 
 void Process::write(const QString &str)
