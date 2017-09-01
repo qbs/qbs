@@ -135,6 +135,7 @@ private:
         if (importScopeForSourceCode.isObject())
             scriptEngine->currentContext()->pushScope(importScopeForSourceCode);
         scriptEngine->evaluate(cmd->sourceCode());
+        scriptEngine->releaseResourcesOfScriptObjects();
         if (importScopeForSourceCode.isObject())
             scriptEngine->currentContext()->popScope();
         scriptEngine->setGlobalObject(scope.prototype());

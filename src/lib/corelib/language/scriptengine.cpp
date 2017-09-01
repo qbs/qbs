@@ -112,6 +112,7 @@ ScriptEngine::ScriptEngine(Logger &logger, EvalContext evalContext, QObject *par
 
 ScriptEngine::~ScriptEngine()
 {
+    releaseResourcesOfScriptObjects();
     qDeleteAll(m_ownedVariantMaps);
     delete (m_scriptImporter);
     if (m_elapsedTimeImporting != -1) {
@@ -119,20 +120,6 @@ ScriptEngine::~ScriptEngine()
                                              .arg(elapsedTimeString(m_elapsedTimeImporting));
     }
     delete m_modulePropertyScriptClass;
-}
-
-QScriptValue ScriptEngine::evaluate(const QString &program, const QString &fileName, int lineNumber)
-{
-    QScriptValue result = QScriptEngine::evaluate(program, fileName, lineNumber);
-    releaseResourcesOfScriptObjects();
-    return result;
-}
-
-QScriptValue ScriptEngine::evaluate(const QScriptProgram &program)
-{
-    QScriptValue result = QScriptEngine::evaluate(program);
-    releaseResourcesOfScriptObjects();
-    return result;
 }
 
 void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject)
@@ -486,6 +473,15 @@ void ScriptEngine::addResourceAcquiringScriptObject(ResourceAcquiringScriptObjec
     m_resourceAcquiringScriptObjects.push_back(obj);
 }
 
+void ScriptEngine::releaseResourcesOfScriptObjects()
+{
+    if (m_resourceAcquiringScriptObjects.empty())
+        return;
+    std::for_each(m_resourceAcquiringScriptObjects.begin(), m_resourceAcquiringScriptObjects.end(),
+                  std::mem_fn(&ResourceAcquiringScriptObject::releaseResources));
+    m_resourceAcquiringScriptObjects.clear();
+}
+
 void ScriptEngine::addCanonicalFilePathResult(const QString &filePath,
                                               const QString &resultFilePath)
 {
@@ -561,13 +557,6 @@ void ScriptEngine::cancel()
 void ScriptEngine::abort()
 {
     abortEvaluation(m_cancelationError);
-}
-
-void ScriptEngine::releaseResourcesOfScriptObjects()
-{
-    std::for_each(m_resourceAcquiringScriptObjects.begin(), m_resourceAcquiringScriptObjects.end(),
-                  std::mem_fn(&ResourceAcquiringScriptObject::releaseResources));
-    m_resourceAcquiringScriptObjects.clear();
 }
 
 class JSTypeExtender

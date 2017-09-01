@@ -2892,6 +2892,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         qCDebug(lcModuleLoader) << "Probe disabled; skipping";
     } else if (!resolvedProbe) {
         QScriptValue sv = engine->evaluate(configureScript->sourceCodeForEvaluation());
+        engine->releaseResourcesOfScriptObjects();
         if (Q_UNLIKELY(engine->hasErrorOrException(sv)))
             evalError = engine->lastError(sv, configureScript->location());
     }

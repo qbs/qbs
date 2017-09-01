@@ -237,6 +237,7 @@ void Transformer::createCommands(ScriptEngine *engine, const ScriptFunctionConst
     }
 
     QScriptValue scriptValue = script->scriptFunction.call(QScriptValue(), args);
+    engine->releaseResourcesOfScriptObjects();
     propertiesRequestedInPrepareScript = engine->propertiesRequestedInScript();
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
     engine->clearRequestedProperties();

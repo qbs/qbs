@@ -95,10 +95,6 @@ public:
     ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent = 0);
     ~ScriptEngine();
 
-    QScriptValue evaluate(const QString &program, const QString &fileName = QString(),
-                          int lineNumber = 1);
-    QScriptValue evaluate(const QScriptProgram &program);
-
     Logger &logger() const { return m_logger; }
     void import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject);
     void import(const JsImport &jsImport, QScriptValue &targetObject);
@@ -199,12 +195,12 @@ public:
     void setModulePropertyScriptClass(QScriptClass *modulePropertyScriptClass);
 
     void addResourceAcquiringScriptObject(ResourceAcquiringScriptObject *obj);
+    void releaseResourcesOfScriptObjects();
 
 private:
     QScriptValue newFunction(FunctionWithArgSignature signature, void *arg) Q_DECL_EQ_DELETE;
 
     void abort();
-    void releaseResourcesOfScriptObjects();
 
     void installQbsBuiltins();
     void extendJavaScriptBuiltins();
