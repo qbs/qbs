@@ -81,7 +81,7 @@ void removeGeneratedArtifactFromDisk(const QString &filePath, const Logger &logg
 
 void disconnect(BuildGraphNode *u, BuildGraphNode *v);
 
-void setupScriptEngineForFile(ScriptEngine *engine, const ResolvedFileContextConstPtr &fileContext,
+void setupScriptEngineForFile(ScriptEngine *engine, const FileContextBaseConstPtr &fileContext,
         QScriptValue targetObject);
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
                                  const ResolvedModuleConstPtr &module, QScriptValue targetObject,

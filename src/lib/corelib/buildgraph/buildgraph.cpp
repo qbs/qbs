@@ -285,7 +285,7 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
     }
 }
 
-void setupScriptEngineForFile(ScriptEngine *engine, const ResolvedFileContextConstPtr &fileContext,
+void setupScriptEngineForFile(ScriptEngine *engine, const FileContextBaseConstPtr &fileContext,
         QScriptValue targetObject)
 {
     engine->import(fileContext, targetObject);

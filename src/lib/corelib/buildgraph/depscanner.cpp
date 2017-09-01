@@ -47,6 +47,7 @@
 #include <logging/translator.h>
 #include <language/language.h>
 #include <language/propertymapinternal.h>
+#include <language/resolvedfilecontext.h>
 #include <language/scriptengine.h>
 #include <jsextensions/moduleproperties.h>
 #include <plugins/scanner/scanner.h>

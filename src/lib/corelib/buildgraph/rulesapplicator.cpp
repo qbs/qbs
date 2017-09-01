@@ -52,6 +52,7 @@
 #include <language/language.h>
 #include <language/preparescriptobserver.h>
 #include <language/propertymapinternal.h>
+#include <language/resolvedfilecontext.h>
 #include <language/scriptengine.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
