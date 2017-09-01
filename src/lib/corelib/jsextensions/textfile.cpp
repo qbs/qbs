@@ -168,11 +168,11 @@ void TextFile::close()
 {
     if (checkForClosed())
         return;
+    delete m_stream;
+    m_stream = 0;
     m_file->close();
     delete m_file;
     m_file = 0;
-    delete m_stream;
-    m_stream = 0;
 }
 
 void TextFile::setCodec(const QString &codec)
