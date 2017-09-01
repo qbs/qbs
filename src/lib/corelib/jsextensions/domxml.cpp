@@ -123,10 +123,20 @@ private:
 static void initializeJsExtensionXml(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
-    QScriptValue obj = engine->newQMetaObject(&XmlDomDocument::staticMetaObject, engine->newFunction(&XmlDomDocument::ctor));
-    extensionObject.setProperty(QLatin1String("XmlDomDocument"), obj);
-    obj = engine->newQMetaObject(&XmlDomNode::staticMetaObject, engine->newFunction(&XmlDomNode::ctor));
-    extensionObject.setProperty(QLatin1String("XmlDomElement"), obj);
+    QScriptValue docObj = engine->newQMetaObject(&XmlDomDocument::staticMetaObject,
+                                                 engine->newFunction(&XmlDomDocument::ctor));
+    QScriptValue nodeObj = engine->newQMetaObject(&XmlDomNode::staticMetaObject,
+                                                  engine->newFunction(&XmlDomNode::ctor));
+    QScriptValue contextObject = engine->newObject();
+
+    // TODO: Deprecated, remove in Qbs 1.12
+    extensionObject.setProperty(QLatin1String("XmlDomDocument"), docObj);
+    extensionObject.setProperty(QLatin1String("XmlDomElement"), nodeObj);
+
+    contextObject.setProperty(QLatin1String("DomDocument"), docObj);
+    contextObject.setProperty(QLatin1String("DomElement"), nodeObj);
+
+    extensionObject.setProperty(QLatin1String("Xml"), contextObject);
 }
 
 QBS_JSEXTENSION_REGISTER(Xml, &initializeJsExtensionXml)

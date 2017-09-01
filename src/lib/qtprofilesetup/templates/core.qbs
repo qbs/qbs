@@ -338,7 +338,7 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating " + output.fileName;
             cmd.sourceCode = function() {
-                var doc = new XmlDomDocument("RCC");
+                var doc = new Xml.DomDocument("RCC");
 
                 var rccNode = doc.createElement("RCC");
                 rccNode.setAttribute("version", "1.0");
