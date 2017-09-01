@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs
+import qbs.Environment
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
@@ -77,6 +78,7 @@ Module {
 
     property path buildToolsDir: FileInfo.joinPaths(sdkDir, "build-tools", buildToolsVersion)
     property path aaptFilePath: FileInfo.joinPaths(buildToolsDir, "aapt")
+    property path apksignerFilePath: FileInfo.joinPaths(buildToolsDir, "apksigner")
     property path aidlFilePath: FileInfo.joinPaths(buildToolsDir, "aidl")
     property path dxFilePath: FileInfo.joinPaths(buildToolsDir, "dx")
     property path zipalignFilePath: FileInfo.joinPaths(buildToolsDir, "zipalign")
@@ -85,6 +87,12 @@ Module {
     property path generatedJavaFilesBaseDir: FileInfo.joinPaths(product.buildDirectory, "gen")
     property path generatedJavaFilesDir: FileInfo.joinPaths(generatedJavaFilesBaseDir,
                                          (product.packageName || "").split('.').join('/'))
+    property string apkContentsDir: FileInfo.joinPaths(product.buildDirectory, "bin")
+    property string debugKeyStorePath: FileInfo.joinPaths(
+                                           Environment.getEnv(qbs.hostOS.contains("windows")
+                                                              ? "USERPROFILE" : "HOME"),
+                                           ".android", "debug.keystore")
+    property bool useApksigner: Utilities.versionCompare(buildToolsVersion, "24.0.3") >= 0
 
     Depends { name: "java" }
     java.languageVersion: platformJavaVersion
@@ -99,6 +107,36 @@ Module {
     FileTagger {
         patterns: ["*.aidl"]
         fileTags: ["android.aidl"]
+    }
+
+    FileTagger {
+        patterns: ["*.keystore"]
+        fileTags: ["android.keystore"]
+    }
+
+    // Typically there is a debug keystore in ~/.android/debug.keystore which gets created
+    // by the native build tools the first time a build is done. However, we don't want to create it
+    // ourselves, because writing to a location outside the qbs build directory is both polluting
+    // and has the potential for race conditions. So we'll instruct the user what to do.
+    Group {
+        name: "Android debug keystore"
+        files: {
+            if (!File.exists(Android.sdk.debugKeyStorePath)) {
+                throw ModUtils.ModuleError("Could not find an Android debug keystore at " +
+                      Android.sdk.debugKeyStorePath + ". " +
+                      "If you are developing for Android on this machine for the first time and " +
+                      "have never built an application using the native Gradle / Android Studio " +
+                      "tooling, this is normal. You must create the debug keystore now using the " +
+                      "following command, in order to continue:\n\n" +
+                      SdkUtils.createDebugKeyStoreCommandString(java.keytoolFilePath,
+                                                                Android.sdk.debugKeyStorePath) +
+                      "\n\n" +
+                      "See the following URL for more information: " +
+                      "https://developer.android.com/studio/publish/app-signing.html#debug-mode");
+            }
+            return [Android.sdk.debugKeyStorePath];
+        }
+        fileTags: ["android.keystore"]
     }
 
     Parameter {
@@ -125,13 +163,9 @@ Module {
         multiplex: true
         inputs: ["android.resources", "android.assets", "android.manifest"]
 
-        outputFileTags: ["android.ap_", "java.java"]
+        outputFileTags: ["java.java"]
         outputArtifacts: {
-            var artifacts = [{
-                filePath: product.name + ".ap_",
-                fileTags: ["android.ap_"]
-            }];
-
+            var artifacts = [];
             var resources = inputs["android.resources"];
             if (resources && resources.length) {
                 artifacts.push({
@@ -145,24 +179,7 @@ Module {
             return artifacts;
         }
 
-        prepare: {
-            var manifestFilePath = inputs["android.manifest"][0].filePath;
-            var args = ["package", "-f", "-m", "--no-crunch",
-                        "-M", manifestFilePath,
-                        "-I", ModUtils.moduleProperty(product, "androidJarFilePath"),
-                        "-F", outputs["android.ap_"][0].filePath, "--generate-dependencies"];
-            var resources = inputs["android.resources"];
-            if (resources && resources.length)
-                args.push("-S", product.resourcesDir,
-                          "-J", ModUtils.moduleProperty(product, "generatedJavaFilesBaseDir"));
-            if (product.moduleProperty("qbs", "buildVariant") === "debug")
-                args.push("--debug-mode");
-            if (File.exists(product.assetsDir))
-                args.push("-A", product.assetsDir);
-            var cmd = new Command(ModUtils.moduleProperty(product, "aaptFilePath"), args);
-            cmd.description = "Processing resources";
-            return [cmd];
-        }
+        prepare: SdkUtils.prepareAaptGenerate.apply(SdkUtils, arguments)
     }
 
     Rule {
@@ -197,7 +214,7 @@ Module {
         inputs: ["java.class"]
         inputsFromDependencies: ["java.jar"]
         Artifact {
-            filePath: "classes.dex"
+            filePath: FileInfo.joinPaths(product.Android.sdk.apkContentsDir, "classes.dex")
             fileTags: ["android.dex"]
         }
         prepare: SdkUtils.prepareDex.apply(SdkUtils, arguments)
@@ -214,7 +231,7 @@ Module {
             if (inputs["android.nativelibrary"]) {
                 for (var i = 0; i < inputs["android.nativelibrary"].length; ++i) {
                     var inp = inputs["android.nativelibrary"][i];
-                    var destDir = FileInfo.joinPaths("lib",
+                    var destDir = FileInfo.joinPaths(product.Android.sdk.apkContentsDir, "lib",
                                                      inp.moduleProperty("Android.ndk", "abi"));
                     libArtifacts.push({
                             filePath: FileInfo.joinPaths(destDir, inp.fileName),
@@ -259,47 +276,17 @@ Module {
         }
     }
 
-    // TODO: ApkBuilderMain is deprecated. Do we have to provide our own tool directly
-    //       accessing com.android.sdklib.build.ApkBuilder or is there a simpler way?
     Rule {
         multiplex: true
         inputs: [
-            "android.dex", "android.ap_", "android.gdbserver", "android.stl",
-            "android.nativelibrary-deployed"
+            "android.resources", "android.assets", "android.manifest",
+            "android.dex", "android.gdbserver", "android.stl",
+            "android.nativelibrary-deployed", "android.keystore"
         ]
-        Artifact {
-            filePath: product.targetName + ".apk.unaligned"
-            fileTags: ["android.apk.unaligned"]
-        }
-        prepare: {
-            var args = ["-classpath", FileInfo.joinPaths(ModUtils.moduleProperty(product, "sdkDir"),
-                                                         "tools/lib/*"),
-                        "com.android.sdklib.build.ApkBuilderMain", output.filePath,
-                        "-z", inputs["android.ap_"][0].filePath,
-                        "-f", inputs["android.dex"][0].filePath];
-            if (product.moduleProperty("qbs", "buildVariant") === "debug")
-                args.push("-d");
-            if (inputs["android.nativelibrary-deployed"])
-                args.push("-nf", FileInfo.joinPaths(product.buildDirectory, "lib"));
-            var cmd = new Command(product.moduleProperty("java", "interpreterFilePath"), args);
-            cmd.description = "Generating " + output.fileName;
-            return [cmd];
-        }
-    }
-
-    Rule {
-        multiplex: true
-        inputs: ["android.apk.unaligned"]
         Artifact {
             filePath: product.targetName + ".apk"
             fileTags: ["android.apk"]
         }
-        prepare: {
-            var zipalign = ModUtils.moduleProperty(product, "zipalignFilePath");
-            var args = ["-f", "4", inputs["android.apk.unaligned"][0].filePath, output.filePath];
-            var cmd = new Command(zipalign, args);
-            cmd.description = "Creating " + output.fileName;
-            return [cmd];
-        }
+        prepare: SdkUtils.prepareAaptPackage.apply(SdkUtils, arguments)
     }
 }

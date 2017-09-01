@@ -59,6 +59,10 @@ Module {
     property string interpreterName: "java"
     property string jarFilePath: FileInfo.joinPaths(jdkPath, "bin", jarName)
     property string jarName: "jar"
+    property string jarsignerFilePath: FileInfo.joinPaths(jdkPath, "bin", jarsignerName)
+    property string jarsignerName: "jarsigner"
+    property string keytoolFilePath: FileInfo.joinPaths(jdkPath, "bin", keytoolName)
+    property string keytoolName: "keytool"
 
     property string jdkPath: jdk.path
 

@@ -30,6 +30,7 @@
 
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
+var Process = require("qbs.Process");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 
@@ -41,7 +42,8 @@ function sourceAndTargetFilePathsFromInfoFiles(inputs, product, inputTag)
     for (var i = 0; i < inputsLength; ++i) {
         var infoFile = new TextFile(inputs[inputTag][i].filePath, TextFile.ReadOnly);
         var sourceFilePath = infoFile.readLine();
-        var targetFilePath = FileInfo.joinPaths(product.buildDirectory, infoFile.readLine());
+        var targetFilePath = FileInfo.joinPaths(product.Android.sdk.apkContentsDir,
+                                                infoFile.readLine());
         if (!targetFilePaths.contains(targetFilePath)) {
             sourceFilePaths.push(sourceFilePath);
             targetFilePaths.push(targetFilePath);
@@ -125,4 +127,86 @@ function prepareDex(project, product, inputs, outputs, input, output, explicitly
     var cmd = new Command(dxFilePath, args);
     cmd.description = "Creating " + output.fileName;
     return [cmd];
+}
+
+function commonAaptPackageArgs(project, product, inputs, outputs, input, output,
+                               explicitlyDependsOn) {
+    var manifestFilePath = inputs["android.manifest"][0].filePath;
+    var args = ["package", "-f",
+                "-M", manifestFilePath,
+                "-I", product.Android.sdk.androidJarFilePath];
+    var resources = inputs["android.resources"];
+    if (resources && resources.length)
+        args.push("-S", product.resourcesDir);
+    if (product.qbs.buildVariant === "debug")
+        args.push("--debug-mode");
+    if (File.exists(product.assetsDir))
+        args.push("-A", product.assetsDir);
+    return args;
+}
+
+function prepareAaptGenerate(project, product, inputs, outputs, input, output,
+                             explicitlyDependsOn) {
+    var args = commonAaptPackageArgs.apply(this, arguments);
+    args.push("--no-crunch", "-m");
+    var resources = inputs["android.resources"];
+    if (resources && resources.length)
+        args.push("-J", ModUtils.moduleProperty(product, "generatedJavaFilesBaseDir"));
+    var cmd = new Command(product.Android.sdk.aaptFilePath, args);
+    cmd.description = "Processing resources";
+    return [cmd];
+}
+
+function prepareAaptPackage(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+    var cmds = [];
+    var apkOutput = outputs["android.apk"][0];
+    var args = commonAaptPackageArgs.apply(this, arguments);
+    args.push("-F", apkOutput.filePath + ".unaligned");
+    args.push(product.Android.sdk.apkContentsDir);
+    var cmd = new Command(product.Android.sdk.aaptFilePath, args);
+    cmd.description = "Generating " + apkOutput.filePath;
+    cmds.push(cmd);
+
+    if (!product.Android.sdk.useApksigner) {
+        args = ["-sigalg", "SHA1withRSA", "-digestalg", "SHA1",
+                "-keystore", inputs["android.keystore"][0].filePath,
+                "-storepass", "android",
+                apkOutput.filePath + ".unaligned",
+                "androiddebugkey"];
+        cmd = new Command(product.java.jarsignerFilePath, args);
+        cmd.description = "Signing " + apkOutput.fileName;
+        cmds.push(cmd);
+    }
+
+    cmd = new Command(product.Android.sdk.zipalignFilePath,
+                      ["-f", "4", apkOutput.filePath + ".unaligned", apkOutput.filePath]);
+    cmd.silent = true;
+    cmds.push(cmd);
+
+    cmd = new JavaScriptCommand();
+    cmd.silent = true;
+    cmd.unalignedApk = apkOutput.filePath + ".unaligned";
+    cmd.sourceCode = function() { File.remove(unalignedApk); };
+    cmds.push(cmd);
+
+    if (product.Android.sdk.useApksigner) {
+        // TODO: Implement full signing support, not just using the debug keystore
+        args = ["sign",
+                "--ks", inputs["android.keystore"][0].filePath,
+                "--ks-pass", "pass:android",
+                apkOutput.filePath];
+        cmd = new Command(product.Android.sdk.apksignerFilePath, args);
+        cmd.description = "Signing " + apkOutput.fileName;
+        cmds.push(cmd);
+    }
+
+    return cmds;
+}
+
+function createDebugKeyStoreCommandString(keytoolFilePath, keystoreFilePath) {
+    var args = ["-genkey", "-keystore", keystoreFilePath, "-alias", "androiddebugkey",
+                "-storepass", "android", "-keypass", "android", "-keyalg", "RSA",
+                "-keysize", "2048", "-validity", "10000", "-dname",
+                "CN=Android Debug,O=Android,C=US"];
+    return Process.shellQuote(keytoolFilePath, args);
 }
