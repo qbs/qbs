@@ -1813,7 +1813,7 @@ void TestApi::multiplexing()
     waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
-    QList<qbs::ProductData> products = project.projectData().products();
+    QList<qbs::ProductData> products = project.projectData().allProducts();
     qbs::ProductData product;
     ProductDataSelector selector;
     selector.name = "no-multiplexing";

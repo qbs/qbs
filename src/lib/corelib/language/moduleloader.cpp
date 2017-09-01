@@ -541,6 +541,8 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
     TopLevelProjectContext tlp;
     tlp.buildDirectory = buildDirectory;
     handleProject(loadResult, &tlp, projectItem, referencedFilePaths);
+    collectProductsByName(tlp);
+    adjustDependenciesForMultiplexing(tlp);
 
     for (ProjectContext * const projectContext : qAsConst(tlp.projects)) {
         m_reader->setExtraSearchPathsStack(projectContext->searchPathsStack);
@@ -681,7 +683,6 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
             break;
         }
     }
-    adjustDependenciesForMultiplexing(projectContext);
     m_reader->popExtraSearchPaths();
 }
 
@@ -873,66 +874,69 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     return additionalProductItems;
 }
 
-void ModuleLoader::adjustDependenciesForMultiplexing(const ProjectContext &projectContext)
+void ModuleLoader::adjustDependenciesForMultiplexing(const TopLevelProjectContext &tlp)
 {
-    for (const ProductContext &product : projectContext.products)
-        m_productsByName.insert({ product.name, &product });
+    for (const ProjectContext * const project : tlp.projects) {
+        for (const ProductContext &product : project->products)
+            adjustDependenciesForMultiplexing(product);
+    }
+}
 
-    const QString multiplexConfigurationIdKey = QStringLiteral("multiplexConfigurationId");
-    const QString multiplexConfigurationIdsKey = QStringLiteral("multiplexConfigurationIds");
-    for (const ProductContext &product : projectContext.products) {
-        for (Item *dependsItem : product.item->children()) {
-            if (dependsItem->type() != ItemType::Depends)
-                continue;
-            const QString name = m_evaluator->stringValue(dependsItem, QStringLiteral("name"));
-            const bool productIsMultiplexed = !product.multiplexConfigurationId.isEmpty();
-            if (name == product.name) {
-                QBS_CHECK(!productIsMultiplexed); // This product must be an aggregator.
-                continue;
-            }
-            const auto productRange = m_productsByName.equal_range(name);
-            std::vector<const ProductContext *> dependencies;
-            bool hasNonMultiplexedDependency = false;
-            for (auto it = productRange.first; it != productRange.second; ++it) {
-                if (!it->second->multiplexConfigurationId.isEmpty()) {
-                    dependencies.push_back(it->second);
-                    if (productIsMultiplexed)
-                        break;
-                } else {
-                    hasNonMultiplexedDependency = true;
+void ModuleLoader::adjustDependenciesForMultiplexing(const ModuleLoader::ProductContext &product)
+{
+    static const QString multiplexConfigurationIdKey = QStringLiteral("multiplexConfigurationId");
+    static const QString multiplexConfigurationIdsKey = QStringLiteral("multiplexConfigurationIds");
+    for (Item *dependsItem : product.item->children()) {
+        if (dependsItem->type() != ItemType::Depends)
+            continue;
+        const QString name = m_evaluator->stringValue(dependsItem, QStringLiteral("name"));
+        const bool productIsMultiplexed = !product.multiplexConfigurationId.isEmpty();
+        if (name == product.name) {
+            QBS_CHECK(!productIsMultiplexed); // This product must be an aggregator.
+            continue;
+        }
+        const auto productRange = m_productsByName.equal_range(name);
+        std::vector<const ProductContext *> dependencies;
+        bool hasNonMultiplexedDependency = false;
+        for (auto it = productRange.first; it != productRange.second; ++it) {
+            if (!it->second->multiplexConfigurationId.isEmpty()) {
+                dependencies.push_back(it->second);
+                if (productIsMultiplexed)
                     break;
-                }
+            } else {
+                hasNonMultiplexedDependency = true;
+                break;
             }
+        }
 
-            // These are the allowed cases:
-            // (1) Normal dependency with no multiplexing whatsoever.
-            // (2) Both product and dependency are multiplexed.
-            // (3) The product is not multiplexed, but the dependency is.
-            //     (3a) The dependency has an aggregator. We want to depend on the aggregator.
-            //     (3b) The dependency does not have an aggregator. We want to depend on all the
-            //          multiplexed variants.
-            // (4) The product is multiplexed, but the dependency is not. This case is implicitly
-            //     handled, because we don't have to adapt any Depends items.
+        // These are the allowed cases:
+        // (1) Normal dependency with no multiplexing whatsoever.
+        // (2) Both product and dependency are multiplexed.
+        // (3) The product is not multiplexed, but the dependency is.
+        //     (3a) The dependency has an aggregator. We want to depend on the aggregator.
+        //     (3b) The dependency does not have an aggregator. We want to depend on all the
+        //          multiplexed variants.
+        // (4) The product is multiplexed, but the dependency is not. This case is implicitly
+        //     handled, because we don't have to adapt any Depends items.
 
-            // (1) and (3a)
-            if (!productIsMultiplexed && hasNonMultiplexedDependency)
-                continue;
+        // (1) and (3a)
+        if (!productIsMultiplexed && hasNonMultiplexedDependency)
+            continue;
 
-            QStringList multiplexIds;
-            for (std::size_t i = 0; i < dependencies.size(); ++i) {
-                const QString depMultiplexId = dependencies.at(i)->multiplexConfigurationId;
-                if (productIsMultiplexed) { // (2)
-                    dependsItem->setProperty(multiplexConfigurationIdsKey,
-                                             product.item->property(multiplexConfigurationIdKey));
-                    break;
-                }
-                // (3b)
-                multiplexIds << depMultiplexId;
-            }
-            if (!multiplexIds.isEmpty()) {
+        QStringList multiplexIds;
+        for (std::size_t i = 0; i < dependencies.size(); ++i) {
+            const QString depMultiplexId = dependencies.at(i)->multiplexConfigurationId;
+            if (productIsMultiplexed) { // (2)
                 dependsItem->setProperty(multiplexConfigurationIdsKey,
-                                         VariantValue::create(multiplexIds));
+                                         product.item->property(multiplexConfigurationIdKey));
+                break;
             }
+            // (3b)
+            multiplexIds << depMultiplexId;
+        }
+        if (!multiplexIds.isEmpty()) {
+            dependsItem->setProperty(multiplexConfigurationIdsKey,
+                                     VariantValue::create(multiplexIds));
         }
     }
 }
@@ -1711,6 +1715,14 @@ void ModuleLoader::handleProfile(Item *profileItem)
                         profileItem->location());
     }
     m_localProfiles.insert(profileName, values);
+}
+
+void ModuleLoader::collectProductsByName(const TopLevelProjectContext &topLevelProject)
+{
+    for (ProjectContext * const project : topLevelProject.projects) {
+        for (ProductContext &product : project->products)
+            m_productsByName.insert({ product.name, &product });
+    }
 }
 
 void ModuleLoader::propagateModulesFromParent(ProductContext *productContext, Item *groupItem,
