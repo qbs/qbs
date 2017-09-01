@@ -230,7 +230,8 @@ private:
     static MultiplexTable combine(const MultiplexTable &table, const MultiplexRow &values);
     MultiplexInfo extractMultiplexInfo(Item *productItem, Item *qbsModuleItem);
     QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);
-    void adjustDependenciesForMultiplexing(const ProjectContext &projectContext);
+    void adjustDependenciesForMultiplexing(const TopLevelProjectContext &tlp);
+    void adjustDependenciesForMultiplexing(const ProductContext &product);
 
     void prepareProduct(ProjectContext *projectContext, Item *productItem);
     void setupProductDependencies(ProductContext *productContext);
@@ -320,6 +321,7 @@ private:
     void handleProductError(const ErrorInfo &error, ProductContext *productContext);
     QualifiedIdSet gatherModulePropertiesSetInGroup(const Item *group);
     Item *loadItemFromFile(const QString &filePath);
+    void collectProductsByName(const TopLevelProjectContext &topLevelProject);
 
     ItemPool *m_pool;
     Logger &m_logger;
