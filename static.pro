@@ -54,7 +54,10 @@ OTHER_FILES += $$FILES $$LIBEXEC_FILES
 
 !isEqual(PWD, $$OUT_PWD) {
     libexec_copy.input = LIBEXEC_FILES
-    libexec_copy.output = libexec/qbs/${QMAKE_FILE_IN_BASE}${QMAKE_FILE_EXT}
+    !isEmpty(QBS_LIBEXEC_DESTDIR): \
+        libexec_copy.output = $${QBS_LIBEXEC_DESTDIR}/${QMAKE_FILE_IN_BASE}${QMAKE_FILE_EXT}
+    else: \
+        libexec_copy.output = libexec/qbs/${QMAKE_FILE_IN_BASE}${QMAKE_FILE_EXT}
     libexec_copy.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
     libexec_copy.name = COPY ${QMAKE_FILE_IN}
     libexec_copy.CONFIG += no_link target_predeps
