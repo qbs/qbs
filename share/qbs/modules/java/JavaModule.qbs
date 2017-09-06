@@ -55,7 +55,7 @@ Module {
     property string jarFilePath: FileInfo.joinPaths(jdkPath, "bin", jarName)
     property string jarName: "jar"
 
-    property path jdkPath: jdk.path
+    property string jdkPath: jdk.path
 
     version: compilerVersion
     property string compilerVersion: jdk.version ? jdk.version[1] : undefined

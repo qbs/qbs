@@ -120,7 +120,7 @@
             with native code should add these paths to \c{cpp.includePaths}.
     \row
         \li jdkPath
-        \li path
+        \li string
         \li 1.4
         \li determined automatically
         \li The base path of the Java Development Kit (JDK). This is equivalent to the \c JAVA_HOME
