@@ -645,7 +645,7 @@ bool operator<(const ProductData &lhs, const ProductData &rhs)
     if (nameCmp > 0)
         return false;
     return lhs.profile() < rhs.profile()
-            && lhs.multiplexConfigurationId() < lhs.multiplexConfigurationId();
+            && lhs.multiplexConfigurationId() < rhs.multiplexConfigurationId();
 }
 
 /*!
