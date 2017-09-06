@@ -30,9 +30,6 @@
 
 import qbs
 import qbs.Environment
-import qbs.File
-import qbs.FileInfo
-import qbs.Process
 import "../../../modules/java/utils.js" as JavaUtils
 
 PathProbe {
