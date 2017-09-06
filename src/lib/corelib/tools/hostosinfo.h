@@ -72,6 +72,7 @@ public:
     // Add more as needed.
     enum HostOs { HostOsWindows, HostOsLinux, HostOsMacos, HostOsOtherUnix, HostOsOther };
 
+    static inline std::vector<std::string> hostOSIdentifiers();
     static inline HostOs hostOs();
 
     static inline Version hostOsVersion() {
@@ -142,6 +143,36 @@ public:
         return isMacosHost() ? Qt::MetaModifier : Qt::ControlModifier;
     }
 };
+
+std::vector<std::string> HostOsInfo::hostOSIdentifiers()
+{
+#if defined(__APPLE__)
+    return {"macos", "darwin", "bsd", "unix"};
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    return {"windows"};
+#elif defined(_AIX)
+    return {"aix", "unix"};
+#elif defined(hpux) || defined(__hpux)
+    return {"hpux", "unix"};
+#elif defined(__sun) || defined(sun)
+    return {"solaris", "unix"};
+#elif defined(__linux__) || defined(__linux)
+    return {"linux", "unix"};
+#elif defined(__FreeBSD__) || defined(__DragonFly__) || defined(__FreeBSD_kernel__)
+    return {"freebsd", "bsd", "unix"};
+#elif defined(__NetBSD__)
+    return {"netbsd", "bsd", "unix"};
+#elif defined(__OpenBSD__)
+    return {"openbsd", "bsd", "unix"};
+#elif defined(__GNU__)
+    return {"hurd", "unix"};
+#elif defined(__HAIKU__)
+    return {"haiku"};
+#else
+    #warning "Qbs has not been ported to this OS - see http://qbs.io/"
+    return {};
+#endif
+}
 
 HostOsInfo::HostOs HostOsInfo::hostOs()
 {
