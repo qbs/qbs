@@ -1,6 +1,5 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 Jake Petroules.
 ** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
@@ -30,25 +29,17 @@
 ****************************************************************************/
 
 import qbs
-import qbs.Environment
 import "../../../modules/java/utils.js" as JavaUtils
 
-PathProbe {
+Probe {
     // Inputs
-    property stringList hostOS: qbs.hostOS
-    property string architecture: !_androidCrossCompiling ? qbs.architecture : undefined
-    property bool _androidCrossCompiling: qbs.targetOS.contains("android")
-                                          && !qbs.hostOS.contains("android")
+    property string javac
 
-    environmentPaths: Environment.getEnv("JAVA_HOME")
-    platformPaths: [
-        "/usr/lib/jvm/default-java", // Debian/Ubuntu
-        "/etc/alternatives/java_sdk_openjdk", // Fedora
-        "/usr/lib/jvm/default" // Arch
-    ]
+    // Outputs
+    property var version
 
     configure: {
-        path = JavaUtils.findJdkPath(hostOS, architecture, environmentPaths, platformPaths);
-        found = !!path;
+        version = JavaUtils.findJdkVersion(javac);
+        found = !!version;
     }
 }

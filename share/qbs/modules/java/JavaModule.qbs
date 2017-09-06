@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -43,6 +43,11 @@ Module {
         environmentPaths: (jdkPath ? [jdkPath] : []).concat(base)
     }
 
+    Probes.JdkVersionProbe {
+        id: jdkVersionProbe
+        javac: compilerFilePath
+    }
+
     property stringList additionalClassPaths
     property stringList additionalCompilerFlags
     property stringList additionalJarFlags
@@ -58,7 +63,8 @@ Module {
     property string jdkPath: jdk.path
 
     version: compilerVersion
-    property string compilerVersion: jdk.version ? jdk.version[1] : undefined
+    property string compilerVersion: jdkVersionProbe.version
+                                     ? jdkVersionProbe.version[1] : undefined
     property var compilerVersionParts: compilerVersion ? compilerVersion.split(/[\._]/).map(function(item) { return parseInt(item, 10); }) : []
     property int compilerVersionMajor: compilerVersionParts[0]
     property int compilerVersionMinor: compilerVersionParts[1]
