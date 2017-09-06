@@ -885,7 +885,7 @@
     \c small for release only.
 
     \code
-    qbs build debug cpp.treatWarningsAsErrors:true release cpp.optimization:small
+    qbs build debug modules.cpp.treatWarningsAsErrors:true release modules.cpp.optimization:small
     \endcode
 */
 
