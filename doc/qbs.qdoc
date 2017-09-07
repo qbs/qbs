@@ -937,16 +937,16 @@
 
     \title Running Applications
 
-    Running ./targets/debug/CollidingMice fails if Qt 4.8 is not in your PATH
-    (in Windows) or LD_LIBRARY_PATH (in Linux).
+    By default, running an application also builds it and installs it to a
+    location from where it can be run on the desktop or on a device.
 
-    Therefore, enter the following command to run an application:
+    For example, entering the following command runs the Qt Creator application:
 
     \code
-    qbs run --products CollidingMice
+    qbs run --products qtcreator
     \endcode
 
-    This command also builds and installs the given product, if necessary.
+    This command also builds and installs the product, if necessary.
 */
 
 
