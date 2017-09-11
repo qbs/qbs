@@ -2379,7 +2379,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
                                bool isRequired, bool *isProductDependency,
                                QVariantMap *defaultParameters)
 {
-    qCDebug(lcModuleLoader) << "loadModule name: " << moduleName << ", id: " << moduleId;
+    qCDebug(lcModuleLoader) << "loadModule name:" << moduleName.toString() << "id:" << moduleId;
 
     RequiredChainManager requiredChainManager(m_requiredChain, isRequired);
     DependsChainManager dependsChainManager(m_dependsChain, moduleName, dependsItemLocation);
@@ -2520,21 +2520,22 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 {
     checkCancelation();
 
-    qCDebug(lcModuleLoader) << "trying to load " << fullModuleName << " from " << filePath;
+    qCDebug(lcModuleLoader) << "trying to load" << fullModuleName << "from" << filePath;
 
     const QString keyUniquifier = productContext->multiplexConfigurationId.isEmpty() ?
                 productContext->profileName : productContext->uniqueName();
     const ModuleItemCache::key_type cacheKey(filePath, keyUniquifier);
     const ItemCacheValue cacheValue = m_modulePrototypeItemCache.value(cacheKey);
     if (cacheValue.module) {
-        qCDebug(lcModuleLoader) << "[LDR] loadModuleFile cache hit for " << filePath;
+        qCDebug(lcModuleLoader) << "[LDR] loadModuleFile cache hit for" << filePath;
         *cacheHit = true;
         return cacheValue.enabled ? cacheValue.module : 0;
     }
     *cacheHit = false;
     Item * const module = loadItemFromFile(filePath);
     if (module->type() != ItemType::Module) {
-        qCDebug(lcModuleLoader) << "Alleged module " << fullModuleName << " has type '"
+        qCDebug(lcModuleLoader).nospace()
+                            << "Alleged module " << fullModuleName << " has type '"
                             << module->typeName() << "', so it's not a module after all.";
         *triedToLoad = false;
         return 0;
