@@ -50,7 +50,8 @@ SUBDIRS += \
 OTHER_FILES += \
     doc/*.qdoc \
     doc/reference/*.qdoc \
-    doc/reference/items/*.qdoc \
+    doc/reference/items/convenience/*.qdoc \
+    doc/reference/items/language/*.qdoc \
     doc/reference/jsextensions/*.qdoc \
     doc/reference/modules/*.qdoc \
     doc/qbs.qdocconf \

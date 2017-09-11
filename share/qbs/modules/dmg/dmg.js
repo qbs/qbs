@@ -199,7 +199,7 @@ function prepareDmg(project, product, inputs, outputs, input, output) {
     cmds.push(cmd);
 
     // Create the actual DMG via dmgbuild
-    cmd = new Command(FileInfo.joinPaths(product.dmg.libexecPath, "dmgbuild"),
+    cmd = new Command(FileInfo.joinPaths(product.qbs.libexecPath, "dmgbuild"),
                       [product.dmg.volumeName,
                        output.filePath,
                        "--no-hidpi", // qbs handles this by itself

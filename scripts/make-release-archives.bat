@@ -63,10 +63,10 @@ if exist "%QTDIR64%" (
 REM Work around QBS-1142, where symlinks to UNC named paths aren't resolved
 REM properly, for example if this command is being run in a Docker container
 REM where the current directory is a symlink
-(robocopy "%CD%" "%builddir%\source" /e /njh /njs /ndl /nc /ns /xd .git) ^& IF %ERRORLEVEL% GTR 1 exit %ERRORLEVEL%
+subst Q: "%CD%" && Q:
 
 qbs build --settings-dir "%builddir%\.settings"^
- -f "%builddir%\source" -d "%builddir%\build"^
+ -f qbs.qbs -d "%builddir%\build"^
  -p dist qbs.buildVariant:release "products.qbs archive.includeTopLevelDir:true"^
  release "qbs.installRoot:%builddir%\qbs-windows-x86-%version%" profile:qt^
  release-64 "qbs.installRoot:%builddir%\qbs-windows-x86_64-%version%" profile:qt64 || exit /b

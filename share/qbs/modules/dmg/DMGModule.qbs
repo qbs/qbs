@@ -76,9 +76,6 @@ Module {
     readonly property string pythonPath: File.canonicalFilePath(FileInfo.joinPaths(path,
                                                                 "..", "..",
                                                                 "python"))
-    readonly property string libexecPath: File.canonicalFilePath(FileInfo.joinPaths(path,
-                                                                 "..", "..", "..", "..",
-                                                                 "libexec", "qbs"))
 
     property string backgroundColor
     property int iconSize: 128
