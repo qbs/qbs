@@ -268,7 +268,6 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
 {
     m_reader->setSearchPaths(searchPaths);
 
-    m_moduleDirListCache.clear();
     m_moduleSearchPaths.clear();
     for (const QString &path : searchPaths)
         addExtraModuleSearchPath(m_moduleSearchPaths, path);
