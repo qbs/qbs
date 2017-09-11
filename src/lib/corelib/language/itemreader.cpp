@@ -81,6 +81,7 @@ QStringList ItemReader::allSearchPaths() const
     for (auto it = m_extraSearchPaths.crbegin(), end = m_extraSearchPaths.crend(); it != end; ++it)
         paths += *it;
     paths += m_searchPaths;
+    paths.removeDuplicates();
     return paths;
 }
 
