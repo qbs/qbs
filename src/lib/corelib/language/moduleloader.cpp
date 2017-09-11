@@ -1000,8 +1000,9 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
     const QVariantMap profileContents = productContext->project->result->profileConfigs
             .value(productContext->profileName).toMap();
     const QStringList prefsSearchPaths = Preferences(&settings, profileContents).searchPaths();
+    const QStringList &currentSearchPaths = m_reader->allSearchPaths();
     for (const QString &p : prefsSearchPaths) {
-        if (!m_moduleSearchPaths.contains(p) && FileInfo(p).exists())
+        if (!currentSearchPaths.contains(p) && FileInfo(p).exists())
             extraSearchPaths << p;
     }
     SearchPathsManager searchPathsManager(m_reader, extraSearchPaths);
