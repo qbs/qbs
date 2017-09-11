@@ -2408,7 +2408,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
         pmi = nullptr;
         *isProductDependency = false;
         QStringList moduleSearchPaths;
-        for (const QString &searchPath : m_reader->searchPaths())
+        for (const QString &searchPath : m_reader->allSearchPaths())
             addExtraModuleSearchPath(moduleSearchPaths, searchPath);
         bool cacheHit = false;
         modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,

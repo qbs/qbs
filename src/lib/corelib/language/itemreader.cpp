@@ -75,7 +75,7 @@ std::vector<QStringList> ItemReader::extraSearchPathsStack() const
     return m_extraSearchPaths;
 }
 
-QStringList ItemReader::searchPaths() const
+QStringList ItemReader::allSearchPaths() const
 {
     QStringList paths;
     for (auto it = m_extraSearchPaths.crbegin(), end = m_extraSearchPaths.crend(); it != end; ++it)
@@ -87,7 +87,7 @@ QStringList ItemReader::searchPaths() const
 Item *ItemReader::readFile(const QString &filePath)
 {
     AccumulatingTimer readFileTimer(m_elapsedTime != -1 ? &m_elapsedTime : nullptr);
-    return m_visitorState->readFile(filePath, searchPaths(), m_pool);
+    return m_visitorState->readFile(filePath, allSearchPaths(), m_pool);
 }
 
 Set<QString> ItemReader::filesRead() const

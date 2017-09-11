@@ -77,7 +77,7 @@ public:
     std::vector<QStringList> extraSearchPathsStack() const;
     void setExtraSearchPathsStack(const std::vector<QStringList> &s) { m_extraSearchPaths = s; }
     void clearExtraSearchPathsStack() { m_extraSearchPaths.clear(); }
-    QStringList searchPaths() const;
+    QStringList allSearchPaths() const;
 
     Item *readFile(const QString &filePath);
 
