@@ -282,8 +282,8 @@ private:
             const QualifiedId &moduleName, bool isRequired, bool *isProductDependency,
             QVariantMap *defaultParameters);
     Item *searchAndLoadModuleFile(ProductContext *productContext,
-            const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
-            const QStringList &extraSearchPaths, bool isRequired, bool *cacheHit);
+            const CodeLocation &dependsItemLocation, const QualifiedId &moduleName, bool isRequired,
+            bool *cacheHit);
     Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
             bool isBaseModule, const QString &filePath, bool *cacheHit, bool *triedToLoad);
     Item::Module loadBaseModule(ProductContext *productContext, Item *item);
@@ -339,7 +339,6 @@ private:
     ProgressObserver *m_progressObserver;
     ItemReader *m_reader;
     Evaluator *m_evaluator;
-    QStringList m_moduleSearchPaths;
     QMap<QString, QStringList> m_moduleDirListCache;
     ModuleItemCache m_modulePrototypeItemCache;
     QHash<const Item *, Item::PropertyDeclarationMap> m_parameterDeclarations;

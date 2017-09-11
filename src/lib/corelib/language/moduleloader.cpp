@@ -89,8 +89,6 @@ static void handlePropertyError(const ErrorInfo &error, const SetupProjectParame
 
 class ModuleLoader::ItemModuleList : public QList<Item::Module> {};
 
-const QString moduleSearchSubDir = QLatin1String("modules");
-
 static QString probeGlobalId(Item *probe)
 {
     QString id;
@@ -259,21 +257,10 @@ void ModuleLoader::setProgressObserver(ProgressObserver *progressObserver)
     m_progressObserver = progressObserver;
 }
 
-static void addExtraModuleSearchPath(QStringList &list, const QString &searchPath)
-{
-    list += FileInfo::resolvePath(searchPath, moduleSearchSubDir);
-}
-
 void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
 {
     m_reader->setSearchPaths(searchPaths);
-
-    m_moduleSearchPaths.clear();
-    for (const QString &path : searchPaths)
-        addExtraModuleSearchPath(m_moduleSearchPaths, path);
-
-    qCDebug(lcModuleLoader) << "module search paths:"
-                            << m_moduleSearchPaths.join(QLatin1String("    \n"));
+    qCDebug(lcModuleLoader) << "initial search paths:" << searchPaths;
 }
 
 void ModuleLoader::setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes)
@@ -2408,12 +2395,9 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
     } else {
         pmi = nullptr;
         *isProductDependency = false;
-        QStringList moduleSearchPaths;
-        for (const QString &searchPath : m_reader->allSearchPaths())
-            addExtraModuleSearchPath(moduleSearchPaths, searchPath);
         bool cacheHit = false;
         modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
-                moduleName, moduleSearchPaths, isRequired, &cacheHit);
+                moduleName, isRequired, &cacheHit);
         static const QualifiedId baseModuleId = QualifiedId(QLatin1String("qbs"));
         if (modulePrototype && !cacheHit && moduleName == baseModuleId)
             setupBaseModulePrototype(modulePrototype);
@@ -2428,14 +2412,12 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
 
 Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
-        const QStringList &extraSearchPaths, bool isRequired, bool *cacheHit)
+        bool isRequired, bool *cacheHit)
 {
-    QStringList searchPaths = extraSearchPaths;
-    searchPaths.append(m_moduleSearchPaths);
-
     bool triedToLoadModule = false;
     const QString fullName = moduleName.toString();
-    for (const QString &path : qAsConst(searchPaths)) {
+    const QStringList &searchPaths = m_reader->allSearchPaths();
+    for (const QString &path : searchPaths) {
         const QString dirPath = findExistingModulePath(path, moduleName);
         if (dirPath.isEmpty())
             continue;
@@ -2973,7 +2955,7 @@ Item *ModuleLoader::wrapInProjectIfNecessary(Item *item)
 QString ModuleLoader::findExistingModulePath(const QString &searchPath,
         const QualifiedId &moduleName)
 {
-    QString dirPath = searchPath;
+    QString dirPath = searchPath + QStringLiteral("/modules");
     for (const QString &moduleNamePart : moduleName) {
         dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
         if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath))
