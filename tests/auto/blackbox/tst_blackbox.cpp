@@ -4391,6 +4391,51 @@ void TestBlackbox::checkTimestamps()
     QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::chooseModuleInstanceByPriority()
+{
+    QFETCH(QString, idol);
+    QFETCH(QStringList, expectedSubStrings);
+    QFETCH(bool, expectSuccess);
+    QDir::setCurrent(testDataDir + "/choose-module-instance");
+    rmDirR(relativeBuildDir());
+    QbsRunParameters params(QStringList("modules.qbs.targetOS:" + idol));
+    params.expectFailure = !expectSuccess;
+    if (expectSuccess) {
+        QCOMPARE(runQbs(params), 0);
+    } else {
+        QVERIFY(runQbs(params) != 0);
+        return;
+    }
+
+    const QString installRoot = relativeBuildDir() + "/install-root/";
+    QVERIFY(QFile::exists(installRoot + "/gerbil.txt"));
+    QFile file(installRoot + "/gerbil.txt");
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const QString content = QString::fromUtf8(file.readAll());
+    for (auto str : expectedSubStrings) {
+        if (content.contains(str))
+            continue;
+        qDebug() << "content:" << content;
+        qDebug() << "substring:" << str;
+        QFAIL("missing substring");
+    }
+}
+
+void TestBlackbox::chooseModuleInstanceByPriority_data()
+{
+    QTest::addColumn<QString>("idol");
+    QTest::addColumn<QStringList>("expectedSubStrings");
+    QTest::addColumn<bool>("expectSuccess");
+    QTest::newRow("ringo")
+            << "Beatles" << QStringList() << false;
+    QTest::newRow("ritchie1")
+            << "Deep Purple" << QStringList{"slipped", "litchi", "ritchie"} << true;
+    QTest::newRow("ritchie2")
+            << "Rainbow" << QStringList{"slipped", "litchi", "ritchie"} << true;
+    QTest::newRow("lord")
+            << "Whitesnake" << QStringList{"chewed", "cord", "lord"} << true;
+}
+
 class TemporaryDefaultProfileRemover
 {
 public:

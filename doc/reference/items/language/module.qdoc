@@ -210,6 +210,13 @@
                 \c Depends item had its \c required property set to \c false and the module was
                 not found.
         \row
+            \li priority
+            \li int
+            \li \c 0
+            \li Defines the priority of this module instance. If there is more
+                than one module instance available for a module name, then
+                the module with the highest priority is chosen.
+        \row
             \li setupBuildEnvironment
             \li script
             \li \c undefined

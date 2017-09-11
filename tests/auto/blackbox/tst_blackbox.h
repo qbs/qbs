@@ -56,6 +56,8 @@ private slots:
     void changeTrackingAndMultiplexing();
     void checkProjectFilePath();
     void checkTimestamps();
+    void chooseModuleInstanceByPriority();
+    void chooseModuleInstanceByPriority_data();
     void clean();
     void cli();
     void combinedSources();

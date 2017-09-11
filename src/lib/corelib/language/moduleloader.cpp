@@ -2407,13 +2407,54 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
     return moduleInstance;
 }
 
+struct PrioritizedItem
+{
+    PrioritizedItem(Item *item, int priority)
+        : item(item), priority(priority)
+    {
+    }
+
+    Item *item = nullptr;
+    int priority = 0;
+};
+
+static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidates,
+                                   const QString &moduleName)
+{
+    auto maxIt = std::max_element(candidates.begin(), candidates.end(),
+            [] (const PrioritizedItem &a, const PrioritizedItem &b) {
+        return a.priority < b.priority;
+    });
+
+    int maxPriority = maxIt->priority;
+    size_t nmax = std::count_if(candidates.begin(), candidates.end(),
+            [maxPriority] (const PrioritizedItem &i) {
+        return i.priority == maxPriority;
+    });
+
+    if (nmax > 1) {
+        ErrorInfo e(Tr::tr("There is more than one equally prioritized candidate for module '%1'.")
+                    .arg(moduleName));
+        for (size_t i = 0; i < candidates.size(); ++i) {
+            const auto candidate = candidates.at(i);
+            if (candidate.priority == maxPriority) {
+                //: The %1 denotes the number of the candidate.
+                e.append(Tr::tr("candidate %1").arg(i + 1), candidates.at(i).item->location());
+            }
+        }
+        throw e;
+    }
+
+    return maxIt->item;
+}
+
 Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
         bool isRequired)
 {
     bool triedToLoadModule = false;
     const QString fullName = moduleName.toString();
-    std::vector<Item *> candidates;
+    std::vector<PrioritizedItem> candidates;
     const QStringList &searchPaths = m_reader->allSearchPaths();
     for (const QString &path : searchPaths) {
         const QString dirPath = findExistingModulePath(path, moduleName);
@@ -2432,21 +2473,22 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
             Item *module = loadModuleFile(productContext, fullName, isBaseModule(moduleName),
                                           filePath, &triedToLoadModule);
             if (module)
-                candidates.push_back(module);
+                candidates.emplace_back(module, 0);
             if (!triedToLoadModule)
                 m_moduleDirListCache[dirPath].removeOne(filePath);
         }
     }
 
     if (candidates.size() > 1) {
-        ErrorInfo e(Tr::tr("There is more than one candidate for module '%1'.").arg(fullName));
-        for (size_t i = 0; i < candidates.size(); ++i)
-            e.append(Tr::tr("candidate %1").arg(i + 1), candidates.at(i)->location());
-        throw e;
+        for (auto &candidate : candidates) {
+            candidate.priority = m_evaluator->intValue(candidate.item, QStringLiteral("priority"),
+                                                       candidate.priority);
+        }
+        return chooseModuleCandidate(candidates, fullName);
     }
 
     if (candidates.size() == 1)
-        return candidates.at(0);
+        return candidates.at(0).item;
 
     if (!isRequired)
         return createNonPresentModule(fullName, QLatin1String("not found"), nullptr);

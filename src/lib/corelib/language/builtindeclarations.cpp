@@ -181,6 +181,11 @@ static PropertyDeclaration prepareScriptProperty()
     return decl;
 }
 
+static PropertyDeclaration priorityProperty()
+{
+    return PropertyDeclaration(QLatin1String("priority"), PropertyDeclaration::Integer);
+}
+
 void BuiltinDeclarations::addArtifactItem()
 {
     ItemDeclaration item(ItemType::Artifact);
@@ -235,7 +240,7 @@ void BuiltinDeclarations::addFileTaggerItem()
     item << conditionProperty();
     item << PropertyDeclaration(QLatin1String("patterns"), PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("priority"), PropertyDeclaration::Integer);
+    item << priorityProperty();
     insert(item);
 }
 
@@ -264,7 +269,9 @@ void BuiltinDeclarations::addGroupItem()
 
 void BuiltinDeclarations::addModuleItem()
 {
-    insert(moduleLikeItem(ItemType::Module));
+    ItemDeclaration item = moduleLikeItem(ItemType::Module);
+    item << priorityProperty();
+    insert(item);
 }
 
 ItemDeclaration BuiltinDeclarations::moduleLikeItem(ItemType type)
