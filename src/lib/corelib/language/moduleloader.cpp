@@ -2416,6 +2416,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
 {
     bool triedToLoadModule = false;
     const QString fullName = moduleName.toString();
+    std::vector<Item *> candidates;
     const QStringList &searchPaths = m_reader->allSearchPaths();
     for (const QString &path : searchPaths) {
         const QString dirPath = findExistingModulePath(path, moduleName);
@@ -2434,11 +2435,21 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
             Item *module = loadModuleFile(productContext, fullName, isBaseModule(moduleName),
                                           filePath, cacheHit, &triedToLoadModule);
             if (module)
-                return module;
+                candidates.push_back(module);
             if (!triedToLoadModule)
                 m_moduleDirListCache[dirPath].removeOne(filePath);
         }
     }
+
+    if (candidates.size() > 1) {
+        ErrorInfo e(Tr::tr("There is more than one candidate for module '%1'.").arg(fullName));
+        for (size_t i = 0; i < candidates.size(); ++i)
+            e.append(Tr::tr("candidate %1").arg(i + 1), candidates.at(i)->location());
+        throw e;
+    }
+
+    if (candidates.size() == 1)
+        return candidates.at(0);
 
     if (!isRequired)
         return createNonPresentModule(fullName, QLatin1String("not found"), nullptr);

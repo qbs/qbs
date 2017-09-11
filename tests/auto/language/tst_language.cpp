@@ -745,6 +745,10 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("wrong-toplevel-item")
             << "wrong-toplevel-item.qbs:3:1.*The top-level item must be of type 'Project' or "
                "'Product', but it is of type 'Artifact'.";
+    QTest::newRow("conflicting-module-instances")
+            << "There is more than one candidate for module 'conflicting-instances'.";
+    QTest::newRow("conflicting-module-instances-in-search-paths/project")
+            << "There is more than one candidate for module 'conflicting-instances'.";
     QTest::newRow("module-depends-on-product")
             << "module-with-product-dependency.qbs:4:5.*Modules cannot depend on products.";
     QTest::newRow("overwrite-inherited-readonly-property")
