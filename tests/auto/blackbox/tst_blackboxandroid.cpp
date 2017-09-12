@@ -33,6 +33,7 @@
 #include <tools/qttools.h>
 
 #include <QtCore/qjsondocument.h>
+#include <QtCore/qset.h>
 #include <QtCore/qtemporarydir.h>
 
 using qbs::Profile;
@@ -77,7 +78,7 @@ void TestBlackboxAndroid::android()
 {
     QFETCH(QString, projectDir);
     QFETCH(QStringList, productNames);
-    QFETCH(QList<int>, apkFileCounts);
+    QFETCH(QList<QByteArrayList>, expectedFilesLists);
 
     const SettingsPtr s = settings();
     Profile p("qbs_autotests-android", s.get());
@@ -110,7 +111,21 @@ void TestBlackboxAndroid::android()
         QVERIFY2(jar.waitForStarted(), qPrintable(jar.errorString()));
         QVERIFY2(jar.waitForFinished(), qPrintable(jar.errorString()));
         QVERIFY2(jar.exitCode() == 0, qPrintable(jar.readAllStandardError().constData()));
-        QCOMPARE(jar.readAllStandardOutput().trimmed().split('\n').count(), apkFileCounts.at(i));
+        QByteArrayList actualFiles = jar.readAllStandardOutput().trimmed().split('\n');
+        QByteArrayList missingExpectedFiles;
+        QByteArrayList expectedFiles = expectedFilesLists.takeFirst();
+        for (const QByteArray &expectedFile : expectedFiles) {
+            auto it = std::find(actualFiles.begin(), actualFiles.end(), expectedFile);
+            if (it != actualFiles.end()) {
+                actualFiles.erase(it);
+                continue;
+            }
+            missingExpectedFiles << expectedFile;
+        }
+        if (!missingExpectedFiles.isEmpty())
+            QFAIL(QByteArray("missing expected files:\n") + missingExpectedFiles.join('\n'));
+        if (!actualFiles.isEmpty())
+            QFAIL(QByteArray("unexpected files encountered:\n") + actualFiles.join('\n'));
     }
 
     if (projectDir == "multiple-libs-per-apk") {
@@ -135,20 +150,99 @@ void TestBlackboxAndroid::android_data()
 {
     const SettingsPtr s = settings();
     const Profile p("qbs_autotests-android", s.get());
-    const int archCount = p.value(QLatin1String("qbs.architectures")).toStringList().count();
+    QStringList archsStringList = p.value(QLatin1String("qbs.architectures")).toStringList();
+    if (archsStringList.isEmpty())
+        archsStringList << QStringLiteral("armv5te");
+    QByteArrayList archs;
+    std::transform(archsStringList.begin(), archsStringList.end(), std::back_inserter(archs),
+                   [] (const QString &s) {
+        return s.toUtf8().replace("armv7a", "armeabi-v7a")
+                .replace("armv5te", "armeabi")
+                .replace("arm64", "arm64-v8a");
+    });
+
+    auto expandArchs = [] (const QByteArrayList &archs, const QByteArrayList &lst) {
+        const QByteArray &archPlaceHolder = "${ARCH}";
+        QByteArrayList result;
+        for (const QByteArray &entry : lst) {
+            if (entry.contains(archPlaceHolder)) {
+                for (const QByteArray &arch : qAsConst(archs))
+                    result << QByteArray(entry).replace(archPlaceHolder, arch);
+            } else {
+                result << entry;
+            }
+        }
+        return result;
+    };
+
+    const QByteArrayList commonFiles = expandArchs(archs, {
+        "AndroidManifest.xml", "META-INF/ANDROIDD.RSA", "META-INF/ANDROIDD.SF",
+        "META-INF/MANIFEST.MF", "classes.dex", "resources.arsc"
+    });
 
     QTest::addColumn<QString>("projectDir");
     QTest::addColumn<QStringList>("productNames");
-    QTest::addColumn<QList<int>>("apkFileCounts");
-    QTest::newRow("teapot") << "teapot" << QStringList("com.sample.teapot")
-                            << (QList<int>() << (13 + 3*archCount));
-    QTest::newRow("no native") << "no-native"
-            << QStringList("com.example.android.basicmediadecoder") << (QList<int>() << 22);
-    QTest::newRow("multiple libs") << "multiple-libs-per-apk" << QStringList("twolibs")
-                                   << (QList<int>() << (6 + 4 * archCount));
-    QTest::newRow("multiple apks") << "multiple-apks-per-project"
-                                   << (QStringList() << "twolibs1" << "twolibs2")
-                                   << QList<int>({6 + archCount * 3 + 2, 5 + archCount * 4});
+    QTest::addColumn<QList<QByteArrayList>>("expectedFilesLists");
+    QTest::newRow("teapot")
+            << "teapot" << QStringList("com.sample.teapot")
+            << (QList<QByteArrayList>() << commonFiles + expandArchs(archs, {
+                       "assets/Shaders/ShaderPlain.fsh",
+                       "assets/Shaders/VS_ShaderPlain.vsh",
+                       "lib/${ARCH}/gdbserver",
+                       "lib/${ARCH}/libgnustl_shared.so",
+                       "lib/${ARCH}/libTeapotNativeActivity.so",
+                       "res/drawable-hdpi-v4/ic_launcher.png",
+                       "res/drawable-ldpi-v4/ic_launcher.png",
+                       "res/drawable-mdpi-v4/ic_launcher.png",
+                       "res/drawable-xhdpi-v4/ic_launcher.png",
+                       "res/layout/widgets.xml"}));
+    QTest::newRow("no native")
+            << "no-native"
+            << QStringList("com.example.android.basicmediadecoder")
+            << (QList<QByteArrayList>() << commonFiles + expandArchs(archs, {
+                       "res/drawable-hdpi-v4/ic_action_play_disabled.png",
+                       "res/drawable-hdpi-v4/ic_action_play.png",
+                       "res/drawable-hdpi-v4/ic_launcher.png",
+                       "res/drawable-hdpi-v4/tile.9.png",
+                       "res/drawable-mdpi-v4/ic_action_play_disabled.png",
+                       "res/drawable-mdpi-v4/ic_action_play.png",
+                       "res/drawable-mdpi-v4/ic_launcher.png",
+                       "res/drawable/selector_play.xml",
+                       "res/drawable-xhdpi-v4/ic_action_play_disabled.png",
+                       "res/drawable-xhdpi-v4/ic_action_play.png",
+                       "res/drawable-xhdpi-v4/ic_launcher.png",
+                       "res/drawable-xxhdpi-v4/ic_launcher.png",
+                       "res/layout/sample_main.xml",
+                       "res/menu/action_menu.xml",
+                       "res/menu-v11/action_menu.xml",
+                       "res/raw/vid_bigbuckbunny.mp4"}));
+    QTest::newRow("multiple libs")
+            << "multiple-libs-per-apk"
+            << QStringList("twolibs")
+            << (QList<QByteArrayList>() << commonFiles + expandArchs(archs, {
+                       "lib/${ARCH}/gdbserver",
+                       "lib/${ARCH}/liblib1.so",
+                       "lib/${ARCH}/liblib2.so",
+                       "lib/${ARCH}/libstlport_shared.so"}));
+    QByteArrayList expectedFiles1 = (commonFiles
+            + expandArchs(QByteArrayList{"mips", "x86"}, {
+                              "lib/${ARCH}/gdbserver",
+                              "lib/${ARCH}/libp1lib1.so",
+                              "lib/${ARCH}/libstlport_shared.so"})
+            + expandArchs(QByteArrayList{archs}, {
+                              "lib/${ARCH}/gdbserver",
+                              "lib/${ARCH}/libp1lib2.so",
+                              "lib/${ARCH}/libstlport_shared.so"})).toSet().toList();
+    QByteArrayList expectedFiles2 = commonFiles + expandArchs(archs, {
+                       "lib/${ARCH}/gdbserver",
+                       "lib/${ARCH}/libp2lib1.so",
+                       "lib/${ARCH}/libp2lib2.so",
+                       "lib/${ARCH}/libstlport_shared.so"});
+    expectedFiles2.removeOne("resources.arsc");
+    QTest::newRow("multiple apks")
+            << "multiple-apks-per-project"
+            << (QStringList() << "twolibs1" << "twolibs2")
+            << QList<QByteArrayList>{expectedFiles1, expectedFiles2};
 }
 
 QTEST_MAIN(TestBlackboxAndroid)
