@@ -75,9 +75,9 @@ public:
     void pushExtraSearchPaths(const QStringList &extraSearchPaths);
     void popExtraSearchPaths();
     std::vector<QStringList> extraSearchPathsStack() const;
-    void setExtraSearchPathsStack(const std::vector<QStringList> &s) { m_extraSearchPaths = s; }
-    void clearExtraSearchPathsStack() { m_extraSearchPaths.clear(); }
-    QStringList allSearchPaths() const;
+    void setExtraSearchPathsStack(const std::vector<QStringList> &s);
+    void clearExtraSearchPathsStack();
+    const QStringList &allSearchPaths() const;
 
     Item *readFile(const QString &filePath);
 
@@ -90,6 +90,7 @@ private:
     ItemPool *m_pool = nullptr;
     QStringList m_searchPaths;
     std::vector<QStringList> m_extraSearchPaths;
+    mutable QStringList m_allSearchPaths;
     ItemReaderVisitorState * const m_visitorState;
     qint64 m_elapsedTime = -1;
 };

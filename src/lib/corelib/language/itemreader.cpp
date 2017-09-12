@@ -43,6 +43,8 @@
 
 #include <tools/profiling.h>
 
+#include <algorithm>
+
 namespace qbs {
 namespace Internal {
 
@@ -58,16 +60,19 @@ ItemReader::~ItemReader()
 void ItemReader::setSearchPaths(const QStringList &searchPaths)
 {
     m_searchPaths = searchPaths;
+    m_allSearchPaths.clear();
 }
 
 void ItemReader::pushExtraSearchPaths(const QStringList &extraSearchPaths)
 {
     m_extraSearchPaths.push_back(extraSearchPaths);
+    m_allSearchPaths.clear();
 }
 
 void ItemReader::popExtraSearchPaths()
 {
     m_extraSearchPaths.pop_back();
+    m_allSearchPaths.clear();
 }
 
 std::vector<QStringList> ItemReader::extraSearchPathsStack() const
@@ -75,14 +80,29 @@ std::vector<QStringList> ItemReader::extraSearchPathsStack() const
     return m_extraSearchPaths;
 }
 
-QStringList ItemReader::allSearchPaths() const
+void ItemReader::setExtraSearchPathsStack(const std::vector<QStringList> &s)
 {
-    QStringList paths;
-    for (auto it = m_extraSearchPaths.crbegin(), end = m_extraSearchPaths.crend(); it != end; ++it)
-        paths += *it;
-    paths += m_searchPaths;
-    paths.removeDuplicates();
-    return paths;
+    m_extraSearchPaths = s;
+    m_allSearchPaths.clear();
+}
+
+void ItemReader::clearExtraSearchPathsStack()
+{
+    m_extraSearchPaths.clear();
+    m_allSearchPaths.clear();
+}
+
+const QStringList &ItemReader::allSearchPaths() const
+{
+    if (m_allSearchPaths.isEmpty()) {
+        std::for_each(m_extraSearchPaths.crbegin(), m_extraSearchPaths.crend(),
+                      [this] (const QStringList &paths) {
+            m_allSearchPaths += paths;
+        });
+        m_allSearchPaths += m_searchPaths;
+        m_allSearchPaths.removeDuplicates();
+    }
+    return m_allSearchPaths;
 }
 
 Item *ItemReader::readFile(const QString &filePath)
