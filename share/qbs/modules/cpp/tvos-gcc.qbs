@@ -31,6 +31,7 @@
 import qbs
 
 DarwinGCC {
+    priority: 1
     condition: qbs.targetOS.contains('tvos') &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
 

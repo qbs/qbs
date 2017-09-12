@@ -36,6 +36,7 @@ import qbs.ModUtils
 import qbs.Utilities
 
 DarwinGCC {
+    priority: 1
     condition: qbs.targetOS.contains('ios') &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
 

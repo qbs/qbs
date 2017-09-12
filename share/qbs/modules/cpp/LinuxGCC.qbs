@@ -32,8 +32,9 @@ import qbs 1.0
 import qbs.Process
 
 UnixGCC {
-    condition: qbs.targetOS.contains('linux') && !qbs.targetOS.contains("android") &&
+    condition: qbs.targetOS.contains('linux') &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
+    priority: 1
 
     targetVendor: "pc"
     targetSystem: "linux"

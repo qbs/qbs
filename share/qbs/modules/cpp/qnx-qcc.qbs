@@ -36,6 +36,7 @@ UnixGCC {
 
     condition: qbs.targetOS.contains("qnx") &&
                qbs.toolchain && qbs.toolchain.contains("qcc")
+    priority: 1
 
     distributionIncludePaths: FileInfo.joinPaths(qnx.targetDir, "usr", "include")
 

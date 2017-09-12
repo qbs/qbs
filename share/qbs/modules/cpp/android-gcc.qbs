@@ -40,6 +40,7 @@ LinuxGCC {
 
     condition: qbs.targetOS.contains("android") &&
                qbs.toolchain && qbs.toolchain.contains("gcc")
+    priority: 2
     rpaths: ['$ORIGIN']
 
     property string toolchainDir: {
