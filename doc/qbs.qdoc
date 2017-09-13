@@ -1075,11 +1075,29 @@
     qbs
     \endcode
 
+    By default, \QBS uses all the CPU cores available to achieve maximum build
+    parallelization. To explicitly specify the number of concurrent jobs, use
+    the \c -j option. For example, to run 4 concurrent jobs, enter the following
+    command:
+
+    \code
+    qbs -j4
+    \endcode
+
     The application is built using the default build profile that is set up
     in your \QBS configuration.
-    To build with other profiles, specify options for the build
-    command. For example, to build debug and release configurations with a
-    profile named "Android", enter the following command:
+
+    You can use the \c config command to set the max number of jobs per profile.
+    For example, to set four jobs as the default option for a profile named
+    \e Android, enter the following command:
+
+    \code
+    qbs config profiles.Android.preferences.jobs 4
+    \endcode
+
+    To build with other profiles than the default one, specify options for the
+    build command. For example, to build debug and release configurations with
+    the \e Android profile, enter the following command:
 
     \code
     qbs build profile:Android debug release
