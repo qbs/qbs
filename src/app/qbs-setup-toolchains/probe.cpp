@@ -48,6 +48,7 @@
 #include <tools/profile.h>
 #include <tools/settings.h>
 #include <tools/toolchains.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
@@ -185,6 +186,17 @@ private:
     QString m_toolchainPrefix;
 };
 
+static bool doesProfileTargetOS(const Profile &profile, const QString &os)
+{
+    const auto target = profile.value(QStringLiteral("qbs.targetOS"));
+    if (target.isValid())
+        return target.toStringList().contains(os);
+    const auto host = profile.value(QStringLiteral("qbs.hostOS"));
+    if (host.isValid())
+        return host.toStringList().contains(os);
+    return Internal::contains(HostOsInfo::hostOSIdentifiers(), os.toStdString());
+}
+
 static Profile createGccProfile(const QString &compilerFilePath, Settings *settings,
                                 const QStringList &toolchainTypes,
                                 const QString &profileName = QString())
@@ -211,8 +223,7 @@ static Profile createGccProfile(const QString &compilerFilePath, Settings *setti
     toolPathSetup.apply(QLatin1String("ar"), QLatin1String("cpp.archiverPath"));
     toolPathSetup.apply(QLatin1String("as"), QLatin1String("cpp.assemblerPath"));
     toolPathSetup.apply(QLatin1String("nm"), QLatin1String("cpp.nmPath"));
-    if (profile.value(QStringLiteral("qbs.targetOS"))
-            .toStringList().contains(QStringLiteral("darwin")))
+    if (doesProfileTargetOS(profile, QStringLiteral("darwin")))
         toolPathSetup.apply(QLatin1String("dsymutil"), QLatin1String("cpp.dsymutilPath"));
     else
         toolPathSetup.apply(QLatin1String("objcopy"), QLatin1String("cpp.objcopyPath"));
