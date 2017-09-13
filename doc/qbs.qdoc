@@ -45,9 +45,6 @@
     developing projects across multiple platforms. \QBS can be used for any
     software project, regardless of programming language, toolkit, or libraries used.
 
-    \QBS is an all-in-one tool that generates a build graph from a high-level
-    project description (like qmake or CMake) and additionally undertakes the
-    task of executing the commands in the low-level build graph (like make).
 
     \note Please report bugs and suggestions to the
     \l{http://bugreports.qt.io/}{Qt Bug Tracker}.
@@ -98,10 +95,224 @@
 
     \title Introduction
 
-    \QBS builds applications based on the information in a project file that you
-    specify in a QML dialect. Each project file specifies one project that can
-    contain several \l{Product Item}{products}. You specify the type of the product: application,
-    library, and so on.
+    \QBS is a build automation tool designed to conveniently manage the build
+    process of real-life software projects across multiple platforms. It
+    provides the following benefits:
+
+    \list
+        \li Declarative paradigm
+        \li Well-defined language
+        \li Platform and programming language independence
+        \li Correct and fast incremental builds
+        \li Extensible architecture
+        \li Easy integration to IDEs
+    \endlist
+
+    \section1 Declarative Paradigm
+
+    When writing a project, it is important to describe the build tasks and
+    dependencies between them, rather than the build order. It is difficult to
+    determine the correct build order in complex projects, especially during
+    parallel builds. The build tool should bear that burden, not the developer.
+
+    With a declarative language, \QBS enables you to express intent rather than
+    specifying single build steps. This provides the appropriate level of
+    abstraction for a build system. For example, \e dependencies can be created
+    between \e products, such that the target \e artifacts of the dependency
+    can be used as input to the build \e rules in the context of the depending
+    product. In addition, you can \e export dependencies and \e properties to
+    other products.
+
+    \QBS is modular with clean interfaces between modules. A \e module is a
+    collection of properties and \e {language items} that are used for
+    building a product if the product depends on the module. The properties
+    that can be set for a module are used to control the behavior of the
+    toolchain used to build the module.
+
+    \QBS itself knows nothing about file types or extensions, and therefore all
+    source files in a product are handled equally. However, you can assign
+    \e {file tags} to an artifact to act as markers or to specify a file type.
+    \QBS applies a rule to the source files of the project and chooses the
+    ones that match the input file tags specified by the rule. It then creates
+    artifacts in the build graph that have other filenames and file tags.
+
+    Products and projects can contain \e probes that are run prior to building,
+    for instance to locate dependent headers, libraries, and other files outside
+    the project directory.
+
+    \section1 Well-Defined Language
+
+    \QBS projects are specified in a QML dialect. QML is a concise, easy to
+    learn, and intuitive language that is used successfully in the Qt project.
+    Its core is declarative, but it can be extended with JavaScript snippets
+    for extra flexibility.
+
+    \QBS builds applications based on the information in a project file. Each
+    project file specifies one \l{Project Item}{project} that can contain
+    several \l{Product Item}{products}. You specify the type of the product,
+    such as an \e application, and the dependencies the product has on other
+    products.
+
+    The product type determines the set of \l{Rule Item}{rules} that \QBS
+    applies to produce artifacts from input files. The input files can be
+    divided into \l{Group Item}{groups} according to their type or purpose, for
+    example. A group can also be used to attach \l{Properties Item}{properties}
+    to products.
+
+    The following is an example of a minimal project file that specifies the
+    product type, application name, source file, and a dependency on the
+    \l{Module cpp}{cpp module}:
+
+    \code
+    import qbs
+
+    Application {
+        name: "helloworld"
+        files: "main.cpp"
+        Depends { name: "cpp" }
+    }
+    \endcode
+
+    For more information, see \l{Language Introduction}.
+
+    \section1 Platform and Programming Language Independence
+
+    \QBS can be used for any software project, regardless of programming
+    language, toolkit, or libraries used. \QBS has built-in support for
+    building applications for Windows, Linux, macOS, Android, iOS, tvOS,
+    watchOS, QNX, and FreeBSD, as well as for cross-compilation. It can be
+    easily extended to support further platforms.
+
+    Invoking \c {qbs build} from the command line automatically builds the
+    project for the current host platform using the best available toolchain and
+    settings, unless a default profile is set. You can configure additional
+    profiles for each toolchain you want to use and select the profile to use
+    at build time.
+
+    For example, to build applications for Android devices, you would need to
+    set up a profile for the Android toolchain and select it when you build the
+    application. If you name the profile \e Android, you would then enter the
+    following command:
+
+    \code
+    qbs build profile:Android
+    \endcode
+
+    For more information, see \l{Building Applications}.
+
+    Platform and programming language support is implemented as a set of
+    \l{List of Modules}{modules} that your product depends on. In the language
+    example above, the dependency on the \l{Module cpp}{cpp module} determines
+    that the C++ sources are compiled and linked into a binary.
+
+    Alternatively, you could use the \l{CppApplication Item}{CppApplication}
+    convenience item that implies a dependency on the \c cpp module:
+
+    \code
+    CppApplication {
+        name: "helloworld"
+        files: "main.cpp"
+    }
+    \endcode
+
+    Additionally, if the sources use Qt, you need a dependency to the
+    \l{Qt Modules}{Qt.core module}, and so on.
+
+    In addition to building projects, \QBS can install the build artifacts to
+    a location from where they can be run on the desktop or on a device. \QBS
+    modules can be used to create installers for the end users of the
+    applications. For example, the \l{Module dmg}{dmg} module contains
+    properties and rules for building Apple Disk Images, which are typically
+    used to distribute applications and installers on macOS. The
+    \l{Module innosetup}{innosetup}, \l{Module nsis}{nsis}, and \l{Module wix}
+    {wix} modules contain properties and rules for building installers for
+    Windows platforms.
+
+    \section1 Correct and Fast Incremental Builds
+
+    \QBS is an all-in-one tool that generates a build graph from a high-level
+    project description (like qmake or CMake) and additionally undertakes the
+    task of executing the commands in the low-level build graph (like make).
+
+    \QBS automatically takes advantage of multi-processor and multi-core systems
+    to achieve maximum build parallelization. By default, running \c qbs without
+    any arguments is roughly equivalent to running \c {make -j<n>} where \c n is
+    the number of CPU cores. Similarly, \QBS allows the number of concurrent
+    jobs to be explicitly specified using its own \c -j option.
+
+    \QBS has knowledge about the whole project, and therefore builds remain
+    correct even when you build sub-projects, because \QBS ensures that all
+    dependencies are built too. This virtually eliminates the need for clean
+    builds.
+
+    \QBS uses dynamic build graphs with build rules that can generate a variable
+    number of files and that are executed only when needed. When figuring out
+    which rules to execute, \QBS starts at the product type and then looks for
+    a way to produce artifacts with matching file tags from source files, using
+    a chain of rules that are connected by their respective input and output
+    tags. For an example of how rules are applied when building products, see
+    \l{Rules and Product Types}.
+
+    The \QBS build rules can produce a variable number of outputs.
+    If the input changes, only the required rules are applied at build time.
+    If a rule is applied, all the dependent rules are applied as well, but only
+    those. This feature ensures the correctness of the build graph after source
+    code changes without having to re-configure the whole project.
+
+    Changing properties that do not affect the build, because they are not used
+    by rules, will not cause the project to be rebuilt. The use of properties is
+    tracked. Generated artifacts that cease to exist are deleted to avoid
+    picking outdated generated artifacts and indefinitely increasing the size of
+    the build directory.
+
+    Fast incremental builds are crucial for a fast edit-build-run cycle.
+    Instead of retrieving the timestamps of generated files, \QBS uses the time
+    stamps stored in the build graph. This is especially important on Windows,
+    where file system operations are slow.
+
+    If the project files were not changed, the build graph is loaded from disk.
+    It is stored in a binary format that can be loaded much faster than the real
+    project files. The project files are parsed only if they were changed.
+
+    \section1 Extensible Architecture
+
+    You can create your own custom \l{List of Modules}{modules} and
+    \l{List of Language Items}{items} and make \QBS aware of them.
+
+    You store the custom modules and items in a subdirectory of the project
+    directory and specify the path to the subdirectory as a value of the
+    \c qbsSearchPaths property. For example, if the custom module is located at
+    \c my-modules/modules/modulename/modulename.qbs, you would specify it in the
+    project file as follows:
+
+    \code
+    Project {
+        qbsSearchPaths: "my-modules"
+    \endcode
+
+    For more information, see \l{Custom Modules and Items}.
+
+    \section1 IDE Integration
+
+    \QBS can be used not only from the command line, but also in combination
+    with an IDE, such as Qt Creator, Microsoft Visual Studio, or Xcode.
+    Qt Creator directly supports \QBS projects. Visual Studio and Xcode users
+    can use \QBS to generate Microsoft Visual Studio and Xcode projects.
+    For more information, see \l {Generators}.
+
+    \section2 Qt Creator
+
+    \l{http://doc.qt.io/qtcreator/index.html}{Qt Creator} uses the same \QBS
+    library as the \QBS command line tools. Therefore, it can retrieve all the
+    information required to build a single file or project through a defined
+    public API. Qt Creator provides accurate information about the build
+    progress and displays a project tree that reflects the logical structure of
+    the project, instead of presenting low-level information, such as the file
+    system structure. Adding or removing source files keeps the existing project
+    file structure intact.
+
+    For more information about using \QBS to build projects from Qt Creator, see
+    \l{http://doc.qt.io/qtcreator/creator-project-qbs.html}{Setting Up Qbs}.
 */
 
 
