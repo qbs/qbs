@@ -339,9 +339,34 @@
 
     \title Appendix A: Building Qbs
 
+    \QBS can be \l{Installing}{installed from binary packages} or built from
+    sources, as described in this appendix. In addition, this appendix describes
+    how to use Docker images for developing \QBS.
+
+    \section1 Supported Platforms
+
+    \QBS can be installed and run on the following platforms:
+
+    \list
+        \li Windows 7, or later
+        \li Linux (tested on Debian 8 and 9, Ubuntu 16.04, OpenSuSE 13.2, and
+            Arch Linux)
+        \li macOS 10.7, or later
+    \endlist
+
     \section1 System Requirements
 
-    To build \QBS from the source, you need Qt 5.6.0, or later
+    To build \QBS from the source, you need:
+
+    \list
+        \li Qt 5.6.2, or later
+        \li Windows: MinGW with GCC 4.9 or Microsoft Visual Studio 2015,
+            or later
+        \li Linux: GCC 4.9, or later, or Clang 3.9.0, or later
+        \li macOS: Xcode 6.2, or later
+    \endlist
+
+    An installed toolchain has to match the one that Qt was compiled with.
 
     \section1 Building
 
@@ -349,6 +374,16 @@
 
     \code
         qmake -r qbs.pro && make
+    \endcode
+
+    Depending on your platform, you might use \c mingw32-make, \c nmake, or
+    \c jom instead of \c make.
+
+    Installation by using \c {make install} is usually not needed. It is however
+    possible, by entering the following command.
+
+    \code
+        make install INSTALL_ROOT=$INSTALL_DIRECTORY
     \endcode
 
     \section1 Configure Options
@@ -368,7 +403,7 @@
                                         implies a dependency to the Qt GUI module.
     \endtable
 
-    \section1 Docker
+    \section1 Using Docker
 
     A set of Docker images for developing \QBS (which are maintained by the \QBS team) is available
     \l{https://hub.docker.com/u/qbsbuild/}{on Docker Hub}.
