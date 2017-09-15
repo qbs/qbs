@@ -44,7 +44,7 @@ test $# -eq 1 || { echo "Usage: $(basename "$0") <tag>" >&2; exit 1; }
 
 tag=${1}
 version=${tag#v}
-dir_name=dist/qbs-src-${version}
+dir_name=qbs-src-${version}
 
-git archive --format=tar.gz "--prefix=${dir_name}/" -o "${dir_name}.tar.gz" "${tag}"
-git archive --format=zip "--prefix=${dir_name}/" -o "${dir_name}.zip" "${tag}"
+git archive --format=tar.gz "--prefix=${dir_name}/" -o "dist/${dir_name}.tar.gz" "${tag}"
+git archive --format=zip "--prefix=${dir_name}/" -o "dist/${dir_name}.zip" "${tag}"
