@@ -116,6 +116,7 @@ Product {
             var cmd2 = new Command(product.chocoFilePath,
                                    ["pack", FileInfo.joinPaths(cmd.chocoBuildDirectory,
                                                                cmd.nuspecFileName),
+                                    "--limitoutput",
                                     "--outputdirectory", cmd.chocoOutDirectory]);
             cmd2.description = "choco pack " + inputs["chocolatey.nuspec"][0].fileName;
             return [cmd, cmd2];
