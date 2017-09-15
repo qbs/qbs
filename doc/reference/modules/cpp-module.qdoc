@@ -62,6 +62,14 @@
         \li \c{qbs.architecture}
         \li Target architecture. See \c{qbs.architecture}.
     \row
+        \li endianness
+        \li \c{string}
+        \li 1.9
+        \li Specifies the endianness of the target platform's processor architecture
+            (\c{"big"} or \c{"little"}). The value is automatically detected from the
+            compiler's defaults, but can also be manually set in order to select a specific
+            endianness when targeting bi-endian architectures like MIPS and PowerPC.
+    \row
         \li debugInformation
         \li \c{bool}
         \li 1.0
