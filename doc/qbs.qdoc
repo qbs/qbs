@@ -551,6 +551,8 @@
 
     \title Configuring
 
+    \section1 Setting Up Toolchains
+
     Open a build shell (on Windows open an MSVC command prompt,
     on other platforms you can usually open the default shell):
     \code
@@ -572,6 +574,27 @@
 
     If you want to build projects that use Qt, additional steps are necessary. Please refer to
     \l{Managing Qt Versions} for more information.
+
+    \section1 Managing Settings
+
+    You can use the \l{config} command to manage \QBS settings, such as
+    preferences and profiles from the command line or the \l{config-ui}
+    command to open the \QBS Settings application where you can manage the
+    settings in a hierarchical view.
+
+    \image qbs-settings-gui.png
+
+    \QBS Settings displays the keys in the specified settings directory and
+    their values. To expand all keys, select \uicontrol View >
+    \uicontrol {Expand All} (\key Ctrl+E or \key Cmd+E on macOS). To collapse
+    all keys, select \uicontrol {Collapse All} (\key Ctrl+C or \key Cmd+C).
+
+    To change the value of a key, double-click it and enter the new value.
+
+    To save your changes, select \uicontrol File > \uicontrol Save.
+
+    To refresh the settings from the settings directory, select \uicontrol File
+    > \uicontrol Reload.
 
 */
 
