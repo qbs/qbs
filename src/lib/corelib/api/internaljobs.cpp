@@ -75,7 +75,7 @@ public:
     void cancel() { m_canceled = true; }
 
 private:
-    void initialize(const QString &task, int maximum)
+    void initialize(const QString &task, int maximum) override
     {
         QBS_ASSERT(!m_timedLogger, delete m_timedLogger);
         if (m_job->timed())
@@ -86,13 +86,13 @@ private:
         emit m_job->newTaskStarted(task, maximum, m_job);
     }
 
-    void setMaximum(int maximum)
+    void setMaximum(int maximum) override
     {
         m_maximum = maximum;
         emit m_job->totalEffortChanged(maximum, m_job);
     }
 
-    void setProgressValue(int value)
+    void setProgressValue(int value) override
     {
         //QBS_ASSERT(value >= m_value, qDebug("old value = %d, new value = %d", m_value, value));
         //QBS_ASSERT(value <= m_maximum, qDebug("value = %d, maximum = %d", value, m_maximum));
@@ -104,9 +104,9 @@ private:
         emit m_job->taskProgress(value, m_job);
     }
 
-    int progressValue() { return m_value; }
-    int maximum() const { return m_maximum; }
-    bool canceled() const { return m_canceled; }
+    int progressValue() override { return m_value; }
+    int maximum() const override { return m_maximum; }
+    bool canceled() const override { return m_canceled; }
 
     int m_value;
     int m_maximum;

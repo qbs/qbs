@@ -73,7 +73,7 @@ public:
     }
 
 private:
-    void doVisit(Artifact *artifact)
+    void doVisit(Artifact *artifact) override
     {
         if (FileInfo(artifact->filePath()).exists())
             artifact->setTimestamp(m_now);

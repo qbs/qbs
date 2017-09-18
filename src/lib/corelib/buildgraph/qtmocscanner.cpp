@@ -80,13 +80,13 @@ public:
         : m_id(QLatin1String("qt") + actualScanner.id()) {}
 
 private:
-    QStringList collectSearchPaths(Artifact *) { return QStringList(); }
-    QStringList collectDependencies(FileResourceBase *, const char *) { return QStringList(); }
-    bool recursive() const { return false; }
-    const void *key() const { return nullptr; }
-    QString createId() const { return m_id; }
+    QStringList collectSearchPaths(Artifact *) override { return QStringList(); }
+    QStringList collectDependencies(FileResourceBase *, const char *) override { return QStringList(); }
+    bool recursive() const override { return false; }
+    const void *key() const override { return nullptr; }
+    QString createId() const override { return m_id; }
     bool areModulePropertiesCompatible(const PropertyMapConstPtr &,
-                                       const PropertyMapConstPtr &) const
+                                       const PropertyMapConstPtr &) const override
     {
         return true;
     }

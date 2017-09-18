@@ -142,7 +142,7 @@ private:
             scriptContext->popScope();
     }
 
-    void handle(JSSourceValue *value)
+    void handle(JSSourceValue *value) override
     {
         const Item *conditionScopeItem = 0;
         QScriptValue conditionScope;
@@ -288,14 +288,14 @@ private:
         popScopes();
     }
 
-    void handle(ItemValue *value)
+    void handle(ItemValue *value) override
     {
         *result = data->evaluator->scriptValue(value->item());
         if (!result->isValid())
             qDebug() << "SVConverter returned invalid script value.";
     }
 
-    void handle(VariantValue *variantValue)
+    void handle(VariantValue *variantValue) override
     {
         *result = engine->toScriptValue(variantValue->value());
     }

@@ -334,7 +334,7 @@ private:
     Set<const Rule *> m_rulesOnPath;
     QList<const Rule *> m_rulePath;
 
-    void visit(const RuleConstPtr &parentRule, const RuleConstPtr &rule)
+    void visit(const RuleConstPtr &parentRule, const RuleConstPtr &rule) override
     {
         if (!m_rulesOnPath.insert(rule.get()).second) {
             QString pathstr;
@@ -364,7 +364,7 @@ private:
         }
     }
 
-    void endVisit(const RuleConstPtr &rule)
+    void endVisit(const RuleConstPtr &rule) override
     {
         m_rulesOnPath.remove(rule.get());
         m_rulePath.removeLast();

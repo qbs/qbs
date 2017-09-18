@@ -126,7 +126,7 @@ public:
     bool hasError() const { return m_hasError; }
 
 private:
-    void doVisit(Artifact *artifact)
+    void doVisit(Artifact *artifact) override
     {
         if (m_observer->canceled())
             throw ErrorInfo(Tr::tr("Cleaning up was canceled."));

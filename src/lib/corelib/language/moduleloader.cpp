@@ -387,7 +387,7 @@ public:
     }
 
 private:
-    void handle(JSSourceValue *value)
+    void handle(JSSourceValue *value) override
     {
         if (!value->createdByPropertiesBlock()) {
             const ErrorInfo error(Tr::tr("Property '%1' is not declared.")
@@ -396,7 +396,7 @@ private:
         }
     }
 
-    void handle(ItemValue *value)
+    void handle(ItemValue *value) override
     {
         if (checkItemValue(value))
             handleItem(value->item());
@@ -518,7 +518,7 @@ private:
         }
     }
 
-    void handle(VariantValue *) { /* only created internally - no need to check */ }
+    void handle(VariantValue *) override { /* only created internally - no need to check */ }
 };
 
 void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *projectItem,
