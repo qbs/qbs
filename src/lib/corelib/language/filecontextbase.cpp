@@ -49,13 +49,5 @@ QString FileContextBase::dirPath() const
     return FileInfo::path(m_filePath);
 }
 
-FileContextBase::FileContextBase(const FileContextBase &other)
-    : m_filePath(other.m_filePath)
-    , m_jsImports(other.m_jsImports)
-    , m_jsExtensions(other.m_jsExtensions)
-    , m_searchPaths(other.m_searchPaths)
-{
-}
-
 } // namespace Internal
 } // namespace qbs

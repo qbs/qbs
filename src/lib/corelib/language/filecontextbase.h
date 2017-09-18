@@ -63,8 +63,9 @@ public:
     QString dirPath() const;
 
 protected:
-    FileContextBase() {}
-    FileContextBase(const FileContextBase &other);
+    FileContextBase() = default;
+    FileContextBase(const FileContextBase &other) = default;
+    FileContextBase(FileContextBase &&other) = default;
 
     QString m_filePath;
     JsImports m_jsImports;
