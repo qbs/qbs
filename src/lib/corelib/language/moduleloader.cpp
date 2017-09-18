@@ -910,8 +910,8 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ModuleLoader::Product
             continue;
 
         QStringList multiplexIds;
-        for (std::size_t i = 0; i < dependencies.size(); ++i) {
-            const QString depMultiplexId = dependencies.at(i)->multiplexConfigurationId;
+        for (const ProductContext *dependency : dependencies) {
+            const QString depMultiplexId = dependency->multiplexConfigurationId;
             if (productIsMultiplexed) { // (2)
                 dependsItem->setProperty(multiplexConfigurationIdsKey,
                                          product.item->property(multiplexConfigurationIdKey));

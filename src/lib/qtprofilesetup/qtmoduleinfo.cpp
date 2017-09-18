@@ -447,16 +447,14 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
     modules << phonon;
 
     // Set up include paths that haven't been set up before this point.
-    for (QList<QtModuleInfo>::iterator it = modules.begin(); it != modules.end(); ++it) {
-        QtModuleInfo &module = *it;
+    for (auto &module : modules) {
         if (!module.includePaths.isEmpty())
             continue;
         module.includePaths = module.qt4ModuleIncludePaths(qtEnvironment);
     }
 
     // Set up compiler defines haven't been set up before this point.
-    for (QList<QtModuleInfo>::iterator it = modules.begin(); it != modules.end(); ++it) {
-        QtModuleInfo &module = *it;
+    for (auto &module : modules) {
         if (!module.compilerDefines.isEmpty())
             continue;
         module.compilerDefines

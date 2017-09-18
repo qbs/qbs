@@ -154,8 +154,8 @@ void Settings::fixupKeys(QStringList &keys) const
 {
     keys.sort();
     keys.removeDuplicates();
-    for (QStringList::Iterator it = keys.begin(); it != keys.end(); ++it)
-        *it = externalRepresentation(*it);
+    for (auto &key : keys)
+        key = externalRepresentation(key);
 }
 
 } // namespace qbs

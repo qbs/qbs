@@ -583,8 +583,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
     // Step 3: Evaluate all these properties and replace their values in the map
     QVariantMap modulesMap = currentValues.value(QLatin1String("modules")).toMap();
     QHash<QString, QStringList> propsPerModule;
-    for (auto it = propsToEval.cbegin(); it != propsToEval.cend(); ++it) {
-        const QualifiedId fullPropName = *it;
+    for (auto fullPropName : propsToEval) {
         const QString moduleName
                 = QualifiedId(fullPropName.mid(0, fullPropName.count() - 1)).toString();
         propsPerModule[moduleName] << fullPropName.last();

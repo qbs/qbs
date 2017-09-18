@@ -67,8 +67,8 @@ Evaluator::Evaluator(ScriptEngine *scriptEngine)
 
 Evaluator::~Evaluator()
 {
-    for (auto it = m_scriptValueMap.cbegin(); it != m_scriptValueMap.cend(); ++it)
-        delete attachedPointer<EvaluationData>(*it);
+    for (const auto &data : qAsConst(m_scriptValueMap))
+        delete attachedPointer<EvaluationData>(data);
     delete m_scriptClass;
 }
 

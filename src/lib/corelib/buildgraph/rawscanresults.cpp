@@ -85,8 +85,7 @@ RawScanResults::ScanData &RawScanResults::findScanData(
 {
     std::vector<ScanData> &scanDataForFile = m_rawScanData[file->filePath()];
     const QString &scannerId = scanner->id();
-    for (auto it = scanDataForFile.begin(); it != scanDataForFile.end(); ++it) {
-        ScanData &scanData = *it;
+    for (auto &scanData : scanDataForFile) {
         if (scannerId != scanData.scannerId)
             continue;
         if (!scanner->areModulePropertiesCompatible(moduleProperties, scanData.moduleProperties))
