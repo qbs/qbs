@@ -53,6 +53,7 @@
 #include <tools/error.h>
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdebug.h>
 

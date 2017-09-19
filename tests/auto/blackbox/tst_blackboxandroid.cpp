@@ -30,6 +30,7 @@
 
 #include "../shared.h"
 #include <tools/profile.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qtemporarydir.h>
