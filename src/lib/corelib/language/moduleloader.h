@@ -282,10 +282,10 @@ private:
             const QualifiedId &moduleName, bool isRequired, bool *isProductDependency,
             QVariantMap *defaultParameters);
     Item *searchAndLoadModuleFile(ProductContext *productContext,
-            const CodeLocation &dependsItemLocation, const QualifiedId &moduleName, bool isRequired,
-            bool *cacheHit);
+            const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
+            bool isRequired);
     Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
-            bool isBaseModule, const QString &filePath, bool *cacheHit, bool *triedToLoad);
+            bool isBaseModule, const QString &filePath, bool *triedToLoad);
     Item::Module loadBaseModule(ProductContext *productContext, Item *item);
     void setupBaseModulePrototype(Item *prototype);
     void instantiateModule(ProductContext *productContext, Item *exportingProductItem,

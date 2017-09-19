@@ -2396,12 +2396,8 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
     } else {
         pmi = nullptr;
         *isProductDependency = false;
-        bool cacheHit = false;
         modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
-                moduleName, isRequired, &cacheHit);
-        static const QualifiedId baseModuleId = QualifiedId(QLatin1String("qbs"));
-        if (modulePrototype && !cacheHit && moduleName == baseModuleId)
-            setupBaseModulePrototype(modulePrototype);
+                moduleName, isRequired);
     }
     if (!modulePrototype)
         return 0;
@@ -2413,7 +2409,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
 
 Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
-        bool isRequired, bool *cacheHit)
+        bool isRequired)
 {
     bool triedToLoadModule = false;
     const QString fullName = moduleName.toString();
@@ -2434,7 +2430,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         for (const QString &filePath : qAsConst(moduleFileNames)) {
             triedToLoadModule = true;
             Item *module = loadModuleFile(productContext, fullName, isBaseModule(moduleName),
-                                          filePath, cacheHit, &triedToLoadModule);
+                                          filePath, &triedToLoadModule);
             if (module)
                 candidates.push_back(module);
             if (!triedToLoadModule)
@@ -2510,7 +2506,7 @@ static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Ty
 }
 
 Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
-        bool isBaseModule, const QString &filePath, bool *cacheHit, bool *triedToLoad)
+        bool isBaseModule, const QString &filePath, bool *triedToLoad)
 {
     checkCancelation();
 
@@ -2522,10 +2518,8 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     const ItemCacheValue cacheValue = m_modulePrototypeItemCache.value(cacheKey);
     if (cacheValue.module) {
         qCDebug(lcModuleLoader) << "[LDR] loadModuleFile cache hit for" << filePath;
-        *cacheHit = true;
         return cacheValue.enabled ? cacheValue.module : 0;
     }
-    *cacheHit = false;
     Item * const module = loadItemFromFile(filePath);
     if (module->type() != ItemType::Module) {
         qCDebug(lcModuleLoader).nospace()
@@ -2570,7 +2564,9 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         return 0;
     }
 
-    if (!isBaseModule)
+    if (isBaseModule)
+        setupBaseModulePrototype(module);
+    else
         resolveParameterDeclarations(module);
 
     for (const ErrorInfo &error : qAsConst(unknownProfilePropertyErrors))
