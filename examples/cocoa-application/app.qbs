@@ -43,7 +43,7 @@ CppApplication {
     name: "Cocoa Application"
 
     cpp.useObjcPrecompiledHeader: true
-
+    cpp.minimumMacosVersion: "10.8"
     cpp.frameworks: ["Cocoa"]
 
     Group {
