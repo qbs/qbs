@@ -2394,7 +2394,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
         pmi = nullptr;
         *isProductDependency = false;
         modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
-                moduleName, isRequired);
+                moduleName, isRequired, moduleInstance);
     }
     if (!modulePrototype)
         return 0;
@@ -2447,7 +2447,7 @@ static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidate
 
 Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
-        bool isRequired)
+        bool isRequired, Item *moduleInstance)
 {
     bool triedToLoadModule = false;
     const QString fullName = moduleName.toString();
@@ -2468,7 +2468,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         for (const QString &filePath : qAsConst(moduleFileNames)) {
             triedToLoadModule = true;
             Item *module = loadModuleFile(productContext, fullName, isBaseModule(moduleName),
-                                          filePath, &triedToLoadModule);
+                                          filePath, &triedToLoadModule, moduleInstance);
             if (module)
                 candidates.emplace_back(module, 0);
             if (!triedToLoadModule)
@@ -2544,8 +2544,15 @@ static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Ty
     return c;
 }
 
+static Item *findDeepestModuleInstance(Item *instance)
+{
+    while (instance->prototype() && instance->prototype()->type() == ItemType::ModuleInstance)
+        instance = instance->prototype();
+    return instance;
+}
+
 Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
-        bool isBaseModule, const QString &filePath, bool *triedToLoad)
+        bool isBaseModule, const QString &filePath, bool *triedToLoad, Item *moduleInstance)
 {
     checkCancelation();
 
@@ -2597,7 +2604,12 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 
     // Check the condition last in case the condition needs to evaluate other properties that were
     // set by the profile
-    if (!checkItemCondition(module)) {
+    Item *deepestModuleInstance = findDeepestModuleInstance(moduleInstance);
+    Item *origDeepestModuleInstancePrototype = deepestModuleInstance->prototype();
+    deepestModuleInstance->setPrototype(module);
+    bool enabled = checkItemCondition(moduleInstance, module);
+    deepestModuleInstance->setPrototype(origDeepestModuleInstancePrototype);
+    if (!enabled) {
         qCDebug(lcModuleLoader) << "condition of module" << fullModuleName << "is false";
         m_modulePrototypeItemCache.insert(cacheKey, ItemCacheValue(module, false));
         return 0;
@@ -2699,11 +2711,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
         Item *instanceScope, Item *moduleInstance, Item *modulePrototype,
         const QualifiedId &moduleName, ProductModuleInfo *productModuleInfo)
 {
-    Item *deepestModuleInstance = moduleInstance;
-    while (deepestModuleInstance->prototype()
-           && deepestModuleInstance->prototype()->type() == ItemType::ModuleInstance) {
-        deepestModuleInstance = deepestModuleInstance->prototype();
-    }
+    Item *deepestModuleInstance = findDeepestModuleInstance(moduleInstance);
     deepestModuleInstance->setPrototype(modulePrototype);
     const QString fullName = moduleName.toString();
     const QString generalOverrideKey = QLatin1String("modules.") + fullName;
@@ -2925,11 +2933,11 @@ void ModuleLoader::checkCancelation() const
     }
 }
 
-bool ModuleLoader::checkItemCondition(Item *item)
+bool ModuleLoader::checkItemCondition(Item *item, Item *itemToDisable)
 {
     if (m_evaluator->boolValue(item, QLatin1String("condition"), true))
         return true;
-    m_disabledItems += item;
+    m_disabledItems += itemToDisable ? itemToDisable : item;
     return false;
 }
 

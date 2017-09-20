@@ -281,9 +281,9 @@ private:
             QVariantMap *defaultParameters);
     Item *searchAndLoadModuleFile(ProductContext *productContext,
             const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
-            bool isRequired);
+            bool isRequired, Item *moduleInstance);
     Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
-            bool isBaseModule, const QString &filePath, bool *triedToLoad);
+            bool isBaseModule, const QString &filePath, bool *triedToLoad, Item *moduleInstance);
     Item::Module loadBaseModule(ProductContext *productContext, Item *item);
     void setupBaseModulePrototype(Item *prototype);
     void instantiateModule(ProductContext *productContext, Item *exportingProductItem,
@@ -294,7 +294,7 @@ private:
     void resolveProbes(ProductContext *productContext, Item *item);
     void resolveProbe(ProductContext *productContext, Item *parent, Item *probe);
     void checkCancelation() const;
-    bool checkItemCondition(Item *item);
+    bool checkItemCondition(Item *item, Item *itemToDisable = nullptr);
     QStringList readExtraSearchPaths(Item *item, bool *wasSet = 0);
     void copyProperties(const Item *sourceProject, Item *targetProject);
     Item *wrapInProjectIfNecessary(Item *item);
