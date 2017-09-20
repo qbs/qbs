@@ -2661,21 +2661,21 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
         const QualifiedId &moduleName, ProductModuleInfo *productModuleInfo)
 {
     Item *deepestModuleInstance = moduleInstance;
-    std::vector<Item *> instanceList{ moduleInstance };
     while (deepestModuleInstance->prototype()
            && deepestModuleInstance->prototype()->type() == ItemType::ModuleInstance) {
         deepestModuleInstance = deepestModuleInstance->prototype();
-        instanceList.push_back(deepestModuleInstance);
     }
     deepestModuleInstance->setPrototype(modulePrototype);
     const QString fullName = moduleName.toString();
     const QString generalOverrideKey = QLatin1String("modules.") + fullName;
     const QString perProductOverrideKey = QLatin1String("products.") + productContext->name
             + QLatin1Char('.') + fullName;
-    for (Item * const instance : instanceList) {
+    for (Item *instance = moduleInstance; instance; instance = instance->prototype()) {
         overrideItemProperties(instance, generalOverrideKey, m_parameters.overriddenValuesTree());
         overrideItemProperties(instance, perProductOverrideKey,
                                m_parameters.overriddenValuesTree());
+        if (instance == deepestModuleInstance)
+            break;
     }
 
     moduleInstance->setFile(modulePrototype->file());
