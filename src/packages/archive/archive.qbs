@@ -8,7 +8,6 @@ QbsProduct {
     Depends { name: "qbs-config" }
     Depends { name: "qbs-config-ui" }
     Depends { name: "qbs-create-project" }
-    Depends { name: "qbs-qmltypes" }
     Depends { name: "qbs-setup-android" }
     Depends { name: "qbs-setup-qt" }
     Depends { name: "qbs-setup-toolchains" }
