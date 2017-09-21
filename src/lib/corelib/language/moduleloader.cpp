@@ -2552,14 +2552,14 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 {
     checkCancelation();
 
-    qCDebug(lcModuleLoader) << "trying to load" << fullModuleName << "from" << filePath;
+    qCDebug(lcModuleLoader) << "loadModuleFile" << fullModuleName << "from" << filePath;
 
     const QString keyUniquifier = productContext->multiplexConfigurationId.isEmpty() ?
                 productContext->profileName : productContext->uniqueName();
     const ModuleItemCache::key_type cacheKey(filePath, keyUniquifier);
     const ItemCacheValue cacheValue = m_modulePrototypeItemCache.value(cacheKey);
     if (cacheValue.module) {
-        qCDebug(lcModuleLoader) << "[LDR] loadModuleFile cache hit for" << filePath;
+        qCDebug(lcModuleLoader) << "loadModuleFile cache hit";
         return cacheValue.enabled ? cacheValue.module : 0;
     }
     Item * const module = loadItemFromFile(filePath);
@@ -2601,7 +2601,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     // Check the condition last in case the condition needs to evaluate other properties that were
     // set by the profile
     if (!checkItemCondition(module)) {
-        qCDebug(lcModuleLoader) << "[LDR] module condition is false";
+        qCDebug(lcModuleLoader) << "condition of module" << fullModuleName << "is false";
         m_modulePrototypeItemCache.insert(cacheKey, ItemCacheValue(module, false));
         return 0;
     }
