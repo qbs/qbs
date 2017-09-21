@@ -2358,6 +2358,48 @@ static bool isBaseModule(const QualifiedId &moduleName)
     return moduleName.count() == 1 && moduleName.first() == QLatin1String("qbs");
 }
 
+class DelayedPropertyChanger
+{
+public:
+    ~DelayedPropertyChanger()
+    {
+        applyNow();
+    }
+
+    void setLater(Item *item, const QString &name, const ValuePtr &value)
+    {
+        QBS_CHECK(m_item == nullptr);
+        m_item = item;
+        m_name = name;
+        m_value = value;
+    }
+
+    void removeLater(Item *item, const QString &name)
+    {
+        QBS_CHECK(m_item == nullptr);
+        m_item = item;
+        m_name = name;
+    }
+
+    void applyNow()
+    {
+        if (!m_item || m_name.isEmpty())
+            return;
+        if (m_value)
+            m_item->setProperty(m_name, m_value);
+        else
+            m_item->removeProperty(m_name);
+        m_item = nullptr;
+        m_name.clear();
+        m_value.reset();
+    }
+
+private:
+    Item *m_item = nullptr;
+    QString m_name;
+    ValuePtr m_value;
+};
+
 Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingProductItem,
                                Item *item, const CodeLocation &dependsItemLocation,
                                const QString &moduleId, const QualifiedId &moduleName,
@@ -2383,6 +2425,21 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
     }
     QBS_CHECK(moduleInstance->type() == ItemType::ModuleInstance);
 
+    // Prepare module instance for evaluating Module.condition.
+    DelayedPropertyChanger delayedPropertyChanger;
+    const QString qbsModuleName = QStringLiteral("qbs");
+    if (!isBaseModule(moduleName)) {
+        ItemValuePtr qbsProp = productContext->item->itemProperty(qbsModuleName);
+        if (qbsProp) {
+            ValuePtr qbsModuleValue = moduleInstance->ownProperty(qbsModuleName);
+            if (qbsModuleValue)
+                delayedPropertyChanger.setLater(moduleInstance, qbsModuleName, qbsModuleValue);
+            else
+                delayedPropertyChanger.removeLater(moduleInstance, qbsModuleName);
+            moduleInstance->setProperty(qbsModuleName, qbsProp);
+        }
+    }
+
     *isProductDependency = true;
     ProductModuleInfo *pmi = productModule(productContext, moduleName.toString());
     Item *modulePrototype = pmi->exportItem;
@@ -2396,6 +2453,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
         modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
                 moduleName, isRequired, moduleInstance);
     }
+    delayedPropertyChanger.applyNow();
     if (!modulePrototype)
         return 0;
 
