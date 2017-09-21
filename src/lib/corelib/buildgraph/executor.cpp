@@ -701,7 +701,8 @@ void Executor::handleError(const ErrorInfo &error)
 
 void Executor::addExecutorJobs()
 {
-    qCDebug(lcExec) << "preparing executor for %1 jobs in parallel" << m_buildOptions.maxJobCount();
+    qCDebug(lcExec) << "preparing executor for" << m_buildOptions.maxJobCount()
+                    << "jobs in parallel";
     for (int i = 1; i <= m_buildOptions.maxJobCount(); i++) {
         ExecutorJob *job = new ExecutorJob(m_logger, this);
         job->setMainThreadScriptEngine(m_evalContext->engine());
