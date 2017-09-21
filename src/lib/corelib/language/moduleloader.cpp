@@ -980,7 +980,8 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
 {
     checkCancelation();
     Item *item = productContext->item;
-    qCDebug(lcModuleLoader) << "setupProductDependencies" << item->file()->filePath();
+    qCDebug(lcModuleLoader) << "setupProductDependencies" << productContext->name
+                            << productContext->item->location();
 
     QStringList extraSearchPaths = readExtraSearchPaths(item);
     Settings settings(m_parameters.settingsDirectory());
