@@ -28,4 +28,5 @@ Module {
     }
     property string resourcesInstallDir: ""
     property string pluginsInstallDir: libDirName
+    property string qmlTypeDescriptionsInstallDir: "share/qbs/qml-type-descriptions"
 }

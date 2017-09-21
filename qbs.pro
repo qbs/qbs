@@ -37,7 +37,9 @@ src_app.depends = setupqtprofilelib
 src_libexec.subdir = src/libexec
 src_plugins.subdir = src/plugins
 CONFIG(shared, static|shared): src_plugins.depends = corelib
-tests.depends = corelib src_plugins
+tests.depends = static_res
+static_res.file = static-res.pro
+static_res.depends = src_app src_libexec src_plugins static.pro
 SUBDIRS += \
     corelib\
     setupqtprofilelib\
@@ -45,6 +47,7 @@ SUBDIRS += \
     src_libexec\
     src_plugins\
     static.pro\
+    static_res\
     tests
 
 OTHER_FILES += \

@@ -1,10 +1,12 @@
 import qbs
 import qbs.File
 import qbs.FileInfo
+import qbs.TextFile
+import qbs.Utilities
 
 Product {
     name: "qbs resources"
-    type: ["copied qbs resources"]
+    type: ["copied qbs resources", "qbs qml type descriptions", "qbs qml type bundle"]
     Depends { name: "qbsbuildconfig" }
 
     Group {
@@ -70,5 +72,82 @@ Product {
             cmd.sourceCode = function() { File.copy(input.filePath, output.filePath); }
             return cmd;
         }
+    }
+
+    Rule {
+        condition: Utilities.versionCompare(product.qbs.version, "1.9.1") >= 0
+        multiplex: true
+        Artifact {
+            filePath: FileInfo.joinPaths(
+                          project.buildDirectory,
+                          product.qbsbuildconfig.resourcesInstallDir,
+                          product.qbsbuildconfig.qmlTypeDescriptionsInstallDir, "qbs.qmltypes")
+            fileTags: ["qbs qml type descriptions"]
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "Generating " + output.fileName;
+            cmd.highlight = "codegen";
+            cmd.sourceCode = function() {
+                var tf;
+                try {
+                    tf = new TextFile(output.filePath, TextFile.WriteOnly);
+                    tf.writeLine(Utilities.qmlTypeInfo());
+                } finally {
+                    if (tf)
+                        tf.close();
+                }
+            };
+            return cmd;
+        }
+    }
+
+    Rule {
+        condition: Utilities.versionCompare(product.qbs.version, "1.9.1") >= 0
+        multiplex: true
+        Artifact {
+            filePath: FileInfo.joinPaths(
+                          project.buildDirectory,
+                          product.qbsbuildconfig.resourcesInstallDir,
+                          product.qbsbuildconfig.qmlTypeDescriptionsInstallDir, "qbs-bundle.json")
+            fileTags: ["qbs qml type bundle"]
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "Generating " + output.fileName;
+            cmd.highlight = "codegen";
+            cmd.sourceCode = function() {
+                var tf;
+                try {
+                    var imports = File.directoryEntries(FileInfo.joinPaths(product.sourceDirectory,
+                                                                           "qbs", "imports", "qbs"),
+                                                        File.Dirs | File.NoDotAndDotDot).filter(
+                                function(i) { return i !== "base"; }).concat(
+                                Utilities.builtinExtensionNames()).map(
+                                function(i) { return "qbs." + i; });
+                    imports.sort();
+                    var obj = {
+                        "name": "qbs",
+                        "searchPaths": ["$(QBS_IMPORT_PATH)"],
+                        "installPaths": ["$(QBS_IMPORT_PATH)"],
+                        "implicitImports": ["__javascriptQt5__"],
+                        "supportedImports": ["qbs"].concat(imports)
+                    };
+                    tf = new TextFile(output.filePath, TextFile.WriteOnly);
+                    tf.writeLine(JSON.stringify(obj, undefined, 4));
+                } finally {
+                    if (tf)
+                        tf.close();
+                }
+            };
+            return cmd;
+        }
+    }
+
+    Group {
+        name: "QML Type Info"
+        fileTagsFilter: ["qbs qml type descriptions", "qbs qml type bundle"]
+        qbs.install: true
+        qbs.installSourceBase: project.buildDirectory
     }
 }
