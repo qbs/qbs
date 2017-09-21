@@ -4,7 +4,9 @@ import qbs.FileInfo
 QbsProduct {
     Depends { name: "qbscore" }
     Depends { name: "cpp" }
+    Depends { name: "qbsversion" }
     type: "application"
+    version: qbsversion.version
     consoleApplication: true
     destinationDirectory: "bin"
     cpp.includePaths: [
