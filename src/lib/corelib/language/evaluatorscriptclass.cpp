@@ -384,7 +384,7 @@ QString EvaluatorScriptClass::resultToString(const QScriptValue &scriptValue)
 {
     return (scriptValue.isObject()
         ? QLatin1String("[Object: ")
-            + QString::number(scriptValue.objectId(), 16) + QLatin1Char(']')
+            + QString::number(scriptValue.objectId()) + QLatin1Char(']')
         : scriptValue.toVariant().toString());
 }
 
