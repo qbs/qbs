@@ -57,6 +57,7 @@ public:
     static void setupExtensions(const QStringList &names, QScriptValue scope);
     static QScriptValue loadExtension(QScriptEngine *engine, const QString &name);
     static bool hasExtension(const QString &name);
+    static QStringList extensionNames();
 };
 
 } // namespace Internal

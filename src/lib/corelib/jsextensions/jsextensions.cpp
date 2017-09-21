@@ -74,5 +74,12 @@ bool JsExtensions::hasExtension(const QString &name)
     return initializers().contains(name);
 }
 
+QStringList JsExtensions::extensionNames()
+{
+    auto keys = initializers().keys();
+    std::sort(keys.begin(), keys.end());
+    return keys;
+}
+
 } // namespace Internal
 } // namespace qbs
