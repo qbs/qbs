@@ -128,7 +128,7 @@ static inline bool endsWith(const std::string &subject, char c)
 } // namespace Internal
 } // namespace qbs
 
-#ifdef QT_CORE_LIB
+#ifdef Q_DECLARE_METATYPE
 Q_DECLARE_METATYPE(std::string)
 #endif
 
