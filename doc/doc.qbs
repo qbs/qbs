@@ -21,6 +21,7 @@ Product {
         "reference/**/*",
         "templates/**/*",
         "images/**",
+        "targets/**",
     ]
     Group {
         name: "main qdocconf file"

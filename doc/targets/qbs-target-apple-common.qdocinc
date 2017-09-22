@@ -1,0 +1,108 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+
+//! [xcode]
+
+    \note \QBS does not yet support the Swift programming language.
+
+    The \l{Module xcode}{xcode} module contains properties and rules for
+    Xcode-based development.
+
+//! [xcode]
+
+//! [building user interfaces]
+
+    \section1 Building User Interfaces
+
+    The \l{Module ib}{ib} module contains properties and rules for building
+    Interface Builder documents, storyboards, asset catalogs, and icon sets.
+
+//! [building user interfaces]
+
+//! [creating app bundles]
+
+    \section1 Creating App Bundles
+
+    The \l{Module bundle}{bundle} module contains properties and rules for
+    building and working with Core Foundation bundles (application bundles and
+    frameworks) on Apple platforms.
+
+    To build an application product as a bundle, or a dynamic or static library
+    product as a framework, add a dependency on the bundle module and set the
+    \c bundle.isBundle property to \c true:
+
+    \code
+    Depends { name: "bundle" }
+    bundle.isBundle: true
+    \endcode
+
+    \QBS also provides a number of powerful features to assist in creating the
+    Info.plist file that is part of your bundle. In fact, you do not need to
+    provide an Info.plist file at all. Instead, \QBS will generate one
+    automatically with the necessary keys, based on the values of module
+    properties set in the product.
+
+    If you do specify an Info.plist file, \QBS may still inject additional keys
+    into the final output from other sources. One notable source of Info.plist
+    keys are \e partial Info.plist files which are generated as a result of
+    compiling other resources like asset catalogs, XIBs/NIBs, and storyboards.
+
+    You may also use the \c bundle.infoPlist property to apply a set of
+    key-value pairs to be added to the final Info.plist. This can be used
+    instead of or in addition to an actual Info.plist file on disk.
+
+//! [creating app bundles]
+
+//! [architectures and variants]
+
+    \section1 Multiple Architectures and Build Variants
+
+    \QBS uses \l{Multiplexing}{multiplexing} to create multi-architecture
+    \e fat binaries and multi-variant frameworks, where a single framework can
+    contain both a release and debug build of a library on Apple platforms.
+
+    You can set the \c qbs.architectures property to a list of CPU architectures
+    (such as \c x86, \c x86_64, \c armv7a, \c armv7k, and \c arm64), and the
+    \c qbs.buildVariants property to a list of build variants (such as \c debug
+    and \c release), and \QBS will transparently perform the necessary steps to
+    produce the various artifacts and combine them into a single bundle.
+
+    Since the individual build configurations are completely independent of one
+    another, you can continue to use conditional branches in your projects such
+    as the following:
+
+    \code
+    Properties {
+        condition: qbs.buildVariant === "release"
+        cpp.optimization: "small"
+    }
+    \endcode
+
+//! [architectures and variants]
+
+*/

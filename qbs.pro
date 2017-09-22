@@ -54,6 +54,7 @@ OTHER_FILES += \
     doc/reference/items/language/*.qdoc \
     doc/reference/jsextensions/*.qdoc \
     doc/reference/modules/*.qdoc \
+    doc/targets/*.qdoc* \
     doc/qbs.qdocconf \
     doc/config/qbs-project.qdocconf
 

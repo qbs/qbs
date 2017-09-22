@@ -39,6 +39,28 @@
 
     This module is only available on Apple platforms.
 
+    \QBS enables you to build macOS disk images with custom backgrounds and icon
+    layouts. Most applications on macOS are installed via a \c .dmg file, which
+    is usually customized by using a custom image background and icon layout.
+    Unfortunately, it is challenging to construct such DMG files correctly,
+    because the layout relies on several undocumented proprietary file formats,
+    some of which date back to the Mac OS Classic days, and which are even
+    nested within one another.
+
+    Most of the existing tools to create DMG files do so by using AppleScript to
+    manipulate the Finder graphically to generate the appropriate icon layout,
+    which is both unstable and incompatible with headless build servers, because
+    the necessary OS services to launch graphical applications may not be
+    running at all. Many projects create the primary \c .DS_Store
+    file manually, and commit the result to their source repository. This binary
+    blob is difficult to inspect and edit, and might not be backwards compatible
+    with older versions of the OS, depending on how it was generated.
+
+    \QBS takes a different approach. It generates the necessary files
+    programmatically, in an entirely reproducible manner. There are no external
+    dependencies that need to be separately installed nor do any binary blobs
+    need to be committed to your source repository.
+
     \section1 General Properties
 
     \table

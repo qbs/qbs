@@ -1,0 +1,74 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage index.html
+    \page qbs-target-android.html
+    \ingroup platforms
+
+    \title Building for Android
+    \brief Platform notes for Android.
+
+    To develop applications for Android, you need development tools provided by
+    the Android SDK from Google, and (optionally) a C/C++ toolchain provided by
+    the Android NDK.
+
+    \note \QBS does not yet support the Kotlin programming language.
+
+    \section1 Creating Android Application Packages
+
+    On Android, applications are distributed in a specially structured type of
+    ZIP package called an APK. The following files should be created and bundled
+    into an APK:
+
+    \list
+        \li Android assets.
+        \li Android resource files.
+        \li AndroidManifest.xml, which provides meta-information about your
+            application.
+        \li Compiled Java code, which serves as the entry point into your
+            application and that automatically executes the native code in your
+            application (if there is any).
+        \li Shared libraries containing native code.
+    \endlist
+
+    You can use the \l{AndroidApk Item}{AndroidApk} item to build application
+    packages for Android. The properties of the AndroidApk item specify the
+    locations of the APK source files.
+
+    The AndroidApk item has a dependency on the \l{Module Android.sdk}
+    {Android.sdk} module, which contains the properties and rules to create
+    Android application packages from source files.
+
+    You can use the \l{DynamicLibrary Item}{DynamicLibrary} item to build native
+    Android libraries that are bundled into the APK. The \c qbs.architectures
+    property specifies the architectures to build for, with the default value
+    \c armv7a.
+
+    The \l{DynamicLibrary Item}{DynamicLibrary} item has a dependency on the
+    \l{Module Android.ndk}{Android.ndk} module, and contains the properties
+    and rules to create native libraries.
+*/

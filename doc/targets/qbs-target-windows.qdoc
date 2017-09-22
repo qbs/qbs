@@ -1,0 +1,73 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage index.html
+    \page qbs-target-windows.html
+    \ingroup platforms
+
+    \title Building for Windows
+    \brief Platform notes for Windows.
+
+    This topic describes the \QBS features specific to Windows.
+
+    \note \QBS does not currently support building applications using .NET
+    technologies and languages such as C#, F#, and Visual Basic. At this time we
+    recommend that you use MSBuild and the tools shipped with the various
+    implementations of the .NET platform.
+
+    \section1 Universal Windows Platform
+
+    Building applications for the Universal Windows Platform is currently only
+    partially supported. Notably, support for building APPX packages is missing,
+    but will be added in a future release.
+
+    Relevant properties include:
+
+    \list
+        \li \c cpp.windowsApiFamily
+        \li \c cpp.windowsApiAdditionalPartitions
+        \li \c requireAppContainer
+    \endlist
+
+    See the \l{Module cpp}{cpp} module for more information.
+
+    \note \QBS does not (and will not) support building Windows Runtime
+    applications targeting Windows 8 or Windows 8.1. We encourage users to
+    instead build desktop applications for older versions of Windows, or migrate
+    to Windows 10 and the Universal Windows Platform.
+
+    \section1 Building Windows Installers
+
+    The following modules contain properties and rules for building Windows
+    installers using a number of different technologies:
+
+    \list
+        \li \l{Module innosetup}{innosetup} - Inno Setup
+        \li \l{Module nsis}{nsis} - Nullsoft Scriptable Install System
+        \li \l{Module wix}{wix} - Windows Installer XML Toolset
+    \endlist
+*/

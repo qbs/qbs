@@ -1,0 +1,86 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage index.html
+    \page qbs-target-macos.html
+    \ingroup platforms
+
+    \title Building for macOS
+    \brief Platform notes for macOS.
+
+    This topic describes the \QBS features specific to macOS.
+
+    \include qbs-target-apple-common.qdocinc xcode
+    \include qbs-target-apple-common.qdocinc building user interfaces
+    \include qbs-target-apple-common.qdocinc creating app bundles
+    \include qbs-target-apple-common.qdocinc architectures and variants
+
+    \section1 Building macOS Disk Images
+
+    The \l{AppleDiskImage Item}{AppleDiskImage} and
+    \l{AppleApplicationDiskImage Item}{AppleApplicationDiskImage} items have a
+    dependency on the \l{Module dmg}{dmg} module. The former represents a
+    product that is a basic Apple disk image, while the latter extends the
+    former to create a drag 'n' drop disk image installer used for installing
+    single application bundles.
+
+    For example, the following code snippet creates a macOS disk image with a
+    custom background and icon layout:
+
+    \code
+    AppleApplicationDiskImage {
+        targetName: "cocoa-application-" + version
+        version: "1.0"
+
+        files: [
+            "CocoaApplication/dmg.iconset",
+            "CocoaApplication/en_US.lproj/LICENSE",
+            // comment out the following line to use a solid-color background
+            // (see dmg.backgroundColor below)
+            "CocoaApplication/background*"
+        ]
+
+        dmg.backgroundColor: "#41cd52"
+        dmg.badgeVolumeIcon: true
+        dmg.iconPositions: [
+            {"x": 200, "y": 200, "path": "Cocoa Application.app"},
+            {"x": 400, "y": 200, "path": "Applications"}
+        ]
+        dmg.windowX: 420
+        dmg.windowY: 250
+        dmg.windowWidth: 600
+        dmg.windowHeight: 422 // this includes the macOS title bar height of 22
+        dmg.iconSize: 64
+    }
+    \endcode
+
+    \image qbs-dmg.png
+
+    In addition, \QBS supports multi-language license agreement prompts that
+    appear when the DMG is opened, with full Unicode and rich-text formatting
+    support.
+*/
