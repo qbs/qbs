@@ -532,7 +532,7 @@
         property string warningLevel
         property string optimization
         property bool debugInformation
-        property path precompiledHeader
+        property pathList includePaths
         // ...
         FileTagger {
             patterns: "*.cpp"
