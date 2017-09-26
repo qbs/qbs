@@ -128,9 +128,6 @@ function fileTagForTargetLanguage(fileTags) {
   * for that property, and the base property name.
   *
   * If \a fileTag is undefined, the language-agnostic property name is returned.
-  *
-  * @param propertyName flags, platformFlags, precompiledHeader
-  * @param fileTag c, cpp, objc, objcpp
   */
 function languagePropertyName(propertyName, fileTag) {
     if (!fileTag)

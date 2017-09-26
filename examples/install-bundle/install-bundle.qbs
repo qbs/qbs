@@ -19,6 +19,8 @@ Project {
             "Storyboard.storyboard"
         ]
 
+        cpp.minimumMacosVersion: "10.10"
+
         Group {
             fileTagsFilter: isBundle ? ["bundle.content"] : ["application"]
             qbs.install: true

@@ -57,7 +57,7 @@ CppApplication {
     name: "Cocoa Touch Application"
 
     cpp.useObjcPrecompiledHeader: true
-
+    cpp.minimumIosVersion: "6.1"
     cpp.frameworks: [ "UIKit", "Foundation", "CoreGraphics" ]
 
     Group {

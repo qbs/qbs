@@ -139,87 +139,104 @@ function _resourceFileProperties(path) {
     return [ undefined, '.' ];
 }
 
+var PropertyListVariableExpander = (function () {
+    function PropertyListVariableExpander() {
+    }
+    /**
+      * Recursively perform variable replacements in an environment dictionary.
+      */
+    PropertyListVariableExpander.prototype.expand = function (obj, env) {
+        var $this = this;
+
+        // Possible syntaxes for wrapping an environment variable name
+        var syntaxes = [
+            {"open": "${", "close": "}"},
+            {"open": "$(", "close": ")"},
+            {"open": "@",  "close": "@"}
+        ];
+
+        /**
+          * Finds the first index of a replacement starting with one of the supported syntaxes
+          * This is needed so we don't do recursive substitutions
+          */
+        function indexOfReplacementStart(syntaxes, str, offset) {
+            var syntax;
+            var idx = str.length;
+            for (var i in syntaxes) {
+                var j = str.indexOf(syntaxes[i].open, offset);
+                if (j !== -1 && j < idx) {
+                    syntax = syntaxes[i];
+                    idx = j;
+                }
+            }
+            return { "syntax": syntax, "index": idx === str.length ? -1 : idx };
+        }
+
+        function expandRecursive(obj, env, checked) {
+            checked.push(obj);
+            for (var key in obj) {
+                var value = obj[key];
+                var type = typeof(value);
+                if (type === "object") {
+                    if (checked.indexOf(value) !== -1)
+                        continue;
+                    expandRecursive(value, env, checked);
+                }
+                if (type !== "string")
+                    continue;
+                var repl = indexOfReplacementStart(syntaxes, value);
+                var i = repl.index;
+                var changes = false;
+                while (i !== -1) {
+                    var j = value.indexOf(repl.syntax.close, i + repl.syntax.open.length);
+                    if (j === -1)
+                        break;
+                    var varParts = value.slice(i + repl.syntax.open.length, j).split(':');
+                    var varName = varParts[0];
+                    var varFormatter = varParts[1];
+                    var varValue = env[varName];
+                    if (undefined === varValue) {
+                        // skip replacement
+                        if ($this.undefinedVariableFunction)
+                            $this.undefinedVariableFunction(key, varName);
+                        i = j + repl.syntax.close.length;
+                    } else {
+                        changes = true;
+                        varValue = String(varValue);
+                        if (varFormatter !== undefined)
+                            varFormatter = varFormatter.toLowerCase();
+                        if (varFormatter === "rfc1034identifier")
+                            varValue = Utilities.rfc1034Identifier(varValue);
+                        value = value.slice(0, i) + varValue + value.slice(j + repl.syntax.close.length);
+                        // avoid recursive substitutions to avoid potentially infinite loops
+                        i += varValue.length;
+                    }
+                    repl = indexOfReplacementStart(syntaxes, value, i);
+                    i = repl.index;
+                }
+                if (changes)
+                    obj[key] = value;
+            }
+        }
+        expandRecursive(obj, env, []);
+        return obj;
+    };
+    return PropertyListVariableExpander;
+}());
+
 /**
-  * Recursively perform variable replacements in an environment dictionary.
-  *
   * JSON.stringify(expandPlistEnvironmentVariables({a:"$(x)3$$(y)",b:{t:"%$(y) $(k)"}},
   *                                                {x:"X",y:"Y"}, true))
   *    Warning undefined variable  k  in variable expansion
   * => {"a":"X3$Y","b":{"t":"%Y $(k)"}}
   */
 function expandPlistEnvironmentVariables(obj, env, warn) {
-    // Possible syntaxes for wrapping an environment variable name
-    var syntaxes = [
-        {"open": "${", "close": "}"},
-        {"open": "$(", "close": ")"},
-        {"open": "@",  "close": "@"}
-    ];
-
-    /**
-      * Finds the first index of a replacement starting with one of the supported syntaxes
-      * This is needed so we don't do recursive substitutions
-      */
-    function indexOfReplacementStart(syntaxes, str, offset) {
-        var syntax;
-        var idx = str.length;
-        for (var i in syntaxes) {
-            var j = str.indexOf(syntaxes[i].open, offset);
-            if (j !== -1 && j < idx) {
-                syntax = syntaxes[i];
-                idx = j;
-            }
-        }
-        return { "syntax": syntax, "index": idx === str.length ? -1 : idx };
-    }
-
-    function expandRecursive(obj, env, checked) {
-        checked.push(obj);
-        for (var key in obj) {
-            var value = obj[key];
-            var type = typeof(value);
-            if (type === "object") {
-                if (checked.indexOf(value) !== -1)
-                    continue;
-                expandRecursive(value, env, checked);
-            }
-            if (type !== "string")
-                continue;
-            var repl = indexOfReplacementStart(syntaxes, value);
-            var i = repl.index;
-            var changes = false;
-            while (i !== -1) {
-                var j = value.indexOf(repl.syntax.close, i + repl.syntax.open.length);
-                if (j === -1)
-                    break;
-                var varParts = value.slice(i + repl.syntax.open.length, j).split(':');
-                var varName = varParts[0];
-                var varFormatter = varParts[1];
-                var varValue = env[varName];
-                if (undefined === varValue) {
-                    // skip replacement
-                    if (warn)
-                        console.warn("undefined variable " + varName + " in variable expansion");
-                    i = j + repl.syntax.close.length;
-                } else {
-                    changes = true;
-                    varValue = String(varValue);
-                    if (varFormatter !== undefined)
-                        varFormatter = varFormatter.toLowerCase();
-                    if (varFormatter === "rfc1034identifier")
-                        varValue = Utilities.rfc1034Identifier(varValue);
-                    value = value.slice(0, i) + varValue + value.slice(j + repl.syntax.close.length);
-                    // avoid recursive substitutions to avoid potentially infinite loops
-                    i += varValue.length;
-                }
-                repl = indexOfReplacementStart(syntaxes, value, i);
-                i = repl.index;
-            }
-            if (changes)
-                obj[key] = value;
-        }
-    }
-    expandRecursive(obj, env, []);
-    return obj;
+    var expander = new PropertyListVariableExpander();
+    expander.undefinedVariableFunction = function (key, varName) {
+        if (warn)
+            console.warn("undefined variable " + varName + " in variable expansion");
+    };
+    return expander.expand(obj, env);
 }
 
 /**
