@@ -215,7 +215,7 @@ Module {
     property stringList profiles
     property stringList architectures: {
         if (targetOS.contains("android"))
-            return ["armv5te"];
+            return ["armv7a"]; // default should be armv5te for NDK < r16, but we can't check here
         if (targetOS.contains("ios-simulator"))
             return ["x86", "x86_64"];
         if (targetOS.contains("ios"))

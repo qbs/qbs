@@ -52,7 +52,7 @@ Module {
         allowedValues: ["arm64-v8a", "armeabi", "armeabi-v7a", "mips", "mips64", "x86", "x86_64"]
     }
 
-    property string appStl: "system"
+    property string appStl: Utilities.versionCompare(version, "17") >= 0 ? "c++_shared" : "system"
     PropertyOptions {
         name: "appStl"
         description: "Corresponds to the 'APP_STL' variable in an Android.mk file."
@@ -75,7 +75,7 @@ Module {
                               ? "android-14"
                               : "android-9"
 
-    property bool useUnifiedHeaders: Utilities.versionCompare(version, "14") >= 0
+    property bool useUnifiedHeaders: Utilities.versionCompare(version, "15") >= 0
 
     // Internal properties.
     property stringList availableToolchains: ndkProbe.toolchains
