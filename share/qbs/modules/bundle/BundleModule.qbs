@@ -395,7 +395,22 @@ Module {
                     for (key in qmakeEnv)
                         env[key] = qmakeEnv[key];
 
-                    DarwinTools.expandPlistEnvironmentVariables(aggregatePlist, env, true);
+                    var expander = new DarwinTools.PropertyListVariableExpander();
+                    expander.undefinedVariableFunction = function (key, varName) {
+                        var msg = "Info.plist variable expansion encountered undefined variable '"
+                                + varName + "' when expanding value for key '" + key
+                                + "', defined in one of the following files:\n\t";
+                        var allFilePaths = [];
+                        for (i in infoPlistFiles)
+                            allFilePaths.push(infoPlistFiles[i].filePath);
+                        if (platformInfoPlist)
+                            allFilePaths.push(platformInfoPlist);
+                        msg += allFilePaths.join("\n\t") + "\n";
+                        msg += "or in the bundle.infoPlist property of product '"
+                                + product.name + "'";
+                        console.warn(msg);
+                    };
+                    aggregatePlist = expander.expand(aggregatePlist, env);
 
                     // Add keys from partial Info.plists from asset catalogs, XIBs, and storyboards
                     for (i in partialInfoPlistFiles) {
