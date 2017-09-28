@@ -2226,6 +2226,35 @@ void TestLanguage::propertiesItemInModule()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::propertyAssignmentInExportedGroup()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(
+                    testProject("property-assignment-in-exported-group.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(!!project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 2);
+        for (const ResolvedProductConstPtr &p : products) {
+            QCOMPARE(p->moduleProperties->moduleProperty("dummy", "someString").toString(),
+                     QString());
+            for (const GroupConstPtr &g : p->groups) {
+                const QString propValue
+                        = g->properties->moduleProperty("dummy", "someString").toString();
+                if (g->name == "exported_group")
+                    QCOMPARE(propValue, QString("test"));
+                else
+                    QCOMPARE(propValue, QString());
+            }
+        }
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::qbsPropertiesInProjectCondition()
 {
     bool exceptionCaught = false;

@@ -139,6 +139,7 @@ private slots:
     void propertiesBlocks();
     void propertiesBlockInGroup();
     void propertiesItemInModule();
+    void propertyAssignmentInExportedGroup();
     void qbsPropertiesInProjectCondition();
     void relaxedErrorMode();
     void relaxedErrorMode_data();

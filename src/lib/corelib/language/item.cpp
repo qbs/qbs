@@ -188,6 +188,17 @@ VariantValuePtr Item::variantProperty(const QString &name) const
     return std::static_pointer_cast<VariantValue>(v);
 }
 
+bool Item::isOfTypeOrhasParentOfType(ItemType type) const
+{
+    const Item *item = this;
+    do {
+        if (item->type() == type)
+            return true;
+        item = item->parent();
+    } while (item);
+    return false;
+}
+
 PropertyDeclaration Item::propertyDeclaration(const QString &name, bool allowExpired) const
 {
     PropertyDeclaration decl = m_propertyDeclarations.value(name);

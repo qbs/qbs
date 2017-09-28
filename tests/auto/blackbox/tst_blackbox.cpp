@@ -2262,10 +2262,7 @@ void TestBlackbox::pchChangeTracking()
 void TestBlackbox::perGroupDefineInExportItem()
 {
     QDir::setCurrent(testDataDir + "/per-group-define-in-export-item");
-    QbsRunParameters params;
-    params.expectFailure = true;
-    QEXPECT_FAIL(0, "Declaration check is overeager", Abort);
-    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackbox::pkgConfigProbe()

@@ -119,6 +119,7 @@ public:
     ItemValuePtr itemProperty(const QString &name, const ItemValueConstPtr &value);
     JSSourceValuePtr sourceProperty(const QString &name) const;
     VariantValuePtr variantProperty(const QString &name) const;
+    bool isOfTypeOrhasParentOfType(ItemType type) const;
     void setObserver(ItemObserver *observer) const;
     void setProperty(const QString &name, const ValuePtr &value);
     void setProperties(const PropertyMap &props) { m_properties = props; }
