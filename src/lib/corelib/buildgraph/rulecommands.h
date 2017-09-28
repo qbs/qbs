@@ -129,6 +129,8 @@ public:
 private:
     ProcessCommand();
 
+    int defaultResponseFileThreshold() const;
+
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 

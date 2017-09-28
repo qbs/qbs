@@ -202,9 +202,17 @@ void ProcessCommand::setupForJavaScript(QScriptValue targetObject)
 
 ProcessCommand::ProcessCommand()
     : m_maxExitCode(0)
-    , m_responseFileThreshold(HostOsInfo::isWindowsHost() ? 32000 : -1)
+    , m_responseFileThreshold(defaultResponseFileThreshold())
     , m_responseFileArgumentIndex(0)
 {
+}
+
+int ProcessCommand::defaultResponseFileThreshold() const
+{
+    // TODO: Non-Windows platforms likely have their own limits. Investigate.
+    return HostOsInfo::isWindowsHost()
+            ? 31000 // 32000 minus "safety offset"
+            : -1;
 }
 
 void ProcessCommand::getEnvironmentFromList(const QStringList &envList)
