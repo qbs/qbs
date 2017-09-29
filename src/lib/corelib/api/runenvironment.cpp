@@ -60,6 +60,8 @@
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qvariant.h>
 
+#include <QtXml/qdom.h>
+
 #include <stdlib.h>
 
 namespace qbs {
@@ -208,6 +210,34 @@ static QString findExecutable(const QStringList &fileNames)
     return QString();
 }
 
+static QString findMainIntent(const QString &aapt, const QString &apkFilePath)
+{
+    QString packageId;
+    QString activity;
+    QProcess aaptProcess;
+    aaptProcess.start(aapt, QStringList()
+                      << QStringLiteral("dump")
+                      << QStringLiteral("badging")
+                      << apkFilePath);
+    if (aaptProcess.waitForFinished(-1)) {
+        for (auto line : aaptProcess.readAllStandardOutput().split('\n')) {
+            if (line.startsWith(QByteArrayLiteral("package:"))) {
+                QDomDocument doc;
+                doc.setContent(QByteArrayLiteral("<") + line + QByteArrayLiteral("/>"));
+                packageId = doc.firstChild().toElement().attribute(QStringLiteral("name"));
+            } else if (line.startsWith(QByteArrayLiteral("launchable-activity:"))) {
+                QDomDocument doc;
+                doc.setContent(QByteArrayLiteral("<") + line + QByteArrayLiteral("/>"));
+                activity = doc.firstChild().toElement().attribute(QStringLiteral("name"));
+            }
+        }
+    }
+
+    if (!packageId.isEmpty() && !activity.isEmpty())
+        return packageId + QStringLiteral("/") + activity;
+    return QString();
+}
+
 int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arguments)
 {
     const QStringList targetOS = d->resolvedProduct->moduleProperties->qbsPropertyValue(
@@ -219,7 +249,43 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
     QStringList targetArguments = arguments;
     const QString completeSuffix = QFileInfo(targetBin).completeSuffix();
 
-    if (targetOS.contains(QLatin1String("ios")) || targetOS.contains(QLatin1String("tvos"))) {
+    if (targetOS.contains(QLatin1String("android"))) {
+        const auto aapt = d->resolvedProduct->moduleProperties->moduleProperty(
+                    QStringLiteral("Android.sdk"), QStringLiteral("aaptFilePath")).toString();
+        const auto intent = findMainIntent(aapt, targetBin);
+        const auto sdkDir = d->resolvedProduct->moduleProperties->moduleProperty(
+                    QStringLiteral("Android.sdk"), QStringLiteral("sdkDir")).toString();
+        targetExecutable = sdkDir + QStringLiteral("/platform-tools/adb");
+
+        QProcess process;
+        process.setProcessChannelMode(QProcess::ForwardedChannels);
+        process.start(targetExecutable, QStringList()
+                      << QStringLiteral("install")
+                      << QStringLiteral("-r") // replace existing application
+                      << QStringLiteral("-t") // allow test packages
+                      << QStringLiteral("-d") // allow version code downgrade
+                      << targetBin);
+        if (!process.waitForFinished()) {
+            if (process.error() == QProcess::FailedToStart) {
+                throw ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
+                                .arg(targetExecutable)
+                                .arg(process.errorString()));
+            } else {
+                d->logger.qbsWarning()
+                        << "QProcess error: " << process.errorString();
+            }
+
+            return EXIT_FAILURE;
+        }
+
+        targetArguments << QStringList()
+                        << QStringLiteral("shell")
+                        << QStringLiteral("am")
+                        << QStringLiteral("start")
+                        << QStringLiteral("-W") // wait for launch to complete
+                        << QStringLiteral("-n")
+                        << intent;
+    } else if (targetOS.contains(QLatin1String("ios")) || targetOS.contains(QLatin1String("tvos"))) {
         const QString bundlePath = targetBin + QLatin1String("/..");
 
         if (QFileInfo(targetExecutable = findExecutable(QStringList()

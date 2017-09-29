@@ -261,8 +261,7 @@ bool ArtifactData::isGenerated() const
  */
 bool ArtifactData::isExecutable() const
 {
-    return d->fileTags.contains(QLatin1String("application"))
-            || d->fileTags.contains(QLatin1String("msi"));
+    return Internal::isRunnableArtifact(Internal::FileTags::fromStringList(d->fileTags));
 }
 
 /*!

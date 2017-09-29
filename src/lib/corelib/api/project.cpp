@@ -760,7 +760,7 @@ RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
 
 static bool productIsRunnable(const ResolvedProductConstPtr &product)
 {
-    return product->fileTags.contains("application");
+    return isRunnableArtifact(product->fileTags);
 }
 
 static bool productIsMultiplexed(const ResolvedProductConstPtr &product)

@@ -40,6 +40,7 @@
 #define QBS_PROJECTDATA_P_H
 
 #include "projectdata.h"
+#include <language/filetags.h>
 
 #include <QtCore/qshareddata.h>
 
@@ -137,6 +138,13 @@ public:
     QList<ProjectData> subProjects;
     QString buildDir;
 };
+
+static inline bool isRunnableArtifact(const FileTags &fileTags)
+{
+    return fileTags.contains("application")
+            || fileTags.contains("android.apk")
+            || fileTags.contains("msi");
+}
 
 } // namespace Internal
 } // namespace qbs
