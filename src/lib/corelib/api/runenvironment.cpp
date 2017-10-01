@@ -288,28 +288,61 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
     } else if (targetOS.contains(QLatin1String("ios")) || targetOS.contains(QLatin1String("tvos"))) {
         const QString bundlePath = targetBin + QLatin1String("/..");
 
-        if (QFileInfo(targetExecutable = findExecutable(QStringList()
-                    << QStringLiteral("iostool"))).isExecutable()) {
-            targetArguments = QStringList()
-                    << QStringLiteral("-run")
-                    << QStringLiteral("-bundle")
-                    << QDir::cleanPath(bundlePath);
-            if (!arguments.isEmpty())
-                targetArguments << QStringLiteral("-extra-args") << arguments;
-        } else if (QFileInfo(targetExecutable = findExecutable(QStringList()
-                    << QStringLiteral("ios-deploy"))).isExecutable()) {
-            targetArguments = QStringList()
-                    << QStringLiteral("--no-wifi")
-                    << QStringLiteral("--noninteractive")
-                    << QStringLiteral("--bundle")
-                    << QDir::cleanPath(bundlePath);
-            if (!arguments.isEmpty())
-                targetArguments << QStringLiteral("--args") << arguments;
+        if (targetOS.contains(QStringLiteral("ios-simulator"))
+                || targetOS.contains(QStringLiteral("tvos-simulator"))) {
+            const auto developerDir = d->resolvedProduct->moduleProperties->moduleProperty(
+                        QStringLiteral("xcode"), QStringLiteral("developerPath")).toString();
+            targetExecutable = developerDir + QStringLiteral("/usr/bin/simctl");
+            const auto simulatorId = QStringLiteral("booted"); // TODO: parameterize
+            const auto bundleId = d->resolvedProduct->moduleProperties->moduleProperty(
+                        QStringLiteral("bundle"), QStringLiteral("identifier")).toString();
+
+            QProcess process;
+            process.setProcessChannelMode(QProcess::ForwardedChannels);
+            process.start(targetExecutable, QStringList()
+                          << QStringLiteral("install")
+                          << simulatorId
+                          << QDir::cleanPath(bundlePath));
+            if (!process.waitForFinished()) {
+                if (process.error() == QProcess::FailedToStart) {
+                    throw ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
+                                    .arg(targetExecutable)
+                                    .arg(process.errorString()));
+                }
+
+                return EXIT_FAILURE;
+            }
+
+            targetArguments << QStringList()
+                            << QStringLiteral("launch")
+                            << QStringLiteral("--console")
+                            << simulatorId
+                            << bundleId
+                            << arguments;
         } else {
-            d->logger.qbsLog(LoggerError)
-                    << Tr::tr("No suitable deployment tools were found in the environment. "
-                              "Consider installing ios-deploy.");
-            return EXIT_FAILURE;
+            if (QFileInfo(targetExecutable = findExecutable(QStringList()
+                        << QStringLiteral("iostool"))).isExecutable()) {
+                targetArguments = QStringList()
+                        << QStringLiteral("-run")
+                        << QStringLiteral("-bundle")
+                        << QDir::cleanPath(bundlePath);
+                if (!arguments.isEmpty())
+                    targetArguments << QStringLiteral("-extra-args") << arguments;
+            } else if (QFileInfo(targetExecutable = findExecutable(QStringList()
+                        << QStringLiteral("ios-deploy"))).isExecutable()) {
+                targetArguments = QStringList()
+                        << QStringLiteral("--no-wifi")
+                        << QStringLiteral("--noninteractive")
+                        << QStringLiteral("--bundle")
+                        << QDir::cleanPath(bundlePath);
+                if (!arguments.isEmpty())
+                    targetArguments << QStringLiteral("--args") << arguments;
+            } else {
+                d->logger.qbsLog(LoggerError)
+                        << Tr::tr("No suitable deployment tools were found in the environment. "
+                                  "Consider installing ios-deploy.");
+                return EXIT_FAILURE;
+            }
         }
     } else if (targetOS.contains(QLatin1String("windows"))) {
         if (completeSuffix == QLatin1String("msi")) {
