@@ -1221,6 +1221,9 @@ void ModuleLoader::handleModuleSetupError(ModuleLoader::ProductContext *productC
     if (module.required) {
         handleProductError(error, productContext);
     } else {
+        qCDebug(lcModuleLoader()) << "non-required module" << module.name.toString()
+                                  << "found, but not usable in product" << productContext->name
+                                  << error.toString();
         createNonPresentModule(module.name.toString(), QLatin1String("failed validation"),
                                module.item);
     }
