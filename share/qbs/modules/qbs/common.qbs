@@ -233,7 +233,7 @@ Module {
         return architecture ? [architecture] : undefined;
     }
 
-    property stringList buildVariants: [defaultBuildVariant]
+    property stringList buildVariants: [buildVariant]
 
     // internal properties
     readonly property string version: [versionMajor, versionMinor, versionPatch].join(".")

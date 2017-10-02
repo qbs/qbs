@@ -561,6 +561,11 @@ function guessArchitecture(m) {
             architecture = "sparc";
             if (hasAnyOf(m, ["__sparc64__"]))
                 architecture += "64";
+        } else if (hasAnyOf(m, ["__AVR__"])) {
+            architecture = "avr";
+            var avrSuffix = m["__AVR_ARCH__"];
+            if (avrSuffix)
+                architecture += avrSuffix;
         }
     }
 
