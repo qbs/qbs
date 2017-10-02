@@ -544,8 +544,11 @@ ErrorInfo ScriptEngine::lastError(const QScriptValue &v, const CodeLocation &fal
     if (errorLocation.isValid())
         return ErrorInfo(msg, errorLocation);
     const QStringList backtrace = uncaughtExceptionBacktraceOrEmpty();
-    if (!backtrace.isEmpty())
-        return ErrorInfo(msg, backtrace);
+    if (!backtrace.isEmpty()) {
+        ErrorInfo e(msg, backtrace);
+        if (e.hasLocation())
+            return e;
+    }
     return ErrorInfo(msg, fallbackLocation);
 }
 

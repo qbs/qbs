@@ -272,6 +272,12 @@ bool ErrorInfo::isInternalError() const
     return d->internalError;
 }
 
+bool ErrorInfo::hasLocation() const
+{
+    return std::any_of(d->items.cbegin(), d->items.cend(),
+                        [](const ErrorItem &ei) { return ei.codeLocation().isValid(); });
+}
+
 void ErrorInfo::load(Internal::PersistentPool &pool)
 {
     pool.load(d->items);

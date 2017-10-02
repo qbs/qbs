@@ -99,6 +99,7 @@ public:
     void clear();
     QString toString() const;
     bool isInternalError() const;
+    bool hasLocation() const;
 
     void load(Internal::PersistentPool &pool);
     void store(Internal::PersistentPool &pool) const;
