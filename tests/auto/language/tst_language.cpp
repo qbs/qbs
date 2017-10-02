@@ -679,6 +679,8 @@ void TestLanguage::erroneousFiles_data()
             << "Cannot reuse the name of built-in extension 'TextFile'.";
     QTest::newRow("throw_in_property_binding")
             << "something is wrong";
+    QTest::newRow("no-configure-in-probe")
+            << "no-configure-in-probe.qbs:4:5.*Probe.configure must be set";
     QTest::newRow("dependency_cycle")
             << "Cyclic dependencies detected.";
     QTest::newRow("dependency_cycle2")

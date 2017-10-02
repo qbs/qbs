@@ -2851,7 +2851,8 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     if (Q_UNLIKELY(probeId.isEmpty()))
         throw ErrorInfo(Tr::tr("Probe.id must be set."), probe->location());
     const JSSourceValueConstPtr configureScript = probe->sourceProperty(QLatin1String("configure"));
-    if (Q_UNLIKELY(!configureScript))
+    QBS_CHECK(configureScript);
+    if (Q_UNLIKELY(configureScript->sourceCode() == QLatin1String("undefined")))
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
     typedef std::pair<QString, QScriptValue> ProbeProperty;
     QList<ProbeProperty> probeBindings;
