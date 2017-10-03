@@ -1,4 +1,5 @@
-import qbs 1.0
+import qbs
+import qbs.FileInfo
 
 QbsProduct {
     Depends { name: "cpp" }
@@ -14,11 +15,14 @@ QbsProduct {
     cpp.cxxLanguageVersion: "c++11"
     cpp.includePaths: base.concat(["../../../lib/corelib"])
     cpp.visibility: "hidden"
-    destinationDirectory: qbsbuildconfig.libDirName + "/qbs/plugins"
+    destinationDirectory: FileInfo.joinPaths(project.buildDirectory,
+                                             qbsbuildconfig.libDirName + "/qbs/plugins")
     Group {
         fileTagsFilter: ["dynamiclibrary"]
+            .concat(qbs.buildVariant === "debug" ? ["debuginfo_dll"] : [])
         qbs.install: true
         qbs.installDir: qbsbuildconfig.pluginsInstallDir + "/qbs/plugins"
+        qbs.installSourceBase: destinationDirectory
     }
     Properties {
         condition: qbs.targetOS.contains("darwin")

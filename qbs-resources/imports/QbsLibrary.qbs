@@ -1,11 +1,13 @@
 import qbs
+import qbs.FileInfo
 
 QbsProduct {
     Depends { name: "cpp" }
     version: qbsversion.version
     type: Qt.core.staticBuild ? "staticlibrary" : "dynamiclibrary"
     targetName: (qbs.enableDebugCode && qbs.targetOS.contains("windows")) ? (name + 'd') : name
-    destinationDirectory: qbs.targetOS.contains("windows") ? "bin" : qbsbuildconfig.libDirName
+    destinationDirectory: FileInfo.joinPaths(project.buildDirectory,
+        qbs.targetOS.contains("windows") ? "bin" : qbsbuildconfig.libDirName)
     cpp.defines: base.concat(visibilityType === "static" ? ["QBS_STATIC_LIB"] : ["QBS_LIBRARY"])
     cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
     // ### Uncomment the following line in 1.8
@@ -16,8 +18,10 @@ QbsProduct {
     property string headerInstallPrefix: "/include/qbs"
     Group {
         fileTagsFilter: product.type.concat("dynamiclibrary_symlink")
+            .concat(qbs.buildVariant === "debug" ? ["debuginfo_dll"] : [])
         qbs.install: install
         qbs.installDir: qbsbuildconfig.libInstallDir
+        qbs.installSourceBase: destinationDirectory
     }
     Group {
         fileTagsFilter: ["dynamiclibrary_import"]

@@ -38,7 +38,9 @@ QbsProduct {
 
     Group {
         fileTagsFilter: product.type
+            .concat(qbs.buildVariant === "debug" ? ["debuginfo_app"] : [])
         qbs.install: true
         qbs.installDir: qbsbuildconfig.libexecInstallDir
+        qbs.installSourceBase: destinationDirectory
     }
 }
