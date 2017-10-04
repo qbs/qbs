@@ -50,7 +50,6 @@
     \include cli-options.qdocinc dry-run
     \include cli-options.qdocinc project-file
     \include cli-options.qdocinc force-probe-execution
-    \include cli-options.qdocinc jobs
     \include cli-options.qdocinc less-verbose
     \include cli-options.qdocinc log-level
     \include cli-options.qdocinc log-time

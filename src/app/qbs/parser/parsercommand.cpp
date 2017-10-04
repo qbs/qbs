@@ -199,7 +199,6 @@ static QList<CommandLineOption::Type> resolveOptions()
             << CommandLineOption::VerboseOptionType
             << CommandLineOption::QuietOptionType
             << CommandLineOption::ShowProgressOptionType
-            << CommandLineOption::JobsOptionType
             << CommandLineOption::DryRunOptionType
             << CommandLineOption::ForceProbesOptionType
             << CommandLineOption::LogTimeOptionType;
@@ -274,6 +273,7 @@ static QList<CommandLineOption::Type> buildOptions()
             << CommandLineOption::ForceOutputCheckOptionType
             << CommandLineOption::BuildNonDefaultOptionType
             << CommandLineOption::VersionOptionType
+            << CommandLineOption::JobsOptionType
             << CommandLineOption::CommandEchoModeOptionType
             << CommandLineOption::NoInstallOptionType
             << CommandLineOption::RemoveFirstOptionType
