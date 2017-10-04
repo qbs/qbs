@@ -232,7 +232,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     if (pchOutput)
         cmd.description += ' (' + tag + ')';
     cmd.highlight = "compiler";
-    cmd.workingDirectory = product.buildDirectory + "/.obj";
+    cmd.workingDirectory = product.buildDirectory;
     cmd.responseFileUsagePrefix = '@';
     // cl.exe outputs the cpp file name. We filter that out.
     cmd.inputFileName = input.fileName;

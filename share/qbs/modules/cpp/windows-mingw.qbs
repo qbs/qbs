@@ -134,7 +134,7 @@ GenericGCC {
         auxiliaryInputs: ["hpp"]
 
         Artifact {
-            filePath: ".obj/" + Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + "_res.o"
+            filePath: Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + "_res.o"
             fileTags: ["obj"]
         }
 

@@ -183,7 +183,7 @@ Module {
 
         Artifact {
             fileTags: ["wixobj"]
-            filePath: FileInfo.joinPaths(".obj", Utilities.getHash(input.baseDir),
+            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
                                          FileInfo.baseName(input.fileName) + ".wixobj")
         }
 

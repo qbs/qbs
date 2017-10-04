@@ -329,7 +329,7 @@ void TestBlackboxQt::track_qobject_change()
     QCOMPARE(runQbs(), 0);
     const QString productFilePath = relativeExecutableFilePath("i");
     QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
-    QString moc_bla_objectFileName = relativeProductBuildDir("i") + "/.obj/"
+    QString moc_bla_objectFileName = relativeProductBuildDir("i") + '/'
             + inputDirHash("qt.headers") + objectFileName("/moc_bla.cpp", profileName());
     QVERIFY2(regularFileExists(moc_bla_objectFileName), qPrintable(moc_bla_objectFileName));
 

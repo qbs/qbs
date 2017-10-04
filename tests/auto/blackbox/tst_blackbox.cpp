@@ -1171,10 +1171,10 @@ static bool symlinkExists(const QString &linkFilePath)
 
 void TestBlackbox::clean()
 {
-    const QString appObjectFilePath = relativeProductBuildDir("app") + "/.obj/" + inputDirHash(".")
+    const QString appObjectFilePath = relativeProductBuildDir("app") + '/' + inputDirHash(".")
             + objectFileName("/main.cpp", profileName());
     const QString appExeFilePath = relativeExecutableFilePath("app");
-    const QString depObjectFilePath = relativeProductBuildDir("dep") + "/.obj/" + inputDirHash(".")
+    const QString depObjectFilePath = relativeProductBuildDir("dep") + '/' + inputDirHash(".")
             + objectFileName("/dep.cpp", profileName());
     const QString depLibBase = relativeProductBuildDir("dep")
             + '/' + QBS_HOST_DYNAMICLIB_PREFIX + "dep";
@@ -1801,7 +1801,7 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(runQbs(), 0);
 
     // check if the artifacts are here that will become stale in the 2nd step
-    QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/.obj/" + inputDirHash(".")
+    QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + '/' + inputDirHash(".")
                               + objectFileName("/main_foo.cpp", profileName())));
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main_foo.cpp"));
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main.foo"));
@@ -1827,7 +1827,7 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
     // check if stale artifacts have been removed
-    QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/.obj/" + inputDirHash(".")
+    QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + '/' + inputDirHash(".")
                                + objectFileName("/main_foo.cpp", profileName())), false);
     QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/main_foo.cpp"), false);
     QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/main.foo"), false);
@@ -1975,7 +1975,7 @@ void TestBlackbox::reproducibleBuild()
                         + (reproducible ? "true" : "false");
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(params), 0);
-    QFile object(relativeProductBuildDir("the product") + "/.obj/" + inputDirHash(".") + '/'
+    QFile object(relativeProductBuildDir("the product") + '/' + inputDirHash(".") + '/'
                  + objectFileName("file1.cpp", profileName()));
     QVERIFY2(object.open(QIODevice::ReadOnly), qPrintable(object.fileName()));
     const QByteArray oldContents = object.readAll();

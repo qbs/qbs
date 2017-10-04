@@ -538,8 +538,7 @@ CppModule {
                 tags.push("cpp_obj");
             return [{
                 fileTags: tags,
-                filePath: FileInfo.joinPaths(".obj",
-                                             Utilities.getHash(input.baseDir),
+                filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
                                              input.fileName + ".o")
             }];
         }
@@ -555,7 +554,7 @@ CppModule {
 
         Artifact {
             fileTags: ["obj"]
-            filePath: FileInfo.joinPaths(".obj", Utilities.getHash(input.baseDir), input.fileName + ".o")
+            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir), input.fileName + ".o")
         }
 
         prepare: {

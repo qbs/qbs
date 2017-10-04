@@ -142,11 +142,11 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         Artifact {
             fileTags: ['obj']
-            filePath: ".obj/" + Utilities.getHash(input.completeBaseName) + '_c.obj'
+            filePath: Utilities.getHash(input.completeBaseName) + '_c.obj'
         }
         Artifact {
             fileTags: ['c_pch']
-            filePath: ".obj/" + product.name + '_c.pch'
+            filePath: product.name + '_c.pch'
         }
         prepare: {
             return MSVC.prepareCompiler.apply(MSVC, arguments);
@@ -160,11 +160,11 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         Artifact {
             fileTags: ['obj']
-            filePath: ".obj/" + Utilities.getHash(input.completeBaseName) + '_cpp.obj'
+            filePath: Utilities.getHash(input.completeBaseName) + '_cpp.obj'
         }
         Artifact {
             fileTags: ['cpp_pch']
-            filePath: ".obj/" + product.name + '_cpp.pch'
+            filePath: product.name + '_cpp.pch'
         }
         prepare: {
             return MSVC.prepareCompiler.apply(MSVC, arguments);
@@ -179,7 +179,7 @@ CppModule {
 
         Artifact {
             fileTags: ['obj']
-            filePath: ".obj/" + Utilities.getHash(input.baseDir) + "/" + input.fileName + ".obj"
+            filePath: Utilities.getHash(input.baseDir) + "/" + input.fileName + ".obj"
         }
 
         prepare: {
@@ -295,7 +295,7 @@ CppModule {
         auxiliaryInputs: ["hpp"]
 
         Artifact {
-            filePath: ".obj/" + Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + ".res"
+            filePath: Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + ".res"
             fileTags: ["obj"]
         }
 
@@ -354,7 +354,7 @@ CppModule {
     Rule {
         inputs: ["asm"]
         Artifact {
-            filePath: ".obj/" + Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + ".obj"
+            filePath: Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + ".obj"
             fileTags: ["obj"]
         }
         prepare: {
