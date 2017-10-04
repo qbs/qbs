@@ -425,7 +425,16 @@ void CommandLineFrontend::makeClean()
 
 int CommandLineFrontend::runShell()
 {
-    const ProductData productToRun = getTheOneRunnableProduct();
+    ProductData productToRun;
+    switch (m_parser.products().count()) {
+    case 0: // No specific product, use project-global environment.
+        break;
+    case 1:
+        productToRun = productsToUse().values().first().first();
+        break;
+    default:
+        throw ErrorInfo(Tr::tr("The command '%1' cannot take more than one product."));
+    }
     RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
             m_parser.installOptions(m_projects.first().profile()),
             QProcessEnvironment::systemEnvironment(), m_settings);

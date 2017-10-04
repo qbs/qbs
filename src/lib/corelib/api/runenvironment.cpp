@@ -70,9 +70,11 @@ using namespace Internal;
 class RunEnvironment::RunEnvironmentPrivate
 {
 public:
-    RunEnvironmentPrivate(const ResolvedProductPtr &product, const InstallOptions &installOptions,
-            const QProcessEnvironment &environment, Settings *settings, const Logger &logger)
+    RunEnvironmentPrivate(const ResolvedProductPtr &product, const TopLevelProjectConstPtr &project,
+            const InstallOptions &installOptions, const QProcessEnvironment &environment,
+            Settings *settings, const Logger &logger)
         : resolvedProduct(product)
+        , project(project)
         , installOptions(installOptions)
         , environment(environment)
         , settings(settings)
@@ -82,6 +84,7 @@ public:
     }
 
     const ResolvedProductPtr resolvedProduct;
+    const TopLevelProjectConstPtr project;
     InstallOptions installOptions;
     const QProcessEnvironment environment;
     Settings * const settings;
@@ -90,9 +93,9 @@ public:
 };
 
 RunEnvironment::RunEnvironment(const ResolvedProductPtr &product,
-        const InstallOptions &installOptions,
+        const TopLevelProjectConstPtr &project, const InstallOptions &installOptions,
         const QProcessEnvironment &environment, Settings *settings, const Logger &logger)
-    : d(new RunEnvironmentPrivate(product, installOptions, environment, settings, logger))
+    : d(new RunEnvironmentPrivate(product, project, installOptions, environment, settings, logger))
 {
 }
 
@@ -148,11 +151,19 @@ const QProcessEnvironment RunEnvironment::buildEnvironment(ErrorInfo *error) con
 
 int RunEnvironment::doRunShell()
 {
-    d->resolvedProduct->setupBuildEnvironment(&d->engine, d->environment);
+    if (d->resolvedProduct)
+        d->resolvedProduct->setupBuildEnvironment(&d->engine, d->project->environment);
 
-    const QString productId = d->resolvedProduct->name;
-    d->logger.qbsInfo() << Tr::tr("Starting shell for target '%1'.").arg(productId);
-    const QProcessEnvironment environment = d->resolvedProduct->buildEnvironment;
+    const QString productId = d->resolvedProduct ? d->resolvedProduct->name : QString();
+    const QString configName = d->project->id();
+    if (productId.isEmpty()) {
+        d->logger.qbsInfo() << Tr::tr("Starting shell for configuration '%1'.").arg(configName);
+    } else {
+        d->logger.qbsInfo() << Tr::tr("Starting shell for product '%1' in configuration '%2'.")
+                               .arg(productId, configName);
+    }
+    const QProcessEnvironment environment = d->resolvedProduct
+            ? d->resolvedProduct->buildEnvironment : d->project->environment;
 #if defined(Q_OS_LINUX)
     clearenv();
 #endif
@@ -167,15 +178,19 @@ int RunEnvironment::doRunShell()
         const QString prompt = environment.value(QLatin1String("PROMPT"));
         command += QLatin1String(" /k prompt [qbs] ") + prompt;
     } else {
-        const QVariantMap qbsProps = d->resolvedProduct->topLevelProject()->buildConfiguration()
+        const QVariantMap qbsProps =
+                (d->resolvedProduct ? d->resolvedProduct->moduleProperties->value()
+                                    : d->project->buildConfiguration())
                 .value(QLatin1String("qbs")).toMap();
         const QString profileName = qbsProps.value(QLatin1String("profile")).toString();
         command = Preferences(d->settings, profileName).shell();
         if (command.isEmpty())
             command = environment.value(QLatin1String("SHELL"), QLatin1String("/bin/sh"));
 
-        // Yes, we have to use this prcoedure. PS1 is not inherited from the environment.
-        const QString prompt = QLatin1String("qbs ") + productId + QLatin1String(" $ ");
+        // Yes, we have to use this procedure. PS1 is not inherited from the environment.
+        const QString prompt = QLatin1String("qbs ") + configName
+                + (!productId.isEmpty() ? QLatin1Char(' ') + productId : QString())
+                + QLatin1String(" $ ");
         envFile.reset(new QTemporaryFile);
         if (envFile->open()) {
             if (command.endsWith(QLatin1String("bash")))

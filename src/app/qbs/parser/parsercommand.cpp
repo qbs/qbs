@@ -420,9 +420,6 @@ QString ShellCommand::longDescription() const
             .arg(representation());
     description += Tr::tr("Opens a shell in the same environment that a build with the given "
                           "parameters would use.\n");
-    const ProductsOption * const option = optionPool().productsOption();
-    description += Tr::tr("The '%1' option may be omitted if and only if the project has "
-                          "exactly one product.").arg(option->longRepresentation());
     return description += supportedOptionsDescription();
 }
 
@@ -436,10 +433,6 @@ QList<CommandLineOption::Type> ShellCommand::supportedOptions() const
     return QList<CommandLineOption::Type>()
             << CommandLineOption::FileOptionType
             << CommandLineOption::BuildDirectoryOptionType
-            << CommandLineOption::LogLevelOptionType
-            << CommandLineOption::VerboseOptionType
-            << CommandLineOption::QuietOptionType
-            << CommandLineOption::ShowProgressOptionType
             << CommandLineOption::ProductsOptionType;
 }
 

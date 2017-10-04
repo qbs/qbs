@@ -75,6 +75,7 @@ public:
 
 private:
     RunEnvironment(const Internal::ResolvedProductPtr &product,
+                   const Internal::TopLevelProjectConstPtr &project,
                    const InstallOptions &installOptions,
                    const QProcessEnvironment &environment, Settings *settings,
                    const Internal::Logger &logger);

@@ -49,25 +49,9 @@
     \section1 Options
 
     \include cli-options.qdocinc build-directory
-    \include cli-options.qdocinc changed-files
-    \include cli-options.qdocinc check-outputs
-    \include cli-options.qdocinc check-timestamps
-    \include cli-options.qdocinc clean-install-root
-    \include cli-options.qdocinc command-echo-mode
-    \include cli-options.qdocinc dry-run
     \include cli-options.qdocinc project-file
-    \include cli-options.qdocinc force-probe-execution
-    \include cli-options.qdocinc jobs
-    \include cli-options.qdocinc keep-going
-    \include cli-options.qdocinc less-verbose
-    \include cli-options.qdocinc log-level
-    \include cli-options.qdocinc log-time
-    \include cli-options.qdocinc more-verbose
-    \include cli-options.qdocinc no-install
     \include cli-options.qdocinc products-specified
     \include cli-options.qdocinc settings-dir
-    \include cli-options.qdocinc show-progress
-    \include cli-options.qdocinc wait-lock
 
     \section1 Parameters
 
