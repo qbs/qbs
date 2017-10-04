@@ -104,8 +104,9 @@ JSSourceValue::JSSourceValue(const JSSourceValue &other) : Value(other)
     m_baseValue = other.m_baseValue
             ? std::static_pointer_cast<JSSourceValue>(other.m_baseValue->clone())
             : JSSourceValuePtr();
-    for (const Alternative &otherAlt : qAsConst(other.m_alternatives))
-        m_alternatives << otherAlt.clone();
+    m_alternatives.reserve(other.m_alternatives.size());
+    for (const Alternative &otherAlt : other.m_alternatives)
+        m_alternatives.push_back(otherAlt.clone());
 }
 
 JSSourceValuePtr JSSourceValue::create(bool createdByPropertiesBlock)
@@ -155,7 +156,7 @@ void JSSourceValue::setHasFunctionForm(bool b)
 void JSSourceValue::setDefiningItem(Item *item)
 {
     Value::setDefiningItem(item);
-    for (const JSSourceValue::Alternative &a : qAsConst(m_alternatives))
+    for (const JSSourceValue::Alternative &a : m_alternatives)
         a.value->setDefiningItem(item);
 }
 

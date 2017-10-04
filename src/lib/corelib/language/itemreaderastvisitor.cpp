@@ -315,7 +315,7 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
             QBS_CHECK(!sv->baseValue());
             const JSSourceValuePtr baseValue = std::static_pointer_cast<JSSourceValue>(it.value());
             sv->setBaseValue(baseValue);
-            for (const JSSourceValue::Alternative &alt : qAsConst(sv->m_alternatives))
+            for (const JSSourceValue::Alternative &alt : sv->m_alternatives)
                 alt.value->setBaseValue(baseValue);
             break;
         }

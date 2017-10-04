@@ -148,7 +148,7 @@ private:
         QScriptValue conditionScope;
         QScriptValue conditionFileScope;
         Item *outerItem = data->item->outerItem();
-        for (int i = 0; i < value->alternatives().count(); ++i) {
+        for (size_t i = 0; i < value->alternatives().size(); ++i) {
             const JSSourceValue::Alternative *alternative = 0;
             alternative = &value->alternatives().at(i);
             const Evaluator::FileContextScopes fileCtxScopes

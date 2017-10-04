@@ -44,6 +44,8 @@
 #include <tools/codelocation.h>
 #include <QtCore/qvariant.h>
 
+#include <vector>
+
 namespace qbs {
 namespace Internal {
 class Item;
@@ -156,8 +158,8 @@ public:
         JSSourceValuePtr value;
     };
 
-    const QList<Alternative> &alternatives() const { return m_alternatives; }
-    void addAlternative(const Alternative &alternative) { m_alternatives.append(alternative); }
+    const std::vector<Alternative> &alternatives() const { return m_alternatives; }
+    void addAlternative(const Alternative &alternative) { m_alternatives.push_back(alternative); }
 
     void setDefiningItem(Item *item);
 
@@ -168,7 +170,7 @@ private:
     FileContextPtr m_file;
     Flags m_flags;
     JSSourceValuePtr m_baseValue;
-    QList<Alternative> m_alternatives;
+    std::vector<Alternative> m_alternatives;
 };
 
 
