@@ -75,12 +75,13 @@ public:
     void setNext(const ValuePtr &next);
 
     bool createdByPropertiesBlock() const { return m_createdByPropertiesBlock; }
+    void clearCreatedByPropertiesBlock() { m_createdByPropertiesBlock = false; }
 
 private:
     Type m_type;
     Item *m_definingItem;
     ValuePtr m_next;
-    const bool m_createdByPropertiesBlock;
+    bool m_createdByPropertiesBlock;
 };
 
 class ValueHandler
@@ -158,6 +159,7 @@ public:
     const QList<Alternative> &alternatives() const { return m_alternatives; }
     void setAlternatives(const QList<Alternative> &alternatives) { m_alternatives = alternatives; }
     void addAlternative(const Alternative &alternative) { m_alternatives.append(alternative); }
+    void clearAlternatives();
 
     void setDefiningItem(Item *item);
 

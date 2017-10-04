@@ -1988,6 +1988,14 @@ void TestLanguage::propertiesBlocks_data()
             << QString("dummy.defines")
             << (QStringList() << QString("ONE") << QString("TWO"))
             << QString();
+    QTest::newRow("property_append_to_indirect_outer")
+            << QString("dummy.defines")
+            << (QStringList() << QString("ONE") << QString("TWO"))
+            << QString();
+    QTest::newRow("property_append_to_indirect_merged_outer")
+            << QString("dummy.rpaths")
+            << (QStringList() << QString("ONE") << QString("TWO") << QString("$ORIGIN"))
+            << QString();
 
     QTest::newRow("multiple_exclusive_properties")
             << QString("dummy.defines")
