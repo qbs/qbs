@@ -148,9 +148,7 @@ private:
         QScriptValue conditionScope;
         QScriptValue conditionFileScope;
         Item *outerItem = data->item->outerItem();
-        for (size_t i = 0; i < value->alternatives().size(); ++i) {
-            const JSSourceValue::Alternative *alternative = 0;
-            alternative = &value->alternatives().at(i);
+        for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
             const Evaluator::FileContextScopes fileCtxScopes
                     = data->evaluator->fileContextScopes(value->file());
             if (!conditionScopeItem) {
@@ -189,8 +187,8 @@ private:
             }
             scriptContext->pushScope(conditionFileScope);
             pushItemScopes(conditionScopeItem);
-            if (alternative->value->definingItem())
-                pushItemScopes(alternative->value->definingItem());
+            if (alternative.value->definingItem())
+                pushItemScopes(alternative.value->definingItem());
             scriptContext->pushScope(conditionScope);
             const QScriptValue &theImportScope = fileCtxScopes.importScope;
             if (theImportScope.isError()) {
@@ -201,8 +199,8 @@ private:
                 return;
             }
             scriptContext->pushScope(theImportScope);
-            const QScriptValue cr = engine->evaluate(alternative->condition);
-            const QScriptValue overrides = engine->evaluate(alternative->overrideListProperties);
+            const QScriptValue cr = engine->evaluate(alternative.condition);
+            const QScriptValue overrides = engine->evaluate(alternative.overrideListProperties);
             scriptContext->popScope();
             scriptContext->popScope();
             scriptContext->popScope();
@@ -213,7 +211,7 @@ private:
             }
             if (cr.toBool()) {
                 // condition is true, let's use the value of this alternative
-                if (alternative->value->sourceUsesOuter() && !outerItem) {
+                if (alternative.value->sourceUsesOuter() && !outerItem) {
                     // Clone value but without alternatives.
                     JSSourceValuePtr outerValue = JSSourceValue::create();
                     outerValue->setFile(value->file());
@@ -228,7 +226,7 @@ private:
                 }
                 if (overrides.toBool())
                     value->setIsExclusiveListValue();
-                value = alternative->value.get();
+                value = alternative.value.get();
                 break;
             }
         }
