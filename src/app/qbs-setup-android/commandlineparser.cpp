@@ -120,12 +120,10 @@ QString CommandLineParser::usageString() const
                 "<profile name>\n")
             .arg(m_command, settingsDirOption(), ndkDirOption(), sdkDirOption(), qtSdkDirOption());
     s += Tr::tr("    %1 %2|%3\n").arg(m_command, helpOptionShort(), helpOptionLong());
-    s += Tr::tr("If an NDK path is given, additional profiles will be created for each "
-                "architecture supported by the NDK.\n"
-                "Their names will be of the form <main profile name>_<arch name>.\n");
-    s += Tr::tr("If a Qt path is given, these additional profiles will be suitable for building "
-                "Qt binaries for the respective architecture, if the Qt installation has "
-                "support for it.\n");
+    s += Tr::tr("If an NDK path is given, the profile will be suitable for use with Android "
+                "projects that contain native C/C++ code.\n");
+    s += Tr::tr("If a Qt path is also given, the profile will be suitable for developing "
+                "Qt applications for Android.\n");
     return s;
 }
 
