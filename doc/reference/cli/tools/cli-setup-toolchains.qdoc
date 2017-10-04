@@ -1,0 +1,85 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage cli.html
+    \page cli-setup-toolchains.html
+    \ingroup cli
+
+    \title setup-toolchains
+    \brief Creates \QBS profiles for toolchains, such as GCC or MSVC.
+
+    \section1 Synopsis
+
+    \code
+    qbs setup-toolchains [--settings-dir <directory>] --detect
+    qbs setup-toolchains [--settings-dir <directory>] [--type <toolchain type>]
+                         <compiler path> <profile name>
+    \endcode
+
+    \section1 Description
+
+    The first form tries to auto-detect all known toolchains, looking them up
+    via the PATH variable.
+
+    The second form creates a profile with the name \c {<profile name>} for the
+    toolchain located at \c {<compiler path>}. It will attempt to
+    determine the toolchain type automatically based on the file name or the
+    compiler executable. If that fails, you need to provide the compiler type as
+    a value of the \c --type option.
+
+    For more information, see \l{Configuring}.
+
+    \section1 Options
+
+    \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc detect-toolchains
+    \include cli-options.qdocinc type
+    \include cli-options.qdocinc help
+
+    \section1 Examples
+
+    Looks up toolchains via the PATH variable and creates profiles for them:
+
+    \code
+    qbs setup-toolchains --detect
+    \endcode
+
+    Creates a profile called \c mingw for the toolchain located in
+    \c C:\mingw530_32\bin on Windows:
+
+    \code
+    qbs setup-toolchains C:\mingw530_32\bin\g++.exe mingw
+    \endcode
+
+    Creates a profile called \c g++-mingw-w64 for the toolchain located in
+    \c /usr/bin/x86_64-w64-mingw32-g++ g++-mingw-w64 on Ubuntu:
+
+    \code
+    qbs setup-toolchains /usr/bin/x86_64-w64-mingw32-g++ g++-mingw-w64
+    \endcode
+*/

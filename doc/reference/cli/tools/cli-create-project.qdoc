@@ -1,0 +1,72 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage cli.html
+    \page cli-create-project.html
+    \ingroup cli
+
+    \title create-project
+    \brief Creates a \QBS project from an existing set of source files.
+
+    \section1 Synopsis
+
+    \code
+    qbs create-project [--blacklist <blacklist>] [--whitelist <whitelist>]
+                       [--flat]
+    \endcode
+
+    \section1 Description
+
+    Automatically generates \QBS project files from an arbitrary directory
+    structure. You can filter the files to add to the project by blacklisting
+    or whitelisting them. The command creates nested project files, unless you
+    use the \c --flat option.
+
+    This is a useful starting point when migrating from other build tools, such
+    as qmake or CMake.
+
+    \note Run this command from the project directory.
+
+    After generating the initial .qbs files, add the missing configuration
+    variables and functions to them.
+
+    \section1 Options
+
+    \include cli-options.qdocinc blacklist
+    \include cli-options.qdocinc whitelist
+    \include cli-options.qdocinc flat
+    \include cli-options.qdocinc help
+
+    \section1 Examples
+
+    Creates \c .qbs files in the project directory when run from there:
+
+    \code
+    qbs create-project
+    \endcode
+*/

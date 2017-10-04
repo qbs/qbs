@@ -1,0 +1,115 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage cli.html
+    \page cli-build.html
+    \ingroup cli
+
+    \title build
+    \brief Builds a project.
+
+    \section1 Synopsis
+
+    \code
+    qbs build [options] [[configuration-name] [property:value] ...]
+    \endcode
+
+    \section1 Description
+
+    Builds projects in one or more configurations.
+
+    You can specify \l{Project Item}{project}, \l{Product Item}{product}, or
+    \l{List of Modules}{module} properties, as well as a \l{Profile Item}
+    {profile} separately for each configuration.
+
+    This is the default command.
+
+    If the build directory does not exist, it will be created.
+
+    For more information, see \l{Building Applications}.
+
+    \section1 Options
+
+    \include cli-options.qdocinc all-products
+    \include cli-options.qdocinc build-directory
+    \include cli-options.qdocinc changed-files
+    \include cli-options.qdocinc check-outputs
+    \include cli-options.qdocinc check-timestamps
+    \include cli-options.qdocinc clean-install-root
+    \include cli-options.qdocinc command-echo-mode
+    \include cli-options.qdocinc dry-run
+    \include cli-options.qdocinc project-file
+    \include cli-options.qdocinc force-probe-execution
+    \include cli-options.qdocinc jobs
+    \include cli-options.qdocinc keep-going
+    \include cli-options.qdocinc less-verbose
+    \include cli-options.qdocinc log-level
+    \include cli-options.qdocinc log-time
+    \include cli-options.qdocinc more-verbose
+    \include cli-options.qdocinc no-install
+    \include cli-options.qdocinc products-specified
+    \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc show-progress
+    \include cli-options.qdocinc wait-lock
+
+    \section1 Parameters
+
+    \include cli-parameters.qdocinc configuration-name
+    \include cli-parameters.qdocinc property
+
+    \section1 Examples
+
+    Builds the application specified by the \c .qbs file in the current
+    directory using the default profile:
+
+    \code
+    qbs
+    \endcode
+
+    Builds the application using four concurrent build jobs:
+
+    \code
+    qbs -j 4
+    \endcode
+
+    Builds the default configuration of an application using the profile called
+    \c Android:
+
+    \code
+    qbs build profile:Android
+    \endcode
+
+    Builds the application using different \l{Module cpp}{cpp module} properties
+    for debug and release configurations. For the debug configuration, warnings
+    will cause the build to fail, whereas for the release configuration, the
+    size of the build artifacts will be optimized:
+
+    \code
+    qbs build debug modules.cpp.treatWarningsAsErrors:true release modules.cpp.optimization:small
+    \endcode
+*/

@@ -1,0 +1,104 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage cli.html
+    \page cli-config.html
+    \ingroup cli
+
+    \title config
+    \brief Manages \QBS settings, such as preferences and profiles.
+
+    \section1 Synopsis
+
+    \code
+    qbs config [--settings-dir <directory>] [--list [<root> ...]]
+               [--unset <key>] [--export <file>] [--import <file>]
+    qbs config [--settings-dir <directory>] <key>
+    qbs config [--settings-dir <directory>] <key> <value>
+    \endcode
+
+    \section1 Description
+
+    Manages \QBS settings, such as preferences and profiles. You can list all
+    keys and remove the specified key, as well as import settings from a file
+    or export them to a file.
+
+    The second form of this command displays the specified \c <key>.
+
+    The third form sets the specified \c <key> with the specified \c <value>.
+
+    You can use the \l{config-ui} command to open the Qbs Settings tool for
+    managing settings in a hierarchical view.
+
+    For more information, see \l{Configuring}, \l{Managing Qt Versions},
+    \l{Modules}, \l {List of Modules}, and \l{Custom Modules and Items}.
+
+    \section1 Options
+
+    \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc list-root
+    \include cli-options.qdocinc unset
+    \include cli-options.qdocinc export
+    \include cli-options.qdocinc import
+    \include cli-options.qdocinc help
+
+    \section1 Parameters
+
+    \include cli-parameters.qdocinc key
+
+    \section1 Examples
+
+    Lists the existing profiles:
+
+    \code
+    qbs config --list profiles
+    \endcode
+
+    Shows the default profile:
+
+    \code
+    qbs config defaultProfile
+    \endcode
+
+    \note If no output is shown, the default profile used is the built-in
+    profile \c none, which sets no properties.
+
+    Sets the profile called \c gcc as the base profile of the Qt profile called
+    \c myqt:
+
+    \code
+    qbs config profiles.myqt.baseProfile gcc
+    \endcode
+
+    Adds the location of a custom module to your preferences, to make the module
+    accessible in several projects:
+
+    \code
+    qbs config preferences.qbsSearchPaths /usr/local/share/custom-qbs-extensions
+    \endcode
+*/

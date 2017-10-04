@@ -20,6 +20,7 @@ Product {
         "config/style/qt5-sidebar.html",
         "reference/**/*",
         "templates/**/*",
+        "images/**",
     ]
     Group {
         name: "main qdocconf file"

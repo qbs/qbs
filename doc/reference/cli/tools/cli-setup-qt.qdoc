@@ -1,0 +1,75 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage cli.html
+    \page cli-setup-qt.html
+    \ingroup cli
+
+    \title setup-qt
+    \brief Creates \QBS profiles for Qt installations.
+
+    \section1 Synopsis
+
+    \code
+    qbs setup-qt [--settings-dir <directory>] --detect
+    qbs setup-qt [--settings-dir <directory>] <path to qmake> <profile name>
+    \endcode
+
+    \section1 Description
+
+    Creates \QBS profiles for Qt installations.
+
+    The first form tries to auto-detect all known Qt versions, looking them up
+    via the PATH variable.
+
+    The second form creates a profile with the name \c {<profile name>} for the
+    Qt version located at \c {<path to qmake>}.
+
+    For more information, see \l{Managing Qt Versions}.
+
+    \section1 Options
+
+    \include cli-options.qdocinc detect-qt-versions
+    \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc help
+
+    \section1 Examples
+
+    Looks up Qt versions in the PATH and creates profiles for them:
+
+    \code
+    qbs setup-qt --detect
+    \endcode
+
+    Creates a profile called \c myqt for the Qt version located in
+    \c /usr/bin/qmake:
+
+    \code
+    qbs setup-qt /usr/bin/qmake myqt
+    \endcode
+*/

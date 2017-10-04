@@ -1,0 +1,461 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+
+//! [all-products]
+
+    \section2 \c --all-products
+
+    Processes all \l{Product Item}{products}, even if their \c builtByDefault
+    property is \c false.
+
+//! [all-products]
+
+//! [blacklist]
+
+    \section2 \c {--blacklist <blacklist>}
+
+    Ignores files whose names match the patterns specified by \c <blacklist>.
+    The list entries can contain wildcards and are separated by commas.
+
+    By default, no files are ignored.
+
+//! [blacklist]
+
+//! [build-directory]
+
+    \section2 \c {--build-directory|-d <directory>}
+
+    Specifies a \c <directory> where build artifacts are stored.
+
+    The default value is the current directory unless
+    \c preferences.defaultBuildDirectory is set.
+
+    Relative paths will be interpreted relative to the current directory.
+
+    You can use the following special values as placeholders:
+
+    \list
+        \li \c @project is expanded to the name of the project file excluding
+            the extension \c .qbs.
+        \li \c @path is expanded to the name of the directory containing the
+            project file.
+    \endlist
+
+//! [build-directory]
+
+//! [changed-files]
+
+    \section2 \c {--changed-files <file>[,<file>...]}
+
+    Assumes that the files specified by \c <file>, and only those files, have
+    changed.
+
+//! [changed-files]
+
+//! [check-outputs]
+
+    \section2 \c --check-outputs
+
+    Forces transformer output \l{Artifact Item}{artifact} checks.
+
+    Verifies that the output artifacts declared by \l{Rule Item}{rules} in the
+    \l{Project Item}{project} are actually created.
+
+//! [check-outputs]
+
+//! [check-timestamps]
+
+    \section2 \c --check-timestamps
+
+    Forces timestamp checks.
+
+    Retrieves the timestamps from the file system, instead of using the file
+    timestamps that are stored in the build graph.
+
+//! [check-timestamps]
+
+//! [clean-install-root]
+
+    \section2 \c --clean-install-root
+
+    Removes the installation base directory before installing.
+
+//! [clean-install-root]
+
+//! [command-echo-mode]
+
+    \section2 \c {--command-echo-mode <mode>}
+
+    Determines what kind of output to show when executing commands.
+
+    Possible values of \c <mode> are:
+
+    \list
+        \li \c silent
+        \li \c summary (default value)
+        \li \c command-line
+        \li \c command-line-with-environment
+    \endlist
+
+//! [command-echo-mode]
+
+//! [detect-qt-versions]
+
+    \section2 \c --detect
+
+    Attempts to auto-detect all known Qt versions, looking them up in the PATH
+    environment variable.
+
+//! [detect-qt-versions]
+
+//! [detect-toolchains]
+
+    \section2 \c --detect
+
+    Attempts to auto-detect all known toolchains, looking them up in the PATH
+    environment variable.
+
+//! [detect-toolchains]
+
+//! [dry-run]
+
+    \section2 \c --dry-run|-n
+
+    Performs a dry run. No commands will be executed and no permanent changes to
+    the build graph will be done.
+
+//! [dry-run]
+
+//! [export]
+
+    \section2 \c {--export <file>}
+
+    Exports settings to the specified \c <file>.
+
+//! [export]
+
+//! [project-file]
+
+    \section2 \c {[--file|-f <file>]}
+
+    Uses \c <file> as the project file. If \c <file> is a directory and it
+    contains a single file with the extension \c .qbs, that file will be used.
+
+    If this option is not given at all, the behavior is the same as for
+    \c{-f <working-dir>}.
+
+//! [project-file]
+
+//! [flat]
+
+    \section2 \c --flat
+
+    Does not create nested project files, even if there are subdirectories and
+    the top-level directory does not contain any files.
+
+//! [flat]
+
+//! [force-probe-execution]
+
+    \section2 \c --force-probe-execution
+
+    Forces re-execution of all \l{Probe Item}{Probe items}' configure scripts,
+    rather than using the cached data.
+
+//! [force-probe-execution]
+
+//! [generator]
+
+    \section2 \c {--generator|-g <generator>}
+
+    Uses the specified build system generator.
+
+    Possible values of \c <generator> include:
+
+    \list
+        \li \c clangdb
+        \li \c visualstudio2015
+    \endlist
+
+    The available generators are listed if you run the \c {qbs generate} command
+    without passing a generator to it.
+
+//! [generator]
+
+//! [help]
+
+    \section2 \c {--help|-h|-?}
+
+    Displays help for the command.
+
+//! [help]
+
+//! [import]
+
+    \section2 \c {--import <file>}
+
+    Imports settings from the specified \c <file>.
+
+//! [import]
+
+//! [install-root]
+
+    \section2 \c {--install-root <directory>}
+
+    Installs into the specified \c <directory>. If the directory does not exist,
+    it will be created.
+
+    The default value is \c <build dir>/install-root.
+
+    Use the special value \c @sysroot to install into the \c sysroot. That is,
+    the value of the \l{Module qbs}{qbs.sysroot} property.
+
+//! [install-root]
+
+//! [jobs]
+
+    \section2 \c {--jobs|-j <n>}
+
+    Uses \c <n> concurrent build jobs, where \c <n> must be an integer greater
+    than zero.
+
+    The default is the number of logical cores.
+
+//! [jobs]
+
+//! [keep-going]
+
+    \section2 \c --keep-going|-k
+
+    Keeps going when errors occur, if at all possible.
+
+//! [keep-going]
+
+//! [less-verbose]
+
+    \section2 \c --less-verbose|-q
+
+    Becomes more quiet by decreasing the log level by one. This option can be
+    given more than once. Excessive occurrences have no effect.
+
+    If the option \c --log-level appears anywhere on the command line in
+    addition to this option, its value is taken as the base for the decrease.
+
+//! [less-verbose]
+
+//! [list-root]
+
+    \section2 \c {--list [<root> ...]}
+
+    Lists keys under the key \c <root> or all keys if the root is not specified.
+
+    Possible values are:
+
+    \list
+        \li \c defaultProfile is the default \l{Profile Item}{profile} to use
+            if a profile is not specified
+        \li \c preferences accepts build preferences as second-level keys
+        \li \c profiles accepts profile names as second-level keys
+
+    \endlist
+
+//! [list-root]
+
+//! [log-level]
+
+    \section2 \c {--log-level <level>}
+
+    Uses the specified log level.
+
+    Possible values of \c <level> are:
+
+    \list
+        \li \c error
+        \li \c warning
+        \li \c info (default value)
+        \li \c debug
+        \li \c trace
+   \endlist
+
+//! [log-level]
+
+//! [log-time]
+
+    \section2 \c --log-time
+
+    Logs the time that the operations involved in this command take.
+
+    This option is implied in log levels \c debug and higher.
+
+    This option is mutually exclusive with \c --show-progress.
+
+//! [log-time]
+
+//! [more-verbose]
+
+    \section2 \c --more-verbose|-v
+
+    Becomes more verbose by increasing the log level by one. This option can be
+    given more than once. Excessive occurrences have no effect.
+
+    If the option \c --log-level appears anywhere on the command line in
+    addition to this option, its value is taken as the base for the increase.
+
+//! [more-verbose]
+
+//! [ndk-dir]
+
+    \section2 \c {--ndk-dir <directory>}
+
+    Specifies a \c <directory> that contains an Android NDK.
+
+//! [ndk-dir]
+
+//! [no-build]
+
+    \section2 \c --no-build
+
+    Does not re-build the project before installing or running it.
+
+//! [no-build]
+
+//! [no-install]
+
+    \section2 \c --no-install
+
+    Does not install any artifacts as part of the build process.
+
+//! [no-install]
+
+//! [products-specified]
+
+    \section2 \c {--products|-p <name>[,<name>...]}
+
+    Takes only the \l{Product Item}{products} specified by \c <name> and their
+    dependencies into account.
+
+//! [products-specified]
+
+//! [qt-dir]
+
+    \section2 \c {--qt-dir <directory>}
+
+    Specifies a \c <directory> that contains a Qt version.
+
+//! [qt-dir]
+
+//! [sdk-dir]
+
+    \section2 \c {--sdk-dir <directory>}
+
+    Specifies a \c <directory> that contains an Android SDK.
+
+//! [sdk-dir]
+
+//! [settings-dir]
+
+    \section2 \c {--settings-dir <directory>}
+
+    Reads all settings (such as \l{Profile Item}{profile} information) from the
+    specified \c <directory>. If the directory does not exist, it will be
+    created.
+
+    The default value is system-specific. For example:
+
+    \list
+        \li Linux: \c $HOME/.config/QtProject/qbs
+        \li Windows: \c %APPDATA%\QtProject\qbs
+        \li macOS: \c $HOME/Library/Preferences/qbs
+    \endlist
+
+//! [settings-dir]
+
+//! [show-progress]
+
+    \section2 \c --show-progress
+
+    Shows how command execution is progressing.
+
+    This option is mutually exclusive with \c --log-time.
+
+    \note This option is not available on a Windows host.
+
+//! [show-progress]
+
+//! [type]
+
+    \section2 \c {--type <toolchain type>}
+
+    Specifies the type of the toolchain. Needed if \QBS cannot determine the
+    compiler from the name of the executable file located in the specified
+    directory.
+
+    Possible values include:
+
+    \list
+        \li \c clang
+        \li \c gcc
+        \li \c mingw
+        \li \c msvc
+     \endlist
+
+//! [type]
+
+//! [unset]
+
+    \section2 \c {--unset <key>}
+
+    Removes the specified \c <key>.
+
+//! [unset]
+
+//! [wait-lock]
+
+    \section2 \c --wait-lock
+
+    Waits indefinitely for other processes to release the build graph lock.
+
+    This option is typically used by \l{Generators}{generators}, which may
+    re-invoke multiple \QBS processes on the same project simultaneously.
+
+//! [wait-lock]
+
+//! [whitelist]
+
+    \section2 \c {--whitelist <whitelist>}
+
+    Considers only files whose names match the patterns specified by
+    \c <whitelist>. The list entries can contain wildcards and are separated by
+    commas.
+
+    By default, all files are considered.
+
+//! [whitelist]
+
+*/
