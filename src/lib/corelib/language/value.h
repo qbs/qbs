@@ -157,7 +157,6 @@ public:
     };
 
     const QList<Alternative> &alternatives() const { return m_alternatives; }
-    void setAlternatives(const QList<Alternative> &alternatives) { m_alternatives = alternatives; }
     void addAlternative(const Alternative &alternative) { m_alternatives.append(alternative); }
 
     void setDefiningItem(Item *item);
