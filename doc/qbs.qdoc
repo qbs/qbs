@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -82,7 +82,8 @@
            \endlist
 
        \li  \l{Appendix A: Building Qbs}
-       \li  \l{Appendix B: Code Attributions}
+       \li  \l{Appendix B: Migrating from Other Build Systems}
+       \li  \l{Appendix C: Code Attributions}
     \endlist
 */
 
@@ -335,7 +336,7 @@
     \contentspage index.html
     \previouspage reference.html
     \page building-qbs.html
-    \nextpage attributions.html
+    \nextpage porting-to-qbs.html
 
     \title Appendix A: Building Qbs
 
@@ -1414,10 +1415,10 @@
 
 /*!
     \contentspage index.html
-    \previouspage building-qbs.html
+    \previouspage porting-to-qbs.html
     \page attributions.html
 
-    \title Appendix B: Code Attributions
+    \title Appendix C: Code Attributions
 
     \QBS contains third-party code, which we gratefully acknowledge:
     \generatelist{groupsbymodule attributions-qbs}
