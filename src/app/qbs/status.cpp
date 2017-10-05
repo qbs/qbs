@@ -156,11 +156,11 @@ int printStatus(const ProjectData &project)
 
     qbsInfo() << "\nMissing files:";
     foreach (const QString &untrackedFile, missingFiles)
-        qbsInfo() << untrackedFile.mid(projectDirectoryPathLength + 1);
+        qbsInfo() << "    " << untrackedFile.mid(projectDirectoryPathLength + 1);
 
     qbsInfo() << "\nUntracked files:";
     foreach (const QString &missingFile, untrackedFilesInProject)
-        qbsInfo() << missingFile.mid(projectDirectoryPathLength + 1);
+        qbsInfo() << "    " << missingFile.mid(projectDirectoryPathLength + 1);
 
     return 0;
 }

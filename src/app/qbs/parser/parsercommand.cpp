@@ -443,8 +443,7 @@ QString StatusCommand::shortDescription() const
 
 QString StatusCommand::longDescription() const
 {
-    QString description = Tr::tr(
-                "qbs %1 [options] [configuration-name] [property:value] ...\n")
+    QString description = Tr::tr("qbs %1 [options] [configuration-name]\n")
             .arg(representation());
     description += Tr::tr("Lists all the files in the project directory and shows whether "
                           "they are known to qbs in the respective configuration.\n");
@@ -458,13 +457,7 @@ QString StatusCommand::representation() const
 
 QList<CommandLineOption::Type> StatusCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>()
-            << CommandLineOption::FileOptionType
-            << CommandLineOption::BuildDirectoryOptionType
-            << CommandLineOption::LogLevelOptionType
-            << CommandLineOption::VerboseOptionType
-            << CommandLineOption::QuietOptionType
-            << CommandLineOption::ShowProgressOptionType;
+    return QList<CommandLineOption::Type>({CommandLineOption::BuildDirectoryOptionType});
 }
 
 QString UpdateTimestampsCommand::shortDescription() const

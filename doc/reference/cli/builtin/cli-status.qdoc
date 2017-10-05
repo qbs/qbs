@@ -36,7 +36,7 @@
     \section1 Synopsis
 
     \code
-    qbs status [options] [configuration-name] [property:value]
+    qbs status [options] [configuration-name]
     \endcode
 
     \section1 Description
@@ -47,16 +47,11 @@
     \section1 Options
 
     \include cli-options.qdocinc build-directory
-    \include cli-options.qdocinc project-file
-    \include cli-options.qdocinc less-verbose
-    \include cli-options.qdocinc log-level
-    \include cli-options.qdocinc more-verbose
     \include cli-options.qdocinc settings-dir
 
     \section1 Parameters
 
     \include cli-parameters.qdocinc configuration-name
-    \include cli-parameters.qdocinc property
 
     \section1 Examples
 

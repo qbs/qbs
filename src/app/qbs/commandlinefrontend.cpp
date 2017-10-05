@@ -151,7 +151,8 @@ void CommandLineFrontend::start()
         params.setOverrideBuildGraphData(m_parser.command() == ResolveCommandType);
         params.setPropertyCheckingMode(ErrorHandlingMode::Strict);
         if (!m_parser.buildBeforeInstalling() || m_parser.command() == DumpNodesTreeCommandType
-                || m_parser.command() == CleanCommandType) {
+                || m_parser.command() == CleanCommandType
+                || m_parser.command() == StatusCommandType) {
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         }
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
