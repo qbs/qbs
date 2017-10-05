@@ -37,6 +37,7 @@
     \list
     \li \l{How do I build a Qt-based project?}
     \li \l{How do I make my app build against my library?}
+    \li \l{How do I create a module for a third-party library?}
     \li \l{How do I create application bundles and frameworks on iOS, macOS, tvOS, and watchOS?}
     \endlist
 
@@ -102,6 +103,61 @@
           \l{Project Item}{Project item}'s \c references property to pull them into the project.
           The product definitions would stay exactly the same. In particular, their location
           in the project tree is irrelevant to the relationship between them.
+
+    \section1 How do I create a module for a third-party library?
+
+    If you have pre-built binary files in your source tree, you can create
+    modules for them and then introduce dependencies between your project and
+    the modules to pull in the functionality of a third-party library.
+
+    Create the following folder structure to store the module files:
+
+    \code
+    $projectroot/modules/ThirdParty
+    \endcode
+
+    Then create a file in the directory that specifies the module properties
+    for each supported toolchain. The filename must have the \c .qbs extension.
+    The module will be pulled in if a product declares a dependency on it.
+
+    In the following example, \c lib1.dylib is a multi-architecture library
+    containing both 32-bit and 64-bit code.
+
+    \code
+    ---ThirdParty.qbs---
+
+    Module {
+        Depends { name: "cpp" }
+        cpp.includePaths: ["/somewhere/include"]
+        Properties {
+            condition: qbs.targetOS.contains("android")
+            cpp.dynamicLibraries: ["/somewhere/android/" + Android.ndk.abi + "/lib1.so"]
+        }
+        Properties {
+            condition: qbs.targetOS.contains("macos")
+            cpp.dynamicLibraries: ["/somewhere/macos/lib1.dylib"]
+        }
+        Properties {
+            condition: qbs.targetOS.contains("windows") && qbs.architecture === "x86"
+            cpp.dynamicLibraries: ["/somewhere/windows_x86/lib1.lib"]
+        }
+        Properties {
+            condition: qbs.targetOS.contains("windows") && qbs.architecture === "x86_64"
+            cpp.dynamicLibraries: ["/somewhere/windows_x86_64/lib1.lib"]
+        }
+    }
+    \endcode
+
+    Finally, declare dependencies on \c ThirdParty in your project:
+
+    \code
+    import qbs
+    CppApplication {
+        name: "the-app"
+        files: ["main.cpp"]
+        Depends { name: "ThirdParty" }
+    }
+    \endcode
 
     \section1 How do I create application bundles and frameworks on iOS, macOS, tvOS, and watchOS?
 
