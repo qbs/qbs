@@ -68,11 +68,12 @@ private:
     void doEndVisit();
     void indent();
     void unindent();
+    bool doVisit(BuildGraphNode *node, const QString &nodeRepr);
     QByteArray indentation() const;
 
     QIODevice &m_outDevice;
     ResolvedProductPtr m_currentProduct;
-    ArtifactSet m_visited;
+    NodeSet m_visited;
     unsigned int m_indentation;
 };
 

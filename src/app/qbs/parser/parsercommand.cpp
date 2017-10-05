@@ -502,8 +502,7 @@ QString DumpNodesTreeCommand::shortDescription() const
 
 QString DumpNodesTreeCommand::longDescription() const
 {
-    QString description = Tr::tr(
-                "qbs %1 [options] [[configuration-name] [property:value] ...] ...\n")
+    QString description = Tr::tr("qbs %1 [options] [configuration-name] ...\n")
             .arg(representation());
     description += Tr::tr("Internal command; for debugging purposes only.\n");
     return description += supportedOptionsDescription();
@@ -517,10 +516,6 @@ QString DumpNodesTreeCommand::representation() const
 QList<CommandLineOption::Type> DumpNodesTreeCommand::supportedOptions() const
 {
     return QList<CommandLineOption::Type>()
-            << CommandLineOption::LogLevelOptionType
-            << CommandLineOption::VerboseOptionType
-            << CommandLineOption::QuietOptionType
-            << CommandLineOption::FileOptionType
             << CommandLineOption::BuildDirectoryOptionType
             << CommandLineOption::ProductsOptionType;
 }

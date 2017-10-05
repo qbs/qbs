@@ -73,11 +73,7 @@ void NodeTreeDumper::start(const QList<ResolvedProductPtr> &products)
 
 bool NodeTreeDumper::visit(Artifact *artifact)
 {
-    m_outDevice.write(indentation());
-    m_outDevice.write(artifact->fileName().toLocal8Bit());
-    indent();
-    const bool wasVisited = !m_visited.insert(artifact).second;
-    return !wasVisited && artifact->product == m_currentProduct;
+    return doVisit(artifact, artifact->fileName());
 }
 
 void NodeTreeDumper::endVisit(Artifact *artifact)
@@ -88,10 +84,7 @@ void NodeTreeDumper::endVisit(Artifact *artifact)
 
 bool NodeTreeDumper::visit(RuleNode *rule)
 {
-    m_outDevice.write(indentation());
-    m_outDevice.write(rule->toString().toLocal8Bit());
-    indent();
-    return true;
+    return doVisit(rule, rule->toString());
 }
 
 void NodeTreeDumper::endVisit(RuleNode *rule)
@@ -114,6 +107,15 @@ void NodeTreeDumper::indent()
 void NodeTreeDumper::unindent()
 {
     m_indentation -= indentWidth();
+}
+
+bool NodeTreeDumper::doVisit(BuildGraphNode *node, const QString &nodeRepr)
+{
+    m_outDevice.write(indentation());
+    m_outDevice.write(nodeRepr.toLocal8Bit());
+    indent();
+    const bool wasVisited = !m_visited.insert(node).second;
+    return !wasVisited && node->product == m_currentProduct;
 }
 
 QByteArray NodeTreeDumper::indentation() const
