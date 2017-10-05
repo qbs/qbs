@@ -52,8 +52,9 @@ namespace Internal {
 
 static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE_107";
 
-NoBuildGraphError::NoBuildGraphError()
-    : ErrorInfo(Tr::tr("No build graph exists yet for this configuration."))
+NoBuildGraphError::NoBuildGraphError(const QString &filePath)
+    : ErrorInfo(Tr::tr("Build graph not found for configuration '%1'. Expected location was '%2'.")
+                .arg(FileInfo::completeBaseName(filePath), QDir::toNativeSeparators(filePath)))
 {
 }
 
@@ -72,7 +73,7 @@ void PersistentPool::load(const QString &filePath)
 {
     QScopedPointer<QFile> file(new QFile(filePath));
     if (!file->exists())
-        throw NoBuildGraphError();
+        throw NoBuildGraphError(filePath);
     if (!file->open(QFile::ReadOnly)) {
         throw ErrorInfo(Tr::tr("Could not open open build graph file '%1': %2")
                     .arg(filePath, file->errorString()));

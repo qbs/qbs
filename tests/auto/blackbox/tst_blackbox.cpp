@@ -32,6 +32,7 @@
 
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
+#include <tools/qttools.h>
 #include <tools/shellutils.h>
 #include <tools/version.h>
 
@@ -4311,7 +4312,7 @@ void TestBlackbox::installedApp()
     rmDirR(relativeBuildDir());
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("No build graph"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.contains("Build graph not found"), m_qbsStderr.constData());
 }
 
 void TestBlackbox::installDuplicates()
@@ -4995,6 +4996,38 @@ void TestBlackbox::minimumSystemVersion_data()
     if (HostOsInfo::isMacosHost())
         QTest::newRow("macappstore") << "macappstore" << "__MAC_OS_X_VERSION_MIN_REQUIRED=1068\n"
                                                          "version 10.6";
+}
+
+void TestBlackbox::missingBuildGraph()
+{
+    QTemporaryDir tmpDir;
+    QVERIFY(tmpDir.isValid());
+    QDir::setCurrent(tmpDir.path());
+    QFETCH(QString, configName);
+    const QStringList commands({"clean", "dump-nodes-tree", "status", "update-timestamps"});
+    const QString actualConfigName = configName.isEmpty() ? QString("default") : configName;
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments << actualConfigName;
+    for (const QString &command : qAsConst(commands)) {
+        params.command = command;
+        QVERIFY2(runQbs(params) != 0, qPrintable(command));
+        const QString expectedErrorMessage = QString("Build graph not found for "
+                                                     "configuration '%1'").arg(actualConfigName);
+        if (!m_qbsStderr.contains(expectedErrorMessage.toLocal8Bit())) {
+            qDebug() << command;
+            qDebug() << expectedErrorMessage;
+            qDebug() << m_qbsStderr;
+            QFAIL("unexpected error message");
+        }
+    }
+}
+
+void TestBlackbox::missingBuildGraph_data()
+{
+    QTest::addColumn<QString>("configName");
+    QTest::newRow("implicit config name") << QString();
+    QTest::newRow("explicit config name") << QString("customConfig");
 }
 
 void TestBlackbox::missingDependency()

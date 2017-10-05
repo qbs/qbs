@@ -130,6 +130,8 @@ private slots:
     void localDeployment();
     void minimumSystemVersion();
     void minimumSystemVersion_data();
+    void missingBuildGraph();
+    void missingBuildGraph_data();
     void missingDependency();
     void missingProjectFile();
     void missingOverridePrefix();

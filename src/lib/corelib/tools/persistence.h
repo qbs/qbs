@@ -60,7 +60,7 @@ namespace Internal {
 class NoBuildGraphError : public ErrorInfo
 {
 public:
-    NoBuildGraphError();
+    NoBuildGraphError(const QString &filePath);
 };
 
 class PersistentPool
