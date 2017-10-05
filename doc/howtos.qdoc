@@ -39,6 +39,7 @@
     \li \l{How do I make my app build against my library?}
     \li \l{How do I create a module for a third-party library?}
     \li \l{How do I create application bundles and frameworks on iOS, macOS, tvOS, and watchOS?}
+    \li \l{How do I apply C/C++ preprocessor macros to only a subset of the files in my product?}
     \endlist
 
     \section1 How do I build a Qt-based project?
@@ -207,4 +208,48 @@
     Building your application against your framework is the same as linking a normal dynamic or
     static library; see the \l{How do I make my app build against my library?} section for an
     example.
+
+    \section1 How do I apply C/C++ preprocessor macros to only a subset of the files in my product?
+
+    Use a \l{Group Item}{Group item} to define a subset of project files. To add
+    macros within the group, you need to use the \c outer.concat property,
+    because you are adding macros to those specified in the outer scope.
+
+    In the following example, \c MACRO_EVERYWHERE is defined for all files in
+    the \l{Product Item}{Product} unless a \c Group overrides the macro, whereas
+    \c MACRO_GROUP is only defined for \c groupFile.cpp.
+
+    \code
+    Product {
+        Depends { name: "cpp" }
+        cpp.defines: ["MACRO_EVERYWHERE"]
+        Group {
+            cpp.defines: outer.concat("MACRO_GROUP")
+            files: "groupFile.cpp"
+        }
+    }
+    \endcode
+
+    The \c cpp.defines statements inside a \c Group only apply to the files in
+    that \c Group, and therefore you cannot use a \c Group to include a bunch of
+    files and globally visible macros. The macros must be specified in a
+    \l{Properties Item}{Properties item} at the same level as the \c Group if
+    they need to be visible to files outside the \c Group:
+
+    \code
+    Product {
+        Depends { name: "cpp" }
+        Group {
+            condition: project.supportMyFeature
+            files: "myFile.cpp"
+        }
+
+        property stringList commonDefines: ["ONE", "TWO"]
+
+        Properties {
+            condition: project.supportMyFeature
+            cpp.defines: commonDefines.concat("MYFEATURE_SUPPORTED")
+        }
+    }
+    \endcode
 */
