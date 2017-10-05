@@ -468,7 +468,7 @@ QString UpdateTimestampsCommand::shortDescription() const
 QString UpdateTimestampsCommand::longDescription() const
 {
     QString description = Tr::tr(
-                "qbs %1 [options] [[configuration-name] [property:value] ...] ...\n")
+                "qbs %1 [options] [configuration-name] ...\n")
             .arg(representation());
     description += Tr::tr("Update the timestamps of all build artifacts, causing the next "
             "builds of the project to do nothing if no updates to source files happen in between.\n"
@@ -487,7 +487,6 @@ QString UpdateTimestampsCommand::representation() const
 QList<CommandLineOption::Type> UpdateTimestampsCommand::supportedOptions() const
 {
     return QList<CommandLineOption::Type>()
-            << CommandLineOption::FileOptionType
             << CommandLineOption::BuildDirectoryOptionType
             << CommandLineOption::LogLevelOptionType
             << CommandLineOption::VerboseOptionType

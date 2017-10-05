@@ -152,7 +152,8 @@ void CommandLineFrontend::start()
         params.setPropertyCheckingMode(ErrorHandlingMode::Strict);
         if (!m_parser.buildBeforeInstalling() || m_parser.command() == DumpNodesTreeCommandType
                 || m_parser.command() == CleanCommandType
-                || m_parser.command() == StatusCommandType) {
+                || m_parser.command() == StatusCommandType
+                || m_parser.command() == UpdateTimestampsCommandType) {
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         }
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
