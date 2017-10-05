@@ -57,6 +57,7 @@ public:
 
     void parse(QStringList &input);
     QStringList additionalArguments() const { return m_additionalArguments; }
+    bool canResolve() const;
 
 protected:
     Command(CommandLineOptionPool &optionPool) : m_optionPool(optionPool) {}

@@ -275,6 +275,11 @@ QString CommandLineParser::commandName() const
     return d->command->representation();
 }
 
+bool CommandLineParser::commandCanResolve() const
+{
+    return d->command->canResolve();
+}
+
 QString CommandLineParser::commandDescription() const
 {
     return d->command->longDescription();

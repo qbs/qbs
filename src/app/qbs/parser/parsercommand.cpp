@@ -63,6 +63,11 @@ void Command::parse(QStringList &input)
         throwError(Tr::tr("Extraneous input '%1'").arg(input.join(QLatin1Char(' '))));
 }
 
+bool Command::canResolve() const
+{
+    return supportedOptions().contains(CommandLineOption::FileOptionType);
+}
+
 void Command::addAllToAdditionalArguments(QStringList &input)
 {
     while (!input.isEmpty())

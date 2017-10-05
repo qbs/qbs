@@ -63,6 +63,7 @@ public:
 
     CommandType command() const;
     QString commandName() const;
+    bool commandCanResolve() const;
     QString commandDescription() const;
     QString projectFilePath() const;
     QString projectBuildDirectory() const;

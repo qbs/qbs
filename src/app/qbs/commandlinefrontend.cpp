@@ -150,12 +150,8 @@ void CommandLineFrontend::start()
         params.setSettingsDirectory(m_settings->baseDirectory());
         params.setOverrideBuildGraphData(m_parser.command() == ResolveCommandType);
         params.setPropertyCheckingMode(ErrorHandlingMode::Strict);
-        if (!m_parser.buildBeforeInstalling() || m_parser.command() == DumpNodesTreeCommandType
-                || m_parser.command() == CleanCommandType
-                || m_parser.command() == StatusCommandType
-                || m_parser.command() == UpdateTimestampsCommandType) {
+        if (!m_parser.buildBeforeInstalling() || !m_parser.commandCanResolve())
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
-        }
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
             QVariantMap userConfig = buildConfig;
             const QString configurationKey = QLatin1String("qbs.configurationName");
