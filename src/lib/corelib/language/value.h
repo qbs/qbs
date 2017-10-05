@@ -78,6 +78,7 @@ public:
 
     bool createdByPropertiesBlock() const { return m_createdByPropertiesBlock; }
     void setCreatedByPropertiesBlock(bool b) { m_createdByPropertiesBlock = b; }
+    void clearCreatedByPropertiesBlock() { m_createdByPropertiesBlock = false; }
 
 private:
     Type m_type;
@@ -160,6 +161,7 @@ public:
 
     const std::vector<Alternative> &alternatives() const { return m_alternatives; }
     void addAlternative(const Alternative &alternative) { m_alternatives.push_back(alternative); }
+    void clearAlternatives();
 
     void setDefiningItem(Item *item);
 

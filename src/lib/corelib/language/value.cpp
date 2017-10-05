@@ -153,6 +153,11 @@ void JSSourceValue::setHasFunctionForm(bool b)
         m_flags &= ~HasFunctionForm;
 }
 
+void JSSourceValue::clearAlternatives()
+{
+    m_alternatives.clear();
+}
+
 void JSSourceValue::setDefiningItem(Item *item)
 {
     Value::setDefiningItem(item);

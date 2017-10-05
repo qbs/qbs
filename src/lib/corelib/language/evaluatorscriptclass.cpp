@@ -213,14 +213,11 @@ private:
                 // condition is true, let's use the value of this alternative
                 if (alternative.value->sourceUsesOuter() && !outerItem) {
                     // Clone value but without alternatives.
-                    JSSourceValuePtr outerValue = JSSourceValue::create();
-                    outerValue->setFile(value->file());
-                    outerValue->setHasFunctionForm(value->hasFunctionForm());
-                    outerValue->setSourceCode(value->sourceCode());
-                    outerValue->setBaseValue(value->baseValue());
-                    if (value->sourceUsesBase())
-                        outerValue->setSourceUsesBaseFlag();
-                    outerValue->setLocation(value->line(), value->column());
+                    JSSourceValuePtr outerValue =
+                            std::static_pointer_cast<JSSourceValue>(value->clone());
+                    outerValue->setNext(ValuePtr());
+                    outerValue->clearCreatedByPropertiesBlock();
+                    outerValue->clearAlternatives();
                     outerItem = Item::create(data->item->pool(), ItemType::Outer);
                     outerItem->setProperty(propertyName->toString(), outerValue);
                 }
