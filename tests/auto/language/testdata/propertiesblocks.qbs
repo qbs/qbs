@@ -37,6 +37,26 @@ Project {
         }
     }
     Product {
+        name: "property_append_to_indirect_outer"
+        Depends { name: "dummy" }
+        property stringList myDefines: ["ONE"]
+        dummy.defines: myDefines
+        Properties {
+            condition: true
+            dummy.defines: outer.concat(["TWO"])
+        }
+    }
+    Product {
+        name: "property_append_to_indirect_merged_outer"
+        Depends { name: "dummy" }
+        property string justOne: "ONE"
+        dummy.rpaths: [justOne]
+        Properties {
+            condition: true
+            dummy.rpaths: outer.concat(["TWO"])
+        }
+    }
+    Product {
         name: "multiple_exclusive_properties"
         Depends { name: "dummy" }
         dummy.defines: ["SOMETHING"]
