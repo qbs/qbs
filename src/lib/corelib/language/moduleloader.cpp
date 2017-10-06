@@ -2302,12 +2302,6 @@ ModuleLoader::ProductModuleInfo *ModuleLoader::productModule(ProductContext *pro
     return &productContext->project->topLevelProject->productModules[name];
 }
 
-ModuleLoader::ProductModuleInfo *ModuleLoader::productModule(ProductContext *productContext,
-                                                             const Item::Module &module)
-{
-    return module.isProduct ? productModule(productContext, module.name.toString()) : nullptr;
-}
-
 ModuleLoader::ProductContext *ModuleLoader::product(ProjectContext *projectContext,
                                                     const QString &name)
 {

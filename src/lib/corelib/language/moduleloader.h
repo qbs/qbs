@@ -273,8 +273,6 @@ private:
     QVariantMap extractParameters(Item *dependsItem) const;
     Item *moduleInstanceItem(Item *containerItem, const QualifiedId &moduleName);
     static ProductModuleInfo *productModule(ProductContext *productContext, const QString &name);
-    static ProductModuleInfo *productModule(ProductContext *productContext,
-                                            const Item::Module &module);
     static ProductContext *product(ProjectContext *projectContext, const QString &name);
     static ProductContext *product(TopLevelProjectContext *tlpContext, const QString &name);
     Item *loadModule(ProductContext *productContext, Item *exportingProductItem, Item *item,
