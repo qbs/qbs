@@ -45,6 +45,7 @@
 
 #if defined(_WIN32)
 #include <codecvt>
+#include <locale>
 #define QBS_RENAME_IMPL ::_wrename
 typedef std::wstring qbs_filesystem_path_string_type;
 #else
