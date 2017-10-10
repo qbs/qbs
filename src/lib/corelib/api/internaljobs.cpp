@@ -82,7 +82,6 @@ private:
             m_timedLogger = new TimedActivityLogger(m_job->logger(), task, true);
         m_value = 0;
         m_maximum = maximum;
-        m_canceled = false;
         emit m_job->newTaskStarted(task, maximum, m_job);
     }
 
