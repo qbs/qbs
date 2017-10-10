@@ -47,6 +47,7 @@
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qdir.h>
 #include <QtCore/qprocess.h>
 #include <QtNetwork/qlocalserver.h>
 
@@ -146,8 +147,12 @@ void LauncherInterface::handleNewConnection()
 
 void LauncherInterface::handleProcessError()
 {
-    if (m_process->error() == QProcess::FailedToStart)
-        handleProcessFinished();
+    if (m_process->error() == QProcess::FailedToStart) {
+        const QString launcherPathForUser
+                = QDir::toNativeSeparators(QDir::cleanPath(m_process->program()));
+        emit errorOccurred(ErrorInfo(Tr::tr("Failed to start process launcher at '%1': %2")
+                                     .arg(launcherPathForUser, m_process->errorString())));
+    }
 }
 
 void LauncherInterface::handleProcessFinished()
