@@ -85,7 +85,7 @@ bool VsEnvironmentDetector::start(std::vector<MSVC *> msvcs)
 
     std::vector<MSVC *> compatibleMSVCs;
     QString lastVcInstallPath;
-    for (MSVC * const msvc : qAsConst(msvcs)) {
+    for (MSVC * const msvc : msvcs) {
         if (lastVcInstallPath != msvc->vcInstallPath) {
             lastVcInstallPath = msvc->vcInstallPath;
             if (!compatibleMSVCs.empty()) {
