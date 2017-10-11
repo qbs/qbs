@@ -63,6 +63,8 @@
 #include <QtCore/qscopedpointer.h>
 #include <QtCore/qtimer.h>
 
+#include <mutex>
+
 namespace qbs {
 namespace Internal {
 
@@ -72,7 +74,11 @@ public:
     JobObserver(InternalJob *job) : m_canceled(false), m_job(job), m_timedLogger(0) { }
     ~JobObserver() { delete m_timedLogger; }
 
-    void cancel() { m_canceled = true; }
+    void cancel()
+    {
+        std::lock_guard<std::mutex> lock(m_cancelMutex);
+        m_canceled = true;
+    }
 
 private:
     void initialize(const QString &task, int maximum) override
@@ -105,10 +111,15 @@ private:
 
     int progressValue() override { return m_value; }
     int maximum() const override { return m_maximum; }
-    bool canceled() const override { return m_canceled; }
+    bool canceled() const override
+    {
+        std::lock_guard<std::mutex> lock(m_cancelMutex);
+        return m_canceled;
+    }
 
     int m_value;
     int m_maximum;
+    mutable std::mutex m_cancelMutex;
     bool m_canceled;
     InternalJob * const m_job;
     TimedActivityLogger *m_timedLogger;
