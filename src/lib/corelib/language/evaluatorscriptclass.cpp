@@ -304,12 +304,10 @@ enum QueryPropertyType
     QPTParentProperty
 };
 
-EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Logger &logger)
+EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine)
     : QScriptClass(scriptEngine)
-    , m_logger(logger)
     , m_valueCacheEnabled(false)
 {
-    Q_UNUSED(m_logger);
 }
 
 QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue &object,

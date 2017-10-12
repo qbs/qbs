@@ -43,7 +43,6 @@
 #include "forward_decls.h"
 #include "qualifiedid.h"
 
-#include <logging/logger.h>
 #include <tools/set.h>
 
 #include <QtScript/qscriptclass.h>
@@ -63,7 +62,7 @@ class ScriptEngine;
 class EvaluatorScriptClass : public QScriptClass
 {
 public:
-    EvaluatorScriptClass(ScriptEngine *scriptEngine, const Logger &logger);
+    EvaluatorScriptClass(ScriptEngine *scriptEngine);
 
     QueryFlags queryProperty(const QScriptValue &object,
                              const QScriptString &name,
@@ -113,7 +112,6 @@ private:
         ValuePtr value;
     };
     QueryResult m_queryResult;
-    const Logger &m_logger;
     bool m_valueCacheEnabled;
     Set<Value *> m_currentNextChain;
     PropertyDependencies m_propertyDependencies;
