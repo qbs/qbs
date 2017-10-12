@@ -56,7 +56,6 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qprocess.h>
 #include <QtCore/qprocess.h>
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qvariant.h>
 
@@ -170,7 +169,6 @@ int RunEnvironment::doRunShell()
     for (const QString &key : environment.keys())
         qputenv(key.toLocal8Bit().constData(), environment.value(key).toLocal8Bit());
     QString command;
-    QScopedPointer<QTemporaryFile> envFile;
     if (HostOsInfo::isWindowsHost()) {
         command = environment.value(QLatin1String("COMSPEC"));
         if (command.isEmpty())
@@ -191,14 +189,14 @@ int RunEnvironment::doRunShell()
         const QString prompt = QLatin1String("qbs ") + configName
                 + (!productId.isEmpty() ? QLatin1Char(' ') + productId : QString())
                 + QLatin1String(" $ ");
-        envFile.reset(new QTemporaryFile);
-        if (envFile->open()) {
+        QTemporaryFile envFile;
+        if (envFile.open()) {
             if (command.endsWith(QLatin1String("bash")))
                 command += QLatin1String(" --posix"); // Teach bash some manners.
             const QString promptLine = QLatin1String("PS1='") + prompt + QLatin1String("'\n");
-            envFile->write(promptLine.toLocal8Bit());
-            envFile->close();
-            qputenv("ENV", envFile->fileName().toLocal8Bit());
+            envFile.write(promptLine.toLocal8Bit());
+            envFile.close();
+            qputenv("ENV", envFile.fileName().toLocal8Bit());
         } else {
             d->logger.qbsWarning() << Tr::tr("Setting custom shell prompt failed.");
         }
