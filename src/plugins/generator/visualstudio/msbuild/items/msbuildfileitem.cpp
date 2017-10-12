@@ -36,7 +36,7 @@ namespace qbs {
 class MSBuildFileItemPrivate
 {
 public:
-    QScopedPointer<MSBuildItemMetadata> filter;
+    std::unique_ptr<MSBuildItemMetadata> filter;
 };
 
 MSBuildFileItem::MSBuildFileItem(const QString &name, IMSBuildItemGroup *parent)

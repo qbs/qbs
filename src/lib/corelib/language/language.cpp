@@ -579,7 +579,7 @@ void ResolvedProduct::store(PersistentPool &pool) const
     pool.store(groups);
     pool.store(artifactProperties);
     pool.store(probes);
-    pool.store(buildData.data());
+    pool.store(buildData.get());
 }
 
 QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*, QList<const ResolvedModule*> > &moduleChildren,
@@ -836,7 +836,7 @@ static QStringList findGeneratedFiles(const Artifact *base, bool recursive, cons
 QStringList ResolvedProduct::generatedFiles(const QString &baseFile, bool recursive,
                                             const FileTags &tags) const
 {
-    ProductBuildData *data = buildData.data();
+    ProductBuildData *data = buildData.get();
     if (!data)
         return QStringList();
 
@@ -1061,7 +1061,7 @@ void TopLevelProject::store(PersistentPool &pool) const
     pool.store(buildSystemFiles);
     pool.store(lastResolveTime);
     pool.store(warningsEncountered);
-    pool.store(buildData.data());
+    pool.store(buildData.get());
 }
 
 /*!

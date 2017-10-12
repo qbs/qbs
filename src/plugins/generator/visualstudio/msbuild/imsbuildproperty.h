@@ -32,8 +32,9 @@
 #define IMSBUILDPROPERTY_H
 
 #include <QtCore/qobject.h>
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qvariant.h>
+
+#include <memory>
 
 namespace qbs {
 
@@ -58,7 +59,7 @@ public:
     void setValue(const QVariant &value);
 
 private:
-    QScopedPointer<IMSBuildPropertyPrivate> d;
+    std::unique_ptr<IMSBuildPropertyPrivate> d;
 };
 
 } // namespace qbs

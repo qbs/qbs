@@ -63,10 +63,9 @@
 #include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
-#include <QtCore/qscopedpointer.h>
-
 #include <QtScript/qscriptvalueiterator.h>
 
+#include <memory>
 #include <vector>
 
 namespace qbs {
@@ -357,12 +356,12 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         m_invalidatedArtifacts += outputArtifact;
         m_transformer->rescueChangeTrackingData(outputArtifact->transformer);
     } else {
-        QScopedPointer<Artifact> newArtifact(new Artifact);
+        std::unique_ptr<Artifact> newArtifact(new Artifact);
         newArtifact->artifactType = Artifact::Generated;
         newArtifact->setFilePath(outputPath);
-        insertArtifact(m_product, newArtifact.data());
-        m_createdArtifacts += newArtifact.data();
-        outputArtifact = newArtifact.take();
+        insertArtifact(m_product, newArtifact.get());
+        m_createdArtifacts += newArtifact.get();
+        outputArtifact = newArtifact.release();
     }
 
     outputArtifact->alwaysUpdated = alwaysUpdated;

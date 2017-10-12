@@ -60,7 +60,7 @@ public:
     void setSourceControlFiles(bool sourceControlFiles);
 
 private:
-    QScopedPointer<MSBuildFilterPrivate> d;
+    std::unique_ptr<MSBuildFilterPrivate> d;
 };
 
 } // namespace qbs

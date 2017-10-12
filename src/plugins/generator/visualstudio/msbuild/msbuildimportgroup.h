@@ -58,7 +58,7 @@ public:
     void accept(IMSBuildNodeVisitor *visitor) const;
 
 private:
-    QScopedPointer<MSBuildImportGroupPrivate> d;
+    std::unique_ptr<MSBuildImportGroupPrivate> d;
 };
 
 } // namespace qbs

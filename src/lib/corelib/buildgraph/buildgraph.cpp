@@ -458,7 +458,7 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product,
 Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &dirPath,
                          const QString &fileName, bool compareByName)
 {
-    return lookupArtifact(product, product->topLevelProject()->buildData.data(), dirPath, fileName,
+    return lookupArtifact(product, product->topLevelProject()->buildData.get(), dirPath, fileName,
                           compareByName);
 }
 
@@ -515,7 +515,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
     qCDebug(lcBuildGraph) << "Sanity checking product" << product->uniqueName();
     CycleDetector cycleDetector(logger);
     cycleDetector.visitProduct(product);
-    const ProductBuildData * const buildData = product->buildData.data();
+    const ProductBuildData * const buildData = product->buildData.get();
     qCDebug(lcBuildGraph) << "enabled:" << product->enabled << "build data:" << buildData;
     QBS_CHECK(!!product->enabled == !!buildData);
     if (!product->enabled)
@@ -533,7 +533,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
         for (BuildGraphNode * const child : qAsConst(node->children)) {
             QBS_CHECK(child->parents.contains(node));
             QBS_CHECK(!child->product.expired());
-            QBS_CHECK(!child->product->buildData.isNull());
+            QBS_CHECK(child->product->buildData);
             QBS_CHECK(child->product->buildData->nodes.contains(child));
             QBS_CHECK(allProducts.contains(child->product.lock()));
         }

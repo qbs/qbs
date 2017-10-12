@@ -60,7 +60,6 @@
 #include <tools/qbsassert.h>
 
 #include <QtCore/qeventloop.h>
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qtimer.h>
 
 #include <mutex>

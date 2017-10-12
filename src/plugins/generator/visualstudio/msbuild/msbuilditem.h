@@ -34,6 +34,8 @@
 #include <QtCore/qobject.h>
 #include "imsbuildnode.h"
 
+#include <memory>
+
 namespace qbs {
 
 class IMSBuildItemGroup;
@@ -64,7 +66,7 @@ public:
     void accept(IMSBuildNodeVisitor *visitor) const;
 
 private:
-    QScopedPointer<MSBuildItemPrivate> d;
+    std::unique_ptr<MSBuildItemPrivate> d;
 };
 
 } // namespace qbs

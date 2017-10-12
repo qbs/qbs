@@ -34,6 +34,8 @@
 #include "imsbuildgroup.h"
 #include "imsbuildnode.h"
 
+#include <memory>
+
 namespace qbs {
 
 class MSBuildProject;
@@ -58,7 +60,7 @@ public:
     void accept(IMSBuildNodeVisitor *visitor) const;
 
 private:
-    QScopedPointer<MSBuildItemGroupPrivate> d;
+    std::unique_ptr<MSBuildItemGroupPrivate> d;
 };
 
 } // namespace qbs

@@ -33,6 +33,8 @@
 #include "imsbuildnodevisitor.h"
 #include "msbuilditem.h"
 
+#include <memory>
+
 namespace qbs {
 
 class MSBuildItemGroupPrivate

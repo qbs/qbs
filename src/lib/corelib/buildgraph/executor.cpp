@@ -743,7 +743,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         for (const RescuableArtifactData::ChildData &cd : qAsConst(rad.children)) {
             pseudoProduct->name = cd.productName;
             pseudoProduct->multiplexConfigurationId = cd.productMultiplexId;
-            Artifact * const child = lookupArtifact(pseudoProduct, m_project->buildData.data(),
+            Artifact * const child = lookupArtifact(pseudoProduct, m_project->buildData.get(),
                                                     cd.childFilePath, true);
             if (artifact->children.contains(child))
                 continue;

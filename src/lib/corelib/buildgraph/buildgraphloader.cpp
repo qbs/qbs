@@ -352,7 +352,7 @@ void BuildGraphLoader::trackProjectChanges()
     std::shared_ptr<ProjectBuildData> oldBuildData;
     ChildListHash childLists;
     if (!changedProducts.isEmpty()) {
-        oldBuildData = std::make_shared<ProjectBuildData>(restoredProject->buildData.data());
+        oldBuildData = std::make_shared<ProjectBuildData>(restoredProject->buildData.get());
         for (const ResolvedProductConstPtr &product : qAsConst(allRestoredProducts)) {
             if (!product->buildData)
                 continue;
@@ -376,7 +376,7 @@ void BuildGraphLoader::trackProjectChanges()
         ResolvedProductPtr freshProduct = freshProductsByName.value(product->uniqueName());
         if (!freshProduct)
             continue;
-        onProductRemoved(product, product->topLevelProject()->buildData.data(), false);
+        onProductRemoved(product, product->topLevelProject()->buildData.get(), false);
         if (product->buildData) {
             rescuableArtifactData.insert(product->uniqueName(),
                                          product->buildData->rescuableArtifactData);
@@ -411,7 +411,7 @@ void BuildGraphLoader::trackProjectChanges()
     // Products still left in the list do not exist anymore.
     for (const ResolvedProductPtr &removedProduct : qAsConst(allRestoredProducts)) {
         changedProducts.removeOne(removedProduct);
-        onProductRemoved(removedProduct, m_result.newlyResolvedProject->buildData.data());
+        onProductRemoved(removedProduct, m_result.newlyResolvedProject->buildData.get());
     }
 
     // Products still left in the list need resolving, either because they are new

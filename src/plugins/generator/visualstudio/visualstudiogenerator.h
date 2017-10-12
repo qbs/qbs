@@ -72,7 +72,7 @@ private:
     void addPropertySheets(const GeneratableProject &project);
     void addPropertySheets(const std::shared_ptr<MSBuildTargetProject> &targetProject);
 
-    QScopedPointer<VisualStudioGeneratorPrivate> d;
+    std::unique_ptr<VisualStudioGeneratorPrivate> d;
 };
 
 } // namespace qbs

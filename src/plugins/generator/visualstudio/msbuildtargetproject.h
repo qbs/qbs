@@ -65,7 +65,7 @@ public:
     void appendPropertySheet(const QString &path, bool optional = false);
 
 private:
-    QScopedPointer<MSBuildTargetProjectPrivate> d;
+    std::unique_ptr<MSBuildTargetProjectPrivate> d;
 };
 
 } // namespace qbs

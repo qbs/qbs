@@ -58,10 +58,10 @@ using namespace CPlusPlus;
 
 #include <QtCore/qbytearray.h>
 #include <QtCore/qlist.h>
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qstring.h>
 
 #include <cstring>
+#include <memory>
 
 struct ScanResult
 {
@@ -203,7 +203,7 @@ static void scanCppFile(void *opaq, CPlusPlus::Lexer &yylex, bool scanForFileTag
 
 static void *openScanner(const unsigned short *filePath, const char *fileTags, int flags)
 {
-    QScopedPointer<Opaq> opaque(new Opaq);
+    std::unique_ptr<Opaq> opaque(new Opaq);
     opaque->fileName = QString::fromUtf16(filePath);
     const int fileTagsLength = static_cast<int>(std::strlen(fileTags));
     const QList<QByteArray> &tagList = QByteArray::fromRawData(fileTags, fileTagsLength).split(',');
@@ -249,8 +249,8 @@ static void *openScanner(const unsigned short *filePath, const char *fileTags, i
 
     opaque->fileContent = reinterpret_cast<char *>(vmap);
     CPlusPlus::Lexer lex(opaque->fileContent, opaque->fileContent + mapl);
-    scanCppFile(opaque.data(), lex, flags & ScanForFileTagsFlag, flags & ScanForDependenciesFlag);
-    return opaque.take();
+    scanCppFile(opaque.get(), lex, flags & ScanForFileTagsFlag, flags & ScanForDependenciesFlag);
+    return opaque.release();
 }
 
 static void closeScanner(void *ptr)

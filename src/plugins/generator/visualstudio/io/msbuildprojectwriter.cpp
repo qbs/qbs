@@ -53,7 +53,7 @@ class MSBuildProjectWriterPrivate : public IMSBuildNodeVisitor
 public:
     std::ostream *device;
     QByteArray buffer;
-    QScopedPointer<QXmlStreamWriter> writer;
+    std::unique_ptr<QXmlStreamWriter> writer;
 
     void visitStart(const MSBuildImport *import) override;
     void visitEnd(const MSBuildImport *import) override;

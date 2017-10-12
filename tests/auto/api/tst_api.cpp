@@ -43,7 +43,6 @@
 #include <QtCore/qeventloop.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qthread.h>
 #include <QtCore/qtimer.h>
@@ -217,9 +216,9 @@ void TestApi::addedFilePersistent()
     projectFile.resize(0);
     projectFile.write(addedFileContent);
     projectFile.flush();
-    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params, m_logSink,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params, m_logSink,
                                                                               0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     setupJob.reset(0);
 
@@ -239,7 +238,7 @@ void TestApi::addedFilePersistent()
     projectFile.write(addedFileContent);
     projectFile.close();
     setupJob.reset(qbs::Project().setupProject(params, m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     setupJob.reset(0);
 
@@ -264,9 +263,9 @@ void TestApi::buildGraphInfo()
             = defaultSetupParameters("buildgraph-info");
     setupParams.setTopLevelProfile(p.p.name());
     setupParams.setOverriddenValues({std::make_pair("qbs.architecture", "arm")});
-    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     const QString bgFilePath = setupParams.buildRoot() + QLatin1Char('/')
             + relativeBuildGraphFilePath();
@@ -308,16 +307,16 @@ void TestApi::buildGraphLocking()
 {
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters("buildgraph-locking");
-    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     const qbs::Project project = setupJob->project();
     Q_UNUSED(project);
 
     // Case 1: Setting up a competing project from scratch.
     setupJob.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY(setupJob->error().hasError());
     QVERIFY2(setupJob->error().toString().contains("lock"),
              qPrintable(setupJob->error().toString()));
@@ -326,7 +325,7 @@ void TestApi::buildGraphLocking()
     qbs::SetupProjectParameters setupParams2 = setupParams;
     setupParams2.setBuildRoot(setupParams.buildRoot() + "/2");
     setupJob.reset(qbs::Project().setupProject(setupParams2, m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     const QString buildDirName = relativeBuildDir(setupParams2.configurationName());
     const QString lockFile = setupParams2.buildRoot() + '/' + buildDirName + '/' + buildDirName
@@ -335,7 +334,7 @@ void TestApi::buildGraphLocking()
     qbs::Project project2 = setupJob->project();
     QVERIFY(project2.isValid());
     setupJob.reset(project2.setupProject(setupParams, m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY(setupJob->error().hasError());
     QVERIFY2(setupJob->error().toString().contains("lock"),
              qPrintable(setupJob->error().toString()));
@@ -345,7 +344,7 @@ void TestApi::buildGraphLocking()
     qbs::SetupProjectParameters setupParams3 = setupParams2;
     setupParams3.setBuildRoot(setupParams.buildRoot() + "/3");
     setupJob.reset(qbs::Project().setupProject(setupParams3, m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     project2 = qbs::Project();
     QVERIFY2(!QFileInfo(lockFile).exists(), qPrintable(lockFile));
@@ -359,7 +358,7 @@ void TestApi::buildGraphLocking()
     setupJob.reset(project3.setupProject(setupParams2, m_logSink, 0));
     QThread::sleep(1);
     setupJob->cancel();
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY(setupJob->error().hasError());
     QVERIFY2(!QFileInfo(lockFile).exists(), qPrintable(lockFile));
     QVERIFY2(QFileInfo(newLockFile).isFile(), qPrintable(newLockFile));
@@ -486,20 +485,20 @@ void TestApi::buildSingleFile()
 {
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters("build-single-file");
-    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     qbs::BuildOptions options;
     options.setFilesToConsider(QStringList(setupParams.buildRoot() + "/compiled.cpp"));
     options.setActiveFileTags(QStringList("obj"));
     m_logSink->setLogLevel(qbs::LoggerMaxLevel);
-    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(options));
+    std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(options));
     BuildDescriptionReceiver receiver;
-    connect(buildJob.data(), &qbs::BuildJob::reportCommandDescription, &receiver,
+    connect(buildJob.get(), &qbs::BuildJob::reportCommandDescription, &receiver,
             &BuildDescriptionReceiver::handleDescription);
-    waitForFinished(buildJob.data());
+    waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QCOMPARE(receiver.descriptions.count("compiling"), 2);
     QCOMPARE(receiver.descriptions.count("precompiling"), 1);
@@ -650,9 +649,9 @@ static void printProjectData(const qbs::ProjectData &project)
 void TestApi::changeContent()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-editing");
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     qbs::Project project = job->project();
     qbs::ProjectData projectData = project.projectData();
@@ -840,11 +839,11 @@ void TestApi::changeContent()
     qbs::BuildOptions buildOptions;
     buildOptions.setDryRun(true);
     BuildDescriptionReceiver rcvr;
-    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions, defaultProducts(),
+    std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions, defaultProducts(),
                                                                     this));
-    connect(buildJob.data(), &qbs::BuildJob::reportCommandDescription,
+    connect(buildJob.get(), &qbs::BuildJob::reportCommandDescription,
             &rcvr, &BuildDescriptionReceiver::handleDescription);
-    waitForFinished(buildJob.data());
+    waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QVERIFY(rcvr.descriptions.contains("compiling file.cpp"));
     QVERIFY(!rcvr.descriptions.contains("compiling main.cpp"));
@@ -852,7 +851,7 @@ void TestApi::changeContent()
     // Now check whether the data updates were done correctly.
     projectData = project.projectData();
     job.reset(project.setupProject(setupParams, m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     project = job->project();
     qbs::ProjectData newProjectData = project.projectData();
@@ -872,9 +871,9 @@ void TestApi::changeContent()
 
     // Now try building again and check if the newly resolved product behaves the same way.
     buildJob.reset(project.buildAllProducts(buildOptions, defaultProducts(), this));
-    connect(buildJob.data(), &qbs::BuildJob::reportCommandDescription,
+    connect(buildJob.get(), &qbs::BuildJob::reportCommandDescription,
             &rcvr, &BuildDescriptionReceiver::handleDescription);
-    waitForFinished(buildJob.data());
+    waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QVERIFY(rcvr.descriptions.contains("compiling file.cpp"));
     QVERIFY(!rcvr.descriptions.contains("compiling main.cpp"));
@@ -887,7 +886,7 @@ void TestApi::changeContent()
     errorInfo = project.addGroup(newProjectData.products().first(), "blubb");
     QVERIFY(errorInfo.hasError());
     QVERIFY2(errorInfo.toString().contains("in process"), qPrintable(errorInfo.toString()));
-    waitForFinished(buildJob.data());
+    waitForFinished(buildJob.get());
     errorInfo = project.addGroup(newProjectData.products().first(), "blubb");
     VERIFY_NO_ERROR(errorInfo);
 
@@ -900,7 +899,7 @@ void TestApi::changeContent()
         "/project-editing/project-with-no-files.qbs"));
 
     job.reset(project.setupProject(setupParams, m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     project = job->project();
     projectData = project.projectData();
@@ -911,13 +910,13 @@ void TestApi::changeContent()
     projectData = project.projectData();
     rcvr.descriptions.clear();
     buildJob.reset(project.buildAllProducts(buildOptions, defaultProducts(), this));
-    connect(buildJob.data(), &qbs::BuildJob::reportCommandDescription,
+    connect(buildJob.get(), &qbs::BuildJob::reportCommandDescription,
             &rcvr, &BuildDescriptionReceiver::handleDescription);
-    waitForFinished(buildJob.data());
+    waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QVERIFY(rcvr.descriptions.contains("compiling main.cpp"));
     job.reset(project.setupProject(setupParams, m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     // Can't use Project::operator== here, as the target artifacts will differ due to the build
     // not having run yet.
@@ -938,9 +937,9 @@ void TestApi::changeContent()
 void TestApi::commandExtraction()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("/command-extraction");
-    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     qbs::ProjectData projectData = project.projectData();
@@ -959,8 +958,8 @@ void TestApi::commandExtraction()
 
     qbs::BuildOptions options;
     options.setDryRun(true);
-    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(options));
-    waitForFinished(buildJob.data());
+    std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(options));
+    waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
@@ -1035,9 +1034,9 @@ void TestApi::errorInSetupRunEnvironment()
 {
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters("error-in-setup-run-environment");
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     const qbs::Project project = job->project();
     QVERIFY(project.isValid());
@@ -1063,8 +1062,8 @@ static qbs::ErrorInfo forceRuleEvaluation(const qbs::Project project)
 {
     qbs::BuildOptions buildOptions;
     buildOptions.setDryRun(true);
-    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions));
-    waitForFinished(buildJob.data());
+    std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions));
+    waitForFinished(buildJob.get());
     return buildJob->error();
 }
 
@@ -1072,9 +1071,9 @@ void TestApi::disabledInstallGroup()
 {
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters("disabled_install_group");
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     const qbs::Project project = job->project();
 
@@ -1194,9 +1193,9 @@ void TestApi::fileTagsFilterOverride()
 {
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters("filetagsfilter_override");
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                          m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     qbs::Project project = job->project();
 
@@ -1215,15 +1214,15 @@ void TestApi::generatedFilesList()
 {
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters("generated-files-list");
-    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
-    QVERIFY(waitForFinished(setupJob.data()));
+    QVERIFY(waitForFinished(setupJob.get()));
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     qbs::BuildOptions options;
     options.setExecuteRulesOnly(true);
-    const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(options));
-    QVERIFY(waitForFinished(buildJob.data()));
+    const std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(options));
+    QVERIFY(waitForFinished(buildJob.get()));
     VERIFY_NO_ERROR(buildJob->error());
     const qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.products().count(), 1);
@@ -1270,14 +1269,14 @@ void TestApi::infiniteLoopBuilding()
     QFETCH(QString, projectDirName);
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters(projectDirName + "/infinite-loop.qbs");
-    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
-    const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
-    QTimer::singleShot(1000, buildJob.data(), &qbs::AbstractJob::cancel);
-    QVERIFY(waitForFinished(buildJob.data(), testTimeoutInMsecs()));
+    const std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
+    QTimer::singleShot(1000, buildJob.get(), &qbs::AbstractJob::cancel);
+    QVERIFY(waitForFinished(buildJob.get(), testTimeoutInMsecs()));
     QVERIFY(buildJob->error().hasError());
 }
 
@@ -1291,10 +1290,10 @@ void TestApi::infiniteLoopBuilding_data()
 void TestApi::infiniteLoopResolving()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("infinite-loop-resolving");
-    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
-    QTimer::singleShot(1000, setupJob.data(), &qbs::AbstractJob::cancel);
-    QVERIFY(waitForFinished(setupJob.data(), testTimeoutInMsecs()));
+    QTimer::singleShot(1000, setupJob.get(), &qbs::AbstractJob::cancel);
+    QVERIFY(waitForFinished(setupJob.get(), testTimeoutInMsecs()));
     QVERIFY2(setupJob->error().toString().toLower().contains("cancel"),
              qPrintable(setupJob->error().toString()));
 }
@@ -1337,9 +1336,9 @@ void TestApi::installableFiles()
     QVariantMap overriddenValues;
     overriddenValues.insert(QLatin1String("qbs.installRoot"), QLatin1String("/tmp"));
     setupParams.setOverriddenValues(overriddenValues);
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                          m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     qbs::Project project = job->project();
 
@@ -1368,7 +1367,7 @@ void TestApi::installableFiles()
     setupParams  = defaultSetupParameters("recursive-wildcards");
     setupParams.setOverriddenValues(overriddenValues);
     job.reset(project.setupProject(setupParams, m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     project = job->project();
     projectData = project.projectData();
@@ -1387,9 +1386,9 @@ void TestApi::installableFiles()
 void TestApi::isRunnable()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("is-runnable");
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     qbs::Project project = job->project();
     const QList<qbs::ProductData> products = project.projectData().products();
@@ -1477,9 +1476,9 @@ void TestApi::listBuildSystemFiles()
 {
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters("subprojects/toplevelproject.qbs");
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     const auto buildSystemFiles = qbs::Internal::Set<QString>::fromStdSet(
                 job->project().buildSystemFiles());
@@ -1496,14 +1495,14 @@ void TestApi::localProfiles()
             = defaultSetupParameters("local-profiles/local-profiles.qbs");
     setupParams.setOverriddenValues(
         {std::make_pair(QString("project.enableProfiles"), enableProfiles)});
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     QString taskDescriptions;
     const auto taskDescHandler = [&taskDescriptions](const QString &desc, int, qbs::AbstractJob *) {
         taskDescriptions += '\n' + desc;
     };
-    connect(job.data(), &qbs::AbstractJob::taskStarted, taskDescHandler);
-    waitForFinished(job.data());
+    connect(job.get(), &qbs::AbstractJob::taskStarted, taskDescHandler);
+    waitForFinished(job.get());
     const QString error = job->error().toString();
     QVERIFY2(job->error().hasError() == !enableProfiles, qPrintable(error));
     if (!enableProfiles) {
@@ -1569,8 +1568,8 @@ void TestApi::localProfiles()
 
     taskDescriptions.clear();
     job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
-    connect(job.data(), &qbs::AbstractJob::taskStarted, taskDescHandler);
-    waitForFinished(job.data());
+    connect(job.get(), &qbs::AbstractJob::taskStarted, taskDescHandler);
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     QVERIFY2(!taskDescriptions.contains("Resolving"), qPrintable(taskDescriptions));
 
@@ -1583,7 +1582,7 @@ void TestApi::localProfiles()
     projectFile.write(content);
     projectFile.close();
     job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     project = job->project().projectData();
     products = project.allProducts();
@@ -1615,9 +1614,9 @@ void TestApi::missingSourceFile()
             = defaultSetupParameters("missing-source-file/missing-source-file.qbs");
     setupParams.setProductErrorMode(qbs::ErrorHandlingMode::Relaxed);
     m_logSink->setLogLevel(qbs::LoggerMinLevel);
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     qbs::ProjectData project = job->project().projectData();
     QCOMPARE(project.allProducts().count(), 1);
@@ -1628,7 +1627,7 @@ void TestApi::missingSourceFile()
 
     QFile::rename("file2.txt.missing", "file2.txt");
     job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     project = job->project().projectData();
     QCOMPARE(project.allProducts().count(), 1);
@@ -1679,9 +1678,9 @@ void TestApi::multiArch()
     overriddenValues.insert("project.hostProfile", hostProfile.name());
     overriddenValues.insert("project.targetProfile", targetProfile.name());
     setupParams.setOverriddenValues(overriddenValues);
-    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     QCOMPARE(project.profile(), profileName());
@@ -1709,8 +1708,8 @@ void TestApi::multiArch()
     const QString p2HostMultiplexCfgId = hostProducts.at(1).multiplexConfigurationId();
     const QString p1TargetMultiplexCfgId = targetProducts.at(0).multiplexConfigurationId();
 
-    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
-    waitForFinished(buildJob.data());
+    std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
+    waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     const QString outputBaseDir = setupParams.buildRoot() + '/';
     QFile p1HostArtifact(outputBaseDir
@@ -1734,8 +1733,8 @@ void TestApi::multiArch()
 
     const QString installRoot = outputBaseDir + relativeBuildDir() + '/'
             + qbs::InstallOptions::defaultInstallRoot();
-    QScopedPointer<qbs::InstallJob> installJob(project.installAllProducts(qbs::InstallOptions()));
-    waitForFinished(installJob.data());
+    std::unique_ptr<qbs::InstallJob> installJob(project.installAllProducts(qbs::InstallOptions()));
+    waitForFinished(installJob.get());
     QVERIFY2(!installJob->error().hasError(), qPrintable(installJob->error().toString()));
     QFile p1HostArtifactInstalled(installRoot + "/host/host+target.output");
     QVERIFY2(p1HostArtifactInstalled.exists(), qPrintable(p1HostArtifactInstalled.fileName()));
@@ -1748,7 +1747,7 @@ void TestApi::multiArch()
     overriddenValues.insert("project.targetProfile", hostProfile.name());
     setupParams.setOverriddenValues(overriddenValues);
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY(setupJob->error().hasError());
     QVERIFY2(setupJob->error().toString().contains("Duplicate product name 'p1'"),
              qPrintable(setupJob->error().toString()));
@@ -1760,7 +1759,7 @@ void TestApi::multiArch()
                             targetProfile.name() + ',' + targetProfile.name());
     setupParams.setOverriddenValues(overriddenValues);
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY(setupJob->error().hasError());
     QVERIFY2(setupJob->error().toString().contains("Duplicate product name 'p1'"),
              qPrintable(setupJob->error().toString()));
@@ -2053,9 +2052,9 @@ void TestApi::nonexistingProjectPropertyFromProduct()
 {
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters("nonexistingprojectproperties");
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QEXPECT_FAIL("", "QBS-432", Abort);
     QVERIFY(job->error().hasError());
     QVERIFY2(job->error().toString().contains(QLatin1String("blubb")),
@@ -2070,9 +2069,9 @@ void TestApi::nonexistingProjectPropertyFromCommandLine()
     QVariantMap projectProperties;
     projectProperties.insert(QLatin1String("project.blubb"), QLatin1String("true"));
     setupParams.setOverriddenValues(projectProperties);
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY(job->error().hasError());
     QVERIFY2(job->error().toString().contains(QLatin1String("blubb")),
              qPrintable(job->error().toString()));
@@ -2088,16 +2087,16 @@ void TestApi::projectDataAfterProductInvalidation()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-data-after-"
             "product-invalidation/project-data-after-product-invalidation.qbs");
-    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     QVERIFY(project.isValid());
     QCOMPARE(project.projectData().products().count(), 1);
     QVERIFY(project.projectData().products().first().generatedArtifacts().isEmpty());
-    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
-    waitForFinished(buildJob.data());
+    std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
+    waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QCOMPARE(project.projectData().products().count(), 1);
     const qbs::ProductData productAfterBulding = project.projectData().products().first();
@@ -2112,7 +2111,7 @@ void TestApi::projectDataAfterProductInvalidation()
     projectFile.write(content);
     projectFile.flush();
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     QVERIFY(!project.isValid());
     project = setupJob->project();
@@ -2121,7 +2120,7 @@ void TestApi::projectDataAfterProductInvalidation()
     QVERIFY(project.projectData().products().first().generatedArtifacts()
             == productAfterBulding.generatedArtifacts());
     buildJob.reset(project.buildAllProducts(qbs::BuildOptions()));
-    waitForFinished(buildJob.data());
+    waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QCOMPARE(project.projectData().products().count(), 1);
     QVERIFY(project.projectData().products().first().generatedArtifacts()
@@ -2192,22 +2191,22 @@ void TestApi::projectInvalidation()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-invalidation");
     QVERIFY(QFile::copy("project.no-error.qbs", "project-invalidation.qbs"));
-    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     QVERIFY(project.isValid());
     WAIT_FOR_NEW_TIMESTAMP();
     copyFileAndUpdateTimestamp("project.early-error.qbs", "project-invalidation.qbs");
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY(setupJob->error().hasError());
     QVERIFY(project.isValid()); // Error in Loader, old project still valid.
     WAIT_FOR_NEW_TIMESTAMP();
     copyFileAndUpdateTimestamp("project.late-error.qbs", "project-invalidation.qbs");
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY(setupJob->error().hasError());
     QVERIFY(!project.isValid()); // Error in build data re-resolving, old project not valid anymore.
 }
@@ -2215,20 +2214,20 @@ void TestApi::projectInvalidation()
 void TestApi::projectLocking()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-locking");
-    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
-    QScopedPointer<qbs::SetupProjectJob> setupJob2(project.setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> setupJob2(project.setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(setupJob2.data());
+    waitForFinished(setupJob2.get());
     QVERIFY(setupJob2->error().hasError());
     QVERIFY2(setupJob2->error().toString()
              .contains("Cannot start a job while another one is in progress."),
              qPrintable(setupJob2->error().toString()));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
 }
 
@@ -2282,8 +2281,8 @@ void TestApi::referencedFileErrors()
     params.setProductErrorMode(relaxedMode ? qbs::ErrorHandlingMode::Relaxed
                                            : qbs::ErrorHandlingMode::Strict);
     m_logSink->setLogLevel(qbs::LoggerMinLevel);
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(params, m_logSink, 0));
-    waitForFinished(job.data());
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(params, m_logSink, 0));
+    waitForFinished(job.get());
     QVERIFY2(job->error().hasError() != relaxedMode, qPrintable(job->error().toString()));
     const qbs::Project project = job->project();
     QCOMPARE(project.isValid(), relaxedMode);
@@ -2341,23 +2340,23 @@ void TestApi::references()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("references/invalid1.qbs");
     const QString projectDir = QDir::cleanPath(m_workingDataDir + "/references");
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY(job->error().hasError());
     QString errorString = job->error().toString();
     QVERIFY2(errorString.contains("does not contain"), qPrintable(errorString));
 
     setupParams.setProjectFilePath(projectDir + QLatin1String("/invalid2.qbs"));
     job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY(job->error().hasError());
     errorString = job->error().toString();
     QVERIFY2(errorString.contains("contains more than one"), qPrintable(errorString));
 
     setupParams.setProjectFilePath(projectDir + QLatin1String("/valid.qbs"));
     job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     const qbs::ProjectData topLevelProject = job->project().projectData();
     QCOMPARE(topLevelProject.subProjects().count(), 1);
@@ -2371,9 +2370,9 @@ void TestApi::relaxedModeRecovery()
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("relaxed-mode-recovery");
     setupParams.setProductErrorMode(qbs::ErrorHandlingMode::Relaxed);
     setupParams.setPropertyCheckingMode(qbs::ErrorHandlingMode::Relaxed);
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     if (m_logSink->warnings.count() != 4) {
         foreach (const qbs::ErrorInfo &error, m_logSink->warnings)
@@ -2467,9 +2466,9 @@ void TestApi::resolveProject()
 
     const qbs::SetupProjectParameters params = defaultSetupParameters(projectSubDir);
     removeBuildDir(params);
-    const QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
+    const std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
                                                                                     m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     VERIFY_NO_ERROR(setupJob->error());
     QVERIFY2(!QFile::exists(productFileName), qPrintable(productFileName));
     QVERIFY(regularFileExists(relativeBuildGraphFilePath()));
@@ -2488,9 +2487,9 @@ void TestApi::resolveProjectDryRun()
     qbs::SetupProjectParameters params = defaultSetupParameters(projectSubDir);
     params.setDryRun(true);
     removeBuildDir(params);
-    const QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
+    const std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
                                                                                     m_logSink, 0));
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     VERIFY_NO_ERROR(setupJob->error());
     QVERIFY2(!QFile::exists(productFileName), qPrintable(productFileName));
     QVERIFY(!regularFileExists(relativeBuildGraphFilePath()));
@@ -2508,9 +2507,9 @@ void TestApi::restoredWarnings()
     setupParams.setProductErrorMode(qbs::ErrorHandlingMode::Relaxed);
 
     // Initial resolving: Errors are new.
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
     QCOMPARE(m_logSink->warnings.toSet().count(), 2);
@@ -2524,7 +2523,7 @@ void TestApi::restoredWarnings()
 
     // Re-resolving with no changes: Errors come from the stored build graph.
     job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
     QCOMPARE(m_logSink->warnings.toSet().count(), 2);
@@ -2535,7 +2534,7 @@ void TestApi::restoredWarnings()
     overridenValues.insert("products.theProduct.moreFiles", true);
     setupParams.setOverriddenValues(overridenValues);
     job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
     QCOMPARE(m_logSink->warnings.toSet().count(), 3); // One more for the additional group
@@ -2570,9 +2569,9 @@ void TestApi::sourceFileInBuildDir()
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("source-file-in-build-dir");
     const QString generatedFile = relativeProductBuildDir("theProduct") + "/generated.cpp";
     QVERIFY2(regularFileExists(generatedFile), qPrintable(generatedFile));
-    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
-    waitForFinished(job.data());
+    waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     const qbs::ProjectData projectData = job->project().projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
@@ -2718,25 +2717,25 @@ qbs::ErrorInfo TestApi::doBuildProject(
     qbs::SetupProjectParameters params = defaultSetupParameters(projectFilePath);
     params.setOverriddenValues(overriddenValues);
     params.setDryRun(options.dryRun());
-    const QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
+    const std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
                                                                                     m_logSink, 0));
     if (taskReceiver) {
-        connect(setupJob.data(), &qbs::AbstractJob::taskStarted,
+        connect(setupJob.get(), &qbs::AbstractJob::taskStarted,
                 taskReceiver, &TaskReceiver::handleTaskStart);
     }
-    waitForFinished(setupJob.data());
+    waitForFinished(setupJob.get());
     if (setupJob->error().hasError())
         return setupJob->error();
-    const QScopedPointer<qbs::BuildJob> buildJob(setupJob->project().buildAllProducts(options));
+    const std::unique_ptr<qbs::BuildJob> buildJob(setupJob->project().buildAllProducts(options));
     if (buildDescriptionReceiver) {
-        connect(buildJob.data(), &qbs::BuildJob::reportCommandDescription,
+        connect(buildJob.get(), &qbs::BuildJob::reportCommandDescription,
                 buildDescriptionReceiver, &BuildDescriptionReceiver::handleDescription);
     }
     if (procResultReceiver) {
-        connect(buildJob.data(), &qbs::BuildJob::reportProcessResult,
+        connect(buildJob.get(), &qbs::BuildJob::reportProcessResult,
                 procResultReceiver, &ProcessResultReceiver::handleProcessResult);
     }
-    waitForFinished(buildJob.data());
+    waitForFinished(buildJob.get());
     return buildJob->error();
 }
 

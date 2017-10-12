@@ -60,9 +60,10 @@
 #include <QtCore/qfile.h>
 #endif
 
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qxmlstream.h>
+
+#include <memory>
 
 struct OpaqQrc
 {
@@ -104,7 +105,7 @@ static void *openScannerQrc(const unsigned short *filePath, const char *fileTags
 {
     Q_UNUSED(flags);
     Q_UNUSED(fileTags);
-    QScopedPointer<OpaqQrc> opaque(new OpaqQrc);
+    std::unique_ptr<OpaqQrc> opaque(new OpaqQrc);
 
 #ifdef Q_OS_UNIX
     QString filePathS = QString::fromUtf16(filePath);
@@ -136,7 +137,7 @@ static void *openScannerQrc(const unsigned short *filePath, const char *fileTags
     opaque->map = reinterpret_cast<char *>(map);
     opaque->xml = new QXmlStreamReader(opaque->map);
 
-    return static_cast<void *>(opaque.take());
+    return static_cast<void *>(opaque.release());
 }
 
 static void closeScannerQrc(void *ptr)

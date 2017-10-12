@@ -44,7 +44,6 @@
 #include <tools/settings.h>
 
 #include <QtCore/qlist.h>
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qstring.h>
 
 #ifdef QT_GUI_LIB
@@ -53,6 +52,8 @@
 
 #include <QtScript/qscriptengine.h>
 #include <QtScript/qscriptvalue.h>
+
+#include <memory>
 
 namespace qbs {
 namespace Internal {
@@ -115,7 +116,7 @@ public:
     Node *indexToNode(const QModelIndex &index);
 
     Node rootNode;
-    QScopedPointer<qbs::Settings> settings;
+    std::unique_ptr<qbs::Settings> settings;
     QVariantMap additionalProperties;
     bool dirty;
     bool editable;

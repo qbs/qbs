@@ -32,9 +32,10 @@
 #define IVISUALSTUDIOSOLUTIONPROJECT_H
 
 #include <QtCore/qobject.h>
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/quuid.h>
+
+#include <memory>
 
 namespace qbs {
 
@@ -58,7 +59,7 @@ public:
     void setName(const QString &name);
 
 private:
-    QScopedPointer<IVisualStudioSolutionProjectPrivate> d;
+    std::unique_ptr<IVisualStudioSolutionProjectPrivate> d;
 };
 
 } // namespace qbs

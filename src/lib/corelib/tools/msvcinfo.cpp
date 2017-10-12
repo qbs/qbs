@@ -45,7 +45,6 @@
 #include <QtCore/qbytearray.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qprocess.h>
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qtemporaryfile.h>
 

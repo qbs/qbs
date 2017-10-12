@@ -45,7 +45,6 @@
 #include <tools/qbsassert.h>
 
 #include <QtCore/qdir.h>
-#include <QtCore/qscopedpointer.h>
 
 namespace qbs {
 namespace Internal {
@@ -71,7 +70,7 @@ PersistentPool::~PersistentPool()
 
 void PersistentPool::load(const QString &filePath)
 {
-    QScopedPointer<QFile> file(new QFile(filePath));
+    std::unique_ptr<QFile> file(new QFile(filePath));
     if (!file->exists())
         throw NoBuildGraphError(filePath);
     if (!file->open(QFile::ReadOnly)) {
@@ -79,7 +78,7 @@ void PersistentPool::load(const QString &filePath)
                     .arg(filePath, file->errorString()));
     }
 
-    m_stream.setDevice(file.data());
+    m_stream.setDevice(file.get());
     QByteArray magic;
     m_stream >> magic;
     if (magic != QBS_PERSISTENCE_MAGIC) {
@@ -91,7 +90,7 @@ void PersistentPool::load(const QString &filePath)
     }
 
     m_stream >> m_headData.projectConfig;
-    file.take();
+    file.release();
     m_loadedRaw.clear();
     m_loaded.clear();
     m_storageIndices.clear();
@@ -112,13 +111,13 @@ void PersistentPool::setupWriteStream(const QString &filePath)
                         .arg(filePath));
     }
     QBS_CHECK(!QFile::exists(filePath));
-    QScopedPointer<QFile> file(new QFile(filePath));
+    std::unique_ptr<QFile> file(new QFile(filePath));
     if (!file->open(QFile::WriteOnly)) {
         throw ErrorInfo(Tr::tr("Failure storing build graph: "
                 "Cannot open file '%1' for writing: %2").arg(filePath, file->errorString()));
     }
 
-    m_stream.setDevice(file.take());
+    m_stream.setDevice(file.release());
     m_stream << QByteArray(qstrlen(QBS_PERSISTENCE_MAGIC), 0) << m_headData.projectConfig;
     m_lastStoredObjectId = 0;
     m_lastStoredStringId = 0;

@@ -55,13 +55,13 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qprocess.h>
 #include <QtCore/qregexp.h>
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
 #include <QtScript/qscriptvalue.h>
 
+#include <memory>
 #include <mutex>
 
 QT_BEGIN_NAMESPACE
@@ -421,7 +421,7 @@ public:
     QList<ProbeConstPtr> probes;
     QList<ArtifactPropertiesPtr> artifactProperties;
     QStringList missingSourceFiles;
-    QScopedPointer<ProductBuildData> buildData;
+    std::unique_ptr<ProductBuildData> buildData;
 
     mutable QProcessEnvironment buildEnvironment; // must not be saved
     mutable QProcessEnvironment runEnvironment; // must not be saved
@@ -521,7 +521,7 @@ public:
     QHash<QString, bool> fileExistsResults; // Results of calls to "File.exists()".
     QHash<std::pair<QString, quint32>, QStringList> directoryEntriesResults; // Results of calls to "File.directoryEntries()".
     QHash<QString, FileTime> fileLastModifiedResults; // Results of calls to "File.lastModified()".
-    QScopedPointer<ProjectBuildData> buildData;
+    std::unique_ptr<ProjectBuildData> buildData;
     BuildGraphLocker *bgLocker; // This holds the system-wide build graph file lock.
     bool locked; // This is the API-level lock for the project instance.
 

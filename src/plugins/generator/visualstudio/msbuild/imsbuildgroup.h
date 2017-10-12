@@ -32,7 +32,8 @@
 #define IMSBUILDGROUP_H
 
 #include <QtCore/qobject.h>
-#include <QtCore/qscopedpointer.h>
+
+#include <memory>
 
 namespace qbs {
 
@@ -50,7 +51,7 @@ public:
     void setCondition(const QString &condition);
 
 private:
-    QScopedPointer<IMSBuildGroupPrivate> d;
+    std::unique_ptr<IMSBuildGroupPrivate> d;
 };
 
 class IMSBuildItemGroup : public IMSBuildGroup

@@ -49,6 +49,7 @@
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qlibrary.h>
 
+#include <memory>
 #include <mutex>
 
 namespace qbs {
@@ -120,7 +121,7 @@ void QbsPluginManager::loadPlugins(const QStringList &pluginPaths, const Logger 
         QDirIterator it(pluginPath, filters, QDir::Files);
         while (it.hasNext()) {
             const QString fileName = it.next();
-            QScopedPointer<QLibrary> lib(new QLibrary(fileName));
+            std::unique_ptr<QLibrary> lib(new QLibrary(fileName));
             if (!lib->load()) {
                 logger.qbsWarning() << Tr::tr("plugin manager: Cannot load plugin '%1': %2")
                                        .arg(QDir::toNativeSeparators(fileName), lib->errorString());
@@ -133,7 +134,7 @@ void QbsPluginManager::loadPlugins(const QStringList &pluginPaths, const Logger 
                 load();
                 qCDebug(lcPluginManager) << "plugin" << QDir::toNativeSeparators(fileName)
                                          << "loaded.";
-                m_libs.push_back(lib.take());
+                m_libs.push_back(lib.release());
             } else {
                 logger.qbsWarning() << Tr::tr("plugin manager: not a qbs plugin");
             }

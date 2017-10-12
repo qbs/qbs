@@ -52,7 +52,7 @@ protected:
     explicit MSBuildFileItem(const QString &name, IMSBuildItemGroup *parent = 0);
 
 private:
-    QScopedPointer<MSBuildFileItemPrivate> d;
+    std::unique_ptr<MSBuildFileItemPrivate> d;
 };
 
 } // namespace qbs

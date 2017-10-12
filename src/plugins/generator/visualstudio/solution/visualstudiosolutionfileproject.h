@@ -34,6 +34,8 @@
 #include <QtCore/qobject.h>
 #include "ivisualstudiosolutionproject.h"
 
+#include <memory>
+
 namespace qbs {
 
 class VisualStudioSolutionFileProjectPrivate;
@@ -53,7 +55,7 @@ public:
     QUuid projectTypeGuid() const override;
 
 private:
-    QScopedPointer<VisualStudioSolutionFileProjectPrivate> d;
+    std::unique_ptr<VisualStudioSolutionFileProjectPrivate> d;
 };
 
 } // namespace qbs

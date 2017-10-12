@@ -32,7 +32,8 @@
 #define VISUALSTUDIOSOLUTION_H
 
 #include <QtCore/qobject.h>
-#include <QtCore/qscopedpointer.h>
+
+#include <memory>
 
 namespace qbs {
 
@@ -76,7 +77,7 @@ public:
 private:
     void addDefaultGlobalSections();
 
-    QScopedPointer<VisualStudioSolutionPrivate> d;
+    std::unique_ptr<VisualStudioSolutionPrivate> d;
 };
 
 } // namespace qbs
