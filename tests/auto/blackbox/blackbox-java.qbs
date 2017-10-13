@@ -1,4 +1,5 @@
 import qbs
+import qbs.Utilities
 
 QbsAutotest {
     testName: "blackbox-java"
@@ -17,6 +18,5 @@ QbsAutotest {
         "tst_blackboxjava.cpp",
         "tst_blackboxjava.h",
     ]
-    // TODO: Use Utilities.cStringQuote
-    cpp.defines: base.concat(['SRCDIR="' + path + '"'])
+    cpp.defines: base.concat(["SRCDIR=" + Utilities.cStringQuote(path)])
 }

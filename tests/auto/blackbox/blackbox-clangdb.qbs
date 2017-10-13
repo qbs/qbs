@@ -1,4 +1,5 @@
 import qbs
+import qbs.Utilities
 
 QbsAutotest {
     testName: "blackbox-clangdb"
@@ -20,6 +21,5 @@ QbsAutotest {
         "tst_clangdb.cpp",
         "tst_clangdb.h",
     ]
-    // TODO: Use Utilities.cStringQuote
-    cpp.defines: base.concat(['SRCDIR="' + path + '"'])
+    cpp.defines: base.concat(["SRCDIR=" + Utilities.cStringQuote(path)])
 }

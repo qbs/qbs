@@ -1,4 +1,5 @@
 import qbs 1.0
+import qbs.Utilities
 
 QbsLibrary {
     Depends { name: "cpp" }
@@ -14,10 +15,9 @@ QbsLibrary {
         qbsbuildconfig.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : []
     property stringList enableUnitTestsDefines:
         qbsbuildconfig.enableUnitTests ? ["QBS_ENABLE_UNIT_TESTS"] : []
-    // TODO: Use Utilities.cStringQuote
     cpp.defines: base.concat([
-        'QBS_RELATIVE_LIBEXEC_PATH="' + qbsbuildconfig.relativeLibexecPath + '"',
-        "QBS_VERSION=\"" + version + "\"",
+        "QBS_RELATIVE_LIBEXEC_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativeLibexecPath),
+        "QBS_VERSION=" + Utilities.cStringQuote(version),
     ]).concat(projectFileUpdateDefines).concat(enableUnitTestsDefines)
 
     Properties {

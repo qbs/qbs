@@ -1,15 +1,15 @@
 import qbs 1.0
+import qbs.Utilities
 
 QbsApp {
     name: "qbs_app"
     Depends { name: "qbs resources" }
     targetName: "qbs"
-    // TODO: Use Utilities.cStringQuote
     cpp.defines: base.concat([
-        'QBS_VERSION="' + qbsversion.version + '"',
-        'QBS_RELATIVE_LIBEXEC_PATH="' + qbsbuildconfig.relativeLibexecPath + '"',
-        'QBS_RELATIVE_SEARCH_PATH="' + qbsbuildconfig.relativeSearchPath + '"',
-        'QBS_RELATIVE_PLUGINS_PATH="' + qbsbuildconfig.relativePluginsPath + '"',
+        "QBS_VERSION=" + Utilities.cStringQuote(qbsversion.version),
+        "QBS_RELATIVE_LIBEXEC_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativeLibexecPath),
+        "QBS_RELATIVE_SEARCH_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativeSearchPath),
+        "QBS_RELATIVE_PLUGINS_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativePluginsPath),
     ])
     files: [
         "application.cpp",

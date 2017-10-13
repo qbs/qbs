@@ -1,4 +1,5 @@
 import qbs
+import qbs.Utilities
 
 QbsAutotest {
     Depends { name: "qbsversion" }
@@ -10,6 +11,5 @@ QbsAutotest {
         "tst_tools.h"
     ]
 
-    // TODO: Use Utilities.cStringQuote
-    cpp.defines: ['QBS_VERSION="' + qbsversion.version + '"']
+    cpp.defines: ["QBS_VERSION=" + Utilities.cStringQuote(qbsversion.version)]
 }

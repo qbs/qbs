@@ -1,4 +1,5 @@
 import qbs
+import qbs.Utilities
 
 QbsAutotest {
     Depends { name: "qbsversion" }
@@ -11,10 +12,9 @@ QbsAutotest {
         "tst_language.h"
     ]
 
-    // TODO: Use Utilities.cStringQuote
     cpp.defines: base.concat([
-        'QBS_VERSION="' + qbsversion.version + '"',
-        "SRCDIR=\"" + path + "\""
+        "QBS_VERSION=" + Utilities.cStringQuote(qbsversion.version),
+        "SRCDIR=" + Utilities.cStringQuote(path)
     ])
 
     Group {

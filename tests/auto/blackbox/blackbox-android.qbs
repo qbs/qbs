@@ -1,4 +1,5 @@
 import qbs
+import qbs.Utilities
 
 QbsAutotest {
     testName: "blackbox-android"
@@ -17,6 +18,5 @@ QbsAutotest {
         "tst_blackboxandroid.cpp",
         "tst_blackboxandroid.h",
     ]
-    // TODO: Use Utilities.cStringQuote
-    cpp.defines: base.concat(['SRCDIR="' + path + '"'])
+    cpp.defines: base.concat(["SRCDIR=" + Utilities.cStringQuote(path)])
 }
