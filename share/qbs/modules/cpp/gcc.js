@@ -961,7 +961,7 @@ function collectStdoutLines(command, args)
     var p = new Process();
     try {
         p.exec(command, args);
-        return p.readStdOut().split('\n').filter(function (e) { return e; });
+        return p.readStdOut().split(/\r?\n/g).filter(function (e) { return e; });
     } finally {
         p.close();
     }
@@ -1304,7 +1304,7 @@ function dumpMacros(env, compilerFilePath, args, nullDevice, tag) {
                (args || []).concat(["-Wp,-dM", "-E", "-x", languageName(tag || "c") , nullDevice]),
                true);
         var map = {};
-        p.readStdOut().trim().split("\n").map(function (line) {
+        p.readStdOut().trim().split(/\r?\n/g).map(function (line) {
             var parts = line.split(" ", 3);
             map[parts[1]] = parts[2];
         });
@@ -1327,7 +1327,7 @@ function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSepar
         var libraryPaths = [];
         var frameworkPaths = [];
         var addIncludes = false;
-        var lines = p.readStdErr().trim().split("\n").map(function (line) { return line.trim(); });
+        var lines = p.readStdErr().trim().split(/\r?\n/g).map(function (line) { return line.trim(); });
         for (var i = 0; i < lines.length; ++i) {
             var line = lines[i];
             var prefix = "LIBRARY_PATH=";
