@@ -7,6 +7,7 @@ import qbs.TextFile
 QbsProduct {
     Depends { name: "qbs-config" }
     Depends { name: "qbs-config-ui" }
+    Depends { name: "qbs-create-project" }
     Depends { name: "qbs-qmltypes" }
     Depends { name: "qbs-setup-android" }
     Depends { name: "qbs-setup-qt" }
@@ -15,10 +16,10 @@ QbsProduct {
     Depends { name: "qbs_processlauncher" }
     Depends { name: "qbscore" }
     Depends { name: "qbsqtprofilesetup" }
-    Depends { name: "qbs_cpp_scanner" }
-    Depends { name: "qbs_qt_scanner" }
     Depends { name: "qbs documentation" }
     Depends { name: "qbs resources" }
+    Depends { name: "qbs man page"; condition: qbs.targetOS.contains("unix") }
+    Depends { productTypes: ["qbsplugin"] }
 
     Depends { name: "archiver" }
 
