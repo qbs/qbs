@@ -47,6 +47,8 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qobject.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 class QTimer;
 QT_END_NAMESPACE
@@ -56,6 +58,7 @@ class AbstractJob;
 class ConsoleProgressObserver;
 class ErrorInfo;
 class ProcessResult;
+class ProjectGenerator;
 class Settings;
 
 class CommandLineFrontend : public QObject
@@ -88,6 +91,7 @@ private:
     void makeClean();
     int runShell();
     void build();
+    void checkGeneratorName();
     void generate();
     int runTarget();
     void updateTimestamps();
@@ -118,6 +122,7 @@ private:
     int m_totalBuildEffort;
     int m_currentBuildEffort;
     QHash<AbstractJob *, int> m_buildEfforts;
+    std::shared_ptr<ProjectGenerator> m_generator;
 };
 
 } // namespace qbs
