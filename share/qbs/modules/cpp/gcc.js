@@ -1235,17 +1235,6 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     return commands;
 }
 
-function concatLibsFromArtifacts(libs, artifacts, filePathGetter)
-{
-    if (!artifacts)
-        return libs;
-    if (!filePathGetter)
-        filePathGetter = function (a) { return a.filePath; };
-    var deps = artifacts.map(filePathGetter);
-    deps.reverse();
-    return concatLibs(deps, libs);
-}
-
 function debugInfoArtifacts(product, variants, debugInfoTagSuffix) {
     var fileTag;
     switch (debugInfoTagSuffix) {
