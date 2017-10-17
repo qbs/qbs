@@ -140,6 +140,7 @@ void Artifact::load(PersistentPool &pool)
     pool.load(childrenAddedByScanner);
     pool.load(fileDependencies);
     pool.load(properties);
+    pool.load(targetOfModule);
     pool.load(transformer);
     pool.load(m_fileTags);
     artifactType = static_cast<ArtifactType>(pool.load<quint8>());
@@ -156,6 +157,7 @@ void Artifact::store(PersistentPool &pool) const
     pool.store(childrenAddedByScanner);
     pool.store(fileDependencies);
     pool.store(properties);
+    pool.store(targetOfModule);
     pool.store(transformer);
     pool.store(m_fileTags);
     pool.store(static_cast<quint8>(artifactType));

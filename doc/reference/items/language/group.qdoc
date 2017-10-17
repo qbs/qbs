@@ -95,7 +95,7 @@
     \endcode
 
     Groups may also appear in modules, which causes the respective sources to be added to the
-    products depending on said module.
+    products depending on said module (except if the \c filesAreTargets property is set, see below).
     Groups can be nested. In this case, child groups inherit the module properties and file
     tags as well as the prefix of their parent group. The condition of a child group gets logically
     ANDed with the one of its parent group.
@@ -121,6 +121,15 @@
             Relative paths are resolved using the parent directory of the file
             that contains the \c Group item. However, if the \c prefix property is set to an
             absolute path, then that one becomes the base directory.
+    \row
+        \li filesAreTargets
+        \li bool
+        \li false
+        \li If this property is \c true and the group is in a module, then the files in the
+            group will not become source artifacts of the product that depends on the module.
+            Instead, they are treated like target artifacts of products, that is, they will be
+            matched against the \c inputsFromDependencies file tag list of \l{Rule Item}{rules}
+            in products that depend on the module.
     \row
         \li prefix
         \li string

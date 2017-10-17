@@ -595,6 +595,7 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr
     artifact->fileTags = group->fileTags;
     artifact->overrideFileTags = group->overrideTags;
     artifact->properties = group->properties;
+    artifact->targetOfModule = group->targetOfModule;
     (wildcard ? group->wildcards->files : group->files) += artifact;
     return artifact;
 }
@@ -758,6 +759,9 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     }
 
     const CodeLocation filesLocation = item->property(QLatin1String("files"))->location();
+    const VariantValueConstPtr moduleProp = item->variantProperty(QLatin1String("__module"));
+    if (moduleProp)
+        group->targetOfModule = moduleProp->value().toString();
     ErrorInfo fileError;
     if (!patterns.isEmpty()) {
         group->wildcards = std::unique_ptr<SourceWildCards>(new SourceWildCards);

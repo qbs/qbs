@@ -790,8 +790,10 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->isMultiplexed = productIsMultiplexed(resolvedProduct);
         product.d->properties = resolvedProduct->productProperties;
         product.d->moduleProperties.d->m_map = resolvedProduct->moduleProperties;
-        for (const GroupPtr &resolvedGroup : qAsConst(resolvedProduct->groups))
-            product.d->groups << createGroupDataFromGroup(resolvedGroup, resolvedProduct);
+        for (const GroupPtr &resolvedGroup : qAsConst(resolvedProduct->groups)) {
+            if (resolvedGroup->targetOfModule.isEmpty())
+                product.d->groups << createGroupDataFromGroup(resolvedGroup, resolvedProduct);
+        }
         if (resolvedProduct->enabled) {
             QBS_CHECK(resolvedProduct->buildData);
             const ArtifactSet targetArtifacts = resolvedProduct->targetArtifacts();

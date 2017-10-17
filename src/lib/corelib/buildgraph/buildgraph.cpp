@@ -87,6 +87,71 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
                                     const ResolvedProductConstPtr &product,
                                     PrepareScriptObserver *observer);
 
+enum ScriptValueCommonPropertyKeys : quint32 {
+    CachedValueKey,
+    FileTagKey
+};
+
+static bool isRelevantArtifact(const ResolvedProduct *, const Artifact *artifact)
+{
+    return !artifact->isTargetOfModule();
+}
+static bool isRelevantArtifact(const ResolvedModule *module, const Artifact *artifact)
+{
+    return artifact->targetOfModule == module->name;
+}
+
+static ProductBuildData::ArtifactSetByFileTag &artifactsMap(const ResolvedProduct *product)
+{
+    return product->buildData->artifactsByFileTag;
+}
+
+static ProductBuildData::ArtifactSetByFileTag &artifactsMap(const ResolvedModule *module)
+{
+    return artifactsMap(module->product);
+}
+
+template<class ProductOrModule> static QScriptValue js_artifactsForFileTag(
+        QScriptContext *ctx, ScriptEngine *engine, const ProductOrModule *productOrModule)
+{
+    QScriptValue result = ctx->callee().property(CachedValueKey);
+    if (result.isArray())
+        return result;
+    const FileTag fileTag = FileTag(ctx->callee().property(FileTagKey).toString().toUtf8());
+    auto artifacts = artifactsMap(productOrModule).value(fileTag);
+    const auto filter = [productOrModule](const Artifact *a) {
+        return !isRelevantArtifact(productOrModule, a);
+    };
+    artifacts.erase(std::remove_if(artifacts.begin(), artifacts.end(), filter), artifacts.end());
+    result = engine->newArray(artifacts.count());
+    ctx->callee().setProperty(CachedValueKey, result);
+    int k = 0;
+    for (const Artifact * const artifact : artifacts)
+        result.setProperty(k++, Transformer::translateFileConfig(engine, artifact, QString()));
+    return result;
+}
+
+template<class ProductOrModule> static QScriptValue js_artifacts(
+        QScriptContext *ctx, ScriptEngine *engine, const ProductOrModule *productOrModule)
+{
+    QScriptValue artifactsObj = ctx->callee().property(CachedValueKey);
+    if (artifactsObj.isObject())
+        return artifactsObj;
+    artifactsObj = engine->newObject();
+    ctx->callee().setProperty(CachedValueKey, artifactsObj);
+    const auto &map = artifactsMap(productOrModule);
+    for (auto it = map.cbegin(); it != map.cend(); ++it) {
+        QScriptValue fileTagFunc = engine->newFunction(&js_artifactsForFileTag<ProductOrModule>,
+                                                       productOrModule);
+        const QString fileTag = it.key().toString();
+        fileTagFunc.setProperty(FileTagKey, fileTag);
+        artifactsObj.setProperty(fileTag, fileTagFunc,
+                                 QScriptValue::ReadOnly | QScriptValue::Undeletable
+                                 | QScriptValue::PropertyGetter);
+    }
+    return artifactsObj;
+}
+
 class DependenciesFunction
 {
 public:
@@ -109,7 +174,6 @@ private:
     static QScriptValue js_productDependencies(QScriptContext *ctx, ScriptEngine *engine,
                                                const ResolvedProduct * const product)
     {
-        const QString parametersKey = QStringLiteral("parameters");
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
         QList<ResolvedProductPtr> productDeps = product->dependencies.toList();
@@ -123,7 +187,7 @@ private:
             setupProductScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency, 0);
 
             const QVariantMap &params = product->dependencyParameters.value(dependency);
-            obj.setProperty(parametersKey, params.isEmpty()
+            obj.setProperty(m_parametersKey, params.isEmpty()
                             ? engine->newObject() : toScriptValue(engine, observer, params,
                                                                   dependency->name));
 
@@ -135,7 +199,7 @@ private:
             QScriptValue obj = engine->newObject();
             setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency.get());
             const QVariantMap &params = product->moduleParameters.value(dependency);
-            obj.setProperty(parametersKey, params.isEmpty()
+            obj.setProperty(m_parametersKey, params.isEmpty()
                             ? engine->newObject() : toScriptValue(engine, observer, params,
                                                                   dependency->name));
 
@@ -144,17 +208,22 @@ private:
         return result;
     }
 
-    static QScriptValue js_moduleDependencies(QScriptContext *, ScriptEngine *engine,
+    static QScriptValue js_moduleDependencies(QScriptContext *ctx, ScriptEngine *engine,
                                               const ResolvedModule *module)
     {
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
+        PrepareScriptObserver * const observer = getObserver(ctx->callee());
         for (const QString &depName : qAsConst(module->moduleDependencies)) {
             QScriptValue obj = engine->newObject();
             obj.setProperty(QLatin1String("name"), depName);
             for (const ResolvedModuleConstPtr &dep : qAsConst(module->product->modules)) {
                 if (dep->name == depName) {
                     setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj, dep.get());
+                    const QVariantMap &params = module->product->moduleParameters.value(dep);
+                    obj.setProperty(m_parametersKey, params.empty()
+                                    ? engine->newObject() : toScriptValue(engine, observer, params,
+                                                                          dep->name));
                     result.setProperty(idx++, obj);
                     break;
                 }
@@ -179,7 +248,10 @@ private:
         moduleScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
                                       QScriptValue::ReadOnly | QScriptValue::Undeletable
                                       | QScriptValue::PropertyGetter);
-        moduleScriptValue.setProperty(QStringLiteral("artifacts"), engine->newObject());
+        QScriptValue artifactsFunc = engine->newFunction(&js_artifacts<ResolvedModule>, module);
+        moduleScriptValue.setProperty(QStringLiteral("artifacts"), artifactsFunc,
+                                       QScriptValue::ReadOnly | QScriptValue::Undeletable
+                                       | QScriptValue::PropertyGetter);
     }
 
     static void setObserver(QScriptValue scriptValue, PrepareScriptObserver *observer)
@@ -220,49 +292,11 @@ private:
         return obj;
     }
 
+    static const QString m_parametersKey;
     ScriptEngine *m_engine;
 };
 
-enum ScriptValueCommonPropertyKeys : quint32 {
-    CachedValueKey,
-    FileTagKey
-};
-
-static QScriptValue js_artifactsForFileTag(QScriptContext *ctx, ScriptEngine *engine,
-                                           const ResolvedProduct *product)
-{
-    QScriptValue result = ctx->callee().property(CachedValueKey);
-    if (result.isArray())
-        return result;
-    const FileTag fileTag = FileTag(ctx->callee().property(FileTagKey).toString().toUtf8());
-    const auto artifacts = product->buildData->artifactsByFileTag.value(fileTag);
-    result = engine->newArray(artifacts.count());
-    ctx->callee().setProperty(CachedValueKey, result);
-    int k = 0;
-    for (const Artifact * const artifact : artifacts)
-        result.setProperty(k++, Transformer::translateFileConfig(engine, artifact, QString()));
-    return result;
-}
-
-static QScriptValue js_productArtifacts(QScriptContext *ctx, ScriptEngine *engine,
-                                        const ResolvedProduct *product)
-{
-    QScriptValue artifactsObj = ctx->callee().property(CachedValueKey);
-    if (artifactsObj.isObject())
-        return artifactsObj;
-    artifactsObj = engine->newObject();
-    ctx->callee().setProperty(CachedValueKey, artifactsObj);
-    for (auto it = product->buildData->artifactsByFileTag.cbegin();
-         it != product->buildData->artifactsByFileTag.cend(); ++it) {
-        QScriptValue fileTagFunc = engine->newFunction(&js_artifactsForFileTag, product);
-        const QString fileTag = it.key().toString();
-        fileTagFunc.setProperty(FileTagKey, fileTag);
-        artifactsObj.setProperty(fileTag, fileTagFunc,
-                                 QScriptValue::ReadOnly | QScriptValue::Undeletable
-                                 | QScriptValue::PropertyGetter);
-    }
-    return artifactsObj;
-}
+const QString DependenciesFunction::m_parametersKey = QStringLiteral("parameters");
 
 static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productScriptValue,
                                     const ResolvedProductConstPtr &product,
@@ -270,7 +304,7 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
 {
     ModuleProperties::init(productScriptValue, product);
 
-    QScriptValue artifactsFunc = engine->newFunction(&js_productArtifacts, product.get());
+    QScriptValue artifactsFunc = engine->newFunction(&js_artifacts<ResolvedProduct>, product.get());
     productScriptValue.setProperty(QStringLiteral("artifacts"), artifactsFunc,
                                    QScriptValue::ReadOnly | QScriptValue::Undeletable
                                    | QScriptValue::PropertyGetter);
@@ -489,6 +523,7 @@ Artifact *createArtifact(const ResolvedProductPtr &product,
 {
     Artifact *artifact = new Artifact;
     artifact->artifactType = Artifact::SourceFile;
+    artifact->targetOfModule = sourceArtifact->targetOfModule;
     artifact->setFilePath(sourceArtifact->absoluteFilePath);
     artifact->setFileTags(sourceArtifact->fileTags);
     artifact->properties = sourceArtifact->properties;

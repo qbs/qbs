@@ -863,6 +863,21 @@ void TestBlackbox::driverLinkerFlags_data()
     QTest::newRow("link using linker") << "manual" << false;
 }
 
+void TestBlackbox::dynamicLibraryInModule()
+{
+    QDir::setCurrent(testDataDir + "/dynamic-library-in-module");
+    const QString installRootSpec = QString("qbs.installRoot:") + QDir::currentPath();
+    QbsRunParameters libParams(QStringList({"-f", "thelibs.qbs", installRootSpec}));
+    libParams.buildDirectory = "libbuild";
+    QCOMPARE(runQbs(libParams), 0);
+    QbsRunParameters appParams("run", QStringList({"-f", "theapp.qbs", installRootSpec}));
+    appParams.buildDirectory = "appbuild";
+    QCOMPARE(runQbs(appParams), 0);
+    QVERIFY2(m_qbsStdout.contains("Hello from thelib"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("Hello from theotherlib"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("thirdlib"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::symlinkRemoval()
 {
     if (HostOsInfo::isWindowsHost())

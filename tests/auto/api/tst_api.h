@@ -136,6 +136,7 @@ private slots:
     void softDependency();
     void sourceFileInBuildDir();
     void subProjects();
+    void toolInModule();
     void trackAddQObjectHeader();
     void trackRemoveQObjectHeader();
     void transformers();

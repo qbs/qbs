@@ -308,8 +308,9 @@ private:
     void addTransitiveDependencies(ProductContext *ctx);
     Item *createNonPresentModule(const QString &name, const QString &reason, Item *module);
     void copyGroupsFromModuleToProduct(const ProductContext &productContext,
-                                       const Item *modulePrototype);
+                                       const Item::Module &module, const Item *modulePrototype);
     void copyGroupsFromModulesToProduct(const ProductContext &productContext);
+    void markModuleTargetGroups(Item *group, const Item::Module &module);
     bool checkExportItemCondition(Item *exportItem, const ProductContext &productContext);
     ProbeConstPtr findOldProjectProbe(const QString &globalId, bool condition,
                                       const QVariantMap &initialProperties,

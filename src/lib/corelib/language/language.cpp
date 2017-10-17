@@ -159,6 +159,7 @@ void SourceArtifactInternal::load(PersistentPool &pool)
     pool.load(fileTags);
     pool.load(overrideFileTags);
     pool.load(properties);
+    pool.load(targetOfModule);
 }
 
 void SourceArtifactInternal::store(PersistentPool &pool) const
@@ -167,6 +168,7 @@ void SourceArtifactInternal::store(PersistentPool &pool) const
     pool.store(fileTags);
     pool.store(overrideFileTags);
     pool.store(properties);
+    pool.store(targetOfModule);
 }
 
 void SourceWildCards::load(PersistentPool &pool)
@@ -227,6 +229,7 @@ void ResolvedGroup::load(PersistentPool &pool)
         wildcards->group = this;
     pool.load(properties);
     pool.load(fileTags);
+    pool.load(targetOfModule);
     pool.load(overrideTags);
 }
 
@@ -240,6 +243,7 @@ void ResolvedGroup::store(PersistentPool &pool) const
     pool.store(wildcards);
     pool.store(properties);
     pool.store(fileTags);
+    pool.store(targetOfModule);
     pool.store(overrideTags);
 }
 
@@ -1241,6 +1245,7 @@ bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal 
     return sa1.absoluteFilePath == sa2.absoluteFilePath
             && sa1.fileTags == sa2.fileTags
             && sa1.overrideFileTags == sa2.overrideFileTags
+            && sa1.targetOfModule == sa2.targetOfModule
             && *sa1.properties == *sa2.properties;
 }
 

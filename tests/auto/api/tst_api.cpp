@@ -2629,6 +2629,39 @@ void TestApi::subProjects()
              qPrintable(errorInfo.toString()));
 }
 
+void TestApi::toolInModule()
+{
+    QVariantMap overrides({std::make_pair("qbs.installRoot", m_workingDataDir
+                           + "/tool-in-module/use-outside-project")});
+    const qbs::ErrorInfo error
+            = doBuildProject("tool-in-module/use-within-project/use-within-project.qbs", nullptr,
+                             nullptr, nullptr, qbs::BuildOptions(), overrides);
+    QVERIFY2(!error.hasError(), qPrintable(error.toString()));
+    const QString toolOutput = relativeProductBuildDir("user-in-project") + "/tool-output.txt";
+    QVERIFY2(QFile::exists(toolOutput), qPrintable(toolOutput));
+
+    const qbs::SetupProjectParameters params
+            = defaultSetupParameters("tool-in-module/use-outside-project/use-outside-project.qbs");
+    const std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
+                                                                                    m_logSink, 0));
+    QVERIFY(waitForFinished(setupJob.get()));
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    const qbs::Project project = setupJob->project();
+    const qbs::ProjectData projectData = project.projectData();
+    const QList<qbs::ProductData> products = projectData.products();
+    QCOMPARE(products.count(), 1);
+    const qbs::ProductData product = products.first();
+    for (const qbs::GroupData &group : product.groups())
+        QVERIFY(group.name() != "thetool binary");
+    const std::unique_ptr<qbs::BuildJob> buildJob(setupJob->project()
+                                                  .buildAllProducts(qbs::BuildOptions()));
+    QVERIFY(waitForFinished(buildJob.get()));
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    const QString toolOutput2 = relativeProductBuildDir("user-outside-project")
+            + "/tool-output.txt";
+    QVERIFY2(QFile::exists(toolOutput2), qPrintable(toolOutput2));
+}
+
 void TestApi::trackAddQObjectHeader()
 {
     const qbs::SetupProjectParameters params

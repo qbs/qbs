@@ -114,6 +114,8 @@ function collectLibraryDependencies(product, isDarwin) {
     }
 
     function addExternalLibs(obj) {
+        if (!obj.cpp)
+            return;
         function ensureArray(a) {
             return Array.isArray(a) ? a : [];
         }

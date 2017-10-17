@@ -83,6 +83,7 @@ public:
     Set<FileDependency *> fileDependencies;
     TransformerPtr transformer;
     PropertyMapPtr properties;
+    QString targetOfModule;
 
     enum ArtifactType
     {
@@ -101,6 +102,8 @@ public:
     const TypeFilter<Artifact> parentArtifacts() const;
     const TypeFilter<Artifact> childArtifacts() const;
     void onChildDisconnected(BuildGraphNode *child);
+
+    bool isTargetOfModule() const { return !targetOfModule.isEmpty(); }
 
 private:
     void load(PersistentPool &pool);

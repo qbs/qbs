@@ -264,6 +264,9 @@ void BuiltinDeclarations::addGroupItem()
     item << PropertyDeclaration(QLatin1String("overrideTags"), PropertyDeclaration::Boolean,
                                 QLatin1String("true"),
                                 PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(QLatin1String("filesAreTargets"), PropertyDeclaration::Boolean,
+                                QLatin1String("false"),
+                                PropertyDeclaration::PropertyNotAvailableInConfig);
     insert(item);
 }
 

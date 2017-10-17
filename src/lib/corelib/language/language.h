@@ -207,6 +207,7 @@ public:
     QString absoluteFilePath;
     FileTags fileTags;
     bool overrideFileTags;
+    QString targetOfModule;
     PropertyMapPtr properties;
 
 private:
@@ -260,6 +261,7 @@ public:
     std::unique_ptr<SourceWildCards> wildcards;
     PropertyMapPtr properties;
     FileTags fileTags;
+    QString targetOfModule;
     bool overrideTags;
 
     QList<SourceArtifactPtr> allFiles() const;

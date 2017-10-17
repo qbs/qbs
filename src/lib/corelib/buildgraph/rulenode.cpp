@@ -159,6 +159,8 @@ ArtifactSet RuleNode::currentInputArtifacts() const
     ArtifactSet s;
     for (const FileTag &t : qAsConst(m_rule->inputs)) {
         for (Artifact *artifact : product->lookupArtifactsByFileTag(t)) {
+            if (artifact->isTargetOfModule())
+                continue;
             if (artifact->transformer && artifact->transformer->rule == m_rule) {
                 // Do not add compatible artifacts as inputs that were created by this rule.
                 // This can e.g. happen for the ["cpp", "hpp"] -> ["hpp", "cpp", "unmocable"] rule.
@@ -170,6 +172,15 @@ ArtifactSet RuleNode::currentInputArtifacts() const
 
     if (m_rule->inputsFromDependencies.isEmpty())
         return s;
+    for (const FileTag &t : qAsConst(m_rule->inputsFromDependencies)) {
+        for (Artifact *artifact : product->lookupArtifactsByFileTag(t)) {
+            if (!artifact->isTargetOfModule())
+                continue;
+            if (artifact->transformer && artifact->transformer->rule == m_rule)
+                continue;
+            s += artifact;
+        }
+    }
 
     for (const ResolvedProductConstPtr &dep : qAsConst(product->dependencies)) {
         if (!dep->buildData)

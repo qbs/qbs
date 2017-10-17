@@ -3229,7 +3229,17 @@ QualifiedIdSet ModuleLoader::gatherModulePropertiesSetInGroup(const Item *group)
     return propsSetInGroup;
 }
 
+void ModuleLoader::markModuleTargetGroups(Item *group, const Item::Module &module)
+{
+    QBS_CHECK(group->type() == ItemType::Group);
+    if (m_evaluator->boolValue(group, QLatin1String("filesAreTargets")))
+        group->setProperty(QLatin1String("__module"), VariantValue::create(module.name.toString()));
+    for (Item * const child : group->children())
+        markModuleTargetGroups(child, module);
+}
+
 void ModuleLoader::copyGroupsFromModuleToProduct(const ProductContext &productContext,
+                                                 const Item::Module &module,
                                                  const Item *modulePrototype)
 {
     for (int i = 0; i < modulePrototype->children().count(); ++i) {
@@ -3239,6 +3249,7 @@ void ModuleLoader::copyGroupsFromModuleToProduct(const ProductContext &productCo
             clonedGroup->setScope(productContext.scope);
             setScopeForDescendants(clonedGroup, productContext.scope);
             Item::addChild(productContext.item, clonedGroup);
+            markModuleTargetGroups(clonedGroup, module);
         }
     }
 }
@@ -3251,7 +3262,7 @@ void ModuleLoader::copyGroupsFromModulesToProduct(const ProductContext &productC
         while ((modulePassedValidation = prototype->isPresentModule()) && prototype->prototype())
             prototype = prototype->prototype();
         if (modulePassedValidation)
-            copyGroupsFromModuleToProduct(productContext, prototype);
+            copyGroupsFromModuleToProduct(productContext, module, prototype);
     }
 }
 
