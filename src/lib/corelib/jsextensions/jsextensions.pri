@@ -17,9 +17,9 @@ SOURCES += \
     $$PWD/jsextensions.cpp \
     $$PWD/utilitiesextension.cpp
 
-mac {
+darwin {
     HEADERS += $$PWD/propertylistutils.h
-    OBJECTIVE_SOURCES += $$PWD/propertylist.mm $$PWD/propertylistutils.mm
+    SOURCES += $$PWD/propertylist.mm $$PWD/propertylistutils.mm
     LIBS += -framework Foundation
 } else {
     SOURCES += $$PWD/propertylist.cpp
