@@ -83,7 +83,7 @@ static inline qbs_filesystem_path_string_type utf8_to_native_path(const std::str
 #endif
 }
 
-static int rename(const std::string &oldName, const std::string &newName)
+static inline int rename(const std::string &oldName, const std::string &newName)
 {
     const auto wOldName = utf8_to_native_path(oldName);
     const auto wNewName = utf8_to_native_path(newName);
