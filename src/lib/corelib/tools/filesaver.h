@@ -60,13 +60,12 @@ public:
     std::ostream *device();
     bool open();
     bool commit();
-    size_t write(const std::vector<char> &data);
-    size_t write(const std::string &data);
+    bool write(const std::vector<char> &data);
+    bool write(const std::string &data);
 
 private:
-    std::string m_newFileContents;
     std::string m_oldFileContents;
-    std::shared_ptr<std::ostringstream> m_memoryDevice;
+    std::shared_ptr<std::stringstream> m_memoryDevice;
     const std::string m_filePath;
     const bool m_overwriteIfUnchanged;
 };

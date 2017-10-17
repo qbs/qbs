@@ -41,15 +41,19 @@
 #define QBS_IOSUTILS_H
 
 #include <cstdio>
+#include <cstring>
 #include <ostream>
 
 #if defined(_WIN32) && defined(_MSC_VER)
 #include <codecvt>
 #include <locale>
 #define QBS_RENAME_IMPL ::_wrename
+#define QBS_UNLINK_IMPL ::_wunlink
 typedef std::wstring qbs_filesystem_path_string_type;
 #else
+#include <unistd.h>
 #define QBS_RENAME_IMPL ::rename
+#define QBS_UNLINK_IMPL ::unlink
 typedef std::string qbs_filesystem_path_string_type;
 #endif
 
@@ -58,6 +62,8 @@ namespace Internal {
 
 static inline bool fwrite(const char *values, size_t nitems, std::ostream *stream)
 {
+    if (!stream)
+        return false;
     stream->write(values, nitems);
     return stream->good();
 }
@@ -88,6 +94,12 @@ static inline int rename(const std::string &oldName, const std::string &newName)
     const auto wOldName = utf8_to_native_path(oldName);
     const auto wNewName = utf8_to_native_path(newName);
     return QBS_RENAME_IMPL(wOldName.c_str(), wNewName.c_str());
+}
+
+static inline int unlink(const std::string &name)
+{
+    const auto wName = utf8_to_native_path(name);
+    return QBS_UNLINK_IMPL(wName.c_str());
 }
 
 } // namespace Internal
