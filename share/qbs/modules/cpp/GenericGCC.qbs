@@ -69,7 +69,7 @@ CppModule {
 
     Probes.BinaryProbe {
         id: binutilsProbe
-        condition: File.exists(archiverPath)
+        condition: !File.exists(archiverPath)
         names: Gcc.toolNames([archiverName, assemblerName, linkerName, nmName,
                               objcopyName, stripName], toolchainPrefix)
     }
