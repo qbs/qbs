@@ -42,8 +42,7 @@ UnixGCC {
 
     Probe {
         id: runPathsProbe
-        condition: qbs.targetOS.length === qbs.hostOS.length
-                   && qbs.targetOS.every(function(v, i) { return v === qbs.hostOS[i]; })
+        condition: qbs.targetPlatform === qbs.hostPlatform
         property stringList systemRunPaths: []
         configure: {
             var paths = [];

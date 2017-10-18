@@ -86,7 +86,7 @@ static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QStrin
     qbsInfo() << Tr::tr("Setting up profile '%1'.").arg(name);
     Profile p(name, settings);
     p.removeProfile();
-    p.setValue(QLatin1String("qbs.targetOS"), QStringList(QLatin1String("windows")));
+    p.setValue(QLatin1String("qbs.targetPlatform"), QLatin1String("windows"));
     p.setValue(QLatin1String("qbs.toolchain"), QStringList(QLatin1String("msvc")));
     p.setValue(QLatin1String("cpp.toolchainInstallPath"), msvc->binPath);
     setQtHelperProperties(p, msvc);

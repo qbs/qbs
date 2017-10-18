@@ -259,7 +259,7 @@ void TestApi::buildGraphInfo()
 {
     SettingsPtr s = settings();
     qbs::Internal::TemporaryProfile p("bgInfoProfile", s.get());
-    p.p.setValue("qbs.targetOS", QStringList{"xenix"});
+    p.p.setValue("qbs.targetPlatform", "xenix");
     qbs::SetupProjectParameters setupParams
             = defaultSetupParameters("buildgraph-info");
     setupParams.setTopLevelProfile(p.p.name());
@@ -275,19 +275,21 @@ void TestApi::buildGraphInfo()
             = qbs::Project::getBuildGraphInfo(bgFilePath, QStringList());
     QVERIFY(bgInfo.error.hasError()); // Build graph is still locked.
     setupJob.reset(nullptr);
-    const QStringList requestedProperties({"qbs.architecture", "qbs.shellPath", "qbs.targetOS"});
+    const QStringList requestedProperties({"qbs.architecture", "qbs.shellPath",
+                                           "qbs.targetPlatform"});
     bgInfo = qbs::Project::getBuildGraphInfo(bgFilePath, requestedProperties);
     QVERIFY2(!bgInfo.error.hasError(), qPrintable(bgInfo.error.toString()));
     QCOMPARE(bgFilePath, bgInfo.bgFilePath);
     QCOMPARE(bgInfo.profileData.size(), 1);
     QCOMPARE(bgInfo.profileData.value(p.p.name()).toMap().size(), 1);
-    QCOMPARE(bgInfo.profileData.value(p.p.name()).toMap().value("qbs").toMap().value("targetOS"),
-             p.p.value("qbs.targetOS"));
+    QCOMPARE(bgInfo.profileData.value(p.p.name()).toMap().value("qbs").toMap().value(
+                 "targetPlatform"),
+             p.p.value("qbs.targetPlatform"));
     QCOMPARE(bgInfo.overriddenProperties, setupParams.overriddenValues());
     QCOMPARE(bgInfo.requestedProperties.size(), requestedProperties.size());
     QCOMPARE(bgInfo.requestedProperties.value("qbs.architecture").toString(), QString("arm"));
     QCOMPARE(bgInfo.requestedProperties.value("qbs.shellPath").toString(), QString("/bin/bash"));
-    QCOMPARE(bgInfo.requestedProperties.value("qbs.targetOS").toStringList(), QStringList("xenix"));
+    QCOMPARE(bgInfo.requestedProperties.value("qbs.targetPlatform").toString(), QString("xenix"));
 }
 
 void TestApi::buildErrorCodeLocation()
@@ -1461,8 +1463,12 @@ void TestApi::linkStaticAndDynamicLibs()
             }
         }
         QVERIFY(!appLinkCmd.isEmpty());
-        const auto targetOs = buildProfile.value("qbs.targetOS").toStringList();
-        if (!targetOs.contains("darwin") && !targetOs.contains("windows")) {
+        std::string targetPlatform = buildProfile.value("qbs.targetPlatform")
+                .toString().toStdString();
+        std::vector<std::string> targetOS = qbs::Internal::HostOsInfo::canonicalOSIdentifiers(
+                    targetPlatform);
+        if (!qbs::Internal::contains(targetOS, "darwin")
+                && !qbs::Internal::contains(targetOS, "windows")) {
             const std::regex rpathLinkRex("-rpath-link=\\S*/"
                                           + relativeProductBuildDir("dynamic2").toStdString());
             const auto ln = appLinkCmd.toStdString();

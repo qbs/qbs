@@ -3,7 +3,7 @@ import qbs.FileInfo
 
 Project {
     property string name: 'codegen'
-    property string osSpecificName: name.toUpperCase() + '_' + qbs.targetOS[0].toUpperCase()
+    property string osSpecificName: name.toUpperCase() + '_' + qbs.targetPlatform.toUpperCase()
 
     Product {
         type: 'application'
@@ -48,7 +48,8 @@ Project {
                 throw "multipart module name translation is broken";
 
             // check whether we can access project properties here
-            var expected = "CODEGEN_" + product.moduleProperty("qbs", "targetOS")[0].toUpperCase();
+            var expected = "CODEGEN_" + product.moduleProperty("qbs",
+                                                               "targetPlatform").toUpperCase();
             if (project.osSpecificName !== expected)
                 throw "Wrong project property value: " + project.osSpecificName
                         + "\nexpected: " + expected;

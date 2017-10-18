@@ -72,6 +72,7 @@ class UtilitiesExtension : public QObject, QScriptable
 public:
     static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_canonicalPlatform(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_canonicalTargetArchitecture(QScriptContext *context,
                                                        QScriptEngine *engine);
     static QScriptValue js_canonicalToolchain(QScriptContext *context, QScriptEngine *engine);
@@ -100,6 +101,8 @@ static void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                              engine->newFunction(&UtilitiesExtension::js_ctor));
     environmentObj.setProperty(QStringLiteral("canonicalArchitecture"),
                                engine->newFunction(UtilitiesExtension::js_canonicalArchitecture, 1));
+    environmentObj.setProperty(QStringLiteral("canonicalPlatform"),
+                               engine->newFunction(UtilitiesExtension::js_canonicalPlatform, 1));
     environmentObj.setProperty(QStringLiteral("canonicalTargetArchitecture"),
                                engine->newFunction(
                                    UtilitiesExtension::js_canonicalTargetArchitecture, 4));
@@ -140,6 +143,26 @@ QScriptValue UtilitiesExtension::js_ctor(QScriptContext *context, QScriptEngine 
 {
     Q_UNUSED(engine);
     return context->throwError(Tr::tr("'Utilities' cannot be instantiated."));
+}
+
+QScriptValue UtilitiesExtension::js_canonicalPlatform(QScriptContext *context,
+                                                      QScriptEngine *engine)
+{
+    const QScriptValue value = context->argument(0);
+    if (value.isUndefined() || value.isNull())
+        return value;
+
+    if (context->argumentCount() == 1 && value.isString()) {
+        return engine->toScriptValue([&value] {
+            QStringList list;
+            for (const auto &s : HostOsInfo::canonicalOSIdentifiers(value.toString().toStdString()))
+                list.push_back(QString::fromStdString(s));
+            return list;
+        }());
+    }
+
+    return context->throwError(QScriptContext::SyntaxError,
+        QStringLiteral("canonicalPlatform expects one argument of type string"));
 }
 
 QScriptValue UtilitiesExtension::js_canonicalTargetArchitecture(QScriptContext *context,

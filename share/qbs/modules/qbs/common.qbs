@@ -51,7 +51,8 @@ Module {
     property bool enableDebugCode: buildVariant == "debug"
     property bool debugInformation: (buildVariant == "debug")
     property string optimization: (buildVariant == "debug" ? "none" : "fast")
-    readonly property stringList hostOS: undefined // set internally
+    readonly property string hostPlatform: undefined // set internally
+    readonly property stringList hostOS: Utilities.canonicalPlatform(hostPlatform)
     property string hostOSVersion: {
         if (hostOS && hostOS.contains("macos")) {
             return Utilities.getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductVersion") ||
@@ -76,7 +77,8 @@ Module {
     readonly property int hostOSVersionMinor: hostOSVersionParts[1] || 0
     readonly property int hostOSVersionPatch: hostOSVersionParts[2] || 0
 
-    property stringList targetOS: hostOS
+    property string targetPlatform: hostPlatform
+    readonly property stringList targetOS: Utilities.canonicalPlatform(targetPlatform)
     property string pathListSeparator: hostOS.contains("windows") ? ";" : ":"
     property string pathSeparator: hostOS.contains("windows") ? "\\" : "/"
     property string nullDevice: hostOS.contains("windows") ? "NUL" : "/dev/null"

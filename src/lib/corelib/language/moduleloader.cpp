@@ -2709,12 +2709,9 @@ Item::Module ModuleLoader::loadBaseModule(ProductContext *productContext, Item *
 
 void ModuleLoader::setupBaseModulePrototype(Item *prototype)
 {
-    prototype->setProperty(QLatin1String("hostOS"), [] {
-        QStringList list;
-        for (const auto &s : HostOsInfo::hostOSIdentifiers())
-            list.push_back(QString::fromStdString(s));
-        return VariantValue::create(list);
-    }());
+    prototype->setProperty(QLatin1String("hostPlatform"),
+                           VariantValue::create(QString::fromStdString(
+                                                    HostOsInfo::hostOSIdentifier())));
     prototype->setProperty(QLatin1String("libexecPath"),
                            VariantValue::create(m_parameters.libexecPath()));
 

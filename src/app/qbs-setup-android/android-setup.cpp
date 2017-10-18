@@ -90,8 +90,7 @@ void setupSdk(qbs::Settings *settings, const QString &profileName, const QString
     profile.removeProfile();
     if (!sdkDirPath.isEmpty())
         profile.setValue(qls("Android.sdk.sdkDir"), QDir::cleanPath(sdkDirPath));
-    profile.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux")
-                     << qls("unix"));
+    profile.setValue(qls("qbs.targetPlatform"), qls("android"));
 }
 
 static QString mapArch(const QString &androidName)

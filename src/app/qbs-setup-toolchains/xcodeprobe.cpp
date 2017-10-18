@@ -123,27 +123,23 @@ void XcodeProbe::detectDeveloperPaths()
     }
 }
 
-static QStringList targetOSList(const QString &applePlatformName)
+static QString targetOS(const QString &applePlatformName)
 {
-    QStringList targetOS;
-    if (applePlatformName == QStringLiteral("macosx")) {
-        targetOS << QStringLiteral("macos");
-    } else if (applePlatformName == QStringLiteral("iphoneos")) {
-        targetOS << QStringLiteral("ios");
-    } else if (applePlatformName == QStringLiteral("iphonesimulator")) {
-        targetOS << QStringLiteral("ios") << QStringLiteral("ios-simulator");
-    } else if (applePlatformName == QStringLiteral("appletvos")) {
-        targetOS << QStringLiteral("tvos");
-    } else if (applePlatformName == QStringLiteral("appletvsimulator")) {
-        targetOS << QStringLiteral("tvos") << QStringLiteral("tvos-simulator");
-    } else if (applePlatformName == QStringLiteral("watchos")) {
-        targetOS << QStringLiteral("watchos");
-    } else if (applePlatformName == QStringLiteral("watchsimulator")) {
-        targetOS << QStringLiteral("watchos") << QStringLiteral("watchos-simulator");
-    }
-
-    targetOS << QStringLiteral("darwin") << QStringLiteral("bsd") << QStringLiteral("unix");
-    return targetOS;
+    if (applePlatformName == QStringLiteral("macosx"))
+        return QStringLiteral("macos");
+    if (applePlatformName == QStringLiteral("iphoneos"))
+        return QStringLiteral("ios");
+    if (applePlatformName == QStringLiteral("iphonesimulator"))
+        return QStringLiteral("ios-simulator");
+    if (applePlatformName == QStringLiteral("appletvos"))
+        return QStringLiteral("tvos");
+    if (applePlatformName == QStringLiteral("appletvsimulator"))
+        return QStringLiteral("tvos-simulator");
+    if (applePlatformName == QStringLiteral("watchos"))
+        return QStringLiteral("watchos");
+    if (applePlatformName == QStringLiteral("watchsimulator"))
+        return QStringLiteral("watchos-simulator");
+    return QString();
 }
 
 static QStringList archList(const QString &applePlatformName)
@@ -196,7 +192,7 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
         Profile platformProfile(xcodeName + QLatin1Char('-') + platform, settings);
         platformProfile.removeProfile();
         platformProfile.setBaseProfile(installationProfile.name());
-        platformProfile.setValue(QStringLiteral("qbs.targetOS"), targetOSList(platform));
+        platformProfile.setValue(QStringLiteral("qbs.targetPlatform"), targetOS(platform));
         profiles.push_back(platformProfile);
 
         for (const QString &arch : archList(platform)) {

@@ -140,7 +140,7 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
     const QString compilerName = cfi.fileName();
 
     if (toolchainTypes.contains(QStringLiteral("mingw")))
-        profile.setValue(QStringLiteral("qbs.targetOS"), QStringList(QStringLiteral("windows")));
+        profile.setValue(QStringLiteral("qbs.targetPlatform"), QStringLiteral("windows"));
 
     const QString prefix = compilerName.left(compilerName.lastIndexOf(QLatin1Char('-')) + 1);
     if (!prefix.isEmpty())
@@ -188,12 +188,11 @@ private:
 
 static bool doesProfileTargetOS(const Profile &profile, const QString &os)
 {
-    const auto target = profile.value(QStringLiteral("qbs.targetOS"));
-    if (target.isValid())
-        return target.toStringList().contains(os);
-    const auto host = profile.value(QStringLiteral("qbs.hostOS"));
-    if (host.isValid())
-        return host.toStringList().contains(os);
+    const auto target = profile.value(QStringLiteral("qbs.targetPlatform"));
+    if (target.isValid()) {
+        return Internal::contains(HostOsInfo::canonicalOSIdentifiers(
+                                      target.toString().toStdString()), os.toStdString());
+    }
     return Internal::contains(HostOsInfo::hostOSIdentifiers(), os.toStdString());
 }
 

@@ -205,17 +205,20 @@ inline qbs::Internal::HostOsInfo::HostOs targetOs()
 {
     const SettingsPtr s = settings();
     const qbs::Profile buildProfile(profileName(), s.get());
-    const QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
-    if (targetOS.contains("windows"))
-        return qbs::Internal::HostOsInfo::HostOsWindows;
-    if (targetOS.contains("linux"))
-        return qbs::Internal::HostOsInfo::HostOsLinux;
-    if (targetOS.contains("macos"))
-        return qbs::Internal::HostOsInfo::HostOsMacos;
-    if (targetOS.contains("unix"))
-        return qbs::Internal::HostOsInfo::HostOsOtherUnix;
-    if (!targetOS.empty())
+    const QString targetPlatform = buildProfile.value("qbs.targetPlatform").toString();
+    if (!targetPlatform.isEmpty()) {
+        const std::vector<std::string> targetOS = qbs::Internal::HostOsInfo::canonicalOSIdentifiers(
+                    targetPlatform.toStdString());
+        if (qbs::Internal::contains(targetOS, "windows"))
+            return qbs::Internal::HostOsInfo::HostOsWindows;
+        if (qbs::Internal::contains(targetOS, "linux"))
+            return qbs::Internal::HostOsInfo::HostOsLinux;
+        if (qbs::Internal::contains(targetOS, "macos"))
+            return qbs::Internal::HostOsInfo::HostOsMacos;
+        if (qbs::Internal::contains(targetOS, "unix"))
+            return qbs::Internal::HostOsInfo::HostOsOtherUnix;
         return qbs::Internal::HostOsInfo::HostOsOther;
+    }
     return qbs::Internal::HostOsInfo::hostOs();
 }
 

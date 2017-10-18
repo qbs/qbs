@@ -8,6 +8,7 @@ Project {
         files: ["QbsSetup.wxs", "ExampleScript.bat"]
         wix.defines: ["scriptName=ExampleScript.bat"]
         wix.extensions: ["WixBalExtension", "WixUIExtension"]
+        qbs.targetPlatform: "windows"
 
         Export {
             Depends { name: "wix" }
@@ -24,6 +25,7 @@ Project {
         targetName: "qbs-setup-" + qbs.architecture
         files: ["QbsBootstrapper.wxs"]
         qbs.architecture: original || "x86"
+        qbs.targetPlatform: "windows"
     }
 
     WindowsInstallerPackage {
@@ -32,5 +34,6 @@ Project {
         wix.defines: ["scriptName=ExampleScript.bat"]
         wix.cultures: []
         qbs.architecture: original || "x86"
+        qbs.targetPlatform: "windows"
     }
 }

@@ -34,6 +34,7 @@
 #include <tools/profile.h>
 #include <tools/qttools.h>
 #include <tools/shellutils.h>
+#include <tools/stlutils.h>
 #include <tools/version.h>
 
 #include <QtCore/qdebug.h>
@@ -1544,8 +1545,10 @@ void TestBlackbox::separateDebugInfo()
     const SettingsPtr s = settings();
     Profile buildProfile(profileName(), s.get());
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
-    QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
-    if (targetOS.contains("darwin") || (targetOS.empty() && HostOsInfo::isMacosHost())) {
+    std::string targetPlatform = buildProfile.value("qbs.targetPlatform").toString().toStdString();
+    std::vector<std::string> targetOS = HostOsInfo::canonicalOSIdentifiers(targetPlatform);
+    if (qbs::Internal::contains(targetOS, "darwin")
+            || (targetPlatform.empty() && HostOsInfo::isMacosHost())) {
         QVERIFY(directoryExists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
         QVERIFY(regularFileExists(relativeProductBuildDir("app1")
             + "/app1.app.dSYM/Contents/Info.plist"));
@@ -1610,9 +1613,10 @@ void TestBlackbox::separateDebugInfo()
                 .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(regularFileExists(relativeProductBuildDir("bar5") + "/bar5.bundle.dwarf"));
     } else if (toolchain.contains("gcc")) {
-        const QString exeSuffix = targetOS.contains("windows") ? ".exe" : "";
-        const QString dllPrefix = targetOS.contains("windows") ? "" : "lib";
-        const QString dllSuffix = targetOS.contains("windows") ? ".dll" : ".so";
+        const bool isWindows = qbs::Internal::contains(targetOS, "windows");
+        const QString exeSuffix = isWindows ? ".exe" : "";
+        const QString dllPrefix = isWindows ? "" : "lib";
+        const QString dllSuffix = isWindows ? ".dll" : ".so";
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1" + exeSuffix + ".debug"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2" + exeSuffix + ".debug"));
         QVERIFY(QFile::exists(relativeProductBuildDir("foo1")
@@ -4564,7 +4568,7 @@ void TestBlackbox::chooseModuleInstanceByPriority()
     QFETCH(bool, expectSuccess);
     QDir::setCurrent(testDataDir + "/choose-module-instance");
     rmDirR(relativeBuildDir());
-    QbsRunParameters params(QStringList("modules.qbs.targetOS:" + idol));
+    QbsRunParameters params(QStringList("modules.qbs.targetPlatform:" + idol));
     params.expectFailure = !expectSuccess;
     if (expectSuccess) {
         QCOMPARE(runQbs(params), 0);
@@ -4844,10 +4848,7 @@ void TestBlackbox::wix()
         arch = QByteArrayLiteral("x86");
 
     QDir::setCurrent(testDataDir + "/wix");
-    QbsRunParameters params;
-    if (!HostOsInfo::isWindowsHost())
-        params.arguments << "qbs.targetOS:windows";
-    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("compiling QbsSetup.wxs"), m_qbsStdout);
     QVERIFY2(m_qbsStdout.contains("linking qbs.msi"), m_qbsStdout);
     QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs.msi"));
@@ -5002,10 +5003,7 @@ void TestBlackbox::innoSetup()
     }
 
     QDir::setCurrent(testDataDir + "/innosetup");
-    QbsRunParameters params;
-    if (!HostOsInfo::isWindowsHost())
-        params.arguments << "qbs.targetOS:windows";
-    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling test.iss"));
     QVERIFY(m_qbsStdout.contains("compiling Example1.iss"));
     QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs.setup.test.exe"));

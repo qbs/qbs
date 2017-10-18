@@ -79,48 +79,42 @@
         \li Specifies the general type of optimization that should be performed by all toolchains.
             Allowed values: \c{"none"}, \c{"fast"}, \c{"small"}
     \row
-        \li targetOS
+        \li targetPlatform
         \li \c{stringList}
-        \li 1.0
+        \li 1.11
         \li \c{undefined}
-        \li Specifies the OS you want to build the project for. This is typically set in a profile.
-            Possible values include one or more of the following:
+        \li Specifies the OS you want to build the project for. This is typically set in a profile
+            or for a particular product where the target OS is always known (such as an Apple Watch
+            app written in native code). You should generally treat this property as \e{write-only}
+            and avoid using it to test for the current target OS. Instead, use the
+            \c targetOS property for conditionals. For example, instead of:
+            \c{(qbs.targetPlatform === "macos" || qbs.targetPlatform === "ios" ||
+                qbs.targetPlatform === "tvos" || qbs.targetPlatform === "watchos")},
+            use \c{qbs.targetOS.contains("darwin")}. However, there are some cases when using
+            targetPlatform would be acceptable, such as when the resulting condition would be
+            simpler while still being correct: \c{(qbs.targetPlatform === "linux")} versus
+            \c{(qbs.targetOS.contains("linux") && !qbs.targetOS.contains("android"))}.
+            Possible values include one the following:
             \c{"aix"},
             \c{"android"},
-            \c{"bsd"},
-            \c{"bsd4"},
-            \c{"bsdi"},
-            \c{"cygwin"},
-            \c{"darwin"},
-            \c{"dgux"},
-            \c{"dynix"},
             \c{"freebsd"},
+            \c{"haiku"},
             \c{"hpux"},
             \c{"hurd"},
             \c{"integrity"},
             \c{"ios"},
             \c{"ios-simulator"},
-            \c{"irix"},
             \c{"linux"},
-            \c{"lynx"},
             \c{"macos"},
-            \c{"msdos"},
-            \c{"nacl"},
             \c{"netbsd"},
             \c{"openbsd"},
-            \c{"os2"},
-            \c{"os2emx"},
-            \c{"osf"},
             \c{"qnx"},
-            \c{"qnx6"},
-            \c{"reliant"},
-            \c{"sco"},
             \c{"solaris"},
-            \c{"symbian"},
-            \c{"ultrix"},
-            \c{"unix"},
-            \c{"unixware"},
+            \c{"tvos"},
+            \c{"tvos-simulator"},
             \c{"vxworks"},
+            \c{"watchos"},
+            \c{"watchos-simulator"},
             \c{"windows"}
     \row
         \li architecture
@@ -235,6 +229,22 @@
         \li 1.2
         \li \c{hostOSVersionParts[2]}
         \li The host operating system patch level.
+    \row
+        \li hostPlatform
+        \li \c{string}
+        \li 1.11
+        \li determined automatically
+        \li Do not use this property.
+    \row
+        \li targetOS
+        \li \c{stringList}
+        \li 1.0
+        \li \c{undefined}
+        \li Specifies the OS you want to build the project for.
+            You should use this property to test for a particular OS or OS family in conditionals.
+            Do not use \c targetPlatform for this purpose. Possible values include one or more of:
+            \c{"bsd"}, \c{"darwin"}, and \c{"unix"}, in
+            addition to the possible values of \c targetPlatform.
     \row
         \li version
         \li \c{string} (read only)

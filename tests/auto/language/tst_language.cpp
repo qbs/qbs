@@ -1912,7 +1912,7 @@ void TestLanguage::overriddenPropertiesAndPrototypes()
         QFETCH(QString, backendName);
         SetupProjectParameters params = defaultParameters;
         params.setProjectFilePath(testProject("overridden-properties-and-prototypes.qbs"));
-        params.setOverriddenValues({std::make_pair("modules.qbs.targetOS", osName)});
+        params.setOverriddenValues({std::make_pair("modules.qbs.targetPlatform", osName)});
         TopLevelProjectConstPtr project = loader->loadProject(params);
         QVERIFY(!!project);
         QCOMPARE(project->products.size(), 1);

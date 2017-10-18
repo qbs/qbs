@@ -13,9 +13,11 @@ Project {
         innosetup.includePaths: ["inc"]
         innosetup.defines: ["MyProgram=" + name, "MyProgramVersion=" + version]
         innosetup.compilerFlags: ["/V9"]
+        qbs.targetPlatform: "windows"
     }
     InnoSetup {
         name: "Example1"
         files: [FileInfo.joinPaths(innosetup.toolchainInstallPath, "Examples", name + ".iss")]
+        qbs.targetPlatform: "windows"
     }
 }

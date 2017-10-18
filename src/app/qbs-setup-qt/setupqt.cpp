@@ -350,7 +350,7 @@ static bool isToolchainProfile(const Profile &profile)
                 profile.allKeys(Profile::KeySelectionRecursive));
     Internal::Set<QString> expected = Internal::Set<QString> { QLatin1String("qbs.toolchain") };
     if (HostOsInfo::isMacosHost())
-        expected.insert(QLatin1String("qbs.targetOS")); // match only Xcode profiles
+        expected.insert(QLatin1String("qbs.targetPlatform")); // match only Xcode profiles
     return Internal::Set<QString>(actual).unite(expected) == actual;
 }
 
@@ -370,59 +370,50 @@ template <typename T> bool areProfilePropertiesIncompatible(const T &set1, const
     return set1.size() > 0 && set2.size() > 0 && set1 != set2;
 }
 
-static QStringList qbsTargetOsFromQtMkspec(const QString &mkspec)
+static QString qbsTargetPlatformFromQtMkspec(const QString &mkspec)
 {
     if (mkspec.startsWith(QLatin1String("aix-")))
-        return QStringList()  << QLatin1String("aix") << QLatin1String("unix");
+        return QLatin1String("aix");
     if (mkspec.startsWith(QLatin1String("android-")))
-        return QStringList()  << QLatin1String("android") << QLatin1String("linux")
-                              << QLatin1String("unix");
+        return QLatin1String("android");
+    if (mkspec.startsWith(QLatin1String("cygwin-")))
+        return QLatin1String("windows");
     if (mkspec.startsWith(QLatin1String("darwin-")))
-        return QStringList() << QLatin1String("darwin") << QLatin1String("bsd")
-                             << QLatin1String("unix");
+        return QLatin1String("macos");
     if (mkspec.startsWith(QLatin1String("freebsd-")))
-        return QStringList() << QLatin1String("freebsd") << QLatin1String("bsd")
-                             << QLatin1String("unix");
+        return QLatin1String("freebsd");
     if (mkspec.startsWith(QLatin1String("haiku-")))
-        return QStringList() << QLatin1String("haiku");
+        return QLatin1String("haiku");
     if (mkspec.startsWith(QLatin1String("hpux-")) || mkspec.startsWith(QLatin1String("hpuxi-")))
-        return QStringList() << QLatin1String("hpux") << QLatin1String("unix");
+        return QLatin1String("hpux");
     if (mkspec.startsWith(QLatin1String("hurd-")))
-        return QStringList() << QLatin1String("hurd") << QLatin1String("unix");
-    if (mkspec.startsWith(QLatin1String("irix-")))
-        return QStringList() << QLatin1String("irix") << QLatin1String("unix");
+        return QLatin1String("hurd");
+    if (mkspec.startsWith(QLatin1String("integrity-")))
+        return QLatin1String("integrity");
     if (mkspec.startsWith(QLatin1String("linux-")))
-        return QStringList() << QLatin1String("linux") << QLatin1String("unix");
-    if (mkspec.startsWith(QLatin1String("lynxos-")))
-        return QStringList() << QLatin1String("lynx") << QLatin1String("unix");
-    if (mkspec.startsWith(QLatin1String("macx-")))
-        return QStringList() << (mkspec.startsWith(QLatin1String("macx-ios-"))
-                                 ? QLatin1String("ios") : QLatin1String("macos"))
-                             << QLatin1String("darwin") << QLatin1String("bsd")
-                             << QLatin1String("unix");
-    if (mkspec.startsWith(QLatin1String("nacl-")) || mkspec.startsWith(QLatin1String("nacl64-")))
-        return QStringList() << QLatin1String("nacl");
+        return QLatin1String("linux");
+    if (mkspec.startsWith(QLatin1String("macx-"))) {
+        if (mkspec.startsWith(QLatin1String("macx-ios-")))
+            return QLatin1String("ios");
+        if (mkspec.startsWith(QLatin1String("macx-tvos-")))
+            return QLatin1String("tvos");
+        if (mkspec.startsWith(QLatin1String("macx-watchos-")))
+            return QLatin1String("watchos");
+        return QLatin1String("macos");
+    }
     if (mkspec.startsWith(QLatin1String("netbsd-")))
-        return QStringList() << QLatin1String("netbsd") << QLatin1String("bsd")
-                             << QLatin1String("unix");
+        return QLatin1String("netbsd");
     if (mkspec.startsWith(QLatin1String("openbsd-")))
-        return QStringList() << QLatin1String("openbsd") << QLatin1String("bsd")
-                             << QLatin1String("unix");
+        return QLatin1String("openbsd");
     if (mkspec.startsWith(QLatin1String("qnx-")))
-        return QStringList() << QLatin1String("qnx") << QLatin1String("unix");
-    if (mkspec.startsWith(QLatin1String("sco-")))
-        return QStringList() << QLatin1String("sco") << QLatin1String("unix");
+        return QLatin1String("qnx");
     if (mkspec.startsWith(QLatin1String("solaris-")))
-        return QStringList() << QLatin1String("solaris") << QLatin1String("unix");
-    if (mkspec.startsWith(QLatin1String("tru64-")))
-        return QStringList() << QLatin1String("tru64") << QLatin1String("unix");
-    if (mkspec.startsWith(QLatin1String("unixware-")))
-        return QStringList() << QLatin1String("unixware") << QLatin1String("unix");
+        return QLatin1String("solaris");
     if (mkspec.startsWith(QLatin1String("vxworks-")))
-        return QStringList() << QLatin1String("vxworks") << QLatin1String("unix");
+        return QLatin1String("vxworks");
     if (mkspec.startsWith(QLatin1String("win32-")) || mkspec.startsWith(QLatin1String("winrt-")))
-        return QStringList() << QLatin1String("windows");
-    return QStringList();
+        return QLatin1String("windows");
+    return QString();
 }
 
 static QStringList qbsToolchainFromQtMkspec(const QString &mkspec)
@@ -463,11 +454,10 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
             return MatchNone;
     }
 
-    const auto targetOsNames = Internal::Set<QString>::fromList(
-                toolchainProfile.value(QLatin1String("qbs.targetOS")).toStringList());
-    if (areProfilePropertiesIncompatible(
-                Internal::Set<QString>::fromList(qbsTargetOsFromQtMkspec(env.mkspecName)),
-                targetOsNames))
+    const auto targetPlatform = toolchainProfile.value(
+                QLatin1String("qbs.targetPlatform")).toString();
+    if (!targetPlatform.isEmpty()
+            && targetPlatform != qbsTargetPlatformFromQtMkspec(env.mkspecName))
         return MatchNone;
 
     const QString toolchainArchitecture = toolchainProfile.value(QLatin1String("qbs.architecture"))

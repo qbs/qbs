@@ -292,7 +292,7 @@ void TestBlackboxApple::bundleStructure()
         // automatic detection
         const auto xcode5 = findXcodeVersion() >= qbs::Internal::Version(5);
         params.arguments
-                << "qbs.targetOS:ios,darwin,bsd,unix"
+                << "modules.qbs.targetPlatform:ios"
                 << (xcode5 ? "qbs.architectures:arm64" : "qbs.architectures:armv7a");
     }
 
@@ -523,7 +523,7 @@ void TestBlackboxApple::deploymentTarget()
     params.arguments = QStringList()
             << "--command-echo-mode"
             << "command-line"
-            << "qbs.targetOS:" + os
+            << "modules.qbs.targetPlatform:" + os
             << "qbs.architectures:" + arch;
 
     rmDirR(relativeBuildDir());
@@ -550,13 +550,13 @@ void TestBlackboxApple::deploymentTarget()
 
 void TestBlackboxApple::deploymentTarget_data()
 {
-    static const QString macos = QStringLiteral("macos,darwin,bsd,unix");
-    static const QString ios = QStringLiteral("ios,darwin,bsd,unix");
-    static const QString ios_sim = QStringLiteral("ios-simulator,") + ios;
-    static const QString tvos = QStringLiteral("tvos,darwin,bsd,unix");
-    static const QString tvos_sim = QStringLiteral("tvos-simulator,") + tvos;
-    static const QString watchos = QStringLiteral("watchos,darwin,bsd,unix");
-    static const QString watchos_sim = QStringLiteral("watchos-simulator,") + watchos;
+    static const QString macos = QStringLiteral("macos");
+    static const QString ios = QStringLiteral("ios");
+    static const QString ios_sim = QStringLiteral("ios-simulator");
+    static const QString tvos = QStringLiteral("tvos");
+    static const QString tvos_sim = QStringLiteral("tvos-simulator");
+    static const QString watchos = QStringLiteral("watchos");
+    static const QString watchos_sim = QStringLiteral("watchos-simulator");
 
     QTest::addColumn<QString>("sdk");
     QTest::addColumn<QString>("os");

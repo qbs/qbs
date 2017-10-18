@@ -41,6 +41,7 @@
 #define QBS_HOSTOSINFO_H
 
 #include "qbs_export.h"
+#include "stlutils.h"
 #include "version.h"
 
 #include <QtCore/qglobal.h>
@@ -72,7 +73,9 @@ public:
     // Add more as needed.
     enum HostOs { HostOsWindows, HostOsLinux, HostOsMacos, HostOsOtherUnix, HostOsOther };
 
+    static inline std::string hostOSIdentifier();
     static inline std::vector<std::string> hostOSIdentifiers();
+    static inline std::vector<std::string> canonicalOSIdentifiers(const std::string &os);
     static inline HostOs hostOs();
 
     static inline Version hostOsVersion() {
@@ -144,34 +147,63 @@ public:
     }
 };
 
-std::vector<std::string> HostOsInfo::hostOSIdentifiers()
+std::string HostOsInfo::hostOSIdentifier()
 {
 #if defined(__APPLE__)
-    return {"macos", "darwin", "bsd", "unix"};
+    return "macos";
 #elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    return {"windows"};
+    return "windows";
 #elif defined(_AIX)
-    return {"aix", "unix"};
+    return "aix";
 #elif defined(hpux) || defined(__hpux)
-    return {"hpux", "unix"};
+    return "hpux";
 #elif defined(__sun) || defined(sun)
-    return {"solaris", "unix"};
+    return "solaris";
 #elif defined(__linux__) || defined(__linux)
-    return {"linux", "unix"};
+    return "linux";
 #elif defined(__FreeBSD__) || defined(__DragonFly__) || defined(__FreeBSD_kernel__)
-    return {"freebsd", "bsd", "unix"};
+    return "freebsd";
 #elif defined(__NetBSD__)
-    return {"netbsd", "bsd", "unix"};
+    return "netbsd";
 #elif defined(__OpenBSD__)
-    return {"openbsd", "bsd", "unix"};
+    return "openbsd";
 #elif defined(__GNU__)
-    return {"hurd", "unix"};
+    return "hurd";
 #elif defined(__HAIKU__)
-    return {"haiku"};
+    return "haiku";
 #else
     #warning "Qbs has not been ported to this OS - see http://qbs.io/"
-    return {};
+    return "";
 #endif
+}
+
+std::vector<std::string> HostOsInfo::hostOSIdentifiers()
+{
+    return canonicalOSIdentifiers(hostOSIdentifier());
+}
+
+std::vector<std::string> HostOsInfo::canonicalOSIdentifiers(const std::string &name)
+{
+    std::vector<std::string> list { name };
+    if (contains(std::vector<std::string> {"ios-simulator"}, name))
+        list << canonicalOSIdentifiers("ios");
+    if (contains(std::vector<std::string> {"tvos-simulator"}, name))
+        list << canonicalOSIdentifiers("tvos");
+    if (contains(std::vector<std::string> {"watchos-simulator"}, name))
+        list << canonicalOSIdentifiers("watchos");
+    if (contains(std::vector<std::string> {"macos", "ios", "tvos", "watchos"}, name))
+        list << canonicalOSIdentifiers("darwin");
+    if (contains(std::vector<std::string> {"darwin", "freebsd", "netbsd", "openbsd"}, name))
+        list << canonicalOSIdentifiers("bsd");
+    if (contains(std::vector<std::string> {"android"}, name))
+        list << canonicalOSIdentifiers("linux");
+
+    // Note: recognized non-Unix platforms include: windows, haiku, vxworks
+    if (contains(std::vector<std::string> {
+                 "bsd", "aix", "hpux", "solaris", "linux", "hurd", "qnx", "integrity"}, name))
+        list << canonicalOSIdentifiers("unix");
+
+    return list;
 }
 
 HostOsInfo::HostOs HostOsInfo::hostOs()

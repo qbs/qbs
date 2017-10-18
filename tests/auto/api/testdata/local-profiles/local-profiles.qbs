@@ -6,7 +6,7 @@ Project {
     property stringList mingwToolchain: ["mingw", "gcc"]
     Profile {
         name: windowsProfile
-        qbs.targetOS: ["windows"]
+        qbs.targetPlatform: "windows"
     }
 
     Profile {
@@ -35,7 +35,7 @@ Project {
         Profile {
             name: product.clangProfileName
             condition: project.enableProfiles
-            qbs.targetOS: ["linux", "unix"]
+            qbs.targetPlatform: "linux"
             qbs.toolchain: product.clangToolchain
         }
 
