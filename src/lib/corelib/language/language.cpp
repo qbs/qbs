@@ -547,6 +547,8 @@ void ResolvedProduct::load(PersistentPool &pool)
     pool.load(dependencyParameters);
     pool.load(fileTaggers);
     pool.load(modules);
+    for (const ResolvedModulePtr &module : modules)
+        module->product = this;
     pool.load(moduleParameters);
     pool.load(scanners);
     pool.load(groups);
@@ -626,7 +628,7 @@ static QVariantMap findModuleMapRecursively(const QVariantMap &cfg, const QStrin
 }
 
 static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType envType,
-                                                 const QList<ResolvedModuleConstPtr> &modules,
+                                                 const QList<ResolvedModulePtr> &modules,
                                                  const PropertyMapConstPtr &productConfiguration,
                                                  const QProcessEnvironment &env)
 {

@@ -307,6 +307,7 @@ public:
     QStringList moduleDependencies;
     ScriptFunctionPtr setupBuildEnvironmentScript;
     ScriptFunctionPtr setupRunEnvironmentScript;
+    ResolvedProduct *product = nullptr;
     bool isProduct;
 
 private:
@@ -414,7 +415,7 @@ public:
     Set<ResolvedProductPtr> dependencies;
     QHash<ResolvedProductConstPtr, QVariantMap> dependencyParameters;
     QList<FileTaggerConstPtr> fileTaggers;
-    QList<ResolvedModuleConstPtr> modules;
+    QList<ResolvedModulePtr> modules;
     QHash<ResolvedModuleConstPtr, QVariantMap> moduleParameters;
     QList<ResolvedScannerConstPtr> scanners;
     QList<GroupPtr> groups;

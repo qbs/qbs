@@ -472,6 +472,7 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
     const ResolvedModulePtr &module = moduleContext.module;
     module->name = moduleName.toString();
     module->isProduct = isProduct;
+    module->product = m_productContext->product.get();
     module->setupBuildEnvironmentScript = scriptFunctionValue(item,
                                                             QLatin1String("setupBuildEnvironment"));
     module->setupRunEnvironmentScript = scriptFunctionValue(item,
