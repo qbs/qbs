@@ -256,7 +256,7 @@ Module {
     }
 
     FileTagger {
-        patterns: ["*.qdoc"]
+        patterns: ["*.qdoc", "*.qdocinc"]
         fileTags: ["qdoc"]
     }
 
