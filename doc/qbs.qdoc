@@ -66,6 +66,7 @@
                \li  \l{Target Platforms}
                \li  \l{Using the Shell}
                \li  \l{Generators}
+               \li  \l{Multiplexing}
                \li  \l{Custom Modules and Items}
            \endlist
        \li  \l{How-tos}
@@ -685,6 +686,7 @@
         \li  \l{Installing Files}
         \li  \l{Using the Shell}
         \li  \l{Generators}
+        \li  \l{Multiplexing}
         \li  \l{Custom Modules and Items}
     \endlist
 
@@ -1261,7 +1263,7 @@
 
 /*!
     \contentspage index.html
-    \previouspage generators.html
+    \previouspage multiplexing.html
     \page custom-modules.html
     \nextpage howtos.html
 
@@ -1332,7 +1334,7 @@
     \contentspage index.html
     \previouspage shell.html
     \page generators.html
-    \nextpage custom-modules.html
+    \nextpage multiplexing.html
 
     \title Generators
 
@@ -1412,6 +1414,60 @@
     varying \c Product.targetName across configuration instead of
     \c Product.name), the generator will typically suggest it in the error
     message.
+*/
+
+/*!
+    \contentspage index.html
+    \previouspage generators.html
+    \page multiplexing.html
+    \nextpage custom-modules.html
+
+    \title Multiplexing
+
+    Multiplexing is an advanced \QBS feature that allows a product to be
+    transparently built in multiple \e passes along with an optional, final
+    \e aggregate pass that allows the output artifacts of the initial passes
+    to be combined or otherwise operated on in some way.
+
+    The multiplexing feature is used to implement certain platform-specific
+    behavior: specifically, it allows applications and libraries on Apple
+    platforms to be compiled into \e fat binaries containing multiple CPU
+    architectures, the creation of Apple frameworks containing multiple
+    \e variants (for example, combined debug and release builds), and the
+    creation of Android application and library packages containing native
+    code built for multiple Android ABIs.
+
+    A product can be multiplexed over the \c qbs.architectures property (which
+    maps to \c qbs.architecture), \c qbs.buildVariants property (which maps to
+    \c qbs.buildVariant), and \c qbs.profiles (which maps to \c qbs.profile).
+
+    \note The implementation details around multiplexing are subject to change.
+
+    Product multiplexing works by examining a special property on the
+    \l{Product Item}{Product} item called \c multiplexByQbsProperties, which can
+    be set to the list of properties your product should multiplex over. For
+    example, \c multiplexByQbsProperties might contain two strings,
+    \c "architectures" and \c "buildVariants". \QBS evaluates the values of
+    \c qbs.architectures and \c qbs.buildVariants, which in turn might contain
+    the values \c ["x86", "x86_64"] and \c ["debug", "release"]. \QBS will build
+    all the possible configurations of the product: \c {(x86, debug)},
+    \c {(x86, release)}, \c {(x86_64, debug)}, and \c {(x86_64, release)}.
+
+    If the product’s \c aggregate property is \c true, the product will also be
+    built a fifth time, with the values of the multiplexed properties left
+    undefined. The aggregate product will have an automatic dependency on the
+    original four instances of the product, allowing it to collect their output
+    artifacts and to operate on them.
+
+    The aggregate product is used in situations where the target artifacts of
+    the individually multiplexed instances must be combined into one final
+    aggregate artifact that makes up the overall product.
+    Bundle products on Apple platforms use the aggregate product to create the
+    bundle artifacts (such as \c Info.plist and \c PkgInfo) that are independent
+    of a particular architecture or build variant. In addition, they use the
+    \c lipo tool to join together the built native code for different
+    architectures (such as \c x86 and \c x86_64) into the final,
+    multi-architecture fat binary that the app bundle contains.
 */
 
 /*!
