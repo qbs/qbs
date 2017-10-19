@@ -5,6 +5,7 @@ Project {
         Depends { name: "cpp" }
         name: "p2lib1"
         files: ["src/main/jni/lib1.cpp"]
+        qbs.targetPlatform: "android"
         cpp.useRPaths: false
     }
 
@@ -13,6 +14,7 @@ Project {
         Depends { name: "cpp" }
         name: "p2lib2"
         files: ["src/main/jni/lib2.cpp"]
+        qbs.targetPlatform: "android"
         Android.ndk.appStl: "stlport_shared"
     }
 

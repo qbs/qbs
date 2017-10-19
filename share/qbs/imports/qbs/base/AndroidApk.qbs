@@ -34,6 +34,7 @@ import qbs.FileInfo
 
 Product {
     type: ["android.apk"]
+    qbs.targetPlatform: "android"
     Depends { name: "Android.sdk" }
 
     property string packageName: name

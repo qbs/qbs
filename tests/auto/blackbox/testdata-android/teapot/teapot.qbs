@@ -5,6 +5,7 @@ Project {
     minimumQbsVersion: qbs.version
     StaticLibrary {
         name: "native-glue"
+        qbs.targetPlatform: "android"
         Depends { name: "cpp" }
         Group {
             id: glue_sources
@@ -21,6 +22,7 @@ Project {
 
     StaticLibrary {
         name: "ndk-helper"
+        qbs.targetPlatform: "android"
         Depends { name: "Android.ndk" }
         Depends { name: "cpp" }
         Depends { name: "native-glue" }
@@ -60,6 +62,7 @@ Project {
 
     StaticLibrary {
         name: "android_cpufeatures"
+        qbs.targetPlatform: "android"
         Depends { name: "cpp" }
         Group {
             id: cpufeatures_sources
@@ -76,6 +79,7 @@ Project {
 
     DynamicLibrary {
         name: "TeapotNativeActivity"
+        qbs.targetPlatform: "android"
         Depends { name: "Android.ndk" }
         Depends { name: "cpp" }
         Depends { name: "android_cpufeatures" }

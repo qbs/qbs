@@ -38,9 +38,6 @@ class TestBlackboxAndroid : public TestBlackboxBase
 public:
     TestBlackboxAndroid();
 
-protected:
-    void validateTestProfile() override;
-
 private slots:
     void android();
     void android_data();

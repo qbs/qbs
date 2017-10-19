@@ -66,14 +66,6 @@ TestBlackboxAndroid::TestBlackboxAndroid()
 {
 }
 
-void TestBlackboxAndroid::validateTestProfile()
-{
-    const SettingsPtr s = settings();
-    Profile p("qbs_autotests-android", s.get());
-    if (!p.exists())
-        QSKIP("No Android test profile");
-}
-
 void TestBlackboxAndroid::android()
 {
     QFETCH(QString, projectDir);
@@ -81,12 +73,19 @@ void TestBlackboxAndroid::android()
     QFETCH(QList<QByteArrayList>, expectedFilesLists);
 
     const SettingsPtr s = settings();
-    Profile p("qbs_autotests-android", s.get());
+    Profile p(profileName(), s.get());
     int status;
     const auto androidPaths = findAndroid(&status, p.name());
     QCOMPARE(status, 0);
 
+    const auto sdkPath = androidPaths["sdk"];
+    if (sdkPath.isEmpty())
+        QSKIP("Android SDK is not installed");
+
     const auto ndkPath = androidPaths["ndk"];
+    if (ndkPath.isEmpty() && projectDir != "no-native")
+        QSKIP("Android NDK is not installed");
+
     const auto ndkSamplesPath = androidPaths["ndk-samples"];
     static const QStringList ndkSamplesDirs = QStringList() << "teapot" << "no-native";
     if (!ndkPath.isEmpty() && !QFileInfo(ndkSamplesPath).isDir()
@@ -157,7 +156,7 @@ void TestBlackboxAndroid::android()
 void TestBlackboxAndroid::android_data()
 {
     const SettingsPtr s = settings();
-    const Profile p("qbs_autotests-android", s.get());
+    const Profile p(profileName(), s.get());
     QStringList archsStringList = p.value(QLatin1String("qbs.architectures")).toStringList();
     if (archsStringList.empty())
         archsStringList << QStringLiteral("armv7a"); // must match default in common.qbs
