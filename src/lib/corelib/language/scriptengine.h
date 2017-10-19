@@ -150,7 +150,6 @@ public:
     Set<QString> imports() const;
     static QScriptValueList argumentList(const QStringList &argumentNames,
             const QScriptValue &context);
-    void registerOwnedVariantMap(QVariantMap *vm) { m_ownedVariantMaps.append(vm); }
 
     QStringList uncaughtExceptionBacktraceOrEmpty() const {
         return hasUncaughtException() ? uncaughtExceptionBacktrace() : QStringList();
@@ -257,7 +256,6 @@ private:
     QScriptValue m_qbsObject;
     QScriptValue m_consoleObject;
     QScriptValue m_cancelationError;
-    QList<QVariantMap *> m_ownedVariantMaps;
     qint64 m_elapsedTimeImporting = -1;
     EvalContext m_evalContext;
     std::vector<ResourceAcquiringScriptObject *> m_resourceAcquiringScriptObjects;

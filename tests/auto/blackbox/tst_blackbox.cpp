@@ -673,6 +673,14 @@ void TestBlackbox::dependenciesProperty()
     QJsonArray product2_cpp_defines = product2_cpp.value(QLatin1String("defines")).toArray();
     QCOMPARE(product2_cpp_defines.size(), 1);
     QCOMPARE(product2_cpp_defines.first().toString(), QLatin1String("SMURF"));
+    QJsonArray cpp_dependencies = product2_cpp.value("dependencies").toArray();
+    QVERIFY(!cpp_dependencies.isEmpty());
+    int qbsCount = 0;
+    for (int i = 0; i < cpp_dependencies.count(); ++i) {
+        if (cpp_dependencies.at(i).toObject().value("name").toString() == "qbs")
+            ++qbsCount;
+    }
+    QCOMPARE(qbsCount, 1);
 }
 
 void TestBlackbox::dependencyProfileMismatch()

@@ -133,9 +133,7 @@ private:
             if (dependency->isProduct)
                 continue;
             QScriptValue obj = engine->newObject();
-            setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj,
-                                   product->moduleProperties->value(), dependency->name);
-
+            setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency.get());
             const QVariantMap &params = product->moduleParameters.value(dependency);
             obj.setProperty(parametersKey, params.isEmpty()
                             ? engine->newObject() : toScriptValue(engine, observer, params,
@@ -147,35 +145,37 @@ private:
     }
 
     static QScriptValue js_moduleDependencies(QScriptContext *, ScriptEngine *engine,
-                                              const QVariantMap *modulesMap)
+                                              const ResolvedModule *module)
     {
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
-        for (QVariantMap::const_iterator it = modulesMap->begin(); it != modulesMap->end(); ++it) {
+        for (const QString &depName : qAsConst(module->moduleDependencies)) {
             QScriptValue obj = engine->newObject();
-            obj.setProperty(QLatin1String("name"), it.key());
-            setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj, it.value().toMap(),
-                                   it.key());
-            result.setProperty(idx++, obj);
+            obj.setProperty(QLatin1String("name"), depName);
+            for (const ResolvedModuleConstPtr &dep : qAsConst(module->product->modules)) {
+                if (dep->name == depName) {
+                    setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj, dep.get());
+                    result.setProperty(idx++, obj);
+                    break;
+                }
+            }
         }
+        QBS_ASSERT(idx == quint32(module->moduleDependencies.count()),;);
         return result;
     }
 
     static void setupModuleScriptValue(ScriptEngine *engine, QScriptValue &moduleScriptValue,
-                                       const QVariantMap &propertyMap,
-                                       const QString &moduleName)
+                                       const ResolvedModule *module)
     {
-        const QVariantMap propMap
-                = propertyMap.value(QLatin1String("modules")).toMap().value(moduleName).toMap();
+        const QVariantMap propMap = module->product->moduleProperties->value()
+                .value(QLatin1String("modules")).toMap().value(module->name).toMap();
         for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
             const QVariant &value = it.value();
-            if (value.isValid() && it.key() != QLatin1String("modules"))
+            if (value.isValid())
                 moduleScriptValue.setProperty(it.key(), engine->toScriptValue(value));
         }
-        QVariantMap *modulesMap = new QVariantMap(propMap.value(QLatin1String("modules")).toMap());
-        engine->registerOwnedVariantMap(modulesMap);
-        QScriptValue depfunc = engine->newFunction<const QVariantMap *>(&js_moduleDependencies,
-                                                                        modulesMap);
+        QScriptValue depfunc = engine->newFunction<const ResolvedModule *>(&js_moduleDependencies,
+                                                                           module);
         moduleScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
                                       QScriptValue::ReadOnly | QScriptValue::Undeletable
                                       | QScriptValue::PropertyGetter);

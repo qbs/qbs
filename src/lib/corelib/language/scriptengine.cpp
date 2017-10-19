@@ -113,7 +113,6 @@ ScriptEngine::ScriptEngine(Logger &logger, EvalContext evalContext, QObject *par
 ScriptEngine::~ScriptEngine()
 {
     releaseResourcesOfScriptObjects();
-    qDeleteAll(m_ownedVariantMaps);
     delete (m_scriptImporter);
     if (m_elapsedTimeImporting != -1) {
         m_logger.qbsLog(LoggerInfo, true) << Tr::tr("Setting up imports took %1.")
