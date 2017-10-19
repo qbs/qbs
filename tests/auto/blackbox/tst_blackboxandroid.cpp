@@ -152,7 +152,7 @@ void TestBlackboxAndroid::android_data()
     const Profile p("qbs_autotests-android", s.get());
     QStringList archsStringList = p.value(QLatin1String("qbs.architectures")).toStringList();
     if (archsStringList.isEmpty())
-        archsStringList << QStringLiteral("armv5te");
+        archsStringList << QStringLiteral("armv7a"); // must match default in common.qbs
     QByteArrayList archs;
     std::transform(archsStringList.begin(), archsStringList.end(), std::back_inserter(archs),
                    [] (const QString &s) {
