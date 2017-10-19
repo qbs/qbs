@@ -173,6 +173,7 @@ void LauncherSocketHandler::handleSocketClosed()
         }
     }
     m_socket->disconnect();
+    qApp->quit();
 }
 
 void LauncherSocketHandler::handleProcessError()
