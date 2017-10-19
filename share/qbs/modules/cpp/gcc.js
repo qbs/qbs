@@ -114,19 +114,25 @@ function collectLibraryDependencies(product, isDarwin) {
     }
 
     function addExternalLibs(obj) {
+        function ensureArray(a) {
+            return Array.isArray(a) ? a : [];
+        }
+        function sanitizedModuleListProperty(obj, moduleName, propertyName) {
+            return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));
+        }
         var externalLibs = [].concat(
-                    ModUtils.sanitizedModuleProperty(obj, "cpp", "staticLibraries"),
-                    ModUtils.sanitizedModuleProperty(obj, "cpp", "dynamicLibraries"));
+                    ensureArray(sanitizedModuleListProperty(obj, "cpp", "staticLibraries")),
+                    ensureArray(sanitizedModuleListProperty(obj, "cpp", "dynamicLibraries")));
         for (var i = 0, len = externalLibs.length; i < len; ++i)
             addObject({ direct: true, filePath: externalLibs[i] }, Array.prototype.push);
         if (isDarwin) {
             externalLibs = [].concat(
-                        ModUtils.sanitizedModuleProperty(obj, "cpp", "frameworks"));
+                        ensureArray(sanitizedModuleListProperty(obj, "cpp", "frameworks")));
             for (var i = 0, len = externalLibs.length; i < len; ++i)
                 addObject({ direct: true, filePath: externalLibs[i], framework: true },
                         Array.prototype.push);
             externalLibs = [].concat(
-                        ModUtils.sanitizedModuleProperty(obj, "cpp", "weakFrameworks"));
+                        ensureArray(sanitizedModuleListProperty(obj, "cpp", "weakFrameworks")));
             for (var i = 0, len = externalLibs.length; i < len; ++i)
                 addObject({ direct: true, filePath: externalLibs[i], framework: true,
                             symbolLinkMode: "weak" }, Array.prototype.push);
