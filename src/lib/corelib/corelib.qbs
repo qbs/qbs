@@ -188,6 +188,7 @@ QbsLibrary {
             "process.cpp",
             "temporarydir.cpp",
             "textfile.cpp",
+            "binaryfile.cpp",
             "utilitiesextension.cpp",
             "domxml.cpp",
         ]

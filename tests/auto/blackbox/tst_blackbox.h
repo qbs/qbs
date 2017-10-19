@@ -121,6 +121,7 @@ private slots:
     void jsExtensionsPropertyList();
     void jsExtensionsTemporaryDir();
     void jsExtensionsTextFile();
+    void jsExtensionsBinaryFile();
     void ld();
     void linkerMode();
     void lexyacc();

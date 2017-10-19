@@ -1,0 +1,114 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 Sergey Belyashov <sergey.belyashov@gmail.com>
+** Copyright (C) 2017 Denis Shienkov <denis.shienkov@gmail.com>
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page jsextension-binaryfile.html
+    \ingroup list-of-builtin-services
+
+    \title BinaryFile Service
+    \brief Provides read and write operations on binary files.
+
+    The \c BinaryFile service allows you to read from and write into binary files.
+
+    \section1 Related Declarations
+
+    \section2 BinaryFile.OpenMode
+    \code
+    enum BinaryFile.OpenMode { ReadOnly, WriteOnly, ReadWrite }
+    \endcode
+    List of modes that a file may be opened in.
+
+    The OpenMode values can be combined with the bitwise or operator.
+
+    \section1 Available operations
+
+    \section2 Constructor
+    \code
+    BinaryFile(filePath: string, openMode: OpenMode = BinaryFile.ReadOnly)
+    \endcode
+    Opens the file at \c filePath in the given mode and returns the object representing the file.
+    \note The mode influences which of the operations listed below can actually be used on the file.
+
+    \section2 atEof
+    \code
+    atEof(): boolean
+    \endcode
+    Returns \c{true} if no more data can be read from the file, \c{false} otherwise.
+
+    \section2 close
+    \code
+    close(): void
+    \endcode
+    Closes the file. It is recommended to always call this function as soon as you are finished
+    with the file, in order to keep the number of in-flight file descriptors as low as possible.
+
+    \section2 filePath
+    \code
+    filePath(): string
+    \endcode
+    The absolute path of the file represented by this object.
+
+    \section2 size
+    \code
+    size(): number
+    \endcode
+    Returns the size of the file (in bytes).
+
+    \section2 resize
+    \code
+    resize(size: number): void
+    \endcode
+    Sets the file \c size (in bytes). If \c size is larger than the file currently is, the new
+    bytes will be set to 0; if \c size is smaller, the file is truncated.
+
+    \section2 pos
+    \code
+    pos(): number
+    \endcode
+    Returns the position that data is written to or read from.
+
+    \section2 seek
+    \code
+    seek(pos: number): void
+    \endcode
+    Sets the current position to \c pos.
+
+    \section2 read
+    \code
+    read(size: number): number[]
+    \endcode
+    Reads at most \c size bytes of data from the file and returns it as an array.
+
+    \section2 write
+    \code
+    write(data: number[]): void
+    \endcode
+    Writes \c data into the file at the current position.
+*/

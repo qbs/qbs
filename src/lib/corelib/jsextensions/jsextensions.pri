@@ -11,6 +11,7 @@ SOURCES += \
     $$PWD/fileinfoextension.cpp \
     $$PWD/temporarydir.cpp \
     $$PWD/textfile.cpp \
+    $$PWD/binaryfile.cpp \
     $$PWD/process.cpp \
     $$PWD/moduleproperties.cpp \
     $$PWD/domxml.cpp \

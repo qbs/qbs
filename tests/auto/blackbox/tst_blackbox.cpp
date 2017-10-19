@@ -3490,6 +3490,30 @@ void TestBlackbox::jsExtensionsTextFile()
     QCOMPARE(lines.at(5).trimmed().constData(), "true");
 }
 
+void TestBlackbox::jsExtensionsBinaryFile()
+{
+    QDir::setCurrent(testDataDir + "/jsextensions-binaryfile");
+    QbsRunParameters params(QStringList() << "-f" << "binaryfile.qbs");
+    QCOMPARE(runQbs(params), 0);
+    QFile source("source.dat");
+    QVERIFY(source.exists());
+    QVERIFY(source.open(QIODevice::ReadOnly));
+    QCOMPARE(source.size(), qint64(0));
+    QFile destination("destination.dat");
+    QVERIFY(destination.exists());
+    QVERIFY(destination.open(QIODevice::ReadOnly));
+    const QByteArray data = destination.readAll();
+    QCOMPARE(data.size(), 8);
+    QCOMPARE(data.at(0), char(0x00));
+    QCOMPARE(data.at(1), char(0x01));
+    QCOMPARE(data.at(2), char(0x02));
+    QCOMPARE(data.at(3), char(0x03));
+    QCOMPARE(data.at(4), char(0x04));
+    QCOMPARE(data.at(5), char(0x05));
+    QCOMPARE(data.at(6), char(0x06));
+    QCOMPARE(data.at(7), char(0xFF));
+}
+
 void TestBlackbox::ld()
 {
     QDir::setCurrent(testDataDir + "/ld");
