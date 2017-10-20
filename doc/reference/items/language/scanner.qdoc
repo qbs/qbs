@@ -46,7 +46,7 @@
       Scanner {
         inputs: 'qrc'
         scan: {
-          var xml = new XmlDomDocument(input.filePath);
+          var xml = new Xml.DomDocument(input.filePath);
           dependencies = [];
           // retrieve <file> entries from the XML document
           return dependencies;

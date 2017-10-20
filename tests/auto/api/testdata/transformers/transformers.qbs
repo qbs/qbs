@@ -53,7 +53,7 @@ Project {
                 cmd.highlight = "linker";
                 cmd.sourceCode = function () {
                     File.remove(output.filePath);
-                    var doc = new XmlDomDocument();
+                    var doc = new Xml.DomDocument();
                     var root = doc.createElement("root");
                     doc.appendChild(root);
 

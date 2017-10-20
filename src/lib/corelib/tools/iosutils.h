@@ -43,7 +43,7 @@
 #include <cstdio>
 #include <ostream>
 
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(_MSC_VER)
 #include <codecvt>
 #include <locale>
 #define QBS_RENAME_IMPL ::_wrename
@@ -75,7 +75,7 @@ static inline bool fwrite(const char *s, std::ostream *stream)
 
 static inline qbs_filesystem_path_string_type utf8_to_native_path(const std::string &str)
 {
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(_MSC_VER)
     std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
     return converter.from_bytes(str);
 #else
@@ -83,7 +83,7 @@ static inline qbs_filesystem_path_string_type utf8_to_native_path(const std::str
 #endif
 }
 
-static int rename(const std::string &oldName, const std::string &newName)
+static inline int rename(const std::string &oldName, const std::string &newName)
 {
     const auto wOldName = utf8_to_native_path(oldName);
     const auto wNewName = utf8_to_native_path(newName);

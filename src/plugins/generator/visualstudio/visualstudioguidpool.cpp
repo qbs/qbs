@@ -30,6 +30,7 @@
 
 #include "visualstudioguidpool.h"
 #include <tools/filesaver.h>
+#include <tools/iosutils.h>
 #include <QtCore/quuid.h>
 
 #include <fstream>
@@ -53,7 +54,7 @@ VisualStudioGuidPool::VisualStudioGuidPool(const std::string &storeFilePath)
     : d(std::make_shared<VisualStudioGuidPoolPrivate>())
 {
     // Read any existing GUIDs from the on-disk store
-    std::ifstream file(d->storeFilePath = storeFilePath);
+    std::ifstream file(Internal::utf8_to_native_path(d->storeFilePath = storeFilePath));
     if (file.is_open()) {
         const auto data = JsonDocument::fromJson(std::string {
             std::istreambuf_iterator<std::ifstream::char_type>(file),

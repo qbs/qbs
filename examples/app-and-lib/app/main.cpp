@@ -48,9 +48,11 @@
 **
 ****************************************************************************/
 
+#include <stdio.h>
 #include <lib.h>
 
 int main()
 {
+    puts("Now calling a function from mylib:");
     return bla();
 }

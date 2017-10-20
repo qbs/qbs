@@ -52,13 +52,13 @@ import qbs 1.0
 
 Product {
     type: "staticlibrary"
-    name: "app-and-lib-lib"
+    name: "mylib"
     files: [
         "lib.cpp",
         "lib.h",
     ]
-    cpp.defines: ['CRUCIAL_DEFINE']
     Depends { name: 'cpp' }
+    cpp.defines: ['CRUCIAL_DEFINE']
 
     Export {
         Depends { name: "cpp" }

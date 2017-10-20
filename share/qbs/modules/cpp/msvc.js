@@ -261,9 +261,15 @@ function collectLibraryDependencies(product) {
     }
 
     function addExternalLibs(obj) {
+        function ensureArray(a) {
+            return Array.isArray(a) ? a : [];
+        }
+        function sanitizedModuleListProperty(obj, moduleName, propertyName) {
+            return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));
+        }
         var externalLibs = [].concat(
-                    ModUtils.sanitizedModuleProperty(obj, "cpp", "staticLibraries"),
-                    ModUtils.sanitizedModuleProperty(obj, "cpp", "dynamicLibraries"));
+                    sanitizedModuleListProperty(obj, "cpp", "staticLibraries"),
+                    sanitizedModuleListProperty(obj, "cpp", "dynamicLibraries"));
         externalLibs.forEach(function (libName) {
             if (!libName.match(/\.lib$/i) && !libName.startsWith('@'))
                 libName += ".lib";

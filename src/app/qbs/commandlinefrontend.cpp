@@ -376,8 +376,10 @@ void CommandLineFrontend::handleProjectsResolved()
     case StatusCommandType:
         qApp->exit(printStatus(m_projects.first().projectData()));
         break;
-    case BuildCommandType:
     case GenerateCommandType:
+        checkGeneratorName();
+        Q_FALLTHROUGH();
+    case BuildCommandType:
         build();
         break;
     case InstallCommandType:
@@ -499,28 +501,35 @@ void CommandLineFrontend::build()
     m_currentBuildEffort = 0;
 }
 
-void CommandLineFrontend::generate()
+void CommandLineFrontend::checkGeneratorName()
 {
     const QString generatorName = m_parser.generateOptions().generatorName();
-    auto generator = ProjectGeneratorManager::findGenerator(generatorName);
-    if (!generator) {
-        const QString generatorNames = ProjectGeneratorManager::loadedGeneratorNames()
-                .join(QLatin1String("\n\t"));
-        if (generatorName.isEmpty()) {
-            throw ErrorInfo(Tr::tr("No generator specified. Available generators:\n\t%1")
-                            .arg(generatorNames));
+    m_generator = ProjectGeneratorManager::findGenerator(generatorName);
+    if (m_generator)
+        return;
+    const auto generatorNames = ProjectGeneratorManager::loadedGeneratorNames();
+    if (!generatorNames.empty()) {
+        const QString generatorNamesString = generatorNames.join(QLatin1String("\n\t"));
+        if (!generatorName.isEmpty()) {
+            throw ErrorInfo(Tr::tr("No generator named '%1'. Available generators:\n\t%2")
+                            .arg(generatorName, generatorNamesString));
         }
 
-        throw ErrorInfo(Tr::tr("No generator named '%1'. Available generators:\n\t%2")
-                        .arg(generatorName)
-                        .arg(generatorNames));
+        throw ErrorInfo(Tr::tr("No generator specified. Available generators:\n\t%1")
+                        .arg(generatorNamesString));
     }
 
-    generator->generate(m_projects,
-                        m_parser.buildConfigurations(),
-                        m_parser.installOptions(QString()),
-                        m_parser.settingsDir(),
-                        ConsoleLogger::instance(m_settings));
+    throw ErrorInfo(Tr::tr("No generator specified or no generators are available."));
+}
+
+void CommandLineFrontend::generate()
+{
+    QBS_CHECK(!!m_generator);
+    m_generator->generate(m_projects,
+                          m_parser.buildConfigurations(),
+                          m_parser.installOptions(QString()),
+                          m_parser.settingsDir(),
+                          ConsoleLogger::instance(m_settings));
 }
 
 int CommandLineFrontend::runTarget()

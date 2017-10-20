@@ -52,13 +52,7 @@ import qbs 1.0
 
 Application {
     name : "CollidingMice"
-    destinationDirectory: "bin"
-
-    Depends {
-        name: "Qt"
-        submodules: ["widgets"]
-    }
-
+    Depends { name: "Qt.widgets" }
     files : [
         "images/cheese.jpg",
         "main.cpp",
@@ -66,5 +60,10 @@ Application {
         "mouse.h",
         "mice.qrc"
     ]
+    Group {
+        fileTagsFilter: bundle.isBundle ?  ["bundle.content"] : ["application"]
+        qbs.install: true
+        qbs.installPrefix: bundle.isBundle ? "Applications" : "bin"
+        qbs.installSourceBase: product.buildDirectory
+    }
 }
-

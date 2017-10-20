@@ -114,19 +114,25 @@ function collectLibraryDependencies(product, isDarwin) {
     }
 
     function addExternalLibs(obj) {
+        function ensureArray(a) {
+            return Array.isArray(a) ? a : [];
+        }
+        function sanitizedModuleListProperty(obj, moduleName, propertyName) {
+            return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));
+        }
         var externalLibs = [].concat(
-                    ModUtils.sanitizedModuleProperty(obj, "cpp", "staticLibraries"),
-                    ModUtils.sanitizedModuleProperty(obj, "cpp", "dynamicLibraries"));
+                    ensureArray(sanitizedModuleListProperty(obj, "cpp", "staticLibraries")),
+                    ensureArray(sanitizedModuleListProperty(obj, "cpp", "dynamicLibraries")));
         for (var i = 0, len = externalLibs.length; i < len; ++i)
             addObject({ direct: true, filePath: externalLibs[i] }, Array.prototype.push);
         if (isDarwin) {
             externalLibs = [].concat(
-                        ModUtils.sanitizedModuleProperty(obj, "cpp", "frameworks"));
+                        ensureArray(sanitizedModuleListProperty(obj, "cpp", "frameworks")));
             for (var i = 0, len = externalLibs.length; i < len; ++i)
                 addObject({ direct: true, filePath: externalLibs[i], framework: true },
                         Array.prototype.push);
             externalLibs = [].concat(
-                        ModUtils.sanitizedModuleProperty(obj, "cpp", "weakFrameworks"));
+                        ensureArray(sanitizedModuleListProperty(obj, "cpp", "weakFrameworks")));
             for (var i = 0, len = externalLibs.length; i < len; ++i)
                 addObject({ direct: true, filePath: externalLibs[i], framework: true,
                             symbolLinkMode: "weak" }, Array.prototype.push);
@@ -961,7 +967,7 @@ function collectStdoutLines(command, args)
     var p = new Process();
     try {
         p.exec(command, args);
-        return p.readStdOut().split('\n').filter(function (e) { return e; });
+        return p.readStdOut().split(/\r?\n/g).filter(function (e) { return e; });
     } finally {
         p.close();
     }
@@ -1235,17 +1241,6 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     return commands;
 }
 
-function concatLibsFromArtifacts(libs, artifacts, filePathGetter)
-{
-    if (!artifacts)
-        return libs;
-    if (!filePathGetter)
-        filePathGetter = function (a) { return a.filePath; };
-    var deps = artifacts.map(filePathGetter);
-    deps.reverse();
-    return concatLibs(deps, libs);
-}
-
 function debugInfoArtifacts(product, variants, debugInfoTagSuffix) {
     var fileTag;
     switch (debugInfoTagSuffix) {
@@ -1304,7 +1299,7 @@ function dumpMacros(env, compilerFilePath, args, nullDevice, tag) {
                (args || []).concat(["-Wp,-dM", "-E", "-x", languageName(tag || "c") , nullDevice]),
                true);
         var map = {};
-        p.readStdOut().trim().split("\n").map(function (line) {
+        p.readStdOut().trim().split(/\r?\n/g).map(function (line) {
             var parts = line.split(" ", 3);
             map[parts[1]] = parts[2];
         });
@@ -1327,7 +1322,7 @@ function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSepar
         var libraryPaths = [];
         var frameworkPaths = [];
         var addIncludes = false;
-        var lines = p.readStdErr().trim().split("\n").map(function (line) { return line.trim(); });
+        var lines = p.readStdErr().trim().split(/\r?\n/g).map(function (line) { return line.trim(); });
         for (var i = 0; i < lines.length; ++i) {
             var line = lines[i];
             var prefix = "LIBRARY_PATH=";
