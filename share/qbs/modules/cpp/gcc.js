@@ -1309,7 +1309,8 @@ function dumpMacros(env, compilerFilePath, args, nullDevice, tag) {
     }
 }
 
-function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSeparator, sysroot) {
+function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSeparator, sysroot,
+                          targetOS) {
     var p = new Process();
     try {
         p.setEnv("LC_ALL", "C");
@@ -1349,7 +1350,7 @@ function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSepar
         if (libraryPaths.length === 0)
             libraryPaths.push(sysroot + "/lib", sysroot + "/usr/lib");
 
-        if (frameworkPaths.length === 0)
+        if (frameworkPaths.length === 0 && targetOS.contains("darwin"))
             frameworkPaths.push(sysroot + "/System/Library/Frameworks");
 
         return {

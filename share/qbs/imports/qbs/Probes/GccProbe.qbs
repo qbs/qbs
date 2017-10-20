@@ -43,6 +43,7 @@ PathProbe {
     property string _nullDevice: qbs.nullDevice
     property string _pathListSeparator: qbs.pathListSeparator
     property string _sysroot: qbs.sysroot
+    property stringList _targetOS: qbs.targetOS
 
     // Outputs
     property string architecture
@@ -84,7 +85,7 @@ PathProbe {
         var defaultPaths = Gcc.dumpDefaultPaths(environment, compilerFilePathByLanguage["cpp"] ||
                                                 compilerFilePathByLanguage["c"],
                                                 flags, _nullDevice,
-                                                _pathListSeparator, _sysroot);
+                                                _pathListSeparator, _sysroot, _targetOS);
         found = !!macros && !!defaultPaths;
 
         includePaths = defaultPaths.includePaths;
