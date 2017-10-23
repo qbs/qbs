@@ -231,7 +231,7 @@ UnixGCC {
         inputsFromDependencies: ["dynamiclibrary"]
         multiplex: true
 
-        outputFileTags: ["bundle.input", "dynamiclibrary", "dynamiclibrary_copy", "primary",
+        outputFileTags: ["bundle.input", "dynamiclibrary", "dynamiclibrary_symbols", "primary",
                          "debuginfo_dll"]
         outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "dynamiclibrary", "dll")
 

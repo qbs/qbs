@@ -358,11 +358,11 @@ CppModule {
             }
             return tags;
         }
-        inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
+        inputsFromDependencies: ["dynamiclibrary_symbols", "staticlibrary"]
 
         outputFileTags: [
             "bundle.input",
-            "dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy", "debuginfo_dll"
+            "dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_symbols", "debuginfo_dll"
         ]
         outputArtifacts: {
             var artifacts = [{
@@ -379,7 +379,7 @@ CppModule {
                 artifacts.push({
                     filePath: product.destinationDirectory + "/.sosymbols/"
                               + PathTools.dynamicLibraryFilePath(product),
-                    fileTags: ["dynamiclibrary_copy"],
+                    fileTags: ["dynamiclibrary_symbols"],
                     alwaysUpdated: false,
                 });
             }
@@ -462,7 +462,7 @@ CppModule {
             }
             return tags;
         }
-        inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
+        inputsFromDependencies: ["dynamiclibrary_symbols", "staticlibrary"]
 
         outputFileTags: ["bundle.input", "loadablemodule", "debuginfo_loadablemodule"]
         outputArtifacts: {
@@ -499,7 +499,7 @@ CppModule {
             }
             return tags;
         }
-        inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
+        inputsFromDependencies: ["dynamiclibrary_symbols", "staticlibrary"]
 
         outputFileTags: ["bundle.input", "application", "debuginfo_app"]
         outputArtifacts: {

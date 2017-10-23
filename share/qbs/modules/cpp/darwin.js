@@ -50,7 +50,7 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
             return {
                 filePath: product.destinationDirectory + "/.sosymbols/"
                     + PathTools.dynamicLibraryFilePath(product, variant.suffix),
-                fileTags: ["dynamiclibrary_copy"],
+                fileTags: ["dynamiclibrary_symbols"],
                 qbs: { buildVariant: variant.name },
                 cpp: { variantSuffix: variant.suffix },
                 alwaysUpdated: false
@@ -184,7 +184,7 @@ function prepareLipo(project, product, inputs, outputs, input, output) {
                       ["-S", outputs.primary[0].filePath]);
     cmd.silent = true;
     commands.push(cmd);
-    if (outputs.dynamiclibrary_copy)
+    if (outputs.dynamiclibrary_symbols)
         Array.prototype.push.apply(commands, Gcc.createSymbolCheckingCommands(product, outputs));
     return commands;
 }

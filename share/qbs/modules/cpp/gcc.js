@@ -1042,31 +1042,31 @@ function readSymbolFile(filePath)
 
 function createSymbolCheckingCommands(product, outputs) {
     var commands = [];
-    if (!outputs.dynamiclibrary || !outputs.dynamiclibrary_copy)
+    if (!outputs.dynamiclibrary || !outputs.dynamiclibrary_symbols)
         return commands;
 
-    if (outputs.dynamiclibrary.length !== outputs.dynamiclibrary_copy.length)
+    if (outputs.dynamiclibrary.length !== outputs.dynamiclibrary_symbols.length)
         throw new Error("The number of outputs tagged dynamiclibrary ("
                         + outputs.dynamiclibrary.length + ") must be equal to the number of "
-                        + "outputs tagged dynamiclibrary_copy ("
-                        + outputs.dynamiclibrary_copy.length + ")");
+                        + "outputs tagged dynamiclibrary_symbols ("
+                        + outputs.dynamiclibrary_symbols.length + ")");
 
-    for (var d = 0; d < outputs.dynamiclibrary_copy.length; ++d) {
+    for (var d = 0; d < outputs.dynamiclibrary_symbols.length; ++d) {
         // Update the symbols file if the list of relevant symbols has changed.
         var cmd = new JavaScriptCommand();
         cmd.silent = true;
         cmd.d = d;
         cmd.sourceCode = function() {
             if (outputs.dynamiclibrary[d].qbs.buildVariant
-                    !== outputs.dynamiclibrary_copy[d].qbs.buildVariant)
+                    !== outputs.dynamiclibrary_symbols[d].qbs.buildVariant)
                 throw new Error("Build variant of output tagged dynamiclibrary ("
                                 + outputs.dynamiclibrary[d].qbs.buildVariant + ") is not equal to "
-                                + "build variant of output tagged dynamiclibrary_copy ("
-                                + outputs.dynamiclibrary_copy[d].qbs.buildVariant + ") at index "
+                                + "build variant of output tagged dynamiclibrary_symbols ("
+                                + outputs.dynamiclibrary_symbols[d].qbs.buildVariant + ") at index "
                                 + d);
 
             var libFilePath = outputs.dynamiclibrary[d].filePath;
-            var symbolFilePath = outputs.dynamiclibrary_copy[d].filePath;
+            var symbolFilePath = outputs.dynamiclibrary_symbols[d].filePath;
 
             var newNmResult = getSymbolInfo(product, libFilePath);
             if (!newNmResult.success)
