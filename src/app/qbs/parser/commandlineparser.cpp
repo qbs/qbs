@@ -54,6 +54,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
+#include <tools/qbsassert.h>
 #include <tools/settings.h>
 #include <tools/settingsmodel.h>
 
@@ -469,23 +470,17 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildConfigurations()
     QVariantMap currentProperties;
     foreach (const QString &arg, command->additionalArguments()) {
         const int sepPos = arg.indexOf(QLatin1Char(':'));
-        if (sepPos == -1) { // New build configuration found.
+        QBS_CHECK(sepPos > 0);
+        const QString key = arg.left(sepPos);
+        const QString rawValue = arg.mid(sepPos + 1);
+        if (key == QLatin1String("config") || key == configurationNameKey) {
             propertiesPerConfiguration << std::make_pair(currentConfigurationName,
                                                          currentProperties);
-            currentConfigurationName = arg;
+            currentConfigurationName = rawValue;
             currentProperties.clear();
             continue;
         }
-        const QString property = propertyName(arg.left(sepPos));
-        if (property.isEmpty()) {
-            qbsWarning() << Tr::tr("Ignoring empty property.");
-        } else if (property == configurationNameKey) {
-            qbsWarning() << Tr::tr("Refusing to overwrite special property '%1'.")
-                            .arg(configurationNameKey);
-        } else {
-            const QString rawString = arg.mid(sepPos + 1);
-            currentProperties.insert(property, representationToSettingsValue(rawString));
-        }
+        currentProperties.insert(propertyName(key), representationToSettingsValue(rawValue));
     }
     propertiesPerConfiguration << std::make_pair(currentConfigurationName, currentProperties);
 

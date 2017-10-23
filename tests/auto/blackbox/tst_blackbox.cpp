@@ -5008,7 +5008,7 @@ void TestBlackbox::missingBuildGraph()
     const QString actualConfigName = configName.isEmpty() ? QString("default") : configName;
     QbsRunParameters params;
     params.expectFailure = true;
-    params.arguments << actualConfigName;
+    params.arguments << QLatin1String("config:") + actualConfigName;
     for (const QString &command : qAsConst(commands)) {
         params.command = command;
         QVERIFY2(runQbs(params) != 0, qPrintable(command));
