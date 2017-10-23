@@ -33,7 +33,7 @@ Project {
 
     Product {
         name: "qmake project files for qbs"
-        files: ["**/*.pr[io]", "sync.profile"]
+        files: ["**/*.pr[io]"]
     }
 
     AutotestRunner {

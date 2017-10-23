@@ -56,7 +56,12 @@ public:
     TestTools(qbs::Settings *settings);
     ~TestTools();
 
+public slots:
+   virtual void initTestCase();
+
 private slots:
+    void fileSaver();
+
     void fileCaseCheck();
     void testBuildConfigMerging();
     void testFileInfo();
@@ -101,4 +106,6 @@ private:
 
     qbs::Settings * const m_settings;
     QList<QTemporaryDir *> m_tmpDirs;
+
+    const QString testDataDir;
 };

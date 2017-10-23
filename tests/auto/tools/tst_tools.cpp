@@ -46,6 +46,7 @@
 #include <tools/buildoptions.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/filesaver.h>
 #include <tools/hostosinfo.h>
 #include <tools/processutils.h>
 #include <tools/profile.h>
@@ -67,13 +68,137 @@
 using namespace qbs;
 using namespace qbs::Internal;
 
-TestTools::TestTools(Settings *settings) : m_settings(settings)
+TestTools::TestTools(Settings *settings)
+    : m_settings(settings), testDataDir(testWorkDir("tools"))
 {
 }
 
 TestTools::~TestTools()
 {
     qDeleteAll(m_tmpDirs);
+}
+
+void TestTools::initTestCase()
+{
+    QDir().mkpath(testDataDir);
+}
+
+void TestTools::fileSaver()
+{
+    QVERIFY(QDir::setCurrent(testDataDir));
+
+    static const char *fn = "foo.txt";
+    const auto run = [](const std::function<void()> &func) {
+        if (QFile::exists(fn))
+            QVERIFY(QFile::remove(fn));
+        func();
+        if (QFile::exists(fn))
+            QVERIFY(QFile::remove(fn));
+    };
+
+    // failing to open the file means nothing works
+    run([] {
+        Internal::FileSaver fs(fn);
+        QVERIFY(!fs.device());
+        QVERIFY(!fs.write("hello"));
+        QVERIFY(!fs.commit());
+        QVERIFY(!QFile::exists(fn));
+    });
+
+    // verify that correct usage creates a file with the right contents
+    run([] {
+        Internal::FileSaver fs(fn);
+        QVERIFY(fs.open());
+        QVERIFY(fs.device());
+        QVERIFY(fs.write("hello"));
+        QVERIFY(fs.commit());
+        QVERIFY(QFile::exists(fn));
+        QFile f(fn);
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        QCOMPARE(f.readAll(), QByteArrayLiteral("hello"));
+    });
+
+    // failing to commit writes nothing
+    run([] {
+        Internal::FileSaver fs(fn);
+        QVERIFY(fs.open());
+        QVERIFY(fs.device());
+        QVERIFY(fs.write("hello"));
+        QVERIFY(!QFile::exists(fn));
+    });
+
+    // verify that correct usage creates a file with the right contents and does not overwrite
+    run([] {
+        {
+            Internal::FileSaver fs(fn);
+            QVERIFY(fs.open());
+            QVERIFY(fs.device());
+            QVERIFY(fs.write("hello"));
+            QVERIFY(fs.commit());
+            QVERIFY(QFile::exists(fn));
+            QFile f(fn);
+            QVERIFY(f.open(QIODevice::ReadOnly));
+            QCOMPARE(f.readAll(), QByteArrayLiteral("hello"));
+        }
+
+        const auto lm = QFileInfo(fn).lastModified();
+        QVERIFY(lm.isValid());
+
+        waitForNewTimestamp(".");
+
+        {
+            Internal::FileSaver fs(fn);
+            QVERIFY(fs.open());
+            QVERIFY(fs.device());
+            QVERIFY(fs.write("hello"));
+            QVERIFY(fs.commit());
+            QVERIFY(QFile::exists(fn));
+        }
+
+        const auto lm2 = QFileInfo(fn).lastModified();
+        QVERIFY(lm2.isValid());
+
+        QCOMPARE(lm, lm2); // timestamps should be the same since content did not change
+
+        waitForNewTimestamp(".");
+
+        {
+            Internal::FileSaver fs(fn);
+            QVERIFY(fs.open());
+            QVERIFY(fs.device());
+            QVERIFY(fs.write("hello2"));
+            QVERIFY(fs.commit());
+            QVERIFY(QFile::exists(fn));
+            QFile f(fn);
+            QVERIFY(f.open(QIODevice::ReadOnly));
+            QCOMPARE(f.readAll(), QByteArrayLiteral("hello2"));
+        }
+
+        const auto lm3 = QFileInfo(fn).lastModified();
+        QVERIFY(lm3.isValid());
+
+        QVERIFY(lm != lm3); // timestamps should differ since the content changed
+
+        waitForNewTimestamp(".");
+
+        {
+            // Test overwriteIfUnchanged
+            Internal::FileSaver fs(fn, true);
+            QVERIFY(fs.open());
+            QVERIFY(fs.device());
+            QVERIFY(fs.write("hello2"));
+            QVERIFY(fs.commit());
+            QVERIFY(QFile::exists(fn));
+            QFile f(fn);
+            QVERIFY(f.open(QIODevice::ReadOnly));
+            QCOMPARE(f.readAll(), QByteArrayLiteral("hello2"));
+        }
+
+        const auto lm4 = QFileInfo(fn).lastModified();
+        QVERIFY(lm4.isValid());
+
+        QVERIFY(lm3 != lm4); // timestamps should differ since we always overwrite
+    });
 }
 
 void TestTools::testFileInfo()

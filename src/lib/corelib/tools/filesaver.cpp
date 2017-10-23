@@ -40,11 +40,9 @@
 #include "filesaver.h"
 #include "stlutils.h"
 
-#include <QtCore/qfile.h>
-#include <QtCore/qsavefile.h>
-
 #include <tools/iosutils.h>
 
+#include <cerrno>
 #include <fstream>
 
 namespace qbs {
@@ -71,34 +69,50 @@ bool FileSaver::open()
             m_oldFileContents.clear();
     }
 
-    m_newFileContents.clear();
-    m_memoryDevice = std::make_shared<std::ostringstream>(m_newFileContents);
+    m_memoryDevice = std::make_shared<std::stringstream>();
     return true;
 }
 
 bool FileSaver::commit()
 {
-    if (!m_overwriteIfUnchanged && m_oldFileContents == m_newFileContents)
+    if (!device())
+        return false;
+
+    device()->flush();
+    if (!device()->good())
+        return false;
+
+    const std::string newFileContents = m_memoryDevice->str();
+    if (!m_overwriteIfUnchanged && m_oldFileContents == newFileContents)
         return true; // no need to write unchanged data
 
-    const std::string tempFilePath = std::tmpnam(nullptr);
+    const std::string tempFilePath = m_filePath + "~";
     std::ofstream tempFile(utf8_to_native_path(tempFilePath));
     if (!tempFile.is_open())
         return false;
 
-    tempFile.write(m_newFileContents.data(), m_newFileContents.size());
+    tempFile.write(newFileContents.data(), newFileContents.size());
+    tempFile.close();
     if (!tempFile.good())
         return false;
 
-    return Internal::rename(tempFilePath, m_filePath) == 0;
+    if (Internal::rename(tempFilePath, m_filePath) != 0) {
+        if (errno != EEXIST)
+            return false;
+        if (Internal::unlink(m_filePath) != 0)
+            return false;
+        return Internal::rename(tempFilePath, m_filePath) == 0;
+    }
+
+    return true;
 }
 
-size_t FileSaver::write(const std::vector<char> &data)
+bool FileSaver::write(const std::vector<char> &data)
 {
     return fwrite(data, device());
 }
 
-size_t FileSaver::write(const std::string &data)
+bool FileSaver::write(const std::string &data)
 {
     return fwrite(data, device());
 }
