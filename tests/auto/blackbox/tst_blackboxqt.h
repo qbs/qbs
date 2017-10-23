@@ -62,6 +62,7 @@ private slots:
     void trackAddMocInclude();
     void track_qobject_change();
     void track_qrc();
+    void unmocable();
 };
 
 #endif // TST_BLACKBOXQT_H

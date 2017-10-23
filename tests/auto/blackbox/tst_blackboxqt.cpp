@@ -360,4 +360,11 @@ void TestBlackboxQt::track_qrc()
     QVERIFY(dt < QFileInfo(fileName).lastModified());
 }
 
+void TestBlackboxQt::unmocable()
+{
+    QDir::setCurrent(testDataDir + "/unmocable");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStderr.contains("No relevant classes found. No output generated."));
+}
+
 QTEST_MAIN(TestBlackboxQt)
