@@ -171,10 +171,12 @@ void BuildGraphLoader::loadBuildGraphFromDisk()
     qCDebug(lcBuildGraph) << "trying to load:" << buildGraphFilePath;
     try {
         pool.load(buildGraphFilePath);
-    } catch (const NoBuildGraphError &e) {
+    } catch (const NoBuildGraphError &) {
         if (m_parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
             throw;
-        m_logger.qbsInfo() << e.toString();
+        m_logger.qbsInfo()
+                << Tr::tr("Build graph does not yet exist for configuration '%1'. "
+                          "Starting from scratch.").arg(m_parameters.configurationName());
         return;
     } catch (const ErrorInfo &loadError) {
         if (!m_parameters.overrideBuildGraphData()) {
