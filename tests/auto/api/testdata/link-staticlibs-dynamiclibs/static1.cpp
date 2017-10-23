@@ -1,12 +1,7 @@
+#include "../dllexport.h"
 #include <stdio.h>
 
-#if defined(_WIN32) || defined(WIN32)
-#   define IMPORT __declspec(dllimport)
-#else
-#   define IMPORT
-#endif
-
-IMPORT int dynamic1_hello();
+DLL_IMPORT int dynamic1_hello();
 
 void static1_hello()
 {

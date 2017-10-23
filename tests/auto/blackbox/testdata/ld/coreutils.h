@@ -26,7 +26,6 @@
 **
 ****************************************************************************/
 
-#ifdef _WIN32
-__declspec(dllexport)
-#endif
-int foo();
+#include "../dllexport.h"
+
+DLL_EXPORT int foo();

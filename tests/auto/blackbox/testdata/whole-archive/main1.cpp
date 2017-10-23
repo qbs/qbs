@@ -1,4 +1,6 @@
-DLLIMPORT void unusedFunc1();
+#include "../dllexport.h"
+
+DLL_IMPORT void unusedFunc1();
 
 int main()
 {

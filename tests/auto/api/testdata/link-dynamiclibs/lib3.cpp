@@ -26,22 +26,15 @@
 **
 ****************************************************************************/
 
+#include "../dllexport.h"
 #include <stdio.h>
 
-#if defined(_WIN32) || defined(WIN32)
-#   define EXPORT __declspec(dllexport)
-#   define IMPORT __declspec(dllimport)
-#else
-#   define EXPORT __attribute__((visibility("default")))
-#   define IMPORT
-#endif
-
-EXPORT void lib3_hello()
+DLL_EXPORT void lib3_hello()
 {
     puts("lib3 says hello!");
 }
 
-EXPORT char* lib3_greeting()
+DLL_EXPORT char* lib3_greeting()
 {
     static char greeting[] = "hello";
     return greeting;

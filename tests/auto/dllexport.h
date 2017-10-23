@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -25,15 +25,15 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef DLLEXPORT_H
+#define DLLEXPORT_H
 
-#include "../dllexport.h"
-#include <stdio.h>
+#if defined(_WIN32) || defined(WIN32)
+#    define DLL_EXPORT __declspec(dllexport)
+#    define DLL_IMPORT __declspec(dllimport)
+#else
+#    define DLL_EXPORT __attribute__((visibility("default")))
+#    define DLL_IMPORT __attribute__((visibility("default")))
+#  endif
 
-DLL_IMPORT void lib3_hello();
-
-DLL_EXPORT void lib2_hello()
-{
-    puts("lib2 says hello!");
-    lib3_hello();
-}
-
+#endif // include guard

@@ -1,13 +1,8 @@
+#include "../dllexport.h"
 #include "static2.h"
 #include <stdio.h>
 
-#if defined(_WIN32) || defined(WIN32)
-#   define IMPORT __declspec(dllimport)
-#else
-#   define IMPORT
-#endif
-
-IMPORT void dynamic2_hello();
+DLL_IMPORT void dynamic2_hello();
 
 void TestMe::hello() const
 {

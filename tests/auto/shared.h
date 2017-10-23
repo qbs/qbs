@@ -188,6 +188,14 @@ inline QString testWorkDir(const QString &testName)
     return dir + testName + "/testWorkDir";
 }
 
+inline bool copyDllExportHeader(const QString &srcDataDir, const QString &targetDataDir)
+{
+    QFile sourceFile(srcDataDir + "/../../dllexport.h");
+    const QString targetPath = targetDataDir + "/dllexport.h";
+    QFile::remove(targetPath);
+    return sourceFile.copy(targetPath);
+}
+
 inline qbs::Internal::HostOsInfo::HostOs targetOs()
 {
     const SettingsPtr s = settings();

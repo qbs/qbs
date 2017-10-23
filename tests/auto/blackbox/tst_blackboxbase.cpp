@@ -183,6 +183,7 @@ void TestBlackboxBase::initTestCase()
     ccp(testSourceDir, testDataDir);
     QDir().mkpath(testDataDir + "/find");
     ccp(testSourceDir + "/../find", testDataDir + "/find");
+    QVERIFY(copyDllExportHeader(testSourceDir, testDataDir));
 }
 
 QString TestBlackboxBase::findExecutable(const QStringList &fileNames)

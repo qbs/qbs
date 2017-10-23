@@ -29,15 +29,7 @@
 #include <stdio.h>
 #include <lib4.h>
 
-#if defined(_WIN32) || defined(WIN32)
-#   define EXPORT __declspec(dllexport)
-#   define IMPORT __declspec(dllimport)
-#else
-#   define EXPORT
-#   define IMPORT
-#endif
-
-IMPORT int lib1_hello();
+DLL_IMPORT int lib1_hello();
 
 int main()
 {

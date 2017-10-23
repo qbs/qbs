@@ -26,18 +26,12 @@
 **
 ****************************************************************************/
 
+#include "../dllexport.h"
+
 #ifdef MYLIB
-#  if defined(_WIN32) || defined(WIN32)
-#   define MYLIB_EXPORT __declspec(dllexport)
-#  else
-#   define MYLIB_EXPORT __attribute__((visibility("default")))
-#  endif
+#    define MYLIB_EXPORT DLL_EXPORT
 #else
-#  if defined(_WIN32) || defined(WIN32)
-#   define MYLIB_EXPORT __declspec(dllimport)
-#  else
-#   define MYLIB_EXPORT
-#  endif
+#    define MYLIB_EXPORT DLL_IMPORT
 #endif
 
 MYLIB_EXPORT void f();

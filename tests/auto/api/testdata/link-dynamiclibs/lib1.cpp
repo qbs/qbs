@@ -26,19 +26,12 @@
 **
 ****************************************************************************/
 
+#include "../dllexport.h"
 #include <stdio.h>
 
-#if defined(_WIN32) || defined(WIN32)
-#   define EXPORT __declspec(dllexport)
-#   define IMPORT __declspec(dllimport)
-#else
-#   define EXPORT
-#   define IMPORT
-#endif
+DLL_IMPORT void lib2_hello();
 
-IMPORT void lib2_hello();
-
-EXPORT int lib1_hello()
+DLL_EXPORT int lib1_hello()
 {
     puts("lib1 says hello!");
     lib2_hello();

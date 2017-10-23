@@ -28,17 +28,14 @@
 
 #ifndef LIB4_H
 #define LIB4_H
+
+#include "../dllexport.h"
 #include <stdio.h>
 
 #ifdef TEST_LIB
-#   if defined(_WIN32) || defined(WIN32)
-#       define LIB_EXPORT __declspec(dllexport)
-#       define LIB_NO_EXPORT
-#   else
-#       define LIB_EXPORT __attribute__((visibility("default")))
-#   endif
+#   define LIB_EXPORT DLL_EXPORT
 #else
-#   define LIB_EXPORT
+#   define LIB_EXPORT DLL_IMPORT
 #endif
 
 class LIB_EXPORT TestMe

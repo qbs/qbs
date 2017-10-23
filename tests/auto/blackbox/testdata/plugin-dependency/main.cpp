@@ -1,12 +1,8 @@
-#if defined(_WIN32) || defined(WIN32)
-#   define IMPORT __declspec(dllimport)
-#else
-#   define IMPORT
-#endif
+#include "../dllexport.h"
 
-IMPORT void plugin3_hello();
-IMPORT void plugin4_hello();
-IMPORT void helper_hello();
+DLL_IMPORT void plugin3_hello();
+DLL_IMPORT void plugin4_hello();
+DLL_IMPORT void helper_hello();
 
 int main()
 {

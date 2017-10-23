@@ -1,1 +1,3 @@
-DLLEXPORT void unusedFunc3() { }
+#include "../dllexport.h"
+
+DLL_EXPORT void unusedFunc3() { }

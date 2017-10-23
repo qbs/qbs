@@ -160,6 +160,7 @@ void TestApi::initTestCase()
     QVERIFY2(qbs::Internal::copyFileRecursion(m_sourceDataDir,
                                               m_workingDataDir, false, true, &errorMessage),
              qPrintable(errorMessage));
+    QVERIFY(copyDllExportHeader(m_sourceDataDir, m_workingDataDir));
 }
 
 void TestApi::init()

@@ -26,12 +26,8 @@
 **
 ****************************************************************************/
 
-#if defined(_WIN32) || defined(WIN32)
-#   define EXPORT __declspec(dllexport)
-#else
-#   define EXPORT __attribute__((visibility("default")))
-#endif
+#include "../dllexport.h"
 
 extern "C" {
-    EXPORT int foo();
+    DLL_EXPORT int foo();
 }

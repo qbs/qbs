@@ -26,13 +26,9 @@
 **
 ****************************************************************************/
 
-#if defined(_WIN32)
-#   define IMPORT __declspec(dllimport)
-#else
-#   define IMPORT
-#endif
+#include "../dllexport.h"
 
-void IMPORT helperFunc();
+void DLL_IMPORT helperFunc();
 
 int main()
 {
