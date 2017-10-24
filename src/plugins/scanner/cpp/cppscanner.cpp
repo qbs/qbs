@@ -169,7 +169,7 @@ static void scanCppFile(void *opaq, CPlusPlus::Lexer &yylex, bool scanForFileTag
                         else
                             scanResult.flags = SC_GLOBAL_INCLUDE_FLAG;
                         scanResult.fileName = opaque->fileContent + tk.begin() + 1;
-                        opaque->includedFiles.append(scanResult);
+                        opaque->includedFiles.push_back(scanResult);
                     }
                 }
             }

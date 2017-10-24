@@ -118,7 +118,7 @@ void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)
         }
     }
     QBS_CHECK(!lst.contains(fileres));
-    lst.append(fileres);
+    lst.push_back(fileres);
 }
 
 void ProjectBuildData::removeFromLookupTable(FileResourceBase *fileres)
@@ -344,7 +344,7 @@ private:
             }
             throw ErrorInfo(Tr::tr("Cycle detected in rule dependencies: %1").arg(pathstr));
         }
-        m_rulePath.append(rule.get());
+        m_rulePath.push_back(rule.get());
         RuleNode *node = m_nodePerRule.value(rule);
         if (!node) {
             node = new RuleNode;

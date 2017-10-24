@@ -76,7 +76,7 @@ QList<VisualStudioSolutionFileProject *> VisualStudioSolution::fileProjects() co
     QList<VisualStudioSolutionFileProject *> list;
     for (const auto &project : d->projects)
         if (auto fileProject = qobject_cast<VisualStudioSolutionFileProject *>(project))
-            list.append(fileProject);
+            list.push_back(fileProject);
     return list;
 }
 
@@ -85,13 +85,13 @@ QList<VisualStudioSolutionFolderProject *> VisualStudioSolution::folderProjects(
     QList<VisualStudioSolutionFolderProject *> list;
     for (const auto &project : d->projects)
         if (auto folderProject = qobject_cast<VisualStudioSolutionFolderProject *>(project))
-            list.append(folderProject);
+            list.push_back(folderProject);
     return list;
 }
 
 void VisualStudioSolution::appendProject(IVisualStudioSolutionProject *project)
 {
-    d->projects.append(project);
+    d->projects.push_back(project);
 }
 
 QList<VisualStudioSolutionFileProject *> VisualStudioSolution::dependencies(
@@ -103,7 +103,7 @@ QList<VisualStudioSolutionFileProject *> VisualStudioSolution::dependencies(
 void VisualStudioSolution::addDependency(VisualStudioSolutionFileProject *project,
                                          VisualStudioSolutionFileProject *dependency)
 {
-    d->dependencies[project].append(dependency);
+    d->dependencies[project].push_back(dependency);
 }
 
 QList<VisualStudioSolutionGlobalSection *> VisualStudioSolution::globalSections() const
@@ -113,7 +113,7 @@ QList<VisualStudioSolutionGlobalSection *> VisualStudioSolution::globalSections(
 
 void VisualStudioSolution::appendGlobalSection(VisualStudioSolutionGlobalSection *globalSection)
 {
-    d->globalSections.append(globalSection);
+    d->globalSections.push_back(globalSection);
 }
 
 } // namespace qbs

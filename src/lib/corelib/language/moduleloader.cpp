@@ -489,7 +489,7 @@ private:
             const QualifiedId oldModuleName = m_currentModuleName;
             if (m_parentItem->type() != ItemType::ModulePrefix)
                 m_currentModuleName.clear();
-            m_currentModuleName.append(m_currentName);
+            m_currentModuleName.push_back(m_currentName);
             it.value()->apply(this);
             m_currentModuleName = oldModuleName;
         }
@@ -620,7 +620,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         Item::addChild(projectItem, additionalProductItem);
 
     resolveProbes(&dummyProductContext, projectItem);
-    projectContext.topLevelProject->probes.append(dummyProductContext.info.probes);
+    projectContext.topLevelProject->probes << dummyProductContext.info.probes;
 
     const QList<Item *> originalChildren = projectItem->children();
     for (Item * const child : originalChildren) {
@@ -820,7 +820,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         QBS_CHECK(mprow.size() == multiplexInfo.properties.size());
         if (row > 0) {
             item = productItem->clone();
-            additionalProductItems.append(item);
+            additionalProductItems.push_back(item);
         }
         if (multiplexInfo.table.size() > 1 || aggregator) {
             const QString multiplexConfigurationId = multiplexInfo.toIdString(row);
@@ -1973,7 +1973,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
         int lastModulesCount = loadedModules.size();
         resolveDependsItem(dependsContext, item, child, &loadedModules, &productDependencies);
         for (int i = lastModulesCount; i < loadedModules.size(); ++i)
-            dependsItemPerLoadedModule.append(child);
+            dependsItemPerLoadedModule.push_back(child);
     }
     QBS_CHECK(loadedModules.size() == dependsItemPerLoadedModule.size());
 
@@ -2132,7 +2132,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         result.required = isRequired;
         result.parameters = defaultParameters;
         result.versionRange = versionRange;
-        moduleResults->append(result);
+        moduleResults->push_back(result);
         if (result.isProduct) {
             qCDebug(lcModuleLoader) << "product dependency loaded:" << moduleName.toString();
             const QString profilesKey = QLatin1String("profiles");
@@ -2141,9 +2141,9 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
                                                                 &profilesPropertyWasSet);
             if (profiles.empty()) {
                 if (profilesPropertyWasSet)
-                    profiles.append(QLatin1String("*"));
+                    profiles.push_back(QLatin1String("*"));
                 else
-                    profiles.append(QString());
+                    profiles.push_back(QString());
             }
             QStringList multiplexConfigurationIds
                     = m_evaluator->stringListValue(dependsItem,
@@ -2651,7 +2651,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         if (Q_UNLIKELY(!module->hasProperty(vmit.key()))) {
             const ErrorInfo error(Tr::tr("Unknown property: %1.%2").arg(fullModuleName,
                                                                         vmit.key()));
-            unknownProfilePropertyErrors.append(error);
+            unknownProfilePropertyErrors.push_back(error);
             continue;
         }
         const PropertyDeclaration decl = module->propertyDeclaration(vmit.key());
@@ -2730,7 +2730,7 @@ void ModuleLoader::setupBaseModulePrototype(Item *prototype)
 static void collectItemsWithId_impl(Item *item, QList<Item *> *result)
 {
     if (!item->id().isEmpty())
-        result->append(item);
+        result->push_back(item);
     for (Item * const child : item->children())
         collectItemsWithId_impl(child, result);
 }
@@ -2753,7 +2753,7 @@ static std::vector<std::pair<QualifiedId, ItemValuePtr>> instanceItemProperties(
             ItemValuePtr itemValue = std::static_pointer_cast<ItemValue>(it.value());
             if (!itemValue->item())
                 continue;
-            name.append(it.key());
+            name.push_back(it.key());
             if (itemValue->item()->type() == ItemType::ModulePrefix)
                 f(itemValue->item());
             else

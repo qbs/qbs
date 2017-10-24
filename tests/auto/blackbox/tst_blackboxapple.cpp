@@ -185,7 +185,7 @@ void TestBlackboxApple::assetCatalog()
     }
 
     rmDirR(relativeBuildDir());
-    params.arguments.append("modules.cpp.minimumMacosVersion:'10.10'"); // force CAR generation
+    params.arguments.push_back("modules.cpp.minimumMacosVersion:'10.10'"); // force CAR generation
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
@@ -211,7 +211,7 @@ void TestBlackboxApple::assetCatalog()
 
     // now we'll add the iconset
     rmDirR(relativeBuildDir());
-    params.arguments.append("project.includeIconset:true");
+    params.arguments.push_back("project.includeIconset:true");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!(bool)m_qbsStdout.contains("compiling empty.xcassets"));
     QVERIFY((bool)m_qbsStdout.contains("compiling empty.iconset"));

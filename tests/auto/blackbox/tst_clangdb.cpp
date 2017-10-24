@@ -172,7 +172,7 @@ void TestClangDb::checkDbIsConsistentWithProject()
     const QJsonArray jsonArguments = entry.value("arguments").toArray();
     QString executable = jsonArguments.at(0).toString();
     for (int i=1; i<jsonArguments.size(); i++)
-        arguments.append(jsonArguments.at(i).toString());
+        arguments.push_back(jsonArguments.at(i).toString());
     QVERIFY(runProcess(executable, arguments, stdErr, stdOut) == 0);
 }
 

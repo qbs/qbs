@@ -531,7 +531,7 @@ void Executor::finishJob(ExecutorJob *job, bool success)
     QBS_CHECK(it != m_processingJobs.end());
     const TransformerPtr transformer = it.value();
     m_processingJobs.erase(it);
-    m_availableJobs.append(job);
+    m_availableJobs.push_back(job);
     if (success) {
         m_project->buildData->isDirty = true;
         for (Artifact * const artifact : qAsConst(transformer->outputs)) {
@@ -710,7 +710,7 @@ void Executor::addExecutorJobs()
         job->setObjectName(QString::fromLatin1("J%1").arg(i));
         job->setDryRun(m_buildOptions.dryRun());
         job->setEchoMode(m_buildOptions.echoMode());
-        m_availableJobs.append(job);
+        m_availableJobs.push_back(job);
         connect(job, &ExecutorJob::reportCommandDescription,
                 this, &Executor::reportCommandDescription);
         connect(job, &ExecutorJob::reportProcessResult, this, &Executor::reportProcessResult);
@@ -1122,7 +1122,7 @@ void Executor::prepareArtifact(Artifact *artifact)
         const FileTime oldTimestamp = artifact->timestamp();
         retrieveSourceFileTimestamp(artifact);
         if (oldTimestamp != artifact->timestamp())
-            m_changedSourceArtifacts.append(artifact);
+            m_changedSourceArtifacts.push_back(artifact);
         possiblyInstallArtifact(artifact);
     }
 

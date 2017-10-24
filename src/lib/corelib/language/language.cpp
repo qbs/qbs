@@ -214,7 +214,7 @@ QList<SourceArtifactPtr> ResolvedGroup::allFiles() const
 {
     QList<SourceArtifactPtr> lst = files;
     if (wildcards)
-        lst.append(wildcards->files);
+        lst << wildcards->files;
     return lst;
 }
 

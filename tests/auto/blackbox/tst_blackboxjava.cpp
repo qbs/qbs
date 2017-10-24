@@ -145,7 +145,7 @@ void TestBlackboxJava::javaDependencyTracking()
 
     QDir::setCurrent(testDataDir + "/java");
     QbsRunParameters rp;
-    rp.arguments.append("--check-outputs");
+    rp.arguments.push_back("--check-outputs");
     if (!jdkPath.isEmpty())
         rp.arguments << ("modules.java.jdkPath:" + jdkPath);
     if (!javaVersion.isEmpty())

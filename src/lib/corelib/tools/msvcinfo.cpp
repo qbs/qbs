@@ -130,7 +130,7 @@ static QStringList parseCommandLine(const QString &commandLine)
     if (!args)
         throw ErrorInfo(mkStr("Could not parse command line arguments: ") + commandLine);
     for (int i = 0; i < argCount; ++i)
-        list.append(QString::fromWCharArray(args[i]));
+        list.push_back(QString::fromWCharArray(args[i]));
     delete[] buf;
     return list;
 }

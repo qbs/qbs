@@ -169,7 +169,7 @@ void VisualStudioGenerator::addPropertySheets(const GeneratableProject &project)
 {
     {
         const auto fileName = QStringLiteral("qbs.props");
-        d->propertySheetNames.append({ fileName, true });
+        d->propertySheetNames.push_back({ fileName, true });
         d->msbuildProjects.insert(project.baseBuildDirectory().absoluteFilePath(fileName),
                                 std::make_shared<MSBuildSolutionPropertiesProject>(
                                     d->versionInfo, project,
@@ -178,7 +178,7 @@ void VisualStudioGenerator::addPropertySheets(const GeneratableProject &project)
 
     {
         const auto fileName = QStringLiteral("qbs-shared.props");
-        d->propertySheetNames.append({ fileName, false });
+        d->propertySheetNames.push_back({ fileName, false });
         d->msbuildProjects.insert(project.baseBuildDirectory().absoluteFilePath(fileName),
                                 std::make_shared<MSBuildSharedSolutionPropertiesProject>(
                                     d->versionInfo, project,

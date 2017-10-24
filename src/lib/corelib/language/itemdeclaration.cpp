@@ -49,7 +49,7 @@ ItemDeclaration::ItemDeclaration(ItemType type)
 
 ItemDeclaration &ItemDeclaration::operator<<(const PropertyDeclaration &decl)
 {
-    m_properties.append(decl);
+    m_properties.push_back(decl);
     return *this;
 }
 

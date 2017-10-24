@@ -272,7 +272,7 @@ static void copyTemplateFile(const QString &fileName, const QString &targetDirec
         replaceSpecialValues(&newContent, profile, *module, qtEnv);
     sourceFile.close();
     const QString targetPath = targetDirectory + QLatin1Char('/') + fileName;
-    allFiles->append(QFileInfo(targetPath).absoluteFilePath());
+    allFiles->push_back(QFileInfo(targetPath).absoluteFilePath());
     QFile targetFile(targetPath);
     if (targetFile.open(QIODevice::ReadOnly)) {
         if (newContent == targetFile.readAll()) // No need to overwrite anything in this case.
@@ -430,7 +430,7 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
 
     // determine whether user apps require C++11
     if (qtEnvironment.qtConfigItems.contains(QLatin1String("c++11")) && qtEnvironment.staticBuild)
-        qtEnvironment.configItems.append(QLatin1String("c++11"));
+        qtEnvironment.configItems.push_back(QLatin1String("c++11"));
 
     // Set the minimum operating system versions appropriate for this Qt version
     qtEnvironment.windowsVersion = guessMinimumWindowsVersion(qtEnvironment);

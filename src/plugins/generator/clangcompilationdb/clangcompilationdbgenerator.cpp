@@ -92,7 +92,7 @@ void ClangCompilationDatabaseGenerator::generate()
                     for (const RuleCommand &rule : rules) {
                         if (rule.type() != RuleCommand::ProcessCommandType)
                             continue;
-                        database.append(createEntry(filePath, buildDir, rule));
+                        database.push_back(createEntry(filePath, buildDir, rule));
                     }
                 }
             }

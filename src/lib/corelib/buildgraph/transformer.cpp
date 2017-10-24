@@ -136,7 +136,7 @@ QScriptValue Transformer::translateInOutputs(ScriptEngine *scriptEngine,
     TagArtifactsMap tagArtifactsMap;
     for (Artifact *artifact : artifacts)
         for (const FileTag &fileTag : artifact->fileTags())
-            tagArtifactsMap[fileTag.toString()].append(artifact);
+            tagArtifactsMap[fileTag.toString()].push_back(artifact);
     for (TagArtifactsMap::Iterator it = tagArtifactsMap.begin(); it != tagArtifactsMap.end(); ++it)
         std::sort(it.value().begin(), it.value().end(), compareByFilePath);
 

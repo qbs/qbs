@@ -149,7 +149,7 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
     InputArtifactScannerContext::CacheItem &cacheItem = m_context->cache[inputArtifact->properties];
     Set<QString> visitedFilePaths;
     QList<FileResourceBase *> filesToScan;
-    filesToScan.append(inputArtifact);
+    filesToScan.push_back(inputArtifact);
     const Set<DependencyScanner *> scanners = scannersForArtifact(inputArtifact);
     if (scanners.empty())
         return;
@@ -270,11 +270,11 @@ resolved:
                 // Do not scan an artifact that is not built yet: Its contents might still change.
                 if (artifactDependency->artifactType == Artifact::SourceFile
                         || artifactDependency->buildState == BuildGraphNode::Built) {
-                    artifactsToScan->append(artifactDependency);
+                    artifactsToScan->push_back(artifactDependency);
                 }
             } else {
                 // Add file dependency to the next round of scanning.
-                artifactsToScan->append(resolvedDependency.file);
+                artifactsToScan->push_back(resolvedDependency.file);
             }
         }
     }

@@ -112,7 +112,7 @@ static QVariantList fromArray(NSArray *array)
 {
     QVariantList list;
     for (id obj in array)
-        list.append(fromObject(obj));
+        list.push_back(fromObject(obj));
     return list;
 }
 

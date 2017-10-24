@@ -90,9 +90,9 @@ static QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedMod
     for (const ResolvedModule * const m : modules) {
         if (m->name.isNull())
             continue;
-        result.append(topSortModules(moduleChildren, moduleChildren.value(m), seenModuleNames));
+        result << topSortModules(moduleChildren, moduleChildren.value(m), seenModuleNames);
         if (seenModuleNames.insert(m->name).second)
-            result.append(m);
+            result.push_back(m);
     }
     return result;
 }
@@ -141,8 +141,8 @@ void EnvironmentScriptRunner::setupEnvironment()
         for (const QString &moduleName : qAsConst(module->moduleDependencies)) {
             const ResolvedModule * const depmod = moduleMap.value(moduleName);
             QBS_ASSERT(depmod, return);
-            moduleParents[depmod].append(module.get());
-            moduleChildren[module.get()].append(depmod);
+            moduleParents[depmod].push_back(module.get());
+            moduleChildren[module.get()].push_back(depmod);
         }
     }
 
@@ -150,7 +150,7 @@ void EnvironmentScriptRunner::setupEnvironment()
     for (const ResolvedModuleConstPtr &module : m_product->modules) {
         if (moduleParents.value(module.get()).isEmpty()) {
             QBS_ASSERT(module, return);
-            rootModules.append(module.get());
+            rootModules.push_back(module.get());
         }
     }
 

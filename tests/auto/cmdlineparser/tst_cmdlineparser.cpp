@@ -59,8 +59,8 @@ private slots:
     void testValidCommandLine()
     {
         QStringList args;
-        args.append("-vvk");
-        args.append("-v");
+        args.push_back("-vvk");
+        args.push_back("-v");
         args << "--products" << "blubb";
         args << "--changed-files" << "foo,bar" << m_fileArgs;
         args << "--check-timestamps";

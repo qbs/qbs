@@ -47,7 +47,7 @@ QStringList toStringList(QbsQmlJS::AST::UiQualifiedId *qid)
 {
     QStringList result;
     for (; qid; qid = qid->next)
-        result.append(qid->name.toString());
+        result.push_back(qid->name.toString());
     return result;
 }
 

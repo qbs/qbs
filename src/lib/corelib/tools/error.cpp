@@ -207,17 +207,17 @@ ErrorInfo::~ErrorInfo()
 
 void ErrorInfo::appendBacktrace(const QString &description, const CodeLocation &location)
 {
-    d->items.append(ErrorItem(description, location, true));
+    d->items.push_back(ErrorItem(description, location, true));
 }
 
 void ErrorInfo::append(const ErrorItem &item)
 {
-    d->items.append(item);
+    d->items.push_back(item);
 }
 
 void ErrorInfo::append(const QString &description, const CodeLocation &location)
 {
-    d->items.append(ErrorItem(description, location));
+    d->items.push_back(ErrorItem(description, location));
 }
 
 void ErrorInfo::prepend(const QString &description, const CodeLocation &location)
@@ -256,9 +256,9 @@ QString ErrorInfo::toString() const
             if (e.codeLocation().isValid())
                 line.append(QStringLiteral(" in %1").arg(e.codeLocation().toString()));
             if (!line.isEmpty())
-                lines.append(QStringLiteral("\t") + line);
+                lines.push_back(QStringLiteral("\t") + line);
         } else {
-            lines.append(e.toString());
+            lines.push_back(e.toString());
         }
     }
     return lines.join(QLatin1Char('\n'));

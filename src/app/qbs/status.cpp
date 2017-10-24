@@ -53,18 +53,14 @@ namespace qbs {
 
 static QList<QRegExp> createIgnoreList(const QString &projectRootPath)
 {
-    QList<QRegExp> ignoreRegularExpressionList;
-    ignoreRegularExpressionList.append(QRegExp(projectRootPath + QLatin1String("/build.*")));
-    ignoreRegularExpressionList.append(QRegExp(QLatin1String("*.qbs"),
-                                               Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp(QLatin1String("*.pro"),
-                                               Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp(QLatin1String("*Makefile"),
-                                               Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp(QLatin1String("*.so*"),
-                                               Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp(QLatin1String("*.o"),
-                                               Qt::CaseSensitive, QRegExp::Wildcard));
+    QList<QRegExp> ignoreRegularExpressionList {
+        QRegExp(projectRootPath + QLatin1String("/build.*")),
+        QRegExp(QLatin1String("*.qbs"), Qt::CaseSensitive, QRegExp::Wildcard),
+        QRegExp(QLatin1String("*.pro"), Qt::CaseSensitive, QRegExp::Wildcard),
+        QRegExp(QLatin1String("*Makefile"), Qt::CaseSensitive, QRegExp::Wildcard),
+        QRegExp(QLatin1String("*.so*"), Qt::CaseSensitive, QRegExp::Wildcard),
+        QRegExp(QLatin1String("*.o"), Qt::CaseSensitive, QRegExp::Wildcard)
+    };
     QString ignoreFilePath = projectRootPath + QLatin1String("/.qbsignore");
 
     QFile ignoreFile(ignoreFilePath);
@@ -74,11 +70,11 @@ static QList<QRegExp> createIgnoreList(const QString &projectRootPath)
         foreach (const QByteArray &btoken, ignoreTokenList) {
             const QString token = QString::fromLatin1(btoken);
             if (token.left(1) == QLatin1String("/"))
-                ignoreRegularExpressionList.append(QRegExp(projectRootPath
+                ignoreRegularExpressionList.push_back(QRegExp(projectRootPath
                                                            + token + QLatin1String(".*"),
                                                            Qt::CaseSensitive, QRegExp::RegExp2));
             else if (!token.isEmpty())
-                ignoreRegularExpressionList.append(QRegExp(token, Qt::CaseSensitive, QRegExp::RegExp2));
+                ignoreRegularExpressionList.push_back(QRegExp(token, Qt::CaseSensitive, QRegExp::RegExp2));
 
         }
     }
@@ -102,9 +98,9 @@ static QStringList allFilesInDirectoryRecursive(const QDir &rootDirecory, const 
 
         if (!inIgnoreList) {
             if (fileInfo.isFile())
-                fileList.append(absoluteFilePath);
+                fileList.push_back(absoluteFilePath);
             else if (fileInfo.isDir())
-                fileList.append(allFilesInDirectoryRecursive(QDir(absoluteFilePath), ignoreRegularExpressionList));
+                fileList << allFilesInDirectoryRecursive(QDir(absoluteFilePath), ignoreRegularExpressionList);
 
         }
     }
@@ -147,7 +143,7 @@ int printStatus(const ProjectData &project)
             qSort(sourceFiles);
             foreach (const QString &sourceFile, sourceFiles) {
                 if (!QFileInfo(sourceFile).exists())
-                    missingFiles.append(sourceFile);
+                    missingFiles.push_back(sourceFile);
                 qbsInfo() << "    " << sourceFile.mid(projectDirectoryPathLength + 1);
                 untrackedFilesInProject.removeOne(sourceFile);
             }

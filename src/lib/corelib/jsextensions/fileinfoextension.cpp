@@ -269,7 +269,7 @@ QScriptValue FileInfoExtension::js_joinPaths(QScriptContext *context, QScriptEng
         if (!value.isUndefined() && !value.isNull()) {
             const QString arg = value.toString();
             if (!arg.isEmpty())
-                paths.append(arg);
+                paths.push_back(arg);
         }
     }
     return engine->toScriptValue(QString::fromStdString(

@@ -232,9 +232,9 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunc
 
     QScriptValueList args;
     args.reserve(3);
-    args.append(m_global.property(QString::fromLatin1("project")));
-    args.append(m_global.property(QString::fromLatin1("product")));
-    args.append(Transformer::translateFileConfig(m_engine, artifact, m_scanner->module->name));
+    args.push_back(m_global.property(QString::fromLatin1("project")));
+    args.push_back(m_global.property(QString::fromLatin1("product")));
+    args.push_back(Transformer::translateFileConfig(m_engine, artifact, m_scanner->module->name));
 
     m_engine->setGlobalObject(m_global);
     QScriptValue &function = script->scriptFunction;
@@ -259,7 +259,7 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunc
         for (qint32 i = 0; i < count; ++i) {
             QScriptValue item = result.property(i);
             if (item.isValid() && !item.isUndefined())
-                list.append(item.toString());
+                list.push_back(item.toString());
         }
     }
     return list;

@@ -183,7 +183,7 @@ static GeneratableProjectData _reduceProjectConfigurations(
             prod.data.insert(it.key(), it.value().products().at(i));
         }
 
-        gproject.products.append(prod);
+        gproject.products.push_back(prod);
     }
 
     // Add the project's subprojects...
@@ -197,7 +197,7 @@ static GeneratableProjectData _reduceProjectConfigurations(
             subprojectMap.insert(it.key(), it.value().subProjects().at(i));
         }
 
-        gproject.subProjects.append(_reduceProjectConfigurations(subprojectMap));
+        gproject.subProjects.push_back(_reduceProjectConfigurations(subprojectMap));
     }
 
     return gproject;

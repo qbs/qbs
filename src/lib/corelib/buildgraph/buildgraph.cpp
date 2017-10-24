@@ -353,7 +353,7 @@ void setupScriptEngineForProduct(ScriptEngine *engine, ResolvedProduct *product,
 bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode *> &path)
 {
     if (u == v) {
-        path.append(v);
+        path.push_back(v);
         return true;
     }
 

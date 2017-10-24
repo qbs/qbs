@@ -56,7 +56,7 @@ void RuleGraph::build(const QList<RulePtr> &rules, const FileTags &productFileTa
     m_rules.reserve(rules.size());
     for (const RulePtr &rule : rules) {
         for (const FileTag &fileTag : rule->collectedOutputFileTags())
-            m_outputFileTagToRule[fileTag].append(rule.get());
+            m_outputFileTagToRule[fileTag].push_back(rule.get());
         insert(rule);
     }
 
@@ -68,7 +68,7 @@ void RuleGraph::build(const QList<RulePtr> &rules, const FileTags &productFileTa
         inFileTags += rule->auxiliaryInputs;
         inFileTags += rule->explicitlyDependsOn;
         for (const FileTag &fileTag : qAsConst(inFileTags)) {
-            inputFileTagToRule[fileTag].append(rule.get());
+            inputFileTagToRule[fileTag].push_back(rule.get());
             for (const Rule * const producingRule : m_outputFileTagToRule.value(fileTag)) {
                 if (!producingRule->collectedOutputFileTags().intersects(
                         rule->excludedAuxiliaryInputs)) {

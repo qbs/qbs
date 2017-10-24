@@ -91,7 +91,7 @@ bool XcodeProbe::addDeveloperPath(const QString &path)
         return false;
     if (developerPaths.contains(path))
         return false;
-    developerPaths.append(path);
+    developerPaths.push_back(path);
     qbsInfo() << Tr::tr("Added developer path %1").arg(path);
     return true;
 }

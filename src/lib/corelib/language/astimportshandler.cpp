@@ -165,7 +165,7 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
             if (filePath.endsWith(QLatin1String(".js"), Qt::CaseInsensitive)) {
                 JsImport &jsImport = m_jsImports[as];
                 jsImport.scopeName = as;
-                jsImport.filePaths.append(filePath);
+                jsImport.filePaths.push_back(filePath);
                 jsImport.location
                         = toCodeLocation(m_file->filePath(), import->firstSourceLocation());
             } else if (filePath.endsWith(QLatin1String(".qbs"), Qt::CaseInsensitive)) {
@@ -230,8 +230,8 @@ bool ASTImportsHandler::addPrototype(const QString &fileName, const QString &fil
 
     QStringList prototypeName;
     if (!as.isEmpty())
-        prototypeName.append(as);
-    prototypeName.append(componentName);
+        prototypeName.push_back(as);
+    prototypeName.push_back(componentName);
     if (!m_typeNameToFile.contains(prototypeName))
         m_typeNameToFile.insert(prototypeName, filePath);
     return true;
@@ -285,7 +285,7 @@ void ASTImportsHandler::collectPrototypesAndJsCollections(const QString &path, c
             jsImport.scopeName = as;
             jsImport.location = location;
         }
-        jsImport.filePaths.append(dirIter.filePath());
+        jsImport.filePaths.push_back(dirIter.filePath());
     }
 }
 

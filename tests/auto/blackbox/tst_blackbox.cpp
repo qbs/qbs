@@ -5299,7 +5299,7 @@ void TestBlackbox::qbsVersion()
             << "project.qbsVersionPatch:" + QString::number(v.patchLevel());
     QCOMPARE(runQbs(params), 0);
 
-    params.arguments.append("project.qbsVersionPatch:" + QString::number(v.patchLevel() + 1));
+    params.arguments.push_back("project.qbsVersionPatch:" + QString::number(v.patchLevel() + 1));
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
 }

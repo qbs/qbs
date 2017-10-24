@@ -90,7 +90,7 @@ Item *Item::clone() const
     for (const Item * const child : qAsConst(m_children)) {
         Item *clonedChild = child->clone();
         clonedChild->m_parent = dup;
-        dup->m_children.append(clonedChild);
+        dup->m_children.push_back(clonedChild);
     }
 
     for (PropertyMap::const_iterator it = m_properties.constBegin(); it != m_properties.constEnd();
@@ -359,7 +359,7 @@ Item *Item::child(ItemType type, bool checkForMultiple) const
 
 void Item::addChild(Item *parent, Item *child)
 {
-    parent->m_children.append(child);
+    parent->m_children.push_back(child);
     child->setParent(parent);
 }
 

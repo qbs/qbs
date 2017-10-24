@@ -128,7 +128,7 @@ static QStringList toStringList(const QScriptValue &scriptValue)
             QScriptValue elem = scriptValue.property(i++);
             if (!elem.isValid())
                 break;
-            lst.append(elem.toString());
+            lst.push_back(elem.toString());
         }
         return lst;
     }

@@ -90,7 +90,7 @@ static QStringList collectQmakePaths()
             if (pathFileInfo.exists()) {
                 QString qmakePath = pathFileInfo.absoluteFilePath();
                 if (!qmakePaths.contains(qmakePath))
-                    qmakePaths.append(qmakePath);
+                    qmakePaths.push_back(qmakePath);
             }
         }
     }
@@ -114,7 +114,7 @@ QList<QtEnvironment> SetupQt::fetchEnvironments()
                          [&env](const QtEnvironment &otherEnv) {
                                  return env.includePath == otherEnv.includePath;
                           }) == qtEnvironments.constEnd()) {
-            qtEnvironments.append(env);
+            qtEnvironments.push_back(env);
         }
     }
 

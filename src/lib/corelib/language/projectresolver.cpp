@@ -728,7 +728,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     QStringList patterns;
     for (int i = files.size(); --i >= 0;) {
         if (FileInfo::isPattern(files[i]))
-            patterns.append(files.takeAt(i));
+            patterns.push_back(files.takeAt(i));
     }
     GroupPtr group = ResolvedGroup::create();
     bool prefixWasSet = false;

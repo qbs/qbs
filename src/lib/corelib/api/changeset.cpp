@@ -288,47 +288,47 @@ void ChangeSet::convertToReplace(const EditOp &op, QList<EditOp> *replaceList)
 
     switch (op.type) {
     case EditOp::Replace:
-        replaceList->append(op);
+        replaceList->push_back(op);
         break;
 
     case EditOp::Move:
         replace1.pos1 = op.pos1;
         replace1.length1 = op.length1;
-        replaceList->append(replace1);
+        replaceList->push_back(replace1);
 
         replace2.pos1 = op.pos2;
         replace2.text = textAt(op.pos1, op.length1);
-        replaceList->append(replace2);
+        replaceList->push_back(replace2);
         break;
 
     case EditOp::Insert:
         replace1.pos1 = op.pos1;
         replace1.text = op.text;
-        replaceList->append(replace1);
+        replaceList->push_back(replace1);
         break;
 
     case EditOp::Remove:
         replace1.pos1 = op.pos1;
         replace1.length1 = op.length1;
-        replaceList->append(replace1);
+        replaceList->push_back(replace1);
         break;
 
     case EditOp::Flip:
         replace1.pos1 = op.pos1;
         replace1.length1 = op.length1;
         replace1.text = textAt(op.pos2, op.length2);
-        replaceList->append(replace1);
+        replaceList->push_back(replace1);
 
         replace2.pos1 = op.pos2;
         replace2.length1 = op.length2;
         replace2.text = textAt(op.pos1, op.length1);
-        replaceList->append(replace2);
+        replaceList->push_back(replace2);
         break;
 
     case EditOp::Copy:
         replace1.pos1 = op.pos2;
         replace1.text = textAt(op.pos1, op.length1);
-        replaceList->append(replace1);
+        replaceList->push_back(replace1);
         break;
 
     case EditOp::Unset:
