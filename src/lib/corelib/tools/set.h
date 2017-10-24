@@ -127,6 +127,7 @@ public:
     bool remove(const T &v);
     void operator-=(const T &v) { remove(v); }
     iterator erase(iterator it) { return m_data.erase(it); }
+    iterator erase(iterator first, iterator last) { return m_data.erase(first, last); }
 
     void clear() { m_data.clear(); }
     void reserve(int size) { m_data.reserve(size); }
