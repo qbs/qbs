@@ -321,16 +321,16 @@ void CommandLineParser::CommandLineParserPrivate::doParse()
     if (commandLine.isEmpty()) { // No command given, use default.
         command = commandPool.getCommand(BuildCommandType);
     } else {
-        command = commandFromString(commandLine.first());
+        command = commandFromString(commandLine.front());
         if (command) {
             commandLine.removeFirst();
         } else { // No command given.
-            if (commandLine.first() == QLatin1String("-h")
-                    || commandLine.first() == QLatin1String("--help")) {
+            if (commandLine.front() == QLatin1String("-h")
+                    || commandLine.front() == QLatin1String("--help")) {
                 command = commandPool.getCommand(HelpCommandType);
                 commandLine.takeFirst();
-            } else if (commandLine.first() == QLatin1String("-V")
-                       || commandLine.first() == QLatin1String("--version")) {
+            } else if (commandLine.front() == QLatin1String("-V")
+                       || commandLine.front() == QLatin1String("--version")) {
                 command = commandPool.getCommand(VersionCommandType);
                 commandLine.takeFirst();
             } else {

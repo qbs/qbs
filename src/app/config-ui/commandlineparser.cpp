@@ -59,7 +59,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
 
     if (m_commandLine.isEmpty())
         return;
-    const QString &arg = m_commandLine.first();
+    const QString &arg = m_commandLine.front();
     if (arg == helpOptionShort() || arg == helpOptionLong()) {
         m_commandLine.removeFirst();
         m_helpRequested = true;

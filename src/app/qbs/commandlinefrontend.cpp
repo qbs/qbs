@@ -374,7 +374,7 @@ void CommandLineFrontend::handleProjectsResolved()
         qApp->exit(runShell());
         break;
     case StatusCommandType:
-        qApp->exit(printStatus(m_projects.first().projectData()));
+        qApp->exit(printStatus(m_projects.front().projectData()));
         break;
     case GenerateCommandType:
         checkGeneratorName();
@@ -431,20 +431,20 @@ int CommandLineFrontend::runShell()
     case 0: // No specific product, use project-global environment.
         break;
     case 1:
-        productToRun = productsToUse().values().first().first();
+        productToRun = productsToUse().values().front().front();
         break;
     default:
         throw ErrorInfo(Tr::tr("The command '%1' cannot take more than one product."));
     }
-    RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
-            m_parser.installOptions(m_projects.first().profile()),
+    RunEnvironment runEnvironment = m_projects.front().getRunEnvironment(productToRun,
+            m_parser.installOptions(m_projects.front().profile()),
             QProcessEnvironment::systemEnvironment(), m_settings);
     return runEnvironment.doRunShell();
 }
 
 BuildOptions CommandLineFrontend::buildOptions(const Project &project) const
 {
-    BuildOptions options = m_parser.buildOptions(m_projects.first().profile());
+    BuildOptions options = m_parser.buildOptions(m_projects.front().profile());
     if (options.maxJobCount() <= 0) {
         const QString profileName = project.profile();
         QBS_CHECK(!profileName.isEmpty());
@@ -541,8 +541,8 @@ int CommandLineFrontend::runTarget()
         throw ErrorInfo(Tr::tr("Cannot run: Product '%1' is not an application.")
                     .arg(productToRun.name()));
     }
-    RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
-            m_parser.installOptions(m_projects.first().profile()),
+    RunEnvironment runEnvironment = m_projects.front().getRunEnvironment(productToRun,
+            m_parser.installOptions(m_projects.front().profile()),
             QProcessEnvironment::systemEnvironment(), m_settings);
     return runEnvironment.doRunTarget(executableFilePath, m_parser.runArgs());
 }
@@ -560,8 +560,8 @@ void CommandLineFrontend::dumpNodesTree()
 {
     QFile stdOut;
     stdOut.open(stdout, QIODevice::WriteOnly);
-    const ErrorInfo error = m_projects.first().dumpNodesTree(stdOut, productsToUse()
-                                                             .value(m_projects.first()));
+    const ErrorInfo error = m_projects.front().dumpNodesTree(stdOut, productsToUse()
+                                                             .value(m_projects.front()));
     if (error.hasError())
         throw error;
 }
@@ -615,8 +615,8 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     QBS_CHECK(m_projects.count() == 1); // Has been checked earlier.
 
     if (m_parser.products().count() == 1) {
-        foreach (const ProductData &p, m_projects.first().projectData().allProducts()) {
-            if (p.name() == m_parser.products().first())
+        foreach (const ProductData &p, m_projects.front().projectData().allProducts()) {
+            if (p.name() == m_parser.products().front())
                 return p;
         }
         QBS_CHECK(false);
@@ -624,13 +624,13 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     QBS_CHECK(m_parser.products().count() == 0);
 
     QList<ProductData> runnableProducts;
-    foreach (const ProductData &p, m_projects.first().projectData().allProducts()) {
+    foreach (const ProductData &p, m_projects.front().projectData().allProducts()) {
         if (p.isRunnable())
             runnableProducts << p;
     }
 
     if (runnableProducts.count() == 1)
-        return runnableProducts.first();
+        return runnableProducts.front();
 
     if (runnableProducts.isEmpty()) {
         throw ErrorInfo(Tr::tr("Cannot execute command '%1': Project has no runnable product.")
@@ -642,7 +642,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     error.append(Tr::tr("Use the '--products' option with one of the following products:"));
     foreach (const ProductData &p, runnableProducts) {
         QString productRepr = QLatin1String("\t") + p.name();
-        if (p.profile() != m_projects.first().profile()) {
+        if (p.profile() != m_projects.front().profile()) {
             productRepr.append(QLatin1String(" [")).append(p.profile())
                     .append(QLatin1Char(']'));
         }
@@ -654,7 +654,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
 void CommandLineFrontend::install()
 {
     Q_ASSERT(m_projects.count() == 1);
-    const Project project = m_projects.first();
+    const Project project = m_projects.front();
     InstallJob *installJob;
     if (m_parser.products().isEmpty()) {
         const Project::ProductSelection productSelection = m_parser.withNonDefaultProducts()
@@ -662,7 +662,7 @@ void CommandLineFrontend::install()
         installJob = project.installAllProducts(m_parser.installOptions(project.profile()),
                                                 productSelection);
     } else {
-        const Project project = m_projects.first();
+        const Project project = m_projects.front();
         const ProductMap products = productsToUse();
         installJob = project.installSomeProducts(products.value(project),
                                                  m_parser.installOptions(project.profile()));

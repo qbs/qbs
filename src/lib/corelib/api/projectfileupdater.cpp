@@ -233,7 +233,7 @@ void ProjectFileGroupInserter::doApply(QString &fileContent, UiProgram *ast)
     int lineOffset = 3 + 1; // Our text + a leading newline that is always added by the rewriter.
     const QList<ChangeSet::EditOp> &editOps = changeSet.operationList();
     QBS_CHECK(editOps.count() == 1);
-    const ChangeSet::EditOp &insertOp = editOps.first();
+    const ChangeSet::EditOp &insertOp = editOps.front();
     setLineOffset(lineOffset);
 
     int insertionLine = fileContent.left(insertOp.pos1).count(QLatin1Char('\n'));
@@ -256,7 +256,7 @@ static const ChangeSet::EditOp &getEditOp(const ChangeSet &changeSet)
 {
     const QList<ChangeSet::EditOp> &editOps = changeSet.operationList();
     QBS_CHECK(editOps.count() == 1);
-    return editOps.first();
+    return editOps.front();
 }
 
 static int getLineOffsetForChangedBinding(const ChangeSet &changeSet, const QString &oldRhs)
@@ -345,9 +345,9 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
             }
 
             // Insert new files "sorted", but do not change the order of existing files.
-            const QString firstNewFileRepr = toJSLiteral(sortedFiles.first());
+            const QString firstNewFileRepr = toJSLiteral(sortedFiles.front());
             while (!oldFileReprs.isEmpty()) {
-                if (oldFileReprs.first() > firstNewFileRepr)
+                if (oldFileReprs.front() > firstNewFileRepr)
                     break;
                 addToFilesRepr(filesRepresentation, oldFileReprs.takeFirst(), arrayElemIndentation);
             }
@@ -486,9 +486,9 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
         }
         const QString existingFile
                 = static_cast<StringLiteral *>(exprStatement->expression)->value.toString();
-        if (existingFile != m_files.first()) {
+        if (existingFile != m_files.front()) {
             throw ErrorInfo(Tr::tr("File '%1' could not be found in the 'files' list.")
-                            .arg(m_files.first()), bindingLocation);
+                            .arg(m_files.front()), bindingLocation);
         }
         rewriter.changeBinding(itemFinder.item()->initializer, QLatin1String("files"),
                                QLatin1String("[]"), Rewriter::ScriptBinding);
@@ -539,7 +539,7 @@ void ProjectFileGroupRemover::doApply(QString &fileContent, UiProgram *ast)
     setItemPosition(m_group.location());
     const QList<ChangeSet::EditOp> &editOps = changeSet.operationList();
     QBS_CHECK(editOps.count() == 1);
-    const ChangeSet::EditOp &op = editOps.first();
+    const ChangeSet::EditOp &op = editOps.front();
     const QString removedText = fileContent.mid(op.pos1, op.length1);
     setLineOffset(-removedText.count(QLatin1Char('\n')));
 

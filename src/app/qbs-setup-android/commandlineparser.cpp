@@ -72,7 +72,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
         throwError(Tr::tr("No command-line arguments provided."));
 
     while (!m_commandLine.isEmpty()) {
-        const QString arg = m_commandLine.first();
+        const QString arg = m_commandLine.front();
         if (!arg.startsWith(QLatin1Char('-')))
             break;
         m_commandLine.removeFirst();

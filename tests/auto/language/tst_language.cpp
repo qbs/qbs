@@ -296,7 +296,7 @@ void TestLanguage::chainedProbes()
         const TopLevelProjectConstPtr project = loader->loadProject(parameters);
         QVERIFY(!!project);
         QCOMPARE(project->products.count(), 1);
-        const QString prop2Val = project->products.first()->moduleProperties
+        const QString prop2Val = project->products.front()->moduleProperties
                 ->moduleProperty("m", "prop2").toString();
         QCOMPARE(prop2Val, QLatin1String("probe1Valprobe2Val"));
     } catch (const ErrorInfo &e) {
@@ -595,11 +595,11 @@ void TestLanguage::enumerateProjectProperties()
         QVERIFY(!!project);
         auto products = productsFromProject(project);
         QCOMPARE(products.count(), 1);
-        auto product = products.values().first();
-        auto files = product->groups.first()->allFiles();
+        auto product = products.values().front();
+        auto files = product->groups.front()->allFiles();
         QCOMPARE(product->groups.count(), 1);
         QCOMPARE(files.count(), 1);
-        auto fileName = FileInfo::fileName(files.first()->absoluteFilePath);
+        auto fileName = FileInfo::fileName(files.front()->absoluteFilePath);
         QCOMPARE(fileName, QString("dummy.txt"));
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -1381,7 +1381,7 @@ void TestLanguage::jsImportUsedInMultipleScopes()
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.count(), 1);
-        ResolvedProductPtr product = products.values().first();
+        ResolvedProductPtr product = products.values().front();
         QVERIFY(!!product);
         QCOMPARE(product->name, expectedProductName);
     }
@@ -1886,14 +1886,14 @@ void TestLanguage::outerInGroup()
         QVERIFY(!!group);
         QCOMPARE(group->name, product->name);
         QCOMPARE(group->files.count(), 1);
-        SourceArtifactConstPtr artifact = group->files.first();
+        SourceArtifactConstPtr artifact = group->files.front();
         QVariant installDir = artifact->properties->qbsPropertyValue("installDir");
         QCOMPARE(installDir.toString(), QString("/somewhere"));
         group = product->groups.at(1);
         QVERIFY(!!group);
         QCOMPARE(group->name, QString("Special Group"));
         QCOMPARE(group->files.count(), 1);
-        artifact = group->files.first();
+        artifact = group->files.front();
         installDir = artifact->properties->qbsPropertyValue("installDir");
         QCOMPARE(installDir.toString(), QString("/somewhere/else"));
     }
@@ -1916,7 +1916,7 @@ void TestLanguage::overriddenPropertiesAndPrototypes()
         TopLevelProjectConstPtr project = loader->loadProject(params);
         QVERIFY(!!project);
         QCOMPARE(project->products.count(), 1);
-        QCOMPARE(project->products.first()->moduleProperties->moduleProperty(
+        QCOMPARE(project->products.front()->moduleProperties->moduleProperty(
                      "multiple-backends", "prop").toString(), backendName);
     }
     catch (const ErrorInfo &e) {
@@ -2004,12 +2004,12 @@ void TestLanguage::profileValuesAndOverriddenValues()
         QVariantList values;
         values = product->moduleProperties->moduleProperty("dummy", "cxxFlags").toList();
         QCOMPARE(values.length(), 1);
-        QCOMPARE(values.first().toString(), QString("IN_PROFILE"));
+        QCOMPARE(values.front().toString(), QString("IN_PROFILE"));
         values = product->moduleProperties->moduleProperty("dummy", "defines").toList();
         QCOMPARE(values, QVariantList() << QLatin1String("IN_FILE") << QLatin1String("IN_PROFILE"));
         values = product->moduleProperties->moduleProperty("dummy", "cFlags").toList();
         QCOMPARE(values.length(), 1);
-        QCOMPARE(values.first().toString(), QString("OVERRIDDEN"));
+        QCOMPARE(values.front().toString(), QString("OVERRIDDEN"));
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
@@ -2261,7 +2261,7 @@ void TestLanguage::propertiesBlockInGroup()
         const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QCOMPARE(project->allProducts().count(), 1);
-        const ResolvedProductConstPtr product = project->allProducts().first();
+        const ResolvedProductConstPtr product = project->allProducts().front();
         const auto groupIt = std::find_if(product->groups.constBegin(), product->groups.constEnd(),
                 [](const GroupConstPtr &g) { return g->name == "the group"; });
         QVERIFY(groupIt != product->groups.constEnd());
@@ -2376,8 +2376,8 @@ void TestLanguage::relaxedErrorMode()
         const ResolvedProductConstPtr missingFile = productMap.value("missing file");
         QVERIFY(missingFile->enabled);
         QCOMPARE(missingFile->groups.count(), 1);
-        QVERIFY(missingFile->groups.first()->enabled);
-        QCOMPARE(missingFile->groups.first()->allFiles().count(), 2);
+        QVERIFY(missingFile->groups.front()->enabled);
+        QCOMPARE(missingFile->groups.front()->allFiles().count(), 2);
         const ResolvedProductConstPtr fine = productMap.value("fine");
         QVERIFY(fine->enabled);
         QCOMPARE(fine->allFiles().count(), 1);
@@ -2530,7 +2530,7 @@ void TestLanguage::fileTags()
     GroupPtr group = product->groups.last();
     QVERIFY(!!group);
     QCOMPARE(group->files.count(), 1);
-    SourceArtifactConstPtr sourceFile = group->files.first();
+    SourceArtifactConstPtr sourceFile = group->files.front();
     QStringList fileTags = sourceFile->fileTags.toStringList();
     fileTags.sort();
     QCOMPARE(fileTags, expectedFileTags);
@@ -2753,7 +2753,7 @@ void TestLanguage::wildcards()
             }
         } else {
             QCOMPARE(product->groups.count(), HostOsInfo::isMacosHost() ? 2 : 1);
-            group = product->groups.first();
+            group = product->groups.front();
         }
         QVERIFY(!!group);
         QCOMPARE(group->files.count(), 0);

@@ -566,9 +566,9 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
 
     QString bestMatch;
     if (fullMatches.count() == 1)
-        bestMatch = fullMatches.first();
+        bestMatch = fullMatches.front();
     else if (fullMatches.isEmpty() && partialMatches.count() == 1)
-        bestMatch = partialMatches.first();
+        bestMatch = partialMatches.front();
     if (bestMatch.isEmpty()) {
         QString message = Tr::tr("You need to set up toolchain information before you can "
                                  "use this Qt version for building. ");

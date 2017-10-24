@@ -87,8 +87,8 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
     bool isBase = false;
     if (import->importUri) {
         importUri = toStringList(import->importUri);
-        isBase = (importUri.size() == 1 && importUri.first() == QLatin1String("qbs"))
-                || (importUri.size() == 2 && importUri.first() == QLatin1String("qbs")
+        isBase = (importUri.size() == 1 && importUri.front() == QLatin1String("qbs"))
+                || (importUri.size() == 2 && importUri.front() == QLatin1String("qbs")
                     && importUri.last() == QLatin1String("base"));
         if (isBase) {
             checkImportVersion(import->versionToken);
@@ -105,7 +105,7 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
                         toCodeLocation(m_file->filePath(), import->importIdToken));
         }
     } else {
-        if (importUri.count() == 2 && importUri.first() == QLatin1String("qbs")) {
+        if (importUri.count() == 2 && importUri.front() == QLatin1String("qbs")) {
             const QString extensionName = importUri.last();
             if (JsExtensions::hasExtension(extensionName)) {
                 if (Q_UNLIKELY(!import->importId.isNull())) {

@@ -204,7 +204,7 @@ void Loader::setupProjectFilePath(SetupProjectParameters &parameters)
         throw ErrorInfo(Tr::tr("More than one project file found in directory '%1'.")
                 .arg(projectFilePath));
     }
-    projectFilePath.append(QLatin1Char('/')).append(actualFileNames.first());
+    projectFilePath.append(QLatin1Char('/')).append(actualFileNames.front());
 
     projectFilePath = QDir::current().filePath(projectFilePath);
     projectFilePath = QDir::cleanPath(projectFilePath);

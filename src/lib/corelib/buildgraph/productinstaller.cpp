@@ -192,7 +192,7 @@ void ProductInstaller::copyFile(const Artifact *artifact)
 {
     if (m_observer->canceled()) {
         throw ErrorInfo(Tr::tr("Installation canceled for configuration '%1'.")
-                    .arg(m_products.first()->project->topLevelProject()->id()));
+                    .arg(m_products.front()->project->topLevelProject()->id()));
     }
 
     const QString targetFilePath = this->targetFilePath(m_project.get(),

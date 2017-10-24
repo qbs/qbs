@@ -1752,11 +1752,11 @@ void ModuleLoader::propagateModulesFromParent(ProductContext *productContext, It
         for (Item::Module depMod : oldModules) {
             depMod.item = moduleInstancesForGroup.value(depMod.name);
             adaptedModules << depMod;
-            if (depMod.name.first() == module.name.first())
+            if (depMod.name.front() == module.name.front())
                 continue;
-            const ItemValuePtr &modulePrefix = groupItem->itemProperty(depMod.name.first());
+            const ItemValuePtr &modulePrefix = groupItem->itemProperty(depMod.name.front());
             QBS_CHECK(modulePrefix);
-            module.item->setProperty(depMod.name.first(), modulePrefix);
+            module.item->setProperty(depMod.name.front(), modulePrefix);
         }
         module.item->setModules(adaptedModules);
     }
@@ -2114,7 +2114,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
             ErrorInfo e(Tr::tr("Dependency '%1' not found for product '%2'.")
                         .arg(moduleName.toString(), dependsContext->product->name),
                         dependsItem->location());
-            if (moduleName.count() == 2 && moduleName.first() == QLatin1String("Qt")) {
+            if (moduleName.count() == 2 && moduleName.front() == QLatin1String("Qt")) {
                 e.append(Tr::tr("Please create a Qt profile using the qbs-setup-qt tool "
                                 "if you haven't already done so."));
             }
@@ -2355,7 +2355,7 @@ private:
 
 static bool isBaseModule(const QualifiedId &moduleName)
 {
-    return moduleName.count() == 1 && moduleName.first() == QLatin1String("qbs");
+    return moduleName.count() == 1 && moduleName.front() == QLatin1String("qbs");
 }
 
 class DelayedPropertyChanger
@@ -2419,7 +2419,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
 
     if (Q_UNLIKELY(moduleInstance->type() == ItemType::ModulePrefix)) {
         for (const Item::Module &m : item->modules()) {
-            if (m.name.first() == moduleName.first())
+            if (m.name.front() == moduleName.front())
                 throwModuleNamePrefixError(moduleName, m.name, dependsItemLocation);
         }
     }
@@ -2849,7 +2849,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
         Item *item = moduleInstanceItem(moduleInstance, iip.first);
         item->setPrototype(iip.second->item());
         if (iip.second->createdByPropertiesBlock()) {
-            ItemValuePtr itemValue = moduleInstance->itemProperty(iip.first.first());
+            ItemValuePtr itemValue = moduleInstance->itemProperty(iip.first.front());
             for (int i = 1; i < iip.first.size(); ++i)
                 itemValue = itemValue->item()->itemProperty(iip.first.at(i));
             itemValue->setCreatedByPropertiesBlock(true);

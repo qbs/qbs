@@ -337,14 +337,14 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
     const QList<ResolvedProductPtr> resolvedProducts = internalProducts(products);
     QBS_CHECK(products.count() == resolvedProducts.count());
 
-    for (const GroupPtr &resolvedGroup : qAsConst(resolvedProducts.first()->groups)) {
+    for (const GroupPtr &resolvedGroup : qAsConst(resolvedProducts.front()->groups)) {
         if (resolvedGroup->name == groupName) {
             throw ErrorInfo(Tr::tr("Group '%1' already exists in product '%2'.")
                             .arg(groupName, product.name()), resolvedGroup->location);
         }
     }
 
-    ProjectFileGroupInserter groupInserter(products.first(), groupName);
+    ProjectFileGroupInserter groupInserter(products.front(), groupName);
     groupInserter.apply();
 
     m_projectData.d.detach(); // The data we already gave out must stay as it is.
@@ -354,7 +354,7 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
     updateExternalCodeLocations(m_projectData, groupInserter.itemPosition(),
                                 groupInserter.lineOffset());
 
-    products = findProductsByName(products.first().name()); // These are new objects.
+    products = findProductsByName(products.front().name()); // These are new objects.
     QBS_CHECK(products.count() == resolvedProducts.count());
     for (int i = 0; i < products.count(); ++i) {
         const GroupPtr resolvedGroup = ResolvedGroup::create();
@@ -451,7 +451,7 @@ ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const P
             throw ErrorInfo(Tr::tr("File '%1' appears more than once.").arg(absPath));
         if (forAdding && !FileInfo(absPath).exists())
             throw ErrorInfo(Tr::tr("File '%1' does not exist.").arg(absPath));
-        if (matchesWildcard(absPath, groupContext.resolvedGroups.first())) {
+        if (matchesWildcard(absPath, groupContext.resolvedGroups.front())) {
             filesContext.absoluteFilePathsFromWildcards << absPath;
         } else {
             filesContext.absoluteFilePaths << absPath;
@@ -490,8 +490,8 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         }
     }
 
-    ProjectFileFilesAdder adder(groupContext.products.first(),
-            group.isValid() ? groupContext.groups.first() : GroupData(),
+    ProjectFileFilesAdder adder(groupContext.products.front(),
+            group.isValid() ? groupContext.groups.front() : GroupData(),
             filesContext.relativeFilePaths);
     adder.apply();
 
@@ -559,7 +559,7 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
     }
     QStringList filesNotFound = filesContext.absoluteFilePaths;
     QList<SourceArtifactPtr> sourceArtifacts;
-    for (const SourceArtifactPtr &sa : qAsConst(groupContext.resolvedGroups.first()->files)) {
+    for (const SourceArtifactPtr &sa : qAsConst(groupContext.resolvedGroups.front()->files)) {
         if (filesNotFound.removeOne(sa->absoluteFilePath))
             sourceArtifacts << sa;
     }
@@ -568,8 +568,8 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
                         .arg(filesNotFound.join(QLatin1String(", "))));
     }
 
-    ProjectFileFilesRemover remover(groupContext.products.first(),
-            group.isValid() ? groupContext.groups.first() : GroupData(),
+    ProjectFileFilesRemover remover(groupContext.products.front(),
+            group.isValid() ? groupContext.groups.front() : GroupData(),
             filesContext.relativeFilePaths);
     remover.apply();
 
@@ -595,7 +595,7 @@ void ProjectPrivate::removeGroup(const ProductData &product, const GroupData &gr
 {
     GroupUpdateContext context = getGroupContext(product, group);
 
-    ProjectFileGroupRemover remover(context.products.first(), context.groups.first());
+    ProjectFileGroupRemover remover(context.products.front(), context.groups.front());
     remover.apply();
 
     for (int i = 0; i < context.resolvedProducts.count(); ++i) {

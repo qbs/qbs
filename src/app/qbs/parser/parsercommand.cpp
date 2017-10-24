@@ -101,7 +101,7 @@ QList<CommandLineOption::Type> Command::actualSupportedOptions() const
 
 void Command::parseOption(QStringList &input)
 {
-    const QString optionString = input.first();
+    const QString optionString = input.front();
     QBS_CHECK(optionString.startsWith(QLatin1Char('-')));
     input.removeFirst();
     if (optionString.count() == 1)
@@ -148,7 +148,7 @@ void Command::parseOption(QStringList &input)
 void Command::parseNext(QStringList &input)
 {
     QBS_CHECK(!input.empty());
-    if (input.first().startsWith(QLatin1Char('-')))
+    if (input.front().startsWith(QLatin1Char('-')))
         parseOption(input);
     else
         parsePropertyAssignment(input.takeFirst());
@@ -392,7 +392,7 @@ QList<CommandLineOption::Type> RunCommand::supportedOptions() const
 void RunCommand::parseNext(QStringList &input)
 {
     QBS_CHECK(!input.empty());
-    if (input.first() != QLatin1String("--")) {
+    if (input.front() != QLatin1String("--")) {
         Command::parseNext(input);
         return;
     }

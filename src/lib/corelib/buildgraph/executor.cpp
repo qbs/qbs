@@ -257,7 +257,7 @@ void Executor::doBuild()
 
     InstallOptions installOptions;
     installOptions.setDryRun(m_buildOptions.dryRun());
-    installOptions.setInstallRoot(m_productsToBuild.first()->moduleProperties
+    installOptions.setInstallRoot(m_productsToBuild.front()->moduleProperties
                                   ->qbsPropertyValue(QLatin1String("installRoot")).toString());
     installOptions.setKeepGoing(m_buildOptions.keepGoing());
     m_productInstaller = new ProductInstaller(m_project, m_productsToBuild, installOptions,

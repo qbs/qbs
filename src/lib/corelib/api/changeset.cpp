@@ -373,7 +373,7 @@ void ChangeSet::apply_helper()
     QList<EditOp> replaceList;
     {
         while (!m_operationList.isEmpty()) {
-            const EditOp cmd(m_operationList.first());
+            const EditOp cmd(m_operationList.front());
             m_operationList.removeFirst();
             convertToReplace(cmd, &replaceList);
         }
@@ -384,7 +384,7 @@ void ChangeSet::apply_helper()
         m_cursor->beginEditBlock();
 
     while (!replaceList.isEmpty()) {
-        const EditOp cmd(replaceList.first());
+        const EditOp cmd(replaceList.front());
         replaceList.removeFirst();
         doReplace(cmd, &replaceList);
     }

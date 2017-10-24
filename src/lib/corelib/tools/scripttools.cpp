@@ -49,9 +49,9 @@ namespace Internal {
 void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value)
 {
     if (name.length() == 1) {
-        cfg.insert(name.first(), value);
+        cfg.insert(name.front(), value);
     } else {
-        QVariant &subCfg = cfg[name.first()];
+        QVariant &subCfg = cfg[name.front()];
         QVariantMap subCfgMap = subCfg.toMap();
         setConfigProperty(subCfgMap, name.mid(1), value);
         subCfg = subCfgMap;
@@ -61,9 +61,9 @@ void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant
 QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name)
 {
     if (name.length() == 1)
-        return cfg.value(name.first());
+        return cfg.value(name.front());
     else
-        return getConfigProperty(cfg.value(name.first()).toMap(), name.mid(1));
+        return getConfigProperty(cfg.value(name.front()).toMap(), name.mid(1));
 }
 
 TemporaryGlobalObjectSetter::TemporaryGlobalObjectSetter(const QScriptValue &object)

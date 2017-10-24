@@ -195,7 +195,7 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
 
     const QStringList bindingName = toStringList(ast->qualifiedId);
 
-    if (bindingName.length() == 1 && bindingName.first() == QLatin1String("id")) {
+    if (bindingName.length() == 1 && bindingName.front() == QLatin1String("id")) {
         const auto * const expStmt = AST::cast<AST::ExpressionStatement *>(ast->statement);
         if (Q_UNLIKELY(!expStmt))
             throw ErrorInfo(Tr::tr("id: must be followed by identifier"));

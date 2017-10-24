@@ -63,7 +63,7 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
         printSettings(command);
         break;
     case ConfigCommand::CfgSet:
-        setValue(command.varNames.first(), command.varValue);
+        setValue(command.varNames.front(), command.varValue);
         break;
     case ConfigCommand::CfgUnset:
         foreach (const QString &varName, command.varNames)

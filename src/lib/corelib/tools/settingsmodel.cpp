@@ -329,7 +329,7 @@ void SettingsModel::SettingsModelPrivate::readSettings()
     for (QVariantMap::ConstIterator it = additionalProperties.constBegin();
          it != additionalProperties.constEnd(); ++it) {
         const QStringList nameAsList = it.key().split(QLatin1Char('.'), QString::SkipEmptyParts);
-        addNode(&rootNode, nameAsList.first(), nameAsList.mid(1), it.value());
+        addNode(&rootNode, nameAsList.front(), nameAsList.mid(1), it.value());
     }
     dirty = false;
 }
@@ -371,7 +371,7 @@ void SettingsModel::SettingsModelPrivate::addNode(qbs::Internal::Node *parentNod
         currentNode->value = settingsValueToRepresentation(value);
         currentNode->isFromSettings = false;
     } else {
-        addNode(currentNode, restOfName.first(), restOfName.mid(1), value);
+        addNode(currentNode, restOfName.front(), restOfName.mid(1), value);
     }
 }
 

@@ -105,19 +105,19 @@ private slots:
         // Second "global" profile overwrites first.
         QVERIFY(parser.parseCommandLine(QStringList() << "profile:a" << m_fileArgs << "profile:b"));
         QCOMPARE(parser.buildConfigurations().count(), 1);
-        QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("b"));
+        QCOMPARE(parser.buildConfigurations().front().value("qbs.profile").toString(), QLatin1String("b"));
 
         // Second build configuration-specific profile overwrites first.
         QVERIFY(parser.parseCommandLine(QStringList(m_fileArgs) << "config:debug" << "profile:a"
                                         << "profile:b"));
         QCOMPARE(parser.buildConfigurations().count(), 1);
-        QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("b"));
+        QCOMPARE(parser.buildConfigurations().front().value("qbs.profile").toString(), QLatin1String("b"));
 
         QVERIFY(parser.parseCommandLine(QStringList(m_fileArgs) << "config:a-debug" << "profile:a"
                                         << "config:b-debug" << "profile:b"));
         QCOMPARE(parser.buildConfigurations().count(), 2);
-        QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(), QLatin1String("a-debug"));
-        QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("a"));
+        QCOMPARE(parser.buildConfigurations().front().value("qbs.configurationName").toString(), QLatin1String("a-debug"));
+        QCOMPARE(parser.buildConfigurations().front().value("qbs.profile").toString(), QLatin1String("a"));
         QCOMPARE(parser.buildConfigurations().at(1).value("qbs.configurationName").toString(), QLatin1String("b-debug"));
         QCOMPARE(parser.buildConfigurations().at(1).value("qbs.profile").toString(), QLatin1String("b"));
 
@@ -129,8 +129,8 @@ private slots:
         QVERIFY(parser.parseCommandLine(QStringList() << "config:debug" << "profile:a"
                                         << "config:release" << "profile:b" << m_fileArgs));
         QCOMPARE(parser.buildConfigurations().count(), 2);
-        QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(), QLatin1String("debug"));
-        QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("a"));
+        QCOMPARE(parser.buildConfigurations().front().value("qbs.configurationName").toString(), QLatin1String("debug"));
+        QCOMPARE(parser.buildConfigurations().front().value("qbs.profile").toString(), QLatin1String("a"));
         QCOMPARE(parser.buildConfigurations().at(1).value("qbs.configurationName").toString(), QLatin1String("release"));
         QCOMPARE(parser.buildConfigurations().at(1).value("qbs.profile").toString(), QLatin1String("b"));
 
@@ -138,8 +138,8 @@ private slots:
         QVERIFY(parser.parseCommandLine(QStringList(m_fileArgs) << "profile:a" << "config:debug"
                                         << "profile:b"));
         QCOMPARE(parser.buildConfigurations().count(), 1);
-        QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(), QLatin1String("debug"));
-        QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("b"));
+        QCOMPARE(parser.buildConfigurations().front().value("qbs.configurationName").toString(), QLatin1String("debug"));
+        QCOMPARE(parser.buildConfigurations().front().value("qbs.profile").toString(), QLatin1String("b"));
 
         // Digits are always handled as option parameters.
         QVERIFY(parser.parseCommandLine(QStringList(m_fileArgs) << "-j" << "123"));
@@ -152,14 +152,14 @@ private slots:
                                         << "-j123"));
         QCOMPARE(parser.command(), RunCommandType);
         QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
-        QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(),
+        QCOMPARE(parser.buildConfigurations().front().value("qbs.configurationName").toString(),
                  QLatin1String("custom"));
         QVERIFY(parser.runArgs().empty());
         QVERIFY(parser.parseCommandLine(QStringList("run") << m_fileArgs << "-j" << "123" << "--"
                 << "config:custom"));
         QCOMPARE(parser.command(), RunCommandType);
         QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
-        QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(),
+        QCOMPARE(parser.buildConfigurations().front().value("qbs.configurationName").toString(),
                  QLatin1String("default"));
         QCOMPARE(parser.runArgs(), QStringList({"config:custom"}));
 

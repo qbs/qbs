@@ -216,15 +216,15 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
         QList<ScannerPlugin *> scanners = ScannerPluginManager::scannersForFileTag(m_tags.cpp);
         if (scanners.count() != 1)
             return scannerCountError(engine, scanners.count(), m_tags.cpp.toString());
-        m_cppScanner = scanners.first();
+        m_cppScanner = scanners.front();
         scanners = ScannerPluginManager::scannersForFileTag(m_tags.objcpp);
         if (scanners.count() != 1)
             return scannerCountError(engine, scanners.count(), m_tags.objcpp.toString());
-        m_objcppScanner = scanners.first();
+        m_objcppScanner = scanners.front();
         scanners = ScannerPluginManager::scannersForFileTag(m_tags.hpp);
         if (scanners.count() != 1)
             return scannerCountError(engine, scanners.count(), m_tags.hpp.toString());
-        m_hppScanner = scanners.first();
+        m_hppScanner = scanners.front();
     }
 
     findIncludedMocCppFiles();

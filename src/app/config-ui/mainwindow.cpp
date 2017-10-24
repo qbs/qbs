@@ -184,7 +184,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
         if (keyEvent->matches(QKeySequence::Delete)) {
             const QModelIndexList indexes = ui->treeView->selectionModel()->selectedRows();
             if (indexes.count() == 1) {
-                const QModelIndex index = indexes.first();
+                const QModelIndex index = indexes.front();
                 if (index.isValid()) {
                     m_model->removeKey(index);
                     return true;
