@@ -174,7 +174,7 @@ static NSDictionary *toDictionary(const QVariantMap &map)
 static NSArray *toArray(const QVariantList &list)
 {
     NSMutableArray *array = [NSMutableArray array];
-    foreach (const QVariant &variant, list)
+    for (const QVariant &variant : list)
         [array addObject:toObject(variant)];
     return [NSArray arrayWithArray:array];
 }
