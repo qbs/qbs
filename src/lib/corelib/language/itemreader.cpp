@@ -94,7 +94,7 @@ void ItemReader::clearExtraSearchPathsStack()
 
 const QStringList &ItemReader::allSearchPaths() const
 {
-    if (m_allSearchPaths.isEmpty()) {
+    if (m_allSearchPaths.empty()) {
         std::for_each(m_extraSearchPaths.crbegin(), m_extraSearchPaths.crend(),
                       [this] (const QStringList &paths) {
             m_allSearchPaths += paths;

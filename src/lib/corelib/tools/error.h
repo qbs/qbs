@@ -95,7 +95,7 @@ public:
     void append(const QString &description, const CodeLocation &location = CodeLocation());
     void prepend(const QString &description, const CodeLocation &location = CodeLocation());
     QList<ErrorItem> items() const;
-    bool hasError() const { return !items().isEmpty(); }
+    bool hasError() const { return !items().empty(); }
     void clear();
     QString toString() const;
     bool isInternalError() const;

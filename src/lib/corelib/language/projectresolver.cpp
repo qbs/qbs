@@ -217,7 +217,7 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
             projectsInNeedOfNameChange << p;
         makeSubProjectNamesUniqe(p);
     }
-    while (!projectsInNeedOfNameChange.isEmpty()) {
+    while (!projectsInNeedOfNameChange.empty()) {
         auto it = projectsInNeedOfNameChange.begin();
         while (it != projectsInNeedOfNameChange.end()) {
             const ResolvedProjectPtr p = *it;
@@ -529,7 +529,7 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
     }
 
     m_productContext->product->modules += module;
-    if (!parameters.isEmpty())
+    if (!parameters.empty())
         m_productContext->product->moduleParameters[module] = parameters;
 
     static const ItemFuncMap mapping {
@@ -601,7 +601,7 @@ static QualifiedIdSet propertiesToEvaluate(const QList<QualifiedId> &initialProp
 {
     QList<QualifiedId> remainingProps = initialProps;
     QualifiedIdSet allProperties;
-    while (!remainingProps.isEmpty()) {
+    while (!remainingProps.empty()) {
         const QualifiedId prop = remainingProps.takeFirst();
         const auto insertResult = allProperties.insert(prop);
         if (!insertResult.second)
@@ -640,7 +640,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
     for (const Item::Module &module : group->modules()) {
         const QString &fullModName = module.name.toString();
         const QStringList propsForModule = propsPerModule.take(fullModName);
-        if (propsForModule.isEmpty())
+        if (propsForModule.empty())
             continue;
         QVariantMap reusableValues = modulesMap.value(fullModName).toMap();
         for (const QString &prop : qAsConst(propsForModule))
@@ -682,7 +682,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
             : m_productContext->product->moduleProperties;
     const QVariantMap newModuleProperties
             = resolveAdditionalModuleProperties(item, moduleProperties->value());
-    if (!newModuleProperties.isEmpty()) {
+    if (!newModuleProperties.empty()) {
         moduleProperties = PropertyMapInternal::create();
         moduleProperties->setValue(newModuleProperties);
     }
@@ -696,8 +696,8 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
                                                          &fileTagsSet);
     const QStringList fileTagsFilter
             = m_evaluator->stringListValue(item, QLatin1String("fileTagsFilter"));
-    if (!fileTagsFilter.isEmpty()) {
-        if (Q_UNLIKELY(!files.isEmpty()))
+    if (!fileTagsFilter.empty()) {
+        if (Q_UNLIKELY(!files.empty()))
             throw ErrorInfo(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
                         item->location());
 
@@ -746,7 +746,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     group->fileTags = fileTags;
     group->overrideTags = m_evaluator->boolValue(item, QLatin1String("overrideTags"));
     if (group->overrideTags && fileTagsSet) {
-        if (group->fileTags.isEmpty() )
+        if (group->fileTags.empty() )
             group->fileTags.insert(unknownFileTag());
     } else if (m_productContext->currentGroup) {
         group->fileTags.unite(m_productContext->currentGroup->fileTags);
@@ -757,7 +757,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     if (moduleProp)
         group->targetOfModule = moduleProp->value().toString();
     ErrorInfo fileError;
-    if (!patterns.isEmpty()) {
+    if (!patterns.empty()) {
         group->wildcards = std::unique_ptr<SourceWildCards>(new SourceWildCards);
         SourceWildCards *wildcards = group->wildcards.get();
         wildcards->group = group.get();
@@ -888,7 +888,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
                                    "that contain Artifact items."),
                         item->location());
         rule->outputFileTags = m_evaluator->fileTagsValue(item, QStringLiteral("outputFileTags"));
-        if (rule->outputFileTags.isEmpty())
+        if (rule->outputFileTags.empty())
             throw ErrorInfo(Tr::tr("Rule.outputFileTags must be specified if "
                                    "Rule.outputArtifacts is specified."),
                             item->location());
@@ -996,11 +996,11 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
             ? m_productContext->product->fileTaggers
             : projectContext->fileTaggers;
     const QStringList patterns = m_evaluator->stringListValue(item, QLatin1String("patterns"));
-    if (patterns.isEmpty())
+    if (patterns.empty())
         throw ErrorInfo(Tr::tr("FileTagger.patterns must be a non-empty list."), item->location());
 
     const FileTags fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
-    if (fileTags.isEmpty())
+    if (fileTags.empty())
         throw ErrorInfo(Tr::tr("FileTagger.fileTags must not be empty."), item->location());
 
     for (const QString &pattern : patterns) {
@@ -1035,8 +1035,8 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
     ProductDependencyInfos result;
     result.dependencies.reserve(productInfo.usedProducts.size());
     for (const auto &dependency : productInfo.usedProducts) {
-        QBS_CHECK(dependency.name.isEmpty() != dependency.productTypes.isEmpty());
-        if (!dependency.productTypes.isEmpty()) {
+        QBS_CHECK(dependency.name.isEmpty() != dependency.productTypes.empty());
+        if (!dependency.productTypes.empty()) {
             for (const FileTag &tag : dependency.productTypes) {
                 const QList<ResolvedProductPtr> productsForTag = m_productsByType.value(tag);
                 for (const ResolvedProductPtr &p : productsForTag) {
@@ -1184,7 +1184,7 @@ void ProjectResolver::resolveProductDependencies(const ProjectContext &projectCo
             disabledDependency = true;
         for (const auto &dep : depInfos.dependencies) {
             rproduct->dependencies.insert(dep.product);
-            if (!dep.parameters.isEmpty())
+            if (!dep.parameters.empty())
                 rproduct->dependencyParameters.insert(dep.product, dep.parameters);
         }
     }
@@ -1248,11 +1248,11 @@ void ProjectResolver::applyFileTaggers(const ResolvedProductPtr &product) const
 void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
         const ResolvedProductConstPtr &product)
 {
-    if (!artifact->overrideFileTags || artifact->fileTags.isEmpty()) {
+    if (!artifact->overrideFileTags || artifact->fileTags.empty()) {
         const QString fileName = FileInfo::fileName(artifact->absoluteFilePath);
         const FileTags fileTags = product->fileTagsForFileName(fileName);
         artifact->fileTags.unite(fileTags);
-        if (artifact->fileTags.isEmpty())
+        if (artifact->fileTags.empty())
             artifact->fileTags.insert(unknownFileTag());
         qCDebug(lcProjectResolver) << "adding file tags" << artifact->fileTags
                                    << "to" << fileName;

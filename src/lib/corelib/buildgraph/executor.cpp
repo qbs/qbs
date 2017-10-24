@@ -132,7 +132,7 @@ void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
 {
     QBS_CHECK(artifact->artifactType == Artifact::SourceFile);
 
-    if (m_buildOptions.changedFiles().isEmpty())
+    if (m_buildOptions.changedFiles().empty())
         artifact->setTimestamp(recursiveFileTime(artifact->filePath()));
     else if (m_buildOptions.changedFiles().contains(artifact->filePath()))
         artifact->setTimestamp(FileTime::currentTime());
@@ -224,7 +224,7 @@ void Executor::doBuild()
     //       it is. Remove this from the BuildOptions class and introduce Project::buildSomeFiles()
     //       instead.
     const QStringList &filesToConsider = m_buildOptions.filesToConsider();
-    if (!filesToConsider.isEmpty()) {
+    if (!filesToConsider.empty()) {
         for (const QString &fileToConsider : filesToConsider) {
             const QList<FileResourceBase *> &files
                     = m_project->buildData->lookupFiles(fileToConsider);
@@ -240,7 +240,7 @@ void Executor::doBuild()
 
     setState(ExecutorRunning);
 
-    if (m_productsToBuild.isEmpty()) {
+    if (m_productsToBuild.empty()) {
         qCDebug(lcExec) << "No products to build, finishing.";
         QTimer::singleShot(0, this, &Executor::finish); // Don't call back on the caller.
         return;
@@ -330,7 +330,7 @@ void Executor::updateLeaves(BuildGraphNode *node, NodeSet &seenNodes)
 bool Executor::scheduleJobs()
 {
     QBS_CHECK(m_state == ExecutorRunning);
-    while (!m_leaves.empty() && !m_availableJobs.isEmpty()) {
+    while (!m_leaves.empty() && !m_availableJobs.empty()) {
         BuildGraphNode * const nodeToBuild = m_leaves.top();
         m_leaves.pop();
 
@@ -353,7 +353,7 @@ bool Executor::scheduleJobs()
             break;
         }
     }
-    return !m_leaves.empty() || !m_processingJobs.isEmpty();
+    return !m_leaves.empty() || !m_processingJobs.empty();
 }
 
 bool Executor::isUpToDate(Artifact *artifact) const
@@ -492,7 +492,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
         qCDebug(lcExec) << ruleNode->toString();
         const WeakPointer<ResolvedProduct> &product = ruleNode->product;
         Set<RuleNode *> parentRules;
-        if (!result.createdNodes.isEmpty()) {
+        if (!result.createdNodes.empty()) {
             for (BuildGraphNode *parent : qAsConst(ruleNode->parents)) {
                 if (RuleNode *parentRule = dynamic_cast<RuleNode *>(parent))
                     parentRules += parentRule;
@@ -569,7 +569,7 @@ void Executor::finishJob(ExecutorJob *job, bool success)
     }
 
     if (m_state == ExecutorCanceling) {
-        if (m_processingJobs.isEmpty()) {
+        if (m_processingJobs.empty()) {
             qCDebug(lcExec) << "All pending jobs are done, finishing.";
             finish();
         }
@@ -623,7 +623,7 @@ QString Executor::configString() const
 
 bool Executor::transformerHasMatchingOutputTags(const TransformerConstPtr &transformer) const
 {
-    if (m_activeFileTags.isEmpty())
+    if (m_activeFileTags.empty())
         return true; // No filtering requested.
 
     return std::any_of(transformer->outputs.cbegin(), transformer->outputs.cend(),
@@ -638,11 +638,11 @@ bool Executor::artifactHasMatchingOutputTags(const Artifact *artifact) const
 
 bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &transformer) const
 {
-    if (m_buildOptions.filesToConsider().isEmpty())
+    if (m_buildOptions.filesToConsider().empty())
         return true; // No filtering requested.
     if (!m_productsOfFilesToConsider.contains(transformer->product()))
         return false;
-    if (transformer->inputs.isEmpty())
+    if (transformer->inputs.empty())
         return true;
     for (const Artifact * const input : qAsConst(transformer->inputs)) {
         for (const QString &filePath : m_buildOptions.filesToConsider()) {
@@ -682,7 +682,7 @@ void Executor::setupProgressObserver()
 void Executor::doSanityChecks()
 {
     QBS_CHECK(m_project);
-    QBS_CHECK(!m_productsToBuild.isEmpty());
+    QBS_CHECK(!m_productsToBuild.empty());
     for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         QBS_CHECK(product->topLevelProject() == m_project.get());
@@ -693,7 +693,7 @@ void Executor::handleError(const ErrorInfo &error)
 {
     for (const ErrorItem &ei : error.items())
         m_error.append(ei);
-    if (m_processingJobs.isEmpty())
+    if (m_processingJobs.empty())
         finish();
     else
         cancelJobs();
@@ -813,7 +813,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
                 = rad.importedFilesUsedInPrepareScript;
         artifact->transformer->importedFilesUsedInCommands = rad.importedFilesUsedInCommands;
         artifact->setTimestamp(rad.timeStamp);
-        if (childrenAdded && !childrenToConnect.isEmpty())
+        if (childrenAdded && !childrenToConnect.empty())
             *childrenAdded = true;
         for (const ChildArtifactData &cad : qAsConst(childrenToConnect)) {
             safeConnect(artifact, cad.first);
@@ -849,7 +849,7 @@ bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
             break;
         }
     }
-    if (!unbuiltDependencies.isEmpty()) {
+    if (!unbuiltDependencies.empty()) {
         artifact->inputsScanned = false;
         updateLeaves(unbuiltDependencies);
         return true;
@@ -926,7 +926,7 @@ void Executor::runTransformer(const TransformerPtr &transformer)
         }
     }
 
-    QBS_CHECK(!m_availableJobs.isEmpty());
+    QBS_CHECK(!m_availableJobs.empty());
     ExecutorJob *job = m_availableJobs.takeFirst();
     for (Artifact * const artifact : qAsConst(transformer->outputs))
         artifact->buildState = BuildGraphNode::Building;
@@ -948,7 +948,7 @@ void Executor::possiblyInstallArtifact(const Artifact *artifact)
                                    ? &m_elapsedTimeInstalling : nullptr);
 
     if (m_buildOptions.install() && !m_buildOptions.executeRulesOnly()
-            && (m_activeFileTags.isEmpty() || artifactHasMatchingOutputTags(artifact))
+            && (m_activeFileTags.empty() || artifactHasMatchingOutputTags(artifact))
             && artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool()) {
             m_productInstaller->copyFile(artifact);
     }
@@ -1009,7 +1009,7 @@ void Executor::checkForUnbuiltProducts()
         }
     }
 
-    if (unbuiltProducts.isEmpty()) {
+    if (unbuiltProducts.empty()) {
         m_logger.qbsInfo() << Tr::tr("Build done%1.").arg(configString());
     } else {
         m_error.append(Tr::tr("The following products could not be built%1:").arg(configString()));
@@ -1134,7 +1134,7 @@ void Executor::setupForBuildingSelectedFiles(const BuildGraphNode *node)
 {
     if (node->type() != BuildGraphNode::RuleNodeType)
         return;
-    if (m_buildOptions.filesToConsider().isEmpty())
+    if (m_buildOptions.filesToConsider().empty())
         return;
     if (!m_productsOfFilesToConsider.contains(node->product.lock()))
         return;

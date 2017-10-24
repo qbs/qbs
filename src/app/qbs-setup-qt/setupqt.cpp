@@ -367,7 +367,7 @@ template <typename T> bool areProfilePropertiesIncompatible(const T &set1, const
 {
     // Two objects are only considered incompatible if they are both non empty and compare inequal
     // This logic is used for comparing target OS, toolchain lists, and architectures
-    return !set1.isEmpty() && !set2.isEmpty() && set1 != set2;
+    return set1.size() > 0 && set2.size() > 0 && set1 != set2;
 }
 
 static QStringList qbsTargetOsFromQtMkspec(const QString &mkspec)
@@ -457,7 +457,7 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
     if (areProfilePropertiesIncompatible(toolchainNames, mkspecToolchainNames)) {
         auto intersection = toolchainNames;
         intersection.intersect(mkspecToolchainNames);
-        if (!intersection.isEmpty())
+        if (!intersection.empty())
             match = MatchPartial;
         else
             return MatchNone;
@@ -567,12 +567,12 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
     QString bestMatch;
     if (fullMatches.size() == 1)
         bestMatch = fullMatches.front();
-    else if (fullMatches.isEmpty() && partialMatches.size() == 1)
+    else if (fullMatches.empty() && partialMatches.size() == 1)
         bestMatch = partialMatches.front();
     if (bestMatch.isEmpty()) {
         QString message = Tr::tr("You need to set up toolchain information before you can "
                                  "use this Qt version for building. ");
-        if (fullMatches.isEmpty() && partialMatches.isEmpty()) {
+        if (fullMatches.empty() && partialMatches.empty()) {
             message += Tr::tr("However, no toolchain profile was found. Either create one "
                               "using qbs-setup-toolchains and set it as this profile's "
                               "base profile or add the toolchain settings manually "

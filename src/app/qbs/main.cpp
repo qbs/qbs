@@ -52,7 +52,7 @@ using namespace qbs;
 
 static bool tryToRunTool(const QStringList &arguments, int &exitCode)
 {
-    if (arguments.isEmpty())
+    if (arguments.empty())
         return false;
     QStringList toolArgs = arguments;
     const QString toolName = toolArgs.takeFirst();

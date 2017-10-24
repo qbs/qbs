@@ -83,7 +83,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
     ArtifactSet allCompatibleInputs = currentInputArtifacts();
     const ArtifactSet addedInputs = allCompatibleInputs - m_oldInputArtifacts;
     const ArtifactSet removedInputs = m_oldInputArtifacts - allCompatibleInputs;
-    result->upToDate = changedInputs.isEmpty() && addedInputs.isEmpty() && removedInputs.isEmpty()
+    result->upToDate = changedInputs.empty() && addedInputs.empty() && removedInputs.empty()
             && m_rule->declaresInputs() && m_rule->requiresInputs;
 
     qCDebug(lcBuildGraph).noquote().nospace()
@@ -110,7 +110,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
 
     if (result->upToDate)
         return;
-    if (!removedInputs.isEmpty()) {
+    if (!removedInputs.empty()) {
         ArtifactSet outputArtifactsToRemove;
         for (Artifact * const artifact : removedInputs) {
             for (Artifact *parent : filterByType<Artifact>(artifact->parents)) {
@@ -131,7 +131,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         }
         RulesApplicator::handleRemovedRuleOutputs(inputs, outputArtifactsToRemove, logger);
     }
-    if (!inputs.isEmpty() || !m_rule->declaresInputs() || !m_rule->requiresInputs) {
+    if (!inputs.empty() || !m_rule->declaresInputs() || !m_rule->requiresInputs) {
         RulesApplicator applicator(product.lock(), logger);
         applicator.applyRule(m_rule, inputs);
         result->createdNodes = applicator.createdArtifacts();
@@ -170,7 +170,7 @@ ArtifactSet RuleNode::currentInputArtifacts() const
         }
     }
 
-    if (m_rule->inputsFromDependencies.isEmpty())
+    if (m_rule->inputsFromDependencies.empty())
         return s;
     for (const FileTag &t : qAsConst(m_rule->inputsFromDependencies)) {
         for (Artifact *artifact : product->lookupArtifactsByFileTag(t)) {

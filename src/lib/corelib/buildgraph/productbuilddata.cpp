@@ -91,7 +91,7 @@ void removeArtifactFromSetByFileTag(Artifact *artifact, const FileTag &fileTag,
     if (it == container.end())
         return;
     it->remove(artifact);
-    if (it->isEmpty())
+    if (it->empty())
         container.erase(it);
 }
 

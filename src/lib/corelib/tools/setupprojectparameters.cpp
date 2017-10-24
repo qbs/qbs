@@ -306,7 +306,7 @@ void SetupProjectParameters::setOverriddenValues(const QVariantMap &values)
 
 static void provideValuesTree(const QVariantMap &values, QVariantMap *valueTree)
 {
-    if (!valueTree->isEmpty() || values.isEmpty())
+    if (!valueTree->empty() || values.empty())
         return;
 
     valueTree->clear();
@@ -356,7 +356,7 @@ static QVariantMap expandedBuildConfigurationInternal(const Profile &profile,
         const QStringList profileKeys = profile.allKeys(Profile::KeySelectionRecursive, &err);
         if (err.hasError())
             throw err;
-        if (profileKeys.isEmpty())
+        if (profileKeys.empty())
             throw ErrorInfo(Internal::Tr::tr("Unknown or empty profile '%1'.").arg(profile.name()));
         for (const QString &profileKey : profileKeys) {
             buildConfig.insert(profileKey, profile.value(profileKey, QVariant(), &err));
@@ -430,7 +430,7 @@ QVariantMap SetupProjectParameters::finalBuildConfigurationTree(const QVariantMa
  */
 QVariantMap SetupProjectParameters::finalBuildConfigurationTree() const
 {
-    if (d->finalBuildConfigTree.isEmpty()) {
+    if (d->finalBuildConfigTree.empty()) {
         d->finalBuildConfigTree = finalBuildConfigurationTree(buildConfiguration(),
                                                               overriddenValues());
     }

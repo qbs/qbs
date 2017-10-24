@@ -93,7 +93,7 @@ void ConfigCommandExecutor::setValue(const QString &key, const QString &rawInput
 
 void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
 {
-    if (command.varNames.isEmpty()) {
+    if (command.varNames.empty()) {
         foreach (const QString &key, m_settings->allKeys())
             printOneSetting(key);
     } else {

@@ -192,7 +192,7 @@ void Loader::setupProjectFilePath(SetupProjectParameters &parameters)
             << QLatin1String("*.qbs");
     const QStringList &actualFileNames
             = QDir(projectFilePath).entryList(namePatterns, QDir::Files);
-    if (actualFileNames.isEmpty()) {
+    if (actualFileNames.empty()) {
         QString error;
         if (parameters.projectFilePath().isEmpty())
             error = Tr::tr("No project file given and none found in current directory.\n");

@@ -70,7 +70,7 @@ QSettings *SettingsCreator::getQSettings()
 
 void SettingsCreator::migrate()
 {
-    if (!m_settings->allKeys().isEmpty()) // We already have settings for this qbs version.
+    if (!m_settings->allKeys().empty()) // We already have settings for this qbs version.
         return;
 
     m_settings.reset();

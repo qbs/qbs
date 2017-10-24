@@ -93,7 +93,7 @@ void CommandLineFrontend::checkCancelStatus()
     case CancelStatusRequested:
         m_cancelStatus = CancelStatusCanceling;
         m_cancelTimer->stop();
-        if (m_resolveJobs.isEmpty() && m_buildJobs.isEmpty())
+        if (m_resolveJobs.empty() && m_buildJobs.empty())
             std::exit(EXIT_FAILURE);
         foreach (AbstractJob * const job, m_resolveJobs)
             job->cancel();
@@ -200,7 +200,7 @@ void CommandLineFrontend::start()
         m_cancelTimer->start(2000);
     } catch (const ErrorInfo &error) {
         qbsError() << error.toString();
-        if (m_buildJobs.isEmpty() && m_resolveJobs.isEmpty()) {
+        if (m_buildJobs.empty() && m_resolveJobs.empty()) {
             qApp->exit(EXIT_FAILURE);
         } else {
             cancel();
@@ -223,7 +223,7 @@ void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
             qbsError() << job->error().toString();
             m_resolveJobs.removeOne(job);
             m_buildJobs.removeOne(job);
-            if (m_resolveJobs.isEmpty() && m_buildJobs.isEmpty()) {
+            if (m_resolveJobs.empty() && m_buildJobs.empty()) {
                 qApp->exit(EXIT_FAILURE);
                 return;
             }
@@ -233,7 +233,7 @@ void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
             m_projects << setupJob->project();
             if (m_observer && resolvingMultipleProjects())
                 m_observer->incrementProgressValue();
-            if (m_resolveJobs.isEmpty())
+            if (m_resolveJobs.empty())
                 handleProjectsResolved();
         } else if (qobject_cast<InstallJob *>(job)) {
             if (m_parser.command() == RunCommandType)
@@ -242,7 +242,7 @@ void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
                 qApp->quit();
         } else { // Build or clean.
             m_buildJobs.removeOne(job);
-            if (m_buildJobs.isEmpty()) {
+            if (m_buildJobs.empty()) {
                 switch (m_parser.command()) {
                 case RunCommandType:
                 case InstallCommandType:
@@ -308,15 +308,15 @@ void CommandLineFrontend::handleTaskProgress(int value, AbstractJob *job)
 
 void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &result)
 {
-    bool hasOutput = !result.stdOut().isEmpty() || !result.stdErr().isEmpty();
+    bool hasOutput = !result.stdOut().empty() || !result.stdErr().empty();
     if (!hasOutput && result.success())
         return;
 
     LogWriter w = result.success() ? qbsInfo() : qbsError();
     w << shellQuote(QDir::toNativeSeparators(result.executableFilePath()), result.arguments())
       << (hasOutput ? QString::fromLatin1("\n") : QString())
-      << (result.stdOut().isEmpty() ? QString() : result.stdOut().join(QLatin1Char('\n')));
-    if (!result.stdErr().isEmpty())
+      << (result.stdOut().empty() ? QString() : result.stdOut().join(QLatin1Char('\n')));
+    if (!result.stdErr().empty())
         w << result.stdErr().join(QLatin1Char('\n')) << MessageTag(QStringLiteral("stdErr"));
 }
 
@@ -327,19 +327,19 @@ bool CommandLineFrontend::resolvingMultipleProjects() const
 
 bool CommandLineFrontend::isResolving() const
 {
-    return !m_resolveJobs.isEmpty();
+    return !m_resolveJobs.empty();
 }
 
 bool CommandLineFrontend::isBuilding() const
 {
-    return !m_buildJobs.isEmpty();
+    return !m_buildJobs.empty();
 }
 
 CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
 {
     ProductMap products;
     QStringList productNames;
-    const bool useAll = m_parser.products().isEmpty();
+    const bool useAll = m_parser.products().empty();
     foreach (const Project &project, m_projects) {
         QList<ProductData> &productList = products[project];
         const ProjectData projectData = project.projectData();
@@ -409,7 +409,7 @@ void CommandLineFrontend::handleProjectsResolved()
 
 void CommandLineFrontend::makeClean()
 {
-    if (m_parser.products().isEmpty()) {
+    if (m_parser.products().empty()) {
         foreach (const Project &project, m_projects) {
             m_buildJobs << project.cleanAllProducts(m_parser.cleanOptions(project.profile()), this);
         }
@@ -478,7 +478,7 @@ QString CommandLineFrontend::buildDirectory(const QString &profileName) const
 
 void CommandLineFrontend::build()
 {
-    if (m_parser.products().isEmpty()) {
+    if (m_parser.products().empty()) {
         const Project::ProductSelection productSelection = m_parser.withNonDefaultProducts()
                 ? Project::ProductSelectionWithNonDefault : Project::ProductSelectionDefaultOnly;
         foreach (const Project &project, m_projects)
@@ -632,7 +632,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     if (runnableProducts.size() == 1)
         return runnableProducts.front();
 
-    if (runnableProducts.isEmpty()) {
+    if (runnableProducts.empty()) {
         throw ErrorInfo(Tr::tr("Cannot execute command '%1': Project has no runnable product.")
                         .arg(m_parser.commandName()));
     }
@@ -656,7 +656,7 @@ void CommandLineFrontend::install()
     Q_ASSERT(m_projects.size() == 1);
     const Project project = m_projects.front();
     InstallJob *installJob;
-    if (m_parser.products().isEmpty()) {
+    if (m_parser.products().empty()) {
         const Project::ProductSelection productSelection = m_parser.withNonDefaultProducts()
                 ? Project::ProductSelectionWithNonDefault : Project::ProductSelectionDefaultOnly;
         installJob = project.installAllProducts(m_parser.installOptions(project.profile()),

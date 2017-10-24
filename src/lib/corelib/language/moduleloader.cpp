@@ -143,7 +143,7 @@ public:
         for (auto productContext : qAsConst(allProducts)) {
             auto &productDependencies = m_dependencyMap[productContext];
             for (const auto &dep : qAsConst(productContext->info.usedProducts)) {
-                if (!dep.productTypes.isEmpty())
+                if (!dep.productTypes.empty())
                     continue;
                 QBS_CHECK(!dep.name.isEmpty());
                 const auto &deps = productsMap.value(dep.name);
@@ -920,7 +920,7 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ModuleLoader::Product
             // (3b)
             multiplexIds << depMultiplexId;
         }
-        if (!multiplexIds.isEmpty()) {
+        if (!multiplexIds.empty()) {
             dependsItem->setProperty(multiplexConfigurationIdsKey,
                                      VariantValue::create(multiplexIds));
         }
@@ -1128,7 +1128,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
     ModuleDependencies reverseModuleDeps;
     for (Item * const child : item->children()) {
         if (child->type() == ItemType::Group) {
-            if (reverseModuleDeps.isEmpty())
+            if (reverseModuleDeps.empty())
                 reverseModuleDeps = setupReverseModuleDependencies(item);
             handleGroup(productContext, child, reverseModuleDeps);
         }
@@ -1210,7 +1210,7 @@ void ModuleLoader::checkDependencyParameterDeclarations(const ProductContext *pr
     DependencyParameterDeclarationCheck dpdc(productContext->name, productContext->item,
                                              m_parameterDeclarations);
     for (const Item::Module &dep : productContext->item->modules()) {
-        if (!dep.parameters.isEmpty())
+        if (!dep.parameters.empty())
             dpdc(dep.parameters);
     }
 }
@@ -1762,7 +1762,7 @@ void ModuleLoader::propagateModulesFromParent(ProductContext *productContext, It
     }
 
     const QualifiedIdSet &propsSetInGroup = gatherModulePropertiesSetInGroup(groupItem);
-    if (propsSetInGroup.isEmpty())
+    if (propsSetInGroup.empty())
         return;
     productContext->info.modulePropertiesSetInGroups
             .insert(std::make_pair(groupItem, propsSetInGroup));
@@ -2048,7 +2048,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
             throw ErrorInfo(Tr::tr("The 'productTypes' and 'subModules' properties are mutually "
                                    "exclusive."), dependsItem->location());
         }
-        if (productTypes.isEmpty()) {
+        if (productTypes.empty()) {
             qCDebug(lcModuleLoader) << "Ignoring Depends item with empty productTypes list.";
             return;
         }
@@ -2062,7 +2062,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         productResults->push_back(dependency);
         return;
     }
-    if (submodules.isEmpty() && submodulesPropertySet) {
+    if (submodules.empty() && submodulesPropertySet) {
         qCDebug(lcModuleLoader) << "Ignoring Depends item with empty submodules list.";
         return;
     }
@@ -2073,7 +2073,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
 
     QList<QualifiedId> moduleNames;
     const QualifiedId nameParts = QualifiedId::fromString(name);
-    if (submodules.isEmpty()) {
+    if (submodules.empty()) {
         // Ignore explicit dependencies on the base module, which has already been loaded.
         if (name == QStringLiteral("qbs"))
             return;
@@ -2139,7 +2139,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
             bool profilesPropertyWasSet = false;
             QStringList profiles = m_evaluator->stringListValue(dependsItem, profilesKey,
                                                                 &profilesPropertyWasSet);
-            if (profiles.isEmpty()) {
+            if (profiles.empty()) {
                 if (profilesPropertyWasSet)
                     profiles.append(QLatin1String("*"));
                 else
@@ -2148,7 +2148,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
             QStringList multiplexConfigurationIds
                     = m_evaluator->stringListValue(dependsItem,
                                                    QStringLiteral("multiplexConfigurationIds"));
-            if (multiplexConfigurationIds.isEmpty())
+            if (multiplexConfigurationIds.empty())
                 multiplexConfigurationIds << QString();
             for (const QString &profile : qAsConst(profiles)) {
                 for (const QString &multiplexId : multiplexConfigurationIds) {
@@ -2244,7 +2244,7 @@ QVariantMap ModuleLoader::extractParameters(Item *dependsItem) const
 {
     QVariantMap result;
     const Item::PropertyMap &itemProperties = filterItemProperties(dependsItem->properties());
-    if (itemProperties.isEmpty())
+    if (itemProperties.empty())
         return result;
 
     auto origProperties = dependsItem->properties();
@@ -2270,7 +2270,7 @@ QVariantMap ModuleLoader::extractParameters(Item *dependsItem) const
 
 Item *ModuleLoader::moduleInstanceItem(Item *containerItem, const QualifiedId &moduleName)
 {
-    QBS_CHECK(!moduleName.isEmpty());
+    QBS_CHECK(!moduleName.empty());
     Item *instance = containerItem;
     for (int i = 0; i < moduleName.size(); ++i) {
         const QString &moduleNameSegment = moduleName.at(i);
@@ -2516,7 +2516,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         if (dirPath.isEmpty())
             continue;
         QStringList moduleFileNames = m_moduleDirListCache.value(dirPath);
-        if (moduleFileNames.isEmpty()) {
+        if (moduleFileNames.empty()) {
             QDirIterator dirIter(dirPath, QStringList(QLatin1String("*.qbs")));
             while (dirIter.hasNext())
                 moduleFileNames += dirIter.next();
@@ -2842,7 +2842,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
 
     // For foo.bar in modulePrototype create an item foo in moduleInstance.
     for (auto iip : instanceItemProperties(modulePrototype)) {
-        if (iip.second->item()->properties().isEmpty())
+        if (iip.second->item()->properties().empty())
             continue;
         qCDebug(lcModuleLoader) << "The prototype of " << moduleName
                             << " sets properties on " << iip.first.toString();

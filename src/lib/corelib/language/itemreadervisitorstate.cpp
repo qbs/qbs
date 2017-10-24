@@ -140,7 +140,7 @@ Item *ItemReaderVisitorState::readFile(const QString &filePath, const QStringLis
         file.close();
         if (!parser.parse()) {
             const QList<QbsQmlJS::DiagnosticMessage> &parserMessages = parser.diagnosticMessages();
-            if (Q_UNLIKELY(!parserMessages.isEmpty())) {
+            if (Q_UNLIKELY(!parserMessages.empty())) {
                 ErrorInfo err;
                 for (const QbsQmlJS::DiagnosticMessage &msg : parserMessages)
                     err.append(msg.message, toCodeLocation(filePath, msg.loc));

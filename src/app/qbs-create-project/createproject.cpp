@@ -85,7 +85,7 @@ void ProjectCreator::setupProject(Project *project)
             subProject->dirName = dit.fileName();
             subProject->dirPath = dit.filePath();
             setupProject(subProject.get());
-            if (!subProject->fileNames.isEmpty() || !subProject->subProjects.empty())
+            if (!subProject->fileNames.empty() || !subProject->subProjects.empty())
                 project->subProjects.push_back(std::move(subProject));
         }
     }
@@ -105,7 +105,7 @@ void ProjectCreator::serializeProject(const ProjectCreator::Project &project)
     QTextStream fileContents(&projectFile);
     fileContents.setCodec("UTF-8");
     fileContents << "import qbs\n\n";
-    if (!project.fileNames.isEmpty() || m_projectStructure == ProjectStructure::Flat) {
+    if (!project.fileNames.empty() || m_projectStructure == ProjectStructure::Flat) {
         fileContents << "Product {\n";
         const ProductFlags productFlags = getFlags(project);
         if (productFlags.testFlag(IsApp)) {
@@ -164,7 +164,7 @@ bool ProjectCreator::isSourceFile(const QString &fileName)
 {
     const auto isMatch = [fileName](const QRegExp &rex) { return rex.exactMatch(fileName); };
     return !std::any_of(m_blackList.cbegin(), m_blackList.cend(), isMatch)
-            && (m_whiteList.isEmpty()
+            && (m_whiteList.empty()
                 || std::any_of(m_whiteList.cbegin(), m_whiteList.cend(), isMatch));
 }
 

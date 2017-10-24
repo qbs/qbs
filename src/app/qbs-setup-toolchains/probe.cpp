@@ -287,7 +287,7 @@ void probe(Settings *settings)
 
     mingwProbe(settings, profiles);
 
-    if (profiles.isEmpty()) {
+    if (profiles.empty()) {
         qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << endl;
     } else if (profiles.size() == 1 && settings->defaultProfile().isEmpty()) {
         const QString profileName = profiles.front().name();

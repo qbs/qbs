@@ -157,7 +157,7 @@ QScriptValue Transformer::translateInOutputs(ScriptEngine *scriptEngine,
 
 ResolvedProductPtr Transformer::product() const
 {
-    if (outputs.isEmpty())
+    if (outputs.empty())
         return ResolvedProductPtr();
     return (*outputs.cbegin())->product.lock();
 }
@@ -172,7 +172,7 @@ void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet 
     if (inputs.size() == 1) {
         Artifact *input = *inputs.cbegin();
         const FileTags &fileTags = input->fileTags();
-        QBS_ASSERT(!fileTags.isEmpty(), return);
+        QBS_ASSERT(!fileTags.empty(), return);
         QScriptValue inputsForFileTag = scriptValue.property(fileTags.cbegin()->toString());
         inputScriptValue = inputsForFileTag.property(0);
     }
@@ -194,7 +194,7 @@ void Transformer::setupOutputs(QScriptValue targetScriptValue)
     if (outputs.size() == 1) {
         Artifact *output = *outputs.cbegin();
         const FileTags &fileTags = output->fileTags();
-        QBS_ASSERT(!fileTags.isEmpty(), return);
+        QBS_ASSERT(!fileTags.empty(), return);
         QScriptValue outputsForFileTag = scriptValue.property(fileTags.cbegin()->toString());
         outputScriptValue = outputsForFileTag.property(0);
     }

@@ -52,12 +52,12 @@ static QString settingsDirOption() { return QLatin1String("--settings-dir"); }
 void CommandLineParser::parse(const QStringList &commandLine)
 {
     m_commandLine = commandLine;
-    Q_ASSERT(!m_commandLine.isEmpty());
+    Q_ASSERT(!m_commandLine.empty());
     m_command = QFileInfo(m_commandLine.takeFirst()).fileName();
     m_helpRequested = false;
     m_settingsDir.clear();
 
-    if (m_commandLine.isEmpty())
+    if (m_commandLine.empty())
         return;
     const QString &arg = m_commandLine.front();
     if (arg == helpOptionShort() || arg == helpOptionLong()) {
@@ -68,7 +68,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
         assignOptionArgument(settingsDirOption(), m_settingsDir);
     }
 
-    if (!m_commandLine.isEmpty())
+    if (!m_commandLine.empty())
         complainAboutExtraArguments();
 }
 
@@ -92,7 +92,7 @@ QString CommandLineParser::usageString() const
 
 void CommandLineParser::assignOptionArgument(const QString &option, QString &argument)
 {
-    if (m_commandLine.isEmpty())
+    if (m_commandLine.empty())
         throwError(Tr::tr("Option '%1' needs an argument.").arg(option));
     argument = m_commandLine.takeFirst();
     if (argument.isEmpty())

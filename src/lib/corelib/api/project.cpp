@@ -332,7 +332,7 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
     if (!product.isValid())
         throw ErrorInfo(Tr::tr("Product is invalid."));
     QList<ProductData> products = findProductsByName(product.name());
-    if (products.isEmpty())
+    if (products.empty())
         throw ErrorInfo(Tr::tr("Product '%1' does not exist.").arg(product.name()));
     const QList<ResolvedProductPtr> resolvedProducts = internalProducts(products);
     QBS_CHECK(products.size() == resolvedProducts.size());
@@ -376,7 +376,7 @@ ProjectPrivate::GroupUpdateContext ProjectPrivate::getGroupContext(const Product
     if (!product.isValid())
         throw ErrorInfo(Tr::tr("Product is invalid."));
     context.products = findProductsByName(product.name());
-    if (context.products.isEmpty())
+    if (context.products.empty())
         throw ErrorInfo(Tr::tr("Product '%1' does not exist.").arg(product.name()));
     context.resolvedProducts = internalProducts(context.products);
 
@@ -389,7 +389,7 @@ ProjectPrivate::GroupUpdateContext ProjectPrivate::getGroupContext(const Product
             }
         }
     }
-    if (context.resolvedGroups.isEmpty())
+    if (context.resolvedGroups.empty())
         throw ErrorInfo(Tr::tr("Group '%1' does not exist.").arg(groupName));
     for (const ProductData &p : qAsConst(context.products)) {
         const GroupData &g = findGroupData(p, groupName);
@@ -429,7 +429,7 @@ ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const P
     GroupUpdateContext &groupContext = filesContext.groupContext;
     groupContext = getGroupContext(product, group);
 
-    if (filePaths.isEmpty())
+    if (filePaths.empty())
         throw ErrorInfo(Tr::tr("No files supplied."));
 
     QString prefix;
@@ -552,7 +552,7 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
     FileListUpdateContext filesContext = getFileListContext(product, group, filePaths, false);
     GroupUpdateContext &groupContext = filesContext.groupContext;
 
-    if (!filesContext.absoluteFilePathsFromWildcards.isEmpty()) {
+    if (!filesContext.absoluteFilePathsFromWildcards.empty()) {
         throw ErrorInfo(Tr::tr("The following files cannot be removed from the project file, "
                                "because they match wildcard patterns: %1")
                 .arg(filesContext.absoluteFilePathsFromWildcards.join(QLatin1String(", "))));
@@ -563,7 +563,7 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
         if (filesNotFound.removeOne(sa->absoluteFilePath))
             sourceArtifacts << sa;
     }
-    if (!filesNotFound.isEmpty()) {
+    if (!filesNotFound.empty()) {
         throw ErrorInfo(Tr::tr("The following files are not known to qbs: %1")
                         .arg(filesNotFound.join(QLatin1String(", "))));
     }

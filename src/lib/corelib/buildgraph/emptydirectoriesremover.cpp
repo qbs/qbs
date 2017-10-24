@@ -60,7 +60,7 @@ void EmptyDirectoriesRemover::removeEmptyParentDirectories(const QStringList &ar
     m_handledDirs.clear();
     for (const QString &filePath : artifactFilePaths)
         insertSorted(QFileInfo(filePath).absolutePath());
-    while (!m_dirsToRemove.isEmpty())
+    while (!m_dirsToRemove.empty())
         removeDirIfEmpty();
 }
 

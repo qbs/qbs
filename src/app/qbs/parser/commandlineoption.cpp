@@ -63,7 +63,7 @@ CommandLineOption::CommandLineOption()
 
 QString CommandLineOption::getArgument(const QString &representation, QStringList &input)
 {
-    if (input.isEmpty()) {
+    if (input.empty()) {
         throw ErrorInfo(Tr::tr("Invalid use of option '%1': Missing argument.\nUsage: %2")
                     .arg(representation, description(command())));
     }
@@ -331,7 +331,7 @@ QString ShowProgressOption::longRepresentation() const
 void StringListOption::doParse(const QString &representation, QStringList &input)
 {
     m_arguments = getArgument(representation, input).split(QLatin1Char(','));
-    if (m_arguments.isEmpty()) {
+    if (m_arguments.empty()) {
         throw ErrorInfo(Tr::tr("Invalid use of option '%1': Argument list must not be empty.\n"
                            "Usage: %2").arg(representation, description(command())));
     }
@@ -486,7 +486,7 @@ QString InstallRootOption::longRepresentation() const
 
 void InstallRootOption::doParse(const QString &representation, QStringList &input)
 {
-    if (input.isEmpty()) {
+    if (input.empty()) {
         throw ErrorInfo(Tr::tr("Invalid use of option '%1: Argument expected.\n"
                            "Usage: %2").arg(representation, description(command())));
     }
@@ -566,7 +566,7 @@ QString SettingsDirOption::longRepresentation() const
 
 void SettingsDirOption::doParse(const QString &representation, QStringList &input)
 {
-    if (input.isEmpty()) {
+    if (input.empty()) {
         throw ErrorInfo(Tr::tr("Invalid use of option '%1: Argument expected.\n"
                            "Usage: %2").arg(representation, description(command())));
     }

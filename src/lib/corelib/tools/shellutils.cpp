@@ -160,7 +160,7 @@ std::string shellQuote(const std::string &arg, HostOsInfo::HostOs os)
 QString shellQuote(const QStringList &args, HostOsInfo::HostOs os)
 {
     QString result;
-    if (!args.isEmpty()) {
+    if (!args.empty()) {
         result += shellQuote(args.at(0), os);
         for (int i = 1; i < args.size(); ++i)
             result += QLatin1Char(' ') + shellQuote(args.at(i), os);
@@ -186,7 +186,7 @@ std::string shellQuote(const std::vector<std::string> &args, HostOsInfo::HostOs 
 QString shellQuote(const QString &program, const QStringList &args, HostOsInfo::HostOs os)
 {
     QString result = shellQuote(program, os);
-    if (!args.isEmpty())
+    if (!args.empty())
         result += QLatin1Char(' ') + shellQuote(args, os);
     return result;
 }

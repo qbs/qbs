@@ -110,7 +110,7 @@ bool VisualStudioSolutionWriter::write(const VisualStudioSolution *solution)
             << u8"\"\n";
 
         const auto dependencies = solution->dependencies(project);
-        if (!dependencies.isEmpty()) {
+        if (!dependencies.empty()) {
             out << u8"\tProjectSection(ProjectDependencies) = postProject\n";
 
             for (const auto &dependency : dependencies)

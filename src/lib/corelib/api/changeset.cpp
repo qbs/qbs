@@ -118,9 +118,9 @@ bool ChangeSet::hasOverlap(int pos, int length)
     return false;
 }
 
-bool ChangeSet::isEmpty() const
+bool ChangeSet::empty() const
 {
-    return m_operationList.isEmpty();
+    return m_operationList.empty();
 }
 
 QList<ChangeSet::EditOp> ChangeSet::operationList() const
@@ -372,7 +372,7 @@ void ChangeSet::apply_helper()
     // convert all ops to replace
     QList<EditOp> replaceList;
     {
-        while (!m_operationList.isEmpty()) {
+        while (!m_operationList.empty()) {
             const EditOp cmd(m_operationList.front());
             m_operationList.removeFirst();
             convertToReplace(cmd, &replaceList);
@@ -383,7 +383,7 @@ void ChangeSet::apply_helper()
     if (m_cursor)
         m_cursor->beginEditBlock();
 
-    while (!replaceList.isEmpty()) {
+    while (!replaceList.empty()) {
         const EditOp cmd(replaceList.front());
         replaceList.removeFirst();
         doReplace(cmd, &replaceList);

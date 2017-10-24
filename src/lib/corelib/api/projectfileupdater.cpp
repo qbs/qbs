@@ -176,7 +176,7 @@ void ProjectFileUpdater::apply()
     Parser parser(&engine);
     if (!parser.parse()) {
         QList<DiagnosticMessage> parserMessages = parser.diagnosticMessages();
-        if (!parserMessages.isEmpty()) {
+        if (!parserMessages.empty()) {
             ErrorInfo errorInfo;
             errorInfo.append(Tr::tr("Failure parsing project file."));
             for (const DiagnosticMessage &msg : qAsConst(parserMessages))
@@ -302,7 +302,7 @@ static QString &completeFilesRepr(QString &filesRepr, int indentation)
 
 void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
 {
-    if (m_files.isEmpty())
+    if (m_files.empty())
         return;
     QStringList sortedFiles = m_files;
     sortedFiles.sort();
@@ -346,13 +346,13 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
 
             // Insert new files "sorted", but do not change the order of existing files.
             const QString firstNewFileRepr = toJSLiteral(sortedFiles.front());
-            while (!oldFileReprs.isEmpty()) {
+            while (!oldFileReprs.empty()) {
                 if (oldFileReprs.front() > firstNewFileRepr)
                     break;
                 addToFilesRepr(filesRepresentation, oldFileReprs.takeFirst(), arrayElemIndentation);
             }
             addToFilesRepr(filesRepresentation, sortedFiles, arrayElemIndentation);
-            while (!oldFileReprs.isEmpty())
+            while (!oldFileReprs.empty())
                 addToFilesRepr(filesRepresentation, oldFileReprs.takeFirst(), arrayElemIndentation);
             completeFilesRepr(filesRepresentation, bindingIndentation);
             break;
@@ -414,7 +414,7 @@ ProjectFileFilesRemover::ProjectFileFilesRemover(const ProductData &product, con
 
 void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
 {
-    if (m_files.isEmpty())
+    if (m_files.empty())
         return;
 
     // Find the item containing the "files" binding.
@@ -464,7 +464,7 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
                 newFilesList << existingFile;
             elem = elem->next;
         }
-        if (!filesToRemove.isEmpty()) {
+        if (!filesToRemove.empty()) {
             throw ErrorInfo(Tr::tr("The following files were not found in the 'files' list: %1")
                             .arg(filesToRemove.join(QLatin1String(", "))), bindingLocation);
         }

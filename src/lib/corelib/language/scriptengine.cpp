@@ -496,7 +496,7 @@ QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qt
                 return context->throwError(e.toString());
             }
 
-            if (!values.isEmpty()) {
+            if (!values.empty()) {
                 const QScriptValue mergedValue = mergeExtensionObjects(values);
                 if (engine->m_observeMode == ObserveMode::Enabled)
                     engine->m_requireResults.push_back(mergedValue);
@@ -624,7 +624,7 @@ ErrorInfo ScriptEngine::lastError(const QScriptValue &v, const CodeLocation &fal
     if (errorLocation.isValid())
         return ErrorInfo(msg, errorLocation);
     const QStringList backtrace = uncaughtExceptionBacktraceOrEmpty();
-    if (!backtrace.isEmpty()) {
+    if (!backtrace.empty()) {
         ErrorInfo e(msg, backtrace);
         if (e.hasLocation())
             return e;

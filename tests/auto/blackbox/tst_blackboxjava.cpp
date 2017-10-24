@@ -203,7 +203,7 @@ void TestBlackboxJava::javaDependencyTracking_data()
             if (!jdkVersion.isEmpty())
                 seenJdkVersions << jdkVersion;
 
-            if (!seenJdkVersions.isEmpty()) {
+            if (!seenJdkVersions.empty()) {
                 const auto javaVersions = QStringList()
                     << knownJdkVersions.mid(0, knownJdkVersions.indexOf(seenJdkVersions.last()) + 1)
                     << QString(); // also test with no explicitly specified source version
@@ -221,7 +221,7 @@ void TestBlackboxJava::javaDependencyTracking_data()
         }
     }
 
-    if (seenJdkVersions.isEmpty())
+    if (seenJdkVersions.empty())
         QSKIP("No JDKs installed");
 }
 

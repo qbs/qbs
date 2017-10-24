@@ -136,7 +136,7 @@ QVariantMap identitiesProperties()
             return;
 
         auto props = certificateInfo(QByteArray::fromRawCFData(certificateData));
-        if (!props.isEmpty())
+        if (!props.empty())
             items.insert(props[QStringLiteral("SHA1")].toString(), props);
     };
 

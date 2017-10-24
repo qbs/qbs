@@ -130,7 +130,7 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
                 throw ErrorInfo(Tr::tr("File imports require 'as <Name>'"),
                                 toCodeLocation(m_file->filePath(), import->importToken));
             }
-            if (importUri.isEmpty()) {
+            if (importUri.empty()) {
                 throw ErrorInfo(Tr::tr("Invalid import URI."),
                                 toCodeLocation(m_file->filePath(), import->importToken));
             }
@@ -176,7 +176,7 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
                                          import->fileNameToken.startColumn));
             }
         }
-    } else if (!importUri.isEmpty()) {
+    } else if (!importUri.empty()) {
         const QString importPath = isBase
                 ? QLatin1String("qbs/base") : importUri.join(QDir::separator());
         bool found = m_typeNameToFile.contains(importUri);

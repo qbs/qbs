@@ -688,9 +688,9 @@ void TestBlackbox::dependenciesProperty()
     QCOMPARE(product2_type.first().toString(), QLatin1String("application"));
     QCOMPARE(product2.value(QLatin1String("narf")).toString(), QLatin1String("zort"));
     QJsonArray product2_deps = product2.value(QLatin1String("dependencies")).toArray();
-    QVERIFY(!product2_deps.isEmpty());
+    QVERIFY(!product2_deps.empty());
     QJsonObject product2_qbs = findByName(product2_deps, QStringLiteral("qbs"));
-    QVERIFY(!product2_qbs.isEmpty());
+    QVERIFY(!product2_qbs.empty());
     QJsonObject product2_cpp = findByName(product2_deps, QStringLiteral("cpp"));
     QJsonArray product2_cpp_defines = product2_cpp.value(QLatin1String("defines")).toArray();
     QCOMPARE(product2_cpp_defines.size(), 1);
@@ -1545,7 +1545,7 @@ void TestBlackbox::separateDebugInfo()
     Profile buildProfile(profileName(), s.get());
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
     QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
-    if (targetOS.contains("darwin") || (targetOS.isEmpty() && HostOsInfo::isMacosHost())) {
+    if (targetOS.contains("darwin") || (targetOS.empty() && HostOsInfo::isMacosHost())) {
         QVERIFY(directoryExists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
         QVERIFY(regularFileExists(relativeProductBuildDir("app1")
             + "/app1.app.dSYM/Contents/Info.plist"));
@@ -4245,7 +4245,7 @@ void TestBlackbox::productDependenciesByType()
         const QString cleanLine = QString::fromLocal8Bit(line.trimmed());
         QVERIFY2(apps.removeOne(cleanLine), qPrintable(cleanLine));
     }
-    QVERIFY(apps.isEmpty());
+    QVERIFY(apps.empty());
 }
 
 void TestBlackbox::properQuoting()
@@ -4599,9 +4599,9 @@ void TestBlackbox::assembly()
             return QJsonDocument::fromJson(propertiesFile.readAll()).toVariant().toMap();
         return QVariantMap();
     })();
-    QVERIFY(!properties.isEmpty());
+    QVERIFY(!properties.empty());
     const auto toolchain = properties.value("qbs.toolchain").toStringList();
-    QVERIFY(!toolchain.isEmpty());
+    QVERIFY(!toolchain.empty());
     const bool haveGcc = toolchain.contains("gcc");
     const bool haveMSVC = toolchain.contains("msvc");
 

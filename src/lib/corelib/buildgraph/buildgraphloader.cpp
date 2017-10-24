@@ -354,7 +354,7 @@ void BuildGraphLoader::trackProjectChanges()
 
     std::shared_ptr<ProjectBuildData> oldBuildData;
     ChildListHash childLists;
-    if (!changedProducts.isEmpty()) {
+    if (!changedProducts.empty()) {
         oldBuildData = std::make_shared<ProjectBuildData>(restoredProject->buildData.get());
         for (const ResolvedProductConstPtr &product : qAsConst(allRestoredProducts)) {
             if (!product->buildData)
@@ -419,7 +419,7 @@ void BuildGraphLoader::trackProjectChanges()
 
     // Products still left in the list need resolving, either because they are new
     // or because they are newly enabled.
-    if (!allNewlyResolvedProducts.isEmpty()) {
+    if (!allNewlyResolvedProducts.empty()) {
         BuildDataResolver bpr(m_logger);
         bpr.resolveProductBuildDataForExistingProject(m_result.newlyResolvedProject,
                                                       allNewlyResolvedProducts);
@@ -448,11 +448,11 @@ bool BuildGraphLoader::probeExecutionForced(
     if (!m_parameters.forceProbeExecution())
         return false;
 
-    if (!restoredProject->probes.isEmpty())
+    if (!restoredProject->probes.empty())
         return true;
 
     for (const auto &p : qAsConst(restoredProducts)) {
-        if (!p->probes.isEmpty())
+        if (!p->probes.empty())
             return true;
     }
 
@@ -815,7 +815,7 @@ static QVariantMap propertyMapByKind(const ResolvedProductConstPtr &product,
         const int sepIndex = property.moduleName.indexOf(QLatin1Char(':'));
         const QString depName = property.moduleName.left(sepIndex);
         QVariantMap v = getParameterValue(product->dependencyParameters, depName);
-        if (!v.isEmpty())
+        if (!v.empty())
             return v;
         return getParameterValue(product->moduleParameters, depName);
     }
@@ -948,7 +948,7 @@ bool BuildGraphLoader::checkForPropertyChange(const Property &restoredProperty,
         QualifiedId moduleName
                 = QualifiedId::fromString(restoredProperty.moduleName.mid(sepIndex + 1));
         QVariantMap map = newProperties;
-        while (!moduleName.isEmpty())
+        while (!moduleName.empty())
             map = map.value(moduleName.takeFirst()).toMap();
         v = map.value(restoredProperty.propertyName);
     }
@@ -988,7 +988,7 @@ bool BuildGraphLoader::checkConfigCompatibility()
     if (m_parameters.topLevelProfile().isEmpty())
         m_parameters.setTopLevelProfile(restoredProject->profile());
     if (!m_parameters.overrideBuildGraphData()) {
-        if (!m_parameters.overriddenValues().isEmpty()
+        if (!m_parameters.overriddenValues().empty()
                 && m_parameters.overriddenValues() != restoredProject->overriddenValues) {
             throw ErrorInfo(Tr::tr("Property values set on the command line differ from the "
                                    "ones used for the previous build. Use the 'resolve' command if "
@@ -1034,7 +1034,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
 
     qCDebug(lcBuildGraph) << "rescue data of product" << restoredProduct->uniqueName();
     QBS_CHECK(newlyResolvedProduct->buildData);
-    QBS_CHECK(newlyResolvedProduct->buildData->rescuableArtifactData.isEmpty());
+    QBS_CHECK(newlyResolvedProduct->buildData->rescuableArtifactData.empty());
     newlyResolvedProduct->buildData->rescuableArtifactData = existingRad;
 
     // This is needed for artifacts created by rules, which happens later in the executor.

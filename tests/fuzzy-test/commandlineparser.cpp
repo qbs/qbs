@@ -49,9 +49,9 @@ void CommandLineParser::parse(const QStringList &commandLine)
     m_jobCount = 0;
     m_log = false;
     m_commandLine = commandLine;
-    Q_ASSERT(!m_commandLine.isEmpty());
+    Q_ASSERT(!m_commandLine.empty());
     m_command = m_commandLine.takeFirst();
-    while (!m_commandLine.isEmpty()) {
+    while (!m_commandLine.empty()) {
         const QString arg = m_commandLine.takeFirst();
         if (arg == profileOption())
             assignOptionArgument(arg, m_profile);
@@ -82,7 +82,7 @@ QString CommandLineParser::usageString() const
 
 void CommandLineParser::assignOptionArgument(const QString &option, QString &argument)
 {
-    if (m_commandLine.isEmpty())
+    if (m_commandLine.empty())
         throw ParseException(QString::fromLatin1("Option '%1' needs an argument.").arg(option));
     argument = m_commandLine.takeFirst();
     if (argument.isEmpty()) {

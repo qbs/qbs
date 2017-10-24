@@ -391,7 +391,7 @@ static bool checkForStaticBuild(const QtEnvironment &qt)
     const QDir libdir(isWin ? qt.binaryPath : qt.libraryPath);
     const QStringList coreLibFiles
             = libdir.entryList(QStringList(QLatin1String("*Core*")), QDir::Files);
-    if (coreLibFiles.isEmpty())
+    if (coreLibFiles.empty())
         throw ErrorInfo(Internal::Tr::tr("Could not determine whether Qt is a static build."));
     foreach (const QString &fileName, coreLibFiles) {
         if (QLibrary::isLibrary(fileName))

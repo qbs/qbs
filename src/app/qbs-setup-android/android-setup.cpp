@@ -198,7 +198,7 @@ static void setupNdk(qbs::Settings *settings, const QString &profileName, const 
     mainProfile.setValue(qls("qbs.toolchain"), QStringList() << qls("gcc"));
     const QStringList archs = expectedArchs();
     const QtInfoPerArch infoPerArch = getQtAndroidInfo(qtSdkDirPath);
-    mainProfile.setValue(qls("qbs.architectures"), infoPerArch.isEmpty()
+    mainProfile.setValue(qls("qbs.architectures"), infoPerArch.empty()
                          ? archs : QStringList(infoPerArch.keys()));
     QStringList searchPaths;
     QString platform;
@@ -227,7 +227,7 @@ static void setupNdk(qbs::Settings *settings, const QString &profileName, const 
         searchPaths << p.p.value(qls("preferences.qbsSearchPaths")).toStringList();
         platform = maximumPlatform(platform, qtAndroidInfo.platform);
     }
-    if (!searchPaths.isEmpty())
+    if (!searchPaths.empty())
         mainProfile.setValue(qls("preferences.qbsSearchPaths"), searchPaths);
     if (!platform.isEmpty())
         mainProfile.setValue(qls("Android.ndk.platform"), platform);

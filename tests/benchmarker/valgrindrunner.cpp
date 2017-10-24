@@ -63,7 +63,7 @@ void ValgrindRunner::run()
         futures << QtConcurrent::run(this, &ValgrindRunner::traceRuleExecution);
     if (m_activities & ActivityNullBuild)
         futures << QtConcurrent::run(this, &ValgrindRunner::traceNullBuild);
-    while (!futures.isEmpty())
+    while (!futures.empty())
         futures.takeFirst().waitForFinished();
 }
 

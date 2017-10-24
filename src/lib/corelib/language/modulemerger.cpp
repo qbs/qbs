@@ -61,7 +61,7 @@ ModuleMerger::ModuleMerger(Logger &logger, Item *root, Item::Module &moduleToMer
 
 void ModuleMerger::replaceItemInValues(QualifiedId moduleName, Item *containerItem, Item *toReplace)
 {
-    QBS_CHECK(!moduleName.isEmpty());
+    QBS_CHECK(!moduleName.empty());
     QBS_CHECK(containerItem != m_mergedModule.item);
     const QString moduleNamePrefix = moduleName.takeFirst();
     const Item::PropertyMap &properties = containerItem->properties();
@@ -72,7 +72,7 @@ void ModuleMerger::replaceItemInValues(QualifiedId moduleName, Item *containerIt
         QBS_CHECK(val);
         QBS_CHECK(val->type() == Value::ItemValueType);
         ItemValue * const itemVal = static_cast<ItemValue *>(val);
-        if (moduleName.isEmpty()) {
+        if (moduleName.empty()) {
             QBS_CHECK(itemVal->item() == toReplace);
             itemVal->setItem(m_mergedModule.item);
         } else {

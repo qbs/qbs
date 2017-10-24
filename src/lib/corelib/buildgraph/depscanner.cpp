@@ -71,7 +71,7 @@ static QStringList collectCppIncludePaths(const QVariantMap &modules)
 {
     QStringList result;
     const QVariantMap cpp = modules.value(QLatin1String("cpp")).toMap();
-    if (cpp.isEmpty())
+    if (cpp.empty())
         return result;
 
     result << cpp.value(QLatin1String("includePaths")).toStringList();

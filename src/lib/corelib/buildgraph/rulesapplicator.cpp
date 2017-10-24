@@ -85,7 +85,7 @@ RulesApplicator::~RulesApplicator()
 
 void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts)
 {
-    if (inputArtifacts.isEmpty() && rule->declaresInputs() && rule->requiresInputs)
+    if (inputArtifacts.empty() && rule->declaresInputs() && rule->requiresInputs)
         return;
 
     m_createdArtifacts.clear();
@@ -200,7 +200,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         }
     }
 
-    if (outputArtifacts.isEmpty())
+    if (outputArtifacts.empty())
         return;
 
     for (Artifact * const outputArtifact : qAsConst(outputArtifacts)) {
@@ -214,7 +214,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
 
     // change the transformer outputs according to the bindings in Artifact
     QScriptValue scriptValue;
-    if (!ruleArtifactArtifactMap.isEmpty())
+    if (!ruleArtifactArtifactMap.empty())
         engine()->setGlobalObject(prepareScriptContext);
     for (int i = ruleArtifactArtifactMap.size(); --i >= 0;) {
         const RuleArtifact *ra = ruleArtifactArtifactMap.at(i).first;
@@ -243,13 +243,13 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         }
         outputArtifact->properties->setValue(artifactModulesCfg);
     }
-    if (!ruleArtifactArtifactMap.isEmpty())
+    if (!ruleArtifactArtifactMap.empty())
         engine()->setGlobalObject(prepareScriptContext.prototype());
 
     m_transformer->setupOutputs(prepareScriptContext);
     m_transformer->createCommands(engine(), m_rule->prepareScript,
             ScriptEngine::argumentList(Rule::argumentNamesForPrepare(), prepareScriptContext));
-    if (Q_UNLIKELY(m_transformer->commands.isEmpty()))
+    if (Q_UNLIKELY(m_transformer->commands.empty()))
         throw ErrorInfo(Tr::tr("There is a rule without commands: %1.")
                         .arg(m_rule->toString()), m_rule->prepareScript->location);
 }
@@ -364,7 +364,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
     outputArtifact->alwaysUpdated = alwaysUpdated;
     outputArtifact->properties = m_product->moduleProperties;
 
-    FileTags outputArtifactFileTags = fileTags.isEmpty()
+    FileTags outputArtifactFileTags = fileTags.empty()
             ? m_product->fileTagsForFileName(outputArtifact->fileName()) : fileTags;
     for (int i = 0; i < m_product->artifactProperties.size(); ++i) {
         const ArtifactPropertiesConstPtr &props = m_product->artifactProperties.at(i);
@@ -515,7 +515,7 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValu
     const QVariant alwaysUpdatedVar = obj.property(QLatin1String("alwaysUpdated")).toVariant();
     const bool alwaysUpdated = alwaysUpdatedVar.isValid() ? alwaysUpdatedVar.toBool() : true;
     Artifact *output = createOutputArtifact(filePath, fileTags, alwaysUpdated, inputArtifacts);
-    if (output->fileTags().isEmpty()) {
+    if (output->fileTags().empty()) {
         // Check the file tags after file taggers were run.
         throw RuleOutputArtifactsException(
                 Tr::tr("Property fileTags for artifact '%1' must be a non-empty string list. "

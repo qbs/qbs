@@ -151,11 +151,11 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
     QList<FileResourceBase *> filesToScan;
     filesToScan.append(inputArtifact);
     const Set<DependencyScanner *> scanners = scannersForArtifact(inputArtifact);
-    if (scanners.isEmpty())
+    if (scanners.empty())
         return;
     m_fileTagsForScanner
             = inputArtifact->fileTags().toStringList().join(QLatin1Char(',')).toLatin1();
-    while (!filesToScan.isEmpty()) {
+    while (!filesToScan.empty()) {
         FileResourceBase *fileToBeScanned = filesToScan.takeFirst();
         const QString &filePathToBeScanned = fileToBeScanned->filePath();
         if (!visitedFilePaths.insert(filePathToBeScanned).second)

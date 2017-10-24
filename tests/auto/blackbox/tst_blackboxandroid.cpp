@@ -122,9 +122,9 @@ void TestBlackboxAndroid::android()
             }
             missingExpectedFiles << expectedFile;
         }
-        if (!missingExpectedFiles.isEmpty())
+        if (!missingExpectedFiles.empty())
             QFAIL(QByteArray("missing expected files:\n") + missingExpectedFiles.join('\n'));
-        if (!actualFiles.isEmpty()) {
+        if (!actualFiles.empty()) {
             QByteArray msg = "unexpected files encountered:\n" + actualFiles.join('\n');
             auto it = std::find_if(std::begin(actualFiles), std::end(actualFiles),
                                    [](const QByteArray &f) {
@@ -160,7 +160,7 @@ void TestBlackboxAndroid::android_data()
     const SettingsPtr s = settings();
     const Profile p("qbs_autotests-android", s.get());
     QStringList archsStringList = p.value(QLatin1String("qbs.architectures")).toStringList();
-    if (archsStringList.isEmpty())
+    if (archsStringList.empty())
         archsStringList << QStringLiteral("armv7a"); // must match default in common.qbs
     QByteArrayList archs;
     std::transform(archsStringList.begin(), archsStringList.end(), std::back_inserter(archs),

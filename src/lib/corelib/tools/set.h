@@ -118,7 +118,7 @@ public:
 
     bool contains(const T &v) const { return std::binary_search(cbegin(), cend(), v); }
     bool contains(const Set<T> &other) const;
-    bool isEmpty() const { return m_data.empty(); }
+    bool empty() const { return m_data.empty(); }
     int size() const { return int(m_data.size()); }
     int capacity() const { return int(m_data.capacity()); }
     bool intersects(const Set<T> &other) const;
@@ -230,9 +230,9 @@ template<typename T> bool Set<T>::intersects(const Set<T> &other) const
 
 template<typename T> Set<T> &Set<T>::unite(const Set<T> &other)
 {
-    if (other.isEmpty())
+    if (other.empty())
         return *this;
-    if (isEmpty()) {
+    if (empty()) {
         m_data = other.m_data;
         return *this;
     }
@@ -352,7 +352,7 @@ template<typename T> template<typename U> Set<T> Set<T>::filtered(const Set<U> &
 
 template<typename T> Set<T> &Set<T>::subtract(const Set<T> &other)
 {
-    if (isEmpty() || other.isEmpty())
+    if (empty() || other.empty())
         return *this;
     auto lowerBound = m_data.begin();
     for (auto otherIt = other.cbegin(); otherIt != other.cend(); ++otherIt) {
@@ -378,7 +378,7 @@ template<typename T> Set<T> operator|(const Set<T> &set1, const Set<T> &set2)
 
 template<typename T> Set<T> operator-(const Set<T> &set1, const Set<T> &set2)
 {
-    if (set1.isEmpty() || set2.isEmpty())
+    if (set1.empty() || set2.empty())
         return set1;
     Set<T> result;
     auto it1 = set1.cbegin();

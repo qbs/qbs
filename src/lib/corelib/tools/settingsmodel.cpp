@@ -217,7 +217,7 @@ Qt::ItemFlags SettingsModel::flags(const QModelIndex &index) const
             return Qt::ItemFlags();
 
         // Only leaf nodes have values.
-        return d->editable && node->children.isEmpty() ? flags | Qt::ItemIsEditable : flags;
+        return d->editable && node->children.empty() ? flags | Qt::ItemIsEditable : flags;
     }
     return Qt::ItemFlags();
 }
@@ -266,7 +266,7 @@ QVariant SettingsModel::data(const QModelIndex &index, int role) const
     }
     if (index.column() == keyColumn())
         return node->name;
-    if (index.column() == valueColumn() && node->children.isEmpty())
+    if (index.column() == valueColumn() && node->children.empty())
         return node->value;
     return QVariant();
 }
@@ -367,7 +367,7 @@ void SettingsModel::SettingsModelPrivate::addNode(qbs::Internal::Node *parentNod
     }
     if (!currentNode)
         currentNode = createNode(parentNode, currentNamePart);
-    if (restOfName.isEmpty()) {
+    if (restOfName.empty()) {
         currentNode->value = settingsValueToRepresentation(value);
         currentNode->isFromSettings = false;
     } else {
@@ -377,7 +377,7 @@ void SettingsModel::SettingsModelPrivate::addNode(qbs::Internal::Node *parentNod
 
 void SettingsModel::SettingsModelPrivate::doSave(const Node *node, const QString &prefix)
 {
-    if (node->children.isEmpty()) {
+    if (node->children.empty()) {
         settings->setValue(prefix + node->name, representationToSettingsValue(node->value));
         return;
     }

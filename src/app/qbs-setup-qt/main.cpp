@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
         if (clParser.autoDetectionMode()) {
             // search all Qt's in path and dump their settings
             QList<QtEnvironment> qtEnvironments = SetupQt::fetchEnvironments();
-            if (qtEnvironments.isEmpty()) {
+            if (qtEnvironments.empty()) {
                 std::cout << qPrintable(Tr::tr("No Qt installations detected. "
                                                "No profiles created."))
                           << std::endl;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
                 if (SetupQt::checkIfMoreThanOneQtWithTheSameVersion(qtEnvironment.qtVersion, qtEnvironments)) {
                     QStringList prefixPathParts = qtEnvironment.installPrefixPath
                             .split(QLatin1Char('/'), QString::SkipEmptyParts);
-                    if (!prefixPathParts.isEmpty())
+                    if (!prefixPathParts.empty())
                         profileName += QLatin1String("-") + prefixPathParts.last();
                 }
                 SetupQt::saveToQbsSettings(profileName, qtEnvironment, &settings);

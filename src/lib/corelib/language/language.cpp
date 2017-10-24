@@ -421,7 +421,7 @@ FileTags Rule::staticOutputFileTags() const
 
 FileTags Rule::collectedOutputFileTags() const
 {
-    FileTags result = outputFileTags.isEmpty() ? staticOutputFileTags() : outputFileTags;
+    FileTags result = outputFileTags.empty() ? staticOutputFileTags() : outputFileTags;
     for (const auto &ap : qAsConst(product->artifactProperties)) {
         if (ap->fileTagsFilter().intersects(result))
             result += ap->extraFileTags();
@@ -436,7 +436,7 @@ bool Rule::isDynamic() const
 
 bool Rule::declaresInputs() const
 {
-    return !inputs.isEmpty() || !inputsFromDependencies.isEmpty();
+    return !inputs.empty() || !inputsFromDependencies.empty();
 }
 
 void Rule::load(PersistentPool &pool)
@@ -664,7 +664,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
 
     QList<const ResolvedModule *> rootModules;
     for (const ResolvedModuleConstPtr &module : modules) {
-        if (moduleParents.value(module.get()).isEmpty()) {
+        if (moduleParents.value(module.get()).empty()) {
             QBS_ASSERT(module, return env);
             rootModules.append(module.get());
         }
@@ -776,7 +776,7 @@ void ResolvedProduct::unmarkForReapplication(const RuleConstPtr &rule)
 
 bool ResolvedProduct::isMarkedForReapplication(const RuleConstPtr &rule) const
 {
-    return !buildData->artifactsWithChangedInputsPerRule.value(rule).isEmpty();
+    return !buildData->artifactsWithChangedInputsPerRule.value(rule).empty();
 }
 
 ArtifactSet ResolvedProduct::lookupArtifactsByFileTag(const FileTag &tag) const
@@ -841,7 +841,7 @@ static QStringList findGeneratedFiles(const Artifact *base, bool recursive, cons
 {
     QStringList result;
     for (const Artifact *parent : base->parentArtifacts()) {
-        if (tags.isEmpty() || parent->fileTags().intersects(tags))
+        if (tags.empty() || parent->fileTags().intersects(tags))
             result << parent->filePath();
         if (recursive)
             result << findGeneratedFiles(parent, true, tags);
@@ -1166,7 +1166,7 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
     while (part == QLatin1String("**")) {
         recursive = true;
 
-        if (changed_parts.isEmpty()) {
+        if (changed_parts.empty()) {
             part = QLatin1String("*");
             break;
         }
@@ -1174,7 +1174,7 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
         part = changed_parts.takeFirst();
     }
 
-    const bool isDir = !changed_parts.isEmpty();
+    const bool isDir = !changed_parts.empty();
 
     const QString &filePattern = part;
     const QDirIterator::IteratorFlags itFlags = recursive

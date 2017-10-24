@@ -974,7 +974,7 @@ void TestApi::commandExtraction()
     const qbs::RuleCommand command = commands.front();
     QCOMPARE(command.type(), qbs::RuleCommand::ProcessCommandType);
     QVERIFY(!command.executable().isEmpty());
-    QVERIFY(!command.arguments().isEmpty());
+    QVERIFY(!command.arguments().empty());
 }
 
 void TestApi::changeDependentLib()
@@ -1820,7 +1820,7 @@ void TestApi::multiplexing()
     product = takeMatchingProduct(products,  selector);
     QVERIFY(product.isValid());
     QVERIFY(!product.isMultiplexed());
-    QVERIFY(product.dependencies().isEmpty());
+    QVERIFY(product.dependencies().empty());
 
     selector.clear();
     selector.name = "multiplex-without-aggregator-2";
@@ -1828,13 +1828,13 @@ void TestApi::multiplexing()
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QVERIFY(product.dependencies().isEmpty());
+    QVERIFY(product.dependencies().empty());
 
     selector.qbsProperties["architecture"] = "C64";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QVERIFY(product.dependencies().isEmpty());
+    QVERIFY(product.dependencies().empty());
 
     selector.clear();
     selector.name = "multiplex-with-export";
@@ -1842,27 +1842,27 @@ void TestApi::multiplexing()
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QVERIFY(product.dependencies().isEmpty());
+    QVERIFY(product.dependencies().empty());
 
     selector.qbsProperties["architecture"] = "C64";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QVERIFY(product.dependencies().isEmpty());
+    QVERIFY(product.dependencies().empty());
 
     selector.clear();
     selector.name = "nonmultiplex-with-export";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(!product.isMultiplexed());
-    QVERIFY(product.dependencies().isEmpty());
+    QVERIFY(product.dependencies().empty());
 
     selector.clear();
     selector.name = "nonmultiplex-exporting-aggregation";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(!product.isMultiplexed());
-    QVERIFY(product.dependencies().isEmpty());
+    QVERIFY(product.dependencies().empty());
 
     selector.clear();
     selector.name = "multiplex-using-export";
@@ -1899,23 +1899,23 @@ void TestApi::multiplexing()
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QVERIFY(product.dependencies().isEmpty());
+    QVERIFY(product.dependencies().empty());
     selector.qbsProperties["buildVariant"] = "release";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QVERIFY(product.dependencies().isEmpty());
+    QVERIFY(product.dependencies().empty());
     selector.qbsProperties["architecture"] = "TRS-80";
     selector.qbsProperties["buildVariant"] = "debug";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QVERIFY(product.dependencies().isEmpty());
+    QVERIFY(product.dependencies().empty());
     selector.qbsProperties["buildVariant"] = "release";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QVERIFY(product.dependencies().isEmpty());
+    QVERIFY(product.dependencies().empty());
 
     selector.clear();
     selector.name = "multiplex-with-aggregator-2";
@@ -1988,7 +1988,7 @@ void TestApi::multiplexing()
     QVERIFY(product.isMultiplexed());
     QCOMPARE(product.dependencies().size(), 4);
 
-    QVERIFY(products.isEmpty());
+    QVERIFY(products.empty());
 }
 
 void TestApi::newOutputArtifactInDependency()
@@ -2095,13 +2095,13 @@ void TestApi::projectDataAfterProductInvalidation()
     qbs::Project project = setupJob->project();
     QVERIFY(project.isValid());
     QCOMPARE(project.projectData().products().size(), 1);
-    QVERIFY(project.projectData().products().front().generatedArtifacts().isEmpty());
+    QVERIFY(project.projectData().products().front().generatedArtifacts().empty());
     std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
     waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QCOMPARE(project.projectData().products().size(), 1);
     const qbs::ProductData productAfterBulding = project.projectData().products().front();
-    QVERIFY(!productAfterBulding.generatedArtifacts().isEmpty());
+    QVERIFY(!productAfterBulding.generatedArtifacts().empty());
     QFile projectFile(setupParams.projectFilePath());
     WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));

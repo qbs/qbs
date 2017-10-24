@@ -53,7 +53,7 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
     m_settingsDir.clear();
 
     m_commandLine = commandLine;
-    if (m_commandLine.isEmpty())
+    if (m_commandLine.empty())
         throw ErrorInfo(Tr::tr("No parameters supplied."));
     if (m_commandLine.size() == 1 && (m_commandLine.front() == QLatin1String("--help")
                                       || m_commandLine.front() == QLatin1String("-h"))) {
@@ -61,7 +61,7 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
         return;
     }
 
-    while (!m_commandLine.isEmpty() && m_commandLine.front().startsWith(QLatin1String("--"))) {
+    while (!m_commandLine.empty() && m_commandLine.front().startsWith(QLatin1String("--"))) {
         const QString arg = m_commandLine.takeFirst().mid(2);
         if (arg == QLatin1String("list"))
             setCommand(ConfigCommand::CfgList);
@@ -79,7 +79,7 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
 
     switch (command().command) {
     case ConfigCommand::CfgNone:
-        if (m_commandLine.isEmpty())
+        if (m_commandLine.empty())
             throw ErrorInfo(Tr::tr("No parameters supplied."));
         if (m_commandLine.size() > 2)
             throw ErrorInfo(Tr::tr("Too many arguments."));
@@ -92,7 +92,7 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
         }
         break;
     case ConfigCommand::CfgUnset:
-        if (m_commandLine.isEmpty())
+        if (m_commandLine.empty())
             throw ErrorInfo(Tr::tr("Need name of variable to unset."));
         m_command.varNames = m_commandLine;
         break;
@@ -137,7 +137,7 @@ void ConfigCommandLineParser::printUsage() const
 
 void ConfigCommandLineParser::assignOptionArgument(const QString &option, QString &argument)
 {
-    if (m_commandLine.isEmpty())
+    if (m_commandLine.empty())
         throw ErrorInfo(Tr::tr("Option '%1' needs an argument.").arg(option));
     argument = m_commandLine.takeFirst();
     if (argument.isEmpty())

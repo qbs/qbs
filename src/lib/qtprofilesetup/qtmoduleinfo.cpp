@@ -448,14 +448,14 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
 
     // Set up include paths that haven't been set up before this point.
     for (auto &module : modules) {
-        if (!module.includePaths.isEmpty())
+        if (!module.includePaths.empty())
             continue;
         module.includePaths = module.qt4ModuleIncludePaths(qtEnvironment);
     }
 
     // Set up compiler defines haven't been set up before this point.
     for (auto &module : modules) {
-        if (!module.compilerDefines.isEmpty())
+        if (!module.compilerDefines.empty())
             continue;
         module.compilerDefines
                 << QLatin1String("QT_") + module.qbsName.toUpper() + QLatin1String("_LIB");

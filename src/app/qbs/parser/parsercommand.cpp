@@ -560,7 +560,7 @@ QList<CommandLineOption::Type> HelpCommand::supportedOptions() const
 
 void HelpCommand::parseNext(QStringList &input)
 {
-    if (input.isEmpty())
+    if (input.empty())
         return;
     if (input.size() > 1)
         throwError(Tr::tr("Cannot describe more than one command."));

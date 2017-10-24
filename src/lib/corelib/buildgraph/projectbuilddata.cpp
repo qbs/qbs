@@ -200,12 +200,12 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
     for (Artifact *parent : filterByType<Artifact>(parentsCopy)) {
         bool removeParent = false;
         disconnect(parent, artifact);
-        if (parent->children.isEmpty()) {
+        if (parent->children.empty()) {
             removeParent = true;
         } else if (parent->transformer) {
             parent->product->registerArtifactWithChangedInputs(parent);
             parent->transformer->inputs.remove(artifact);
-            removeParent = parent->transformer->inputs.isEmpty();
+            removeParent = parent->transformer->inputs.empty();
         }
         if (removeParent) {
             removeArtifactAndExclusiveDependents(parent, logger, removeFromProduct,

@@ -187,7 +187,7 @@ private:
             setupProductScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency.get(), 0);
 
             const QVariantMap &params = product->dependencyParameters.value(dependency);
-            obj.setProperty(m_parametersKey, params.isEmpty()
+            obj.setProperty(m_parametersKey, params.empty()
                             ? engine->newObject() : toScriptValue(engine, observer, params,
                                                                   dependency->name));
 
@@ -199,7 +199,7 @@ private:
             QScriptValue obj = engine->newObject();
             setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency.get());
             const QVariantMap &params = product->moduleParameters.value(dependency);
-            obj.setProperty(m_parametersKey, params.isEmpty()
+            obj.setProperty(m_parametersKey, params.empty()
                             ? engine->newObject() : toScriptValue(engine, observer, params,
                                                                   dependency->name));
 

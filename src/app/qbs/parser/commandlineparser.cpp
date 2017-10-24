@@ -318,7 +318,7 @@ CommandLineParser::CommandLineParserPrivate::CommandLineParserPrivate()
 
 void CommandLineParser::CommandLineParserPrivate::doParse()
 {
-    if (commandLine.isEmpty()) { // No command given, use default.
+    if (commandLine.empty()) { // No command given, use default.
         command = commandPool.getCommand(BuildCommandType);
     } else {
         command = commandFromString(commandLine.front());
@@ -409,7 +409,7 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
 
     QStringList toolNames = QbsTool::allToolNames();
     toolNames.sort();
-    if (!toolNames.isEmpty()) {
+    if (!toolNames.empty()) {
         help.append(QLatin1Char('\n')).append(Tr::tr("Auxiliary commands:\n"));
         foreach (const QString &toolName, toolNames) {
             help.append(QLatin1String("  ")).append(toolName);

@@ -213,7 +213,7 @@ inline qbs::Internal::HostOsInfo::HostOs targetOs()
         return qbs::Internal::HostOsInfo::HostOsMacos;
     if (targetOS.contains("unix"))
         return qbs::Internal::HostOsInfo::HostOsOtherUnix;
-    if (!targetOS.isEmpty())
+    if (!targetOS.empty())
         return qbs::Internal::HostOsInfo::HostOsOther;
     return qbs::Internal::HostOsInfo::hostOs();
 }

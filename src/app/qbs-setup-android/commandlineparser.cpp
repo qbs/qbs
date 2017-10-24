@@ -60,7 +60,7 @@ static QString qtSdkDirOption() { return QLatin1String("--qt-dir"); }
 void CommandLineParser::parse(const QStringList &commandLine)
 {
     m_commandLine = commandLine;
-    Q_ASSERT(!m_commandLine.isEmpty());
+    Q_ASSERT(!m_commandLine.empty());
     m_command = QFileInfo(m_commandLine.takeFirst()).fileName();
     m_helpRequested = false;
     m_sdkDir.clear();
@@ -68,10 +68,10 @@ void CommandLineParser::parse(const QStringList &commandLine)
     m_profileName.clear();
     m_settingsDir.clear();
 
-    if (m_commandLine.isEmpty())
+    if (m_commandLine.empty())
         throwError(Tr::tr("No command-line arguments provided."));
 
-    while (!m_commandLine.isEmpty()) {
+    while (!m_commandLine.empty()) {
         const QString arg = m_commandLine.front();
         if (!arg.startsWith(QLatin1Char('-')))
             break;
@@ -89,7 +89,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
     }
 
     if (m_helpRequested) {
-        if (!m_commandLine.isEmpty())
+        if (!m_commandLine.empty())
             complainAboutExtraArguments();
         return;
     }
@@ -129,7 +129,7 @@ QString CommandLineParser::usageString() const
 
 void CommandLineParser::assignOptionArgument(const QString &option, QString &argument)
 {
-    if (m_commandLine.isEmpty())
+    if (m_commandLine.empty())
         throwError(Tr::tr("Option '%1' needs an argument.").arg(option));
     argument = m_commandLine.takeFirst();
     if (argument.isEmpty())

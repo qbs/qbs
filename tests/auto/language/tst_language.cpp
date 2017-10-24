@@ -882,13 +882,13 @@ void TestLanguage::exports()
         QVERIFY(product->dependencies.contains(products.value("D")));
         product = products.value("B");
         QVERIFY(!!product);
-        QVERIFY(product->dependencies.isEmpty());
+        QVERIFY(product->dependencies.empty());
         product = products.value("C");
         QVERIFY(!!product);
-        QVERIFY(product->dependencies.isEmpty());
+        QVERIFY(product->dependencies.empty());
         product = products.value("D");
         QVERIFY(!!product);
-        QVERIFY(product->dependencies.isEmpty());
+        QVERIFY(product->dependencies.empty());
 
         product = products.value("myapp2");
         QVERIFY(!!product);
@@ -2713,9 +2713,9 @@ void TestLanguage::wildcards()
         }
         if (!prefix.isEmpty())
             s << "  prefix: " << toJSLiteral(prefix) << endl;
-        if (!patterns.isEmpty())
+        if (!patterns.empty())
             s << "  files: " << toJSLiteral(patterns) << endl;
-        if (!excludePatterns.isEmpty())
+        if (!excludePatterns.empty())
             s << "  excludeFiles: " << toJSLiteral(excludePatterns) << endl;
         if (useGroup)
             s << "  }" << endl;

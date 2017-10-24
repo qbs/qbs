@@ -300,7 +300,7 @@ void Item::dump(int indentation) const
 {
     const QByteArray indent(indentation, ' ');
     qDebug("%stype: %s, pointer value: %p", indent.constData(), qPrintable(typeName()), this);
-    if (!m_properties.isEmpty())
+    if (!m_properties.empty())
         qDebug("%sproperties:", indent.constData());
     for (auto it = m_properties.constBegin(); it != m_properties.constEnd(); ++it) {
         const QByteArray nextIndent(indentation + 4, ' ');
@@ -321,7 +321,7 @@ void Item::dump(int indentation) const
             break;
         }
     }
-    if (!m_children.isEmpty())
+    if (!m_children.empty())
         qDebug("%schildren:", indent.constData());
     for (const Item * const child : qAsConst(m_children))
         child->dump(indentation + 4);

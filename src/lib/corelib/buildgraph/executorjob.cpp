@@ -97,7 +97,7 @@ void ExecutorJob::run(Transformer *t)
 {
     QBS_ASSERT(m_currentCommandIdx == -1, return);
 
-    if (t->commands.isEmpty()) {
+    if (t->commands.empty()) {
         setFinished();
         return;
     }
@@ -105,7 +105,7 @@ void ExecutorJob::run(Transformer *t)
     t->propertiesRequestedInCommands.clear();
     t->propertiesRequestedFromArtifactInCommands.clear();
     t->importedFilesUsedInCommands.clear();
-    QBS_CHECK(!t->outputs.isEmpty());
+    QBS_CHECK(!t->outputs.empty());
     m_processCommandExecutor->setProcessEnvironment(
                 (*t->outputs.cbegin())->product->buildEnvironment);
     m_transformer = t;

@@ -88,7 +88,7 @@ void TimestampsUpdater::updateTimestamps(const TopLevelProjectPtr &project,
     TimestampsUpdateVisitor v;
     for (const ResolvedProductPtr &product : products)
         v.visitProduct(product);
-    project->buildData->isDirty = !products.isEmpty();
+    project->buildData->isDirty = !products.empty();
     project->store(logger);
 }
 

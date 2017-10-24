@@ -283,10 +283,10 @@ void TestTools::testProfiles()
     QVERIFY(!childProfile.value("blubb", QString(), &errorInfo).isValid());
     QVERIFY(errorInfo.hasError());
 
-    QVERIFY(!childProfile.allKeys(Profile::KeySelectionNonRecursive).isEmpty());
+    QVERIFY(!childProfile.allKeys(Profile::KeySelectionNonRecursive).empty());
 
     errorInfo.clear();
-    QVERIFY(childProfile.allKeys(Profile::KeySelectionRecursive, &errorInfo).isEmpty());
+    QVERIFY(childProfile.allKeys(Profile::KeySelectionRecursive, &errorInfo).empty());
     QVERIFY(errorInfo.hasError());
 }
 
@@ -302,7 +302,7 @@ void TestTools::testSettingsMigration()
                  settings.baseDirectory() + "/qbs/" QBS_VERSION "/profilesright");
     } else {
         QVERIFY(!QFileInfo(settings.baseDirectory() + "/qbs/" QBS_VERSION "/profiles").exists());
-        QVERIFY(settings.allKeys().isEmpty());
+        QVERIFY(settings.allKeys().empty());
     }
 }
 
@@ -514,37 +514,37 @@ void TestTools::set_size()
 {
     Set<int> set;
     QVERIFY(set.size() == 0);
-    QVERIFY(set.isEmpty());
+    QVERIFY(set.empty());
     QVERIFY(set.size() == set.size());
 
     set.insert(1);
     QVERIFY(set.size() == 1);
-    QVERIFY(!set.isEmpty());
+    QVERIFY(!set.empty());
     QVERIFY(set.size() == set.size());
 
     set.insert(1);
     QVERIFY(set.size() == 1);
-    QVERIFY(!set.isEmpty());
+    QVERIFY(!set.empty());
     QVERIFY(set.size() == set.size());
 
     set.insert(2);
     QVERIFY(set.size() == 2);
-    QVERIFY(!set.isEmpty());
+    QVERIFY(!set.empty());
     QVERIFY(set.size() == set.size());
 
     set.remove(1);
     QVERIFY(set.size() == 1);
-    QVERIFY(!set.isEmpty());
+    QVERIFY(!set.empty());
     QVERIFY(set.size() == set.size());
 
     set.remove(1);
     QVERIFY(set.size() == 1);
-    QVERIFY(!set.isEmpty());
+    QVERIFY(!set.empty());
     QVERIFY(set.size() == set.size());
 
     set.remove(2);
     QVERIFY(set.size() == 0);
-    QVERIFY(set.isEmpty());
+    QVERIFY(set.empty());
     QVERIFY(set.size() == set.size());
 }
 
@@ -898,8 +898,8 @@ void TestTools::set_stlMutableIterator()
         while (i != set2.end()) {
             i = set2.erase(i);
         }
-        QVERIFY(set2.isEmpty());
-        QVERIFY(!set3.isEmpty());
+        QVERIFY(set2.empty());
+        QVERIFY(!set3.empty());
 
         j = set3.end();
         while (j != set3.begin()) {
@@ -910,8 +910,8 @@ void TestTools::set_stlMutableIterator()
         if (set3.begin() != set3.end())
             set3.erase(set3.begin());
 
-        QVERIFY(set2.isEmpty());
-        QVERIFY(set3.isEmpty());
+        QVERIFY(set2.empty());
+        QVERIFY(set3.empty());
 
         i = set2.insert("foo").first;
         QCOMPARE(*i, QLatin1String("foo"));
@@ -1052,10 +1052,10 @@ void TestTools::set_initializerList()
     QCOMPARE(set2.find(searchKey)->id, 0);
 
     Set<int> emptySet{};
-    QVERIFY(emptySet.isEmpty());
+    QVERIFY(emptySet.empty());
 
     Set<int> set3{{}, {}, {}};
-    QVERIFY(!set3.isEmpty());
+    QVERIFY(!set3.empty());
 }
 
 void TestTools::set_intersects()

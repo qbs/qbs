@@ -73,8 +73,8 @@ Profile::Profile(const QString &name, Settings *settings, const QVariantMap &pro
 
 bool Profile::exists() const
 {
-    return m_name == fallbackName() || !m_values.isEmpty()
-            || !m_settings->allKeysWithPrefix(profileKey()).isEmpty();
+    return m_name == fallbackName() || !m_values.empty()
+            || !m_settings->allKeysWithPrefix(profileKey()).empty();
 }
 
 /*!
@@ -228,7 +228,7 @@ QStringList Profile::allKeysInternal(Profile::KeySelection selection,
 {
     extendAndCheckProfileChain(profileChain);
     QStringList keys = m_values.keys();
-    if (keys.isEmpty())
+    if (keys.empty())
         keys = m_settings->allKeysWithPrefix(profileKey());
     if (selection == KeySelectionNonRecursive)
         return keys;

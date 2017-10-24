@@ -100,7 +100,7 @@ template <typename U> struct IMultiplexableContainer {
 
     bool isValid() const
     {
-        return !data.isEmpty();
+        return !data.empty();
     }
 
 protected:
@@ -175,7 +175,7 @@ struct QBS_EXPORT GeneratableProject : public GeneratableProjectData {
 
     bool isValid() const
     {
-        return !data.isEmpty() && !projects.isEmpty();
+        return !data.empty() && !projects.empty();
     }
 
     const ProjectData projectData(const QString &configurationName) const

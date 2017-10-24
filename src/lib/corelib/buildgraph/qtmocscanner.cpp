@@ -173,7 +173,7 @@ static RawScanResult runScanner(ScannerPlugin *scanner, const Artifact *artifact
 
 void QtMocScanner::findIncludedMocCppFiles()
 {
-    if (!m_includedMocCppFiles.isEmpty())
+    if (!m_includedMocCppFiles.empty())
         return;
 
     qCDebug(lcMocScan) << "looking for included moc_XXX.cpp files";
@@ -239,7 +239,7 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
     ScannerPlugin * const scanner = scannerPluginForFileTags(artifact->fileTags());
 
     const RawScanResult scanResult = runScanner(scanner, artifact);
-    if (!scanResult.additionalFileTags.isEmpty()) {
+    if (!scanResult.additionalFileTags.empty()) {
         if (isHeaderFile) {
             if (scanResult.additionalFileTags.contains(m_tags.moc_hpp))
                 hasQObjectMacro = true;

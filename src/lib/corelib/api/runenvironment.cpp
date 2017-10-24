@@ -339,7 +339,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
                         << QStringLiteral("-run")
                         << QStringLiteral("-bundle")
                         << QDir::cleanPath(bundlePath);
-                if (!arguments.isEmpty())
+                if (!arguments.empty())
                     targetArguments << QStringLiteral("-extra-args") << arguments;
             } else if (QFileInfo(targetExecutable = findExecutable(QStringList()
                         << QStringLiteral("ios-deploy"))).isExecutable()) {
@@ -348,7 +348,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
                         << QStringLiteral("--noninteractive")
                         << QStringLiteral("--bundle")
                         << QDir::cleanPath(bundlePath);
-                if (!arguments.isEmpty())
+                if (!arguments.empty())
                     targetArguments << QStringLiteral("--args") << arguments;
             } else {
                 d->logger.qbsLog(LoggerError)
