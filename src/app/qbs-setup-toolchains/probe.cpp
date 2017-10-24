@@ -289,7 +289,7 @@ void probe(Settings *settings)
 
     if (profiles.isEmpty()) {
         qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << endl;
-    } else if (profiles.count() == 1 && settings->defaultProfile().isEmpty()) {
+    } else if (profiles.size() == 1 && settings->defaultProfile().isEmpty()) {
         const QString profileName = profiles.front().name();
         qStdout << Tr::tr("Making profile '%1' the default.").arg(profileName) << endl;
         settings->setValue(QLatin1String("defaultProfile"), profileName);

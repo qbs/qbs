@@ -119,8 +119,7 @@ public:
     bool contains(const T &v) const { return std::binary_search(cbegin(), cend(), v); }
     bool contains(const Set<T> &other) const;
     bool isEmpty() const { return m_data.empty(); }
-    int count() const { return int(m_data.size()); }
-    int size() const { return count(); }
+    int size() const { return int(m_data.size()); }
     int capacity() const { return int(m_data.capacity()); }
     bool intersects(const Set<T> &other) const;
 
@@ -274,7 +273,7 @@ template<typename T> void Set<T>::load(PersistentPool &pool)
 
 template<typename T> void Set<T>::store(PersistentPool &pool) const
 {
-    pool.store(count());
+    pool.store(size());
     std::for_each(m_data.cbegin(), m_data.cend(),
                   std::bind(&Set<T>::storeElem, this, std::ref(pool), std::placeholders::_1));
 }
@@ -282,7 +281,7 @@ template<typename T> void Set<T>::store(PersistentPool &pool) const
 template<typename T> QStringList Set<T>::toStringList() const
 {
     QStringList sl;
-    sl.reserve(count());
+    sl.reserve(size());
     std::transform(cbegin(), cend(), std::back_inserter(sl),
                    [this](const T &e) { return toString(e); });
     return sl;

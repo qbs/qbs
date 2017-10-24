@@ -283,7 +283,7 @@ void BuildDataResolver::resolveBuildData(const TopLevelProjectPtr &resolvedProje
     resolvedProject->buildData->evaluationContext = evalContext;
     const QList<ResolvedProductPtr> allProducts = resolvedProject->allProducts();
     evalContext->initializeObserver(Tr::tr("Setting up build graph for configuration %1")
-                                    .arg(resolvedProject->id()), allProducts.count() + 1);
+                                    .arg(resolvedProject->id()), allProducts.size() + 1);
     for (ResolvedProductPtr rProduct : allProducts) {
         if (rProduct->enabled)
             resolveProductBuildData(rProduct);

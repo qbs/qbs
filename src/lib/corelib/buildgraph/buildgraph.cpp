@@ -123,7 +123,7 @@ template<class ProductOrModule> static QScriptValue js_artifactsForFileTag(
         return !isRelevantArtifact(productOrModule, a);
     };
     artifacts.erase(std::remove_if(artifacts.begin(), artifacts.end(), filter), artifacts.end());
-    result = engine->newArray(artifacts.count());
+    result = engine->newArray(artifacts.size());
     ctx->callee().setProperty(CachedValueKey, result);
     int k = 0;
     for (const Artifact * const artifact : artifacts)
@@ -229,7 +229,7 @@ private:
                 }
             }
         }
-        QBS_ASSERT(idx == quint32(module->moduleDependencies.count()),;);
+        QBS_ASSERT(idx == quint32(module->moduleDependencies.size()),;);
         return result;
     }
 
@@ -470,7 +470,7 @@ QString relativeArtifactFileName(const Artifact *artifact)
     const QString &buildDir = artifact->product->topLevelProject()->buildDirectory;
     QString str = artifact->filePath();
     if (str.startsWith(buildDir))
-        str.remove(0, buildDir.count());
+        str.remove(0, buildDir.size());
     if (str.startsWith(QLatin1Char('/')))
         str.remove(0, 1);
     return str;
@@ -609,7 +609,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
         QBS_CHECK(transformer->outputs.contains(artifact));
         QBS_CHECK(product->rules.contains(std::const_pointer_cast<Rule>(transformer->rule)));
         qCDebug(lcBuildGraph)
-                << "The transformer has" << transformer->outputs.count() << "outputs.";
+                << "The transformer has" << transformer->outputs.size() << "outputs.";
         ArtifactSet transformerOutputChildren;
         for (const Artifact * const output : qAsConst(transformer->outputs)) {
             QBS_CHECK(output->transformer == transformer);
@@ -631,7 +631,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
             for (const Artifact * const a : qAsConst(transformer->inputs))
                 qCDebug(lcBuildGraph) << "\t" << a->fileName();
         }
-        QBS_CHECK(transformer->inputs.count() <= transformerOutputChildren.count());
+        QBS_CHECK(transformer->inputs.size() <= transformerOutputChildren.size());
         for (Artifact * const transformerInput : qAsConst(transformer->inputs))
             QBS_CHECK(transformerOutputChildren.contains(transformerInput));
     }

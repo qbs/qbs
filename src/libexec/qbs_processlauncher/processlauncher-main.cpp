@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 #endif
 
     QCoreApplication app(argc, argv);
-    if (app.arguments().count() != 2) {
+    if (app.arguments().size() != 2) {
         qbs::Internal::logError("Need exactly one argument (path to socket)");
         return 1;
     }

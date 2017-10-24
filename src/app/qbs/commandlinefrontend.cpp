@@ -112,7 +112,7 @@ void CommandLineFrontend::start()
         switch (m_parser.command()) {
         case RunCommandType:
         case ShellCommandType:
-            if (m_parser.products().count() > 1) {
+            if (m_parser.products().size() > 1) {
                 throw ErrorInfo(Tr::tr("Invalid use of command '%1': Cannot use more than one "
                                    "product.\nUsage: %2")
                             .arg(m_parser.commandName(), m_parser.commandDescription()));
@@ -122,7 +122,7 @@ void CommandLineFrontend::start()
         case InstallCommandType:
         case DumpNodesTreeCommandType:
         case ListProductsCommandType:
-            if (m_parser.buildConfigurations().count() > 1) {
+            if (m_parser.buildConfigurations().size() > 1) {
                 QString error = Tr::tr("Invalid use of command '%1': There can be only one "
                                "build configuration.\n").arg(m_parser.commandName());
                 error += Tr::tr("Usage: %1").arg(m_parser.commandDescription());
@@ -190,7 +190,7 @@ void CommandLineFrontend::start()
          * notification to arrive.)
          */
         if (m_parser.showProgress() && resolvingMultipleProjects())
-            m_observer->initialize(tr("Setting up projects"), m_resolveJobs.count());
+            m_observer->initialize(tr("Setting up projects"), m_resolveJobs.size());
 
         // Check every two seconds whether we received a cancel request. This value has been
         // experimentally found to be acceptable.
@@ -322,7 +322,7 @@ void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &re
 
 bool CommandLineFrontend::resolvingMultipleProjects() const
 {
-    return isResolving() && m_resolveJobs.count() + m_projects.count() > 1;
+    return isResolving() && m_resolveJobs.size() + m_projects.size() > 1;
 }
 
 bool CommandLineFrontend::isResolving() const
@@ -427,7 +427,7 @@ void CommandLineFrontend::makeClean()
 int CommandLineFrontend::runShell()
 {
     ProductData productToRun;
-    switch (m_parser.products().count()) {
+    switch (m_parser.products().size()) {
     case 0: // No specific product, use project-global environment.
         break;
     case 1:
@@ -496,7 +496,7 @@ void CommandLineFrontend::build()
      * the respective total efforts as they come in. Once all jobs have reported their total
      * efforts, we can start the overall progress report.
      */
-    m_buildEffortsNeeded = m_buildJobs.count();
+    m_buildEffortsNeeded = m_buildJobs.size();
     m_buildEffortsRetrieved = 0;
     m_totalBuildEffort = 0;
     m_currentBuildEffort = 0;
@@ -612,16 +612,16 @@ void CommandLineFrontend::connectJob(AbstractJob *job)
 
 ProductData CommandLineFrontend::getTheOneRunnableProduct()
 {
-    QBS_CHECK(m_projects.count() == 1); // Has been checked earlier.
+    QBS_CHECK(m_projects.size() == 1); // Has been checked earlier.
 
-    if (m_parser.products().count() == 1) {
+    if (m_parser.products().size() == 1) {
         foreach (const ProductData &p, m_projects.front().projectData().allProducts()) {
             if (p.name() == m_parser.products().front())
                 return p;
         }
         QBS_CHECK(false);
     }
-    QBS_CHECK(m_parser.products().count() == 0);
+    QBS_CHECK(m_parser.products().size() == 0);
 
     QList<ProductData> runnableProducts;
     foreach (const ProductData &p, m_projects.front().projectData().allProducts()) {
@@ -629,7 +629,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
             runnableProducts << p;
     }
 
-    if (runnableProducts.count() == 1)
+    if (runnableProducts.size() == 1)
         return runnableProducts.front();
 
     if (runnableProducts.isEmpty()) {
@@ -653,7 +653,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
 
 void CommandLineFrontend::install()
 {
-    Q_ASSERT(m_projects.count() == 1);
+    Q_ASSERT(m_projects.size() == 1);
     const Project project = m_projects.front();
     InstallJob *installJob;
     if (m_parser.products().isEmpty()) {

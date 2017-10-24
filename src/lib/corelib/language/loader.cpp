@@ -200,7 +200,7 @@ void Loader::setupProjectFilePath(SetupProjectParameters &parameters)
             error = Tr::tr("No project file found in directory '%1'.").arg(projectFilePath);
         throw ErrorInfo(error);
     }
-    if (actualFileNames.count() > 1) {
+    if (actualFileNames.size() > 1) {
         throw ErrorInfo(Tr::tr("More than one project file found in directory '%1'.")
                 .arg(projectFilePath));
     }

@@ -178,13 +178,13 @@ public:
                 = Set<ProductContext *>::fromList(allProducts) - allDependencies;
         for (ProductContext * const rootProduct : rootProducts)
             traverse(rootProduct);
-        if (m_sortedProducts.count() < allProducts.count()) {
+        if (m_sortedProducts.size() < allProducts.size()) {
             for (auto * const product : qAsConst(allProducts)) {
                 QList<ModuleLoader::ProductContext *> path;
                 findCycle(product, path);
             }
         }
-        QBS_CHECK(m_sortedProducts.count() == allProducts.count());
+        QBS_CHECK(m_sortedProducts.size() == allProducts.size());
     }
 
     // No product at position i has dependencies to a product at position j > i.
@@ -1544,7 +1544,7 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
 {
     std::vector<Item *> exportItems;
     QList<Item *> children = productContext.item->children();
-    for (int i = 0; i < children.count();) {
+    for (int i = 0; i < children.size();) {
         Item * const child = children.at(i);
         if (child->type() == ItemType::Export) {
             exportItems.push_back(child);
@@ -1970,12 +1970,12 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
         if (child->type() != ItemType::Depends)
             continue;
 
-        int lastModulesCount = loadedModules.count();
+        int lastModulesCount = loadedModules.size();
         resolveDependsItem(dependsContext, item, child, &loadedModules, &productDependencies);
-        for (int i = lastModulesCount; i < loadedModules.count(); ++i)
+        for (int i = lastModulesCount; i < loadedModules.size(); ++i)
             dependsItemPerLoadedModule.append(child);
     }
-    QBS_CHECK(loadedModules.count() == dependsItemPerLoadedModule.count());
+    QBS_CHECK(loadedModules.size() == dependsItemPerLoadedModule.size());
 
     Item *lastDependsItem = nullptr;
     for (Item * const dependsItem : dependsItemPerLoadedModule) {
@@ -2066,7 +2066,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         qCDebug(lcModuleLoader) << "Ignoring Depends item with empty submodules list.";
         return;
     }
-    if (Q_UNLIKELY(submodules.count() > 1 && !dependsItem->id().isEmpty())) {
+    if (Q_UNLIKELY(submodules.size() > 1 && !dependsItem->id().isEmpty())) {
         QString msg = Tr::tr("A Depends item with more than one module cannot have an id.");
         throw ErrorInfo(msg, dependsItem->location());
     }
@@ -2114,7 +2114,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
             ErrorInfo e(Tr::tr("Dependency '%1' not found for product '%2'.")
                         .arg(moduleName.toString(), dependsContext->product->name),
                         dependsItem->location());
-            if (moduleName.count() == 2 && moduleName.front() == QLatin1String("Qt")) {
+            if (moduleName.size() == 2 && moduleName.front() == QLatin1String("Qt")) {
                 e.append(Tr::tr("Please create a Qt profile using the qbs-setup-qt tool "
                                 "if you haven't already done so."));
             }
@@ -2272,19 +2272,19 @@ Item *ModuleLoader::moduleInstanceItem(Item *containerItem, const QualifiedId &m
 {
     QBS_CHECK(!moduleName.isEmpty());
     Item *instance = containerItem;
-    for (int i = 0; i < moduleName.count(); ++i) {
+    for (int i = 0; i < moduleName.size(); ++i) {
         const QString &moduleNameSegment = moduleName.at(i);
         const ValuePtr v = instance->ownProperty(moduleName.at(i));
         if (v && v->type() == Value::ItemValueType) {
             instance = std::static_pointer_cast<ItemValue>(v)->item();
         } else {
-            const ItemType itemType = i < moduleName.count() - 1 ? ItemType::ModulePrefix
-                                                                 : ItemType::ModuleInstance;
+            const ItemType itemType = i < moduleName.size() - 1 ? ItemType::ModulePrefix
+                                                                : ItemType::ModuleInstance;
             Item *newItem = Item::create(m_pool, itemType);
             instance->setProperty(moduleNameSegment, ItemValue::create(newItem));
             instance = newItem;
         }
-        if (i < moduleName.count() - 1) {
+        if (i < moduleName.size() - 1) {
             if (instance->type() == ItemType::ModuleInstance) {
                 QualifiedId conflictingName = QStringList(moduleName.mid(0, i + 1));
                 throwModuleNamePrefixError(conflictingName, moduleName, CodeLocation());
@@ -2355,7 +2355,7 @@ private:
 
 static bool isBaseModule(const QualifiedId &moduleName)
 {
-    return moduleName.count() == 1 && moduleName.front() == QLatin1String("qbs");
+    return moduleName.size() == 1 && moduleName.front() == QLatin1String("qbs");
 }
 
 class DelayedPropertyChanger
@@ -3308,7 +3308,7 @@ void ModuleLoader::copyGroupsFromModuleToProduct(const ProductContext &productCo
                                                  const Item::Module &module,
                                                  const Item *modulePrototype)
 {
-    for (int i = 0; i < modulePrototype->children().count(); ++i) {
+    for (int i = 0; i < modulePrototype->children().size(); ++i) {
         Item * const child = modulePrototype->children().at(i);
         if (child->type() == ItemType::Group) {
             Item * const clonedGroup = child->clone();

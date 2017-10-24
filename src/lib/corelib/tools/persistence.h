@@ -257,7 +257,7 @@ template<> struct PersistentPool::Helper<QProcessEnvironment>
     static void store(const QProcessEnvironment &env, PersistentPool *pool)
     {
         const QStringList &keys = env.keys();
-        pool->store(keys.count());
+        pool->store(keys.size());
         for (const QString &key : keys) {
             pool->store(key);
             pool->store(env.value(key));
@@ -339,7 +339,7 @@ struct PersistentPool::Helper<T, typename std::enable_if<IsKeyValueContainer<T>:
 {
     static void store(const T &container, PersistentPool *pool)
     {
-        pool->store(container.count());
+        pool->store(container.size());
         for (auto it = container.cbegin(); it != container.cend(); ++it) {
             pool->store(it.key());
             pool->store(it.value());

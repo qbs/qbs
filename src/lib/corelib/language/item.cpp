@@ -86,7 +86,7 @@ Item *Item::clone() const
     dup->m_propertyDeclarations = m_propertyDeclarations;
     dup->m_modules = m_modules;
 
-    dup->m_children.reserve(m_children.count());
+    dup->m_children.reserve(m_children.size());
     for (const Item * const child : qAsConst(m_children)) {
         Item *clonedChild = child->clone();
         clonedChild->m_parent = dup;

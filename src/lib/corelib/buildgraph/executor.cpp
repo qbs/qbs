@@ -147,7 +147,7 @@ void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
 void Executor::build()
 {
     try {
-        m_partialBuild = m_productsToBuild.count() != m_project->allProducts().count();
+        m_partialBuild = m_productsToBuild.size() != m_project->allProducts().size();
         doBuild();
     } catch (const ErrorInfo &e) {
         handleError(e);
@@ -788,10 +788,10 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
 
         if (canRescue) {
             const TypeFilter<Artifact> childArtifacts(artifact->children);
-            const int newChildCount = childrenToConnect.count()
+            const int newChildCount = childrenToConnect.size()
                     + std::distance(childArtifacts.begin(), childArtifacts.end());
-            QBS_CHECK(newChildCount >= rad.children.count());
-            if (newChildCount > rad.children.count()) {
+            QBS_CHECK(newChildCount >= rad.children.size());
+            if (newChildCount > rad.children.size()) {
                 canRescue = false;
                 qCDebug(lcBuildGraph) << "Artifact has children not present in rescue data.";
             }

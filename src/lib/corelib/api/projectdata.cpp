@@ -170,7 +170,7 @@ QStringList GroupData::allFilePaths() const
 {
     const QList<ArtifactData> &artifacts = allSourceArtifacts();
     QStringList paths;
-    paths.reserve(artifacts.count());
+    paths.reserve(artifacts.size());
     std::transform(artifacts.constBegin(), artifacts.constEnd(), std::back_inserter(paths),
                           [](const ArtifactData &sa) { return sa.filePath(); });
     return paths;

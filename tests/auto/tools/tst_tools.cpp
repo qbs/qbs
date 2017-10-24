@@ -401,11 +401,11 @@ void TestTools::testBuildConfigMerging()
     const ErrorInfo error = params.expandBuildConfiguration();
     QVERIFY2(!error.hasError(), qPrintable(error.toString()));
     const QVariantMap finalMap = params.finalBuildConfigurationTree();
-    QCOMPARE(finalMap.count(), 3);
+    QCOMPARE(finalMap.size(), 3);
     QCOMPARE(finalMap.value(QLatin1String("topLevelKey")).toString(),
              QString::fromLatin1("topLevelValue"));
     const QVariantMap finalQbsMap = finalMap.value(QLatin1String("qbs")).toMap();
-    QCOMPARE(finalQbsMap.count(), 4);
+    QCOMPARE(finalQbsMap.size(), 4);
     QCOMPARE(finalQbsMap.value(QLatin1String("toolchain")).toString(),
              QString::fromLatin1("clang"));
     QCOMPARE(finalQbsMap.value(QLatin1String("configurationName")).toString(),
@@ -414,7 +414,7 @@ void TestTools::testBuildConfigMerging()
              QString::fromLatin1("Jean-Claude Pillemann"));
     QCOMPARE(finalQbsMap.value(QLatin1String("installRoot")).toString(), QLatin1String("/blubb"));
     const QVariantMap finalCppMap = finalMap.value(QLatin1String("cpp")).toMap();
-    QCOMPARE(finalCppMap.count(), 1);
+    QCOMPARE(finalCppMap.size(), 1);
     QCOMPARE(finalCppMap.value(QLatin1String("treatWarningsAsErrors")).toBool(), true);
 }
 
@@ -515,37 +515,37 @@ void TestTools::set_size()
     Set<int> set;
     QVERIFY(set.size() == 0);
     QVERIFY(set.isEmpty());
-    QVERIFY(set.count() == set.size());
+    QVERIFY(set.size() == set.size());
 
     set.insert(1);
     QVERIFY(set.size() == 1);
     QVERIFY(!set.isEmpty());
-    QVERIFY(set.count() == set.size());
+    QVERIFY(set.size() == set.size());
 
     set.insert(1);
     QVERIFY(set.size() == 1);
     QVERIFY(!set.isEmpty());
-    QVERIFY(set.count() == set.size());
+    QVERIFY(set.size() == set.size());
 
     set.insert(2);
     QVERIFY(set.size() == 2);
     QVERIFY(!set.isEmpty());
-    QVERIFY(set.count() == set.size());
+    QVERIFY(set.size() == set.size());
 
     set.remove(1);
     QVERIFY(set.size() == 1);
     QVERIFY(!set.isEmpty());
-    QVERIFY(set.count() == set.size());
+    QVERIFY(set.size() == set.size());
 
     set.remove(1);
     QVERIFY(set.size() == 1);
     QVERIFY(!set.isEmpty());
-    QVERIFY(set.count() == set.size());
+    QVERIFY(set.size() == set.size());
 
     set.remove(2);
     QVERIFY(set.size() == 0);
     QVERIFY(set.isEmpty());
-    QVERIFY(set.count() == set.size());
+    QVERIFY(set.size() == set.size());
 }
 
 void TestTools::set_capacity()
@@ -1037,7 +1037,7 @@ void TestTools::set_makeSureTheComfortFunctionsCompile()
 void TestTools::set_initializerList()
 {
     Set<int> set = {1, 1, 2, 3, 4, 5};
-    QCOMPARE(set.count(), 5);
+    QCOMPARE(set.size(), 5);
     QVERIFY(set.contains(1));
     QVERIFY(set.contains(2));
     QVERIFY(set.contains(3));
@@ -1046,7 +1046,7 @@ void TestTools::set_initializerList()
 
     // check _which_ of the equal elements gets inserted (in the QHash/QMap case, it's the last):
     const Set<IdentityTracker> set2 = {{1, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}};
-    QCOMPARE(set2.count(), 5);
+    QCOMPARE(set2.size(), 5);
     const int dummy = -1;
     const IdentityTracker searchKey = {1, dummy};
     QCOMPARE(set2.find(searchKey)->id, 0);

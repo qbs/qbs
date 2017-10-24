@@ -98,7 +98,7 @@ void TestBlackboxAndroid::android()
                                           "modules.Android.ndk.platform:android-21" });
     params.profile = p.name();
     QCOMPARE(runQbs(params), 0);
-    for (int i = 0; i < productNames.count(); ++i) {
+    for (int i = 0; i < productNames.size(); ++i) {
         const QString productName = productNames.at(i);
         QVERIFY(m_qbsStdout.contains(productName.toLocal8Bit() + ".apk"));
         const QString apkFilePath = relativeProductBuildDir(productName)

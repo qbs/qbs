@@ -391,9 +391,9 @@ void BuildGraphLoader::trackProjectChanges()
     m_result.newlyResolvedProject->buildData.swap(restoredProject->buildData);
     QBS_CHECK(m_result.newlyResolvedProject->buildData);
     m_result.newlyResolvedProject->buildData->isDirty = true;
-    for (int i = allNewlyResolvedProducts.count() - 1; i >= 0; --i) {
+    for (int i = allNewlyResolvedProducts.size() - 1; i >= 0; --i) {
         const ResolvedProductPtr &newlyResolvedProduct = allNewlyResolvedProducts.at(i);
-        for (int j = allRestoredProducts.count() - 1; j >= 0; --j) {
+        for (int j = allRestoredProducts.size() - 1; j >= 0; --j) {
             const ResolvedProductPtr &restoredProduct = allRestoredProducts.at(j);
             if (newlyResolvedProduct->uniqueName() == restoredProduct->uniqueName()) {
                 if (newlyResolvedProduct->enabled)
@@ -654,7 +654,7 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
 static bool dependenciesAreEqual(const ResolvedProductConstPtr &p1,
                                  const ResolvedProductConstPtr &p2)
 {
-    if (p1->dependencies.count() != p2->dependencies.count())
+    if (p1->dependencies.size() != p2->dependencies.size())
         return false;
     Set<QString> names1;
     Set<QString> names2;

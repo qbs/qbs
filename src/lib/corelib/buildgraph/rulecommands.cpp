@@ -220,7 +220,7 @@ void ProcessCommand::getEnvironmentFromList(const QStringList &envList)
     m_environment.clear();
     for (const QString &env : envList) {
         const int equalsIndex = env.indexOf(QLatin1Char('='));
-        if (equalsIndex <= 0 || equalsIndex == env.count() - 1)
+        if (equalsIndex <= 0 || equalsIndex == env.size() - 1)
             continue;
         const QString &var = env.left(equalsIndex);
         const QString &value = env.mid(equalsIndex + 1);
@@ -452,7 +452,7 @@ QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool)
 
 void storeCommandList(const QList<AbstractCommandPtr> &commands, PersistentPool &pool)
 {
-    pool.store(commands.count());
+    pool.store(commands.size());
     for (const AbstractCommandPtr &cmd : commands) {
         pool.store(static_cast<quint8>(cmd->type()));
         pool.store(cmd);
@@ -461,9 +461,9 @@ void storeCommandList(const QList<AbstractCommandPtr> &commands, PersistentPool 
 
 bool commandListsAreEqual(const QList<AbstractCommandPtr> &l1, const QList<AbstractCommandPtr> &l2)
 {
-    if (l1.count() != l2.count())
+    if (l1.size() != l2.size())
         return false;
-    for (int i = 0; i < l1.count(); ++i)
+    for (int i = 0; i < l1.size(); ++i)
         if (!l1.at(i)->equals(l2.at(i).get()))
             return false;
     return true;

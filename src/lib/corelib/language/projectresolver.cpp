@@ -129,10 +129,10 @@ void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project)
 {
     const QList<ResolvedProductPtr> allProducts = project->allProducts();
-    for (int i = 0; i < allProducts.count(); ++i) {
+    for (int i = 0; i < allProducts.size(); ++i) {
         const ResolvedProductConstPtr product1 = allProducts.at(i);
         const QString productName = product1->uniqueName();
-        for (int j = i + 1; j < allProducts.count(); ++j) {
+        for (int j = i + 1; j < allProducts.size(); ++j) {
             const ResolvedProductConstPtr product2 = allProducts.at(j);
             if (product2->uniqueName() == productName) {
                 ErrorInfo error;
@@ -234,7 +234,7 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
 TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
 {
     if (m_progressObserver)
-        m_progressObserver->setMaximum(m_loadResult.productInfos.count());
+        m_progressObserver->setMaximum(m_loadResult.productInfos.size());
     const TopLevelProjectPtr project = TopLevelProject::create();
     project->buildDirectory = TopLevelProject::deriveBuildDirectory(m_setupParams.buildRoot(),
             TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree()));
@@ -437,7 +437,7 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
 
         // First item is "main error", gets prepended again in the catch clause.
         const QList<ErrorItem> &items = pi.delayedError.items();
-        for (int i = 1; i < items.count(); ++i)
+        for (int i = 1; i < items.size(); ++i)
             errorInfo.append(items.at(i));
 
         pi.delayedError.clear();
@@ -632,7 +632,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
     QHash<QString, QStringList> propsPerModule;
     for (auto fullPropName : propsToEval) {
         const QString moduleName
-                = QualifiedId(fullPropName.mid(0, fullPropName.count() - 1)).toString();
+                = QualifiedId(fullPropName.mid(0, fullPropName.size() - 1)).toString();
         propsPerModule[moduleName] << fullPropName.last();
     }
     EvalCacheEnabler cachingEnabler(m_evaluator);
@@ -726,7 +726,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
         return;
     }
     QStringList patterns;
-    for (int i = files.count(); --i >= 0;) {
+    for (int i = files.size(); --i >= 0;) {
         if (FileInfo::isPattern(files[i]))
             patterns.append(files.takeAt(i));
     }
@@ -737,7 +737,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     if (!prefixWasSet && m_productContext->currentGroup)
         group->prefix = m_productContext->currentGroup->prefix;
     if (!group->prefix.isEmpty()) {
-        for (int i = files.count(); --i >= 0;)
+        for (int i = files.size(); --i >= 0;)
                 files[i].prepend(group->prefix);
     }
     group->location = item->location();
@@ -787,7 +787,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     }
     group->name = m_evaluator->stringValue(item, QLatin1String("name"));
     if (group->name.isEmpty())
-        group->name = Tr::tr("Group %1").arg(m_productContext->product->groups.count());
+        group->name = Tr::tr("Group %1").arg(m_productContext->product->groups.size());
     m_productContext->product->groups += group;
 
     class GroupContextSwitcher {

@@ -60,7 +60,7 @@ QString toJSLiteral(const QString &str)
 QString toJSLiteral(const QStringList &strs)
 {
     QString js = QLatin1String("[");
-    for (int i = 0; i < strs.count(); ++i) {
+    for (int i = 0; i < strs.size(); ++i) {
         if (i != 0)
             js.append(QLatin1String(", "));
         js.append(toJSLiteral(strs.at(i)));

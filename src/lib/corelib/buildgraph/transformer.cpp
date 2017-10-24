@@ -143,7 +143,7 @@ QScriptValue Transformer::translateInOutputs(ScriptEngine *scriptEngine,
     QScriptValue jsTagFiles = scriptEngine->newObject();
     for (TagArtifactsMap::const_iterator tag = tagArtifactsMap.constBegin(); tag != tagArtifactsMap.constEnd(); ++tag) {
         const QList<Artifact*> &artifacts = tag.value();
-        QScriptValue jsFileConfig = scriptEngine->newArray(artifacts.count());
+        QScriptValue jsFileConfig = scriptEngine->newArray(artifacts.size());
         int i = 0;
         for (Artifact * const artifact : artifacts) {
             jsFileConfig.setProperty(i++, translateFileConfig(scriptEngine, artifact,
@@ -169,7 +169,7 @@ void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet 
     QScriptValue scriptValue = translateInOutputs(scriptEngine, inputs, defaultModuleName);
     targetScriptValue.setProperty(QLatin1String("inputs"), scriptValue);
     QScriptValue inputScriptValue;
-    if (inputs.count() == 1) {
+    if (inputs.size() == 1) {
         Artifact *input = *inputs.cbegin();
         const FileTags &fileTags = input->fileTags();
         QBS_ASSERT(!fileTags.isEmpty(), return);
@@ -191,7 +191,7 @@ void Transformer::setupOutputs(QScriptValue targetScriptValue)
     QScriptValue scriptValue = translateInOutputs(scriptEngine, outputs, defaultModuleName);
     targetScriptValue.setProperty(QLatin1String("outputs"), scriptValue);
     QScriptValue outputScriptValue;
-    if (outputs.count() == 1) {
+    if (outputs.size() == 1) {
         Artifact *output = *outputs.cbegin();
         const FileTags &fileTags = output->fileTags();
         QBS_ASSERT(!fileTags.isEmpty(), return);

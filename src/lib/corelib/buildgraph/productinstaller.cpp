@@ -102,7 +102,7 @@ void ProductInstaller::install()
                 artifactsToInstall += artifact;
         }
     }
-    m_observer->initialize(Tr::tr("Installing"), artifactsToInstall.count());
+    m_observer->initialize(Tr::tr("Installing"), artifactsToInstall.size());
 
     for (const Artifact * const a : qAsConst(artifactsToInstall)) {
         copyFile(a);

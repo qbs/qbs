@@ -232,12 +232,12 @@ void ProjectFileGroupInserter::doApply(QString &fileContent, UiProgram *ast)
 
     int lineOffset = 3 + 1; // Our text + a leading newline that is always added by the rewriter.
     const QList<ChangeSet::EditOp> &editOps = changeSet.operationList();
-    QBS_CHECK(editOps.count() == 1);
+    QBS_CHECK(editOps.size() == 1);
     const ChangeSet::EditOp &insertOp = editOps.front();
     setLineOffset(lineOffset);
 
     int insertionLine = fileContent.left(insertOp.pos1).count(QLatin1Char('\n'));
-    for (int i = 0; i < insertOp.text.count() && insertOp.text.at(i) == QLatin1Char('\n'); ++i)
+    for (int i = 0; i < insertOp.text.size() && insertOp.text.at(i) == QLatin1Char('\n'); ++i)
         ++insertionLine; // To account for newlines prepended by the rewriter.
     ++insertionLine; // To account for zero-based indexing.
     setItemPosition(CodeLocation(projectFile(), insertionLine,
@@ -255,7 +255,7 @@ static QString getNodeRepresentation(const QString &fileContent, const QbsQmlJS:
 static const ChangeSet::EditOp &getEditOp(const ChangeSet &changeSet)
 {
     const QList<ChangeSet::EditOp> &editOps = changeSet.operationList();
-    QBS_CHECK(editOps.count() == 1);
+    QBS_CHECK(editOps.size() == 1);
     return editOps.front();
 }
 
@@ -480,9 +480,9 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
         break;
     }
     case QbsQmlJS::AST::Node::Kind_StringLiteral: {
-        if (m_files.count() != 1) {
+        if (m_files.size() != 1) {
             throw ErrorInfo(Tr::tr("Was requested to remove %1 files, but there is only "
-                                   "one in the list.").arg(m_files.count()), bindingLocation);
+                                   "one in the list.").arg(m_files.size()), bindingLocation);
         }
         const QString existingFile
                 = static_cast<StringLiteral *>(exprStatement->expression)->value.toString();
@@ -538,7 +538,7 @@ void ProjectFileGroupRemover::doApply(QString &fileContent, UiProgram *ast)
 
     setItemPosition(m_group.location());
     const QList<ChangeSet::EditOp> &editOps = changeSet.operationList();
-    QBS_CHECK(editOps.count() == 1);
+    QBS_CHECK(editOps.size() == 1);
     const ChangeSet::EditOp &op = editOps.front();
     const QString removedText = fileContent.mid(op.pos1, op.length1);
     setLineOffset(-removedText.count(QLatin1Char('\n')));

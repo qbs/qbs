@@ -171,7 +171,7 @@ qint64 ValgrindRunner::runCallgrind(const QString &qbsCommand, const QString &bu
         static const QByteArray magicString = "summary: ";
         if (!line.startsWith(magicString))
             continue;
-        const QByteArray icString = line.mid(magicString.count());
+        const QByteArray icString = line.mid(magicString.size());
         bool ok;
         const qint64 iCount = icString.toLongLong(&ok);
         if (!ok) {
@@ -221,9 +221,9 @@ qint64 ValgrindRunner::runMassif(const QString &qbsCommand, const QString &build
         if (!line.startsWith(peakSnapshot + ' '))
             continue;
         const QList<QByteArray> entries = line.split(' ');
-        if (entries.count() != 6) {
+        if (entries.size() != 6) {
             const QString details = QString::fromLatin1("Expected 6 entries in line '%1', but "
-                    "there are %2.").arg(QString::fromLocal8Bit(line)).arg(entries.count());
+                    "there are %2.").arg(QString::fromLocal8Bit(line)).arg(entries.size());
             throw Exception(exceptionStringPattern.arg(details));
         }
         QByteArray peakMemoryString = entries.at(2);

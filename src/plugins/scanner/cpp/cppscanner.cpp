@@ -262,7 +262,7 @@ static void closeScanner(void *ptr)
 static const char *next(void *opaq, int *size, int *flags)
 {
     Opaq *opaque = static_cast<Opaq*>(opaq);
-    if (opaque->currentResultIndex < opaque->includedFiles.count()) {
+    if (opaque->currentResultIndex < opaque->includedFiles.size()) {
         const ScanResult &result = opaque->includedFiles.at(opaque->currentResultIndex);
         ++opaque->currentResultIndex;
         *size = result.size;

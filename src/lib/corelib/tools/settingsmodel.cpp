@@ -166,7 +166,7 @@ void SettingsModel::addNewKey(const QModelIndex &parent)
     Node * const newNode = new Node;
     newNode->parent = parentNode;
     newNode->name = parentNode->uniqueChildName();
-    beginInsertRows(parent, parentNode->children.count(), parentNode->children.count());
+    beginInsertRows(parent, parentNode->children.size(), parentNode->children.size());
     parentNode->children << newNode;
     endInsertRows();
     d->dirty = true;
@@ -247,7 +247,7 @@ int SettingsModel::rowCount(const QModelIndex &parent) const
         return 0;
     const Node * const node = d->indexToNode(parent);
     Q_ASSERT(node);
-    return node->children.count();
+    return node->children.size();
 }
 
 QVariant SettingsModel::data(const QModelIndex &index, int role) const
@@ -302,7 +302,7 @@ QModelIndex SettingsModel::index(int row, int column, const QModelIndex &parent)
 {
     const Node * const parentNode = d->indexToNode(parent);
     Q_ASSERT(parentNode);
-    if (parentNode->children.count() <= row)
+    if (parentNode->children.size() <= row)
         return QModelIndex();
     return createIndex(row, column, parentNode->children.at(row));
 }

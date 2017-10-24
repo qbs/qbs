@@ -55,7 +55,7 @@ namespace Internal {
 typedef QHash<QString, QString> NamePathHash;
 static void replaceQtLibNamesWithFilePath(const NamePathHash &namePathHash, QStringList *libList)
 {
-    for (int i = 0; i < libList->count(); ++i) {
+    for (int i = 0; i < libList->size(); ++i) {
         QString &lib = (*libList)[i];
         const NamePathHash::ConstIterator it = namePathHash.find(lib);
         if (it != namePathHash.constEnd())
@@ -76,7 +76,7 @@ static void replaceQtLibNamesWithFilePath(QList<QtModuleInfo> *modules, const Qt
         linkerNamesToFilePathsRelease.insert(m.libNameForLinker(qtEnv, false),
                                              m.libFilePathRelease);
     }
-    for (int i = 0; i < modules->count(); ++i) {
+    for (int i = 0; i < modules->size(); ++i) {
         QtModuleInfo &module = (*modules)[i];
         replaceQtLibNamesWithFilePath(linkerNamesToFilePathsDebug, &module.dynamicLibrariesDebug);
         replaceQtLibNamesWithFilePath(linkerNamesToFilePathsDebug, &module.staticLibrariesDebug);
@@ -281,7 +281,7 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
         // Assuming lib names and directories without spaces here.
         QStringList parts = QString::fromLatin1(simplifiedLine.mid(equalsOffset + 1).trimmed())
                 .split(QLatin1Char(' '), QString::SkipEmptyParts);
-        for (int i = 0; i < parts.count(); ++i) {
+        for (int i = 0; i < parts.size(); ++i) {
             QString part = parts.at(i);
             part.replace(QLatin1String("$$[QT_INSTALL_LIBS]"), qtEnv.libraryPath);
             if (part.startsWith(QLatin1String("-l"))) {
@@ -291,7 +291,7 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
             } else if (part.startsWith(QLatin1String("-F"))) {
                 frameworkPaths << part.mid(2);
             } else if (part == QLatin1String("-framework")) {
-                if (++i < parts.count())
+                if (++i < parts.size())
                     frameworks << parts.at(i);
             } else if (part == QLatin1String("-pthread")) {
                 libs << QLatin1String("pthread");
@@ -486,7 +486,7 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
             << QLatin1String("webkit") << QLatin1String("script") << QLatin1String("scripttools")
             << QLatin1String("declarative") << QLatin1String("gui") << QLatin1String("dbus")
             << QLatin1String("opengl") << QLatin1String("openvg");
-    for (int i = 0; i < modules.count(); ++i) {
+    for (int i = 0; i < modules.size(); ++i) {
         QString name = modules[i].qbsName;
         name.remove(QLatin1String("-private"));
         if (modulesThatCanBeDisabled.contains(name))
@@ -494,7 +494,7 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
     }
 
     Internal::Set<QString> nonExistingPrlFiles;
-    for (int i = 0; i < modules.count(); ++i) {
+    for (int i = 0; i < modules.size(); ++i) {
         QtModuleInfo &module = modules[i];
         if (qtEnvironment.staticBuild)
             module.isStaticLibrary = true;
@@ -514,12 +514,12 @@ static QList<QByteArray> getPriFileContentsRecursively(const Profile &profile,
                 "file '%2' (%3).").arg(profile.name(), priFile.fileName(), priFile.errorString()));
     }
     QList<QByteArray> lines = priFile.readAll().split('\n');
-    for (int i = 0; i < lines.count(); ++i) {
+    for (int i = 0; i < lines.size(); ++i) {
         const QByteArray includeString = "include(";
         const QByteArray &line = lines.at(i).trimmed();
         if (!line.startsWith(includeString))
             continue;
-        const int offset = includeString.count();
+        const int offset = includeString.size();
         const int closingParenPos = line.indexOf(')', offset);
         if (closingParenPos == -1) {
             qDebug("Warning: Invalid include statement in '%s'", qPrintable(priFilePath));
@@ -556,9 +556,9 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
         moduleInfo.isPlugin = fileHasPluginPrefix;
         const QString fileNamePrefix
                 = moduleInfo.isPlugin ? pluginFileNamePrefix : moduleFileNamePrefix;
-        moduleInfo.qbsName = dit.fileName().mid(fileNamePrefix.count(),
-                dit.fileName().count() - fileNamePrefix.count()
-                - moduleFileNameSuffix.count());
+        moduleInfo.qbsName = dit.fileName().mid(fileNamePrefix.size(),
+                dit.fileName().size() - fileNamePrefix.size()
+                - moduleFileNameSuffix.size());
         if (moduleInfo.isPlugin) {
             moduleInfo.name = moduleInfo.qbsName;
             moduleInfo.isStaticLibrary = true;
@@ -583,7 +583,7 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
                 hasModuleEntry = true;
             } else if (key.endsWith(".depends")) {
                 moduleInfo.dependencies = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
-                for (int i = 0; i < moduleInfo.dependencies.count(); ++i) {
+                for (int i = 0; i < moduleInfo.dependencies.size(); ++i) {
                     moduleInfo.dependencies[i].replace(QLatin1String("_private"),
                                                        QLatin1String("-private"));
                 }
@@ -600,7 +600,7 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
                 }
             } else if (key.endsWith(".includes")) {
                 moduleInfo.includePaths = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
-                for (int i = 0; i < moduleInfo.includePaths.count(); ++i) {
+                for (int i = 0; i < moduleInfo.includePaths.size(); ++i) {
                     moduleInfo.includePaths[i]
                             .replace(QLatin1String("$$QT_MODULE_INCLUDE_BASE"),
                                      qtEnvironment.includePath)

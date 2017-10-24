@@ -87,7 +87,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
         return;
     }
 
-    switch (m_commandLine.count()) {
+    switch (m_commandLine.size()) {
     case 0:
     case 1:
         throwError(Tr::tr("Not enough command-line arguments provided."));

@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         return 1;
     }
     const QJsonArray a = v.toArray();
-    if (a.count() != 1 || a.first() != QLatin1String("theValue")) {
+    if (a.size() != 1 || a.first() != QLatin1String("theValue")) {
         qDebug() << "value is" << v;
         return 1;
     }

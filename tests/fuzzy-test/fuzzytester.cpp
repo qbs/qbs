@@ -66,7 +66,7 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
     qDebug("Found buildable start commit %s.", qPrintable(workingStartCommit));
     QStringList allCommits = findAllCommits(workingStartCommit);
     qDebug("The test set comprises all %d commits between the start commit and HEAD.",
-           allCommits.count());
+           allCommits.size());
 
     // Shuffle the initial sequence. Otherwise all invocations of the tool with the same start
     // commit would try the same sequence of commits.
@@ -92,7 +92,7 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
             m_currentCommit = currentCommit;
             buildSequence << currentCommit;
             checkoutCommit(currentCommit);
-            qDebug("Testing incremental build #%d (%s)", buildSequence.count() - 1,
+            qDebug("Testing incremental build #%d (%s)", buildSequence.size() - 1,
                    qPrintable(currentCommit));
 
             // Doing "resolve" and "build" separately introduces additional possibilities
@@ -157,7 +157,7 @@ QString FuzzyTester::findWorkingStartCommit(const QString &startCommit)
     const QStringList allCommits = findAllCommits(startCommit);
     QString qbsError;
     m_currentActivity = buildFromScratchActivity();
-    for (int i = allCommits.count() - 1; i >= 0; --i) {
+    for (int i = allCommits.size() - 1; i >= 0; --i) {
         m_currentCommit = allCommits.at(i);
         if (m_unbuildableCommits.contains(m_currentCommit)) {
             qDebug("Skipping known bad commit %s.", qPrintable(m_currentCommit));

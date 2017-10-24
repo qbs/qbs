@@ -186,7 +186,7 @@ void ModuleProperties::setupModules(QScriptValue &object, const ResolvedProduct 
         moduleObject.setData(data);
         const QualifiedId moduleName = QualifiedId::fromString(module->name);
         QScriptValue obj = object;
-        for (int i = 0; i < moduleName.count() - 1; ++i) {
+        for (int i = 0; i < moduleName.size() - 1; ++i) {
             QScriptValue tmp = obj.property(moduleName.at(i));
             if (!tmp.isObject())
                 tmp = engine->newObject();
@@ -194,7 +194,7 @@ void ModuleProperties::setupModules(QScriptValue &object, const ResolvedProduct 
             obj = tmp;
         }
         obj.setProperty(moduleName.last(), moduleObject);
-        if (moduleName.count() > 1)
+        if (moduleName.size() > 1)
             object.setProperty(moduleName.toString(), moduleObject);
     }
 }

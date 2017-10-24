@@ -55,8 +55,8 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
     m_commandLine = commandLine;
     if (m_commandLine.isEmpty())
         throw ErrorInfo(Tr::tr("No parameters supplied."));
-    if (m_commandLine.count() == 1 && (m_commandLine.front() == QLatin1String("--help")
-                              || m_commandLine.front() == QLatin1String("-h"))) {
+    if (m_commandLine.size() == 1 && (m_commandLine.front() == QLatin1String("--help")
+                                      || m_commandLine.front() == QLatin1String("-h"))) {
         m_helpRequested = true;
         return;
     }
@@ -81,10 +81,10 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
     case ConfigCommand::CfgNone:
         if (m_commandLine.isEmpty())
             throw ErrorInfo(Tr::tr("No parameters supplied."));
-        if (m_commandLine.count() > 2)
+        if (m_commandLine.size() > 2)
             throw ErrorInfo(Tr::tr("Too many arguments."));
         m_command.varNames << m_commandLine.front();
-        if (m_commandLine.count() == 1) {
+        if (m_commandLine.size() == 1) {
             setCommand(ConfigCommand::CfgList);
         } else {
             m_command.varValue = m_commandLine.at(1);
@@ -97,12 +97,12 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
         m_command.varNames = m_commandLine;
         break;
     case ConfigCommand::CfgExport:
-        if (m_commandLine.count() != 1)
+        if (m_commandLine.size() != 1)
             throw ErrorInfo(Tr::tr("Need name of file to which to export."));
         m_command.fileName = m_commandLine.front();
         break;
     case ConfigCommand::CfgImport:
-        if (m_commandLine.count() != 1)
+        if (m_commandLine.size() != 1)
             throw ErrorInfo(Tr::tr("Need name of file from which to import."));
         m_command.fileName = m_commandLine.front();
         break;

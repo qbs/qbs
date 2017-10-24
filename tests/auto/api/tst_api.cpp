@@ -279,12 +279,12 @@ void TestApi::buildGraphInfo()
     bgInfo = qbs::Project::getBuildGraphInfo(bgFilePath, requestedProperties);
     QVERIFY2(!bgInfo.error.hasError(), qPrintable(bgInfo.error.toString()));
     QCOMPARE(bgFilePath, bgInfo.bgFilePath);
-    QCOMPARE(bgInfo.profileData.count(), 1);
-    QCOMPARE(bgInfo.profileData.value(p.p.name()).toMap().count(), 1);
+    QCOMPARE(bgInfo.profileData.size(), 1);
+    QCOMPARE(bgInfo.profileData.value(p.p.name()).toMap().size(), 1);
     QCOMPARE(bgInfo.profileData.value(p.p.name()).toMap().value("qbs").toMap().value("targetOS"),
              p.p.value("qbs.targetOS"));
     QCOMPARE(bgInfo.overriddenProperties, setupParams.overriddenValues());
-    QCOMPARE(bgInfo.requestedProperties.count(), requestedProperties.count());
+    QCOMPARE(bgInfo.requestedProperties.size(), requestedProperties.size());
     QCOMPARE(bgInfo.requestedProperties.value("qbs.architecture").toString(), QString("arm"));
     QCOMPARE(bgInfo.requestedProperties.value("qbs.shellPath").toString(), QString("/bin/bash"));
     QCOMPARE(bgInfo.requestedProperties.value("qbs.targetOS").toStringList(), QStringList("xenix"));
@@ -656,9 +656,9 @@ void TestApi::changeContent()
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     qbs::Project project = job->project();
     qbs::ProjectData projectData = project.projectData();
-    QCOMPARE(projectData.allProducts().count(), 1);
+    QCOMPARE(projectData.allProducts().size(), 1);
     qbs::ProductData product = projectData.allProducts().front();
-    QVERIFY(product.groups().count() >= 8);
+    QVERIFY(product.groups().size() >= 8);
 
     // Error handling: Invalid product.
     qbs::ErrorInfo errorInfo = project.addGroup(qbs::ProductData(), "blubb");
@@ -689,9 +689,9 @@ void TestApi::changeContent()
 
     // Add files to empty array literal.
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
-    QVERIFY(product.groups().count() >= 10);
+    QVERIFY(product.groups().size() >= 10);
     qbs::GroupData group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.h" << "file.cpp");
@@ -699,9 +699,9 @@ void TestApi::changeContent()
 
     // Error handling: Add the same file again.
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
-    QVERIFY(product.groups().count() >= 10);
+    QVERIFY(product.groups().size() >= 10);
     group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.cpp");
@@ -714,9 +714,9 @@ void TestApi::changeContent()
 
     // Error handling: Try to remove the same file again.
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
-    QVERIFY(product.groups().count() >= 10);
+    QVERIFY(product.groups().size() >= 10);
     group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.removeFiles(product, group, QStringList() << "file.h");
@@ -736,7 +736,7 @@ void TestApi::changeContent()
 
     // Add file to non-empty array literal.
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
     group = findGroup(product, "Existing Group 1");
     QVERIFY(group.isValid());
@@ -745,14 +745,14 @@ void TestApi::changeContent()
 
     // Add files to list represented as a single string.
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
     errorInfo = project.addFiles(product, qbs::GroupData(), QStringList() << "newfile2.txt");
     VERIFY_NO_ERROR(errorInfo);
 
     // Add files to list represented as an identifier.
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
     group = findGroup(product, "Existing Group 2");
     QVERIFY(group.isValid());
@@ -761,7 +761,7 @@ void TestApi::changeContent()
 
     // Add files to list represented as a block of code (not yet implemented).
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
     group = findGroup(product, "Existing Group 3");
     QVERIFY(group.isValid());
@@ -771,7 +771,7 @@ void TestApi::changeContent()
 
     // Add file to group with directory prefix.
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
     group = findGroup(product, "Existing Group 4");
     QVERIFY(group.isValid());
@@ -780,7 +780,7 @@ void TestApi::changeContent()
 
     // Error handling: Add file to group with non-directory prefix.
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
     group = findGroup(product, "Existing Group 5");
     QVERIFY(group.isValid());
@@ -790,15 +790,15 @@ void TestApi::changeContent()
 
     // Remove group.
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
     group = findGroup(product, "Existing Group 5");
     QVERIFY(group.isValid());
     errorInfo = project.removeGroup(product, group);
     VERIFY_NO_ERROR(errorInfo);
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
-    QVERIFY(projectData.products().front().groups().count() >= 9);
+    QVERIFY(projectData.products().size() == 1);
+    QVERIFY(projectData.products().front().groups().size() >= 9);
 
     // Error handling: Try to remove the same group again.
     errorInfo = project.removeGroup(product, group);
@@ -807,7 +807,7 @@ void TestApi::changeContent()
 
     // Add a file to a group where the file name is already matched by a wildcard.
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
     group = findGroup(product, "Group with wildcards");
     QVERIFY(group.isValid());
@@ -817,17 +817,17 @@ void TestApi::changeContent()
     errorInfo = project.addFiles(product, group, QStringList() << newFile.fileName());
     VERIFY_NO_ERROR(errorInfo);
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
     group = findGroup(product, "Group with wildcards");
     QVERIFY(group.isValid());
-    QCOMPARE(group.sourceArtifactsFromWildcards().count(), 1);
+    QCOMPARE(group.sourceArtifactsFromWildcards().size(), 1);
     QCOMPARE(group.sourceArtifactsFromWildcards().front().filePath(),
              QFileInfo(newFile).absoluteFilePath());
 
     // Error checking: Try to remove a file that originates from a wildcard pattern.
     projectData = project.projectData();
-    QVERIFY(projectData.products().count() == 1);
+    QVERIFY(projectData.products().size() == 1);
     product = projectData.products().front();
     group = findGroup(product, "Other group with wildcards");
     QVERIFY(group.isValid());
@@ -859,8 +859,8 @@ void TestApi::changeContent()
 
     // Can't use Project::operator== here, as the target artifacts will differ due to the build
     // not having run yet.
-    bool projectDataMatches = newProjectData.products().count() == 1
-            && projectData.products().count() == 1
+    bool projectDataMatches = newProjectData.products().size() == 1
+            && projectData.products().size() == 1
             && newProjectData.products().front().groups() == projectData.products().front().groups();
     if (!projectDataMatches) {
         qDebug("This is the assumed project:");
@@ -904,7 +904,7 @@ void TestApi::changeContent()
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     project = job->project();
     projectData = project.projectData();
-    QCOMPARE(projectData.allProducts().count(), 1);
+    QCOMPARE(projectData.allProducts().size(), 1);
     product = projectData.allProducts().front();
     errorInfo = project.addFiles(product, qbs::GroupData(), QStringList("main.cpp"));
     VERIFY_NO_ERROR(errorInfo);
@@ -922,8 +922,8 @@ void TestApi::changeContent()
     // Can't use Project::operator== here, as the target artifacts will differ due to the build
     // not having run yet.
     newProjectData = job->project().projectData();
-    projectDataMatches = newProjectData.products().count() == 1
-            && projectData.products().count() == 1
+    projectDataMatches = newProjectData.products().size() == 1
+            && projectData.products().size() == 1
             && newProjectData.products().front().groups() == projectData.products().front().groups();
     if (!projectDataMatches) {
         printProjectData(projectData);
@@ -944,7 +944,7 @@ void TestApi::commandExtraction()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     qbs::ProjectData projectData = project.projectData();
-    QCOMPARE(projectData.allProducts().count(), 1);
+    QCOMPARE(projectData.allProducts().size(), 1);
     qbs::ProductData productData = projectData.allProducts().front();
     qbs::ErrorInfo errorInfo;
     const QString projectDirPath = QDir::cleanPath(QFileInfo(setupParams.projectFilePath()).path());
@@ -953,7 +953,7 @@ void TestApi::commandExtraction()
     // Before the first build, no rules exist.
     qbs::RuleCommandList commands
             = project.ruleCommands(productData, sourceFilePath, "obj", &errorInfo);
-    QCOMPARE(commands.count(), 0);
+    QCOMPARE(commands.size(), 0);
     QVERIFY(errorInfo.hasError());
     QVERIFY2(errorInfo.toString().contains("No rule"), qPrintable(errorInfo.toString()));
 
@@ -963,13 +963,13 @@ void TestApi::commandExtraction()
     waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     projectData = project.projectData();
-    QCOMPARE(projectData.allProducts().count(), 1);
+    QCOMPARE(projectData.allProducts().size(), 1);
     productData = projectData.allProducts().front();
     errorInfo = qbs::ErrorInfo();
 
     // After the build, the compile command must be found.
     commands = project.ruleCommands(productData, sourceFilePath, "obj", &errorInfo);
-    QCOMPARE(commands.count(), 1);
+    QCOMPARE(commands.size(), 1);
     QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
     const qbs::RuleCommand command = commands.front();
     QCOMPARE(command.type(), qbs::RuleCommand::ProcessCommandType);
@@ -1041,7 +1041,7 @@ void TestApi::errorInSetupRunEnvironment()
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     const qbs::Project project = job->project();
     QVERIFY(project.isValid());
-    QCOMPARE(project.projectData().products().count(), 1);
+    QCOMPARE(project.projectData().products().size(), 1);
     const qbs::ProductData product = project.projectData().products().front();
 
     bool exceptionCaught = false;
@@ -1082,14 +1082,14 @@ void TestApi::disabledInstallGroup()
     VERIFY_NO_ERROR(errorInfo);
 
     qbs::ProjectData projectData = project.projectData();
-    QCOMPARE(projectData.allProducts().count(), 1);
+    QCOMPARE(projectData.allProducts().size(), 1);
     qbs::ProductData product = projectData.allProducts().front();
     const QList<qbs::ArtifactData> targets = product.targetArtifacts();
-    QCOMPARE(targets.count(), 1);
+    QCOMPARE(targets.size(), 1);
     QVERIFY(targets.front().isGenerated());
     QVERIFY(targets.front().isExecutable());
     QVERIFY(targets.front().isTargetArtifact());
-    QCOMPARE(projectData.installableArtifacts().count(), 0);
+    QCOMPARE(projectData.installableArtifacts().size(), 0);
     QCOMPARE(product.targetExecutable(), targets.front().filePath());
 }
 
@@ -1204,10 +1204,10 @@ void TestApi::fileTagsFilterOverride()
     VERIFY_NO_ERROR(errorInfo);
 
     qbs::ProjectData projectData = project.projectData();
-    QCOMPARE(projectData.allProducts().count(), 1);
+    QCOMPARE(projectData.allProducts().size(), 1);
     const qbs::ProductData product = projectData.allProducts().front();
     QList<qbs::ArtifactData> installableFiles = product.installableArtifacts();
-    QCOMPARE(installableFiles.count(), 1);
+    QCOMPARE(installableFiles.size(), 1);
     QVERIFY(installableFiles.front().installData().installFilePath().contains("habicht"));
 }
 
@@ -1226,10 +1226,10 @@ void TestApi::generatedFilesList()
     QVERIFY(waitForFinished(buildJob.get()));
     VERIFY_NO_ERROR(buildJob->error());
     const qbs::ProjectData projectData = project.projectData();
-    QCOMPARE(projectData.products().count(), 1);
+    QCOMPARE(projectData.products().size(), 1);
     const qbs::ProductData product = projectData.products().front();
     QString uiFilePath;
-    QVERIFY(product.generatedArtifacts().count() >= 6);
+    QVERIFY(product.generatedArtifacts().size() >= 6);
     foreach (const qbs::ArtifactData &a, product.generatedArtifacts()) {
         QVERIFY(a.isGenerated());
         QFileInfo fi(a.filePath());
@@ -1257,12 +1257,12 @@ void TestApi::generatedFilesList()
     }
     QVERIFY(!uiFilePath.isEmpty());
     const QStringList directParents = project.generatedFiles(product, uiFilePath, false);
-    QCOMPARE(directParents.count(), 1);
+    QCOMPARE(directParents.size(), 1);
     const QFileInfo uiHeaderFileInfo(directParents.front());
     QCOMPARE(uiHeaderFileInfo.fileName(), QLatin1String("ui_mainwindow.h"));
     QVERIFY(!uiHeaderFileInfo.exists());
     const QStringList allParents = project.generatedFiles(product, uiFilePath, true);
-    QCOMPARE(allParents.count(), 3);
+    QCOMPARE(allParents.size(), 3);
 }
 
 void TestApi::infiniteLoopBuilding()
@@ -1347,13 +1347,13 @@ void TestApi::installableFiles()
     VERIFY_NO_ERROR(errorInfo);
 
     qbs::ProjectData projectData = project.projectData();
-    QCOMPARE(projectData.allProducts().count(), 2);
+    QCOMPARE(projectData.allProducts().size(), 2);
     qbs::ProductData product = findElem(projectData.allProducts(), [](const qbs::ProductData &p) {
         return p.name() == QLatin1String("installedApp");
     });
     QVERIFY(product.isValid());
     QList<qbs::ArtifactData> installableFiles = product.installableArtifacts();
-    QCOMPARE(installableFiles.count(), 2);
+    QCOMPARE(installableFiles.size(), 2);
     foreach (const qbs::ArtifactData &f,installableFiles) {
         if (!f.filePath().endsWith("main.cpp")) {
             QVERIFY(f.isExecutable());
@@ -1372,10 +1372,10 @@ void TestApi::installableFiles()
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     project = job->project();
     projectData = project.projectData();
-    QCOMPARE(projectData.allProducts().count(), 1);
+    QCOMPARE(projectData.allProducts().size(), 1);
     product = projectData.allProducts().front();
     installableFiles = product.installableArtifacts();
-    QCOMPARE(installableFiles.count(), 2);
+    QCOMPARE(installableFiles.size(), 2);
     foreach (const qbs::ArtifactData &f, installableFiles)
         QVERIFY(!f.isExecutable());
     QCOMPARE(installableFiles.front().installData().localInstallFilePath(),
@@ -1393,7 +1393,7 @@ void TestApi::isRunnable()
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     qbs::Project project = job->project();
     const QList<qbs::ProductData> products = project.projectData().products();
-    QCOMPARE(products.count(), 2);
+    QCOMPARE(products.size(), 2);
     foreach (const qbs::ProductData &p, products) {
         QVERIFY2(p.name() == "app" || p.name() == "lib", qPrintable(p.name()));
         if (p.name() == "app")
@@ -1514,7 +1514,7 @@ void TestApi::localProfiles()
 
     qbs::ProjectData project = job->project().projectData();
     QList<qbs::ProductData> products = project.allProducts();
-    QCOMPARE(products.count(), 4);
+    QCOMPARE(products.size(), 4);
     qbs::ProductData libMingw;
     qbs::ProductData libClang;
     qbs::ProductData appDebug;
@@ -1587,7 +1587,7 @@ void TestApi::localProfiles()
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     project = job->project().projectData();
     products = project.allProducts();
-    QCOMPARE(products.count(), 4);
+    QCOMPARE(products.size(), 4);
     int clangProfiles = 0;
     for (const qbs::ProductData &p : qAsConst(products)) {
         if (p.profile() == "clangProfile") {
@@ -1620,22 +1620,22 @@ void TestApi::missingSourceFile()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     qbs::ProjectData project = job->project().projectData();
-    QCOMPARE(project.allProducts().count(), 1);
+    QCOMPARE(project.allProducts().size(), 1);
     qbs::ProductData product = project.allProducts().front();
-    QCOMPARE(product.groups().count(), 1);
+    QCOMPARE(product.groups().size(), 1);
     qbs::GroupData group = product.groups().front();
-    QCOMPARE(group.allSourceArtifacts().count(), 2);
+    QCOMPARE(group.allSourceArtifacts().size(), 2);
 
     QFile::rename("file2.txt.missing", "file2.txt");
     job.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     project = job->project().projectData();
-    QCOMPARE(project.allProducts().count(), 1);
+    QCOMPARE(project.allProducts().size(), 1);
     product = project.allProducts().front();
-    QCOMPARE(product.groups().count(), 1);
+    QCOMPARE(product.groups().size(), 1);
     group = product.groups().front();
-    QCOMPARE(group.allSourceArtifacts().count(), 3);
+    QCOMPARE(group.allSourceArtifacts().size(), 3);
 }
 
 void TestApi::mocCppIncluded()
@@ -1686,7 +1686,7 @@ void TestApi::multiArch()
     qbs::Project project = setupJob->project();
     QCOMPARE(project.profile(), profileName());
     const QList<qbs::ProductData> &products = project.projectData().products();
-    QCOMPARE(products.count(), 3);
+    QCOMPARE(products.size(), 3);
     QList<qbs::ProductData> hostProducts;
     QList<qbs::ProductData> targetProducts;
     foreach (const qbs::ProductData &p, products) {
@@ -1697,8 +1697,8 @@ void TestApi::multiArch()
         else
             targetProducts << p;
     }
-    QCOMPARE(hostProducts.count(), 2);
-    QCOMPARE(targetProducts.count(), 1);
+    QCOMPARE(hostProducts.size(), 2);
+    QCOMPARE(targetProducts.size(), 1);
     QCOMPARE(targetProducts.front().name(), QLatin1String("p1"));
     QStringList hostProductNames
             = QStringList() << hostProducts.front().name() << hostProducts.last().name();
@@ -1870,13 +1870,13 @@ void TestApi::multiplexing()
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 2);
+    QCOMPARE(product.dependencies().size(), 2);
 
     selector.qbsProperties["architecture"] = "C64";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 2);
+    QCOMPARE(product.dependencies().size(), 2);
 
     selector.clear();
     selector.name = "multiplex-without-aggregator-2-depend-on-non-multiplexed";
@@ -1884,13 +1884,13 @@ void TestApi::multiplexing()
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 1);
+    QCOMPARE(product.dependencies().size(), 1);
 
     selector.qbsProperties["architecture"] = "C64";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 1);
+    QCOMPARE(product.dependencies().size(), 1);
 
     selector.clear();
     selector.name = "multiplex-without-aggregator-4";
@@ -1923,52 +1923,52 @@ void TestApi::multiplexing()
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 0);
+    QCOMPARE(product.dependencies().size(), 0);
     selector.qbsProperties["architecture"] = "TRS-80";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 0);
+    QCOMPARE(product.dependencies().size(), 0);
     selector.qbsProperties["architecture"] = "Atari ST";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 2);
+    QCOMPARE(product.dependencies().size(), 2);
 
     selector.clear();
     selector.name = "multiplex-with-aggregator-2-dependent";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(!product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 1);
+    QCOMPARE(product.dependencies().size(), 1);
 
     selector.clear();
     selector.name = "non-multiplexed-with-dependencies-on-multiplexed";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(!product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 2);
+    QCOMPARE(product.dependencies().size(), 2);
 
     selector.clear();
     selector.name = "non-multiplexed-with-dependencies-on-multiplexed-via-export1";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(!product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 4);
+    QCOMPARE(product.dependencies().size(), 4);
 
     selector.clear();
     selector.name = "non-multiplexed-with-dependencies-on-multiplexed-via-export2";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(!product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 3);
+    QCOMPARE(product.dependencies().size(), 3);
 
     selector.clear();
     selector.name = "non-multiplexed-with-dependencies-on-aggregation-via-export";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(!product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 2);
+    QCOMPARE(product.dependencies().size(), 2);
 
     selector.clear();
     selector.name = "aggregate-with-dependencies-on-aggregation-via-export";
@@ -1976,17 +1976,17 @@ void TestApi::multiplexing()
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 2);
+    QCOMPARE(product.dependencies().size(), 2);
     selector.qbsProperties["architecture"] = "TRS-80";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 2);
+    QCOMPARE(product.dependencies().size(), 2);
     selector.qbsProperties["architecture"] = "Atari ST";
     product = takeMatchingProduct(products, selector);
     QVERIFY(product.isValid());
     QVERIFY(product.isMultiplexed());
-    QCOMPARE(product.dependencies().count(), 4);
+    QCOMPARE(product.dependencies().size(), 4);
 
     QVERIFY(products.isEmpty());
 }
@@ -2094,12 +2094,12 @@ void TestApi::projectDataAfterProductInvalidation()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     QVERIFY(project.isValid());
-    QCOMPARE(project.projectData().products().count(), 1);
+    QCOMPARE(project.projectData().products().size(), 1);
     QVERIFY(project.projectData().products().front().generatedArtifacts().isEmpty());
     std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
     waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
-    QCOMPARE(project.projectData().products().count(), 1);
+    QCOMPARE(project.projectData().products().size(), 1);
     const qbs::ProductData productAfterBulding = project.projectData().products().front();
     QVERIFY(!productAfterBulding.generatedArtifacts().isEmpty());
     QFile projectFile(setupParams.projectFilePath());
@@ -2117,13 +2117,13 @@ void TestApi::projectDataAfterProductInvalidation()
     QVERIFY(!project.isValid());
     project = setupJob->project();
     QVERIFY(project.isValid());
-    QCOMPARE(project.projectData().products().count(), 1);
+    QCOMPARE(project.projectData().products().size(), 1);
     QVERIFY(project.projectData().products().front().generatedArtifacts()
             == productAfterBulding.generatedArtifacts());
     buildJob.reset(project.buildAllProducts(qbs::BuildOptions()));
     waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
-    QCOMPARE(project.projectData().products().count(), 1);
+    QCOMPARE(project.projectData().products().size(), 1);
     QVERIFY(project.projectData().products().front().generatedArtifacts()
             != productAfterBulding.generatedArtifacts());
 }
@@ -2290,7 +2290,7 @@ void TestApi::referencedFileErrors()
     if (!relaxedMode)
         return;
     const QList<qbs::ProductData> products = project.projectData().allProducts();
-    QCOMPARE(products.count(), 5);
+    QCOMPARE(products.size(), 5);
     foreach (const qbs::ProductData &p, products)
         QCOMPARE(p.isEnabled(), p.name() != "p5");
 }
@@ -2360,7 +2360,7 @@ void TestApi::references()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     const qbs::ProjectData topLevelProject = job->project().projectData();
-    QCOMPARE(topLevelProject.subProjects().count(), 1);
+    QCOMPARE(topLevelProject.subProjects().size(), 1);
     const QString subProjectFileName
             = QFileInfo(topLevelProject.subProjects().front().location().filePath()).fileName();
     QCOMPARE(subProjectFileName, QString("p.qbs"));
@@ -2375,11 +2375,11 @@ void TestApi::relaxedModeRecovery()
                                                                         m_logSink, 0));
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
-    if (m_logSink->warnings.count() != 4) {
+    if (m_logSink->warnings.size() != 4) {
         foreach (const qbs::ErrorInfo &error, m_logSink->warnings)
             qDebug() << error.toString();
     }
-    QCOMPARE(m_logSink->warnings.count(), 4);
+    QCOMPARE(m_logSink->warnings.size(), 4);
     foreach (const qbs::ErrorInfo &error, m_logSink->warnings) {
         QVERIFY2(!error.toString().contains("ASSERT")
                  && (error.toString().contains("Dependency 'blubb' not found")
@@ -2513,7 +2513,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(m_logSink->warnings.toSet().count(), 2);
+    QCOMPARE(m_logSink->warnings.toSet().size(), 2);
     foreach (const qbs::ErrorInfo &e, m_logSink->warnings) {
         const QString msg = e.toString();
         QVERIFY2(msg.contains("Superfluous version")
@@ -2527,7 +2527,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(m_logSink->warnings.toSet().count(), 2);
+    QCOMPARE(m_logSink->warnings.toSet().size(), 2);
     m_logSink->warnings.clear();
 
     // Re-resolving with changes: Errors come from the re-resolving, stored ones must be suppressed.
@@ -2538,7 +2538,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(m_logSink->warnings.toSet().count(), 3); // One more for the additional group
+    QCOMPARE(m_logSink->warnings.toSet().size(), 3); // One more for the additional group
     foreach (const qbs::ErrorInfo &e, m_logSink->warnings) {
         const QString msg = e.toString();
         QVERIFY2(msg.contains("Superfluous version")
@@ -2575,12 +2575,12 @@ void TestApi::sourceFileInBuildDir()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     const qbs::ProjectData projectData = job->project().projectData();
-    QCOMPARE(projectData.allProducts().count(), 1);
+    QCOMPARE(projectData.allProducts().size(), 1);
     const qbs::ProductData product = projectData.allProducts().front();
     QCOMPARE(product.profile(), profileName());
     const qbs::GroupData group = findGroup(product, "the group");
     QVERIFY(group.isValid());
-    QCOMPARE(group.allFilePaths().count(), 1);
+    QCOMPARE(group.allFilePaths().size(), 1);
 }
 
 void TestApi::subProjects()
@@ -2649,7 +2649,7 @@ void TestApi::toolInModule()
     const qbs::Project project = setupJob->project();
     const qbs::ProjectData projectData = project.projectData();
     const QList<qbs::ProductData> products = projectData.products();
-    QCOMPARE(products.count(), 1);
+    QCOMPARE(products.size(), 1);
     const qbs::ProductData product = products.front();
     for (const qbs::GroupData &group : product.groups())
         QVERIFY(group.name() != "thetool binary");

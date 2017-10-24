@@ -119,7 +119,7 @@ ResolvedModuleConstPtr TestLanguage::findModuleByName(ResolvedProductPtr product
 QVariant TestLanguage::productPropertyValue(ResolvedProductPtr product, QString propertyName)
 {
     QStringList propertyNameComponents = propertyName.split(QLatin1Char('.'));
-    if (propertyNameComponents.count() > 1)
+    if (propertyNameComponents.size() > 1)
         return product->moduleProperties->property(propertyNameComponents);
     return getConfigProperty(product->productProperties, propertyNameComponents);
 }
@@ -295,7 +295,7 @@ void TestLanguage::chainedProbes()
         parameters.setProjectFilePath(testProject("chained-probes/chained-probes.qbs"));
         const TopLevelProjectConstPtr project = loader->loadProject(parameters);
         QVERIFY(!!project);
-        QCOMPARE(project->products.count(), 1);
+        QCOMPARE(project->products.size(), 1);
         const QString prop2Val = project->products.front()->moduleProperties
                 ->moduleProperty("m", "prop2").toString();
         QCOMPARE(prop2Val, QLatin1String("probe1Valprobe2Val"));
@@ -478,7 +478,7 @@ void TestLanguage::delayedError()
         project = loader->loadProject(params);
         QCOMPARE(productEnabled, false);
         QVERIFY(!!project);
-        QCOMPARE(project->products.count(), 1);
+        QCOMPARE(project->products.size(), 1);
         const ResolvedProductConstPtr theProduct = productsFromProject(project).value("theProduct");
         QVERIFY(!!theProduct);
         QCOMPARE(theProduct->enabled, false);
@@ -519,10 +519,10 @@ void TestLanguage::dependencyOnAllProfiles()
         params.setOverriddenValues(overriddenValues);
         project = loader->loadProject(params);
         QVERIFY(!!project);
-        QCOMPARE(project->products.count(), 3);
+        QCOMPARE(project->products.size(), 3);
         const ResolvedProductConstPtr mainProduct = productsFromProject(project).value("main");
         QVERIFY(!!mainProduct);
-        QCOMPARE(mainProduct->dependencies.count(), 2);
+        QCOMPARE(mainProduct->dependencies.size(), 2);
         foreach (const ResolvedProductConstPtr &p, mainProduct->dependencies) {
             QCOMPARE(p->name, QLatin1String("dep"));
             QVERIFY(p->profile == "p1" || p->profile == "p2");
@@ -543,7 +543,7 @@ void TestLanguage::derivedSubProject()
         const TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(!!project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 1);
+        QCOMPARE(products.size(), 1);
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
@@ -560,7 +560,7 @@ void TestLanguage::disabledSubProject()
         const TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(!!project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 0);
+        QCOMPARE(products.size(), 0);
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
@@ -577,7 +577,7 @@ void TestLanguage::emptyJsFile()
         const TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(!!project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 1);
+        QCOMPARE(products.size(), 1);
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
@@ -594,11 +594,11 @@ void TestLanguage::enumerateProjectProperties()
         auto project = loader->loadProject(params);
         QVERIFY(!!project);
         auto products = productsFromProject(project);
-        QCOMPARE(products.count(), 1);
+        QCOMPARE(products.size(), 1);
         auto product = products.values().front();
         auto files = product->groups.front()->allFiles();
-        QCOMPARE(product->groups.count(), 1);
-        QCOMPARE(files.count(), 1);
+        QCOMPARE(product->groups.size(), 1);
+        QCOMPARE(files.size(), 1);
         auto fileName = FileInfo::fileName(files.front()->absoluteFilePath);
         QCOMPARE(fileName, QString("dummy.txt"));
     } catch (const ErrorInfo &e) {
@@ -622,7 +622,7 @@ void TestLanguage::defaultValue()
         TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 2);
+        QCOMPARE(products.size(), 2);
         const ResolvedProductPtr product = products.value("egon");
         QVERIFY(!!product);
         QStringList propertyName = QStringList() << "lower" << "prop2";
@@ -694,7 +694,7 @@ void TestLanguage::errorInDisabledProduct()
         auto project = loader->loadProject(params);
         QVERIFY(!!project);
         auto products = productsFromProject(project);
-        QCOMPARE(products.count(), 4);
+        QCOMPARE(products.size(), 4);
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
@@ -845,7 +845,7 @@ void TestLanguage::exports()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 22);
+        QCOMPARE(products.size(), 22);
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(!!product);
@@ -855,7 +855,7 @@ void TestLanguage::exports()
                  << "USE_MYLIB2");
         propertyName = QStringList() << "dummy" << "includePaths";
         QVariantList propertyValues = product->moduleProperties->property(propertyName).toList();
-        QCOMPARE(propertyValues.count(), 3);
+        QCOMPARE(propertyValues.size(), 3);
         QVERIFY(propertyValues.at(0).toString().endsWith("/app"));
         QVERIFY(propertyValues.at(1).toString().endsWith("/subdir/lib"));
         QVERIFY(propertyValues.at(2).toString().endsWith("/subdir2/lib"));
@@ -934,7 +934,7 @@ void TestLanguage::exports()
 
         product = products.value("depender");
         QVERIFY(!!product);
-        QCOMPARE(product->modules.count(), 2);
+        QCOMPARE(product->modules.size(), 2);
         for (const ResolvedModuleConstPtr &m : qAsConst(product->modules)) {
             QVERIFY2(m->name == QString("qbs") || m->name == QString("dependency"),
                      qPrintable(m->name));
@@ -942,7 +942,7 @@ void TestLanguage::exports()
 
         product = products.value("broken_cycle3");
         QVERIFY(!!product);
-        QCOMPARE(product->modules.count(), 3);
+        QCOMPARE(product->modules.size(), 3);
         for (const ResolvedModuleConstPtr &m : qAsConst(product->modules)) {
             QVERIFY2(m->name == QString("qbs") || m->name == QString("broken_cycle1")
                      || m->name == QString("broken_cycle2"),
@@ -1034,13 +1034,13 @@ void TestLanguage::groupConditions()
     HANDLE_INIT_CLEANUP_DATATAGS("groupconditions.qbs");
     QFETCH(int, groupCount);
     QFETCH(QList<bool>, groupEnabled);
-    QCOMPARE(groupCount, groupEnabled.count());
+    QCOMPARE(groupCount, groupEnabled.size());
     const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
     const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(!!product);
     QCOMPARE(product->name, productName);
-    QCOMPARE(product->groups.count(), groupCount);
+    QCOMPARE(product->groups.size(), groupCount);
     for (int i = 0; i < groupCount; ++i) {
         if (product->groups.at(i)->enabled != groupEnabled.at(i)) {
             QFAIL(qPrintable(
@@ -1057,11 +1057,11 @@ void TestLanguage::groupName()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 2);
+        QCOMPARE(products.size(), 2);
 
         ResolvedProductPtr product = products.value("MyProduct");
         QVERIFY(!!product);
-        QCOMPARE(product->groups.count(), 2);
+        QCOMPARE(product->groups.size(), 2);
         GroupConstPtr group = product->groups.at(0);
         QVERIFY(!!group);
         QCOMPARE(group->name, QString("MyProduct"));
@@ -1071,7 +1071,7 @@ void TestLanguage::groupName()
 
         product = products.value("My2ndProduct");
         QVERIFY(!!product);
-        QCOMPARE(product->groups.count(), 3);
+        QCOMPARE(product->groups.size(), 3);
         group = product->groups.at(0);
         QVERIFY(!!group);
         QCOMPARE(group->name, QString("My2ndProduct"));
@@ -1096,7 +1096,7 @@ void TestLanguage::homeDirectory()
         ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 1);
+        QCOMPARE(products.size(), 1);
 
         ResolvedProductPtr product = products.value("home");
         QVERIFY(!!product);
@@ -1202,7 +1202,7 @@ void TestLanguage::idUsage()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 4);
+        QCOMPARE(products.size(), 4);
         QVERIFY(products.contains("product1_1"));
         QVERIFY(products.contains("product2_2"));
         QVERIFY(products.contains("product3_3"));
@@ -1228,7 +1228,7 @@ void TestLanguage::idUniqueness()
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
         const QList<ErrorItem> items = e.items();
-        QCOMPARE(items.count(), 3);
+        QCOMPARE(items.size(), 3);
         QCOMPARE(items.at(0).toString(), QString::fromUtf8("The id 'baseProduct' is not unique."));
         QVERIFY(items.at(1).toString().contains("id-uniqueness.qbs:6:5 First occurrence is here."));
         QVERIFY(items.at(2).toString().contains("id-uniqueness.qbs:9:5 Next occurrence is here."));
@@ -1263,7 +1263,7 @@ void TestLanguage::invalidBindingInDisabledItem()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 2);
+        QCOMPARE(products.size(), 2);
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -1380,7 +1380,7 @@ void TestLanguage::jsImportUsedInMultipleScopes()
         TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 1);
+        QCOMPARE(products.size(), 1);
         ResolvedProductPtr product = products.values().front();
         QVERIFY(!!product);
         QCOMPARE(product->name, expectedProductName);
@@ -1670,7 +1670,7 @@ void TestLanguage::modulePropertyOverridesPerProduct()
         const TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 3);
+        QCOMPARE(products.size(), 3);
         const ResolvedProductConstPtr a = products.value("a");
         QVERIFY(!!a);
         const ResolvedProductConstPtr b = products.value("b");
@@ -1716,7 +1716,7 @@ void TestLanguage::moduleScope()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 1);
+        QCOMPARE(products.size(), 1);
         ResolvedProductPtr product = products.value("product1");
         QVERIFY(!!product);
 
@@ -1837,7 +1837,7 @@ void TestLanguage::nonRequiredProducts()
         const TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(!!project);
         const auto products = productsFromProject(project);
-        QCOMPARE(products.count(), 4 + !!subProjectEnabled);
+        QCOMPARE(products.size(), 4 + !!subProjectEnabled);
         const ResolvedProductConstPtr dependee = products.value("dependee");
         QCOMPARE(subProjectEnabled, !!dependee);
         if (dependee)
@@ -1878,21 +1878,21 @@ void TestLanguage::outerInGroup()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 1);
+        QCOMPARE(products.size(), 1);
         ResolvedProductPtr product = products.value("OuterInGroup");
         QVERIFY(!!product);
-        QCOMPARE(product->groups.count(), 2);
+        QCOMPARE(product->groups.size(), 2);
         GroupPtr group = product->groups.at(0);
         QVERIFY(!!group);
         QCOMPARE(group->name, product->name);
-        QCOMPARE(group->files.count(), 1);
+        QCOMPARE(group->files.size(), 1);
         SourceArtifactConstPtr artifact = group->files.front();
         QVariant installDir = artifact->properties->qbsPropertyValue("installDir");
         QCOMPARE(installDir.toString(), QString("/somewhere"));
         group = product->groups.at(1);
         QVERIFY(!!group);
         QCOMPARE(group->name, QString("Special Group"));
-        QCOMPARE(group->files.count(), 1);
+        QCOMPARE(group->files.size(), 1);
         artifact = group->files.front();
         installDir = artifact->properties->qbsPropertyValue("installDir");
         QCOMPARE(installDir.toString(), QString("/somewhere/else"));
@@ -1915,7 +1915,7 @@ void TestLanguage::overriddenPropertiesAndPrototypes()
         params.setOverriddenValues({std::make_pair("modules.qbs.targetOS", osName)});
         TopLevelProjectConstPtr project = loader->loadProject(params);
         QVERIFY(!!project);
-        QCOMPARE(project->products.count(), 1);
+        QCOMPARE(project->products.size(), 1);
         QCOMPARE(project->products.front()->moduleProperties->moduleProperty(
                      "multiple-backends", "prop").toString(), backendName);
     }
@@ -2061,7 +2061,7 @@ void TestLanguage::productConditions()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 6);
+        QCOMPARE(products.size(), 6);
         ResolvedProductPtr product;
         product = products.value("product_no_condition");
         QVERIFY(!!product);
@@ -2102,7 +2102,7 @@ void TestLanguage::productDirectories()
         ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 1);
+        QCOMPARE(products.size(), 1);
         ResolvedProductPtr product;
         product = products.value("MyApp");
         QVERIFY(!!product);
@@ -2260,7 +2260,7 @@ void TestLanguage::propertiesBlockInGroup()
         defaultParameters.setProjectFilePath(testProject("properties-block-in-group.qbs"));
         const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
-        QCOMPARE(project->allProducts().count(), 1);
+        QCOMPARE(project->allProducts().size(), 1);
         const ResolvedProductConstPtr product = project->allProducts().front();
         const auto groupIt = std::find_if(product->groups.constBegin(), product->groups.constEnd(),
                 [](const GroupConstPtr &g) { return g->name == "the group"; });
@@ -2287,7 +2287,7 @@ void TestLanguage::propertiesItemInModule()
         const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 2);
+        QCOMPARE(products.size(), 2);
         for (const ResolvedProductConstPtr &p : products) {
             QCOMPARE(p->moduleProperties->moduleProperty("dummy", "productName").toString(),
                      p->name);
@@ -2308,7 +2308,7 @@ void TestLanguage::propertyAssignmentInExportedGroup()
         const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 2);
+        QCOMPARE(products.size(), 2);
         for (const ResolvedProductConstPtr &p : products) {
             QCOMPARE(p->moduleProperties->moduleProperty("dummy", "someString").toString(),
                      QString());
@@ -2337,7 +2337,7 @@ void TestLanguage::qbsPropertiesInProjectCondition()
         const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 0);
+        QCOMPARE(products.size(), 0);
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
@@ -2360,27 +2360,27 @@ void TestLanguage::relaxedErrorMode()
         const ResolvedProductConstPtr brokenProduct = productMap.value("broken");
         QVERIFY(!brokenProduct->enabled);
         QVERIFY(brokenProduct->location.isValid());
-        QCOMPARE(brokenProduct->allFiles().count(), 0);
+        QCOMPARE(brokenProduct->allFiles().size(), 0);
         const ResolvedProductConstPtr dependerRequired = productMap.value("depender required");
         QVERIFY(!dependerRequired->enabled);
         QVERIFY(dependerRequired->location.isValid());
-        QCOMPARE(dependerRequired->allFiles().count(), 1);
+        QCOMPARE(dependerRequired->allFiles().size(), 1);
         const ResolvedProductConstPtr dependerNonRequired
                 = productMap.value("depender nonrequired");
         QVERIFY(dependerNonRequired->enabled);
-        QCOMPARE(dependerNonRequired->allFiles().count(), 1);
+        QCOMPARE(dependerNonRequired->allFiles().size(), 1);
         const ResolvedProductConstPtr recursiveDepender = productMap.value("recursive depender");
         QVERIFY(!recursiveDepender->enabled);
         QVERIFY(recursiveDepender->location.isValid());
-        QCOMPARE(recursiveDepender->allFiles().count(), 1);
+        QCOMPARE(recursiveDepender->allFiles().size(), 1);
         const ResolvedProductConstPtr missingFile = productMap.value("missing file");
         QVERIFY(missingFile->enabled);
-        QCOMPARE(missingFile->groups.count(), 1);
+        QCOMPARE(missingFile->groups.size(), 1);
         QVERIFY(missingFile->groups.front()->enabled);
-        QCOMPARE(missingFile->groups.front()->allFiles().count(), 2);
+        QCOMPARE(missingFile->groups.front()->allFiles().size(), 2);
         const ResolvedProductConstPtr fine = productMap.value("fine");
         QVERIFY(fine->enabled);
-        QCOMPARE(fine->allFiles().count(), 1);
+        QCOMPARE(fine->allFiles().size(), 1);
     } catch (const ErrorInfo &e) {
         QVERIFY2(strictMode, qPrintable(e.toString()));
     }
@@ -2455,11 +2455,11 @@ void TestLanguage::qualifiedId()
 {
     QString str = "foo.bar.baz";
     QualifiedId id = QualifiedId::fromString(str);
-    QCOMPARE(id.count(), 3);
+    QCOMPARE(id.size(), 3);
     QCOMPARE(id.toString(), str);
 
     id = QualifiedId("blubb.di.blubb"); // c'tor does not split
-    QCOMPARE(id.count(), 1);
+    QCOMPARE(id.size(), 1);
 
     QList<QualifiedId> ids;
     ids << QualifiedId::fromString("a")
@@ -2482,7 +2482,7 @@ void TestLanguage::recursiveProductDependencies()
         const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 4);
+        QCOMPARE(products.size(), 4);
         const ResolvedProductConstPtr p1 = products.value("p1");
         QVERIFY(!!p1);
         const ResolvedProductConstPtr p2 = products.value("p2");
@@ -2526,10 +2526,10 @@ void TestLanguage::fileTags()
     ResolvedProductPtr product;
     const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     QVERIFY(!!(product = products.value(productName)));
-    QCOMPARE(product->groups.count(), numberOfGroups);
+    QCOMPARE(product->groups.size(), numberOfGroups);
     GroupPtr group = product->groups.last();
     QVERIFY(!!group);
-    QCOMPARE(group->files.count(), 1);
+    QCOMPARE(group->files.size(), 1);
     SourceArtifactConstPtr sourceFile = group->files.front();
     QStringList fileTags = sourceFile->fileTags.toStringList();
     fileTags.sort();
@@ -2744,7 +2744,7 @@ void TestLanguage::wildcards()
         QVERIFY(!!product);
         GroupPtr group;
         if (useGroup) {
-            QCOMPARE(product->groups.count(), HostOsInfo::isMacosHost() ? 3 : 2);
+            QCOMPARE(product->groups.size(), HostOsInfo::isMacosHost() ? 3 : 2);
             foreach (const GroupPtr &rg, product->groups) {
                 if (rg->name == groupName) {
                     group = rg;
@@ -2752,18 +2752,18 @@ void TestLanguage::wildcards()
                 }
             }
         } else {
-            QCOMPARE(product->groups.count(), HostOsInfo::isMacosHost() ? 2 : 1);
+            QCOMPARE(product->groups.size(), HostOsInfo::isMacosHost() ? 2 : 1);
             group = product->groups.front();
         }
         QVERIFY(!!group);
-        QCOMPARE(group->files.count(), 0);
+        QCOMPARE(group->files.size(), 0);
         QVERIFY(!!group->wildcards);
         QStringList actualFilePaths;
         foreach (const SourceArtifactConstPtr &artifact, group->wildcards->files) {
             QString str = artifact->absoluteFilePath;
             int idx = str.indexOf(m_wildcardsTestDirPath);
             if (idx != -1)
-                str.remove(0, idx + m_wildcardsTestDirPath.count() + 1);
+                str.remove(0, idx + m_wildcardsTestDirPath.size() + 1);
             actualFilePaths << str;
         }
         actualFilePaths.sort();

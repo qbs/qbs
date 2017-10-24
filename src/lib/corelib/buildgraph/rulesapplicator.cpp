@@ -216,7 +216,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     QScriptValue scriptValue;
     if (!ruleArtifactArtifactMap.isEmpty())
         engine()->setGlobalObject(prepareScriptContext);
-    for (int i = ruleArtifactArtifactMap.count(); --i >= 0;) {
+    for (int i = ruleArtifactArtifactMap.size(); --i >= 0;) {
         const RuleArtifact *ra = ruleArtifactArtifactMap.at(i).first;
         if (ra->bindings.empty())
             continue;
@@ -366,7 +366,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
 
     FileTags outputArtifactFileTags = fileTags.isEmpty()
             ? m_product->fileTagsForFileName(outputArtifact->fileName()) : fileTags;
-    for (int i = 0; i < m_product->artifactProperties.count(); ++i) {
+    for (int i = 0; i < m_product->artifactProperties.size(); ++i) {
         const ArtifactPropertiesConstPtr &props = m_product->artifactProperties.at(i);
         if (outputArtifactFileTags.intersects(props->fileTagsFilter())) {
             outputArtifact->properties = props->propertyMap();
@@ -387,7 +387,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
 
     outputArtifact->transformer = m_transformer;
     m_transformer->outputs.insert(outputArtifact);
-    QBS_CHECK(m_rule->multiplex || m_transformer->inputs.count() == 1);
+    QBS_CHECK(m_rule->multiplex || m_transformer->inputs.size() == 1);
 
     return outputArtifact;
 }

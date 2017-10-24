@@ -95,10 +95,10 @@ QStringList QbsTool::allToolNames()
     QStringList toolFileNames = QDir(qbsBinDir()).entryList(QStringList(toolPrefix()
             + QString::fromLatin1("*%1").arg(suffix)), QDir::Files, QDir::Name);
     QStringList toolNames;
-    const int prefixLength = toolPrefix().count();
+    const int prefixLength = toolPrefix().size();
     foreach (const QString &toolFileName, toolFileNames) {
         toolNames << toolFileName.mid(prefixLength,
-                                      toolFileName.count() - prefixLength - suffix.count());
+                                      toolFileName.size() - prefixLength - suffix.size());
     }
     return toolNames;
 }

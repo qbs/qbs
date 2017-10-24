@@ -62,7 +62,7 @@ void IdentifierSearch::add(const QString &name, bool *found)
 
 bool IdentifierSearch::preVisit(QbsQmlJS::AST::Node *)
 {
-    return m_numberOfFoundIds < m_requests.count();
+    return m_numberOfFoundIds < m_requests.size();
 }
 
 bool IdentifierSearch::visit(QbsQmlJS::AST::IdentifierExpression *e)
@@ -72,7 +72,7 @@ bool IdentifierSearch::visit(QbsQmlJS::AST::IdentifierExpression *e)
         *found = true;
         m_numberOfFoundIds++;
     }
-    return m_numberOfFoundIds < m_requests.count();
+    return m_numberOfFoundIds < m_requests.size();
 }
 
 } // namespace Internal

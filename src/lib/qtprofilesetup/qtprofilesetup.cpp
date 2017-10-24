@@ -93,7 +93,7 @@ static QString defaultQpaPlugin(const Profile &profile, const QtModuleInfo &modu
         foreach (const QByteArray &line, lines) {
             const QByteArray simplifiedLine = line.simplified();
             if (simplifiedLine.startsWith(magicString))
-                return QString::fromLatin1(simplifiedLine.mid(magicString.count()).trimmed());
+                return QString::fromLatin1(simplifiedLine.mid(magicString.size()).trimmed());
         }
     } else {
         const QString qtGuiConfigHeader = (qtEnv.frameworkBuild

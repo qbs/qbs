@@ -163,7 +163,7 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
     m_hasError = false;
 
     const QString configString = Tr::tr(" for configuration %1").arg(project->id());
-    m_observer->initialize(Tr::tr("Cleaning up%1").arg(configString), products.count() + 1);
+    m_observer->initialize(Tr::tr("Cleaning up%1").arg(configString), products.size() + 1);
 
     Set<QString> directories;
     for (const ResolvedProductPtr &product : products) {
@@ -178,7 +178,7 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
     // Directories created during the build are not artifacts (TODO: should they be?),
     // so we have to clean them up manually.
     QList<QString> dirList = directories.toList();
-    for (int i = 0; i < dirList.count(); ++i) {
+    for (int i = 0; i < dirList.size(); ++i) {
         const QString &dir = dirList.at(i);
         if (!dir.startsWith(project->buildDirectory))
             continue;

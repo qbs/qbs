@@ -141,10 +141,10 @@ void ProcessCommandExecutor::doStart()
                                  .arg(responseFile.fileName())));
                 return;
             }
-            for (int i = cmd->responseFileArgumentIndex(); i < cmd->arguments().count(); ++i) {
+            for (int i = cmd->responseFileArgumentIndex(); i < cmd->arguments().size(); ++i) {
                 const QString arg = cmd->arguments().at(i);
                 if (arg.startsWith(cmd->responseFileUsagePrefix())) {
-                    QFile f(arg.mid(cmd->responseFileUsagePrefix().count()));
+                    QFile f(arg.mid(cmd->responseFileUsagePrefix().size()));
                     if (!f.open(QIODevice::ReadOnly)) {
                         emit finished(ErrorInfo(Tr::tr("Cannot open command file '%1'.")
                                                 .arg(QDir::toNativeSeparators(f.fileName()))));

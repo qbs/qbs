@@ -1218,7 +1218,7 @@ template<typename T> QMap<QString, T> listToMap(const QList<T> &list)
 
 template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
 {
-    if (l1.count() != l2.count())
+    if (l1.size() != l2.size())
         return false;
     const QMap<QString, T> map1 = listToMap(l1);
     const QMap<QString, T> map2 = listToMap(l2);
@@ -1267,9 +1267,9 @@ bool sourceArtifactSetsAreEqual(const QList<SourceArtifactPtr> &l1,
 
 bool operator==(const Rule &r1, const Rule &r2)
 {
-    if (r1.artifacts.count() != r2.artifacts.count())
+    if (r1.artifacts.size() != r2.artifacts.size())
         return false;
-    for (int i = 0; i < r1.artifacts.count(); ++i) {
+    for (int i = 0; i < r1.artifacts.size(); ++i) {
         if (!equals(r1.artifacts.at(i).get(), r2.artifacts.at(i).get()))
             return false;
     }

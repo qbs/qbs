@@ -94,7 +94,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
         return;
     }
 
-    switch (m_commandLine.count()) {
+    switch (m_commandLine.size()) {
     case 0:
         throwError(Tr::tr("No profile name supplied."));
     case 1:

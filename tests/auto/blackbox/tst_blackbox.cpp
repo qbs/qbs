@@ -698,7 +698,7 @@ void TestBlackbox::dependenciesProperty()
     QJsonArray cpp_dependencies = product2_cpp.value("dependencies").toArray();
     QVERIFY(!cpp_dependencies.isEmpty());
     int qbsCount = 0;
-    for (int i = 0; i < cpp_dependencies.count(); ++i) {
+    for (int i = 0; i < cpp_dependencies.size(); ++i) {
         if (cpp_dependencies.at(i).toObject().value("name").toString() == "qbs")
             ++qbsCount;
     }
@@ -2090,7 +2090,7 @@ void TestBlackbox::responseFiles()
             << "foo" << qbs::Internal::shellQuote(QStringLiteral("with space")).toUtf8()
             << "bar" << "";
     QList<QByteArray> lines = file.readAll().split('\n');
-    for (int i = 0; i < lines.count(); ++i)
+    for (int i = 0; i < lines.size(); ++i)
         lines[i] = lines.at(i).trimmed();
     QCOMPARE(lines, expected);
 }
@@ -2253,7 +2253,7 @@ static QString soName(const QString &readElfPath, const QString &libFilePath)
     const int endIndex = output.indexOf(']', magicStringIndex);
     if (endIndex == -1)
         return QString();
-    const int nameIndex = magicStringIndex + magicString.count();
+    const int nameIndex = magicStringIndex + magicString.size();
     const QByteArray theName = output.mid(nameIndex, endIndex - nameIndex);
     return QString::fromLatin1(theName);
 }
@@ -3238,7 +3238,7 @@ void TestBlackbox::installPackage()
         if (!trimmedLine.isEmpty())
             cleanOutputLines << trimmedLine;
     }
-    QCOMPARE(cleanOutputLines.count(), 3);
+    QCOMPARE(cleanOutputLines.size(), 3);
     foreach (const QByteArray &line, cleanOutputLines) {
         QVERIFY2(line.contains("public_tool") || line.contains("mylib") || line.contains("lib.h"),
                  line.constData());
@@ -3433,7 +3433,7 @@ void TestBlackbox::jsExtensionsFile()
     QVERIFY(copy.exists());
     QVERIFY(copy.open(QIODevice::ReadOnly));
     const QList<QByteArray> lines = copy.readAll().trimmed().split('\n');
-    QCOMPARE(lines.count(), 2);
+    QCOMPARE(lines.size(), 2);
     QCOMPARE(lines.at(0).trimmed().constData(), "false");
     QCOMPARE(lines.at(1).trimmed().constData(), "true");
 }
@@ -3447,7 +3447,7 @@ void TestBlackbox::jsExtensionsFileInfo()
     QVERIFY(output.exists());
     QVERIFY(output.open(QIODevice::ReadOnly));
     const QList<QByteArray> lines = output.readAll().trimmed().split('\n');
-    QCOMPARE(lines.count(), 25);
+    QCOMPARE(lines.size(), 25);
     int i = 0;
     QCOMPARE(lines.at(i++).trimmed().constData(), "blubb");
     QCOMPARE(lines.at(i++).trimmed().constData(), "/usr/bin");
@@ -3485,7 +3485,7 @@ void TestBlackbox::jsExtensionsProcess()
     QVERIFY(output.exists());
     QVERIFY(output.open(QIODevice::ReadOnly));
     const QList<QByteArray> lines = output.readAll().trimmed().split('\n');
-    QCOMPARE(lines.count(), 8);
+    QCOMPARE(lines.size(), 8);
     QCOMPARE(lines.at(0).trimmed().constData(), "0");
     QVERIFY(lines.at(1).startsWith("qbs "));
     QCOMPARE(lines.at(2).trimmed().constData(), "true");
@@ -3548,7 +3548,7 @@ void TestBlackbox::jsExtensionsTextFile()
     QVERIFY(file2.exists());
     QVERIFY(file2.open(QIODevice::ReadOnly));
     const QList<QByteArray> lines = file2.readAll().trimmed().split('\n');
-    QCOMPARE(lines.count(), 6);
+    QCOMPARE(lines.size(), 6);
     QCOMPARE(lines.at(0).trimmed().constData(), "false");
     QCOMPARE(lines.at(1).trimmed().constData(), "First line.");
     QCOMPARE(lines.at(2).trimmed().constData(), "Second line.");
@@ -4236,7 +4236,7 @@ void TestBlackbox::productDependenciesByType()
     QFile appListFile(relativeProductBuildDir("app list") + "/app-list.txt");
     QVERIFY2(appListFile.open(QIODevice::ReadOnly), qPrintable(appListFile.fileName()));
     const QList<QByteArray> appList = appListFile.readAll().trimmed().split('\n');
-    QCOMPARE(appList.count(), 3);
+    QCOMPARE(appList.size(), 3);
     QStringList apps = QStringList()
             << QDir::currentPath() + '/' + relativeExecutableFilePath("app1")
             << QDir::currentPath() + '/' + relativeExecutableFilePath("app2")
@@ -4438,7 +4438,7 @@ void TestBlackbox::installedApp()
     // Check --no-install
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(QbsRunParameters(QStringList() << "--no-install")), 0);
-    QCOMPARE(QDir(defaultInstallRoot).entryList(QDir::NoDotAndDotDot).count(), 0);
+    QCOMPARE(QDir(defaultInstallRoot).entryList(QDir::NoDotAndDotDot).size(), 0);
 
     // Check --no-build (with and without an existing build graph)
     QbsRunParameters params("install", QStringList() << "--no-build");

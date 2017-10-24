@@ -104,13 +104,13 @@ void Command::parseOption(QStringList &input)
     const QString optionString = input.front();
     QBS_CHECK(optionString.startsWith(QLatin1Char('-')));
     input.removeFirst();
-    if (optionString.count() == 1)
+    if (optionString.size() == 1)
         throwError(Tr::tr("Empty options are not allowed."));
 
     // Split up grouped short options.
-    if (optionString.at(1) != QLatin1Char('-') && optionString.count() > 2) {
+    if (optionString.at(1) != QLatin1Char('-') && optionString.size() > 2) {
         QString parameter;
-        for (int i = optionString.count(); --i > 0;) {
+        for (int i = optionString.size(); --i > 0;) {
             const QChar c = optionString.at(i);
             if (c.isDigit()) {
                 parameter.prepend(c);
@@ -562,7 +562,7 @@ void HelpCommand::parseNext(QStringList &input)
 {
     if (input.isEmpty())
         return;
-    if (input.count() > 1)
+    if (input.size() > 1)
         throwError(Tr::tr("Cannot describe more than one command."));
     m_command = input.takeFirst();
     QBS_CHECK(input.empty());

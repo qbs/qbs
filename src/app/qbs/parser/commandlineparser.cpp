@@ -403,7 +403,7 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
     foreach (const Command * command, commandMap) {
         help.append(QLatin1String("  ")).append(command->representation());
         const QString whitespace
-                = QString(rhsIndentation - 2 - command->representation().count(), QLatin1Char(' '));
+                = QString(rhsIndentation - 2 - command->representation().size(), QLatin1Char(' '));
         help.append(whitespace).append(command->shortDescription()).append(QLatin1Char('\n'));
     }
 
@@ -413,7 +413,7 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
         help.append(QLatin1Char('\n')).append(Tr::tr("Auxiliary commands:\n"));
         foreach (const QString &toolName, toolNames) {
             help.append(QLatin1String("  ")).append(toolName);
-            const QString whitespace = QString(rhsIndentation - 2 - toolName.count(),
+            const QString whitespace = QString(rhsIndentation - 2 - toolName.size(),
                                                QLatin1Char(' '));
             QbsTool tool;
             tool.runTool(toolName, QStringList(QLatin1String("--help")));
@@ -442,7 +442,7 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
     buildOptions.setDryRun(dryRun());
     QStringList changedFiles = optionPool.changedFilesOption()->arguments();
     QDir currentDir;
-    for (int i = 0; i < changedFiles.count(); ++i) {
+    for (int i = 0; i < changedFiles.size(); ++i) {
         QString &file = changedFiles[i];
         file = QDir::fromNativeSeparators(currentDir.absoluteFilePath(file));
     }
@@ -484,7 +484,7 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildConfigurations()
     }
     propertiesPerConfiguration << std::make_pair(currentConfigurationName, currentProperties);
 
-    if (propertiesPerConfiguration.count() == 1) // No configuration name specified on command line.
+    if (propertiesPerConfiguration.size() == 1) // No configuration name specified on command line.
         propertiesPerConfiguration << PropertyListItem(QStringLiteral("default"), QVariantMap());
 
     const QVariantMap globalProperties = propertiesPerConfiguration.takeFirst().second;

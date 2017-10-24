@@ -265,7 +265,7 @@ QDebug operator<<(QDebug debug, const QmlError &error)
             const QString code = stream.readAll();
             const QStringList lines = code.split(QLatin1Char('\n'));
 
-            if (lines.count() >= error.line()) {
+            if (lines.size() >= error.line()) {
                 const QString &line = lines.at(error.line() - 1);
                 debug << "\n    " << qPrintable(line);
 

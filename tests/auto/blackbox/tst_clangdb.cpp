@@ -151,7 +151,7 @@ void TestClangDb::checkDbIsConsistentWithProject()
 
     // We expect only one command for now
     const QJsonArray array = doc.array();
-    QVERIFY(array.count() == 1);
+    QVERIFY(array.size() == 1);
 
     // Validate the "command object"
     const QJsonObject entry = array.at(0).toObject();
@@ -159,7 +159,7 @@ void TestClangDb::checkDbIsConsistentWithProject()
     QVERIFY(entry.value("directory").isString());
     QVERIFY(entry.contains("arguments"));
     QVERIFY(entry.value("arguments").isArray());
-    QVERIFY(entry.value("arguments").toArray().count() >= 2);
+    QVERIFY(entry.value("arguments").toArray().size() >= 2);
     QVERIFY(entry.contains("file"));
     QVERIFY(entry.value("file").isString());
     QVERIFY(entry.value("file").toString() == sourceFilePath);
@@ -171,7 +171,7 @@ void TestClangDb::checkDbIsConsistentWithProject()
     QStringList arguments;
     const QJsonArray jsonArguments = entry.value("arguments").toArray();
     QString executable = jsonArguments.at(0).toString();
-    for (int i=1; i<jsonArguments.count(); i++)
+    for (int i=1; i<jsonArguments.size(); i++)
         arguments.append(jsonArguments.at(i).toString());
     QVERIFY(runProcess(executable, arguments, stdErr, stdOut) == 0);
 }

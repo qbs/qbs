@@ -55,7 +55,7 @@ namespace Internal {
 template <typename C>
 QScriptValue toScriptValue(QScriptEngine *scriptEngine, const C &container)
 {
-    QScriptValue v = scriptEngine->newArray(container.count());
+    QScriptValue v = scriptEngine->newArray(container.size());
     int i = 0;
     for (const typename C::value_type &item : container)
         v.setProperty(i++, scriptEngine->toScriptValue(item));

@@ -129,7 +129,7 @@ static QtAndroidInfo getInfoForQtDir(const QString &qtDir)
         if (!isArchLine && !isPlatformLine)
             continue;
         const QList<QByteArray> elems = line.split('=');
-        if (elems.count() != 2)
+        if (elems.size() != 2)
             continue;
         const QString rhs = QString::fromLatin1(elems.at(1).trimmed());
         if (isArchLine)
@@ -166,8 +166,8 @@ static QString maximumPlatform(const QString &platform1, const QString &platform
     if (platform2.isEmpty())
         return platform1;
     static const QString prefix = qls("android-");
-    const QString numberString1 = platform1.mid(prefix.count());
-    const QString numberString2 = platform2.mid(prefix.count());
+    const QString numberString1 = platform1.mid(prefix.size());
+    const QString numberString2 = platform2.mid(prefix.size());
     bool ok;
     const int value1 = numberString1.toInt(&ok);
     if (!ok) {

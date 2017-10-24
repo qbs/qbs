@@ -70,7 +70,7 @@ QString QualifiedId::toString() const
 
 bool operator<(const QualifiedId &a, const QualifiedId &b)
 {
-    const int c = std::min(a.count(), b.count());
+    const int c = std::min(a.size(), b.size());
     for (int i = 0; i < c; ++i) {
         int n = a.at(i).compare(b.at(i));
         if (n < 0)
@@ -78,7 +78,7 @@ bool operator<(const QualifiedId &a, const QualifiedId &b)
         if (n > 0)
             return false;
     }
-    return a.count() < b.count();
+    return a.size() < b.size();
 }
 
 } // namespace Internal

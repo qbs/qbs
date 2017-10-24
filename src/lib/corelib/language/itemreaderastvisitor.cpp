@@ -96,7 +96,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         QBS_CHECK(inheritorItem->type() <= ItemType::LastActualItem);
         itemType = inheritorItem->type();
     } else {
-        if (fullTypeName.count() > 1) {
+        if (fullTypeName.size() > 1) {
             throw ErrorInfo(Tr::tr("Invalid item '%1'. Did you mean to set a module property?")
                             .arg(fullTypeName.join(QLatin1Char('.'))), itemLocation);
         }
@@ -262,7 +262,7 @@ Item *ItemReaderASTVisitor::targetItemForBinding(const QStringList &bindingName,
                                                  const JSSourceValueConstPtr &value)
 {
     Item *targetItem = m_item;
-    const int c = bindingName.count() - 1;
+    const int c = bindingName.size() - 1;
     for (int i = 0; i < c; ++i) {
         ValuePtr v = targetItem->ownProperty(bindingName.at(i));
         if (!v) {
@@ -284,7 +284,7 @@ Item *ItemReaderASTVisitor::targetItemForBinding(const QStringList &bindingName,
 void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
 {
     int insertPos = 0;
-    for (int i = 0; i < src->m_children.count(); ++i) {
+    for (int i = 0; i < src->m_children.size(); ++i) {
         Item *child = src->m_children.at(i);
         dst->m_children.insert(insertPos++, child);
         child->m_parent = dst;

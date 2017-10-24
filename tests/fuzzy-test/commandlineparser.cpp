@@ -109,7 +109,7 @@ void CommandLineParser::parseDuration()
     QString choppedDurationString;
     assignOptionArgument(maxDurationoption(), durationString);
     choppedDurationString = durationString;
-    const char suffix = durationString.at(durationString.count() - 1).toLatin1();
+    const char suffix = durationString.at(durationString.size() - 1).toLatin1();
     const bool hasSuffix = !std::isdigit(suffix);
     if (hasSuffix)
         choppedDurationString.chop(1);

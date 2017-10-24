@@ -130,7 +130,7 @@ ProjectData ProjectPrivate::projectData()
 
 static void addDependencies(QList<ResolvedProductPtr> &products)
 {
-    for (int i = 0; i < products.count(); ++i) {
+    for (int i = 0; i < products.size(); ++i) {
         const ResolvedProductPtr &product = products.at(i);
         for (const ResolvedProductPtr &dependency : qAsConst(product->dependencies)) {
             if (!products.contains(dependency))
@@ -317,7 +317,7 @@ void ProjectPrivate::setupInstallData(ArtifactData &artifact,
                 product->sourceDirectory, artifact.filePath(), artifact.properties().d->m_map,
                 options);
         if (!installRoot.isEmpty())
-            installFilePath.remove(0, installRoot.count());
+            installFilePath.remove(0, installRoot.size());
         artifact.d->installData.d->installFilePath = installFilePath;
     } catch (const ErrorInfo &e) {
         logger.printWarning(e);
@@ -335,7 +335,7 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
     if (products.isEmpty())
         throw ErrorInfo(Tr::tr("Product '%1' does not exist.").arg(product.name()));
     const QList<ResolvedProductPtr> resolvedProducts = internalProducts(products);
-    QBS_CHECK(products.count() == resolvedProducts.count());
+    QBS_CHECK(products.size() == resolvedProducts.size());
 
     for (const GroupPtr &resolvedGroup : qAsConst(resolvedProducts.front()->groups)) {
         if (resolvedGroup->name == groupName) {
@@ -355,8 +355,8 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
                                 groupInserter.lineOffset());
 
     products = findProductsByName(products.front().name()); // These are new objects.
-    QBS_CHECK(products.count() == resolvedProducts.count());
-    for (int i = 0; i < products.count(); ++i) {
+    QBS_CHECK(products.size() == resolvedProducts.size());
+    for (int i = 0; i < products.size(); ++i) {
         const GroupPtr resolvedGroup = ResolvedGroup::create();
         resolvedGroup->location = groupInserter.itemPosition();
         resolvedGroup->enabled = true;
@@ -396,9 +396,9 @@ ProjectPrivate::GroupUpdateContext ProjectPrivate::getGroupContext(const Product
         QBS_CHECK(p.isValid());
         context.groups << g;
     }
-    QBS_CHECK(context.resolvedProducts.count() == context.products.count());
-    QBS_CHECK(context.resolvedProducts.count() == context.resolvedGroups.count());
-    QBS_CHECK(context.products.count() == context.groups.count());
+    QBS_CHECK(context.resolvedProducts.size() == context.products.size());
+    QBS_CHECK(context.resolvedProducts.size() == context.resolvedGroups.size());
+    QBS_CHECK(context.products.size() == context.groups.size());
     return context;
 }
 
@@ -433,7 +433,7 @@ ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const P
         throw ErrorInfo(Tr::tr("No files supplied."));
 
     QString prefix;
-    for (int i = 0; i < groupContext.resolvedGroups.count(); ++i) {
+    for (int i = 0; i < groupContext.resolvedGroups.size(); ++i) {
         const GroupPtr &g = groupContext.resolvedGroups.at(i);
         if (!g->prefix.isEmpty() && !g->prefix.endsWith(QLatin1Char('/')))
             throw ErrorInfo(Tr::tr("Group has non-directory prefix."));
@@ -500,7 +500,7 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     updateExternalCodeLocations(m_projectData, adder.itemPosition(), adder.lineOffset());
 
     QHash<QString, std::pair<SourceArtifactPtr, ResolvedProductPtr>> addedSourceArtifacts;
-    for (int i = 0; i < groupContext.resolvedGroups.count(); ++i) {
+    for (int i = 0; i < groupContext.resolvedGroups.size(); ++i) {
         const ResolvedProductPtr &resolvedProduct = groupContext.resolvedProducts.at(i);
         const GroupPtr &resolvedGroup = groupContext.resolvedGroups.at(i);
         for (const QString &file : qAsConst(filesContext.absoluteFilePaths)) {
@@ -573,7 +573,7 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
             filesContext.relativeFilePaths);
     remover.apply();
 
-    for (int i = 0; i < groupContext.resolvedProducts.count(); ++i) {
+    for (int i = 0; i < groupContext.resolvedProducts.size(); ++i) {
         removeFilesFromBuildGraph(groupContext.resolvedProducts.at(i), sourceArtifacts);
         for (const SourceArtifactPtr &sa : qAsConst(sourceArtifacts))
             groupContext.resolvedGroups.at(i)->files.removeOne(sa);
@@ -584,7 +584,7 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
     updateInternalCodeLocations(internalProject, remover.itemPosition(), remover.lineOffset());
     updateExternalCodeLocations(m_projectData, remover.itemPosition(), remover.lineOffset());
     for (const GroupData &g : qAsConst(groupContext.groups)) {
-        for (int i = g.d->sourceArtifacts.count() - 1; i >= 0; --i) {
+        for (int i = g.d->sourceArtifacts.size() - 1; i >= 0; --i) {
             if (filesContext.absoluteFilePaths.contains(g.d->sourceArtifacts.at(i).filePath()))
                 g.d->sourceArtifacts.removeAt(i);
         }
@@ -598,7 +598,7 @@ void ProjectPrivate::removeGroup(const ProductData &product, const GroupData &gr
     ProjectFileGroupRemover remover(context.products.front(), context.groups.front());
     remover.apply();
 
-    for (int i = 0; i < context.resolvedProducts.count(); ++i) {
+    for (int i = 0; i < context.resolvedProducts.size(); ++i) {
         const ResolvedProductPtr &product = context.resolvedProducts.at(i);
         const GroupPtr &group = context.resolvedGroups.at(i);
         removeFilesFromBuildGraph(product, group->allFiles());
@@ -610,7 +610,7 @@ void ProjectPrivate::removeGroup(const ProductData &product, const GroupData &gr
     m_projectData.d.detach();
     updateInternalCodeLocations(internalProject, remover.itemPosition(), remover.lineOffset());
     updateExternalCodeLocations(m_projectData, remover.itemPosition(), remover.lineOffset());
-    for (int i = 0; i < context.products.count(); ++i) {
+    for (int i = 0; i < context.products.size(); ++i) {
         const bool removed = context.products.at(i).d->groups.removeOne(context.groups.at(i));
         QBS_CHECK(removed);
     }

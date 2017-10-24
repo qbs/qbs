@@ -428,7 +428,7 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
 
     *result = engine()->newArray();
     quint32 k = 0;
-    for (int i = 0; i < lst.count(); ++i) {
+    for (int i = 0; i < lst.size(); ++i) {
         const QScriptValue &v = lst.at(i);
         QBS_ASSERT(!v.isError(), continue);
         if (v.isArray()) {

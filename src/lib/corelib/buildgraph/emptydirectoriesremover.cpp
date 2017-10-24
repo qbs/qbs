@@ -78,7 +78,7 @@ void EmptyDirectoriesRemover::removeEmptyParentDirectories(const ArtifactSet &ar
 void EmptyDirectoriesRemover::insertSorted(const QString &dirPath)
 {
     int i;
-    for (i = 0; i < m_dirsToRemove.count(); ++i) {
+    for (i = 0; i < m_dirsToRemove.size(); ++i) {
         const QString &cur = m_dirsToRemove.at(i);
         if (dirPath == cur)
             return;

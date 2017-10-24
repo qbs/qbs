@@ -122,9 +122,9 @@ void ExecutorJob::cancel()
 
 void ExecutorJob::runNextCommand()
 {
-    QBS_ASSERT(m_currentCommandIdx <= m_transformer->commands.count(), return);
+    QBS_ASSERT(m_currentCommandIdx <= m_transformer->commands.size(), return);
     ++m_currentCommandIdx;
-    if (m_currentCommandIdx >= m_transformer->commands.count()) {
+    if (m_currentCommandIdx >= m_transformer->commands.size()) {
         setFinished();
         return;
     }

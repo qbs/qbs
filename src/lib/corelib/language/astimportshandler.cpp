@@ -105,7 +105,7 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
                         toCodeLocation(m_file->filePath(), import->importIdToken));
         }
     } else {
-        if (importUri.count() == 2 && importUri.front() == QLatin1String("qbs")) {
+        if (importUri.size() == 2 && importUri.front() == QLatin1String("qbs")) {
             const QString extensionName = importUri.last();
             if (JsExtensions::hasExtension(extensionName)) {
                 if (Q_UNLIKELY(!import->importId.isNull())) {
