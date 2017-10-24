@@ -92,6 +92,7 @@ private slots:
     void derivedSubProject();
     void enumerateProjectProperties();
     void environmentVariable();
+    void errorInDisabledProduct();
     void erroneousFiles_data();
     void erroneousFiles();
     void exports();

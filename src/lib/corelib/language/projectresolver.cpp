@@ -79,6 +79,7 @@ static const FileTag unknownFileTag()
 
 struct ProjectResolver::ProjectContext
 {
+    ProjectContext *parentContext = nullptr;
     ResolvedProjectPtr project;
     QList<FileTaggerConstPtr> fileTaggers;
     QList<RulePtr> rules;
@@ -100,6 +101,8 @@ struct ProjectResolver::ModuleContext
 {
     ResolvedModulePtr module;
 };
+
+class CancelException { };
 
 
 ProjectResolver::ProjectResolver(Evaluator *evaluator, const ModuleLoaderResult &loadResult,
@@ -173,16 +176,17 @@ TopLevelProjectPtr ProjectResolver::resolve()
         }
         appendError(e, errorInfo);
         throw e;
+    } catch (const CancelException &) {
+        throw ErrorInfo(Tr::tr("Project resolving canceled for configuration '%1'.")
+                    .arg(TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree())));
     }
     return tlp;
 }
 
 void ProjectResolver::checkCancelation() const
 {
-    if (m_progressObserver && m_progressObserver->canceled()) {
-        throw ErrorInfo(Tr::tr("Project resolving canceled for configuration %1.")
-                    .arg(TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree())));
-    }
+    if (m_progressObserver && m_progressObserver->canceled())
+        throw CancelException();
 }
 
 QString ProjectResolver::verbatimValue(const ValueConstPtr &value, bool *propertyWasSet) const
@@ -281,12 +285,30 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
 
-    projectContext->project->name = m_evaluator->stringValue(item, QLatin1String("name"));
+    if (projectContext->parentContext)
+        projectContext->project->enabled = projectContext->parentContext->project->enabled;
     projectContext->project->location = item->location();
+    try {
+        resolveProjectFully(item, projectContext);
+    } catch (const ErrorInfo &error) {
+        if (!projectContext->project->enabled) {
+            qCDebug(lcProjectResolver) << "error resolving project"
+                                       << projectContext->project->location << error.toString();
+            return;
+        }
+        if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
+            throw;
+        m_logger.printWarning(error);
+    }
+}
+
+void ProjectResolver::resolveProjectFully(Item *item, ProjectResolver::ProjectContext *projectContext)
+{
+    projectContext->project->enabled = projectContext->project->enabled
+            && m_evaluator->boolValue(item, QLatin1String("condition"));
+    projectContext->project->name = m_evaluator->stringValue(item, QLatin1String("name"));
     if (projectContext->project->name.isEmpty())
         projectContext->project->name = FileInfo::baseName(item->location().filePath()); // FIXME: Must also be changed in item?
-    projectContext->project->enabled
-            = m_evaluator->boolValue(item, QLatin1String("condition"));
     QVariantMap projectProperties;
     if (!projectContext->project->enabled) {
         projectProperties.insert(QLatin1String("profile"),
@@ -344,51 +366,80 @@ void ProjectResolver::resolveSubProject(Item *item, ProjectResolver::ProjectCont
     }
 }
 
+class ProjectResolver::ProductContextSwitcher
+{
+public:
+    ProductContextSwitcher(ProjectResolver *resolver, ProductContext *newContext,
+                           ProgressObserver *progressObserver)
+        : m_resolver(resolver), m_progressObserver(progressObserver)
+    {
+        QBS_CHECK(!m_resolver->m_productContext);
+        m_resolver->m_productContext = newContext;
+    }
+
+    ~ProductContextSwitcher()
+    {
+        if (m_progressObserver)
+            m_progressObserver->incrementProgressValue();
+        m_resolver->m_productContext = nullptr;
+    }
+
+private:
+    ProjectResolver * const m_resolver;
+    ProgressObserver * const m_progressObserver;
+};
+
 void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
     m_evaluator->clearPropertyDependencies();
     ProductContext productContext;
-    m_productContext = &productContext;
     productContext.item = item;
     ResolvedProductPtr product = ResolvedProduct::create();
+    product->enabled = projectContext->project->enabled;
     product->moduleProperties = PropertyMapInternal::create();
     product->project = projectContext->project;
+    productContext.product = product;
+    product->location = item->location();
+    ProductContextSwitcher contextSwitcher(this, &productContext, m_progressObserver);
+    try {
+        resolveProductFully(item, projectContext);
+    } catch (const ErrorInfo &error) {
+        if (!product->enabled) {
+            qCDebug(lcProjectResolver) << "error resolving product" << product->location
+                                       << error.toString();
+            return;
+        }
+        if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
+            throw;
+        m_logger.printWarning(error);
+        m_logger.printWarning(ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
+                                        .arg(product->name), item->location()));
+        product->enabled = false;
+    }
+}
+
+void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectContext)
+{
+    const ResolvedProductPtr product = m_productContext->product;
     m_productItemMap.insert(product, item);
     projectContext->project->products += product;
-    productContext.product = product;
     product->name = m_evaluator->stringValue(item, QLatin1String("name"));
-    product->location = item->location();
 
     // product->buildDirectory() isn't valid yet, because the productProperties map is not ready.
-    productContext.buildDirectory = m_evaluator->stringValue(item, QLatin1String("buildDirectory"));
+    m_productContext->buildDirectory = m_evaluator->stringValue(item, QLatin1String("buildDirectory"));
     product->profile = m_evaluator->stringValue(item, QLatin1String("profile"));
     QBS_CHECK(!product->profile.isEmpty());
     product->multiplexConfigurationId
             = m_evaluator->stringValue(item, QLatin1String("multiplexConfigurationId"));
     qCDebug(lcProjectResolver) << "resolveProduct" << product->uniqueName();
     m_productsByName.insert(product->uniqueName(), product);
-    product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
+    product->enabled = product->enabled && m_evaluator->boolValue(item, QLatin1String("condition"));
     ModuleLoaderResult::ProductInfo &pi = m_loadResult.productInfos[item];
     if (pi.delayedError.hasError()) {
-        if (product->enabled) {
-            switch (m_setupParams.productErrorMode()) {
-            case ErrorHandlingMode::Relaxed:
-                m_logger.printWarning(pi.delayedError);
-                m_logger.printWarning(ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
-                                                .arg(product->name), item->location()));
-                product->enabled = false;
-                break;
-            case ErrorHandlingMode::Strict:
-                {
-                    ErrorInfo errorInfo;
-                    std::swap(pi.delayedError, errorInfo);
-                    throw errorInfo;
-                }
-            }
-        }
-        pi.delayedError.clear();
-        return;
+        ErrorInfo errorInfo;
+        std::swap(pi.delayedError, errorInfo);
+        throw errorInfo;
     }
     gatherProductTypes(product.get(), item);
     product->targetName = m_evaluator->stringValue(item, QLatin1String("targetName"));
@@ -397,7 +448,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     product->destinationDirectory = m_evaluator->stringValue(item, destDirKey);
 
     if (product->destinationDirectory.isEmpty()) {
-        product->destinationDirectory = productContext.buildDirectory;
+        product->destinationDirectory = m_productContext->buildDirectory;
     } else {
         product->destinationDirectory = FileInfo::resolvePath(
                     product->topLevelProject()->buildDirectory,
@@ -445,10 +496,6 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 
     for (const FileTag &t : qAsConst(product->fileTags))
         m_productsByType[t] << product;
-
-    m_productContext = 0;
-    if (m_progressObserver)
-        m_progressObserver->incrementProgressValue();
 }
 
 void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectContext)
@@ -610,8 +657,29 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
 
 void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
 {
-    Q_UNUSED(projectContext);
     checkCancelation();
+    const bool parentEnabled = m_productContext->currentGroup
+            ? m_productContext->currentGroup->enabled
+            : m_productContext->product->enabled;
+    const bool isEnabled = parentEnabled
+            && m_evaluator->boolValue(item, QLatin1String("condition"));
+    try {
+        resolveGroupFully(item, projectContext, isEnabled);
+    } catch (const ErrorInfo &error) {
+        if (!isEnabled) {
+            qCDebug(lcProjectResolver) << "error resolving group at" << item->location()
+                                       << error.toString();
+            return;
+        }
+        if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
+            throw;
+        m_logger.printWarning(error);
+    }
+}
+
+void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectContext *projectContext,
+                                        bool isEnabled)
+{
     PropertyMapPtr moduleProperties = m_productContext->currentGroup
             ? m_productContext->currentGroup->properties
             : m_productContext->product->moduleProperties;
@@ -625,9 +693,6 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     AccumulatingTimer groupTimer(m_setupParams.logElapsedTime()
                                        ? &m_elapsedTimeGroups : nullptr);
 
-    bool isEnabled = m_evaluator->boolValue(item, QLatin1String("condition"));
-    if (m_productContext->currentGroup)
-        isEnabled = isEnabled && m_productContext->currentGroup->enabled;
     QStringList files = m_evaluator->stringListValue(item, QLatin1String("files"));
     bool fileTagsSet;
     const FileTags fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"),
@@ -848,19 +913,16 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
             = m_evaluator->fileTagsValue(item, QLatin1String("explicitlyDependsOn"));
     rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
     if (!rule->multiplex && !rule->declaresInputs()) {
-        handleError(ErrorInfo(Tr::tr("Rule has no inputs, but is not a multiplex rule."),
-                              item->location()));
-        return;
+        throw ErrorInfo(Tr::tr("Rule has no inputs, but is not a multiplex rule."),
+                        item->location());
     }
     if (!rule->multiplex && !rule->requiresInputs) {
-        handleError(ErrorInfo(Tr::tr("Rule.requiresInputs is false for non-multiplex rule.")
-                              , item->location()));
-        return;
+        throw ErrorInfo(Tr::tr("Rule.requiresInputs is false for non-multiplex rule."),
+                        item->location());
     }
     if (!rule->declaresInputs() && rule->requiresInputs) {
-        handleError(ErrorInfo(Tr::tr("Rule.requiresInputs is true, but the rule "
-                                     "does not declare any input tags."), item->location()));
-        return;
+        throw ErrorInfo(Tr::tr("Rule.requiresInputs is true, but the rule "
+                               "does not declare any input tags."), item->location());
     }
     if (m_productContext) {
         rule->product = m_productContext->product.get();
@@ -1061,13 +1123,6 @@ void ProjectResolver::printProfilingInfo()
                                       << Tr::tr("Resolving groups (without module property "
                                                 "evaluation) took %1.")
                                          .arg(elapsedTimeString(m_elapsedTimeGroups));
-}
-
-void ProjectResolver::handleError(const ErrorInfo &error)
-{
-    if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
-        throw error;
-    m_logger.printWarning(error);
 }
 
 static bool hasDependencyCycle(Set<ResolvedProduct *> *checked,
@@ -1316,6 +1371,7 @@ void ProjectResolver::callItemFunction(const ItemFuncMap &mappings, Item *item,
 ProjectResolver::ProjectContext ProjectResolver::createProjectContext(ProjectContext *parentProjectContext) const
 {
     ProjectContext subProjectContext;
+    subProjectContext.parentContext = parentProjectContext;
     subProjectContext.project = ResolvedProject::create();
     parentProjectContext->project->subProjects += subProjectContext.project;
     subProjectContext.project->parentProject = parentProjectContext->project;

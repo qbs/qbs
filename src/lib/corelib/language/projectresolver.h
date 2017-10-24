@@ -84,6 +84,7 @@ private:
     struct ProjectContext;
     struct ProductContext;
     struct ModuleContext;
+    class ProductContextSwitcher;
 
     void checkCancelation() const;
     QString verbatimValue(const ValueConstPtr &value, bool *propertyWasSet = 0) const;
@@ -93,8 +94,10 @@ private:
     void ignoreItem(Item *item, ProjectContext *projectContext);
     TopLevelProjectPtr resolveTopLevelProject();
     void resolveProject(Item *item, ProjectContext *projectContext);
+    void resolveProjectFully(Item *item, ProjectContext *projectContext);
     void resolveSubProject(Item *item, ProjectContext *projectContext);
     void resolveProduct(Item *item, ProjectContext *projectContext);
+    void resolveProductFully(Item *item, ProjectContext *projectContext);
     void resolveModules(const Item *item, ProjectContext *projectContext);
     void resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
                        const QVariantMap &parameters, ProjectContext *projectContext);
@@ -102,6 +105,7 @@ private:
     QVariantMap resolveAdditionalModuleProperties(const Item *group,
                                                   const QVariantMap &currentValues);
     void resolveGroup(Item *item, ProjectContext *projectContext);
+    void resolveGroupFully(Item *item, ProjectContext *projectContext, bool isEnabled);
     void resolveRule(Item *item, ProjectContext *projectContext);
     void resolveRuleArtifact(const RulePtr &rule, Item *item);
     void resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact, Item *item,
@@ -145,7 +149,6 @@ private:
     static void matchArtifactProperties(const ResolvedProductPtr &product,
             const QList<SourceArtifactPtr> &artifacts);
     void printProfilingInfo();
-    void handleError(const ErrorInfo &error);
 
     Evaluator *m_evaluator;
     Logger &m_logger;

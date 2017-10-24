@@ -653,6 +653,23 @@ void TestLanguage::environmentVariable()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::errorInDisabledProduct()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("error-in-disabled-product.qbs"));
+        auto project = loader->loadProject(params);
+        QVERIFY(!!project);
+        auto products = productsFromProject(project);
+        QCOMPARE(products.count(), 4);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::erroneousFiles_data()
 {
     QTest::addColumn<QString>("errorMessage");
