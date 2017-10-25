@@ -3309,8 +3309,8 @@ void ModuleLoader::copyGroupsFromModuleToProduct(const ProductContext &productCo
                                                  const Item::Module &module,
                                                  const Item *modulePrototype)
 {
-    for (int i = 0; i < modulePrototype->children().size(); ++i) {
-        Item * const child = modulePrototype->children().at(i);
+    const auto children = modulePrototype->children();
+    for (Item * const child : children) {
         if (child->type() == ItemType::Group) {
             Item * const clonedGroup = child->clone();
             clonedGroup->setScope(productContext.scope);

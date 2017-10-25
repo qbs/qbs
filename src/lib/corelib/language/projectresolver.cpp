@@ -737,8 +737,8 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     if (!prefixWasSet && m_productContext->currentGroup)
         group->prefix = m_productContext->currentGroup->prefix;
     if (!group->prefix.isEmpty()) {
-        for (int i = files.size(); --i >= 0;)
-                files[i].prepend(group->prefix);
+        for (auto it = files.rbegin(), end = files.rend(); it != end; ++it)
+            it->prepend(group->prefix);
     }
     group->location = item->location();
     group->enabled = isEnabled;

@@ -73,8 +73,8 @@ inline static bool isSpecialChar(ushort c, const uchar (&iqm)[16])
 
 inline static bool hasSpecialChars(const QString &arg, const uchar (&iqm)[16])
 {
-    for (int x = arg.length() - 1; x >= 0; --x) {
-        if (isSpecialChar(arg.unicode()[x].unicode(), iqm))
+    for (auto it = arg.crbegin(), end = arg.crend(); it != end; ++it) {
+        if (isSpecialChar(it->unicode(), iqm))
             return true;
     }
     return false;

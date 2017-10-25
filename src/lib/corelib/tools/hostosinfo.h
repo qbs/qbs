@@ -233,8 +233,7 @@ bool HostOsInfo::isAnyUnixHost()
 QString HostOsInfo::rfc1034Identifier(const QString &str)
 {
     QString s = str;
-    for (int i = 0; i < s.size(); ++i) {
-        QCharRef ch = s[i];
+    for (QChar &ch : s) {
         const char c = ch.toLatin1();
 
         const bool okChar = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z')

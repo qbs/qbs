@@ -158,8 +158,8 @@ QString FuzzyTester::findWorkingStartCommit(const QString &startCommit)
     const QStringList allCommits = findAllCommits(startCommit);
     QString qbsError;
     m_currentActivity = buildFromScratchActivity();
-    for (int i = allCommits.size() - 1; i >= 0; --i) {
-        m_currentCommit = allCommits.at(i);
+    for (auto it = allCommits.crbegin(), end = allCommits.crend(); it != end; ++it) {
+        m_currentCommit = *it;
         if (m_unbuildableCommits.contains(m_currentCommit)) {
             qDebug("Skipping known bad commit %s.", qPrintable(m_currentCommit));
             continue;

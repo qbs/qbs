@@ -2094,8 +2094,8 @@ void TestBlackbox::responseFiles()
             << "foo" << qbs::Internal::shellQuote(QStringLiteral("with space")).toUtf8()
             << "bar" << "";
     QList<QByteArray> lines = file.readAll().split('\n');
-    for (int i = 0; i < lines.size(); ++i)
-        lines[i] = lines.at(i).trimmed();
+    for (auto &line : lines)
+        line = line.trimmed();
     QCOMPARE(lines, expected);
 }
 

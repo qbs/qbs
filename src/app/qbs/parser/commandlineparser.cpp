@@ -450,10 +450,8 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
     buildOptions.setDryRun(dryRun());
     QStringList changedFiles = optionPool.changedFilesOption()->arguments();
     QDir currentDir;
-    for (int i = 0; i < changedFiles.size(); ++i) {
-        QString &file = changedFiles[i];
+    for (QString &file : changedFiles)
         file = QDir::fromNativeSeparators(currentDir.absoluteFilePath(file));
-    }
     buildOptions.setChangedFiles(changedFiles);
     buildOptions.setKeepGoing(optionPool.keepGoingOption()->enabled());
     buildOptions.setForceTimestampCheck(optionPool.forceTimestampCheckOption()->enabled());

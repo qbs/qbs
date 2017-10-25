@@ -168,8 +168,7 @@ bool FileInfo::isPattern(const QString &str)
 
 bool FileInfo::isPattern(const QStringRef &str)
 {
-    for (int i = 0; i < str.size(); ++i) {
-        const QChar ch = str.at(i);
+    for (const QChar &ch : str) {
         if (ch == QLatin1Char('*') || ch == QLatin1Char('?')
                 || ch == QLatin1Char(']') || ch == QLatin1Char('[')) {
             return true;

@@ -428,8 +428,7 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
 
     *result = engine()->newArray();
     quint32 k = 0;
-    for (int i = 0; i < lst.size(); ++i) {
-        const QScriptValue &v = lst.at(i);
+    for (const QScriptValue &v : qAsConst(lst)) {
         QBS_ASSERT(!v.isError(), continue);
         if (v.isArray()) {
             const quint32 vlen = v.property(QStringLiteral("length")).toInt32();

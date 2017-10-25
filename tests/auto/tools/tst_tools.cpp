@@ -427,8 +427,8 @@ void TestTools::testProcessNameByPid()
 int toNumber(const QString &str)
 {
     int res = 0;
-    for (int i = 0; i < str.length(); ++i)
-        res = (res * 10) + str[i].digitValue();
+    for (const QChar &c : str)
+        res = (res * 10) + c.digitValue();
     return res;
 }
 

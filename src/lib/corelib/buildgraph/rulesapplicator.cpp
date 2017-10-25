@@ -217,13 +217,14 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     QScriptValue scriptValue;
     if (!ruleArtifactArtifactMap.empty())
         engine()->setGlobalObject(prepareScriptContext);
-    for (int i = ruleArtifactArtifactMap.size(); --i >= 0;) {
-        const RuleArtifact *ra = ruleArtifactArtifactMap.at(i).first;
+    for (auto it = ruleArtifactArtifactMap.crbegin(), end = ruleArtifactArtifactMap.crend();
+         it != end; ++it) {
+        const RuleArtifact *ra = it->first;
         if (ra->bindings.empty())
             continue;
 
         // expose attributes of this artifact
-        Artifact *outputArtifact = ruleArtifactArtifactMap.at(i).second;
+        Artifact *outputArtifact = it->second;
         outputArtifact->properties = outputArtifact->properties->clone();
 
         scope().setProperty(QLatin1String("fileName"),
@@ -367,8 +368,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
 
     FileTags outputArtifactFileTags = fileTags.empty()
             ? m_product->fileTagsForFileName(outputArtifact->fileName()) : fileTags;
-    for (int i = 0; i < m_product->artifactProperties.size(); ++i) {
-        const ArtifactPropertiesConstPtr &props = m_product->artifactProperties.at(i);
+    for (const ArtifactPropertiesConstPtr &props : qAsConst(m_product->artifactProperties)) {
         if (outputArtifactFileTags.intersects(props->fileTagsFilter())) {
             outputArtifact->properties = props->propertyMap();
             outputArtifactFileTags += props->extraFileTags();

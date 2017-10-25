@@ -152,8 +152,7 @@ QByteArray TestBlackboxBase::unifiedLineEndings(const QByteArray &ba)
     if (HostOsInfo::isWindowsHost()) {
         QByteArray result;
         result.reserve(ba.size());
-        for (int i = 0; i < ba.size(); ++i) {
-            char c = ba.at(i);
+        for (const char &c : ba) {
             if (c != '\r')
                 result.append(c);
         }

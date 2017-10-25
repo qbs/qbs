@@ -601,8 +601,8 @@ QScriptValueList ScriptEngine::argumentList(const QStringList &argumentNames,
         const QScriptValue &context)
 {
     QScriptValueList result;
-    for (int i = 0; i < argumentNames.size(); ++i)
-        result += context.property(argumentNames.at(i));
+    for (const auto &name : argumentNames)
+        result += context.property(name);
     return result;
 }
 

@@ -98,8 +98,8 @@ QString ExecutableFinder::findBySuffix(const QString &filePath) const
 bool ExecutableFinder::candidateCheck(const QString &directory, const QString &program,
         QString &fullProgramPath) const
 {
-    for (int i = 0; i < m_executableSuffixes.size(); ++i) {
-        QString candidate = directory + program + m_executableSuffixes.at(i);
+    for (const QString &suffix : qAsConst(m_executableSuffixes)) {
+        QString candidate = directory + program + suffix;
         qCDebug(lcExec) << "candidate:" << candidate;
         QFileInfo fi(candidate);
         if (fi.isFile() && fi.isExecutable()) {
@@ -122,8 +122,7 @@ QString ExecutableFinder::findInPath(const QString &filePath, const QString &wor
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
     if (HostOsInfo::isWindowsHost())
         pathEnv.prepend(QLatin1String("."));
-    for (int i = 0; i < pathEnv.size(); ++i) {
-        QString directory = pathEnv.at(i);
+    for (QString directory : qAsConst(pathEnv)) {
         if (directory == QLatin1String("."))
             directory = workingDirPath;
         if (!directory.isEmpty()) {

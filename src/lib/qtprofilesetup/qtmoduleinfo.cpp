@@ -56,8 +56,7 @@ namespace Internal {
 typedef QHash<QString, QString> NamePathHash;
 static void replaceQtLibNamesWithFilePath(const NamePathHash &namePathHash, QStringList *libList)
 {
-    for (int i = 0; i < libList->size(); ++i) {
-        QString &lib = (*libList)[i];
+    for (QString &lib : *libList) {
         const NamePathHash::ConstIterator it = namePathHash.find(lib);
         if (it != namePathHash.constEnd())
             lib = it.value();
@@ -77,8 +76,7 @@ static void replaceQtLibNamesWithFilePath(QList<QtModuleInfo> *modules, const Qt
         linkerNamesToFilePathsRelease.insert(m.libNameForLinker(qtEnv, false),
                                              m.libFilePathRelease);
     }
-    for (int i = 0; i < modules->size(); ++i) {
-        QtModuleInfo &module = (*modules)[i];
+    for (QtModuleInfo &module : *modules) {
         replaceQtLibNamesWithFilePath(linkerNamesToFilePathsDebug, &module.dynamicLibrariesDebug);
         replaceQtLibNamesWithFilePath(linkerNamesToFilePathsDebug, &module.staticLibrariesDebug);
         replaceQtLibNamesWithFilePath(linkerNamesToFilePathsRelease,
@@ -487,16 +485,15 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
             << QLatin1String("webkit") << QLatin1String("script") << QLatin1String("scripttools")
             << QLatin1String("declarative") << QLatin1String("gui") << QLatin1String("dbus")
             << QLatin1String("opengl") << QLatin1String("openvg");
-    for (int i = 0; i < modules.size(); ++i) {
-        QString name = modules[i].qbsName;
+    for (auto &module : modules) {
+        QString name = module.qbsName;
         name.remove(QLatin1String("-private"));
         if (modulesThatCanBeDisabled.contains(name))
-            modules[i].mustExist = false;
+            module.mustExist = false;
     }
 
     Internal::Set<QString> nonExistingPrlFiles;
-    for (int i = 0; i < modules.size(); ++i) {
-        QtModuleInfo &module = modules[i];
+    for (QtModuleInfo &module : modules) {
         if (qtEnvironment.staticBuild)
             module.isStaticLibrary = true;
         module.setupLibraries(qtEnvironment, &nonExistingPrlFiles);
@@ -585,10 +582,8 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
                 hasModuleEntry = true;
             } else if (key.endsWith(".depends")) {
                 moduleInfo.dependencies = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
-                for (int i = 0; i < moduleInfo.dependencies.size(); ++i) {
-                    moduleInfo.dependencies[i].replace(QLatin1String("_private"),
-                                                       QLatin1String("-private"));
-                }
+                for (auto &dependency : moduleInfo.dependencies)
+                    dependency.replace(QLatin1String("_private"), QLatin1String("-private"));
             } else if (key.endsWith(".module_config")) {
                 const auto elems = value.split(' ');
                 for (const QByteArray &elem : elems) {
@@ -603,8 +598,8 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
                 }
             } else if (key.endsWith(".includes")) {
                 moduleInfo.includePaths = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
-                for (int i = 0; i < moduleInfo.includePaths.size(); ++i) {
-                    moduleInfo.includePaths[i]
+                for (auto &includePath : moduleInfo.includePaths) {
+                    includePath
                             .replace(QLatin1String("$$QT_MODULE_INCLUDE_BASE"),
                                      qtEnvironment.includePath)
                             .replace(QLatin1String("$$QT_MODULE_LIB_BASE"),
