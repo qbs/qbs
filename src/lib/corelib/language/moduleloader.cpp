@@ -3183,6 +3183,11 @@ Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &r
 void ModuleLoader::handleProductError(const ErrorInfo &error,
                                       ModuleLoader::ProductContext *productContext)
 {
+    if (!productContext->info.delayedError.hasError()) {
+        productContext->info.delayedError.append(Tr::tr("Error while handling product '%1':")
+                                                 .arg(productContext->name),
+                                                 productContext->item->location());
+    }
     for (const ErrorItem &ei : error.items())
         productContext->info.delayedError.append(ei.description(), ei.codeLocation());
     productContext->project->result->productInfos.insert(productContext->item,

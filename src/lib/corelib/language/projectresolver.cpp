@@ -163,16 +163,8 @@ TopLevelProjectPtr ProjectResolver::resolve()
         for (auto it = m_loadResult.productInfos.cbegin(); it != m_loadResult.productInfos.cend();
              ++it) {
             const auto &productInfo = it.value();
-            if (productInfo.delayedError.hasError()) {
-                try {
-                    QString name = m_evaluator->stringValue(it.key(), QStringLiteral("name"));
-                    e.append(Tr::tr("Errors in product '%1':").arg(name), it.key()->location());
-                } catch (const ErrorInfo &/* ignore */) {
-                    // The name cannot be determined because of other errors.
-                    e.append(Tr::tr("Errors in product:"), it.key()->location());
-                }
+            if (productInfo.delayedError.hasError())
                 appendError(e, productInfo.delayedError);
-            }
         }
         appendError(e, errorInfo);
         throw e;
@@ -404,15 +396,19 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     ProductContextSwitcher contextSwitcher(this, &productContext, m_progressObserver);
     try {
         resolveProductFully(item, projectContext);
-    } catch (const ErrorInfo &error) {
+    } catch (const ErrorInfo &e) {
+        QString mainErrorString = !product->name.isEmpty()
+                ? Tr::tr("Error while handling product '%1':").arg(product->name)
+                : Tr::tr("Error while handling product:");
+        ErrorInfo fullError(mainErrorString, item->location());
+        appendError(fullError, e);
         if (!product->enabled) {
-            qCDebug(lcProjectResolver) << "error resolving product" << product->location
-                                       << error.toString();
+            qCDebug(lcProjectResolver) << fullError.toString();
             return;
         }
         if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
-            throw;
-        m_logger.printWarning(error);
+            throw fullError;
+        m_logger.printWarning(fullError);
         m_logger.printWarning(ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
                                         .arg(product->name), item->location()));
         product->enabled = false;
@@ -438,7 +434,13 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
     ModuleLoaderResult::ProductInfo &pi = m_loadResult.productInfos[item];
     if (pi.delayedError.hasError()) {
         ErrorInfo errorInfo;
-        std::swap(pi.delayedError, errorInfo);
+
+        // First item is "main error", gets prepended again in the catch clause.
+        const QList<ErrorItem> &items = pi.delayedError.items();
+        for (int i = 1; i < items.count(); ++i)
+            errorInfo.append(items.at(i));
+
+        pi.delayedError.clear();
         throw errorInfo;
     }
     gatherProductTypes(product.get(), item);
