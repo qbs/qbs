@@ -339,7 +339,7 @@ static Node *createNode(Node *parentNode, const QString &name)
     Node * const node = new Node;
     node->name = name;
     node->parent = parentNode;
-    parentNode->children << node;
+    parentNode->children.push_back(node);
     return node;
 }
 

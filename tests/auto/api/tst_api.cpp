@@ -68,7 +68,7 @@ public:
 
     void doPrintWarning(const qbs::ErrorInfo &error) {
         qDebug("%s", qPrintable(error.toString()));
-        warnings << error;
+        warnings.push_back(error);
     }
     void doPrintMessage(qbs::LoggerLevel, const QString &message, const QString &) {
         output += message;
@@ -1693,9 +1693,9 @@ void TestApi::multiArch()
         QVERIFY2(p.profile() == hostProfile.name() || p.profile() == targetProfile.name(),
                  qPrintable(p.profile()));
         if (p.profile() == hostProfile.name())
-            hostProducts << p;
+            hostProducts.push_back(p);
         else
-            targetProducts << p;
+            targetProducts.push_back(p);
     }
     QCOMPARE(hostProducts.size(), 2);
     QCOMPARE(targetProducts.size(), 1);

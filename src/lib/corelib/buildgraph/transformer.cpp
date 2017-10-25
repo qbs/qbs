@@ -252,13 +252,13 @@ void Transformer::createCommands(ScriptEngine *engine, const ScriptFunctionConst
             if (item.isValid() && !item.isUndefined()) {
                 const AbstractCommandPtr cmd = createCommandFromScriptValue(item, script->location);
                 if (cmd)
-                    commands += cmd;
+                    commands.push_back(cmd);
             }
         }
     } else {
         const AbstractCommandPtr cmd = createCommandFromScriptValue(scriptValue, script->location);
         if (cmd)
-            commands += cmd;
+            commands.push_back(cmd);
     }
 }
 

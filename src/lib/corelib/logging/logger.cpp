@@ -218,7 +218,7 @@ bool Logger::traceEnabled() const
 void Logger::printWarning(const ErrorInfo &warning)
 {
     if (m_storeWarnings)
-        m_warnings << warning;
+        m_warnings.push_back(warning);
     logSink()->printWarning(warning);
 }
 

@@ -566,7 +566,7 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
             }
             if (foundMissingSourceFile) {
                 hasChanged = true;
-                changedProducts += product;
+                changedProducts.push_back(product);
                 continue;
             }
 
@@ -594,7 +594,7 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
                 if (files == wcFiles)
                     continue;
                 hasChanged = true;
-                changedProducts += product;
+                changedProducts.push_back(product);
                 break;
             }
         }

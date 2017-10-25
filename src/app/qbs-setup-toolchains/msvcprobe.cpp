@@ -90,7 +90,7 @@ static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QStrin
     p.setValue(QLatin1String("qbs.toolchain"), QStringList(QLatin1String("msvc")));
     p.setValue(QLatin1String("cpp.toolchainInstallPath"), msvc->binPath);
     setQtHelperProperties(p, msvc);
-    profiles << p;
+    profiles.push_back(p);
 }
 
 struct MSVCArchInfo

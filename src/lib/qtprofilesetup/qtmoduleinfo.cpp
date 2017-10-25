@@ -328,7 +328,7 @@ static void addTestModule(QList<QtModuleInfo> &modules)
     QtModuleInfo testModule(QLatin1String("QtTest"), QLatin1String("test"),
                                QStringList() << QLatin1String("testlib"));
     testModule.hasLibrary = false;
-    modules << testModule;
+    modules.push_back(testModule);
 }
 
 // See above.
@@ -338,7 +338,7 @@ static void addDesignerComponentsModule(QList<QtModuleInfo> &modules)
                         QLatin1String("designercomponents"),
                         QStringList() << QLatin1String("designercomponents-private"));
     module.hasLibrary = false;
-    modules << module;
+    modules.push_back(module);
 }
 
 
@@ -423,28 +423,28 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
         axcontainer.modulePrefix = QLatin1String("Q");
         axcontainer.isStaticLibrary = true;
         axcontainer.includePaths << qtEnvironment.includePath + QLatin1String("/ActiveQt");
-        modules << axcontainer;
+        modules.push_back(axcontainer);
 
         QtModuleInfo axserver = axcontainer;
         axserver.name = QLatin1String("QAxServer");
         axserver.qbsName = QLatin1String("axserver");
         axserver.compilerDefines = QStringList() << QLatin1String("QAXSERVER");
-        modules << axserver;
+        modules.push_back(axserver);
     } else {
-        modules << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus"))
-                << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus-private"),
-                                QStringList() << QLatin1String("dbus"));
+        modules.push_back(QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus")));
+        modules.push_back(QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus-private"),
+                                       { QLatin1String("dbus") }));
     }
 
     QtModuleInfo designerComponentsPrivate(QLatin1String("QtDesignerComponents"),
             QLatin1String("designercomponents-private"),
             QStringList() << QLatin1String("gui-private") << QLatin1String("designer-private"));
     designerComponentsPrivate.hasLibrary = true;
-    modules << designerComponentsPrivate;
+    modules.push_back(designerComponentsPrivate);
 
     QtModuleInfo phonon(QLatin1String("Phonon"), QLatin1String("phonon"));
     phonon.includePaths = phonon.qt4ModuleIncludePaths(qtEnvironment);
-    modules << phonon;
+    modules.push_back(phonon);
 
     // Set up include paths that haven't been set up before this point.
     for (auto &module : modules) {
@@ -467,16 +467,16 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
     virtualModule.hasLibrary = false;
     virtualModule.qbsName = QLatin1String("widgets");
     virtualModule.dependencies = QStringList() << QLatin1String("core") << QLatin1String("gui");
-    modules << virtualModule;
+    modules.push_back(virtualModule);
     virtualModule.qbsName = QLatin1String("quick");
     virtualModule.dependencies = QStringList() << QLatin1String("declarative");
-    modules << virtualModule;
+    modules.push_back(virtualModule);
     virtualModule.qbsName = QLatin1String("concurrent");
     virtualModule.dependencies = QStringList() << QLatin1String("core");
-    modules << virtualModule;
+    modules.push_back(virtualModule);
     virtualModule.qbsName = QLatin1String("printsupport");
     virtualModule.dependencies = QStringList() << QLatin1String("core") << QLatin1String("gui");
-    modules << virtualModule;
+    modules.push_back(virtualModule);
 
     addTestModule(modules);
     addDesignerComponentsModule(modules);
@@ -642,7 +642,7 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
 
         moduleInfo.setupLibraries(qtEnvironment, &nonExistingPrlFiles);
 
-        modules << moduleInfo;
+        modules.push_back(moduleInfo);
         if (moduleInfo.qbsName == QLatin1String("testlib"))
             addTestModule(modules);
         if (moduleInfo.qbsName == QLatin1String("designercomponents-private"))

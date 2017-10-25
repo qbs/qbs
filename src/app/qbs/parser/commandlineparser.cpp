@@ -474,18 +474,20 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildConfigurations()
         const QString key = arg.left(sepPos);
         const QString rawValue = arg.mid(sepPos + 1);
         if (key == QLatin1String("config") || key == configurationNameKey) {
-            propertiesPerConfiguration << std::make_pair(currentConfigurationName,
-                                                         currentProperties);
+            propertiesPerConfiguration.push_back(std::make_pair(currentConfigurationName,
+                                                                currentProperties));
             currentConfigurationName = rawValue;
             currentProperties.clear();
             continue;
         }
         currentProperties.insert(propertyName(key), representationToSettingsValue(rawValue));
     }
-    propertiesPerConfiguration << std::make_pair(currentConfigurationName, currentProperties);
+    propertiesPerConfiguration.push_back(std::make_pair(currentConfigurationName,
+                                                        currentProperties));
 
     if (propertiesPerConfiguration.size() == 1) // No configuration name specified on command line.
-        propertiesPerConfiguration << PropertyListItem(QStringLiteral("default"), QVariantMap());
+        propertiesPerConfiguration.push_back(PropertyListItem(QStringLiteral("default"),
+                                                              QVariantMap()));
 
     const QVariantMap globalProperties = propertiesPerConfiguration.takeFirst().second;
     QList<QVariantMap> buildConfigs;
@@ -505,7 +507,7 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildConfigurations()
         }
 
         properties.insert(configurationNameKey, configurationName);
-        buildConfigs << properties;
+        buildConfigs.push_back(properties);
     }
 
     buildConfigurations = buildConfigs;

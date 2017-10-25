@@ -134,7 +134,7 @@ static void addDependencies(QList<ResolvedProductPtr> &products)
         const ResolvedProductPtr &product = products.at(i);
         for (const ResolvedProductPtr &dependency : qAsConst(product->dependencies)) {
             if (!products.contains(dependency))
-                products << dependency;
+                products.push_back(dependency);
         }
     }
 }
@@ -179,7 +179,7 @@ QList<ResolvedProductPtr> ProjectPrivate::internalProducts(const QList<ProductDa
     QList<ResolvedProductPtr> internalProducts;
     for (const ProductData &product : products) {
         if (product.isEnabled())
-            internalProducts << internalProduct(product);
+            internalProducts.push_back(internalProduct(product));
     }
     return internalProducts;
 }
@@ -190,7 +190,7 @@ static QList<ResolvedProductPtr> enabledInternalProducts(const ResolvedProjectCo
     QList<ResolvedProductPtr> products;
     for (const ResolvedProductPtr &p : qAsConst(project->products)) {
         if (p->enabled && (includingNonDefault || p->builtByDefault()))
-            products << p;
+            products.push_back(p);
     }
     for (const ResolvedProjectConstPtr &subProject : qAsConst(project->subProjects))
         products << enabledInternalProducts(subProject, includingNonDefault);
@@ -246,7 +246,7 @@ QList<ProductData> ProjectPrivate::findProductsByName(const QString &name) const
     QList<ProductData> list;
     for (const ProductData &p : m_projectData.allProducts()) {
         if (p.name() == name)
-            list << p;
+            list.push_back(p);
     }
     return list;
 }
@@ -270,13 +270,13 @@ GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup
     for (const SourceArtifactConstPtr &sa : qAsConst(resolvedGroup->files)) {
         ArtifactData artifact = createApiSourceArtifact(sa);
         setupInstallData(artifact, product);
-        group.d->sourceArtifacts << artifact;
+        group.d->sourceArtifacts.push_back(artifact);
     }
     if (resolvedGroup->wildcards) {
         for (const SourceArtifactConstPtr &sa : qAsConst(resolvedGroup->wildcards->files)) {
             ArtifactData artifact = createApiSourceArtifact(sa);
             setupInstallData(artifact, product);
-            group.d->sourceArtifactsFromWildcards << artifact;
+            group.d->sourceArtifactsFromWildcards.push_back(artifact);
         }
     }
     qSort(group.d->sourceArtifacts);

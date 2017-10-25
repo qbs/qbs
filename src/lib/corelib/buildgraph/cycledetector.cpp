@@ -101,7 +101,8 @@ QList<BuildGraphNode *> CycleDetector::cycle(BuildGraphNode *doubleEntry)
 {
     QList<BuildGraphNode *> path;
     findPath(doubleEntry, m_parent, path);
-    return path << doubleEntry;
+    path.push_back(doubleEntry);
+    return path;
 }
 
 } // namespace Internal

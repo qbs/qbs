@@ -181,12 +181,12 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
             cache.valid = true;
             for (ScannerPlugin *scanner : ScannerPluginManager::scannersForFileTag(fileTag)) {
                 PluginDependencyScanner *pluginScanner = new PluginDependencyScanner(scanner);
-                cache.scanners += DependencyScannerPtr(pluginScanner);
+                cache.scanners.push_back(DependencyScannerPtr(pluginScanner));
             }
             for (const ResolvedScannerConstPtr &scanner : qAsConst(product->scanners)) {
                 if (scanner->inputs.contains(fileTag)) {
-                    cache.scanners += DependencyScannerPtr(
-                                new UserDependencyScanner(scanner, engine));
+                    cache.scanners.push_back(DependencyScannerPtr(
+                                new UserDependencyScanner(scanner, engine)));
                     break;
                 }
             }

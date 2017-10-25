@@ -81,7 +81,7 @@ void RuleGraph::build(const QList<RulePtr> &rules, const FileTags &productFileTa
     QList<const Rule *> productRules;
     for (const FileTag &productFileTag : productFileTags) {
         QList<const Rule *> rules = m_outputFileTagToRule.value(productFileTag);
-        productRules += rules;
+        productRules << rules;
         //### check: the rule graph must be a in valid shape!
     }
     for (const Rule *r : qAsConst(productRules))

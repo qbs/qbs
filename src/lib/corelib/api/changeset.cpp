@@ -145,7 +145,7 @@ bool ChangeSet::replace_helper(int pos, int length, const QString &replacement)
     cmd.pos1 = pos;
     cmd.length1 = length;
     cmd.text = replacement;
-    m_operationList += cmd;
+    m_operationList.push_back(cmd);
 
     return !m_error;
 }
@@ -161,7 +161,7 @@ bool ChangeSet::move_helper(int pos, int length, int to)
     cmd.pos1 = pos;
     cmd.length1 = length;
     cmd.pos2 = to;
-    m_operationList += cmd;
+    m_operationList.push_back(cmd);
 
     return !m_error;
 }
@@ -176,7 +176,7 @@ bool ChangeSet::insert(int pos, const QString &text)
     EditOp cmd(EditOp::Insert);
     cmd.pos1 = pos;
     cmd.text = text;
-    m_operationList += cmd;
+    m_operationList.push_back(cmd);
 
     return !m_error;
 }
@@ -219,7 +219,7 @@ bool ChangeSet::remove_helper(int pos, int length)
     EditOp cmd(EditOp::Remove);
     cmd.pos1 = pos;
     cmd.length1 = length;
-    m_operationList += cmd;
+    m_operationList.push_back(cmd);
 
     return !m_error;
 }
@@ -236,7 +236,7 @@ bool ChangeSet::flip_helper(int pos1, int length1, int pos2, int length2)
     cmd.length1 = length1;
     cmd.pos2 = pos2;
     cmd.length2 = length2;
-    m_operationList += cmd;
+    m_operationList.push_back(cmd);
 
     return !m_error;
 }
@@ -252,7 +252,7 @@ bool ChangeSet::copy_helper(int pos, int length, int to)
     cmd.pos1 = pos;
     cmd.length1 = length;
     cmd.pos2 = to;
-    m_operationList += cmd;
+    m_operationList.push_back(cmd);
 
     return !m_error;
 }

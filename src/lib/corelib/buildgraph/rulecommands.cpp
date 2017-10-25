@@ -445,7 +445,7 @@ QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool)
         default:
             QBS_CHECK(false);
         }
-        commands += cmd;
+        commands.push_back(cmd);
     }
     return commands;
 }

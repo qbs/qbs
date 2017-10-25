@@ -178,7 +178,7 @@ void CommandLineFrontend::start()
             SetupProjectJob * const job = Project().setupProject(params,
                     ConsoleLogger::instance().logSink(), this);
             connectJob(job);
-            m_resolveJobs << job;
+            m_resolveJobs.push_back(job);
         }
 
         /*
@@ -230,7 +230,7 @@ void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
             cancel();
         } else if (SetupProjectJob * const setupJob = qobject_cast<SetupProjectJob *>(job)) {
             m_resolveJobs.removeOne(job);
-            m_projects << setupJob->project();
+            m_projects.push_back(setupJob->project());
             if (m_observer && resolvingMultipleProjects())
                 m_observer->incrementProgressValue();
             if (m_resolveJobs.empty())
@@ -345,7 +345,7 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
         const ProjectData projectData = project.projectData();
         foreach (const ProductData &product, projectData.allProducts()) {
             if (useAll || m_parser.products().contains(product.name())) {
-                productList << product;
+                productList.push_back(product);
                 productNames << product.name();
             }
         }
@@ -416,9 +416,10 @@ void CommandLineFrontend::makeClean()
     } else {
         const ProductMap &products = productsToUse();
         for (ProductMap::ConstIterator it = products.begin(); it != products.end(); ++it) {
-            m_buildJobs << it.key().cleanSomeProducts(it.value(),
-                                                      m_parser.cleanOptions(it.key().profile()),
-                                                      this);
+            m_buildJobs.push_back(it.key().cleanSomeProducts(
+                                      it.value(),
+                                      m_parser.cleanOptions(it.key().profile()),
+                                      this));
         }
     }
     connectBuildJobs();
@@ -486,7 +487,8 @@ void CommandLineFrontend::build()
     } else {
         const ProductMap &products = productsToUse();
         for (ProductMap::ConstIterator it = products.begin(); it != products.end(); ++it)
-            m_buildJobs << it.key().buildSomeProducts(it.value(), buildOptions(it.key()), this);
+            m_buildJobs.push_back(it.key().buildSomeProducts(it.value(),
+                                                             buildOptions(it.key()), this));
     }
     connectBuildJobs();
 
@@ -626,7 +628,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     QList<ProductData> runnableProducts;
     foreach (const ProductData &p, m_projects.front().projectData().allProducts()) {
         if (p.isRunnable())
-            runnableProducts << p;
+            runnableProducts.push_back(p);
     }
 
     if (runnableProducts.size() == 1)

@@ -62,9 +62,9 @@ void ProjectCreator::run(const QString &topLevelDir, ProjectStructure projectStr
 {
     m_projectStructure = projectStructure;
     for (const QString &s : whiteList)
-        m_whiteList << QRegExp(s, Qt::CaseSensitive, QRegExp::Wildcard);
+        m_whiteList.push_back(QRegExp(s, Qt::CaseSensitive, QRegExp::Wildcard));
     for (const QString &s : blackList)
-        m_blackList << QRegExp(s, Qt::CaseSensitive, QRegExp::Wildcard);
+        m_blackList.push_back(QRegExp(s, Qt::CaseSensitive, QRegExp::Wildcard));
     m_topLevelProject.dirPath = topLevelDir;
     setupProject(&m_topLevelProject);
     serializeProject(m_topLevelProject);

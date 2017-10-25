@@ -58,11 +58,11 @@ void ValgrindRunner::run()
 {
     QList<QFuture<void>> futures;
     if (m_activities & ActivityResolving)
-        futures << QtConcurrent::run(this, &ValgrindRunner::traceResolving);
+        futures.push_back(QtConcurrent::run(this, &ValgrindRunner::traceResolving));
     if (m_activities & ActivityRuleExecution)
-        futures << QtConcurrent::run(this, &ValgrindRunner::traceRuleExecution);
+        futures.push_back(QtConcurrent::run(this, &ValgrindRunner::traceRuleExecution));
     if (m_activities & ActivityNullBuild)
-        futures << QtConcurrent::run(this, &ValgrindRunner::traceNullBuild);
+        futures.push_back(QtConcurrent::run(this, &ValgrindRunner::traceNullBuild));
     while (!futures.empty())
         futures.takeFirst().waitForFinished();
 }
@@ -154,7 +154,7 @@ QStringList ValgrindRunner::valgrindCommandLine(const QString &qbsCommand, const
 void ValgrindRunner::addToResults(const ValgrindResult &result)
 {
     std::lock_guard<std::mutex> locker(m_resultsMutex);
-    m_results << result;
+    m_results.push_back(result);
 }
 
 qint64 ValgrindRunner::runCallgrind(const QString &qbsCommand, const QString &buildDir,

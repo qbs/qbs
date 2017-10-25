@@ -763,7 +763,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
             // TODO: Shouldn't addedByScanner always be true here? Otherwise the child would be
             //       in the list already, no?
             if (canRescue)
-                childrenToConnect << std::make_pair(child, cd.addedByScanner);
+                childrenToConnect.push_back({child, cd.addedByScanner});
         }
         for (const QString &depPath : rad.fileDependencies) {
             const QList<FileResourceBase *> depList = m_project->buildData->lookupFiles(depPath);
@@ -993,7 +993,7 @@ void Executor::checkForUnbuiltProducts()
         for (BuildGraphNode *rootNode : qAsConst(product->buildData->roots)) {
             if (rootNode->buildState != BuildGraphNode::Built) {
                 productBuilt = false;
-                unbuiltProducts += product;
+                unbuiltProducts.push_back(product);
                 break;
             }
         }

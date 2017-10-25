@@ -419,7 +419,7 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
 {
     const ResolvedProductPtr product = m_productContext->product;
     m_productItemMap.insert(product, item);
-    projectContext->project->products += product;
+    projectContext->project->products.push_back(product);
     product->name = m_evaluator->stringValue(item, QLatin1String("name"));
 
     // product->buildDirectory() isn't valid yet, because the productProperties map is not ready.
@@ -493,7 +493,7 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
     resolveModules(item, projectContext);
 
     for (const FileTag &t : qAsConst(product->fileTags))
-        m_productsByType[t] << product;
+        m_productsByType[t].push_back(product);
 }
 
 void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectContext)
@@ -528,7 +528,7 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
             module->moduleDependencies += m.name.toString();
     }
 
-    m_productContext->product->modules += module;
+    m_productContext->product->modules.push_back(module);
     if (!parameters.empty())
         m_productContext->product->moduleParameters[module] = parameters;
 
@@ -592,7 +592,7 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr
     artifact->overrideFileTags = group->overrideTags;
     artifact->properties = group->properties;
     artifact->targetOfModule = group->targetOfModule;
-    (wildcard ? group->wildcards->files : group->files) += artifact;
+    (wildcard ? group->wildcards->files : group->files).push_back(artifact);
     return artifact;
 }
 
@@ -607,7 +607,7 @@ static QualifiedIdSet propertiesToEvaluate(const QList<QualifiedId> &initialProp
         if (!insertResult.second)
             continue;
         for (const QualifiedId &directDep : deps.value(prop))
-            remainingProps << directDep;
+            remainingProps.push_back(directDep);
     }
     return allProperties;
 }
@@ -720,7 +720,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
         aprops->setFileTagsFilter(FileTags::fromStringList(fileTagsFilter));
         aprops->setExtraFileTags(fileTags);
         aprops->setPropertyMapInternal(moduleProperties);
-        m_productContext->product->artifactProperties += aprops;
+        m_productContext->product->artifactProperties.push_back(aprops);
         m_productContext->artifactPropertiesPerFilter.insert(fileTagsFilter,
                                 ProductContext::ArtifactPropertiesInfo(aprops, item->location()));
         return;
@@ -788,7 +788,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     group->name = m_evaluator->stringValue(item, QLatin1String("name"));
     if (group->name.isEmpty())
         group->name = Tr::tr("Group %1").arg(m_productContext->product->groups.size());
-    m_productContext->product->groups += group;
+    m_productContext->product->groups.push_back(group);
 
     class GroupContextSwitcher {
     public:
@@ -925,16 +925,16 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     }
     if (m_productContext) {
         rule->product = m_productContext->product.get();
-        m_productContext->product->rules += rule;
+        m_productContext->product->rules.push_back(rule);
     } else {
-        projectContext->rules += rule;
+        projectContext->rules.push_back(rule);
     }
 }
 
 void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
 {
     RuleArtifactPtr artifact = RuleArtifact::create();
-    rule->artifacts += artifact;
+    rule->artifacts.push_back(artifact);
     artifact->location = item->location();
 
     if (const auto sourceProperty = item->sourceProperty(QStringLiteral("filePath")))
@@ -1009,7 +1009,7 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
     }
 
     const int priority = m_evaluator->intValue(item, QLatin1String("priority"));
-    fileTaggers += FileTagger::create(patterns, fileTags, priority);
+    fileTaggers.push_back(FileTagger::create(patterns, fileTags, priority));
 }
 
 void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext *projectContext)
@@ -1026,7 +1026,7 @@ void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext
     scanner->recursive = m_evaluator->boolValue(item, QLatin1String("recursive"));
     scanner->searchPathsScript = scriptFunctionValue(item, QLatin1String("searchPaths"));
     scanner->scanScript = scriptFunctionValue(item, QLatin1String("scan"));
-    m_productContext->product->scanners += scanner;
+    m_productContext->product->scanners.push_back(scanner);
 }
 
 ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
@@ -1227,7 +1227,7 @@ void ProjectResolver::resolveProductDependencies(const ProjectContext &projectCo
 void ProjectResolver::postProcess(const ResolvedProductPtr &product,
                                   ProjectContext *projectContext) const
 {
-    product->fileTaggers += projectContext->fileTaggers;
+    product->fileTaggers << projectContext->fileTaggers;
     std::sort(std::begin(product->fileTaggers), std::end(product->fileTaggers),
               [] (const FileTaggerConstPtr &a, const FileTaggerConstPtr &b) {
         return a->priority() > b->priority();
@@ -1235,7 +1235,7 @@ void ProjectResolver::postProcess(const ResolvedProductPtr &product,
     for (const RulePtr &rule : qAsConst(projectContext->rules)) {
         RulePtr clonedRule = rule->clone();
         clonedRule->product = product.get();
-        product->rules += clonedRule;
+        product->rules.push_back(clonedRule);
     }
 }
 
@@ -1370,7 +1370,7 @@ ProjectResolver::ProjectContext ProjectResolver::createProjectContext(ProjectCon
     ProjectContext subProjectContext;
     subProjectContext.parentContext = parentProjectContext;
     subProjectContext.project = ResolvedProject::create();
-    parentProjectContext->project->subProjects += subProjectContext.project;
+    parentProjectContext->project->subProjects.push_back(subProjectContext.project);
     subProjectContext.project->parentProject = parentProjectContext->project;
     return subProjectContext;
 }

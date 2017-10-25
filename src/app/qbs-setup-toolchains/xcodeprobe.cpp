@@ -182,7 +182,7 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
                                  << QLatin1String("gcc"));
     if (devPath != defaultDeveloperPath)
         installationProfile.setValue(QStringLiteral("xcode.developerPath"), devPath);
-    profiles << installationProfile;
+    profiles.push_back(installationProfile);
 
     QStringList platforms;
     platforms << QStringLiteral("macosx")
@@ -197,7 +197,7 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
         platformProfile.removeProfile();
         platformProfile.setBaseProfile(installationProfile.name());
         platformProfile.setValue(QStringLiteral("qbs.targetOS"), targetOSList(platform));
-        profiles << platformProfile;
+        profiles.push_back(platformProfile);
 
         for (const QString &arch : archList(platform)) {
             Profile archProfile(xcodeName + QLatin1Char('-') + platform + QLatin1Char('-') + arch,
@@ -206,7 +206,7 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
             archProfile.setBaseProfile(platformProfile.name());
             archProfile.setValue(QStringLiteral("qbs.architecture"),
                                  qbs::canonicalArchitecture(arch));
-            profiles << archProfile;
+            profiles.push_back(archProfile);
         }
     }
 }

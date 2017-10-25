@@ -65,7 +65,7 @@ void ScannerPluginManager::registerPlugins(ScannerPlugin **plugins)
         const FileTags &fileTags = FileTags::fromStringList(
                     QString::fromLatin1(plugins[i]->fileTags).split(QLatin1Char(',')));
         for (const FileTag &tag : fileTags)
-        m_scannerPlugins[tag] += plugins[i];
+        m_scannerPlugins[tag].push_back(plugins[i]);
     }
 }
 

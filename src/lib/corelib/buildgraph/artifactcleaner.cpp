@@ -187,7 +187,7 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
         if (dir != project->buildDirectory) {
             const QString parentDir = QDir::cleanPath(dir + QLatin1String("/.."));
             if (parentDir != project->buildDirectory && !dirList.contains(parentDir))
-                dirList << parentDir;
+                dirList.push_back(parentDir);
         }
     }
     m_observer->incrementProgressValue();

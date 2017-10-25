@@ -1292,7 +1292,7 @@ public:
         JSSourceValuePtr value = JSSourceValue::create();
         value->setFile(m_fileContext);
         QString *str = new QString(sourceCode);
-        m_strings += str;
+        m_strings.push_back(str);
         value->setSourceCode(QStringRef(str));
         return value;
     }

@@ -318,7 +318,7 @@ void TestTools::testSettingsMigration_data()
 QString TestTools::setupSettingsDir1()
 {
     QTemporaryDir * const baseDir = new QTemporaryDir;
-    m_tmpDirs << baseDir;
+    m_tmpDirs.push_back(baseDir);
 
     const Version thisVersion = Version::fromString(QBS_VERSION);
     Version predecessor;
@@ -361,7 +361,7 @@ QString TestTools::setupSettingsDir1()
 QString TestTools::setupSettingsDir2()
 {
     QTemporaryDir * const baseDir = new QTemporaryDir;
-    m_tmpDirs << baseDir;
+    m_tmpDirs.push_back(baseDir);
     const QString settingsDir = baseDir->path();
     QSettings s(settingsDir + QLatin1String("/qbs.conf"),
                 HostOsInfo::isWindowsHost() ? QSettings::IniFormat : QSettings::NativeFormat);
@@ -377,7 +377,7 @@ QString TestTools::setupSettingsDir2()
 QString TestTools::setupSettingsDir3()
 {
     auto * const baseDir = new QTemporaryDir;
-    m_tmpDirs << baseDir;
+    m_tmpDirs.push_back(baseDir);
     return baseDir->path();
 }
 

@@ -247,7 +247,7 @@ static void gccProbe(Settings *settings, QList<Profile> &profiles, const QString
     }
     const QString profileName = cfi.completeBaseName();
     const QStringList toolchainTypes = toolchainTypeFromCompilerName(compilerName);
-    profiles << createGccProfile(compilerFilePath, settings, toolchainTypes, profileName);
+    profiles.push_back(createGccProfile(compilerFilePath, settings, toolchainTypes, profileName));
 }
 
 static void mingwProbe(Settings *settings, QList<Profile> &profiles)
@@ -266,8 +266,8 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
         const QString gccPath
                 = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
         if (!gccPath.isEmpty())
-            profiles << createGccProfile(gccPath, settings,
-                                         canonicalToolchain(QLatin1String("mingw")));
+            profiles.push_back(createGccProfile(gccPath, settings,
+                                                canonicalToolchain(QLatin1String("mingw"))));
     }
 }
 

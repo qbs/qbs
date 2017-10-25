@@ -99,7 +99,7 @@ void ProductInstaller::install()
         QBS_CHECK(product->buildData);
         for (const Artifact *artifact : filterByType<Artifact>(product->buildData->nodes)) {
             if (artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
-                artifactsToInstall += artifact;
+                artifactsToInstall.push_back(artifact);
         }
     }
     m_observer->initialize(Tr::tr("Installing"), artifactsToInstall.size());

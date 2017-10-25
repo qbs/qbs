@@ -195,8 +195,8 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
                                                            &outputFilePaths);
             if (!outputArtifact)
                 continue;
-            outputArtifacts << outputArtifact;
-            ruleArtifactArtifactMap << std::make_pair(ruleArtifact.get(), outputArtifact);
+            outputArtifacts.push_back(outputArtifact);
+            ruleArtifactArtifactMap.push_back({ ruleArtifact.get(), outputArtifact });
         }
     }
 
@@ -418,7 +418,7 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
     const quint32 c = res.property(QLatin1String("length")).toUInt32();
     for (quint32 i = 0; i < c; ++i) {
         try {
-            lst += createOutputArtifactFromScriptValue(res.property(i), inputArtifacts);
+            lst.push_back(createOutputArtifactFromScriptValue(res.property(i), inputArtifacts));
         } catch (const RuleOutputArtifactsException &roae) {
             ErrorInfo ei = roae;
             ei.prepend(Tr::tr("Error in Rule.outputArtifacts[%1]").arg(i),

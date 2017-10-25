@@ -95,7 +95,7 @@ QList<CommandLineOption::Type> Command::actualSupportedOptions() const
     if (!HostOsInfo::isAnyUnixHost())
         options.removeOne(CommandLineOption::ShowProgressOptionType);
     if (type() != HelpCommandType)
-        options << CommandLineOption::SettingsDirOptionType; // Valid for almost all commands.
+        options.push_back(CommandLineOption::SettingsDirOptionType); // Valid for almost all commands.
     return options;
 }
 

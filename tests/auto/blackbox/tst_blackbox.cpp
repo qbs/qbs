@@ -3236,7 +3236,7 @@ void TestBlackbox::installPackage()
     foreach (const QByteArray &line, outputLines) {
         const QByteArray trimmedLine = line.trimmed();
         if (!trimmedLine.isEmpty())
-            cleanOutputLines << trimmedLine;
+            cleanOutputLines.push_back(trimmedLine);
     }
     QCOMPARE(cleanOutputLines.size(), 3);
     foreach (const QByteArray &line, cleanOutputLines) {

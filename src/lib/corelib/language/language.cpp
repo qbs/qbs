@@ -500,7 +500,7 @@ QList<SourceArtifactPtr> ResolvedProduct::allFiles() const
 {
     QList<SourceArtifactPtr> lst;
     for (const GroupConstPtr &group : qAsConst(groups))
-        lst += group->allFiles();
+        lst << group->allFiles();
     return lst;
 }
 
@@ -513,7 +513,7 @@ QList<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
     QList<SourceArtifactPtr> lst;
     for (const GroupConstPtr &group : qAsConst(groups)) {
         if (group->enabled)
-            lst += group->allFiles();
+            lst << group->allFiles();
     }
     return lst;
 }
