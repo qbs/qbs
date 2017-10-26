@@ -2889,6 +2889,13 @@ void TestBlackbox::erroneousFiles_data()
     QTest::addColumn<QString>("errorMessage");
     QTest::newRow("nonexistentWorkingDir")
             << "The working directory '.does.not.exist' for process '.*ls.*' is invalid.";
+    QTest::newRow("outputArtifacts-missing-filePath")
+            << "Error in Rule\\.outputArtifacts\\[0\\]\n\r?"
+               "Property filePath must be a non-empty string\\.";
+    QTest::newRow("outputArtifacts-missing-fileTags")
+            << "Error in Rule\\.outputArtifacts\\[0\\]\n\r?"
+               "Property fileTags for artifact 'outputArtifacts-missing-fileTags\\.txt' "
+               "must be a non-empty string list\\.";
 }
 
 void TestBlackbox::erroneousFiles()

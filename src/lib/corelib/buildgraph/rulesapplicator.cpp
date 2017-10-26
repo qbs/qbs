@@ -396,6 +396,12 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
     return outputArtifact;
 }
 
+class RuleOutputArtifactsException : public ErrorInfo
+{
+public:
+    using ErrorInfo::ErrorInfo;
+};
+
 QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &inputArtifacts,
         const QScriptValueList &args)
 {
@@ -414,8 +420,16 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
         throw ErrorInfo(Tr::tr("Rule.outputArtifacts must return an array of objects."),
                         m_rule->outputArtifactsScript->location);
     const quint32 c = res.property(QLatin1String("length")).toUInt32();
-    for (quint32 i = 0; i < c; ++i)
-        lst += createOutputArtifactFromScriptValue(res.property(i), inputArtifacts);
+    for (quint32 i = 0; i < c; ++i) {
+        try {
+            lst += createOutputArtifactFromScriptValue(res.property(i), inputArtifacts);
+        } catch (const RuleOutputArtifactsException &roae) {
+            ErrorInfo ei = roae;
+            ei.prepend(Tr::tr("Error in Rule.outputArtifacts[%1]").arg(i),
+                       m_rule->outputArtifactsScript->location);
+            throw ei;
+        }
+    }
     return lst;
 }
 
@@ -493,13 +507,25 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValu
         throw ErrorInfo(Tr::tr("Elements of the Rule.outputArtifacts array must be "
                                "of Object type."), m_rule->outputArtifactsScript->location);
     }
-    const QString filePath = FileInfo::resolvePath(m_product->buildDirectory(),
-            obj.property(QLatin1String("filePath")).toVariant().toString());
+    const QString unresolvedFilePath
+            = obj.property(QLatin1String("filePath")).toVariant().toString();
+    if (unresolvedFilePath.isEmpty()) {
+        throw RuleOutputArtifactsException(
+                Tr::tr("Property filePath must be a non-empty string."));
+    }
+    const QString filePath = FileInfo::resolvePath(m_product->buildDirectory(), unresolvedFilePath);
     const FileTags fileTags = FileTags::fromStringList(
                 obj.property(QLatin1String("fileTags")).toVariant().toStringList());
     const QVariant alwaysUpdatedVar = obj.property(QLatin1String("alwaysUpdated")).toVariant();
     const bool alwaysUpdated = alwaysUpdatedVar.isValid() ? alwaysUpdatedVar.toBool() : true;
     Artifact *output = createOutputArtifact(filePath, fileTags, alwaysUpdated, inputArtifacts);
+    if (output->fileTags().isEmpty()) {
+        // Check the file tags after file taggers were run.
+        throw RuleOutputArtifactsException(
+                Tr::tr("Property fileTags for artifact '%1' must be a non-empty string list. "
+                       "Alternatively, a FileTagger can be provided.")
+                    .arg(unresolvedFilePath));
+    }
     const FileTags explicitlyDependsOn = FileTags::fromStringList(
                 obj.property(QLatin1String("explicitlyDependsOn")).toVariant().toStringList());
     for (const FileTag &tag : explicitlyDependsOn) {

@@ -24,4 +24,8 @@ CppApplication {
             return [cmd];
         }
     }
+    FileTagger {
+        patterns: ["*.nomatch"]
+        fileTags: ["utter nonsense"]
+    }
 }
