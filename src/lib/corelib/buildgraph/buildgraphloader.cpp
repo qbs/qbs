@@ -69,6 +69,7 @@
 #include <QtCore/qfileinfo.h>
 
 #include <algorithm>
+#include <functional>
 #include <unordered_map>
 
 namespace qbs {
@@ -1048,6 +1049,10 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
                 rad.children << RescuableArtifactData::ChildData(child->product->name,
                         child->product->multiplexConfigurationId, child->filePath(),
                         childrenInfo.childrenAddedByScanner.contains(child));
+                std::transform(oldArtifact->fileDependencies.cbegin(),
+                               oldArtifact->fileDependencies.cend(),
+                               std::back_inserter(rad.fileDependencies),
+                               std::mem_fn(&FileDependency::filePath));
             }
             newlyResolvedProduct->buildData->rescuableArtifactData.insert(
                         oldArtifact->filePath(), rad);

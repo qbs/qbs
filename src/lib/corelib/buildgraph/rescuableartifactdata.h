@@ -50,6 +50,8 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qlist.h>
 
+#include <vector>
+
 namespace qbs {
 namespace Internal {
 class PersistentPool;
@@ -95,6 +97,7 @@ public:
 
     FileTime timeStamp;
     QList<ChildData> children;
+    std::vector<QString> fileDependencies;
 
     // Per-Transformer data
     QList<AbstractCommandPtr> commands;

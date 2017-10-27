@@ -3085,6 +3085,24 @@ void TestBlackbox::fileDependencies()
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
+
+    // Change the product in between to force the list of dependencies to get rescued.
+    QFile projectFile("fileDependencies.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray contents = projectFile.readAll();
+    contents.replace("//", "");
+    projectFile.resize(0);
+    projectFile.write(contents);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY(!m_qbsStdout.contains("compiling narf.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("awesomelib/magnificent.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
 }
 
 void TestBlackbox::installedTransformerOutput()

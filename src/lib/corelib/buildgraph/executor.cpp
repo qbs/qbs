@@ -765,6 +765,26 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
             if (canRescue)
                 childrenToConnect << std::make_pair(child, cd.addedByScanner);
         }
+        for (const QString &depPath : rad.fileDependencies) {
+            const QList<FileResourceBase *> depList = m_project->buildData->lookupFiles(depPath);
+            if (depList.empty()) {
+                canRescue = false;
+                qCDebug(lcBuildGraph) << "File dependency" << depPath
+                                      << "not in the project's list of dependencies anymore.";
+                break;
+            }
+            const auto depFinder = [](const FileResourceBase *f) {
+                return dynamic_cast<const FileDependency *>(f);
+            };
+            const auto depIt = std::find_if(depList.cbegin(), depList.cend(), depFinder);
+            if (depIt == depList.cend()) {
+                canRescue = false;
+                qCDebug(lcBuildGraph) << "File dependency" << depPath
+                                      << "not in the project's list of dependencies anymore.";
+                break;
+            }
+            artifact->fileDependencies.insert(dynamic_cast<FileDependency *>(*depIt));
+        }
 
         if (canRescue) {
             const TypeFilter<Artifact> childArtifacts(artifact->children);

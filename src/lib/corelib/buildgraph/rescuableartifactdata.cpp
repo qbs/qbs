@@ -56,6 +56,7 @@ void RescuableArtifactData::load(PersistentPool &pool)
 {
     pool.load(timeStamp);
     pool.load(children);
+    pool.load(fileDependencies);
     pool.load(propertiesRequestedInPrepareScript);
     pool.load(propertiesRequestedInCommands);
     pool.load(propertiesRequestedFromArtifactInPrepareScript);
@@ -69,6 +70,7 @@ void RescuableArtifactData::store(PersistentPool &pool) const
 {
     pool.store(timeStamp);
     pool.store(children);
+    pool.store(fileDependencies);
     pool.store(propertiesRequestedInPrepareScript);
     pool.store(propertiesRequestedInCommands);
     pool.store(propertiesRequestedFromArtifactInPrepareScript);
