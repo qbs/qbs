@@ -604,14 +604,16 @@ void TestTools::set_remove()
 {
     Set<QString> set1;
 
-    for (int i = 0; i < 500; ++i)
+    const size_t max = 500;
+
+    for (size_t i = 0; i < max; ++i)
         set1.insert(QString::number(i));
 
-    QCOMPARE(set1.size(), 500);
+    QCOMPARE(set1.size(), max);
 
-    for (int j = 0; j < 500; ++j) {
-        set1.remove(QString::number((j * 17) % 500));
-        QCOMPARE(set1.size(), 500 - j - 1);
+    for (size_t j = 0; j < max; ++j) {
+        set1.remove(QString::number((j * 17) % max));
+        QCOMPARE(set1.size(), max - j - 1);
     }
 }
 
@@ -625,7 +627,7 @@ void TestTools::set_contains()
         QVERIFY(set1.contains(QString::number(i)));
     }
 
-    QCOMPARE(set1.size(), 500);
+    QCOMPARE(set1.size(), size_t { 500 });
 
     for (int j = 0; j < 500; ++j) {
         int i = (j * 17) % 500;
@@ -809,13 +811,13 @@ void TestTools::set_insert()
 
     {
         Set<IdentityTracker> set;
-        QCOMPARE(set.size(), 0);
+        QCOMPARE(set.size(), size_t { 0 });
         const int dummy = -1;
         IdentityTracker id00 = {0, 0}, id01 = {0, 1}, searchKey = {0, dummy};
         QCOMPARE(set.insert(id00).first->id, id00.id);
-        QCOMPARE(set.size(), 1);
+        QCOMPARE(set.size(), size_t { 1 });
         QCOMPARE(set.insert(id01).first->id, id00.id); // first inserted is kept
-        QCOMPARE(set.size(), 1);
+        QCOMPARE(set.size(), size_t { 1 });
         QCOMPARE(set.find(searchKey)->id, id00.id);
     }
 }
@@ -1037,7 +1039,7 @@ void TestTools::set_makeSureTheComfortFunctionsCompile()
 void TestTools::set_initializerList()
 {
     Set<int> set = {1, 1, 2, 3, 4, 5};
-    QCOMPARE(set.size(), 5);
+    QCOMPARE(set.size(), size_t { 5 });
     QVERIFY(set.contains(1));
     QVERIFY(set.contains(2));
     QVERIFY(set.contains(3));
@@ -1046,7 +1048,7 @@ void TestTools::set_initializerList()
 
     // check _which_ of the equal elements gets inserted (in the QHash/QMap case, it's the last):
     const Set<IdentityTracker> set2 = {{1, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}};
-    QCOMPARE(set2.size(), 5);
+    QCOMPARE(set2.size(), size_t { 5 });
     const int dummy = -1;
     const IdentityTracker searchKey = {1, dummy};
     QCOMPARE(set2.find(searchKey)->id, 0);

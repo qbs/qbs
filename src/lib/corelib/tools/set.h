@@ -122,8 +122,8 @@ public:
     bool contains(const T &v) const { return std::binary_search(cbegin(), cend(), v); }
     bool contains(const Set<T> &other) const;
     bool empty() const { return m_data.empty(); }
-    int size() const { return int(m_data.size()); }
-    int capacity() const { return int(m_data.capacity()); }
+    size_type size() const { return m_data.size(); }
+    size_type capacity() const { return m_data.capacity(); }
     bool intersects(const Set<T> &other) const;
 
     bool remove(const T &v);
@@ -132,7 +132,7 @@ public:
     iterator erase(iterator first, iterator last) { return m_data.erase(first, last); }
 
     void clear() { m_data.clear(); }
-    void reserve(int size) { m_data.reserve(size); }
+    void reserve(size_type size) { m_data.reserve(size); }
 
     void swap(Set<T> &other) { m_data.swap(other.m_data); }
 
@@ -279,7 +279,7 @@ template<typename T> void Set<T>::load(PersistentPool &pool)
 
 template<typename T> void Set<T>::store(PersistentPool &pool) const
 {
-    pool.store(size());
+    pool.store(static_cast<int>(size()));
     std::for_each(m_data.cbegin(), m_data.cend(),
                   std::bind(&Set<T>::storeElem, this, std::ref(pool), std::placeholders::_1));
 }

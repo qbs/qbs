@@ -524,7 +524,7 @@ void TestLanguage::dependencyOnAllProfiles()
         QCOMPARE(project->products.size(), 3);
         const ResolvedProductConstPtr mainProduct = productsFromProject(project).value("main");
         QVERIFY(!!mainProduct);
-        QCOMPARE(mainProduct->dependencies.size(), 2);
+        QCOMPARE(mainProduct->dependencies.size(), size_t { 2 });
         for (const ResolvedProductConstPtr &p : mainProduct->dependencies) {
             QCOMPARE(p->name, QLatin1String("dep"));
             QVERIFY(p->profile == "p1" || p->profile == "p2");
