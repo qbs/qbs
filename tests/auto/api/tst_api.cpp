@@ -1325,10 +1325,10 @@ void TestApi::inheritQbsSearchPaths()
     VERIFY_NO_ERROR(errorInfo);
 }
 
-template <typename T, class Pred> T findElem(const QList<T> &list, Pred p)
+template <typename T, class Pred> typename T::value_type findElem(const T &list, Pred p)
 {
-    const auto it = std::find_if(list.constBegin(), list.constEnd(), p);
-    return it == list.constEnd() ? T() : *it;
+    const auto it = std::find_if(list.cbegin(), list.cend(), p);
+    return it == list.cend() ? typename T::value_type() : *it;
 }
 
 void TestApi::installableFiles()

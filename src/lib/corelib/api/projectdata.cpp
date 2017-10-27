@@ -171,7 +171,7 @@ QStringList GroupData::allFilePaths() const
     const QList<ArtifactData> &artifacts = allSourceArtifacts();
     QStringList paths;
     paths.reserve(artifacts.size());
-    std::transform(artifacts.constBegin(), artifacts.constEnd(), std::back_inserter(paths),
+    std::transform(artifacts.cbegin(), artifacts.cend(), std::back_inserter(paths),
                           [](const ArtifactData &sa) { return sa.filePath(); });
     return paths;
 }
@@ -520,7 +520,7 @@ QList<ArtifactData> ProductData::generatedArtifacts() const
 QList<ArtifactData> ProductData::targetArtifacts() const
 {
     QList<ArtifactData> list;
-    std::copy_if(d->generatedArtifacts.constBegin(), d->generatedArtifacts.constEnd(),
+    std::copy_if(d->generatedArtifacts.cbegin(), d->generatedArtifacts.cend(),
                  std::back_inserter(list),
                  [](const ArtifactData &a) { return a.isTargetArtifact(); });
     return list;

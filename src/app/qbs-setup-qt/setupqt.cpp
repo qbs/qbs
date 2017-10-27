@@ -110,10 +110,10 @@ QList<QtEnvironment> SetupQt::fetchEnvironments()
 
     foreach (const QString &qmakePath, collectQmakePaths()) {
         const QtEnvironment env = fetchEnvironment(qmakePath);
-        if (std::find_if(qtEnvironments.constBegin(), qtEnvironments.constEnd(),
+        if (std::find_if(qtEnvironments.cbegin(), qtEnvironments.cend(),
                          [&env](const QtEnvironment &otherEnv) {
                                  return env.includePath == otherEnv.includePath;
-                          }) == qtEnvironments.constEnd()) {
+                          }) == qtEnvironments.cend()) {
             qtEnvironments.push_back(env);
         }
     }
