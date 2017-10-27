@@ -402,11 +402,11 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
     QScriptValue fun = engine()->evaluate(m_rule->outputArtifactsScript->sourceCode,
                                           m_rule->outputArtifactsScript->location.filePath(),
                                           m_rule->outputArtifactsScript->location.line());
-    engine()->releaseResourcesOfScriptObjects();
     if (!fun.isFunction())
         throw ErrorInfo(QLatin1String("Function expected."),
                         m_rule->outputArtifactsScript->location);
     QScriptValue res = fun.call(QScriptValue(), args);
+    engine()->releaseResourcesOfScriptObjects();
     if (engine()->hasErrorOrException(res))
         throw engine()->lastError(res, m_rule->outputArtifactsScript->location);
     if (!res.isArray())
