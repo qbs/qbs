@@ -179,6 +179,9 @@ private slots:
         QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "debug")); // Unknown parameter.
         QVERIFY(!parser.parseCommandLine(QStringList("help") << "build" << "clean")); // Too many arguments.
         QVERIFY(!parser.parseCommandLine(QStringList("clean") << "profile:x")); // This command cannot resolve.
+        QVERIFY(!parser.parseCommandLine(QStringList("dump-nodes-tree") << "profile:x")); // This command cannot resolve.
+        QVERIFY(!parser.parseCommandLine(QStringList("status") << "profile:x")); // This command cannot resolve.
+        QVERIFY(!parser.parseCommandLine(QStringList("update-timestamps") << "profile:x")); // This command cannot resolve.
     }
 
 };

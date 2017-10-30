@@ -89,6 +89,11 @@ void Command::addOneToAdditionalArguments(const QString &argument)
         throwError(Tr::tr("Unexpected command line parameter '%1'."));
     if (sepPos == 0)
         throwError(Tr::tr("Empty key not allowed in assignment '%1'."));
+    if (!canResolve() && argument.contains(QLatin1Char(':'))
+            && !argument.startsWith(QLatin1String("config:"))) {
+        throw ErrorInfo(Tr::tr("The '%1' command does not support property assignments.")
+                        .arg(representation()));
+    }
     m_additionalArguments << argument;
 }
 
@@ -329,17 +334,6 @@ QList<CommandLineOption::Type> CleanCommand::supportedOptions() const
         CommandLineOption::ShowProgressOptionType,
         CommandLineOption::VerboseOptionType,
     };
-}
-
-void CleanCommand::parseMore(QStringList &input)
-{
-    addAllToAdditionalArguments(input);
-    for (const QString &param : additionalArguments()) {
-        if (param.contains(QLatin1Char(':')) && !param.startsWith(QLatin1String("config:"))) {
-            throw ErrorInfo(Tr::tr("The '%1' command does not support property assignments.")
-                            .arg(representation()));
-        }
-    }
 }
 
 QString InstallCommand::shortDescription() const
