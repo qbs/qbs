@@ -42,6 +42,8 @@
 #include "commandlineoption.h"
 #include "commandtype.h"
 
+#include <tools/set.h>
+
 namespace qbs {
 class CommandLineOptionPool;
 
@@ -63,19 +65,20 @@ protected:
     Command(CommandLineOptionPool &optionPool) : m_optionPool(optionPool) {}
 
     const CommandLineOptionPool &optionPool() const { return m_optionPool; }
-    void addAllToAdditionalArguments(QStringList &input);
-    void addOneToAdditionalArguments(const QString &argument);
     QString supportedOptionsDescription() const;
     [[noreturn]] void throwError(const QString &reason);
 
+    virtual void parseNext(QStringList &input);
+
 private:
     QList<CommandLineOption::Type> actualSupportedOptions() const;
-    void parseOptions(QStringList &input);
+    void parseOption(QStringList &input);
+    void parsePropertyAssignment(const QString &argument);
 
-    virtual void parseMore(QStringList &input);
     virtual QList<CommandLineOption::Type> supportedOptions() const = 0;
 
     QStringList m_additionalArguments;
+    Internal::Set<CommandLineOption *> m_usedOptions;
     const CommandLineOptionPool &m_optionPool;
 };
 
@@ -156,7 +159,7 @@ private:
     QString longDescription() const;
     QString representation() const;
     QList<CommandLineOption::Type> supportedOptions() const;
-    void parseMore(QStringList &input);
+    void parseNext(QStringList &input);
 
     QStringList m_targetParameters;
 };
@@ -239,7 +242,7 @@ private:
     QString longDescription() const;
     QString representation() const;
     QList<CommandLineOption::Type> supportedOptions() const;
-    void parseMore(QStringList &input);
+    void parseNext(QStringList &input);
 
     QString m_command;
 };

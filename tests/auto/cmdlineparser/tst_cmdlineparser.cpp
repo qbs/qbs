@@ -100,7 +100,7 @@ private slots:
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), LoggerTrace);
 
         // Second "global" profile overwrites first.
-        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "profile:a" << "profile:b"));
+        QVERIFY(parser.parseCommandLine(QStringList() << "profile:a" << fileArgs << "profile:b"));
         QCOMPARE(parser.buildConfigurations().count(), 1);
         QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("b"));
 
@@ -123,8 +123,8 @@ private slots:
                                         << "config:debug" << "profile:a"));
         QCOMPARE(parser.buildConfigurations().count(), 1);
 
-        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "config:debug" << "profile:a"
-                                        << "config:release" << "profile:b"));
+        QVERIFY(parser.parseCommandLine(QStringList() << "config:debug" << "profile:a"
+                                        << "config:release" << "profile:b" << fileArgs));
         QCOMPARE(parser.buildConfigurations().count(), 2);
         QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(), QLatin1String("debug"));
         QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("a"));
@@ -145,8 +145,8 @@ private slots:
         QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
 
         // Argument list separation for the "run" command.
-        QVERIFY(parser.parseCommandLine(QStringList("run") << fileArgs << "-j" << "123"
-                << "config:custom"));
+        QVERIFY(parser.parseCommandLine(QStringList("run") << fileArgs << "config:custom"
+                                        << "-j123"));
         QCOMPARE(parser.command(), RunCommandType);
         QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
         QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(),

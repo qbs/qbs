@@ -44,7 +44,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
-#include <tools/set.h>
+#include <tools/qbsassert.h>
 
 #include <QtCore/qmap.h>
 
@@ -57,10 +57,8 @@ Command::~Command()
 
 void Command::parse(QStringList &input)
 {
-    parseOptions(input);
-    parseMore(input);
-    if (!input.isEmpty())
-        throwError(Tr::tr("Extraneous input '%1'").arg(input.join(QLatin1Char(' '))));
+    while (!input.empty())
+        parseNext(input);
 }
 
 bool Command::canResolve() const
@@ -68,13 +66,7 @@ bool Command::canResolve() const
     return supportedOptions().contains(CommandLineOption::FileOptionType);
 }
 
-void Command::addAllToAdditionalArguments(QStringList &input)
-{
-    while (!input.isEmpty())
-        addOneToAdditionalArguments(input.takeFirst());
-}
-
-void Command::addOneToAdditionalArguments(const QString &argument)
+void Command::parsePropertyAssignment(const QString &argument)
 {
     const auto throwError = [argument](const QString &msgTemplate) {
         ErrorInfo error(msgTemplate.arg(argument));
@@ -107,56 +99,59 @@ QList<CommandLineOption::Type> Command::actualSupportedOptions() const
     return options;
 }
 
-void Command::parseOptions(QStringList &input)
+void Command::parseOption(QStringList &input)
 {
-    Set<CommandLineOption *> usedOptions;
-    while (!input.isEmpty()) {
-        const QString optionString = input.first();
-        if (!optionString.startsWith(QLatin1Char('-')))
-            break;
-        if (optionString == QLatin1String("--"))
-            break;
-        input.removeFirst();
-        if (optionString.count() == 1)
-            throwError(Tr::tr("Empty options are not allowed."));
+    const QString optionString = input.first();
+    QBS_CHECK(optionString.startsWith(QLatin1Char('-')));
+    input.removeFirst();
+    if (optionString.count() == 1)
+        throwError(Tr::tr("Empty options are not allowed."));
 
-        // Split up grouped short options.
-        if (optionString.at(1) != QLatin1Char('-') && optionString.count() > 2) {
-            QString parameter;
-            for (int i = optionString.count(); --i > 0;) {
-                const QChar c = optionString.at(i);
-                if (c.isDigit()) {
-                    parameter.prepend(c);
-                } else {
-                    if (!parameter.isEmpty()) {
-                        input.prepend(parameter);
-                        parameter.clear();
-                    }
-                    input.prepend(QLatin1Char('-') + c);
+    // Split up grouped short options.
+    if (optionString.at(1) != QLatin1Char('-') && optionString.count() > 2) {
+        QString parameter;
+        for (int i = optionString.count(); --i > 0;) {
+            const QChar c = optionString.at(i);
+            if (c.isDigit()) {
+                parameter.prepend(c);
+            } else {
+                if (!parameter.isEmpty()) {
+                    input.prepend(parameter);
+                    parameter.clear();
                 }
+                input.prepend(QLatin1Char('-') + c);
             }
-            if (!parameter.isEmpty())
-                throwError(Tr::tr("Unknown numeric option '%1'.").arg(parameter));
+        }
+        if (!parameter.isEmpty())
+            throwError(Tr::tr("Unknown numeric option '%1'.").arg(parameter));
+        return;
+    }
+
+    bool matchFound = false;
+    foreach (const CommandLineOption::Type optionType, actualSupportedOptions()) {
+        CommandLineOption * const option = optionPool().getOption(optionType);
+        if (option->shortRepresentation() != optionString
+                && option->longRepresentation() != optionString) {
             continue;
         }
-
-        bool matchFound = false;
-        foreach (const CommandLineOption::Type optionType, actualSupportedOptions()) {
-            CommandLineOption * const option = optionPool().getOption(optionType);
-            if (option->shortRepresentation() != optionString
-                    && option->longRepresentation() != optionString) {
-                continue;
-            }
-            if (usedOptions.contains(option) && !option->canAppearMoreThanOnce())
-                throwError(Tr::tr("Option '%1' cannot appear more than once.").arg(optionString));
-            option->parse(type(), optionString, input);
-            usedOptions << option;
-            matchFound = true;
-            break;
-        }
-        if (!matchFound)
-            throwError(Tr::tr("Unknown option '%1'.").arg(optionString));
+        if (m_usedOptions.contains(option) && !option->canAppearMoreThanOnce())
+            throwError(Tr::tr("Option '%1' cannot appear more than once.").arg(optionString));
+        option->parse(type(), optionString, input);
+        m_usedOptions << option;
+        matchFound = true;
+        break;
     }
+    if (!matchFound)
+        throwError(Tr::tr("Unknown option '%1'.").arg(optionString));
+}
+
+void Command::parseNext(QStringList &input)
+{
+    QBS_CHECK(!input.empty());
+    if (input.first().startsWith(QLatin1Char('-')))
+        parseOption(input);
+    else
+        parsePropertyAssignment(input.takeFirst());
 }
 
 QString Command::supportedOptionsDescription() const
@@ -180,11 +175,6 @@ void Command::throwError(const QString &reason)
     error.append(Tr::tr("Type 'qbs help %1' to see how to use this command.")
                  .arg(representation()));
     throw error;
-}
-
-void Command::parseMore(QStringList &input)
-{
-    addAllToAdditionalArguments(input);
 }
 
 
@@ -400,16 +390,14 @@ QList<CommandLineOption::Type> RunCommand::supportedOptions() const
     return installOptions();
 }
 
-void RunCommand::parseMore(QStringList &input)
+void RunCommand::parseNext(QStringList &input)
 {
-    // Build variants and properties
-    while (!input.isEmpty()) {
-        const QString arg = input.takeFirst();
-        if (arg == QLatin1String("--"))
-            break;
-        addOneToAdditionalArguments(arg);
+    QBS_CHECK(!input.empty());
+    if (input.first() != QLatin1String("--")) {
+        Command::parseNext(input);
+        return;
     }
-
+    input.removeFirst();
     m_targetParameters = input;
     input.clear();
 }
@@ -571,14 +559,14 @@ QList<CommandLineOption::Type> HelpCommand::supportedOptions() const
     return QList<CommandLineOption::Type>();
 }
 
-void HelpCommand::parseMore(QStringList &input)
+void HelpCommand::parseNext(QStringList &input)
 {
     if (input.isEmpty())
         return;
     if (input.count() > 1)
         throwError(Tr::tr("Cannot describe more than one command."));
     m_command = input.takeFirst();
-    Q_ASSERT(input.isEmpty());
+    QBS_CHECK(input.empty());
 }
 
 } // namespace qbs
