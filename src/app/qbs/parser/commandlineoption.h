@@ -66,7 +66,6 @@ public:
         ForceTimestampCheckOptionType,
         ForceOutputCheckOptionType,
         BuildNonDefaultOptionType,
-        VersionOptionType,
         LogTimeOptionType,
         CommandEchoModeOptionType,
         SettingsDirOptionType,
@@ -253,17 +252,6 @@ class BuildNonDefaultOption : public OnOffOption
     QString description(CommandType command) const;
     QString shortRepresentation() const { return QString(); }
     QString longRepresentation() const;
-};
-
-class VersionOption : public OnOffOption
-{
-private:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const;
-    QString longRepresentation() const;
-
-private:
-    QString m_projectFilePath;
 };
 
 

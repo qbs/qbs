@@ -279,7 +279,6 @@ static QList<CommandLineOption::Type> buildOptions()
             << CommandLineOption::ForceTimestampCheckOptionType
             << CommandLineOption::ForceOutputCheckOptionType
             << CommandLineOption::BuildNonDefaultOptionType
-            << CommandLineOption::VersionOptionType
             << CommandLineOption::JobsOptionType
             << CommandLineOption::CommandEchoModeOptionType
             << CommandLineOption::NoInstallOptionType
@@ -567,6 +566,33 @@ void HelpCommand::parseNext(QStringList &input)
         throwError(Tr::tr("Cannot describe more than one command."));
     m_command = input.takeFirst();
     QBS_CHECK(input.empty());
+}
+
+QString VersionCommand::shortDescription() const
+{
+    return Tr::tr("Print the Qbs version number to stdout.");
+}
+
+QString VersionCommand::longDescription() const
+{
+    QString description = Tr::tr("qbs %1\n").arg(representation());
+    return description += Tr::tr("%1\n").arg(shortDescription());
+}
+
+QString VersionCommand::representation() const
+{
+    return QLatin1String("show-version");
+}
+
+QList<CommandLineOption::Type> VersionCommand::supportedOptions() const
+{
+    return QList<CommandLineOption::Type>();
+}
+
+void VersionCommand::parseNext(QStringList &input)
+{
+    QBS_CHECK(!input.empty());
+    throwError(Tr::tr("This command takes no arguments."));
 }
 
 } // namespace qbs

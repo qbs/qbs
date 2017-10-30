@@ -402,6 +402,7 @@ void CommandLineFrontend::handleProjectsResolved()
         qApp->quit();
         break;
     case HelpCommandType:
+    case VersionCommandType:
         Q_ASSERT_X(false, Q_FUNC_INFO, "Impossible.");
     }
 }

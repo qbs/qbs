@@ -263,7 +263,7 @@ bool CommandLineParser::showProgress() const
 
 bool CommandLineParser::showVersion() const
 {
-    return d->optionPool.versionOption()->enabled();
+    return d->command->type() == VersionCommandType;
 }
 
 QString CommandLineParser::settingsDir() const
@@ -329,6 +329,10 @@ void CommandLineParser::CommandLineParserPrivate::doParse()
                     || commandLine.first() == QLatin1String("--help")) {
                 command = commandPool.getCommand(HelpCommandType);
                 commandLine.takeFirst();
+            } else if (commandLine.first() == QLatin1String("-V")
+                       || commandLine.first() == QLatin1String("--version")) {
+                command = commandPool.getCommand(VersionCommandType);
+                commandLine.takeFirst();
             } else {
                 command = commandPool.getCommand(BuildCommandType);
             }
@@ -336,10 +340,7 @@ void CommandLineParser::CommandLineParserPrivate::doParse()
     }
     command->parse(commandLine);
 
-    if (command->type() == HelpCommandType)
-        return;
-
-    if (command->type() == BuildCommandType && optionPool.versionOption()->enabled())
+    if (command->type() == HelpCommandType || command->type() == VersionCommandType)
         return;
 
     setupBuildDirectory();
@@ -373,6 +374,7 @@ QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() cons
             << commandPool.getCommand(InstallCommandType)
             << commandPool.getCommand(DumpNodesTreeCommandType)
             << commandPool.getCommand(ListProductsCommandType)
+            << commandPool.getCommand(VersionCommandType)
             << commandPool.getCommand(HelpCommandType);
 }
 

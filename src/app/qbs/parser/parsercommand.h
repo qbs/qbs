@@ -247,6 +247,20 @@ private:
     QString m_command;
 };
 
+class VersionCommand : public Command
+{
+public:
+    VersionCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
+
+private:
+    CommandType type() const { return VersionCommandType; }
+    QString shortDescription() const;
+    QString longDescription() const;
+    QString representation() const;
+    QList<CommandLineOption::Type> supportedOptions() const;
+    void parseNext(QStringList &input);
+};
+
 } // namespace qbs
 
 #endif // QBS_PARSER_COMMAND_H

@@ -159,6 +159,14 @@ private slots:
         QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(),
                  QLatin1String("default"));
         QCOMPARE(parser.runArgs(), QStringList({"config:custom"}));
+
+        // show-version
+        QVERIFY(parser.parseCommandLine(QStringList("show-version")));
+        QVERIFY(parser.showVersion());
+        QVERIFY(parser.parseCommandLine(QStringList("--version")));
+        QVERIFY(parser.showVersion());
+        QVERIFY(parser.parseCommandLine(QStringList("-V")));
+        QVERIFY(parser.showVersion());
     }
 
     void testInvalidCommandLine()
@@ -182,6 +190,7 @@ private slots:
         QVERIFY(!parser.parseCommandLine(QStringList("dump-nodes-tree") << "profile:x")); // This command cannot resolve.
         QVERIFY(!parser.parseCommandLine(QStringList("status") << "profile:x")); // This command cannot resolve.
         QVERIFY(!parser.parseCommandLine(QStringList("update-timestamps") << "profile:x")); // This command cannot resolve.
+        QVERIFY(!parser.parseCommandLine(QStringList("show-version") << "config:debug")); // This command takes no arguments.
     }
 
 };
