@@ -143,6 +143,22 @@ private slots:
         QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
         QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "-j123"));
         QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
+
+        // Argument list separation for the "run" command.
+        QVERIFY(parser.parseCommandLine(QStringList("run") << fileArgs << "-j" << "123"
+                << "config:custom"));
+        QCOMPARE(parser.command(), RunCommandType);
+        QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
+        QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(),
+                 QLatin1String("custom"));
+        QVERIFY(parser.runArgs().empty());
+        QVERIFY(parser.parseCommandLine(QStringList("run") << fileArgs << "-j" << "123" << "--"
+                << "config:custom"));
+        QCOMPARE(parser.command(), RunCommandType);
+        QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
+        QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(),
+                 QLatin1String("default"));
+        QCOMPARE(parser.runArgs(), QStringList({"config:custom"}));
     }
 
     void testInvalidCommandLine()
@@ -161,6 +177,8 @@ private slots:
         QVERIFY(!parser.parseCommandLine(QStringList() << "--log-level" << "blubb" << fileArgs)); // Wrong argument.
         QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "-123")); // Unknown numeric argument.
         QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "debug")); // Unknown parameter.
+        QVERIFY(!parser.parseCommandLine(QStringList("help") << "build" << "clean")); // Too many arguments.
+        QVERIFY(!parser.parseCommandLine(QStringList("clean") << "profile:x")); // This command cannot resolve.
     }
 
 };
