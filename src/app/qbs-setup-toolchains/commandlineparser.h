@@ -57,9 +57,9 @@ public:
     QString usageString() const;
 
 private:
-    Q_NORETURN void throwError(const QString &message);
+    [[noreturn]] void throwError(const QString &message);
     void assignOptionArgument(const QString &option, QString &argument);
-    Q_NORETURN void complainAboutExtraArguments();
+    [[noreturn]] void complainAboutExtraArguments();
 
     bool m_helpRequested;
     bool m_autoDetectionMode;

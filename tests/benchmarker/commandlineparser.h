@@ -48,9 +48,9 @@ public:
     QString qbsRepoDirPath() const { return m_qbsRepoDirPath; }
 
 private:
-    Q_NORETURN void throwException(const QString &optionName, const QString &illegalValue,
+    [[noreturn]] void throwException(const QString &optionName, const QString &illegalValue,
                                    const QString &helpText);
-    Q_NORETURN void throwException(const QString &missingOption, const QString &helpText);
+    [[noreturn]] void throwException(const QString &missingOption, const QString &helpText);
 
     Activities m_activities;
     QString m_oldCommit;

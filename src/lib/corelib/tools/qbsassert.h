@@ -46,7 +46,7 @@ namespace qbs {
 namespace Internal {
 
 QBS_EXPORT void writeAssertLocation(const char *condition, const char *file, int line);
-QBS_EXPORT Q_NORETURN void throwAssertLocation(const char *condition, const char *file, int line);
+[[noreturn]] QBS_EXPORT void throwAssertLocation(const char *condition, const char *file, int line);
 
 } // namespace Internal
 } // namespace qbs

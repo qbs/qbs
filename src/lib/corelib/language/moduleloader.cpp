@@ -2260,7 +2260,7 @@ QVariantMap ModuleLoader::extractParameters(Item *dependsItem) const
     return result;
 }
 
-Q_NORETURN static void throwModuleNamePrefixError(const QualifiedId &shortName,
+[[noreturn]] static void throwModuleNamePrefixError(const QualifiedId &shortName,
         const QualifiedId &longName, const CodeLocation &codeLocation)
 {
     throw ErrorInfo(Tr::tr("The name of module '%1' is equal to the first component of the "
