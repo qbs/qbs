@@ -50,16 +50,19 @@ public:
     }
 
 private slots:
+    void initTestCase()
+    {
+        QVERIFY(m_projectFile.open());
+        m_fileArgs = QStringList() << "-f" << m_projectFile.fileName();
+    }
+
     void testValidCommandLine()
     {
-        QTemporaryFile projectFile;
-        QVERIFY(projectFile.open());
-        const QStringList fileArgs = QStringList() << "-f" << projectFile.fileName();
         QStringList args;
         args.append("-vvk");
         args.append("-v");
         args << "--products" << "blubb";
-        args << "--changed-files" << "foo,bar" << fileArgs;
+        args << "--changed-files" << "foo,bar" << m_fileArgs;
         args << "--check-timestamps";
         args << "--check-outputs";
         CommandLineParser parser;
@@ -75,10 +78,10 @@ private slots:
         QVERIFY(!parser.logTime());
         QCOMPARE(parser.buildConfigurations().count(), 1);
 
-        QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqq" << fileArgs));
+        QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqq" << m_fileArgs));
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), defaultLogLevel());
 
-        QVERIFY(parser.parseCommandLine(QStringList() << "-t" << fileArgs));
+        QVERIFY(parser.parseCommandLine(QStringList() << "-t" << m_fileArgs));
         QVERIFY(parser.logTime());
 
         if (!Internal::HostOsInfo::isWindowsHost()) { // Windows has no progress bar atm.
@@ -86,31 +89,31 @@ private slots:
             // run in a terminal, "--show-progress" is ignored, in which case "--log-time"
             // takes effect.
             QVERIFY(parser.parseCommandLine(QStringList() << "-t" << "--show-progress"
-                                            << fileArgs));
+                                            << m_fileArgs));
             QVERIFY(parser.showProgress() != parser.logTime());
         }
 
-        QVERIFY(parser.parseCommandLine(QStringList() << "-vvqqq" << fileArgs));
+        QVERIFY(parser.parseCommandLine(QStringList() << "-vvqqq" << m_fileArgs));
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), LoggerWarning);
 
-        QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqq" << fileArgs));
+        QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqq" << m_fileArgs));
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), LoggerDebug);
 
-        QVERIFY(parser.parseCommandLine(QStringList() << "--log-level" << "trace" << fileArgs));
+        QVERIFY(parser.parseCommandLine(QStringList() << "--log-level" << "trace" << m_fileArgs));
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), LoggerTrace);
 
         // Second "global" profile overwrites first.
-        QVERIFY(parser.parseCommandLine(QStringList() << "profile:a" << fileArgs << "profile:b"));
+        QVERIFY(parser.parseCommandLine(QStringList() << "profile:a" << m_fileArgs << "profile:b"));
         QCOMPARE(parser.buildConfigurations().count(), 1);
         QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("b"));
 
         // Second build configuration-specific profile overwrites first.
-        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "config:debug" << "profile:a"
+        QVERIFY(parser.parseCommandLine(QStringList(m_fileArgs) << "config:debug" << "profile:a"
                                         << "profile:b"));
         QCOMPARE(parser.buildConfigurations().count(), 1);
         QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("b"));
 
-        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "config:a-debug" << "profile:a"
+        QVERIFY(parser.parseCommandLine(QStringList(m_fileArgs) << "config:a-debug" << "profile:a"
                                         << "config:b-debug" << "profile:b"));
         QCOMPARE(parser.buildConfigurations().count(), 2);
         QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(), QLatin1String("a-debug"));
@@ -119,12 +122,12 @@ private slots:
         QCOMPARE(parser.buildConfigurations().at(1).value("qbs.profile").toString(), QLatin1String("b"));
 
         // Redundant build request
-        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "config:debug" << "profile:a"
+        QVERIFY(parser.parseCommandLine(QStringList(m_fileArgs) << "config:debug" << "profile:a"
                                         << "config:debug" << "profile:a"));
         QCOMPARE(parser.buildConfigurations().count(), 1);
 
         QVERIFY(parser.parseCommandLine(QStringList() << "config:debug" << "profile:a"
-                                        << "config:release" << "profile:b" << fileArgs));
+                                        << "config:release" << "profile:b" << m_fileArgs));
         QCOMPARE(parser.buildConfigurations().count(), 2);
         QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(), QLatin1String("debug"));
         QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("a"));
@@ -132,27 +135,27 @@ private slots:
         QCOMPARE(parser.buildConfigurations().at(1).value("qbs.profile").toString(), QLatin1String("b"));
 
         // Non-global property takes precedence.
-        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "profile:a" << "config:debug"
+        QVERIFY(parser.parseCommandLine(QStringList(m_fileArgs) << "profile:a" << "config:debug"
                                         << "profile:b"));
         QCOMPARE(parser.buildConfigurations().count(), 1);
         QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(), QLatin1String("debug"));
         QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("b"));
 
         // Digits are always handled as option parameters.
-        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "-j" << "123"));
+        QVERIFY(parser.parseCommandLine(QStringList(m_fileArgs) << "-j" << "123"));
         QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
-        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "-j123"));
+        QVERIFY(parser.parseCommandLine(QStringList(m_fileArgs) << "-j123"));
         QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
 
         // Argument list separation for the "run" command.
-        QVERIFY(parser.parseCommandLine(QStringList("run") << fileArgs << "config:custom"
+        QVERIFY(parser.parseCommandLine(QStringList("run") << m_fileArgs << "config:custom"
                                         << "-j123"));
         QCOMPARE(parser.command(), RunCommandType);
         QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
         QCOMPARE(parser.buildConfigurations().first().value("qbs.configurationName").toString(),
                  QLatin1String("custom"));
         QVERIFY(parser.runArgs().empty());
-        QVERIFY(parser.parseCommandLine(QStringList("run") << fileArgs << "-j" << "123" << "--"
+        QVERIFY(parser.parseCommandLine(QStringList("run") << m_fileArgs << "-j" << "123" << "--"
                 << "config:custom"));
         QCOMPARE(parser.command(), RunCommandType);
         QCOMPARE(parser.buildOptions(QString()).maxJobCount(), 123);
@@ -171,20 +174,17 @@ private slots:
 
     void testInvalidCommandLine()
     {
-        QTemporaryFile projectFile;
-        QVERIFY(projectFile.open());
-        const QStringList fileArgs = QStringList() << "-f" << projectFile.fileName();
         CommandLineParser parser;
-        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "-x")); // Unknown short option.
-        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "--xyz")); // Unknown long option.
-        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "-vjv")); // Invalid position.
-        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "-j"));  // Missing argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "-j" << "0" << fileArgs)); // Wrong argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "--products"));  // Missing argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "--changed-files" << "," << fileArgs)); // Wrong argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "--log-level" << "blubb" << fileArgs)); // Wrong argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "-123")); // Unknown numeric argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "debug")); // Unknown parameter.
+        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "-x")); // Unknown short option.
+        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "--xyz")); // Unknown long option.
+        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "-vjv")); // Invalid position.
+        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "-j"));  // Missing argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "-j" << "0" << m_fileArgs)); // Wrong argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "--products"));  // Missing argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "--changed-files" << "," << m_fileArgs)); // Wrong argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "--log-level" << "blubb" << m_fileArgs)); // Wrong argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "-123")); // Unknown numeric argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "debug")); // Unknown parameter.
         QVERIFY(!parser.parseCommandLine(QStringList("help") << "build" << "clean")); // Too many arguments.
         QVERIFY(!parser.parseCommandLine(QStringList("clean") << "profile:x")); // This command cannot resolve.
         QVERIFY(!parser.parseCommandLine(QStringList("dump-nodes-tree") << "profile:x")); // This command cannot resolve.
@@ -193,6 +193,9 @@ private slots:
         QVERIFY(!parser.parseCommandLine(QStringList("show-version") << "config:debug")); // This command takes no arguments.
     }
 
+private:
+    QTemporaryFile m_projectFile;
+    QStringList m_fileArgs;
 };
 
 QTEST_MAIN(TestCmdLineParser)
