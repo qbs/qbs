@@ -286,10 +286,10 @@ Module {
                 return [];
             var artifact = { fileTags: ["unmocable"] };
             if (input.fileTags.contains("hpp")) {
-                artifact.filePath = product.Qt.core.generatedHeadersDir
+                artifact.filePath = input.Qt.core.generatedHeadersDir
                         + "/moc_" + input.completeBaseName + ".cpp";
             } else {
-                artifact.filePath = product.Qt.core.generatedHeadersDir
+                artifact.filePath = input.Qt.core.generatedHeadersDir
                           + '/' + input.completeBaseName + ".moc";
             }
             var amalgamate = input.Qt.core.combineMocOutput;

@@ -13,7 +13,7 @@ QtModule {
         inputs: ["qt.scxml.compilable"]
 
         Artifact {
-            filePath: FileInfo.joinPaths(product.moduleProperty("Qt.core", "generatedHeadersDir"),
+            filePath: FileInfo.joinPaths(input.moduleProperty("Qt.core", "generatedHeadersDir"),
                                          input.baseName + ".h")
             fileTags: ["hpp", "unmocable"]
         }

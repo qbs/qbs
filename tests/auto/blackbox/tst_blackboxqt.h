@@ -51,6 +51,7 @@ private slots:
     void lrelease();
     void mixedBuildVariants();
     void mocFlags();
+    void mocSameFileName();
     void pkgconfig();
     void pluginMetaData();
     void qmlDebugging();

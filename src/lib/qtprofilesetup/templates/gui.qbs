@@ -17,7 +17,7 @@ QtModule {
         inputs: ["ui"]
 
         Artifact {
-            filePath: FileInfo.joinPaths(product.moduleProperty("Qt.core", "generatedHeadersDir"),
+            filePath: FileInfo.joinPaths(input.moduleProperty("Qt.core", "generatedHeadersDir"),
                                          'ui_' + input.completeBaseName + '.h')
             fileTags: ["hpp"]
         }

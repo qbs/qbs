@@ -190,6 +190,13 @@ void TestBlackboxQt::mocFlags()
     QVERIFY(runQbs(params) != 0);
 }
 
+void TestBlackboxQt::mocSameFileName()
+{
+    QDir::setCurrent(testDataDir + "/moc-same-file-name");
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("compiling moc_someclass.cpp"), 2);
+}
+
 void TestBlackboxQt::pkgconfig()
 {
     QDir::setCurrent(testDataDir + "/pkgconfig");

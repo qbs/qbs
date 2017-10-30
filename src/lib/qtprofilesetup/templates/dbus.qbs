@@ -15,7 +15,7 @@ QtModule {
         inputs: ["qt.dbus.adaptor"]
 
         Artifact {
-            filePath: FileInfo.joinPaths(product.moduleProperty("Qt.core", "generatedHeadersDir"),
+            filePath: FileInfo.joinPaths(input.moduleProperty("Qt.core", "generatedHeadersDir"),
                                          DBus.outputFileName(input, "_adaptor.h"))
             fileTags: ["hpp"]
         }
@@ -33,7 +33,7 @@ QtModule {
         inputs: ["qt.dbus.interface"]
 
         Artifact {
-            filePath: FileInfo.joinPaths(product.moduleProperty("Qt.core", "generatedHeadersDir"),
+            filePath: FileInfo.joinPaths(input.moduleProperty("Qt.core", "generatedHeadersDir"),
                                          DBus.outputFileName(input, "_interface.h"))
             fileTags: ["hpp"]
         }
