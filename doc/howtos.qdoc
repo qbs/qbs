@@ -40,6 +40,7 @@
     \li \l{How do I create a module for a third-party library?}
     \li \l{How do I create application bundles and frameworks on iOS, macOS, tvOS, and watchOS?}
     \li \l{How do I apply C/C++ preprocessor macros to only a subset of the files in my product?}
+    \li \l{How do I make the state of my Git repository available to my source files?}
     \endlist
 
     \section1 How do I build a Qt-based project?
@@ -252,4 +253,28 @@
         }
     }
     \endcode
+
+    \section1 How do I make the state of my Git repository available to my source files?
+
+    Add a dependency to the \c vcs module to your product:
+    \code
+    CppApplication {
+        // ...
+        Depends { name: "vcs" }
+        // ...
+    }
+    \endcode
+    Your source files will now have access to a macro whose value is a string representing the
+    current Git or Subversion HEAD:
+    \code
+    #include <vcs-repo-state.h>
+    #include <iostream>
+
+    int main()
+    {
+        std::cout << "I was built from " << VCS_REPO_STATE << std::endl;
+    }
+    \endcode
+    This value is also available via a module property in \QBS project files.
+    See the \l{Module vcs}{vcs module documentation} for details.
 */
