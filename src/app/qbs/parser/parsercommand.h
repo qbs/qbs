@@ -88,11 +88,11 @@ public:
     ResolveCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
 
 private:
-    CommandType type() const { return ResolveCommandType; }
-    QString shortDescription() const;
-    QString longDescription() const;
-    QString representation() const;
-    QList<CommandLineOption::Type> supportedOptions() const;
+    CommandType type() const override { return ResolveCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
 };
 
 class GenerateCommand : public Command
@@ -101,11 +101,11 @@ public:
     GenerateCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
 
 private:
-    CommandType type() const { return GenerateCommandType; }
-    QString shortDescription() const;
-    QString longDescription() const;
-    QString representation() const;
-    QList<CommandLineOption::Type> supportedOptions() const;
+    CommandType type() const override { return GenerateCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
 };
 
 class BuildCommand : public Command
@@ -114,11 +114,11 @@ public:
     BuildCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
 
 private:
-    CommandType type() const { return BuildCommandType; }
-    QString shortDescription() const;
-    QString longDescription() const;
-    QString representation() const;
-    QList<CommandLineOption::Type> supportedOptions() const;
+    CommandType type() const override { return BuildCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
 };
 
 class CleanCommand : public Command
@@ -127,11 +127,11 @@ public:
     CleanCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
 
 private:
-    CommandType type() const { return CleanCommandType; }
-    QString shortDescription() const;
-    QString longDescription() const;
-    QString representation() const;
-    QList<CommandLineOption::Type> supportedOptions() const;
+    CommandType type() const override { return CleanCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
 };
 
 class InstallCommand : public Command
@@ -140,11 +140,11 @@ public:
     InstallCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
 
 private:
-    CommandType type() const { return InstallCommandType; }
-    QString shortDescription() const;
-    QString longDescription() const;
-    QString representation() const;
-    QList<CommandLineOption::Type> supportedOptions() const;
+    CommandType type() const override { return InstallCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
 };
 
 class RunCommand : public Command
@@ -154,12 +154,12 @@ public:
     QStringList targetParameters() const { return m_targetParameters; }
 
 private:
-    CommandType type() const { return RunCommandType; }
-    QString shortDescription() const;
-    QString longDescription() const;
-    QString representation() const;
-    QList<CommandLineOption::Type> supportedOptions() const;
-    void parseNext(QStringList &input);
+    CommandType type() const override { return RunCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
+    void parseNext(QStringList &input) override;
 
     QStringList m_targetParameters;
 };
@@ -170,11 +170,11 @@ public:
     ShellCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
 
 private:
-    CommandType type() const { return ShellCommandType; }
-    QString shortDescription() const;
-    QString longDescription() const;
-    QString representation() const;
-    QList<CommandLineOption::Type> supportedOptions() const;
+    CommandType type() const override { return ShellCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
 };
 
 // TODO: It seems wrong that a configuration has to be given here. Ideally, this command would just track *all* files regardless of conditions. Is that possible?
@@ -184,11 +184,11 @@ public:
     StatusCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
 
 private:
-    CommandType type() const { return StatusCommandType; }
-    QString shortDescription() const;
-    QString longDescription() const;
-    QString representation() const;
-    QList<CommandLineOption::Type> supportedOptions() const;
+    CommandType type() const override { return StatusCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
 };
 
 class UpdateTimestampsCommand : public Command
@@ -197,11 +197,11 @@ public:
     UpdateTimestampsCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
 
 private:
-    CommandType type() const { return UpdateTimestampsCommandType; }
-    QString shortDescription() const;
-    QString longDescription() const;
-    QString representation() const;
-    QList<CommandLineOption::Type> supportedOptions() const;
+    CommandType type() const override { return UpdateTimestampsCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
 };
 
 class DumpNodesTreeCommand : public Command
@@ -210,11 +210,11 @@ public:
     DumpNodesTreeCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
 
 private:
-    CommandType type() const Q_DECL_OVERRIDE { return DumpNodesTreeCommandType; }
-    QString shortDescription() const Q_DECL_OVERRIDE;
-    QString longDescription() const Q_DECL_OVERRIDE;
-    QString representation() const Q_DECL_OVERRIDE;
-    QList<CommandLineOption::Type> supportedOptions() const Q_DECL_OVERRIDE;
+    CommandType type() const override{ return DumpNodesTreeCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
 };
 
 class ListProductsCommand : public Command
@@ -237,12 +237,12 @@ public:
     QString commandToDescribe() const { return m_command; }
 
 private:
-    CommandType type() const { return HelpCommandType; }
-    QString shortDescription() const;
-    QString longDescription() const;
-    QString representation() const;
-    QList<CommandLineOption::Type> supportedOptions() const;
-    void parseNext(QStringList &input);
+    CommandType type() const override { return HelpCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
+    void parseNext(QStringList &input) override;
 
     QString m_command;
 };
@@ -253,12 +253,12 @@ public:
     VersionCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
 
 private:
-    CommandType type() const { return VersionCommandType; }
-    QString shortDescription() const;
-    QString longDescription() const;
-    QString representation() const;
-    QList<CommandLineOption::Type> supportedOptions() const;
-    void parseNext(QStringList &input);
+    CommandType type() const override { return VersionCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override;
+    void parseNext(QStringList &input) override;
 };
 
 } // namespace qbs

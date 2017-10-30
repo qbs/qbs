@@ -98,10 +98,10 @@ public:
     QString projectFilePath() const { return m_projectFilePath; }
 
 private:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const;
-    QString longRepresentation() const;
-    void doParse(const QString &representation, QStringList &input);
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override;
+    QString longRepresentation() const override;
+    void doParse(const QString &representation, QStringList &input) override;
 
 private:
     QString m_projectFilePath;
@@ -115,10 +115,10 @@ public:
     static QString magicProjectDirString();
 
 private:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const;
-    QString longRepresentation() const;
-    void doParse(const QString &representation, QStringList &input);
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override;
+    QString longRepresentation() const override;
+    void doParse(const QString &representation, QStringList &input) override;
 
 private:
     QString m_projectBuildDirectory;
@@ -130,10 +130,10 @@ public:
     QString generatorName() const { return m_generatorName; }
 
 private:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const;
-    QString longRepresentation() const;
-    void doParse(const QString &representation, QStringList &input);
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override;
+    QString longRepresentation() const override;
+    void doParse(const QString &representation, QStringList &input) override;
 
 private:
     QString m_generatorName;
@@ -148,24 +148,24 @@ protected:
     CountingOption() : m_count(0) {}
 
 private:
-    bool canAppearMoreThanOnce() const { return true; }
-    void doParse(const QString & /* representation */, QStringList & /* input */) { ++m_count; }
+    bool canAppearMoreThanOnce() const  override{ return true; }
+    void doParse(const QString &, QStringList &) override { ++m_count;  }
 
     int m_count;
 };
 
 class VerboseOption : public CountingOption
 {
-    QString description(CommandType command) const;
-    QString shortRepresentation() const;
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override;
+    QString longRepresentation() const override;
 };
 
 class QuietOption : public CountingOption
 {
-    QString description(CommandType command) const;
-    QString shortRepresentation() const;
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override;
+    QString longRepresentation() const override;
 };
 
 class JobsOption : public CommandLineOption
@@ -175,10 +175,10 @@ public:
     int jobCount() const { return m_jobCount; }
 
 private:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const;
-    QString longRepresentation() const;
-    void doParse(const QString &representation, QStringList &input);
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override;
+    QString longRepresentation() const override;
+    void doParse(const QString &representation, QStringList &input) override;
 
     int m_jobCount;
 };
@@ -192,66 +192,66 @@ protected:
     OnOffOption() : m_enabled(false) {}
 
 private:
-    void doParse(const QString & /* representation */, QStringList & /* input */) { m_enabled = true; }
+    void doParse(const QString &, QStringList &) override { m_enabled = true; }
 
     bool m_enabled;
 };
 
 class KeepGoingOption : public OnOffOption
 {
-    QString description(CommandType command) const;
-    QString shortRepresentation() const;
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override;
+    QString longRepresentation() const override;
 };
 
 class DryRunOption : public OnOffOption
 {
-    QString description(CommandType command) const;
-    QString shortRepresentation() const;
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override;
+    QString longRepresentation() const override;
 };
 
 class ForceProbesOption : public OnOffOption
 {
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 };
 
 class NoInstallOption : public OnOffOption
 {
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 };
 
 class ShowProgressOption : public OnOffOption
 {
 public:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 };
 
 class ForceTimeStampCheckOption : public OnOffOption
 {
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 };
 
 class ForceOutputCheckOption : public OnOffOption
 {
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 };
 
 class BuildNonDefaultOption : public OnOffOption
 {
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 };
 
 
@@ -261,24 +261,24 @@ public:
     QStringList arguments() const { return m_arguments; }
 
 private:
-    void doParse(const QString &representation, QStringList &input);
+    void doParse(const QString &representation, QStringList &input) override;
 
     QStringList m_arguments;
 };
 
 class ChangedFilesOption : public StringListOption
 {
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 };
 
 class ProductsOption : public StringListOption
 {
 public:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const;
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override;
+    QString longRepresentation() const override;
 };
 
 class LogLevelOption : public CommandLineOption
@@ -288,10 +288,10 @@ public:
     int logLevel() const { return m_logLevel; }
 
 private:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
-    void doParse(const QString &representation, QStringList &input);
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
+    void doParse(const QString &representation, QStringList &input) override;
 
     int m_logLevel;
 };
@@ -304,12 +304,12 @@ public:
     QString installRoot() const { return m_installRoot; }
     bool useSysroot() const { return m_useSysroot; }
 
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 
 private:
-    void doParse(const QString &representation, QStringList &input);
+    void doParse(const QString &representation, QStringList &input) override;
 
     QString m_installRoot;
     bool m_useSysroot;
@@ -318,25 +318,25 @@ private:
 class RemoveFirstOption : public OnOffOption
 {
 public:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 };
 
 class NoBuildOption : public OnOffOption
 {
 public:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 };
 
 class LogTimeOption : public OnOffOption
 {
 public:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const;
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override;
+    QString longRepresentation() const override;
 };
 
 class CommandEchoModeOption : public CommandLineOption
@@ -344,13 +344,13 @@ class CommandEchoModeOption : public CommandLineOption
 public:
     CommandEchoModeOption();
 
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
     CommandEchoMode commandEchoMode() const;
 
 private:
-    void doParse(const QString &representation, QStringList &input);
+    void doParse(const QString &representation, QStringList &input) override;
 
     CommandEchoMode m_echoMode = CommandEchoModeInvalid;
 };
@@ -362,12 +362,12 @@ public:
 
     QString settingsDir() const { return m_settingsDir; }
 
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 
 private:
-    void doParse(const QString &representation, QStringList &input);
+    void doParse(const QString &representation, QStringList &input) override;
 
     QString m_settingsDir;
 };
@@ -375,9 +375,9 @@ private:
 class WaitLockOption : public OnOffOption
 {
 public:
-    QString description(CommandType command) const;
-    QString shortRepresentation() const { return QString(); }
-    QString longRepresentation() const;
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 };
 
 } // namespace qbs
