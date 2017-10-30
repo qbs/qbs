@@ -60,10 +60,10 @@ public:
     void start(const QList<ResolvedProductPtr> &products);
 
 private:
-    bool visit(Artifact *artifact) Q_DECL_OVERRIDE;
-    void endVisit(Artifact *artifact) Q_DECL_OVERRIDE;
-    bool visit(RuleNode *rule) Q_DECL_OVERRIDE;
-    void endVisit(RuleNode *rule) Q_DECL_OVERRIDE;
+    bool visit(Artifact *artifact) override;
+    void endVisit(Artifact *artifact) override;
+    bool visit(RuleNode *rule) override;
+    void endVisit(RuleNode *rule) override;
 
     void doEndVisit();
     void indent();
