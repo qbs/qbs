@@ -174,23 +174,35 @@ private slots:
 
     void testInvalidCommandLine()
     {
+        QFETCH(QStringList, commandLine);
         CommandLineParser parser;
-        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "-x")); // Unknown short option.
-        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "--xyz")); // Unknown long option.
-        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "-vjv")); // Invalid position.
-        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "-j"));  // Missing argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "-j" << "0" << m_fileArgs)); // Wrong argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "--products"));  // Missing argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "--changed-files" << "," << m_fileArgs)); // Wrong argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "--log-level" << "blubb" << m_fileArgs)); // Wrong argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "-123")); // Unknown numeric argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << m_fileArgs << "debug")); // Unknown parameter.
-        QVERIFY(!parser.parseCommandLine(QStringList("help") << "build" << "clean")); // Too many arguments.
-        QVERIFY(!parser.parseCommandLine(QStringList("clean") << "profile:x")); // This command cannot resolve.
-        QVERIFY(!parser.parseCommandLine(QStringList("dump-nodes-tree") << "profile:x")); // This command cannot resolve.
-        QVERIFY(!parser.parseCommandLine(QStringList("status") << "profile:x")); // This command cannot resolve.
-        QVERIFY(!parser.parseCommandLine(QStringList("update-timestamps") << "profile:x")); // This command cannot resolve.
-        QVERIFY(!parser.parseCommandLine(QStringList("show-version") << "config:debug")); // This command takes no arguments.
+        QVERIFY(!parser.parseCommandLine(commandLine));
+    }
+
+    void testInvalidCommandLine_data()
+    {
+        QTest::addColumn<QStringList>("commandLine");
+        QTest::addRow("Unknown short option") << (QStringList() << m_fileArgs << "-x");
+        QTest::addRow("Unknown long option") << (QStringList() << m_fileArgs << "--xyz");
+        QTest::addRow("Invalid position") << (QStringList() << m_fileArgs << "-vjv");
+        QTest::addRow("Missing jobs argument") << (QStringList() << m_fileArgs << "-j");
+        QTest::addRow("Missing products argument") << (QStringList() << m_fileArgs << "--products");
+        QTest::addRow("Wrong argument") << (QStringList() << "-j" << "0" << m_fileArgs);
+        QTest::addRow("Invalid list argument")
+                << (QStringList() << "--changed-files" << "," << m_fileArgs);
+        QTest::addRow("Invalid log level")
+                << (QStringList() << "--log-level" << "blubb" << m_fileArgs);
+        QTest::addRow("Unknown numeric argument") << (QStringList() << m_fileArgs << "-123");
+        QTest::addRow("Unknown parameter") << (QStringList() << m_fileArgs << "debug");
+        QTest::addRow("Too many arguments") << (QStringList("help") << "build" << "clean");
+        QTest::addRow("Property assignment for clean") << (QStringList("clean") << "profile:x");
+        QTest::addRow("Property assignment for dump-nodes-tree")
+                << (QStringList("dump-nodes-tree") << "profile:x");
+        QTest::addRow("Property assignment for status") << (QStringList("status") << "profile:x");
+        QTest::addRow("Property assignment for update-timestamps")
+                << (QStringList("update-timestamps") << "profile:x");
+        QTest::addRow("Argument for show-version")
+                << (QStringList("show-version") << "config:debug");
     }
 
 private:
