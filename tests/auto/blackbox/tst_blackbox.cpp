@@ -828,6 +828,41 @@ void TestBlackbox::discardUnusedData_data()
     QTest::newRow("default") << QString() << true;
 }
 
+void TestBlackbox::driverLinkerFlags()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/driver-linker-flags"));
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (!m_qbsStdout.contains("toolchain is GCC-like"))
+        QSKIP("Test applies on GCC-like toolchains only");
+    QFETCH(QString, linkerMode);
+    QFETCH(bool, expectDriverOption);
+    const QString linkerModeArg = "modules.cpp.linkerMode:" + linkerMode;
+    QCOMPARE(runQbs(QStringList({"-n", "--command-echo-mode", "command-line", linkerModeArg})), 0);
+    const QByteArray driverArg = "-nostartfiles";
+    const QByteArrayList output = m_qbsStdout.split('\n');
+    QByteArray compileLine;
+    QByteArray linkLine;
+    for (const QByteArray &line : output) {
+        if (line.contains("-c"))
+            compileLine = line;
+        else if (line.contains("main.cpp.o"))
+            linkLine = line;
+    }
+    QVERIFY(!compileLine.isEmpty());
+    QVERIFY(!linkLine.isEmpty());
+    QVERIFY2(!compileLine.contains(driverArg), compileLine.constData());
+    QVERIFY2(linkLine.contains(driverArg) == expectDriverOption, linkLine.constData());
+}
+
+void TestBlackbox::driverLinkerFlags_data()
+{
+    QTest::addColumn<QString>("linkerMode");
+    QTest::addColumn<bool>("expectDriverOption");
+
+    QTest::newRow("link using compiler driver") << "automatic" << true;
+    QTest::newRow("link using linker") << "manual" << false;
+}
+
 void TestBlackbox::symlinkRemoval()
 {
     if (HostOsInfo::isWindowsHost())

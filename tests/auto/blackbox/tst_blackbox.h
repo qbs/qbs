@@ -77,6 +77,8 @@ private slots:
     void disappearedProfile();
     void discardUnusedData();
     void discardUnusedData_data();
+    void driverLinkerFlags();
+    void driverLinkerFlags_data();
     void dynamicMultiplexRule();
     void dynamicProject();
     void dynamicRuleOutputs();

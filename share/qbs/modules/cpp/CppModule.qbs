@@ -241,6 +241,12 @@ Module {
         description: "additional compiler driver flags"
     }
 
+    property stringList driverLinkerFlags
+    PropertyOptions {
+        name: "driverLinkerFlags"
+        description: "additional compiler driver flags used for linking only"
+    }
+
     property bool positionIndependentCode: true
     PropertyOptions {
         name: "positionIndependentCode"

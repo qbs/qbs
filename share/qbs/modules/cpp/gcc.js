@@ -371,7 +371,8 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
     if (isDarwin && product.cpp.warningLevel === "none")
         args.push('-w');
 
-    args = args.concat(configFlags(product, useCompilerDriverLinker(product, inputs)));
+    var useCompilerDriver = useCompilerDriverLinker(product, inputs);
+    args = args.concat(configFlags(product, useCompilerDriver));
     Array.prototype.push.apply(escapableLinkerFlags, product.cpp.platformLinkerFlags);
     Array.prototype.push.apply(escapableLinkerFlags, product.cpp.linkerFlags);
 
@@ -467,6 +468,9 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
 
     var escapedLinkerFlags = escapeLinkerFlags(product, inputs, escapableLinkerFlags);
     Array.prototype.push.apply(escapedLinkerFlags, args);
+    var driverLinkerFlags = useCompilerDriver ? product.cpp.driverLinkerFlags : undefined;
+    if (driverLinkerFlags)
+        Array.prototype.push.apply(escapedLinkerFlags, driverLinkerFlags);
     return escapedLinkerFlags;
 }
 

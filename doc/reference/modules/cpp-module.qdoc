@@ -228,6 +228,13 @@
         \li Flags that are added to all compilation and linking commands performed by the compiler
             driver, independently of the language.
     \row
+        \li driverLinkerFlags
+        \li \c{stringList}
+        \li 1.11
+        \li undefined
+        \li Flags that are added to all linking commands performed by the compiler
+            driver, independently of the language.
+    \row
         \li commonCompilerFlags
         \li \c{stringList}
         \li 1.0.1
