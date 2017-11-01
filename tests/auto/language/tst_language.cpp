@@ -553,6 +553,23 @@ void TestLanguage::derivedSubProject()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::disabledSubProject()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("disabled-subproject.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(!!project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 0);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::enumerateProjectProperties()
 {
     bool exceptionCaught = false;

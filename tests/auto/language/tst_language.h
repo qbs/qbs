@@ -90,6 +90,7 @@ private slots:
     void delayedError_data();
     void dependencyOnAllProfiles();
     void derivedSubProject();
+    void disabledSubProject();
     void enumerateProjectProperties();
     void environmentVariable();
     void errorInDisabledProduct();

@@ -1245,13 +1245,13 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
     qCDebug(lcModuleLoader) << "handleSubProject" << projectItem->file()->filePath();
 
     Item * const propertiesItem = projectItem->child(ItemType::PropertiesInSubProject);
-    bool subProjectEnabled = true;
+    if (!checkItemCondition(projectItem))
+        return;
     if (propertiesItem) {
         propertiesItem->setScope(projectItem);
-        subProjectEnabled = checkItemCondition(propertiesItem);
+        if (!checkItemCondition(propertiesItem))
+            return;
     }
-    if (!subProjectEnabled)
-        return;
 
     Item *loadedItem;
     QString subProjectFilePath;

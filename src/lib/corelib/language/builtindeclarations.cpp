@@ -461,6 +461,7 @@ void BuiltinDeclarations::addSubprojectItem()
             << ItemType::Project // needed, because we're adding this internally
             << ItemType::PropertiesInSubProject
             << ItemType::PropertyOptions);
+    item << conditionProperty();
     item << PropertyDeclaration(QLatin1String("filePath"), PropertyDeclaration::Path);
     item << PropertyDeclaration(QLatin1String("inheritProperties"), PropertyDeclaration::Boolean,
                                 QLatin1String("true"));
