@@ -3316,6 +3316,11 @@ void TestBlackbox::compilerDefinesByLanguage()
 void TestBlackbox::jsExtensionsFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions-file");
+    QFile fileToMove("tomove.txt");
+    QVERIFY2(fileToMove.open(QIODevice::WriteOnly), qPrintable(fileToMove.errorString()));
+    fileToMove.close();
+    fileToMove.setPermissions(fileToMove.permissions() & ~(QFile::ReadUser | QFile::ReadOwner
+                                                           | QFile::ReadGroup | QFile::ReadOther));
     QbsRunParameters params(QStringList() << "-f" << "file.qbs");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!QFileInfo("original.txt").exists());
