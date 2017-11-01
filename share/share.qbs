@@ -80,7 +80,6 @@ Product {
         Artifact {
             filePath: FileInfo.joinPaths(
                           project.buildDirectory,
-                          product.qbsbuildconfig.resourcesInstallDir,
                           product.qbsbuildconfig.qmlTypeDescriptionsInstallDir, "qbs.qmltypes")
             fileTags: ["qbs qml type descriptions"]
         }
@@ -108,7 +107,6 @@ Product {
         Artifact {
             filePath: FileInfo.joinPaths(
                           project.buildDirectory,
-                          product.qbsbuildconfig.resourcesInstallDir,
                           product.qbsbuildconfig.qmlTypeDescriptionsInstallDir, "qbs-bundle.json")
             fileTags: ["qbs qml type bundle"]
         }

@@ -1,4 +1,5 @@
 import qbs
+import qbs.FileInfo
 
 Module {
     property bool enableUnitTests: false
@@ -28,5 +29,6 @@ Module {
     }
     property string resourcesInstallDir: ""
     property string pluginsInstallDir: libDirName
-    property string qmlTypeDescriptionsInstallDir: "share/qbs/qml-type-descriptions"
+    property string qmlTypeDescriptionsInstallDir: FileInfo.joinPaths(resourcesInstallDir,
+                                                                  "share/qbs/qml-type-descriptions")
 }

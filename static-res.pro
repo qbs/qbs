@@ -1,13 +1,14 @@
 TEMPLATE = aux
 
 !isEmpty(QBS_APPS_DESTDIR): qbsbindir = $${QBS_APPS_DESTDIR}
-else: qbsbindir = ../../../bin
-qbsbindir = $$clean_path(src/app/qbs/$$qbsbindir)
+else: qbsbindir = bin
 
 builddirname = qbsres
 typedescdir = share/qbs/qml-type-descriptions
 typedescdir_src = $$builddirname/default/install-root/$$typedescdir
-!isEmpty(QBS_RESOURCES_BUILD_DIR): \
+!isEmpty(QBS_QML_TYPE_DESCRIPTIONS_BUILD_DIR): \
+    typedescdir_dst = $$QBS_QML_TYPE_DESCRIPTIONS_BUILD_DIR
+else:!isEmpty(QBS_RESOURCES_BUILD_DIR): \
     typedescdir_dst = $$QBS_RESOURCES_BUILD_DIR/$$typedescdir
 else: \
     typedescdir_dst = $$typedescdir
@@ -51,9 +52,11 @@ PRE_TARGETDEPS += $$qbsqmltypes.target $$qbsbundle.target
 include(src/install_prefix.pri)
 
 qbstypedescfiles.files = $$qbsqmltypes.target $$qbsbundle.target
-!isEmpty(QBS_RESOURCES_INSTALL_DIR): \
-    installPrefix = $${QBS_RESOURCES_INSTALL_DIR}
+!isEmpty(QBS_QML_TYPE_DESCRIPTIONS_INSTALL_DIR): \
+    installPrefix = $${QBS_QML_TYPE_DESCRIPTIONS_INSTALL_DIR}
+else:!isEmpty(QBS_RESOURCES_INSTALL_DIR): \
+    installPrefix = $${QBS_RESOURCES_INSTALL_DIR}/$$typedescdir
 else: \
-    installPrefix = $${QBS_INSTALL_PREFIX}
-qbstypedescfiles.path = $${installPrefix}/$$typedescdir
+    installPrefix = $${QBS_INSTALL_PREFIX}/$$typedescdir
+qbstypedescfiles.path = $${installPrefix}
 INSTALLS += qbstypedescfiles
