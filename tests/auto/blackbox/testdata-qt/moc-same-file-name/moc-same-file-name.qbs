@@ -2,6 +2,7 @@ import qbs
 
 QtApplication {
     name: "app"
+    cpp.cxxLanguageVersion: "c++11"
     files: "main.cpp"
     Group {
         name: "src1"
