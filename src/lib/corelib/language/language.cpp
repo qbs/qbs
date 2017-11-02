@@ -689,7 +689,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
                 setupScript = module->setupRunEnvironmentScript;
         }
 
-        setupScriptEngineForFile(engine, setupScript->fileContext, scope);
+        setupScriptEngineForFile(engine, setupScript->fileContext, scope, ObserveMode::Disabled);
 
         // expose properties of direct module dependencies
         QScriptValue scriptValue;

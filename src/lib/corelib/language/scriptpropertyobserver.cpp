@@ -46,7 +46,8 @@ namespace Internal {
 
 ScriptPropertyObserver::~ScriptPropertyObserver()
 {
-    m_engine->unobserveProperties();
+    if (m_unobserveMode == UnobserveMode::Enabled)
+        m_engine->unobserveProperties();
 }
 
 } // namespace Internal

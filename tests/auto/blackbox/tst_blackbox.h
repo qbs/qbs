@@ -96,6 +96,7 @@ private slots:
     void fileDependencies();
     void generatedArtifactAsInputToDynamicRule();
     void groupsInModules();
+    void importChangeTracking();
     void importInPropertiesCondition();
     void importingProduct();
     void importsConflict();

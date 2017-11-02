@@ -320,9 +320,9 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
 }
 
 void setupScriptEngineForFile(ScriptEngine *engine, const FileContextBaseConstPtr &fileContext,
-        QScriptValue targetObject)
+        QScriptValue targetObject, const ObserveMode &observeMode)
 {
-    engine->import(fileContext, targetObject);
+    engine->import(fileContext, targetObject, observeMode);
     JsExtensions::setupExtensions(fileContext->jsExtensions(), targetObject);
 }
 

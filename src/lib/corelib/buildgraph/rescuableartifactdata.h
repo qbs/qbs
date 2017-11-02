@@ -105,6 +105,8 @@ public:
     PropertySet propertiesRequestedInCommands;
     PropertyHash propertiesRequestedFromArtifactInPrepareScript;
     PropertyHash propertiesRequestedFromArtifactInCommands;
+    std::vector<QString> importedFilesUsedInPrepareScript;
+    std::vector<QString> importedFilesUsedInCommands;
 
     // Only needed for API purposes
     FileTags fileTags;

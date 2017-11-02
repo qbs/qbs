@@ -43,7 +43,7 @@
 #include "jsimports.h"
 #include "propertymapinternal.h"
 #include "scriptimporter.h"
-#include "scriptpropertyobserver.h"
+#include "preparescriptobserver.h"
 
 #include <buildgraph/artifact.h>
 #include <jsextensions/jsextensions.h>
@@ -53,6 +53,7 @@
 #include <tools/profiling.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qdiriterator.h>
@@ -66,6 +67,7 @@
 
 #include <functional>
 #include <set>
+#include <utility>
 
 namespace qbs {
 namespace Internal {
@@ -95,7 +97,8 @@ uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed = 0)
 ScriptEngine::ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent)
     : QScriptEngine(parent), m_scriptImporter(new ScriptImporter(this)),
       m_modulePropertyScriptClass(nullptr),
-      m_propertyCacheEnabled(true), m_active(false), m_logger(logger), m_evalContext(evalContext)
+      m_propertyCacheEnabled(true), m_active(false), m_logger(logger), m_evalContext(evalContext),
+      m_importsObserver(new PrepareScriptObserver(this, UnobserveMode::Disabled))
 {
     setProcessEventsInterval(1000); // For the cancelation mechanism to work.
     m_cancelationError = currentContext()->throwValue(tr("Execution canceled"));
@@ -121,14 +124,21 @@ ScriptEngine::~ScriptEngine()
     delete m_modulePropertyScriptClass;
 }
 
-void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject)
+void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject,
+                          ObserveMode observeMode)
 {
     installImportFunctions();
     m_currentDirPathStack.push(FileInfo::path(fileCtx->filePath()));
     m_extensionSearchPathsStack.push(fileCtx->searchPaths());
+    m_importsObserver->clearImportIds();
+    m_observeMode = observeMode;
 
     for (const JsImport &jsImport : fileCtx->jsImports())
         import(jsImport, targetObject);
+    if (m_observeMode == ObserveMode::Enabled) {
+        for (QScriptValue &sv : m_requireResults)
+            observeImport(sv);
+    }
 
     m_currentDirPathStack.pop();
     m_extensionSearchPathsStack.pop();
@@ -154,12 +164,34 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue &targetObject)
         for (const QString &filePath : jsImport.filePaths)
             importFile(filePath, jsImportValue);
         m_jsImportCache.insert(jsImport, jsImportValue);
+        std::vector<QString> &filePathsForScriptValue
+                = m_filePathsPerImport[jsImportValue.objectId()];
+        for (const QString &fp : jsImport.filePaths)
+            filePathsForScriptValue.push_back(fp);
     }
 
     QScriptValue sv = newObject();
     sv.setPrototype(jsImportValue);
     sv.setProperty(QLatin1String("_qbs_importScopeName"), jsImport.scopeName);
     targetObject.setProperty(jsImport.scopeName, sv);
+    if (m_observeMode == ObserveMode::Enabled)
+        observeImport(jsImportValue);
+}
+
+void ScriptEngine::observeImport(QScriptValue &jsImport)
+{
+    if (!m_importsObserver->addImportId(jsImport.objectId()))
+        return;
+    QScriptValueIterator it(jsImport);
+    while (it.hasNext()) {
+        it.next();
+        if (it.flags() & QScriptValue::PropertyGetter)
+            continue;
+        QScriptValue property = it.value();
+        if (!property.isFunction())
+            continue;
+        setObservedProperty(jsImport, it.name(), property, m_importsObserver.get());
+    }
 }
 
 void ScriptEngine::clearImportsCache()
@@ -201,6 +233,27 @@ void ScriptEngine::addPropertyRequestedFromArtifact(const Artifact *artifact,
                                                     const Property &property)
 {
     m_propertiesRequestedFromArtifact[artifact->filePath()] << property;
+}
+
+void ScriptEngine::addImportRequestedInScript(qint64 importValueId)
+{
+    // Import list is assumed to be small, so let's not use a set.
+    if (!contains(m_importsRequestedInScript, importValueId))
+        m_importsRequestedInScript.push_back(importValueId);
+}
+
+std::vector<QString> ScriptEngine::importedFilesUsedInScript() const
+{
+    std::vector<QString> files;
+    for (qint64 usedImport : m_importsRequestedInScript) {
+        const auto it = m_filePathsPerImport.find(usedImport);
+        QBS_CHECK(it != m_filePathsPerImport.cend());
+        const std::vector<QString> &filePathsForImport = it->second;
+        for (const QString &fp : filePathsForImport)
+            if (!contains(files, fp))
+                files.push_back(fp);
+    }
+    return files;
 }
 
 void ScriptEngine::enableProfiling(bool enable)
@@ -255,7 +308,8 @@ void ScriptEngine::setObservedProperty(QScriptValue &object, const QString &name
     QScriptValue getterFunc = newFunction(js_observedGet, observer);
     getterFunc.setProperty(QLatin1String("qbsdata"), data);
     object.setProperty(name, getterFunc, QScriptValue::PropertyGetter);
-    m_observedProperties.emplace_back(object, name, value);
+    if (observer->unobserveMode() == UnobserveMode::Enabled)
+        m_observedProperties.emplace_back(object, name, value);
 }
 
 void ScriptEngine::unobserveProperties()
@@ -425,6 +479,7 @@ QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qt
                              QStringList() << QStringLiteral("*.js"),
                              QDir::Files | QDir::Readable);
             QScriptValueList values;
+            std::vector<QString> filePaths;
             try {
                 while (dit.hasNext()) {
                     const QString filePath = dit.next();
@@ -435,13 +490,19 @@ QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qt
                     QScriptValue obj = engine->newObject();
                     engine->importFile(filePath, obj);
                     values << obj;
+                    filePaths.push_back(filePath);
                 }
             } catch (const ErrorInfo &e) {
                 return context->throwError(e.toString());
             }
 
-            if (!values.isEmpty())
-                return mergeExtensionObjects(values);
+            if (!values.isEmpty()) {
+                const QScriptValue mergedValue = mergeExtensionObjects(values);
+                if (engine->m_observeMode == ObserveMode::Enabled)
+                    engine->m_requireResults.push_back(mergedValue);
+                engine->m_filePathsPerImport[mergedValue.objectId()] = filePaths;
+                return mergedValue;
+            }
         }
 
         // The module name might be a file name component, which is assumed to be to a JavaScript
@@ -463,6 +524,9 @@ QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qt
                 + QString::number(qHash(filePath), 16);
         result.setProperty(QLatin1String("_qbs_importScopeName"), scopeName);
         context->thisObject().setProperty(scopeName, result);
+        if (engine->m_observeMode == ObserveMode::Enabled)
+            engine->m_requireResults.push_back(result);
+        engine->m_filePathsPerImport[result.objectId()] = { filePath };
     } catch (const ErrorInfo &e) {
         result = context->throwError(e.toString());
     }
@@ -525,6 +589,10 @@ Set<QString> ScriptEngine::imports() const
         const JsImport &jsImport = it.key();
         for (const QString &filePath : jsImport.filePaths)
             filePaths << filePath;
+    }
+    for (auto it = m_filePathsPerImport.cbegin(); it != m_filePathsPerImport.cend(); ++it) {
+        for (const QString &fp : it->second)
+            filePaths << fp;
     }
     return filePaths;
 }

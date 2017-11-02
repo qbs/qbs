@@ -61,6 +61,8 @@ void RescuableArtifactData::load(PersistentPool &pool)
     pool.load(propertiesRequestedInCommands);
     pool.load(propertiesRequestedFromArtifactInPrepareScript);
     pool.load(propertiesRequestedFromArtifactInCommands);
+    pool.load(importedFilesUsedInPrepareScript);
+    pool.load(importedFilesUsedInCommands);
     commands = loadCommandList(pool);
     pool.load(fileTags);
     pool.load(properties);
@@ -75,6 +77,8 @@ void RescuableArtifactData::store(PersistentPool &pool) const
     pool.store(propertiesRequestedInCommands);
     pool.store(propertiesRequestedFromArtifactInPrepareScript);
     pool.store(propertiesRequestedFromArtifactInCommands);
+    pool.store(importedFilesUsedInPrepareScript);
+    pool.store(importedFilesUsedInCommands);
     storeCommandList(commands, pool);
     pool.store(fileTags);
     pool.store(properties);

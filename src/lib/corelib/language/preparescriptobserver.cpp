@@ -49,8 +49,8 @@
 namespace qbs {
 namespace Internal {
 
-PrepareScriptObserver::PrepareScriptObserver(ScriptEngine *engine)
-    : ScriptPropertyObserver(engine)
+PrepareScriptObserver::PrepareScriptObserver(ScriptEngine *engine, UnobserveMode unobserveMode)
+    : ScriptPropertyObserver(engine, unobserveMode)
     , m_productObjectId(-1)
     , m_projectObjectId(-1)
 {
@@ -66,6 +66,8 @@ void PrepareScriptObserver::onPropertyRead(const QScriptValue &object, const QSt
     } else if (objectId == m_projectObjectId) {
         engine()->addPropertyRequestedInScript(
                     Property(QString(), name, value.toVariant(), Property::PropertyInProject));
+    } else if (m_importIds.contains(objectId)) {
+        engine()->addImportRequestedInScript(object.objectId());
     } else {
         const auto it = m_parameterObjects.find(objectId);
         if (it != m_parameterObjects.cend()) {

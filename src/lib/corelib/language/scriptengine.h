@@ -55,14 +55,17 @@
 
 #include <QtScript/qscriptengine.h>
 
+#include <memory>
 #include <stack>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 
 namespace qbs {
 namespace Internal {
 class Artifact;
 class JsImport;
+class PrepareScriptObserver;
 class ScriptImporter;
 class ScriptPropertyObserver;
 
@@ -88,6 +91,7 @@ public:
     virtual void releaseResources() = 0;
 };
 
+enum class ObserveMode { Enabled, Disabled };
 
 class QBS_AUTOTEST_EXPORT ScriptEngine : public QScriptEngine
 {
@@ -97,8 +101,8 @@ public:
     ~ScriptEngine();
 
     Logger &logger() const { return m_logger; }
-    void import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject);
-    void import(const JsImport &jsImport, QScriptValue &targetObject);
+    void import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject,
+                ObserveMode observeMode);
     void clearImportsCache();
 
     void setEvalContext(EvalContext c) { m_evalContext = c; }
@@ -112,11 +116,15 @@ public:
     void clearRequestedProperties() {
         m_propertiesRequestedInScript.clear();
         m_propertiesRequestedFromArtifact.clear();
+        m_importsRequestedInScript.clear();
     }
     PropertySet propertiesRequestedInScript() const { return m_propertiesRequestedInScript; }
     QHash<QString, PropertySet> propertiesRequestedFromArtifact() const {
         return m_propertiesRequestedFromArtifact;
     }
+
+    void addImportRequestedInScript(qint64 importValueId);
+    std::vector<QString> importedFilesUsedInScript() const;
 
     void enableProfiling(bool enable);
 
@@ -212,6 +220,8 @@ private:
                                 QScriptValue (*f)(QScriptContext *, QScriptEngine *, Logger *));
     void installImportFunctions();
     void uninstallImportFunctions();
+    void import(const JsImport &jsImport, QScriptValue &targetObject);
+    void observeImport(QScriptValue &jsImport);
     void importFile(const QString &filePath, QScriptValue &targetObject);
     static QScriptValue js_loadExtension(QScriptContext *context, QScriptEngine *qtengine);
     static QScriptValue js_loadFile(QScriptContext *context, QScriptEngine *qtengine);
@@ -261,7 +271,12 @@ private:
     qint64 m_elapsedTimeImporting = -1;
     EvalContext m_evalContext;
     std::vector<ResourceAcquiringScriptObject *> m_resourceAcquiringScriptObjects;
+    const std::unique_ptr<PrepareScriptObserver> m_importsObserver;
     std::vector<std::tuple<QScriptValue, QString, QScriptValue>> m_observedProperties;
+    std::vector<QScriptValue> m_requireResults;
+    std::unordered_map<qint64, std::vector<QString>> m_filePathsPerImport;
+    std::vector<qint64> m_importsRequestedInScript;
+    ObserveMode m_observeMode = ObserveMode::Disabled;
 };
 
 class EvalContextSwitcher

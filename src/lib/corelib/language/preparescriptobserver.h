@@ -42,6 +42,8 @@
 #include "qualifiedid.h"
 #include "scriptpropertyobserver.h"
 
+#include <tools/set.h>
+
 #include <QString>
 
 #include <unordered_map>
@@ -53,10 +55,12 @@ class ScriptEngine;
 class PrepareScriptObserver : public ScriptPropertyObserver
 {
 public:
-    PrepareScriptObserver(ScriptEngine *engine);
+    PrepareScriptObserver(ScriptEngine *engine, UnobserveMode unobserveMode);
 
     void setProductObjectId(qint64 productId) { m_productObjectId = productId; }
     void setProjectObjectId(qint64 projectId) { m_projectObjectId = projectId; }
+    bool addImportId(qint64 importId) { return m_importIds.insert(importId).second; }
+    void clearImportIds() { m_importIds.clear(); }
     void addParameterObjectId(qint64 id, const QString &depName, const QualifiedId &moduleName)
     {
         m_parameterObjects.insert(std::make_pair(id, depName + QLatin1Char(':')
@@ -69,6 +73,7 @@ private:
     qint64 m_productObjectId;
     qint64 m_projectObjectId;
     std::unordered_map<qint64, QString> m_parameterObjects;
+    Set<qint64> m_importIds;
 };
 
 } // namespace Internal

@@ -156,12 +156,13 @@ UserDependencyScanner::UserDependencyScanner(const ResolvedScannerConstPtr &scan
                                              ScriptEngine *engine)
     : m_scanner(scanner),
       m_engine(engine),
-      m_observer(m_engine),
+      m_observer(m_engine, UnobserveMode::Enabled),
       m_product(0)
 {
     m_global = m_engine->newObject();
     m_global.setPrototype(m_engine->globalObject());
-    setupScriptEngineForFile(m_engine, m_scanner->scanScript->fileContext, m_global);
+    setupScriptEngineForFile(m_engine, m_scanner->scanScript->fileContext, m_global,
+                             ObserveMode::Disabled); // TODO: QBS-1092
 }
 
 QStringList UserDependencyScanner::collectSearchPaths(Artifact *artifact)

@@ -240,6 +240,7 @@ void Transformer::createCommands(ScriptEngine *engine, const ScriptFunctionConst
     engine->releaseResourcesOfScriptObjects();
     propertiesRequestedInPrepareScript = engine->propertiesRequestedInScript();
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
+    importedFilesUsedInPrepareScript = engine->importedFilesUsedInScript();
     engine->clearRequestedProperties();
     if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue)))
         throw engine->lastError(scriptValue, script->location);
@@ -270,6 +271,8 @@ void Transformer::rescueChangeTrackingData(const TransformerConstPtr &other)
     propertiesRequestedFromArtifactInPrepareScript
             = other->propertiesRequestedFromArtifactInPrepareScript;
     propertiesRequestedFromArtifactInCommands = other->propertiesRequestedFromArtifactInCommands;
+    importedFilesUsedInPrepareScript = other->importedFilesUsedInPrepareScript;
+    importedFilesUsedInCommands = other->importedFilesUsedInCommands;
 }
 
 void Transformer::load(PersistentPool &pool)
@@ -282,6 +285,8 @@ void Transformer::load(PersistentPool &pool)
     pool.load(propertiesRequestedInCommands);
     pool.load(propertiesRequestedFromArtifactInPrepareScript);
     pool.load(propertiesRequestedFromArtifactInCommands);
+    pool.load(importedFilesUsedInPrepareScript);
+    pool.load(importedFilesUsedInCommands);
     commands = loadCommandList(pool);
     pool.load(alwaysRun);
 }
@@ -296,6 +301,8 @@ void Transformer::store(PersistentPool &pool) const
     pool.store(propertiesRequestedInCommands);
     pool.store(propertiesRequestedFromArtifactInPrepareScript);
     pool.store(propertiesRequestedFromArtifactInCommands);
+    pool.store(importedFilesUsedInPrepareScript);
+    pool.store(importedFilesUsedInCommands);
     storeCommandList(commands, pool);
     pool.store(alwaysRun);
 }

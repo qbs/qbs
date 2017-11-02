@@ -113,8 +113,9 @@ private:
         ScriptEngine * const scriptEngine = provideScriptEngine();
         QScriptValue scope = scriptEngine->newObject();
         scope.setPrototype(scriptEngine->globalObject());
-        PrepareScriptObserver observer(scriptEngine);
-        setupScriptEngineForFile(scriptEngine, transformer->rule->prepareScript->fileContext, scope);
+        PrepareScriptObserver observer(scriptEngine, UnobserveMode::Enabled);
+        setupScriptEngineForFile(scriptEngine, transformer->rule->prepareScript->fileContext, scope,
+                                 ObserveMode::Enabled);
 
         QScriptValue importScopeForSourceCode;
         if (!cmd->scopeName().isEmpty())
@@ -143,6 +144,11 @@ private:
                 += scriptEngine->propertiesRequestedInScript();
         transformer->propertiesRequestedFromArtifactInCommands
                 .unite(scriptEngine->propertiesRequestedFromArtifact());
+        const std::vector<QString> &importFilesUsedInCommand
+                = scriptEngine->importedFilesUsedInScript();
+        transformer->importedFilesUsedInCommands.insert(
+                    transformer->importedFilesUsedInCommands.cend(),
+                    importFilesUsedInCommand.cbegin(), importFilesUsedInCommand.cend());
         scriptEngine->clearRequestedProperties();
         if (scriptEngine->hasUncaughtException()) {
             // ### We don't know the line number of the command's sourceCode property assignment.

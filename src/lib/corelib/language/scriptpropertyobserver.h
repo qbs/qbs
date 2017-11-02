@@ -51,10 +51,17 @@ namespace qbs {
 namespace Internal {
 class ScriptEngine;
 
+enum class UnobserveMode { Enabled, Disabled };
+
 class ScriptPropertyObserver
 {
 public:
-    ScriptPropertyObserver(ScriptEngine *engine) : m_engine(engine) {}
+    ScriptPropertyObserver(ScriptEngine *engine, UnobserveMode unobserveMode)
+        : m_engine(engine), m_unobserveMode(unobserveMode)
+    {}
+
+    UnobserveMode unobserveMode() const { return m_unobserveMode; }
+
     virtual ~ScriptPropertyObserver();
 
     virtual void onPropertyRead(const QScriptValue &object, const QString &name,
@@ -65,6 +72,7 @@ protected:
 
 private:
     ScriptEngine * const m_engine;
+    const UnobserveMode m_unobserveMode;
 };
 
 } // namespace Internal

@@ -71,6 +71,8 @@ public:
     PropertySet propertiesRequestedInCommands;
     QHash<QString, PropertySet> propertiesRequestedFromArtifactInPrepareScript;
     QHash<QString, PropertySet> propertiesRequestedFromArtifactInCommands;
+    std::vector<QString> importedFilesUsedInPrepareScript;
+    std::vector<QString> importedFilesUsedInCommands;
     bool alwaysRun;
 
     static QScriptValue translateFileConfig(ScriptEngine *scriptEngine,

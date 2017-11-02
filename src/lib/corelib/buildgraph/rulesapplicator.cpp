@@ -100,8 +100,9 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
     }
     QScriptValue prepareScriptContext = engine()->newObject();
     prepareScriptContext.setPrototype(engine()->globalObject());
-    PrepareScriptObserver observer(engine());
-    setupScriptEngineForFile(engine(), m_rule->prepareScript->fileContext, scope());
+    PrepareScriptObserver observer(engine(), UnobserveMode::Enabled);
+    setupScriptEngineForFile(engine(), m_rule->prepareScript->fileContext, scope(),
+                             ObserveMode::Enabled);
     setupScriptEngineForProduct(engine(), m_product, m_rule->module, prepareScriptContext, &observer);
 
     if (m_rule->multiplex) { // apply the rule once for a set of inputs

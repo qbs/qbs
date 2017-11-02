@@ -5277,6 +5277,85 @@ void TestBlackbox::groupsInModules()
     QCOMPARE(output.readAll().trimmed(), QByteArray("diamond"));
 }
 
+void TestBlackbox::importChangeTracking()
+{
+    QDir::setCurrent(testDataDir + "/import-change-tracking");
+    QCOMPARE(runQbs(QStringList({"-f", "import-change-tracking.qbs"})), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
+
+    // Change in imported file that is not used in any rule or command.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("irrelevant.js");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
+
+    // Change in directly imported file only used by one prepare script.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("custom1prepare1.js");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
+
+    // Change in recursively imported file only used by one prepare script.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("custom1prepare2.js");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
+
+    // Change in imported file used only by one command.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("custom1command.js");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
+
+    // Change in file only used by one prepare script, using directory import.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("custom2prepare/custom2prepare2.js");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
+
+    // Change in file used only by one command, imported via search path.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("imports/custom2command/custom2command1.js");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
+
+    // Change everything at once.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("irrelevant.js");
+    touch("custom1prepare1.js");
+    touch("custom1prepare2.js");
+    touch("custom1command.js");
+    touch("custom2prepare/custom2prepare1.js");
+    touch("imports/custom2command/custom2command2.js");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::probesInNestedModules()
 {
     QDir::setCurrent(testDataDir + "/probes-in-nested-modules");

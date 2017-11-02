@@ -678,11 +678,6 @@ bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restored
         return true;
     if (!dependenciesAreEqual(restoredProduct, newlyResolvedProduct))
         return true;
-    const FileTime referenceTime = restoredProduct->topLevelProject()->lastResolveTime;
-    for (const RuleConstPtr &rule : qAsConst(newlyResolvedProduct->rules)) {
-        if (!isPrepareScriptUpToDate(rule->prepareScript, referenceTime))
-            return true;
-    }
     return false;
 }
 
@@ -838,6 +833,26 @@ static void invalidateTransformer(const TransformerPtr &transformer)
     transformer->commands << pseudoCommand;
 }
 
+static bool checkForImportFileChange(const std::vector<QString> &importedFiles,
+                                     const FileTime &referenceTime,
+                                     const char *context)
+{
+    for (const QString &importedFile : importedFiles) {
+        const FileInfo fi(importedFile);
+        if (!fi.exists()) {
+            qCDebug(lcBuildGraph) << context << "imported file" << importedFile
+                                  << "is gone, need to re-run";
+            return true;
+        }
+        if (fi.lastModified() > referenceTime) {
+            qCDebug(lcBuildGraph) << context << "imported file" << importedFile
+                                  << "has been updated, need to re-run";
+            return true;
+        }
+    }
+    return false;
+}
+
 bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTrafo,
         const ResolvedProductPtr &freshProduct)
 {
@@ -864,9 +879,21 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
         }
     }
 
+    const FileTime referenceTime = restoredTrafo->product()->topLevelProject()->lastResolveTime;
+    if (checkForImportFileChange(restoredTrafo->importedFilesUsedInCommands, referenceTime,
+                                 "command")) {
+        invalidateTransformer(restoredTrafo);
+        return true;
+    }
+
     for (const Property &property : qAsConst(restoredTrafo->propertiesRequestedInPrepareScript)) {
         if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property)))
             return true;
+    }
+
+    if (checkForImportFileChange(restoredTrafo->importedFilesUsedInPrepareScript, referenceTime,
+                                 "prepare script")) {
+        return true;
     }
 
     for (QHash<QString, PropertySet>::ConstIterator it =
@@ -997,21 +1024,6 @@ bool BuildGraphLoader::checkConfigCompatibility()
     return true;
 }
 
-bool BuildGraphLoader::isPrepareScriptUpToDate(const ScriptFunctionConstPtr &script,
-                                               const FileTime &referenceTime)
-{
-    for (const JsImport &jsImport : script->fileContext->jsImports()) {
-        for (const QString &filePath : qAsConst(jsImport.filePaths)) {
-            if (FileInfo(filePath).lastModified() > referenceTime) {
-                qCDebug(lcBuildGraph) << "Change in import" << filePath
-                        << "potentially influences prepare script, marking as out of date";
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
 void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
         const ResolvedProductPtr &newlyResolvedProduct, const ChildListHash &childLists,
         const AllRescuableArtifactData &existingRad)
@@ -1044,6 +1056,9 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
                     = oldArtifact->transformer->propertiesRequestedFromArtifactInPrepareScript;
             rad.propertiesRequestedFromArtifactInCommands
                     = oldArtifact->transformer->propertiesRequestedFromArtifactInCommands;
+            rad.importedFilesUsedInPrepareScript
+                    = oldArtifact->transformer->importedFilesUsedInPrepareScript;
+            rad.importedFilesUsedInCommands = oldArtifact->transformer->importedFilesUsedInCommands;
             const ChildrenInfo &childrenInfo = childLists.value(oldArtifact);
             for (Artifact * const child : qAsConst(childrenInfo.children)) {
                 rad.children << RescuableArtifactData::ChildData(child->product->name,

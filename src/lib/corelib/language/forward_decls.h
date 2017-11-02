@@ -46,6 +46,8 @@
 namespace qbs {
 namespace Internal {
 
+enum class ObserveMode;
+
 class Value;
 typedef std::shared_ptr<Value> ValuePtr;
 typedef std::shared_ptr<const Value> ValueConstPtr;

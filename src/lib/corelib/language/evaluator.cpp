@@ -240,7 +240,8 @@ Evaluator::FileContextScopes Evaluator::fileContextScopes(const FileContextConst
     if (!result.importScope.isObject()) {
         try {
             result.importScope = m_scriptEngine->newObject();
-            setupScriptEngineForFile(m_scriptEngine, file, result.importScope);
+            setupScriptEngineForFile(m_scriptEngine, file, result.importScope,
+                                     ObserveMode::Disabled); // TODO: Probes need to enable this
         } catch (const ErrorInfo &e) {
             result.importScope = m_scriptEngine->currentContext()->throwError(e.toString());
         }
