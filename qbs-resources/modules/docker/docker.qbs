@@ -7,7 +7,6 @@ Module {
     Probes.BinaryProbe {
         id: dockercli
         names: ["docker"]
-        platformPaths: qbs.hostOS.contains("unix") ? ["/usr/bin", "/usr/local/bin"] : []
     }
 
     property string dockerFilePath: dockercli.filePath
