@@ -25,7 +25,10 @@ Module {
                 console.info(input.TestModule.testProperty);
                 File.copy(input.filePath, output.filePath);
             }
-            return cmd;
+            var dummyCmd = new JavaScriptCommand();
+            dummyCmd.silent = true;
+            dummyCmd.sourceCode = function() {};
+            return [cmd, dummyCmd];
         }
     }
 }
