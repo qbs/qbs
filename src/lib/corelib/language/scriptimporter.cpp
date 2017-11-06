@@ -60,7 +60,8 @@ public:
         m_first = true;
         m_barrier = false;
         m_suffix += QLatin1String("\nreturn {");
-        node->accept(this);
+        if (node)
+            node->accept(this);
         m_suffix += QLatin1String("}})()");
     }
 
