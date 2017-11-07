@@ -255,6 +255,19 @@ void ScriptEngine::setObservedProperty(QScriptValue &object, const QString &name
     QScriptValue getterFunc = newFunction(js_observedGet, observer);
     getterFunc.setProperty(QLatin1String("qbsdata"), data);
     object.setProperty(name, getterFunc, QScriptValue::PropertyGetter);
+    m_observedProperties.emplace_back(object, name, value);
+}
+
+void ScriptEngine::unobserveProperties()
+{
+    for (auto &elem : m_observedProperties) {
+        QScriptValue &object = std::get<0>(elem);
+        const QString &name = std::get<1>(elem);
+        const QScriptValue &value = std::get<2>(elem);
+        object.setProperty(name, QScriptValue(), QScriptValue::PropertyGetter);
+        object.setProperty(name, value, QScriptValue::PropertyFlags());
+    }
+    m_observedProperties.clear();
 }
 
 static QScriptValue js_deprecatedGet(QScriptContext *context, QScriptEngine *qtengine)

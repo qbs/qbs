@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,44 +37,17 @@
 **
 ****************************************************************************/
 
-#include "preparescriptobserver.h"
+#include "scriptpropertyobserver.h"
 
-#include "property.h"
 #include "scriptengine.h"
-
-#include <tools/stlutils.h>
-
-#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {
 
-PrepareScriptObserver::PrepareScriptObserver(ScriptEngine *engine)
-    : ScriptPropertyObserver(engine)
-    , m_productObjectId(-1)
-    , m_projectObjectId(-1)
+ScriptPropertyObserver::~ScriptPropertyObserver()
 {
+    m_engine->unobserveProperties();
 }
-
-void PrepareScriptObserver::onPropertyRead(const QScriptValue &object, const QString &name,
-                                           const QScriptValue &value)
-{
-    const auto objectId = object.objectId();
-    if (objectId == m_productObjectId) {
-        engine()->addPropertyRequestedInScript(
-                    Property(QString(), name, value.toVariant(), Property::PropertyInProduct));
-    } else if (objectId == m_projectObjectId) {
-        engine()->addPropertyRequestedInScript(
-                    Property(QString(), name, value.toVariant(), Property::PropertyInProject));
-    } else {
-        const auto it = m_parameterObjects.find(objectId);
-        if (it != m_parameterObjects.cend()) {
-            engine()->addPropertyRequestedInScript(
-                        Property(it->second, name, value.toVariant(), Property::PropertyInParameters));
-        }
-    }
-}
-
 
 } // namespace Internal
 } // namespace qbs

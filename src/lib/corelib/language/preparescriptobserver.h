@@ -66,7 +66,6 @@ public:
 private:
     void onPropertyRead(const QScriptValue &object, const QString &name, const QScriptValue &value);
 
-    ScriptEngine * const m_engine;
     qint64 m_productObjectId;
     qint64 m_projectObjectId;
     std::unordered_map<qint64, QString> m_parameterObjects;

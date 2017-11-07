@@ -56,6 +56,7 @@
 #include <QtScript/qscriptengine.h>
 
 #include <stack>
+#include <tuple>
 #include <vector>
 
 namespace qbs {
@@ -129,6 +130,7 @@ public:
     void defineProperty(QScriptValue &object, const QString &name, const QScriptValue &descriptor);
     void setObservedProperty(QScriptValue &object, const QString &name, const QScriptValue &value,
                              ScriptPropertyObserver *observer);
+    void unobserveProperties();
     void setDeprecatedProperty(QScriptValue &object, const QString &name, const QString &newName,
             const QScriptValue &value);
 
@@ -259,6 +261,7 @@ private:
     qint64 m_elapsedTimeImporting = -1;
     EvalContext m_evalContext;
     std::vector<ResourceAcquiringScriptObject *> m_resourceAcquiringScriptObjects;
+    std::vector<std::tuple<QScriptValue, QString, QScriptValue>> m_observedProperties;
 };
 
 class EvalContextSwitcher

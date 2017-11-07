@@ -63,6 +63,7 @@ SOURCES += \
     $$PWD/moduleloader.cpp \
     $$PWD/modulemerger.cpp \
     $$PWD/preparescriptobserver.cpp \
+    $$PWD/scriptpropertyobserver.cpp \
     $$PWD/projectresolver.cpp \
     $$PWD/property.cpp \
     $$PWD/propertydeclaration.cpp \

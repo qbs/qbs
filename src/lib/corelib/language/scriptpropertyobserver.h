@@ -49,12 +49,22 @@ QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
+class ScriptEngine;
 
 class ScriptPropertyObserver
 {
 public:
+    ScriptPropertyObserver(ScriptEngine *engine) : m_engine(engine) {}
+    virtual ~ScriptPropertyObserver();
+
     virtual void onPropertyRead(const QScriptValue &object, const QString &name,
                                 const QScriptValue &value) = 0;
+
+protected:
+    ScriptEngine * engine() const { return m_engine; }
+
+private:
+    ScriptEngine * const m_engine;
 };
 
 } // namespace Internal

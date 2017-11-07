@@ -280,6 +280,7 @@ QbsLibrary {
             "scriptengine.h",
             "scriptimporter.cpp",
             "scriptimporter.h",
+            "scriptpropertyobserver.cpp",
             "scriptpropertyobserver.h",
             "value.cpp",
             "value.h",
