@@ -16,16 +16,14 @@ else: \
 qbsres.target = $$builddirname/default/default.bg
 qbsres.commands = \
     $$shell_quote($$shell_path($$qbsbindir/qbs)) \
-    setup-qt \
-    --settings-dir $$shell_quote($$builddirname/settings) \
-    $(QMAKE) qt $$escape_expand(\\n\\t) \
-    $$shell_quote($$shell_path($$qbsbindir/qbs)) \
     build \
     --settings-dir $$shell_quote($$builddirname/settings) \
     -f $$shell_quote($$PWD/qbs.qbs) \
     -d $$shell_quote($$builddirname) \
     -p $$shell_quote("qbs resources") \
-    profile:qt
+    project.withCode:false \
+    project.withDocumentation:false \
+    profile:none
 
 qbsqmltypes.target = $$typedescdir_dst/qbs.qmltypes
 qbsqmltypes.commands = \
