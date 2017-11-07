@@ -2932,6 +2932,13 @@ void TestBlackbox::erroneousFiles_data()
     QTest::addColumn<QString>("errorMessage");
     QTest::newRow("nonexistentWorkingDir")
             << "The working directory '.does.not.exist' for process '.*ls.*' is invalid.";
+    QTest::newRow("outputArtifacts-missing-filePath")
+            << "Error in Rule\\.outputArtifacts\\[0\\]\n\r?"
+               "Property filePath must be a non-empty string\\.";
+    QTest::newRow("outputArtifacts-missing-fileTags")
+            << "Error in Rule\\.outputArtifacts\\[0\\]\n\r?"
+               "Property fileTags for artifact 'outputArtifacts-missing-fileTags\\.txt' "
+               "must be a non-empty string list\\.";
 }
 
 void TestBlackbox::erroneousFiles()
@@ -3123,6 +3130,24 @@ void TestBlackbox::fileDependencies()
     QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
 
     // Incremental build with changed 2nd level file dependency.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("awesomelib/magnificent.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
+
+    // Change the product in between to force the list of dependencies to get rescued.
+    QFile projectFile("fileDependencies.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray contents = projectFile.readAll();
+    contents.replace("//", "");
+    projectFile.resize(0);
+    projectFile.write(contents);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY(!m_qbsStdout.contains("compiling narf.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
     WAIT_FOR_NEW_TIMESTAMP();
     touch("awesomelib/magnificent.h");
     QCOMPARE(runQbs(), 0);
@@ -3359,6 +3384,11 @@ void TestBlackbox::compilerDefinesByLanguage()
 void TestBlackbox::jsExtensionsFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions-file");
+    QFile fileToMove("tomove.txt");
+    QVERIFY2(fileToMove.open(QIODevice::WriteOnly), qPrintable(fileToMove.errorString()));
+    fileToMove.close();
+    fileToMove.setPermissions(fileToMove.permissions() & ~(QFile::ReadUser | QFile::ReadOwner
+                                                           | QFile::ReadGroup | QFile::ReadOther));
     QbsRunParameters params(QStringList() << "-f" << "file.qbs");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!QFileInfo("original.txt").exists());

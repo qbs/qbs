@@ -570,6 +570,23 @@ void TestLanguage::disabledSubProject()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::emptyJsFile()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("empty-js-file.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(!!project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 1);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::enumerateProjectProperties()
 {
     bool exceptionCaught = false;

@@ -142,7 +142,7 @@ private:
         transformer->propertiesRequestedInCommands
                 += scriptEngine->propertiesRequestedInScript();
         transformer->propertiesRequestedFromArtifactInCommands
-                = scriptEngine->propertiesRequestedFromArtifact();
+                .unite(scriptEngine->propertiesRequestedFromArtifact());
         scriptEngine->clearRequestedProperties();
         if (scriptEngine->hasUncaughtException()) {
             // ### We don't know the line number of the command's sourceCode property assignment.

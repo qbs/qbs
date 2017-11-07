@@ -258,13 +258,8 @@ QScriptValue File::js_move(QScriptContext *context, QScriptEngine *engine)
                                    .arg(sourceFile, targetFile));
     }
 
-    if (!QFile(sourceFile).isReadable())
-        return context->throwError(QString(QLatin1String("Could not move '%1' to '%2': "
-                                                         "Source file is not accessible."))
-                                   .arg(sourceFile, targetFile));
-
     QFile f(targetFile);
-    if (overwrite && !f.remove())
+    if (overwrite && f.exists() && !f.remove())
         return context->throwError(QString(QLatin1String("Could not move '%1' to '%2': %3"))
                                    .arg(sourceFile, targetFile, f.errorString()));
 

@@ -42,6 +42,13 @@ Product {
                 entries = File.directoryEntries(product.sourceDirectory, File.Dirs | File.NoDotAndDotDot);
                 if (entries.length < 1 || !entries.contains("zePath"))
                     throw new Error("Directory did not contain only zePath");
+                var moveSource = FileInfo.joinPaths(product.sourceDirectory, "tomove.txt");
+                var moveTarget = FileInfo.joinPaths(product.sourceDirectory, "moved.txt");
+                File.move(moveSource, moveTarget);
+                if (File.exists(moveSource))
+                    throw new Error("Moved file still exists under old name");
+                if (!File.exists(moveTarget))
+                    throw new Error("Moved file does not exist under new name");
             };
             return [cmd];
         }

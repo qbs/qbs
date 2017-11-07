@@ -91,6 +91,7 @@ private slots:
     void dependencyOnAllProfiles();
     void derivedSubProject();
     void disabledSubProject();
+    void emptyJsFile();
     void enumerateProjectProperties();
     void environmentVariable();
     void errorInDisabledProduct();
