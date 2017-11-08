@@ -94,6 +94,7 @@ private slots:
     void generatedArtifactAsInputToDynamicRule();
     void groupsInModules();
     void importInPropertiesCondition();
+    void importSearchPath();
     void importingProduct();
     void importsConflict();
     void includeLookup();

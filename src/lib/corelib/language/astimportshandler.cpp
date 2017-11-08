@@ -232,7 +232,8 @@ bool ASTImportsHandler::addPrototype(const QString &fileName, const QString &fil
     if (!as.isEmpty())
         prototypeName.append(as);
     prototypeName.append(componentName);
-    m_typeNameToFile.insert(prototypeName, filePath);
+    if (!m_typeNameToFile.contains(prototypeName))
+        m_typeNameToFile.insert(prototypeName, filePath);
     return true;
 }
 

@@ -4796,6 +4796,14 @@ void TestBlackbox::importInPropertiesCondition()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::importSearchPath()
+{
+    QDir::setCurrent(testDataDir + "/import-searchpath");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("compiling somefile.cpp"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::importingProduct()
 {
     QDir::setCurrent(testDataDir + "/importing-product");
