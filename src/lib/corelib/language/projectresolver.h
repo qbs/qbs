@@ -120,7 +120,7 @@ private:
     QVariantMap evaluateProperties(Item *item, bool lookupPrototype = true);
     QVariantMap evaluateProperties(const Item *item, const Item *propertiesContainer,
                                    const QVariantMap &tmplt, bool lookupPrototype = true);
-    QVariantMap createProductConfig();
+    void createProductConfig(ResolvedProduct *product);
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
 
     struct ProductDependencyInfo

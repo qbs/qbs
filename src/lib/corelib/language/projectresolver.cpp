@@ -457,12 +457,8 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
                     product->destinationDirectory);
     }
     product->probes = pi.probes;
-    product->productProperties = createProductConfig();
+    createProductConfig(product.get());
     product->productProperties.insert(destDirKey, product->destinationDirectory);
-    QVariantMap moduleProperties;
-    moduleProperties.insert(QLatin1String("modules"),
-                            product->productProperties.take(QLatin1String("modules")));
-    product->moduleProperties->setValue(moduleProperties);
     ModuleProperties::init(m_evaluator->scriptValue(item), product);
 
     QList<Item *> subItems = item->children();
@@ -632,7 +628,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
             = propertiesToEvaluate(propsSetInGroup.toList(), m_evaluator->propertyDependencies());
 
     // Step 3: Evaluate all these properties and replace their values in the map
-    QVariantMap modulesMap = currentValues.value(QLatin1String("modules")).toMap();
+    QVariantMap modulesMap = currentValues;
     QHash<QString, QStringList> propsPerModule;
     for (auto fullPropName : propsToEval) {
         const QString moduleName
@@ -653,9 +649,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
                           evaluateProperties(module.item, module.item, reusableValues, true));
     }
     m_evaluator->clearPathPropertiesBaseDir();
-    QVariantMap newValues = currentValues;
-    newValues.insert(QLatin1String("modules"), modulesMap);
-    return newValues;
+    return modulesMap;
 }
 
 void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
@@ -1276,9 +1270,7 @@ QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototy
         moduleValues[fullName] = evaluateProperties(module.item, lookupPrototype);
     }
 
-    QVariantMap result;
-    result[QLatin1String("modules")] = moduleValues;
-    return result;
+    return moduleValues;
 }
 
 QVariantMap ProjectResolver::evaluateProperties(Item *item, bool lookupPrototype)
@@ -1351,14 +1343,14 @@ QVariantMap ProjectResolver::evaluateProperties(const Item *item, const Item *pr
             : result;
 }
 
-QVariantMap ProjectResolver::createProductConfig()
+void ProjectResolver::createProductConfig(ResolvedProduct *product)
 {
     EvalCacheEnabler cachingEnabler(m_evaluator);
     m_evaluator->setPathPropertiesBaseDir(m_productContext->product->sourceDirectory);
-    QVariantMap cfg = evaluateModuleValues(m_productContext->item);
-    cfg = evaluateProperties(m_productContext->item, m_productContext->item, cfg);
+    product->moduleProperties->setValue(evaluateModuleValues(m_productContext->item));
+    product->productProperties = evaluateProperties(m_productContext->item, m_productContext->item,
+                                                    QVariantMap());
     m_evaluator->clearPathPropertiesBaseDir();
-    return cfg;
 }
 
 void ProjectResolver::callItemFunction(const ItemFuncMap &mappings, Item *item,

@@ -94,12 +94,9 @@ PluginDependencyScanner::PluginDependencyScanner(ScannerPlugin *plugin)
 
 QStringList PluginDependencyScanner::collectSearchPaths(Artifact *artifact)
 {
-    if (m_plugin->flags & ScannerUsesCppIncludePaths) {
-        QVariantMap modules = artifact->properties->value().value(QLatin1String("modules")).toMap();
-        return collectCppIncludePaths(modules);
-    } else {
-        return QStringList();
-    }
+    if (m_plugin->flags & ScannerUsesCppIncludePaths)
+        return collectCppIncludePaths(artifact->properties->value());
+    return QStringList();
 }
 
 QStringList PluginDependencyScanner::collectDependencies(FileResourceBase *file,

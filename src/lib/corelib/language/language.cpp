@@ -616,8 +616,7 @@ static bool findModuleMapRecursively_impl(const QVariantMap &cfg, const QString 
             *result = it.value().toMap();
             return true;
         }
-        if (findModuleMapRecursively_impl(it.value().toMap().value(QStringLiteral("modules")).toMap(),
-                                          moduleName, result)) {
+        if (findModuleMapRecursively_impl(it.value().toMap(), moduleName, result)) {
             return true;
         }
     }
@@ -694,8 +693,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
 
         // expose properties of direct module dependencies
         QScriptValue scriptValue;
-        QVariantMap productModules = productConfiguration->value()
-                .value(QLatin1String("modules")).toMap();
+        const QVariantMap productModules = productConfiguration->value();
         for (const ResolvedModule * const depmod : moduleChildren.value(module)) {
             scriptValue = engine->newObject();
             QVariantMap moduleCfg = productModules.value(depmod->name).toMap();

@@ -230,8 +230,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         scope().setProperty(QLatin1String("fileTags"),
                             toScriptValue(engine(), outputArtifact->fileTags().toStringList()));
 
-        QVariantMap artifactModulesCfg = outputArtifact->properties->value()
-                .value(QLatin1String("modules")).toMap();
+        QVariantMap artifactModulesCfg = outputArtifact->properties->value();
         for (const auto &binding : ra->bindings) {
             scriptValue = engine()->evaluate(binding.code);
             if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
@@ -242,9 +241,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             }
             setConfigProperty(artifactModulesCfg, binding.name, scriptValue.toVariant());
         }
-        QVariantMap outputArtifactConfig = outputArtifact->properties->value();
-        outputArtifactConfig.insert(QLatin1String("modules"), artifactModulesCfg);
-        outputArtifact->properties->setValue(outputArtifactConfig);
+        outputArtifact->properties->setValue(artifactModulesCfg);
     }
     if (!ruleArtifactArtifactMap.isEmpty())
         engine()->setGlobalObject(prepareScriptContext.prototype());
@@ -494,7 +491,7 @@ public:
         outputArtifact->properties = outputArtifact->properties->clone();
         QVariantMap artifactCfg = outputArtifact->properties->value();
         for (const auto &e : m_propertyValues)
-            setConfigProperty(artifactCfg, {QStringLiteral("modules"), e.module, e.name}, e.value);
+            setConfigProperty(artifactCfg, {e.module, e.name}, e.value);
         outputArtifact->properties->setValue(artifactCfg);
     }
 };

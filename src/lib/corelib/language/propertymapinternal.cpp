@@ -101,8 +101,7 @@ void PropertyMapInternal::store(PersistentPool &pool) const
 QVariant moduleProperty(const QVariantMap &properties, const QString &moduleName,
                         const QString &key)
 {
-    const QVariantMap moduleProperties = properties.value(QLatin1String("modules")).toMap();
-    return moduleProperties.value(moduleName).toMap().value(key);
+    return properties.value(moduleName).toMap().value(key);
 }
 
 } // namespace Internal

@@ -119,10 +119,8 @@ ResolvedModuleConstPtr TestLanguage::findModuleByName(ResolvedProductPtr product
 QVariant TestLanguage::productPropertyValue(ResolvedProductPtr product, QString propertyName)
 {
     QStringList propertyNameComponents = propertyName.split(QLatin1Char('.'));
-    if (propertyNameComponents.count() > 1) {
-        propertyNameComponents.prepend(QLatin1String("modules"));
+    if (propertyNameComponents.count() > 1)
         return product->moduleProperties->property(propertyNameComponents);
-    }
     return getConfigProperty(product->productProperties, propertyNameComponents);
 }
 
@@ -627,11 +625,11 @@ void TestLanguage::defaultValue()
         QCOMPARE(products.count(), 2);
         const ResolvedProductPtr product = products.value("egon");
         QVERIFY(!!product);
-        QStringList propertyName = QStringList() << "modules" << "lower" << "prop2";
+        QStringList propertyName = QStringList() << "lower" << "prop2";
         QVariant propertyValue = product->moduleProperties->property(propertyName);
         QFETCH(QVariant, expectedProp2Value);
         QCOMPARE(propertyValue, expectedProp2Value);
-        propertyName = QStringList() << "modules" << "lower" << "listProp";
+        propertyName = QStringList() << "lower" << "listProp";
         propertyValue = product->moduleProperties->property(propertyName);
         QFETCH(QVariant, expectedListPropValue);
         QCOMPARE(propertyValue.toStringList(), expectedListPropValue.toStringList());
@@ -851,11 +849,11 @@ void TestLanguage::exports()
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(!!product);
-        QStringList propertyName = QStringList() << "modules" << "dummy" << "defines";
+        QStringList propertyName = QStringList() << "dummy" << "defines";
         QVariant propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYAPP" << "USE_MYLIB"
                  << "USE_MYLIB2");
-        propertyName = QStringList() << "modules" << "dummy" << "includePaths";
+        propertyName = QStringList() << "dummy" << "includePaths";
         QVariantList propertyValues = product->moduleProperties->property(propertyName).toList();
         QCOMPARE(propertyValues.count(), 3);
         QVERIFY(propertyValues.at(0).toString().endsWith("/app"));
@@ -867,13 +865,13 @@ void TestLanguage::exports()
 
         product = products.value("mylib");
         QVERIFY(!!product);
-        propertyName = QStringList() << "modules" << "dummy" << "defines";
+        propertyName = QStringList() << "dummy" << "defines";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB");
 
         product = products.value("mylib2");
         QVERIFY(!!product);
-        propertyName = QStringList() << "modules" << "dummy" << "defines";
+        propertyName = QStringList() << "dummy" << "defines";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB2");
 
@@ -894,15 +892,15 @@ void TestLanguage::exports()
 
         product = products.value("myapp2");
         QVERIFY(!!product);
-        propertyName = QStringList() << "modules" << "dummy" << "cFlags";
+        propertyName = QStringList() << "dummy" << "cFlags";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList()
                  << "BASE_PRODUCTWITHINHERITEDEXPORTITEM"
                  << "PRODUCT_PRODUCTWITHINHERITEDEXPORTITEM");
-        propertyName = QStringList() << "modules" << "dummy" << "cxxFlags";
+        propertyName = QStringList() << "dummy" << "cxxFlags";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "-bar");
-        propertyName = QStringList() << "modules" << "dummy" << "defines";
+        propertyName = QStringList() << "dummy" << "defines";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "ABC");
         QCOMPARE(product->moduleProperties->moduleProperty("dummy", "productName").toString(),
@@ -926,11 +924,11 @@ void TestLanguage::exports()
 
         product = products.value("libE");
         QVERIFY(!!product);
-        propertyName = QStringList() << "modules" << "dummy" << "defines";
+        propertyName = QStringList() << "dummy" << "defines";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(),
                  QStringList() << "LIBA" << "LIBB" << "LIBC" << "LIBD");
-        propertyName = QStringList() << "modules" << "dummy" << "productName";
+        propertyName = QStringList() << "dummy" << "productName";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toString(), QString("libE"));
 
@@ -1968,7 +1966,7 @@ void TestLanguage::pathProperties()
                 << FileInfo::resolvePath(projectFileDir, "aboutdialog.cpp");
         QCOMPARE(productProps.value("filesInProjectFileDir").toStringList(), filesInProjectFileDir);
         QStringList includePaths = product->moduleProperties->property(
-                QStringList() << "modules" << "dummy" << "includePaths").toStringList();
+                QStringList() << "dummy" << "includePaths").toStringList();
         QCOMPARE(includePaths, QStringList() << projectFileDir);
         QCOMPARE(productProps.value("base_fileInProductDir").toString(),
                  FileInfo::resolvePath(projectFileDir, QLatin1String("foo")));

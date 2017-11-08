@@ -237,7 +237,7 @@ private:
                                        const ResolvedModule *module)
     {
         const QVariantMap propMap = module->product->moduleProperties->value()
-                .value(QLatin1String("modules")).toMap().value(module->name).toMap();
+                .value(module->name).toMap();
         for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
             const QVariant &value = it.value();
             if (value.isValid())
