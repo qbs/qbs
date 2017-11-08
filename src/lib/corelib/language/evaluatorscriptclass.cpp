@@ -59,6 +59,8 @@
 #include <QtScript/qscriptstring.h>
 #include <QtScript/qscriptvalue.h>
 
+#include <utility>
+
 namespace qbs {
 namespace Internal {
 
@@ -117,6 +119,46 @@ private:
             valueToSet = engine->undefinedValue();
         }
         extraScope->setProperty(conveniencePropertyName, valueToSet);
+    }
+
+    std::pair<QScriptValue, bool> createExtraScope(const JSSourceValue *value, Item *outerItem)
+    {
+        std::pair<QScriptValue, bool> result;
+        auto &extraScope = result.first;
+        result.second = true;
+        if (value->sourceUsesBase()) {
+            QScriptValue baseValue;
+            if (value->baseValue()) {
+                SVConverter converter(scriptClass, object, value->baseValue(), itemOfProperty,
+                                      propertyName, data, &baseValue);
+                converter.start();
+            }
+            setupConvenienceProperty(QLatin1String("base"), &extraScope, baseValue);
+        }
+        if (value->sourceUsesOuter() && outerItem) {
+            const QScriptValue v = data->evaluator->property(outerItem, *propertyName);
+            if (engine->hasErrorOrException(v)) {
+                extraScope = engine->lastErrorValue(v);
+                result.second = false;
+                return result;
+            }
+            setupConvenienceProperty(QLatin1String("outer"), &extraScope, v);
+        }
+        if (value->sourceUsesOriginal()) {
+            QScriptValue originalValue;
+            if (data->item->propertyDeclaration(propertyName->toString()).isScalar()) {
+                const Item *item = itemOfProperty;
+                while (item->type() == ItemType::ModuleInstance)
+                    item = item->prototype();
+                SVConverter converter(scriptClass, object, item->property(*propertyName), item,
+                                      propertyName, data, &originalValue);
+                converter.start();
+            } else {
+                originalValue = engine->newArray(0);
+            }
+            setupConvenienceProperty(QLatin1String("original"), &extraScope, originalValue);
+        }
+        return result;
     }
 
     void pushScope(const QScriptValue &scope)
@@ -228,39 +270,11 @@ private:
             }
         }
 
-        QScriptValue extraScope;
-        if (value->sourceUsesBase()) {
-            QScriptValue baseValue;
-            if (value->baseValue()) {
-                SVConverter converter(scriptClass, object, value->baseValue(), itemOfProperty,
-                                      propertyName, data, &baseValue);
-                converter.start();
-            }
-            setupConvenienceProperty(QLatin1String("base"), &extraScope, baseValue);
+        auto maybeExtraScope = createExtraScope(value, outerItem);
+        if (!maybeExtraScope.second) {
+            *result = maybeExtraScope.first;
+            return;
         }
-        if (value->sourceUsesOuter() && outerItem) {
-            const QScriptValue v = data->evaluator->property(outerItem, *propertyName);
-            if (engine->hasErrorOrException(v)) {
-                *result = engine->lastErrorValue(v);
-                return;
-            }
-            setupConvenienceProperty(QLatin1String("outer"), &extraScope, v);
-        }
-        if (value->sourceUsesOriginal()) {
-            QScriptValue originalValue;
-            if (data->item->propertyDeclaration(propertyName->toString()).isScalar()) {
-                const Item *item = itemOfProperty;
-                while (item->type() == ItemType::ModuleInstance)
-                    item = item->prototype();
-                SVConverter converter(scriptClass, object, item->property(*propertyName), item,
-                                      propertyName, data, &originalValue);
-                converter.start();
-            } else {
-                originalValue = engine->newArray(0);
-            }
-            setupConvenienceProperty(QLatin1String("original"), &extraScope, originalValue);
-        }
-
         const Evaluator::FileContextScopes fileCtxScopes
                 = data->evaluator->fileContextScopes(value->file());
         pushScope(fileCtxScopes.fileScope);
@@ -271,7 +285,7 @@ private:
         }
         if (value->definingItem())
             pushItemScopes(value->definingItem());
-        pushScope(extraScope);
+        pushScope(maybeExtraScope.first);
         const QScriptValue &theImportScope = fileCtxScopes.importScope;
         if (theImportScope.isError()) {
             *result = theImportScope;
