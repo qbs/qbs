@@ -277,6 +277,10 @@ private:
         }
         const Evaluator::FileContextScopes fileCtxScopes
                 = data->evaluator->fileContextScopes(value->file());
+        if (fileCtxScopes.importScope.isError()) {
+            *result = fileCtxScopes.importScope;
+            return;
+        }
         pushScope(fileCtxScopes.fileScope);
         pushItemScopes(data->item);
         if (itemOfProperty->type() != ItemType::ModuleInstance) {
@@ -286,14 +290,9 @@ private:
         if (value->definingItem())
             pushItemScopes(value->definingItem());
         pushScope(maybeExtraScope.first);
-        const QScriptValue &theImportScope = fileCtxScopes.importScope;
-        if (theImportScope.isError()) {
-            *result = theImportScope;
-        } else {
-            pushScope(theImportScope);
-            *result = engine->evaluate(value->sourceCodeForEvaluation(), value->file()->filePath(),
-                                       value->line());
-        }
+        pushScope(fileCtxScopes.importScope);
+        *result = engine->evaluate(value->sourceCodeForEvaluation(), value->file()->filePath(),
+                                   value->line());
         popScopes();
     }
 
