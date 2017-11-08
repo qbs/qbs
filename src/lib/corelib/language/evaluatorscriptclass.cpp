@@ -101,6 +101,25 @@ public:
     }
 
 private:
+    friend class AutoScopePopper;
+
+    class AutoScopePopper
+    {
+    public:
+        AutoScopePopper(SVConverter *converter)
+            : m_converter(converter)
+        {
+        }
+
+        ~AutoScopePopper()
+        {
+            m_converter->popScopes();
+        }
+
+    private:
+        SVConverter *m_converter;
+    };
+
     void setupConvenienceProperty(const QString &conveniencePropertyName, QScriptValue *extraScope,
                                   const QScriptValue &scriptValue)
     {
@@ -186,100 +205,54 @@ private:
 
     void handle(JSSourceValue *value) override
     {
-        const Item *conditionScopeItem = 0;
-        QScriptValue conditionScope;
-        QScriptValue conditionFileScope;
         Item *outerItem = data->item->outerItem();
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
-            const Evaluator::FileContextScopes fileCtxScopes
-                    = data->evaluator->fileContextScopes(value->file());
-            if (!conditionScopeItem) {
-                // We have to differentiate between module instances and normal items here.
-                //
-                // The module instance case:
-                // Product {
-                //     property bool something: true
-                //     Properties {
-                //         condition: something
-                //         cpp.defines: ["ABC"]
-                //     }
-                // }
-                //
-                // data->item points to cpp and the condition's scope chain must contain cpp's
-                // scope, which is the item where cpp is instantiated. The scope chain must not
-                // contain data->item itself.
-                //
-                // The normal item case:
-                // Product {
-                //     property bool something: true
-                //     property string value: "ABC"
-                //     Properties {
-                //         condition: something
-                //         value: "DEF"
-                //     }
-                // }
-                //
-                // data->item points to the product and the condition's scope chain must contain
-                // the product item.
-                conditionScopeItem = data->item->type() == ItemType::ModuleInstance
-                        ? data->item->scope() : data->item;
-                conditionScope = data->evaluator->scriptValue(conditionScopeItem);
-                QBS_ASSERT(conditionScope.isObject(), return);
-                conditionFileScope = fileCtxScopes.fileScope;
+            if (alternative.value->sourceUsesOuter() && !outerItem) {
+                // Clone value but without alternatives.
+                JSSourceValuePtr outerValue =
+                        std::static_pointer_cast<JSSourceValue>(value->clone());
+                outerValue->setNext(ValuePtr());
+                outerValue->clearCreatedByPropertiesBlock();
+                outerValue->clearAlternatives();
+                outerItem = Item::create(data->item->pool(), ItemType::Outer);
+                outerItem->setProperty(propertyName->toString(), outerValue);
             }
-            scriptContext->pushScope(conditionFileScope);
-            pushItemScopes(conditionScopeItem);
-            if (alternative.value->definingItem())
-                pushItemScopes(alternative.value->definingItem());
-            scriptContext->pushScope(conditionScope);
-            const QScriptValue &theImportScope = fileCtxScopes.importScope;
-            if (theImportScope.isError()) {
-                scriptContext->popScope();
-                scriptContext->popScope();
-                popScopes();
-                *result = theImportScope;
+            JSSourceValueEvaluationResult sver = evaluateJSSourceValue(alternative.value.get(),
+                                                                       outerItem, &alternative,
+                                                                       value);
+            if (!sver.tryNextAlternative) {
+                *result = sver.scriptValue;
                 return;
-            }
-            scriptContext->pushScope(theImportScope);
-            const QScriptValue cr = engine->evaluate(alternative.condition);
-            const QScriptValue overrides = engine->evaluate(alternative.overrideListProperties);
-            scriptContext->popScope();
-            scriptContext->popScope();
-            scriptContext->popScope();
-            popScopes();
-            if (engine->hasErrorOrException(cr)) {
-                *result = engine->lastErrorValue(cr);
-                return;
-            }
-            if (cr.toBool()) {
-                // condition is true, let's use the value of this alternative
-                if (alternative.value->sourceUsesOuter() && !outerItem) {
-                    // Clone value but without alternatives.
-                    JSSourceValuePtr outerValue =
-                            std::static_pointer_cast<JSSourceValue>(value->clone());
-                    outerValue->setNext(ValuePtr());
-                    outerValue->clearCreatedByPropertiesBlock();
-                    outerValue->clearAlternatives();
-                    outerItem = Item::create(data->item->pool(), ItemType::Outer);
-                    outerItem->setProperty(propertyName->toString(), outerValue);
-                }
-                if (overrides.toBool())
-                    value->setIsExclusiveListValue();
-                value = alternative.value.get();
-                break;
             }
         }
+        *result = evaluateJSSourceValue(value, outerItem).scriptValue;
+    }
 
+    struct JSSourceValueEvaluationResult
+    {
+        QScriptValue scriptValue;
+        bool tryNextAlternative = true;
+    };
+
+    JSSourceValueEvaluationResult evaluateJSSourceValue(const JSSourceValue *value, Item *outerItem,
+            const JSSourceValue::Alternative *alternative = nullptr,
+            JSSourceValue *elseCaseValue = nullptr)
+    {
+        JSSourceValueEvaluationResult result;
+        QBS_ASSERT(!alternative || value == alternative->value.get(), return result);
+        AutoScopePopper autoScopePopper(this);
         auto maybeExtraScope = createExtraScope(value, outerItem);
         if (!maybeExtraScope.second) {
-            *result = maybeExtraScope.first;
-            return;
+            result.scriptValue = maybeExtraScope.first;
+            result.tryNextAlternative = false;
+            return result;
         }
         const Evaluator::FileContextScopes fileCtxScopes
                 = data->evaluator->fileContextScopes(value->file());
         if (fileCtxScopes.importScope.isError()) {
-            *result = fileCtxScopes.importScope;
-            return;
+            result.scriptValue = fileCtxScopes.importScope;
+            result.tryNextAlternative = false;
+            return result;
         }
         pushScope(fileCtxScopes.fileScope);
         pushItemScopes(data->item);
@@ -291,9 +264,33 @@ private:
             pushItemScopes(value->definingItem());
         pushScope(maybeExtraScope.first);
         pushScope(fileCtxScopes.importScope);
-        *result = engine->evaluate(value->sourceCodeForEvaluation(), value->file()->filePath(),
-                                   value->line());
-        popScopes();
+        if (alternative) {
+            QScriptValue sv = engine->evaluate(alternative->condition);
+            if (engine->hasErrorOrException(sv)) {
+                result.scriptValue = sv;
+                result.tryNextAlternative = false;
+                return result;
+            }
+            if (sv.toBool()) {
+                // The condition is true. Continue evaluating the value.
+                result.tryNextAlternative = false;
+            } else {
+                // The condition is false. Try the next alternative or the else value.
+                result.tryNextAlternative = true;
+                return result;
+            }
+            sv = engine->evaluate(alternative->overrideListProperties);
+            if (engine->hasErrorOrException(sv)) {
+                result.scriptValue = sv;
+                result.tryNextAlternative = false;
+                return result;
+            }
+            if (sv.toBool())
+                elseCaseValue->setIsExclusiveListValue();
+        }
+        result.scriptValue = engine->evaluate(value->sourceCodeForEvaluation(),
+                                              value->file()->filePath(), value->line());
+        return result;
     }
 
     void handle(ItemValue *value) override

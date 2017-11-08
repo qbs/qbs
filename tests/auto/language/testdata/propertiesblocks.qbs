@@ -206,4 +206,8 @@ Project {
             dummy.defines: ["a string"]
         }
     }
+    Product {
+        name: "use-module-with-properties-item"
+        Depends { name: "module-with-properties-item" }
+    }
 }
