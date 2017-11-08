@@ -182,26 +182,26 @@ private slots:
     void testInvalidCommandLine_data()
     {
         QTest::addColumn<QStringList>("commandLine");
-        QTest::addRow("Unknown short option") << (QStringList() << m_fileArgs << "-x");
-        QTest::addRow("Unknown long option") << (QStringList() << m_fileArgs << "--xyz");
-        QTest::addRow("Invalid position") << (QStringList() << m_fileArgs << "-vjv");
-        QTest::addRow("Missing jobs argument") << (QStringList() << m_fileArgs << "-j");
-        QTest::addRow("Missing products argument") << (QStringList() << m_fileArgs << "--products");
-        QTest::addRow("Wrong argument") << (QStringList() << "-j" << "0" << m_fileArgs);
-        QTest::addRow("Invalid list argument")
+        QTest::newRow("Unknown short option") << (QStringList() << m_fileArgs << "-x");
+        QTest::newRow("Unknown long option") << (QStringList() << m_fileArgs << "--xyz");
+        QTest::newRow("Invalid position") << (QStringList() << m_fileArgs << "-vjv");
+        QTest::newRow("Missing jobs argument") << (QStringList() << m_fileArgs << "-j");
+        QTest::newRow("Missing products argument") << (QStringList() << m_fileArgs << "--products");
+        QTest::newRow("Wrong argument") << (QStringList() << "-j" << "0" << m_fileArgs);
+        QTest::newRow("Invalid list argument")
                 << (QStringList() << "--changed-files" << "," << m_fileArgs);
-        QTest::addRow("Invalid log level")
+        QTest::newRow("Invalid log level")
                 << (QStringList() << "--log-level" << "blubb" << m_fileArgs);
-        QTest::addRow("Unknown numeric argument") << (QStringList() << m_fileArgs << "-123");
-        QTest::addRow("Unknown parameter") << (QStringList() << m_fileArgs << "debug");
-        QTest::addRow("Too many arguments") << (QStringList("help") << "build" << "clean");
-        QTest::addRow("Property assignment for clean") << (QStringList("clean") << "profile:x");
-        QTest::addRow("Property assignment for dump-nodes-tree")
+        QTest::newRow("Unknown numeric argument") << (QStringList() << m_fileArgs << "-123");
+        QTest::newRow("Unknown parameter") << (QStringList() << m_fileArgs << "debug");
+        QTest::newRow("Too many arguments") << (QStringList("help") << "build" << "clean");
+        QTest::newRow("Property assignment for clean") << (QStringList("clean") << "profile:x");
+        QTest::newRow("Property assignment for dump-nodes-tree")
                 << (QStringList("dump-nodes-tree") << "profile:x");
-        QTest::addRow("Property assignment for status") << (QStringList("status") << "profile:x");
-        QTest::addRow("Property assignment for update-timestamps")
+        QTest::newRow("Property assignment for status") << (QStringList("status") << "profile:x");
+        QTest::newRow("Property assignment for update-timestamps")
                 << (QStringList("update-timestamps") << "profile:x");
-        QTest::addRow("Argument for show-version")
+        QTest::newRow("Argument for show-version")
                 << (QStringList("show-version") << "config:debug");
     }
 
