@@ -193,6 +193,7 @@ private slots:
     void renameDependency();
     void separateDebugInfo();
     void sevenZip();
+    void sourceArtifactInInputsFromDependencies();
     void staticLibWithoutSources();
     void suspiciousCalls();
     void suspiciousCalls_data();
