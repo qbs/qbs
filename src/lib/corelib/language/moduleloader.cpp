@@ -113,21 +113,6 @@ static QString probeGlobalId(Item *probe)
     return id + QLatin1Char('_') + probe->file()->filePath();
 }
 
-enum class CompareScript { No, Yes };
-
-static bool probeEqualTo(
-        const ProbeConstPtr &probe,
-        bool condition,
-        const QVariantMap &initialProperties,
-        const QString &configureScript,
-        CompareScript compareScript)
-{
-    return probe->condition() == condition
-            && probe->initialProperties() == initialProperties
-            && (compareScript == CompareScript::No
-                || probe->configureScript() == configureScript);
-}
-
 class ModuleLoader::ProductSortByDependencies
 {
 public:
@@ -1480,7 +1465,7 @@ ProbeConstPtr ModuleLoader::findOldProjectProbe(
         return ProbeConstPtr();
 
     for (const ProbeConstPtr &oldProbe : m_oldProjectProbes.value(globalId)) {
-        if (probeEqualTo(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
+        if (probeMatches(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
             return oldProbe;
     }
 
@@ -1497,7 +1482,7 @@ ProbeConstPtr ModuleLoader::findOldProductProbe(
         return ProbeConstPtr();
 
     for (const ProbeConstPtr &oldProbe : m_oldProductProbes.value(productName)) {
-        if (probeEqualTo(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
+        if (probeMatches(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
             return oldProbe;
     }
 
@@ -1511,10 +1496,21 @@ ProbeConstPtr ModuleLoader::findCurrentProbe(
 {
     const QList<ProbeConstPtr> &cachedProbes = m_currentProbes.value(location);
     for (const ProbeConstPtr &probe : cachedProbes) {
-        if (probeEqualTo(probe, condition, initialProperties, QString(), CompareScript::No))
+        if (probeMatches(probe, condition, initialProperties, QString(), CompareScript::No))
             return probe;
     }
     return ProbeConstPtr();
+}
+
+bool ModuleLoader::probeMatches(const ProbeConstPtr &probe, bool condition,
+        const QVariantMap &initialProperties, const QString &configureScript,
+        CompareScript compareScript) const
+{
+    return probe->condition() == condition
+            && probe->initialProperties() == initialProperties
+            && (compareScript == CompareScript::No
+                || (probe->configureScript() == configureScript
+                    && !probe->needsReconfigure(m_lastResolveTime)));
 }
 
 void ModuleLoader::printProfilingInfo()
@@ -2972,13 +2968,18 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     if (!resolvedProbe)
         resolvedProbe = findCurrentProbe(probe->location(), condition, initialProperties);
     ErrorInfo evalError;
+    std::vector<QString> importedFilesUsedInConfigure;
     if (!condition) {
         qCDebug(lcModuleLoader) << "Probe disabled; skipping";
     } else if (!resolvedProbe) {
+        engine->clearRequestedProperties();
         QScriptValue sv = engine->evaluate(configureScript->sourceCodeForEvaluation());
         engine->releaseResourcesOfScriptObjects();
         if (Q_UNLIKELY(engine->hasErrorOrException(sv)))
             evalError = engine->lastError(sv, configureScript->location());
+        importedFilesUsedInConfigure = engine->importedFilesUsedInScript();
+    } else {
+        importedFilesUsedInConfigure = resolvedProbe->importedFilesUsed();
     }
     QVariantMap properties;
     if (!evalError.hasError()) {
@@ -3010,7 +3011,8 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         throw evalError;
     if (!resolvedProbe) {
         resolvedProbe = Probe::create(probeId, probe->location(), condition,
-                                      sourceCode, properties, initialProperties);
+                                      sourceCode, properties, initialProperties,
+                                      importedFilesUsedInConfigure);
         m_currentProbes[probe->location()] << resolvedProbe;
     }
     productContext->info.probes << resolvedProbe;

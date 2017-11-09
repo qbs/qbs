@@ -41,6 +41,7 @@
 
 #include "forward_decls.h"
 #include <logging/logger.h>
+#include <tools/filetime.h>
 
 #include <QtCore/qstringlist.h>
 
@@ -61,6 +62,7 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     void setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes);
+    void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
     void setStoredProfiles(const QVariantMap &profiles);
     TopLevelProjectPtr loadProject(const SetupProjectParameters &parameters);
 
@@ -74,6 +76,7 @@ private:
     QList<ProbeConstPtr> m_oldProjectProbes;
     QHash<QString, QList<ProbeConstPtr>> m_oldProductProbes;
     QVariantMap m_storedProfiles;
+    FileTime m_lastResolveTime;
 };
 
 } // namespace Internal

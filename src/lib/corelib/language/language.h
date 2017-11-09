@@ -63,6 +63,7 @@
 
 #include <memory>
 #include <mutex>
+#include <vector>
 
 QT_BEGIN_NAMESPACE
 class QScriptEngine;
@@ -110,10 +111,11 @@ public:
                                 bool condition,
                                 const QString &configureScript,
                                 const QVariantMap &properties,
-                                const QVariantMap &initialProperties)
+                                const QVariantMap &initialProperties,
+                                const std::vector<QString> &importedFilesUsed)
     {
         return ProbeConstPtr(new Probe(globalId, location, condition, configureScript, properties,
-                                       initialProperties));
+                                       initialProperties, importedFilesUsed));
     }
 
     const QString &globalId() const { return m_globalId; }
@@ -121,6 +123,8 @@ public:
     const QString &configureScript() const { return m_configureScript; }
     const QVariantMap &properties() const { return m_properties; }
     const QVariantMap &initialProperties() const { return m_initialProperties; }
+    const std::vector<QString> &importedFilesUsed() const { return m_importedFilesUsed; }
+    bool needsReconfigure(const FileTime &referenceTime) const;
 
 private:
     Probe() {}
@@ -129,12 +133,14 @@ private:
           bool condition,
           const QString &configureScript,
           const QVariantMap &properties,
-          const QVariantMap &initialProperties)
+          const QVariantMap &initialProperties,
+          const std::vector<QString> &importedFilesUsed)
         : m_globalId(globalId)
         , m_location(location)
         , m_configureScript(configureScript)
         , m_properties(properties)
         , m_initialProperties(initialProperties)
+        , m_importedFilesUsed(importedFilesUsed)
         , m_condition(condition)
     {}
 
@@ -146,6 +152,7 @@ private:
     QString m_configureScript;
     QVariantMap m_properties;
     QVariantMap m_initialProperties;
+    std::vector<QString> m_importedFilesUsed;
     bool m_condition;
 };
 

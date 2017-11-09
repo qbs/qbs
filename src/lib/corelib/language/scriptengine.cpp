@@ -133,7 +133,6 @@ void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue &
     installImportFunctions();
     m_currentDirPathStack.push(FileInfo::path(fileCtx->filePath()));
     m_extensionSearchPathsStack.push(fileCtx->searchPaths());
-    m_importsObserver->clearImportIds();
     m_observeMode = observeMode;
 
     for (const JsImport &jsImport : fileCtx->jsImports())

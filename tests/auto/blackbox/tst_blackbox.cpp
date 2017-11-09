@@ -5539,6 +5539,8 @@ void TestBlackbox::importChangeTracking()
     QDir::setCurrent(testDataDir + "/import-change-tracking");
     QCOMPARE(runQbs(QStringList({"-f", "import-change-tracking.qbs"})), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running probe1"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
@@ -5549,6 +5551,8 @@ void TestBlackbox::importChangeTracking()
     touch("irrelevant.js");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe1 "), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
@@ -5559,6 +5563,8 @@ void TestBlackbox::importChangeTracking()
     touch("custom1prepare1.js");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe1 "), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
@@ -5568,6 +5574,8 @@ void TestBlackbox::importChangeTracking()
     touch("custom1prepare2.js");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe1 "), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
@@ -5577,6 +5585,8 @@ void TestBlackbox::importChangeTracking()
     touch("custom1command.js");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe1 "), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
 
@@ -5585,6 +5595,8 @@ void TestBlackbox::importChangeTracking()
     touch("custom2prepare/custom2prepare2.js");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe1 "), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
@@ -5594,8 +5606,34 @@ void TestBlackbox::importChangeTracking()
     touch("imports/custom2command/custom2command1.js");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe1 "), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
+
+    // Change in directly imported file only used by one Probe
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("probe1.js");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running probe1"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
+
+    // Change in indirectly imported file only used by one Probe
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("probe2.js");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running probe1"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
 
     // Change everything at once.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -5605,8 +5643,11 @@ void TestBlackbox::importChangeTracking()
     touch("custom1command.js");
     touch("custom2prepare/custom2prepare1.js");
     touch("imports/custom2command/custom2command2.js");
+    touch("probe2.js");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running probe1"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());

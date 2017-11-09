@@ -125,6 +125,15 @@ void FileTagger::store(PersistentPool &pool) const
 }
 
 
+bool Probe::needsReconfigure(const FileTime &referenceTime) const
+{
+    const auto criterion = [referenceTime](const QString &filePath) {
+        FileInfo fi(filePath);
+        return !fi.exists() || fi.lastModified() > referenceTime;
+    };
+    return std::any_of(m_importedFilesUsed.cbegin(), m_importedFilesUsed.cend(), criterion);
+}
+
 void Probe::load(PersistentPool &pool)
 {
     pool.load(m_globalId);
@@ -133,6 +142,7 @@ void Probe::load(PersistentPool &pool)
     pool.load(m_configureScript);
     pool.load(m_properties);
     pool.load(m_initialProperties);
+    pool.load(m_importedFilesUsed);
 }
 
 void Probe::store(PersistentPool &pool) const
@@ -143,6 +153,7 @@ void Probe::store(PersistentPool &pool) const
     pool.store(m_configureScript);
     pool.store(m_properties);
     pool.store(m_initialProperties);
+    pool.store(m_importedFilesUsed);
 }
 
 

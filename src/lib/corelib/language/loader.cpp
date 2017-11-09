@@ -158,6 +158,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
     moduleLoader.setSearchPaths(m_searchPaths);
     moduleLoader.setOldProjectProbes(m_oldProjectProbes);
     moduleLoader.setOldProductProbes(m_oldProductProbes);
+    moduleLoader.setLastResolveTime(m_lastResolveTime);
     moduleLoader.setStoredProfiles(m_storedProfiles);
     const ModuleLoaderResult loadResult = moduleLoader.load(parameters);
     ProjectResolver resolver(&evaluator, loadResult, parameters, m_logger);

@@ -45,6 +45,7 @@
 #include "item.h"
 #include "itempool.h"
 #include <logging/logger.h>
+#include <tools/filetime.h>
 #include <tools/set.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/version.h>
@@ -125,6 +126,7 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     void setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes);
+    void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
     void setStoredProfiles(const QVariantMap &profiles);
     Evaluator *evaluator() const { return m_evaluator; }
 
@@ -322,6 +324,11 @@ private:
     ProbeConstPtr findCurrentProbe(const CodeLocation &location, bool condition,
                                    const QVariantMap &initialProperties) const;
 
+    enum class CompareScript { No, Yes };
+    bool probeMatches(const ProbeConstPtr &probe, bool condition,
+                      const QVariantMap &initialProperties, const QString &configureScript,
+                      CompareScript compareScript) const;
+
     void printProfilingInfo();
     void handleProductError(const ErrorInfo &error, ProductContext *productContext);
     QualifiedIdSet gatherModulePropertiesSetInGroup(const Item *group);
@@ -361,6 +368,7 @@ private:
 
     QHash<QString, QList<ProbeConstPtr>> m_oldProjectProbes;
     QHash<QString, QList<ProbeConstPtr>> m_oldProductProbes;
+    FileTime m_lastResolveTime;
     QHash<CodeLocation, QList<ProbeConstPtr>> m_currentProbes;
     QVariantMap m_storedProfiles;
     QVariantMap m_localProfiles;
