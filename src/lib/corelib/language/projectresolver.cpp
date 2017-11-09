@@ -459,7 +459,7 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
     product->probes = pi.probes;
     createProductConfig(product.get());
     product->productProperties.insert(destDirKey, product->destinationDirectory);
-    ModuleProperties::init(m_evaluator->scriptValue(item), product);
+    ModuleProperties::init(m_evaluator->scriptValue(item), product.get());
 
     QList<Item *> subItems = item->children();
     const ValuePtr filesProperty = item->property(QLatin1String("files"));

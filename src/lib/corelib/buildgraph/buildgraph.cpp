@@ -84,7 +84,7 @@ static QScriptValue setupProjectScriptValue(ScriptEngine *engine,
 }
 
 static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productScriptValue,
-                                    const ResolvedProductConstPtr &product,
+                                    const ResolvedProduct *product,
                                     PrepareScriptObserver *observer);
 
 enum ScriptValueCommonPropertyKeys : quint32 {
@@ -160,10 +160,10 @@ public:
     {
     }
 
-    void init(QScriptValue &productScriptValue, const ResolvedProductConstPtr &product,
+    void init(QScriptValue &productScriptValue, const ResolvedProduct *product,
               PrepareScriptObserver *observer)
     {
-        QScriptValue depfunc = m_engine->newFunction(&js_productDependencies, product.get());
+        QScriptValue depfunc = m_engine->newFunction(&js_productDependencies, product);
         setObserver(depfunc, observer);
         productScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
                                        QScriptValue::ReadOnly | QScriptValue::Undeletable
@@ -184,7 +184,7 @@ private:
         PrepareScriptObserver *observer = getObserver(ctx->callee());
         for (const ResolvedProductPtr &dependency : qAsConst(productDeps)) {
             QScriptValue obj = engine->newObject();
-            setupProductScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency, 0);
+            setupProductScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency.get(), 0);
 
             const QVariantMap &params = product->dependencyParameters.value(dependency);
             obj.setProperty(m_parametersKey, params.isEmpty()
@@ -299,12 +299,12 @@ private:
 const QString DependenciesFunction::m_parametersKey = QStringLiteral("parameters");
 
 static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productScriptValue,
-                                    const ResolvedProductConstPtr &product,
+                                    const ResolvedProduct *product,
                                     PrepareScriptObserver *observer)
 {
     ModuleProperties::init(productScriptValue, product);
 
-    QScriptValue artifactsFunc = engine->newFunction(&js_artifacts<ResolvedProduct>, product.get());
+    QScriptValue artifactsFunc = engine->newFunction(&js_artifacts<ResolvedProduct>, product);
     productScriptValue.setProperty(QStringLiteral("artifacts"), artifactsFunc,
                                    QScriptValue::ReadOnly | QScriptValue::Undeletable
                                    | QScriptValue::PropertyGetter);
@@ -326,8 +326,8 @@ void setupScriptEngineForFile(ScriptEngine *engine, const FileContextBaseConstPt
     JsExtensions::setupExtensions(fileContext->jsExtensions(), targetObject);
 }
 
-void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
-                                 const ResolvedModuleConstPtr &module, QScriptValue targetObject,
+void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProduct *product,
+                                 const ResolvedModule *module, QScriptValue targetObject,
                                  PrepareScriptObserver *observer)
 {
     QScriptValue projectScriptValue = setupProjectScriptValue(engine, product->project.lock(),

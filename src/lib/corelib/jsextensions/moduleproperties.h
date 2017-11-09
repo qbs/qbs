@@ -54,12 +54,12 @@ class ScriptEngine;
 class ModuleProperties
 {
 public:
-    static void init(QScriptValue productObject, const ResolvedProductConstPtr &product);
+    static void init(QScriptValue productObject, const ResolvedProduct *product);
     static void init(QScriptValue artifactObject, const Artifact *artifact);
 
 private:
     static void init(QScriptValue objectWithProperties, const void *ptr, const QString &type);
-    static void setupModules(QScriptValue &object, const ResolvedProductConstPtr &product,
+    static void setupModules(QScriptValue &object, const ResolvedProduct *product,
                              const Artifact *artifact);
 
     static QScriptValue js_moduleProperty(QScriptContext *context, QScriptEngine *engine);

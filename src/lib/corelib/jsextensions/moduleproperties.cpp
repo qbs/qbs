@@ -132,9 +132,9 @@ static QString productType() { return QLatin1String("product"); }
 static QString artifactType() { return QLatin1String("artifact"); }
 
 void ModuleProperties::init(QScriptValue productObject,
-                            const ResolvedProductConstPtr &product)
+                            const ResolvedProduct *product)
 {
-    init(productObject, product.get(), productType());
+    init(productObject, product, productType());
     setupModules(productObject, product, nullptr);
 }
 
@@ -152,7 +152,7 @@ void ModuleProperties::init(QScriptValue artifactObject, const Artifact *artifac
     };
     QScriptEngine * const engine = artifactObject.engine();
     artifactObject.setProperty(QStringLiteral("product"), engine->toScriptValue(productProperties));
-    setupModules(artifactObject, artifact->product.lock(), artifact);
+    setupModules(artifactObject, artifact->product.get(), artifact);
 }
 
 void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
@@ -165,7 +165,7 @@ void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
     objectWithProperties.setProperty(typeKey(), type);
 }
 
-void ModuleProperties::setupModules(QScriptValue &object, const ResolvedProductConstPtr &product,
+void ModuleProperties::setupModules(QScriptValue &object, const ResolvedProduct *product,
                                     const Artifact *artifact)
 {
     ScriptEngine *engine = static_cast<ScriptEngine *>(object.engine());
@@ -178,7 +178,7 @@ void ModuleProperties::setupModules(QScriptValue &object, const ResolvedProductC
         QScriptValue data = engine->newObject();
         data.setProperty(ModuleNameKey, module->name);
         QVariant v;
-        v.setValue<quintptr>(reinterpret_cast<quintptr>(product.get()));
+        v.setValue<quintptr>(reinterpret_cast<quintptr>(product));
         data.setProperty(ProductPtrKey, engine->newVariant(v));
         v.setValue<quintptr>(reinterpret_cast<quintptr>(artifact));
         data.setProperty(ArtifactPtrKey, engine->newVariant(v));

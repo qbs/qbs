@@ -83,8 +83,8 @@ void disconnect(BuildGraphNode *u, BuildGraphNode *v);
 
 void setupScriptEngineForFile(ScriptEngine *engine, const FileContextBaseConstPtr &fileContext,
         QScriptValue targetObject, const ObserveMode &observeMode);
-void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
-                                 const ResolvedModuleConstPtr &module, QScriptValue targetObject,
+void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProduct *product,
+                                 const ResolvedModule *module, QScriptValue targetObject,
                                  PrepareScriptObserver *observer = 0);
 QString relativeArtifactFileName(const Artifact *artifact); // Debugging helpers
 
