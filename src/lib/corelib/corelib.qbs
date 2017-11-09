@@ -108,6 +108,8 @@ QbsLibrary {
             "depscanner.h",
             "emptydirectoriesremover.cpp",
             "emptydirectoriesremover.h",
+            "environmentscriptrunner.cpp",
+            "environmentscriptrunner.h",
             "executor.cpp",
             "executor.h",
             "executorjob.cpp",

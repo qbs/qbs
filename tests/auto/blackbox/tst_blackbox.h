@@ -189,6 +189,7 @@ private slots:
     void ruleCycle();
     void ruleWithNoInputs();
     void ruleWithNonRequiredInputs();
+    void setupBuildEnvironment();
     void smartRelinking();
     void smartRelinking_data();
     void soVersion();

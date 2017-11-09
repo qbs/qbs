@@ -227,7 +227,7 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunc
     if (artifact->product.get() != m_product) {
         m_product = artifact->product.get();
         setupScriptEngineForProduct(m_engine, artifact->product.get(),
-                                    m_scanner->module.get(), m_global, &m_observer);
+                                    m_scanner->module.get(), m_global, &m_observer, true);
     }
 
     QScriptValueList args;

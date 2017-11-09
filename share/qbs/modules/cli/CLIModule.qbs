@@ -88,8 +88,8 @@ Module {
     }
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", qbs.pathListSeparator,
-                                                 qbs.hostOS.contains("windows"));
+        var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator,
+                                                 product.qbs.hostOS.contains("windows"));
         v.prepend(toolchainInstallPath);
         v.set();
     }

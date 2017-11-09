@@ -11,6 +11,7 @@ SOURCES += \
     $$PWD/cycledetector.cpp \
     $$PWD/depscanner.cpp \
     $$PWD/emptydirectoriesremover.cpp \
+    $$PWD/environmentscriptrunner.cpp \
     $$PWD/executor.cpp \
     $$PWD/executorjob.cpp \
     $$PWD/filedependency.cpp \
@@ -46,6 +47,7 @@ HEADERS += \
     $$PWD/cycledetector.h \
     $$PWD/depscanner.h \
     $$PWD/emptydirectoriesremover.h \
+    $$PWD/environmentscriptrunner.h \
     $$PWD/executor.h \
     $$PWD/executorjob.h \
     $$PWD/filedependency.h \

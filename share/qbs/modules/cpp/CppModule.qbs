@@ -476,10 +476,10 @@ Module {
     }
 
     setupRunEnvironment: {
-        var env = qbs.commonRunEnvironment;
+        var env = product.qbs.commonRunEnvironment;
         for (var i in env) {
-            var v = new ModUtils.EnvironmentVariable(i, qbs.pathListSeparator,
-                                                     qbs.hostOS.contains("windows"));
+            var v = new ModUtils.EnvironmentVariable(i, product.qbs.pathListSeparator,
+                                                     product.qbs.hostOS.contains("windows"));
             v.value = env[i];
             v.set();
         }

@@ -303,12 +303,18 @@ ItemDeclaration BuiltinDeclarations::moduleLikeItem(ItemType type)
             << ItemType::Scanner);
     item << nameProperty();
     item << conditionProperty();
-    item << PropertyDeclaration(QLatin1String("setupBuildEnvironment"),
-                                      PropertyDeclaration::Variant, QString(),
-                                      PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("setupRunEnvironment"),
-                                      PropertyDeclaration::Variant, QString(),
-                                      PropertyDeclaration::PropertyNotAvailableInConfig);
+    PropertyDeclaration setupBuildEnvDecl(QLatin1String("setupBuildEnvironment"),
+                                          PropertyDeclaration::Variant, QString(),
+                                          PropertyDeclaration::PropertyNotAvailableInConfig);
+    setupBuildEnvDecl.setFunctionArgumentNames(QStringList{QLatin1String("project"),
+                                                           QLatin1String("product")});
+    item << setupBuildEnvDecl;
+    PropertyDeclaration setupRunEnvDecl(QLatin1String("setupRunEnvironment"),
+                                        PropertyDeclaration::Variant, QString(),
+                             PropertyDeclaration::PropertyNotAvailableInConfig);
+    setupRunEnvDecl.setFunctionArgumentNames(QStringList{QLatin1String("project"),
+                                                         QLatin1String("product")});
+    item << setupRunEnvDecl;
     item << PropertyDeclaration(QLatin1String("validate"),
                                       PropertyDeclaration::Boolean, QString(),
                                       PropertyDeclaration::PropertyNotAvailableInConfig);

@@ -326,9 +326,9 @@ void setupScriptEngineForFile(ScriptEngine *engine, const FileContextBaseConstPt
     JsExtensions::setupExtensions(fileContext->jsExtensions(), targetObject);
 }
 
-void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProduct *product,
+void setupScriptEngineForProduct(ScriptEngine *engine, ResolvedProduct *product,
                                  const ResolvedModule *module, QScriptValue targetObject,
-                                 PrepareScriptObserver *observer)
+                                 PrepareScriptObserver *observer, bool setBuildEnvironment)
 {
     QScriptValue projectScriptValue = setupProjectScriptValue(engine, product->project.lock(),
                                                               observer);
@@ -336,7 +336,7 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProduct *pr
     if (observer)
         observer->setProjectObjectId(projectScriptValue.objectId());
 
-    {
+    if (setBuildEnvironment) {
         QVariant v;
         v.setValue<void*>(&product->buildEnvironment);
         engine->setProperty("_qbs_procenv", v);

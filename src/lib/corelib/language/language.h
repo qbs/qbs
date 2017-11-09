@@ -311,6 +311,9 @@ public:
     ResolvedProduct *product = nullptr;
     bool isProduct;
 
+    static QStringList argumentNamesForSetupBuildEnv();
+    static QStringList argumentNamesForSetupRunEnv();
+
 private:
     ResolvedModule() {}
 
@@ -428,15 +431,13 @@ public:
     QStringList missingSourceFiles;
     std::unique_ptr<ProductBuildData> buildData;
 
-    mutable QProcessEnvironment buildEnvironment; // must not be saved
-    mutable QProcessEnvironment runEnvironment; // must not be saved
+    QProcessEnvironment buildEnvironment; // must not be saved
+    QProcessEnvironment runEnvironment; // must not be saved
 
     void accept(BuildGraphVisitor *visitor) const;
     QList<SourceArtifactPtr> allFiles() const;
     QList<SourceArtifactPtr> allEnabledFiles() const;
     FileTags fileTagsForFileName(const QString &fileName) const;
-    void setupBuildEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
-    void setupRunEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
 
     void registerArtifactWithChangedInputs(Artifact *artifact);
     void unregisterArtifactWithChangedInputs(Artifact *artifact);

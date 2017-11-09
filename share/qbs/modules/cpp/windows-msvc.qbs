@@ -129,9 +129,9 @@ CppModule {
     property var buildEnv: msvcProbe.buildEnv
 
     setupBuildEnvironment: {
-        for (var key in buildEnv) {
+        for (var key in product.cpp.buildEnv) {
             var v = new ModUtils.EnvironmentVariable(key, ';');
-            v.prepend(buildEnv[key]);
+            v.prepend(product.cpp.buildEnv[key]);
             v.set();
         }
     }

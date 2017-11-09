@@ -40,6 +40,7 @@
 
 #include "buildgraph.h"
 #include "emptydirectoriesremover.h"
+#include "environmentscriptrunner.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "cycledetector.h"
@@ -1178,8 +1179,10 @@ void Executor::prepareProducts()
 {
     ProductPrioritySetter prioritySetter(m_project.get());
     prioritySetter.apply();
-    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild))
-        product->setupBuildEnvironment(m_evalContext->engine(), m_project->environment);
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
+        EnvironmentScriptRunner(product.get(), m_evalContext.get(), m_project->environment)
+                .setupForBuild();
+    }
 }
 
 void Executor::setupRootNodes()

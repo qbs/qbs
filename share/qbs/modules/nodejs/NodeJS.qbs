@@ -85,13 +85,13 @@ Module {
                                                                        "tmp", "nodejs.intermediate")
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", qbs.pathListSeparator, qbs.hostOS.contains("windows"));
-        v.prepend(toolchainInstallPath);
+        var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator, product.qbs.hostOS.contains("windows"));
+        v.prepend(product.nodejs.toolchainInstallPath);
         v.set();
     }
 
     setupRunEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("NODE_PATH", qbs.pathListSeparator, qbs.hostOS.contains("windows"));
+        var v = new ModUtils.EnvironmentVariable("NODE_PATH", product.qbs.pathListSeparator, product.qbs.hostOS.contains("windows"));
         v.prepend(FileInfo.path(Environment.getEnv("QBS_RUN_FILE_PATH")));
         v.set();
     }

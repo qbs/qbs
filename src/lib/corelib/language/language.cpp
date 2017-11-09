@@ -347,6 +347,22 @@ bool operator==(const ScriptFunction &a, const ScriptFunction &b)
             && equals(a.fileContext.get(), b.fileContext.get());
 }
 
+QStringList ResolvedModule::argumentNamesForSetupBuildEnv()
+{
+    static const QStringList argNames = BuiltinDeclarations::instance()
+            .argumentNamesForScriptFunction(ItemType::Module,
+                                            QStringLiteral("setupBuildEnvironment"));
+    return argNames;
+}
+
+QStringList ResolvedModule::argumentNamesForSetupRunEnv()
+{
+    static const QStringList argNames = BuiltinDeclarations::instance()
+            .argumentNamesForScriptFunction(ItemType::Module,
+                                            QStringLiteral("setupRunEnvironment"));
+    return argNames;
+}
+
 void ResolvedModule::load(PersistentPool &pool)
 {
     pool.load(name);
@@ -598,155 +614,6 @@ void ResolvedProduct::store(PersistentPool &pool) const
     pool.store(artifactProperties);
     pool.store(probes);
     pool.store(buildData.get());
-}
-
-QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*, QList<const ResolvedModule*> > &moduleChildren,
-                                      const QList<const ResolvedModule*> &modules,
-                                      Set<QString> &seenModuleNames)
-{
-    QList<const ResolvedModule*> result;
-    for (const ResolvedModule * const m : modules) {
-        if (m->name.isNull())
-            continue;
-        result.append(topSortModules(moduleChildren, moduleChildren.value(m), seenModuleNames));
-        if (seenModuleNames.insert(m->name).second)
-            result.append(m);
-    }
-    return result;
-}
-
-enum EnvType
-{
-    BuildEnv, RunEnv
-};
-
-static bool findModuleMapRecursively_impl(const QVariantMap &cfg, const QString &moduleName,
-        QVariantMap *result)
-{
-    for (QVariantMap::const_iterator it = cfg.constBegin(); it != cfg.constEnd(); ++it) {
-        if (it.key() == moduleName) {
-            *result = it.value().toMap();
-            return true;
-        }
-        if (findModuleMapRecursively_impl(it.value().toMap(), moduleName, result)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-static QVariantMap findModuleMapRecursively(const QVariantMap &cfg, const QString &moduleName)
-{
-    QVariantMap result;
-    findModuleMapRecursively_impl(cfg, moduleName, &result);
-    return result;
-}
-
-static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType envType,
-                                                 const QList<ResolvedModulePtr> &modules,
-                                                 const PropertyMapConstPtr &productConfiguration,
-                                                 const QProcessEnvironment &env)
-{
-    QMap<QString, const ResolvedModule *> moduleMap;
-    for (const ResolvedModuleConstPtr &module : modules)
-        moduleMap.insert(module->name, module.get());
-
-    QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleParents;
-    QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleChildren;
-    for (const ResolvedModuleConstPtr &module : modules) {
-        for (const QString &moduleName : qAsConst(module->moduleDependencies)) {
-            const ResolvedModule * const depmod = moduleMap.value(moduleName);
-            QBS_ASSERT(depmod, return env);
-            moduleParents[depmod].append(module.get());
-            moduleChildren[module.get()].append(depmod);
-        }
-    }
-
-    QList<const ResolvedModule *> rootModules;
-    for (const ResolvedModuleConstPtr &module : modules) {
-        if (moduleParents.value(module.get()).empty()) {
-            QBS_ASSERT(module, return env);
-            rootModules.append(module.get());
-        }
-    }
-
-    QProcessEnvironment procenv = env;
-
-    {
-        QVariant v;
-        v.setValue<void*>(&procenv);
-        engine->setProperty("_qbs_procenv", v);
-    }
-
-    QScriptValue scope = engine->newObject();
-    scope.setPrototype(engine->globalObject());
-    TemporaryGlobalObjectSetter tgos(scope);
-
-    Set<QString> seenModuleNames;
-    const QList<const ResolvedModule *> &topSortedModules
-            = topSortModules(moduleChildren, rootModules, seenModuleNames);
-    for (const ResolvedModule * const module : topSortedModules) {
-        if ((envType == BuildEnv && module->setupBuildEnvironmentScript->sourceCode.isEmpty()) ||
-            (envType == RunEnv && module->setupBuildEnvironmentScript->sourceCode.isEmpty()
-             && module->setupRunEnvironmentScript->sourceCode.isEmpty()))
-            continue;
-
-        ScriptFunctionConstPtr setupScript;
-        if (envType == BuildEnv) {
-            setupScript = module->setupBuildEnvironmentScript;
-        } else {
-            if (!module->setupRunEnvironmentScript)
-                setupScript = module->setupBuildEnvironmentScript;
-            else
-                setupScript = module->setupRunEnvironmentScript;
-        }
-
-        setupScriptEngineForFile(engine, setupScript->fileContext, scope, ObserveMode::Disabled);
-
-        // expose properties of direct module dependencies
-        QScriptValue scriptValue;
-        const QVariantMap productModules = productConfiguration->value();
-        for (const ResolvedModule * const depmod : moduleChildren.value(module)) {
-            scriptValue = engine->newObject();
-            QVariantMap moduleCfg = productModules.value(depmod->name).toMap();
-            for (QVariantMap::const_iterator it = moduleCfg.constBegin(); it != moduleCfg.constEnd(); ++it)
-                scriptValue.setProperty(it.key(), engine->toScriptValue(it.value()));
-            scope.setProperty(depmod->name, scriptValue);
-        }
-
-        // expose the module's properties
-        QVariantMap moduleCfg = findModuleMapRecursively(productModules, module->name);
-        for (QVariantMap::const_iterator it = moduleCfg.constBegin(); it != moduleCfg.constEnd(); ++it)
-            scope.setProperty(it.key(), engine->toScriptValue(it.value()));
-
-        scriptValue = engine->evaluate(setupScript->sourceCode + QLatin1String("()"));
-        if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue))) {
-            QString envTypeStr = (envType == BuildEnv
-                                  ? QLatin1String("build") : QLatin1String("run"));
-            throw ErrorInfo(Tr::tr("Error while setting up %1 environment: %2")
-                            .arg(envTypeStr, engine->lastErrorString(scriptValue)),
-                            engine->lastErrorLocation(scriptValue, setupScript->location));
-        }
-    }
-
-    engine->setProperty("_qbs_procenv", QVariant());
-    return procenv;
-}
-
-void ResolvedProduct::setupBuildEnvironment(ScriptEngine *engine, const QProcessEnvironment &env) const
-{
-    if (!buildEnvironment.isEmpty())
-        return;
-
-    buildEnvironment = getProcessEnvironment(engine, BuildEnv, modules, moduleProperties, env);
-}
-
-void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEnvironment &env) const
-{
-    if (!runEnvironment.isEmpty())
-        return;
-
-    runEnvironment = getProcessEnvironment(engine, RunEnv, modules, moduleProperties, env);
 }
 
 void ResolvedProduct::registerArtifactWithChangedInputs(Artifact *artifact)

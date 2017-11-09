@@ -95,9 +95,9 @@ UnixGCC {
     sysrootFlags: sysroot ? ["-isysroot", sysroot] : []
 
     setupBuildEnvironment: {
-        for (var key in buildEnv) {
+        for (var key in product.cpp.buildEnv) {
             v = new ModUtils.EnvironmentVariable(key);
-            v.value = buildEnv[key];
+            v.value = product.cpp.buildEnv[key];
             v.set();
         }
     }

@@ -152,9 +152,9 @@ Module {
     }
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", qbs.pathListSeparator, true);
-        v.prepend(toolchainInstallPath);
-        v.prepend(toolchainInstallRoot);
+        var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator, true);
+        v.prepend(product.wix.toolchainInstallPath);
+        v.prepend(product.wix.toolchainInstallRoot);
         v.set();
     }
 

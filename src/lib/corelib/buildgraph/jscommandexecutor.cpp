@@ -121,8 +121,8 @@ private:
         if (!cmd->scopeName().isEmpty())
             importScopeForSourceCode = scope.property(cmd->scopeName());
 
-        setupScriptEngineForProduct(scriptEngine, transformer->product().get(), transformer->rule->module.get(), scope,
-                                    &observer);
+        setupScriptEngineForProduct(scriptEngine, transformer->product().get(),
+                                    transformer->rule->module.get(), scope, &observer, true);
         transformer->setupInputs(scope);
         transformer->setupOutputs(scope);
         transformer->setupExplicitlyDependsOn(scope);

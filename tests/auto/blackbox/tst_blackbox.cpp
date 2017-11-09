@@ -2159,6 +2159,19 @@ void TestBlackbox::ruleWithNonRequiredInputs()
     QVERIFY2(m_qbsStdout.contains("Generating"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::setupBuildEnvironment()
+{
+    QDir::setCurrent(testDataDir + "/setup-build-environment");
+    QCOMPARE(runQbs(), 0);
+    QFile f(relativeProductBuildDir("first_product") + QLatin1String("/m.output"));
+    QVERIFY2(f.open(QIODevice::ReadOnly), qPrintable(f.errorString()));
+    QCOMPARE(f.readAll().trimmed(), QByteArray("1"));
+    f.close();
+    f.setFileName(relativeProductBuildDir("second_product") + QLatin1String("/m.output"));
+    QVERIFY2(f.open(QIODevice::ReadOnly), qPrintable(f.errorString()));
+    QCOMPARE(f.readAll().trimmed(), QByteArray());
+}
+
 void TestBlackbox::smartRelinking()
 {
     QDir::setCurrent(testDataDir + "/smart-relinking");

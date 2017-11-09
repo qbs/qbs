@@ -40,7 +40,9 @@
 #include "runenvironment.h"
 
 #include <api/projectdata.h>
+#include <buildgraph/environmentscriptrunner.h>
 #include <buildgraph/productinstaller.h>
+#include <buildgraph/rulesevaluationcontext.h>
 #include <language/language.h>
 #include <language/propertymapinternal.h>
 #include <language/scriptengine.h>
@@ -78,7 +80,7 @@ public:
         , environment(environment)
         , settings(settings)
         , logger(logger)
-        , engine(this->logger, EvalContext::PropertyEvaluation)
+        , evalContext(this->logger)
     {
     }
 
@@ -88,7 +90,7 @@ public:
     const QProcessEnvironment environment;
     Settings * const settings;
     Logger logger;
-    ScriptEngine engine;
+    RulesEvaluationContext evalContext;
 };
 
 RunEnvironment::RunEnvironment(const ResolvedProductPtr &product,
@@ -150,8 +152,10 @@ const QProcessEnvironment RunEnvironment::buildEnvironment(ErrorInfo *error) con
 
 int RunEnvironment::doRunShell()
 {
-    if (d->resolvedProduct)
-        d->resolvedProduct->setupBuildEnvironment(&d->engine, d->project->environment);
+    if (d->resolvedProduct) {
+        EnvironmentScriptRunner(d->resolvedProduct.get(), &d->evalContext,
+                                d->project->environment).setupForBuild();
+    }
 
     const QString productId = d->resolvedProduct ? d->resolvedProduct->name : QString();
     const QString configName = d->project->id();
@@ -399,7 +403,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
 
     QProcessEnvironment env = d->environment;
     env.insert(QLatin1String("QBS_RUN_FILE_PATH"), targetBin);
-    d->resolvedProduct->setupRunEnvironment(&d->engine, env);
+    EnvironmentScriptRunner(d->resolvedProduct.get(), &d->evalContext, env).setupForRun();
 
     d->logger.qbsInfo() << Tr::tr("Starting target '%1'.").arg(QDir::toNativeSeparators(targetBin));
     QProcess process;
@@ -434,7 +438,8 @@ const QProcessEnvironment RunEnvironment::getRunEnvironment() const
 {
     if (!d->resolvedProduct)
         return d->environment;
-    d->resolvedProduct->setupRunEnvironment(&d->engine, d->environment);
+    EnvironmentScriptRunner(d->resolvedProduct.get(), &d->evalContext, d->environment)
+            .setupForRun();
     return d->resolvedProduct->runEnvironment;
 }
 
@@ -442,7 +447,8 @@ const QProcessEnvironment RunEnvironment::getBuildEnvironment() const
 {
     if (!d->resolvedProduct)
         return d->environment;
-    d->resolvedProduct->setupBuildEnvironment(&d->engine, d->environment);
+    EnvironmentScriptRunner(d->resolvedProduct.get(), &d->evalContext, d->environment)
+            .setupForBuild();
     return d->resolvedProduct->buildEnvironment;
 }
 
