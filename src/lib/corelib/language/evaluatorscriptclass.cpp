@@ -140,7 +140,8 @@ private:
         extraScope->setProperty(conveniencePropertyName, valueToSet);
     }
 
-    std::pair<QScriptValue, bool> createExtraScope(const JSSourceValue *value, Item *outerItem)
+    std::pair<QScriptValue, bool> createExtraScope(const JSSourceValue *value, Item *outerItem,
+                                                   QScriptValue *outerScriptValue)
     {
         std::pair<QScriptValue, bool> result;
         auto &extraScope = result.first;
@@ -154,14 +155,20 @@ private:
             }
             setupConvenienceProperty(QLatin1String("base"), &extraScope, baseValue);
         }
-        if (value->sourceUsesOuter() && outerItem) {
-            const QScriptValue v = data->evaluator->property(outerItem, *propertyName);
-            if (engine->hasErrorOrException(v)) {
-                extraScope = engine->lastErrorValue(v);
-                result.second = false;
-                return result;
+        if (value->sourceUsesOuter()) {
+            QScriptValue v;
+            if (outerItem) {
+                v = data->evaluator->property(outerItem, *propertyName);
+                if (engine->hasErrorOrException(v)) {
+                    extraScope = engine->lastErrorValue(v);
+                    result.second = false;
+                    return result;
+                }
+            } else if (outerScriptValue) {
+                v = *outerScriptValue;
             }
-            setupConvenienceProperty(QLatin1String("outer"), &extraScope, v);
+            if (v.isValid())
+                setupConvenienceProperty(QLatin1String("outer"), &extraScope, v);
         }
         if (value->sourceUsesOriginal()) {
             QScriptValue originalValue;
@@ -205,53 +212,55 @@ private:
 
     void handle(JSSourceValue *value) override
     {
-        Item *outerItem = data->item->outerItem();
+        QScriptValue outerScriptValue;
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
-            if (alternative.value->sourceUsesOuter() && !outerItem) {
-                // Clone value but without alternatives.
-                JSSourceValuePtr outerValue =
-                        std::static_pointer_cast<JSSourceValue>(value->clone());
-                outerValue->setNext(ValuePtr());
-                outerValue->clearCreatedByPropertiesBlock();
-                outerValue->clearAlternatives();
-                outerItem = Item::create(data->item->pool(), ItemType::Outer);
-                outerItem->setProperty(propertyName->toString(), outerValue);
+            if (alternative.value->sourceUsesOuter()
+                    && !data->item->outerItem()
+                    && !outerScriptValue.isValid()) {
+                JSSourceValueEvaluationResult sver = evaluateJSSourceValue(value, nullptr);
+                if (sver.hasError) {
+                    *result = sver.scriptValue;
+                    return;
+                }
+                outerScriptValue = sver.scriptValue;
             }
             JSSourceValueEvaluationResult sver = evaluateJSSourceValue(alternative.value.get(),
-                                                                       outerItem, &alternative,
-                                                                       value);
-            if (!sver.tryNextAlternative) {
+                                                                       data->item->outerItem(),
+                                                                       &alternative,
+                                                                       value, &outerScriptValue);
+            if (!sver.tryNextAlternative || sver.hasError) {
                 *result = sver.scriptValue;
                 return;
             }
         }
-        *result = evaluateJSSourceValue(value, outerItem).scriptValue;
+        *result = evaluateJSSourceValue(value, data->item->outerItem()).scriptValue;
     }
 
     struct JSSourceValueEvaluationResult
     {
         QScriptValue scriptValue;
         bool tryNextAlternative = true;
+        bool hasError = false;
     };
 
     JSSourceValueEvaluationResult evaluateJSSourceValue(const JSSourceValue *value, Item *outerItem,
             const JSSourceValue::Alternative *alternative = nullptr,
-            JSSourceValue *elseCaseValue = nullptr)
+            JSSourceValue *elseCaseValue = nullptr, QScriptValue *outerScriptValue = nullptr)
     {
         JSSourceValueEvaluationResult result;
         QBS_ASSERT(!alternative || value == alternative->value.get(), return result);
         AutoScopePopper autoScopePopper(this);
-        auto maybeExtraScope = createExtraScope(value, outerItem);
+        auto maybeExtraScope = createExtraScope(value, outerItem, outerScriptValue);
         if (!maybeExtraScope.second) {
             result.scriptValue = maybeExtraScope.first;
-            result.tryNextAlternative = false;
+            result.hasError = true;
             return result;
         }
         const Evaluator::FileContextScopes fileCtxScopes
                 = data->evaluator->fileContextScopes(value->file());
         if (fileCtxScopes.importScope.isError()) {
             result.scriptValue = fileCtxScopes.importScope;
-            result.tryNextAlternative = false;
+            result.hasError = true;
             return result;
         }
         pushScope(fileCtxScopes.fileScope);
@@ -268,7 +277,7 @@ private:
             QScriptValue sv = engine->evaluate(alternative->condition);
             if (engine->hasErrorOrException(sv)) {
                 result.scriptValue = sv;
-                result.tryNextAlternative = false;
+                result.hasError = true;
                 return result;
             }
             if (sv.toBool()) {
@@ -282,7 +291,7 @@ private:
             sv = engine->evaluate(alternative->overrideListProperties);
             if (engine->hasErrorOrException(sv)) {
                 result.scriptValue = sv;
-                result.tryNextAlternative = false;
+                result.hasError = true;
                 return result;
             }
             if (sv.toBool())

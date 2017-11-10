@@ -2113,6 +2113,18 @@ void TestLanguage::propertiesBlocks_data()
             << QString("dummy.defines")
             << QVariant(QStringList() << QString("ONE") << QString("TWO"))
             << QString();
+    QTest::newRow("property_append_to_indirect_derived_outer1")
+            << QString("dummy.cFlags")
+            << QVariant(QStringList() << QString("BASE") << QString("PROPS"))
+            << QString();
+    QTest::newRow("property_append_to_indirect_derived_outer2")
+            << QString("dummy.cFlags")
+            << QVariant(QStringList() << QString("PRODUCT") << QString("PROPS"))
+            << QString();
+    QTest::newRow("property_append_to_indirect_derived_outer3")
+            << QString("dummy.cFlags")
+            << QVariant(QStringList() << QString("BASE") << QString("PRODUCT") << QString("PROPS"))
+            << QString();
     QTest::newRow("property_append_to_indirect_merged_outer")
             << QString("dummy.rpaths")
             << QVariant(QStringList() << QString("ONE") << QString("TWO") << QString("$ORIGIN"))

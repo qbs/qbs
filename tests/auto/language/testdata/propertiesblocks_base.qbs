@@ -8,4 +8,6 @@ Product {
         dummy.defines: ["BASE"]
     }
     dummy.defines: ["SOMETHING"]
+    property stringList myCFlags: ["BASE"]
+    dummy.cFlags: myCFlags
 }
