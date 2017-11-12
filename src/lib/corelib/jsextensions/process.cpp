@@ -215,12 +215,18 @@ int Process::exec(const QString &program, const QStringList &arguments, bool thr
     m_qProcess->closeWriteChannel();
     m_qProcess->waitForFinished(-1);
     if (throwOnError) {
-        if (m_qProcess->error() != QProcess::UnknownError) {
+        if (m_qProcess->error() != QProcess::UnknownError
+                && m_qProcess->error() != QProcess::Crashed) {
             context()->throwError(Tr::tr("Error running '%1': %2")
                                   .arg(program, m_qProcess->errorString()));
-        } else if (m_qProcess->exitCode() != 0) {
-            QString errorMessage = Tr::tr("Process '%1' finished with exit code %2.")
-                    .arg(program).arg(m_qProcess->exitCode());
+        } else if (m_qProcess->exitStatus() == QProcess::CrashExit || m_qProcess->exitCode() != 0) {
+            QString errorMessage = m_qProcess->error() == QProcess::Crashed
+                    ? Tr::tr("Error running '%1': %2").arg(program, m_qProcess->errorString())
+                    : Tr::tr("Process '%1' finished with exit code %2.").arg(program).arg(
+                          m_qProcess->exitCode());
+            const QString stdOut = readStdOut();
+            if (!stdOut.isEmpty())
+                errorMessage.append(Tr::tr(" The standard output was:\n")).append(stdOut);
             const QString stdErr = readStdErr();
             if (!stdErr.isEmpty())
                 errorMessage.append(Tr::tr(" The standard error output was:\n")).append(stdErr);
