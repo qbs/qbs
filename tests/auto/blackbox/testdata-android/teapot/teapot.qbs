@@ -45,7 +45,8 @@ Project {
         Group {
             id: ndkhelper_sources
             prefix: ndkHelperProbe.dir
-            files: ["*.c", "*.cpp", "*.h"]
+            files: ["*.cpp", "*.h"].concat(
+                !File.exists(ndkHelperProbe.dir + "/gl3stub.cpp") ? ["gl3stub.c"] : [])
         }
         Android.ndk.appStl: "gnustl_shared"
         cpp.cxxLanguageVersion: "c++11"
