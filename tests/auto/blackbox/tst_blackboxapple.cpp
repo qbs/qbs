@@ -156,25 +156,36 @@ void TestBlackboxApple::assetCatalog()
     rmDirR(relativeBuildDir());
 
     QbsRunParameters params;
+    const auto v = HostOsInfo::hostOsVersion();
     const QString flattens = "modules.ib.flatten:" + QString(flatten ? "true" : "false");
+    const QString macosTarget = "modules.cpp.minimumMacosVersion:'" + v.toString() + "'";
 
     // Make sure a dry run does not write anything
-    params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs" << "--dry-run" << flattens;
+    params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs" << "--dry-run"
+                                     << flattens << macosTarget;
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!directoryExists(relativeBuildDir()));
 
-    params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs" << flattens;
+    params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs"
+                                     << flattens << macosTarget;
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
     if (xcodeVersion >= qbs::Internal::Version(5))
         QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
 
-    // should not produce a CAR since minimumMacosVersion will be < 10.9
-    QVERIFY(!regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
+    // should additionally produce raw assets since deployment target will be < 10.9
+    // older versions of ibtool generated either raw assets OR .car files;
+    // newer versions always generate the .car file regardless of the deployment target
+    if (v < qbs::Internal::Version(10, 9)) {
+        QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
+                                   + "/assetcatalogempty.app/Contents/Resources/other.png"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
+                                   + "/assetcatalogempty.app/Contents/Resources/other@2x.png"));
+    }
 
     rmDirR(relativeBuildDir());
-    params.arguments.append("modules.cpp.minimumMacosVersion:10.9"); // force CAR generation
+    params.arguments.append("modules.cpp.minimumMacosVersion:'10.10'"); // force CAR generation
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
