@@ -51,21 +51,24 @@ void CommandLineParser::parse()
     parser.setApplicationDescription("This tool aims to detect qbs performance regressions "
                                      "using valgrind.");
     parser.addHelpOption();
-    QCommandLineOption oldCommitOption("old-commit", "The old qbs commit.", "old commit");
+    QCommandLineOption oldCommitOption(QStringList{"old-commit", "o"}, "The old qbs commit.",
+                                       "old commit");
     parser.addOption(oldCommitOption);
-    QCommandLineOption newCommitOption("new-commit", "The new qbs commit.", "new commit");
+    QCommandLineOption newCommitOption(QStringList{"new-commit", "n"}, "The new qbs commit.",
+                                       "new commit");
     parser.addOption(newCommitOption);
-    QCommandLineOption testProjectOption("test-project",
+    QCommandLineOption testProjectOption(QStringList{"test-project", "t"},
             "The example project to use for the benchmark.", "project file path");
     parser.addOption(testProjectOption);
-    QCommandLineOption qbsRepoOption("qbs-repo", "The qbs repository.", "repo path");
+    QCommandLineOption qbsRepoOption(QStringList{"qbs-repo", "q"}, "The qbs repository.",
+                                     "repo path");
     parser.addOption(qbsRepoOption);
-    QCommandLineOption activitiesOption("activities",
+    QCommandLineOption activitiesOption(QStringList{"activities", "a"},
             QString::fromLatin1("The activities to benchmark. Possible values (CSV): %1,%2,%3,%4")
                     .arg(resolveActivity(), ruleExecutionActivity(), nullBuildActivity(),
                          allActivities()), "activities", allActivities());
     parser.addOption(activitiesOption);
-    QCommandLineOption thresholdOption("regression-threshold",
+    QCommandLineOption thresholdOption(QStringList{"regression-threshold", "r"},
             "A relative increase higher than this is considered a performance regression. "
             "All temporary data from running the benchmarks will be kept if that happens.",
             "value in per cent");
