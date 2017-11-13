@@ -231,8 +231,10 @@ void Executor::doBuild()
             const QList<FileResourceBase *> &files
                     = m_project->buildData->lookupFiles(fileToConsider);
             for (const FileResourceBase * const file : files) {
-                const Artifact * const artifact = dynamic_cast<const Artifact *>(file);
-                if (artifact && m_productsToBuild.contains(artifact->product.lock())) {
+                if (file->fileType() != FileResourceBase::FileTypeArtifact)
+                    continue;
+                const Artifact * const artifact = static_cast<const Artifact *>(file);
+                if (m_productsToBuild.contains(artifact->product.lock())) {
                     m_tagsOfFilesToConsider.unite(artifact->fileTags());
                     m_productsOfFilesToConsider << artifact->product.lock();
                 }
@@ -309,9 +311,11 @@ void Executor::updateLeaves(BuildGraphNode *node, NodeSet &seenNodes)
     // prepareBuildGraph() has been called, must be initialized.
     if (node->buildState == BuildGraphNode::Untouched) {
         node->buildState = BuildGraphNode::Buildable;
-        Artifact *artifact = dynamic_cast<Artifact *>(node);
-        if (artifact && artifact->artifactType == Artifact::SourceFile)
-            retrieveSourceFileTimestamp(artifact);
+        if (node->type() == BuildGraphNode::ArtifactNodeType) {
+            Artifact * const artifact = static_cast<Artifact *>(node);
+            if (artifact->artifactType == Artifact::SourceFile)
+                retrieveSourceFileTimestamp(artifact);
+        }
     }
 
     bool isLeaf = true;
@@ -496,16 +500,16 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
         Set<RuleNode *> parentRules;
         if (!result.createdNodes.empty()) {
             for (BuildGraphNode *parent : qAsConst(ruleNode->parents)) {
-                if (RuleNode *parentRule = dynamic_cast<RuleNode *>(parent))
-                    parentRules += parentRule;
+                if (parent->type() == BuildGraphNode::RuleNodeType)
+                    parentRules += static_cast<RuleNode *>(parent);
             }
         }
         for (BuildGraphNode *node : qAsConst(result.createdNodes)) {
             qCDebug(lcExec) << "rule created" << node->toString();
             Internal::connect(node, ruleNode);
-            Artifact *outputArtifact = dynamic_cast<Artifact *>(node);
-            if (!outputArtifact)
+            if (node->type() != BuildGraphNode::ArtifactNodeType)
                 continue;
+            Artifact * const outputArtifact = static_cast<Artifact *>(node);
             if (outputArtifact->fileTags().intersects(product->fileTags))
                 product->buildData->roots += outputArtifact;
 
@@ -776,7 +780,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
                 break;
             }
             const auto depFinder = [](const FileResourceBase *f) {
-                return dynamic_cast<const FileDependency *>(f);
+                return f->fileType() == FileResourceBase::FileTypeDependency;
             };
             const auto depIt = std::find_if(depList.cbegin(), depList.cend(), depFinder);
             if (depIt == depList.cend()) {
@@ -785,7 +789,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
                                       << "not in the project's list of dependencies anymore.";
                 break;
             }
-            artifact->fileDependencies.insert(dynamic_cast<FileDependency *>(*depIt));
+            artifact->fileDependencies.insert(static_cast<FileDependency *>(*depIt));
         }
 
         if (canRescue) {

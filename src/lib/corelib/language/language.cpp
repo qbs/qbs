@@ -802,12 +802,10 @@ TopLevelProject *ResolvedProject::topLevelProject()
 {
     if (m_topLevelProject)
         return m_topLevelProject;
-    TopLevelProject *tlp = dynamic_cast<TopLevelProject *>(this);
-    if (tlp) {
-        m_topLevelProject = tlp;
+    if (parentProject.expired()) {
+        m_topLevelProject = static_cast<TopLevelProject *>(this);
         return m_topLevelProject;
     }
-    QBS_CHECK(!parentProject.expired());
     m_topLevelProject = parentProject->topLevelProject();
     return m_topLevelProject;
 }

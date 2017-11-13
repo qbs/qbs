@@ -71,6 +71,7 @@ public:
     ~Artifact();
 
     Type type() const { return ArtifactNodeType; }
+    FileType fileType() const override { return FileTypeArtifact; }
     void accept(BuildGraphVisitor *visitor);
     QString toString() const;
 

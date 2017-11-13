@@ -175,10 +175,9 @@ QStringList UserDependencyScanner::collectDependencies(FileResourceBase *file, c
 {
     Q_UNUSED(fileTags);
     // ### support user dependency scanners for file deps
-    Artifact *artifact = dynamic_cast<Artifact *>(file);
-    if (!artifact)
+    if (file->fileType() != FileResourceBase::FileTypeArtifact)
         return QStringList();
-    return evaluate(artifact, m_scanner->scanScript);
+    return evaluate(static_cast<Artifact *>(file), m_scanner->scanScript);
 }
 
 bool UserDependencyScanner::recursive() const

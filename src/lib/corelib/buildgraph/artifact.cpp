@@ -121,10 +121,9 @@ const TypeFilter<Artifact> Artifact::childArtifacts() const
 
 void Artifact::onChildDisconnected(BuildGraphNode *child)
 {
-    Artifact *childArtifact = dynamic_cast<Artifact *>(child);
-    if (!childArtifact)
+    if (child->type() != BuildGraphNode::ArtifactNodeType)
         return;
-    childrenAddedByScanner.remove(childArtifact);
+    childrenAddedByScanner.remove(static_cast<Artifact *>(child));
 }
 
 void Artifact::load(PersistentPool &pool)

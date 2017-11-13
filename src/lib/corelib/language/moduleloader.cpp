@@ -3064,9 +3064,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
                 || it.key() == StringConstants::buildDirectoryProperty()
                 || it.key() == StringConstants::sourceDirectoryProperty()
                 || it.key() == StringConstants::minimumQbsVersionProperty()) {
-            const JSSourceValueConstPtr &v
-                    = std::dynamic_pointer_cast<const JSSourceValue>(
-                        targetProject->property(it.key()));
+            const JSSourceValueConstPtr &v = targetProject->sourceProperty(it.key());
             QBS_ASSERT(v, continue);
             if (v->sourceCode() == StringConstants::undefinedValue())
                 sourceProject->copyProperty(it.key(), targetProject);

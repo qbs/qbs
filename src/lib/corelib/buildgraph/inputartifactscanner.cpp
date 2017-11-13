@@ -79,14 +79,21 @@ static void resolveDepencency(const RawScannedDependency &dependency,
     Artifact *dependencyInOtherProduct = nullptr;
     for (FileResourceBase *lookupResult : project->topLevelProject()
              ->buildData->lookupFiles(absDirPath, dependency.fileName())) {
-        if ((fileDependencyArtifact = dynamic_cast<FileDependency *>(lookupResult)))
-            continue;
-        Artifact * const foundArtifact = dynamic_cast<Artifact *>(lookupResult);
-        if (foundArtifact->product == product) {
-            dependencyInProduct = foundArtifact;
+        switch (lookupResult->fileType()) {
+        case FileResourceBase::FileTypeDependency:
+            fileDependencyArtifact = static_cast<FileDependency *>(lookupResult);
+            break;
+        case FileResourceBase::FileTypeArtifact: {
+            Artifact * const foundArtifact = static_cast<Artifact *>(lookupResult);
+            if (foundArtifact->product == product)
+                dependencyInProduct = foundArtifact;
+            else
+                dependencyInOtherProduct = foundArtifact;
             break;
         }
-        dependencyInOtherProduct = foundArtifact;
+        }
+        if (dependencyInProduct)
+            break;
     }
 
     // prioritize found artifacts
@@ -266,8 +273,10 @@ unresolved:
 resolved:
         handleDependency(resolvedDependency);
         if (artifactsToScan && resolvedDependency.file) {
-            if (Artifact *artifactDependency = dynamic_cast<Artifact *>(resolvedDependency.file)) {
+            if (resolvedDependency.file->fileType() == FileResourceBase::FileTypeArtifact) {
                 // Do not scan an artifact that is not built yet: Its contents might still change.
+                Artifact * const artifactDependency
+                        = static_cast<Artifact *>(resolvedDependency.file);
                 if (artifactDependency->artifactType == Artifact::SourceFile
                         || artifactDependency->buildState == BuildGraphNode::Built) {
                     artifactsToScan->push_back(artifactDependency);
@@ -286,9 +295,18 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
     QBS_CHECK(m_artifact->artifactType == Artifact::Generated);
     QBS_CHECK(product);
 
-    Artifact *artifactDependency = dynamic_cast<Artifact *>(dependency.file);
-    FileDependency *fileDependency
-            = artifactDependency ? 0 : dynamic_cast<FileDependency *>(dependency.file);
+    Artifact *artifactDependency = nullptr;
+    FileDependency *fileDependency = nullptr;
+    if (dependency.file) {
+        switch (dependency.file->fileType()) {
+        case FileResourceBase::FileTypeArtifact:
+            artifactDependency = static_cast<Artifact *>(dependency.file);
+            break;
+        case FileResourceBase::FileTypeDependency:
+            fileDependency = static_cast<FileDependency *>(dependency.file);
+            break;
+        }
+    }
     QBS_CHECK(!dependency.file || artifactDependency || fileDependency);
 
     if (!dependency.file) {

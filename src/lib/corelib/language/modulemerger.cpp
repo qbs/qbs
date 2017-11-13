@@ -191,13 +191,13 @@ void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap
             QBS_ASSERT(it.value(), continue);
             continue;
         }
+        if (v->type() != Value::JSSourceValueType)
+            continue;
+        if (it.value()->type() != Value::JSSourceValueType)
+            continue;
         // possible conflict
-        JSSourceValuePtr dstVal = std::dynamic_pointer_cast<JSSourceValue>(v);
-        if (!dstVal)
-            continue;
-        JSSourceValuePtr srcVal = std::dynamic_pointer_cast<JSSourceValue>(it.value());
-        if (!srcVal)
-            continue;
+        const JSSourceValuePtr dstVal = std::static_pointer_cast<JSSourceValue>(v);
+        JSSourceValuePtr srcVal = std::static_pointer_cast<JSSourceValue>(it.value());
 
         const PropertyDeclaration pd = m_decls.value(srcVal);
         QBS_CHECK(pd.isValid());

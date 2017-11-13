@@ -54,6 +54,9 @@ protected:
 public:
     ~FileResourceBase();
 
+    enum FileType { FileTypeDependency, FileTypeArtifact };
+    virtual FileType fileType() const = 0;
+
     void setTimestamp(const FileTime &t);
     const FileTime &timestamp() const;
     void clearTimestamp() { m_timestamp.clear(); }
@@ -79,6 +82,8 @@ class FileDependency : public FileResourceBase
 public:
     FileDependency();
     ~FileDependency();
+
+    FileType fileType() const override { return FileTypeDependency; }
 };
 
 } // namespace Internal

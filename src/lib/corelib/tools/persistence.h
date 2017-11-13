@@ -165,7 +165,7 @@ template <class T> inline std::shared_ptr<T> PersistentPool::idLoadS()
 
     if (id < static_cast<PersistentObjectId>(m_loaded.size())) {
         std::shared_ptr<PersistentObject> obj = m_loaded.at(id);
-        return std::dynamic_pointer_cast<T>(obj);
+        return std::static_pointer_cast<T>(obj);
     }
 
     m_loaded.resize(id + 1);

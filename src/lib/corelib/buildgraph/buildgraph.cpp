@@ -376,7 +376,8 @@ void connect(BuildGraphNode *p, BuildGraphNode *c)
 {
     QBS_CHECK(p != c);
     qCDebug(lcBuildGraph) << "connect" << p->toString() << "->" << c->toString();
-    if (Artifact *ac = dynamic_cast<Artifact *>(c)) {
+    if (c->type() == BuildGraphNode::ArtifactNodeType) {
+        Artifact * const ac = static_cast<Artifact *>(c);
         for (const Artifact *child : filterByType<Artifact>(p->children)) {
             if (child == ac)
                 return;
@@ -486,11 +487,14 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product,
             = projectBuildData->lookupFiles(dirPath, fileName);
     for (QList<FileResourceBase *>::const_iterator it = lookupResults.constBegin();
             it != lookupResults.constEnd(); ++it) {
-        Artifact *artifact = dynamic_cast<Artifact *>(*it);
-        if (artifact && (compareByName
-                         ? artifact->product->uniqueName() == product->uniqueName()
-                         : artifact->product == product))
+        if ((*it)->fileType() != FileResourceBase::FileTypeArtifact)
+            continue;
+        Artifact *artifact = static_cast<Artifact *>(*it);
+        if (compareByName
+                ? artifact->product->uniqueName() == product->uniqueName()
+                : artifact->product == product) {
             return artifact;
+        }
     }
     return nullptr;
 }
@@ -581,10 +585,11 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
             QBS_CHECK(allProducts.contains(child->product.lock()));
         }
 
-        Artifact * const artifact = dynamic_cast<Artifact *>(node);
+        Artifact * const artifact = node->type() == BuildGraphNode::ArtifactNodeType
+                ? static_cast<Artifact *>(node) : nullptr;
         if (!artifact) {
-            RuleNode * const ruleNode = dynamic_cast<RuleNode *>(node);
-            QBS_CHECK(ruleNode);
+            QBS_CHECK(node->type() == BuildGraphNode::RuleNodeType);
+            RuleNode * const ruleNode = static_cast<RuleNode *>(node);
             QBS_CHECK(ruleNode->rule());
             QBS_CHECK(ruleNode->rule()->product);
             QBS_CHECK(ruleNode->rule()->product == ruleNode->product.get());

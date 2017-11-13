@@ -99,22 +99,23 @@ void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)
 {
     QList<FileResourceBase *> &lst
             = m_artifactLookupTable[fileres->fileName()][fileres->dirPath()];
-    const auto * const artifact = dynamic_cast<Artifact *>(fileres);
+    const auto * const artifact = fileres->fileType() == FileResourceBase::FileTypeArtifact
+            ? static_cast<Artifact *>(fileres) : nullptr;
     if (artifact && artifact->artifactType == Artifact::Generated) {
         for (const auto *file : lst) {
-            const auto * const otherArtifact = dynamic_cast<const Artifact *>(file);
-            if (otherArtifact) {
-                ErrorInfo error;
-                error.append(Tr::tr("Conflicting artifacts for file path '%1'.")
-                             .arg(artifact->filePath()));
-                error.append(Tr::tr("The first artifact comes from product '%1'.")
-                             .arg(otherArtifact->product->fullDisplayName()),
-                             otherArtifact->product->location);
-                error.append(Tr::tr("The second artifact comes from product '%1'.")
-                             .arg(artifact->product->fullDisplayName()),
-                             artifact->product->location);
-                throw error;
-            }
+            if (file->fileType() != FileResourceBase::FileTypeArtifact)
+                continue;
+            const auto * const otherArtifact = static_cast<const Artifact *>(file);
+            ErrorInfo error;
+            error.append(Tr::tr("Conflicting artifacts for file path '%1'.")
+                         .arg(artifact->filePath()));
+            error.append(Tr::tr("The first artifact comes from product '%1'.")
+                         .arg(otherArtifact->product->fullDisplayName()),
+                         otherArtifact->product->location);
+            error.append(Tr::tr("The second artifact comes from product '%1'.")
+                         .arg(artifact->product->fullDisplayName()),
+                         artifact->product->location);
+            throw error;
         }
     }
     QBS_CHECK(!lst.contains(fileres));
@@ -164,13 +165,13 @@ static void disconnectArtifactParents(Artifact *artifact)
     qCDebug(lcBuildGraph) << "disconnect parents of" << relativeArtifactFileName(artifact);
     for (BuildGraphNode * const parent : qAsConst(artifact->parents)) {
         parent->children.remove(artifact);
-        Artifact *parentArtifact = dynamic_cast<Artifact *>(parent);
-        if (parentArtifact) {
-            QBS_CHECK(parentArtifact->transformer);
-            parentArtifact->childrenAddedByScanner.remove(artifact);
-            parentArtifact->transformer->inputs.remove(artifact);
-            parentArtifact->product->registerArtifactWithChangedInputs(parentArtifact);
-        }
+        if (parent->type() != BuildGraphNode::ArtifactNodeType)
+            continue;
+        Artifact * const parentArtifact = static_cast<Artifact *>(parent);
+        QBS_CHECK(parentArtifact->transformer);
+        parentArtifact->childrenAddedByScanner.remove(artifact);
+        parentArtifact->transformer->inputs.remove(artifact);
+        parentArtifact->product->registerArtifactWithChangedInputs(parentArtifact);
     }
 
     artifact->parents.clear();

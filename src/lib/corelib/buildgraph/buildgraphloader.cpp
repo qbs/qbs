@@ -93,8 +93,10 @@ static void restoreBackPointers(const ResolvedProjectPtr &project)
         if (!product->buildData)
             continue;
         for (BuildGraphNode * const n : qAsConst(product->buildData->nodes)) {
-            if (Artifact *a = dynamic_cast<Artifact *>(n))
-                project->topLevelProject()->buildData->insertIntoLookupTable(a);
+            if (n->type() == BuildGraphNode::ArtifactNodeType) {
+                project->topLevelProject()->buildData
+                        ->insertIntoLookupTable(static_cast<Artifact *>(n));
+            }
         }
     }
 
@@ -436,9 +438,8 @@ void BuildGraphLoader::trackProjectChanges()
             .removeEmptyParentDirectories(m_artifactsRemovedFromDisk);
 
     for (FileResourceBase * const f : qAsConst(m_objectsToDelete)) {
-        Artifact * const a = dynamic_cast<Artifact *>(f);
-        if (a)
-            a->product.reset(); // To help with the sanity checks.
+        if (f->fileType() == FileResourceBase::FileTypeArtifact)
+            static_cast<Artifact *>(f)->product.reset(); // To help with the sanity checks.
     }
     doSanityChecks(m_result.newlyResolvedProject, m_logger);
 }
