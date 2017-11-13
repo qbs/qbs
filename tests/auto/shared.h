@@ -62,6 +62,10 @@ inline SettingsPtr settings()
 
 inline QString profileName()
 {
+    const QString suiteProfile = QLatin1String(
+                qgetenv("QBS_AUTOTEST_PROFILE_" QBS_TEST_SUITE_NAME));
+    if (!suiteProfile.isEmpty())
+        return suiteProfile;
     const QString profile = QLatin1String(qgetenv("QBS_AUTOTEST_PROFILE"));
     return !profile.isEmpty() ? profile : QLatin1String("none");
 }

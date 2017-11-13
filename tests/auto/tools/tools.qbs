@@ -11,5 +11,5 @@ QbsAutotest {
         "tst_tools.h"
     ]
 
-    cpp.defines: ["QBS_VERSION=" + Utilities.cStringQuote(qbsversion.version)]
+    cpp.defines: base.concat(["QBS_VERSION=" + Utilities.cStringQuote(qbsversion.version)])
 }

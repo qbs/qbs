@@ -1,5 +1,6 @@
 import qbs
 import qbs.FileInfo
+import qbs.Utilities
 
 QtApplication {
     type: ["application", "autotest"]
@@ -9,6 +10,9 @@ QtApplication {
     Depends { name: "Qt.testlib" }
     Depends { name: "qbscore" }
     Depends { name: "qbsbuildconfig" }
+    cpp.defines: [
+        "QBS_TEST_SUITE_NAME=" + Utilities.cStringQuote(testName.toUpperCase().replace("-", "_"))
+    ]
     cpp.includePaths: [
         "../../../src",
         "../../../src/app/shared", // for the logger
