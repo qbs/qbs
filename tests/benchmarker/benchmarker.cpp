@@ -115,7 +115,8 @@ void Benchmarker::buildQbs(const QString &buildDir) const
 {
     if (!QDir::root().mkpath(buildDir))
         throw Exception(QString::fromLatin1("Failed to create directory '%1'.").arg(buildDir));
-    runProcess(QStringList() << "qmake" << m_qbsRepo + "/qbs.pro", buildDir);
+    runProcess(QStringList() << "qmake" << "CONFIG+=force_debug_info"
+               << (m_qbsRepo + "/qbs.pro"), buildDir);
     runProcess(QStringList() << "make" << "-s", buildDir);
 }
 
