@@ -3,7 +3,7 @@ import qbs.FileInfo
 
 Project {
     CppApplication {
-        Depends { name: "coreutils" }
+        Depends { name: "windowutils" }
         Depends { name: "ib"; condition: qbs.targetOS.contains("darwin") }
         Depends { name: "Qt"; submodules: ["core", "gui", "widgets"] }
 
@@ -32,9 +32,9 @@ Project {
     DynamicLibrary {
         Depends { name: "cpp" }
 
-        name: "coreutils"
+        name: "windowutils"
         property bool isBundle: qbs.targetOS.contains("darwin") && bundle.isBundle
-        targetName: isBundle ? "CoreUtils" : "coreutils"
+        targetName: isBundle ? "WindowUtils" : "windowutils"
         files: ["coreutils.cpp", "coreutils.h"]
 
         Group {

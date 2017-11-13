@@ -124,8 +124,17 @@ void TestBlackboxAndroid::android()
         }
         if (!missingExpectedFiles.isEmpty())
             QFAIL(QByteArray("missing expected files:\n") + missingExpectedFiles.join('\n'));
-        if (!actualFiles.isEmpty())
-            QFAIL(QByteArray("unexpected files encountered:\n") + actualFiles.join('\n'));
+        if (!actualFiles.isEmpty()) {
+            QByteArray msg = "unexpected files encountered:\n" + actualFiles.join('\n');
+            auto it = std::find_if(std::begin(actualFiles), std::end(actualFiles),
+                                   [](const QByteArray &f) {
+                return f.endsWith(".so");
+            });
+            if (it == std::end(actualFiles))
+                QWARN(msg);
+            else
+                QFAIL(msg);
+        }
     }
 
     if (projectDir == "multiple-libs-per-apk") {
@@ -191,10 +200,6 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/gdbserver",
                        "lib/${ARCH}/libgnustl_shared.so",
                        "lib/${ARCH}/libTeapotNativeActivity.so",
-                       "res/drawable-hdpi-v4/ic_launcher.png",
-                       "res/drawable-ldpi-v4/ic_launcher.png",
-                       "res/drawable-mdpi-v4/ic_launcher.png",
-                       "res/drawable-xhdpi-v4/ic_launcher.png",
                        "res/layout/widgets.xml"}));
     QTest::newRow("no native")
             << "no-native"
