@@ -2121,107 +2121,123 @@ void TestLanguage::productDirectories()
 void TestLanguage::propertiesBlocks_data()
 {
     QTest::addColumn<QString>("propertyName");
-    QTest::addColumn<QStringList>("expectedValues");
+    QTest::addColumn<QVariant>("expectedValue");
     QTest::addColumn<QString>("expectedStringValue");
 
-    QTest::newRow("init") << QString() << QStringList() << QString();
+    QTest::newRow("init") << QString() << QVariant() << QString();
     QTest::newRow("property_overwrite")
             << QString("dummy.defines")
-            << QStringList("OVERWRITTEN")
+            << QVariant(QStringList("OVERWRITTEN"))
             << QString();
     QTest::newRow("property_set_indirect")
             << QString("dummy.cFlags")
-            << QStringList("VAL")
+            << QVariant(QStringList("VAL"))
             << QString();
     QTest::newRow("property_overwrite_no_outer")
             << QString("dummy.defines")
-            << QStringList("OVERWRITTEN")
+            << QVariant(QStringList("OVERWRITTEN"))
             << QString();
     QTest::newRow("property_append_to_outer")
             << QString("dummy.defines")
-            << (QStringList() << QString("ONE") << QString("TWO"))
+            << QVariant(QStringList() << QString("ONE") << QString("TWO"))
             << QString();
     QTest::newRow("property_append_to_indirect_outer")
             << QString("dummy.defines")
-            << (QStringList() << QString("ONE") << QString("TWO"))
+            << QVariant(QStringList() << QString("ONE") << QString("TWO"))
+            << QString();
+    QTest::newRow("property_append_to_indirect_derived_outer1")
+            << QString("dummy.cFlags")
+            << QVariant(QStringList() << QString("BASE") << QString("PROPS"))
+            << QString();
+    QTest::newRow("property_append_to_indirect_derived_outer2")
+            << QString("dummy.cFlags")
+            << QVariant(QStringList() << QString("PRODUCT") << QString("PROPS"))
+            << QString();
+    QTest::newRow("property_append_to_indirect_derived_outer3")
+            << QString("dummy.cFlags")
+            << QVariant(QStringList() << QString("BASE") << QString("PRODUCT") << QString("PROPS"))
             << QString();
     QTest::newRow("property_append_to_indirect_merged_outer")
             << QString("dummy.rpaths")
-            << (QStringList() << QString("ONE") << QString("TWO") << QString("$ORIGIN"))
+            << QVariant(QStringList() << QString("ONE") << QString("TWO") << QString("$ORIGIN"))
             << QString();
 
     QTest::newRow("multiple_exclusive_properties")
             << QString("dummy.defines")
-            << QStringList("OVERWRITTEN")
+            << QVariant(QStringList("OVERWRITTEN"))
             << QString();
     QTest::newRow("multiple_exclusive_properties_no_outer")
             << QString("dummy.defines")
-            << QStringList("OVERWRITTEN")
+            << QVariant(QStringList("OVERWRITTEN"))
             << QString();
     QTest::newRow("multiple_exclusive_properties_append_to_outer")
             << QString("dummy.defines")
-            << (QStringList() << QString("ONE") << QString("TWO"))
+            << QVariant(QStringList() << QString("ONE") << QString("TWO"))
             << QString();
 
     QTest::newRow("condition_refers_to_product_property")
             << QString("dummy.defines")
-            << QStringList("OVERWRITTEN")
+            << QVariant(QStringList("OVERWRITTEN"))
             << QString("OVERWRITTEN");
     QTest::newRow("condition_refers_to_project_property")
             << QString("dummy.defines")
-            << QStringList("OVERWRITTEN")
+            << QVariant(QStringList("OVERWRITTEN"))
             << QString("OVERWRITTEN");
 
     QTest::newRow("ambiguous_properties")
             << QString("dummy.defines")
-            << (QStringList() << QString("ONE") << QString("TWO"))
+            << QVariant(QStringList() << QString("ONE") << QString("TWO"))
             << QString();
     QTest::newRow("inheritance_overwrite_in_subitem")
             << QString("dummy.defines")
-            << (QStringList() << QString("OVERWRITTEN_IN_SUBITEM"))
+            << QVariant(QStringList() << QString("OVERWRITTEN_IN_SUBITEM"))
             << QString();
     QTest::newRow("inheritance_retain_base1")
             << QString("dummy.defines")
-            << (QStringList() << QString("BASE") << QString("SUB"))
+            << QVariant(QStringList() << QString("BASE") << QString("SUB"))
             << QString();
     QTest::newRow("inheritance_retain_base2")
             << QString("dummy.defines")
-            << (QStringList() << QString("BASE") << QString("SUB"))
+            << QVariant(QStringList() << QString("BASE") << QString("SUB"))
             << QString();
     QTest::newRow("inheritance_retain_base3")
             << QString("dummy.defines")
-            << (QStringList() << QString("BASE") << QString("SUB"))
+            << QVariant(QStringList() << QString("BASE") << QString("SUB"))
             << QString();
     QTest::newRow("inheritance_retain_base4")
             << QString("dummy.defines")
-            << (QStringList() << QString("BASE"))
+            << QVariant(QStringList() << QString("BASE"))
             << QString();
     QTest::newRow("inheritance_condition_in_subitem1")
             << QString("dummy.defines")
-            << (QStringList() << QString("SOMETHING") << QString("SUB"))
+            << QVariant(QStringList() << QString("SOMETHING") << QString("SUB"))
             << QString();
     QTest::newRow("inheritance_condition_in_subitem2")
             << QString("dummy.defines")
-            << (QStringList() << QString("SOMETHING"))
+            << QVariant(QStringList() << QString("SOMETHING"))
             << QString();
     QTest::newRow("condition_references_id")
             << QString("dummy.defines")
-            << (QStringList() << QString("OVERWRITTEN"))
+            << QVariant(QStringList() << QString("OVERWRITTEN"))
             << QString();
     QTest::newRow("using_derived_Properties_item") << "dummy.defines"
-            << (QStringList() << "string from MyProperties") << QString();
+            << QVariant(QStringList() << "string from MyProperties") << QString();
     QTest::newRow("conditional-depends")
             << QString("dummy.defines")
-            << QStringList()
+            << QVariant()
             << QString();
-    QTest::newRow("cleanup") << QString() << QStringList() << QString();
+    QTest::newRow("use-module-with-properties-item")
+            << QString("module-with-properties-item.stringProperty")
+            << QVariant(QString("overridden in Properties item"))
+            << QString();
+    QTest::newRow("cleanup") << QString() << QVariant() << QString();
 }
 
 void TestLanguage::propertiesBlocks()
 {
     HANDLE_INIT_CLEANUP_DATATAGS("propertiesblocks.qbs");
     QFETCH(QString, propertyName);
-    QFETCH(QStringList, expectedValues);
+    QFETCH(QVariant, expectedValue);
     QFETCH(QString, expectedStringValue);
     QVERIFY(!!project);
     QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
@@ -2230,7 +2246,7 @@ void TestLanguage::propertiesBlocks()
     QVERIFY(!!product);
     QCOMPARE(product->name, productName);
     QVariant v = productPropertyValue(product, propertyName);
-    QCOMPARE(v.toStringList(), expectedValues);
+    QCOMPARE(v, expectedValue);
     if (!expectedStringValue.isEmpty()) {
         v = productPropertyValue(product, "someString");
         QCOMPARE(v.toString(), expectedStringValue);

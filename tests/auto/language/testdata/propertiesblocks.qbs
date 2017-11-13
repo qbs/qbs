@@ -46,6 +46,29 @@ Project {
             dummy.defines: outer.concat(["TWO"])
         }
     }
+    ProductBase {
+        name: "property_append_to_indirect_derived_outer1"
+        Properties {
+            condition: true
+            dummy.cFlags: outer.concat("PROPS")
+        }
+    }
+    ProductBase {
+        name: "property_append_to_indirect_derived_outer2"
+        Properties {
+            condition: true
+            dummy.cFlags: outer.concat("PROPS")
+        }
+        dummy.cFlags: ["PRODUCT"]
+    }
+    ProductBase {
+        name: "property_append_to_indirect_derived_outer3"
+        Properties {
+            condition: true
+            dummy.cFlags: outer.concat("PROPS")
+        }
+        dummy.cFlags: base.concat("PRODUCT")
+    }
     Product {
         name: "property_append_to_indirect_merged_outer"
         Depends { name: "dummy" }
@@ -205,5 +228,9 @@ Project {
             condition: false
             dummy.defines: ["a string"]
         }
+    }
+    Product {
+        name: "use-module-with-properties-item"
+        Depends { name: "module-with-properties-item" }
     }
 }

@@ -161,6 +161,28 @@ void TestBlackbox::sevenZip()
     QVERIFY2(output.contains("archivable.qbs"), output.constData());
 }
 
+void TestBlackbox::sourceArtifactInInputsFromDependencies()
+{
+    QDir::setCurrent(testDataDir + "/source-artifact-in-inputs-from-dependencies");
+    QCOMPARE(runQbs(), 0);
+    QFile outFile(relativeProductBuildDir("p") + "/output.txt");
+    QVERIFY2(outFile.exists(), qPrintable(outFile.fileName()));
+    QVERIFY2(outFile.open(QIODevice::ReadOnly), qPrintable(outFile.errorString()));
+    const QByteArrayList output = outFile.readAll().trimmed().split('\n');
+    QCOMPARE(output.size(), 2);
+    bool header1Found = false;
+    bool header2Found = false;
+    for (const QByteArray &line : output) {
+        const QByteArray &path = line.trimmed();
+        if (path == "include1/header.h")
+            header1Found = true;
+        else if (path == "include2/header.h")
+            header2Found = true;
+    }
+    QVERIFY(header1Found);
+    QVERIFY(header2Found);
+}
+
 void TestBlackbox::staticLibWithoutSources()
 {
     QDir::setCurrent(testDataDir + "/static-lib-without-sources");
@@ -4876,6 +4898,14 @@ void TestBlackbox::importInPropertiesCondition()
 {
     QDir::setCurrent(testDataDir + "/import-in-properties-condition");
     QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::importSearchPath()
+{
+    QDir::setCurrent(testDataDir + "/import-searchpath");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("compiling somefile.cpp"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::importingProduct()

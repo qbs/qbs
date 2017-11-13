@@ -376,7 +376,11 @@ void connect(BuildGraphNode *p, BuildGraphNode *c)
     qCDebug(lcBuildGraph) << "connect" << p->toString() << "->" << c->toString();
     if (Artifact *ac = dynamic_cast<Artifact *>(c)) {
         for (const Artifact *child : filterByType<Artifact>(p->children)) {
-            if (child != ac && child->filePath() == ac->filePath()) {
+            if (child == ac)
+                return;
+            const bool filePathsMustBeDifferent = child->artifactType == Artifact::Generated
+                    || child->product == ac->product || child->artifactType != ac->artifactType;
+            if (filePathsMustBeDifferent && child->filePath() == ac->filePath()) {
                 throw ErrorInfo(QString::fromLatin1("%1 already has a child artifact %2 as "
                                                     "different object.").arg(p->toString(),
                                                                              ac->filePath()),
@@ -587,7 +591,8 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
             continue;
         }
 
-        QBS_CHECK(!filePaths.contains(artifact->filePath()));
+        QBS_CHECK(artifact->artifactType == Artifact::SourceFile ||
+                  !filePaths.contains(artifact->filePath()));
         filePaths << artifact->filePath();
 
         for (Artifact * const child : qAsConst(artifact->childrenAddedByScanner))

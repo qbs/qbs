@@ -98,6 +98,7 @@ private slots:
     void groupsInModules();
     void importChangeTracking();
     void importInPropertiesCondition();
+    void importSearchPath();
     void importingProduct();
     void importsConflict();
     void includeLookup();
@@ -197,6 +198,7 @@ private slots:
     void renameDependency();
     void separateDebugInfo();
     void sevenZip();
+    void sourceArtifactInInputsFromDependencies();
     void staticLibWithoutSources();
     void suspiciousCalls();
     void suspiciousCalls_data();
