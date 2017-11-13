@@ -63,19 +63,19 @@ void Benchmarker::benchmark()
 {
     rememberCurrentRepoState();
     runProcess(QStringList() << "git" << "checkout" << m_oldCommit, m_qbsRepo);
-    const QString oldQbsBuildDir = m_baseOutputDir.path() + "/old-qbs-build";
+    const QString oldQbsBuildDir = m_baseOutputDir.path() + "/qbs-build." + m_oldCommit;
     std::cout << "Building from old repo state..." << std::endl;
     buildQbs(oldQbsBuildDir);
     runProcess(QStringList() << "git" << "checkout" << m_newCommit, m_qbsRepo);
-    const QString newQbsBuildDir = m_baseOutputDir.path() + "/new-qbs-build";
+    const QString newQbsBuildDir = m_baseOutputDir.path() + "/qbs-build." + m_newCommit;
     std::cout << "Building from new repo state..." << std::endl;
     buildQbs(newQbsBuildDir);
     std::cout << "Now running valgrind. This can take a while." << std::endl;
 
     ValgrindRunner oldDataRetriever(m_activities, m_testProject, oldQbsBuildDir,
-                                    m_baseOutputDir.path() + "/old-stuff");
+                                    m_baseOutputDir.path() + "/benchmark-data." + m_oldCommit);
     ValgrindRunner newDataRetriever(m_activities, m_testProject, newQbsBuildDir,
-                                    m_baseOutputDir.path() + "/new-stuff");
+                                    m_baseOutputDir.path() + "/benchmark-data." + m_newCommit);
     QFuture<void> oldFuture = QtConcurrent::run(&oldDataRetriever, &ValgrindRunner::run);
     QFuture<void> newFuture = QtConcurrent::run(&newDataRetriever, &ValgrindRunner::run);
     oldFuture.waitForFinished();

@@ -58,8 +58,10 @@ public:
     ~Benchmarker();
 
     void benchmark();
+    void keepRawData() { m_baseOutputDir.setAutoRemove(false ); }
 
     BenchmarkResults results() const { return m_results; }
+    QString rawDataBaseDir() const { return m_baseOutputDir.path(); }
 
 private:
     void rememberCurrentRepoState();

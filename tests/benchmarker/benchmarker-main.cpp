@@ -37,19 +37,24 @@
 
 using namespace qbsBenchmarker;
 
-static QByteArray relativeChange(qint64 oldVal, qint64 newVal)
+static bool hasRegression = false;
+
+static int relativeChange(qint64 oldVal, qint64 newVal)
 {
-    QByteArray change = newVal == 0
-            ? "0" : QByteArray::number(std::abs(newVal * 100 / oldVal - 100));
-    change += " %";
-    if (oldVal > newVal)
-        change.prepend('-');
-    else if (oldVal < newVal)
-        change.prepend('+');
-    return change;
+    return newVal == 0 ? 0 : newVal * 100 / oldVal - 100;
 }
 
-static void printResults(Activity activity, const BenchmarkResults &results)
+static QByteArray relativeChangeString(int change)
+{
+    QByteArray changeString = QByteArray::number(change);
+    changeString += " %";
+    if (change > 0)
+        changeString.prepend('+');
+    return changeString;
+}
+
+static void printResults(Activity activity, const BenchmarkResults &results,
+                         int regressionThreshold)
 {
     std::cout << "========== Performance data for ";
     switch (activity) {
@@ -68,26 +73,33 @@ static void printResults(Activity activity, const BenchmarkResults &results)
     const char * const indent = "    ";
     std::cout << indent << "Old instruction count: " << result.oldInstructionCount << std::endl;
     std::cout << indent << "New instruction count: " << result.newInstructionCount << std::endl;
+    int change = relativeChange(result.oldInstructionCount, result.newInstructionCount);
+    if (change > regressionThreshold)
+        hasRegression = true;
     std::cout << indent << "Relative change: "
-              << relativeChange(result.oldInstructionCount, result.newInstructionCount).constData()
+              << relativeChangeString(change).constData()
               << std::endl;
     std::cout << indent << "Old peak memory usage: " << result.oldPeakMemoryUsage << " Bytes"
               << std::endl;
     std::cout << indent
               << "New peak memory usage: " << result.newPeakMemoryUsage << " Bytes" << std::endl;
+    change = relativeChange(result.oldPeakMemoryUsage, result.newPeakMemoryUsage);
+    if (change > regressionThreshold)
+        hasRegression = true;
     std::cout << indent << "Relative change: "
-              << relativeChange(result.oldPeakMemoryUsage, result.newPeakMemoryUsage).constData()
+              << relativeChangeString(change).constData()
               << std::endl;
 }
 
-static void printResults(Activities activities, const BenchmarkResults &results)
+static void printResults(Activities activities, const BenchmarkResults &results,
+                         int regressionThreshold)
 {
     if (activities & ActivityResolving)
-        printResults(ActivityResolving, results);
+        printResults(ActivityResolving, results, regressionThreshold);
     if (activities & ActivityRuleExecution)
-        printResults(ActivityRuleExecution, results);
+        printResults(ActivityRuleExecution, results, regressionThreshold);
     if (activities & ActivityNullBuild)
-        printResults(ActivityNullBuild, results);
+        printResults(ActivityNullBuild, results, regressionThreshold);
 }
 
 int main(int argc, char *argv[])
@@ -99,7 +111,12 @@ int main(int argc, char *argv[])
         Benchmarker benchmarker(clParser.activies(), clParser.oldCommit(), clParser.newCommit(),
                                 clParser.testProjectFilePath(), clParser.qbsRepoDirPath());
         benchmarker.benchmark();
-        printResults(clParser.activies(), benchmarker.results());
+        printResults(clParser.activies(), benchmarker.results(), clParser.regressionThreshold());
+        if (hasRegression) {
+            benchmarker.keepRawData();
+            std::cout << "Performance regression detected. Raw benchmarking data available "
+                         "under " << qPrintable(benchmarker.rawDataBaseDir()) << '.' << std::endl;
+        }
     } catch (const Exception &e) {
         std::cerr << qPrintable(e.description()) << std::endl;
         return EXIT_FAILURE;

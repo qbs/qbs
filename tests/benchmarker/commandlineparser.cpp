@@ -65,6 +65,11 @@ void CommandLineParser::parse()
                     .arg(resolveActivity(), ruleExecutionActivity(), nullBuildActivity(),
                          allActivities()), "activities", allActivities());
     parser.addOption(activitiesOption);
+    QCommandLineOption thresholdOption("regression-threshold",
+            "A relative increase higher than this is considered a performance regression. "
+            "All temporary data from running the benchmarks will be kept if that happens.",
+            "value in per cent");
+    parser.addOption(thresholdOption);
     parser.process(*QCoreApplication::instance());
     QList<QCommandLineOption> mandatoryOptions = QList<QCommandLineOption>()
             << oldCommitOption << newCommitOption << testProjectOption << qbsRepoOption;
@@ -93,6 +98,14 @@ void CommandLineParser::parse()
         } else {
             throwException(activitiesOption.names().first(), activityString, parser.helpText());
         }
+    }
+    m_regressionThreshold = 5;
+    if (parser.isSet(thresholdOption)) {
+        bool ok = true;
+        const QString rawThresholdValue = parser.value(thresholdOption);
+        m_regressionThreshold = rawThresholdValue.toInt(&ok);
+        if (!ok)
+            throwException(thresholdOption.names().first(), rawThresholdValue, parser.helpText());
     }
 }
 

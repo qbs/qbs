@@ -46,6 +46,7 @@ public:
     QString newCommit() const { return m_newCommit; }
     QString testProjectFilePath() const { return m_testProjectFilePath; }
     QString qbsRepoDirPath() const { return m_qbsRepoDirPath; }
+    int regressionThreshold() const { return m_regressionThreshold; }
 
 private:
     [[noreturn]] void throwException(const QString &optionName, const QString &illegalValue,
@@ -57,6 +58,7 @@ private:
     QString m_newCommit;
     QString m_testProjectFilePath;
     QString m_qbsRepoDirPath;
+    int m_regressionThreshold;
 };
 
 } // namespace qbsBenchmarker
