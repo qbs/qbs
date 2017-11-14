@@ -99,8 +99,11 @@
     \title Introduction
 
     \QBS is a build automation tool designed to conveniently manage the build
-    process of real-life software projects across multiple platforms. It
-    provides the following benefits:
+    process of software projects across multiple platforms.
+
+    \section1 Features
+
+    \QBS provides the following benefits:
 
     \list
         \li Declarative paradigm
@@ -111,7 +114,7 @@
         \li Easy integration to IDEs
     \endlist
 
-    \section1 Declarative Paradigm
+    \section2 Declarative Paradigm
 
     When writing a project, it is important to describe the build tasks and
     dependencies between them, rather than the build order. It is difficult to
@@ -143,7 +146,7 @@
     for instance to locate dependent headers, libraries, and other files outside
     the project directory.
 
-    \section1 Well-Defined Language
+    \section2 Well-Defined Language
 
     \QBS projects are specified in a QML dialect. QML is a concise, easy to
     learn, and intuitive language that is used successfully in the Qt project.
@@ -178,7 +181,7 @@
 
     For more information, see \l{Language Introduction}.
 
-    \section1 Platform and Programming Language Independence
+    \section2 Platform and Programming Language Independence
 
     \QBS can be used for any software project, regardless of programming
     language, toolkit, or libraries used. \QBS has built-in support for
@@ -231,7 +234,7 @@
     {wix} modules contain properties and rules for building installers for
     Windows platforms.
 
-    \section1 Correct and Fast Incremental Builds
+    \section2 Correct and Fast Incremental Builds
 
     \QBS is an all-in-one tool that generates a build graph from a high-level
     project description (like qmake or CMake) and additionally undertakes the
@@ -277,7 +280,7 @@
     It is stored in a binary format that can be loaded much faster than the real
     project files. The project files are parsed only if they were changed.
 
-    \section1 Extensible Architecture
+    \section2 Extensible Architecture
 
     You can create your own custom \l{List of Modules}{modules} and
     \l{List of Language Items}{items} and make \QBS aware of them.
@@ -295,7 +298,7 @@
 
     For more information, see \l{Custom Modules and Items}.
 
-    \section1 IDE Integration
+    \section2 IDE Integration
 
     \QBS can be used not only from the command line, but also in combination
     with an IDE, such as Qt Creator, Microsoft Visual Studio, or Xcode.
@@ -303,7 +306,7 @@
     can use \QBS to generate Microsoft Visual Studio and Xcode projects.
     For more information, see \l {Generators}.
 
-    \section2 Qt Creator
+    \section3 Qt Creator
 
     \l{http://doc.qt.io/qtcreator/index.html}{Qt Creator} uses the same \QBS
     library as the \QBS command line tools. Therefore, it can retrieve all the
@@ -316,6 +319,95 @@
 
     For more information about using \QBS to build projects from Qt Creator, see
     \l{http://doc.qt.io/qtcreator/creator-project-qbs.html}{Setting Up Qbs}.
+
+    \section1 Build Process
+
+    \image qbs-build-process.png
+
+    The build process of a product starts by examining the \c type property of
+    the product. It contains a list of \e {file tags} that are similar to MIME
+    types.
+
+    The following example product contains one file tag, \e application:
+
+    \code
+    import qbs
+
+    Product {
+        Depends { name: "cpp" }
+        type: ["application"]
+        files: ["main.cpp", "class.cpp", "class.h"]
+    }
+    \endcode
+
+    \QBS then searches through all \e rules available in the context, meaning
+    rules that are defined in the project or those that are made available
+    through the dependency on a module, such as the compiler and linker rules
+    pulled in from the \c cpp dependency in the example.
+
+    When \QBS finds a rule that produces one or more artifacts with the relevant
+    file tag, it looks at the depencencies of that rule and finds out that it
+    produces artifacts tagged \c obj. It then finds a rule that produces \c obj
+    artifacts that takes \c .cpp artifacts as input.
+
+    \code
+    import qbs
+    Module {
+        // ...
+        Rule {
+            inputs {"cpp"]
+            Artifact [
+                filePath: input.fileName + ".o"
+                fileTags: {"obj"]
+            }
+            prepare: [
+                // g++ -c main.cpp -o main.o ...
+            }
+        }
+        //...
+    }
+    \endcode
+
+    There is no rule in the current context that produces \c .cpp files, but
+    we have defined \c .cpp files as inputs for the product. When we added a
+    dependency on the \c cpp module, that dependency also pulled in another \QBS
+    primitive called the \l{FileTagger Item}{file tagger}. The file tagger
+    looked for files matching the pattern \c *.cpp, and then applied the \c cpp
+    tag to those input files:
+
+    \code
+    Module {
+        // ...
+        FileTagger {
+            patterns: "*.cpp"
+            fileTags: ["cpp"]
+        }
+        //...
+    }
+    \endcode
+
+    Since the \c .cpp files are input files, they by definition have no other
+    dependencies, and we can go back the opposite way in the tree starting with
+    the compiler rule described above.
+
+    This design works well for generated files. The \c .cpp artifacts could come
+    from another rule that produced them by processing some other input, either
+    instead of or in addition to the raw files listed in the product.
+
+    The compiler rule will be invoked twice, once for each \c .cpp file,
+    producing a separate object file for each one. Then the linker rule will be
+    invoked. Its \c multiplex property is set to \c true, which means that
+    instead of producing one output per input and invoking the rule multiple
+    times, all input will be collected before invoking the rule only once to
+    produce the final application object.
+
+    The standard versus multiplex rules map well to the compiler and linker
+    processes. The compiler takes one input file to produce one output file,
+    whereas the linker takes multiple input files to produce one output file.
+
+    Finally, after the linker rule has been invoked, it produces an artifact
+    tagged \c application. Because the product's type property did not contain
+    other file tags, the build process is now complete.
 */
 
 
