@@ -283,7 +283,6 @@ public:
     ~ScriptFunction();
 
     QString sourceCode;
-    QStringList argumentNames;
     CodeLocation location;
     ResolvedFileContextConstPtr fileContext;
     mutable QScriptValue scriptFunction;    // cache
@@ -355,6 +354,9 @@ public:
     // members that we don't need to save
     int ruleGraphId;
 
+    static QStringList argumentNamesForOutputArtifacts();
+    static QStringList argumentNamesForPrepare();
+
     QString toString() const;
     bool acceptsAsInput(Artifact *artifact) const;
     FileTags staticOutputFileTags() const;
@@ -363,6 +365,8 @@ public:
     bool declaresInputs() const;
 private:
     Rule() : multiplex(false), alwaysRun(false), ruleGraphId(-1) {}
+
+    static QStringList argumentNames(const QString &scriptName);
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;

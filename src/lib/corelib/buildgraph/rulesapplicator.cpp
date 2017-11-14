@@ -183,8 +183,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     copyProperty(QLatin1String("project"), prepareScriptContext, scope());
     if (m_rule->isDynamic()) {
         outputArtifacts = runOutputArtifactsScript(inputArtifacts,
-                    ScriptEngine::argumentList(m_rule->outputArtifactsScript->argumentNames,
-                                               scope()));
+                    ScriptEngine::argumentList(Rule::argumentNamesForOutputArtifacts(), scope()));
         ArtifactSet newOutputs = ArtifactSet::fromList(outputArtifacts);
         const ArtifactSet oldOutputs = collectOldOutputArtifacts(inputArtifacts);
         handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_logger);
@@ -249,7 +248,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
 
     m_transformer->setupOutputs(prepareScriptContext);
     m_transformer->createCommands(engine(), m_rule->prepareScript,
-            ScriptEngine::argumentList(m_rule->prepareScript->argumentNames, prepareScriptContext));
+            ScriptEngine::argumentList(Rule::argumentNamesForPrepare(), prepareScriptContext));
     if (Q_UNLIKELY(m_transformer->commands.isEmpty()))
         throw ErrorInfo(Tr::tr("There is a rule without commands: %1.")
                         .arg(m_rule->toString()), m_rule->prepareScript->location);

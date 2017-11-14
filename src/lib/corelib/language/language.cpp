@@ -40,6 +40,7 @@
 #include "language.h"
 
 #include "artifactproperties.h"
+#include "builtindeclarations.h"
 #include "propertymapinternal.h"
 #include "resolvedfilecontext.h"
 #include "scriptengine.h"
@@ -328,7 +329,6 @@ bool ScriptFunction::isValid() const
 void ScriptFunction::load(PersistentPool &pool)
 {
     pool.load(sourceCode);
-    pool.load(argumentNames);
     location.load(pool);
     pool.load(fileContext);
 }
@@ -336,7 +336,6 @@ void ScriptFunction::load(PersistentPool &pool)
 void ScriptFunction::store(PersistentPool &pool) const
 {
     pool.store(sourceCode);
-    pool.store(argumentNames);
     location.store(pool);
     pool.store(fileContext);
 }
@@ -345,7 +344,6 @@ bool operator==(const ScriptFunction &a, const ScriptFunction &b)
 {
     return a.sourceCode == b.sourceCode
             && a.location == b.location
-            && a.argumentNames == b.argumentNames
             && equals(a.fileContext.get(), b.fileContext.get());
 }
 
@@ -379,6 +377,30 @@ bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
 RulePtr Rule::clone() const
 {
     return std::make_shared<Rule>(*this);
+}
+
+QStringList Rule::argumentNamesForOutputArtifacts()
+{
+    static const QStringList argNames = argumentNames(QStringLiteral("outputArtifacts"));
+    return argNames;
+}
+
+QStringList Rule::argumentNamesForPrepare()
+{
+    static const QStringList argNames = argumentNames(QStringLiteral("prepare"));
+    return argNames;
+}
+
+QStringList Rule::argumentNames(const QString &scriptName)
+{
+    static const ItemDeclaration ruleDecl
+            = BuiltinDeclarations::instance().declarationsForType(ItemType::Rule);
+    for (const PropertyDeclaration &propDecl : ruleDecl.properties()) {
+        if (propDecl.name() == scriptName)
+            return propDecl.functionArgumentNames();
+    }
+    QBS_CHECK(false);
+    return QStringList();
 }
 
 QString Rule::toString() const

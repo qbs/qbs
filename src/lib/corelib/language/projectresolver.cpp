@@ -845,7 +845,6 @@ ScriptFunctionPtr ProjectResolver::scriptFunctionValue(Item *item, const QString
     if (value) {
         const PropertyDeclaration decl = item->propertyDeclaration(name);
         script->sourceCode = sourceCodeAsFunction(value, decl);
-        script->argumentNames = decl.functionArgumentNames();
         script->location = value->location();
         script->fileContext = resolvedFileContext(value->file());
     }
