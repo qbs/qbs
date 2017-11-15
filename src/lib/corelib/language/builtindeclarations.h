@@ -64,6 +64,7 @@ public:
     ItemType typeForName(const QString &typeName,
                          const CodeLocation location = CodeLocation()) const;
     QString nameForType(ItemType itemType) const;
+    QStringList argumentNamesForScriptFunction(ItemType itemType, const QString &scriptName) const;
 
 protected:
     BuiltinDeclarations();

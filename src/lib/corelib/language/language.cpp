@@ -381,26 +381,16 @@ RulePtr Rule::clone() const
 
 QStringList Rule::argumentNamesForOutputArtifacts()
 {
-    static const QStringList argNames = argumentNames(QStringLiteral("outputArtifacts"));
+    static const QStringList argNames = BuiltinDeclarations::instance()
+            .argumentNamesForScriptFunction(ItemType::Rule, QStringLiteral("outputArtifacts"));
     return argNames;
 }
 
 QStringList Rule::argumentNamesForPrepare()
 {
-    static const QStringList argNames = argumentNames(QStringLiteral("prepare"));
+    static const QStringList argNames = BuiltinDeclarations::instance()
+            .argumentNamesForScriptFunction(ItemType::Rule, QStringLiteral("prepare"));
     return argNames;
-}
-
-QStringList Rule::argumentNames(const QString &scriptName)
-{
-    static const ItemDeclaration ruleDecl
-            = BuiltinDeclarations::instance().declarationsForType(ItemType::Rule);
-    for (const PropertyDeclaration &propDecl : ruleDecl.properties()) {
-        if (propDecl.name() == scriptName)
-            return propDecl.functionArgumentNames();
-    }
-    QBS_CHECK(false);
-    return QStringList();
 }
 
 QString Rule::toString() const

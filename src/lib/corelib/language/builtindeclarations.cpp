@@ -141,6 +141,18 @@ QString BuiltinDeclarations::nameForType(ItemType itemType) const
     return QString();
 }
 
+QStringList BuiltinDeclarations::argumentNamesForScriptFunction(ItemType itemType,
+                                                                const QString &scriptName) const
+{
+    const ItemDeclaration itemDecl = declarationsForType(itemType);
+    for (const PropertyDeclaration &propDecl : itemDecl.properties()) {
+        if (propDecl.name() == scriptName)
+            return propDecl.functionArgumentNames();
+    }
+    QBS_CHECK(false);
+    return QStringList();
+}
+
 void BuiltinDeclarations::insert(const ItemDeclaration &decl)
 {
     m_builtins.insert(decl.type(), decl);

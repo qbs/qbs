@@ -366,8 +366,6 @@ public:
 private:
     Rule() : multiplex(false), alwaysRun(false), ruleGraphId(-1) {}
 
-    static QStringList argumentNames(const QString &scriptName);
-
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 };
