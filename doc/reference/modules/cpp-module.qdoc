@@ -1048,4 +1048,15 @@
             \c{ld}-compatible.
     \endtable
 
+    \section1 \c config values supported by the \c setupRunEnvironment script
+
+    \section2 \c ignore-lib-dependencies
+
+    When running an application that has dependencies on dynamic libraries, the
+    \c setupRunEnvironment script automatically adds their locations to the
+    environment, namely to \c PATH on Windows, \c DYLD_LIBRARY_PATH on macOS
+    and \c LD_LIBRARY_PATH on Linux and other Unix platforms. If the value
+    \c{"ignore-lib-dependencies"} shows up in the \c config array, this behavior
+    is disabled. Users can set the value via the \l run command.
+
 */

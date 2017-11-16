@@ -57,6 +57,7 @@ public:
     void init()
     {
         expectFailure = false;
+        expectCrash = false;
         profile = profileName();
         settingsDir = settings()->baseDirectory();
         environment = QProcessEnvironment::systemEnvironment();
@@ -69,6 +70,7 @@ public:
     QString profile;
     QString settingsDir;
     bool expectFailure;
+    bool expectCrash;
 };
 
 class TestBlackboxBase : public QObject

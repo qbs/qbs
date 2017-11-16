@@ -34,6 +34,8 @@ import qbs.TextFile
 import qbs.Utilities
 import qbs.WindowsUtils
 
+import "setuprunenv.js" as SetupRunEnv
+
 GenericGCC {
     condition: qbs.targetOS.contains("windows") &&
                qbs.toolchain && qbs.toolchain.contains("mingw")
@@ -70,6 +72,7 @@ GenericGCC {
         var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator, true);
         v.prepend(product.cpp.toolchainInstallPath);
         v.set();
+        SetupRunEnv.setupRunEnvironment(product);
     }
 
     FileTagger {

@@ -93,8 +93,10 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
     if (!process.waitForStarted() || !process.waitForFinished(testTimeoutInMsecs())
             || process.exitStatus() != QProcess::NormalExit) {
         m_qbsStderr = process.readAllStandardError();
-        QTest::qFail("qbs did not run correctly", __FILE__, __LINE__);
-        qDebug("%s", qPrintable(process.errorString()));
+        if (!params.expectCrash) {
+            QTest::qFail("qbs did not run correctly", __FILE__, __LINE__);
+            qDebug("%s", qPrintable(process.errorString()));
+        }
         return -1;
     }
 

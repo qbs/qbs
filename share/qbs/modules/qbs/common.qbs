@@ -183,32 +183,15 @@ Module {
     property path windowsShellPath: FileInfo.fromWindowsSeparators(Environment.getEnv("COMSPEC")) || FileInfo.joinPaths(windowsSystemRoot, "System32", "cmd.exe")
     property string windowsPathVariable: hostOS.contains("windows") ? "PATH" : "WINEPATH"
 
-    property var commonRunEnvironment: {
-        var env = Environment.currentEnv();
-        if (targetOS.contains("windows")) {
-            var newEntry = FileInfo.toWindowsSeparators(FileInfo.joinPaths(installRoot,
-                                                                           installPrefix));
-            env[windowsPathVariable] = PathTools.prependOrSetPath(newEntry,
-                                                                  env[windowsPathVariable],
-                                                                  qbs.pathListSeparator);
-        } else if (hostOS.contains("macos") && targetOS.contains("macos")) {
-            env["DYLD_FRAMEWORK_PATH"] = PathTools.prependOrSetPath([
-                FileInfo.joinPaths(installRoot, installPrefix, "Library", "Frameworks"),
-                FileInfo.joinPaths(installRoot, installPrefix, "lib"),
-                FileInfo.joinPaths(installRoot, installPrefix)
-            ].join(pathListSeparator), env["DYLD_FRAMEWORK_PATH"], qbs.pathListSeparator);
-            env["DYLD_LIBRARY_PATH"] = PathTools.prependOrSetPath([
-                FileInfo.joinPaths(installRoot, installPrefix, "lib"),
-                FileInfo.joinPaths(installRoot, installPrefix, "Library", "Frameworks"),
-                FileInfo.joinPaths(installRoot, installPrefix)
-            ].join(pathListSeparator), env["DYLD_LIBRARY_PATH"], qbs.pathListSeparator);
-        } else if (hostOS.contains("unix") && targetOS.contains("unix")) {
-            env["LD_LIBRARY_PATH"] = PathTools.prependOrSetPath(
-                FileInfo.joinPaths(installRoot, installPrefix, "lib"), env["LD_LIBRARY_PATH"],
-                        qbs.pathListSeparator);
+    property var commonRunEnvironment: ({})
+    setupRunEnvironment: {
+        var env = product.qbs.commonRunEnvironment;
+        for (var i in env) {
+            var v = new ModUtils.EnvironmentVariable(i, product.qbs.pathListSeparator,
+                                                     product.qbs.hostOS.contains("windows"));
+            v.value = env[i];
+            v.set();
         }
-
-        return env;
     }
 
     // Properties that can be set for multiplexing products.

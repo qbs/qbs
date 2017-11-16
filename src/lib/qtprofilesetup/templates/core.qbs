@@ -228,25 +228,6 @@ Module {
         validator.validate();
     }
 
-    setupRunEnvironment: {
-        var env;
-        if (qbs.targetOS.contains('windows')) {
-            env = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator, true);
-            env.append(binPath);
-            env.set();
-        } else if (qbs.targetOS.contains("darwin")) {
-            env = new ModUtils.EnvironmentVariable("DYLD_FRAMEWORK_PATH",
-                                                   product.qbs.pathListSeparator);
-            env.append(libPath);
-            env.set();
-
-            env = new ModUtils.EnvironmentVariable("DYLD_LIBRARY_PATH",
-                                                   product.qbs.pathListSeparator);
-            env.append(libPath);
-            env.set();
-        }
-    }
-
     FileTagger {
         patterns: ["*.qrc"]
         fileTags: ["qrc"]

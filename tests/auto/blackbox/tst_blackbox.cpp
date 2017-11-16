@@ -2172,6 +2172,19 @@ void TestBlackbox::setupBuildEnvironment()
     QCOMPARE(f.readAll().trimmed(), QByteArray());
 }
 
+void TestBlackbox::setupRunEnvironment()
+{
+    QDir::setCurrent(testDataDir + "/setup-run-environment");
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    QbsRunParameters failParams("run", QStringList({"--setup-run-env-config",
+                                                    "ignore-lib-dependencies"}));
+    failParams.expectFailure = true;
+    failParams.expectCrash = m_qbsStdout.contains("is windows");
+    QVERIFY(runQbs(QbsRunParameters(failParams)) != 0);
+    QVERIFY2(failParams.expectCrash || m_qbsStderr.contains("lib"), m_qbsStderr.constData());
+    QCOMPARE(runQbs(QbsRunParameters("run")), 0);
+}
+
 void TestBlackbox::smartRelinking()
 {
     QDir::setCurrent(testDataDir + "/smart-relinking");

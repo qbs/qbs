@@ -33,6 +33,8 @@ import qbs.ModUtils
 import qbs.Utilities
 import qbs.WindowsUtils
 
+import "setuprunenv.js" as SetupRunEnv
+
 Module {
     condition: false
 
@@ -476,13 +478,7 @@ Module {
     }
 
     setupRunEnvironment: {
-        var env = product.qbs.commonRunEnvironment;
-        for (var i in env) {
-            var v = new ModUtils.EnvironmentVariable(i, product.qbs.pathListSeparator,
-                                                     product.qbs.hostOS.contains("windows"));
-            v.value = env[i];
-            v.set();
-        }
+        SetupRunEnv.setupRunEnvironment(product, config);
     }
 
     Parameter {
