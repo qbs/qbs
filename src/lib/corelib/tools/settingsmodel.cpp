@@ -42,6 +42,7 @@
 #include <tools/profile.h>
 #include <tools/qttools.h>
 #include <tools/settings.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qlist.h>
 #include <QtCore/qstring.h>
@@ -283,7 +284,7 @@ bool SettingsModel::setData(const QModelIndex &index, const QVariant &value, int
     if (index.column() == keyColumn() && !valueString.isEmpty()
             && !node->parent->hasDirectChildWithName(valueString)
             && !(node->parent->parent == &d->rootNode
-                 && node->parent->name == QLatin1String("profiles")
+                 && node->parent->name == Internal::StringConstants::profilesSettingsKey()
                  && valueString == Profile::fallbackName())) {
         toChange = &node->name;
     } else if (index.column() == valueColumn() && valueString != node->value) {

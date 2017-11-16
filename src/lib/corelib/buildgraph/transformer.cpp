@@ -49,6 +49,7 @@
 #include <tools/persistence.h>
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 
@@ -111,15 +112,16 @@ QScriptValue Transformer::translateFileConfig(ScriptEngine *scriptEngine, const 
     QScriptValue obj = scriptEngine->newObject();
     attachPointerTo(obj, artifact);
     ModuleProperties::init(obj, artifact);
-    obj.setProperty(QLatin1String("fileName"), artifact->fileName());
-    obj.setProperty(QLatin1String("filePath"), artifact->filePath());
-    setArtifactProperty(obj, QLatin1String("baseName"), js_baseName, artifact);
-    setArtifactProperty(obj, QLatin1String("completeBaseName"), js_completeBaseName, artifact);
-    setArtifactProperty(obj, QLatin1String("baseDir"), js_baseDir, artifact);
+    obj.setProperty(StringConstants::fileNameProperty(), artifact->fileName());
+    obj.setProperty(StringConstants::filePathProperty(), artifact->filePath());
+    setArtifactProperty(obj, StringConstants::baseNameProperty(), js_baseName, artifact);
+    setArtifactProperty(obj, StringConstants::completeBaseNameProperty(), js_completeBaseName,
+                        artifact);
+    setArtifactProperty(obj, QStringLiteral("baseDir"), js_baseDir, artifact);
     const QStringList fileTags = artifact->fileTags().toStringList();
-    obj.setProperty(QLatin1String("fileTags"), scriptEngine->toScriptValue(fileTags));
+    obj.setProperty(StringConstants::fileTagsProperty(), scriptEngine->toScriptValue(fileTags));
     if (!defaultModuleName.isEmpty())
-        obj.setProperty(QLatin1String("moduleName"), defaultModuleName);
+        obj.setProperty(StringConstants::moduleNameProperty(), defaultModuleName);
     return obj;
 }
 
@@ -167,7 +169,7 @@ void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet 
 {
     ScriptEngine *const scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     QScriptValue scriptValue = translateInOutputs(scriptEngine, inputs, defaultModuleName);
-    targetScriptValue.setProperty(QLatin1String("inputs"), scriptValue);
+    targetScriptValue.setProperty(StringConstants::inputsVar(), scriptValue);
     QScriptValue inputScriptValue;
     if (inputs.size() == 1) {
         Artifact *input = *inputs.cbegin();
@@ -176,7 +178,7 @@ void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet 
         QScriptValue inputsForFileTag = scriptValue.property(fileTags.cbegin()->toString());
         inputScriptValue = inputsForFileTag.property(0);
     }
-    targetScriptValue.setProperty(QLatin1String("input"), inputScriptValue);
+    targetScriptValue.setProperty(StringConstants::inputVar(), inputScriptValue);
 }
 
 void Transformer::setupInputs(QScriptValue targetScriptValue)
@@ -189,7 +191,7 @@ void Transformer::setupOutputs(QScriptValue targetScriptValue)
     ScriptEngine * const scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     const QString &defaultModuleName = rule->module->name;
     QScriptValue scriptValue = translateInOutputs(scriptEngine, outputs, defaultModuleName);
-    targetScriptValue.setProperty(QLatin1String("outputs"), scriptValue);
+    targetScriptValue.setProperty(StringConstants::outputsVar(), scriptValue);
     QScriptValue outputScriptValue;
     if (outputs.size() == 1) {
         Artifact *output = *outputs.cbegin();
@@ -198,7 +200,7 @@ void Transformer::setupOutputs(QScriptValue targetScriptValue)
         QScriptValue outputsForFileTag = scriptValue.property(fileTags.cbegin()->toString());
         outputScriptValue = outputsForFileTag.property(0);
     }
-    targetScriptValue.setProperty(QLatin1String("output"), outputScriptValue);
+    targetScriptValue.setProperty(StringConstants::outputVar(), outputScriptValue);
 }
 
 void Transformer::setupExplicitlyDependsOn(QScriptValue targetScriptValue)
@@ -206,7 +208,7 @@ void Transformer::setupExplicitlyDependsOn(QScriptValue targetScriptValue)
     ScriptEngine * const scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     QScriptValue scriptValue = translateInOutputs(scriptEngine, explicitlyDependsOn,
                                                   rule->module->name);
-    targetScriptValue.setProperty(QLatin1String("explicitlyDependsOn"), scriptValue);
+    targetScriptValue.setProperty(StringConstants::explicitlyDependsOnVar(), scriptValue);
 }
 
 static AbstractCommandPtr createCommandFromScriptValue(const QScriptValue &scriptValue,
@@ -215,10 +217,10 @@ static AbstractCommandPtr createCommandFromScriptValue(const QScriptValue &scrip
     AbstractCommandPtr cmdBase;
     if (scriptValue.isUndefined() || !scriptValue.isValid())
         return cmdBase;
-    QString className = scriptValue.property(QLatin1String("className")).toString();
-    if (className == QLatin1String("Command"))
+    QString className = scriptValue.property(StringConstants::classNameProperty()).toString();
+    if (className == StringConstants::commandType())
         cmdBase = ProcessCommand::create();
-    else if (className == QLatin1String("JavaScriptCommand"))
+    else if (className == StringConstants::javaScriptCommandType())
         cmdBase = JavaScriptCommand::create();
     if (cmdBase)
         cmdBase->fillFromScriptValue(&scriptValue, codeLocation);
@@ -246,7 +248,7 @@ void Transformer::createCommands(ScriptEngine *engine, const PrivateScriptFuncti
         throw engine->lastError(scriptValue, script.location());
     commands.clear();
     if (scriptValue.isArray()) {
-        const int count = scriptValue.property(QLatin1String("length")).toInt32();
+        const int count = scriptValue.property(StringConstants::lengthProperty()).toInt32();
         for (qint32 i = 0; i < count; ++i) {
             QScriptValue item = scriptValue.property(i);
             if (item.isValid() && !item.isUndefined()) {

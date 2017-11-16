@@ -51,6 +51,7 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/scripttools.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qbytearray.h>
 #include <QtCore/qdebug.h>
@@ -154,7 +155,7 @@ private:
                                       propertyName, data, &baseValue);
                 converter.start();
             }
-            setupConvenienceProperty(QLatin1String("base"), &extraScope, baseValue);
+            setupConvenienceProperty(StringConstants::baseVar(), &extraScope, baseValue);
         }
         if (value->sourceUsesOuter()) {
             QScriptValue v;
@@ -169,7 +170,7 @@ private:
                 v = *outerScriptValue;
             }
             if (v.isValid())
-                setupConvenienceProperty(QLatin1String("outer"), &extraScope, v);
+                setupConvenienceProperty(StringConstants::outerVar(), &extraScope, v);
         }
         if (value->sourceUsesOriginal()) {
             QScriptValue originalValue;
@@ -183,7 +184,7 @@ private:
             } else {
                 originalValue = engine->newArray(0);
             }
-            setupConvenienceProperty(QLatin1String("original"), &extraScope, originalValue);
+            setupConvenienceProperty(StringConstants::originalVar(), &extraScope, originalValue);
         }
         return result;
     }
@@ -346,7 +347,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue 
 
     EvaluationData *const data = attachedPointer<EvaluationData>(object);
     const QString nameString = name.toString();
-    if (nameString == QLatin1String("parent")) {
+    if (nameString == QStringLiteral("parent")) {
         *id = QPTParentProperty;
         m_queryResult.data = data;
         return QScriptClass::HandlesReadAccess;
@@ -432,7 +433,7 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
     for (const QScriptValue &v : qAsConst(lst)) {
         QBS_ASSERT(!v.isError(), continue);
         if (v.isArray()) {
-            const quint32 vlen = v.property(QStringLiteral("length")).toInt32();
+            const quint32 vlen = v.property(StringConstants::lengthProperty()).toInt32();
             for (quint32 j = 0; j < vlen; ++j)
                 result->setProperty(k++, v.property(j));
         } else {
@@ -443,7 +444,8 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
 
 static QString overriddenSourceDirectory(const Item *item, const QString &defaultValue)
 {
-    const VariantValuePtr v = item->variantProperty(QLatin1String("_qbs_sourceDir"));
+    const VariantValuePtr v = item->variantProperty
+            (StringConstants::qbsSourceDirPropertyInternal());
     return v ? v->value().toString() : defaultValue;
 }
 
@@ -512,7 +514,7 @@ static void convertToPropertyType(const QString &pathPropertiesBaseDir, const It
             x.setProperty(0, v);
             v = x;
         }
-        const quint32 c = v.property(QLatin1String("length")).toUInt32();
+        const quint32 c = v.property(StringConstants::lengthProperty()).toUInt32();
         for (quint32 i = 0; i < c; ++i) {
             QScriptValue elem = v.property(i);
             if (elem.isUndefined()) {
@@ -557,7 +559,7 @@ public:
                     || itemOfProperty->type() == ItemType::Module
                     || itemOfProperty->type() == ItemType::Export)) {
             const VariantValueConstPtr varValue
-                    = itemOfProperty->variantProperty(QLatin1String("name"));
+                    = itemOfProperty->variantProperty(StringConstants::nameProperty());
             QBS_ASSERT(varValue, return);
             m_stackUpdate = true;
             const QualifiedId fullPropName

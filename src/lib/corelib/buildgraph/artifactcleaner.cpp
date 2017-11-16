@@ -51,6 +51,7 @@
 #include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdir.h>
@@ -185,7 +186,7 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
         if (FileInfo(dir).exists())
             removeEmptyDirectories(dir, options);
         if (dir != project->buildDirectory) {
-            const QString parentDir = QDir::cleanPath(dir + QLatin1String("/.."));
+            const QString parentDir = QDir::cleanPath(dir + StringConstants::slashDotDot());
             if (parentDir != project->buildDirectory && !dirList.contains(parentDir))
                 dirList.push_back(parentDir);
         }

@@ -53,6 +53,7 @@
 #include <tools/jsliterals.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qfile.h>
 
@@ -103,7 +104,7 @@ private:
 
     bool visit(UiScriptBinding *ast)
     {
-        if (ast->qualifiedId->name.toString() != QLatin1String("files"))
+        if (ast->qualifiedId->name.toString() != StringConstants::filesProperty())
             return true;
         m_binding = ast;
         return false;
@@ -382,14 +383,14 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
 
         }
         }
-        rewriter.changeBinding(itemFinder.item()->initializer, QLatin1String("files"),
+        rewriter.changeBinding(itemFinder.item()->initializer, StringConstants::filesProperty(),
                                filesRepresentation, Rewriter::ScriptBinding);
     } else { // Can happen for the product itself, for which the "files" binding is not mandatory.
         QString filesRepresentation;
         addToFilesRepr(filesRepresentation, sortedFiles, arrayElemIndentation);
         completeFilesRepr(filesRepresentation, bindingIndentation);
         const QString bindingString = QString(bindingIndentation, QLatin1Char(' '))
-                + QLatin1String("files");
+                + StringConstants::filesProperty();
         rewriter.addBinding(itemFinder.item()->initializer, bindingString, filesRepresentation,
                             Rewriter::ScriptBinding);
     }
@@ -475,7 +476,7 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
         }
         filesString += QString(bindingIndentation, QLatin1Char(' '));
         filesString += QLatin1Char(']');
-        rewriter.changeBinding(itemFinder.item()->initializer, QLatin1String("files"),
+        rewriter.changeBinding(itemFinder.item()->initializer, StringConstants::filesProperty(),
                                filesString, Rewriter::ScriptBinding);
         break;
     }
@@ -490,8 +491,8 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
             throw ErrorInfo(Tr::tr("File '%1' could not be found in the 'files' list.")
                             .arg(m_files.front()), bindingLocation);
         }
-        rewriter.changeBinding(itemFinder.item()->initializer, QLatin1String("files"),
-                               QLatin1String("[]"), Rewriter::ScriptBinding);
+        rewriter.changeBinding(itemFinder.item()->initializer, StringConstants::filesProperty(),
+                               StringConstants::emptyArrayValue(), Rewriter::ScriptBinding);
         break;
     }
     default:

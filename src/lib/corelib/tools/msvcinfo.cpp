@@ -41,6 +41,7 @@
 
 #include <tools/error.h>
 #include <tools/profile.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qbytearray.h>
 #include <QtCore/qdir.h>
@@ -199,15 +200,17 @@ void MSVC::init()
 QString MSVC::binPathForArchitecture(const QString &arch) const
 {
     QString archSubDir;
-    if (arch != QStringLiteral("x86"))
+    if (arch != StringConstants::x86Arch())
         archSubDir = arch;
     return QDir::cleanPath(vcInstallPath + QLatin1Char('/') + pathPrefix + QLatin1Char('/')
                            + archSubDir);
 }
 
+static QString clExeSuffix() { return QStringLiteral("/cl.exe"); }
+
 QString MSVC::clPathForArchitecture(const QString &arch) const
 {
-    return binPathForArchitecture(arch) + QLatin1String("/cl.exe");
+    return binPathForArchitecture(arch) + clExeSuffix();
 }
 
 QVariantMap MSVC::compilerDefines(const QString &compilerFilePath,
@@ -233,9 +236,9 @@ void MSVC::determineCompilerVersion()
     DummyFile fileDeleter(cppFilePath);
 
     const QByteArray origPath = qgetenv("PATH");
-    qputenv("PATH", environment.value(QStringLiteral("PATH")).toLatin1() + ';' + origPath);
+    qputenv("PATH", environment.value(StringConstants::pathEnvVar()).toLatin1() + ';' + origPath);
     QByteArray versionStr = runProcess(
-                binPath + QStringLiteral("/cl.exe"),
+                binPath + clExeSuffix(),
                 QStringList() << QStringLiteral("/nologo") << QStringLiteral("/EP")
                 << QDir::toNativeSeparators(cppFilePath));
     qputenv("PATH", origPath);

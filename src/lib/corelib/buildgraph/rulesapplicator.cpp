@@ -61,6 +61,7 @@
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 #include <QtScript/qscriptvalueiterator.h>
@@ -177,11 +178,11 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     // create the output artifacts from the set of input artifacts
     m_transformer->setupInputs(prepareScriptContext);
     m_transformer->setupExplicitlyDependsOn(prepareScriptContext);
-    copyProperty(QLatin1String("inputs"), prepareScriptContext, scope());
-    copyProperty(QLatin1String("input"), prepareScriptContext, scope());
-    copyProperty(QLatin1String("explicitlyDependsOn"), prepareScriptContext, scope());
-    copyProperty(QLatin1String("product"), prepareScriptContext, scope());
-    copyProperty(QLatin1String("project"), prepareScriptContext, scope());
+    copyProperty(StringConstants::inputsVar(), prepareScriptContext, scope());
+    copyProperty(StringConstants::inputVar(), prepareScriptContext, scope());
+    copyProperty(StringConstants::explicitlyDependsOnVar(), prepareScriptContext, scope());
+    copyProperty(StringConstants::productVar(), prepareScriptContext, scope());
+    copyProperty(StringConstants::projectVar(), prepareScriptContext, scope());
     if (m_rule->isDynamic()) {
         outputArtifacts = runOutputArtifactsScript(inputArtifacts,
                     ScriptEngine::argumentList(Rule::argumentNamesForOutputArtifacts(), scope()));
@@ -227,9 +228,9 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         Artifact *outputArtifact = it->second;
         outputArtifact->properties = outputArtifact->properties->clone();
 
-        scope().setProperty(QLatin1String("fileName"),
+        scope().setProperty(StringConstants::fileNameProperty(),
                             engine()->toScriptValue(outputArtifact->filePath()));
-        scope().setProperty(QLatin1String("fileTags"),
+        scope().setProperty(StringConstants::fileTagsProperty(),
                             toScriptValue(engine(), outputArtifact->fileTags().toStringList()));
 
         QVariantMap artifactModulesCfg = outputArtifact->properties->value();
@@ -308,7 +309,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
 {
     QString outputPath = filePath;
     // don't let the output artifact "escape" its build dir
-    outputPath.replace(QLatin1String(".."), QLatin1String("dotdot"));
+    outputPath.replace(StringConstants::dotDot(), QStringLiteral("dotdot"));
     outputPath = resolveOutPath(outputPath);
 
     Artifact *outputArtifact = lookupArtifact(m_product, outputPath);
@@ -378,7 +379,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
     outputArtifact->setFileTags(outputArtifactFileTags);
 
     // Let a positive value of qbs.install imply the file tag "installable".
-    if (outputArtifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
+    if (outputArtifact->properties->qbsPropertyValue(StringConstants::installProperty()).toBool())
         outputArtifact->addFileTag("installable");
 
     for (Artifact * const inputArtifact : inputArtifacts) {
@@ -416,7 +417,7 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
     if (!res.isArray())
         throw ErrorInfo(Tr::tr("Rule.outputArtifacts must return an array of objects."),
                         m_rule->outputArtifactsScript.location());
-    const quint32 c = res.property(QLatin1String("length")).toUInt32();
+    const quint32 c = res.property(StringConstants::lengthProperty()).toUInt32();
     for (quint32 i = 0; i < c; ++i) {
         try {
             lst.push_back(createOutputArtifactFromScriptValue(res.property(i), inputArtifacts));
@@ -452,7 +453,7 @@ class ArtifactBindingsExtractor
                      ItemType::Artifact).properties()) {
             s.insert(pd.name());
         }
-        s.insert(QLatin1String("explicitlyDependsOn"));
+        s.insert(StringConstants::explicitlyDependsOnProperty());
         return s;
     }
 
@@ -505,15 +506,16 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValu
                                "of Object type."), m_rule->outputArtifactsScript.location());
     }
     const QString unresolvedFilePath
-            = obj.property(QLatin1String("filePath")).toVariant().toString();
+            = obj.property(StringConstants::filePathProperty()).toVariant().toString();
     if (unresolvedFilePath.isEmpty()) {
         throw RuleOutputArtifactsException(
                 Tr::tr("Property filePath must be a non-empty string."));
     }
     const QString filePath = FileInfo::resolvePath(m_product->buildDirectory(), unresolvedFilePath);
     const FileTags fileTags = FileTags::fromStringList(
-                obj.property(QLatin1String("fileTags")).toVariant().toStringList());
-    const QVariant alwaysUpdatedVar = obj.property(QLatin1String("alwaysUpdated")).toVariant();
+                obj.property(StringConstants::fileTagsProperty()).toVariant().toStringList());
+    const QVariant alwaysUpdatedVar
+            = obj.property(StringConstants::alwaysUpdatedProperty()).toVariant();
     const bool alwaysUpdated = alwaysUpdatedVar.isValid() ? alwaysUpdatedVar.toBool() : true;
     Artifact *output = createOutputArtifact(filePath, fileTags, alwaysUpdated, inputArtifacts);
     if (output->fileTags().empty()) {
@@ -524,7 +526,8 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValu
                     .arg(unresolvedFilePath));
     }
     const FileTags explicitlyDependsOn = FileTags::fromStringList(
-                obj.property(QLatin1String("explicitlyDependsOn")).toVariant().toStringList());
+                obj.property(StringConstants::explicitlyDependsOnProperty())
+                .toVariant().toStringList());
     for (const FileTag &tag : explicitlyDependsOn) {
         for (Artifact * const dependency : m_product->lookupArtifactsByFileTag(tag))
             connect(output, dependency);

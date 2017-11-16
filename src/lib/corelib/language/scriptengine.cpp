@@ -54,6 +54,7 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/stlutils.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qdiriterator.h>
@@ -71,6 +72,8 @@
 
 namespace qbs {
 namespace Internal {
+
+static QString getterFuncHelperProperty() { return QStringLiteral("qbsdata"); }
 
 const bool debugJSImports = false;
 
@@ -172,7 +175,7 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue &targetObject)
 
     QScriptValue sv = newObject();
     sv.setPrototype(jsImportValue);
-    sv.setProperty(QLatin1String("_qbs_importScopeName"), jsImport.scopeName);
+    sv.setProperty(StringConstants::importScopeNamePropertyInternal(), jsImport.scopeName);
     targetObject.setProperty(jsImport.scopeName, sv);
     if (m_observeMode == ObserveMode::Enabled)
         observeImport(jsImportValue);
@@ -287,7 +290,7 @@ void ScriptEngine::defineProperty(QScriptValue &object, const QString &name,
 static QScriptValue js_observedGet(QScriptContext *context, QScriptEngine *,
                                    ScriptPropertyObserver * const observer)
 {
-    const QScriptValue data = context->callee().property(QLatin1String("qbsdata"));
+    const QScriptValue data = context->callee().property(getterFuncHelperProperty());
     const QScriptValue value = data.property(2);
     observer->onPropertyRead(data.property(0), data.property(1).toVariant().toString(), value);
     return value;
@@ -306,7 +309,7 @@ void ScriptEngine::setObservedProperty(QScriptValue &object, const QString &name
     data.setProperty(1, name);
     data.setProperty(2, value);
     QScriptValue getterFunc = newFunction(js_observedGet, observer);
-    getterFunc.setProperty(QLatin1String("qbsdata"), data);
+    getterFunc.setProperty(getterFuncHelperProperty(), data);
     object.setProperty(name, getterFunc, QScriptValue::PropertyGetter);
     if (observer->unobserveMode() == UnobserveMode::Enabled)
         m_observedProperties.emplace_back(object, name, value);
@@ -327,7 +330,7 @@ void ScriptEngine::unobserveProperties()
 static QScriptValue js_deprecatedGet(QScriptContext *context, QScriptEngine *qtengine)
 {
     ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
-    const QScriptValue data = context->callee().property(QLatin1String("qbsdata"));
+    const QScriptValue data = context->callee().property(getterFuncHelperProperty());
     engine->logger().qbsWarning()
             << ScriptEngine::tr("Property %1 is deprecated. Please use %2 instead.").arg(
                    data.property(0).toString(), data.property(1).toString());
@@ -342,7 +345,7 @@ void ScriptEngine::setDeprecatedProperty(QScriptValue &object, const QString &ol
     data.setProperty(1, newName);
     data.setProperty(2, value);
     QScriptValue getterFunc = newFunction(js_deprecatedGet);
-    getterFunc.setProperty(QLatin1String("qbsdata"), data);
+    getterFunc.setProperty(getterFuncHelperProperty(), data);
     object.setProperty(oldName, getterFunc, QScriptValue::PropertyGetter
                        | QScriptValue::SkipInEnumeration);
 }
@@ -472,11 +475,10 @@ QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qt
         const QStringList searchPaths = engine->m_extensionSearchPathsStack.top();
         const QString dirPath = findExtensionDir(searchPaths, uriAsPath);
         if (dirPath.isEmpty()) {
-            if (uri.startsWith(QLatin1String("qbs.")))
+            if (uri.startsWith(QStringLiteral("qbs.")))
                 return loadInternalExtension(context, engine, uri);
         } else {
-            QDirIterator dit(dirPath,
-                             QStringList() << QStringLiteral("*.js"),
+            QDirIterator dit(dirPath, StringConstants::jsFileWildcards(),
                              QDir::Files | QDir::Readable);
             QScriptValueList values;
             std::vector<QString> filePaths;
@@ -520,9 +522,9 @@ QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qt
                                                        moduleName);
         result = engine->newObject();
         engine->importFile(filePath, result);
-        const QString scopeName = QLatin1String("_qbs_scope_")
-                + QString::number(qHash(filePath), 16);
-        result.setProperty(QLatin1String("_qbs_importScopeName"), scopeName);
+        static const QString scopeNamePrefix = QStringLiteral("_qbs_scope_");
+        const QString scopeName = scopeNamePrefix + QString::number(qHash(filePath), 16);
+        result.setProperty(StringConstants::importScopeNamePropertyInternal(), scopeName);
         context->thisObject().setProperty(scopeName, result);
         if (engine->m_observeMode == ObserveMode::Enabled)
             engine->m_requireResults.push_back(result);
@@ -610,7 +612,7 @@ CodeLocation ScriptEngine::lastErrorLocation(const QScriptValue &v,
                                              const CodeLocation &fallbackLocation) const
 {
     const QScriptValue &errorVal = lastErrorValue(v);
-    const CodeLocation errorLoc(errorVal.property(QLatin1String("fileName")).toString(),
+    const CodeLocation errorLoc(errorVal.property(StringConstants::fileNameProperty()).toString(),
             errorVal.property(QLatin1String("lineNumber")).toInt32(),
             errorVal.property(QLatin1String("expressionCaretOffset")).toInt32(),
             false);
@@ -711,7 +713,7 @@ static QScriptValue js_consoleLog(QScriptContext *context, QScriptEngine *engine
 
 void ScriptEngine::installQbsBuiltins()
 {
-    globalObject().setProperty(QLatin1String("qbs"), m_qbsObject = newObject());
+    globalObject().setProperty(StringConstants::qbsModule(), m_qbsObject = newObject());
 
     globalObject().setProperty(QLatin1String("console"), m_consoleObject = newObject());
     installConsoleFunction(QLatin1String("debug"), &js_consoleDebug);
@@ -774,18 +776,22 @@ void ScriptEngine::installConsoleFunction(const QString &name,
     m_consoleObject.setProperty(name, newFunction(f, &m_logger));
 }
 
+static QString loadFileString() { return QStringLiteral("loadFile"); }
+static QString loadExtensionString() { return QStringLiteral("loadExtension"); }
+static QString requireString() { return QStringLiteral("require"); }
+
 void ScriptEngine::installImportFunctions()
 {
-    installFunction(QLatin1String("loadFile"), 1, &m_loadFileFunction, js_loadFile);
-    installFunction(QLatin1String("loadExtension"), 1, &m_loadExtensionFunction, js_loadExtension);
-    installFunction(QLatin1String("require"), 1, &m_requireFunction, js_require);
+    installFunction(loadFileString(), 1, &m_loadFileFunction, js_loadFile);
+    installFunction(loadExtensionString(), 1, &m_loadExtensionFunction, js_loadExtension);
+    installFunction(requireString(), 1, &m_requireFunction, js_require);
 }
 
 void ScriptEngine::uninstallImportFunctions()
 {
-    globalObject().setProperty(QLatin1String("loadFile"), QScriptValue());
-    globalObject().setProperty(QLatin1String("loadExtension"), QScriptValue());
-    globalObject().setProperty(QLatin1String("require"), QScriptValue());
+    globalObject().setProperty(loadFileString(), QScriptValue());
+    globalObject().setProperty(loadExtensionString(), QScriptValue());
+    globalObject().setProperty(requireString(), QScriptValue());
 }
 
 ScriptEngine::PropertyCacheKey::PropertyCacheKey(const QString &moduleName,

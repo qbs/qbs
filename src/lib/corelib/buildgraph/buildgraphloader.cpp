@@ -64,6 +64,7 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/settings.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
@@ -466,10 +467,11 @@ bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &rest
     QProcessEnvironment oldEnv = restoredProject->environment;
     QProcessEnvironment newEnv = m_parameters.adjustedEnvironment();
 
+    static const QString ldPreloadEnvVar = QStringLiteral("LD_PRELOAD");
     // HACK. Valgrind screws up our null-build benchmarker otherwise.
     // TODO: Think about a (module-provided) whitelist.
-    oldEnv.remove(QLatin1String("LD_PRELOAD"));
-    newEnv.remove(QLatin1String("LD_PRELOAD"));
+    oldEnv.remove(ldPreloadEnvVar);
+    newEnv.remove(ldPreloadEnvVar);
 
     if (oldEnv != newEnv) {
         qCDebug(lcBuildGraph) << "Set of environment variables changed. Must re-resolve project."
@@ -686,9 +688,9 @@ bool BuildGraphLoader::checkProductForInstallInfoChanges(const ResolvedProductPt
 {
     // These are not requested from rules at build time, but we still need to take
     // them into account.
-    const QStringList specialProperties = QStringList() << QLatin1String("install")
-            << QLatin1String("installDir") << QLatin1String("installPrefix")
-            << QLatin1String("installRoot");
+    const QStringList specialProperties = QStringList() << StringConstants::installProperty()
+            << StringConstants::installDirProperty() << StringConstants::installPrefixProperty()
+            << StringConstants::installRootProperty();
     for (const QString &key : specialProperties) {
         if (restoredProduct->moduleProperties->qbsPropertyValue(key)
                 != newlyResolvedProduct->moduleProperties->qbsPropertyValue(key)) {
@@ -828,8 +830,8 @@ static QVariantMap propertyMapByKind(const ResolvedProductConstPtr &product,
 static void invalidateTransformer(const TransformerPtr &transformer)
 {
     const JavaScriptCommandPtr &pseudoCommand = JavaScriptCommand::create();
-    pseudoCommand->setSourceCode(QLatin1String("random stuff that will cause "
-                                               "commandsEqual() to fail"));
+    pseudoCommand->setSourceCode(QStringLiteral("random stuff that will cause "
+                                                "commandsEqual() to fail"));
     transformer->commands << pseudoCommand;
 }
 

@@ -44,6 +44,7 @@
 #include "settingscreator.h"
 
 #include <logging/translator.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qsettings.h>
 
@@ -57,7 +58,7 @@ Settings::Settings(const QString &baseDir)
 {
     // Actual qbs settings are stored transparently within a group, because QSettings
     // can see non-qbs fallback settings e.g. from QtProject that we're not interested in.
-    m_settings->beginGroup(QLatin1String("org/qt-project/qbs"));
+    m_settings->beginGroup(QStringLiteral("org/qt-project/qbs"));
 }
 
 Settings::~Settings()
@@ -98,7 +99,7 @@ QStringList Settings::allKeysWithPrefix(const QString &group) const
 
 void Settings::setValue(const QString &key, const QVariant &value)
 {
-    if (key.startsWith(QLatin1String("profiles.") + Profile::fallbackName()))  {
+    if (key.startsWith(StringConstants::profilesSettingsPrefix() + Profile::fallbackName()))  {
         throw ErrorInfo(Tr::tr("Invalid use of special profile name '%1'.")
                         .arg(Profile::fallbackName()));
     }
@@ -127,7 +128,7 @@ QString Settings::defaultProfile() const
 
 QStringList Settings::profiles() const
 {
-    m_settings->beginGroup(QLatin1String("profiles"));
+    m_settings->beginGroup(StringConstants::profilesSettingsKey());
     QStringList result = m_settings->childGroups();
     m_settings->endGroup();
     return result;

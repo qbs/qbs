@@ -54,6 +54,7 @@
 #include <tools/preferences.h>
 #include <tools/qbsassert.h>
 #include <tools/shellutils.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qprocess.h>
@@ -187,8 +188,8 @@ int RunEnvironment::doRunShell()
         const QVariantMap qbsProps =
                 (d->resolvedProduct ? d->resolvedProduct->moduleProperties->value()
                                     : d->project->buildConfiguration())
-                .value(QLatin1String("qbs")).toMap();
-        const QString profileName = qbsProps.value(QLatin1String("profile")).toString();
+                .value(StringConstants::qbsModule()).toMap();
+        const QString profileName = qbsProps.value(StringConstants::profileProperty()).toString();
         command = Preferences(d->settings, profileName).shell();
         if (command.isEmpty())
             command = environment.value(QLatin1String("SHELL"), QLatin1String("/bin/sh"));
@@ -245,11 +246,11 @@ static QString findMainIntent(const QString &aapt, const QString &apkFilePath)
             if (line.startsWith(QByteArrayLiteral("package:"))) {
                 QDomDocument doc;
                 doc.setContent(QByteArrayLiteral("<") + line + QByteArrayLiteral("/>"));
-                packageId = doc.firstChild().toElement().attribute(QStringLiteral("name"));
+                packageId = doc.firstChild().toElement().attribute(StringConstants::nameProperty());
             } else if (line.startsWith(QByteArrayLiteral("launchable-activity:"))) {
                 QDomDocument doc;
                 doc.setContent(QByteArrayLiteral("<") + line + QByteArrayLiteral("/>"));
-                activity = doc.firstChild().toElement().attribute(QStringLiteral("name"));
+                activity = doc.firstChild().toElement().attribute(StringConstants::nameProperty());
             }
         }
     }
@@ -281,7 +282,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
         QProcess process;
         process.setProcessChannelMode(QProcess::ForwardedChannels);
         process.start(targetExecutable, QStringList()
-                      << QStringLiteral("install")
+                      << StringConstants::androidInstallCommand()
                       << QStringLiteral("-r") // replace existing application
                       << QStringLiteral("-t") // allow test packages
                       << QStringLiteral("-d") // allow version code downgrade
@@ -307,12 +308,12 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
                         << QStringLiteral("-n")
                         << intent;
     } else if (targetOS.contains(QLatin1String("ios")) || targetOS.contains(QLatin1String("tvos"))) {
-        const QString bundlePath = targetBin + QLatin1String("/..");
+        const QString bundlePath = targetBin + StringConstants::slashDotDot();
 
         if (targetOS.contains(QStringLiteral("ios-simulator"))
                 || targetOS.contains(QStringLiteral("tvos-simulator"))) {
             const auto developerDir = d->resolvedProduct->moduleProperties->moduleProperty(
-                        QStringLiteral("xcode"), QStringLiteral("developerPath")).toString();
+                        StringConstants::xcode(), QStringLiteral("developerPath")).toString();
             targetExecutable = developerDir + QStringLiteral("/usr/bin/simctl");
             const auto simulatorId = QStringLiteral("booted"); // TODO: parameterize
             const auto bundleId = d->resolvedProduct->moduleProperties->moduleProperty(
@@ -321,7 +322,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
             QProcess process;
             process.setProcessChannelMode(QProcess::ForwardedChannels);
             process.start(targetExecutable, QStringList()
-                          << QStringLiteral("install")
+                          << StringConstants::simctlInstallCommand()
                           << simulatorId
                           << QDir::cleanPath(bundlePath));
             if (!process.waitForFinished()) {

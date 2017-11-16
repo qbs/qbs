@@ -45,6 +45,7 @@
 #include <logging/translator.h>
 #include <tools/architectures.h>
 #include <tools/hostosinfo.h>
+#include <tools/stringconstants.h>
 #include <tools/toolchains.h>
 #include <tools/version.h>
 
@@ -374,7 +375,7 @@ QScriptValue UtilitiesExtension::js_getNativeSetting(QScriptContext *context, QS
 
     // We'll let empty string represent the default registry value
     if (HostOsInfo::isWindowsHost() && key.isEmpty())
-        key = QLatin1String(".");
+        key = StringConstants::dot();
 
     QVariant defaultValue = context->argumentCount() > 2 ? context->argument(2).toVariant() : QVariant();
 
@@ -492,7 +493,7 @@ QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QS
     MSVC::CompilerLanguage language;
     if (compilerLanguage == QStringLiteral("c"))
         language = MSVC::CLanguage;
-    else if (compilerLanguage == QStringLiteral("cpp"))
+    else if (compilerLanguage == StringConstants::cppLang())
         language = MSVC::CPlusPlusLanguage;
     else
         return context->throwError(QScriptContext::TypeError,

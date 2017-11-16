@@ -91,11 +91,11 @@ void Version::setBuildNumber(int nr)
 
 Version Version::fromString(const QString &versionString, bool buildNumberAllowed)
 {
-    QString pattern = QLatin1String("(\\d+)"); // At least one number.
+    QString pattern = QStringLiteral("(\\d+)"); // At least one number.
     for (int i = 0; i < 2; ++i)
-        pattern += QLatin1String("(?:\\.(\\d+))?"); // Followed by a dot and a number up to two times.
+        pattern += QStringLiteral("(?:\\.(\\d+))?"); // Followed by a dot and a number up to two times.
     if (buildNumberAllowed)
-        pattern += QLatin1String("(?:-(\\d+))?"); // And possibly a dash followed by the build number.
+        pattern += QStringLiteral("(?:-(\\d+))?"); // And possibly a dash followed by the build number.
     QRegExp rex(pattern);
     if (!rex.exactMatch(versionString))
         return Version();

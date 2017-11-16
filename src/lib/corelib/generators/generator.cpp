@@ -43,6 +43,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 #include <tools/qbsassert.h>
+#include <tools/stringconstants.h>
 #include <QtCore/qcoreapplication.h>
 
 namespace qbs {
@@ -69,8 +70,8 @@ ProjectGenerator::~ProjectGenerator()
 static QString _configurationName(const Project &project)
 {
     return project.projectConfiguration()
-            .value(QStringLiteral("qbs")).toMap()
-            .value(QStringLiteral("configurationName")).toString();
+            .value(Internal::StringConstants::qbsModule()).toMap()
+            .value(Internal::StringConstants::configurationNameProperty()).toString();
 }
 
 static QString _configurationName(const QVariantMap &buildConfiguration)

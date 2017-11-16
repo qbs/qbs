@@ -52,6 +52,7 @@
 #include <jsextensions/moduleproperties.h>
 #include <plugins/scanner/scanner.h>
 #include <tools/fileinfo.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qvariant.h>
 
@@ -70,18 +71,18 @@ QString DependencyScanner::id() const
 static QStringList collectCppIncludePaths(const QVariantMap &modules)
 {
     QStringList result;
-    const QVariantMap cpp = modules.value(QLatin1String("cpp")).toMap();
+    const QVariantMap cpp = modules.value(StringConstants::cppModule()).toMap();
     if (cpp.empty())
         return result;
 
-    result << cpp.value(QLatin1String("includePaths")).toStringList();
+    result << cpp.value(QStringLiteral("includePaths")).toStringList();
     const bool useSystemHeaders
-            = cpp.value(QLatin1String("treatSystemHeadersAsDependencies")).toBool();
+            = cpp.value(QStringLiteral("treatSystemHeadersAsDependencies")).toBool();
     if (useSystemHeaders) {
         result
-            << cpp.value(QLatin1String("systemIncludePaths")).toStringList()
-            << cpp.value(QLatin1String("distributionIncludePaths")).toStringList()
-            << cpp.value(QLatin1String("compilerIncludePaths")).toStringList();
+            << cpp.value(QStringLiteral("systemIncludePaths")).toStringList()
+            << cpp.value(QStringLiteral("distributionIncludePaths")).toStringList()
+            << cpp.value(QStringLiteral("compilerIncludePaths")).toStringList();
     }
     result.removeDuplicates();
     return result;
@@ -232,8 +233,8 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const PrivateScr
 
     QScriptValueList args;
     args.reserve(3);
-    args.push_back(m_global.property(QString::fromLatin1("project")));
-    args.push_back(m_global.property(QString::fromLatin1("product")));
+    args.push_back(m_global.property(StringConstants::projectVar()));
+    args.push_back(m_global.property(StringConstants::productVar()));
     args.push_back(Transformer::translateFileConfig(m_engine, artifact, m_scanner->module->name));
 
     m_engine->setGlobalObject(m_global);
@@ -254,7 +255,7 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const PrivateScr
     }
     QStringList list;
     if (result.isArray()) {
-        const int count = result.property(QLatin1String("length")).toInt32();
+        const int count = result.property(StringConstants::lengthProperty()).toInt32();
         list.reserve(count);
         for (qint32 i = 0; i < count; ++i) {
             QScriptValue item = result.property(i);

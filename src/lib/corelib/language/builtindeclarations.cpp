@@ -44,6 +44,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/qbsassert.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qstringlist.h>
 
@@ -160,42 +161,43 @@ void BuiltinDeclarations::insert(const ItemDeclaration &decl)
 
 static PropertyDeclaration conditionProperty()
 {
-    return PropertyDeclaration(QLatin1String("condition"), PropertyDeclaration::Boolean,
-                               QLatin1String("true"));
+    return PropertyDeclaration(StringConstants::conditionProperty(), PropertyDeclaration::Boolean,
+                               StringConstants::trueValue());
 }
 
 static PropertyDeclaration alwaysRunProperty()
 {
-    return PropertyDeclaration(QLatin1String("alwaysRun"), PropertyDeclaration::Boolean,
-                               QLatin1String("false"));
+    return PropertyDeclaration(StringConstants::alwaysRunProperty(), PropertyDeclaration::Boolean,
+                               StringConstants::falseValue());
 }
 
 static PropertyDeclaration nameProperty()
 {
-    return PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String);
+    return PropertyDeclaration(StringConstants::nameProperty(), PropertyDeclaration::String);
 }
 
 static PropertyDeclaration buildDirProperty()
 {
-    return PropertyDeclaration(QLatin1String("buildDirectory"), PropertyDeclaration::Path);
+    return PropertyDeclaration(StringConstants::buildDirectoryProperty(),
+                               PropertyDeclaration::Path);
 }
 
 static PropertyDeclaration prepareScriptProperty()
 {
-    PropertyDeclaration decl(QLatin1String("prepare"), PropertyDeclaration::Variant, QString(),
-                             PropertyDeclaration::PropertyNotAvailableInConfig);
+    PropertyDeclaration decl(StringConstants::prepareProperty(), PropertyDeclaration::Variant,
+                             QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
     decl.setFunctionArgumentNames(
                 QStringList()
-                << QLatin1String("project") << QLatin1String("product")
-                << QLatin1String("inputs") << QLatin1String("outputs")
-                << QLatin1String("input") << QLatin1String("output")
-                << QLatin1String("explicitlyDependsOn"));
+                << StringConstants::projectVar() << StringConstants::productValue()
+                << StringConstants::inputsVar() << StringConstants::outputsVar()
+                << StringConstants::inputVar() << StringConstants::outputVar()
+                << StringConstants::explicitlyDependsOnVar());
     return decl;
 }
 
 static PropertyDeclaration priorityProperty()
 {
-    return PropertyDeclaration(QLatin1String("priority"), PropertyDeclaration::Integer);
+    return PropertyDeclaration(StringConstants::priorityProperty(), PropertyDeclaration::Integer);
 }
 
 void BuiltinDeclarations::addArtifactItem()
@@ -205,14 +207,16 @@ void BuiltinDeclarations::addArtifactItem()
     conditionDecl.setDeprecationInfo(DeprecationInfo(Version(1, 4), Tr::tr("If you need "
             "dynamic artifacts, use the Rule.outputArtifacts script instead of Artifact items.")));
     item << conditionDecl;
-    PropertyDeclaration fileNameDecl(QLatin1String("fileName"), PropertyDeclaration::String);
+    PropertyDeclaration fileNameDecl(StringConstants::fileNameProperty(),
+                                     PropertyDeclaration::String);
     fileNameDecl.setDeprecationInfo(DeprecationInfo(Version(1, 4),
                                                     Tr::tr("Please use 'filePath' instead.")));
     item << fileNameDecl;
-    item << PropertyDeclaration(QLatin1String("filePath"), PropertyDeclaration::String);
-    item << PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("alwaysUpdated"), PropertyDeclaration::Boolean,
-                                QLatin1String("true"));
+    item << PropertyDeclaration(StringConstants::filePathProperty(), PropertyDeclaration::String);
+    item << PropertyDeclaration(StringConstants::fileTagsProperty(),
+                                PropertyDeclaration::StringList);
+    item << PropertyDeclaration(StringConstants::alwaysUpdatedProperty(),
+                                PropertyDeclaration::Boolean, StringConstants::trueValue());
     insert(item);
 }
 
@@ -221,17 +225,21 @@ void BuiltinDeclarations::addDependsItem()
     ItemDeclaration item(ItemType::Depends);
     item << conditionProperty();
     item << nameProperty();
-    item << PropertyDeclaration(QLatin1String("submodules"), PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("required"), PropertyDeclaration::Boolean,
-                                QLatin1String("true"));
-    item << PropertyDeclaration(QLatin1String("versionAtLeast"), PropertyDeclaration::String);
-    item << PropertyDeclaration(QLatin1String("versionBelow"), PropertyDeclaration::String);
-    item << PropertyDeclaration(QLatin1String("profiles"), PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("productTypes"), PropertyDeclaration::StringList);
-    PropertyDeclaration limitDecl(QLatin1String("limitToSubProject"), PropertyDeclaration::Boolean);
-    limitDecl.setInitialValueSource(QLatin1String("false"));
-    item << limitDecl;
-    item << PropertyDeclaration(QLatin1String("multiplexConfigurationIds"),
+    item << PropertyDeclaration(StringConstants::submodulesProperty(),
+                                PropertyDeclaration::StringList);
+    item << PropertyDeclaration(StringConstants::requiredProperty(), PropertyDeclaration::Boolean,
+                                StringConstants::trueValue());
+    item << PropertyDeclaration(StringConstants::versionAtLeastProperty(),
+                                PropertyDeclaration::String);
+    item << PropertyDeclaration(StringConstants::versionBelowProperty(),
+                                PropertyDeclaration::String);
+    item << PropertyDeclaration(StringConstants::profilesProperty(),
+                                PropertyDeclaration::StringList);
+    item << PropertyDeclaration(StringConstants::productTypesProperty(),
+                                PropertyDeclaration::StringList);
+    item << PropertyDeclaration(StringConstants::limitToSubProjectProperty(),
+                                PropertyDeclaration::Boolean, StringConstants::falseValue());
+    item << PropertyDeclaration(StringConstants::multiplexConfigurationIdsProperty(),
                                 PropertyDeclaration::StringList, QString(),
                                 PropertyDeclaration::ReadOnlyFlag);
     insert(item);
@@ -250,8 +258,10 @@ void BuiltinDeclarations::addFileTaggerItem()
 {
     ItemDeclaration item(ItemType::FileTagger);
     item << conditionProperty();
-    item << PropertyDeclaration(QLatin1String("patterns"), PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::StringList);
+    item << PropertyDeclaration(StringConstants::patternsProperty(),
+                                PropertyDeclaration::StringList);
+    item << PropertyDeclaration(StringConstants::fileTagsProperty(),
+                                PropertyDeclaration::StringList);
     item << priorityProperty();
     insert(item);
 }
@@ -261,23 +271,26 @@ void BuiltinDeclarations::addGroupItem()
     ItemDeclaration item(ItemType::Group);
     item.setAllowedChildTypes({ ItemType::Group });
     item << conditionProperty();
-    item << PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String, QString(),
+    item << PropertyDeclaration(StringConstants::nameProperty(), PropertyDeclaration::String,
+                                QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(StringConstants::filesProperty(), PropertyDeclaration::PathList,
+                                QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(StringConstants::fileTagsFilterProperty(),
+                                PropertyDeclaration::StringList,
+                                QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(StringConstants::excludeFilesProperty(),
+                                PropertyDeclaration::PathList,
+                                QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(StringConstants::fileTagsProperty(),
+                                PropertyDeclaration::StringList, QString(),
                                 PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("files"), PropertyDeclaration::PathList, QString(),
+    item << PropertyDeclaration(StringConstants::prefixProperty(), PropertyDeclaration::String,
+                                QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(StringConstants::overrideTagsProperty(),
+                                PropertyDeclaration::Boolean, StringConstants::trueValue(),
                                 PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("fileTagsFilter"), PropertyDeclaration::StringList,
-                                QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("excludeFiles"), PropertyDeclaration::PathList,
-                                QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::StringList,
-                                QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("prefix"), PropertyDeclaration::String,
-                                QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("overrideTags"), PropertyDeclaration::Boolean,
-                                QLatin1String("true"),
-                                PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("filesAreTargets"), PropertyDeclaration::Boolean,
-                                QLatin1String("false"),
+    item << PropertyDeclaration(StringConstants::filesAreTargetsProperty(),
+                                PropertyDeclaration::Boolean, StringConstants::falseValue(),
                                 PropertyDeclaration::PropertyNotAvailableInConfig);
     insert(item);
 }
@@ -303,26 +316,26 @@ ItemDeclaration BuiltinDeclarations::moduleLikeItem(ItemType type)
             << ItemType::Scanner);
     item << nameProperty();
     item << conditionProperty();
-    PropertyDeclaration setupBuildEnvDecl(QLatin1String("setupBuildEnvironment"),
+    PropertyDeclaration setupBuildEnvDecl(StringConstants::setupBuildEnvironmentProperty(),
                                           PropertyDeclaration::Variant, QString(),
                                           PropertyDeclaration::PropertyNotAvailableInConfig);
-    setupBuildEnvDecl.setFunctionArgumentNames(QStringList{QLatin1String("project"),
-                                                           QLatin1String("product")});
+    setupBuildEnvDecl.setFunctionArgumentNames(QStringList{StringConstants::projectVar(),
+                                                           StringConstants::productVar()});
     item << setupBuildEnvDecl;
-    PropertyDeclaration setupRunEnvDecl(QLatin1String("setupRunEnvironment"),
+    PropertyDeclaration setupRunEnvDecl(StringConstants::setupRunEnvironmentProperty(),
                                         PropertyDeclaration::Variant, QString(),
                              PropertyDeclaration::PropertyNotAvailableInConfig);
-    setupRunEnvDecl.setFunctionArgumentNames(QStringList{QLatin1String("project"),
-                                                         QLatin1String("product")});
+    setupRunEnvDecl.setFunctionArgumentNames(QStringList{StringConstants::projectVar(),
+                                                         StringConstants::productVar()});
     item << setupRunEnvDecl;
-    item << PropertyDeclaration(QLatin1String("validate"),
+    item << PropertyDeclaration(StringConstants::validateProperty(),
                                       PropertyDeclaration::Boolean, QString(),
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("additionalProductTypes"),
+    item << PropertyDeclaration(StringConstants::additionalProductTypesProperty(),
                                       PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("version"), PropertyDeclaration::String);
-    item << PropertyDeclaration(QLatin1String("present"), PropertyDeclaration::Boolean,
-                                QLatin1String("true"));
+    item << PropertyDeclaration(StringConstants::versionProperty(), PropertyDeclaration::String);
+    item << PropertyDeclaration(StringConstants::presentProperty(), PropertyDeclaration::Boolean,
+                                StringConstants::trueValue());
     return item;
 }
 
@@ -330,9 +343,9 @@ void BuiltinDeclarations::addProbeItem()
 {
     ItemDeclaration item(ItemType::Probe);
     item << conditionProperty();
-    item << PropertyDeclaration(QLatin1String("found"), PropertyDeclaration::Boolean,
-                                QLatin1String("false"));
-    item << PropertyDeclaration(QLatin1String("configure"), PropertyDeclaration::Variant,
+    item << PropertyDeclaration(StringConstants::foundProperty(), PropertyDeclaration::Boolean,
+                                StringConstants::falseValue());
+    item << PropertyDeclaration(StringConstants::configureProperty(), PropertyDeclaration::Variant,
                                 QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
     insert(item);
 }
@@ -350,40 +363,45 @@ void BuiltinDeclarations::addProductItem()
             << ItemType::PropertyOptions
             << ItemType::Rule);
     item << conditionProperty();
-    item << PropertyDeclaration(QLatin1String("type"), PropertyDeclaration::StringList,
-                                QLatin1String("[]"));
+    item << PropertyDeclaration(StringConstants::typeProperty(), PropertyDeclaration::StringList,
+                                StringConstants::emptyArrayValue());
     item << nameProperty();
-    item << PropertyDeclaration(QLatin1String("builtByDefault"), PropertyDeclaration::Boolean,
-                                QLatin1String("true"));
-    PropertyDeclaration profilesDecl(QLatin1String("profiles"), PropertyDeclaration::StringList);
+    item << PropertyDeclaration(StringConstants::builtByDefaultProperty(),
+                                PropertyDeclaration::Boolean, StringConstants::trueValue());
+    PropertyDeclaration profilesDecl(StringConstants::profilesProperty(),
+                                     PropertyDeclaration::StringList);
     profilesDecl.setDeprecationInfo(DeprecationInfo(Version::fromString(QLatin1String("1.9.0")),
                                                     Tr::tr("Use qbs.profiles instead.")));
     item << profilesDecl;
-    item << PropertyDeclaration(QLatin1String("profile"), PropertyDeclaration::String,
+    item << PropertyDeclaration(StringConstants::profileProperty(), PropertyDeclaration::String,
                                 QLatin1String("project.profile")); // Internal
-    item << PropertyDeclaration(QLatin1String("targetName"), PropertyDeclaration::String,
+    item << PropertyDeclaration(StringConstants::targetNameProperty(), PropertyDeclaration::String,
                                 QLatin1String("new String(name)"
                                               ".replace(/[/\\\\?%*:|\"<>]/g, '_').valueOf()"));
     item << buildDirProperty();
-    item << PropertyDeclaration(QLatin1String("destinationDirectory"), PropertyDeclaration::String,
-                                QStringLiteral("buildDirectory"));
-    item << PropertyDeclaration(QLatin1String("consoleApplication"),
+    item << PropertyDeclaration(StringConstants::destinationDirProperty(),
+                                PropertyDeclaration::String,
+                                StringConstants::buildDirectoryProperty());
+    item << PropertyDeclaration(StringConstants::consoleApplicationProperty(),
                                 PropertyDeclaration::Boolean);
-    item << PropertyDeclaration(QLatin1String("files"), PropertyDeclaration::PathList, QString(),
-                                PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("excludeFiles"), PropertyDeclaration::PathList,
+    item << PropertyDeclaration(StringConstants::filesProperty(), PropertyDeclaration::PathList,
                                 QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("qbsSearchPaths"),
+    item << PropertyDeclaration(StringConstants::excludeFilesProperty(),
+                                PropertyDeclaration::PathList,
+                                QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(StringConstants::qbsSearchPathsProperty(),
                                 PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("version"), PropertyDeclaration::String);
+    item << PropertyDeclaration(StringConstants::versionProperty(), PropertyDeclaration::String);
 
-    item << PropertyDeclaration(QLatin1String("multiplexByQbsProperties"),
+    item << PropertyDeclaration(StringConstants::multiplexByQbsPropertiesProperty(),
                                 PropertyDeclaration::StringList, QLatin1String("[\"profiles\"]"));
-    item << PropertyDeclaration(QLatin1String("multiplexedType"), PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("aggregate"), PropertyDeclaration::Boolean);
-    item << PropertyDeclaration(QLatin1String("multiplexed"), PropertyDeclaration::Boolean,
+    item << PropertyDeclaration(StringConstants::multiplexedTypeProperty(),
+                                PropertyDeclaration::StringList);
+    item << PropertyDeclaration(StringConstants::aggregateProperty(), PropertyDeclaration::Boolean);
+    item << PropertyDeclaration(StringConstants::multiplexedProperty(),
+                                PropertyDeclaration::Boolean,
                                 QString(), PropertyDeclaration::ReadOnlyFlag);
-    item << PropertyDeclaration(QLatin1String("multiplexConfigurationId"),
+    item << PropertyDeclaration(StringConstants::multiplexConfigurationIdProperty(),
                                 PropertyDeclaration::String, QString(),
                                 PropertyDeclaration::ReadOnlyFlag);
     insert(item);
@@ -394,7 +412,8 @@ void BuiltinDeclarations::addProfileItem()
     ItemDeclaration item(ItemType::Profile);
     item << conditionProperty();
     item << nameProperty();
-    item << PropertyDeclaration(QLatin1String("baseProfile"), PropertyDeclaration::String);
+    item << PropertyDeclaration(StringConstants::baseProfileProperty(),
+                                PropertyDeclaration::String);
     insert(item);
 }
 
@@ -413,12 +432,16 @@ void BuiltinDeclarations::addProjectItem()
     item << nameProperty();
     item << conditionProperty();
     item << buildDirProperty();
-    item << PropertyDeclaration(QLatin1String("minimumQbsVersion"), PropertyDeclaration::String);
-    item << PropertyDeclaration(QLatin1String("sourceDirectory"), PropertyDeclaration::Path);
-    item << PropertyDeclaration(QLatin1String("profile"), PropertyDeclaration::String);
-    item << PropertyDeclaration(QLatin1String("references"), PropertyDeclaration::PathList,
+    item << PropertyDeclaration(StringConstants::minimumQbsVersionProperty(),
+                                PropertyDeclaration::String);
+    item << PropertyDeclaration(StringConstants::sourceDirectoryProperty(),
+                                PropertyDeclaration::Path);
+    item << PropertyDeclaration(StringConstants::profileProperty(), PropertyDeclaration::String);
+    item << PropertyDeclaration(StringConstants::referencesProperty(),
+                                PropertyDeclaration::PathList,
                                 QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
-    item << PropertyDeclaration(QLatin1String("qbsSearchPaths"), PropertyDeclaration::StringList,
+    item << PropertyDeclaration(StringConstants::qbsSearchPathsProperty(),
+                                PropertyDeclaration::StringList,
                                 QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
     insert(item);
 }
@@ -432,9 +455,12 @@ void BuiltinDeclarations::addPropertyOptionsItem()
 {
     ItemDeclaration item(ItemType::PropertyOptions);
     item << nameProperty();
-    item << PropertyDeclaration(QLatin1String("allowedValues"), PropertyDeclaration::Variant);
-    item << PropertyDeclaration(QLatin1String("description"), PropertyDeclaration::String);
-    item << PropertyDeclaration(QLatin1String("removalVersion"), PropertyDeclaration::String);
+    item << PropertyDeclaration(StringConstants::allowedValuesProperty(),
+                                PropertyDeclaration::Variant);
+    item << PropertyDeclaration(StringConstants::descriptionProperty(),
+                                PropertyDeclaration::String);
+    item << PropertyDeclaration(StringConstants::removalVersionProperty(),
+                                PropertyDeclaration::String);
     insert(item);
 }
 
@@ -445,31 +471,33 @@ void BuiltinDeclarations::addRuleItem()
             << ItemType::Artifact);
     item << conditionProperty();
     item << alwaysRunProperty();
-    item << PropertyDeclaration(QLatin1String("multiplex"), PropertyDeclaration::Boolean,
-                                QLatin1String("false"));
-    item << PropertyDeclaration(QLatin1String("requiresInputs"), PropertyDeclaration::Boolean);
-    item << PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String);
-    item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("outputFileTags"), PropertyDeclaration::StringList);
-    PropertyDeclaration outputArtifactsDecl(QLatin1String("outputArtifacts"),
+    item << PropertyDeclaration(StringConstants::multiplexProperty(), PropertyDeclaration::Boolean,
+                                StringConstants::falseValue());
+    item << PropertyDeclaration(StringConstants::requiresInputsProperty(),
+                                PropertyDeclaration::Boolean);
+    item << nameProperty();
+    item << PropertyDeclaration(StringConstants::inputsProperty(), PropertyDeclaration::StringList);
+    item << PropertyDeclaration(StringConstants::outputFileTagsProperty(),
+                                PropertyDeclaration::StringList);
+    PropertyDeclaration outputArtifactsDecl(StringConstants::outputArtifactsProperty(),
                                             PropertyDeclaration::Variant, QString(),
                                             PropertyDeclaration::PropertyNotAvailableInConfig);
     outputArtifactsDecl.setFunctionArgumentNames(
                 QStringList()
-                << QLatin1String("project") << QLatin1String("product")
-                << QLatin1String("inputs") << QLatin1String("input"));
+                << StringConstants::projectVar() << StringConstants::productVar()
+                << StringConstants::inputsVar() << StringConstants::inputVar());
     item << outputArtifactsDecl;
     PropertyDeclaration usingsDecl(QLatin1String("usings"), PropertyDeclaration::StringList);
     usingsDecl.setDeprecationInfo(DeprecationInfo(Version(1, 5),
                                                   Tr::tr("Use 'inputsFromDependencies' instead")));
     item << usingsDecl;
-    item << PropertyDeclaration(QLatin1String("inputsFromDependencies"),
+    item << PropertyDeclaration(StringConstants::inputsFromDependenciesProperty(),
                                 PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("auxiliaryInputs"),
+    item << PropertyDeclaration(StringConstants::auxiliaryInputsProperty(),
                                       PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("excludedAuxiliaryInputs"),
+    item << PropertyDeclaration(StringConstants::excludedAuxiliaryInputsProperty(),
                                       PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
+    item << PropertyDeclaration(StringConstants::explicitlyDependsOnProperty(),
                                       PropertyDeclaration::StringList);
     item << prepareScriptProperty();
     insert(item);
@@ -483,9 +511,10 @@ void BuiltinDeclarations::addSubprojectItem()
             << ItemType::PropertiesInSubProject
             << ItemType::PropertyOptions);
     item << conditionProperty();
-    item << PropertyDeclaration(QLatin1String("filePath"), PropertyDeclaration::Path);
-    item << PropertyDeclaration(QLatin1String("inheritProperties"), PropertyDeclaration::Boolean,
-                                QLatin1String("true"));
+    item << PropertyDeclaration(StringConstants::filePathProperty(), PropertyDeclaration::Path);
+    item << PropertyDeclaration(StringConstants::inheritPropertiesProperty(),
+                                PropertyDeclaration::Boolean,
+                                StringConstants::trueValue());
     insert(item);
 }
 
@@ -497,9 +526,9 @@ void BuiltinDeclarations::addTransformerItem()
             << ItemType::Artifact);
     item << conditionProperty();
     item << alwaysRunProperty();
-    item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::PathList);
+    item << PropertyDeclaration(StringConstants::inputsProperty(), PropertyDeclaration::PathList);
     item << prepareScriptProperty();
-    item << PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
+    item << PropertyDeclaration(StringConstants::explicitlyDependsOnProperty(),
                                       PropertyDeclaration::StringList);
     insert(item);
 }
@@ -508,23 +537,24 @@ void BuiltinDeclarations::addScannerItem()
 {
     ItemDeclaration item(ItemType::Scanner);
     item << conditionProperty();
-    item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::StringList);
-    item << PropertyDeclaration(QLatin1String("recursive"), PropertyDeclaration::Boolean,
-                                QLatin1String("false"));
-    PropertyDeclaration searchPaths(QLatin1String("searchPaths"), PropertyDeclaration::StringList);
+    item << PropertyDeclaration(StringConstants::inputsProperty(), PropertyDeclaration::StringList);
+    item << PropertyDeclaration(StringConstants::recursiveProperty(), PropertyDeclaration::Boolean,
+                                StringConstants::falseValue());
+    PropertyDeclaration searchPaths(StringConstants::searchPathsProperty(),
+                                    PropertyDeclaration::StringList);
     searchPaths.setFunctionArgumentNames(
                 QStringList()
-                << QLatin1String("project")
-                << QLatin1String("product")
-                << QLatin1String("input"));
+                << StringConstants::projectVar()
+                << StringConstants::productVar()
+                << StringConstants::inputVar());
     item << searchPaths;
-    PropertyDeclaration scan(QLatin1String("scan"), PropertyDeclaration::Variant, QString(),
-                             PropertyDeclaration::PropertyNotAvailableInConfig);
+    PropertyDeclaration scan(StringConstants::scanProperty(), PropertyDeclaration::Variant,
+                             QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
     scan.setFunctionArgumentNames(
                 QStringList()
-                << QLatin1String("project")
-                << QLatin1String("product")
-                << QLatin1String("input"));
+                << StringConstants::projectVar()
+                << StringConstants::productVar()
+                << StringConstants::inputVar());
     item << scan;
     insert(item);
 }

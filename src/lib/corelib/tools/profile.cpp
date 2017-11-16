@@ -39,6 +39,7 @@
 #include "profile.h"
 #include "qbsassert.h"
 #include "settings.h"
+#include "stringconstants.h"
 
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -180,12 +181,12 @@ QString Profile::cleanName(const QString &name)
 
 QString Profile::profileKey() const
 {
-    return QLatin1String("profiles.") + m_name;
+    return Internal::StringConstants::profilesSettingsPrefix() + m_name;
 }
 
 QString Profile::baseProfileKey()
 {
-    return QLatin1String("baseProfile");
+    return Internal::StringConstants::baseProfileProperty();
 }
 
 void Profile::checkBaseProfileExistence(const Profile &baseProfile) const

@@ -48,6 +48,7 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <logging/translator.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qhash.h>
 #include <QtCore/qvariant.h>
@@ -171,15 +172,15 @@ void EnvironmentScriptRunner::setupEnvironment()
         QScriptValue envScriptContext = engine()->newObject();
         envScriptContext.setPrototype(engine()->globalObject());
         setupScriptEngineForProduct(engine(), m_product, module, envScriptContext, nullptr, false);
-        static const QString productKey = QStringLiteral("product");
-        static const QString projectKey = QStringLiteral("project");
+        const QString &productKey = StringConstants::productVar();
+        const QString &projectKey = StringConstants::projectVar();
         m_evalContext->scope().setProperty(productKey, envScriptContext.property(productKey));
         m_evalContext->scope().setProperty(projectKey, envScriptContext.property(projectKey));
         if (m_envType == RunEnv) {
             QScriptValue configArray = engine()->newArray(m_runEnvConfig.size());
             for (int i = 0; i < m_runEnvConfig.size(); ++i)
                 configArray.setProperty(i, QScriptValue(m_runEnvConfig.at(i)));
-            m_evalContext->scope().setProperty(QLatin1String("config"), configArray);
+            m_evalContext->scope().setProperty(QStringLiteral("config"), configArray);
         }
         setupScriptEngineForFile(engine(), setupScript.fileContext(), m_evalContext->scope(),
                                  ObserveMode::Disabled);
@@ -193,8 +194,9 @@ void EnvironmentScriptRunner::setupEnvironment()
         const QScriptValue res = fun.call(QScriptValue(), svArgs);
         engine()->releaseResourcesOfScriptObjects();
         if (Q_UNLIKELY(engine()->hasErrorOrException(res))) {
-            const QString scriptName = QLatin1String(m_envType == BuildEnv ? "setupBuildEnvironment"
-                                                                           : "setupRunEnvironment");
+            const QString scriptName = m_envType == BuildEnv
+                    ? StringConstants::setupBuildEnvironmentProperty()
+                    : StringConstants::setupRunEnvironmentProperty();
             throw ErrorInfo(Tr::tr("Error running %1 script for product '%2': %3")
                             .arg(scriptName, m_product->fullDisplayName(),
                                  engine()->lastErrorString(res)),

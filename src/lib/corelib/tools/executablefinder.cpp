@@ -42,6 +42,7 @@
 #include "fileinfo.h"
 #include "hostosinfo.h"
 #include "qttools.h"
+#include "stringconstants.h"
 
 #include <logging/categories.h>
 
@@ -55,8 +56,8 @@ static QStringList populateExecutableSuffixes()
     QStringList result;
     result << QString();
     if (HostOsInfo::isWindowsHost()) {
-        result << QLatin1String(".com") << QLatin1String(".exe")
-               << QLatin1String(".bat") << QLatin1String(".cmd");
+        result << QStringLiteral(".com") << QStringLiteral(".exe")
+               << QStringLiteral(".bat") << QStringLiteral(".cmd");
     }
     return result;
 }
@@ -119,12 +120,12 @@ QString ExecutableFinder::findInPath(const QString &filePath, const QString &wor
 
     fullProgramPath = filePath;
     qCDebug(lcExec) << "looking for executable in PATH" << fullProgramPath;
-    QStringList pathEnv = m_environment.value(QLatin1String("PATH"))
+    QStringList pathEnv = m_environment.value(StringConstants::pathEnvVar())
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
     if (HostOsInfo::isWindowsHost())
-        pathEnv.prepend(QLatin1String("."));
+        pathEnv.prepend(StringConstants::dot());
     for (QString directory : qAsConst(pathEnv)) {
-        if (directory == QLatin1String("."))
+        if (directory == StringConstants::dot())
             directory = workingDirPath;
         if (!directory.isEmpty()) {
             const QChar lastChar = directory.at(directory.size() - 1);

@@ -60,7 +60,7 @@ QString RawScannedDependency::filePath() const
 
 void RawScannedDependency::setClean()
 {
-    m_isClean = !m_dirPath.contains(QLatin1Char('.')) && !m_dirPath.contains(QLatin1String("//"));
+    m_isClean = !m_dirPath.contains(QLatin1Char('.')) && !m_dirPath.contains(QStringLiteral("//"));
 }
 
 void RawScannedDependency::load(PersistentPool &pool)

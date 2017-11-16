@@ -55,6 +55,7 @@
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 #include <logging/translator.h>
 
 using namespace QbsQmlJS;
@@ -195,7 +196,7 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
 
     const QStringList bindingName = toStringList(ast->qualifiedId);
 
-    if (bindingName.length() == 1 && bindingName.front() == QLatin1String("id")) {
+    if (bindingName.length() == 1 && bindingName.front() == QStringLiteral("id")) {
         const auto * const expStmt = AST::cast<AST::ExpressionStatement *>(ast->statement);
         if (Q_UNLIKELY(!expStmt))
             throw ErrorInfo(Tr::tr("id: must be followed by identifier"));
@@ -240,9 +241,9 @@ bool ItemReaderASTVisitor::handleBindingRhs(AST::Statement *statement,
 
     bool usesBase, usesOuter, usesOriginal;
     IdentifierSearch idsearch;
-    idsearch.add(QLatin1String("base"), &usesBase);
-    idsearch.add(QLatin1String("outer"), &usesOuter);
-    idsearch.add(QLatin1String("original"), &usesOriginal);
+    idsearch.add(StringConstants::baseVar(), &usesBase);
+    idsearch.add(StringConstants::outerVar(), &usesOuter);
+    idsearch.add(StringConstants::originalVar(), &usesOriginal);
     idsearch.start(statement);
     if (usesBase)
         value->m_flags |= JSSourceValue::SourceUsesBase;

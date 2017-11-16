@@ -92,7 +92,7 @@ ProjectBuildData::~ProjectBuildData()
 
 QString ProjectBuildData::deriveBuildGraphFilePath(const QString &buildDir, const QString &projectId)
 {
-    return buildDir + QLatin1Char('/') + projectId + QLatin1String(".bg");
+    return buildDir + QLatin1Char('/') + projectId + QStringLiteral(".bg");
 }
 
 void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)

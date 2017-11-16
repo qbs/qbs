@@ -43,6 +43,7 @@
 #include "hostosinfo.h"
 #include "processutils.h"
 #include "progressobserver.h"
+#include "stringconstants.h"
 #include "version.h"
 
 #include <logging/translator.h>
@@ -71,7 +72,7 @@ void DirectoryManager::rememberCreatedDirectories()
     QString parentDir = m_dir;
     while (!QFileInfo::exists(parentDir)) {
         m_createdParentDirs.push(parentDir);
-        parentDir = QDir::cleanPath(parentDir + QLatin1String("/.."));
+        parentDir = QDir::cleanPath(parentDir + StringConstants::slashDotDot());
     }
 }
 
@@ -116,7 +117,7 @@ static bool appNamesAreEqual(const QString &app1, const QString &app2)
 
 BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logger &logger,
                                    bool waitIndefinitely, ProgressObserver *observer)
-    : m_lockFile(buildGraphFilePath + QLatin1String(".lock"))
+    : m_lockFile(buildGraphFilePath + QStringLiteral(".lock"))
     , m_logger(logger)
     , m_dirManager(QFileInfo(buildGraphFilePath).absolutePath(), logger)
 {

@@ -64,6 +64,7 @@
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qtimer.h>
@@ -259,7 +260,7 @@ void Executor::doBuild()
     InstallOptions installOptions;
     installOptions.setDryRun(m_buildOptions.dryRun());
     installOptions.setInstallRoot(m_productsToBuild.front()->moduleProperties
-                                  ->qbsPropertyValue(QLatin1String("installRoot")).toString());
+            ->qbsPropertyValue(StringConstants::installRootProperty()).toString());
     installOptions.setKeepGoing(m_buildOptions.keepGoing());
     m_productInstaller = new ProductInstaller(m_project, m_productsToBuild, installOptions,
                                               m_progressObserver, m_logger);
@@ -920,7 +921,7 @@ void Executor::runTransformer(const TransformerPtr &transformer)
     if (!m_buildOptions.dryRun()) {
         for (Artifact * const output : qAsConst(transformer->outputs)) {
             QDir outDir = QFileInfo(output->filePath()).absoluteDir();
-            if (!outDir.exists() && !outDir.mkpath(QLatin1String("."))) {
+            if (!outDir.exists() && !outDir.mkpath(StringConstants::dot())) {
                     throw ErrorInfo(tr("Failed to create directory '%1'.")
                                     .arg(QDir::toNativeSeparators(outDir.absolutePath())));
             }
@@ -950,7 +951,8 @@ void Executor::possiblyInstallArtifact(const Artifact *artifact)
 
     if (m_buildOptions.install() && !m_buildOptions.executeRulesOnly()
             && (m_activeFileTags.empty() || artifactHasMatchingOutputTags(artifact))
-            && artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool()) {
+            && artifact->properties->qbsPropertyValue(StringConstants::installProperty())
+                    .toBool()) {
             m_productInstaller->copyFile(artifact);
     }
 }

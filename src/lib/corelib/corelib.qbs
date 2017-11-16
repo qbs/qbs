@@ -407,6 +407,7 @@ QbsLibrary {
             "shellutils.cpp",
             "shellutils.h",
             "stlutils.h",
+            "stringconstants.h",
             "stringutils.h",
             "toolchains.cpp",
             "version.cpp",
@@ -414,7 +415,7 @@ QbsLibrary {
             "visualstudioversioninfo.h",
             "vsenvironmentdetector.cpp",
             "vsenvironmentdetector.h",
-            "weakpointer.h"
+            "weakpointer.h",
         ]
     }
     Group {

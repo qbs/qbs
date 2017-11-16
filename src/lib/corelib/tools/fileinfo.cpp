@@ -41,6 +41,7 @@
 
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdatetime.h>
@@ -91,7 +92,7 @@ QString FileInfo::path(const QString &fp, HostOsInfo::HostOs hostOs)
         return QString();
     int last = fp.lastIndexOf(QLatin1Char('/'));
     if (last < 0)
-        return QLatin1String(".");
+        return StringConstants::dot();
     QString p = QDir::cleanPath(fp.mid(0, last));
     if (p.isEmpty() || (hostOs == HostOsInfo::HostOsWindows && p.length() == 2 && p.at(0).isLetter()
             && p.at(1) == QLatin1Char(':'))) {
@@ -195,7 +196,7 @@ QString FileInfo::resolvePath(const QString &base, const QString &rel, HostOsInf
         return base;
     if (rel.size() == 1 && rel.at(0) == QLatin1Char('~'))
         return QDir::homePath();
-    if (rel.startsWith(QLatin1String("~/")))
+    if (rel.startsWith(StringConstants::tildeSlash()))
         return QDir::homePath() + rel.mid(1);
 
     QString r = base;
@@ -203,13 +204,13 @@ QString FileInfo::resolvePath(const QString &base, const QString &rel, HostOsInf
         r.chop(1);
 
     QString s = rel;
-    while (s.startsWith(QLatin1String("../"))) {
+    while (s.startsWith(QStringLiteral("../"))) {
         s.remove(0, 3);
         int idx = r.lastIndexOf(QLatin1Char('/'));
         if (idx >= 0)
             r.truncate(idx);
     }
-    if (s == QLatin1String("..")) {
+    if (s == StringConstants::dotDot()) {
         int idx = r.lastIndexOf(QLatin1Char('/'));
         if (idx >= 0)
             r.truncate(idx);

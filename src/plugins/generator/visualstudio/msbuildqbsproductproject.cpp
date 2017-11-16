@@ -49,12 +49,14 @@
 #include <api/runenvironment.h>
 #include <tools/pathutils.h>
 #include <tools/shellutils.h>
+#include <tools/stringconstants.h>
 #include <tools/version.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/quuid.h>
 
 namespace qbs {
+using namespace Internal;
 
 MSBuildQbsProductProject::MSBuildQbsProductProject(
         const GeneratableProject &project,
@@ -126,7 +128,7 @@ void MSBuildQbsProductProject::addConfiguration(const GeneratableProject &projec
 
     const auto properties = productData.moduleProperties();
 
-    const bool debugBuild = properties.getModuleProperty(QStringLiteral("qbs"),
+    const bool debugBuild = properties.getModuleProperty(StringConstants::qbsModule(),
                                                          QStringLiteral("debugInformation"))
             .toBool();
 
@@ -249,13 +251,13 @@ void MSBuildQbsProductProject::addItemDefGroup(const Project &project,
 
     const bool consoleApp = productData.properties().value(QStringLiteral("consoleApplication"))
             .toBool();
-    const bool debugBuild = properties.getModuleProperty(QStringLiteral("qbs"),
+    const bool debugBuild = properties.getModuleProperty(StringConstants::qbsModule(),
                                                          QStringLiteral("debugInformation"))
             .toBool();
-    const auto optimizationLevel = properties.getModuleProperty(QStringLiteral("qbs"),
+    const auto optimizationLevel = properties.getModuleProperty(StringConstants::qbsModule(),
                                                                 QStringLiteral("optimization"))
             .toString();
-    const auto warningLevel = properties.getModuleProperty(QStringLiteral("qbs"),
+    const auto warningLevel = properties.getModuleProperty(StringConstants::qbsModule(),
                                                            QStringLiteral("warningLevel"))
             .toString();
 

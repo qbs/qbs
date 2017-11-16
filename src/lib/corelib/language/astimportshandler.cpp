@@ -50,6 +50,7 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 #include <tools/version.h>
 
 #include <QtCore/qdiriterator.h>
@@ -69,7 +70,7 @@ ASTImportsHandler::ASTImportsHandler(ItemReaderVisitorState &visitorState, Logge
 void ASTImportsHandler::handleImports(const QbsQmlJS::AST::UiImportList *uiImportList)
 {
     for (const QString &searchPath : m_file->searchPaths())
-        collectPrototypes(searchPath + QLatin1String("/imports"), QString());
+        collectPrototypes(searchPath + QStringLiteral("/imports"), QString());
 
     // files in the same directory are available as prototypes
     collectPrototypes(m_directory, QString());
@@ -87,9 +88,9 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
     bool isBase = false;
     if (import->importUri) {
         importUri = toStringList(import->importUri);
-        isBase = (importUri.size() == 1 && importUri.front() == QLatin1String("qbs"))
-                || (importUri.size() == 2 && importUri.front() == QLatin1String("qbs")
-                    && importUri.last() == QLatin1String("base"));
+        isBase = (importUri.size() == 1 && importUri.front() == StringConstants::qbsModule())
+                || (importUri.size() == 2 && importUri.front() == StringConstants::qbsModule()
+                    && importUri.last() == StringConstants::baseVar());
         if (isBase) {
             checkImportVersion(import->versionToken);
         } else if (import->versionToken.length) {
@@ -105,7 +106,7 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
                         toCodeLocation(m_file->filePath(), import->importIdToken));
         }
     } else {
-        if (importUri.size() == 2 && importUri.front() == QLatin1String("qbs")) {
+        if (importUri.size() == 2 && importUri.front() == StringConstants::qbsModule()) {
             const QString extensionName = importUri.last();
             if (JsExtensions::hasExtension(extensionName)) {
                 if (Q_UNLIKELY(!import->importId.isNull())) {
@@ -162,13 +163,13 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
             collectPrototypesAndJsCollections(filePath, as,
                     toCodeLocation(m_file->filePath(), import->fileNameToken));
         } else {
-            if (filePath.endsWith(QLatin1String(".js"), Qt::CaseInsensitive)) {
+            if (filePath.endsWith(QStringLiteral(".js"), Qt::CaseInsensitive)) {
                 JsImport &jsImport = m_jsImports[as];
                 jsImport.scopeName = as;
                 jsImport.filePaths.push_back(filePath);
                 jsImport.location
                         = toCodeLocation(m_file->filePath(), import->firstSourceLocation());
-            } else if (filePath.endsWith(QLatin1String(".qbs"), Qt::CaseInsensitive)) {
+            } else if (filePath.endsWith(QStringLiteral(".qbs"), Qt::CaseInsensitive)) {
                 m_typeNameToFile.insert(QStringList(as), filePath);
             } else {
                 throw ErrorInfo(Tr::tr("Can only import .qbs and .js files"),
@@ -178,13 +179,13 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
         }
     } else if (!importUri.empty()) {
         const QString importPath = isBase
-                ? QLatin1String("qbs/base") : importUri.join(QDir::separator());
+                ? QStringLiteral("qbs/base") : importUri.join(QDir::separator());
         bool found = m_typeNameToFile.contains(importUri);
         if (!found) {
             for (const QString &searchPath : m_file->searchPaths()) {
                 const QFileInfo fi(FileInfo::resolvePath(
                                        FileInfo::resolvePath(searchPath,
-                                                             QLatin1String("imports")),
+                                                             QStringLiteral("imports")),
                                        importPath));
                 if (fi.isDir()) {
                     // ### versioning, qbsdir file, etc.
@@ -262,7 +263,7 @@ void ASTImportsHandler::collectPrototypes(const QString &path, const QString &as
         return;
     }
 
-    QDirIterator dirIter(path, QStringList(QLatin1String("*.qbs")));
+    QDirIterator dirIter(path, StringConstants::qbsFileWildcards());
     while (dirIter.hasNext()) {
         const QString filePath = dirIter.next();
         const QString fileName = dirIter.fileName();
@@ -277,7 +278,7 @@ void ASTImportsHandler::collectPrototypesAndJsCollections(const QString &path, c
         const CodeLocation &location)
 {
     collectPrototypes(path, as);
-    QDirIterator dirIter(path, QStringList(QLatin1String("*.js")));
+    QDirIterator dirIter(path, StringConstants::jsFileWildcards());
     while (dirIter.hasNext()) {
         dirIter.next();
         JsImport &jsImport = m_jsImports[as];

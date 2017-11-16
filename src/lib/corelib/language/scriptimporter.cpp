@@ -46,6 +46,7 @@
 #include <parser/qmljslexer_p.h>
 #include <parser/qmljsparser_p.h>
 #include <tools/error.h>
+#include <tools/stringconstants.h>
 
 #include <QtScript/qscriptvalueiterator.h>
 
@@ -126,7 +127,7 @@ static ErrorInfo errorInfoFromScriptValue(const QScriptValue &value, const QStri
         return ErrorInfo(value.toString(), CodeLocation(filePath));
 
     return ErrorInfo(value.property(QStringLiteral("message")).toString(),
-                     CodeLocation(value.property(QStringLiteral("fileName")).toString(),
+                     CodeLocation(value.property(StringConstants::fileNameProperty()).toString(),
                                   value.property(QStringLiteral("lineNumber")).toInt32(),
                                   false));
 }

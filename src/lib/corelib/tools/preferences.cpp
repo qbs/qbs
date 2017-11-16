@@ -42,6 +42,7 @@
 #include "hostosinfo.h"
 #include "profile.h"
 #include "settings.h"
+#include "stringconstants.h"
 
 namespace qbs {
 
@@ -111,7 +112,8 @@ CommandEchoMode Preferences::defaultEchoMode() const
  */
 QStringList Preferences::searchPaths(const QString &baseDir) const
 {
-    return pathList(QLatin1String("qbsSearchPaths"), baseDir + QLatin1String("/share/qbs"));
+    return pathList(Internal::StringConstants::qbsSearchPathsProperty(),
+                    baseDir + QLatin1String("/share/qbs"));
 }
 
 /*!
@@ -130,7 +132,7 @@ QVariant Preferences::getPreference(const QString &key, const QVariant &defaultV
     if (!m_profile.isEmpty()) {
         QVariant value = Profile(m_profile, m_settings).value(fullKey);
         if (value.isValid()) {
-            if (key == QLatin1String("qbsSearchPaths")) // Merge with top-level value.
+            if (key == Internal::StringConstants::qbsSearchPathsProperty()) // Merge with top-level value.
                 value = value.toStringList() + m_settings->value(fullKey).toStringList();
             return value;
         }
@@ -138,7 +140,7 @@ QVariant Preferences::getPreference(const QString &key, const QVariant &defaultV
 
     QVariant value = m_profileContents.value(keyPrefix).toMap().value(key);
     if (value.isValid()) {
-        if (key == QLatin1String("qbsSearchPaths")) // Merge with top-level value
+        if (key == Internal::StringConstants::qbsSearchPathsProperty()) // Merge with top-level value
             value = value.toStringList() + m_settings->value(fullKey).toStringList();
         return value;
     }

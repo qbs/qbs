@@ -77,7 +77,7 @@ class QtScanner : public DependencyScanner
 {
 public:
     QtScanner(const DependencyScanner &actualScanner)
-        : m_id(QLatin1String("qt") + actualScanner.id()) {}
+        : m_id(QStringLiteral("qt") + actualScanner.id()) {}
 
 private:
     QStringList collectSearchPaths(Artifact *) override { return QStringList(); }
@@ -94,6 +94,8 @@ private:
     const QString m_id;
 };
 
+static QString qtMocScannerJsName() { return QStringLiteral("QtMocScanner"); }
+
 QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targetScriptValue)
     : m_tags(*commonFileTags())
     , m_product(product)
@@ -103,14 +105,14 @@ QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targe
 {
     ScriptEngine *engine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     QScriptValue scannerObj = engine->newObject();
-    targetScriptValue.setProperty(QLatin1String("QtMocScanner"), scannerObj);
+    targetScriptValue.setProperty(qtMocScannerJsName(), scannerObj);
     QScriptValue applyFunction = engine->newFunction(&js_apply, this);
-    scannerObj.setProperty(QLatin1String("apply"), applyFunction);
+    scannerObj.setProperty(QStringLiteral("apply"), applyFunction);
 }
 
 QtMocScanner::~QtMocScanner()
 {
-    m_targetScriptValue.setProperty(QLatin1String("QtMocScanner"), QScriptValue());
+    m_targetScriptValue.setProperty(qtMocScannerJsName(), QScriptValue());
 }
 
 ScannerPlugin *QtMocScanner::scannerPluginForFileTags(const FileTags &ft)
@@ -264,9 +266,9 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
                           << "hasPluginMetaDataMacro:" << hasPluginMetaDataMacro;
 
     QScriptValue obj = engine->newObject();
-    obj.setProperty(QLatin1String("hasQObjectMacro"), hasQObjectMacro);
-    obj.setProperty(QLatin1String("mustCompile"), mustCompile);
-    obj.setProperty(QLatin1String("hasPluginMetaDataMacro"), hasPluginMetaDataMacro);
+    obj.setProperty(QStringLiteral("hasQObjectMacro"), hasQObjectMacro);
+    obj.setProperty(QStringLiteral("mustCompile"), mustCompile);
+    obj.setProperty(QStringLiteral("hasPluginMetaDataMacro"), hasPluginMetaDataMacro);
     return obj;
 }
 

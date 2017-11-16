@@ -75,6 +75,7 @@
 #include <tools/qbspluginmanager.h>
 #include <tools/scripttools.h>
 #include <tools/setupprojectparameters.h>
+#include <tools/stringconstants.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 
@@ -304,11 +305,11 @@ void ProjectPrivate::setupInstallData(ArtifactData &artifact,
 {
     artifact.d->installData.d->isValid = true;
     artifact.d->installData.d->isInstallable = artifact.properties().getModuleProperty(
-                QLatin1String("qbs"), QLatin1String("install")).toBool();
+                StringConstants::qbsModule(), StringConstants::installProperty()).toBool();
     if (!artifact.d->installData.d->isInstallable)
         return;
     const QString installRoot = artifact.properties().getModuleProperty(
-                QLatin1String("qbs"), QLatin1String("installRoot")).toString();
+                StringConstants::qbsModule(), StringConstants::installRootProperty()).toString();
     InstallOptions options;
     options.setInstallRoot(installRoot);
     artifact.d->installData.d->installRoot = installRoot;
@@ -766,7 +767,7 @@ static bool productIsRunnable(const ResolvedProductConstPtr &product)
 
 static bool productIsMultiplexed(const ResolvedProductConstPtr &product)
 {
-    return product->productProperties.value(QStringLiteral("multiplexed")).toBool();
+    return product->productProperties.value(StringConstants::multiplexedProperty()).toBool();
 }
 
 void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
@@ -780,8 +781,8 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->type = resolvedProduct->fileTags.toStringList();
         product.d->name = resolvedProduct->name;
         product.d->targetName = resolvedProduct->targetName;
-        product.d->version = resolvedProduct->productProperties
-                                                        .value(QLatin1String("version")).toString();
+        product.d->version = resolvedProduct
+                ->productProperties.value(StringConstants::versionProperty()).toString();
         product.d->profile = resolvedProduct->profile;
         product.d->multiplexConfigurationId = resolvedProduct->multiplexConfigurationId;
         product.d->location = resolvedProduct->location;

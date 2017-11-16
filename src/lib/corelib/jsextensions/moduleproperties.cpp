@@ -47,6 +47,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 
 #include <QtScript/qscriptclass.h>
 
@@ -128,13 +129,12 @@ private:
 
 static QString ptrKey() { return QLatin1String("__internalPtr"); }
 static QString typeKey() { return QLatin1String("__type"); }
-static QString productType() { return QLatin1String("product"); }
 static QString artifactType() { return QLatin1String("artifact"); }
 
 void ModuleProperties::init(QScriptValue productObject,
                             const ResolvedProduct *product)
 {
-    init(productObject, product, productType());
+    init(productObject, product, StringConstants::productValue());
     setupModules(productObject, product, nullptr);
 }
 
@@ -143,15 +143,16 @@ void ModuleProperties::init(QScriptValue artifactObject, const Artifact *artifac
     init(artifactObject, artifact, artifactType());
     const auto product = artifact->product;
     const QVariantMap productProperties {
-        {QStringLiteral("buildDirectory"), product->buildDirectory()},
-        {QStringLiteral("destinationDirectory"), product->destinationDirectory},
-        {QStringLiteral("name"), product->name},
-        {QStringLiteral("sourceDirectory"), product->sourceDirectory},
-        {QStringLiteral("targetName"), product->targetName},
-        {QStringLiteral("type"), product->fileTags.toStringList()}
+        {StringConstants::buildDirectoryProperty(), product->buildDirectory()},
+        {StringConstants::destinationDirProperty(), product->destinationDirectory},
+        {StringConstants::nameProperty(), product->name},
+        {StringConstants::sourceDirectoryProperty(), product->sourceDirectory},
+        {StringConstants::targetNameProperty(), product->targetName},
+        {StringConstants::typeProperty(), product->fileTags.toStringList()}
     };
     QScriptEngine * const engine = artifactObject.engine();
-    artifactObject.setProperty(QStringLiteral("product"), engine->toScriptValue(productProperties));
+    artifactObject.setProperty(StringConstants::productVar(),
+                               engine->toScriptValue(productProperties));
     setupModules(artifactObject, artifact->product.get(), artifact);
 }
 
@@ -230,7 +231,7 @@ QScriptValue ModuleProperties::moduleProperty(QScriptContext *context, QScriptEn
     const void *ptr = reinterpret_cast<const void *>(qscriptvalue_cast<quintptr>(ptrScriptValue));
     PropertyMapConstPtr properties;
     const Artifact *artifact = nullptr;
-    if (typeScriptValue.toString() == productType()) {
+    if (typeScriptValue.toString() == StringConstants::productValue()) {
         properties = static_cast<const ResolvedProduct *>(ptr)->moduleProperties;
     } else if (typeScriptValue.toString() == artifactType()) {
         artifact = static_cast<const Artifact *>(ptr);

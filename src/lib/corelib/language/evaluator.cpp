@@ -54,6 +54,7 @@
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdebug.h>
 
@@ -183,7 +184,7 @@ void Evaluator::handleEvaluationError(const Item *item, const QString &name,
         QScriptValue v = value.property(QStringLiteral("message"));
         if (v.isString())
             message = v.toString();
-        v = value.property(QStringLiteral("fileName"));
+        v = value.property(StringConstants::fileNameProperty());
         if (v.isString())
             filePath = v.toString();
         v = value.property(QStringLiteral("lineNumber"));
@@ -234,8 +235,8 @@ Evaluator::FileContextScopes Evaluator::fileContextScopes(const FileContextConst
             result.fileScope = scriptValue(file->idScope());
         else
             result.fileScope = m_scriptEngine->newObject();
-        result.fileScope.setProperty(QLatin1String("filePath"), file->filePath());
-        result.fileScope.setProperty(QLatin1String("path"), file->dirPath());
+        result.fileScope.setProperty(StringConstants::filePathGlobalVar(), file->filePath());
+        result.fileScope.setProperty(StringConstants::pathGlobalVar(), file->dirPath());
     }
     if (!result.importScope.isObject()) {
         try {

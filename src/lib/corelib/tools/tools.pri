@@ -52,6 +52,7 @@ HEADERS += \
     $$PWD/qbsassert.h \
     $$PWD/qttools.h \
     $$PWD/settingscreator.h \
+    $$PWD/stringconstants.h \
     $$PWD/version.h \
     $$PWD/visualstudioversioninfo.h \
     $$PWD/vsenvironmentdetector.h

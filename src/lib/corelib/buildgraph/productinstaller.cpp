@@ -51,6 +51,7 @@
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
@@ -98,7 +99,7 @@ void ProductInstaller::install()
     for (const ResolvedProductConstPtr &product : qAsConst(m_products)) {
         QBS_CHECK(product->buildData);
         for (const Artifact *artifact : filterByType<Artifact>(product->buildData->nodes)) {
-            if (artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
+            if (artifact->properties->qbsPropertyValue(StringConstants::installProperty()).toBool())
                 artifactsToInstall.push_back(artifact);
         }
     }
@@ -115,18 +116,18 @@ QString ProductInstaller::targetFilePath(const TopLevelProject *project,
         const QString &sourceFilePath, const PropertyMapConstPtr &properties,
         InstallOptions &options)
 {
-    if (!properties->qbsPropertyValue(QLatin1String("install")).toBool())
+    if (!properties->qbsPropertyValue(StringConstants::installProperty()).toBool())
         return QString();
     const QString relativeInstallDir
-            = properties->qbsPropertyValue(QLatin1String("installDir")).toString();
+            = properties->qbsPropertyValue(StringConstants::installDirProperty()).toString();
     const QString installPrefix
-            = properties->qbsPropertyValue(QLatin1String("installPrefix")).toString();
+            = properties->qbsPropertyValue(StringConstants::installPrefixProperty()).toString();
     const QString installSourceBase
-            = properties->qbsPropertyValue(QLatin1String("installSourceBase")).toString();
+            = properties->qbsPropertyValue(StringConstants::installSourceBaseProperty()).toString();
     initInstallRoot(project, options);
     QString targetDir = options.installRoot();
     if (targetDir.isEmpty())
-        targetDir = properties->qbsPropertyValue(QLatin1String("installRoot")).toString();
+        targetDir = properties->qbsPropertyValue(StringConstants::installRootProperty()).toString();
     targetDir.append(QLatin1Char('/')).append(installPrefix)
             .append(QLatin1Char('/')).append(relativeInstallDir);
     targetDir = QDir::cleanPath(targetDir);

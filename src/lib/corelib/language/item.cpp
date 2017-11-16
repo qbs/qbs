@@ -51,6 +51,7 @@
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 
 #include <algorithm>
 
@@ -240,7 +241,7 @@ void Item::dump() const
 bool Item::isPresentModule() const
 {
     // Initial value is "true" as JS source, overwritten one is always QVariant(false).
-    const ValueConstPtr v = property(QLatin1String("present"));
+    const ValueConstPtr v = property(StringConstants::presentProperty());
     return v && v->type() == Value::JSSourceValueType;
 }
 
@@ -255,9 +256,8 @@ void Item::setupForBuiltinType(Logger &logger)
                 continue;
             JSSourceValuePtr sourceValue = JSSourceValue::create();
             sourceValue->setFile(file());
-            static const QString undefinedKeyword = QLatin1String("undefined");
             sourceValue->setSourceCode(pd.initialValueSource().isEmpty()
-                                       ? QStringRef(&undefinedKeyword)
+                                       ? QStringRef(&StringConstants::undefinedValue())
                                        : QStringRef(&pd.initialValueSource()));
             m_properties.insert(pd.name(), sourceValue);
         } else if (pd.isDeprecated()) {

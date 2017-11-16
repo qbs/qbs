@@ -52,6 +52,7 @@
 #include <tools/qbsassert.h>
 #include <tools/settings.h>
 #include <tools/setupprojectparameters.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qobject.h>
@@ -188,10 +189,8 @@ void Loader::setupProjectFilePath(SetupProjectParameters &parameters)
     if (!projectFileInfo.isDir())
         throw ErrorInfo(Tr::tr("Project file '%1' has invalid type.").arg(projectFilePath));
 
-    const QStringList namePatterns = QStringList()
-            << QLatin1String("*.qbs");
     const QStringList &actualFileNames
-            = QDir(projectFilePath).entryList(namePatterns, QDir::Files);
+            = QDir(projectFilePath).entryList(StringConstants::qbsFileWildcards(), QDir::Files);
     if (actualFileNames.empty()) {
         QString error;
         if (parameters.projectFilePath().isEmpty())

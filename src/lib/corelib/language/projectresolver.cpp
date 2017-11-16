@@ -60,6 +60,7 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/setupprojectparameters.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 
@@ -189,7 +190,7 @@ QString ProjectResolver::verbatimValue(const ValueConstPtr &value, bool *propert
                     value);
         result = sourceCodeForEvaluation(sourceValue);
         if (propertyWasSet)
-            *propertyWasSet = (result != QLatin1String("undefined"));
+            *propertyWasSet = (result != StringConstants::undefinedValue());
     } else {
         if (propertyWasSet)
             *propertyWasSet = false;
@@ -265,7 +266,7 @@ TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
 
         // Let a positive value of qbs.install imply the file tag "installable".
         for (const SourceArtifactPtr &artifact : product->allFiles()) {
-            if (artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
+            if (artifact->properties->qbsPropertyValue(StringConstants::installProperty()).toBool())
                 artifact->fileTags += "installable";
         }
     }
@@ -297,14 +298,15 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
 void ProjectResolver::resolveProjectFully(Item *item, ProjectResolver::ProjectContext *projectContext)
 {
     projectContext->project->enabled = projectContext->project->enabled
-            && m_evaluator->boolValue(item, QLatin1String("condition"));
-    projectContext->project->name = m_evaluator->stringValue(item, QLatin1String("name"));
+            && m_evaluator->boolValue(item, StringConstants::conditionProperty());
+    projectContext->project->name = m_evaluator->stringValue(item, StringConstants::nameProperty());
     if (projectContext->project->name.isEmpty())
         projectContext->project->name = FileInfo::baseName(item->location().filePath()); // FIXME: Must also be changed in item?
     QVariantMap projectProperties;
     if (!projectContext->project->enabled) {
-        projectProperties.insert(QLatin1String("profile"),
-                                 m_evaluator->stringValue(item, QLatin1String("profile")));
+        projectProperties.insert(StringConstants::profileProperty(),
+                                 m_evaluator->stringValue(item,
+                                                          StringConstants::profileProperty()));
         projectContext->project->setProjectProperties(projectProperties);
         return;
     }
@@ -354,7 +356,7 @@ void ProjectResolver::resolveSubProject(Item *item, ProjectResolver::ProjectCont
     Item * const propertiesItem = item->child(ItemType::PropertiesInSubProject);
     if (propertiesItem) {
         subProjectContext.project->name
-                = m_evaluator->stringValue(propertiesItem, QLatin1String("name"));
+                = m_evaluator->stringValue(propertiesItem, StringConstants::nameProperty());
     }
 }
 
@@ -420,17 +422,19 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
     const ResolvedProductPtr product = m_productContext->product;
     m_productItemMap.insert(product, item);
     projectContext->project->products.push_back(product);
-    product->name = m_evaluator->stringValue(item, QLatin1String("name"));
+    product->name = m_evaluator->stringValue(item, StringConstants::nameProperty());
 
     // product->buildDirectory() isn't valid yet, because the productProperties map is not ready.
-    m_productContext->buildDirectory = m_evaluator->stringValue(item, QLatin1String("buildDirectory"));
-    product->profile = m_evaluator->stringValue(item, QLatin1String("profile"));
+    m_productContext->buildDirectory
+            = m_evaluator->stringValue(item, StringConstants::buildDirectoryProperty());
+    product->profile = m_evaluator->stringValue(item, StringConstants::profileProperty());
     QBS_CHECK(!product->profile.isEmpty());
     product->multiplexConfigurationId
-            = m_evaluator->stringValue(item, QLatin1String("multiplexConfigurationId"));
+            = m_evaluator->stringValue(item, StringConstants::multiplexConfigurationIdProperty());
     qCDebug(lcProjectResolver) << "resolveProduct" << product->uniqueName();
     m_productsByName.insert(product->uniqueName(), product);
-    product->enabled = product->enabled && m_evaluator->boolValue(item, QLatin1String("condition"));
+    product->enabled = product->enabled
+            && m_evaluator->boolValue(item, StringConstants::conditionProperty());
     ModuleLoaderResult::ProductInfo &pi = m_loadResult.productInfos[item];
     if (pi.delayedError.hasError()) {
         ErrorInfo errorInfo;
@@ -444,10 +448,11 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
         throw errorInfo;
     }
     gatherProductTypes(product.get(), item);
-    product->targetName = m_evaluator->stringValue(item, QLatin1String("targetName"));
-    product->sourceDirectory = m_evaluator->stringValue(item, QLatin1String("sourceDirectory"));
-    const QString destDirKey = QLatin1String("destinationDirectory");
-    product->destinationDirectory = m_evaluator->stringValue(item, destDirKey);
+    product->targetName = m_evaluator->stringValue(item, StringConstants::targetNameProperty());
+    product->sourceDirectory = m_evaluator->stringValue(
+                item, StringConstants::sourceDirectoryProperty());
+    product->destinationDirectory = m_evaluator->stringValue(
+                item, StringConstants::destinationDirProperty());
 
     if (product->destinationDirectory.isEmpty()) {
         product->destinationDirectory = m_productContext->buildDirectory;
@@ -458,21 +463,23 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
     }
     product->probes = pi.probes;
     createProductConfig(product.get());
-    product->productProperties.insert(destDirKey, product->destinationDirectory);
+    product->productProperties.insert(StringConstants::destinationDirProperty(),
+                                      product->destinationDirectory);
     ModuleProperties::init(m_evaluator->scriptValue(item), product.get());
 
     QList<Item *> subItems = item->children();
-    const ValuePtr filesProperty = item->property(QLatin1String("files"));
+    const ValuePtr filesProperty = item->property(StringConstants::filesProperty());
     if (filesProperty) {
         Item *fakeGroup = Item::create(item->pool(), ItemType::Group);
         fakeGroup->setFile(item->file());
         fakeGroup->setLocation(item->location());
         fakeGroup->setScope(item);
-        fakeGroup->setProperty(QLatin1String("name"), VariantValue::create(product->name));
-        fakeGroup->setProperty(QLatin1String("files"), filesProperty);
-        fakeGroup->setProperty(QLatin1String("excludeFiles"),
-                               item->property(QLatin1String("excludeFiles")));
-        fakeGroup->setProperty(QLatin1String("overrideTags"), VariantValue::create(false));
+        fakeGroup->setProperty(StringConstants::nameProperty(), VariantValue::create(product->name));
+        fakeGroup->setProperty(StringConstants::filesProperty(), filesProperty);
+        fakeGroup->setProperty(StringConstants::excludeFilesProperty(),
+                               item->property(StringConstants::excludeFilesProperty()));
+        fakeGroup->setProperty(StringConstants::overrideTagsProperty(),
+                               VariantValue::create(false));
         fakeGroup->setupForBuiltinType(m_logger);
         subItems.prepend(fakeGroup);
     }
@@ -506,7 +513,7 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
                                     const QVariantMap &parameters, ProjectContext *projectContext)
 {
     checkCancelation();
-    if (!m_evaluator->boolValue(item, QLatin1String("present")))
+    if (!item->isPresentModule())
         return;
 
     ModuleContext * const oldModuleContext = m_moduleContext;
@@ -519,12 +526,12 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
     module->isProduct = isProduct;
     module->product = m_productContext->product.get();
     module->setupBuildEnvironmentScript.initialize(
-                scriptFunctionValue(item, QLatin1String("setupBuildEnvironment")));
+                scriptFunctionValue(item, StringConstants::setupBuildEnvironmentProperty()));
     module->setupRunEnvironmentScript.initialize(
-                scriptFunctionValue(item, QLatin1String("setupRunEnvironment")));
+                scriptFunctionValue(item, StringConstants::setupRunEnvironmentProperty()));
 
     for (const Item::Module &m : item->modules()) {
-        if (m_evaluator->boolValue(m.item, QLatin1String("present")))
+        if (m.item->isPresentModule())
             module->moduleDependencies += m.name.toString();
     }
 
@@ -550,14 +557,14 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
 
 void ProjectResolver::gatherProductTypes(ResolvedProduct *product, Item *item)
 {
-    product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
+    product->fileTags = m_evaluator->fileTagsValue(item, StringConstants::typeProperty());
     for (const Item::Module &m : item->modules()) {
         if (m.item->isPresentModule()) {
             product->fileTags += m_evaluator->fileTagsValue(m.item,
-                    QLatin1String("additionalProductTypes"));
+                    StringConstants::additionalProductTypesProperty());
         }
     }
-    item->setProperty(QLatin1String("type"),
+    item->setProperty(StringConstants::typeProperty(),
                       VariantValue::create(product->fileTags.toStringList()));
 }
 
@@ -659,7 +666,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
             ? m_productContext->currentGroup->enabled
             : m_productContext->product->enabled;
     const bool isEnabled = parentEnabled
-            && m_evaluator->boolValue(item, QLatin1String("condition"));
+            && m_evaluator->boolValue(item, StringConstants::conditionProperty());
     try {
         resolveGroupFully(item, projectContext, isEnabled);
     } catch (const ErrorInfo &error) {
@@ -690,12 +697,12 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     AccumulatingTimer groupTimer(m_setupParams.logElapsedTime()
                                        ? &m_elapsedTimeGroups : nullptr);
 
-    QStringList files = m_evaluator->stringListValue(item, QLatin1String("files"));
+    QStringList files = m_evaluator->stringListValue(item, StringConstants::filesProperty());
     bool fileTagsSet;
-    const FileTags fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"),
+    const FileTags fileTags = m_evaluator->fileTagsValue(item, StringConstants::fileTagsProperty(),
                                                          &fileTagsSet);
     const QStringList fileTagsFilter
-            = m_evaluator->stringListValue(item, QLatin1String("fileTagsFilter"));
+            = m_evaluator->stringListValue(item, StringConstants::fileTagsFilterProperty());
     if (!fileTagsFilter.empty()) {
         if (Q_UNLIKELY(!files.empty()))
             throw ErrorInfo(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
@@ -732,7 +739,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     }
     GroupPtr group = ResolvedGroup::create();
     bool prefixWasSet = false;
-    group->prefix = m_evaluator->stringValue(item, QLatin1String("prefix"), QString(),
+    group->prefix = m_evaluator->stringValue(item, StringConstants::prefixProperty(), QString(),
                                              &prefixWasSet);
     if (!prefixWasSet && m_productContext->currentGroup)
         group->prefix = m_productContext->currentGroup->prefix;
@@ -744,7 +751,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     group->enabled = isEnabled;
     group->properties = moduleProperties;
     group->fileTags = fileTags;
-    group->overrideTags = m_evaluator->boolValue(item, QLatin1String("overrideTags"));
+    group->overrideTags = m_evaluator->boolValue(item, StringConstants::overrideTagsProperty());
     if (group->overrideTags && fileTagsSet) {
         if (group->fileTags.empty() )
             group->fileTags.insert(unknownFileTag());
@@ -752,8 +759,9 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
         group->fileTags.unite(m_productContext->currentGroup->fileTags);
     }
 
-    const CodeLocation filesLocation = item->property(QLatin1String("files"))->location();
-    const VariantValueConstPtr moduleProp = item->variantProperty(QLatin1String("__module"));
+    const CodeLocation filesLocation = item->property(StringConstants::filesProperty())->location();
+    const VariantValueConstPtr moduleProp = item->variantProperty(
+                StringConstants::modulePropertyInternal());
     if (moduleProp)
         group->targetOfModule = moduleProp->value().toString();
     ErrorInfo fileError;
@@ -761,8 +769,8 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
         group->wildcards = std::unique_ptr<SourceWildCards>(new SourceWildCards);
         SourceWildCards *wildcards = group->wildcards.get();
         wildcards->group = group.get();
-        wildcards->excludePatterns = m_evaluator->stringListValue(item,
-                                                                  QLatin1String("excludeFiles"));
+        wildcards->excludePatterns = m_evaluator->stringListValue(
+                    item, StringConstants::excludeFilesProperty());
         wildcards->patterns = patterns;
         const Set<QString> files = wildcards->expandPatterns(group,
                 FileInfo::path(item->file()->filePath()),
@@ -785,7 +793,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
             qCDebug(lcProjectResolver) << "error for disabled group:" << fileError.toString();
         }
     }
-    group->name = m_evaluator->stringValue(item, QLatin1String("name"));
+    group->name = m_evaluator->stringValue(item, StringConstants::nameProperty());
     if (group->name.isEmpty())
         group->name = Tr::tr("Group %1").arg(m_productContext->product->groups.size());
     m_productContext->product->groups.push_back(group);
@@ -864,7 +872,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
 
-    if (!m_evaluator->boolValue(item, QLatin1String("condition")))
+    if (!m_evaluator->boolValue(item, StringConstants::conditionProperty()))
         return;
 
     RulePtr rule = Rule::create();
@@ -880,38 +888,39 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
         resolveRuleArtifact(rule, child);
     }
 
-    rule->name = m_evaluator->stringValue(item, QLatin1String("name"));
-    rule->prepareScript.initialize(scriptFunctionValue(item, QLatin1String("prepare")));
-    rule->outputArtifactsScript.initialize(scriptFunctionValue(item,
-                                                               QLatin1String("outputArtifacts")));
+    rule->name = m_evaluator->stringValue(item, StringConstants::nameProperty());
+    rule->prepareScript.initialize(scriptFunctionValue(item, StringConstants::prepareProperty()));
+    rule->outputArtifactsScript.initialize(scriptFunctionValue(
+                                               item, StringConstants::outputArtifactsProperty()));
     if (rule->outputArtifactsScript.isValid()) {
         if (hasArtifactChildren)
             throw ErrorInfo(Tr::tr("The Rule.outputArtifacts script is not allowed in rules "
                                    "that contain Artifact items."),
                         item->location());
-        rule->outputFileTags = m_evaluator->fileTagsValue(item, QStringLiteral("outputFileTags"));
+        rule->outputFileTags = m_evaluator->fileTagsValue(
+                    item, StringConstants::outputFileTagsProperty());
         if (rule->outputFileTags.empty())
             throw ErrorInfo(Tr::tr("Rule.outputFileTags must be specified if "
                                    "Rule.outputArtifacts is specified."),
                             item->location());
     }
 
-    rule->multiplex = m_evaluator->boolValue(item, QLatin1String("multiplex"));
-    rule->alwaysRun = m_evaluator->boolValue(item, QLatin1String("alwaysRun"));
-    rule->inputs = m_evaluator->fileTagsValue(item, QLatin1String("inputs"));
+    rule->multiplex = m_evaluator->boolValue(item, StringConstants::multiplexProperty());
+    rule->alwaysRun = m_evaluator->boolValue(item, StringConstants::alwaysRunProperty());
+    rule->inputs = m_evaluator->fileTagsValue(item, StringConstants::inputsProperty());
     rule->inputsFromDependencies
-            = m_evaluator->fileTagsValue(item, QLatin1String("inputsFromDependencies"));
+            = m_evaluator->fileTagsValue(item, StringConstants::inputsFromDependenciesProperty());
     bool requiresInputsSet = false;
-    rule->requiresInputs = m_evaluator->boolValue(item, QLatin1String("requiresInputs"), true,
-                                                  &requiresInputsSet);
+    rule->requiresInputs = m_evaluator->boolValue(item, StringConstants::requiresInputsProperty(),
+                                                  true, &requiresInputsSet);
     if (!requiresInputsSet)
         rule->requiresInputs = rule->declaresInputs();
     rule->auxiliaryInputs
-            = m_evaluator->fileTagsValue(item, QLatin1String("auxiliaryInputs"));
+            = m_evaluator->fileTagsValue(item, StringConstants::auxiliaryInputsProperty());
     rule->excludedAuxiliaryInputs
-            = m_evaluator->fileTagsValue(item, QLatin1String("excludedAuxiliaryInputs"));
+            = m_evaluator->fileTagsValue(item, StringConstants::excludedAuxiliaryInputsProperty());
     rule->explicitlyDependsOn
-            = m_evaluator->fileTagsValue(item, QLatin1String("explicitlyDependsOn"));
+            = m_evaluator->fileTagsValue(item, StringConstants::explicitlyDependsOnProperty());
     rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
     if (!rule->multiplex && !rule->declaresInputs()) {
         throw ErrorInfo(Tr::tr("Rule has no inputs, but is not a multiplex rule."),
@@ -939,12 +948,13 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
     rule->artifacts.push_back(artifact);
     artifact->location = item->location();
 
-    if (const auto sourceProperty = item->sourceProperty(QStringLiteral("filePath")))
+    if (const auto sourceProperty = item->sourceProperty(StringConstants::filePathProperty()))
         artifact->filePathLocation = sourceProperty->location();
 
-    artifact->filePath = verbatimValue(item, QLatin1String("filePath"));
-    artifact->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
-    artifact->alwaysUpdated = m_evaluator->boolValue(item, QLatin1String("alwaysUpdated"));
+    artifact->filePath = verbatimValue(item, StringConstants::filePathProperty());
+    artifact->fileTags = m_evaluator->fileTagsValue(item, StringConstants::fileTagsProperty());
+    artifact->alwaysUpdated = m_evaluator->boolValue(item,
+                                                     StringConstants::alwaysUpdatedProperty());
 
     QualifiedIdSet seenBindings;
     for (Item *obj = item; obj; obj = obj->prototype()) {
@@ -992,16 +1002,17 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
 void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
-    if (!m_evaluator->boolValue(item, QLatin1String("condition")))
+    if (!m_evaluator->boolValue(item, StringConstants::conditionProperty()))
         return;
     QList<FileTaggerConstPtr> &fileTaggers = m_productContext
             ? m_productContext->product->fileTaggers
             : projectContext->fileTaggers;
-    const QStringList patterns = m_evaluator->stringListValue(item, QLatin1String("patterns"));
+    const QStringList patterns = m_evaluator->stringListValue(item,
+                                                              StringConstants::patternsProperty());
     if (patterns.empty())
         throw ErrorInfo(Tr::tr("FileTagger.patterns must be a non-empty list."), item->location());
 
-    const FileTags fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
+    const FileTags fileTags = m_evaluator->fileTagsValue(item, StringConstants::fileTagsProperty());
     if (fileTags.empty())
         throw ErrorInfo(Tr::tr("FileTagger.fileTags must not be empty."), item->location());
 
@@ -1010,24 +1021,25 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
             throw ErrorInfo(Tr::tr("A FileTagger pattern must not be empty."), item->location());
     }
 
-    const int priority = m_evaluator->intValue(item, QLatin1String("priority"));
+    const int priority = m_evaluator->intValue(item, StringConstants::priorityProperty());
     fileTaggers.push_back(FileTagger::create(patterns, fileTags, priority));
 }
 
 void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext *projectContext)
 {
     checkCancelation();
-    if (!m_evaluator->boolValue(item, QLatin1String("condition"))) {
+    if (!m_evaluator->boolValue(item, StringConstants::conditionProperty())) {
         qCDebug(lcProjectResolver) << "scanner condition is false";
         return;
     }
 
     ResolvedScannerPtr scanner = ResolvedScanner::create();
     scanner->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
-    scanner->inputs = m_evaluator->fileTagsValue(item, QLatin1String("inputs"));
-    scanner->recursive = m_evaluator->boolValue(item, QLatin1String("recursive"));
-    scanner->searchPathsScript.initialize(scriptFunctionValue(item, QLatin1String("searchPaths")));
-    scanner->scanScript.initialize(scriptFunctionValue(item, QLatin1String("scan")));
+    scanner->inputs = m_evaluator->fileTagsValue(item, StringConstants::inputsProperty());
+    scanner->recursive = m_evaluator->boolValue(item, StringConstants::recursiveProperty());
+    scanner->searchPathsScript.initialize(scriptFunctionValue(
+                                              item, StringConstants::searchPathsProperty()));
+    scanner->scanScript.initialize(scriptFunctionValue(item, StringConstants::scanProperty()));
     m_productContext->product->scanners.push_back(scanner);
 }
 
@@ -1049,7 +1061,7 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
                     result.dependencies.emplace_back(p, dependency.parameters);
                 }
             }
-        } else if (dependency.profile == QLatin1String("*")) {
+        } else if (dependency.profile == StringConstants::star()) {
             for (const ResolvedProductPtr &p : qAsConst(m_productsByName)) {
                 if (p->name != dependency.name || p == product || !p->enabled
                         || (dependency.limitToSubProject && !product->isInParentProject(p))) {

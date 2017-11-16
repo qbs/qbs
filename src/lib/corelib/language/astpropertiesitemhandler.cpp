@@ -44,6 +44,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/qbsassert.h>
+#include <tools/stringconstants.h>
 
 namespace qbs {
 namespace Internal {
@@ -100,8 +101,8 @@ private:
         for (auto it = inner->properties().constBegin();
                 it != inner->properties().constEnd(); ++it) {
             if (inner == m_propertiesBlock
-                    && (it.key() == QLatin1String("condition")
-                        || it.key() == QLatin1String("overrideListProperties"))) {
+                    && (it.key() == StringConstants::conditionProperty()
+                        || it.key() == StringConstants::overrideListPropertiesProperty())) {
                 continue;
             }
             if (it.value()->type() == Value::ItemValueType) {
@@ -135,8 +136,7 @@ private:
             value = JSSourceValue::create(true);
             value->setFile(conditionalValue->file());
             item->setProperty(propertyName, value);
-            static const QString baseKeyword = QLatin1String("base");
-            value->setSourceCode(QStringRef(&baseKeyword));
+            value->setSourceCode(QStringRef(&StringConstants::baseVar()));
             value->setSourceUsesBaseFlag();
         }
         m_alternative.value = conditionalValue;
@@ -148,17 +148,17 @@ static QString getPropertyString(const Item *propertiesItem, const QString &name
 {
     const ValuePtr value = propertiesItem->property(name);
     if (!value) {
-        if (name == QLatin1String("condition")) {
+        if (name == StringConstants::conditionProperty()) {
             throw ErrorInfo(Tr::tr("Properties.condition must be provided."),
                             propertiesItem->location());
         }
-        return QLatin1String("false");
+        return StringConstants::falseValue();
     }
     if (Q_UNLIKELY(value->type() != Value::JSSourceValueType)) {
         throw ErrorInfo(Tr::tr("Properties.%1 must be a value binding.").arg(name),
                     propertiesItem->location());
     }
-    if (name == QLatin1String("overrideListProperties")) {
+    if (name == StringConstants::overrideListPropertiesProperty()) {
         const Item *parent = propertiesItem->parent();
         while (parent) {
             if (parent->type() == ItemType::Product)
@@ -177,9 +177,10 @@ static QString getPropertyString(const Item *propertiesItem, const QString &name
 
 void ASTPropertiesItemHandler::handlePropertiesBlock(const Item *propertiesItem)
 {
-    const QString condition = getPropertyString(propertiesItem, QLatin1String("condition"));
+    const QString condition = getPropertyString(propertiesItem,
+                                                StringConstants::conditionProperty());
     const QString overrideListProperties = getPropertyString(propertiesItem,
-            QLatin1String("overrideListProperties"));
+            StringConstants::overrideListPropertiesProperty());
     PropertiesBlockConverter(condition, overrideListProperties, m_parentItem,
                              propertiesItem).apply();
 }

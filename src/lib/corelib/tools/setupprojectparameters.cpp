@@ -368,7 +368,7 @@ static QVariantMap expandedBuildConfigurationInternal(const Profile &profile,
     // (2) Build configuration name.
     if (configurationName.isEmpty())
         throw ErrorInfo(Internal::Tr::tr("No build configuration name set."));
-    buildConfig.insert(QLatin1String("qbs.configurationName"), configurationName);
+    buildConfig.insert(QStringLiteral("qbs.configurationName"), configurationName);
     return buildConfig;
 }
 

@@ -42,6 +42,7 @@
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
@@ -79,15 +80,15 @@ static void initializeJsExtensionFileInfo(QScriptValue extensionObject)
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue fileInfoObj = engine->newQMetaObject(&FileInfoExtension::staticMetaObject,
                                                   engine->newFunction(&FileInfoExtension::js_ctor));
-    fileInfoObj.setProperty(QLatin1String("path"),
+    fileInfoObj.setProperty(StringConstants::fileInfoPath(),
                             engine->newFunction(FileInfoExtension::js_path));
-    fileInfoObj.setProperty(QLatin1String("fileName"),
+    fileInfoObj.setProperty(StringConstants::fileInfoFileName(),
                             engine->newFunction(FileInfoExtension::js_fileName));
-    fileInfoObj.setProperty(QLatin1String("baseName"),
+    fileInfoObj.setProperty(StringConstants::baseNameProperty(),
                             engine->newFunction(FileInfoExtension::js_baseName));
     fileInfoObj.setProperty(QLatin1String("cleanPath"),
                             engine->newFunction(FileInfoExtension::js_cleanPath));
-    fileInfoObj.setProperty(QLatin1String("completeBaseName"),
+    fileInfoObj.setProperty(StringConstants::completeBaseNameProperty(),
                             engine->newFunction(FileInfoExtension::js_completeBaseName));
     fileInfoObj.setProperty(QLatin1String("relativePath"),
                             engine->newFunction(FileInfoExtension::js_relativePath));

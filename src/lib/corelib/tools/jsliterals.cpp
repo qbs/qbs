@@ -39,13 +39,15 @@
 
 #include "jsliterals.h"
 
+#include <tools/stringconstants.h>
+
 #include <QtCore/qregexp.h>
 
 namespace qbs {
 
 QString toJSLiteral(const bool b)
 {
-    return b ? QLatin1String("true") : QLatin1String("false");
+    return b ? Internal::StringConstants::trueValue() : Internal::StringConstants::falseValue();
 }
 
 QString toJSLiteral(const QString &str)
@@ -72,7 +74,7 @@ QString toJSLiteral(const QStringList &strs)
 QString toJSLiteral(const QVariant &val)
 {
     if (!val.isValid())
-        return QLatin1String("undefined");
+        return Internal::StringConstants::undefinedValue();
     if (val.type() == QVariant::List || val.type() == QVariant::StringList) {
         QString res;
         for (const QVariant &child : val.toList()) {
@@ -95,7 +97,7 @@ QString toJSLiteral(const QVariant &val)
         return str;
     }
     if (val.type() == QVariant::Bool)
-        return val.toBool() ? QLatin1String("true") : QLatin1String("false");
+        return toJSLiteral(val.toBool());
     if (val.canConvert(QVariant::String))
         return toJSLiteral(val.toString());
     return QString::fromLatin1("Unconvertible type %1").arg(QLatin1String(val.typeName()));

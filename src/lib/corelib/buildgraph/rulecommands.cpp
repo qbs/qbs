@@ -44,6 +44,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qfile.h>
 
@@ -52,6 +53,36 @@
 
 namespace qbs {
 namespace Internal {
+
+static QString argumentsProperty() { return QStringLiteral("arguments"); }
+static QString environmentProperty() { return QStringLiteral("environment"); }
+static QString extendedDescriptionProperty() { return QStringLiteral("extendedDescription"); }
+static QString highlightProperty() { return QStringLiteral("highlight"); }
+static QString ignoreDryRunProperty() { return QStringLiteral("ignoreDryRun"); }
+static QString maxExitCodeProperty() { return QStringLiteral("maxExitCode"); }
+static QString programProperty() { return QStringLiteral("program"); }
+static QString responseFileArgumentIndexProperty()
+{
+    return QStringLiteral("responseFileArgumentIndex");
+}
+static QString responseFileThresholdProperty() { return QStringLiteral("responseFileThreshold"); }
+static QString responseFileUsagePrefixProperty()
+{
+    return QStringLiteral("responseFileUsagePrefix");
+}
+static QString silentProperty() { return QStringLiteral("silent"); }
+static QString sourceCodeProperty() { return QStringLiteral("sourceCode"); }
+static QString stderrFilePathProperty() { return QStringLiteral("stderrFilePath"); }
+static QString stderrFilterFunctionProperty() { return QStringLiteral("stderrFilterFunction"); }
+static QString stdoutFilePathProperty() { return QStringLiteral("stdoutFilePath"); }
+static QString stdoutFilterFunctionProperty() { return QStringLiteral("stdoutFilterFunction"); }
+static QString workingDirProperty() { return QStringLiteral("workingDirectory"); }
+
+static QString invokedSourceCode(const QScriptValue codeOrFunction)
+{
+    const QString &code = codeOrFunction.toString();
+    return codeOrFunction.isFunction() ? QStringLiteral("(") + code + QStringLiteral(")()") : code;
+}
 
 AbstractCommand::AbstractCommand()
     : m_description(defaultDescription()),
@@ -79,19 +110,19 @@ bool AbstractCommand::equals(const AbstractCommand *other) const
 
 void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
 {
-    m_description = scriptValue->property(QLatin1String("description")).toString();
-    m_extendedDescription = scriptValue->property(QLatin1String("extendedDescription")).toString();
-    m_highlight = scriptValue->property(QLatin1String("highlight")).toString();
-    m_ignoreDryRun = scriptValue->property(QLatin1String("ignoreDryRun")).toBool();
-    m_silent = scriptValue->property(QLatin1String("silent")).toBool();
+    m_description = scriptValue->property(StringConstants::descriptionProperty()).toString();
+    m_extendedDescription = scriptValue->property(extendedDescriptionProperty()).toString();
+    m_highlight = scriptValue->property(highlightProperty()).toString();
+    m_ignoreDryRun = scriptValue->property(ignoreDryRunProperty()).toBool();
+    m_silent = scriptValue->property(silentProperty()).toBool();
     m_codeLocation = codeLocation;
 
     m_predefinedProperties
-            << QLatin1String("description")
-            << QLatin1String("extendedDescription")
-            << QLatin1String("highlight")
-            << QLatin1String("ignoreDryRun")
-            << QLatin1String("silent");
+            << StringConstants::descriptionProperty()
+            << extendedDescriptionProperty()
+            << highlightProperty()
+            << ignoreDryRunProperty()
+            << silentProperty();
 }
 
 void AbstractCommand::load(PersistentPool &pool)
@@ -136,15 +167,15 @@ static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engin
 {
     QScriptValue cmd = context->thisObject();
     QBS_ASSERT(context->isCalledAsConstructor(), cmd = engine->newObject());
-    cmd.setProperty(QLatin1String("description"),
+    cmd.setProperty(StringConstants::descriptionProperty(),
                     engine->toScriptValue(AbstractCommand::defaultDescription()));
-    cmd.setProperty(QLatin1String("extendedDescription"),
+    cmd.setProperty(extendedDescriptionProperty(),
                     engine->toScriptValue(AbstractCommand::defaultExtendedDescription()));
-    cmd.setProperty(QLatin1String("highlight"),
+    cmd.setProperty(highlightProperty(),
                     engine->toScriptValue(AbstractCommand::defaultHighLight()));
-    cmd.setProperty(QLatin1String("ignoreDryRun"),
+    cmd.setProperty(ignoreDryRunProperty(),
                     engine->toScriptValue(AbstractCommand::defaultIgnoreDryRun()));
-    cmd.setProperty(QLatin1String("silent"),
+    cmd.setProperty(silentProperty(),
                     engine->toScriptValue(AbstractCommand::defaultIsSilent()));
     return cmd;
 }
@@ -163,31 +194,31 @@ static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
     if (arguments.isUndefined())
         arguments = engine->toScriptValue(commandPrototype->arguments());
     QScriptValue cmd = js_CommandBase(context, engine);
-    cmd.setProperty(QLatin1String("className"),
-                    engine->toScriptValue(QString::fromLatin1("Command")));
-    cmd.setProperty(QLatin1String("program"), program);
-    cmd.setProperty(QLatin1String("arguments"), arguments);
-    cmd.setProperty(QLatin1String("workingDir"),
+    cmd.setProperty(StringConstants::classNameProperty(),
+                    engine->toScriptValue(StringConstants::commandType()));
+    cmd.setProperty(programProperty(), program);
+    cmd.setProperty(argumentsProperty(), arguments);
+    cmd.setProperty(workingDirProperty(),
                     engine->toScriptValue(commandPrototype->workingDir()));
-    cmd.setProperty(QLatin1String("maxExitCode"),
+    cmd.setProperty(maxExitCodeProperty(),
                     engine->toScriptValue(commandPrototype->maxExitCode()));
-    cmd.setProperty(QLatin1String("stdoutFilterFunction"),
+    cmd.setProperty(stdoutFilterFunctionProperty(),
                     engine->toScriptValue(commandPrototype->stdoutFilterFunction()));
-    cmd.setProperty(QLatin1String("stderrFilterFunction"),
+    cmd.setProperty(stderrFilterFunctionProperty(),
                     engine->toScriptValue(commandPrototype->stderrFilterFunction()));
-    cmd.setProperty(QLatin1String("responseFileThreshold"),
+    cmd.setProperty(responseFileThresholdProperty(),
                     engine->toScriptValue(commandPrototype->responseFileThreshold()));
-    cmd.setProperty(QLatin1String("responseFileArgumentIndex"),
+    cmd.setProperty(responseFileArgumentIndexProperty(),
                     engine->toScriptValue(commandPrototype->responseFileArgumentIndex()));
-    cmd.setProperty(QLatin1String("responseFileUsagePrefix"),
+    cmd.setProperty(responseFileUsagePrefixProperty(),
                     engine->toScriptValue(commandPrototype->responseFileUsagePrefix()));
-    cmd.setProperty(QLatin1String("stdoutFilePath"),
+    cmd.setProperty(stdoutFilePathProperty(),
                     engine->toScriptValue(commandPrototype->stdoutFilePath()));
-    cmd.setProperty(QLatin1String("stderrFilePath"),
+    cmd.setProperty(stderrFilePathProperty(),
                     engine->toScriptValue(commandPrototype->stderrFilePath()));
-    cmd.setProperty(QLatin1String("environment"),
+    cmd.setProperty(environmentProperty(),
                     engine->toScriptValue(commandPrototype->environment().toStringList()));
-    cmd.setProperty(QLatin1String("ignoreDryRun"),
+    cmd.setProperty(ignoreDryRunProperty(),
                     engine->toScriptValue(commandPrototype->ignoreDryRun()));
     return cmd;
 }
@@ -197,7 +228,7 @@ void ProcessCommand::setupForJavaScript(QScriptValue targetObject)
 {
     QBS_CHECK(targetObject.isObject());
     QScriptValue ctor = targetObject.engine()->newFunction(js_Command, 2);
-    targetObject.setProperty(QLatin1String("Command"), ctor);
+    targetObject.setProperty(StringConstants::commandType(), ctor);
 }
 
 ProcessCommand::ProcessCommand()
@@ -251,51 +282,41 @@ bool ProcessCommand::equals(const AbstractCommand *otherAbstractCommand) const
 void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
 {
     AbstractCommand::fillFromScriptValue(scriptValue, codeLocation);
-    m_program = scriptValue->property(QLatin1String("program")).toString();
-    m_arguments = scriptValue->property(QLatin1String("arguments")).toVariant().toStringList();
-    m_workingDir = scriptValue->property(QLatin1String("workingDirectory")).toString();
-    m_maxExitCode = scriptValue->property(QLatin1String("maxExitCode")).toInt32();
-    QScriptValue stdoutFilterFunction =
-            scriptValue->property(QLatin1String("stdoutFilterFunction")).toString();
-    if (stdoutFilterFunction.isFunction())
-        m_stdoutFilterFunction = QLatin1String("(") + stdoutFilterFunction.toString()
-                + QLatin1String(")()");
-    else
-        m_stdoutFilterFunction = stdoutFilterFunction.toString();
-    QScriptValue stderrFilterFunction =
-            scriptValue->property(QLatin1String("stderrFilterFunction")).toString();
-    if (stderrFilterFunction.isFunction())
-        m_stderrFilterFunction = QLatin1String("(") + stderrFilterFunction.toString()
-                + QLatin1String(")()");
-    else
-        m_stderrFilterFunction = stderrFilterFunction.toString();
-    m_relevantEnvVars = scriptValue->property(QLatin1String("relevantEnvironmentVariables"))
+    m_program = scriptValue->property(programProperty()).toString();
+    m_arguments = scriptValue->property(argumentsProperty()).toVariant().toStringList();
+    m_workingDir = scriptValue->property(workingDirProperty()).toString();
+    m_maxExitCode = scriptValue->property(maxExitCodeProperty()).toInt32();
+    const QScriptValue stdoutFilterFunction = scriptValue->property(stdoutFilterFunctionProperty());
+    m_stdoutFilterFunction = invokedSourceCode(stdoutFilterFunction);
+    const QScriptValue stderrFilterFunction = scriptValue->property(stderrFilterFunctionProperty());
+    m_stderrFilterFunction = invokedSourceCode(stderrFilterFunction);
+    m_relevantEnvVars = scriptValue->property(QStringLiteral("relevantEnvironmentVariables"))
             .toVariant().toStringList();
-    m_responseFileThreshold = scriptValue->property(QLatin1String("responseFileThreshold"))
+    m_responseFileThreshold = scriptValue->property(responseFileThresholdProperty())
             .toInt32();
-    m_responseFileArgumentIndex = scriptValue->property(QLatin1String("responseFileArgumentIndex"))
+    m_responseFileArgumentIndex = scriptValue->property(responseFileArgumentIndexProperty())
             .toInt32();
-    m_responseFileUsagePrefix = scriptValue->property(QLatin1String("responseFileUsagePrefix"))
+    m_responseFileUsagePrefix = scriptValue->property(responseFileUsagePrefixProperty())
             .toString();
-    QStringList envList = scriptValue->property(QLatin1String("environment")).toVariant()
+    QStringList envList = scriptValue->property(environmentProperty()).toVariant()
             .toStringList();
     getEnvironmentFromList(envList);
-    m_stdoutFilePath = scriptValue->property(QLatin1String("stdoutFilePath")).toString();
-    m_stderrFilePath = scriptValue->property(QLatin1String("stderrFilePath")).toString();
+    m_stdoutFilePath = scriptValue->property(stdoutFilePathProperty()).toString();
+    m_stderrFilePath = scriptValue->property(stderrFilePathProperty()).toString();
 
     m_predefinedProperties
-            << QLatin1String("program")
-            << QLatin1String("arguments")
-            << QLatin1String("workingDirectory")
-            << QLatin1String("maxExitCode")
-            << QLatin1String("stdoutFilterFunction")
-            << QLatin1String("stderrFilterFunction")
-            << QLatin1String("responseFileThreshold")
-            << QLatin1String("responseFileArgumentIndex")
-            << QLatin1String("responseFileUsagePrefix")
-            << QLatin1String("environment")
-            << QLatin1String("stdoutFilePath")
-            << QLatin1String("stderrFilePath");
+            << programProperty()
+            << argumentsProperty()
+            << workingDirProperty()
+            << maxExitCodeProperty()
+            << stdoutFilterFunctionProperty()
+            << stderrFilterFunctionProperty()
+            << responseFileThresholdProperty()
+            << responseFileArgumentIndexProperty()
+            << responseFileUsagePrefixProperty()
+            << environmentProperty()
+            << stdoutFilePathProperty()
+            << stderrFilePathProperty();
     applyCommandProperties(scriptValue);
 }
 
@@ -303,7 +324,7 @@ QStringList ProcessCommand::relevantEnvVars() const
 {
     QStringList vars = m_relevantEnvVars;
     if (!FileInfo::isAbsolute(program()))
-        vars << QLatin1String("PATH");
+        vars << StringConstants::pathEnvVar();
     return vars;
 }
 
@@ -346,7 +367,8 @@ void ProcessCommand::store(PersistentPool &pool) const
 static QString currentImportScopeName(QScriptContext *context)
 {
     for (; context; context = context->parentContext()) {
-        QScriptValue v = context->thisObject().property(QLatin1String("_qbs_importScopeName"));
+        QScriptValue v = context->thisObject()
+                .property(StringConstants::importScopeNamePropertyInternal());
         if (v.isString())
             return v.toString();
     }
@@ -359,16 +381,16 @@ static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine 
         return context->throwError(Tr::tr("JavaScriptCommand constructor called without new."));
     if (Q_UNLIKELY(context->argumentCount() != 0)) {
         return context->throwError(QScriptContext::SyntaxError,
-                                  QLatin1String("JavaScriptCommand c'tor doesn't take arguments."));
+                                  Tr::tr("JavaScriptCommand c'tor doesn't take arguments."));
     }
 
     static JavaScriptCommandPtr commandPrototype = JavaScriptCommand::create();
     QScriptValue cmd = js_CommandBase(context, engine);
-    cmd.setProperty(QLatin1String("className"),
-                    engine->toScriptValue(QString::fromLatin1("JavaScriptCommand")));
-    cmd.setProperty(QLatin1String("sourceCode"),
+    cmd.setProperty(StringConstants::classNameProperty(),
+                    engine->toScriptValue(StringConstants::javaScriptCommandType()));
+    cmd.setProperty(sourceCodeProperty(),
                     engine->toScriptValue(commandPrototype->sourceCode()));
-    cmd.setProperty(QLatin1String("_qbs_importScopeName"),
+    cmd.setProperty(StringConstants::importScopeNamePropertyInternal(),
                     engine->toScriptValue(currentImportScopeName(context)));
 
     return cmd;
@@ -378,7 +400,7 @@ void JavaScriptCommand::setupForJavaScript(QScriptValue targetObject)
 {
     QBS_CHECK(targetObject.isObject());
     QScriptValue ctor = targetObject.engine()->newFunction(js_JavaScriptCommand, 0);
-    targetObject.setProperty(QLatin1String("JavaScriptCommand"), ctor);
+    targetObject.setProperty(StringConstants::javaScriptCommandType(), ctor);
 }
 
 JavaScriptCommand::JavaScriptCommand()
@@ -398,18 +420,16 @@ void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, con
 {
     AbstractCommand::fillFromScriptValue(scriptValue, codeLocation);
 
-    const QScriptValue importScope = scriptValue->property(QLatin1String("_qbs_importScopeName"));
+    const QScriptValue importScope = scriptValue->property(
+                StringConstants::importScopeNamePropertyInternal());
     if (importScope.isString())
         m_scopeName = importScope.toString();
 
-    QScriptValue sourceCode = scriptValue->property(QLatin1String("sourceCode"));
-    if (sourceCode.isFunction())
-        m_sourceCode = QLatin1String("(") + sourceCode.toString() + QLatin1String(")()");
-    else
-        m_sourceCode = sourceCode.toString();
+    const QScriptValue sourceCode = scriptValue->property(sourceCodeProperty());
+    m_sourceCode = invokedSourceCode(sourceCode);
 
-    m_predefinedProperties << QLatin1String("className") << QLatin1String("sourceCode")
-                           << QLatin1String("_qbs_importScopeName");
+    m_predefinedProperties << StringConstants::classNameProperty() << sourceCodeProperty()
+                           << StringConstants::importScopeNamePropertyInternal();
     applyCommandProperties(scriptValue);
 }
 

@@ -38,6 +38,7 @@
 ****************************************************************************/
 #include "installoptions.h"
 #include "language/language.h"
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qshareddata.h>
@@ -68,11 +69,11 @@ QString effectiveInstallRoot(const InstallOptions &options, const TopLevelProjec
         return installRoot;
 
     if (options.installIntoSysroot()) {
-        return project->buildConfiguration().value(QLatin1String("qbs")).toMap()
+        return project->buildConfiguration().value(StringConstants::qbsModule()).toMap()
                 .value(QLatin1String("sysroot")).toString();
     }
-    return project->buildConfiguration().value(QLatin1String("qbs")).toMap()
-            .value(QLatin1String("installRoot")).toString();
+    return project->buildConfiguration().value(StringConstants::qbsModule()).toMap()
+            .value(StringConstants::installRootProperty()).toString();
 }
 
 } // namespace Internal

@@ -62,6 +62,7 @@
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qcryptographichash.h>
 #include <QtCore/qdir.h>
@@ -351,7 +352,7 @@ QStringList ResolvedModule::argumentNamesForSetupBuildEnv()
 {
     static const QStringList argNames = BuiltinDeclarations::instance()
             .argumentNamesForScriptFunction(ItemType::Module,
-                                            QStringLiteral("setupBuildEnvironment"));
+                                            StringConstants::setupBuildEnvironmentProperty());
     return argNames;
 }
 
@@ -359,7 +360,7 @@ QStringList ResolvedModule::argumentNamesForSetupRunEnv()
 {
     static const QStringList argNames = BuiltinDeclarations::instance()
             .argumentNamesForScriptFunction(ItemType::Module,
-                                            QStringLiteral("setupRunEnvironment"));
+                                            StringConstants::setupRunEnvironmentProperty());
     return argNames;
 }
 
@@ -398,14 +399,15 @@ RulePtr Rule::clone() const
 QStringList Rule::argumentNamesForOutputArtifacts()
 {
     static const QStringList argNames = BuiltinDeclarations::instance()
-            .argumentNamesForScriptFunction(ItemType::Rule, QStringLiteral("outputArtifacts"));
+            .argumentNamesForScriptFunction(ItemType::Rule,
+                                            StringConstants::outputArtifactsProperty());
     return argNames;
 }
 
 QStringList Rule::argumentNamesForPrepare()
 {
     static const QStringList argNames = BuiltinDeclarations::instance()
-            .argumentNamesForScriptFunction(ItemType::Rule, QStringLiteral("prepare"));
+            .argumentNamesForScriptFunction(ItemType::Rule, StringConstants::prepareProperty());
     return argNames;
 }
 
@@ -742,7 +744,7 @@ QString ResolvedProduct::deriveBuildDirectoryName(const QString &name,
 
 QString ResolvedProduct::buildDirectory() const
 {
-    return productProperties.value(QLatin1String("buildDirectory")).toString();
+    return productProperties.value(StringConstants::buildDirectoryProperty()).toString();
 }
 
 bool ResolvedProduct::isInParentProject(const ResolvedProductConstPtr &other) const
@@ -757,7 +759,7 @@ bool ResolvedProduct::isInParentProject(const ResolvedProductConstPtr &other) co
 
 bool ResolvedProduct::builtByDefault() const
 {
-    return productProperties.value(QLatin1String("builtByDefault"), true).toBool();
+    return productProperties.value(StringConstants::builtByDefaultProperty(), true).toBool();
 }
 
 void ResolvedProduct::cacheExecutablePath(const QString &origFilePath, const QString &fullFilePath)
@@ -860,9 +862,9 @@ TopLevelProject::~TopLevelProject()
 
 QString TopLevelProject::deriveId(const QVariantMap &config)
 {
-    const QVariantMap qbsProperties = config.value(QLatin1String("qbs")).toMap();
-    const QString configurationName = qbsProperties.value(QLatin1String("configurationName"))
-            .toString();
+    const QVariantMap qbsProperties = config.value(StringConstants::qbsModule()).toMap();
+    const QString configurationName = qbsProperties.value(
+                StringConstants::configurationNameProperty()).toString();
     return configurationName;
 }
 
@@ -879,7 +881,7 @@ void TopLevelProject::setBuildConfiguration(const QVariantMap &config)
 
 QString TopLevelProject::profile() const
 {
-    return projectProperties().value(QLatin1String("profile")).toString();
+    return projectProperties().value(StringConstants::profileProperty()).toString();
 }
 
 QString TopLevelProject::buildGraphFilePath() const
@@ -990,7 +992,7 @@ Set<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
 {
     Set<QString> files;
     QString expandedPrefix = group->prefix;
-    if (expandedPrefix.startsWith(QLatin1String("~/")))
+    if (expandedPrefix.startsWith(StringConstants::tildeSlash()))
         expandedPrefix.replace(0, 1, QDir::homePath());
     for (QString pattern : patterns) {
         pattern.prepend(expandedPrefix);
@@ -1030,11 +1032,11 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
     bool recursive = false;
     QString part = changed_parts.takeFirst();
 
-    while (part == QLatin1String("**")) {
+    while (part == QStringLiteral("**")) {
         recursive = true;
 
         if (changed_parts.empty()) {
-            part = QLatin1String("*");
+            part = StringConstants::star();
             break;
         }
 
@@ -1054,7 +1056,7 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
 
     if (isDir && !FileInfo::isPattern(filePattern))
         itFilters |= QDir::Hidden;
-    if (filePattern != QLatin1String("..") && filePattern != QLatin1String("."))
+    if (filePattern != StringConstants::dotDot() && filePattern != StringConstants::dot())
         itFilters |= QDir::NoDotAndDotDot;
 
     QDirIterator it(baseDir, QStringList(filePattern), itFilters, itFlags);

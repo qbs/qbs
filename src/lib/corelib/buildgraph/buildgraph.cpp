@@ -60,6 +60,7 @@
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
@@ -69,12 +70,16 @@
 namespace qbs {
 namespace Internal {
 
+static QString artifactsProperty() { return QStringLiteral("artifacts"); }
+static QString dependenciesProperty() { return QStringLiteral("dependencies"); }
+static QString parametersProperty() { return QStringLiteral("parameters"); }
+
 static QScriptValue setupProjectScriptValue(ScriptEngine *engine,
         const ResolvedProjectConstPtr &project, PrepareScriptObserver *observer)
 {
     QScriptValue obj = engine->newObject();
-    obj.setProperty(QLatin1String("filePath"), project->location.filePath());
-    obj.setProperty(QLatin1String("path"), FileInfo::path(project->location.filePath()));
+    obj.setProperty(StringConstants::filePathProperty(), project->location.filePath());
+    obj.setProperty(StringConstants::pathProperty(), FileInfo::path(project->location.filePath()));
     const QVariantMap &projectProperties = project->projectProperties();
     for (QVariantMap::const_iterator it = projectProperties.begin();
             it != projectProperties.end(); ++it) {
@@ -165,7 +170,7 @@ public:
     {
         QScriptValue depfunc = m_engine->newFunction(&js_productDependencies, product);
         setObserver(depfunc, observer);
-        productScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
+        productScriptValue.setProperty(dependenciesProperty(), depfunc,
                                        QScriptValue::ReadOnly | QScriptValue::Undeletable
                                        | QScriptValue::PropertyGetter);
     }
@@ -187,7 +192,7 @@ private:
             setupProductScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency.get(), 0);
 
             const QVariantMap &params = product->dependencyParameters.value(dependency);
-            obj.setProperty(m_parametersKey, params.empty()
+            obj.setProperty(parametersProperty(), params.empty()
                             ? engine->newObject() : toScriptValue(engine, observer, params,
                                                                   dependency->name));
 
@@ -199,7 +204,7 @@ private:
             QScriptValue obj = engine->newObject();
             setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency.get());
             const QVariantMap &params = product->moduleParameters.value(dependency);
-            obj.setProperty(m_parametersKey, params.empty()
+            obj.setProperty(parametersProperty(), params.empty()
                             ? engine->newObject() : toScriptValue(engine, observer, params,
                                                                   dependency->name));
 
@@ -216,12 +221,12 @@ private:
         PrepareScriptObserver * const observer = getObserver(ctx->callee());
         for (const QString &depName : qAsConst(module->moduleDependencies)) {
             QScriptValue obj = engine->newObject();
-            obj.setProperty(QLatin1String("name"), depName);
+            obj.setProperty(StringConstants::nameProperty(), depName);
             for (const ResolvedModuleConstPtr &dep : qAsConst(module->product->modules)) {
                 if (dep->name == depName) {
                     setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj, dep.get());
                     const QVariantMap &params = module->product->moduleParameters.value(dep);
-                    obj.setProperty(m_parametersKey, params.empty()
+                    obj.setProperty(parametersProperty(), params.empty()
                                     ? engine->newObject() : toScriptValue(engine, observer, params,
                                                                           dep->name));
                     result.setProperty(idx++, obj);
@@ -245,11 +250,11 @@ private:
         }
         QScriptValue depfunc = engine->newFunction<const ResolvedModule *>(&js_moduleDependencies,
                                                                            module);
-        moduleScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
+        moduleScriptValue.setProperty(dependenciesProperty(), depfunc,
                                       QScriptValue::ReadOnly | QScriptValue::Undeletable
                                       | QScriptValue::PropertyGetter);
         QScriptValue artifactsFunc = engine->newFunction(&js_artifacts<ResolvedModule>, module);
-        moduleScriptValue.setProperty(QStringLiteral("artifacts"), artifactsFunc,
+        moduleScriptValue.setProperty(artifactsProperty(), artifactsFunc,
                                        QScriptValue::ReadOnly | QScriptValue::Undeletable
                                        | QScriptValue::PropertyGetter);
     }
@@ -292,11 +297,8 @@ private:
         return obj;
     }
 
-    static const QString m_parametersKey;
     ScriptEngine *m_engine;
 };
-
-const QString DependenciesFunction::m_parametersKey = QStringLiteral("parameters");
 
 static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productScriptValue,
                                     const ResolvedProduct *product,
@@ -305,7 +307,7 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
     ModuleProperties::init(productScriptValue, product);
 
     QScriptValue artifactsFunc = engine->newFunction(&js_artifacts<ResolvedProduct>, product);
-    productScriptValue.setProperty(QStringLiteral("artifacts"), artifactsFunc,
+    productScriptValue.setProperty(artifactsProperty(), artifactsFunc,
                                    QScriptValue::ReadOnly | QScriptValue::Undeletable
                                    | QScriptValue::PropertyGetter);
 
@@ -332,7 +334,7 @@ void setupScriptEngineForProduct(ScriptEngine *engine, ResolvedProduct *product,
 {
     QScriptValue projectScriptValue = setupProjectScriptValue(engine, product->project.lock(),
                                                               observer);
-    targetObject.setProperty(QLatin1String("project"), projectScriptValue);
+    targetObject.setProperty(StringConstants::projectVar(), projectScriptValue);
     if (observer)
         observer->setProjectObjectId(projectScriptValue.objectId());
 
@@ -343,10 +345,10 @@ void setupScriptEngineForProduct(ScriptEngine *engine, ResolvedProduct *product,
     }
     QScriptValue productScriptValue = engine->newObject();
     setupProductScriptValue(engine, productScriptValue, product, observer);
-    targetObject.setProperty(QLatin1String("product"), productScriptValue);
+    targetObject.setProperty(StringConstants::productVar(), productScriptValue);
 
     // If the Rule is in a Module, set up the 'moduleName' property
-    productScriptValue.setProperty(QLatin1String("moduleName"),
+    productScriptValue.setProperty(StringConstants::moduleNameProperty(),
             module->name.isEmpty() ? QScriptValue() : module->name);
 }
 

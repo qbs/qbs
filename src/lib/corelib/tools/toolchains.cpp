@@ -38,20 +38,32 @@
 ****************************************************************************/
 
 #include "toolchains.h"
+
+#include "stringconstants.h"
+
 #include <QtCore/qmap.h>
 
 #include <set>
 
 namespace qbs {
 
+namespace Internal {
+static const QString clangToolchain() { return QStringLiteral("clang"); }
+static const QString gccToolchain() { return QStringLiteral("gcc"); }
+static const QString llvmToolchain() { return QStringLiteral("llvm"); }
+static const QString mingwToolchain() { return QStringLiteral("mingw"); }
+}
+
+using namespace Internal;
+
 QStringList canonicalToolchain(const QStringList &toolchain)
 {
     static const QStringList knownToolchains {
-        QStringLiteral("xcode"),
-        QStringLiteral("clang"),
-        QStringLiteral("llvm"),
-        QStringLiteral("mingw"),
-        QStringLiteral("gcc"),
+        StringConstants::xcode(),
+        clangToolchain(),
+        llvmToolchain(),
+        mingwToolchain(),
+        gccToolchain(),
         QStringLiteral("msvc")
     };
 
@@ -91,12 +103,12 @@ QStringList canonicalToolchain(const QString &name)
 {
     const QString &toolchainName = name.toLower();
     QStringList toolchains(toolchainName);
-    if (toolchainName == QLatin1String("xcode"))
-        toolchains << canonicalToolchain(QLatin1String("clang"));
-    else if (toolchainName == QLatin1String("clang"))
-        toolchains << canonicalToolchain(QLatin1String("llvm"));
-    else if (toolchainName == QLatin1String("llvm") ||
-             toolchainName == QLatin1String("mingw")) {
+    if (toolchainName == StringConstants::xcode())
+        toolchains << canonicalToolchain(clangToolchain());
+    else if (toolchainName == clangToolchain())
+        toolchains << canonicalToolchain(llvmToolchain());
+    else if (toolchainName == llvmToolchain() ||
+             toolchainName == mingwToolchain()) {
         toolchains << canonicalToolchain(QLatin1String("gcc"));
     }
     return toolchains;

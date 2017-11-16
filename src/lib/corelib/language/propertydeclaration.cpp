@@ -41,6 +41,8 @@
 
 #include "deprecationinfo.h"
 
+#include <tools/stringconstants.h>
+
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstringlist.h>
 
@@ -107,21 +109,29 @@ bool PropertyDeclaration::isScalar() const
     return d->type != PathList && d->type != StringList;
 }
 
+static QString boolString() { return QStringLiteral("bool"); }
+static QString intString() { return QStringLiteral("int"); }
+static QString pathListString() { return QStringLiteral("pathList"); }
+static QString stringString() { return QStringLiteral("string"); }
+static QString stringListString() { return QStringLiteral("stringList"); }
+static QString varString() { return QStringLiteral("var"); }
+static QString variantString() { return QStringLiteral("variant"); }
+
 PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QString &typeName)
 {
-    if (typeName == QLatin1String("bool"))
+    if (typeName == boolString())
         return PropertyDeclaration::Boolean;
-    if (typeName == QLatin1String("int"))
+    if (typeName == intString())
         return PropertyDeclaration::Integer;
-    if (typeName == QLatin1String("path"))
+    if (typeName == StringConstants::pathType())
         return PropertyDeclaration::Path;
-    if (typeName == QLatin1String("pathList"))
+    if (typeName == pathListString())
         return PropertyDeclaration::PathList;
-    if (typeName == QLatin1String("string"))
+    if (typeName == stringString())
         return PropertyDeclaration::String;
-    if (typeName == QLatin1String("stringList"))
+    if (typeName == stringListString())
         return PropertyDeclaration::StringList;
-    if (typeName == QLatin1String("var") || typeName == QLatin1String("variant"))
+    if (typeName == varString() || typeName == variantString())
         return PropertyDeclaration::Variant;
     return PropertyDeclaration::UnknownType;
 }
@@ -129,13 +139,13 @@ PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QStr
 QString PropertyDeclaration::typeString() const
 {
     switch (type()) {
-    case Boolean: return QLatin1String("bool");
-    case Integer: return QLatin1String("int");
-    case Path: return QLatin1String("path");
-    case PathList: return QLatin1String("pathList");
-    case String: return QLatin1String("string");
-    case StringList: return QLatin1String("stringList");
-    case Variant: return QLatin1String("variant");
+    case Boolean: return boolString();
+    case Integer: return intString();
+    case Path: return StringConstants::pathType();
+    case PathList: return pathListString();
+    case String: return stringString();
+    case StringList: return stringListString();
+    case Variant: return variantString();
     case UnknownType: return QLatin1String("unknown");
     }
     Q_UNREACHABLE(); // For stupid compilers.

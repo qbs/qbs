@@ -65,6 +65,7 @@
 #include <tools/scripttools.h>
 #include <tools/settings.h>
 #include <tools/stlutils.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
@@ -78,6 +79,11 @@
 
 namespace qbs {
 namespace Internal {
+
+static QString multiplexConfigurationIdPropertyInternal()
+{
+    return QStringLiteral("__multiplexConfigIdForModulePrototypes");
+}
 
 static void handlePropertyError(const ErrorInfo &error, const SetupProjectParameters &params,
                                 Logger &logger)
@@ -147,7 +153,7 @@ public:
                     continue;
                 QBS_CHECK(!dep.name.isEmpty());
                 const auto &deps = productsMap.value(dep.name);
-                if (dep.profile == QLatin1String("*")) {
+                if (dep.profile == StringConstants::star()) {
                     QBS_CHECK(!deps.empty());
                     for (ProductContext *depProduct : deps) {
                         if (depProduct == productContext)
@@ -295,9 +301,10 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_settings.reset(new Settings(parameters.settingsDirectory()));
 
     for (const QString &key : m_parameters.overriddenValues().keys()) {
-        static const QStringList prefixes({ QLatin1String("project"), QLatin1String("projects"),
+        static const QStringList prefixes({ StringConstants::projectPrefix(),
+                                            QLatin1String("projects"),
                                             QLatin1String("products"), QLatin1String("modules"),
-                                            QLatin1String("qbs")});
+                                            StringConstants::qbsModule()});
         bool ok = false;
         for (const auto &prefix : prefixes) {
             if (key.startsWith(prefix + QLatin1Char('.'))) {
@@ -323,8 +330,8 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_reader->setPool(m_pool);
 
     const QStringList topLevelSearchPaths = parameters.finalBuildConfigurationTree()
-            .value(QLatin1String("project")).toMap()
-            .value(QLatin1String("qbsSearchPaths")).toStringList();
+            .value(StringConstants::projectPrefix()).toMap()
+            .value(StringConstants::qbsSearchPathsProperty()).toStringList();
     Item *root;
     {
         SearchPathsManager searchPathsManager(m_reader, topLevelSearchPaths);
@@ -346,10 +353,11 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
 
     const QString buildDirectory = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(),
             TopLevelProject::deriveId(parameters.finalBuildConfigurationTree()));
-    root->setProperty(QLatin1String("sourceDirectory"),
+    root->setProperty(StringConstants::sourceDirectoryProperty(),
                       VariantValue::create(QFileInfo(root->file()->filePath()).absolutePath()));
-    root->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDirectory));
-    root->setProperty(QLatin1String("profile"),
+    root->setProperty(StringConstants::buildDirectoryProperty(),
+                      VariantValue::create(buildDirectory));
+    root->setProperty(StringConstants::profileProperty(),
                       VariantValue::create(m_parameters.topLevelProfile()));
     handleTopLevelProject(&result, root, buildDirectory,
                   Set<QString>() << QDir::cleanPath(parameters.projectFilePath()));
@@ -571,16 +579,17 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     ItemValuePtr itemValue = ItemValue::create(projectItem);
     projectContext.scope = Item::create(m_pool, ItemType::Scope);
     projectContext.scope->setFile(projectItem->file());
-    projectContext.scope->setProperty(QLatin1String("project"), itemValue);
+    projectContext.scope->setProperty(StringConstants::projectVar(), itemValue);
     ProductContext dummyProductContext;
     dummyProductContext.project = &projectContext;
     dummyProductContext.moduleProperties = m_parameters.finalBuildConfigurationTree();
     projectItem->addModule(loadBaseModule(&dummyProductContext, projectItem));
-    overrideItemProperties(projectItem, QLatin1String("project"),
+    overrideItemProperties(projectItem, StringConstants::projectPrefix(),
                            m_parameters.overriddenValuesTree());
-    const QString projectName = m_evaluator->stringValue(projectItem, QLatin1String("name"));
+    const QString projectName = m_evaluator->stringValue(projectItem,
+                                                         StringConstants::nameProperty());
     if (!projectName.isEmpty())
-        overrideItemProperties(projectItem, QLatin1String("projects.") + projectName,
+        overrideItemProperties(projectItem, QStringLiteral("projects.") + projectName,
                                m_parameters.overriddenValuesTree());
     if (!checkItemCondition(projectItem)) {
         delete p;
@@ -593,7 +602,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     projectContext.item = projectItem;
 
     const QString minVersionStr
-            = m_evaluator->stringValue(projectItem, QLatin1String("minimumQbsVersion"),
+            = m_evaluator->stringValue(projectItem, StringConstants::minimumQbsVersionProperty(),
                                        QLatin1String("1.3.0"));
     const Version minVersion = Version::fromString(minVersionStr);
     if (!minVersion.isValid()) {
@@ -640,9 +649,10 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         }
     }
 
-    const QStringList refs = m_evaluator->stringListValue(projectItem, QLatin1String("references"));
+    const QStringList refs = m_evaluator->stringListValue(
+                projectItem, StringConstants::referencesProperty());
     const CodeLocation referencingLocation
-            = projectItem->property(QLatin1String("references"))->location();
+            = projectItem->property(StringConstants::referencesProperty())->location();
     QList<Item *> additionalProjectChildren;
     for (const QString &filePath : refs) {
         try {
@@ -729,18 +739,18 @@ ModuleLoader::MultiplexTable ModuleLoader::combine(const MultiplexTable &table,
 ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem,
                                                                Item *qbsModuleItem)
 {
-    const QString mpmKey = QLatin1String("multiplexMap");
-    const QString mbqpKey = QLatin1String("multiplexByQbsProperties");
-    const QString mptypeKey = QLatin1String("multiplexedType");
-    const QString aggregateKey = QLatin1String("aggregate");
+    static const QString mpmKey = QLatin1String("multiplexMap");
 
     const QScriptValue multiplexMap = m_evaluator->value(qbsModuleItem, mpmKey);
-    QStringList multiplexByQbsProperties = m_evaluator->stringListValue(productItem, mbqpKey);
+    QStringList multiplexByQbsProperties = m_evaluator->stringListValue(
+                productItem, StringConstants::multiplexByQbsPropertiesProperty());
 
     MultiplexInfo multiplexInfo;
-    multiplexInfo.aggregate = m_evaluator->boolValue(productItem, aggregateKey);
+    multiplexInfo.aggregate = m_evaluator->boolValue(
+                productItem, StringConstants::aggregateProperty());
 
-    const QString multiplexedType = m_evaluator->stringValue(productItem, mptypeKey);
+    const QString multiplexedType = m_evaluator->stringValue(
+                productItem, StringConstants::multiplexedTypeProperty());
     if (!multiplexedType.isEmpty())
         multiplexInfo.multiplexedType = VariantValue::create(multiplexedType);
 
@@ -755,7 +765,7 @@ ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem
         if (!arr.isArray())
             throw ErrorInfo(Tr::tr("Property '%1' must be an array.").arg(key));
 
-        const quint32 arrlen = arr.property(QLatin1String("length")).toUInt32();
+        const quint32 arrlen = arr.property(StringConstants::lengthProperty()).toUInt32();
         if (arrlen == 0)
             continue;
 
@@ -773,7 +783,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
 {
     // Temporarily attach the qbs module here, in case we need to access one of its properties
     // to evaluate properties needed for multiplexing.
-    const QString qbsKey = QLatin1String("qbs");
+    const QString &qbsKey = StringConstants::qbsModule();
     ValuePtr qbsValue = productItem->property(qbsKey); // Retrieve now to restore later.
     if (qbsValue)
         qbsValue = qbsValue->clone();
@@ -782,13 +792,13 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
 
     // Overriding the product item properties must be done here already, because multiplexing
     // properties might depend on product properties.
-    const QString nameKey = QLatin1String("name");
+    const QString &nameKey = StringConstants::nameProperty();
     QString productName = m_evaluator->stringValue(productItem, nameKey);
     if (productName.isEmpty()) {
         productName = FileInfo::completeBaseName(productItem->file()->filePath());
         productItem->setProperty(nameKey, VariantValue::create(productName));
     }
-    overrideItemProperties(productItem, QLatin1String("products.") + productName,
+    overrideItemProperties(productItem, QStringLiteral("products.") + productName,
                            m_parameters.overriddenValuesTree());
 
     const MultiplexInfo &multiplexInfo = extractMultiplexInfo(productItem, qbsModule.item);
@@ -802,13 +812,10 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     productItem->removeModules();
 
     if (multiplexInfo.table.size() > 1) {
-        const QString multiplexedKey = QStringLiteral("multiplexed");
         const VariantValuePtr trueValue = VariantValue::create(true);
-        productItem->setProperty(multiplexedKey, trueValue);
+        productItem->setProperty(StringConstants::multiplexedProperty(), trueValue);
     }
 
-    const QString profileKey = QLatin1String("profile");
-    const QString multiplexConfigurationIdKey = QStringLiteral("multiplexConfigurationId");
     VariantValuePtr productNameValue = VariantValue::create(productName);
 
     Item *aggregator = multiplexInfo.aggregate ? productItem->clone() : nullptr;
@@ -825,14 +832,15 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         const QString multiplexConfigurationId = multiplexInfo.toIdString(row);
         const VariantValuePtr multiplexConfigurationIdValue
             = VariantValue::create(multiplexConfigurationId);
-        item->setProperty(QStringLiteral("__multiplexConfigIdForModulePrototypes"),
+        item->setProperty(multiplexConfigurationIdPropertyInternal(),
                           multiplexConfigurationIdValue);
         if (multiplexInfo.table.size() > 1 || aggregator) {
             multiplexConfigurationIdValues.push_back(multiplexConfigurationIdValue);
-            item->setProperty(multiplexConfigurationIdKey, multiplexConfigurationIdValue);
+            item->setProperty(StringConstants::multiplexConfigurationIdProperty(),
+                              multiplexConfigurationIdValue);
         }
         if (multiplexInfo.multiplexedType)
-            item->setProperty(QStringLiteral("type"), multiplexInfo.multiplexedType);
+            item->setProperty(StringConstants::typeProperty(), multiplexInfo.multiplexedType);
         for (size_t column = 0; column < mprow.size(); ++column) {
             Item *qbsItem = moduleInstanceItem(item, qbsKey);
             const QString &propertyName = multiplexInfo.properties.at(column);
@@ -840,8 +848,8 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
             qbsItem->setProperty(propertyName, mpvalue);
 
             // Backward compatibility
-            if (propertyName == profileKey)
-                item->setProperty(profileKey, mpvalue);
+            if (propertyName == StringConstants::profileProperty())
+                item->setProperty(StringConstants::profileProperty(), mpvalue);
         }
     }
 
@@ -852,8 +860,8 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         for (const auto &v : multiplexConfigurationIdValues) {
             Item *dependsItem = Item::create(aggregator->pool(), ItemType::Depends);
             dependsItem->setProperty(nameKey, productNameValue);
-            dependsItem->setProperty(multiplexConfigurationIdKey, v);
-            dependsItem->setProperty(QStringLiteral("profiles"),
+            dependsItem->setProperty(StringConstants::multiplexConfigurationIdProperty(), v);
+            dependsItem->setProperty(StringConstants::profilesProperty(),
                                      VariantValue::create(QStringList()));
             Item::addChild(aggregator, dependsItem);
         }
@@ -872,12 +880,10 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const TopLevelProjectContex
 
 void ModuleLoader::adjustDependenciesForMultiplexing(const ModuleLoader::ProductContext &product)
 {
-    static const QString multiplexConfigurationIdKey = QStringLiteral("multiplexConfigurationId");
-    static const QString multiplexConfigurationIdsKey = QStringLiteral("multiplexConfigurationIds");
     for (Item *dependsItem : product.item->children()) {
         if (dependsItem->type() != ItemType::Depends)
             continue;
-        const QString name = m_evaluator->stringValue(dependsItem, QStringLiteral("name"));
+        const QString name = m_evaluator->stringValue(dependsItem, StringConstants::nameProperty());
         const bool productIsMultiplexed = !product.multiplexConfigurationId.isEmpty();
         if (name == product.name) {
             QBS_CHECK(!productIsMultiplexed); // This product must be an aggregator.
@@ -915,15 +921,17 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ModuleLoader::Product
         for (const ProductContext *dependency : dependencies) {
             const QString depMultiplexId = dependency->multiplexConfigurationId;
             if (productIsMultiplexed) { // (2)
-                dependsItem->setProperty(multiplexConfigurationIdsKey,
-                                         product.item->property(multiplexConfigurationIdKey));
+                const ValuePtr &multiplexId = product.item->property(
+                            StringConstants::multiplexConfigurationIdProperty());
+                dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
+                                         multiplexId);
                 break;
             }
             // (3b)
             multiplexIds << depMultiplexId;
         }
         if (!multiplexIds.empty()) {
-            dependsItem->setProperty(multiplexConfigurationIdsKey,
+            dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
                                      VariantValue::create(multiplexIds));
         }
     }
@@ -937,15 +945,15 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     ProductContext productContext;
     productContext.item = productItem;
     productContext.project = projectContext;
-    productContext.name = m_evaluator->stringValue(productItem, QLatin1String("name"));
+    productContext.name = m_evaluator->stringValue(productItem, StringConstants::nameProperty());
     QBS_CHECK(!productContext.name.isEmpty());
     bool profilePropertySet;
-    productContext.profileName = m_evaluator->stringValue(productItem, QLatin1String("profile"),
-                                                         QString(), &profilePropertySet);
-    productContext.multiplexConfigurationId
-            = m_evaluator->stringValue(productItem, QLatin1String("multiplexConfigurationId"));
+    productContext.profileName = m_evaluator->stringValue(
+                productItem, StringConstants::profileProperty(), QString(), &profilePropertySet);
+    productContext.multiplexConfigurationId = m_evaluator->stringValue(
+                productItem, StringConstants::multiplexConfigurationIdProperty());
     productContext.multiplexConfigIdForModulePrototypes = m_evaluator->stringValue(
-                productItem, QStringLiteral("__multiplexConfigIdForModulePrototypes"));
+                productItem, multiplexConfigurationIdPropertyInternal());
     QBS_CHECK(profilePropertySet);
     const auto it = projectContext->result->profileConfigs.constFind(productContext.profileName);
     if (it == projectContext->result->profileConfigs.constEnd()) {
@@ -969,7 +977,7 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
 
     ItemValuePtr itemValue = ItemValue::create(productItem);
     productContext.scope = Item::create(m_pool, ItemType::Scope);
-    productContext.scope->setProperty(QLatin1String("product"), itemValue);
+    productContext.scope->setProperty(StringConstants::productVar(), itemValue);
     productContext.scope->setFile(productItem->file());
     productContext.scope->setScope(productContext.project->scope);
 
@@ -1081,7 +1089,8 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
                                                        module.name.toString()));
                 }
                 const Version moduleVersion = Version::fromString(
-                            m_evaluator->stringValue(module.item, QLatin1String("version")));
+                            m_evaluator->stringValue(module.item,
+                                                     StringConstants::versionProperty()));
                 if (moduleVersion < module.versionRange.minimum) {
                     throw ErrorInfo(Tr::tr("Module '%1' has version %2, but it needs to be "
                             "at least %3.").arg(module.name.toString(),
@@ -1111,7 +1120,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
         if (!module.item->isPresentModule())
             continue;
         try {
-            m_evaluator->boolValue(module.item, QLatin1String("validate"));
+            m_evaluator->boolValue(module.item, StringConstants::validateProperty());
         } catch (const ErrorInfo &error) {
             handleModuleSetupError(productContext, module, error);
             if (productContext->info.delayedError.hasError())
@@ -1238,9 +1247,11 @@ void ModuleLoader::initProductProperties(const ProductContext &product)
     QString buildDir = ResolvedProduct::deriveBuildDirectoryName(product.name,
                                                                  product.multiplexConfigurationId);
     buildDir = FileInfo::resolvePath(product.project->topLevelProject->buildDirectory, buildDir);
-    product.item->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDir));
+    product.item->setProperty(StringConstants::buildDirectoryProperty(),
+                              VariantValue::create(buildDir));
     const QString sourceDir = QFileInfo(product.item->file()->filePath()).absolutePath();
-    product.item->setProperty(QLatin1String("sourceDirectory"), VariantValue::create(sourceDir));
+    product.item->setProperty(StringConstants::sourceDirectoryProperty(),
+                              VariantValue::create(sourceDir));
 }
 
 void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext, Item *projectItem,
@@ -1262,7 +1273,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
     try {
         const QString projectFileDirPath = FileInfo::path(projectItem->file()->filePath());
         const QString relativeFilePath
-                = m_evaluator->stringValue(projectItem, QLatin1String("filePath"));
+                = m_evaluator->stringValue(projectItem, StringConstants::filePathProperty());
         subProjectFilePath = FileInfo::resolvePath(projectFileDirPath, relativeFilePath);
         if (referencedFilePaths.contains(subProjectFilePath))
             throw ErrorInfo(Tr::tr("Cycle detected while loading subproject file '%1'.")
@@ -1276,8 +1287,8 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
     }
 
     loadedItem = wrapInProjectIfNecessary(loadedItem);
-    const bool inheritProperties
-            = m_evaluator->boolValue(projectItem, QLatin1String("inheritProperties"), true);
+    const bool inheritProperties = m_evaluator->boolValue(
+                projectItem, StringConstants::inheritPropertiesProperty(), true);
 
     if (inheritProperties)
         copyProperties(projectItem->parent(), loadedItem);
@@ -1304,7 +1315,8 @@ QList<Item *> ModuleLoader::loadReferencedFile(const QString &relativePath,
                                                      relativePath);
     if (FileInfo(absReferencePath).isDir()) {
         QString qbsFilePath;
-        QDirIterator dit(absReferencePath, QStringList(QLatin1String("*.qbs")));
+
+        QDirIterator dit(absReferencePath, StringConstants::qbsFileWildcards());
         while (dit.hasNext()) {
             if (!qbsFilePath.isEmpty()) {
                 throw ErrorInfo(Tr::tr("Referenced directory '%1' contains more than one "
@@ -1371,14 +1383,15 @@ void ModuleLoader::handleAllPropertyOptionsItems(Item *item)
 
 void ModuleLoader::handlePropertyOptions(Item *optionsItem)
 {
-    const QString name = m_evaluator->stringValue(optionsItem, QLatin1String("name"));
+    const QString name = m_evaluator->stringValue(optionsItem, StringConstants::nameProperty());
     if (name.isEmpty()) {
         throw ErrorInfo(Tr::tr("PropertyOptions item needs a name property"),
                         optionsItem->location());
     }
-    const QString description = m_evaluator->stringValue(optionsItem, QLatin1String("description"));
+    const QString description = m_evaluator->stringValue(
+                optionsItem, StringConstants::descriptionProperty());
     const auto removalVersion = Version::fromString(m_evaluator->stringValue(optionsItem,
-            QLatin1String("removalVersion")));
+            StringConstants::removalVersionProperty()));
     PropertyDeclaration decl = optionsItem->parent()->propertyDeclaration(name);
     if (!decl.isValid()) {
         decl.setName(name);
@@ -1444,8 +1457,8 @@ bool ModuleLoader::checkExportItemCondition(Item *exportItem, const ProductConte
             QBS_CHECK(productContext.item->file());
             scope->setFile(productContext.item->file());
             scope->setScope(productContext.item);
-            productContext.project->scope->copyProperty(QLatin1String("project"), scope);
-            productContext.scope->copyProperty(QLatin1String("product"), scope);
+            productContext.project->scope->copyProperty(StringConstants::projectVar(), scope);
+            productContext.scope->copyProperty(StringConstants::productVar(), scope);
             QBS_CHECK(!exportItem->scope());
             exportItem->setScope(scope);
         }
@@ -1565,7 +1578,7 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
         productContext.item->setChildren(children);
 
     Item *merged = Item::create(productContext.item->pool(), ItemType::Export);
-    const QString nameKey = QStringLiteral("name");
+    const QString &nameKey = StringConstants::nameProperty();
     const ValuePtr nameValue = VariantValue::create(productContext.name);
     merged->setProperty(nameKey, nameValue);
     Set<FileContextConstPtr> filesWithExportItem;
@@ -1644,7 +1657,7 @@ std::vector<Item *> ModuleLoader::collectProfileItems(Item *item, ProjectContext
             if (!scope) {
                 const ItemValuePtr itemValue = ItemValue::create(item);
                 scope = Item::create(m_pool, ItemType::Scope);
-                scope->setProperty(QLatin1String("product"), itemValue);
+                scope->setProperty(StringConstants::productVar(), itemValue);
                 scope->setFile(item->file());
                 scope->setScope(projectContext->scope);
             }
@@ -1695,10 +1708,10 @@ void ModuleLoader::handleProfile(Item *profileItem)
 {
     QVariantMap values;
     evaluateProfileValues(QualifiedId(), profileItem, profileItem, values);
-    const bool condition = values.take(QLatin1String("condition")).toBool();
+    const bool condition = values.take(StringConstants::conditionProperty()).toBool();
     if (!condition)
         return;
-    const QString profileName = values.take(QLatin1String("name")).toString();
+    const QString profileName = values.take(StringConstants::nameProperty()).toString();
     if (profileName.isEmpty())
         throw ErrorInfo(Tr::tr("Every Profile item must have a name"), profileItem->location());
     if (profileName == Profile::fallbackName()) {
@@ -1793,7 +1806,7 @@ static Item *createReplacementForDefiningItem(const Item *definingItem, ItemType
 {
     Item *replacement = Item::create(definingItem->pool(), type);
     replacement->setLocation(definingItem->location());
-    definingItem->copyProperty(QStringLiteral("name"), replacement);
+    definingItem->copyProperty(StringConstants::nameProperty(), replacement);
     return replacement;
 }
 
@@ -2035,14 +2048,13 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
     }
     bool productTypesIsSet;
     const FileTags productTypes = m_evaluator->fileTagsValue(dependsItem,
-            QLatin1String("productTypes"), &productTypesIsSet);
+            StringConstants::productTypesProperty(), &productTypesIsSet);
     bool nameIsSet;
-    const QString name
-            = m_evaluator->stringValue(dependsItem, QLatin1String("name"), QString(), &nameIsSet);
+    const QString name = m_evaluator->stringValue(dependsItem, StringConstants::nameProperty(),
+                                                  QString(), &nameIsSet);
     bool submodulesPropertySet;
-    const QStringList submodules = m_evaluator->stringListValue(dependsItem,
-                                                                QLatin1String("submodules"),
-                                                                &submodulesPropertySet);
+    const QStringList submodules = m_evaluator->stringListValue(
+                dependsItem, StringConstants::submodulesProperty(), &submodulesPropertySet);
     if (productTypesIsSet) {
         if (nameIsSet) {
             throw ErrorInfo(Tr::tr("The 'productTypes' and 'name' properties are mutually "
@@ -2062,7 +2074,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         ModuleLoaderResult::ProductInfo::Dependency dependency;
         dependency.productTypes = productTypes;
         dependency.limitToSubProject
-                = m_evaluator->boolValue(dependsItem, QLatin1String("limitToSubProject"));
+                = m_evaluator->boolValue(dependsItem, StringConstants::limitToSubProjectProperty());
         productResults->push_back(dependency);
         return;
     }
@@ -2079,7 +2091,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
     const QualifiedId nameParts = QualifiedId::fromString(name);
     if (submodules.empty()) {
         // Ignore explicit dependencies on the base module, which has already been loaded.
-        if (name == QStringLiteral("qbs"))
+        if (name == StringConstants::qbsModule())
             return;
 
         moduleNames << nameParts;
@@ -2090,12 +2102,14 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
 
     Item::Module result;
     for (const QualifiedId &moduleName : qAsConst(moduleNames)) {
-        const bool isRequired = m_evaluator->boolValue(dependsItem, QLatin1String("required"))
+        const bool isRequired = m_evaluator->boolValue(dependsItem,
+                                                       StringConstants::requiredProperty())
                 && !contains(m_requiredChain, false);
         const Version minVersion = Version::fromString(
-                    m_evaluator->stringValue(dependsItem, QLatin1String("versionAtLeast")));
+                    m_evaluator->stringValue(dependsItem,
+                                             StringConstants::versionAtLeastProperty()));
         const Version maxVersion = Version::fromString(
-                    m_evaluator->stringValue(dependsItem, QLatin1String("versionBelow")));
+                    m_evaluator->stringValue(dependsItem, StringConstants::versionBelowProperty()));
         const VersionRange versionRange(minVersion, maxVersion);
 
         // Don't load the same module twice. Duplicate Depends statements can easily
@@ -2118,7 +2132,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
             ErrorInfo e(Tr::tr("Dependency '%1' not found for product '%2'.")
                         .arg(moduleName.toString(), dependsContext->product->name),
                         dependsItem->location());
-            if (moduleName.size() == 2 && moduleName.front() == QLatin1String("Qt")) {
+            if (moduleName.size() == 2 && moduleName.front() == QStringLiteral("Qt")) {
                 e.append(Tr::tr("Please create a Qt profile using the qbs-setup-qt tool "
                                 "if you haven't already done so."));
             }
@@ -2139,19 +2153,19 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         moduleResults->push_back(result);
         if (result.isProduct) {
             qCDebug(lcModuleLoader) << "product dependency loaded:" << moduleName.toString();
-            const QString profilesKey = QLatin1String("profiles");
             bool profilesPropertyWasSet = false;
-            QStringList profiles = m_evaluator->stringListValue(dependsItem, profilesKey,
+            QStringList profiles = m_evaluator->stringListValue(dependsItem,
+                                                                StringConstants::profilesProperty(),
                                                                 &profilesPropertyWasSet);
             if (profiles.empty()) {
                 if (profilesPropertyWasSet)
-                    profiles.push_back(QLatin1String("*"));
+                    profiles.push_back(StringConstants::star());
                 else
                     profiles.push_back(QString());
             }
-            QStringList multiplexConfigurationIds
-                    = m_evaluator->stringListValue(dependsItem,
-                                                   QStringLiteral("multiplexConfigurationIds"));
+            QStringList multiplexConfigurationIds = m_evaluator->stringListValue(
+                        dependsItem,
+                        StringConstants::multiplexConfigurationIdsProperty());
             if (multiplexConfigurationIds.empty())
                 multiplexConfigurationIds << QString();
             for (const QString &profile : qAsConst(profiles)) {
@@ -2359,7 +2373,7 @@ private:
 
 static bool isBaseModule(const QualifiedId &moduleName)
 {
-    return moduleName.size() == 1 && moduleName.front() == QLatin1String("qbs");
+    return moduleName.size() == 1 && moduleName.front() == StringConstants::qbsModule();
 }
 
 class DelayedPropertyChanger
@@ -2431,7 +2445,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
 
     // Prepare module instance for evaluating Module.condition.
     DelayedPropertyChanger delayedPropertyChanger;
-    const QString qbsModuleName = QStringLiteral("qbs");
+    const QString &qbsModuleName = StringConstants::qbsModule();
     if (!isBaseModule(moduleName)) {
         ItemValuePtr qbsProp = productContext->item->itemProperty(qbsModuleName);
         if (qbsProp) {
@@ -2521,7 +2535,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
             continue;
         QStringList moduleFileNames = m_moduleDirListCache.value(dirPath);
         if (moduleFileNames.empty()) {
-            QDirIterator dirIter(dirPath, QStringList(QLatin1String("*.qbs")));
+            QDirIterator dirIter(dirPath, StringConstants::qbsFileWildcards());
             while (dirIter.hasNext())
                 moduleFileNames += dirIter.next();
 
@@ -2540,7 +2554,8 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
 
     if (candidates.size() > 1) {
         for (auto &candidate : candidates) {
-            candidate.priority = m_evaluator->intValue(candidate.item, QStringLiteral("priority"),
+            candidate.priority = m_evaluator->intValue(candidate.item,
+                                                       StringConstants::priorityProperty(),
                                                        candidate.priority);
         }
         return chooseModuleCandidate(candidates, fullName);
@@ -2638,7 +2653,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     }
 
     // Set the name before evaluating any properties. EvaluatorScriptClass reads the module name.
-    module->setProperty(QLatin1String("name"), VariantValue::create(fullModuleName));
+    module->setProperty(StringConstants::nameProperty(), VariantValue::create(fullModuleName));
 
     if (!isBaseModule) {
         // We need the base module for the Module.condition check below.
@@ -2691,7 +2706,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 
 Item::Module ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
 {
-    const QualifiedId baseModuleName(QLatin1String("qbs"));
+    const QualifiedId baseModuleName(StringConstants::qbsModule());
     Item::Module baseModuleDesc;
     baseModuleDesc.name = baseModuleName;
     baseModuleDesc.item = loadModule(productContext, nullptr, item, CodeLocation(), QString(),
@@ -2713,18 +2728,18 @@ Item::Module ModuleLoader::loadBaseModule(ProductContext *productContext, Item *
 
 void ModuleLoader::setupBaseModulePrototype(Item *prototype)
 {
-    prototype->setProperty(QLatin1String("hostPlatform"),
+    prototype->setProperty(QStringLiteral("hostPlatform"),
                            VariantValue::create(QString::fromStdString(
                                                     HostOsInfo::hostOSIdentifier())));
-    prototype->setProperty(QLatin1String("libexecPath"),
+    prototype->setProperty(QStringLiteral("libexecPath"),
                            VariantValue::create(m_parameters.libexecPath()));
 
     const Version qbsVersion = Version::qbsVersion();
-    prototype->setProperty(QLatin1String("versionMajor"),
+    prototype->setProperty(QStringLiteral("versionMajor"),
                            VariantValue::create(qbsVersion.majorVersion()));
-    prototype->setProperty(QLatin1String("versionMinor"),
+    prototype->setProperty(QStringLiteral("versionMinor"),
                            VariantValue::create(qbsVersion.minorVersion()));
-    prototype->setProperty(QLatin1String("versionPatch"),
+    prototype->setProperty(QStringLiteral("versionPatch"),
                            VariantValue::create(qbsVersion.patchLevel()));
 }
 
@@ -2773,8 +2788,8 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     Item *deepestModuleInstance = findDeepestModuleInstance(moduleInstance);
     deepestModuleInstance->setPrototype(modulePrototype);
     const QString fullName = moduleName.toString();
-    const QString generalOverrideKey = QLatin1String("modules.") + fullName;
-    const QString perProductOverrideKey = QLatin1String("products.") + productContext->name
+    const QString generalOverrideKey = QStringLiteral("modules.") + fullName;
+    const QString perProductOverrideKey = QStringLiteral("products.") + productContext->name
             + QLatin1Char('.') + fullName;
     for (Item *instance = moduleInstance; instance; instance = instance->prototype()) {
         overrideItemProperties(instance, generalOverrideKey, m_parameters.overriddenValuesTree());
@@ -2794,11 +2809,11 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     moduleScope->setFile(instanceScope->file());
     moduleScope->setScope(instanceScope);
     QBS_CHECK(productContext->project->scope);
-    productContext->project->scope->copyProperty(QLatin1String("project"), moduleScope);
+    productContext->project->scope->copyProperty(StringConstants::projectVar(), moduleScope);
     if (productContext->scope)
-        productContext->scope->copyProperty(QLatin1String("product"), moduleScope);
+        productContext->scope->copyProperty(StringConstants::productVar(), moduleScope);
     else
-        QBS_CHECK(fullName == QLatin1String("qbs")); // Dummy product.
+        QBS_CHECK(fullName == StringConstants::qbsModule()); // Dummy product.
 
     if (productModuleInfo) {
         exportingProduct = productModuleInfo->exportItem->parent();
@@ -2809,17 +2824,20 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     if (exportingProduct) {
         // TODO: For consistency with modules, it should be the other way around, i.e.
         //       "exportingProduct" and just "product".
-        moduleScope->setProperty(QLatin1String("product"), ItemValue::create(exportingProduct));
-        moduleScope->setProperty(QLatin1String("importingProduct"),
+        moduleScope->setProperty(StringConstants::productVar(),
+                                 ItemValue::create(exportingProduct));
+        moduleScope->setProperty(QStringLiteral("importingProduct"),
                                  ItemValue::create(productContext->item));
 
-        moduleScope->setProperty(QLatin1String("project"),
+        moduleScope->setProperty(StringConstants::projectVar(),
                                  ItemValue::create(exportingProduct->parent()));
 
-        PropertyDeclaration pd(QLatin1String("_qbs_sourceDir"), PropertyDeclaration::String,
-                               QString(), PropertyDeclaration::PropertyNotAvailableInConfig);
+        PropertyDeclaration pd(StringConstants::qbsSourceDirPropertyInternal(),
+                               PropertyDeclaration::String, QString(),
+                               PropertyDeclaration::PropertyNotAvailableInConfig);
         moduleInstance->setPropertyDeclaration(pd.name(), pd);
-        ValuePtr v = exportingProduct->property(QLatin1String("sourceDirectory"))->clone();
+        ValuePtr v = exportingProduct
+                ->property(StringConstants::sourceDirectoryProperty())->clone();
         moduleInstance->setProperty(pd.name(), v);
     }
     moduleInstance->setScope(moduleScope);
@@ -2911,9 +2929,10 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     const QString &probeId = probeGlobalId(probe);
     if (Q_UNLIKELY(probeId.isEmpty()))
         throw ErrorInfo(Tr::tr("Probe.id must be set."), probe->location());
-    const JSSourceValueConstPtr configureScript = probe->sourceProperty(QLatin1String("configure"));
+    const JSSourceValueConstPtr configureScript
+            = probe->sourceProperty(StringConstants::configureProperty());
     QBS_CHECK(configureScript);
-    if (Q_UNLIKELY(configureScript->sourceCode() == QLatin1String("undefined")))
+    if (Q_UNLIKELY(configureScript->sourceCode() == StringConstants::undefinedValue()))
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
     typedef std::pair<QString, QScriptValue> ProbeProperty;
     QList<ProbeProperty> probeBindings;
@@ -2922,11 +2941,11 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         const Item::PropertyMap &props = obj->properties();
         for (auto it = props.cbegin(); it != props.cend(); ++it) {
             const QString &name = it.key();
-            if (name == QLatin1String("configure"))
+            if (name == StringConstants::configureProperty())
                 continue;
             const QScriptValue value = m_evaluator->value(probe, name);
             probeBindings += ProbeProperty(name, value);
-            if (name != QLatin1String("condition"))
+            if (name != StringConstants::conditionProperty())
                 initialProperties.insert(name, value.toVariant());
         }
     }
@@ -2940,7 +2959,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     engine->currentContext()->pushScope(scope);
     for (const ProbeProperty &b : qAsConst(probeBindings))
         scope.setProperty(b.first, b.second);
-    const bool condition = m_evaluator->boolValue(probe, QLatin1String("condition"));
+    const bool condition = m_evaluator->boolValue(probe, StringConstants::conditionProperty());
     const QString &sourceCode = configureScript->sourceCode().toString();
     ProbeConstPtr resolvedProbe;
     if (parent->type() == ItemType::Project) {
@@ -2994,7 +3013,7 @@ void ModuleLoader::checkCancelation() const
 
 bool ModuleLoader::checkItemCondition(Item *item, Item *itemToDisable)
 {
-    if (m_evaluator->boolValue(item, QLatin1String("condition"), true))
+    if (m_evaluator->boolValue(item, StringConstants::conditionProperty(), true))
         return true;
     m_disabledItems += itemToDisable ? itemToDisable : item;
     return false;
@@ -3003,9 +3022,10 @@ bool ModuleLoader::checkItemCondition(Item *item, Item *itemToDisable)
 QStringList ModuleLoader::readExtraSearchPaths(Item *item, bool *wasSet)
 {
     QStringList result;
-    const QString propertyName = QLatin1String("qbsSearchPaths");
-    const QStringList paths = m_evaluator->stringListValue(item, propertyName, wasSet);
-    const JSSourceValueConstPtr prop = item->sourceProperty(propertyName);
+    const QStringList paths = m_evaluator->stringListValue(
+                item, StringConstants::qbsSearchPathsProperty(), wasSet);
+    const JSSourceValueConstPtr prop = item->sourceProperty(
+                StringConstants::qbsSearchPathsProperty());
 
     // Value can come from within a project file or as an overridden value from the user
     // (e.g command line).
@@ -3032,15 +3052,16 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
 
         // We must not inherit built-in properties such as "name",
         // but there are exceptions.
-        if (it.key() == QLatin1String("qbsSearchPaths") || it.key() == QLatin1String("profile")
-                || it.key() == QLatin1String("buildDirectory")
-                || it.key() == QLatin1String("sourceDirectory")
-                || it.key() == QLatin1String("minimumQbsVersion")) {
+        if (it.key() == StringConstants::qbsSearchPathsProperty()
+                || it.key() == StringConstants::profileProperty()
+                || it.key() == StringConstants::buildDirectoryProperty()
+                || it.key() == StringConstants::sourceDirectoryProperty()
+                || it.key() == StringConstants::minimumQbsVersionProperty()) {
             const JSSourceValueConstPtr &v
                     = std::dynamic_pointer_cast<const JSSourceValue>(
                         targetProject->property(it.key()));
             QBS_ASSERT(v, continue);
-            if (v->sourceCode() == QLatin1String("undefined"))
+            if (v->sourceCode() == StringConstants::undefinedValue())
                 sourceProject->copyProperty(it.key(), targetProject);
             continue;
         }
@@ -3153,7 +3174,6 @@ void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
                                                 const Item::Module &module)
 {
     auto deps = productContext->productModuleDependencies.at(module.name.toString());
-    const QString multiplexConfigurationIdKey = QStringLiteral("multiplexConfigurationId");
     QList<ModuleLoaderResult::ProductInfo::Dependency> additionalDependencies;
     const bool productIsMultiplexed = !productContext->multiplexConfigurationId.isEmpty();
     for (auto &dep : deps) {
@@ -3177,9 +3197,10 @@ void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
         for (std::size_t i = 0; i < dependencies.size(); ++i) {
             if (i == 0) {
                 if (productIsMultiplexed) {
+                    const ValuePtr &multiplexConfigIdProp = productContext->item->property(
+                                StringConstants::multiplexConfigurationIdProperty());
                     dep.multiplexConfigurationId = std::static_pointer_cast<VariantValue>(
-                                productContext->item->property(
-                                    multiplexConfigurationIdKey))->value().toString();
+                                multiplexConfigIdProp)->value().toString();
                     break;
                 } else {
                     dep.multiplexConfigurationId = dependencies.at(i)->multiplexConfigurationId;
@@ -3241,9 +3262,9 @@ Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &r
     if (!module) {
         module = Item::create(m_pool, ItemType::ModuleInstance);
         module->setFile(FileContext::create());
-        module->setProperty(QStringLiteral("name"), VariantValue::create(name));
+        module->setProperty(StringConstants::nameProperty(), VariantValue::create(name));
     }
-    module->setProperty(QLatin1String("present"), VariantValue::create(false));
+    module->setProperty(StringConstants::presentProperty(), VariantValue::create(false));
     return module;
 }
 
@@ -3299,8 +3320,10 @@ QualifiedIdSet ModuleLoader::gatherModulePropertiesSetInGroup(const Item *group)
 void ModuleLoader::markModuleTargetGroups(Item *group, const Item::Module &module)
 {
     QBS_CHECK(group->type() == ItemType::Group);
-    if (m_evaluator->boolValue(group, QLatin1String("filesAreTargets")))
-        group->setProperty(QLatin1String("__module"), VariantValue::create(module.name.toString()));
+    if (m_evaluator->boolValue(group, StringConstants::filesAreTargetsProperty())) {
+        group->setProperty(StringConstants::modulePropertyInternal(),
+                           VariantValue::create(module.name.toString()));
+    }
     for (Item * const child : group->children())
         markModuleTargetGroups(child, module);
 }

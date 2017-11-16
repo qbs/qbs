@@ -45,6 +45,7 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/stlutils.h>
+#include <tools/stringconstants.h>
 
 namespace qbs {
 namespace Internal {
@@ -257,7 +258,7 @@ void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QStr
         m_clonedModulePrototype = Item::create(moduleProto->pool(), ItemType::Module);
         m_clonedModulePrototype->setScope(m_mergedModule.item);
         m_clonedModulePrototype->setLocation(moduleProto->location());
-        moduleProto->copyProperty(QStringLiteral("name"), m_clonedModulePrototype);
+        moduleProto->copyProperty(StringConstants::nameProperty(), m_clonedModulePrototype);
     }
     const ValuePtr &protoValue = moduleProto->property(propertyName);
     QBS_CHECK(protoValue);

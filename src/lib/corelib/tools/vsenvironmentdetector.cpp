@@ -42,6 +42,7 @@
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 #include <tools/stringutils.h>
 
 #include <QtCore/qdebug.h>
@@ -124,7 +125,7 @@ QString VsEnvironmentDetector::findVcVarsAllBat(const MSVC &msvc,
         return fullPath;
     else
         searchedPaths.push_back(fullPath);
-    path = QLatin1String("Auxiliary/Build/") + vcvarsallbat;
+    path = QStringLiteral("Auxiliary/Build/") + vcvarsallbat;
     fullPath = dir.absoluteFilePath(path);
     if (dir.exists(path))
         return fullPath;
@@ -148,7 +149,7 @@ bool VsEnvironmentDetector::startDetection(const std::vector<MSVC *> &compatible
         return false;
     }
 
-    QTemporaryFile tmpFile(QDir::tempPath() + QLatin1Char('/') + QLatin1String("XXXXXX.bat"));
+    QTemporaryFile tmpFile(QDir::tempPath() + QLatin1Char('/') + QStringLiteral("XXXXXX.bat"));
     if (!tmpFile.open()) {
         m_errorString = Tr::tr("Cannot open temporary file '%1' for writing.").arg(
                     tmpFile.fileName());
@@ -159,9 +160,9 @@ bool VsEnvironmentDetector::startDetection(const std::vector<MSVC *> &compatible
     tmpFile.flush();
 
     QProcess process;
-    const QString shellFilePath = QLatin1String("cmd.exe");
+    static const QString shellFilePath = QLatin1String("cmd.exe");
     process.start(shellFilePath, QStringList()
-                  << QLatin1String("/C") << tmpFile.fileName());
+                  << QStringLiteral("/C") << tmpFile.fileName());
     if (!process.waitForStarted()) {
         m_errorString = Tr::tr("Failed to start '%1'.").arg(shellFilePath);
         return false;
@@ -195,13 +196,14 @@ static void batPrintVars(QTextStream &s, const QStringList &varnames)
 static QString vcArchitecture(const MSVC *msvc)
 {
     QString vcArch = msvc->architecture;
-    if (msvc->architecture == QLatin1String("armv7"))
-        vcArch = QLatin1String("arm");
-    if (msvc->architecture == QLatin1String("x86_64"))
-        vcArch = QLatin1String("amd64");
+    if (msvc->architecture == StringConstants::armv7Arch())
+        vcArch = StringConstants::armArch();
+    if (msvc->architecture == StringConstants::x86_64Arch())
+        vcArch = StringConstants::amd64Arch();
 
     for (const QString &hostPrefix :
-         QStringList({QStringLiteral("x86"), QStringLiteral("amd64_"), QStringLiteral("x86_")})) {
+         QStringList({StringConstants::x86Arch(), QStringLiteral("amd64_"),
+                     QStringLiteral("x86_")})) {
         if (QFile::exists(msvc->clPathForArchitecture(hostPrefix + vcArch))) {
             vcArch.prepend(hostPrefix);
             break;
@@ -214,7 +216,7 @@ static QString vcArchitecture(const MSVC *msvc)
 void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcvarsallbat,
                                            const std::vector<MSVC *> &msvcs) const
 {
-    const QStringList varnames = QStringList() << QLatin1String("PATH")
+    const QStringList varnames = QStringList() << StringConstants::pathEnvVar()
             << QLatin1String("INCLUDE") << QLatin1String("LIB");
     QTextStream s(device);
     s << "@echo off" << endl;
@@ -252,7 +254,7 @@ void VsEnvironmentDetector::parseBatOutput(const QByteArray &output, std::vector
             QBS_CHECK(targetEnv);
             const QString name = QString::fromLocal8Bit(line.left(idx));
             QString value = QString::fromLocal8Bit(line.mid(idx + 1));
-            if (name.compare(QLatin1String("PATH"), Qt::CaseInsensitive) == 0)
+            if (name.compare(StringConstants::pathEnvVar(), Qt::CaseInsensitive) == 0)
                 value.remove(m_windowsSystemDirPath);
             if (value.endsWith(QLatin1Char(';')))
                 value.chop(1);
