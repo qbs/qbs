@@ -42,6 +42,7 @@
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringutils.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
@@ -102,7 +103,8 @@ bool VsEnvironmentDetector::start(std::vector<MSVC *> msvcs)
     return someMSVCDetected;
 }
 
-QString VsEnvironmentDetector::findVcVarsAllBat(const MSVC &msvc) const
+QString VsEnvironmentDetector::findVcVarsAllBat(const MSVC &msvc,
+                                                std::vector<QString> &searchedPaths) const
 {
     // ### We can only rely on MSVC.vcInstallPath being set
     // when this is called from utilitiesextension.cpp :-(
@@ -117,19 +119,32 @@ QString VsEnvironmentDetector::findVcVarsAllBat(const MSVC &msvc) const
     }
     const QString vcvarsallbat = QStringLiteral("vcvarsall.bat");
     QString path = vcvarsallbat;
+    QString fullPath = dir.absoluteFilePath(path);
     if (dir.exists(path))
-        return dir.absoluteFilePath(path);
+        return fullPath;
+    else
+        searchedPaths.push_back(fullPath);
     path = QLatin1String("Auxiliary/Build/") + vcvarsallbat;
+    fullPath = dir.absoluteFilePath(path);
     if (dir.exists(path))
-        return dir.absoluteFilePath(path);
+        return fullPath;
+    else
+        searchedPaths.push_back(fullPath);
     return QString();
 }
 
 bool VsEnvironmentDetector::startDetection(const std::vector<MSVC *> &compatibleMSVCs)
 {
-    const QString vcvarsallbat = findVcVarsAllBat(**compatibleMSVCs.begin());
+    std::vector<QString> searchedPaths;
+    const QString vcvarsallbat = findVcVarsAllBat(**compatibleMSVCs.begin(), searchedPaths);
     if (vcvarsallbat.isEmpty()) {
-        m_errorString = Tr::tr("Cannot find 'vcvarsall.bat'.");
+        if (!searchedPaths.empty()) {
+            m_errorString = Tr::tr(
+                        "Cannot find 'vcvarsall.bat' at any of the following locations:\n\t")
+                    + join(searchedPaths, QStringLiteral("\n\t"));
+        } else {
+            m_errorString = Tr::tr("Cannot find 'vcvarsall.bat'.");
+        }
         return false;
     }
 

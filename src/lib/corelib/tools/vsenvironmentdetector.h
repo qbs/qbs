@@ -64,7 +64,7 @@ public:
     QString errorString() const { return m_errorString; }
 
 private:
-    QString findVcVarsAllBat(const MSVC &msvc) const;
+    QString findVcVarsAllBat(const MSVC &msvc, std::vector<QString> &searchedPaths) const;
     bool startDetection(const std::vector<MSVC *> &compatibleMSVCs);
     void writeBatchFile(QIODevice *device, const QString &vcvarsallbat, const std::vector<MSVC *> &msvcs) const;
     void parseBatOutput(const QByteArray &output, std::vector<MSVC *> msvcs);
