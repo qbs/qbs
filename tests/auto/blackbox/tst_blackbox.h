@@ -108,6 +108,7 @@ private slots:
     void installable();
     void installedApp();
     void installDuplicates();
+    void installDuplicatesNoError();
     void installedSourceFiles();
     void installedTransformerOutput();
     void installPackage();

@@ -222,11 +222,18 @@ void ProductInstaller::copyFile(const Artifact *artifact)
     }
 
     if (m_targetFilePathsMap.contains(targetFilePath)) {
-        handleError(Tr::tr("Cannot install files '%1' and '%2' to the same location '%3'. If you "
-                           "are attempting to install a directory hierarchy, consider using "
-                           "the qbs.installSourceBase property.")
-                    .arg(artifact->filePath(), m_targetFilePathsMap[targetFilePath],
-                         targetFilePath));
+        // We only want this error message when installing artifacts pointing to different file
+        // paths, to the same location. We do NOT want it when installing different artifacts
+        // pointing to the same file, to the same location. This reduces unnecessary noise: for
+        // example, when installing headers from a multiplexed product, the user does not need to
+        // do extra work to ensure the files are installed by only one of the instances.
+        if (artifact->filePath() != m_targetFilePathsMap[targetFilePath]) {
+            handleError(Tr::tr("Cannot install files '%1' and '%2' to the same location '%3'. "
+                               "If you are attempting to install a directory hierarchy, consider "
+                               "using the qbs.installSourceBase property.")
+                        .arg(artifact->filePath(), m_targetFilePathsMap[targetFilePath],
+                             targetFilePath));
+        }
     }
     m_targetFilePathsMap.insert(targetFilePath, artifact->filePath());
 

@@ -4459,6 +4459,14 @@ void TestBlackbox::installDuplicates()
     QVERIFY(m_qbsStderr.contains("Cannot install files"));
 }
 
+void TestBlackbox::installDuplicatesNoError()
+{
+    QDir::setCurrent(testDataDir + "/install-duplicates-no-error");
+
+    QbsRunParameters params;
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::installedSourceFiles()
 {
     QDir::setCurrent(testDataDir + "/installed-source-files");
