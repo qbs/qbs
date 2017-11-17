@@ -170,8 +170,9 @@ inline QString objectFileName(const QString &baseName, const QString &profileNam
 {
     const SettingsPtr s = settings();
     qbs::Profile profile(profileName, s.get());
-    const QString suffix = profile.value("qbs.toolchain").toStringList().contains("msvc")
-            ? "obj" : "o";
+    const auto tc = profile.value("qbs.toolchain").toStringList();
+    const QString suffix = tc.contains("msvc")
+            || (tc.isEmpty() && qbs::Internal::HostOsInfo::isWindowsHost()) ? "obj" : "o";
     return baseName + '.' + suffix;
 }
 
