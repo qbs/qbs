@@ -170,6 +170,9 @@ private slots:
         QVERIFY(parser.showVersion());
         QVERIFY(parser.parseCommandLine(QStringList("-V")));
         QVERIFY(parser.showVersion());
+
+        QVERIFY(parser.parseCommandLine(QStringList{"run", "--setup-run-env-config", "x,y,z"}));
+        QCOMPARE(parser.runEnvConfig(), QStringList({"x", "y", "z"}));
     }
 
     void testInvalidCommandLine()

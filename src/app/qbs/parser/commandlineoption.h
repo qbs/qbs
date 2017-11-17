@@ -70,7 +70,8 @@ public:
         CommandEchoModeOptionType,
         SettingsDirOptionType,
         GeneratorOptionType,
-        WaitLockOptionType
+        WaitLockOptionType,
+        RunEnvConfigOptionType,
     };
 
     virtual ~CommandLineOption();
@@ -278,6 +279,13 @@ class ProductsOption : public StringListOption
 public:
     QString description(CommandType command) const override;
     QString shortRepresentation() const override;
+    QString longRepresentation() const override;
+};
+
+class RunEnvConfigOption : public StringListOption
+{
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
     QString longRepresentation() const override;
 };
 

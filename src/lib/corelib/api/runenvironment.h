@@ -77,7 +77,9 @@ private:
     RunEnvironment(const Internal::ResolvedProductPtr &product,
                    const Internal::TopLevelProjectConstPtr &project,
                    const InstallOptions &installOptions,
-                   const QProcessEnvironment &environment, Settings *settings,
+                   const QProcessEnvironment &environment,
+                   const QStringList &setupRunEnvConfig,
+                   Settings *settings,
                    const Internal::Logger &logger);
 
     int doRunShell();

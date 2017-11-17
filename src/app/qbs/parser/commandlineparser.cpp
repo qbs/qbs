@@ -256,6 +256,11 @@ QStringList CommandLineParser::products() const
     return d->optionPool.productsOption()->arguments();
 }
 
+QStringList CommandLineParser::runEnvConfig() const
+{
+    return d->optionPool.runEnvConfigOption()->arguments();
+}
+
 bool CommandLineParser::showProgress() const
 {
     return d->showProgress;

@@ -122,6 +122,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::WaitLockOptionType:
             option = new WaitLockOption;
             break;
+        case CommandLineOption::RunEnvConfigOptionType:
+            option = new RunEnvConfigOption;
+            break;
         default:
             qFatal("Unknown option type %d", type);
         }
@@ -251,6 +254,11 @@ GeneratorOption *CommandLineOptionPool::generatorOption() const
 WaitLockOption *CommandLineOptionPool::waitLockOption() const
 {
     return static_cast<WaitLockOption *>(getOption(CommandLineOption::WaitLockOptionType));
+}
+
+RunEnvConfigOption *CommandLineOptionPool::runEnvConfigOption() const
+{
+    return static_cast<RunEnvConfigOption *>(getOption(CommandLineOption::RunEnvConfigOptionType));
 }
 
 } // namespace qbs

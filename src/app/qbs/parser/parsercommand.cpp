@@ -386,7 +386,8 @@ QString RunCommand::representation() const
 
 QList<CommandLineOption::Type> RunCommand::supportedOptions() const
 {
-    return installOptions();
+    return QList<CommandLineOption::Type>() << installOptions()
+                                            << CommandLineOption::RunEnvConfigOptionType;
 }
 
 void RunCommand::parseNext(QStringList &input)

@@ -170,7 +170,8 @@ void MSBuildQbsProductProject::addConfiguration(const GeneratableProject &projec
                                    QStringLiteral("$(OutDir)"));
 
     auto env = buildTask.getRunEnvironment(productData, project.installOptions,
-                                           QProcessEnvironment(), nullptr).runEnvironment();
+                                           QProcessEnvironment(), QStringList(), nullptr)
+            .runEnvironment();
     if (!env.isEmpty()) {
         const auto systemEnv = QProcessEnvironment::systemEnvironment();
         for (const auto &key : systemEnv.keys()) {

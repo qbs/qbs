@@ -1048,7 +1048,7 @@ void TestApi::errorInSetupRunEnvironment()
     try {
         const SettingsPtr s = settings();
         qbs::RunEnvironment runEnv = project.getRunEnvironment(product, qbs::InstallOptions(),
-                QProcessEnvironment(), s.get());
+                QProcessEnvironment(), QStringList(), s.get());
         qbs::ErrorInfo error;
         const QProcessEnvironment env = runEnv.runEnvironment(&error);
         QVERIFY(error.hasError());

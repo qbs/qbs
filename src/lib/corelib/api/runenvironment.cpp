@@ -73,11 +73,12 @@ class RunEnvironment::RunEnvironmentPrivate
 public:
     RunEnvironmentPrivate(const ResolvedProductPtr &product, const TopLevelProjectConstPtr &project,
             const InstallOptions &installOptions, const QProcessEnvironment &environment,
-            Settings *settings, const Logger &logger)
+            const QStringList &setupRunEnvConfig, Settings *settings, const Logger &logger)
         : resolvedProduct(product)
         , project(project)
         , installOptions(installOptions)
         , environment(environment)
+        , setupRunEnvConfig(setupRunEnvConfig)
         , settings(settings)
         , logger(logger)
         , evalContext(this->logger)
@@ -88,6 +89,7 @@ public:
     const TopLevelProjectConstPtr project;
     InstallOptions installOptions;
     const QProcessEnvironment environment;
+    const QStringList setupRunEnvConfig;
     Settings * const settings;
     Logger logger;
     RulesEvaluationContext evalContext;
@@ -95,8 +97,10 @@ public:
 
 RunEnvironment::RunEnvironment(const ResolvedProductPtr &product,
         const TopLevelProjectConstPtr &project, const InstallOptions &installOptions,
-        const QProcessEnvironment &environment, Settings *settings, const Logger &logger)
-    : d(new RunEnvironmentPrivate(product, project, installOptions, environment, settings, logger))
+        const QProcessEnvironment &environment, const QStringList &setupRunEnvConfig,
+        Settings *settings, const Logger &logger)
+    : d(new RunEnvironmentPrivate(product, project, installOptions, environment, setupRunEnvConfig,
+                                  settings, logger))
 {
 }
 
@@ -403,7 +407,8 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
 
     QProcessEnvironment env = d->environment;
     env.insert(QLatin1String("QBS_RUN_FILE_PATH"), targetBin);
-    EnvironmentScriptRunner(d->resolvedProduct.get(), &d->evalContext, env).setupForRun();
+    EnvironmentScriptRunner(d->resolvedProduct.get(), &d->evalContext, env)
+            .setupForRun(d->setupRunEnvConfig);
 
     d->logger.qbsInfo() << Tr::tr("Starting target '%1'.").arg(QDir::toNativeSeparators(targetBin));
     QProcess process;
@@ -439,7 +444,7 @@ const QProcessEnvironment RunEnvironment::getRunEnvironment() const
     if (!d->resolvedProduct)
         return d->environment;
     EnvironmentScriptRunner(d->resolvedProduct.get(), &d->evalContext, d->environment)
-            .setupForRun();
+            .setupForRun(d->setupRunEnvConfig);
     return d->resolvedProduct->runEnvironment;
 }
 

@@ -439,7 +439,7 @@ int CommandLineFrontend::runShell()
     }
     RunEnvironment runEnvironment = m_projects.front().getRunEnvironment(productToRun,
             m_parser.installOptions(m_projects.front().profile()),
-            QProcessEnvironment::systemEnvironment(), m_settings);
+            QProcessEnvironment::systemEnvironment(), QStringList(), m_settings);
     return runEnvironment.doRunShell();
 }
 
@@ -545,7 +545,7 @@ int CommandLineFrontend::runTarget()
     }
     RunEnvironment runEnvironment = m_projects.front().getRunEnvironment(productToRun,
             m_parser.installOptions(m_projects.front().profile()),
-            QProcessEnvironment::systemEnvironment(), m_settings);
+            QProcessEnvironment::systemEnvironment(), m_parser.runEnvConfig(), m_settings);
     return runEnvironment.doRunTarget(executableFilePath, m_parser.runArgs());
 }
 

@@ -627,4 +627,16 @@ QString WaitLockOption::longRepresentation() const
     return QLatin1String("--wait-lock");
 }
 
+QString RunEnvConfigOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1\n\tComma-separated list of strings to pass to all modules' "
+                  "setupRunEnvironment scripts.\n").arg(longRepresentation());
+}
+
+QString RunEnvConfigOption::longRepresentation() const
+{
+    return QLatin1String("--setup-run-env-config");
+}
+
 } // namespace qbs

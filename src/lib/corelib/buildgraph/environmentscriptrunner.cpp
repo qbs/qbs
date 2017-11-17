@@ -114,12 +114,10 @@ void EnvironmentScriptRunner::setupForBuild()
     setupEnvironment();
 }
 
-void EnvironmentScriptRunner::setupForRun()
+void EnvironmentScriptRunner::setupForRun(const QStringList &config)
 {
-    // TODO: This must not be cached anymore after we introduce run script arguments
-    if (!m_product->runEnvironment.isEmpty())
-        return;
     m_envType = RunEnv;
+    m_runEnvConfig = config;
     setupEnvironment();
 }
 
@@ -177,6 +175,12 @@ void EnvironmentScriptRunner::setupEnvironment()
         static const QString projectKey = QStringLiteral("project");
         m_evalContext->scope().setProperty(productKey, envScriptContext.property(productKey));
         m_evalContext->scope().setProperty(projectKey, envScriptContext.property(projectKey));
+        if (m_envType == RunEnv) {
+            QScriptValue configArray = engine()->newArray(m_runEnvConfig.size());
+            for (int i = 0; i < m_runEnvConfig.size(); ++i)
+                configArray.setProperty(i, QScriptValue(m_runEnvConfig.at(i)));
+            m_evalContext->scope().setProperty(QLatin1String("config"), configArray);
+        }
         setupScriptEngineForFile(engine(), setupScript->fileContext, m_evalContext->scope(),
                                  ObserveMode::Disabled);
         QScriptValue fun = engine()->evaluate(setupScript->sourceCode,

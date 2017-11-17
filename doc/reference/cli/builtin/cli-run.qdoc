@@ -73,6 +73,7 @@
     \include cli-options.qdocinc no-build
     \include cli-options.qdocinc products-specified
     \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc setup-run-env-config
     \include cli-options.qdocinc wait-lock
 
     \section1 Parameters

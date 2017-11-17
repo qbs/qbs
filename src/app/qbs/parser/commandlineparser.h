@@ -81,6 +81,7 @@ public:
     bool buildBeforeInstalling() const;
     QStringList runArgs() const;
     QStringList products() const;
+    QStringList runEnvConfig() const;
     QList<QVariantMap> buildConfigurations() const;
     bool showProgress() const;
     bool showVersion() const;

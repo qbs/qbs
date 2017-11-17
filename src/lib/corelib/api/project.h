@@ -97,7 +97,8 @@ public:
     ProjectData projectData() const;
     RunEnvironment getRunEnvironment(const ProductData &product,
             const InstallOptions &installOptions,
-            const QProcessEnvironment &environment, Settings *settings) const;
+            const QProcessEnvironment &environment,
+            const QStringList &setupRunEnvConfig, Settings *settings) const;
 
     enum ProductSelection { ProductSelectionDefaultOnly, ProductSelectionWithNonDefault };
     BuildJob *buildAllProducts(const BuildOptions &options,

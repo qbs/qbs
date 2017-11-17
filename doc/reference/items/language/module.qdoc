@@ -231,7 +231,10 @@
             \li \c undefined
             \li Script for setting up the environment in which a product is run.
                 The code in this script is treated as a function with the signature
-                \c{function(project, product)}.
+                \c{function(project, product, config)}.
+                The \c config parameter is a list of arbitrary strings that can be passed via
+                the \l{run} command. The concrete values supported by specific modules
+                are listed in their respective documentation.
                 Use the \l{Environment Service}{Environment} functions to alter the environment.
                 The return value of this script is ignored.
         \row

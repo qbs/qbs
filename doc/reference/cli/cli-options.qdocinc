@@ -396,6 +396,16 @@
 
 //! [settings-dir]
 
+//! [setup-run-env-config]
+
+    \section2 \c --setup-run-env-config
+
+    A comma-separated list of strings. They will show up in the \c config parameter
+    of all \c setupRunEnvironment scripts. See the \l{Module Item}{Module item} for details.
+
+//! [setup-run-env-config]
+
+
 //! [show-progress]
 
     \section2 \c --show-progress

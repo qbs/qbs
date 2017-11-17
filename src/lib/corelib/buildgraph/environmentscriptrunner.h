@@ -43,6 +43,7 @@
 #include <language/forward_decls.h>
 
 #include <QtCore/qprocess.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 namespace Internal {
@@ -56,7 +57,7 @@ public:
                             const QProcessEnvironment &env);
 
     void setupForBuild();
-    void setupForRun();
+    void setupForRun(const QStringList &config);
 
 private:
     void setupEnvironment();
@@ -67,6 +68,7 @@ private:
     RulesEvaluationContext * const m_evalContext;
     const QProcessEnvironment m_env;
 
+    QStringList m_runEnvConfig;
     enum EnvType { BuildEnv, RunEnv } m_envType;
 };
 

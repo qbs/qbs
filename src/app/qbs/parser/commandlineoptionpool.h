@@ -75,6 +75,7 @@ public:
     SettingsDirOption *settingsDirOption() const;
     GeneratorOption *generatorOption() const;
     WaitLockOption *waitLockOption() const;
+    RunEnvConfigOption *runEnvConfigOption() const;
 
 private:
     mutable QHash<CommandLineOption::Type, CommandLineOption *> m_options;

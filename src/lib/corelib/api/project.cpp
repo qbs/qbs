@@ -944,11 +944,12 @@ ProjectData Project::projectData() const
 
 RunEnvironment Project::getRunEnvironment(const ProductData &product,
         const InstallOptions &installOptions,
-        const QProcessEnvironment &environment, Settings *settings) const
+        const QProcessEnvironment &environment,
+        const QStringList &setupRunEnvConfig, Settings *settings) const
 {
     const ResolvedProductPtr resolvedProduct = d->internalProduct(product);
     return RunEnvironment(resolvedProduct, d->internalProject, installOptions, environment,
-                          settings, d->logger);
+                          setupRunEnvConfig, settings, d->logger);
 }
 
 /*!
