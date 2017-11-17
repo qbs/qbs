@@ -57,10 +57,10 @@ void CommandLineParser::parse()
     QCommandLineOption newCommitOption(QStringList{"new-commit", "n"}, "The new qbs commit.",
                                        "new commit");
     parser.addOption(newCommitOption);
-    QCommandLineOption testProjectOption(QStringList{"test-project", "t"},
+    QCommandLineOption testProjectOption(QStringList{"test-project", "p"},
             "The example project to use for the benchmark.", "project file path");
     parser.addOption(testProjectOption);
-    QCommandLineOption qbsRepoOption(QStringList{"qbs-repo", "q"}, "The qbs repository.",
+    QCommandLineOption qbsRepoOption(QStringList{"qbs-repo", "r"}, "The qbs repository.",
                                      "repo path");
     parser.addOption(qbsRepoOption);
     QCommandLineOption activitiesOption(QStringList{"activities", "a"},
@@ -68,7 +68,7 @@ void CommandLineParser::parse()
                     .arg(resolveActivity(), ruleExecutionActivity(), nullBuildActivity(),
                          allActivities()), "activities", allActivities());
     parser.addOption(activitiesOption);
-    QCommandLineOption thresholdOption(QStringList{"regression-threshold", "r"},
+    QCommandLineOption thresholdOption(QStringList{"regression-threshold", "t"},
             "A relative increase higher than this is considered a performance regression. "
             "All temporary data from running the benchmarks will be kept if that happens.",
             "value in per cent");
