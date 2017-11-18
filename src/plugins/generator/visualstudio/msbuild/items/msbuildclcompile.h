@@ -40,7 +40,7 @@ class MSBuildClCompile : public MSBuildFileItem
     Q_OBJECT
     Q_DISABLE_COPY(MSBuildClCompile)
 public:
-    explicit MSBuildClCompile(IMSBuildItemGroup *parent = 0);
+    explicit MSBuildClCompile(IMSBuildItemGroup *parent = nullptr);
 };
 
 } // namespace qbs

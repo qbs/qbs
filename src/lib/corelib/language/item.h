@@ -72,7 +72,7 @@ public:
     struct Module
     {
         Module()
-            : item(0), isProduct(false), required(true)
+            : item(nullptr), isProduct(false), required(true)
         {}
 
         QualifiedId name;

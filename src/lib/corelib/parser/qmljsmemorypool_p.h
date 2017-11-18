@@ -68,11 +68,11 @@ class QML_PARSER_EXPORT MemoryPool : public QSharedData
 
 public:
     MemoryPool()
-        : _blocks(0),
+        : _blocks(nullptr),
           _allocatedBlocks(0),
           _blockCount(-1),
-          _ptr(0),
-          _end(0)
+          _ptr(nullptr),
+          _end(nullptr)
     { }
 
     ~MemoryPool()
@@ -101,7 +101,7 @@ public:
     void reset()
     {
         _blockCount = -1;
-        _ptr = _end = 0;
+        _ptr = _end = nullptr;
     }
 
 private:
@@ -118,7 +118,7 @@ private:
             _blocks = (char **) realloc(_blocks, sizeof(char *) * _allocatedBlocks);
 
             for (int index = _blockCount; index < _allocatedBlocks; ++index)
-                _blocks[index] = 0;
+                _blocks[index] = nullptr;
         }
 
         char *&block = _blocks[_blockCount];

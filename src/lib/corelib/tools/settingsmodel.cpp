@@ -60,7 +60,7 @@ namespace Internal {
 
 struct Node
 {
-    Node() : parent(0), isFromSettings(true) {}
+    Node() : parent(nullptr), isFromSettings(true) {}
     ~Node() { qDeleteAll(children); }
 
     QString uniqueChildName() const;
@@ -279,7 +279,7 @@ bool SettingsModel::setData(const QModelIndex &index, const QVariant &value, int
     if (!node)
         return false;
     const QString valueString = value.toString();
-    QString *toChange = 0;
+    QString *toChange = nullptr;
     if (index.column() == keyColumn() && !valueString.isEmpty()
             && !node->parent->hasDirectChildWithName(valueString)
             && !(node->parent->parent == &d->rootNode
@@ -358,7 +358,7 @@ void SettingsModel::SettingsModelPrivate::addNodeFromSettings(Node *parentNode,
 void SettingsModel::SettingsModelPrivate::addNode(qbs::Internal::Node *parentNode,
         const QString &currentNamePart, const QStringList &restOfName, const QVariant &value)
 {
-    Node *currentNode = 0;
+    Node *currentNode = nullptr;
     for (Node * const n : qAsConst(parentNode->children)) {
         if (n->name == currentNamePart) {
             currentNode = n;

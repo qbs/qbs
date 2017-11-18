@@ -44,7 +44,7 @@ class IMSBuildProperty : public QObject
 {
     Q_OBJECT
 protected:
-    explicit IMSBuildProperty(QObject *parent = 0);
+    explicit IMSBuildProperty(QObject *parent = nullptr);
 
 public:
     virtual ~IMSBuildProperty();

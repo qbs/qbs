@@ -55,7 +55,7 @@ class JsCommandExecutor : public AbstractCommandExecutor
 {
     Q_OBJECT
 public:
-    explicit JsCommandExecutor(const Logger &logger, QObject *parent = 0);
+    explicit JsCommandExecutor(const Logger &logger, QObject *parent = nullptr);
     ~JsCommandExecutor();
 
 signals:

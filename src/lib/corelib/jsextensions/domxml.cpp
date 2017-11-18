@@ -143,7 +143,7 @@ QBS_JSEXTENSION_REGISTER(Xml, &initializeJsExtensionXml)
 
 QScriptValue XmlDomDocument::ctor(QScriptContext *context, QScriptEngine *engine)
 {
-    XmlDomDocument *xml = 0;
+    XmlDomDocument *xml = nullptr;
     switch (context->argumentCount()) {
     case 0:
         xml = new XmlDomDocument(context);

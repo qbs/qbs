@@ -68,7 +68,7 @@ CommandLineFrontend::CommandLineFrontend(const CommandLineParser &parser, Settin
     : QObject(parent)
     , m_parser(parser)
     , m_settings(settings)
-    , m_observer(0)
+    , m_observer(nullptr)
     , m_cancelStatus(CancelStatusNone)
     , m_cancelTimer(new QTimer(this))
 {

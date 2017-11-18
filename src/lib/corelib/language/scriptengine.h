@@ -97,7 +97,7 @@ class QBS_AUTOTEST_EXPORT ScriptEngine : public QScriptEngine
 {
     Q_OBJECT
 public:
-    ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent = 0);
+    ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent = nullptr);
     ~ScriptEngine();
 
     Logger &logger() const { return m_logger; }

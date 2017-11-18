@@ -53,7 +53,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(const QString &settingsDir, QWidget *parent = 0);
+    explicit MainWindow(const QString &settingsDir, QWidget *parent = nullptr);
     ~MainWindow();
 
     bool eventFilter(QObject *watched, QEvent *event);

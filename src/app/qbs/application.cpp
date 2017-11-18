@@ -45,7 +45,7 @@
 namespace qbs {
 
 Application::Application(int &argc, char **argv)
-    : QCoreApplication(argc, argv), m_clFrontend(0), m_canceled(false)
+    : QCoreApplication(argc, argv), m_clFrontend(nullptr), m_canceled(false)
 {
     setApplicationName(QLatin1String("qbs"));
     setOrganizationName(QLatin1String("QtProject"));

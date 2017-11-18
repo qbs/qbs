@@ -57,7 +57,7 @@ public:
 
 TimedActivityLogger::TimedActivityLogger(const Logger &logger, const QString &activity,
         bool enabled)
-    : d(0)
+    : d(nullptr)
 {
     if (!enabled)
         return;
@@ -76,7 +76,7 @@ void TimedActivityLogger::finishActivity()
     d->logger.qbsLog(LoggerInfo, true)
             << Tr::tr("Activity '%2' took %3.").arg(d->activity, timeString);
     delete d;
-    d = 0;
+    d = nullptr;
 }
 
 TimedActivityLogger::~TimedActivityLogger()

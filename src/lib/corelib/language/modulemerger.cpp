@@ -145,7 +145,7 @@ void ModuleMerger::start()
 
 Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap props)
 {
-    Item *moduleInstance = 0;
+    Item *moduleInstance = nullptr;
     size_t numberOfOutprops = m.item->modules().size();
     for (const Item::Module &dep : m.item->modules()) {
         if (dep.name == m_mergedModule.name) {

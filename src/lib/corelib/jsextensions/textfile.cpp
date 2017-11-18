@@ -166,7 +166,7 @@ TextFile::TextFile(QScriptContext *context, const QString &filePath, OpenMode mo
         context->throwError(Tr::tr("Unable to open file '%1': %2")
                             .arg(filePath, m_file->errorString()));
         delete m_file;
-        m_file = 0;
+        m_file = nullptr;
     }
 }
 
@@ -175,10 +175,10 @@ void TextFile::close()
     if (checkForClosed())
         return;
     delete m_stream;
-    m_stream = 0;
+    m_stream = nullptr;
     m_file->close();
     delete m_file;
-    m_file = 0;
+    m_file = nullptr;
 }
 
 QString TextFile::filePath()

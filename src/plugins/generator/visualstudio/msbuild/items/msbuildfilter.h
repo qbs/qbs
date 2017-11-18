@@ -42,9 +42,9 @@ class MSBuildFilter : public MSBuildItem
 {
     Q_OBJECT
 public:
-    explicit MSBuildFilter(IMSBuildItemGroup *parent = 0);
+    explicit MSBuildFilter(IMSBuildItemGroup *parent = nullptr);
     MSBuildFilter(const QString &name, const QList<QString> &extensions,
-                  IMSBuildItemGroup *parent = 0);
+                  IMSBuildItemGroup *parent = nullptr);
     ~MSBuildFilter();
 
     QUuid identifier() const;

@@ -112,7 +112,7 @@ QStringList PluginDependencyScanner::collectDependencies(FileResourceBase *file,
         int flags = 0;
         int length = 0;
         const char *szOutFilePath = m_plugin->next(scannerHandle, &length, &flags);
-        if (szOutFilePath == 0)
+        if (szOutFilePath == nullptr)
             break;
         QString outFilePath = QString::fromLocal8Bit(szOutFilePath, length);
         if (outFilePath.isEmpty())
@@ -157,7 +157,7 @@ UserDependencyScanner::UserDependencyScanner(const ResolvedScannerConstPtr &scan
     : m_scanner(scanner),
       m_engine(engine),
       m_observer(m_engine, UnobserveMode::Enabled),
-      m_product(0)
+      m_product(nullptr)
 {
     m_global = m_engine->newObject();
     m_global.setPrototype(m_engine->globalObject());

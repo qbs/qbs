@@ -50,7 +50,7 @@ class MSBuildTargetProject : public MSBuildProject
 protected:
     MSBuildTargetProject(const GeneratableProject &project,
                          const Internal::VisualStudioVersionInfo &versionInfo,
-                         VisualStudioGenerator *parent = 0);
+                         VisualStudioGenerator *parent = nullptr);
 
 public:
     ~MSBuildTargetProject();

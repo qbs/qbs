@@ -73,7 +73,7 @@ namespace Internal {
 
 RulesApplicator::RulesApplicator(const ResolvedProductPtr &product, const Logger &logger)
     : m_product(product)
-    , m_mocScanner(0)
+    , m_mocScanner(nullptr)
     , m_logger(logger)
 {
 }
@@ -121,7 +121,7 @@ void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts
         const ArtifactSet &outputArtifactsToRemove, const Logger &logger)
 {
     ArtifactSet artifactsToRemove;
-    const TopLevelProject *project = 0;
+    const TopLevelProject *project = nullptr;
     for (Artifact * const removedArtifact : outputArtifactsToRemove) {
         qCDebug(lcBuildGraph) << "dynamic rule removed output artifact"
                               << removedArtifact->toString();

@@ -44,7 +44,7 @@ class IMSBuildGroup : public QObject
 {
     Q_OBJECT
 public:
-    explicit IMSBuildGroup(MSBuildProject *parent = 0);
+    explicit IMSBuildGroup(MSBuildProject *parent = nullptr);
     virtual ~IMSBuildGroup();
 
     QString condition() const;
@@ -58,7 +58,7 @@ class IMSBuildItemGroup : public IMSBuildGroup
 {
     Q_OBJECT
 public:
-    explicit IMSBuildItemGroup(MSBuildProject *parent = 0);
+    explicit IMSBuildItemGroup(MSBuildProject *parent = nullptr);
 };
 
 } // namespace qbs

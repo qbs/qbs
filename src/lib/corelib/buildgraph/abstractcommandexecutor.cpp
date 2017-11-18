@@ -50,9 +50,9 @@ namespace Internal {
 AbstractCommandExecutor::AbstractCommandExecutor(const Logger &logger, QObject *parent)
     : QObject(parent)
     , m_echoMode(defaultCommandEchoMode())
-    , m_command(0)
-    , m_transformer(0)
-    , m_mainThreadScriptEngine(0)
+    , m_command(nullptr)
+    , m_transformer(nullptr)
+    , m_mainThreadScriptEngine(nullptr)
     , m_dryRun(false)
     , m_logger(logger)
 {

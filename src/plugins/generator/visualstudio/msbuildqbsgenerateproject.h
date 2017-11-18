@@ -45,7 +45,7 @@ class MSBuildQbsGenerateProject : public MSBuildTargetProject
 public:
     MSBuildQbsGenerateProject(const GeneratableProject &project,
                               const Internal::VisualStudioVersionInfo &versionInfo,
-                              VisualStudioGenerator *parent = 0);
+                              VisualStudioGenerator *parent = nullptr);
 };
 
 } // namespace qbs

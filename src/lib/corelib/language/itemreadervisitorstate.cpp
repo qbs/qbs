@@ -62,7 +62,7 @@ class ASTCacheValueData : public QSharedData
     Q_DISABLE_COPY(ASTCacheValueData)
 public:
     ASTCacheValueData()
-        : ast(0)
+        : ast(nullptr)
         , processing(false)
     {
     }

@@ -62,7 +62,7 @@ namespace Internal {
 
 Loader::Loader(ScriptEngine *engine, const Logger &logger)
     : m_logger(logger)
-    , m_progressObserver(0)
+    , m_progressObserver(nullptr)
     , m_engine(engine)
 {
     m_logger.storeWarnings();

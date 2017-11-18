@@ -54,7 +54,7 @@ class VisualStudioSolution : public QObject
     Q_DISABLE_COPY(VisualStudioSolution)
 public:
     explicit VisualStudioSolution(const Internal::VisualStudioVersionInfo &versionInfo,
-                                  QObject *parent = 0);
+                                  QObject *parent = nullptr);
     ~VisualStudioSolution();
 
     Internal::VisualStudioVersionInfo versionInfo() const;

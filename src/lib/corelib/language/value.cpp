@@ -49,7 +49,7 @@ namespace qbs {
 namespace Internal {
 
 Value::Value(Type t, bool createdByPropertiesBlock)
-    : m_type(t), m_definingItem(0), m_createdByPropertiesBlock(createdByPropertiesBlock)
+    : m_type(t), m_definingItem(nullptr), m_createdByPropertiesBlock(createdByPropertiesBlock)
 {
 }
 

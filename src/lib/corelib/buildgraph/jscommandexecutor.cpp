@@ -73,7 +73,7 @@ class JsCommandExecutorThreadObject : public QObject
 public:
     JsCommandExecutorThreadObject(const Logger &logger)
         : m_logger(logger)
-        , m_scriptEngine(0)
+        , m_scriptEngine(nullptr)
     {
     }
 

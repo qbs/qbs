@@ -70,7 +70,7 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
 
     // Shuffle the initial sequence. Otherwise all invocations of the tool with the same start
     // commit would try the same sequence of commits.
-    std::srand(std::time(0));
+    std::srand(std::time(nullptr));
     std::random_shuffle(allCommits.begin(), allCommits.end());
 
     quint64 run = 0;

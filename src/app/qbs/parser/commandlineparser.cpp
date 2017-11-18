@@ -110,7 +110,7 @@ public:
     bool logTime;
 };
 
-CommandLineParser::CommandLineParser() : d(0)
+CommandLineParser::CommandLineParser() : d(nullptr)
 {
 }
 
@@ -312,7 +312,7 @@ bool CommandLineParser::parseCommandLine(const QStringList &args)
 
 
 CommandLineParser::CommandLineParserPrivate::CommandLineParserPrivate()
-    : command(0), commandPool(optionPool), showProgress(false), logTime(false)
+    : command(nullptr), commandPool(optionPool), showProgress(false), logTime(false)
 {
 }
 
@@ -357,7 +357,7 @@ Command *CommandLineParser::CommandLineParserPrivate::commandFromString(const QS
         if (command->representation() == commandString)
             return command;
     }
-    return 0;
+    return nullptr;
 }
 
 QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() const

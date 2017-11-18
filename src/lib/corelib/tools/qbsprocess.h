@@ -54,7 +54,7 @@ class QbsProcess : public QObject
 {
     Q_OBJECT
 public:
-    explicit QbsProcess(QObject *parent = 0);
+    explicit QbsProcess(QObject *parent = nullptr);
 
     QProcess::ProcessState state() const { return m_state; }
     void setProcessEnvironment(const QProcessEnvironment &env) { m_environment = env; }

@@ -233,7 +233,7 @@ void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcv
 void VsEnvironmentDetector::parseBatOutput(const QByteArray &output, std::vector<MSVC *> msvcs)
 {
     QString arch;
-    QProcessEnvironment *targetEnv = 0;
+    QProcessEnvironment *targetEnv = nullptr;
     for (QByteArray line : output.split('\n')) {
         line = line.trimmed();
         if (line.isEmpty())

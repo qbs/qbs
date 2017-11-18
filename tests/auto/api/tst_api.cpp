@@ -221,7 +221,7 @@ void TestApi::addedFilePersistent()
                                                                               0));
     waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
-    setupJob.reset(0);
+    setupJob.reset(nullptr);
 
     // Remove the file again. qbs must unschedule the rule application again.
     // Consequently, the linking step must fail as in the initial run.
@@ -241,7 +241,7 @@ void TestApi::addedFilePersistent()
     setupJob.reset(qbs::Project().setupProject(params, m_logSink, 0));
     waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
-    setupJob.reset(0);
+    setupJob.reset(nullptr);
 
     // qbs must remember that a file was scheduled for rule application. The build must then
     // succeed, as now all necessary symbols are linked in.
@@ -892,8 +892,8 @@ void TestApi::changeContent()
     VERIFY_NO_ERROR(errorInfo);
 
     project = qbs::Project();
-    job.reset(0);
-    buildJob.reset(0);
+    job.reset(nullptr);
+    buildJob.reset(nullptr);
     removeBuildDir(setupParams);
     // Add a file to the top level of a product that does not have a "files" binding yet.
     setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +

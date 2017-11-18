@@ -166,8 +166,8 @@ void ExecutorJob::setFinished()
 
 void ExecutorJob::reset()
 {
-    m_transformer = 0;
-    m_currentCommandExecutor = 0;
+    m_transformer = nullptr;
+    m_currentCommandExecutor = nullptr;
     m_currentCommandIdx = -1;
     m_error.clear();
 }

@@ -94,7 +94,7 @@ QmlErrorPrivate::QmlErrorPrivate()
     Creates an empty error object.
 */
 QmlError::QmlError()
-: d(0)
+: d(nullptr)
 {
 }
 
@@ -102,7 +102,7 @@ QmlError::QmlError()
     Creates a copy of \a other.
 */
 QmlError::QmlError(const QmlError &other)
-: d(0)
+: d(nullptr)
 {
     *this = other;
 }
@@ -114,7 +114,7 @@ QmlError &QmlError::operator=(const QmlError &other)
 {
     if (!other.d) {
         delete d;
-        d = 0;
+        d = nullptr;
     } else {
         if (!d) d = new QmlErrorPrivate;
         d->url = other.d->url;
@@ -130,7 +130,7 @@ QmlError &QmlError::operator=(const QmlError &other)
 */
 QmlError::~QmlError()
 {
-    delete d; d = 0;
+    delete d; d = nullptr;
 }
 
 /*!
@@ -138,7 +138,7 @@ QmlError::~QmlError()
 */
 bool QmlError::isValid() const
 {
-    return d != 0;
+    return d != nullptr;
 }
 
 /*!

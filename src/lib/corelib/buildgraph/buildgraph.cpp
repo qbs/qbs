@@ -490,7 +490,7 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product,
                          : artifact->product == product))
             return artifact;
     }
-    return 0;
+    return nullptr;
 }
 
 Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &dirPath,

@@ -65,7 +65,7 @@ namespace Internal {
 class ItemFinder : public Visitor
 {
 public:
-    ItemFinder(const CodeLocation &cl) : m_cl(cl), m_item(0) { }
+    ItemFinder(const CodeLocation &cl) : m_cl(cl), m_item(nullptr) { }
 
     UiObjectDefinition *item() const { return m_item; }
 
@@ -87,7 +87,7 @@ class FilesBindingFinder : public Visitor
 {
 public:
     FilesBindingFinder(const UiObjectDefinition *startItem)
-        : m_startItem(startItem), m_binding(0)
+        : m_startItem(startItem), m_binding(nullptr)
     {
     }
 

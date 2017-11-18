@@ -48,9 +48,9 @@ class MSBuildItemMetadata : public IMSBuildProperty, public IMSBuildNode
     Q_OBJECT
     Q_DISABLE_COPY(MSBuildItemMetadata)
 public:
-    explicit MSBuildItemMetadata(MSBuildItem *parent = 0);
+    explicit MSBuildItemMetadata(MSBuildItem *parent = nullptr);
     MSBuildItemMetadata(const QString &name, const QVariant &value = QVariant(),
-                        MSBuildItem *parent = 0);
+                        MSBuildItem *parent = nullptr);
 
     void accept(IMSBuildNodeVisitor *visitor) const;
 };

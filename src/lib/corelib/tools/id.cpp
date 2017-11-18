@@ -69,7 +69,7 @@ class StringHolder
 {
 public:
     StringHolder()
-        : n(0), str(0)
+        : n(0), str(nullptr)
     {}
 
     StringHolder(const char *s, int length)

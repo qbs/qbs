@@ -500,7 +500,7 @@ public:
     {
     }
     Data(int reserved, JsonValue::Type valueType)
-        : rawData(0), compactionCounter(0), ownsData(true)
+        : rawData(nullptr), compactionCounter(0), ownsData(true)
     {
         // assert(valueType == JsonValue::Array || valueType == JsonValue::Object);
 
@@ -686,7 +686,7 @@ using namespace Internal;
     The default is to create a Null value.
  */
 JsonValue::JsonValue(Type type)
-    : ui(0), d(0), t(type)
+    : ui(0), d(nullptr), t(type)
 {
 }
 
@@ -694,7 +694,7 @@ JsonValue::JsonValue(Type type)
     \internal
  */
 JsonValue::JsonValue(Internal::Data *data, Internal::Base *base, const Internal::Value &v)
-    : d(0), t((Type)(uint32_t)v.type)
+    : d(nullptr), t((Type)(uint32_t)v.type)
 {
     switch (t) {
     case Undefined:
@@ -727,7 +727,7 @@ JsonValue::JsonValue(Internal::Data *data, Internal::Base *base, const Internal:
     Creates a value of type Bool, with value \a b.
  */
 JsonValue::JsonValue(bool b)
-    : d(0), t(Bool)
+    : d(nullptr), t(Bool)
 {
     this->b = b;
 }
@@ -736,7 +736,7 @@ JsonValue::JsonValue(bool b)
     Creates a value of type Double, with value \a n.
  */
 JsonValue::JsonValue(double n)
-    : d(0), t(Double)
+    : d(nullptr), t(Double)
 {
     this->dbl = n;
 }
@@ -746,7 +746,7 @@ JsonValue::JsonValue(double n)
     Creates a value of type Double, with value \a n.
  */
 JsonValue::JsonValue(int n)
-    : d(0), t(Double)
+    : d(nullptr), t(Double)
 {
     this->dbl = n;
 }
@@ -758,7 +758,7 @@ JsonValue::JsonValue(int n)
     If you pass in values outside this range expect a loss of precision to occur.
  */
 JsonValue::JsonValue(int64_t n)
-    : d(0), t(Double)
+    : d(nullptr), t(Double)
 {
     this->dbl = double(n);
 }
@@ -767,7 +767,7 @@ JsonValue::JsonValue(int64_t n)
     Creates a value of type String, with value \a s.
  */
 JsonValue::JsonValue(const std::string &s)
-    : d(0), t(String)
+    : d(nullptr), t(String)
 {
     stringData = new Internal::SharedString;
     stringData->s = s;
@@ -775,7 +775,7 @@ JsonValue::JsonValue(const std::string &s)
 }
 
 JsonValue::JsonValue(const char *s)
-    : d(0), t(String)
+    : d(nullptr), t(String)
 {
     stringData = new Internal::SharedString;
     stringData->s = s;
@@ -1244,12 +1244,12 @@ JsonValue JsonValueRef::toValue() const
     Creates an empty array.
  */
 JsonArray::JsonArray()
-    : d(0), a(0)
+    : d(nullptr), a(nullptr)
 {
 }
 
 JsonArray::JsonArray(std::initializer_list<JsonValue> args)
-    : d(0), a(0)
+    : d(nullptr), a(nullptr)
 {
     for (auto i = args.begin(); i != args.end(); ++i)
         append(*i);
@@ -2277,12 +2277,12 @@ void JsonArray::compact()
     \sa isEmpty()
  */
 JsonObject::JsonObject()
-    : d(0), o(0)
+    : d(nullptr), o(nullptr)
 {
 }
 
 JsonObject::JsonObject(std::initializer_list<std::pair<std::string, JsonValue> > args)
-    : d(0), o(0)
+    : d(nullptr), o(nullptr)
 {
     for (auto i = args.begin(); i != args.end(); ++i)
         insert(i->first, i->second);
@@ -3242,7 +3242,7 @@ void JsonObject::setValueAt(int i, const JsonValue &val)
  * Constructs an empty and invalid document.
  */
 JsonDocument::JsonDocument()
-    : d(0)
+    : d(nullptr)
 {
 }
 
@@ -3250,7 +3250,7 @@ JsonDocument::JsonDocument()
  * Creates a JsonDocument from \a object.
  */
 JsonDocument::JsonDocument(const JsonObject &object)
-    : d(0)
+    : d(nullptr)
 {
     setObject(object);
 }
@@ -3259,7 +3259,7 @@ JsonDocument::JsonDocument(const JsonObject &object)
  * Constructs a JsonDocument from \a array.
  */
 JsonDocument::JsonDocument(const JsonArray &array)
-    : d(0)
+    : d(nullptr)
 {
     setArray(array);
 }
@@ -3369,7 +3369,7 @@ const char *JsonDocument::rawData(int *size) const
 {
     if (!d) {
         *size = 0;
-        return 0;
+        return nullptr;
     }
     *size = d->alloc;
     return d->rawData;
@@ -3905,7 +3905,7 @@ void arrayToJson(const Array *a, std::string &json, int indent, bool compact)
 using namespace Internal;
 
 Parser::Parser(const char *json, int length)
-    : head(json), json(json), data(0), dataLength(0), current(0), nestingLevel(0), lastError(JsonParseError::NoError)
+    : head(json), json(json), data(nullptr), dataLength(0), current(0), nestingLevel(0), lastError(JsonParseError::NoError)
 {
     end = json + length;
 }

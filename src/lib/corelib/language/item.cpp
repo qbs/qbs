@@ -59,11 +59,11 @@ namespace Internal {
 
 Item::Item(ItemPool *pool, ItemType type)
     : m_pool(pool)
-    , m_observer(0)
-    , m_prototype(0)
-    , m_scope(0)
-    , m_outerItem(0)
-    , m_parent(0)
+    , m_observer(nullptr)
+    , m_prototype(nullptr)
+    , m_scope(nullptr)
+    , m_outerItem(nullptr)
+    , m_parent(nullptr)
     , m_type(type)
 {
 }
@@ -338,7 +338,7 @@ void Item::removeProperty(const QString &name)
 
 Item *Item::child(ItemType type, bool checkForMultiple) const
 {
-    Item *child = 0;
+    Item *child = nullptr;
     for (Item * const currentChild : children()) {
         if (currentChild->type() == type) {
             if (!checkForMultiple)

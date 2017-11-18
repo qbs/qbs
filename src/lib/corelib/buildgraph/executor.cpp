@@ -84,9 +84,9 @@ bool Executor::ComparePriority::operator() (const BuildGraphNode *x, const Build
 
 Executor::Executor(const Logger &logger, QObject *parent)
     : QObject(parent)
-    , m_productInstaller(0)
+    , m_productInstaller(nullptr)
     , m_logger(logger)
-    , m_progressObserver(0)
+    , m_progressObserver(nullptr)
     , m_state(ExecutorIdle)
     , m_cancelationTimer(new QTimer(this))
 {

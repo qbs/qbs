@@ -70,7 +70,7 @@ namespace Internal {
 class JobObserver : public ProgressObserver
 {
 public:
-    JobObserver(InternalJob *job) : m_canceled(false), m_job(job), m_timedLogger(0) { }
+    JobObserver(InternalJob *job) : m_canceled(false), m_job(job), m_timedLogger(nullptr) { }
     ~JobObserver() { delete m_timedLogger; }
 
     void cancel()
@@ -103,7 +103,7 @@ private:
         m_value = value;
         if (value == m_maximum) {
             delete m_timedLogger;
-            m_timedLogger = 0;
+            m_timedLogger = nullptr;
         }
         emit m_job->taskProgress(value, m_job);
     }
@@ -266,7 +266,7 @@ void InternalSetupProjectJob::start()
         }
         execute();
         if (m_existingProject)
-            m_existingProject->bgLocker = 0;
+            m_existingProject->bgLocker = nullptr;
         m_newProject->bgLocker = bgLocker;
         deleteLocker = false;
     } catch (const ErrorInfo &error) {
@@ -362,7 +362,7 @@ void BuildGraphTouchingJob::storeBuildGraph()
 }
 
 InternalBuildJob::InternalBuildJob(const Logger &logger, QObject *parent)
-    : BuildGraphTouchingJob(logger, parent), m_executor(0)
+    : BuildGraphTouchingJob(logger, parent), m_executor(nullptr)
 {
 }
 

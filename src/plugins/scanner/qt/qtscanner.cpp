@@ -81,10 +81,10 @@ struct OpaqQrc
 #ifdef Q_OS_UNIX
         : fd (0),
 #else
-        : file(0),
+        : file(nullptr),
 #endif
-          map(0),
-          xml(0)
+          map(nullptr),
+          xml(nullptr)
     {}
 
     ~OpaqQrc()
@@ -112,26 +112,26 @@ static void *openScannerQrc(const unsigned short *filePath, const char *fileTags
     opaque->fd = open(qPrintable(filePathS), O_RDONLY);
     if (opaque->fd == -1) {
         opaque->fd = 0;
-        return 0;
+        return nullptr;
     }
 
     struct stat s;
     int r = fstat(opaque->fd, &s);
     if (r != 0)
-        return 0;
+        return nullptr;
     opaque->mapl = s.st_size;
 
     void *map = mmap(0, s.st_size, PROT_READ, MAP_PRIVATE, opaque->fd, 0);
-    if (map == 0)
-        return 0;
+    if (map == nullptr)
+        return nullptr;
 #else
     opaque->file = new QFile(QString::fromUtf16(filePath));
     if (!opaque->file->open(QFile::ReadOnly))
-        return 0;
+        return nullptr;
 
     uchar *map = opaque->file->map(0, opaque->file->size());
     if (!map)
-        return 0;
+        return nullptr;
 #endif
 
     opaque->map = reinterpret_cast<char *>(map);
@@ -161,18 +161,18 @@ static const char *nextQrc(void *opaq, int *size, int *flags)
                 }
                 break;
             case QXmlStreamReader::EndDocument:
-                return 0;
+                return nullptr;
             default:
                 break;
         }
     }
-    return 0;
+    return nullptr;
 }
 
 static const char **additionalFileTagsQrc(void *, int *size)
 {
     *size = 0;
-    return 0;
+    return nullptr;
 }
 
 ScannerPlugin qrcScanner =

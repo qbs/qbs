@@ -83,7 +83,7 @@ struct Opaq
           fd(0),
           mapl(0),
 #endif
-          fileContent(0),
+          fileContent(nullptr),
           fileType(FT_UNKNOWN),
           hasQObjectMacro(false),
           hasPluginMetaDataMacro(false),
@@ -223,29 +223,29 @@ static void *openScanner(const unsigned short *filePath, const char *fileTags, i
     opaque->fd = open(qPrintable(filePathS), O_RDONLY);
     if (opaque->fd == -1) {
         opaque->fd = 0;
-        return 0;
+        return nullptr;
     }
 
     struct stat s;
     int r = fstat(opaque->fd, &s);
     if (r != 0)
-        return 0;
+        return nullptr;
     mapl = s.st_size;
     opaque->mapl = mapl;
 
     void *vmap = mmap(0, s.st_size, PROT_READ, MAP_PRIVATE, opaque->fd, 0);
     if (vmap == MAP_FAILED)
-        return 0;
+        return nullptr;
 #else
     opaque->file.setFileName(opaque->fileName);
     if (!opaque->file.open(QFile::ReadOnly))
-        return 0;
+        return nullptr;
 
     uchar *vmap = opaque->file.map(0, opaque->file.size());
     mapl = opaque->file.size();
 #endif
     if (!vmap)
-        return 0;
+        return nullptr;
 
     opaque->fileContent = reinterpret_cast<char *>(vmap);
     CPlusPlus::Lexer lex(opaque->fileContent, opaque->fileContent + mapl);
@@ -271,7 +271,7 @@ static const char *next(void *opaq, int *size, int *flags)
     }
     *size = 0;
     *flags = 0;
-    return 0;
+    return nullptr;
 }
 
 static const char **additionalFileTags(void *opaq, int *size)
@@ -295,7 +295,7 @@ static const char **additionalFileTags(void *opaq, int *size)
         }
     }
     *size = 0;
-    return 0;
+    return nullptr;
 }
 
 ScannerPlugin includeScanner =

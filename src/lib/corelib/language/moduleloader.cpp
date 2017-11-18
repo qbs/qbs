@@ -239,9 +239,9 @@ private:
 };
 
 ModuleLoader::ModuleLoader(Evaluator *evaluator, Logger &logger)
-    : m_pool(0)
+    : m_pool(nullptr)
     , m_logger(logger)
-    , m_progressObserver(0)
+    , m_progressObserver(nullptr)
     , m_reader(new ItemReader(logger))
     , m_evaluator(evaluator)
 {
@@ -375,7 +375,7 @@ public:
     PropertyDeclarationCheck(const Set<Item *> &disabledItems,
                              const SetupProjectParameters &params, Logger &logger)
         : m_disabledItems(disabledItems)
-        , m_parentItem(0)
+        , m_parentItem(nullptr)
         , m_params(params)
         , m_logger(logger)
     {
@@ -2455,7 +2455,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
     }
     delayedPropertyChanger.applyNow();
     if (!modulePrototype)
-        return 0;
+        return nullptr;
 
     instantiateModule(productContext, exportingProductItem, item, moduleInstance, modulePrototype,
                       moduleName, pmi);
@@ -2552,7 +2552,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
                     dependsItemLocation);
 
-    return 0;
+    return nullptr;
 }
 
 // returns QVariant::Invalid for types that do not need conversion
@@ -2630,7 +2630,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
                             << "Alleged module " << fullModuleName << " has type '"
                             << module->typeName() << "', so it's not a module after all.";
         *triedToLoad = false;
-        return 0;
+        return nullptr;
     }
 
     // Set the name before evaluating any properties. EvaluatorScriptClass reads the module name.
@@ -2670,7 +2670,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     if (!enabled) {
         qCDebug(lcModuleLoader) << "condition of module" << fullModuleName << "is false";
         m_modulePrototypeItemCache.insert(cacheKey, ItemCacheValue(module, false));
-        return 0;
+        return nullptr;
     }
 
     if (isBaseModule)

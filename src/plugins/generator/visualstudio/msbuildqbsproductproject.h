@@ -53,7 +53,7 @@ public:
     MSBuildQbsProductProject(const GeneratableProject &project,
                              const GeneratableProductData &product,
                              const Internal::VisualStudioVersionInfo &versionInfo,
-                             VisualStudioGenerator *parent = 0);
+                             VisualStudioGenerator *parent = nullptr);
 
 private:
     typedef QHash<QString, Internal::Set<Project>> ProjectConfigurations;

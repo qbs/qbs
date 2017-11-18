@@ -110,7 +110,7 @@ ProjectResolver::ProjectResolver(Evaluator *evaluator, const ModuleLoaderResult 
     : m_evaluator(evaluator)
     , m_logger(logger)
     , m_engine(m_evaluator->engine())
-    , m_progressObserver(0)
+    , m_progressObserver(nullptr)
     , m_setupParams(setupParameters)
     , m_loadResult(loadResult)
 {
@@ -151,8 +151,8 @@ TopLevelProjectPtr ProjectResolver::resolve()
                                              m_setupParams.logElapsedTime());
     qCDebug(lcProjectResolver) << "resolving" << m_loadResult.root->file()->filePath();
 
-    m_productContext = 0;
-    m_moduleContext = 0;
+    m_productContext = nullptr;
+    m_moduleContext = nullptr;
     m_elapsedTimeModPropEval = m_elapsedTimeAllPropEval = m_elapsedTimeGroups = 0;
     TopLevelProjectPtr tlp;
     try {

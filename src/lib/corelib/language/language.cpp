@@ -773,7 +773,7 @@ QString ResolvedProduct::cachedExecutablePath(const QString &origFilePath) const
 }
 
 
-ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(0)
+ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(nullptr)
 {
 }
 
@@ -849,7 +849,7 @@ void ResolvedProject::store(PersistentPool &pool) const
 
 
 TopLevelProject::TopLevelProject()
-    : bgLocker(0), locked(false), lastResolveTime(FileTime::oldestTime())
+    : bgLocker(nullptr), locked(false), lastResolveTime(FileTime::oldestTime())
 {
 }
 

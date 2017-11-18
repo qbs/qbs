@@ -73,7 +73,7 @@ static QStringList headerFileExtensions()
             << QStringLiteral("h++");
 }
 
-static std::vector<MSBuildFilter *> defaultItemGroupFilters(IMSBuildItemGroup *parent = 0)
+static std::vector<MSBuildFilter *> defaultItemGroupFilters(IMSBuildItemGroup *parent = nullptr)
 {
     const auto sourceFilter = new MSBuildFilter(QStringLiteral("Source Files"), sourceFileExtensions(), parent);
     const auto headerFilter = new MSBuildFilter(QStringLiteral("Header Files"), headerFileExtensions(), parent);

@@ -136,7 +136,7 @@ template <typename T> inline T *PersistentPool::idLoad()
     m_stream >> id;
 
     if (id < 0)
-        return 0;
+        return nullptr;
 
     if (id < static_cast<PersistentObjectId>(m_loadedRaw.size())) {
         PersistentObject *obj = m_loadedRaw.at(id);
@@ -146,7 +146,7 @@ template <typename T> inline T *PersistentPool::idLoad()
     auto i = m_loadedRaw.size();
     m_loadedRaw.resize(id + 1);
     for (; i < m_loadedRaw.size(); ++i)
-        m_loadedRaw[i] = 0;
+        m_loadedRaw[i] = nullptr;
 
     T * const t = new T;
     PersistentObject * const po = t;

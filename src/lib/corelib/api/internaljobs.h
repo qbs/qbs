@@ -80,7 +80,7 @@ public:
     void shareObserverWith(InternalJob *otherJob);
 
 protected:
-    explicit InternalJob(const Logger &logger, QObject *parent = 0);
+    explicit InternalJob(const Logger &logger, QObject *parent = nullptr);
 
     JobObserver *observer() const { return m_observer; }
     void setTimed(bool timed) { m_timed = timed; }
@@ -105,7 +105,7 @@ class InternalJobThreadWrapper : public InternalJob
 {
     Q_OBJECT
 public:
-    InternalJobThreadWrapper(InternalJob *synchronousJob, QObject *parent = 0);
+    InternalJobThreadWrapper(InternalJob *synchronousJob, QObject *parent = nullptr);
     ~InternalJobThreadWrapper();
 
     void start() override;
@@ -159,7 +159,7 @@ signals:
     void reportProcessResult(const qbs::ProcessResult &result);
 
 protected:
-    BuildGraphTouchingJob(const Logger &logger, QObject *parent = 0);
+    BuildGraphTouchingJob(const Logger &logger, QObject *parent = nullptr);
     ~BuildGraphTouchingJob();
 
     void setup(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
@@ -177,7 +177,7 @@ class InternalBuildJob : public BuildGraphTouchingJob
 {
     Q_OBJECT
 public:
-    InternalBuildJob(const Logger &logger, QObject *parent = 0);
+    InternalBuildJob(const Logger &logger, QObject *parent = nullptr);
 
     void build(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                const BuildOptions &buildOptions);
@@ -194,7 +194,7 @@ class InternalCleanJob : public BuildGraphTouchingJob
 {
     Q_OBJECT
 public:
-    InternalCleanJob(const Logger &logger, QObject *parent = 0);
+    InternalCleanJob(const Logger &logger, QObject *parent = nullptr);
 
     void init(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
             const CleanOptions &options);

@@ -77,7 +77,7 @@ using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet
 struct ModuleLoaderResult
 {
     ModuleLoaderResult()
-        : itemPool(new ItemPool), root(0)
+        : itemPool(new ItemPool), root(nullptr)
     {}
 
     struct ProductInfo
@@ -145,7 +145,7 @@ private:
     {
     public:
         ContextBase()
-            : item(0), scope(0)
+            : item(nullptr), scope(nullptr)
         {}
 
         Item *item;

@@ -74,9 +74,9 @@ static void resolveDepencency(const RawScannedDependency &dependency,
         absDirPath = QDir::cleanPath(absDirPath);
 
     ResolvedProject *project = product->project.get();
-    FileDependency *fileDependencyArtifact = 0;
-    Artifact *dependencyInProduct = 0;
-    Artifact *dependencyInOtherProduct = 0;
+    FileDependency *fileDependencyArtifact = nullptr;
+    Artifact *dependencyInProduct = nullptr;
+    Artifact *dependencyInOtherProduct = nullptr;
     for (FileResourceBase *lookupResult : project->topLevelProject()
              ->buildData->lookupFiles(absDirPath, dependency.fileName())) {
         if ((fileDependencyArtifact = dynamic_cast<FileDependency *>(lookupResult)))

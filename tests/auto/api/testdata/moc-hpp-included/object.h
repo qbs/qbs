@@ -34,7 +34,7 @@ class Object : public QObject
 {
     Q_OBJECT
 public:
-    Object(QObject *parent = 0);
+    Object(QObject *parent = nullptr);
 };
 
 #endif

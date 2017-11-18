@@ -142,7 +142,7 @@ void PersistentPool::finalizeWriteStream()
 void PersistentPool::closeStream()
 {
     delete m_stream.device();
-    m_stream.setDevice(0);
+    m_stream.setDevice(nullptr);
 }
 
 void PersistentPool::storePersistentObject(const PersistentObject *object)

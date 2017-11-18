@@ -586,8 +586,8 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     const EvaluationData *data = m_queryResult.data;
     const Item * const itemOfProperty = m_queryResult.itemOfProperty;
     m_queryResult.foundInParent = false;
-    m_queryResult.data = 0;
-    m_queryResult.itemOfProperty = 0;
+    m_queryResult.data = nullptr;
+    m_queryResult.itemOfProperty = nullptr;
     QBS_ASSERT(data, return QScriptValue());
 
     const QueryPropertyType qpt = static_cast<QueryPropertyType>(id);

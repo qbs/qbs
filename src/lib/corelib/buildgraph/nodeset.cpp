@@ -50,7 +50,7 @@ namespace Internal {
 BuildGraphNode *loadBuildGraphNode(PersistentPool &pool)
 {
     const auto t = pool.load<quint8>();
-    BuildGraphNode *node = 0;
+    BuildGraphNode *node = nullptr;
     switch (static_cast<BuildGraphNode::Type>(t)) {
     case BuildGraphNode::ArtifactNodeType:
         node = pool.load<Artifact *>();

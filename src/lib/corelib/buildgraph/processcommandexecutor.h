@@ -56,7 +56,7 @@ class ProcessCommandExecutor : public AbstractCommandExecutor
 {
     Q_OBJECT
 public:
-    explicit ProcessCommandExecutor(const Internal::Logger &logger, QObject *parent = 0);
+    explicit ProcessCommandExecutor(const Internal::Logger &logger, QObject *parent = nullptr);
 
     void setProcessEnvironment(const QProcessEnvironment &processEnvironment) {
         m_buildEnvironment = processEnvironment;

@@ -45,7 +45,7 @@ namespace qbs {
 namespace Internal {
 
 FileContext::FileContext()
-    : m_idScope(0)
+    : m_idScope(nullptr)
 {
 }
 

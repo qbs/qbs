@@ -77,13 +77,13 @@ Parser::Parser(Engine *engine):
     pool(engine->pool()),
     tos(0),
     stack_size(0),
-    sym_stack(0),
-    state_stack(0),
-    location_stack(0),
-    string_stack(0),
-    program(0),
-    first_token(0),
-    last_token(0)
+    sym_stack(nullptr),
+    state_stack(nullptr),
+    location_stack(nullptr),
+    string_stack(nullptr),
+    program(nullptr),
+    first_token(nullptr),
+    last_token(nullptr)
 {
 }
 
@@ -132,7 +132,7 @@ AST::UiQualifiedId *Parser::reparseAsQualifiedId(AST::ExpressionNode *expr)
         return currentId->finish();
     }
 
-    return 0;
+    return nullptr;
 }
 
 bool Parser::parse(int startToken)
@@ -160,7 +160,7 @@ bool Parser::parse(int startToken)
     }
 
     tos = -1;
-    program = 0;
+    program = nullptr;
 
     do {
         if (++tos == stack_size)
@@ -275,7 +275,7 @@ case 19: {
 } break;
 
 case 20: {
-    AST::UiImport *node = 0;
+    AST::UiImport *node = nullptr;
 
     if (AST::StringLiteral *importIdLiteral = AST::cast<AST::StringLiteral *>(sym(2).Expression)) {
         node = new (pool) AST::UiImport(importIdLiteral->value);
@@ -298,7 +298,7 @@ case 20: {
 } break;
 
 case 21: {
-    sym(1).Node = 0;
+    sym(1).Node = nullptr;
 } break;
 
 case 22: {
@@ -379,7 +379,7 @@ case 41:
 }   break;
 
 case 45: {
-  sym(1).Node = 0;
+  sym(1).Node = nullptr;
 } break;
 
 case 46: {
@@ -497,7 +497,7 @@ case 62: {
 
     AST::UiQualifiedId *propertyName = new (pool) AST::UiQualifiedId(stringRef(6));
     propertyName->identifierToken = loc(6);
-    propertyName->next = 0;
+    propertyName->next = nullptr;
 
     AST::UiArrayBinding *binding = new (pool) AST::UiArrayBinding(
         propertyName, sym(9).UiArrayMemberList->finish());
@@ -519,7 +519,7 @@ case 63: {
 
     AST::UiQualifiedId *propertyName = new (pool) AST::UiQualifiedId(stringRef(3));
     propertyName->identifierToken = loc(3);
-    propertyName->next = 0;
+    propertyName->next = nullptr;
 
     AST::UiObjectBinding *binding = new (pool) AST::UiObjectBinding(
       propertyName, sym(5).UiQualifiedId, sym(6).UiObjectInitializer);
@@ -652,7 +652,7 @@ case 85: {
 } break;
 
 case 86: {
-  AST::ObjectLiteral *node = 0;
+  AST::ObjectLiteral *node = nullptr;
   if (sym(2).Node)
     node = new (pool) AST::ObjectLiteral(
         sym(2).PropertyNameAndValueList->finish ());
@@ -689,7 +689,7 @@ case 89: {
   if (AST::UiQualifiedId *qualifiedId = reparseAsQualifiedId(sym(1).Expression)) {
     sym(1).UiQualifiedId = qualifiedId;
   } else {
-    sym(1).UiQualifiedId = 0;
+    sym(1).UiQualifiedId = nullptr;
 
     diagnostic_messages.append(DiagnosticMessage(DiagnosticMessage::Error, loc(1),
       QLatin1String("Expected a qualified name id")));
@@ -834,7 +834,7 @@ case 147: {
 } break;
 
 case 148: {
-  sym(1).Node = 0;
+  sym(1).Node = nullptr;
 } break;
 
 case 149: {
@@ -1261,7 +1261,7 @@ case 242: {
 } break;
 
 case 243: {
-  sym(1).Node = 0;
+  sym(1).Node = nullptr;
 } break;
 
 case 246: {
@@ -1271,7 +1271,7 @@ case 246: {
 } break;
 
 case 247: {
-  sym(1).Node = 0;
+  sym(1).Node = nullptr;
 } break;
 
 case 264: {
@@ -1290,7 +1290,7 @@ case 266: {
 } break;
 
 case 267: {
-  sym(1).Node = 0;
+  sym(1).Node = nullptr;
 } break;
 
 case 268: {
@@ -1350,7 +1350,7 @@ case 279: {
 } break;
 
 case 280: {
-  sym(1).Node = 0;
+  sym(1).Node = nullptr;
 } break;
 
 case 282: {
@@ -1359,7 +1359,7 @@ case 282: {
 } break;
 
 case 283: {
-  sym(1).Node = 0;
+  sym(1).Node = nullptr;
 } break;
 
 case 285: {
@@ -1530,7 +1530,7 @@ case 312: {
 } break;
 
 case 313: {
-  sym(1).Node = 0;
+  sym(1).Node = nullptr;
 } break;
 
 case 314: {
@@ -1649,7 +1649,7 @@ case 332: {
 } break;
 
 case 333: {
-  sym(1).Node = 0;
+  sym(1).Node = nullptr;
 } break;
 
 case 334: {
@@ -1657,7 +1657,7 @@ case 334: {
 } break;
 
 case 335: {
-  sym(1).Node = 0;
+  sym(1).Node = nullptr;
 } break;
 
 case 337: {
@@ -1689,7 +1689,7 @@ case 344: {
 } break;
 
 case 346: {
-  sym(1).Node = 0;
+  sym(1).Node = nullptr;
 } break;
 
             } // switch

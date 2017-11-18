@@ -44,7 +44,7 @@ class VisualStudioSolutionFileProject : public IVisualStudioSolutionProject
 {
     Q_OBJECT
 public:
-    explicit VisualStudioSolutionFileProject(const QString &filePath, QObject *parent = 0);
+    explicit VisualStudioSolutionFileProject(const QString &filePath, QObject *parent = nullptr);
     ~VisualStudioSolutionFileProject();
 
     QString name() const override;

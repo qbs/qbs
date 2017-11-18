@@ -229,7 +229,7 @@ QScriptValue ModuleProperties::moduleProperty(QScriptContext *context, QScriptEn
 
     const void *ptr = reinterpret_cast<const void *>(qscriptvalue_cast<quintptr>(ptrScriptValue));
     PropertyMapConstPtr properties;
-    const Artifact *artifact = 0;
+    const Artifact *artifact = nullptr;
     if (typeScriptValue.toString() == productType()) {
         properties = static_cast<const ResolvedProduct *>(ptr)->moduleProperties;
     } else if (typeScriptValue.toString() == artifactType()) {

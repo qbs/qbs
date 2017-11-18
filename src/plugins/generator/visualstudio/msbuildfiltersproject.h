@@ -46,7 +46,7 @@ class MSBuildFiltersProject : public MSBuildProject
     Q_DISABLE_COPY(MSBuildFiltersProject)
 public:
     explicit MSBuildFiltersProject(const GeneratableProductData &product,
-                                   QObject *parent = 0);
+                                   QObject *parent = nullptr);
 };
 
 } // namespace qbs

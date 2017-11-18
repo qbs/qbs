@@ -98,8 +98,8 @@ QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targe
     : m_tags(*commonFileTags())
     , m_product(product)
     , m_targetScriptValue(targetScriptValue)
-    , m_cppScanner(0)
-    , m_hppScanner(0)
+    , m_cppScanner(nullptr)
+    , m_hppScanner(nullptr)
 {
     ScriptEngine *engine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     QScriptValue scannerObj = engine->newObject();
@@ -151,7 +151,7 @@ static RawScanResult runScanner(ScannerPlugin *scanner, const Artifact *artifact
         forever {
             int flags = 0;
             const char *szOutFilePath = scanner->next(opaq, &length, &flags);
-            if (szOutFilePath == 0)
+            if (szOutFilePath == nullptr)
                 break;
             QString includedFilePath = QString::fromLocal8Bit(szOutFilePath, length);
             if (includedFilePath.isEmpty())

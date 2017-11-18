@@ -110,10 +110,10 @@ namespace AST {
 template <typename _T1, typename _T2>
 _T1 cast(_T2 *ast)
 {
-    if (ast && ast->kind == static_cast<_T1>(0)->K)
+    if (ast && ast->kind == static_cast<_T1>(nullptr)->K)
         return static_cast<_T1>(ast);
 
-    return 0;
+    return nullptr;
 }
 
 class QML_PARSER_EXPORT Node: public Managed
@@ -448,11 +448,11 @@ public:
     QMLJS_DECLARE_AST_NODE(ArrayLiteral)
 
     ArrayLiteral(Elision *e):
-        elements (0), elision (e)
+        elements (nullptr), elision (e)
         { kind = K; }
 
     ArrayLiteral(ElementList *elts):
-        elements (elts), elision (0)
+        elements (elts), elision (nullptr)
         { kind = K; }
 
     ArrayLiteral(ElementList *elts, Elision *e):
@@ -481,7 +481,7 @@ public:
     QMLJS_DECLARE_AST_NODE(ObjectLiteral)
 
     ObjectLiteral():
-        properties (0) { kind = K; }
+        properties (nullptr) { kind = K; }
 
     ObjectLiteral(PropertyNameAndValueList *plist):
         properties (plist) { kind = K; }
@@ -526,7 +526,7 @@ public:
     inline Elision *finish ()
     {
         Elision *front = next;
-        next = 0;
+        next = nullptr;
         return front;
     }
 
@@ -555,7 +555,7 @@ public:
     inline ElementList *finish ()
     {
         ElementList *front = next;
-        next = 0;
+        next = nullptr;
         return front;
     }
 
@@ -631,7 +631,7 @@ public:
     inline PropertyNameAndValueList *finish ()
     {
         PropertyNameAndValueList *front = next;
-        next = 0;
+        next = nullptr;
         return front;
     }
 
@@ -835,7 +835,7 @@ public:
     inline ArgumentList *finish ()
     {
         ArgumentList *front = next;
-        next = 0;
+        next = nullptr;
         return front;
     }
 
@@ -1199,7 +1199,7 @@ public:
     inline StatementList *finish ()
     {
         StatementList *front = next;
-        next = 0;
+        next = nullptr;
         return front;
     }
 
@@ -1287,10 +1287,10 @@ public:
     inline VariableDeclarationList *finish (bool readOnly)
     {
         VariableDeclarationList *front = next;
-        next = 0;
+        next = nullptr;
         if (readOnly) {
             VariableDeclarationList *vdl;
-            for (vdl = front; vdl != 0; vdl = vdl->next)
+            for (vdl = front; vdl != nullptr; vdl = vdl->next)
                 vdl->declaration->readOnly = true;
         }
         return front;
@@ -1735,7 +1735,7 @@ public:
     inline CaseClauses *finish ()
     {
         CaseClauses *front = next;
-        next = 0;
+        next = nullptr;
         return front;
     }
 
@@ -1871,11 +1871,11 @@ public:
         { kind = K; }
 
     TryStatement(Statement *stmt, Finally *f):
-        statement (stmt), catchExpression (0), finallyExpression (f)
+        statement (stmt), catchExpression (nullptr), finallyExpression (f)
         { kind = K; }
 
     TryStatement(Statement *stmt, Catch *c):
-        statement (stmt), catchExpression (c), finallyExpression (0)
+        statement (stmt), catchExpression (c), finallyExpression (nullptr)
         { kind = K; }
 
     virtual void accept0(Visitor *visitor);
@@ -1969,7 +1969,7 @@ public:
     inline FormalParameterList *finish ()
     {
         FormalParameterList *front = next;
-        next = 0;
+        next = nullptr;
         return front;
     }
 
@@ -2017,7 +2017,7 @@ public:
     inline SourceElements *finish ()
     {
         SourceElements *front = next;
-        next = 0;
+        next = nullptr;
         return front;
     }
 
@@ -2151,7 +2151,7 @@ public:
     UiQualifiedId *finish()
     {
         UiQualifiedId *head = next;
-        next = 0;
+        next = nullptr;
         return head;
     }
 
@@ -2175,7 +2175,7 @@ public:
     QMLJS_DECLARE_AST_NODE(UiImport)
 
     UiImport(const QStringRef &fileName)
-        : fileName(fileName), importUri(0)
+        : fileName(fileName), importUri(nullptr)
     { kind = K; }
 
     UiImport(UiQualifiedId *uri)
@@ -2223,7 +2223,7 @@ public:
     UiImportList *finish()
     {
         UiImportList *head = next;
-        next = 0;
+        next = nullptr;
         return head;
     }
 
@@ -2277,7 +2277,7 @@ public:
     UiObjectMemberList *finish()
     {
         UiObjectMemberList *head = next;
-        next = 0;
+        next = nullptr;
         return head;
     }
 
@@ -2348,7 +2348,7 @@ public:
     UiArrayMemberList *finish()
     {
         UiArrayMemberList *head = next;
-        next = 0;
+        next = nullptr;
         return head;
     }
 
@@ -2409,7 +2409,7 @@ public:
     inline UiParameterList *finish ()
     {
         UiParameterList *front = next;
-        next = 0;
+        next = nullptr;
         return front;
     }
 
@@ -2429,13 +2429,13 @@ public:
 
     UiPublicMember(const QStringRef &memberType,
                    const QStringRef &name)
-        : type(Property), memberType(memberType), name(name), statement(0), binding(0), isDefaultMember(false), isReadonlyMember(false), parameters(0)
+        : type(Property), memberType(memberType), name(name), statement(nullptr), binding(nullptr), isDefaultMember(false), isReadonlyMember(false), parameters(nullptr)
     { kind = K; }
 
     UiPublicMember(const QStringRef &memberType,
                    const QStringRef &name,
                    Statement *statement)
-        : type(Property), memberType(memberType), name(name), statement(statement), binding(0), isDefaultMember(false), isReadonlyMember(false), parameters(0)
+        : type(Property), memberType(memberType), name(name), statement(statement), binding(nullptr), isDefaultMember(false), isReadonlyMember(false), parameters(nullptr)
     { kind = K; }
 
     virtual void accept0(Visitor *visitor);

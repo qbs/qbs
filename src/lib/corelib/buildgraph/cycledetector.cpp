@@ -52,7 +52,7 @@ namespace qbs {
 namespace Internal {
 
 CycleDetector::CycleDetector(const Logger &logger)
-    : m_parent(0), m_logger(logger)
+    : m_parent(nullptr), m_logger(logger)
 {
 }
 

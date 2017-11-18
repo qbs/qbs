@@ -49,7 +49,7 @@ class MSBuildImportGroup : public IMSBuildGroup, public IMSBuildNode
     Q_OBJECT
     Q_DISABLE_COPY(MSBuildImportGroup)
 public:
-    explicit MSBuildImportGroup(MSBuildProject *parent = 0);
+    explicit MSBuildImportGroup(MSBuildProject *parent = nullptr);
     virtual ~MSBuildImportGroup();
 
     QString label() const;

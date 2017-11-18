@@ -48,7 +48,7 @@ class MSBuildItemDefinitionGroup : public IMSBuildItemGroup, public IMSBuildNode
 {
     Q_OBJECT
 public:
-    explicit MSBuildItemDefinitionGroup(MSBuildProject *parent = 0);
+    explicit MSBuildItemDefinitionGroup(MSBuildProject *parent = nullptr);
     ~MSBuildItemDefinitionGroup();
 
     void accept(IMSBuildNodeVisitor *visitor) const;

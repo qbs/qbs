@@ -34,7 +34,7 @@ class ObjectNarf : public QObject
 {
     Q_OBJECT
 public:
-    ObjectNarf(QObject *parent = 0);
+    ObjectNarf(QObject *parent = nullptr);
 };
 
 #endif

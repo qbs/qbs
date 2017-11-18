@@ -56,7 +56,7 @@ namespace Internal {
 RulesEvaluationContext::RulesEvaluationContext(const Logger &logger)
     : m_logger(logger),
       m_engine(new ScriptEngine(m_logger, EvalContext::RuleExecution)),
-      m_observer(0),
+      m_observer(nullptr),
       m_initScopeCalls(0)
 {
     m_prepareScriptScope = m_engine->newObject();

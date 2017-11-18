@@ -45,7 +45,7 @@ class IVisualStudioSolutionProject : public QObject
 {
     Q_OBJECT
 protected:
-    explicit IVisualStudioSolutionProject(QObject *parent = 0);
+    explicit IVisualStudioSolutionProject(QObject *parent = nullptr);
 
 public:
     virtual ~IVisualStudioSolutionProject();

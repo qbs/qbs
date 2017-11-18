@@ -52,7 +52,7 @@ class MSBuildItem : public QObject, public IMSBuildNode
 {
     Q_OBJECT
 public:
-    explicit MSBuildItem(const QString &name, IMSBuildItemGroup *parent = 0);
+    explicit MSBuildItem(const QString &name, IMSBuildItemGroup *parent = nullptr);
     virtual ~MSBuildItem();
 
     QString name() const;

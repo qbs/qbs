@@ -41,7 +41,7 @@ class MSBuildLink : public MSBuildItem
 {
     Q_OBJECT
 public:
-    explicit MSBuildLink(IMSBuildItemGroup *parent = 0);
+    explicit MSBuildLink(IMSBuildItemGroup *parent = nullptr);
 };
 
 } // namespace qbs

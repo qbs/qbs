@@ -89,7 +89,7 @@ private:
     struct QueryResult
     {
         QueryResult()
-            : data(0), itemOfProperty(0)
+            : data(nullptr), itemOfProperty(nullptr)
         {}
 
         bool isNull() const

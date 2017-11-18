@@ -244,9 +244,9 @@ void Process::close()
         return;
     Q_ASSERT(thisObject().engine() == engine());
     delete m_textStream;
-    m_textStream = 0;
+    m_textStream = nullptr;
     delete m_qProcess;
-    m_qProcess = 0;
+    m_qProcess = nullptr;
 }
 
 bool Process::waitForFinished(int msecs)

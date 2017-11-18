@@ -134,7 +134,7 @@ public:
     AST::Statement *statement() const
     {
         if (! program)
-            return 0;
+            return nullptr;
 
         return program->statementCast();
     }
@@ -142,7 +142,7 @@ public:
     AST::ExpressionNode *expression() const
     {
         if (! program)
-            return 0;
+            return nullptr;
 
         return program->expressionCast();
     }
@@ -150,7 +150,7 @@ public:
     AST::UiObjectMember *uiObjectMember() const
     {
         if (! program)
-            return 0;
+            return nullptr;
 
         return program->uiObjectMemberCast();
     }
