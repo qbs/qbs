@@ -545,7 +545,7 @@ public:
         Header *h = (Header *)raw;
         h->tag = JsonDocument::BinaryFormatTag;
         h->version = 1;
-        Data *d = new Data(raw, size);
+        auto d = new Data(raw, size);
         d->compactionCounter = (b == header->root()) ? compactionCounter : 0;
         return d;
     }
@@ -3347,7 +3347,7 @@ JsonDocument JsonDocument::fromRawData(const char *data, int size, DataValidatio
         return JsonDocument();
     }
 
-    Internal::Data *d = new Internal::Data((char *)data, size);
+    auto d = new Internal::Data((char *)data, size);
     d->ownsData = false;
 
     if (validation != BypassValidation && !d->valid()) {
@@ -3405,7 +3405,7 @@ JsonDocument JsonDocument::fromBinaryData(const std::string &data, DataValidatio
         return JsonDocument();
 
     memcpy(raw, data.data(), size);
-    Internal::Data *d = new Internal::Data(raw, size);
+    auto d = new Internal::Data(raw, size);
 
     if (validation != BypassValidation && !d->valid()) {
         delete d;
@@ -4046,7 +4046,7 @@ JsonDocument Parser::parse(JsonParseError *error)
             error->offset = 0;
             error->error = JsonParseError::NoError;
         }
-        Data *d = new Data(data, current);
+        auto d = new Data(data, current);
         return JsonDocument(d);
     }
 

@@ -560,7 +560,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         TopLevelProjectContext *topLevelProjectContext, Item *projectItem,
         const Set<QString> &referencedFilePaths)
 {
-    auto *p = new ProjectContext;
+    auto p = new ProjectContext;
     auto &projectContext = *p;
     projectContext.topLevelProject = topLevelProjectContext;
     projectContext.result = loadResult;
@@ -2327,7 +2327,7 @@ Item *ModuleLoader::moduleInstanceItem(Item *containerItem, const QualifiedId &m
         } else {
             const ItemType itemType = i < moduleName.size() - 1 ? ItemType::ModulePrefix
                                                                 : ItemType::ModuleInstance;
-            Item *newItem = Item::create(m_pool, itemType);
+            auto newItem = Item::create(m_pool, itemType);
             instance->setProperty(moduleNameSegment, ItemValue::create(newItem));
             instance = newItem;
         }

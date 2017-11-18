@@ -84,7 +84,7 @@ QScriptValue TemporaryDir::ctor(QScriptContext *context, QScriptEngine *engine)
     });
     se->checkContext(QLatin1String("qbs.TemporaryDir"), dubiousContexts);
 
-    TemporaryDir *t = new TemporaryDir(context);
+    auto t = new TemporaryDir(context);
     QScriptValue obj = engine->newQObject(t, QScriptEngine::ScriptOwnership);
     return obj;
 }

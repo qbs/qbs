@@ -55,7 +55,7 @@ ItemPool::~ItemPool()
 
 Item *ItemPool::allocateItem(const ItemType &type)
 {
-    Item *item = new (&m_pool) Item(this, type);
+    auto item = new (&m_pool) Item(this, type);
     m_items.push_back(item);
     return item;
 }

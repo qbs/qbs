@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 
 //! [3]
     for (int i = 0; i < MouseCount; ++i) {
-        Mouse *mouse = new Mouse;
+        auto mouse = new Mouse;
         mouse->setPos(::sin((i * 6.28) / MouseCount) * 200,
                       ::cos((i * 6.28) / MouseCount) * 200);
         scene.addItem(mouse);

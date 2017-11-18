@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     scene.setSceneRect(-500, -500, 1000, 1000);
     scene.setItemIndexMethod(QGraphicsScene::NoIndex);
 
-    Car *car = new Car();
+    auto car = new Car();
     scene.addItem(car);
 
     QGraphicsView view(&scene);

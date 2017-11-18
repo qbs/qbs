@@ -72,7 +72,7 @@ MSBuildQbsProductProject::MSBuildQbsProductProject(
 
     globalsPropertyGroup()->appendProperty(QStringLiteral("QbsProductName"), product.name());
 
-    MSBuildImport *cppDefaultProps = new MSBuildImport(this);
+    auto cppDefaultProps = new MSBuildImport(this);
     cppDefaultProps->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.Default.props"));
 
     for (int i = 0; i < count; ++i) {
@@ -83,7 +83,7 @@ MSBuildQbsProductProject::MSBuildQbsProductProject(
                     project.commandLines.values().at(i));
     }
 
-    MSBuildImport *cppProps = new MSBuildImport(this);
+    auto cppProps = new MSBuildImport(this);
     cppProps->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.props"));
 
     for (int i = 0; i < count; ++i)

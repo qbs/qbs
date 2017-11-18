@@ -531,7 +531,7 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact 
 Artifact *createArtifact(const ResolvedProductPtr &product,
                          const SourceArtifactConstPtr &sourceArtifact)
 {
-    Artifact *artifact = new Artifact;
+    auto artifact = new Artifact;
     artifact->artifactType = Artifact::SourceFile;
     artifact->targetOfModule = sourceArtifact->targetOfModule;
     artifact->setFilePath(sourceArtifact->absoluteFilePath);

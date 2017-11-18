@@ -68,19 +68,19 @@ MainWindow::MainWindow(const QString &settingsDir, QWidget *parent)
     QMenu * const fileMenu = menuBar()->addMenu(tr("&File"));
     QMenu * const viewMenu = menuBar()->addMenu(tr("&View"));
 
-    QAction * const reloadAction = new QAction(tr("&Reload"), this);
+    const auto reloadAction = new QAction(tr("&Reload"), this);
     reloadAction->setShortcut(QKeySequence::Refresh);
     connect(reloadAction, &QAction::triggered, this, &MainWindow::reloadSettings);
-    QAction * const saveAction = new QAction(tr("&Save"), this);
+    const auto saveAction = new QAction(tr("&Save"), this);
     saveAction->setShortcut(QKeySequence::Save);
     connect(saveAction, &QAction::triggered, this, &MainWindow::saveSettings);
-    QAction * const expandAllAction = new QAction(tr("&Expand All"), this);
+    const auto expandAllAction = new QAction(tr("&Expand All"), this);
     expandAllAction->setShortcut(Qt::CTRL | Qt::Key_E);
     connect(expandAllAction, &QAction::triggered, this, &MainWindow::expandAll);
-    QAction * const collapseAllAction = new QAction(tr("C&ollapse All"), this);
+    const auto collapseAllAction = new QAction(tr("C&ollapse All"), this);
     collapseAllAction->setShortcut(Qt::CTRL | Qt::Key_O);
     connect(collapseAllAction, &QAction::triggered, this, &MainWindow::collapseAll);
-    QAction * const exitAction = new QAction(tr("E&xit"), this);
+    const auto exitAction = new QAction(tr("E&xit"), this);
     exitAction->setShortcut(QKeySequence::Quit);
     exitAction->setMenuRole(QAction::QuitRole);
     connect(exitAction, &QAction::triggered, this, &MainWindow::exit);

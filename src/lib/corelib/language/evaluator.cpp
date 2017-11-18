@@ -166,7 +166,7 @@ QScriptValue Evaluator::scriptValue(const Item *item)
         return scriptValue;
     }
 
-    EvaluationData *edata = new EvaluationData;
+    auto edata = new EvaluationData;
     edata->evaluator = this;
     edata->item = item;
     edata->item->setObserver(this);

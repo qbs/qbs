@@ -272,7 +272,7 @@ void LauncherSocketHandler::sendPacket(const LauncherPacket &packet)
 
 Process *LauncherSocketHandler::setupProcess(quintptr token)
 {
-    Process * const p = new Process(token, this);
+    const auto p = new Process(token, this);
     connect(p, static_cast<void (QProcess::*)(QProcess::ProcessError)>(&QProcess::error),
             this, &LauncherSocketHandler::handleProcessError);
     connect(p, static_cast<void (QProcess::*)(int)>(&QProcess::finished),

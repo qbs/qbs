@@ -47,7 +47,7 @@ class B : public I {
 };
 
 int main() {
-    I *a = new A();
+    auto a = new A();
     B *b = dynamic_cast<B *>(a);
     (void)b;
     delete a;

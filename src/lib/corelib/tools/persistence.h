@@ -165,7 +165,7 @@ template <typename T> inline T *PersistentPool::idLoad()
     for (; i < m_loadedRaw.size(); ++i)
         m_loadedRaw[i] = nullptr;
 
-    T * const t = new T;
+    auto t = new T;
     m_loadedRaw[id] = t;
     t->load(*this);
     return t;
