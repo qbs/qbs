@@ -125,7 +125,7 @@ void CommandLineParser::printHelp() const
     QTextStream stream(stdout);
 
     Q_ASSERT(d->command == d->commandPool.getCommand(HelpCommandType));
-    const HelpCommand * const helpCommand = static_cast<HelpCommand *>(d->command);
+    const auto helpCommand = static_cast<const HelpCommand *>(d->command);
     if (helpCommand->commandToDescribe().isEmpty()) {
         stream << "Qbs " QBS_VERSION ", a cross-platform build tool.\n";
         stream << d->generalHelp();

@@ -142,13 +142,13 @@ static void *openScannerQrc(const unsigned short *filePath, const char *fileTags
 
 static void closeScannerQrc(void *ptr)
 {
-    OpaqQrc *opaque = static_cast<OpaqQrc *>(ptr);
+    const auto opaque = static_cast<OpaqQrc *>(ptr);
     delete opaque;
 }
 
 static const char *nextQrc(void *opaq, int *size, int *flags)
 {
-    OpaqQrc *o= static_cast<OpaqQrc *>(opaq);
+    const auto o = static_cast<OpaqQrc *>(opaq);
     while (!o->xml->atEnd()) {
         o->xml->readNext();
         switch (o->xml->tokenType()) {

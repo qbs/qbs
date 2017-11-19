@@ -72,7 +72,7 @@ void ModuleMerger::replaceItemInValues(QualifiedId moduleName, Item *containerIt
         Value * const val = it.value().get();
         QBS_CHECK(val);
         QBS_CHECK(val->type() == Value::ItemValueType);
-        ItemValue * const itemVal = static_cast<ItemValue *>(val);
+        const auto itemVal = static_cast<ItemValue *>(val);
         if (moduleName.empty()) {
             QBS_CHECK(itemVal->item() == toReplace);
             itemVal->setItem(m_mergedModule.item);

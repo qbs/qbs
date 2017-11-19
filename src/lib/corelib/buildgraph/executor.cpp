@@ -1141,7 +1141,7 @@ void Executor::setupForBuildingSelectedFiles(const BuildGraphNode *node)
         return;
     if (!m_productsOfFilesToConsider.contains(node->product.lock()))
         return;
-    const RuleNode * const ruleNode = static_cast<const RuleNode *>(node);
+    const auto ruleNode = static_cast<const RuleNode *>(node);
     const Rule * const rule = ruleNode->rule().get();
     if (rule->inputs.intersects(m_tagsOfFilesToConsider)) {
         FileTags otherInputs = rule->auxiliaryInputs;

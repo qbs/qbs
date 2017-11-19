@@ -169,7 +169,7 @@ void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
 void ModuleProperties::setupModules(QScriptValue &object, const ResolvedProduct *product,
                                     const Artifact *artifact)
 {
-    ScriptEngine *engine = static_cast<ScriptEngine *>(object.engine());
+    const auto engine = static_cast<ScriptEngine *>(object.engine());
     QScriptClass *modulePropertyScriptClass = engine->modulePropertyScriptClass();
     if (!modulePropertyScriptClass) {
         modulePropertyScriptClass = new ModulePropertyScriptClass(engine);
@@ -241,7 +241,7 @@ QScriptValue ModuleProperties::moduleProperty(QScriptContext *context, QScriptEn
                                    QLatin1String("Internal error: invalid type"));
     }
 
-    ScriptEngine * const qbsEngine = static_cast<ScriptEngine *>(engine);
+    const auto qbsEngine = static_cast<ScriptEngine *>(engine);
     const QString moduleName = context->argument(0).toString();
     const QString propertyName = context->argument(1).toString();
     return getModuleProperty(properties, artifact, qbsEngine, moduleName, propertyName);

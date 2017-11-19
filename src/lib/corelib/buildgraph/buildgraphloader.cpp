@@ -280,11 +280,11 @@ static void updateProductAndRulePointers(const ResolvedProductPtr &newProduct)
             return RuleConstPtr();
         };
         if (node->type() == BuildGraphNode::RuleNodeType) {
-            RuleNode * const ruleNode = static_cast<RuleNode *>(node);
+            const auto ruleNode = static_cast<RuleNode *>(node);
             ruleNode->setRule(findNewRule(ruleNode->rule()));
         } else {
             QBS_CHECK(node->type() == BuildGraphNode::ArtifactNodeType);
-            Artifact * const artifact = static_cast<Artifact *>(node);
+            const auto artifact = static_cast<const Artifact *>(node);
             if (artifact->artifactType == Artifact::Generated) {
                 QBS_CHECK(artifact->transformer);
                 artifact->transformer->rule = findNewRule(artifact->transformer->rule);
@@ -760,7 +760,7 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
     if (product->buildData) {
         for (BuildGraphNode * const node : qAsConst(product->buildData->nodes)) {
             if (node->type() == BuildGraphNode::ArtifactNodeType) {
-                Artifact * const artifact = static_cast<Artifact *>(node);
+                const auto artifact = static_cast<Artifact *>(node);
                 projectBuildData->removeArtifact(artifact, m_logger, removeArtifactsFromDisk,
                                                  false);
                 if (removeArtifactsFromDisk && artifact->artifactType == Artifact::Generated)

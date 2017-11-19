@@ -131,7 +131,7 @@ QScriptValue File::js_copy(QScriptContext *context, QScriptEngine *engine)
                                    Tr::tr("copy expects 2 arguments"));
     }
 
-    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const auto se = static_cast<ScriptEngine *>(engine);
     const DubiousContextList dubiousContexts({
             DubiousContext(EvalContext::PropertyEvaluation),
             DubiousContext(EvalContext::RuleExecution, DubiousContext::SuggestMoving)
@@ -155,7 +155,7 @@ QScriptValue File::js_exists(QScriptContext *context, QScriptEngine *engine)
     }
     const QString filePath = context->argument(0).toString();
     const bool exists = FileInfo::exists(filePath);
-    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const auto se = static_cast<ScriptEngine *>(engine);
     se->addFileExistsResult(filePath, exists);
     return exists;
 }
@@ -168,14 +168,14 @@ QScriptValue File::js_directoryEntries(QScriptContext *context, QScriptEngine *e
                                    Tr::tr("directoryEntries expects 2 arguments"));
     }
 
-    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const auto se = static_cast<ScriptEngine *>(engine);
     const DubiousContextList dubiousContexts({
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
     });
     se->checkContext(QLatin1String("File.directoryEntries()"), dubiousContexts);
 
     const QString path = context->argument(0).toString();
-    const QDir::Filters filters = static_cast<QDir::Filters>(context->argument(1).toUInt32());
+    const auto filters = static_cast<QDir::Filters>(context->argument(1).toUInt32());
     QDir dir(path);
     const QStringList entries = dir.entryList(filters, QDir::Name);
     se->addDirectoryEntriesResult(path, filters, entries);
@@ -190,7 +190,7 @@ QScriptValue File::js_remove(QScriptContext *context, QScriptEngine *engine)
                                    Tr::tr("remove expects 1 argument"));
     }
 
-    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const auto se = static_cast<ScriptEngine *>(engine);
     const DubiousContextList dubiousContexts({ DubiousContext(EvalContext::PropertyEvaluation) });
     se->checkContext(QLatin1String("File.remove()"), dubiousContexts);
 
@@ -211,7 +211,7 @@ QScriptValue File::js_lastModified(QScriptContext *context, QScriptEngine *engin
     }
     const QString filePath = context->argument(0).toString();
     const FileTime timestamp = FileInfo(filePath).lastModified();
-    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const auto se = static_cast<ScriptEngine *>(engine);
     se->addFileLastModifiedResult(filePath, timestamp);
     return timestamp.asDouble();
 }
@@ -224,7 +224,7 @@ QScriptValue File::js_makePath(QScriptContext *context, QScriptEngine *engine)
                                    Tr::tr("makePath expects 1 argument"));
     }
 
-    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const auto se = static_cast<ScriptEngine *>(engine);
     const DubiousContextList dubiousContexts({ DubiousContext(EvalContext::PropertyEvaluation) });
     se->checkContext(QLatin1String("File.makePath()"), dubiousContexts);
 
@@ -239,7 +239,7 @@ QScriptValue File::js_move(QScriptContext *context, QScriptEngine *engine)
                                    Tr::tr("move expects 2 arguments"));
     }
 
-    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const auto se = static_cast<ScriptEngine *>(engine);
     const DubiousContextList dubiousContexts({ DubiousContext(EvalContext::PropertyEvaluation) });
     se->checkContext(QLatin1String("File.move()"), dubiousContexts);
 

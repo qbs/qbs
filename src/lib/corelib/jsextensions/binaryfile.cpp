@@ -121,7 +121,7 @@ QScriptValue BinaryFile::ctor(QScriptContext *context, QScriptEngine *engine)
         return context->throwError(Tr::tr("BinaryFile constructor takes at most two parameters."));
     }
 
-    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const auto se = static_cast<ScriptEngine *>(engine);
     se->addResourceAcquiringScriptObject(t);
     const DubiousContextList dubiousContexts {
         DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)

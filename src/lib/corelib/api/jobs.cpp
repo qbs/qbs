@@ -308,7 +308,7 @@ BuildJob::BuildJob(const Logger &logger, QObject *parent)
 {
     connect(&LauncherInterface::instance(), &LauncherInterface::errorOccurred,
             this, &BuildJob::handleLauncherError);
-    InternalBuildJob *job = static_cast<InternalBuildJob *>(internalJob());
+    auto job = static_cast<InternalBuildJob *>(internalJob());
     connect(job, &BuildGraphTouchingJob::reportCommandDescription,
             this, &BuildJob::reportCommandDescription);
     connect(job, &BuildGraphTouchingJob::reportProcessResult,

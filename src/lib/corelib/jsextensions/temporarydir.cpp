@@ -78,7 +78,7 @@ QBS_JSEXTENSION_REGISTER(TemporaryDir, &initializeJsExtensionTemporaryDir)
 
 QScriptValue TemporaryDir::ctor(QScriptContext *context, QScriptEngine *engine)
 {
-    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const auto se = static_cast<ScriptEngine *>(engine);
     const DubiousContextList dubiousContexts({
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
     });

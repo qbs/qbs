@@ -167,7 +167,7 @@ ResolvedProductPtr Transformer::product() const
 void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,
         const QString &defaultModuleName)
 {
-    ScriptEngine *const scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
+    const auto scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     QScriptValue scriptValue = translateInOutputs(scriptEngine, inputs, defaultModuleName);
     targetScriptValue.setProperty(StringConstants::inputsVar(), scriptValue);
     QScriptValue inputScriptValue;
@@ -188,7 +188,7 @@ void Transformer::setupInputs(QScriptValue targetScriptValue)
 
 void Transformer::setupOutputs(QScriptValue targetScriptValue)
 {
-    ScriptEngine * const scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
+    const auto scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     const QString &defaultModuleName = rule->module->name;
     QScriptValue scriptValue = translateInOutputs(scriptEngine, outputs, defaultModuleName);
     targetScriptValue.setProperty(StringConstants::outputsVar(), scriptValue);
@@ -205,7 +205,7 @@ void Transformer::setupOutputs(QScriptValue targetScriptValue)
 
 void Transformer::setupExplicitlyDependsOn(QScriptValue targetScriptValue)
 {
-    ScriptEngine * const scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
+    const auto scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     QScriptValue scriptValue = translateInOutputs(scriptEngine, explicitlyDependsOn,
                                                   rule->module->name);
     targetScriptValue.setProperty(StringConstants::explicitlyDependsOnVar(), scriptValue);

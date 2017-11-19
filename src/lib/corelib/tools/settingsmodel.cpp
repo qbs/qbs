@@ -310,7 +310,7 @@ QModelIndex SettingsModel::index(int row, int column, const QModelIndex &parent)
 
 QModelIndex SettingsModel::parent(const QModelIndex &child) const
 {
-    Node * const childNode = static_cast<Node *>(child.internalPointer());
+    const auto childNode = static_cast<const Node *>(child.internalPointer());
     Q_ASSERT(childNode);
     Node * const parentNode = childNode->parent;
     if (parentNode == &d->rootNode)

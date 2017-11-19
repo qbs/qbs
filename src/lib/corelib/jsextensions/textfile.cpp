@@ -131,7 +131,7 @@ QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
         return context->throwError(Tr::tr("TextFile constructor takes at most three parameters."));
     }
 
-    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    const auto se = static_cast<ScriptEngine *>(engine);
     se->addResourceAcquiringScriptObject(t);
     const DubiousContextList dubiousContexts({
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)

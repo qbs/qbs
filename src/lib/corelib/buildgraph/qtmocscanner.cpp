@@ -103,7 +103,7 @@ QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targe
     , m_cppScanner(nullptr)
     , m_hppScanner(nullptr)
 {
-    ScriptEngine *engine = static_cast<ScriptEngine *>(targetScriptValue.engine());
+    const auto engine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     QScriptValue scannerObj = engine->newObject();
     targetScriptValue.setProperty(qtMocScannerJsName(), scannerObj);
     QScriptValue applyFunction = engine->newFunction(&js_apply, this);

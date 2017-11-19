@@ -1436,7 +1436,7 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
                 QBS_CHECK(baseValue->type() == Value::JSSourceValueType);
                 const JSSourceValuePtr jsBaseValue = std::static_pointer_cast<JSSourceValue>(
                             baseValue->clone());
-                JSSourceValue *jsValue = static_cast<JSSourceValue *>(value.get());
+                const auto jsValue = static_cast<JSSourceValue *>(value.get());
                 jsValue->setBaseValue(jsBaseValue);
             }
         }

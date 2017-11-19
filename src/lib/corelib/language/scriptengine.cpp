@@ -329,7 +329,7 @@ void ScriptEngine::unobserveProperties()
 
 static QScriptValue js_deprecatedGet(QScriptContext *context, QScriptEngine *qtengine)
 {
-    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    const auto engine = static_cast<const ScriptEngine *>(qtengine);
     const QScriptValue data = context->callee().property(getterFuncHelperProperty());
     engine->logger().qbsWarning()
             << ScriptEngine::tr("Property %1 is deprecated. Please use %2 instead.").arg(
@@ -423,7 +423,7 @@ QScriptValue ScriptEngine::js_loadExtension(QScriptContext *context, QScriptEngi
                                      "an extension name."));
     }
 
-    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    const auto engine = static_cast<const ScriptEngine *>(qtengine);
     ErrorInfo deprWarning(Tr::tr("The loadExtension() function is deprecated and will be "
                                  "removed in a future version of Qbs. Use require() "
                                  "instead."), context->backtrace());
@@ -439,7 +439,7 @@ QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *q
                     ScriptEngine::tr("The loadFile function requires a file path."));
     }
 
-    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    const auto engine = static_cast<const ScriptEngine *>(qtengine);
     ErrorInfo deprWarning(Tr::tr("The loadFile() function is deprecated and will be "
                                  "removed in a future version of Qbs. Use require() "
                                  "instead."), context->backtrace());
@@ -450,7 +450,7 @@ QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *q
 
 QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qtengine)
 {
-    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    const auto engine = static_cast<ScriptEngine *>(qtengine);
     if (context->argumentCount() < 1) {
         return context->throwError(
                     ScriptEngine::tr("The require function requires a module name or path."));

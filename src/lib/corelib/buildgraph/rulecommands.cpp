@@ -263,7 +263,7 @@ bool ProcessCommand::equals(const AbstractCommand *otherAbstractCommand) const
 {
     if (!AbstractCommand::equals(otherAbstractCommand))
         return false;
-    const ProcessCommand * const other = static_cast<const ProcessCommand *>(otherAbstractCommand);
+    const auto other = static_cast<const ProcessCommand *>(otherAbstractCommand);
     return m_program == other->m_program
             && m_arguments == other->m_arguments
             && m_workingDir == other->m_workingDir

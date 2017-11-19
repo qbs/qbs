@@ -131,7 +131,7 @@ void PersistentPool::finalizeWriteStream()
     m_stream << QByteArray(QBS_PERSISTENCE_MAGIC);
     if (m_stream.status() != QDataStream::Ok)
         throw ErrorInfo(Tr::tr("Failure serializing build graph."));
-    QFile * const file = static_cast<QFile *>(m_stream.device());
+    const auto file = static_cast<QFile *>(m_stream.device());
     if (!file->flush()) {
         file->close();
         file->remove();

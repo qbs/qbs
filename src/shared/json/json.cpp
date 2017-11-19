@@ -4621,11 +4621,11 @@ void Data::compact()
     Base *base = header->root();
     int reserve = 0;
     if (base->is_object) {
-        Object *o = static_cast<Object *>(base);
+        const auto o = static_cast<Object *>(base);
         for (int i = 0; i < (int)o->length; ++i)
             reserve += o->entryAt(i)->usedStorage(o);
     } else {
-        Array *a = static_cast<Array *>(base);
+        const auto a = static_cast<Array *>(base);
         for (int i = 0; i < (int)a->length; ++i)
             reserve += (*a)[i].usedStorage(a);
     }
@@ -4643,8 +4643,8 @@ void Data::compact()
 
     int offset = sizeof(Base);
     if (b->is_object) {
-        Object *o = static_cast<Object *>(base);
-        Object *no = static_cast<Object *>(b);
+        const auto o = static_cast<const Object *>(base);
+        const auto no = static_cast<const Object *>(b);
 
         for (int i = 0; i < (int)o->length; ++i) {
             no->table()[i] = offset;
@@ -4662,8 +4662,8 @@ void Data::compact()
             }
         }
     } else {
-        Array *a = static_cast<Array *>(base);
-        Array *na = static_cast<Array *>(b);
+        const auto a = static_cast<Array *>(base);
+        const auto na = static_cast<Array *>(b);
 
         for (int i = 0; i < (int)a->length; ++i) {
             const Value &v = (*a)[i];

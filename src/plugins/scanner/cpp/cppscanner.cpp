@@ -143,7 +143,7 @@ static void scanCppFile(void *opaq, CPlusPlus::Lexer &yylex, bool scanForFileTag
     const QLatin1Literal qgadgetLiteral("Q_GADGET");
     const QLatin1Literal qnamespaceLiteral("Q_NAMESPACE");
     const QLatin1Literal pluginMetaDataLiteral("Q_PLUGIN_METADATA");
-    Opaq *opaque = static_cast<Opaq *>(opaq);
+    const auto opaque = static_cast<Opaq *>(opaq);
     const TokenComparator tc(opaque->fileContent);
     Token tk;
     Token oldTk;
@@ -255,13 +255,13 @@ static void *openScanner(const unsigned short *filePath, const char *fileTags, i
 
 static void closeScanner(void *ptr)
 {
-    Opaq *opaque = static_cast<Opaq *>(ptr);
+    const auto opaque = static_cast<Opaq *>(ptr);
     delete opaque;
 }
 
 static const char *next(void *opaq, int *size, int *flags)
 {
-    Opaq *opaque = static_cast<Opaq*>(opaq);
+    const auto opaque = static_cast<Opaq*>(opaq);
     if (opaque->currentResultIndex < opaque->includedFiles.size()) {
         const ScanResult &result = opaque->includedFiles.at(opaque->currentResultIndex);
         ++opaque->currentResultIndex;
@@ -281,7 +281,7 @@ static const char **additionalFileTags(void *opaq, int *size)
     static const char *thMocPluginHpp[] = { "moc_hpp_plugin" };
     static const char *thMocPluginCpp[] = { "moc_cpp_plugin" };
 
-    Opaq *opaque = static_cast<Opaq*>(opaq);
+    const auto opaque = static_cast<const Opaq*>(opaq);
     if (opaque->hasQObjectMacro) {
         *size = 1;
         switch (opaque->fileType) {

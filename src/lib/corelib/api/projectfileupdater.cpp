@@ -333,12 +333,12 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
         QString filesRepresentation;
         if (filesBinding->statement->kind != QbsQmlJS::AST::Node::Kind_ExpressionStatement)
             throw ErrorInfo(Tr::tr("JavaScript construct in source file is too complex.")); // TODO: rename, add new and concat.
-        const ExpressionStatement * const exprStatement
-                = static_cast<ExpressionStatement *>(filesBinding->statement);
+        const auto exprStatement
+                = static_cast<const ExpressionStatement *>(filesBinding->statement);
         switch (exprStatement->expression->kind) {
         case QbsQmlJS::AST::Node::Kind_ArrayLiteral: {
-            const ElementList *elem
-                    = static_cast<ArrayLiteral *>(exprStatement->expression)->elements;
+            const auto elem
+                    = static_cast<const ArrayLiteral *>(exprStatement->expression)->elements;
             QStringList oldFileReprs;
             while (elem) {
                 oldFileReprs << getNodeRepresentation(fileContent, elem->expression);
@@ -359,8 +359,8 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
             break;
         }
         case QbsQmlJS::AST::Node::Kind_StringLiteral: {
-            const QString existingElement
-                    = static_cast<StringLiteral *>(exprStatement->expression)->value.toString();
+            const auto existingElement
+                    = static_cast<const StringLiteral *>(exprStatement->expression)->value.toString();
             sortedFiles << existingElement;
             sortedFiles.sort();
             addToFilesRepr(filesRepresentation, sortedFiles, arrayElemIndentation);
@@ -447,20 +447,20 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
     const int bindingIndentation = itemIndentation + 4;
     const int arrayElemIndentation = bindingIndentation + 4;
 
-    const ExpressionStatement * const exprStatement
-            = static_cast<ExpressionStatement *>(bindingFinder.binding()->statement);
+    const auto exprStatement
+            = static_cast<const ExpressionStatement *>(bindingFinder.binding()->statement);
     switch (exprStatement->expression->kind) {
     case QbsQmlJS::AST::Node::Kind_ArrayLiteral: {
         QStringList filesToRemove = m_files;
         QStringList newFilesList;
-        const ElementList *elem = static_cast<ArrayLiteral *>(exprStatement->expression)->elements;
+        const auto elem = static_cast<const ArrayLiteral *>(exprStatement->expression)->elements;
         while (elem) {
             if (elem->expression->kind != QbsQmlJS::AST::Node::Kind_StringLiteral) {
                 throw ErrorInfo(Tr::tr("JavaScript construct in source file is too complex."),
                                 bindingLocation);
             }
-            const QString existingFile
-                    = static_cast<StringLiteral *>(elem->expression)->value.toString();
+            const auto existingFile
+                    = static_cast<const StringLiteral *>(elem->expression)->value.toString();
             if (!filesToRemove.removeOne(existingFile))
                 newFilesList << existingFile;
             elem = elem->next;
@@ -485,8 +485,8 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
             throw ErrorInfo(Tr::tr("Was requested to remove %1 files, but there is only "
                                    "one in the list.").arg(m_files.size()), bindingLocation);
         }
-        const QString existingFile
-                = static_cast<StringLiteral *>(exprStatement->expression)->value.toString();
+        const auto existingFile
+                = static_cast<const StringLiteral *>(exprStatement->expression)->value.toString();
         if (existingFile != m_files.front()) {
             throw ErrorInfo(Tr::tr("File '%1' could not be found in the 'files' list.")
                             .arg(m_files.front()), bindingLocation);

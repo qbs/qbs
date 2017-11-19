@@ -180,7 +180,7 @@ extern "C" void qt_macos_forceTransformProcessToForegroundApplicationAndActivate
 bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
     if (ui->treeView->hasFocus() && event->type() == QEvent::KeyPress) {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+        const auto keyEvent = static_cast<const QKeyEvent *>(event);
         if (keyEvent->matches(QKeySequence::Delete)) {
             const QModelIndexList indexes = ui->treeView->selectionModel()->selectedRows();
             if (indexes.size() == 1) {

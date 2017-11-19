@@ -412,7 +412,7 @@ void EvaluatorScriptClass::collectValuesFromNextChain(const EvaluationData *data
 
     for (ValuePtr next = value; next; next = next->next()) {
         QScriptValue v = data->evaluator->property(next->definingItem(), propertyName);
-        ScriptEngine * const se = static_cast<ScriptEngine *>(engine());
+        const auto se = static_cast<const ScriptEngine *>(engine());
         if (se->hasErrorOrException(v)) {
             *result = se->lastErrorValue(v);
             return;
@@ -592,7 +592,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     m_queryResult.itemOfProperty = nullptr;
     QBS_ASSERT(data, return QScriptValue());
 
-    const QueryPropertyType qpt = static_cast<QueryPropertyType>(id);
+    const auto qpt = static_cast<QueryPropertyType>(id);
     if (qpt == QPTParentProperty) {
         return data->item->parent()
                 ? data->evaluator->scriptValue(data->item->parent())
