@@ -103,14 +103,16 @@ TestLanguage::~TestLanguage()
 QHash<QString, ResolvedProductPtr> TestLanguage::productsFromProject(ResolvedProjectPtr project)
 {
     QHash<QString, ResolvedProductPtr> result;
-    foreach (const ResolvedProductPtr &product, project->allProducts())
+    const auto products = project->allProducts();
+    for (const ResolvedProductPtr &product : products)
         result.insert(product->name, product);
     return result;
 }
 
 ResolvedModuleConstPtr TestLanguage::findModuleByName(ResolvedProductPtr product, const QString &name)
 {
-    foreach (const ResolvedModuleConstPtr &module, product->modules)
+    const auto modules = product->modules;
+    for (const ResolvedModuleConstPtr &module : modules)
         if (module->name == name)
             return module;
     return ResolvedModuleConstPtr();
@@ -523,7 +525,7 @@ void TestLanguage::dependencyOnAllProfiles()
         const ResolvedProductConstPtr mainProduct = productsFromProject(project).value("main");
         QVERIFY(!!mainProduct);
         QCOMPARE(mainProduct->dependencies.size(), 2);
-        foreach (const ResolvedProductConstPtr &p, mainProduct->dependencies) {
+        for (const ResolvedProductConstPtr &p : mainProduct->dependencies) {
             QCOMPARE(p->name, QLatin1String("dep"));
             QVERIFY(p->profile == "p1" || p->profile == "p2");
         }
@@ -1456,7 +1458,7 @@ void TestLanguage::modulePropertiesInGroups()
         GroupConstPtr g2;
         GroupConstPtr g21;
         GroupConstPtr g211;
-        foreach (const GroupConstPtr &g, product->groups) {
+        for (const GroupConstPtr &g : product->groups) {
             if (g->name == "g1")
                 g1= g;
             else if (g->name == "g2")
@@ -1630,7 +1632,7 @@ void TestLanguage::modulePropertiesInGroups()
         QVERIFY(!!product);
         g1.reset();
         g11.reset();
-        foreach (const GroupConstPtr &g, product->groups) {
+        for (const GroupConstPtr &g : qAsConst(product->groups)) {
             if (g->name == "g1")
                 g1= g;
             else if (g->name == "g1.1")
@@ -1782,11 +1784,11 @@ void TestLanguage::modules()
     QFETCH(QString, expectedProductProperty);
     QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
     const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
-    ResolvedProductPtr product = products.value(productName);
+    const ResolvedProductPtr product = products.value(productName);
     QVERIFY(!!product);
     QCOMPARE(product->name, productName);
     QStringList modulesInProduct;
-    foreach (ResolvedModuleConstPtr m, product->modules)
+    for (ResolvedModuleConstPtr m : product->modules)
         modulesInProduct += m->name;
     modulesInProduct.sort();
     expectedModulesInProduct.sort();
@@ -2723,7 +2725,7 @@ void TestLanguage::wildcards()
     }
 
     // create files
-    foreach (QString filePath, filesToCreate) {
+    for (QString filePath : qAsConst(filesToCreate)) {
         filePath.prepend(m_wildcardsTestDirPath + '/');
         QFileInfo fi(filePath);
         if (!QDir(fi.path()).exists())
@@ -2745,7 +2747,7 @@ void TestLanguage::wildcards()
         GroupPtr group;
         if (useGroup) {
             QCOMPARE(product->groups.size(), HostOsInfo::isMacosHost() ? 3 : 2);
-            foreach (const GroupPtr &rg, product->groups) {
+            for (const GroupPtr &rg : qAsConst(product->groups)) {
                 if (rg->name == groupName) {
                     group = rg;
                     break;
@@ -2759,7 +2761,7 @@ void TestLanguage::wildcards()
         QCOMPARE(group->files.size(), 0);
         QVERIFY(!!group->wildcards);
         QStringList actualFilePaths;
-        foreach (const SourceArtifactConstPtr &artifact, group->wildcards->files) {
+        for (const SourceArtifactConstPtr &artifact : qAsConst(group->wildcards->files)) {
             QString str = artifact->absoluteFilePath;
             int idx = str.indexOf(m_wildcardsTestDirPath);
             if (idx != -1)

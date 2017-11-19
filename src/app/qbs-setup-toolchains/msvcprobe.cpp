@@ -47,6 +47,7 @@
 #include <tools/error.h>
 #include <tools/msvcinfo.h>
 #include <tools/profile.h>
+#include <tools/qttools.h>
 #include <tools/settings.h>
 #include <tools/version.h>
 #include <tools/visualstudioversioninfo.h>
@@ -121,12 +122,14 @@ static std::vector<MSVCArchInfo> findSupportedArchitectures(const MSVC &msvc)
         }
     } else {
         QDir vcInstallDir(msvc.vcInstallPath);
-        foreach (QString hostArch, vcInstallDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+        const auto hostArchs = vcInstallDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        for (const QString &hostArch : hostArchs) {
             QDir subdir = vcInstallDir;
             if (!subdir.cd(hostArch))
                 continue;
             const QString shortHostArch = hostArch.mid(4).toLower();
-            foreach (const QString &arch, subdir.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+            const auto archs = subdir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            for (const QString &arch : archs) {
                 MSVCArchInfo ai;
                 ai.binPath = subdir.absoluteFilePath(arch);
                 if (shortHostArch == arch)
@@ -164,7 +167,8 @@ static std::vector<MSVCRegistryEntry> installedMSVCsFromRegistry()
                 QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
                 + QStringLiteral("\\Microsoft\\VisualStudio\\SxS\\VS7"),
                 QSettings::NativeFormat);
-    foreach (const QString &vsName, vsRegistry.childKeys()) {
+    const auto vsNames = vsRegistry.childKeys();
+    for (const QString &vsName : vsNames) {
         MSVCRegistryEntry entry;
         entry.version = vsName;
         entry.installDir = vsRegistry.value(vsName).toString();
@@ -231,8 +235,8 @@ static std::vector<MSVC> installedMSVCs()
         } else {
             QDir vcInstallDir = vsInstallDir;
             vcInstallDir.cd(QStringLiteral("Tools/MSVC"));
-            foreach (const QString &vcVersionStr,
-                     vcInstallDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+            const auto vcVersionStrs = vcInstallDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            for (const QString &vcVersionStr : vcVersionStrs) {
                 const Version vcVersion = Version::fromString(vcVersionStr);
                 if (!vcVersion.isValid())
                     continue;
@@ -262,7 +266,8 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
                                 QSettings::NativeFormat);
     const QString defaultSdkPath = sdkRegistry.value(QLatin1String("CurrentInstallFolder")).toString();
     if (!defaultSdkPath.isEmpty()) {
-        foreach (const QString &sdkKey, sdkRegistry.childGroups()) {
+        const auto sdkKeys = sdkRegistry.childGroups();
+        for (const QString &sdkKey : sdkKeys) {
             WinSDK sdk;
             sdk.version = sdkKey;
             sdk.vcInstallPath = sdkRegistry.value(sdkKey + QLatin1String("/InstallationFolder")).toString();
@@ -273,7 +278,8 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
                 sdk.vcInstallPath.chop(1);
             if (sdk.isDefault)
                 defaultWinSDK = sdk;
-            foreach (const MSVCArchInfo &ai, findSupportedArchitectures(sdk)) {
+            const auto ais = findSupportedArchitectures(sdk);
+            for (const MSVCArchInfo &ai : ais) {
                 WinSDK specificSDK = sdk;
                 specificSDK.architecture = ai.arch;
                 specificSDK.binPath = ai.binPath;
@@ -282,7 +288,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
         }
     }
 
-    foreach (const WinSDK &sdk, winSDKs) {
+    for (const WinSDK &sdk : qAsConst(winSDKs)) {
         qbsInfo() << Tr::tr("  Windows SDK %1 detected:\n"
                             "    installed in %2").arg(sdk.version, sdk.vcInstallPath);
         if (sdk.isDefault)
@@ -291,7 +297,8 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
 
     // 2) Installed MSVCs
     std::vector<MSVC> msvcs;
-    foreach (MSVC msvc, installedMSVCs()) {
+    const auto instMsvcs = installedMSVCs();
+    for (const MSVC &msvc : instMsvcs) {
         if (msvc.internalVsVersion.majorVersion() < 15) {
             // Check existence of various install scripts
             const QString vcvars32bat = msvc.vcInstallPath + QLatin1String("/vcvars32.bat");
@@ -299,7 +306,8 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
                 continue;
         }
 
-        foreach (const MSVCArchInfo &ai, findSupportedArchitectures(msvc)) {
+        const auto ais = findSupportedArchitectures(msvc);
+        for (const MSVCArchInfo &ai : ais) {
             MSVC specificMSVC = msvc;
             specificMSVC.architecture = ai.arch;
             specificMSVC.binPath = ai.binPath;
@@ -307,7 +315,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
         }
     }
 
-    foreach (const MSVC &msvc, msvcs) {
+    for (const MSVC &msvc : qAsConst(msvcs)) {
         qbsInfo() << Tr::tr("  MSVC %1 (%2) detected in\n"
                             "    %3").arg(msvc.version, msvc.architecture,
                                           QDir::toNativeSeparators(msvc.binPath));

@@ -66,7 +66,7 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
         setValue(command.varNames.front(), command.varValue);
         break;
     case ConfigCommand::CfgUnset:
-        foreach (const QString &varName, command.varNames)
+        for (const QString &varName : command.varNames)
             m_settings->remove(varName);
         break;
     case ConfigCommand::CfgExport:
@@ -94,14 +94,16 @@ void ConfigCommandExecutor::setValue(const QString &key, const QString &rawInput
 void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
 {
     if (command.varNames.empty()) {
-        foreach (const QString &key, m_settings->allKeys())
+        const auto keys = m_settings->allKeys();
+        for (const QString &key : keys)
             printOneSetting(key);
     } else {
-        foreach (const QString &parentKey, command.varNames) {
+        for (const QString &parentKey : command.varNames) {
             if (m_settings->value(parentKey).isValid()) { // Key is a leaf.
                 printOneSetting(parentKey);
             } else {                                     // Key is a node.
-                foreach (const QString &key, m_settings->allKeysWithPrefix(parentKey))
+                const auto keys = m_settings->allKeysWithPrefix(parentKey);
+                for (const QString &key : keys)
                     printOneSetting(parentKey + QLatin1Char('.') + key);
             }
         }
@@ -123,7 +125,8 @@ void ConfigCommandExecutor::exportSettings(const QString &filename)
     }
     QTextStream stream(&file);
     stream.setCodec("UTF-8");
-    foreach (const QString &key, m_settings->allKeys())
+    const auto keys = m_settings->allKeys();
+    for (const QString &key : keys)
         stream << key << ": " << qbs::settingsValueToRepresentation(m_settings->value(key)) << endl;
 }
 
@@ -135,7 +138,8 @@ void ConfigCommandExecutor::importSettings(const QString &filename)
                 .arg(QDir::toNativeSeparators(filename), file.errorString()));
     }
     // Remove all current settings
-    foreach (const QString &key, m_settings->allKeys())
+    const auto keys = m_settings->allKeys();
+    for (const QString &key : keys)
         m_settings->remove(key);
 
     QTextStream stream(&file);

@@ -92,11 +92,11 @@ bool QbsTool::tryToRunTool(const QString &toolName, const QStringList &arguments
 QStringList QbsTool::allToolNames()
 {
     const QString suffix = QLatin1String(QBS_HOST_EXE_SUFFIX);
-    QStringList toolFileNames = QDir(qbsBinDir()).entryList(QStringList(toolPrefix()
+    const QStringList toolFileNames = QDir(qbsBinDir()).entryList(QStringList(toolPrefix()
             + QString::fromLatin1("*%1").arg(suffix)), QDir::Files, QDir::Name);
     QStringList toolNames;
     const int prefixLength = toolPrefix().size();
-    foreach (const QString &toolFileName, toolFileNames) {
+    for (const QString &toolFileName : toolFileNames) {
         toolNames << toolFileName.mid(prefixLength,
                                       toolFileName.size() - prefixLength - suffix.size());
     }

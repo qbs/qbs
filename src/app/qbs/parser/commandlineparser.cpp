@@ -55,6 +55,7 @@
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 #include <tools/settings.h>
 #include <tools/settingsmodel.h>
 
@@ -358,7 +359,8 @@ void CommandLineParser::CommandLineParserPrivate::doParse()
 
 Command *CommandLineParser::CommandLineParserPrivate::commandFromString(const QString &commandString) const
 {
-    foreach (Command * const command, allCommands()) {
+    const auto commands = allCommands();
+    for (Command * const command : commands) {
         if (command->representation() == commandString)
             return command;
     }
@@ -402,10 +404,11 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
 
     // Sorting the commands by name is nicer for the user.
     QMap<QString, const Command *> commandMap;
-    foreach (const Command * command, allCommands())
+    const auto commands = allCommands();
+    for (const Command * command : commands)
         commandMap.insert(command->representation(), command);
 
-    foreach (const Command * command, commandMap) {
+    for (const Command * command : qAsConst(commandMap)) {
         help.append(QLatin1String("  ")).append(command->representation());
         const QString whitespace
                 = QString(rhsIndentation - 2 - command->representation().size(), QLatin1Char(' '));
@@ -416,7 +419,7 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
     toolNames.sort();
     if (!toolNames.empty()) {
         help.append(QLatin1Char('\n')).append(Tr::tr("Auxiliary commands:\n"));
-        foreach (const QString &toolName, toolNames) {
+        for (const QString &toolName : qAsConst(toolNames)) {
             help.append(QLatin1String("  ")).append(toolName);
             const QString whitespace = QString(rhsIndentation - 2 - toolName.size(),
                                                QLatin1Char(' '));
@@ -473,7 +476,8 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildConfigurations()
     const QString configurationNameKey = QLatin1String("qbs.configurationName");
     QString currentConfigurationName;
     QVariantMap currentProperties;
-    foreach (const QString &arg, command->additionalArguments()) {
+    const auto args = command->additionalArguments();
+    for (const QString &arg : args) {
         const int sepPos = arg.indexOf(QLatin1Char(':'));
         QBS_CHECK(sepPos > 0);
         const QString key = arg.left(sepPos);
@@ -496,7 +500,7 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildConfigurations()
 
     const QVariantMap globalProperties = propertiesPerConfiguration.takeFirst().second;
     QList<QVariantMap> buildConfigs;
-    foreach (const PropertyListItem &item, propertiesPerConfiguration) {
+    for (const PropertyListItem &item : qAsConst(propertiesPerConfiguration)) {
         QVariantMap properties = item.second;
         for (QVariantMap::ConstIterator globalPropIt = globalProperties.constBegin();
                  globalPropIt != globalProperties.constEnd(); ++globalPropIt) {
@@ -584,7 +588,7 @@ QString CommandLineParser::CommandLineParserPrivate::propertyName(const QString 
 bool CommandLineParser::CommandLineParserPrivate::checkForExistingBuildConfiguration(
         const QList<QVariantMap> &buildConfigs, const QString &configurationName)
 {
-    foreach (const QVariantMap &buildConfig, buildConfigs) {
+    for (const QVariantMap &buildConfig : buildConfigs) {
         if (configurationName == getBuildConfigurationName(buildConfig))
             return true;
     }

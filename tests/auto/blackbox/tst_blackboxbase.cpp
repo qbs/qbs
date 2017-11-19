@@ -195,11 +195,11 @@ QString TestBlackboxBase::findExecutable(const QStringList &fileNames)
     const QStringList path = QString::fromLocal8Bit(qgetenv("PATH"))
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
 
-    foreach (const QString &fileName, fileNames) {
+    for (const QString &fileName : fileNames) {
         QFileInfo fi(fileName);
         if (fi.isAbsolute())
             return fi.exists() ? fileName : QString();
-        foreach (const QString &ppath, path) {
+        for (const QString &ppath : path) {
             const QString fullPath
                     = HostOsInfo::appendExecutableSuffix(ppath + QLatin1Char('/') + fileName);
             if (QFileInfo(fullPath).exists())

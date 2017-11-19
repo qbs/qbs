@@ -83,7 +83,8 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
     bool timerHasExpired = false;
     while (std::next_permutation(allCommits.begin(), allCommits.end()) && !timerHasExpired) {
         qDebug("Testing permutation %llu...", ++run);
-        foreach (const QString &currentCommit, allCommits) {
+        const auto &allCommitsImmutable = allCommits;
+        for (const QString &currentCommit : allCommitsImmutable) {
            if (timer.isValid() && timer.hasExpired(maxDurationInMillis)) {
                timerHasExpired = true;
                break;
@@ -207,7 +208,7 @@ bool FuzzyTester::runQbs(const QString &buildDir, const QString &command, QStrin
                     << buildIncrementalActivity() << buildFromScratchActivity();
             const QString oldCommit = m_commitsWithLogFiles.front();
             m_commitsWithLogFiles.pop();
-            foreach (const QString &a, allActivities)
+            for (const QString &a : allActivities)
                 QFile::remove(logFilePath(oldCommit, a));
         }
         qbs.setStandardErrorFile(logFilePath(m_currentCommit, m_currentActivity));

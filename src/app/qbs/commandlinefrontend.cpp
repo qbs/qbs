@@ -95,9 +95,9 @@ void CommandLineFrontend::checkCancelStatus()
         m_cancelTimer->stop();
         if (m_resolveJobs.empty() && m_buildJobs.empty())
             std::exit(EXIT_FAILURE);
-        foreach (AbstractJob * const job, m_resolveJobs)
+        for (AbstractJob * const job : qAsConst(m_resolveJobs))
             job->cancel();
-        foreach (AbstractJob * const job, m_buildJobs)
+        for (AbstractJob * const job : qAsConst(m_buildJobs))
             job->cancel();
         break;
     case CancelStatusCanceling:
@@ -152,7 +152,8 @@ void CommandLineFrontend::start()
         params.setPropertyCheckingMode(ErrorHandlingMode::Strict);
         if (!m_parser.buildBeforeInstalling() || !m_parser.commandCanResolve())
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
-        foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
+        const auto buildConfigs = m_parser.buildConfigurations();
+        for (const QVariantMap &buildConfig : buildConfigs) {
             QVariantMap userConfig = buildConfig;
             const QString configurationKey = QLatin1String("qbs.configurationName");
             const QString profileKey = QLatin1String("qbs.profile");
@@ -340,10 +341,11 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
     ProductMap products;
     QStringList productNames;
     const bool useAll = m_parser.products().empty();
-    foreach (const Project &project, m_projects) {
+    for (const Project &project : qAsConst(m_projects)) {
         QList<ProductData> &productList = products[project];
         const ProjectData projectData = project.projectData();
-        foreach (const ProductData &product, projectData.allProducts()) {
+        const auto products = projectData.allProducts();
+        for (const ProductData &product : products) {
             if (useAll || m_parser.products().contains(product.name())) {
                 productList.push_back(product);
                 productNames << product.name();
@@ -351,7 +353,8 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
         }
     }
 
-    foreach (const QString &productName, m_parser.products()) {
+    const auto parsedProductNames = m_parser.products();
+    for (const QString &productName : parsedProductNames) {
         if (!productNames.contains(productName))
             throw ErrorInfo(Tr::tr("No such product '%1'.").arg(productName));
     }
@@ -410,7 +413,7 @@ void CommandLineFrontend::handleProjectsResolved()
 void CommandLineFrontend::makeClean()
 {
     if (m_parser.products().empty()) {
-        foreach (const Project &project, m_projects) {
+        for (const Project &project : qAsConst(m_projects)) {
             m_buildJobs << project.cleanAllProducts(m_parser.cleanOptions(project.profile()), this);
         }
     } else {
@@ -482,7 +485,7 @@ void CommandLineFrontend::build()
     if (m_parser.products().empty()) {
         const Project::ProductSelection productSelection = m_parser.withNonDefaultProducts()
                 ? Project::ProductSelectionWithNonDefault : Project::ProductSelectionDefaultOnly;
-        foreach (const Project &project, m_projects)
+        for (const Project &project : qAsConst(m_projects))
             m_buildJobs << project.buildAllProducts(buildOptions(project), productSelection, this);
     } else {
         const ProductMap &products = productsToUse();
@@ -580,7 +583,7 @@ void CommandLineFrontend::listProducts()
 
 void CommandLineFrontend::connectBuildJobs()
 {
-    foreach (AbstractJob * const job, m_buildJobs)
+    for (AbstractJob * const job : qAsConst(m_buildJobs))
         connectBuildJob(job);
 }
 
@@ -617,7 +620,8 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     QBS_CHECK(m_projects.size() == 1); // Has been checked earlier.
 
     if (m_parser.products().size() == 1) {
-        foreach (const ProductData &p, m_projects.front().projectData().allProducts()) {
+        const auto products = m_projects.front().projectData().allProducts();
+        for (const ProductData &p : products) {
             if (p.name() == m_parser.products().front())
                 return p;
         }
@@ -626,7 +630,8 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     QBS_CHECK(m_parser.products().size() == 0);
 
     QList<ProductData> runnableProducts;
-    foreach (const ProductData &p, m_projects.front().projectData().allProducts()) {
+    const auto products = m_projects.front().projectData().allProducts();
+    for (const ProductData &p : products) {
         if (p.isRunnable())
             runnableProducts.push_back(p);
     }
@@ -642,7 +647,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     ErrorInfo error(Tr::tr("Ambiguous use of command '%1': No product given, but project "
                            "has more than one runnable product.").arg(m_parser.commandName()));
     error.append(Tr::tr("Use the '--products' option with one of the following products:"));
-    foreach (const ProductData &p, runnableProducts) {
+    for (const ProductData &p : qAsConst(runnableProducts)) {
         QString productRepr = QLatin1String("\t") + p.name();
         if (p.profile() != m_projects.front().profile()) {
             productRepr.append(QLatin1String(" [")).append(p.profile())

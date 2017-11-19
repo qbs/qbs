@@ -43,6 +43,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/profile.h>
+#include <tools/qttools.h>
 #include <tools/set.h>
 
 #include <QtCore/qdiriterator.h>
@@ -71,7 +72,7 @@ static void replaceQtLibNamesWithFilePath(QList<QtModuleInfo> *modules, const Qt
     typedef QHash<QString, QString> NamePathHash;
     NamePathHash linkerNamesToFilePathsDebug;
     NamePathHash linkerNamesToFilePathsRelease;
-    foreach (const QtModuleInfo &m, *modules) {
+    for (const QtModuleInfo &m : qAsConst(*modules)) {
         linkerNamesToFilePathsDebug.insert(m.libNameForLinker(qtEnv, true), m.libFilePathDebug);
         linkerNamesToFilePathsRelease.insert(m.libNameForLinker(qtEnv, false),
                                              m.libFilePathRelease);
@@ -184,7 +185,7 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
             return;
         const QStringList modulesNeverBuiltAsDebug = QStringList()
                 << QLatin1String("bootstrap") << QLatin1String("qmldevtools");
-        foreach (const QString &m, modulesNeverBuiltAsDebug) {
+        for (const QString &m : modulesNeverBuiltAsDebug) {
             if (qbsName == m || qbsName == m + QLatin1String("-private"))
                 return;
         }
@@ -246,7 +247,7 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
         return;
     }
     const QList<QByteArray> prlLines = prlFile.readAll().split('\n');
-    foreach (const QByteArray &line, prlLines) {
+    for (const QByteArray &line : prlLines) {
         const QByteArray simplifiedLine = line.simplified();
         const int equalsOffset = simplifiedLine.indexOf('=');
         if (equalsOffset == -1)
@@ -530,7 +531,7 @@ static QList<QByteArray> getPriFileContentsRecursively(const Profile &profile,
         const QList<QByteArray> &includedContents
                 = getPriFileContentsRecursively(profile, includedFilePath);
         int j = i;
-        foreach (const QByteArray &includedLine, includedContents)
+        for (const QByteArray &includedLine : includedContents)
             lines.insert(++j, includedLine);
         lines.removeAt(i--);
     }
@@ -568,7 +569,8 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
         moduleInfo.qbsName.replace(QLatin1String("_private"), QLatin1String("-private"));
         bool hasV2 = false;
         bool hasModuleEntry = false;
-        foreach (const QByteArray &line, getPriFileContentsRecursively(profile, dit.filePath())) {
+        const auto lines = getPriFileContentsRecursively(profile, dit.filePath());
+        for (const QByteArray &line : lines) {
             const QByteArray simplifiedLine = line.simplified();
             const int firstEqualsOffset = simplifiedLine.indexOf('=');
             if (firstEqualsOffset == -1)
@@ -588,7 +590,8 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
                                                        QLatin1String("-private"));
                 }
             } else if (key.endsWith(".module_config")) {
-                foreach (const QByteArray &elem, value.split(' ')) {
+                const auto elems = value.split(' ');
+                for (const QByteArray &elem : elems) {
                     if (elem == "no_link")
                         moduleInfo.hasLibrary = false;
                     else if (elem == "staticlib")

@@ -74,9 +74,9 @@ void CommandLineParser::parse()
             "value in per cent");
     parser.addOption(thresholdOption);
     parser.process(*QCoreApplication::instance());
-    QList<QCommandLineOption> mandatoryOptions = QList<QCommandLineOption>()
+    const QList<QCommandLineOption> mandatoryOptions = QList<QCommandLineOption>()
             << oldCommitOption << newCommitOption << testProjectOption << qbsRepoOption;
-    foreach (const QCommandLineOption &o, mandatoryOptions) {
+    for (const QCommandLineOption &o : mandatoryOptions) {
         if (!parser.isSet(o))
             throwException(o.names().front(), parser.helpText());
         if (parser.value(o).isEmpty())
@@ -88,7 +88,7 @@ void CommandLineParser::parse()
     m_qbsRepoDirPath = parser.value(qbsRepoOption);
     const QStringList activitiesList = parser.value(activitiesOption).split(',');
     m_activities = 0;
-    foreach (const QString &activityString, activitiesList) {
+    for (const QString &activityString : activitiesList) {
         if (activityString == allActivities()) {
             m_activities = ActivityResolving | ActivityRuleExecution | ActivityNullBuild;
             break;

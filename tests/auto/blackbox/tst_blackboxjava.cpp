@@ -31,6 +31,7 @@
 #include "../shared.h"
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qtemporarydir.h>
@@ -84,7 +85,7 @@ void TestBlackboxJava::java()
         QVERIFY2(regularFileExists(classFile), qPrintable(classFile));
     }
 
-    foreach (const QString &classFile, classFiles) {
+    for (const QString &classFile : classFiles) {
         const QString filePath = relativeProductBuildDir("jar_file") + "/classes/" + classFile
                 + ".class";
         QVERIFY2(regularFileExists(filePath), qPrintable(filePath));
@@ -94,7 +95,7 @@ void TestBlackboxJava::java()
 
     // Now check whether we correctly predicted the class file output paths.
     QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
-    foreach (const QString &classFile, classFiles1) {
+    for (const QString &classFile : qAsConst(classFiles1)) {
         QVERIFY2(!regularFileExists(classFile), qPrintable(classFile));
     }
 

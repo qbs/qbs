@@ -1291,7 +1291,7 @@ void TestBlackbox::clean()
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(!QFile(depObjectFilePath).exists());
     QVERIFY(!QFile(depLibFilePath).exists());
-    foreach (const QString &symLink, symlinks)
+    for (const QString &symLink : qAsConst(symlinks))
         QVERIFY2(!symlinkExists(symLink), qPrintable(symLink));
 
     // Remove all, with a forced re-resolve in between.
@@ -1310,7 +1310,7 @@ void TestBlackbox::clean()
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(!QFile(depObjectFilePath).exists());
     QVERIFY(!QFile(depLibFilePath).exists());
-    foreach (const QString &symLink, symlinks)
+    for (const QString &symLink : qAsConst(symlinks))
         QVERIFY2(!symlinkExists(symLink), qPrintable(symLink));
 
     // Dry run.
@@ -1322,7 +1322,7 @@ void TestBlackbox::clean()
     QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(regularFileExists(depObjectFilePath));
     QVERIFY(regularFileExists(depLibFilePath));
-    foreach (const QString &symLink, symlinks)
+    for (const QString &symLink : qAsConst(symlinks))
         QVERIFY2(symlinkExists(symLink), qPrintable(symLink));
 
     // Product-wise, dependency only.
@@ -1336,7 +1336,7 @@ void TestBlackbox::clean()
     QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(!QFile(depObjectFilePath).exists());
     QVERIFY(!QFile(depLibFilePath).exists());
-    foreach (const QString &symLink, symlinks)
+    for (const QString &symLink : qAsConst(symlinks))
         QVERIFY2(!symlinkExists(symLink), qPrintable(symLink));
 
     // Product-wise, dependent product only.
@@ -1350,7 +1350,7 @@ void TestBlackbox::clean()
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(regularFileExists(depObjectFilePath));
     QVERIFY(regularFileExists(depLibFilePath));
-    foreach (const QString &symLink, symlinks)
+    for (const QString &symLink : qAsConst(symlinks))
         QVERIFY2(symlinkExists(symLink), qPrintable(symLink));
 }
 
@@ -3126,7 +3126,7 @@ void TestBlackbox::systemRunPaths()
     const QByteArray output = ldd.readAllStandardOutput();
     const QList<QByteArray> outputLines = output.split('\n');
     QByteArray libLine;
-    foreach (const auto &line, outputLines) {
+    for (const auto &line : outputLines) {
         if (line.contains("theLib")) {
             libLine = line;
             break;
@@ -3263,13 +3263,13 @@ void TestBlackbox::installPackage()
     QVERIFY2(tarList.waitForFinished(), qPrintable(tarList.errorString()));
     const QList<QByteArray> outputLines = tarList.readAllStandardOutput().split('\n');
     QList<QByteArray> cleanOutputLines;
-    foreach (const QByteArray &line, outputLines) {
+    for (const QByteArray &line : outputLines) {
         const QByteArray trimmedLine = line.trimmed();
         if (!trimmedLine.isEmpty())
             cleanOutputLines.push_back(trimmedLine);
     }
     QCOMPARE(cleanOutputLines.size(), 3);
-    foreach (const QByteArray &line, cleanOutputLines) {
+    for (const QByteArray &line : qAsConst(cleanOutputLines)) {
         QVERIFY2(line.contains("public_tool") || line.contains("mylib") || line.contains("lib.h"),
                  line.constData());
     }
@@ -3324,7 +3324,7 @@ void TestBlackbox::invalidLibraryNames()
     QbsRunParameters params(QStringList("project.valueIndex:" + index));
     params.expectFailure = !success;
     QCOMPARE(runQbs(params) == 0, success);
-    foreach (const QString &diag, diagnostics)
+    for (const QString &diag : qAsConst(diagnostics))
         QVERIFY2(m_qbsStderr.contains(diag.toLocal8Bit()), m_qbsStderr.constData());
 }
 
@@ -4271,7 +4271,7 @@ void TestBlackbox::productDependenciesByType()
             << QDir::currentPath() + '/' + relativeExecutableFilePath("app1")
             << QDir::currentPath() + '/' + relativeExecutableFilePath("app2")
             << QDir::currentPath() + '/' + relativeExecutableFilePath("app3");
-    foreach (const QByteArray &line, appList) {
+    for (const QByteArray &line : appList) {
         const QString cleanLine = QString::fromLocal8Bit(line.trimmed());
         QVERIFY2(apps.removeOne(cleanLine), qPrintable(cleanLine));
     }
@@ -4674,7 +4674,7 @@ void TestBlackbox::nsis()
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
 
-    foreach (const QString &key, regKeys) {
+    for (const QString &key : qAsConst(regKeys)) {
         QSettings settings(key, QSettings::NativeFormat);
         QString str = settings.value(QLatin1String(".")).toString();
         if (!str.isEmpty())
@@ -4682,7 +4682,7 @@ void TestBlackbox::nsis()
     }
 
     bool haveMakeNsis = false;
-    foreach (const QString &path, paths) {
+    for (const QString &path : qAsConst(paths)) {
         if (regularFileExists(QDir::fromNativeSeparators(path) +
                           HostOsInfo::appendExecutableSuffix(QLatin1String("/makensis")))) {
             haveMakeNsis = true;
@@ -4811,9 +4811,9 @@ static bool haveWiX(const Profile &profile)
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
 
-    foreach (const QString &key, regKeys) {
+    for (const QString &key : qAsConst(regKeys)) {
         const QStringList versions = QSettings(key, QSettings::NativeFormat).childGroups();
-        foreach (const QString &version, versions) {
+        for (const QString &version : versions) {
             QSettings settings(key + version, QSettings::NativeFormat);
             QString str = settings.value(QLatin1String("InstallRoot")).toString();
             if (!str.isEmpty())
@@ -4821,7 +4821,7 @@ static bool haveWiX(const Profile &profile)
         }
     }
 
-    foreach (const QString &path, paths) {
+    for (const QString &path : qAsConst(paths)) {
         if (regularFileExists(QDir::fromNativeSeparators(path) +
                           HostOsInfo::appendExecutableSuffix(QLatin1String("/candle"))) &&
             regularFileExists(QDir::fromNativeSeparators(path) +

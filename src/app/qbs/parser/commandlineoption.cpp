@@ -42,6 +42,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/installoptions.h>
+#include <tools/qttools.h>
 
 namespace qbs {
 using namespace Internal;
@@ -335,7 +336,7 @@ void StringListOption::doParse(const QString &representation, QStringList &input
         throw ErrorInfo(Tr::tr("Invalid use of option '%1': Argument list must not be empty.\n"
                            "Usage: %2").arg(representation, description(command())));
     }
-    foreach (const QString &element, m_arguments) {
+    for (const QString &element : qAsConst(m_arguments)) {
         if (element.isEmpty()) {
             throw ErrorInfo(Tr::tr("Invalid use of option '%1': Argument list must not contain "
                                "empty elements.\nUsage: %2")
@@ -412,7 +413,7 @@ void LogLevelOption::doParse(const QString &representation, QStringList &input)
     const QString levelString = getArgument(representation, input);
     const QList<LoggerLevel> levels = QList<LoggerLevel>() << LoggerError << LoggerWarning
             << LoggerInfo << LoggerDebug << LoggerTrace;
-    foreach (LoggerLevel l, levels) {
+    for (const LoggerLevel &l : levels) {
         if (logLevelName(l) == levelString) {
             m_logLevel = l;
             return;

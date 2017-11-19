@@ -303,12 +303,12 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevel
     }
 
     QHash<ResolvedProductPtr, Set<ResolvedProductPtr>> dependencyMap;
-    foreach (const ResolvedProductPtr &product, freshProducts) {
+    for (const ResolvedProductPtr &product : freshProducts) {
         if (!product->enabled)
             continue;
         QBS_CHECK(product->buildData);
-        Set<ResolvedProductPtr> dependents = findDependentProducts(product);
-        foreach (const ResolvedProductPtr &dependentProduct, dependents) {
+        const Set<ResolvedProductPtr> dependents = findDependentProducts(product);
+        for (const ResolvedProductPtr &dependentProduct : dependents) {
             if (!dependentProduct->enabled)
                 continue;
             dependencyMap[dependentProduct] << product;
@@ -444,7 +444,7 @@ void BuildDataResolver::connectRulesToDependencies(const ResolvedProductPtr &pro
     std::vector<RuleNode *> ruleNodes;
     for (RuleNode *ruleNode : filterByType<RuleNode>(product->buildData->nodes))
         ruleNodes.push_back(ruleNode);
-    foreach (const ResolvedProductConstPtr &dep, dependencies) {
+    for (const ResolvedProductConstPtr &dep : dependencies) {
         if (!dep->buildData)
             continue;
         for (RuleNode *depRuleNode : filterByType<RuleNode>(dep->buildData->nodes)) {

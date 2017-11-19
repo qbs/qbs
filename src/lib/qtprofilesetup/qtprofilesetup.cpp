@@ -90,7 +90,7 @@ static QString defaultQpaPlugin(const Profile &profile, const QtModuleInfo &modu
         }
         const QList<QByteArray> lines = qConfigPri.readAll().split('\n');
         const QByteArray magicString = "QT_DEFAULT_QPA_PLUGIN =";
-        foreach (const QByteArray &line, lines) {
+        for (const QByteArray &line : lines) {
             const QByteArray simplifiedLine = line.simplified();
             if (simplifiedLine.startsWith(magicString))
                 return QString::fromLatin1(simplifiedLine.mid(magicString.size()).trimmed());
@@ -301,7 +301,7 @@ static void createModules(Profile &profile, Settings *settings,
                      &allFiles);
     copyTemplateFile(QLatin1String("QtPlugin.qbs"), qbsQtModuleBaseDir, profile, qtEnvironment,
                      &allFiles);
-    foreach (const QtModuleInfo &module, modules) {
+    for (const QtModuleInfo &module : modules) {
         const QString qbsQtModuleDir = qbsQtModuleBaseDir + QLatin1Char('/') + module.qbsName;
         QString moduleTemplateFileName;
         if (module.qbsName == QLatin1String("core")) {
@@ -393,7 +393,7 @@ static bool checkForStaticBuild(const QtEnvironment &qt)
             = libdir.entryList(QStringList(QLatin1String("*Core*")), QDir::Files);
     if (coreLibFiles.empty())
         throw ErrorInfo(Internal::Tr::tr("Could not determine whether Qt is a static build."));
-    foreach (const QString &fileName, coreLibFiles) {
+    for (const QString &fileName : coreLibFiles) {
         if (QLibrary::isLibrary(fileName))
             return false;
     }

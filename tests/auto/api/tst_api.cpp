@@ -624,7 +624,8 @@ void TestApi::checkOutputs_data()
 
 qbs::GroupData findGroup(const qbs::ProductData &product, const QString &name)
 {
-    foreach (const qbs::GroupData &g, product.groups()) {
+    const auto groups = product.groups();
+    for (const qbs::GroupData &g : groups) {
         if (g.name() == name)
             return g;
     }
@@ -640,9 +641,11 @@ static qbs::Project::ProductSelection defaultProducts()
 
 static void printProjectData(const qbs::ProjectData &project)
 {
-    foreach (const qbs::ProductData &p, project.products()) {
+    const auto products = project.products();
+    for (const qbs::ProductData &p : products) {
         qDebug("    Product '%s' at %s", qPrintable(p.name()), qPrintable(p.location().toString()));
-        foreach (const qbs::GroupData &g, p.groups()) {
+        const auto groups = p.groups();
+        for (const qbs::GroupData &g : groups) {
             qDebug("        Group '%s' at %s", qPrintable(g.name()), qPrintable(g.location().toString()));
             qDebug("            Files: %s", qPrintable(g.allFilePaths().join(QLatin1String(", "))));
         }
@@ -1232,7 +1235,8 @@ void TestApi::generatedFilesList()
     const qbs::ProductData product = projectData.products().front();
     QString uiFilePath;
     QVERIFY(product.generatedArtifacts().size() >= 6);
-    foreach (const qbs::ArtifactData &a, product.generatedArtifacts()) {
+    const auto artifacts = product.generatedArtifacts();
+    for (const qbs::ArtifactData &a : artifacts) {
         QVERIFY(a.isGenerated());
         QFileInfo fi(a.filePath());
         using qbs::Internal::HostOsInfo;
@@ -1245,8 +1249,10 @@ void TestApi::generatedFilesList()
         QVERIFY2(possibleFileNames.contains(fi.fileName()) || fi.fileName().endsWith(".plist"),
                  qPrintable(fi.fileName()));
     }
-    foreach (const qbs::GroupData &group, product.groups()) {
-        foreach (const qbs::ArtifactData &a, group.sourceArtifacts()) {
+    const auto groups = product.groups();
+    for (const qbs::GroupData &group : groups) {
+        const auto artifacts = group.sourceArtifacts();
+        for (const qbs::ArtifactData &a : artifacts) {
             QVERIFY(!a.isGenerated());
             QVERIFY(!a.isTargetArtifact());
             if (a.fileTags().contains(QLatin1String("ui"))) {
@@ -1354,9 +1360,9 @@ void TestApi::installableFiles()
         return p.name() == QLatin1String("installedApp");
     });
     QVERIFY(product.isValid());
-    QList<qbs::ArtifactData> installableFiles = product.installableArtifacts();
-    QCOMPARE(installableFiles.size(), 2);
-    foreach (const qbs::ArtifactData &f,installableFiles) {
+    const QList<qbs::ArtifactData> beforeInstallableFiles = product.installableArtifacts();
+    QCOMPARE(beforeInstallableFiles.size(), 2);
+    for (const qbs::ArtifactData &f : beforeInstallableFiles) {
         if (!f.filePath().endsWith("main.cpp")) {
             QVERIFY(f.isExecutable());
             QString expectedTargetFilePath = qbs::Internal::HostOsInfo
@@ -1376,13 +1382,13 @@ void TestApi::installableFiles()
     projectData = project.projectData();
     QCOMPARE(projectData.allProducts().size(), 1);
     product = projectData.allProducts().front();
-    installableFiles = product.installableArtifacts();
-    QCOMPARE(installableFiles.size(), 2);
-    foreach (const qbs::ArtifactData &f, installableFiles)
+    const QList<qbs::ArtifactData>  afterInstallableFiles = product.installableArtifacts();
+    QCOMPARE(afterInstallableFiles.size(), 2);
+    for (const qbs::ArtifactData &f : afterInstallableFiles)
         QVERIFY(!f.isExecutable());
-    QCOMPARE(installableFiles.front().installData().localInstallFilePath(),
+    QCOMPARE(afterInstallableFiles.front().installData().localInstallFilePath(),
              QLatin1String("/tmp/dir/file1.txt"));
-    QCOMPARE(installableFiles.last().installData().localInstallFilePath(),
+    QCOMPARE(afterInstallableFiles.last().installData().localInstallFilePath(),
              QLatin1String("/tmp/dir/file2.txt"));
 }
 
@@ -1396,7 +1402,7 @@ void TestApi::isRunnable()
     qbs::Project project = job->project();
     const QList<qbs::ProductData> products = project.projectData().products();
     QCOMPARE(products.size(), 2);
-    foreach (const qbs::ProductData &p, products) {
+    for (const qbs::ProductData &p : products) {
         QVERIFY2(p.name() == "app" || p.name() == "lib", qPrintable(p.name()));
         if (p.name() == "app")
             QVERIFY(p.isRunnable());
@@ -1695,7 +1701,7 @@ void TestApi::multiArch()
     QCOMPARE(products.size(), 3);
     QList<qbs::ProductData> hostProducts;
     QList<qbs::ProductData> targetProducts;
-    foreach (const qbs::ProductData &p, products) {
+    for (const qbs::ProductData &p : products) {
         QVERIFY2(p.profile() == hostProfile.name() || p.profile() == targetProfile.name(),
                  qPrintable(p.profile()));
         if (p.profile() == hostProfile.name())
@@ -2171,7 +2177,7 @@ void TestApi::processResult()
         CheckParams(redirectStdout, "stdout.txt", "stdout", result.stdOut()),
         CheckParams(redirectStderr, "stderr.txt", "stderr", result.stdErr())
     });
-    foreach (const CheckParams &p, checkParams) {
+    for (const CheckParams &p : checkParams) {
         QFile f(relativeProductBuildDir("app-caller") + '/' + p.fileName);
         QCOMPARE(f.exists(), p.redirect);
         if (p.redirect) {
@@ -2297,7 +2303,7 @@ void TestApi::referencedFileErrors()
         return;
     const QList<qbs::ProductData> products = project.projectData().allProducts();
     QCOMPARE(products.size(), 5);
-    foreach (const qbs::ProductData &p, products)
+    for (const qbs::ProductData &p : products)
         QCOMPARE(p.isEnabled(), p.name() != "p5");
 }
 
@@ -2382,11 +2388,14 @@ void TestApi::relaxedModeRecovery()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     if (m_logSink->warnings.size() != 4) {
-        foreach (const qbs::ErrorInfo &error, m_logSink->warnings)
+        const auto errors = m_logSink->warnings;
+        for (const qbs::ErrorInfo &error : errors)
             qDebug() << error.toString();
     }
     QCOMPARE(m_logSink->warnings.size(), 4);
-    foreach (const qbs::ErrorInfo &error, m_logSink->warnings) {
+
+    const auto errors = m_logSink->warnings;
+    for (const qbs::ErrorInfo &error : errors) {
         QVERIFY2(!error.toString().contains("ASSERT")
                  && (error.toString().contains("Dependency 'blubb' not found")
                      || error.toString().contains("Product 'p1' had errors and was disabled")
@@ -2520,7 +2529,8 @@ void TestApi::restoredWarnings()
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
     QCOMPARE(m_logSink->warnings.toSet().size(), 2);
-    foreach (const qbs::ErrorInfo &e, m_logSink->warnings) {
+    const auto beforeErrors = m_logSink->warnings;
+    for (const qbs::ErrorInfo &e : beforeErrors) {
         const QString msg = e.toString();
         QVERIFY2(msg.contains("Superfluous version")
                  || msg.contains("Property 'blubb' is not declared"),
@@ -2545,7 +2555,8 @@ void TestApi::restoredWarnings()
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
     QCOMPARE(m_logSink->warnings.toSet().size(), 3); // One more for the additional group
-    foreach (const qbs::ErrorInfo &e, m_logSink->warnings) {
+    const auto afterErrors = m_logSink->warnings;
+    for (const qbs::ErrorInfo &e : afterErrors) {
         const QString msg = e.toString();
         QVERIFY2(msg.contains("Superfluous version")
                  || msg.contains("Property 'blubb' is not declared")

@@ -82,10 +82,10 @@ static QStringList collectQmakePaths()
     const QStringList qmakeExeNames = qmakeExecutableNames();
     QStringList qmakePaths;
     QByteArray environmentPath = qgetenv("PATH");
-    QList<QByteArray> environmentPaths
+    const QList<QByteArray> environmentPaths
             = environmentPath.split(HostOsInfo::pathListSeparator().toLatin1());
-    foreach (const QByteArray &path, environmentPaths) {
-        foreach (const QString &qmakeExecutableName, qmakeExeNames) {
+    for (const QByteArray &path : environmentPaths) {
+        for (const QString &qmakeExecutableName : qmakeExeNames) {
             QFileInfo pathFileInfo(QDir(QLatin1String(path)), qmakeExecutableName);
             if (pathFileInfo.exists()) {
                 QString qmakePath = pathFileInfo.absoluteFilePath();
@@ -108,7 +108,8 @@ QList<QtEnvironment> SetupQt::fetchEnvironments()
 {
     QList<QtEnvironment> qtEnvironments;
 
-    foreach (const QString &qmakePath, collectQmakePaths()) {
+    const auto qmakePaths = collectQmakePaths();
+    for (const QString &qmakePath : qmakePaths) {
         const QtEnvironment env = fetchEnvironment(qmakePath);
         if (std::find_if(qtEnvironments.cbegin(), qtEnvironments.cend(),
                          [&env](const QtEnvironment &otherEnv) {
@@ -137,7 +138,8 @@ static QMap<QByteArray, QByteArray> qmakeQueryOutput(const QString &qmakePath)
     const QByteArray output = qmakeProcess.readAllStandardOutput();
 
     QMap<QByteArray, QByteArray> ret;
-    foreach (const QByteArray &line, output.split('\n')) {
+    const auto lines = output.split('\n');
+    for (const QByteArray &line : lines) {
         int idx = line.indexOf(':');
         if (idx >= 0)
             ret[line.left(idx)] = line.mid(idx + 1).trimmed();
@@ -159,11 +161,11 @@ static QString configVariable(const QByteArray &configContent, const QString &ke
     QRegExp regexp(QLatin1String("\\s*") + key + QLatin1String("\\s*\\+{0,1}=(.*)"),
                    Qt::CaseSensitive);
 
-    QList<QByteArray> configContentLines = configContent.split('\n');
+    const QList<QByteArray> configContentLines = configContent.split('\n');
 
     bool success = false;
 
-    foreach (const QByteArray &configContentLine, configContentLines) {
+    for (const QByteArray &configContentLine : configContentLines) {
         success = regexp.exactMatch(QString::fromLocal8Bit(configContentLine));
         if (success)
             break;
@@ -532,7 +534,8 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
 
     QStringList fullMatches;
     QStringList partialMatches;
-    foreach (const QString &profileName, settings->profiles()) {
+    const auto profileNames = settings->profiles();
+    for (const QString &profileName : profileNames) {
         const Profile otherProfile(profileName, settings);
         if (profileName == profile.name()
                 || !isToolchainProfile(otherProfile)
@@ -584,7 +587,7 @@ bool SetupQt::checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion,
         const QList<QtEnvironment> &qtEnvironments)
 {
     bool foundOneVersion = false;
-    foreach (const QtEnvironment &qtEnvironment, qtEnvironments) {
+    for (const QtEnvironment &qtEnvironment : qtEnvironments) {
         if (qtEnvironment.qtVersion == qtVersion) {
             if (foundOneVersion)
                 return true;

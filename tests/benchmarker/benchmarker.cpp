@@ -79,13 +79,15 @@ void Benchmarker::benchmark()
     QFuture<void> oldFuture = QtConcurrent::run(&oldDataRetriever, &ValgrindRunner::run);
     QFuture<void> newFuture = QtConcurrent::run(&newDataRetriever, &ValgrindRunner::run);
     oldFuture.waitForFinished();
-    foreach (const ValgrindResult &valgrindResult, oldDataRetriever.results()) {
+    const auto oldValgrindResults = oldDataRetriever.results();
+    for (const ValgrindResult &valgrindResult : oldValgrindResults) {
         BenchmarkResult &benchmarkResult = m_results[valgrindResult.activity];
         benchmarkResult.oldInstructionCount = valgrindResult.instructionCount;
         benchmarkResult.oldPeakMemoryUsage = valgrindResult.peakMemoryUsage;
     }
     newFuture.waitForFinished();
-    foreach (const ValgrindResult &valgrindResult, newDataRetriever.results()) {
+    const auto newValgrindResults = newDataRetriever.results();
+    for (const ValgrindResult &valgrindResult : newValgrindResults) {
         BenchmarkResult &benchmarkResult = m_results[valgrindResult.activity];
         benchmarkResult.newInstructionCount = valgrindResult.instructionCount;
         benchmarkResult.newPeakMemoryUsage = valgrindResult.peakMemoryUsage;

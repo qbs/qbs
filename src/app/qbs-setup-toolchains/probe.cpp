@@ -46,6 +46,7 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
+#include <tools/qttools.h>
 #include <tools/settings.h>
 #include <tools/toolchains.h>
 #include <tools/stlutils.h>
@@ -73,7 +74,8 @@ static QString findExecutable(const QString &fileName)
         fullFileName += QLatin1String(".exe");
     }
     const QString path = QString::fromLocal8Bit(qgetenv("PATH"));
-    foreach (const QString &ppath, path.split(HostOsInfo::pathListSeparator())) {
+    const auto ppaths = path.split(HostOsInfo::pathListSeparator());
+    for (const QString &ppath : ppaths) {
         const QString fullPath = ppath + QLatin1Char('/') + fullFileName;
         if (QFileInfo::exists(fullPath))
             return QDir::cleanPath(fullPath);
@@ -110,10 +112,12 @@ static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
 {
     if (compilerName == QLatin1String("cl.exe"))
         return canonicalToolchain(QLatin1String("msvc"));
-    foreach (const QString &type, (QStringList() << QLatin1String("clang") << QLatin1String("llvm")
-                                                 << QLatin1String("mingw") << QLatin1String("gcc")))
+    const auto types = { QLatin1String("clang"), QLatin1String("llvm"),
+                         QLatin1String("mingw"), QLatin1String("gcc") };
+    for (const QString &type : types) {
         if (compilerName.contains(type))
             return canonicalToolchain(type);
+    }
     if (compilerName == QLatin1String("g++"))
         return canonicalToolchain(QLatin1String("gcc"));
     return QStringList();
@@ -256,12 +260,13 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     if (HostOsInfo::isWindowsHost()) {
         compilerNames << QLatin1String("gcc");
     } else {
-        foreach (const QString &machineName, validMinGWMachines()) {
+        const auto machineNames = validMinGWMachines();
+        for (const QString &machineName : machineNames) {
             compilerNames << machineName + QLatin1String("-gcc");
         }
     }
 
-    foreach (const QString &compilerName, compilerNames) {
+    for (const QString &compilerName : qAsConst(compilerNames)) {
         const QString gccPath
                 = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
         if (!gccPath.isEmpty())

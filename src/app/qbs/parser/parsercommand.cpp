@@ -45,6 +45,7 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qmap.h>
 
@@ -128,7 +129,8 @@ void Command::parseOption(QStringList &input)
     }
 
     bool matchFound = false;
-    foreach (const CommandLineOption::Type optionType, actualSupportedOptions()) {
+    const auto optionTypes = actualSupportedOptions();
+    for (const CommandLineOption::Type optionType : optionTypes) {
         CommandLineOption * const option = optionPool().getOption(optionType);
         if (option->shortRepresentation() != optionString
                 && option->longRepresentation() != optionString) {
@@ -158,13 +160,14 @@ QString Command::supportedOptionsDescription() const
 {
     // Sorting the options by name is nicer for the user.
     QMap<QString, const CommandLineOption *> optionMap;
-    foreach (const CommandLineOption::Type opType, actualSupportedOptions()) {
+    const auto opTypes = actualSupportedOptions();
+    for (const CommandLineOption::Type opType : opTypes) {
         const CommandLineOption * const option = optionPool().getOption(opType);
         optionMap.insert(option->longRepresentation(), option);
     }
 
     QString s = Tr::tr("The possible options are:\n");
-    foreach (const CommandLineOption *option, optionMap)
+    for (const CommandLineOption *option : qAsConst(optionMap))
         s += option->description(type());
     return s;
 }

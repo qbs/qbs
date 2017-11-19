@@ -343,7 +343,7 @@ QString TestTools::setupSettingsDir1()
             << Version(thisVersion.majorVersion(), thisVersion.minorVersion(),
                        thisVersion.patchLevel() + 1)
             << Version(99, 99, 99);
-    foreach (const Version &v, versions) {
+    for (const Version &v : versions) {
         const QString settingsDir = baseDir->path() + "/qbs/" + v.toString();
         QSettings s(settingsDir + "/qbs.conf",
                     HostOsInfo::isWindowsHost() ? QSettings::IniFormat : QSettings::NativeFormat);

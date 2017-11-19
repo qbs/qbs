@@ -42,6 +42,7 @@
 #include "../shared/logging/consolelogger.h"
 
 #include <qbs.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
@@ -66,8 +67,8 @@ static QList<QRegExp> createIgnoreList(const QString &projectRootPath)
     QFile ignoreFile(ignoreFilePath);
 
     if (ignoreFile.open(QFile::ReadOnly)) {
-        QList<QByteArray> ignoreTokenList = ignoreFile.readAll().split('\n');
-        foreach (const QByteArray &btoken, ignoreTokenList) {
+        const QList<QByteArray> ignoreTokenList = ignoreFile.readAll().split('\n');
+        for (const QByteArray &btoken : ignoreTokenList) {
             const QString token = QString::fromLatin1(btoken);
             if (token.left(1) == QLatin1String("/"))
                 ignoreRegularExpressionList.push_back(QRegExp(projectRootPath
@@ -86,10 +87,11 @@ static QStringList allFilesInDirectoryRecursive(const QDir &rootDirecory, const 
 {
     QStringList fileList;
 
-    foreach (const QFileInfo &fileInfo, rootDirecory.entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name)) {
+    const auto fileInfos = rootDirecory.entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+    for (const QFileInfo &fileInfo : fileInfos) {
         QString absoluteFilePath = fileInfo.absoluteFilePath();
         bool inIgnoreList = false;
-        foreach (const QRegExp &ignoreRegularExpression, ignoreRegularExpressionList) {
+        for (const QRegExp &ignoreRegularExpression : ignoreRegularExpressionList) {
             if (ignoreRegularExpression.exactMatch(absoluteFilePath)) {
                 inIgnoreList = true;
                 break;
@@ -118,7 +120,8 @@ static QStringList allFilesInProject(const QString &projectRootPath)
 QStringList allFiles(const ProductData &product)
 {
     QStringList files;
-    foreach (const GroupData &group, product.groups())
+    const auto groups = product.groups();
+    for (const GroupData &group : groups)
         files += group.allFilePaths();
     return files;
 }
@@ -131,17 +134,19 @@ int printStatus(const ProjectData &project)
 
     QStringList untrackedFilesInProject = allFilesInProject(projectDirectory);
     QStringList missingFiles;
-    foreach (const ProductData &product, project.allProducts()) {
+    const auto products = project.allProducts();
+    for (const ProductData &product : products) {
         qbsInfo() << "\nProduct: " << product.name()
                   << " (" << product.location().filePath() << ":"
                   << product.location().line() << ")";
-        foreach (const GroupData &group, product.groups()) {
+        const auto groups = product.groups();
+        for (const GroupData &group : groups) {
             qbsInfo() << "  Group: " << group.name()
                       << " (" << group.location().filePath() << ":"
                       << group.location().line() << ")";
             QStringList sourceFiles = group.allFilePaths();
             qSort(sourceFiles);
-            foreach (const QString &sourceFile, sourceFiles) {
+            for (const QString &sourceFile : qAsConst(sourceFiles)) {
                 if (!QFileInfo(sourceFile).exists())
                     missingFiles.push_back(sourceFile);
                 qbsInfo() << "    " << sourceFile.mid(projectDirectoryPathLength + 1);
@@ -151,11 +156,11 @@ int printStatus(const ProjectData &project)
     }
 
     qbsInfo() << "\nMissing files:";
-    foreach (const QString &untrackedFile, missingFiles)
+    for (const QString &untrackedFile : qAsConst(missingFiles))
         qbsInfo() << "    " << untrackedFile.mid(projectDirectoryPathLength + 1);
 
     qbsInfo() << "\nUntracked files:";
-    foreach (const QString &missingFile, untrackedFilesInProject)
+    for (const QString &missingFile : qAsConst(untrackedFilesInProject))
         qbsInfo() << "    " << missingFile.mid(projectDirectoryPathLength + 1);
 
     return 0;
