@@ -161,7 +161,7 @@ UserDependencyScanner::UserDependencyScanner(const ResolvedScannerConstPtr &scan
 {
     m_global = m_engine->newObject();
     m_global.setPrototype(m_engine->globalObject());
-    setupScriptEngineForFile(m_engine, m_scanner->scanScript->fileContext, m_global,
+    setupScriptEngineForFile(m_engine, m_scanner->scanScript.fileContext(), m_global,
                              ObserveMode::Disabled); // TODO: QBS-1092
 }
 
@@ -192,7 +192,7 @@ const void *UserDependencyScanner::key() const
 
 QString UserDependencyScanner::createId() const
 {
-    return m_scanner->scanScript->sourceCode;
+    return m_scanner->scanScript.sourceCode();
 }
 
 bool UserDependencyScanner::areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
@@ -220,7 +220,7 @@ public:
     }
 };
 
-QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunctionPtr &script)
+QStringList UserDependencyScanner::evaluate(Artifact *artifact, const PrivateScriptFunction &script)
 {
     ScriptEngineActiveFlagGuard guard(m_engine);
 
@@ -237,18 +237,18 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunc
     args.push_back(Transformer::translateFileConfig(m_engine, artifact, m_scanner->module->name));
 
     m_engine->setGlobalObject(m_global);
-    QScriptValue &function = script->scriptFunction;
+    QScriptValue &function = script.scriptFunction;
     if (!function.isValid() || function.engine() != m_engine) {
-        function = m_engine->evaluate(script->sourceCode);
+        function = m_engine->evaluate(script.sourceCode());
         if (Q_UNLIKELY(!function.isFunction()))
-            throw ErrorInfo(Tr::tr("Invalid scan script."), script->location);
+            throw ErrorInfo(Tr::tr("Invalid scan script."), script.location());
     }
     QScriptValue result = function.call(QScriptValue(), args);
     m_engine->setGlobalObject(m_global.prototype());
     m_engine->clearRequestedProperties();
     if (Q_UNLIKELY(m_engine->hasErrorOrException(result))) {
         QString msg = Tr::tr("evaluating scan script: ") + m_engine->lastErrorString(result);
-        const CodeLocation loc = m_engine->lastErrorLocation(result, script->location);
+        const CodeLocation loc = m_engine->lastErrorLocation(result, script.location());
         m_engine->clearExceptions();
         throw ErrorInfo(msg, loc);
     }

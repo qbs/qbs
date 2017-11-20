@@ -340,7 +340,7 @@ private:
             QString pathstr;
             for (const Rule *r : qAsConst(m_rulePath)) {
                 pathstr += QLatin1Char('\n') + r->toString() + QLatin1Char('\t')
-                        + r->prepareScript->location.toString();
+                        + r->prepareScript.location().toString();
             }
             throw ErrorInfo(Tr::tr("Cycle detected in rule dependencies: %1").arg(pathstr));
         }

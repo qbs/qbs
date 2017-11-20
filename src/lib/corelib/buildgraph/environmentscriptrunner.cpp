@@ -124,7 +124,7 @@ void EnvironmentScriptRunner::setupForRun(const QStringList &config)
 void EnvironmentScriptRunner::setupEnvironment()
 {
     const auto hasScript = [this](const ResolvedModuleConstPtr &m) {
-        return !getScript(m.get())->sourceCode.isEmpty();
+        return !getScript(m.get()).sourceCode().isEmpty();
     };
     const bool hasAnyScripts = std::any_of(m_product->modules.cbegin(), m_product->modules.cend(),
                                            hasScript);
@@ -163,8 +163,8 @@ void EnvironmentScriptRunner::setupEnvironment()
             ? ResolvedModule::argumentNamesForSetupBuildEnv()
             : ResolvedModule::argumentNamesForSetupRunEnv();
     for (const ResolvedModule * const module : topSortedModules) {
-        const ScriptFunction *setupScript = getScript(module);
-        if (setupScript->sourceCode.isEmpty())
+        const PrivateScriptFunction &setupScript = getScript(module);
+        if (setupScript.sourceCode().isEmpty())
             continue;
 
         RulesEvaluationContext::Scope s(m_evalContext);
@@ -181,11 +181,12 @@ void EnvironmentScriptRunner::setupEnvironment()
                 configArray.setProperty(i, QScriptValue(m_runEnvConfig.at(i)));
             m_evalContext->scope().setProperty(QLatin1String("config"), configArray);
         }
-        setupScriptEngineForFile(engine(), setupScript->fileContext, m_evalContext->scope(),
+        setupScriptEngineForFile(engine(), setupScript.fileContext(), m_evalContext->scope(),
                                  ObserveMode::Disabled);
-        QScriptValue fun = engine()->evaluate(setupScript->sourceCode,
-                                              setupScript->location.filePath(),
-                                              setupScript->location.line());
+        // TODO: Cache evaluate result
+        QScriptValue fun = engine()->evaluate(setupScript.sourceCode(),
+                                              setupScript.location().filePath(),
+                                              setupScript.location().line());
         QBS_CHECK(fun.isFunction());
         const QScriptValueList svArgs = ScriptEngine::argumentList(scriptFunctionArgs,
                                                                    m_evalContext->scope());
@@ -197,7 +198,7 @@ void EnvironmentScriptRunner::setupEnvironment()
             throw ErrorInfo(Tr::tr("Error running %1 script for product '%2': %3")
                             .arg(scriptName, m_product->fullDisplayName(),
                                  engine()->lastErrorString(res)),
-                            engine()->lastErrorLocation(res, setupScript->location));
+                            engine()->lastErrorLocation(res, setupScript.location()));
         }
     }
 
@@ -213,10 +214,11 @@ ScriptEngine *EnvironmentScriptRunner::engine() const
     return m_evalContext->engine();
 }
 
-const ScriptFunction *EnvironmentScriptRunner::getScript(const ResolvedModule *module) const
+const PrivateScriptFunction &EnvironmentScriptRunner::getScript(const ResolvedModule *module) const
 {
-    return (m_envType == BuildEnv
-            ? module->setupBuildEnvironmentScript : module->setupRunEnvironmentScript).get();
+    return m_envType == BuildEnv
+            ? module->setupBuildEnvironmentScript
+            : module->setupRunEnvironmentScript;
 }
 
 } // namespace Internal

@@ -160,6 +160,7 @@ private:
     QHash<FileTag, QList<ResolvedProductPtr> > m_productsByType;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
+    mutable QHash<CodeLocation, ScriptFunctionPtr> m_scriptFunctionMap;
     mutable QHash<std::pair<QStringRef, QStringList>, QString> m_scriptFunctions;
     mutable QHash<QStringRef, QString> m_sourceCode;
     const SetupProjectParameters &m_setupParams;

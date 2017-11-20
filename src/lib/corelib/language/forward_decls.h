@@ -115,6 +115,7 @@ typedef std::shared_ptr<const SourceArtifactInternal> SourceArtifactConstPtr;
 class ScriptFunction;
 typedef std::shared_ptr<ScriptFunction> ScriptFunctionPtr;
 typedef std::shared_ptr<const ScriptFunction> ScriptFunctionConstPtr;
+class PrivateScriptFunction;
 
 class RuleArtifact;
 typedef std::shared_ptr<RuleArtifact> RuleArtifactPtr;

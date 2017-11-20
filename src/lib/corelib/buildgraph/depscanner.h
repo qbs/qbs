@@ -109,7 +109,7 @@ private:
     bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
                                        const PropertyMapConstPtr &m2) const;
 
-    QStringList evaluate(Artifact *artifact, const ScriptFunctionPtr &script);
+    QStringList evaluate(Artifact *artifact, const PrivateScriptFunction &script);
 
     ResolvedScannerConstPtr m_scanner;
     ScriptEngine *m_engine;

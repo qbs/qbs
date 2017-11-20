@@ -285,7 +285,6 @@ public:
     QString sourceCode;
     CodeLocation location;
     ResolvedFileContextConstPtr fileContext;
-    mutable QScriptValue scriptFunction;    // cache
 
     bool isValid() const;
 
@@ -299,6 +298,33 @@ private:
 bool operator==(const ScriptFunction &a, const ScriptFunction &b);
 inline bool operator!=(const ScriptFunction &a, const ScriptFunction &b) { return !(a == b); }
 
+bool operator==(const PrivateScriptFunction &a, const PrivateScriptFunction &b);
+
+class PrivateScriptFunction
+{
+    friend bool operator==(const PrivateScriptFunction &a, const PrivateScriptFunction &b);
+public:
+    void initialize(const ScriptFunctionPtr &sharedData) { m_sharedData = sharedData; }
+    mutable QScriptValue scriptFunction; // not stored
+
+    void load(PersistentPool &pool) { pool.load(m_sharedData); }
+    void store(PersistentPool &pool) const { pool.store(m_sharedData); }
+
+    QString &sourceCode() const { return m_sharedData->sourceCode; }
+    CodeLocation &location()  const { return m_sharedData->location; }
+    ResolvedFileContextConstPtr &fileContext() const { return m_sharedData->fileContext; }
+    bool isValid() const { return m_sharedData->isValid(); }
+
+private:
+    ScriptFunctionPtr m_sharedData;
+};
+
+bool operator==(const PrivateScriptFunction &a, const PrivateScriptFunction &b);
+inline bool operator!=(const PrivateScriptFunction &a, const PrivateScriptFunction &b)
+{
+    return !(a == b);
+}
+
 class ResolvedModule : public PersistentObject
 {
 public:
@@ -306,8 +332,8 @@ public:
 
     QString name;
     QStringList moduleDependencies;
-    ScriptFunctionPtr setupBuildEnvironmentScript;
-    ScriptFunctionPtr setupRunEnvironmentScript;
+    PrivateScriptFunction setupBuildEnvironmentScript;
+    PrivateScriptFunction setupRunEnvironmentScript;
     ResolvedProduct *product = nullptr;
     bool isProduct;
 
@@ -341,9 +367,9 @@ public:
     ResolvedProduct *product = nullptr;         // The owning product.
     ResolvedModuleConstPtr module;
     QString name;
-    ScriptFunctionPtr prepareScript;
+    PrivateScriptFunction prepareScript;
     FileTags outputFileTags;                    // unused, if artifacts is non-empty
-    ScriptFunctionPtr outputArtifactsScript;    // unused, if artifacts is non-empty
+    PrivateScriptFunction outputArtifactsScript;    // unused, if artifacts is non-empty
     FileTags inputs;
     FileTags auxiliaryInputs;
     FileTags excludedAuxiliaryInputs;
@@ -384,8 +410,8 @@ public:
     ResolvedModuleConstPtr module;
     FileTags inputs;
     bool recursive;
-    ScriptFunctionPtr searchPathsScript;
-    ScriptFunctionPtr scanScript;
+    PrivateScriptFunction searchPathsScript;
+    PrivateScriptFunction scanScript;
 
 private:
     ResolvedScanner() :

@@ -518,10 +518,10 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
     module->name = moduleName.toString();
     module->isProduct = isProduct;
     module->product = m_productContext->product.get();
-    module->setupBuildEnvironmentScript = scriptFunctionValue(item,
-                                                            QLatin1String("setupBuildEnvironment"));
-    module->setupRunEnvironmentScript = scriptFunctionValue(item,
-                                                            QLatin1String("setupRunEnvironment"));
+    module->setupBuildEnvironmentScript.initialize(
+                scriptFunctionValue(item, QLatin1String("setupBuildEnvironment")));
+    module->setupRunEnvironmentScript.initialize(
+                scriptFunctionValue(item, QLatin1String("setupRunEnvironment")));
 
     for (const Item::Module &m : item->modules()) {
         if (m_evaluator->boolValue(m.item, QLatin1String("present")))
@@ -840,9 +840,10 @@ QString ProjectResolver::sourceCodeForEvaluation(const JSSourceValueConstPtr &va
 
 ScriptFunctionPtr ProjectResolver::scriptFunctionValue(Item *item, const QString &name) const
 {
-    ScriptFunctionPtr script = ScriptFunction::create();
     JSSourceValuePtr value = item->sourceProperty(name);
-    if (value) {
+    ScriptFunctionPtr &script = m_scriptFunctionMap[value ? value->location() : CodeLocation()];
+    if (!script.get()) {
+        script = ScriptFunction::create();
         const PropertyDeclaration decl = item->propertyDeclaration(name);
         script->sourceCode = sourceCodeAsFunction(value, decl);
         script->location = value->location();
@@ -880,9 +881,10 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     }
 
     rule->name = m_evaluator->stringValue(item, QLatin1String("name"));
-    rule->prepareScript = scriptFunctionValue(item, QLatin1String("prepare"));
-    rule->outputArtifactsScript = scriptFunctionValue(item, QLatin1String("outputArtifacts"));
-    if (rule->outputArtifactsScript->isValid()) {
+    rule->prepareScript.initialize(scriptFunctionValue(item, QLatin1String("prepare")));
+    rule->outputArtifactsScript.initialize(scriptFunctionValue(item,
+                                                               QLatin1String("outputArtifacts")));
+    if (rule->outputArtifactsScript.isValid()) {
         if (hasArtifactChildren)
             throw ErrorInfo(Tr::tr("The Rule.outputArtifacts script is not allowed in rules "
                                    "that contain Artifact items."),
@@ -1024,8 +1026,8 @@ void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext
     scanner->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
     scanner->inputs = m_evaluator->fileTagsValue(item, QLatin1String("inputs"));
     scanner->recursive = m_evaluator->boolValue(item, QLatin1String("recursive"));
-    scanner->searchPathsScript = scriptFunctionValue(item, QLatin1String("searchPaths"));
-    scanner->scanScript = scriptFunctionValue(item, QLatin1String("scan"));
+    scanner->searchPathsScript.initialize(scriptFunctionValue(item, QLatin1String("searchPaths")));
+    scanner->scanScript.initialize(scriptFunctionValue(item, QLatin1String("scan")));
     m_productContext->product->scanners.push_back(scanner);
 }
 

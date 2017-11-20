@@ -661,7 +661,7 @@ void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &proje
         for (const GroupPtr &group : qAsConst(product->groups))
             updateLocationIfNecessary(group->location, changeLocation, lineOffset);
         for (const RulePtr &rule : qAsConst(product->rules)) {
-            updateLocationIfNecessary(rule->prepareScript->location, changeLocation, lineOffset);
+            updateLocationIfNecessary(rule->prepareScript.location(), changeLocation, lineOffset);
             for (const RuleArtifactPtr &artifact : qAsConst(rule->artifacts)) {
                 for (auto &binding : artifact->bindings) {
                     updateLocationIfNecessary(binding.location, changeLocation, lineOffset);
@@ -669,13 +669,14 @@ void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &proje
             }
         }
         for (const ResolvedScannerConstPtr &scanner : qAsConst(product->scanners)) {
-            updateLocationIfNecessary(scanner->searchPathsScript->location, changeLocation, lineOffset);
-            updateLocationIfNecessary(scanner->scanScript->location, changeLocation, lineOffset);
+            updateLocationIfNecessary(scanner->searchPathsScript.location(), changeLocation,
+                                      lineOffset);
+            updateLocationIfNecessary(scanner->scanScript.location(), changeLocation, lineOffset);
         }
         for (const ResolvedModuleConstPtr &module : qAsConst(product->modules)) {
-            updateLocationIfNecessary(module->setupBuildEnvironmentScript->location,
+            updateLocationIfNecessary(module->setupBuildEnvironmentScript.location(),
                                       changeLocation, lineOffset);
-            updateLocationIfNecessary(module->setupRunEnvironmentScript->location,
+            updateLocationIfNecessary(module->setupRunEnvironmentScript.location(),
                                       changeLocation, lineOffset);
         }
     }

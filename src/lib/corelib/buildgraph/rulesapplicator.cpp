@@ -101,7 +101,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
     QScriptValue prepareScriptContext = engine()->newObject();
     prepareScriptContext.setPrototype(engine()->globalObject());
     PrepareScriptObserver observer(engine(), UnobserveMode::Enabled);
-    setupScriptEngineForFile(engine(), m_rule->prepareScript->fileContext, scope(),
+    setupScriptEngineForFile(engine(), m_rule->prepareScript.fileContext(), scope(),
                              ObserveMode::Enabled);
     setupScriptEngineForProduct(engine(), m_product.get(), m_rule->module.get(),
                                 prepareScriptContext, &observer, true);
@@ -252,7 +252,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             ScriptEngine::argumentList(Rule::argumentNamesForPrepare(), prepareScriptContext));
     if (Q_UNLIKELY(m_transformer->commands.empty()))
         throw ErrorInfo(Tr::tr("There is a rule without commands: %1.")
-                        .arg(m_rule->toString()), m_rule->prepareScript->location);
+                        .arg(m_rule->toString()), m_rule->prepareScript.location());
 }
 
 ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const
@@ -324,15 +324,15 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
                     .join(QLatin1String(", ")) + QLatin1Char(']');
 
             e += QString::fromLatin1("  while trying to apply:   %1:%2:%3  %4\n")
-                .arg(m_rule->prepareScript->location.filePath())
-                .arg(m_rule->prepareScript->location.line())
-                .arg(m_rule->prepareScript->location.column())
+                .arg(m_rule->prepareScript.location().filePath())
+                .arg(m_rule->prepareScript.location().line())
+                .arg(m_rule->prepareScript.location().column())
                 .arg(str);
 
             e += QString::fromLatin1("  was already defined in:  %1:%2:%3  %4\n")
-                .arg(transformer->rule->prepareScript->location.filePath())
-                .arg(transformer->rule->prepareScript->location.line())
-                .arg(transformer->rule->prepareScript->location.column())
+                .arg(transformer->rule->prepareScript.location().filePath())
+                .arg(transformer->rule->prepareScript.location().line())
+                .arg(transformer->rule->prepareScript.location().column())
                 .arg(str);
 
             throw ErrorInfo(e);
@@ -341,7 +341,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
             QBS_CHECK(inputArtifacts.size() == 1);
             QBS_CHECK(transformer->inputs.size() == 1);
             ErrorInfo error(Tr::tr("Conflicting instances of rule '%1':").arg(m_rule->toString()),
-                            m_rule->prepareScript->location);
+                            m_rule->prepareScript.location());
             error.append(Tr::tr("Output artifact '%1' is to be produced from input "
                                 "artifacts '%2' and '%3', but the rule is not a multiplex rule.")
                          .arg(outputArtifact->filePath(),
@@ -403,19 +403,19 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
         const QScriptValueList &args)
 {
     QList<Artifact *> lst;
-    QScriptValue fun = engine()->evaluate(m_rule->outputArtifactsScript->sourceCode,
-                                          m_rule->outputArtifactsScript->location.filePath(),
-                                          m_rule->outputArtifactsScript->location.line());
+    QScriptValue fun = engine()->evaluate(m_rule->outputArtifactsScript.sourceCode(),
+                                          m_rule->outputArtifactsScript.location().filePath(),
+                                          m_rule->outputArtifactsScript.location().line());
     if (!fun.isFunction())
         throw ErrorInfo(QLatin1String("Function expected."),
-                        m_rule->outputArtifactsScript->location);
+                        m_rule->outputArtifactsScript.location());
     QScriptValue res = fun.call(QScriptValue(), args);
     engine()->releaseResourcesOfScriptObjects();
     if (engine()->hasErrorOrException(res))
-        throw engine()->lastError(res, m_rule->outputArtifactsScript->location);
+        throw engine()->lastError(res, m_rule->outputArtifactsScript.location());
     if (!res.isArray())
         throw ErrorInfo(Tr::tr("Rule.outputArtifacts must return an array of objects."),
-                        m_rule->outputArtifactsScript->location);
+                        m_rule->outputArtifactsScript.location());
     const quint32 c = res.property(QLatin1String("length")).toUInt32();
     for (quint32 i = 0; i < c; ++i) {
         try {
@@ -423,7 +423,7 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
         } catch (const RuleOutputArtifactsException &roae) {
             ErrorInfo ei = roae;
             ei.prepend(Tr::tr("Error in Rule.outputArtifacts[%1]").arg(i),
-                       m_rule->outputArtifactsScript->location);
+                       m_rule->outputArtifactsScript.location());
             throw ei;
         }
     }
@@ -502,7 +502,7 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValu
 {
     if (!obj.isObject()) {
         throw ErrorInfo(Tr::tr("Elements of the Rule.outputArtifacts array must be "
-                               "of Object type."), m_rule->outputArtifactsScript->location);
+                               "of Object type."), m_rule->outputArtifactsScript.location());
     }
     const QString unresolvedFilePath
             = obj.property(QLatin1String("filePath")).toVariant().toString();

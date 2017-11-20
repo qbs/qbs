@@ -225,38 +225,40 @@ static AbstractCommandPtr createCommandFromScriptValue(const QScriptValue &scrip
     return cmdBase;
 }
 
-void Transformer::createCommands(ScriptEngine *engine, const ScriptFunctionConstPtr &script,
+void Transformer::createCommands(ScriptEngine *engine, const PrivateScriptFunction &script,
                                  const QScriptValueList &args)
 {
-    if (!script->scriptFunction.isValid() || script->scriptFunction.engine() != engine) {
-        script->scriptFunction = engine->evaluate(script->sourceCode,
-                                                  script->location.filePath(),
-                                                  script->location.line());
-        if (Q_UNLIKELY(!script->scriptFunction.isFunction()))
-            throw ErrorInfo(Tr::tr("Invalid prepare script."), script->location);
+    if (!script.scriptFunction.isValid() || script.scriptFunction.engine() != engine) {
+        script.scriptFunction = engine->evaluate(script.sourceCode(),
+                                                  script.location().filePath(),
+                                                  script.location().line());
+        if (Q_UNLIKELY(!script.scriptFunction.isFunction()))
+            throw ErrorInfo(Tr::tr("Invalid prepare script."), script.location());
     }
 
-    QScriptValue scriptValue = script->scriptFunction.call(QScriptValue(), args);
+    QScriptValue scriptValue = script.scriptFunction.call(QScriptValue(), args);
     engine->releaseResourcesOfScriptObjects();
     propertiesRequestedInPrepareScript = engine->propertiesRequestedInScript();
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
     importedFilesUsedInPrepareScript = engine->importedFilesUsedInScript();
     engine->clearRequestedProperties();
     if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue)))
-        throw engine->lastError(scriptValue, script->location);
+        throw engine->lastError(scriptValue, script.location());
     commands.clear();
     if (scriptValue.isArray()) {
         const int count = scriptValue.property(QLatin1String("length")).toInt32();
         for (qint32 i = 0; i < count; ++i) {
             QScriptValue item = scriptValue.property(i);
             if (item.isValid() && !item.isUndefined()) {
-                const AbstractCommandPtr cmd = createCommandFromScriptValue(item, script->location);
+                const AbstractCommandPtr cmd
+                        = createCommandFromScriptValue(item, script.location());
                 if (cmd)
                     commands.push_back(cmd);
             }
         }
     } else {
-        const AbstractCommandPtr cmd = createCommandFromScriptValue(scriptValue, script->location);
+        const AbstractCommandPtr cmd = createCommandFromScriptValue(scriptValue,
+                                                                    script.location());
         if (cmd)
             commands.push_back(cmd);
     }

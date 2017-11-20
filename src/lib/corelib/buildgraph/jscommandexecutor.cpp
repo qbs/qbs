@@ -114,7 +114,8 @@ private:
         QScriptValue scope = scriptEngine->newObject();
         scope.setPrototype(scriptEngine->globalObject());
         PrepareScriptObserver observer(scriptEngine, UnobserveMode::Enabled);
-        setupScriptEngineForFile(scriptEngine, transformer->rule->prepareScript->fileContext, scope,
+        setupScriptEngineForFile(scriptEngine,
+                                 transformer->rule->prepareScript.fileContext(), scope,
                                  ObserveMode::Enabled);
 
         QScriptValue importScopeForSourceCode;

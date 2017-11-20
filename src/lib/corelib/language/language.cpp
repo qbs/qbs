@@ -386,8 +386,8 @@ bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
     return m1.name == m2.name
             && m1.isProduct == m2.isProduct
             && m1.moduleDependencies.toSet() == m2.moduleDependencies.toSet()
-            && equals(m1.setupBuildEnvironmentScript.get(), m2.setupBuildEnvironmentScript.get())
-            && equals(m1.setupRunEnvironmentScript.get(), m2.setupRunEnvironmentScript.get());
+            && m1.setupBuildEnvironmentScript == m2.setupBuildEnvironmentScript
+            && m1.setupRunEnvironmentScript == m2.setupRunEnvironmentScript;
 }
 
 RulePtr Rule::clone() const
@@ -447,7 +447,7 @@ FileTags Rule::collectedOutputFileTags() const
 
 bool Rule::isDynamic() const
 {
-    return outputArtifactsScript->isValid();
+    return outputArtifactsScript.isValid();
 }
 
 bool Rule::declaresInputs() const
@@ -1101,9 +1101,9 @@ template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
 
 QString keyFromElem(const SourceArtifactPtr &sa) { return sa->absoluteFilePath; }
 QString keyFromElem(const RulePtr &r) {
-    QString key = r->toString() + r->prepareScript->sourceCode;
-    if (r->outputArtifactsScript)
-        key += r->outputArtifactsScript->sourceCode;
+    QString key = r->toString() + r->prepareScript.sourceCode();
+    if (r->outputArtifactsScript.isValid())
+        key += r->outputArtifactsScript.sourceCode();
     for (const auto &a : qAsConst(r->artifacts)) {
         key += a->filePath;
     }
@@ -1142,8 +1142,8 @@ bool operator==(const Rule &r1, const Rule &r2)
     }
 
     return r1.module->name == r2.module->name
-            && equals(r1.prepareScript.get(), r2.prepareScript.get())
-            && equals(r1.outputArtifactsScript.get(), r2.outputArtifactsScript.get())
+            && r1.prepareScript == r2.prepareScript
+            && r1.outputArtifactsScript == r2.outputArtifactsScript
             && r1.inputs == r2.inputs
             && r1.outputFileTags == r2.outputFileTags
             && r1.auxiliaryInputs == r2.auxiliaryInputs
@@ -1206,6 +1206,11 @@ void ResolvedScanner::store(PersistentPool &pool) const
 QString multiplexIdToString(const QString &id)
 {
     return QString::fromUtf8(QByteArray::fromBase64(id.toUtf8()));
+}
+
+bool operator==(const PrivateScriptFunction &a, const PrivateScriptFunction &b)
+{
+    return equals(a.m_sharedData.get(), b.m_sharedData.get());
 }
 
 } // namespace Internal

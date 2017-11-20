@@ -82,7 +82,7 @@ public:
     void setupInputs(QScriptValue targetScriptValue);
     void setupOutputs(QScriptValue targetScriptValue);
     void setupExplicitlyDependsOn(QScriptValue targetScriptValue);
-    void createCommands(ScriptEngine *engine, const ScriptFunctionConstPtr &script,
+    void createCommands(ScriptEngine *engine, const PrivateScriptFunction &script,
                         const QScriptValueList &args);
     void rescueChangeTrackingData(const TransformerConstPtr &other);
 

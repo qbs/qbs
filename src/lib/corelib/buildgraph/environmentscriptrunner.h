@@ -62,7 +62,7 @@ public:
 private:
     void setupEnvironment();
     ScriptEngine *engine() const;
-    const ScriptFunction *getScript(const ResolvedModule *module) const;
+    const PrivateScriptFunction &getScript(const ResolvedModule *module) const;
 
     ResolvedProduct * const m_product;
     RulesEvaluationContext * const m_evalContext;
