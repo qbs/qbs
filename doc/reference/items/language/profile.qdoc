@@ -47,7 +47,7 @@
         // ...
         Profile {
             name: "my-special-profile"
-            qbs.toolchain: ["gcc"]
+            qbs.toolchainType: "gcc"
             qbs.targetPlatform: "linux"
             qbs.architecture: "armv7a"
             cpp.toolchainInstallPath: "/opt/special-gcc/bin"

@@ -126,12 +126,22 @@
             This is typically set in a profile.
             Commonly used values are: \c{"x86"}, \c{"x86_64"} and \c{"arm"}.
     \row
-        \li toolchain
-        \li \c{stringList}
-        \li 1.0
-        \li \c{undefined}
-        \li Specifies the attributes of the toolchain that is going to be used for this build.
-            Typical values include: \c{"gcc"}, \c{"llvm"}, \c{"clang"}, \c{"mingw"}, \c{"msvc"}
+        \li toolchainType
+        \li \c{string}
+        \li 1.11
+        \li determined automatically
+        \li Specifies the toolchain that is going to be used for this build.
+            You should generally treat this property as \e{write-only}
+            and avoid using it to test for the current toolchain. Instead, use the
+            \c toolchain property for conditionals. For example, instead of:
+            \c{(qbs.toolchainType === "xcode" || qbs.toolchainType === "clang" ||
+                qbs.toolchainType === "gcc")},
+            use \c{qbs.toolchain.contains("gcc")}. However, there are some cases when using
+            toolchainType would be acceptable, such as when the resulting condition would be
+            simpler while still being correct: \c{(qbs.toolchainType === "gcc")} versus
+            \c{(qbs.toolchain.contains("gcc") && !qbs.toolchain.contains("clang"))}.
+            Typical values include:
+            \c{"gcc"}, \c{"clang"}, \c{"mingw"}, \c{"msvc"}, \c{"xcode"}
     \row
         \li sysroot
         \li \c{string}
@@ -245,6 +255,14 @@
             Do not use \c targetPlatform for this purpose. Possible values include one or more of:
             \c{"bsd"}, \c{"darwin"}, and \c{"unix"}, in
             addition to the possible values of \c targetPlatform.
+    \row
+        \li toolchain
+        \li \c{stringList}
+        \li 1.0
+        \li \c{undefined}
+        \li Specifies the attributes of the toolchain that is going to be used for this build.
+            Typical values include: \c{"llvm"} in addition to the possible values of
+            \c{toolchainType}.
     \row
         \li version
         \li \c{string} (read only)

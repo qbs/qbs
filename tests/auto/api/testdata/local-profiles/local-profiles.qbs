@@ -3,7 +3,7 @@ import qbs
 Project {
     property string windowsProfile: "windowsProfile"
     property bool enableProfiles
-    property stringList mingwToolchain: ["mingw", "gcc"]
+    property string mingwToolchain: "mingw"
     Profile {
         name: windowsProfile
         qbs.targetPlatform: "windows"
@@ -13,7 +13,7 @@ Project {
         name: "mingwProfile"
         condition: enableProfiles
         baseProfile: project.windowsProfile
-        qbs.toolchain: project.mingwToolchain
+        qbs.toolchainType: project.mingwToolchain
     }
 
     Application {
@@ -29,14 +29,14 @@ Project {
 
         Depends { name: "cpp"; required: false }
 
-        property stringList clangToolchain: ["clang", "llvm", "gcc"]
+        property string clangToolchain: "clang"
         property string clangProfileName: "clangProfile"
 
         Profile {
             name: product.clangProfileName
             condition: project.enableProfiles
             qbs.targetPlatform: "linux"
-            qbs.toolchain: product.clangToolchain
+            qbs.toolchainType: product.clangToolchain
         }
 
         multiplexByQbsProperties: ["profiles"]

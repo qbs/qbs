@@ -1590,7 +1590,7 @@ void TestApi::localProfiles()
     QFile projectFile(setupParams.projectFilePath());
     QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
     QByteArray content = projectFile.readAll();
-    content.replace("\"clang\", \"llvm\", ", QByteArray());
+    content.replace("\"clang\"", "\"gcc\"");
     projectFile.resize(0);
     projectFile.write(content);
     projectFile.close();

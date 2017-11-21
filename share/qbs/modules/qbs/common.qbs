@@ -84,20 +84,19 @@ Module {
     property string nullDevice: hostOS.contains("windows") ? "NUL" : "/dev/null"
     property path shellPath: hostOS.contains("windows") ? windowsShellPath : "/bin/sh"
     property string profile
-    property stringList toolchain: {
-        var tc;
+    property string toolchainType: {
         if (targetOS.contains("windows"))
-            tc = hostOS.contains("windows") ? "msvc" : "mingw";
-        else if (targetOS.contains("darwin"))
-            tc = hostOS.contains("macos") ? "xcode" : "clang";
-        else if (targetOS.contains("freebsd"))
-            tc = "clang";
-        else if (targetOS.contains("qnx"))
-            tc = "qcc";
-        else
-            tc = "gcc";
-        return Utilities.canonicalToolchain(tc);
+            return hostOS.contains("windows") ? "msvc" : "mingw";
+        if (targetOS.contains("darwin"))
+            return hostOS.contains("macos") ? "xcode" : "clang";
+        if (targetOS.contains("freebsd"))
+            return "clang";
+        if (targetOS.contains("qnx"))
+            return "qcc";
+        if (targetOS.containsAny(["haiku", "vxworks", "unix"]))
+            return "gcc";
     }
+    readonly property stringList toolchain: Utilities.canonicalToolchain(toolchainType)
     property string architecture
     property bool install: false
     property path installSourceBase
