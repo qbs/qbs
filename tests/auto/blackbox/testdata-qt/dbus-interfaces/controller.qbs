@@ -5,6 +5,7 @@ CppApplication {
     condition: Qt.dbus.present
     Depends { name: "Qt.dbus"; required: false }
     Depends { name: "Qt.widgets" }
+    cpp.cxxLanguageVersion: "c++11"
     files: [
         "controller.cpp",
         "controller.h",
