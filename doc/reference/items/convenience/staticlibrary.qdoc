@@ -26,18 +26,19 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \page staticlibrary-item.html
-    \previouspage qtguiapplication-item.html
-    \nextpage xpcservice-item.html
-    \ingroup list-of-convenience-items
+    \previouspage QtGuiApplication
+    \nextpage XPCService
+    \qmltype StaticLibrary
+    \inherits Product
+    \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.StaticLibrary
 
-    \title StaticLibrary Item
-    \brief Represents a product that is a static library.
+    \brief Static library.
 
-    A \c StaticLibrary item is a convenience item that is normally entirely equivalent to
-    the following:
+    A StaticLibrary item is a \l{Product}{product} of the \l{Product::}{type}
+    \c "staticlibrary" that is normally entirely equivalent to the following:
+
     \code
     Product {
         type: "staticlibrary"
@@ -48,8 +49,9 @@
     \list
         \li There is a dependency on the \l{Module cpp}{cpp} and \l{Module Android.ndk}{Android.ndk}
             modules.
-        \li There is an additional list property "architectures" that specifies for which
-            architectures to build, with the default value \c{["armeabi"]}.
+        \li There is an additional list property \c{"architectures"} that
+            specifies for which architectures to build, with the default value
+            \c{["armeabi"]}.
             This information influences the \c profiles property.
     \endlist
 

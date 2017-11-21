@@ -57,9 +57,8 @@
     \section3 console
 
     Set the \l{Product::consoleApplication}{product.consoleApplication} property
-    to \c true for the
-    \l{Application Item}{Application}, \l{CppApplication Item}{CppApplication},
-    or \l{QtApplication Item}{QtApplication} item. For example:
+    to \c true for the \l{Application}, \l{CppApplication},or \l{QtApplication}
+    item. For example:
 
     \code
     Application {
@@ -381,9 +380,8 @@
 
     \section2 QML_IMPORT_PATH
 
-    Used only for Qt Creator QML syntax highlighting. Inside a \l{Product}
-    {Product}, \l{Application Item}{Application}, \l{CppApplication Item}
-    {CppApplication}, or \l{QtApplication Item}{QtApplication}, create a
+    Used only for Qt Creator QML syntax highlighting. Inside a \l{Product},
+    \l{Application}, \l{CppApplication}, or \l{QtApplication}, create a
     \c qmlImportPaths property:
 
     \code
@@ -441,8 +439,7 @@
 
     \section3 app
 
-    Use \l{Application Item}{Application} or \l{CppApplication Item}
-    {CppApplication} as the \l{Product}{product}:
+    Use \l{Application} or \l{CppApplication} as the \l{Product}{product}:
 
     \code
     CppApplication {
@@ -464,10 +461,9 @@
 
     \section3 lib
 
-    Use either \l{DynamicLibrary Item}{DynamicLibrary} or \l{StaticLibrary Item}
-    {StaticLibrary} as the \l{Product}{product}, depending on whether the
-    value of \c CONFIG in the .pro file is \c shared or \c static. For example,
-    if the value is \c shared:
+    Use either \l{DynamicLibrary} or \l{StaticLibrary} as the \l{Product}
+    {product}, depending on whether the value of \c CONFIG in the .pro file is
+    \c shared or \c static. For example, if the value is \c shared:
 
     \code
     DynamicLibrary {

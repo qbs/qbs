@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,30 +26,25 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \page javajarfile-item.html
-    \previouspage javaclasscollection-item.html
-    \nextpage loadablemodule-item.html
-    \ingroup list-of-convenience-items
+    \previouspage JavaClassCollection
+    \nextpage LoadableModule
+    \qmltype JavaJarFile
+    \inherits Product
+    \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.JavaJarFile
 
-    \title JavaJarFile Item
-    \brief Represents a collection of Java class files bundled in a jar file.
+    \brief Collection of Java class files bundled in a jar file.
 
-    A \c JavaJarCollection item is product of type \c{java.jar}. It is used to produce a jar
-    archive from a set of Java sources.
+    A JavaJarFile item is a \l{Product}{product} of the \l{Product::}{type}
+    \c{java.jar}. It is used to produce a jar archive from a set of Java
+    sources.
+*/
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li entryPoint
-        \li string
-        \li undefined
-        \li The entry point for an executable jar file.
-    \endtable
+/*!
+    \qmlproperty string JavaJarFile::entryPoint
 
+    The entry point for an executable jar file.
+
+    \nodefaultvalue
 */

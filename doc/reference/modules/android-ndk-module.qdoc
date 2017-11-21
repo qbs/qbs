@@ -35,11 +35,10 @@
     \brief Provides support for building native Android libraries.
 
     The \c Android.ndk module contains the properties and rules to create native libraries
-    for use in \l{AndroidApk Item}{Android application packages}.
+    for use in \l{AndroidApk}{Android application packages}.
 
     Normally, you will not use this module directly, but instead work
-    with the \l{DynamicLibrary Item}{DynamicLibrary} and \l{StaticLibrary Item}{StaticLibrary}
-    items that \QBS provides.
+    with the \l{DynamicLibrary} and \l{StaticLibrary} items that \QBS provides.
     Here is what the project file for the "hello-jni" example that comes with the NDK could look
     like:
     \code
@@ -110,7 +109,7 @@
         \li 1.4.0
         \li This tag is attached to dynamic libraries that will end up in APK packages.
             You do not normally need to use the tag explicitly, as it is the default type of the
-            \l {DynamicLibrary Item}{DynamicLibrary} item for Android targets.
+            \l{DynamicLibrary} item for Android targets.
     \endtable
 
 */

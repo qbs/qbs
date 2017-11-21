@@ -26,25 +26,28 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \page appleapplicationdiskimage-item.html
-    \previouspage applediskimage-item.html
-    \nextpage application-item.html
-    \ingroup list-of-convenience-items
+    \previouspage AndroidApk
+    \nextpage AppleDiskImage
+    \qmltype AppleApplicationDiskImage
+    \since Qbs 1.9
+    \inherits AppleDiskImage
+    \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.AppleApplicationDiskImage
 
-    \title AppleApplicationDiskImage Item
-    \brief Represents a product that is an Apple application drag 'n' drop disk image installer.
+    \brief Apple application drag 'n' drop disk image installer.
 
-    An \c AppleApplicationDiskImage item is a convenience item that has a dependency on the
-    \l{Module dmg}{DMG module} and whose type is \c{["dmg.dmg"]}, and also has rules and properties
-    specific to building drag 'n' drop disk image installers with an application bundle and symbolic
-    link to the /Applications directory.
+    An AppleApplicationDiskImage item is a \l{Product}{product} of the
+    \l{Product::}{type} \c{"dmg.dmg"} that has a dependency on the
+    \l{Module dmg}{dmg module}. In addition, it has rules and properties
+    specific to building drag 'n' drop disk image installers with an application
+    bundle and symbolic link to the \c /Applications directory.
 
-    Any artifacts of product dependencies which are tagged \c{"installable"} will be copied into the
-    disk image, provided their file paths are relative to the path specified by the \c{sourceBase}
-    property (i.e. are located in that directory). Any artifacts tagged \c{"installable"} and which
-    are not relative to \c{sourceBase} will be ignored.
+    Any artifacts of product dependencies that are tagged \c{"installable"} will
+    be copied into the disk image, provided their file paths are relative to the
+    path specified by the \l{sourceBase} property (that is, are located in that
+    directory). Any artifacts tagged \c{"installable"} that are not relative to
+    \c{sourceBase} will be ignored.
 
     Here is what the project file could look like for a simple DMG installer:
     \code
@@ -70,38 +73,30 @@
     \endcode
 
     For plain disk images whose contents are not a single application bundle, consider the base
-    \l{AppleDiskImage Item}{AppleDiskImage} item instead.
+    \l{AppleDiskImage} item instead.
+*/
 
-    \section1 AppleApplicationDiskImage Properties
-    The following properties are available in addition to the ones inherited from \c AppleDiskImage.
+/*!
+    \qmlproperty string AppleApplicationDiskImage::sourceBase
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li sourceBase
-        \li \c{string}
-        \li 1.9
-        \li /Applications
-        \li The base directory from which artifacts installed into the disk image will be copied.
-            This directory is always considered to be relative to \c{qbs.installRoot}.
-            For example, if the application Example.app exists at
-            \c{qbs.installRoot}/Applications/Example.app, and \c{sourceBase} is
-            \c{/Applications}, the application will be located at /Example.app
-            relative to the disk image root, and therefore its full path when the disk image is
-            mounted would be something like /Volumes/Example-1.0/Example.app.
-    \row
-        \li symlinks
-        \li \c{stringList}
-        \li 1.9
-        \li \c{["/Applications:Applications"]}
-        \li List of symlinks to create in the disk image. This is specified as a list of strings,
-            each string containing two file paths separated by a colon. The first path is the
-            symlink target, and the second path is the name of the symlink relative to the root of
-            the disk image.
-    \endtable
+    The base directory from which artifacts installed into the disk image will be copied.
+    This directory is always considered to be relative to \c{qbs.installRoot}.
+    For example, if the application Example.app exists at
+    \c{qbs.installRoot/Applications/Example.app}, and the value of this property
+    is \c{"/Applications"}, the application will be located at\c{/Example.app}
+    relative to the disk image root. Therefore, its full path when the disk
+    image is mounted would be something like \c{/Volumes/Example-1.0/Example.app}.
+
+    \defaultvalue \c{"/Applications"}
+*/
+
+/*!
+    \qmlproperty stringList AppleApplicationDiskImage::symlinks
+
+    List of symlinks to create in the disk image. This is specified as a list of strings,
+    each string containing two file paths separated by a colon. The first path is the
+    symlink target, and the second path is the name of the symlink relative to the root of
+    the disk image.
+
+    \defaultvalue \c{["/Applications:Applications"]}
 */

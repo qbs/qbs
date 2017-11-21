@@ -211,7 +211,7 @@
     example above, the dependency on the \l{Module cpp}{cpp module} determines
     that the C++ sources are compiled and linked into a binary.
 
-    Alternatively, you could use the \l{CppApplication Item}{CppApplication}
+    Alternatively, you could use the \l{CppApplication}
     convenience item that implies a dependency on the \c cpp module:
 
     \code

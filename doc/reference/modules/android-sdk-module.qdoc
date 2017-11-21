@@ -38,7 +38,7 @@
     packages from Java sources, resources and so on.
 
     Normally, you will not use this module directly, but instead work
-    with the \l{AndroidApk Item}{AndroidApk item} that \QBS provides.
+    with the \l{AndroidApk} item that \QBS provides.
 
     \section1 Android.sdk Properties
 
@@ -115,14 +115,14 @@
         \li -
         \li 1.4.0
         \li This tag is used for Android assets, which are typically located in an \c{assets/}
-            subdirectory. Using the \l {AndroidApk Item}{AndroidApk} item takes care of tagging
+            subdirectory. Using the \l{AndroidApk} item takes care of tagging
             these files for you.
     \row
         \li \c{"android.apk"}
         \li n/a
         \li 1.4.0
         \li This tag is attached to the output artifact of the rule that creates an APK package.
-            It is the default type of the \l {AndroidApk Item}{AndroidApk} item.
+            It is the default type of the \l{AndroidApk} item.
     \row
         \li \c{"android.manifest"}
         \li \c{AndroidManifest.xml}
@@ -134,7 +134,7 @@
         \li -
         \li 1.4.0
         \li This tag is used for Android resources, which are typically located in a \c{res/}
-            subdirectory. Using the \l {AndroidApk Item}{AndroidApk} item takes care of tagging
+            subdirectory. Using the \l{AndroidApk} item takes care of tagging
             these files for you.
     \endtable
 */

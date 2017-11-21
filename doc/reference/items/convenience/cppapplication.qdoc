@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,17 +26,19 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \page cppapplication-item.html
-    \previouspage autotestrunner-item.html
-    \nextpage dynamiclibrary-item.html
-    \ingroup list-of-convenience-items
+    \previouspage AutotestRunner
+    \nextpage DynamicLibrary
+    \qmltype CppApplication
+    \inherits Product
+    \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.CppApplication
 
-    \title CppApplication Item
-    \brief Represents a product of application type with a dependency to the cpp module.
+    \brief C++ application.
 
-    A \c CppApplication is a convenience item that is entirely equivalent to the following:
+    A CppApplication is a \l{Product}{product} that has a dependency on the
+    \l{Module cpp}{cpp} module. It is entirely equivalent to the following:
+
     \code
     Application {
         Depends { name: "cpp" } }

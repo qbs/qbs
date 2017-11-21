@@ -92,7 +92,7 @@
 
 /*!
     \contentspage reference.html
-    \group list-of-convenience-items
+    \qmlmodule QbsConvenienceItems
     \title List of Convenience Items
 
     \QBS provides the following QML items for convenience.

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,19 +26,22 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \page application-item.html
-    \previouspage appleapplicationdiskimage-item.html
-    \nextpage applicationextension-item.html
-    \ingroup list-of-convenience-items
+    \previouspage AppleApplicationDiskImage
+    \nextpage ApplicationExtension
+    \qmltype Application
+    \inherits Product
+    \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.Application
 
-    \title Application Item
-    \brief Represents a product of application type.
+    \brief Product of the type application.
 
-    An \c Application item is a \c Product that has its type set to "application"
+    An Application item is a \l{Product} of the \l{Product::}{type}
+    \c "application".
+
     It exists for the convenience of project file authors.
 
-    \note On Android, an \c Application item instead builds a shared library for
-    products whose \c consoleApplication property is set to \c false.
+    \note On Android, an Application item instead builds a shared library for
+    products whose \l{Product::}{consoleApplication} property is set to
+    \c false.
 */

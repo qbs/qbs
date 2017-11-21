@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,24 +26,26 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \page autotestrunner-item.html
-    \previouspage applicationextension-item.html
-    \nextpage cppapplication-item.html
-    \ingroup list-of-convenience-items
+    \previouspage ApplicationExtension
+    \nextpage CppApplication
+    \qmltype AutotestRunner
+    \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.AutotestRunner
 
-    \title AutotestRunner Item
-    \brief A product that runs all autotests in the project.
+    \brief Product that runs all autotests in the project.
 
-    An \c AutotestRunner has a dependency to all products with the type "autotest". "Building"
-    the \c AutotestRunner product will then run the respective executables. The \c builtByDefault
-    property of an \c AutotestRunner is set to \c false by default, so running the autotests
-    has to be explicitly requested. The default name of the product is "autotest-runner".
-    To use this feature, do the following:
-    \list A
-        \li
-            Attach the "autotest" type to your autotests:
+    An AutotestRunner has a dependency on all \l{Product}{products} with the
+    \l{Product::}{type} \c "autotest". Building the AutotestRunner product
+    will then run the respective executables. The \l{Product::}{builtByDefault}
+    property is set to \c false by default, so running the autotests
+    has to be explicitly requested. The default name of the product is
+    \c "autotest-runner".
+
+    To use this feature:
+
+    \list 1
+        \li Attach the \c "autotest" type to your autotests:
             \code
             CppApplication {
                 name: "tst_mytest"
@@ -51,8 +53,8 @@
                 // ...
             }
             \endcode
-        \li
-            Instantiate exactly one \c AutotestRunner in your project, typically at the top level:
+        \li Instantiate exactly one AutotestRunner in your project, typically at
+            the top level:
             \code
             Project {
                 // ...
@@ -60,47 +62,46 @@
                 // ...
             }
             \endcode
-        \li
-            Trigger the autotest execution by "building" the product:
+        \li Trigger the autotest execution by building the product:
             \code
             qbs build -p autotest-runner
             \endcode
     \endlist
+*/
 
-    \section1 AutotestRunner Properties
+/*!
+    \qmlproperty stringList AutotestRunner::arguments
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li arguments
-        \li stringList
-        \li empty
-        \li The list of arguments to invoke the autotest with.
-    \row
-        \li environment
-        \li stringList
-        \li set internally
-        \li A list of environment variables that are added to the run environment.
-            They are provided as a list of strings in the form "varName=value".
-            By default, DYLD_LIBRARY_PATH, DYLD_FRAMEWORK_PATH, and DYLD_ROOT_PATH
-            are set on macOS, or an empty list for other platforms.
-    \row
-        \li limitToSubProject
-        \li bool
-        \li \c true
-        \li By default, only those autotests are considered that are in the same sub-project that
-            the \c AutotestRunner was instantiated in. If you want to run all autotests regardless
-            of their location in the project hierarchy, set this property to \c false.
-    \row
-        \li wrapper
-        \li stringList
-        \li empty
-        \li Wrapper binary and its arguments for wrapping autotest calls.
-            This is useful for tools like Valgrind and alike.
-    \endtable
+    The list of arguments to invoke the autotest with.
 
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty stringList AutotestRunner::environment
+
+    A list of environment variables that are added to the run environment.
+    They are provided as a list of strings in the form \c "varName=value".
+
+    \defaultvalue DYLD_LIBRARY_PATH, DYLD_FRAMEWORK_PATH, and DYLD_ROOT_PATH
+    are set on macOS, or an empty list for other platforms.
+*/
+
+/*!
+    \qmlproperty bool AutotestRunner::limitToSubProject
+
+    By default, only those autotests are considered that are in the same sub-project that
+    AutotestRunner was instantiated in. If you want to run all autotests regardless
+    of their location in the project hierarchy, set this property to \c false.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty stringList AutotestRunner::wrapper
+
+    Wrapper binary and its arguments for wrapping autotest calls.
+    This is useful for tools like Valgrind and alike.
+
+    \defaultvalue empty
 */

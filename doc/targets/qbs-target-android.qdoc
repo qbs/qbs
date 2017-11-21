@@ -55,7 +55,7 @@
         \li Shared libraries containing native code.
     \endlist
 
-    You can use the \l{AndroidApk Item}{AndroidApk} item to build application
+    You can use the \l{AndroidApk} item to build application
     packages for Android. The properties of the AndroidApk item specify the
     locations of the APK source files.
 
@@ -63,12 +63,12 @@
     {Android.sdk} module, which contains the properties and rules to create
     Android application packages from source files.
 
-    You can use the \l{DynamicLibrary Item}{DynamicLibrary} item to build native
+    You can use the \l{DynamicLibrary} item to build native
     Android libraries that are bundled into the APK. The \c qbs.architectures
     property specifies the architectures to build for, with the default value
     \c armv7a.
 
-    The \l{DynamicLibrary Item}{DynamicLibrary} item has a dependency on the
+    The \l{DynamicLibrary} item has a dependency on the
     \l{Module Android.ndk}{Android.ndk} module, and contains the properties
     and rules to create native libraries.
 */

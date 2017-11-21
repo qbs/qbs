@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,46 +26,26 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \page dynamiclibrary-item.html
-    \previouspage cppapplication-item.html
-    \nextpage innosetup-item.html
-    \ingroup list-of-convenience-items
+    \previouspage CppApplication
+    \nextpage InnoSetup
+    \qmltype DynamicLibrary
+    \inherits Product
+    \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.DynamicLibrary
 
-    \title DynamicLibrary Item
-    \brief Represents a product that is a dynamic library.
 
-    A \c DynamicLibrary item is a \c Product that has its type set to "dynamiclibrary". It exists
-    for the convenience of project file authors.
+    \brief Dynamic library.
+
+    A DynamicLibrary item is a \l{Product} of the \l{Product::}{type}
+    \c "dynamiclibrary". It exists for the convenience of project file authors.
 
     For Android targets, the following applies:
     \list
-        \li The product type contains "android.nativelibrary" in addition to "dynamiclibrary".
+        \li The \l{Product::type}{product.type} property value contains
+            \c "android.nativelibrary" in addition to \c "dynamiclibrary".
         \li There is a dependency on the \l{Module cpp}{cpp} and \l{Module Android.ndk}{Android.ndk}
             modules.
     \endlist
-
-    \section1 DynamicLibrary Properties
-    The following properties are available in addition to the ones inherited from \c Product.
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li architectures
-        \li stringList
-        \li see below
-        \li This property is only relevant for Android targets. There, it specifies for which
-            architectures to build, with the default value \c{["armeabi"]}.
-            This information influences the \c profiles property.
-    \row
-        \li bundleExtension
-        \li string
-        \li empty
-        \li The extension to use for the product's bundle. Only relevant on Darwin systems.
-    \endtable
 */
+

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Copyright (C) 2015 Jake Petroules.
 ** Contact: https://www.qt.io/licensing/
 **
@@ -27,15 +27,15 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \page xpcservice-item.html
-    \previouspage staticlibrary-item.html
-    \ingroup list-of-convenience-items
+    \previouspage StaticLibrary
+    \qmltype XPCService
+    \inherits Application
+    \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.XPCService
 
-    \title XPCService Item
-    \brief Represents a product that is a macOS, iOS, tvOS, or watchOS XPC service.
+    \brief XPC service for macOS, iOS, tvOS, or watchOS.
 
-    An \c XPCService item is a convenience item based on \c Application that
+    An XPCService item is a convenience item based on \l Application that
     sets some properties required for macOS, iOS, tvOS, or watchOS XPC services.
 */

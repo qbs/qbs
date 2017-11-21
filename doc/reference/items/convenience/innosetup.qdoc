@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,16 +26,17 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \page innosetup-item.html
-    \previouspage dynamiclibrary-item.html
-    \nextpage installpackage-item.html
-    \ingroup list-of-convenience-items
+    \previouspage DynamicLibrary
+    \nextpage InstallPackage
+    \qmltype InnoSetup
+    \inherits Product
+    \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.InnoSetup
 
-    \title InnoSetup Item
-    \brief Represents a product that is an Inno Setup installer executable.
+    \brief Inno Setup installer executable.
 
-    A \c InnoSetup item is a convenience item that has a dependency on the
-    \l{Module innosetup}{Inno Setup module} and whose type is \c{["innosetup.exe"]}.
+    A InnoSetup item is a \l{Product}{product} of the \l{Product::}{type}
+    \c{"innosetup.exe"} that has a dependency on the \l{Module innosetup}
+    {Inno Setup module}.
 */

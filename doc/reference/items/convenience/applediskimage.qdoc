@@ -26,19 +26,19 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \page applediskimage-item.html
-    \previouspage androidapk-item.html
-    \nextpage appleapplicationdiskimage-item.html
-    \ingroup list-of-convenience-items
+    \previouspage AppleApplicationDiskImage
+    \nextpage Application
+    \qmltype AppleDiskImage
+    \inherits Product
+    \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.AppleDiskImage
 
-    \title AppleDiskImage Item
-    \brief Represents a product that is an Apple disk image.
+    \brief Apple disk image.
 
-    An \c AppleDiskImage item is a convenience item that has a dependency on the
-    \l{Module dmg}{DMG module} and whose type is \c{["dmg.dmg"]}.
+    An AppleDiskImage item is a is a \l{Product}{product} of the \l{Product::}
+    {type} \c{"dmg.dmg"} that has a dependency on the \l{Module dmg}{DMG module}.
 
-    For single-application drag 'n' drop disk image installers, you'll probably want to use the
-    \l{AppleApplicationDiskImage Item}{AppleApplicationDiskImage} item instead.
+    For single-application drag 'n' drop disk image installers, you will
+    probably want to use the \l{AppleApplicationDiskImage} item instead.
 */

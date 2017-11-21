@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,18 +26,21 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \page installpackage-item.html
-    \previouspage innosetup-item.html
-    \nextpage javaclasscollection-item.html
-    \ingroup list-of-convenience-items
+    \previouspage InnoSetup
+    \nextpage JavaClassCollection
+    \qmltype InstallPackage
+    \inherits Product
+    \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.InstallPackage
 
-    \title InstallPackage Item
-    \brief Represents an archive of an installed project.
+    \brief Archive of an installed project.
 
-    An \c InstallPackage item is a product of type \c{archiver.archive}. It is used to produce an
-    archive from a set of installable files via the \l{Module archiver}{archiver Module}.
+    An InstallPackage item is a \l{Product}{product} of the \l{Product::}{type}
+    \c{archiver.archive} that has a \l{Depends}{dependency} on the
+    \l{Module archiver}{archiver Module}. It is used to produce an archive from
+    a set of installable files.
+
     Consider the following example project:
 
     \code
@@ -77,12 +80,12 @@
     }
     \endcode
 
-    Building the product "tar-package" on a Unix system will result in a tar file with these
-    contents:
+    Building the product \c "tar-package" on a Unix system will result in a tar
+    file with these contents:
+
     \code
     include/mylib.h
     lib/libmylib.so
     bin/myapp
     \endcode
-
 */
