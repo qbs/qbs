@@ -87,6 +87,10 @@ private slots:
     void erroneousFiles();
     void errorInfo();
     void escapedLinkerFlags();
+    void exportedDependencyInDisabledProduct();
+    void exportedDependencyInDisabledProduct_data();
+    void exportedPropertyInDisabledProduct();
+    void exportedPropertyInDisabledProduct_data();
     void exportRule();
     void exportToOutsideSearchPath();
     void externalLibs();
@@ -161,6 +165,7 @@ private slots:
     void productDependenciesByType();
     void productProperties();
     void propertyAssignmentOnNonPresentModule();
+    void propertyAssignmentInFailedModule();
     void propertyChanges();
     void propertyPrecedence();
     void properQuoting();
