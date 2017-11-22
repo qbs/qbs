@@ -43,10 +43,18 @@
 
 #include <tools/profiling.h>
 
+#include <QtCore/qfileinfo.h>
+
 #include <algorithm>
 
 namespace qbs {
 namespace Internal {
+
+void makePathsCanonical(QStringList &paths)
+{
+    for (QString &p : paths)
+        p = QFileInfo(p).canonicalFilePath();
+}
 
 ItemReader::ItemReader(Logger &logger) : m_visitorState(new ItemReaderVisitorState(logger))
 {
@@ -60,12 +68,14 @@ ItemReader::~ItemReader()
 void ItemReader::setSearchPaths(const QStringList &searchPaths)
 {
     m_searchPaths = searchPaths;
+    makePathsCanonical(m_searchPaths);
     m_allSearchPaths.clear();
 }
 
 void ItemReader::pushExtraSearchPaths(const QStringList &extraSearchPaths)
 {
     m_extraSearchPaths.push_back(extraSearchPaths);
+    makePathsCanonical(m_extraSearchPaths.back());
     m_allSearchPaths.clear();
 }
 
