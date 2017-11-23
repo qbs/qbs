@@ -42,25 +42,27 @@
 
 #include "qbs_export.h"
 
-#include <language/filetags.h>
-
-#include <QtCore/qhash.h>
+#include <memory>
+#include <vector>
 
 class ScannerPlugin;
 
 namespace qbs {
 namespace Internal {
 
+class FileTag;
+class ScannerPluginManagerPrivate;
+
 class QBS_EXPORT ScannerPluginManager
 {
 public:
     static ScannerPluginManager *instance();
-    static QList<ScannerPlugin *> scannersForFileTag(const FileTag &fileTag);
+    static std::vector<ScannerPlugin *> scannersForFileTag(const FileTag &fileTag);
     void registerPlugins(ScannerPlugin **plugins);
 
 private:
     ScannerPluginManager();
-    QHash<FileTag, QList<ScannerPlugin*> > m_scannerPlugins;
+    std::unique_ptr<ScannerPluginManagerPrivate> d;
 };
 
 } // namespace Internal

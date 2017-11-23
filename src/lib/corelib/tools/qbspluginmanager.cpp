@@ -46,8 +46,11 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 
+#include <QtCore/qdir.h>
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qlibrary.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 #include <memory>
 #include <mutex>
@@ -55,7 +58,20 @@
 namespace qbs {
 namespace Internal {
 
+struct QbsPlugin {
+    QbsPluginLoadFunction load;
+    QbsPluginUnloadFunction unload;
+    bool loaded;
+};
+
+class QbsPluginManagerPrivate {
+public:
+    std::vector<QbsPlugin> staticPlugins;
+    std::vector<QLibrary *> libs;
+};
+
 QbsPluginManager::QbsPluginManager()
+    : d(new QbsPluginManagerPrivate)
 {
 }
 
@@ -63,7 +79,7 @@ QbsPluginManager::~QbsPluginManager()
 {
     unloadStaticPlugins();
 
-    for (QLibrary * const lib : qAsConst(m_libs)) {
+    for (QLibrary * const lib : qAsConst(d->libs)) {
         QbsPluginUnloadFunction unload = reinterpret_cast<QbsPluginUnloadFunction>(
                     lib->resolve("QbsPluginUnload"));
         if (unload)
@@ -82,14 +98,14 @@ QbsPluginManager *QbsPluginManager::instance()
 void QbsPluginManager::registerStaticPlugin(QbsPluginLoadFunction load,
                                             QbsPluginUnloadFunction unload)
 {
-    auto begin = m_staticPlugins.cbegin(), end = m_staticPlugins.cend();
+    auto begin = d->staticPlugins.cbegin(), end = d->staticPlugins.cend();
     if (std::find_if(begin, end, [&load](const QbsPlugin &p) { return p.load == load; }) == end)
-        m_staticPlugins.push_back(QbsPlugin { load, unload, false });
+        d->staticPlugins.push_back(QbsPlugin { load, unload, false });
 }
 
 void QbsPluginManager::loadStaticPlugins()
 {
-    for (const auto &plugin : m_staticPlugins) {
+    for (const auto &plugin : d->staticPlugins) {
         if (!plugin.loaded && plugin.load)
             plugin.load();
     }
@@ -97,15 +113,16 @@ void QbsPluginManager::loadStaticPlugins()
 
 void QbsPluginManager::unloadStaticPlugins()
 {
-    for (auto &plugin : m_staticPlugins) {
+    for (auto &plugin : d->staticPlugins) {
         if (plugin.loaded && plugin.unload)
             plugin.unload();
     }
 
-    m_staticPlugins.clear();
+    d->staticPlugins.clear();
 }
 
-void QbsPluginManager::loadPlugins(const QStringList &pluginPaths, const Logger &logger)
+void QbsPluginManager::loadPlugins(const std::vector<std::string> &pluginPaths,
+                                   const Logger &logger)
 {
     QStringList filters;
 
@@ -116,9 +133,11 @@ void QbsPluginManager::loadPlugins(const QStringList &pluginPaths, const Logger 
     else
         filters << QLatin1String("*.so");
 
-    for (const QString &pluginPath : pluginPaths) {
-        qCDebug(lcPluginManager) << "loading plugins from" << QDir::toNativeSeparators(pluginPath);
-        QDirIterator it(pluginPath, filters, QDir::Files);
+    for (const std::string &pluginPath : pluginPaths) {
+        const QString qtPluginPath = QString::fromStdString(pluginPath);
+        qCDebug(lcPluginManager) << "loading plugins from"
+                                 << QDir::toNativeSeparators(qtPluginPath);
+        QDirIterator it(qtPluginPath, filters, QDir::Files);
         while (it.hasNext()) {
             const QString fileName = it.next();
             std::unique_ptr<QLibrary> lib(new QLibrary(fileName));
@@ -134,7 +153,7 @@ void QbsPluginManager::loadPlugins(const QStringList &pluginPaths, const Logger 
                 load();
                 qCDebug(lcPluginManager) << "plugin" << QDir::toNativeSeparators(fileName)
                                          << "loaded.";
-                m_libs.push_back(lib.release());
+                d->libs.push_back(lib.release());
             } else {
                 logger.qbsWarning() << Tr::tr("plugin manager: not a qbs plugin");
             }

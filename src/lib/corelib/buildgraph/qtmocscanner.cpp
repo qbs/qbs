@@ -213,7 +213,7 @@ static QScriptValue scannerCountError(QScriptEngine *engine, int scannerCount,
 QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact)
 {
     if (!m_cppScanner) {
-        QList<ScannerPlugin *> scanners = ScannerPluginManager::scannersForFileTag(m_tags.cpp);
+        auto scanners = ScannerPluginManager::scannersForFileTag(m_tags.cpp);
         if (scanners.size() != 1)
             return scannerCountError(engine, scanners.size(), m_tags.cpp.toString());
         m_cppScanner = scanners.front();

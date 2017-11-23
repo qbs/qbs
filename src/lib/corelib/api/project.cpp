@@ -98,7 +98,7 @@ static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
     if (pluginsLoaded)
         return;
 
-    QStringList pluginPaths;
+    std::vector<std::string> pluginPaths;
     for (const QString &pluginPath : _pluginPaths) {
         if (!FileInfo::exists(pluginPath)) {
 #ifndef QBS_STATIC_LIB
@@ -106,7 +106,7 @@ static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
                                     .arg(QDir::toNativeSeparators(pluginPath));
 #endif
         } else {
-            pluginPaths << pluginPath;
+            pluginPaths.push_back(pluginPath.toStdString());
         }
     }
     auto pluginManager = QbsPluginManager::instance();

@@ -40,13 +40,11 @@
 #ifndef QBS_PLUGINS_H
 #define QBS_PLUGINS_H
 
-#include <language/filetags.h>
+#include "qbs_export.h"
 
-#include <QtCore/qstring.h>
-
-QT_BEGIN_NAMESPACE
-class QLibrary;
-QT_END_NAMESPACE
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace qbs {
 namespace Internal {
@@ -54,6 +52,8 @@ class Logger;
 
 typedef void (*QbsPluginLoadFunction)();
 typedef void (*QbsPluginUnloadFunction)();
+
+class QbsPluginManagerPrivate;
 
 class QBS_EXPORT QbsPluginManager
 {
@@ -63,19 +63,13 @@ public:
     void registerStaticPlugin(QbsPluginLoadFunction, QbsPluginUnloadFunction);
     void loadStaticPlugins();
     void unloadStaticPlugins();
-    void loadPlugins(const QStringList &paths, const Logger &logger);
+    void loadPlugins(const std::vector<std::string> &paths, const Logger &logger);
 
 protected:
     QbsPluginManager();
 
 private:
-    struct QbsPlugin {
-        QbsPluginLoadFunction load;
-        QbsPluginUnloadFunction unload;
-        bool loaded;
-    };
-    std::vector<QbsPlugin> m_staticPlugins;
-    std::vector<QLibrary *> m_libs;
+    std::unique_ptr<QbsPluginManagerPrivate> d;
 };
 
 } // namespace Internal
