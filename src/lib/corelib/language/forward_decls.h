@@ -41,8 +41,6 @@
 
 #include <memory>
 
-#include <QtCore/qhash.h>
-
 namespace qbs {
 namespace Internal {
 
@@ -133,6 +131,15 @@ class ArtifactProperties;
 typedef std::shared_ptr<ArtifactProperties> ArtifactPropertiesPtr;
 typedef std::shared_ptr<const ArtifactProperties> ArtifactPropertiesConstPtr;
 
+} // namespace Internal
+} // namespace qbs
+
+#ifdef QT_CORE_LIB
+#include <QtCore/qhash.h>
+
+namespace qbs {
+namespace Internal {
+
 template <typename T> inline static uint qHash(const std::shared_ptr<T> &p, uint seed = 0)
 {
     return ::qHash(p.get(), seed);
@@ -140,5 +147,6 @@ template <typename T> inline static uint qHash(const std::shared_ptr<T> &p, uint
 
 } // namespace Internal
 } // namespace qbs
+#endif
 
 #endif // QBS_LANG_FORWARD_DECLS_H
