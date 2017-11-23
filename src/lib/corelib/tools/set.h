@@ -42,8 +42,10 @@
 
 #include <tools/persistence.h>
 
+#ifdef QT_CORE_LIB
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvector.h>
+#endif
 
 #include <algorithm>
 #include <functional>
@@ -136,14 +138,17 @@ public:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 
+#ifdef QT_CORE_LIB
     QStringList toStringList() const;
     QString toString(const T& value) const { return value.toString(); }
     QString toString() const;
 
-    static Set<T> fromStdVector(const std::vector<T> &vector);
     static Set<T> fromList(const QList<T> &list);
-    static Set<T> fromStdSet(const std::set<T> &set);
     QList<T> toList() const;
+#endif
+
+    static Set<T> fromStdVector(const std::vector<T> &vector);
+    static Set<T> fromStdSet(const std::set<T> &set);
     std::set<T> toStdSet() const;
 
     template<typename U> static Set<T> filtered(const Set<U> &s);
@@ -278,6 +283,7 @@ template<typename T> void Set<T>::store(PersistentPool &pool) const
                   std::bind(&Set<T>::storeElem, this, std::ref(pool), std::placeholders::_1));
 }
 
+#ifdef QT_CORE_LIB
 template<typename T> QStringList Set<T>::toStringList() const
 {
     QStringList sl;
@@ -292,13 +298,7 @@ template<typename T> QString Set<T>::toString() const
     return QLatin1Char('[') + toStringList().join(QLatin1String(", ")) + QLatin1Char(']');
 }
 
-template<typename T> Set<T> Set<T>::fromStdVector(const std::vector<T> &vector)
-{
-    Set<T> s;
-    std::copy(vector.cbegin(), vector.cend(), std::back_inserter(s.m_data));
-    s.sort();
-    return s;
-}
+template<> inline QString Set<QString>::toString(const QString &value) const { return value; }
 
 template<typename T> Set<T> Set<T>::fromList(const QList<T> &list)
 {
@@ -308,18 +308,27 @@ template<typename T> Set<T> Set<T>::fromList(const QList<T> &list)
     return s;
 }
 
-template<typename T> Set<T> Set<T>::fromStdSet(const std::set<T> &set)
-{
-    Set<T> s;
-    std::copy(set.cbegin(), set.cend(), std::back_inserter(s.m_data));
-    return s;
-}
-
 template<typename T> QList<T> Set<T>::toList() const
 {
     QList<T> list;
     std::copy(m_data.cbegin(), m_data.cend(), std::back_inserter(list));
     return list;
+}
+#endif
+
+template<typename T> Set<T> Set<T>::fromStdVector(const std::vector<T> &vector)
+{
+    Set<T> s;
+    std::copy(vector.cbegin(), vector.cend(), std::back_inserter(s.m_data));
+    s.sort();
+    return s;
+}
+
+template<typename T> Set<T> Set<T>::fromStdSet(const std::set<T> &set)
+{
+    Set<T> s;
+    std::copy(set.cbegin(), set.cend(), std::back_inserter(s.m_data));
+    return s;
 }
 
 template<typename T> std::set<T> Set<T>::toStdSet() const
@@ -420,8 +429,6 @@ template<typename T> Set<T> operator&(const Set<T> &set1, const Set<T> &set2)
     }
     return result;
 }
-
-template<> inline QString Set<QString>::toString(const QString &value) const { return value; }
 
 } // namespace Internal
 } // namespace qbs
