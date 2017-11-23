@@ -170,6 +170,7 @@ private slots:
     void propertyPrecedence();
     void properQuoting();
     void propertiesInExportItems();
+    void pseudoMultiplexing();
     void qbsVersion();
     void qtBug51237();
     void radAfterIncompleteBuild();

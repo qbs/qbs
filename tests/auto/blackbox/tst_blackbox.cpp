@@ -4247,6 +4247,14 @@ void TestBlackbox::propertiesInExportItems()
     QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
 }
 
+void TestBlackbox::pseudoMultiplexing()
+{
+    // This is "pseudo-multiplexing" on all platforms that initialize qbs.architectures
+    // to an array with one element. See QBS-1243.
+    QDir::setCurrent(testDataDir + "/pseudo-multiplexing");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::radAfterIncompleteBuild_data()
 {
     QTest::addColumn<QString>("projectFileName");
