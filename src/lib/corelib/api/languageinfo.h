@@ -42,18 +42,19 @@
 
 #include "../tools/qbs_export.h"
 
-#include <QtCore/qbytearray.h>
+#include <string>
 
 namespace qbs {
 
+class Version;
+
 class QBS_EXPORT LanguageInfo
 {
+    LanguageInfo() = delete;
+
 public:
-    LanguageInfo();
-
-    QByteArray qmlTypeInfo();
-
-    static QString qbsVersion(); // TODO: Use QVersionNumber once we require Qt 5.6
+    static std::string qmlTypeInfo();
+    static Version qbsVersion();
 };
 
 } // namespace qbs

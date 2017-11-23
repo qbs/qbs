@@ -50,6 +50,7 @@
 #include "scriptengine.h"
 #include "value.h"
 
+#include <api/languageinfo.h>
 #include <language/language.h>
 #include <logging/categories.h>
 #include <logging/logger.h>
@@ -2728,7 +2729,7 @@ void ModuleLoader::setupBaseModulePrototype(Item *prototype)
     prototype->setProperty(QStringLiteral("libexecPath"),
                            VariantValue::create(m_parameters.libexecPath()));
 
-    const Version qbsVersion = Version::qbsVersion();
+    const Version qbsVersion = LanguageInfo::qbsVersion();
     prototype->setProperty(QStringLiteral("versionMajor"),
                            VariantValue::create(qbsVersion.majorVersion()));
     prototype->setProperty(QStringLiteral("versionMinor"),

@@ -40,6 +40,7 @@
 #include "propertydeclaration.h"
 
 #include "deprecationinfo.h"
+#include <api/languageinfo.h>
 
 #include <tools/stringconstants.h>
 
@@ -218,7 +219,7 @@ bool PropertyDeclaration::isDeprecated() const
 
 bool PropertyDeclaration::isExpired() const
 {
-    return isDeprecated() && deprecationInfo().removalVersion() <= Version::qbsVersion();
+    return isDeprecated() && deprecationInfo().removalVersion() <= LanguageInfo::qbsVersion();
 }
 
 const DeprecationInfo &PropertyDeclaration::deprecationInfo() const

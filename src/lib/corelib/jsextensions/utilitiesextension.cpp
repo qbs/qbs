@@ -541,7 +541,7 @@ QScriptValue UtilitiesExtension::js_versionCompare(QScriptContext *context, QScr
 QScriptValue UtilitiesExtension::js_qmlTypeInfo(QScriptContext *context, QScriptEngine *engine)
 {
     Q_UNUSED(context);
-    return engine->toScriptValue(QString::fromUtf8(qbs::LanguageInfo().qmlTypeInfo()));
+    return engine->toScriptValue(QString::fromStdString(qbs::LanguageInfo::qmlTypeInfo()));
 }
 
 QScriptValue UtilitiesExtension::js_builtinExtensionNames(QScriptContext *context,

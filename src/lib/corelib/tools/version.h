@@ -73,8 +73,6 @@ public:
     static Version fromString(const QString &versionString, bool buildNumberAllowed = false);
     QString toString() const;
 
-    static const Version &qbsVersion();
-
 private:
     int m_major;
     int m_minor;

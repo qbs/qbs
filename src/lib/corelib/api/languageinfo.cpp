@@ -47,16 +47,12 @@
 
 namespace qbs {
 
-LanguageInfo::LanguageInfo()
-{
-}
-
-QByteArray LanguageInfo::qmlTypeInfo()
+std::string LanguageInfo::qmlTypeInfo()
 {
     const Internal::BuiltinDeclarations &builtins = Internal::BuiltinDeclarations::instance();
 
     // Header:
-    QByteArray result;
+    std::string result;
     result.append("import QtQuick.tooling 1.0\n\n");
     result.append("// This file describes the plugin-supplied types contained in the library.\n");
     result.append("// It is used for QML tooling purposes only.\n\n");
@@ -126,9 +122,10 @@ QByteArray LanguageInfo::qmlTypeInfo()
     return result;
 }
 
-QString LanguageInfo::qbsVersion()
+Version LanguageInfo::qbsVersion()
 {
-    return Version::qbsVersion().toString();
+    static const auto v = Version::fromString(QLatin1String(QBS_VERSION));
+    return v;
 }
 
 } // namespace qbs

@@ -30,6 +30,7 @@
 
 #include "../shared.h"
 
+#include <api/languageinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 #include <tools/qttools.h>
@@ -5355,7 +5356,7 @@ void TestBlackbox::badInterpreter()
 
 void TestBlackbox::qbsVersion()
 {
-    const qbs::Version v = qbs::Version::qbsVersion();
+    const auto v = qbs::LanguageInfo::qbsVersion();
     QDir::setCurrent(testDataDir + QLatin1String("/qbsVersion"));
     QbsRunParameters params;
     params.arguments = QStringList()

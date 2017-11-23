@@ -46,6 +46,7 @@
 #include "itempool.h"
 #include "value.h"
 
+#include <api/languageinfo.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -262,7 +263,7 @@ void Item::setupForBuiltinType(Logger &logger)
             m_properties.insert(pd.name(), sourceValue);
         } else if (pd.isDeprecated()) {
             const DeprecationInfo &di = pd.deprecationInfo();
-            if (di.removalVersion() <= Version::qbsVersion()) {
+            if (di.removalVersion() <= LanguageInfo::qbsVersion()) {
                 QString message = Tr::tr("The property '%1' is no longer valid for %2 items. "
                         "It was removed in qbs %3.")
                         .arg(pd.name(), typeName(), di.removalVersion().toString());

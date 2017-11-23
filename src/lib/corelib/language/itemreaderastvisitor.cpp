@@ -49,6 +49,7 @@
 #include "itemreadervisitorstate.h"
 #include "value.h"
 
+#include <api/languageinfo.h>
 #include <jsextensions/jsextensions.h>
 #include <parser/qmljsast_p.h>
 #include <tools/codelocation.h>
@@ -336,7 +337,7 @@ void ItemReaderASTVisitor::checkDeprecationStatus(ItemType itemType, const QStri
     const DeprecationInfo &di = itemDecl.deprecationInfo();
     if (!di.isValid())
         return;
-    if (di.removalVersion() <= Version::qbsVersion()) {
+    if (di.removalVersion() <= LanguageInfo::qbsVersion()) {
         QString message = Tr::tr("The item '%1' cannot be used anymore. "
                 "It was removed in qbs %2.")
                 .arg(itemName, di.removalVersion().toString());
