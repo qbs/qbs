@@ -39,23 +39,29 @@
 #ifndef QBS_EXPORT_H
 #define QBS_EXPORT_H
 
-#include <QtCore/qglobal.h>
+#if defined(_WIN32) || defined(WIN32)
+#    define QBS_DECL_EXPORT __declspec(dllexport)
+#    define QBS_DECL_IMPORT __declspec(dllimport)
+#else
+#    define QBS_DECL_EXPORT __attribute__((visibility("default")))
+#    define QBS_DECL_IMPORT __attribute__((visibility("default")))
+#  endif
 
 #ifdef QBS_STATIC_LIB
 #   define QBS_EXPORT
 #   define QBS_AUTOTEST_EXPORT
 #else
 #   ifdef QBS_LIBRARY
-#       define QBS_EXPORT Q_DECL_EXPORT
+#       define QBS_EXPORT QBS_DECL_EXPORT
 #       ifdef QBS_ENABLE_UNIT_TESTS
-#           define QBS_AUTOTEST_EXPORT Q_DECL_EXPORT
+#           define QBS_AUTOTEST_EXPORT QBS_DECL_EXPORT
 #       else
 #           define QBS_AUTOTEST_EXPORT
 #       endif
 #   else
-#       define QBS_EXPORT Q_DECL_IMPORT
+#       define QBS_EXPORT QBS_DECL_IMPORT
 #       ifdef QBS_ENABLE_UNIT_TESTS
-#           define QBS_AUTOTEST_EXPORT Q_DECL_IMPORT
+#           define QBS_AUTOTEST_EXPORT QBS_DECL_IMPORT
 #       else
 #           define QBS_AUTOTEST_EXPORT
 #       endif

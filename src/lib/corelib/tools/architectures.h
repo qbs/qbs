@@ -41,6 +41,8 @@
 
 #include "qbs_export.h"
 
+#include <QtCore/qstring.h>
+
 namespace qbs {
 
 QBS_EXPORT QString canonicalTargetArchitecture(const QString &architecture,
