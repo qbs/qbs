@@ -822,10 +822,12 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
             item = productItem->clone();
             additionalProductItems.push_back(item);
         }
+        const QString multiplexConfigurationId = multiplexInfo.toIdString(row);
+        const VariantValuePtr multiplexConfigurationIdValue
+            = VariantValue::create(multiplexConfigurationId);
+        item->setProperty(QStringLiteral("__multiplexConfigIdForModulePrototypes"),
+                          multiplexConfigurationIdValue);
         if (multiplexInfo.table.size() > 1 || aggregator) {
-            const QString multiplexConfigurationId = multiplexInfo.toIdString(row);
-            const VariantValuePtr multiplexConfigurationIdValue
-                = VariantValue::create(multiplexConfigurationId);
             multiplexConfigurationIdValues.push_back(multiplexConfigurationIdValue);
             item->setProperty(multiplexConfigurationIdKey, multiplexConfigurationIdValue);
         }
@@ -942,6 +944,8 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
                                                          QString(), &profilePropertySet);
     productContext.multiplexConfigurationId
             = m_evaluator->stringValue(productItem, QLatin1String("multiplexConfigurationId"));
+    productContext.multiplexConfigIdForModulePrototypes = m_evaluator->stringValue(
+                productItem, QStringLiteral("__multiplexConfigIdForModulePrototypes"));
     QBS_CHECK(profilePropertySet);
     const auto it = projectContext->result->profileConfigs.constFind(productContext.profileName);
     if (it == projectContext->result->profileConfigs.constEnd()) {
@@ -2616,8 +2620,8 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 
     qCDebug(lcModuleLoader) << "loadModuleFile" << fullModuleName << "from" << filePath;
 
-    const QString keyUniquifier = productContext->multiplexConfigurationId.isEmpty() ?
-                productContext->profileName : productContext->uniqueName();
+    const QString keyUniquifier = productContext->multiplexConfigIdForModulePrototypes.isEmpty()
+            ? productContext->profileName : productContext->multiplexConfigIdForModulePrototypes;
     const ModuleItemCache::key_type cacheKey(filePath, keyUniquifier);
     const ItemCacheValue cacheValue = m_modulePrototypeItemCache.value(cacheKey);
     if (cacheValue.module) {

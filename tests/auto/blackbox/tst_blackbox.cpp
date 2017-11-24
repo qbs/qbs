@@ -2640,6 +2640,19 @@ void TestBlackbox::propertyAssignmentOnNonPresentModule()
     QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
 }
 
+void TestBlackbox::propertyAssignmentInFailedModule()
+{
+    QDir::setCurrent(testDataDir + "/property-assignment-in-failed-module");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("modules.m.doFail:false"))), 0);
+    QbsRunParameters failParams;
+    failParams.expectFailure = true;
+    QVERIFY(runQbs(failParams) != 0);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("modules.m.doFail:true"))), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QEXPECT_FAIL(0, "circular dependency between module merging and validation", Continue);
+    QCOMPARE(runQbs(failParams), 0);
+}
+
 void TestBlackbox::propertyChanges()
 {
     QDir::setCurrent(testDataDir + "/propertyChanges");
@@ -3094,6 +3107,53 @@ void TestBlackbox::escapedLinkerFlags()
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QVERIFY2(m_qbsStderr.contains("Encountered escaped linker flag"), m_qbsStderr.constData());
+}
+
+void TestBlackbox::exportedDependencyInDisabledProduct()
+{
+    QDir::setCurrent(testDataDir + "/exported-dependency-in-disabled-product");
+    QFETCH(QString, depCondition);
+    QFETCH(bool, compileExpected);
+    rmDirR(relativeBuildDir());
+    const QString propertyArg = "products.dep.conditionString:" + depCondition;
+    QCOMPARE(runQbs(QStringList(propertyArg)), 0);
+    QEXPECT_FAIL("dependency directly disabled", "QBS-1250", Continue);
+    QEXPECT_FAIL("dependency disabled via non-present module", "QBS-1250", Continue);
+    QEXPECT_FAIL("dependency disabled via failed module", "QBS-1250", Continue);
+    QCOMPARE(m_qbsStdout.contains("compiling"), compileExpected);
+}
+
+void TestBlackbox::exportedDependencyInDisabledProduct_data()
+{
+    QTest::addColumn<QString>("depCondition");
+    QTest::addColumn<bool>("compileExpected");
+    QTest::newRow("dependency enabled") << "true" << true;
+    QTest::newRow("dependency directly disabled") << "false" << false;
+    QTest::newRow("dependency disabled via non-present module") << "nosuchmodule.present" << false;
+    QTest::newRow("dependency disabled via failed module") << "broken.present" << false;
+}
+
+void TestBlackbox::exportedPropertyInDisabledProduct()
+{
+    QDir::setCurrent(testDataDir + "/exported-property-in-disabled-product");
+    QFETCH(QString, depCondition);
+    QFETCH(bool, successExpected);
+    const QString propertyArg = "products.dep.conditionString:" + depCondition;
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList(propertyArg))), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QbsRunParameters buildParams;
+    buildParams.expectFailure = !successExpected;
+    QCOMPARE(runQbs(buildParams) == 0, successExpected);
+}
+
+void TestBlackbox::exportedPropertyInDisabledProduct_data()
+{
+    QTest::addColumn<QString>("depCondition");
+    QTest::addColumn<bool>("successExpected");
+    QTest::newRow("dependency enabled") << "true" << false;
+    QTest::newRow("dependency directly disabled") << "false" << true;
+    QTest::newRow("dependency disabled via non-present module") << "nosuchmodule.present" << true;
+    QTest::newRow("dependency disabled via failed module") << "broken.present" << true;
 }
 
 void TestBlackbox::systemRunPaths()
@@ -4297,6 +4357,14 @@ void TestBlackbox::propertiesInExportItems()
     QVERIFY(regularFileExists(relativeExecutableFilePath("p1")));
     QVERIFY(regularFileExists(relativeExecutableFilePath("p2")));
     QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+}
+
+void TestBlackbox::pseudoMultiplexing()
+{
+    // This is "pseudo-multiplexing" on all platforms that initialize qbs.architectures
+    // to an array with one element. See QBS-1243.
+    QDir::setCurrent(testDataDir + "/pseudo-multiplexing");
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackbox::radAfterIncompleteBuild_data()
