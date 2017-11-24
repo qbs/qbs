@@ -40,6 +40,9 @@
 
 #include "commandechomode.h"
 
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
+
 /*!
  * \enum CommandEchoMode
  * This enum type specifies the kind of output to display when executing commands.

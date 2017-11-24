@@ -49,6 +49,7 @@
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
+#include <QtCore/qprocess.h>
 
 namespace qbs {
 namespace Internal {

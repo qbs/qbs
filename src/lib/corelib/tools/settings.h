@@ -42,11 +42,12 @@
 
 #include "qbs_export.h"
 
-#include <QtCore/qstringlist.h>
+#include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
 
 QT_BEGIN_NAMESPACE
 class QSettings;
+class QStringList;
 QT_END_NAMESPACE
 
 namespace qbs {

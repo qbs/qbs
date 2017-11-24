@@ -42,7 +42,10 @@
 #include "qbs_export.h"
 
 #include <QtCore/qshareddata.h>
-#include <QtCore/qstring.h>
+
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 namespace qbs {
 class InstallOptions;

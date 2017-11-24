@@ -46,7 +46,10 @@
 
 #include <QtCore/qmap.h>
 #include <QtCore/qstring.h>
-#include <QtCore/qstringlist.h>
+
+QT_BEGIN_NAMESPACE
+class QStringList;
+QT_END_NAMESPACE
 
 namespace qbs {
 class ProjectGenerator;

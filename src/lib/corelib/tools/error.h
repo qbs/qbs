@@ -42,12 +42,15 @@
 
 #include "codelocation.h"
 
-#include <QtCore/qshareddata.h>
 #include <QtCore/qhash.h>
-#include <QtCore/qlist.h>
 #include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
-#include <QtCore/qstring.h>
+
+QT_BEGIN_NAMESPACE
+template <class T> class QList;
+class QString;
+class QStringList;
+QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal { class PersistentPool; }

@@ -43,10 +43,12 @@
 #include <language/forward_decls.h>
 #include <tools/qbs_export.h>
 
-#include <QtCore/qstringlist.h>
+#include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
 class QProcessEnvironment;
+class QString;
+class QStringList;
 QT_END_NAMESPACE
 
 namespace qbs {

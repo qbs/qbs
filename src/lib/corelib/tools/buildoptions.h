@@ -44,7 +44,10 @@
 #include "commandechomode.h"
 
 #include <QtCore/qshareddata.h>
-#include <QtCore/qstringlist.h>
+
+QT_BEGIN_NAMESPACE
+class QStringList;
+QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal { class BuildOptionsPrivate; }

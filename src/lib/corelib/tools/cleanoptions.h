@@ -42,7 +42,6 @@
 #include "qbs_export.h"
 
 #include <QtCore/qshareddata.h>
-#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal { class CleanOptionsPrivate; }

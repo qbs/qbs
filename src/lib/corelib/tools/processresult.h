@@ -44,8 +44,11 @@
 #include <QtCore/qshareddata.h>
 #include <QtCore/qmetatype.h>
 #include <QtCore/qprocess.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qstringlist.h>
+
+QT_BEGIN_NAMESPACE
+class QString;
+class QStringList;
+QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {

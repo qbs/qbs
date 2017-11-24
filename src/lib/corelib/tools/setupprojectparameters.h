@@ -43,10 +43,13 @@
 
 #include <tools/error.h>
 
-#include <QtCore/qprocess.h>
 #include <QtCore/qshareddata.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qvariant.h>
+
+QT_BEGIN_NAMESPACE
+class QProcessEnvironment;
+class QStringList;
+typedef QMap<QString, QVariant> QVariantMap;
+QT_END_NAMESPACE
 
 namespace qbs {
 
