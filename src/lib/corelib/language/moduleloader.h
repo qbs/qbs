@@ -164,6 +164,7 @@ private:
         QString name;
         QString profileName;
         QString multiplexConfigurationId;
+        QString multiplexConfigIdForModulePrototypes;
         QVariantMap moduleProperties;
         std::map<QString, ProductDependencies> productModuleDependencies;
 

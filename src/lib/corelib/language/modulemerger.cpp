@@ -176,7 +176,9 @@ Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap pro
     if (moduleInstance)
         insertProperties(&props, moduleInstance, ListProperties);
 
-    return props;
+    const bool isNonPresentModule = m.item->type() != ItemType::Product
+            && !m.item->isPresentModule();
+    return isNonPresentModule ? Item::PropertyMap() : props;
 }
 
 void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap &src)

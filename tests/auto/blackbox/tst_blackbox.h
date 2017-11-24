@@ -90,6 +90,10 @@ private slots:
     void erroneousFiles();
     void errorInfo();
     void escapedLinkerFlags();
+    void exportedDependencyInDisabledProduct();
+    void exportedDependencyInDisabledProduct_data();
+    void exportedPropertyInDisabledProduct();
+    void exportedPropertyInDisabledProduct_data();
     void exportRule();
     void exportToOutsideSearchPath();
     void externalLibs();
@@ -168,10 +172,12 @@ private slots:
     void productDependenciesByType();
     void productProperties();
     void propertyAssignmentOnNonPresentModule();
+    void propertyAssignmentInFailedModule();
     void propertyChanges();
     void propertyPrecedence();
     void properQuoting();
     void propertiesInExportItems();
+    void pseudoMultiplexing();
     void qbsVersion();
     void qtBug51237();
     void radAfterIncompleteBuild();
