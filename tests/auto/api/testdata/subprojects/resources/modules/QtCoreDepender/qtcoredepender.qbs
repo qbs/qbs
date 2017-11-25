@@ -1,5 +1,5 @@
 import qbs
 
 Module {
-    Depends { name: "Qt.core" }
+    Depends { name: "cute.core" }
 }

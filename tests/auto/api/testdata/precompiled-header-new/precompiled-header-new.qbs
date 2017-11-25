@@ -1,6 +1,6 @@
 import qbs 1.0
 
-QtApplication {
+CppApplication {
     name: "MyApp"
     consoleApplication: true
     Group {

@@ -11,6 +11,6 @@ Project {
         Depends { name: "QtCoreDepender" }
         cpp.defines: "MY_EXPORT=Q_DECL_EXPORT"
         files: "testlib.cpp"
-        Export { Depends { name: "Qt.core" } }
+        Export { Depends { name: "cute.core" } }
     }
 }
