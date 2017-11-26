@@ -103,6 +103,7 @@ private slots:
     void importsConflict();
     void includeLookup();
     void innoSetup();
+    void innoSetupDependencies();
     void inputsFromDependencies();
     void installable();
     void installedApp();
@@ -149,6 +150,7 @@ private slots:
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();
     void nsis();
+    void nsisDependencies();
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
     void pchChangeTracking();
@@ -232,6 +234,7 @@ private slots:
     void wildCardsAndRules();
     void wildcardRenaming();
     void wix();
+    void wixDependencies();
     void zip();
     void zip_data();
     void zipInvalid();
