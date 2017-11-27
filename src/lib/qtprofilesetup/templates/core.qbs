@@ -431,6 +431,8 @@ Module {
 
     Rule {
         inputs: "qhp"
+        auxiliaryInputs: ModUtils.allFileTags(Qdoc.qdocFileTaggers())
+                .filter(function(tag) { return tag !== "qhp"; })
 
         Artifact {
             filePath: input.completeBaseName + ".qch"
