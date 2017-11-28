@@ -17,7 +17,7 @@ QbsProduct {
     }
     cpp.cxxLanguageVersion: "c++11"
     cpp.includePaths: base.concat(["../../../lib/corelib"])
-    cpp.visibility: "hidden"
+    cpp.visibility: "minimal"
     destinationDirectory: FileInfo.joinPaths(project.buildDirectory,
                                              qbsbuildconfig.libDirName + "/qbs/plugins")
     Group {
