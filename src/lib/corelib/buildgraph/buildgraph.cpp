@@ -92,7 +92,7 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
                                     const ResolvedProduct *product,
                                     PrepareScriptObserver *observer);
 
-enum ScriptValueCommonPropertyKeys : quint32 {
+enum BuildGraphScriptValueCommonPropertyKeys : quint32 {
     CachedValueKey,
     FileTagKey
 };

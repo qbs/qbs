@@ -54,7 +54,7 @@
 namespace qbs {
 namespace Internal {
 
-enum ScriptValueCommonPropertyKeys : quint32
+enum ModulePropertiesScriptValueCommonPropertyKeys : quint32
 {
     ModuleNameKey,
     ProductPtrKey,

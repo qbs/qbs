@@ -37,6 +37,9 @@
 **
 ****************************************************************************/
 
+#ifndef QBS_CREATEPROJECT_H
+#define QBS_CREATEPROJECT_H
+
 #include <QtCore/qflags.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qregexp.h>
@@ -83,3 +86,5 @@ private:
     QList<QRegExp> m_whiteList;
     QList<QRegExp> m_blackList;
 };
+
+#endif // QBS_CREATEPROJECT_H

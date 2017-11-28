@@ -206,7 +206,7 @@ Qt::ItemFlags SettingsModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemFlags();
-    const Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+    const Qt::ItemFlags flags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     if (index.column() == keyColumn()) {
         if (d->editable)
             return flags | Qt::ItemIsEditable;
