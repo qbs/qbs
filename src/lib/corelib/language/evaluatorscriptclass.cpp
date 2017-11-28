@@ -49,6 +49,7 @@
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 #include <tools/scripttools.h>
 
 #include <QtCore/qbytearray.h>

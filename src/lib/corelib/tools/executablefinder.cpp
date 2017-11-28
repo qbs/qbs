@@ -41,6 +41,7 @@
 
 #include "fileinfo.h"
 #include "hostosinfo.h"
+#include "qttools.h"
 
 #include <logging/categories.h>
 
