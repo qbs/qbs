@@ -56,6 +56,7 @@ class ScannerPluginManagerPrivate;
 class QBS_EXPORT ScannerPluginManager
 {
 public:
+    ~ScannerPluginManager();
     static ScannerPluginManager *instance();
     static std::vector<ScannerPlugin *> scannersForFileTag(const FileTag &fileTag);
     void registerPlugins(ScannerPlugin **plugins);
