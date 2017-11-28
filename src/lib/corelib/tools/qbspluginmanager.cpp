@@ -129,7 +129,7 @@ void QbsPluginManager::loadPlugins(const std::vector<std::string> &pluginPaths,
     if (HostOsInfo::isWindowsHost())
         filters << QLatin1String("*.dll");
     else if (HostOsInfo::isMacosHost())
-        filters << QLatin1String("*.dylib");
+        filters << QLatin1String("*.bundle") << QLatin1String("*.dylib");
     else
         filters << QLatin1String("*.so");
 
