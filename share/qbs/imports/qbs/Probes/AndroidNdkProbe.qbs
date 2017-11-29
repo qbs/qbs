@@ -58,6 +58,7 @@ PathProbe {
     }
 
     // Outputs
+    property stringList candidatePaths
     property string samplesDir
     property var hostArch
     property stringList toolchains: []
@@ -79,6 +80,7 @@ PathProbe {
         }
 
         var i, j, allPaths = (environmentPaths || []).concat(platformPaths || []);
+        candidatePaths = allPaths;
         for (i in allPaths) {
             var platforms = [];
             if (hostOS.contains("windows"))

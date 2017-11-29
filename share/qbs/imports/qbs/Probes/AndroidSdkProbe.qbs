@@ -46,6 +46,7 @@ PathProbe {
     }
 
     // Outputs
+    property stringList candidatePaths
     property var buildToolsVersions
     property string buildToolsVersion
     property var platforms
@@ -53,6 +54,7 @@ PathProbe {
 
     configure: {
         var i, allPaths = (environmentPaths || []).concat(platformPaths || []);
+        candidatePaths = allPaths;
         for (i in allPaths) {
             if (File.exists(FileInfo.joinPaths(allPaths[i], "tools", "android"))) {
                 path = allPaths[i];
