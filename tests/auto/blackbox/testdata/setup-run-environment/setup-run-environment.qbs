@@ -75,7 +75,7 @@ Project {
         name: "lib5"
         Depends { name: "cpp" }
 
-    Properties {
+        Properties {
             condition: qbs.targetOS.contains("darwin")
             bundle.isBundle: false
         }
@@ -90,6 +90,8 @@ Project {
 
         Depends { name: "lib1" }
         Depends { name: "lib2" }
+        Depends { name: "lib3"; cpp.link: false }
+        Depends { name: "lib4"; cpp.link: false }
 
         property string fullInstallPrefix: FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix)
         property string lib3FilePath: FileInfo.joinPaths(fullInstallPrefix, "lib3",
