@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,19 +26,17 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-language-items.html
-    \previouspage parameter-item.html
-    \page parameters-item.html
-    \nextpage probe-item.html
-    \ingroup list-of-language-items
+    \previouspage Parameter
+    \nextpage Probe
+    \qmltype Parameters
+    \inqmlmodule QbsLanguageItems
     \ingroup list-of-items
     \keyword QML.Parameters
 
-    \title Parameters Item
-    \brief Defines default values for dependency parameters within
-    \c{Export} items.
+    \brief Defines default values for dependency parameters within Export items.
 
-    The \c{Parameters} item defines default values for dependency
-    parameters within \c{Export} items.
+    The Parameters item defines default values for dependency parameters within
+    \l{Export} items.
 
     Example:
     \code
@@ -62,7 +60,8 @@
     Depends { name: "foo"; cpp.link: true }
     \endcode
 
-    The parameters item contains a number of property bindings where
-    each property must be a \l{Parameter Item}{properly declared}
-    \l{Module Item#dependency_parameters}{dependency parameter}.
+    The Parameters item contains a number of property bindings where
+    each property must be a properly declared dependency parameter.
+    For more information, see \l{Parameter} and
+    \l{Module#dependency-parameters}{Module - Dependency Parameters}.
 */

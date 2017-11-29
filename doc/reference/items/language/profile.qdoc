@@ -26,14 +26,13 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-language-items.html
-    \previouspage product-item.html
-    \page profile-item.html
-    \nextpage project-item.html
-    \ingroup list-of-language-items
+    \previouspage Product
+    \nextpage Project
+    \qmltype Profile
+    \inqmlmodule QbsLanguageItems
     \ingroup list-of-items
     \keyword QML.Properties
 
-    \title Profile Item
     \brief Creates a profile within the project
 
     The profiles used by \QBS are normally set up on a user's machine and are then available
@@ -62,34 +61,34 @@
     The project in the above example can be built in a particular well-known environment
     without any additional setup.
 
-    \c Profile items can appear inside \l{Product Item}{Product} and \l{Project Item}{Project}
-    items.
+    \c Profile items can appear inside \l{Product} and \l{Project} items.
+*/
 
-    \section1 Profile Properties
+/*!
+    \qmlproperty string Profile::baseProfile
 
-    \table
-        \header
-            \li Property
-            \li Type
-            \li Default
-            \li Description
-        \row
-            \li baseProfile
-            \li \c string
-            \li \c undefined
-            \li The name of a profile from which this profile inherits. If the same property is
-                set in both this profile and the base profile, the value from this profile
-                takes precedence.
-        \row
-            \li condition
-            \li \c bool
-            \li \c true
-            \li If this property is set to \c false, the profile cannot be used.
-        \row
-            \li name
-            \li \c string
-            \li \c undefined
-            \li The name under which the profile can be referenced later. Setting this property
-                is required. The value must be unique among all profiles in an entire project.
-    \endtable
+    The name of a profile from which this profile inherits. If the same property is
+    set in both this profile and the base profile, the value from this profile
+    takes precedence.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool Profile::condition
+
+    Determines whether this profile can be used.
+
+    If this property is set to \c false, the profile cannot be used.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty string Profile::name
+
+    The name under which the profile can be referenced later. Setting this property
+    is required. The value must be unique among all profiles in an entire project.
+
+    \nodefaultvalue
 */

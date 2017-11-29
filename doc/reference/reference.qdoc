@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -83,7 +83,7 @@
 
 /*!
     \contentspage reference.html
-    \group list-of-language-items
+    \qmlmodule QbsLanguageItems
     \title List of Language Items
 
     \QBS provides the following built-in QML items to define projects.

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -372,7 +372,7 @@
         \li \c{product.targetName}
         \li For files tagged as \c{qt.core.resource_data}, this property determines the base name
             of the generated \c qrc file. If this property needs to be changed, it must be set
-            in the corresponding product rather than in a Group.
+            in the corresponding product rather than in a \l{Group}.
     \row
         \li staticBuild
         \li \c{bool}
@@ -627,8 +627,8 @@
         \li \c{"qdoc-output"}
         \li n/a
         \li 1.5
-        \li Use this tag to match all \c qdoc outputs, for instance in a \l{Group Item}{Group}
-            using the \c fileTagsFilter property.
+        \li Use this tag to match all \c qdoc outputs, for instance in a \l{Group}
+            using the \l{Group::fileTagsFilter}{group.fileTagsFilter} property.
     \row
         \li \c{"qhp"}
         \li \c{*.qhp}

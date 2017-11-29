@@ -41,7 +41,7 @@
 
     \section1 Description
 
-    Resolves a \l{Project Item}{project} in one or more configurations. Run this
+    Resolves a \l{Project}{project} in one or more configurations. Run this
     command to change the properties of an existing build.
 
     \section1 Options

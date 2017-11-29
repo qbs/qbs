@@ -154,15 +154,15 @@
     for extra flexibility.
 
     \QBS builds applications based on the information in a project file. Each
-    project file specifies one \l{Project Item}{project} that can contain
-    several \l{Product Item}{products}. You specify the type of the product,
+    project file specifies one \l{Project}{project} that can contain
+    several \l{Product}{products}. You specify the type of the product,
     such as an \e application, and the dependencies the product has on other
     products.
 
-    The product type determines the set of \l{Rule Item}{rules} that \QBS
+    The product type determines the set of \l{Rule}{rules} that \QBS
     applies to produce artifacts from input files. The input files can be
-    divided into \l{Group Item}{groups} according to their type or purpose, for
-    example. A group can also be used to attach \l{Properties Item}{properties}
+    divided into \l{Group}{groups} according to their type or purpose, for
+    example. A group can also be used to attach \l{Properties}{properties}
     to products.
 
     The following is an example of a minimal project file that specifies the
@@ -371,7 +371,7 @@
     There is no rule in the current context that produces \c .cpp files, but
     we have defined \c .cpp files as inputs for the product. When we added a
     dependency on the \c cpp module, that dependency also pulled in another \QBS
-    primitive called the \l{FileTagger Item}{file tagger}. The file tagger
+    primitive called the \l{FileTagger}{file tagger}. The file tagger
     looked for files matching the pattern \c *.cpp, and then applied the \c cpp
     tag to those input files:
 
@@ -794,7 +794,7 @@
     \title Language Introduction
 
     \QBS uses project files (*.qbs) to describe the contents of a project.
-    A project contains one or more \l{Product Item}{products}. A product is the target of a build
+    A project contains one or more \l{Product}{products}. A product is the target of a build
     process, typically an application, library or maybe a tar ball.
     \note \QBS source files are assumed to be UTF-8 encoded.
 
@@ -1210,7 +1210,7 @@
     You can define rules in your own module to be provided along with
     your project. Or you can put a rule directly into your project file.
 
-    For more information, see \l{Rule Item}.
+    For more information, see \l{Rule}.
 */
 
 
@@ -1377,9 +1377,9 @@
     To introduce a custom module \c mymodule, create a directory \c{search-path/modules/mymodule/}.
     \note Module names are case-sensitive, and this also goes for the corresponding directory name.
 
-    Then, put a file containing an instance of the \l{Module Item} in there and give it the \c{.qbs}
+    Then, put a file containing an instance of the \l{Module} in there and give it the \c{.qbs}
     extension. This module will be pulled in if a
-    \l{Product Item}{product} declares a \l{Depends Item}{dependency} on \c mymodule.
+    \l{Product}{product} declares a \l{Depends}{dependency} on \c mymodule.
 
 
     \section1 Custom Items
@@ -1498,14 +1498,14 @@
     The properties to which the limitation applies includes but is not limited to:
 
     \list
-        \li \l{Product Item}{Product}.name
+        \li \l{Product::name}{product.name}
         \li \l{Module bundle}{bundle}.isBundle
     \endlist
 
     If a simple workaround is possible in a particular case (for example,
-    varying \c Product.targetName across configuration instead of
-    \c Product.name), the generator will typically suggest it in the error
-    message.
+    varying \l{Product::targetName}{product.targetName} across configuration
+    instead of \l{Product::name}{product.name}, the generator will typically
+    suggest it in the error message.
 */
 
 /*!
@@ -1535,8 +1535,9 @@
 
     \note The implementation details around multiplexing are subject to change.
 
-    Product multiplexing works by examining a special property on the
-    \l{Product Item}{Product} item called \c multiplexByQbsProperties, which can
+    Product multiplexing works by examining the
+    \l{Product::multiplexByQbsProperties}{product.multiplexByQbsProperties}
+    property, which can
     be set to the list of properties your product should multiplex over. For
     example, \c multiplexByQbsProperties might contain two strings,
     \c "architectures" and \c "buildVariants". \QBS evaluates the values of
@@ -1545,7 +1546,8 @@
     all the possible configurations of the product: \c {(x86, debug)},
     \c {(x86, release)}, \c {(x86_64, debug)}, and \c {(x86_64, release)}.
 
-    If the product’s \c aggregate property is \c true, the product will also be
+    If the \l{Product::aggregate}{product.aggregate} property is \c true, the
+    product will also be
     built a fifth time, with the values of the multiplexed properties left
     undefined. The aggregate product will have an automatic dependency on the
     original four instances of the product, allowing it to collect their output

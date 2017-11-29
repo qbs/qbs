@@ -43,8 +43,8 @@
 
     Builds projects in one or more configurations.
 
-    You can specify \l{Project Item}{project}, \l{Product Item}{product}, or
-    \l{List of Modules}{module} properties, as well as a \l{Profile Item}
+    You can specify \l{Project}{project}, \l{Product}{product}, or
+    \l{List of Modules}{module} properties, as well as a \l{Profile}
     {profile} separately for each configuration.
 
     This is the default command.

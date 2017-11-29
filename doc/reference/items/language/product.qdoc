@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,17 +26,16 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-language-items.html
-    \previouspage probe-item.html
-    \page product-item.html
-    \nextpage profile-item.html
-    \ingroup list-of-language-items
+    \previouspage Probe
+    \nextpage Profile
+    \qmltype Product
+    \inqmlmodule QbsLanguageItems
     \ingroup list-of-items
     \keyword QML.Product
 
-    \title Product Item
     \brief Represents the result of a build process.
 
-    A \e product typically represents the result of a build process. It specifies a set of
+    A Product typically represents the result of a build process. It specifies a set of
     input and output files and a way to transform the former into the latter. For example, the
     following product sets up a very simple C++ application:
     \code
@@ -47,8 +46,9 @@
         Depends { name: "cpp" }
     }
     \endcode
-    The \c type property specifies what will be built (an executable). The \c files property specifies
-    the input files (one C++ source file), and the \c Depends item pulls in the logic from the \c cpp module
+    The \l{type} property specifies what will be built (an executable). The
+    \l{files} property specifies the input files (one C++ source file), and the
+    \l{Depends} item pulls in the logic from the \c cpp module
     about how to do the necessary transformations.
     For some often-used types of products, \QBS pre-defines special derived items that save
     users some typing. These are:
@@ -68,148 +68,208 @@
     Any property \c prop attached to this item is available in sub-items as \c product.prop, as
     well as in modules that are loaded from this product.
 
-    \section1 Product Properties
-
-    \table
-        \header
-            \li Property
-            \li Type
-            \li Default
-            \li Description
-        \row
-            \li builtByDefault
-            \li bool
-            \li true
-            \li If false, the product will only be built if this is explicitly requested,
-                either by listing the product name as an argument to \c --products or by giving
-                the \c build command the \c --all-products option.
-        \row
-            \li condition
-            \li bool
-            \li true
-            \li If false, the product will not be built.
-        \row
-            \li name
-            \li string
-            \li empty string
-            \li The name of the product. Used to identify the product in a \c Depends item, for
-                example. The value of this property must be a simple JavaScript expression that
-                does not depend on module properties or values that are non-local to this product.
-                \div {style="font-size:80%"}
-                \code
-                CppApplication {
-                    name: "hello" + "world"
-                    // valid
-                }
-                CppApplication {
-                    name: "app_" + qbs.targetOS.join("_")
-                    // invalid
-                }
-                \endcode
-                \enddiv
-                To change the name of your product's target artifact, modify \c{Product.targetName}
-                instead.
-        \row
-            \li type
-            \li stringList
-            \li empty list
-            \li The file tags matching the product's target artifacts.
-        \row
-            \li targetName
-            \li string
-            \li \c{name} with illegal file name characters replaced by underscores
-            \li The base file name of the product's target artifacts.
-        \row
-            \li destinationDirectory
-            \li string
-            \li product.buildDirectory
-            \li The directory where the target artifacts will be located. If a relative path is
-                given, the base directory will be \c project.buildDirectory.
-        \row
-            \li files
-            \li stringList
-            \li empty list
-            \li A list of source files. Syntactic sugar to save a \c Group item for simple products.
-                Relative paths are resolved using the parent directory of the project file
-                that sets the property.
-        \row
-            \li excludeFiles
-            \li stringList
-            \li empty list
-            \li A list of source files not to include. Useful with wildcards.
-                For more information, see \l {Group Item}.
-
-        \row
-            \li consoleApplication
-            \li bool
-            \li linker-dependent
-            \li If true, a console application is generated. If false, a GUI application is generated.
-                Only takes effect on Windows.
-                This property also influences the default application type on Apple platforms.
-                If true, an application bundle is generated. If false, a normal executable is
-                generated.
-        \row
-            \li qbsSearchPaths
-            \li stringList
-            \li project.qbsSearchPaths
-            \li See the documentation of the \l {Project Item} property of the same name.
-                The value set here will be merged with the one inherited from
-                the project.
-        \row
-            \li version
-            \li string
-            \li undefined
-            \li The version number of the product. Used in shared library filenames and generated
-                Info.plist files in Apple application and framework bundles, for example.
-    \endtable
+    \section1 Multiplexing Properties
 
     The following properties are relevant for product multiplexing only.
-    Unless multiplexing is desired, they can be left at their default values.
+    Unless multiplexing is desired, they can be left at their default values:
 
-    \note We do not promise backwards compatibility for multiplexing properties as they are likely
-    to change in future \QBS versions.
+    \list
+        \li \l{aggregate}
+        \li \l{multiplexedType}
+        \li \l{multiplexByQbsProperties}
+    \endlist
 
-    \table
-        \header
-            \li Property
-            \li Type
-            \li Default
-            \li Description
-        \row
-            \li aggregate
-            \li bool
-            \li \c{undefined}
-            \li If \c{true}, an aggregate product will be created that has dependencies on all
-                multiplex instances of this product.
-        \row
-            \li multiplexedType
-            \li stringList
-            \li \c{undefined}
-            \li Specifies the product type for the multiplexed product instances.
-        \row
-            \li multiplexByQbsProperties
-            \li stringList
-            \li \c{["profiles"]}
-            \li Specifies which properties of the qbs module will be used for product multiplexing.
-                Its value must be a subset of \c{["architectures", "buildVariants", "profiles"]}.
-    \endtable
+    \note We do not promise backwards compatibility for multiplexing properties
+    as they are likely to change in future \QBS versions.
 
-    The following properties are automatically set by \QBS and cannot be changed by the user:
+    \section1 Read-Only Properties
 
-    \table
-        \header
-            \li Property
-            \li Type
-            \li Description
-        \row
-            \li buildDirectory
-            \li path
-            \li The build directory for this product. This is the directory where generated files
-                are placed.
-        \row
-            \li sourceDirectory
-            \li path
-            \li The source directory for this product. This is the directory of the file where this
-                product is defined.
-    \endtable
+    The following properties are automatically set by \QBS and cannot be
+    changed by the user:
+
+    \list
+        \li \l{buildDirectory}
+        \li \l{sourceDirectory}
+    \endlist
+*/
+
+/*!
+    \qmlproperty bool Product::builtByDefault
+
+    Determines whether the product will be built.
+
+    If \c false, the product will only be built if this is explicitly requested,
+    either by listing the product name as an argument to \c --products or by
+    giving the \l{build} command the \c --all-products option.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty bool Product::condition
+
+    Determines whether the product will be built.
+
+    If \c false, the product will not be built.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty string Product::name
+
+    The name of the product. Used to identify the product in a \l{Depends} item, for
+    example. The value of this property must be a simple JavaScript expression that
+    does not depend on module properties or values that are non-local to this product.
+
+    \code
+    CppApplication {
+        name: "hello" + "world"
+        // valid
+    }
+    CppApplication {
+        name: "app_" + qbs.targetOS.join("_")
+        // invalid
+    }
+    \endcode
+
+    To change the name of your product's target artifact, modify \l{targetName}
+    instead.
+
+    \defaultvalue An empty string
+*/
+
+/*!
+    \qmlproperty stringList Product::type
+
+    The file tags matching the product's target artifacts.
+
+    \defaultvalue An empty list
+*/
+
+/*!
+    \qmlproperty string Product::targetName
+
+    The base file name of the product's target artifacts.
+
+    \defaultvalue The value of \l{name} with illegal file name characters
+    replaced by underscores.
+*/
+
+/*!
+    \qmlproperty string Product::destinationDirectory
+
+    The directory where the target artifacts will be located. If a relative path
+    is given, the base directory will be \l{Project::buildDirectory}
+    {project.buildDirectory}.
+
+    \defaultvalue \c{product.buildDirectory}
+*/
+
+/*!
+    \qmlproperty stringList Product::files
+
+    A list of source files. Syntactic sugar to save a \l{Group} item for simple
+    products.
+
+    Relative paths are resolved using the parent directory of the project file
+    that sets the property.
+
+    \defaultvalue An empty list
+*/
+
+/*!
+    \qmlproperty stringList Product::excludeFiles
+
+    A list of source files not to include. Useful with wildcards.
+    For more information, see \l{Group}.
+
+    \defaultvalue An empty list
+*/
+
+/*!
+    \qmlproperty bool Product::consoleApplication
+
+    On Windows, determines whether a console or GUI application is generated.
+
+    If \c true, a console application is generated. If \c false, a GUI
+    application is generated.
+
+    On Apple platforms, influences the default application type.
+
+    If \c true, an application bundle is generated. If \c false, a normal
+    executable is generated.
+
+    \defaultvalue Linker-dependent
+*/
+
+/*!
+    \qmlproperty stringList Product::qbsSearchPaths
+
+    project.qbsSearchPaths
+
+    The value set here will be merged with the value of
+    \l{Project::qbsSearchPaths}{project.qbsSearchPaths}.
+
+    \defaultvalue \l{Project::qbsSearchPaths}{project.qbsSearchPaths}
+*/
+
+/*!
+    \qmlproperty string Product::version
+
+    The version number of the product. Used in shared library filenames and generated
+    Info.plist files in Apple application and framework bundles, for example.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool Product::aggregate
+
+    If \c{true}, an aggregate product will be created that has dependencies on all
+    multiplex instances of this product.
+
+    \note If you do not want to do multiplexing, you can use the default value
+    \c{undefined}.
+*/
+
+/*!
+    \qmlproperty stringList Product::multiplexedType
+
+    Specifies the product type for the multiplexed product instances.
+
+    \note If you do not want to do multiplexing, you can use the default value
+    \c{undefined}.
+*/
+
+/*!
+    \qmlproperty stringList Product::multiplexByQbsProperties
+
+    Specifies which properties of the qbs module will be used for product multiplexing.
+    Its value must be a subset of \c{["architectures", "buildVariants", "profiles"]}.
+
+    \note If you do not want to do multiplexing, you can use the default value
+    \c{["profiles"]}.
+*/
+
+/*!
+    \qmlproperty path Product::buildDirectory
+    \readonly
+
+    The build directory for this product. This is the directory where generated
+    files are placed.
+
+    The value of this property is automatically set by \QBS and cannot be
+    changed by the user.
+*/
+
+/*!
+    \qmlproperty path Product::sourceDirectory
+    \readonly
+
+    The source directory for this product. This is the directory of the file
+    where this product is defined.
+
+    The value of this property is automatically set by \QBS and cannot be
+    changed by the user.
 */

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,17 +26,16 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-language-items.html
-    \previouspage profile-item.html
-    \page project-item.html
-    \nextpage properties-item.html
-    \ingroup list-of-language-items
+    \previouspage Profile
+    \nextpage Properties
+    \qmltype Project
+    \inqmlmodule QbsLanguageItems
     \ingroup list-of-items
     \keyword QML.Project
 
-    \title Project Item
     \brief Represents a collection of products and properties.
 
-    A \c Project item represents a collection of of products. In a
+    A Project item represents a collection of of products. In a
     non-trivial project, these products are typically defined in their own files and
     referenced in the main project file:
     \code
@@ -49,66 +48,79 @@
     \endcode
     Any property \c prop attached to this item is available in sub-items as \c project.prop.
 
-    While the root of the item hierarchy is always a \c Project, this kind of item can also
-    appear further down the hierarchy. Such sub-projects are ususally introduced to group products.
-    See the \l{SubProject Item} for details.
+    While the root of the item hierarchy is always a Project, this kind of item
+    can also appear further down the hierarchy. Such sub-projects are usually
+    introduced to group products. See \l{SubProject} for details.
 
-    \note If your project consists of only one product, the \c Project item can be omitted.
+    \note If your project consists of only one product, the Project item can be
+    omitted.
+*/
 
-    \section1 Project Properties
+/*!
+    \qmlproperty path Project::buildDirectory
+    \readonly
 
-    \table
-        \header
-            \li Property
-            \li Type
-            \li Default
-            \li Description
-        \row
-            \li buildDirectory
-            \li path
-            \li n/a
-            \li The build directory of the top-level project. This property is read-only.
-        \row
-            \li name
-            \li string
-            \li basename of the file the project is defined in
-            \li The project name. Only relevant for e.g. displaying a project tree in an IDE.
-        \row
-            \li profile
-            \li string
-            \li n/a
-            \li The top-level profile for building the project. This property is read-only and
-                is set by \QBS when the project is being set up.
-        \row
-            \li condition
-            \li bool
-            \li true
-            \li Whether the project is enabled. If false, no products or sub-projects will be
-                collected.
-        \row
-            \li qbsSearchPaths
-            \li stringList
-            \li empty
-            \li These paths are searched for imports and modules in addition to the ones listed
-                in \c{preferences.qbsSearchPaths}. The value set here is merged with the value
-                inherited from the parent project, if there is one. The result is inherited by
-                all products in the project.
-        \row
-            \li references
-            \li path list
-            \li empty
-            \li A list of files from which to import products. This is equivalent to defining
-                the respective \c Product items directly under this \c Project item.
-        \row
-            \li sourceDirectory
-            \li path
-            \li n/a
-            \li The directory where the file containing the top-level \c Project item is located.
-                This property is read-only.
-        \row
-            \li minimumQbsVersion
-            \li string
-            \li "1.3.0"
-            \li The minimum version of qbs that is needed to build this project.
-    \endtable
+    The build directory of the top-level project.
+*/
+
+/*!
+    \qmlproperty string Project::name
+
+    The project name. Only relevant when displaying a project tree in an IDE,
+    for example.
+
+    \defaultvalue The basename of the file that defines the project.
+*/
+
+/*!
+    \qmlproperty string Project::profile
+    \readonly
+
+    The top-level \l{Profile}{profile} for building the project. This property
+    is set by \QBS when the project is being set up.
+*/
+
+/*!
+    \qmlproperty bool Project::condition
+
+    Whether the project is enabled. If \c false, no \l{Product}{products} or
+    sub-projects will be collected.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty stringList Project::qbsSearchPaths
+
+    A list of paths that are searched for imports and modules in addition to the ones listed
+    in \c{preferences.qbsSearchPaths}. The value set here is merged with the value
+    inherited from the parent project, if there is one. The result is inherited by
+    all products in the project.
+
+    \defaultvalue An empty list
+*/
+
+/*!
+    \qmlproperty pathList Project::references
+
+    A list of files from which to import products. This is equivalent to defining
+    the respective \l{Product} items directly under this Project item.
+
+    \defaultvalue An empty list
+*/
+
+/*!
+    \qmlproperty path Project::sourceDirectory
+    \readonly
+
+    The directory where the file containing the top-level Project item is
+    located.
+*/
+
+/*!
+    \qmlproperty string Project::minimumQbsVersion
+
+    The minimum version of \QBS that is needed to build this project.
+
+    \defaultvalue \c "1.3.0"
 */

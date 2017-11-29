@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,21 +26,23 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-language-items.html
-    \page artifact-item.html
-    \nextpage depends-item.html
+    \nextpage Depends
     \ingroup list-of-language-items
+    \qmltype Artifact
+    \inqmlmodule QbsLanguageItems
     \ingroup list-of-items
     \keyword QML.Artifact
 
-    \title Artifact Item
-    \brief Describes a file produced by a \c Rule.
+    \brief Describes a file produced by a Rule.
 
-    An \c Artifact represents a single file produced by a \l{Rule Item}{Rule}.
+    An Artifact represents a single file produced by a \l{Rule}.
 
-    For example, if a rule produces three files, it needs to contain three Artifact items.
+    For example, if a rule produces three files, it needs to contain three
+    Artifact items.
 
-    In addition to the properties listed in the section below, you can also set module properties
-    within an \c Artifact item:
+    In addition to Artifact properties, you can set module properties within an
+    Artifact item, as follows:
+
     \code
     Artifact {
         filePath: "somefile.cpp"
@@ -50,36 +52,36 @@
     }
     \endcode
 
-    \section1 Artifact Properties
+    \note The code on the right-hand side of Artifact properties has access to
+    the set of input artifacts. That is, it can refer to the \c inputs map and,
+    if the rule is not a multiplex rule, the \c input variable.
+*/
 
-    \note The code on the right-hand side of these properties has access to the set of input
-    artifacts, that is, it can refer to the \c inputs map and, if the rule is not a multiplex rule,
-    the \c input variable.
+/*!
+    \qmlproperty bool Artifact::alwaysUpdated
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li alwaysUpdated
-        \li bool
-        \li true
-        \li Setting this to \c false means the file is not necessarily always written to by any
-            command run by the rule. The timestamps of such artifacts are therefore not checked to
-            find out whether they are up to date. Consequently, if all artifacts of a rule have this
-            property set to \c false, the commands of the rule are always executed.
-    \row
-        \li filePath
-        \li string
-        \li undefined
-        \li The file path of the target artifact.
-    \row
-        \li fileTags
-        \li list
-        \li empty list
-        \li The tags to attach to the target file. These can then be matched by a rule.
-    \endtable
+    Setting this property to \c false means the file is not necessarily always
+    written to by any command run by the rule. The timestamps of such artifacts
+    are therefore not checked to find out whether they are up to date.
+    Consequently, if all artifacts of a rule have this property set to \c false,
+    the commands of the rule are always executed.
 
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty string Artifact::filePath
+
+    The file path of the target artifact.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList Artifact::fileTags
+
+    A list of tags to attach to the target file. These can then be matched by a
+    \l{Rule}.
+
+    \defaultvalue An empty list
 */

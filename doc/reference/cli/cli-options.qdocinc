@@ -31,7 +31,7 @@
 
     \section2 \c --all-products
 
-    Processes all \l{Product Item}{products}, even if their \c builtByDefault
+    Processes all \l{Product}{products}, even if their \c builtByDefault
     property is \c false.
 
 //! [all-products]
@@ -82,10 +82,10 @@
 
     \section2 \c --check-outputs
 
-    Forces transformer output \l{Artifact Item}{artifact} checks.
+    Forces transformer output \l{Artifact}{artifact} checks.
 
-    Verifies that the output artifacts declared by \l{Rule Item}{rules} in the
-    \l{Project Item}{project} are actually created.
+    Verifies that the output artifacts declared by \l{Rule}{rules} in the
+    \l{Project}{project} are actually created.
 
 //! [check-outputs]
 
@@ -185,7 +185,7 @@
 
     \section2 \c --force-probe-execution
 
-    Forces re-execution of all \l{Probe Item}{Probe items}' configure scripts,
+    Forces re-execution of all \l{Probe} items' configure scripts,
     rather than using the cached data.
 
 //! [force-probe-execution]
@@ -278,7 +278,7 @@
     Possible values are:
 
     \list
-        \li \c defaultProfile is the default \l{Profile Item}{profile} to use
+        \li \c defaultProfile is the default \l{Profile}{profile} to use
             if a profile is not specified
         \li \c preferences accepts build preferences as second-level keys
         \li \c profiles accepts profile names as second-level keys
@@ -357,7 +357,7 @@
 
     \section2 \c {--products|-p <name>[,<name>...]}
 
-    Takes only the \l{Product Item}{products} specified by \c <name> and their
+    Takes only the \l{Product}{products} specified by \c <name> and their
     dependencies into account.
 
 //! [products-specified]
@@ -382,7 +382,7 @@
 
     \section2 \c {--settings-dir <directory>}
 
-    Reads all settings (such as \l{Profile Item}{profile} information) from the
+    Reads all settings (such as \l{Profile}{profile} information) from the
     specified \c <directory>. If the directory does not exist, it will be
     created.
 
@@ -400,8 +400,8 @@
 
     \section2 \c --setup-run-env-config
 
-    A comma-separated list of strings. They will show up in the \c config parameter
-    of all \c setupRunEnvironment scripts. See the \l{Module Item}{Module item} for details.
+    A comma-separated list of strings. They will show up in the \c config
+    parameter of all \l{Module::}{setupRunEnvironment} scripts.
 
 //! [setup-run-env-config]
 

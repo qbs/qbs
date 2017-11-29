@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,16 +26,15 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-language-items.html
-    \previouspage scanner-item.html
-    \page subproject-item.html
-    \ingroup list-of-language-items
+    \previouspage Scanner
+    \qmltype SubProject
+    \inqmlmodule QbsLanguageItems
     \ingroup list-of-items
     \keyword QML.SubProject
 
-    \title SubProject Item
     \brief Adds a project from a different file.
 
-    A \c SubProject item is used to add a project defined in another file as a sub-project to
+    A SubProject item is used to add a project defined in another file as a sub-project to
     the surrounding project:
     \code
     SubProject {
@@ -52,27 +51,24 @@
     references: "subdir/project.qbs"
     \endcode
 
-    It is also possible to nest \c Project items directly in the same file.
+    It is also possible to nest \l{Project} items directly in the same file.
+*/
 
-    \section1 SubProject Properties
+/*!
+    \qmlproperty path SubProject::filePath
 
-    \table
-        \header
-            \li Property
-            \li Type
-            \li Default
-            \li Description
-        \row
-            \li filePath
-            \li path
-            \li empty
-            \li The file path of the project to add as a sub-project. If the top-level item in this
-                file is a \c Product, it gets wrapped automatically in a new project.
-        \row
-            \li inheritProperties
-            \li bool
-            \li true
-            \li Whether the sub-project should inherit the properties of the surrounding project.
-                You can use this feature to share "global" settings between (sub-)projects.
-    \endtable
+    The file path of the project to add as a sub-project. If the top-level item
+    in this file is a \l{Product}, it gets wrapped automatically in a new project.
+
+    \defaultvalue empty
+*/
+
+/*!
+    \qmlproperty bool SubProject::inheritProperties
+
+    Determines whether the sub-project should inherit the properties of the
+    surrounding \l{Project}. You can use this feature to share global
+    settings between projects and sub-projects.
+
+    \defaultvalue \c true
 */

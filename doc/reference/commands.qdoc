@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -45,7 +45,7 @@
     \code
         var insaneCommand = new Command("rm", ["-r", "/"]);
     \endcode
-    The \l{Rule Item} documentation shows a \c Command in context.
+    The \l{Rule} item documentation shows a \c Command in context.
 
     \section1 JavaScriptCommand
 
@@ -65,7 +65,7 @@
     \c outputs are available. As the example shows, arbitrary properties can be set on the command
     object and then used within the source code. This technique is typically used to forward values
     from the prepare script to the command.
-    The \l{Rule Item} documentation shows a \c JavaScriptCommand in context.
+    The \l{Rule} item documentation shows a \c JavaScriptCommand in context.
 
     \section1 Properties
 

@@ -68,7 +68,7 @@
     \section1 How do I make my app build against my library?
 
     This is achieved by introducing a \e dependency between the two products using the
-    \l{Depends Item}{Depends item}. Here is a simple, but complete example:
+    \l{Depends} item. Here is a simple, but complete example:
     \code
     import qbs
     Project {
@@ -93,16 +93,16 @@
     \endcode
 
     The product \c the-lib is a dynamic library. It expects other products to build against it, and
-    for that purpose, it exports an include path (via an \l{Export Item}{Export item}), so that the
+    for that purpose, it exports an include path (via an \l{Export} item), so that the
     source files in these products can include the library's header file.
 
     The product \c the-app is an application that expresses its intent to link against \c the-lib
     by declaring a dependency on it. Now \c main.cpp can include \c lib.h (because of the exported
     include path) and the application binary will link against the library (because the linker
-    \l{Rule Item}{rule} in the \l{Module cpp}{cpp module} considers library dependencies as inputs).
+    \l{Rule}{rule} in the \l{Module cpp}{cpp module} considers library dependencies as inputs).
     \note In a non-trivial project, the two products would not be defined in the same file.
           Instead, you would put them into files of their own and use the
-          \l{Project Item}{Project item}'s \c references property to pull them into the project.
+          \l{Project::references}{project.references} property to pull them into the project.
           The product definitions would stay exactly the same. In particular, their location
           in the project tree is irrelevant to the relationship between them.
 
@@ -212,12 +212,12 @@
 
     \section1 How do I apply C/C++ preprocessor macros to only a subset of the files in my product?
 
-    Use a \l{Group Item}{Group item} to define a subset of project files. To add
+    Use a \l{Group} item to define a subset of project files. To add
     macros within the group, you need to use the \c outer.concat property,
     because you are adding macros to those specified in the outer scope.
 
     In the following example, \c MACRO_EVERYWHERE is defined for all files in
-    the \l{Product Item}{Product} unless a \c Group overrides the macro, whereas
+    the \l{Product} unless a Group overrides the macro, whereas
     \c MACRO_GROUP is only defined for \c groupFile.cpp.
 
     \code
@@ -234,7 +234,7 @@
     The \c cpp.defines statements inside a \c Group only apply to the files in
     that \c Group, and therefore you cannot use a \c Group to include a bunch of
     files and globally visible macros. The macros must be specified in a
-    \l{Properties Item}{Properties item} at the same level as the \c Group if
+    \l{Properties} item at the same level as the \c Group if
     they need to be visible to files outside the \c Group:
 
     \code

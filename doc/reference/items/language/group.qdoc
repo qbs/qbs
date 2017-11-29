@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -27,17 +27,18 @@
 
 /*!
     \contentspage list-of-language-items.html
-    \previouspage filetagger-item.html
-    \page group-item.html
-    \nextpage module-item.html
-    \ingroup list-of-language-items
+    \previouspage FileTagger
+    \nextpage Module
+    \qmltype Group
+    \inqmlmodule QbsLanguageItems
     \ingroup list-of-items
     \keyword QML.Group
 
-    \title Group Item
     \brief Groups files in a product.
 
-    This item is attached to a product and used to group files that have something in common.
+    This item is attached to a \l{Product}{product} and used to group files that
+    have something in common.
+
     For example:
 
     \code
@@ -94,85 +95,112 @@
     }
     \endcode
 
-    Groups may also appear in modules, which causes the respective sources to be added to the
-    products depending on said module (except if the \c filesAreTargets property is set, see below).
-    Groups can be nested. In this case, child groups inherit the module properties and file
-    tags as well as the prefix of their parent group. The condition of a child group gets logically
+    Groups may also appear in \l{Module}{modules}, which causes the respective
+    sources to be added to the products depending on the said module, unless
+    the \l{filesAreTargets} property is set.
+
+    Groups can be nested. In this case, child groups inherit the module
+    properties and \l{FileTagger}{file tags} as well as the prefix of their
+    parent group. The \l{condition} of a child group gets logically
     ANDed with the one of its parent group.
+*/
 
-    \section1 Group Properties
+/*!
+    \qmlproperty string Group::name
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li name
-        \li string
-        \li "Group x", where x is a unique number among all the groups in the product
-        \li The name of the group. Not used internally; mainly useful for IDEs.
-    \row
-        \li files
-        \li list
-        \li empty list
-        \li The files in the group. Mutually exclusive with fileTagsFilter.
-            Relative paths are resolved using the parent directory of the file
-            that contains the \c Group item. However, if the \c prefix property is set to an
-            absolute path, then that one becomes the base directory.
-    \row
-        \li filesAreTargets
-        \li bool
-        \li false
-        \li If this property is \c true and the group is in a module, then the files in the
-            group will not become source artifacts of the product that depends on the module.
-            Instead, they are treated like target artifacts of products, that is, they will be
-            matched against the \c inputsFromDependencies file tag list of \l{Rule Item}{rules}
-            in products that depend on the module.
-    \row
-        \li prefix
-        \li string
-        \li prefix of the parent group if one exists, otherwise empty
-        \li A string to prepend to all files. Slashes are allowed and have directory semantics.
-    \row
-        \li fileTagsFilter
-        \li list
-        \li empty list
-        \li Artifact file tags to match. Any properties set in this group will be applied
-            to the product's artifacts whose file tags intersect with the ones
-            listed here.
+    The name of the group. Not used internally; mainly useful for IDEs.
 
-            The file tags that the group's \c{fileTags} property specifies will
-            be added to the matching artifacts.
+    \defaultvalue "Group x", where x is a unique number among all the
+    groups in the product.
+*/
 
-            This property is mutually exclusive with \c{files}.
-    \row
-        \li condition
-        \li bool
-        \li true
-        \li Determines whether the files in the group are actually considered part of the project.
-    \row
-        \li fileTags
-        \li list
-        \li empty list
-        \li Tags to attach to the group's files. These can then be matched by a rule.
-            Note that file taggers are never applied to a file that has this property set.
-    \row
-        \li overrideTags
-        \li bool
-        \li true
-        \li Determines how tags on files that are listed both at the top level of
-            a product (or the parent group, if there is one) and a group are handled.
-            If this property is true, then the file tags set via the group
-            replace the ones set via the product or parent group.
-            If it is false, the "group tags" are added to the "parent tags".
+/*!
+    \qmlproperty list Group::files
 
-            This property is ignored if \c{fileTagsFilter} is set.
-    \row
-        \li excludeFiles
-        \li list
-        \li empty list
-        \li For use with wildcards; the files in this list are "subtracted" from the files list.
-    \endtable
+    The files in the group. Mutually exclusive with \l{fileTagsFilter}.
+    Relative paths are resolved using the parent directory of the file
+    that contains the Group item. However, if the \l{prefix} property is set to
+    an absolute path, then that one becomes the base directory.
+
+    \defaultvalue An empty list
+*/
+
+/*!
+    \qmlproperty bool Group::filesAreTargets
+
+    If this property is \c true and the group is in a \l{Module}, the files in the
+    group will not become source artifacts of the product that depends on the module.
+    Instead, they are treated like target artifacts of products. That is, they will be
+    matched against the \l{Rule::inputsFromDependencies}{inputsFromDependencies}
+    file tag list of \l{Rule}{rules} in products that depend on the module.
+
+    \defaultvalue \c false
+*/
+
+/*!
+    \qmlproperty string Group::prefix
+
+    A string to prepend to all files. Slashes are allowed and have directory
+    semantics.
+
+    \defaultvalue The prefix of the parent group if one exists, otherwise empty.
+*/
+
+/*!
+    \qmlproperty list Group::fileTagsFilter
+
+    List of \l{Artifact::fileTags}{artifact.fileTags} to match. Any properties
+    set in this group will be applied to the product's artifacts whose file tags
+    match the ones listed here.
+
+    The file tags that the group's \l{fileTags} property specifies will
+    be added to the matching artifacts.
+
+    This property is mutually exclusive with \l{files}.
+
+    \defaultvalue An empty list
+*/
+
+/*!
+    \qmlproperty bool Group::condition
+
+    Determines whether the files in the group are actually considered part of
+    the project.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty list Group::fileTags
+
+    A list of file tags to attach to the group's files. These can then be
+    matched by a \l{Rule}{rule}.
+
+    \note \l{FileTagger}{File taggers} are never applied to a file that has this
+    property set.
+
+    \defaultvalue An empty list
+*/
+
+/*!
+    \qmlproperty bool Group::overrideTags
+
+    Determines how tags on files that are listed both at the top level of
+    a product (or the parent group, if there is one) and a group are handled.
+    If this property is \c true, then the \l{FileTagger}{file tags} set via the
+    group replace the ones set via the product or parent group.
+    If it is \c false, the \e {group tags} are added to the \e {parent tags}.
+
+    This property is ignored if \l{fileTagsFilter} is set.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty list Group::excludeFiles
+
+    A list of files that are \e subtracted from the files list. Useful when
+    using wildcards.
+
+    \defaultvalue An empty list
 */

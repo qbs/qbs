@@ -41,8 +41,8 @@
 
     \section1 Description
 
-    Updates the timestamps of all build \l{Artifact Item}{artifacts}, causing
-    the next builds of the \l{Project Item}{project} to do nothing until source
+    Updates the timestamps of all build \l{Artifact}{artifacts}, causing
+    the next builds of the \l{Project}{project} to do nothing until source
     files are updated again.
 
     This command is useful if you know that the current changes to source files

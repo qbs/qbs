@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,17 +26,16 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-language-items.html
-    \previouspage parameters-item.html
-    \page probe-item.html
-    \nextpage product-item.html
-    \ingroup list-of-language-items
+    \previouspage Parameters
+    \nextpage Product
+    \qmltype Probe
+    \inqmlmodule QbsLanguageItems
     \ingroup list-of-items
     \keyword QML.Probe
 
-    \title Probe Item
     \brief Locates files outside the project.
 
-    \c Probe items can appear inside \l{Product Item}{products} and \l{Project Item}{projects}.
+    Probe items can appear inside \l{Product} and \l{Project} items.
     They are run prior to building, for instance to locate dependent headers, libraries, and other
     files outside the project directory whose locations are not known ahead of time.
     Probes can be parameterized via their properties and typically store results in
@@ -58,31 +57,28 @@
 
     \note Because Probes often invoke external processes, which is relatively expensive compared
           to evaluating normal properties, their results are cached. To force re-evaluation
-          of a Probe, you can supply the \c{--force-probe-execution} command-line option.
+          of a Probe, you can supply the \c{--force-probe-execution} command-line option
+          to the \l{build} command.
+*/
 
-    \section1 Probe Properties
+/*!
+    \qmlproperty bool Probe::condition
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li condition
-        \li bool
-        \li true
-        \li Determines whether the probe will actually be run.
-    \row
-        \li found
-        \li bool
-        \li undefined
-        \li Indicates whether the probe was run successfully. Set by \c configure.
-    \row
-        \li configure
-        \li script
-        \li undefined
-        \li Script that is executed when the probe is run.
-    \endtable
+    Determines whether the probe will actually be run.
 
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty bool Probe::found
+
+    Indicates whether the probe was run successfully. Set by \l{configure}.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty script Probe::configure
+
+    A script that is executed when the probe is run.
 */

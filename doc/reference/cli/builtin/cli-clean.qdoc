@@ -41,7 +41,7 @@
 
     \section1 Description
 
-    Removes build \l{Artifact Item}{artifacts} for the specified build
+    Removes build \l{Artifact}{artifacts} for the specified build
     configuration.
 
     \section1 Options

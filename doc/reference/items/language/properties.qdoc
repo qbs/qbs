@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,20 +26,20 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-language-items.html
-    \previouspage project-item.html
-    \page properties-item.html
-    \nextpage propertyoptions-item.html
-    \ingroup list-of-language-items
+    \previouspage Project
+    \nextpage PropertyOptions
+    \qmltype Properties
+    \inqmlmodule QbsLanguageItems
     \ingroup list-of-items
     \keyword QML.Properties
 
-    \title Properties Item
     \brief Provides conditional setting of properties.
 
-    \note This documents the \c Properties item in the context of products. Usage within
-    a \c SubProject item is described \l{SubProject Item}{here}.
+    \note This topic documents the Properties item in the context of \l{Product}
+    {products}. For more information about using it in sub-projects, see
+    \l{SubProject}.
 
-    The \c Properties item is an auxiliary item for setting multiple property values conditionally.
+    The Properties item is an auxiliary item for setting multiple property values conditionally.
 
     In the following example, two properties are set if the project is built for Windows:
     \code
@@ -52,7 +52,7 @@
     }
     \endcode
 
-    Multiple \c Properties items can be specified to set properties dependent on different
+    Multiple Properties items can be specified to set properties dependent on different
     conditions. The order of appearance is important. Semantics are similar to if-else-chains.
     The following example
     \code
@@ -90,7 +90,8 @@
     }
     \endcode
 
-    In \c Properties items one can access the \l{Module Item#outer}{outer value} of a property.
+    In Properties items, one can access the \l{Module#outer}{outer value} of a
+    property.
     \code
     Product {
         Properties {
@@ -105,29 +106,25 @@
     }
     \endcode
 
-    We suggest to use the \c Properties item for mutually exclusive conditions only. It is
+    We suggest to use the Properties item for mutually exclusive conditions only. It is
     especially useful if there are several properties to set, based on the same condition.
+*/
 
-    \section1 List of Properties
+/*!
+    \qmlproperty bool Properties::condition
 
-    \table
-        \header
-            \li Property
-            \li Type
-            \li Default
-            \li Description
-        \row
-            \li condition
-            \li bool
-            \li none - must be specified
-            \li The condition to be used for the other bindings in this item.
-        \row
-            \li overrideListProperties
-            \li bool
-            \li \c false
-            \li List properties set within this item will override the values coming from
-                modules, rather than getting merged with them, which is the default behavior.
-                Use this in the rare case that a module you depend on inserts a value into
-                a list property that is problematic for some product.
-    \endtable
+    The condition to be used for the other bindings in this item.
+
+    This is a mandatory property that has no default value.
+*/
+
+/*!
+    \qmlproperty bool Properties::overrideListProperties
+
+    List properties set within this item will override the values coming from
+    modules, rather than getting merged with them, which is the default behavior.
+    Use this in the rare case that a module you depend on inserts a value into
+    a list property that is problematic for some product.
+
+    \defaultvalue \c false
 */

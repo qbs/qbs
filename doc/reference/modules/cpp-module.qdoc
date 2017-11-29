@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -80,14 +80,14 @@
         \li \c{bool}
         \li 1.8
         \li \c{false}
-        \li Enabling this property on a product instructs the \l{FileTagger Item}{file tagger}
+        \li Enabling this property on a product instructs the \l{FileTagger}{file tagger}
             to attach the tag \c{"c.combine"} to C sources, rather than \c{"c"}.
             As a result, all C sources of the product will be combined into a single file which
             is then compiled. This can speed up initial compilation significantly, but is
             of course detrimental in the context of incremental builds. Also, perfectly legal code
             may fail to compile with this option due to the merging of translation units.
             If you want to enable this property in a product that has some sources which
-            cannot be merged, you need to put these into a dedicated \l{Group Item}{group} and
+            cannot be merged, you need to put these into a dedicated \l{Group}{group} and
             set their file tag to \c{"c"}, overriding the file tagger.
             \note Module properties set on specific source files (that is, at the Group level)
                   will not be taken into account when building the combined file. You either need

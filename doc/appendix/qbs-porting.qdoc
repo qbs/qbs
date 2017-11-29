@@ -56,7 +56,8 @@
 
     \section3 console
 
-    Set the \l{Product Item}{consoleApplication} property to \c true for the
+    Set the \l{Product::consoleApplication}{product.consoleApplication} property
+    to \c true for the
     \l{Application Item}{Application}, \l{CppApplication Item}{CppApplication},
     or \l{QtApplication Item}{QtApplication} item. For example:
 
@@ -73,8 +74,8 @@
 
     This qmake variable has no direct equivalent in \QBS. Instead, the build
     order is determined by implicit and explicit dependencies between products.
-    To add an explicit dependency, add a \l{Depends Item}{Depends item} to a
-    \l{Product Item}{product}:
+    To add an explicit dependency, add a \l{Depends} item to a
+    \l{Product}{product}:
 
     \code
     CppApplication {
@@ -89,8 +90,8 @@
     \section3 qt
 
     In qmake, the Qt dependency is implicit, whereas in \QBS it is not.
-    If \c {CONFIG -= qt}, add a \l{Depends Item}{Depends item} to specify that
-    the \l{Product Item}{product} depends on the \l{Module cpp}{cpp module}:
+    If \c {CONFIG -= qt}, add a \l{Depends} item to specify that
+    the \l{Product}{product} depends on the \l{Module cpp}{cpp module}:
 
     \code
     Product {
@@ -100,7 +101,7 @@
 
     \section2 DEFINES
 
-    Set the \l{Module cpp}{cpp.defines} property for the \l{Product Item}{product}.
+    Set the \l{Module cpp}{cpp.defines} property for the \l{Product}{product}.
 
     \note To reference \c cpp.defines, you must specify a dependency on the
     \l{Module cpp}{cpp} module.
@@ -145,8 +146,8 @@
 
     \section2 HEADERS, SOURCES, FORMS, RESOURCES
 
-    Include header, source, form, and resource files as values of the \c files
-    property of the \l{Product Item}{product}:
+    Include header, source, form, and resource files as values of
+    \l{Product::files}{product.files} property:
 
     \code
     QtApplication {
@@ -155,14 +156,14 @@
     }
     \endcode
 
-    \QBS uses \l{FileTagger Item}{file taggers} to figure out what kind of file
+    \QBS uses \l{FileTagger}{file taggers} to figure out what kind of file
     it is dealing with.
 
     \section2 ICON
 
-    There is no direct equivalent in \QBS. If you add a \l{Depends Item}
+    There is no direct equivalent in \QBS. If you add a \l{Depends}
     {dependency} to the \l{Module ib}{ib module} and add the \c .xcassets
-    directory as a value of the \c files property of the \l{Product Item}
+    directory as a value of the \c files property of the \l{Product}
     {product}, \QBS takes care of setting the application icon automatically
     when building for Apple platforms:
 
@@ -200,8 +201,7 @@
 
     \section2 LIBS
 
-    For libraries that are part of the project, use \l{Depends Item}
-    {Depends items}.
+    For libraries that are part of the project, use \l{Depends} items.
 
     To pull in external libraries, use the \l{Module cpp}{cpp.libraryPaths}
     property for the Unix \c -L (library path) flags and the
@@ -219,7 +219,7 @@
 
     \section2 OUT_PWD
 
-    Use the \c product.buildDirectory property of the \l{Product Item}{product}
+    Use the \c product.buildDirectory property of the \l{Product}{product}
     to refer to the base output directory of the generated artifacts.
 
     \section2 PWD
@@ -229,18 +229,18 @@
     \section2 _PRO_FILE_
 
     Corresponds to the file-scope variable \c filePath when used in a
-    \l{Project Item}{project} or \l{Product Item}{product}.
+    \l{Project}{project} or \l{Product}{product}.
 
     \section2 _PRO_FILE_PWD_
 
     Corresponds to the \c sourceDirectory property of a
-    \l{Project Item}{project} or \l{Product Item}{product}.
+    \l{Project}{project} or \l{Product}{product}.
 
     \section2 QMAKE_ASSET_CATALOGS
 
-    Add a \l{Depends Item}{dependency} to the \l{Module ib}{ib module} and add
+    Add a \l{Depends}{dependency} to the \l{Module ib}{ib module} and add
     the \c .xcassets directory as a value of the \c files property of the
-    \l{Product Item}{product}:
+    \l{Product}{product}:
 
     \code
     Application {
@@ -289,7 +289,7 @@
                 \c cpp.objcxxCompilerFlags
     \endtable
 
-    Use \l{Properties Item}{Properties items} or simple conditionals as values
+    Use \l{Properties} items or simple conditionals as values
     of the \l{Module qbs}{qbs.buildVariant} property to simulate the \c _DEBUG
      and\c _RELEASE variants of the qmake variables.
 
@@ -307,7 +307,7 @@
     \section2 QMAKE_INFO_PLIST
 
     Include the \c info.plist file as a value of the \c files property of the
-    \l{Product Item}{product} and specify a dependency to the \l{Module bundle}
+    \l{Product}{product} and specify a dependency to the \l{Module bundle}
     {bundle} module:
 
     \code
@@ -344,7 +344,7 @@
 
     \section2 QMAKE_LFLAGS
 
-    Set the \l{Module cpp}{cpp.linkerFlags} property for the \l{Product Item}
+    Set the \l{Module cpp}{cpp.linkerFlags} property for the \l{Product}
     {product}.
 
     \section2 QMAKE_{MACOSX,IOS,TVOS,WATCHOS}_DEPLOYMENT_TARGET
@@ -372,17 +372,16 @@
 
     \section2 QMAKE_RPATHDIR
 
-    Set the \l{Module cpp}{cpp.rpaths} property for the \l{Product Item}
-    {product}.
+    Set the \l{Module cpp}{cpp.rpaths} property for the \l{Product}{product}.
 
     \section2 QMAKE_SONAME_PREFIX
 
-    Use the \l{Module cpp}{cpp.sonamePrefix} property for the \l{Product Item}
+    Use the \l{Module cpp}{cpp.sonamePrefix} property for the \l{Product}
     {product}.
 
     \section2 QML_IMPORT_PATH
 
-    Used only for Qt Creator QML syntax highlighting. Inside a \l{Product Item}
+    Used only for Qt Creator QML syntax highlighting. Inside a \l{Product}
     {Product}, \l{Application Item}{Application}, \l{CppApplication Item}
     {CppApplication}, or \l{QtApplication Item}{QtApplication}, create a
     \c qmlImportPaths property:
@@ -396,7 +395,7 @@
 
     \section2 QT
 
-    Add a \l{Depends Item}{Depends item} to the \l{Product Item}{product} that
+    Add a \l{Depends} item to the \l{Product}{product} that
     specifies the dependencies to \l{Qt Modules}{Qt modules}. For example:
 
     \code
@@ -431,19 +430,19 @@
     \section2 RC_FILE
 
     Add Windows resource files to the value of the \c files property for the
-    \l{Product Item}{product}.
+    \l{Product}{product}.
 
     \section2 TARGET
 
     Use the \c targetName property to specify the base file name of target
-    artifacts of the \l{Product Item}{product}.
+    artifacts of the \l{Product}{product}.
 
     \section2 TEMPLATE
 
     \section3 app
 
     Use \l{Application Item}{Application} or \l{CppApplication Item}
-    {CppApplication} as the \l{Product Item}{product}:
+    {CppApplication} as the \l{Product}{product}:
 
     \code
     CppApplication {
@@ -466,7 +465,7 @@
     \section3 lib
 
     Use either \l{DynamicLibrary Item}{DynamicLibrary} or \l{StaticLibrary Item}
-    {StaticLibrary} as the \l{Product Item}{product}, depending on whether the
+    {StaticLibrary} as the \l{Product}{product}, depending on whether the
     value of \c CONFIG in the .pro file is \c shared or \c static. For example,
     if the value is \c shared:
 
@@ -480,7 +479,7 @@
 
     \section3 subdirs
 
-    In a \l{Project Item}{Project item}, specify subdirectories as values of the
+    In a \l{Project} item, specify subdirectories as values of the
     \c references property:
 
     \code
