@@ -796,10 +796,8 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         productItem->removeProperty(qbsKey);
     productItem->removeModules();
 
-    if (multiplexInfo.table.size() > 1) {
-        const VariantValuePtr trueValue = VariantValue::create(true);
-        productItem->setProperty(StringConstants::multiplexedProperty(), trueValue);
-    }
+    if (multiplexInfo.table.size() > 1)
+        productItem->setProperty(StringConstants::multiplexedProperty(), VariantValue::trueValue());
 
     VariantValuePtr productNameValue = VariantValue::create(productName);
 
@@ -1902,7 +1900,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                 }
                 replacement->setPropertyDeclaration(propName, decl);
                 replacement->setProperty(propName, v);
-                replacement->setProperty(caseA, VariantValue::create(QVariant()));
+                replacement->setProperty(caseA, VariantValue::invalidValue());
             }  else if (v->definingItem()->type() == ItemType::Module) {
                 // Case b)
                 // For values whose defining item is the module prototype, we change the scope to
@@ -3279,7 +3277,7 @@ Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &r
         module->setFile(FileContext::create());
         module->setProperty(StringConstants::nameProperty(), VariantValue::create(name));
     }
-    module->setProperty(StringConstants::presentProperty(), VariantValue::create(false));
+    module->setProperty(StringConstants::presentProperty(), VariantValue::falseValue());
     return module;
 }
 

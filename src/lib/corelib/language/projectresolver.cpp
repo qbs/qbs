@@ -479,7 +479,7 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
         fakeGroup->setProperty(StringConstants::excludeFilesProperty(),
                                item->property(StringConstants::excludeFilesProperty()));
         fakeGroup->setProperty(StringConstants::overrideTagsProperty(),
-                               VariantValue::create(false));
+                               VariantValue::falseValue());
         fakeGroup->setupForBuiltinType(m_logger);
         subItems.prepend(fakeGroup);
     }

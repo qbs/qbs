@@ -202,8 +202,11 @@ public:
     void apply(ValueHandler *handler) { handler->handle(this); }
     ValuePtr clone() const;
 
-    void setValue(const QVariant &v) { m_value = v; }
     const QVariant &value() const { return m_value; }
+
+    static const VariantValuePtr &falseValue();
+    static const VariantValuePtr &trueValue();
+    static const VariantValuePtr &invalidValue();
 
 private:
     QVariant m_value;

@@ -83,6 +83,7 @@ ValuePtr Value::next() const
 void Value::setNext(const ValuePtr &next)
 {
     QBS_ASSERT(next.get() != this, return);
+    QBS_CHECK(type() != VariantValueType);
     m_next = next;
 }
 
@@ -190,12 +191,34 @@ VariantValue::VariantValue(const QVariant &v)
 
 VariantValuePtr VariantValue::create(const QVariant &v)
 {
+    if (!v.isValid())
+        return invalidValue();
+    if (static_cast<QMetaType::Type>(v.type()) == QMetaType::Bool)
+        return v.toBool() ? VariantValue::trueValue() : VariantValue::falseValue();
     return VariantValuePtr(new VariantValue(v));
 }
 
 ValuePtr VariantValue::clone() const
 {
     return VariantValuePtr(new VariantValue(*this));
+}
+
+const VariantValuePtr &VariantValue::falseValue()
+{
+    static const VariantValuePtr v = VariantValuePtr(new VariantValue(false));
+    return v;
+}
+
+const VariantValuePtr &VariantValue::trueValue()
+{
+    static const VariantValuePtr v = VariantValuePtr(new VariantValue(true));
+    return v;
+}
+
+const VariantValuePtr &VariantValue::invalidValue()
+{
+    static const VariantValuePtr v = VariantValuePtr(new VariantValue(QVariant()));
+    return v;
 }
 
 } // namespace Internal
