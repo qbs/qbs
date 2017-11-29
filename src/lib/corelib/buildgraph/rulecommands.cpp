@@ -286,9 +286,17 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
     m_arguments = scriptValue->property(argumentsProperty()).toVariant().toStringList();
     m_workingDir = scriptValue->property(workingDirProperty()).toString();
     m_maxExitCode = scriptValue->property(maxExitCodeProperty()).toInt32();
-    const QScriptValue stdoutFilterFunction = scriptValue->property(stdoutFilterFunctionProperty());
+
+    // toString() is required, presumably due to QtScript bug that manifests itself on Windows
+    const QScriptValue stdoutFilterFunction
+            = scriptValue->property(stdoutFilterFunctionProperty()).toString();
+
     m_stdoutFilterFunction = invokedSourceCode(stdoutFilterFunction);
-    const QScriptValue stderrFilterFunction = scriptValue->property(stderrFilterFunctionProperty());
+
+    // toString() is required, presumably due to QtScript bug that manifests itself on Windows
+    const QScriptValue stderrFilterFunction
+            = scriptValue->property(stderrFilterFunctionProperty()).toString();
+
     m_stderrFilterFunction = invokedSourceCode(stderrFilterFunction);
     m_relevantEnvVars = scriptValue->property(QStringLiteral("relevantEnvironmentVariables"))
             .toVariant().toStringList();
