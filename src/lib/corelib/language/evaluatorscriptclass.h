@@ -57,6 +57,7 @@ namespace qbs {
 namespace Internal {
 class EvaluationData;
 class Item;
+class PropertyDeclaration;
 class ScriptEngine;
 
 class EvaluatorScriptClass : public QScriptClass
@@ -73,6 +74,9 @@ public:
 
     void setValueCacheEnabled(bool enabled);
 
+    void convertToPropertyType(const PropertyDeclaration& decl, const CodeLocation &loc,
+                               QScriptValue &v);
+
     PropertyDependencies propertyDependencies() const { return m_propertyDependencies; }
     void clearPropertyDependencies() { m_propertyDependencies.clear(); }
 
@@ -85,6 +89,10 @@ private:
                                  bool ignoreParent = false);
     static QString resultToString(const QScriptValue &scriptValue);
     void collectValuesFromNextChain(const EvaluationData *data, QScriptValue *result, const QString &propertyName, const ValuePtr &value);
+
+    void convertToPropertyType(const Item *item,
+                               const PropertyDeclaration& decl, const Value *value,
+                               QScriptValue &v);
 
     struct QueryResult
     {

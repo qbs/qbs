@@ -2981,13 +2981,26 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
             evalError = engine->lastError(sv, configureScript->location());
     }
     QVariantMap properties;
-    for (const ProbeProperty &b : qAsConst(probeBindings)) {
-        const QVariant newValue = resolvedProbe
-                ? resolvedProbe->properties().value(b.first) : scope.property(b.first).toVariant();
-        if (newValue != b.second.toVariant())
-            probe->setProperty(b.first, VariantValue::create(newValue));
-        if (!resolvedProbe)
-            properties.insert(b.first, newValue);
+    if (!evalError.hasError()) {
+        for (const ProbeProperty &b : qAsConst(probeBindings)) {
+            QVariant newValue;
+            if (resolvedProbe) {
+                newValue = resolvedProbe->properties().value(b.first);
+            } else {
+                QScriptValue v = scope.property(b.first);
+                m_evaluator->convertToPropertyType(probe->propertyDeclaration(
+                                                       b.first), probe->location(), v);
+                if (Q_UNLIKELY(engine->hasErrorOrException(v))) {
+                    evalError = engine->lastError(v);
+                    break;
+                }
+                newValue = v.toVariant();
+            }
+            if (newValue != b.second.toVariant())
+                probe->setProperty(b.first, VariantValue::create(newValue));
+            if (!resolvedProbe)
+                properties.insert(b.first, newValue);
+        }
     }
     engine->currentContext()->popScope();
     engine->currentContext()->popScope();

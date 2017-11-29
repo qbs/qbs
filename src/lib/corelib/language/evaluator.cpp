@@ -145,6 +145,12 @@ QStringList Evaluator::stringListValue(const Item *item, const QString &name, bo
     return toStringList(v);
 }
 
+void Evaluator::convertToPropertyType(const PropertyDeclaration &decl, const CodeLocation &loc,
+                                      QScriptValue &v)
+{
+    m_scriptClass->convertToPropertyType(decl, loc, v);
+}
+
 QScriptValue Evaluator::scriptValue(const Item *item)
 {
     QScriptValue &scriptValue = m_scriptValueMap[item];

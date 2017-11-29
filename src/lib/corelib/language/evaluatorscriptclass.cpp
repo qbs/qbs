@@ -463,19 +463,13 @@ static void makeTypeError(const PropertyDeclaration &decl, const CodeLocation &l
     makeTypeError(error, v);
 }
 
-static void convertToPropertyType(const QString &pathPropertiesBaseDir, const Item *item,
-                                  const PropertyDeclaration& decl,
-                                  const Value *value, QScriptValue &v)
+static void convertToPropertyType_impl(const QString &pathPropertiesBaseDir, const Item *item,
+                                       const PropertyDeclaration& decl,
+                                       const CodeLocation &location, QScriptValue &v)
 {
-    if (value->type() == Value::VariantValueType && v.isUndefined() && !decl.isScalar()) {
-        v = v.engine()->newArray(); // QTBUG-51237
-        return;
-    }
-
     if (v.isUndefined() || v.isError())
         return;
     QString srcDir;
-    const CodeLocation &location = value->location();
     switch (decl.type()) {
     case PropertyDeclaration::UnknownType:
     case PropertyDeclaration::Variant:
@@ -494,7 +488,8 @@ static void convertToPropertyType(const QString &pathPropertiesBaseDir, const It
             makeTypeError(decl, location, v);
             break;
         }
-        const QString srcDir = overriddenSourceDirectory(item, pathPropertiesBaseDir);
+        const QString srcDir = item ? overriddenSourceDirectory(item, pathPropertiesBaseDir)
+                                    : pathPropertiesBaseDir;
         if (!srcDir.isEmpty())
             v = v.engine()->toScriptValue(QDir::cleanPath(
                                               FileInfo::resolvePath(srcDir, v.toString())));
@@ -505,7 +500,8 @@ static void convertToPropertyType(const QString &pathPropertiesBaseDir, const It
             makeTypeError(decl, location, v);
         break;
     case PropertyDeclaration::PathList:
-        srcDir = overriddenSourceDirectory(item, pathPropertiesBaseDir);
+        srcDir = item ? overriddenSourceDirectory(item, pathPropertiesBaseDir)
+                      : pathPropertiesBaseDir;
         // Fall-through.
     case PropertyDeclaration::StringList:
     {
@@ -544,6 +540,22 @@ static void convertToPropertyType(const QString &pathPropertiesBaseDir, const It
         break;
     }
     }
+}
+
+void EvaluatorScriptClass::convertToPropertyType(const PropertyDeclaration &decl,
+                                                 const CodeLocation &loc, QScriptValue &v)
+{
+    convertToPropertyType_impl(QString(), nullptr, decl, loc, v);
+}
+
+void EvaluatorScriptClass::convertToPropertyType(const Item *item, const PropertyDeclaration& decl,
+                                                 const Value *value, QScriptValue &v)
+{
+    if (value->type() == Value::VariantValueType && v.isUndefined() && !decl.isScalar()) {
+        v = v.engine()->newArray(); // QTBUG-51237
+        return;
+    }
+    convertToPropertyType_impl(m_pathPropertiesBaseDir, item, decl, value->location(), v);
 }
 
 class PropertyStackManager
@@ -631,7 +643,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
         converter.start();
 
         const PropertyDeclaration decl = data->item->propertyDeclaration(name.toString());
-        convertToPropertyType(m_pathPropertiesBaseDir, data->item, decl, value.get(), result);
+        convertToPropertyType(data->item, decl, value.get(), result);
     }
 
     if (debugProperties)

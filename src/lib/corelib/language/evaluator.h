@@ -53,6 +53,7 @@ namespace Internal {
 class EvaluatorScriptClass;
 class FileTags;
 class Logger;
+class PropertyDeclaration;
 class ScriptEngine;
 
 class QBS_AUTOTEST_EXPORT Evaluator : private ItemObserver
@@ -75,6 +76,9 @@ public:
     QString stringValue(const Item *item, const QString &name,
                         const QString &defaultValue = QString(), bool *propertyWasSet = 0);
     QStringList stringListValue(const Item *item, const QString &name, bool *propertyWasSet = 0);
+
+    void convertToPropertyType(const PropertyDeclaration& decl, const CodeLocation &loc,
+                               QScriptValue &v);
 
     QScriptValue scriptValue(const Item *item);
 

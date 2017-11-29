@@ -748,6 +748,8 @@ void TestLanguage::erroneousFiles_data()
             << "Element at index 1 of list property 'files' does not have string type.";
     QTest::newRow("undefined_stringlist_element")
             << "Element at index 1 of list property 'files' is undefined. String expected.";
+    QTest::newRow("undefined_stringlist_element_in_probe")
+            << "Element at index 1 of list property 'l' is undefined. String expected.";
     QTest::newRow("undeclared_item")
             << "Item 'cpp' is not declared.";
     QTest::newRow("undeclared-parameter1")
