@@ -9,12 +9,13 @@ Project
     {
         id: projectBuilder
         property stringList refs: []
+        property string sourceDir: sourceDirectory
 
         configure:
         {
-            var tempDir = FileInfo.joinPaths(sourceDirectory, "temp");
+            var tempDir = FileInfo.joinPaths(sourceDir, "temp");
             File.makePath(tempDir);
-            var srcDir = FileInfo.joinPaths(sourceDirectory, "src");
+            var srcDir = FileInfo.joinPaths(sourceDir, "src");
             var projectDirs = File.directoryEntries(srcDir, File.Dirs | File.NoDotAndDotDot);
             var list = [];
             for (it in projectDirs) {

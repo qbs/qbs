@@ -2944,15 +2944,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         }
     }
     ScriptEngine * const engine = m_evaluator->engine();
-    QScriptValue scope = engine->newObject();
-    engine->currentContext()->pushScope(m_evaluator->scriptValue(parent));
-    const Evaluator::FileContextScopes fileCtxScopes
-            = m_evaluator->fileContextScopes(configureScript->file());
-    engine->currentContext()->pushScope(fileCtxScopes.fileScope);
-    engine->currentContext()->pushScope(fileCtxScopes.importScope);
-    engine->currentContext()->pushScope(scope);
-    for (const ProbeProperty &b : qAsConst(probeBindings))
-        scope.setProperty(b.first, b.second);
+    QScriptValue configureScope;
     const bool condition = m_evaluator->boolValue(probe, StringConstants::conditionProperty());
     const QString &sourceCode = configureScript->sourceCode().toString();
     ProbeConstPtr resolvedProbe;
@@ -2965,48 +2957,50 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     }
     if (!resolvedProbe)
         resolvedProbe = findCurrentProbe(probe->location(), condition, initialProperties);
-    ErrorInfo evalError;
     std::vector<QString> importedFilesUsedInConfigure;
     if (!condition) {
         qCDebug(lcModuleLoader) << "Probe disabled; skipping";
     } else if (!resolvedProbe) {
+        const Evaluator::FileContextScopes fileCtxScopes
+                = m_evaluator->fileContextScopes(configureScript->file());
+        engine->currentContext()->pushScope(fileCtxScopes.importScope);
+        configureScope = engine->newObject();
+        for (const ProbeProperty &b : qAsConst(probeBindings))
+            configureScope.setProperty(b.first, b.second);
+        engine->currentContext()->pushScope(configureScope);
         engine->clearRequestedProperties();
         QScriptValue sv = engine->evaluate(configureScript->sourceCodeForEvaluation());
+        engine->currentContext()->popScope();
+        engine->currentContext()->popScope();
         engine->releaseResourcesOfScriptObjects();
         if (Q_UNLIKELY(engine->hasErrorOrException(sv)))
-            evalError = engine->lastError(sv, configureScript->location());
+            throw ErrorInfo(engine->lastErrorString(sv), configureScript->location());
         importedFilesUsedInConfigure = engine->importedFilesUsedInScript();
     } else {
         importedFilesUsedInConfigure = resolvedProbe->importedFilesUsed();
     }
     QVariantMap properties;
-    if (!evalError.hasError()) {
-        for (const ProbeProperty &b : qAsConst(probeBindings)) {
-            QVariant newValue;
-            if (resolvedProbe) {
-                newValue = resolvedProbe->properties().value(b.first);
-            } else {
-                QScriptValue v = scope.property(b.first);
+    for (const ProbeProperty &b : qAsConst(probeBindings)) {
+        QVariant newValue;
+        if (resolvedProbe) {
+            newValue = resolvedProbe->properties().value(b.first);
+        } else {
+            if (condition) {
+                QScriptValue v = configureScope.property(b.first);
                 m_evaluator->convertToPropertyType(probe->propertyDeclaration(
-                                                       b.first), probe->location(), v);
-                if (Q_UNLIKELY(engine->hasErrorOrException(v))) {
-                    evalError = engine->lastError(v);
-                    break;
-                }
+                                                   b.first), probe->location(), v);
+                if (Q_UNLIKELY(engine->hasErrorOrException(v)))
+                    throw ErrorInfo(engine->lastError(v));
                 newValue = v.toVariant();
+            } else {
+                newValue = initialProperties.value(b.first);
             }
-            if (newValue != b.second.toVariant())
-                probe->setProperty(b.first, VariantValue::create(newValue));
-            if (!resolvedProbe)
-                properties.insert(b.first, newValue);
         }
+        if (newValue != b.second.toVariant())
+            probe->setProperty(b.first, VariantValue::create(newValue));
+        if (!resolvedProbe)
+            properties.insert(b.first, newValue);
     }
-    engine->currentContext()->popScope();
-    engine->currentContext()->popScope();
-    engine->currentContext()->popScope();
-    engine->currentContext()->popScope();
-    if (evalError.hasError())
-        throw evalError;
     if (!resolvedProbe) {
         resolvedProbe = Probe::create(probeId, probe->location(), condition,
                                       sourceCode, properties, initialProperties,

@@ -3,8 +3,9 @@ import qbs
 CppApplication {
     Probe {
         id: dummy
+        property stringList toolchain: qbs.toolchain
         configure: {
-            if (qbs.toolchain.contains("msvc"))
+            if (toolchain.contains("msvc"))
                 console.info("msvc");
         }
     }

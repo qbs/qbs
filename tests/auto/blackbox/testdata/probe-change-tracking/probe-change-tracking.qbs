@@ -31,6 +31,8 @@ Project {
             Probe {
                 id: productProbe
                 condition: product.runProbe
+                property int v1: product.v1
+                property int v2: product.v2
                 configure: {
                     console.info("running productProbe: " + (v1 + v2));
                 }

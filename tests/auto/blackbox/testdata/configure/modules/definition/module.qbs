@@ -6,11 +6,12 @@ Module {
     Depends { name: 'cpp' }
     Probe {
         id: node
+        property stringList targetOS: qbs.targetOS
         property string result
         configure: {
             var cmd;
             var args;
-            if (qbs.targetOS.contains("windows")) {
+            if (targetOS.contains("windows")) {
                 cmd = qbs.windowsShellPath;
                 args = ["/c", "date", "/t"];
             } else {
