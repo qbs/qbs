@@ -70,10 +70,10 @@ public:
     Artifact();
     ~Artifact();
 
-    Type type() const { return ArtifactNodeType; }
+    Type type() const override { return ArtifactNodeType; }
     FileType fileType() const override { return FileTypeArtifact; }
-    void accept(BuildGraphVisitor *visitor);
-    QString toString() const;
+    void accept(BuildGraphVisitor *visitor) override;
+    QString toString() const override;
 
     void addFileTag(const FileTag &t);
     void removeFileTag(const FileTag &t);
@@ -102,13 +102,13 @@ public:
     void initialize();
     const TypeFilter<Artifact> parentArtifacts() const;
     const TypeFilter<Artifact> childArtifacts() const;
-    void onChildDisconnected(BuildGraphNode *child);
+    void onChildDisconnected(BuildGraphNode *child) override;
 
     bool isTargetOfModule() const { return !targetOfModule.isEmpty(); }
 
 private:
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void load(PersistentPool &pool) override;
+    void store(PersistentPool &pool) const override;
 
     FileTags m_fileTags;
 };
