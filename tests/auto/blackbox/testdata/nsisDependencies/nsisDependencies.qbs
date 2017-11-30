@@ -1,5 +1,6 @@
 import qbs
 import qbs.FileInfo
+import qbs.TextFile
 
 Project {
     condition: qbs.targetOS.contains("windows")
