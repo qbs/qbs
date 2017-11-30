@@ -7,12 +7,13 @@ Module {
     Probe {
         id: node
         property stringList targetOS: qbs.targetOS
+        property stringList windowsShellPath: qbs.windowsShellPath
         property string result
         configure: {
             var cmd;
             var args;
             if (targetOS.contains("windows")) {
-                cmd = qbs.windowsShellPath;
+                cmd = windowsShellPath;
                 args = ["/c", "date", "/t"];
             } else {
                 cmd = 'date';
