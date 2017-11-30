@@ -62,8 +62,7 @@
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qvariant.h>
 
-#include <QtXml/qdom.h>
-
+#include <regex>
 #include <stdlib.h>
 
 namespace qbs {
@@ -232,6 +231,15 @@ static QString findExecutable(const QStringList &fileNames)
     return QString();
 }
 
+static std::string readAaptBadgingAttribute(const std::string &line)
+{
+    std::regex re("^[A-Za-z\\-]+:\\s+name='(.+?)'.*$");
+    std::smatch match;
+    if (std::regex_match(line, match, re))
+        return match[1];
+    return { };
+}
+
 static QString findMainIntent(const QString &aapt, const QString &apkFilePath)
 {
     QString packageId;
@@ -243,15 +251,10 @@ static QString findMainIntent(const QString &aapt, const QString &apkFilePath)
                       << apkFilePath);
     if (aaptProcess.waitForFinished(-1)) {
         for (auto line : aaptProcess.readAllStandardOutput().split('\n')) {
-            if (line.startsWith(QByteArrayLiteral("package:"))) {
-                QDomDocument doc;
-                doc.setContent(QByteArrayLiteral("<") + line + QByteArrayLiteral("/>"));
-                packageId = doc.firstChild().toElement().attribute(StringConstants::nameProperty());
-            } else if (line.startsWith(QByteArrayLiteral("launchable-activity:"))) {
-                QDomDocument doc;
-                doc.setContent(QByteArrayLiteral("<") + line + QByteArrayLiteral("/>"));
-                activity = doc.firstChild().toElement().attribute(StringConstants::nameProperty());
-            }
+            if (line.startsWith(QByteArrayLiteral("package:")))
+                packageId = QString::fromStdString(readAaptBadgingAttribute(line.toStdString()));
+            else if (line.startsWith(QByteArrayLiteral("launchable-activity:")))
+                activity = QString::fromStdString(readAaptBadgingAttribute(line.toStdString()));
         }
     }
 
