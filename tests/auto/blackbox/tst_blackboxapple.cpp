@@ -171,13 +171,13 @@ void TestBlackboxApple::assetCatalog()
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
-    if (xcodeVersion >= qbs::Internal::Version(5))
+    if (xcodeVersion >= qbs::Version(5))
         QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
 
     // should additionally produce raw assets since deployment target will be < 10.9
     // older versions of ibtool generated either raw assets OR .car files;
     // newer versions always generate the .car file regardless of the deployment target
-    if (v < qbs::Internal::Version(10, 9)) {
+    if (v < qbs::Version(10, 9)) {
         QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
                                    + "/assetcatalogempty.app/Contents/Resources/other.png"));
         QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
@@ -189,10 +189,10 @@ void TestBlackboxApple::assetCatalog()
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
-    if (xcodeVersion >= qbs::Internal::Version(5)) {
+    if (xcodeVersion >= qbs::Version(5)) {
         QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
         // No matter what, we need a 10.9 host to build CAR files
-        if (HostOsInfo::hostOsVersion() >= qbs::Internal::Version(10, 9)) {
+        if (HostOsInfo::hostOsVersion() >= qbs::Version(10, 9)) {
             QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
                                       + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
         } else {
@@ -228,7 +228,7 @@ void TestBlackboxApple::assetCatalog()
 
     QString storyboardc = relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc";
     QStringList storyboardcFiles;
-    if (HostOsInfo::hostOsVersion() >= qbs::Internal::Version(10, 10)) {
+    if (HostOsInfo::hostOsVersion() >= qbs::Version(10, 10)) {
         QVERIFY(directoryExists(storyboardc));
 
         storyboardcFiles = QStringList()
@@ -261,7 +261,7 @@ void TestBlackboxApple::assetCatalog_data()
 }
 
 void TestBlackboxApple::assetCatalogsEmpty() {
-    if (findXcodeVersion() < qbs::Internal::Version(5))
+    if (findXcodeVersion() < qbs::Version(5))
         QSKIP("requires Xcode 5 or above");
     QDir::setCurrent(testDataDir + QLatin1String("/ib/empty-asset-catalogs"));
     QCOMPARE(runQbs(), 0);
@@ -270,7 +270,7 @@ void TestBlackboxApple::assetCatalogsEmpty() {
 }
 
 void TestBlackboxApple::assetCatalogsMultiple() {
-    if (findXcodeVersion() < qbs::Internal::Version(5))
+    if (findXcodeVersion() < qbs::Version(5))
         QSKIP("requires Xcode 5 or above");
     QDir::setCurrent(testDataDir + QLatin1String("/ib/multiple-asset-catalogs"));
     QCOMPARE(runQbs(), 0);
@@ -290,7 +290,7 @@ void TestBlackboxApple::bundleStructure()
     if (isShallow) {
         // Coerce shallow bundles - don't set bundle.isShallow directly because we want to test the
         // automatic detection
-        const auto xcode5 = findXcodeVersion() >= qbs::Internal::Version(5);
+        const auto xcode5 = findXcodeVersion() >= qbs::Version(5);
         params.arguments
                 << "modules.qbs.targetPlatform:ios"
                 << (xcode5 ? "qbs.architectures:arm64" : "qbs.architectures:armv7a");
@@ -572,7 +572,7 @@ void TestBlackboxApple::deploymentTarget_data()
                          << "-macosx_version_min 10.4";
 
     const auto xcodeVersion = findXcodeVersion();
-    if (xcodeVersion >= qbs::Internal::Version(6))
+    if (xcodeVersion >= qbs::Version(6))
         QTest::newRow("macos x86_64h") << "macosx" << macos << "x86_64h"
                              << "-triple x86_64h-apple-macosx10.12"
                              << "-macosx_version_min 10.12";
@@ -583,20 +583,20 @@ void TestBlackboxApple::deploymentTarget_data()
     QTest::newRow("ios armv7s") << "iphoneos" <<ios << "armv7s"
                          << "-triple thumbv7s-apple-ios7.0"
                          << "-iphoneos_version_min 7.0";
-    if (xcodeVersion >= qbs::Internal::Version(5))
+    if (xcodeVersion >= qbs::Version(5))
         QTest::newRow("ios arm64") << "iphoneos" <<ios << "arm64"
                              << "-triple arm64-apple-ios7.0"
                              << "-iphoneos_version_min 7.0";
     QTest::newRow("ios-simulator x86") << "iphonesimulator" << ios_sim << "x86"
                              << "-triple i386-apple-ios6.0"
                              << "-ios_simulator_version_min 6.0";
-    if (xcodeVersion >= qbs::Internal::Version(5))
+    if (xcodeVersion >= qbs::Version(5))
         QTest::newRow("ios-simulator x86_64") << "iphonesimulator" << ios_sim << "x86_64"
                                  << "-triple x86_64-apple-ios7.0"
                                  << "-ios_simulator_version_min 7.0";
 
-    if (xcodeVersion >= qbs::Internal::Version(7)) {
-        if (xcodeVersion >= qbs::Internal::Version(7, 1)) {
+    if (xcodeVersion >= qbs::Version(7)) {
+        if (xcodeVersion >= qbs::Version(7, 1)) {
             QTest::newRow("tvos arm64") << "appletvos" << tvos << "arm64"
                                  << "-triple arm64-apple-tvos9.0"
                                  << "-tvos_version_min 9.0";
@@ -768,7 +768,7 @@ QVariantMap TestBlackboxApple::findXcode(int *status)
     return QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
 }
 
-qbs::Internal::Version TestBlackboxApple::findXcodeVersion()
+qbs::Version TestBlackboxApple::findXcodeVersion()
 {
-    return qbs::Internal::Version::fromString(findXcode().value("version").toString());
+    return qbs::Version::fromString(findXcode().value("version").toString());
 }

@@ -220,7 +220,7 @@ static std::vector<MSVC> installedMSVCs()
         }
 
         msvc.version = QString::number(Internal::VisualStudioVersionInfo(
-            Internal::Version::fromString(registryEntry.version)).marketingVersion());
+            Version::fromString(registryEntry.version)).marketingVersion());
         if (msvc.version.isEmpty()) {
             qbsWarning() << Tr::tr("Unknown MSVC version %1 found.").arg(registryEntry.version);
             continue;

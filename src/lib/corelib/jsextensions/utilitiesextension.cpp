@@ -528,9 +528,9 @@ QScriptValue UtilitiesExtension::js_versionCompare(QScriptContext *context, QScr
         const QScriptValue value1 = context->argument(0);
         const QScriptValue value2 = context->argument(1);
         if (value1.isString() && value2.isString()) {
-            const auto a = Internal::Version::fromString(value1.toString());
-            const auto b = Internal::Version::fromString(value2.toString());
-            return engine->toScriptValue(Internal::compare(a, b));
+            const auto a = Version::fromString(value1.toString());
+            const auto b = Version::fromString(value2.toString());
+            return engine->toScriptValue(compare(a, b));
         }
     }
 

@@ -64,7 +64,6 @@ namespace qbs {
 using Internal::contains;
 using Internal::HostOsInfo;
 using Internal::Tr;
-using Internal::Version;
 
 static QStringList qmakeExecutableNames()
 {

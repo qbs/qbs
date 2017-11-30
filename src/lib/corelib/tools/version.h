@@ -49,7 +49,6 @@ class QString;
 QT_END_NAMESPACE
 
 namespace qbs {
-namespace Internal {
 
 class QBS_EXPORT Version
 {
@@ -103,7 +102,6 @@ inline bool operator>(const Version &lhs, const Version &rhs) { return compare(l
 inline bool operator<=(const Version &lhs, const Version &rhs) { return !operator>(lhs, rhs); }
 inline bool operator>=(const Version &lhs, const Version &rhs) { return !operator<(lhs, rhs); }
 
-} // namespace Internal
 } // namespace qbs
 
 #endif // QBS_VERSION_H

@@ -5157,21 +5157,21 @@ void TestBlackbox::minimumSystemVersion()
     QVERIFY(m_qbsStdout.contains(output.toUtf8()));
 }
 
-static qbs::Internal::Version fromMinimumDeploymentTargetValue(int v, bool isMacOS)
+static qbs::Version fromMinimumDeploymentTargetValue(int v, bool isMacOS)
 {
     if (isMacOS && v < 100000)
-        return qbs::Internal::Version(v / 100, v / 10 % 10, v % 10);
-    return qbs::Internal::Version(v / 10000, v / 100 % 100, v % 100);
+        return qbs::Version(v / 100, v / 10 % 10, v % 10);
+    return qbs::Version(v / 10000, v / 100 % 100, v % 100);
 }
 
-static int toMinimumDeploymentTargetValue(const qbs::Internal::Version &v, bool isMacOS)
+static int toMinimumDeploymentTargetValue(const qbs::Version &v, bool isMacOS)
 {
-    if (isMacOS && v < qbs::Internal::Version(10, 10))
+    if (isMacOS && v < qbs::Version(10, 10))
         return (v.majorVersion() * 100) + (v.minorVersion() * 10) + v.patchLevel();
     return (v.majorVersion() * 10000) + (v.minorVersion() * 100) + v.patchLevel();
 }
 
-static qbs::Internal::Version defaultClangMinimumDeploymentTarget()
+static qbs::Version defaultClangMinimumDeploymentTarget()
 {
     QProcess process;
     process.start("/usr/bin/xcrun", {"-sdk", "macosx", "clang++",
@@ -5192,7 +5192,7 @@ static qbs::Internal::Version defaultClangMinimumDeploymentTarget()
         }
     }
 
-    return qbs::Internal::Version();
+    return qbs::Version();
 }
 
 void TestBlackbox::minimumSystemVersion_data()
@@ -5355,7 +5355,7 @@ void TestBlackbox::badInterpreter()
 
 void TestBlackbox::qbsVersion()
 {
-    const qbs::Internal::Version v = qbs::Internal::Version::qbsVersion();
+    const qbs::Version v = qbs::Version::qbsVersion();
     QDir::setCurrent(testDataDir + QLatin1String("/qbsVersion"));
     QbsRunParameters params;
     params.arguments = QStringList()

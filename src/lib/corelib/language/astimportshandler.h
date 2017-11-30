@@ -49,12 +49,12 @@
 
 namespace qbs {
 class CodeLocation;
+class Version;
 
 namespace Internal {
 class ItemReaderVisitorState;
 class JsImport;
 class Logger;
-class Version;
 
 class ASTImportsHandler
 {

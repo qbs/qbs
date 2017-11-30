@@ -128,7 +128,7 @@ QByteArray LanguageInfo::qmlTypeInfo()
 
 QString LanguageInfo::qbsVersion()
 {
-    return Internal::Version::qbsVersion().toString();
+    return Version::qbsVersion().toString();
 }
 
 } // namespace qbs

@@ -32,9 +32,7 @@
 #include "tst_blackboxbase.h"
 
 namespace qbs {
-namespace Internal {
 class Version;
-} // namespace Internal
 } // namespace qbs
 
 class TestBlackboxApple : public TestBlackboxBase
@@ -68,7 +66,7 @@ private slots:
 
 private:
     QVariantMap findXcode(int *status = nullptr);
-    qbs::Internal::Version findXcodeVersion();
+    qbs::Version findXcodeVersion();
 };
 
 #endif // TST_BLACKBOXAPPLE_H

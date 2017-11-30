@@ -238,7 +238,7 @@ void MSBuildQbsProductProject::addConfiguration(const GeneratableProject &projec
 
 static QString subsystemVersion(const QString &version)
 {
-    const auto v = Internal::Version::fromString(version);
+    const auto v = Version::fromString(version);
     return QStringLiteral("%1.%2").arg(
                 QString::number(v.majorVersion()),
                 QString::number(v.minorVersion()).rightJustified(2, QLatin1Char('0')));

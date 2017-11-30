@@ -51,7 +51,7 @@ private slots:
 private:
     int runProcess(const QString &exec, const QStringList &args, QByteArray &stdErr,
                    QByteArray &stdOut);
-    qbs::Internal::Version clangVersion();
+    qbs::Version clangVersion();
 
     const QString projectDir;
     const QString projectFileName;

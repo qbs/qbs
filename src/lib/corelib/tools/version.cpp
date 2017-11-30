@@ -43,7 +43,6 @@
 #include <QtCore/qstring.h>
 
 namespace qbs {
-namespace Internal {
 
 Version::Version(int major, int minor, int patch, int buildNr)
     : m_major(major), m_minor(minor), m_patch(patch), m_build(buildNr)
@@ -157,5 +156,4 @@ VersionRange &VersionRange::narrowDown(const VersionRange &other)
     return *this;
 }
 
-} // namespace Internal
 } // namespace qbs
