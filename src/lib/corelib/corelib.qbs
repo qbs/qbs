@@ -3,6 +3,7 @@ import qbs.Utilities
 
 QbsLibrary {
     Depends { name: "cpp" }
+    Depends { name: "bundledqt" }
     Depends { name: "Qt"; submodules: ["core-private", "network", "script", "xml"] }
     Depends { condition: qbsbuildconfig.enableProjectFileUpdates; name: "Qt.gui" }
     Depends { condition: Qt.core.staticBuild; productTypes: ["qbsplugin"] }

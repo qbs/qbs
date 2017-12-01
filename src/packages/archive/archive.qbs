@@ -14,6 +14,7 @@ QbsProduct {
     Depends { name: "qbs_app" }
     Depends { name: "qbs_processlauncher" }
     Depends { name: "qbscore" }
+    Depends { name: "bundledqt" }
     Depends { name: "qbsqtprofilesetup" }
     Depends { name: "qbs documentation" }
     Depends { name: "qbs resources" }
@@ -55,13 +56,6 @@ QbsProduct {
     archiver.workingDirectory: qbs.installRoot
 
     Group {
-        name: "qt.conf"
-        files: ["qt.conf"]
-        qbs.install: true
-        qbs.installDir: qbsbuildconfig.appInstallDir
-    }
-
-    Group {
         name: "Licenses"
         prefix: "../../../"
         files: [
@@ -71,62 +65,6 @@ QbsProduct {
         ]
         qbs.install: true
         qbs.installDir: "share/doc/qbs"
-    }
-
-    Group {
-        condition: qbs.targetOS.contains("macos")
-        prefix: Qt.core.libPath + "/"
-        name: "Qt libraries"
-        files: {
-            if (Qt.core.frameworkBuild) {
-                return [
-                    "QtCore.framework/**",
-                    "QtGui.framework/**",
-                    "QtNetwork.framework/**",
-                    "QtPrintSupport.framework/**",
-                    "QtScript.framework/**",
-                    "QtWidgets.framework/**",
-                    "QtXml.framework/**",
-                ];
-            } else if (!Qt.core.staticBuild) {
-                return [
-                    "libQt5Core*.dylib",
-                    "libQt5Gui*.dylib",
-                    "libQt5Network*.dylib",
-                    "libQt5PrintSupport*.dylib",
-                    "libQt5Script*.dylib",
-                    "libQt5Widgets*.dylib",
-                    "libQt5Xml*.dylib",
-                ];
-            }
-            return [];
-        }
-
-        excludeFiles: [
-            "**/*.prl",
-            "**/*_debug*",
-        ].concat(!qbsbuildconfig.installApiHeaders ? ["**/Headers", "**/Headers/**"] : [])
-
-        qbs.install: true
-        qbs.installDir: qbsbuildconfig.libInstallDir
-        qbs.installSourceBase: prefix
-    }
-
-    Group {
-        condition: qbs.targetOS.contains("macos")
-        prefix: Qt.core.pluginPath + "/"
-        name: "Qt platform plugins"
-        files: [
-            "platforms/libq*.dylib",
-        ]
-
-        excludeFiles: [
-            "**/*_debug.dylib",
-        ]
-
-        qbs.install: true
-        qbs.installDir: "plugins"
-        qbs.installSourceBase: prefix
     }
 
     Rule {
