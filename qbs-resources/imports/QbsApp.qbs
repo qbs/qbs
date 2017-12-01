@@ -5,7 +5,7 @@ QbsProduct {
     Depends { name: "qbscore" }
     Depends { name: "cpp" }
     Depends { name: "qbsversion" }
-    type: "application"
+    type: ["application", "qbsapplication"]
     version: qbsversion.version
     consoleApplication: true
     destinationDirectory: FileInfo.joinPaths(project.buildDirectory, "bin")

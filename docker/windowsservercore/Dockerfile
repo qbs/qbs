@@ -23,7 +23,11 @@ RUN @powershell -NoProfile -ExecutionPolicy Bypass -Command \
     $Env:chocolateyVersion = '0.10.8' ; \
     $Env:chocolateyUseWindowsCompression = 'false' ; \
     "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+RUN choco install -y python2 --version 2.7.14 && refreshenv && python --version && pip --version
 RUN choco install -y qbs --version 1.9.1 && qbs --version
 RUN choco install -y unzip --version 6.0 && unzip -v
 RUN choco install -y visualcpp-build-tools --version 14.0.25420.1 && dir "%PROGRAMFILES(X86)%\Microsoft Visual C++ Build Tools"
 RUN choco install -y zip --version 3.0 && zip -v
+
+# for building the documentation
+RUN pip install beautifulsoup4 lxml

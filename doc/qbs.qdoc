@@ -462,6 +462,17 @@
 
     An installed toolchain has to match the one that Qt was compiled with.
 
+    \section2 Documentation
+
+    Building the \QBS documentation requires Python 2.7 or 3.2 or above,
+    as well as some third party Python modules. These can be installed via \c pip:
+
+    \code
+        pip install beautifulsoup4 lxml
+    \endcode
+
+    Regenerating the man page requires a Perl module, help2man.
+
     \section1 Building
 
     To build \QBS, enter the following command:

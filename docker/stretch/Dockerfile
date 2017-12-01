@@ -25,4 +25,7 @@ RUN ls "$QTDIR" && stat "$QTDIR/lib/libQt5Script.so" && qbs --version
 RUN apt-get -y update && apt-get install -y \
     g++ \
     gcc \
-    git
+    git \
+    help2man \
+    python-pip
+RUN pip install beautifulsoup4 lxml # for building the documentation
