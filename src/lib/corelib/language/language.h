@@ -47,7 +47,6 @@
 #include <buildgraph/forward_decls.h>
 #include <tools/codelocation.h>
 #include <tools/filetime.h>
-#include <tools/persistentobject.h>
 #include <tools/set.h>
 #include <tools/weakpointer.h>
 
@@ -75,7 +74,7 @@ class BuildGraphLocker;
 class BuildGraphLoader;
 class BuildGraphVisitor;
 
-class FileTagger : public PersistentObject
+class FileTagger
 {
 public:
     static FileTaggerPtr create() { return FileTaggerPtr(new FileTagger); }
@@ -88,21 +87,21 @@ public:
     const FileTags &fileTags() const { return m_fileTags; }
     int priority() const { return m_priority; }
 
+    void load(PersistentPool &);
+    void store(PersistentPool &) const;
+
 private:
     FileTagger(const QStringList &patterns, const FileTags &fileTags, int priority);
     FileTagger() {}
 
     void setPatterns(const QStringList &patterns);
 
-    void load(PersistentPool &);
-    void store(PersistentPool &) const;
-
     QList<QRegExp> m_patterns;
     FileTags m_fileTags;
     int m_priority = 0;
 };
 
-class Probe : public PersistentObject
+class Probe
 {
 public:
     static ProbePtr create() { return ProbePtr(new Probe); }
@@ -126,6 +125,9 @@ public:
     const std::vector<QString> &importedFilesUsed() const { return m_importedFilesUsed; }
     bool needsReconfigure(const FileTime &referenceTime) const;
 
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+
 private:
     Probe() {}
     Probe(const QString &globalId,
@@ -144,9 +146,6 @@ private:
         , m_condition(condition)
     {}
 
-    void load(PersistentPool &pool) override;
-    void store(PersistentPool &pool) const override;
-
     QString m_globalId;
     CodeLocation m_location;
     QString m_configureScript;
@@ -156,7 +155,7 @@ private:
     bool m_condition;
 };
 
-class RuleArtifact : public PersistentObject
+class RuleArtifact
 {
 public:
     static RuleArtifactPtr create() { return RuleArtifactPtr(new RuleArtifact); }
@@ -190,13 +189,13 @@ public:
 
     std::vector<Binding> bindings;
 
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+
 private:
     RuleArtifact()
         : alwaysUpdated(true)
     {}
-
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
 };
 uint qHash(const RuleArtifact::Binding &b);
 bool operator==(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2);
@@ -206,7 +205,7 @@ inline bool operator!=(const RuleArtifact::Binding &b1, const RuleArtifact::Bind
 bool operator==(const RuleArtifact &a1, const RuleArtifact &a2);
 inline bool operator!=(const RuleArtifact &a1, const RuleArtifact &a2) { return !(a1 == a2); }
 
-class SourceArtifactInternal : public PersistentObject
+class SourceArtifactInternal
 {
 public:
     static SourceArtifactPtr create() { return SourceArtifactPtr(new SourceArtifactInternal); }
@@ -217,11 +216,11 @@ public:
     QString targetOfModule;
     PropertyMapPtr properties;
 
-private:
-    SourceArtifactInternal() : overrideFileTags(true) {}
-
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
+
+private:
+    SourceArtifactInternal() : overrideFileTags(true) {}
 };
 bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal &sa2);
 inline bool operator!=(const SourceArtifactInternal &sa1, const SourceArtifactInternal &sa2) {
@@ -231,7 +230,7 @@ inline bool operator!=(const SourceArtifactInternal &sa1, const SourceArtifactIn
 bool sourceArtifactSetsAreEqual(const QList<SourceArtifactPtr> &l1,
                                  const QList<SourceArtifactPtr> &l2);
 
-class SourceWildCards : public PersistentObject
+class SourceWildCards
 {
 public:
     Set<QString> expandPatterns(const GroupConstPtr &group, const QString &baseDir,
@@ -243,18 +242,18 @@ public:
     std::vector<std::pair<QString, FileTime>> dirTimeStamps;
     QList<SourceArtifactPtr> files;
 
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+
 private:
     Set<QString> expandPatterns(const GroupConstPtr &group, const QStringList &patterns,
                                  const QString &baseDir, const QString &buildDir);
     void expandPatterns(Set<QString> &result, const GroupConstPtr &group,
                         const QStringList &parts, const QString &baseDir,
                         const QString &buildDir);
-
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
 };
 
-class QBS_AUTOTEST_EXPORT ResolvedGroup : public PersistentObject
+class QBS_AUTOTEST_EXPORT ResolvedGroup
 {
 public:
     static GroupPtr create() { return GroupPtr(new ResolvedGroup); }
@@ -273,16 +272,16 @@ public:
 
     QList<SourceArtifactPtr> allFiles() const;
 
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+
 private:
     ResolvedGroup()
         : enabled(true)
     {}
-
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
 };
 
-class ScriptFunction : public PersistentObject
+class ScriptFunction
 {
 public:
     static ScriptFunctionPtr create() { return ScriptFunctionPtr(new ScriptFunction); }
@@ -295,11 +294,11 @@ public:
 
     bool isValid() const;
 
-private:
-    ScriptFunction();
-
     void load(PersistentPool &);
     void store(PersistentPool &) const;
+
+private:
+    ScriptFunction();
 };
 
 bool operator==(const ScriptFunction &a, const ScriptFunction &b);
@@ -332,7 +331,7 @@ inline bool operator!=(const PrivateScriptFunction &a, const PrivateScriptFuncti
     return !(a == b);
 }
 
-class ResolvedModule : public PersistentObject
+class ResolvedModule
 {
 public:
     static ResolvedModulePtr create() { return ResolvedModulePtr(new ResolvedModule); }
@@ -347,11 +346,11 @@ public:
     static QStringList argumentNamesForSetupBuildEnv();
     static QStringList argumentNamesForSetupRunEnv();
 
-private:
-    ResolvedModule() {}
-
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
+
+private:
+    ResolvedModule() {}
 };
 bool operator==(const ResolvedModule &m1, const ResolvedModule &m2);
 inline bool operator!=(const ResolvedModule &m1, const ResolvedModule &m2) { return !(m1 == m2); }
@@ -365,7 +364,7 @@ inline bool operator!=(const ResolvedModule &m1, const ResolvedModule &m2) { ret
   *
   * A "non-multiplex rule" creates one transformer per matching input file.
   */
-class Rule : public PersistentObject
+class Rule
 {
 public:
     static RulePtr create() { return RulePtr(new Rule); }
@@ -399,17 +398,17 @@ public:
     FileTags collectedOutputFileTags() const;
     bool isDynamic() const;
     bool declaresInputs() const;
-private:
-    Rule() : multiplex(false), alwaysRun(false), ruleGraphId(-1) {}
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
+private:
+    Rule() : multiplex(false), alwaysRun(false), ruleGraphId(-1) {}
 };
 bool operator==(const Rule &r1, const Rule &r2);
 inline bool operator!=(const Rule &r1, const Rule &r2) { return !(r1 == r2); }
 bool ruleListsAreEqual(const QList<RulePtr> &l1, const QList<RulePtr> &l2);
 
-class ResolvedScanner : public PersistentObject
+class ResolvedScanner
 {
 public:
     static ResolvedScannerPtr create() { return ResolvedScannerPtr(new ResolvedScanner); }
@@ -420,19 +419,19 @@ public:
     PrivateScriptFunction searchPathsScript;
     PrivateScriptFunction scanScript;
 
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+
 private:
     ResolvedScanner() :
         recursive(false)
     {}
-
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
 };
 
 class TopLevelProject;
 class ScriptEngine;
 
-class QBS_AUTOTEST_EXPORT ResolvedProduct : public PersistentObject
+class QBS_AUTOTEST_EXPORT ResolvedProduct
 {
 public:
     static ResolvedProductPtr create() { return ResolvedProductPtr(new ResolvedProduct); }
@@ -500,19 +499,20 @@ public:
     void cacheExecutablePath(const QString &origFilePath, const QString &fullFilePath);
     QString cachedExecutablePath(const QString &origFilePath) const;
 
-private:
-    ResolvedProduct();
-
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
+
+private:
+    ResolvedProduct();
 
     QHash<QString, QString> m_executablePathCache;
     mutable std::mutex m_executablePathCacheLock;
 };
 
-class QBS_AUTOTEST_EXPORT ResolvedProject : public PersistentObject
+class QBS_AUTOTEST_EXPORT ResolvedProject
 {
 public:
+    virtual ~ResolvedProject();
     static ResolvedProjectPtr create() { return ResolvedProjectPtr(new ResolvedProject); }
 
     QString name;
@@ -531,11 +531,12 @@ public:
     QList<ResolvedProjectPtr> allSubProjects() const;
     QList<ResolvedProductPtr> allProducts() const;
 
+    virtual void load(PersistentPool &pool);
+    virtual void store(PersistentPool &pool) const;
+
 protected:
     ResolvedProject();
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
 private:
     QVariantMap m_projectProperties;
     TopLevelProject *m_topLevelProject;
@@ -545,7 +546,7 @@ class QBS_AUTOTEST_EXPORT TopLevelProject : public ResolvedProject
 {
     friend class BuildGraphLoader;
 public:
-    ~TopLevelProject();
+    ~TopLevelProject() override;
 
     static TopLevelProjectPtr create() { return TopLevelProjectPtr(new TopLevelProject); }
 
@@ -581,8 +582,8 @@ public:
 private:
     TopLevelProject();
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void load(PersistentPool &pool) override;
+    void store(PersistentPool &pool) const override;
 
     QString m_id;
     QVariantMap m_buildConfiguration;

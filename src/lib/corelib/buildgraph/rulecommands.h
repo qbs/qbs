@@ -43,7 +43,6 @@
 #include "forward_decls.h"
 
 #include <tools/codelocation.h>
-#include <tools/persistentobject.h>
 #include <tools/set.h>
 
 #include <QtCore/qprocess.h>
@@ -55,7 +54,7 @@
 namespace qbs {
 namespace Internal {
 
-class AbstractCommand : public PersistentObject
+class AbstractCommand
 {
 public:
     virtual ~AbstractCommand();
@@ -84,11 +83,11 @@ public:
 
     const QVariantMap &properties() const { return m_properties; }
 
+    virtual void load(PersistentPool &pool);
+    virtual void store(PersistentPool &pool) const;
+
 protected:
     AbstractCommand();
-
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
     void applyCommandProperties(const QScriptValue *scriptValue);
 
     Set<QString> m_predefinedProperties;
@@ -126,13 +125,13 @@ public:
     QString stdoutFilePath() const { return m_stdoutFilePath; }
     QString stderrFilePath() const { return m_stderrFilePath; }
 
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+
 private:
     ProcessCommand();
 
     int defaultResponseFileThreshold() const;
-
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
 
     void getEnvironmentFromList(const QStringList &envList);
 
@@ -165,11 +164,11 @@ public:
     const QString &sourceCode() const { return m_sourceCode; }
     void setSourceCode(const QString &str) { m_sourceCode = str; }
 
-private:
-    JavaScriptCommand();
-
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
+
+private:
+    JavaScriptCommand();
 
     QString m_scopeName;
     QString m_sourceCode;

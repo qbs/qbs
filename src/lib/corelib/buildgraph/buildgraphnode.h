@@ -42,7 +42,6 @@
 
 #include "nodeset.h"
 #include <language/forward_decls.h>
-#include <tools/persistentobject.h>
 #include <tools/weakpointer.h>
 
 namespace qbs {
@@ -50,7 +49,7 @@ namespace Internal {
 
 class BuildGraphVisitor;
 
-class BuildGraphNode : public virtual PersistentObject
+class BuildGraphNode
 {
     friend NodeSet;
 public:
@@ -83,11 +82,12 @@ public:
 
     bool isBuilt() const { return buildState == Built; }
 
+    virtual void load(PersistentPool &pool);
+    virtual void store(PersistentPool &pool) const;
+
 protected:
     explicit BuildGraphNode();
     void acceptChildren(BuildGraphVisitor *visitor);
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
 };
 
 } // namespace Internal

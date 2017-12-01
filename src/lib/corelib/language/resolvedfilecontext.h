@@ -43,12 +43,10 @@
 #include "forward_decls.h"
 #include "filecontextbase.h"
 
-#include <tools/persistentobject.h>
-
 namespace qbs {
 namespace Internal {
 
-class ResolvedFileContext : public FileContextBase, public PersistentObject
+class ResolvedFileContext : public FileContextBase
 {
 public:
     static ResolvedFileContextPtr create()
@@ -61,12 +59,12 @@ public:
         return ResolvedFileContextPtr(new ResolvedFileContext(baseContext));
     }
 
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+
 private:
     ResolvedFileContext() {}
     ResolvedFileContext(const FileContextBase &ctx);
-
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
 };
 
 bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b);

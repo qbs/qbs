@@ -45,7 +45,6 @@
 #include <language/forward_decls.h>
 #include <language/property.h>
 #include <language/scriptengine.h>
-#include <tools/persistentobject.h>
 
 #include <QtCore/qhash.h>
 
@@ -55,7 +54,7 @@ class Artifact;
 class AbstractCommand;
 class Rule;
 
-class Transformer : public PersistentObject
+class Transformer
 {
 public:
     static TransformerPtr create() { return TransformerPtr(new Transformer); }
@@ -86,6 +85,9 @@ public:
                         const QScriptValueList &args);
     void rescueChangeTrackingData(const TransformerConstPtr &other);
 
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+
 private:
     Transformer();
 
@@ -94,9 +96,6 @@ private:
     static QScriptValue translateInOutputs(ScriptEngine *scriptEngine,
                                            const ArtifactSet &artifacts,
                                            const QString &defaultModuleName);
-
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
 };
 
 } // namespace Internal

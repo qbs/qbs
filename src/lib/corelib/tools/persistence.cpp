@@ -145,22 +145,7 @@ void PersistentPool::closeStream()
     m_stream.setDevice(nullptr);
 }
 
-void PersistentPool::storePersistentObject(const PersistentObject *object)
-{
-    if (!object) {
-        m_stream << -1;
-        return;
-    }
-    PersistentObjectId id = m_storageIndices.value(object, -1);
-    if (id < 0) {
-        id = m_lastStoredObjectId++;
-        m_storageIndices.insert(object, id);
-        m_stream << id;
-        object->store(*this);
-    } else {
-        m_stream << id;
-    }
-}
+
 
 void PersistentPool::storeVariant(const QVariant &variant)
 {

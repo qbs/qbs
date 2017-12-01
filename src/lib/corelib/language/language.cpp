@@ -790,6 +790,10 @@ ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(nullptr)
 {
 }
 
+ResolvedProject::~ResolvedProject()
+{
+}
+
 void ResolvedProject::accept(BuildGraphVisitor *visitor) const
 {
     for (const ResolvedProductPtr &product : qAsConst(products))

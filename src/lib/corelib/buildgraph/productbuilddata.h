@@ -44,7 +44,6 @@
 #include "rescuableartifactdata.h"
 #include <language/filetags.h>
 #include <language/forward_decls.h>
-#include <tools/persistentobject.h>
 
 #include <QtCore/qlist.h>
 
@@ -53,7 +52,7 @@ namespace Internal {
 
 class Logger;
 
-class QBS_AUTOTEST_EXPORT ProductBuildData : public PersistentObject
+class QBS_AUTOTEST_EXPORT ProductBuildData
 {
 public:
     ~ProductBuildData();
@@ -77,7 +76,6 @@ public:
     typedef QHash<RuleConstPtr, ArtifactSet> ArtifactSetByRule;
     ArtifactSetByRule artifactsWithChangedInputsPerRule;
 
-private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 };

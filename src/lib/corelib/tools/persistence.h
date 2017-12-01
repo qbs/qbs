@@ -41,7 +41,6 @@
 #define QBS_PERSISTENCE
 
 #include "error.h"
-#include "persistentobject.h"
 #include <logging/logger.h>
 
 #include <QtCore/qdatastream.h>
@@ -108,7 +107,7 @@ private:
     template <typename T> T *idLoad();
     template <class T> std::shared_ptr<T> idLoadS();
 
-    void storePersistentObject(const PersistentObject *object);
+    template<typename T> void storeSharedObject(const T *object);
 
     void storeVariant(const QVariant &variant);
     QVariant loadVariant();
@@ -119,9 +118,9 @@ private:
 
     QDataStream m_stream;
     HeadData m_headData;
-    std::vector<PersistentObject *> m_loadedRaw;
-    std::vector<std::shared_ptr<PersistentObject> > m_loaded;
-    QHash<const PersistentObject *, int> m_storageIndices;
+    std::vector<void *> m_loadedRaw;
+    std::vector<std::shared_ptr<void>> m_loaded;
+    QHash<const void*, int> m_storageIndices;
     PersistentObjectId m_lastStoredObjectId;
 
     std::vector<QString> m_stringStorage;
@@ -129,6 +128,26 @@ private:
     PersistentObjectId m_lastStoredStringId;
     Logger &m_logger;
 };
+
+template<typename T> inline const void *uniqueAddress(const T *t) { return t; }
+
+template<typename T> inline void PersistentPool::storeSharedObject(const T *object)
+{
+    if (!object) {
+        m_stream << -1;
+        return;
+    }
+    const void * const addr = uniqueAddress(object);
+    PersistentObjectId id = m_storageIndices.value(addr, -1);
+    if (id < 0) {
+        id = m_lastStoredObjectId++;
+        m_storageIndices.insert(addr, id);
+        m_stream << id;
+        object->store(*this);
+    } else {
+        m_stream << id;
+    }
+}
 
 template <typename T> inline T *PersistentPool::idLoad()
 {
@@ -138,10 +157,8 @@ template <typename T> inline T *PersistentPool::idLoad()
     if (id < 0)
         return nullptr;
 
-    if (id < static_cast<PersistentObjectId>(m_loadedRaw.size())) {
-        PersistentObject *obj = m_loadedRaw.at(id);
-        return dynamic_cast<T*>(obj);
-    }
+    if (id < static_cast<PersistentObjectId>(m_loadedRaw.size()))
+        return static_cast<T *>(m_loadedRaw.at(id));
 
     auto i = m_loadedRaw.size();
     m_loadedRaw.resize(id + 1);
@@ -149,9 +166,8 @@ template <typename T> inline T *PersistentPool::idLoad()
         m_loadedRaw[i] = nullptr;
 
     T * const t = new T;
-    PersistentObject * const po = t;
-    m_loadedRaw[id] = po;
-    po->load(*this);
+    m_loadedRaw[id] = t;
+    t->load(*this);
     return t;
 }
 
@@ -163,16 +179,13 @@ template <class T> inline std::shared_ptr<T> PersistentPool::idLoadS()
     if (id < 0)
         return std::shared_ptr<T>();
 
-    if (id < static_cast<PersistentObjectId>(m_loaded.size())) {
-        std::shared_ptr<PersistentObject> obj = m_loaded.at(id);
-        return std::static_pointer_cast<T>(obj);
-    }
+    if (id < static_cast<PersistentObjectId>(m_loaded.size()))
+        return std::static_pointer_cast<T>(m_loaded.at(id));
 
     m_loaded.resize(id + 1);
     const std::shared_ptr<T> t = T::create();
     m_loaded[id] = t;
-    PersistentObject * const po = t.get();
-    po->load(*this);
+    t->load(*this);
     return t;
 }
 
@@ -199,15 +212,7 @@ struct PersistentPool::Helper<T, typename std::enable_if<std::is_enum<T>::value>
     }
 };
 
-// TODO: Use constexpr function once we require MSVC 2015.
-template<typename T> struct IsPersistentObject
-{
-    static const bool value = std::is_base_of<PersistentObject, T>::value;
-};
-
-template<typename T>
-struct PersistentPool::Helper<std::shared_ptr<T>,
-                              typename std::enable_if<IsPersistentObject<T>::value>::type>
+template<typename T> struct PersistentPool::Helper<std::shared_ptr<T>>
 {
     static void store(const std::shared_ptr<T> &value, PersistentPool *pool)
     {
@@ -219,9 +224,7 @@ struct PersistentPool::Helper<std::shared_ptr<T>,
     }
 };
 
-template<typename T>
-struct PersistentPool::Helper<std::unique_ptr<T>,
-                              typename std::enable_if<IsPersistentObject<T>::value>::type>
+template<typename T> struct PersistentPool::Helper<std::unique_ptr<T>>
 {
     static void store(const std::unique_ptr<T> &value, PersistentPool *pool)
     {
@@ -233,10 +236,9 @@ struct PersistentPool::Helper<std::unique_ptr<T>,
     }
 };
 
-template<typename T>
-struct PersistentPool::Helper<T *, typename std::enable_if<IsPersistentObject<T>::value>::type>
+template<typename T> struct PersistentPool::Helper<T *>
 {
-    static void store(const T *value, PersistentPool *pool) { pool->storePersistentObject(value); }
+    static void store(const T *value, PersistentPool *pool) { pool->storeSharedObject(value); }
     void load(T* &value, PersistentPool *pool) { value = pool->idLoad<T>(); }
 };
 

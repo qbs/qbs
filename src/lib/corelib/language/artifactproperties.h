@@ -43,12 +43,10 @@
 #include "filetags.h"
 #include "forward_decls.h"
 
-#include <tools/persistentobject.h>
-
 namespace qbs {
 namespace Internal {
 
-class ArtifactProperties : public PersistentObject
+class ArtifactProperties
 {
 public:
     static ArtifactPropertiesPtr create();
@@ -62,11 +60,11 @@ public:
     FileTags extraFileTags() const;
     void setExtraFileTags(const FileTags &extraFileTags);
 
-private:
-    ArtifactProperties();
-
     void load(PersistentPool &);
     void store(PersistentPool &) const;
+
+private:
+    ArtifactProperties();
 
     FileTags m_fileTagsFilter;
     FileTags m_extraFileTags;

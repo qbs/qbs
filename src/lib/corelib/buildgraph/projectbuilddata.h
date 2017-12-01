@@ -43,7 +43,6 @@
 #include "rawscanresults.h"
 #include <language/forward_decls.h>
 #include <logging/logger.h>
-#include <tools/persistentobject.h>
 #include <tools/set.h>
 
 #include <QtCore/qhash.h>
@@ -59,7 +58,7 @@ class FileDependency;
 class FileResourceBase;
 class ScriptEngine;
 
-class QBS_AUTOTEST_EXPORT ProjectBuildData : public PersistentObject
+class QBS_AUTOTEST_EXPORT ProjectBuildData
 {
 public:
     ProjectBuildData(const ProjectBuildData *other = 0);
@@ -87,10 +86,10 @@ public:
     RulesEvaluationContextPtr evaluationContext;
     bool isDirty;
 
-private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 
+private:
     typedef QHash<QString, QList<FileResourceBase *> > ResultsPerDirectory;
     typedef QHash<QString, ResultsPerDirectory> ArtifactLookupTable;
     ArtifactLookupTable m_artifactLookupTable;

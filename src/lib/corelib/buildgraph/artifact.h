@@ -106,16 +106,20 @@ public:
 
     bool isTargetOfModule() const { return !targetOfModule.isEmpty(); }
 
-private:
     void load(PersistentPool &pool) override;
     void store(PersistentPool &pool) const override;
 
+private:
     FileTags m_fileTags;
 };
 
 template<> inline QString Set<Artifact *>::toString(Artifact * const &artifact) const
 {
     return artifact->filePath();
+}
+template<> inline const void *uniqueAddress(const Artifact *a)
+{
+    return static_cast<const BuildGraphNode *>(a);
 }
 
 // debugging helper

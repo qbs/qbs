@@ -375,7 +375,6 @@ QbsLibrary {
             "pathutils.h",
             "persistence.cpp",
             "persistence.h",
-            "persistentobject.h",
             "preferences.cpp",
             "processresult.cpp",
             "processresult_p.h",

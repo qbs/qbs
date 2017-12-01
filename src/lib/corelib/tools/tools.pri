@@ -46,7 +46,6 @@ HEADERS += \
     $$PWD/installoptions.h \
     $$PWD/cleanoptions.h \
     $$PWD/setupprojectparameters.h \
-    $$PWD/persistentobject.h \
     $$PWD/weakpointer.h \
     $$PWD/qbs_export.h \
     $$PWD/qbsassert.h \

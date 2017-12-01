@@ -131,6 +131,7 @@ class ArtifactProperties;
 typedef std::shared_ptr<ArtifactProperties> ArtifactPropertiesPtr;
 typedef std::shared_ptr<const ArtifactProperties> ArtifactPropertiesConstPtr;
 
+class PersistentPool;
 } // namespace Internal
 } // namespace qbs
 

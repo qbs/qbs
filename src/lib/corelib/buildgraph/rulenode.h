@@ -73,7 +73,6 @@ public:
     void apply(const Logger &logger, const ArtifactSet &changedInputs, ApplicationResult *result);
     void removeOldInputArtifact(Artifact *artifact) { m_oldInputArtifacts.remove(artifact); }
 
-protected:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 

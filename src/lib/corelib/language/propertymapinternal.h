@@ -41,14 +41,13 @@
 #define QBS_PROPERTYMAPINTERNAL_H
 
 #include "forward_decls.h"
-#include <tools/persistentobject.h>
 #include <tools/qbs_export.h>
 #include <QtCore/qvariant.h>
 
 namespace qbs {
 namespace Internal {
 
-class QBS_AUTOTEST_EXPORT PropertyMapInternal : public PersistentObject
+class QBS_AUTOTEST_EXPORT PropertyMapInternal
 {
 public:
     static PropertyMapPtr create() { return PropertyMapPtr(new PropertyMapInternal); }
@@ -60,14 +59,14 @@ public:
     QVariant property(const QStringList &name) const;
     void setValue(const QVariantMap &value);
 
+    void load(PersistentPool &);
+    void store(PersistentPool &) const;
+
 private:
     friend bool operator==(const PropertyMapInternal &lhs, const PropertyMapInternal &rhs);
 
     PropertyMapInternal();
     PropertyMapInternal(const PropertyMapInternal &other);
-
-    void load(PersistentPool &);
-    void store(PersistentPool &) const;
 
     QVariantMap m_value;
 };

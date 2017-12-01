@@ -41,18 +41,17 @@
 #define QBS_FILEDEPENDENCY_H
 
 #include <tools/filetime.h>
-#include <tools/persistentobject.h>
 
 namespace qbs {
 namespace Internal {
 
-class FileResourceBase : public virtual PersistentObject
+class FileResourceBase
 {
 protected:
     FileResourceBase();
 
 public:
-    ~FileResourceBase();
+    virtual ~FileResourceBase();
 
     enum FileType { FileTypeDependency, FileTypeArtifact };
     virtual FileType fileType() const = 0;
@@ -66,9 +65,8 @@ public:
     QString dirPath() const { return m_dirPath.toString(); }
     QString fileName() const { return m_fileName.toString(); }
 
-protected:
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    virtual void load(PersistentPool &pool);
+    virtual void store(PersistentPool &pool) const;
 
 private:
     FileTime m_timestamp;

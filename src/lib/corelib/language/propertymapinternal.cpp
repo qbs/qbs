@@ -63,8 +63,7 @@ PropertyMapInternal::PropertyMapInternal()
 {
 }
 
-PropertyMapInternal::PropertyMapInternal(const PropertyMapInternal &other)
-    : PersistentObject(other), m_value(other.m_value)
+PropertyMapInternal::PropertyMapInternal(const PropertyMapInternal &other) : m_value(other.m_value)
 {
 }
 
