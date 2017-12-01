@@ -4733,7 +4733,7 @@ void TestBlackbox::auxiliaryInputsFromDependencies()
     QVERIFY2(m_qbsStdout.contains("generating dummy.out"), m_qbsStdout.constData());
 }
 
-void TestBlackbox::nsis()
+static bool haveMakeNsis()
 {
     QStringList regKeys;
     regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\NSIS")
@@ -4758,7 +4758,12 @@ void TestBlackbox::nsis()
         }
     }
 
-    if (!haveMakeNsis) {
+    return haveMakeNsis;
+}
+
+void TestBlackbox::nsis()
+{
+    if (!haveMakeNsis()) {
         QSKIP("makensis is not installed");
         return;
     }
@@ -4769,6 +4774,19 @@ void TestBlackbox::nsis()
     QCOMPARE((bool)m_qbsStdout.contains("compiling hello.nsi"), targetIsWindows);
     QCOMPARE((bool)m_qbsStdout.contains("SetCompressor ignored due to previous call with the /FINAL switch"), targetIsWindows);
     QVERIFY(!QFile::exists(defaultInstallRoot + "/you-should-not-see-a-file-with-this-name.exe"));
+}
+
+void TestBlackbox::nsisDependencies()
+{
+    if (!haveMakeNsis()) {
+        QSKIP("makensis is not installed");
+        return;
+    }
+
+    bool targetIsWindows = targetOs() == HostOsInfo::HostOsWindows;
+    QDir::setCurrent(testDataDir + "/nsisDependencies");
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.contains("compiling hello.nsi"), targetIsWindows);
 }
 
 void TestBlackbox::enableExceptions()
@@ -4929,6 +4947,30 @@ void TestBlackbox::wix()
     }
 }
 
+void TestBlackbox::wixDependencies()
+{
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
+
+    if (!haveWiX(profile)) {
+        QSKIP("WiX is not installed");
+        return;
+    }
+
+    QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
+    if (arch.isEmpty())
+        arch = QByteArrayLiteral("x86");
+
+    QDir::setCurrent(testDataDir + "/wixDependencies");
+    QbsRunParameters params;
+    if (!HostOsInfo::isWindowsHost())
+        params.arguments << "qbs.targetOS:windows";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling QbsSetup.wxs"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("linking qbs.msi"), m_qbsStdout);
+    QVERIFY(regularFileExists(relativeBuildDir() + "/qbs.msi"));
+}
+
 void TestBlackbox::nodejs()
 {
     const SettingsPtr s = settings();
@@ -5076,6 +5118,25 @@ void TestBlackbox::innoSetup()
     QVERIFY(m_qbsStdout.contains("compiling Example1.iss"));
     QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs.setup.test.exe"));
     QVERIFY(regularFileExists(relativeProductBuildDir("Example1") + "/Example1.exe"));
+}
+
+void TestBlackbox::innoSetupDependencies()
+{
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
+
+    if (!haveInnoSetup(profile)) {
+        QSKIP("Inno Setup is not installed");
+        return;
+    }
+
+    QDir::setCurrent(testDataDir + "/innosetupDependencies");
+    QbsRunParameters params;
+    if (!HostOsInfo::isWindowsHost())
+        params.arguments << "qbs.targetOS:windows";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("compiling test.iss"));
+    QVERIFY(regularFileExists(relativeBuildDir() + "/qbs.setup.test.exe"));
 }
 
 void TestBlackbox::outputArtifactAutoTagging()

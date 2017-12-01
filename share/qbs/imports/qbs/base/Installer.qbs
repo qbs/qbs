@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -30,8 +30,13 @@
 
 import qbs
 
-Installer {
-    Depends { name: "nsis"; condition: qbs.targetOS.contains("windows") }
-    type: ["nsissetup"]
-    auxiliaryInputs: ["nsis.input"]
+Product {
+    property bool dependsOnInstallables: true
+    property stringList auxiliaryInputs: []
+
+    Group {
+        condition: dependsOnInstallables
+        fileTagsFilter: ["installable"]
+        fileTags: auxiliaryInputs
+    }
 }
