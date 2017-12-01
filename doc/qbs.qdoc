@@ -471,7 +471,7 @@
         pip install beautifulsoup4 lxml
     \endcode
 
-    Regenerating the man page requires a Perl module, help2man.
+    Regenerating the man page requires the \c help2man tool.
 
     \section1 Building
 
