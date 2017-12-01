@@ -14,13 +14,14 @@ RUN apt-get -y update && apt-get install -y \
     libx11-xcb1
 
 COPY qtifwsilent.qs qtifwsilent.qs
-RUN curl -L -O 'https://download.qt.io/official_releases/qt/5.9/5.9.1/qt-opensource-linux-x64-5.9.1.run' && \
-    chmod +x qt-opensource-linux-x64-5.9.1.run && \
-    QT_INSTALL_DIR=/usr/local/Qt ./qt-opensource-linux-x64-5.9.1.run --platform minimal --script qtifwsilent.qs && \
-    rm -f qt-opensource-linux-x64-5.9.1.run
-ENV QTDIR /usr/local/Qt/5.9.1/gcc_64
+RUN curl -L -O 'https://download.qt.io/official_releases/qt/5.9/5.9.3/qt-opensource-linux-x64-5.9.3.run' && \
+    chmod +x qt-opensource-linux-x64-5.9.3.run && \
+    QT_INSTALL_DIR=/usr/local/Qt ./qt-opensource-linux-x64-5.9.3.run --platform minimal --script qtifwsilent.qs && \
+    rm -f qt-opensource-linux-x64-5.9.3.run
+ENV QTDIR /usr/local/Qt/5.9.3/gcc_64
 ENV PATH="/usr/local/Qt/Tools/QtCreator/bin:${PATH}"
 
+RUN ls "$QTDIR" && stat "$QTDIR/lib/libQt5Script.so" && qbs --version
 RUN apt-get -y update && apt-get install -y \
     g++ \
     gcc \
