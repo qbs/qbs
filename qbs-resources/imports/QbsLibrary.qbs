@@ -10,8 +10,7 @@ QbsProduct {
         qbs.targetOS.contains("windows") ? "bin" : qbsbuildconfig.libDirName)
     cpp.defines: base.concat(visibilityType === "static" ? ["QBS_STATIC_LIB"] : ["QBS_LIBRARY"])
     cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
-    // ### Uncomment the following line in 1.8
-    //cpp.soVersion: version.replace(/\.\d+$/, '')
+    cpp.soVersion: version.replace(/\.\d+$/, '')
     cpp.visibility: "minimal"
     cpp.cxxLanguageVersion: "c++11"
     property bool visibilityType: Qt.core.staticBuild ? "static" : "dynamic"
