@@ -12,6 +12,7 @@ Module {
         configure: {
             var cmd;
             var args;
+            var p = path;
             if (targetOS.contains("windows")) {
                 cmd = windowsShellPath;
                 args = ["/c", "date", "/t"];

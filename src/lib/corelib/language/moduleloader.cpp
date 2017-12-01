@@ -2964,6 +2964,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     } else if (!resolvedProbe) {
         const Evaluator::FileContextScopes fileCtxScopes
                 = m_evaluator->fileContextScopes(configureScript->file());
+        engine->currentContext()->pushScope(fileCtxScopes.fileScope);
         engine->currentContext()->pushScope(fileCtxScopes.importScope);
         configureScope = engine->newObject();
         for (const ProbeProperty &b : qAsConst(probeBindings))
@@ -2971,6 +2972,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         engine->currentContext()->pushScope(configureScope);
         engine->clearRequestedProperties();
         QScriptValue sv = engine->evaluate(configureScript->sourceCodeForEvaluation());
+        engine->currentContext()->popScope();
         engine->currentContext()->popScope();
         engine->currentContext()->popScope();
         engine->releaseResourcesOfScriptObjects();
