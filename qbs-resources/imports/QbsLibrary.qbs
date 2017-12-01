@@ -34,6 +34,7 @@ QbsProduct {
     Properties {
         condition: qbs.targetOS.contains("darwin")
         bundle.isBundle: false
+        cpp.linkerFlags: ["-compatibility_version", cpp.soVersion]
     }
 
     Export {
