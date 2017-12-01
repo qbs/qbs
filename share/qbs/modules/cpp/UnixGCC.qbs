@@ -43,6 +43,7 @@ GenericGCC {
     debugInfoSuffix: ".debug"
     imageFormat: "elf"
     systemRunPaths: ["/lib", "/usr/lib"]
+    rpathOrigin: "$ORIGIN"
     useRPathLink: true
     rpathLinkFlag: "-rpath-link="
 }

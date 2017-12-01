@@ -28,7 +28,7 @@ Project {
 
         Properties {
             condition: qbs.targetOS.contains("unix") && !qbs.targetOS.contains("darwin")
-            cpp.rpaths: ["$ORIGIN"]
+            cpp.rpaths: [cpp.rpathOrigin]
         }
 
         Group {

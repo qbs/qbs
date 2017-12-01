@@ -313,9 +313,26 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
             escapableLinkerFlags.push("--unresolved-symbols=ignore-all");
     }
 
+    function fixupRPath(rpath) {
+        // iOS, tvOS, watchOS, and others, are fine
+        if (!product.qbs.targetOS.contains("macos"))
+            return rpath;
+
+        // ...as are newer versions of macOS
+        var min = product.cpp.minimumMacosVersion;
+        if (min && Utilities.versionCompare(min, "10.10") >= 0)
+            return rpath;
+
+        // In older versions of dyld, a trailing slash is required
+        if (!rpath.endsWith("/"))
+            return rpath + "/";
+
+        return rpath;
+    }
+
     for (i in rpaths) {
         if (systemRunPaths.indexOf(rpaths[i]) === -1)
-            escapableLinkerFlags.push("-rpath", rpaths[i]);
+            escapableLinkerFlags.push("-rpath", fixupRPath(rpaths[i]));
     }
 
     if (product.cpp.entryPoint)

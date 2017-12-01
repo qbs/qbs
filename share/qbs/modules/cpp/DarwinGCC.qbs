@@ -85,6 +85,7 @@ UnixGCC {
     separateDebugInformation: true
     debugInfoBundleSuffix: ".dSYM"
     debugInfoSuffix: ".dwarf"
+    rpathOrigin: "@loader_path"
     useRPathLink: !minimumDarwinVersion
                   || Utilities.versionCompare(minimumDarwinVersion, "10.5") < 0
     rpathLinkFlag: "-L"

@@ -10,7 +10,7 @@ Project {
         name: "singleapp"
         targetName: "singleapp"
         files: ["app.c"]
-        cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path/../../../"] : []
+        cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
         cpp.minimumMacosVersion: "10.5"
 
         // Turn off multiplexing
@@ -30,7 +30,7 @@ Project {
         name: "singleapp_agg"
         targetName: "singleapp_agg"
         files: ["app.c"]
-        cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path/../../../"] : []
+        cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
         cpp.minimumMacosVersion: "10.5"
 
         // Force aggregation when not needed
@@ -71,7 +71,7 @@ Project {
         name: "multiapp"
         targetName: "multiapp"
         files: ["app.c"]
-        cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path/../../../"] : []
+        cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
         cpp.minimumMacosVersion: "10.5"
 
         Group {
@@ -87,7 +87,7 @@ Project {
         name: "fatmultiapp"
         targetName: "fatmultiapp"
         files: ["app.c"]
-        cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path/../../../"] : []
+        cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
         cpp.minimumMacosVersion: "10.5"
         qbs.architectures: ["x86", "x86_64"]
 
@@ -104,7 +104,7 @@ Project {
         name: "fatmultiappmultivariant"
         targetName: "fatmultiappmultivariant"
         files: ["app.c"]
-        cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path/../../../"] : []
+        cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
         cpp.minimumMacosVersion: "10.5"
         qbs.architectures: ["x86", "x86_64"]
         qbs.buildVariants: ["debug", "profile"]

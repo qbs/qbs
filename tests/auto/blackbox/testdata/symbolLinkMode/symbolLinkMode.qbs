@@ -29,7 +29,7 @@ Project {
         }
         cpp.cxxLanguageVersion: "c++11"
         cpp.minimumMacosVersion: "10.5"
-        cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path/../lib"] : ["$ORIGIN/../lib"]
+        cpp.rpaths: [cpp.rpathOrigin + "/../lib"]
 
         Group {
             fileTagsFilter: product.type
@@ -50,7 +50,7 @@ Project {
         files: ["lib.cpp"]
         cpp.cxxLanguageVersion: "c++11"
         cpp.minimumMacosVersion: "10.5"
-        cpp.rpaths: qbs.targetOS.contains("darwin") ? ["@loader_path"] : ["$ORIGIN"]
+        cpp.rpaths: [cpp.rpathOrigin]
 
         Properties {
             condition: qbs.targetOS.contains("darwin")

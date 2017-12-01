@@ -642,6 +642,14 @@
             If this property is \c{undefined}, then position independent code is generated for
             libraries, but not for applications.
     \row
+        \li rpathOrigin
+        \li \c{string}
+        \li 1.11
+        \li \c{"@loader_path"} on Mach-O based platforms (macOS, iOS, tvOS, watchOS),
+            \c{"$ORIGIN"} on ELF based platforms (Linux and most other Unix-like platforms)
+        \li Placeholder value used in an rpath string to refer to the directory containing the
+            referring executable or shared library.
+    \row
         \li rpaths
         \li \c{stringList}
         \li 1.0
