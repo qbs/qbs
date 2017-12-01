@@ -22,9 +22,10 @@ QbsProduct {
         fileTagsFilter: product.type.concat("dynamiclibrary_symlink")
             .concat(qbs.buildVariant === "debug" ? ["debuginfo_dll"] : [])
         qbs.install: install
-        qbs.installDir: qbsbuildconfig.libInstallDir
         qbs.installSourceBase: destinationDirectory
+        qbs.installDir: targetInstallDir
     }
+    targetInstallDir: qbsbuildconfig.libInstallDir
     Group {
         fileTagsFilter: ["dynamiclibrary_import"]
         qbs.install: install
@@ -42,7 +43,6 @@ QbsProduct {
         Depends { name: "Qt"; submodules: ["core"] }
         Depends { name: "qbsbuildconfig" }
 
-        cpp.rpaths: qbsbuildconfig.libRPaths
         cpp.includePaths: [product.sourceDirectory]
         cpp.defines: product.visibilityType === "static" ? ["QBS_STATIC_LIB"] : []
     }

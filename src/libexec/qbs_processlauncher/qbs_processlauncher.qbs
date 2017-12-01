@@ -10,11 +10,6 @@ QbsProduct {
 
     Depends { name: "Qt.network" }
 
-    Properties {
-        condition: qbs.targetOS.contains("macos") && qbsbuildconfig.enableRPath
-        cpp.rpaths: ["@loader_path/../../" + qbsbuildconfig.libDirName]
-    }
-
     cpp.cxxLanguageVersion: "c++11"
     cpp.includePaths: base.concat(pathToProtocolSources)
 
@@ -40,7 +35,8 @@ QbsProduct {
         fileTagsFilter: product.type
             .concat(qbs.buildVariant === "debug" ? ["debuginfo_app"] : [])
         qbs.install: true
-        qbs.installDir: qbsbuildconfig.libexecInstallDir
         qbs.installSourceBase: destinationDirectory
+        qbs.installDir: targetInstallDir
     }
+    targetInstallDir: qbsbuildconfig.libexecInstallDir
 }

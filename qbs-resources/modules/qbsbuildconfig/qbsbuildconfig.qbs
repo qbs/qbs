@@ -19,16 +19,35 @@ Module {
     property string relativeLibexecPath: "../" + libexecInstallDir
     property string relativePluginsPath: "../" + libDirName
     property string relativeSearchPath: ".."
+    property string rpathOrigin: {
+        // qbs < 1.11 compatibility for cpp.rpathOrigin
+        if (qbs.targetOS.contains("darwin"))
+            return "@loader_path";
+        if (qbs.targetOS.contains("unix"))
+            return "$ORIGIN";
+    }
     property stringList libRPaths: {
-        if (!enableRPath)
-            return undefined;
-        if (qbs.targetOS.contains("linux"))
-            return ["$ORIGIN/../" + libDirName];
-        if (qbs.targetOS.contains("macos"))
-            return ["@loader_path/../" + libDirName]
+        if (enableRPath && rpathOrigin && product.targetInstallDir) {
+            if (!FileInfo.cleanPath) {
+                // qbs < 1.10 compatibility
+                FileInfo.cleanPath = function (a) {
+                    if (a.endsWith("/."))
+                        return a.slice(0, -2);
+                    if (a.endsWith("/"))
+                        return a.slice(0, -1);
+                    return a;
+                }
+            }
+            return [FileInfo.cleanPath(FileInfo.joinPaths(rpathOrigin, FileInfo.relativePath(
+                                              FileInfo.resolvePath(qbs.installRoot,
+                                                                   product.targetInstallDir),
+                                              FileInfo.resolvePath(qbs.installRoot,
+                                                                   libDirName))))];
+        }
+        return [];
     }
     property string resourcesInstallDir: ""
-    property string pluginsInstallDir: libDirName
+    property string pluginsInstallDir: libDirName + "/qbs/plugins"
     property string qmlTypeDescriptionsInstallDir: FileInfo.joinPaths(resourcesInstallDir,
                                                                   "share/qbs/qml-type-descriptions")
 }

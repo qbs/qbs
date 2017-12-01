@@ -6,6 +6,7 @@ Product {
     Depends { name: "Qt.core"; versionAtLeast: minimumQtVersion }
     property string minimumQtVersion: "5.6.0"
     property bool install: true
+    property string targetInstallDir
     cpp.defines: {
         var res = ["QT_NO_CAST_FROM_ASCII", "QT_NO_PROCESS_COMBINED_ARGUMENT_START"];
         if (qbs.toolchain.contains("msvc"))
@@ -15,4 +16,5 @@ Product {
         return res;
     }
     cpp.enableExceptions: true
+    cpp.rpaths: qbsbuildconfig.libRPaths
 }

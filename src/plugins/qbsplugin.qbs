@@ -25,9 +25,10 @@ QbsProduct {
             .concat(qbs.buildVariant === "debug"
         ? [isForDarwin ? "debuginfo_loadablemodule" : "debuginfo_dll"] : [])
         qbs.install: true
-        qbs.installDir: qbsbuildconfig.pluginsInstallDir + "/qbs/plugins"
         qbs.installSourceBase: destinationDirectory
+        qbs.installDir: targetInstallDir
     }
+    targetInstallDir: qbsbuildconfig.pluginsInstallDir
     Properties {
         condition: isForDarwin
         bundle.isBundle: false

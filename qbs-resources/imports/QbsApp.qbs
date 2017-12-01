@@ -17,9 +17,10 @@ QbsProduct {
         fileTagsFilter: product.type
             .concat(qbs.buildVariant === "debug" ? ["debuginfo_app"] : [])
         qbs.install: true
-        qbs.installDir: qbsbuildconfig.appInstallDir
         qbs.installSourceBase: destinationDirectory
+        qbs.installDir: targetInstallDir
     }
+    targetInstallDir: qbsbuildconfig.appInstallDir
     Group {
         name: "logging"
         prefix: FileInfo.joinPaths(product.sourceDirectory, "../shared/logging") + '/'
