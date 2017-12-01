@@ -197,8 +197,8 @@
 
     On Apple platforms, influences the default application type.
 
-    If \c true, an application bundle is generated. If \c false, a normal
-    executable is generated.
+    If \c true, a normal executable is generated.
+    If \c false, an application bundle is generated.
 
     \defaultvalue Linker-dependent
 */
