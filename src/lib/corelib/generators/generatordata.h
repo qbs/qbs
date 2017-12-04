@@ -46,7 +46,6 @@
 #include <api/projectdata.h>
 #include <tools/error.h>
 #include <tools/installoptions.h>
-#include <tools/set.h>
 #include <functional>
 
 namespace qbs {

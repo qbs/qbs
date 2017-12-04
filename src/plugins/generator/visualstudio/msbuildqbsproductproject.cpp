@@ -342,12 +342,9 @@ void MSBuildQbsProductProject::addItemDefGroup(const Project &project,
 static MSBuildFileItem *fileItemForFileTags(const QList<QString> &fileTags,
                                             IMSBuildItemGroup *parent = nullptr)
 {
-    const auto fileTagsSet = Internal::Set<QString>::fromList(fileTags);
-    if (fileTagsSet.intersects(
-                Internal::Set<QString> { QStringLiteral("hpp") }))
+    if (fileTags.contains(QStringLiteral("hpp")))
         return new MSBuildClInclude(parent);
-    if (fileTagsSet.intersects(
-                Internal::Set<QString> { QStringLiteral("c"), QStringLiteral("cpp") }))
+    if (fileTags.contains(QStringLiteral("c")) || fileTags.contains(QStringLiteral("cpp")))
         return new MSBuildClCompile(parent);
     return new MSBuildNone(parent);
 }

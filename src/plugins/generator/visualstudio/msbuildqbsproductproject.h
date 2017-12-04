@@ -34,8 +34,9 @@
 #include "msbuildtargetproject.h"
 
 #include <generators/generatordata.h>
-#include <tools/set.h>
 #include <tools/visualstudioversioninfo.h>
+
+#include <set>
 
 namespace qbs {
 
@@ -56,7 +57,7 @@ public:
                              VisualStudioGenerator *parent = nullptr);
 
 private:
-    typedef QHash<QString, Internal::Set<Project>> ProjectConfigurations;
+    typedef QHash<QString, std::set<Project>> ProjectConfigurations;
 
     void addConfiguration(const GeneratableProject &project, const Project &buildTask,
                           const ProductData &productData,

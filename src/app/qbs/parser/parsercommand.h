@@ -42,7 +42,7 @@
 #include "commandlineoption.h"
 #include "commandtype.h"
 
-#include <tools/set.h>
+#include <set>
 
 namespace qbs {
 class CommandLineOptionPool;
@@ -78,7 +78,7 @@ private:
     virtual QList<CommandLineOption::Type> supportedOptions() const = 0;
 
     QStringList m_additionalArguments;
-    Internal::Set<CommandLineOption *> m_usedOptions;
+    std::set<CommandLineOption *> m_usedOptions;
     const CommandLineOptionPool &m_optionPool;
 };
 

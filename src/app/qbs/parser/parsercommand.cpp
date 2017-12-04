@@ -45,6 +45,7 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
+#include <tools/stlutils.h>
 #include <tools/qttools.h>
 
 #include <QtCore/qmap.h>
@@ -136,10 +137,10 @@ void Command::parseOption(QStringList &input)
                 && option->longRepresentation() != optionString) {
             continue;
         }
-        if (m_usedOptions.contains(option) && !option->canAppearMoreThanOnce())
+        if (contains(m_usedOptions, option) && !option->canAppearMoreThanOnce())
             throwError(Tr::tr("Option '%1' cannot appear more than once.").arg(optionString));
         option->parse(type(), optionString, input);
-        m_usedOptions << option;
+        m_usedOptions.insert(option);
         matchFound = true;
         break;
     }
