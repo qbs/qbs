@@ -157,5 +157,11 @@
         \li 1.7
         \li The rule that creates Inno Setup executable files attaches this tag
             (as well as the "application" tag) to its output artifact.
+    \row
+        \li \c{"innosetup.input"}
+        \li n/a
+        \li 1.10
+        \li The rule that creates Inno Setup executable files will be dependent on artifacts
+            with this tag.
     \endtable
 */

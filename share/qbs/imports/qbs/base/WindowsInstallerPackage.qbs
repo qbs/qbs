@@ -28,7 +28,10 @@
 **
 ****************************************************************************/
 
-Product {
+import qbs
+
+Installer {
     Depends { name: "wix"; condition: qbs.targetOS.contains("windows") }
     type: ["msi"]
+    auxiliaryInputs: ["wix.input"]
 }

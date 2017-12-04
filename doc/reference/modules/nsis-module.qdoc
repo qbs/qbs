@@ -181,5 +181,11 @@
         \li 1.2
         \li The rule that creates the NSIS setup executable attaches this tag to its output
             artifact.
+    \row
+        \li \c{"nsis.input"}
+        \li -
+        \li 1.10
+        \li The rule that creates the NSIS setup executable will be dependent on artifacts
+            with this tag.
     \endtable
 */

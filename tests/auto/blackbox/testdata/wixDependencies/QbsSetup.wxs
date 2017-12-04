@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="*" Name="QbsSetup" Language="1033" Version="1.0.0.0" Manufacturer="Qt Project" UpgradeCode="f60f643e-b002-44d5-b3f4-edafd078314c">
+        <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+        <MediaTemplate />
+
+        <Feature Id="ProductFeature" Title="QbsSetup" Level="1">
+            <ComponentGroupRef Id="ProductComponents" />
+        </Feature>
+    </Product>
+
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <?ifdef Win64 ?>
+            <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
+            <?else ?>
+            <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
+            <?endif ?>
+            <Directory Id="$(var.PlatformProgramFilesFolder)">
+                <Directory Id="INSTALLFOLDER" Name="QbsSetup" />
+            </Directory>
+        </Directory>
+    </Fragment>
+
+    <Fragment>
+        <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+            <Component Id="ProductComponent">
+                <File Source="$(var.project.buildDirectory)/app.exe" />
+            </Component>
+            <Component Id="ProductComponent2">
+                <File Source="$(var.project.buildDirectory)/lib.dll" />
+            </Component>
+        </ComponentGroup>
+    </Fragment>
+</Wix>
