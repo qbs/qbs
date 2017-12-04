@@ -60,7 +60,6 @@ public:
     QString toString() const;
 };
 
-bool QBS_AUTOTEST_EXPORT operator<(const QualifiedId &a, const QualifiedId &b);
 inline uint qHash(const QualifiedId &qid) { return qHash(qid.toString()); }
 
 using QualifiedIdSet = Set<QualifiedId>;

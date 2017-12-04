@@ -68,18 +68,5 @@ QString QualifiedId::toString() const
     return join(QLatin1Char('.'));
 }
 
-bool operator<(const QualifiedId &a, const QualifiedId &b)
-{
-    const int c = std::min(a.size(), b.size());
-    for (int i = 0; i < c; ++i) {
-        int n = a.at(i).compare(b.at(i));
-        if (n < 0)
-            return true;
-        if (n > 0)
-            return false;
-    }
-    return a.size() < b.size();
-}
-
 } // namespace Internal
 } // namespace qbs
