@@ -79,7 +79,7 @@ public:
         const_iterator(const NodeSet &nodes, const NodeSet::const_iterator &it)
             : m_nodes(nodes), m_it(it)
         {
-            while (m_it != m_nodes.constEnd() && dynamic_cast<T *>(*m_it) == 0)
+            while (m_it != m_nodes.constEnd() && !hasDynamicType<T>(*m_it))
                 ++m_it;
         }
 
@@ -97,7 +97,7 @@ public:
         {
             for (;;) {
                 ++m_it;
-                if (m_it == m_nodes.constEnd() || dynamic_cast<T *>(*m_it))
+                if (m_it == m_nodes.constEnd() || hasDynamicType<T>(*m_it))
                     return *this;
             }
         }

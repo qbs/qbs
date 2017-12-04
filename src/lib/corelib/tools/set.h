@@ -40,6 +40,7 @@
 #ifndef QBS_SET_H
 #define QBS_SET_H
 
+#include <tools/dynamictypecheck.h>
 #include <tools/persistence.h>
 
 #ifdef QT_CORE_LIB
@@ -352,9 +353,8 @@ template<typename T> template<typename U> Set<T> Set<T>::filtered(const Set<U> &
     static_assert(std::is_pointer<U>::value, "Set::filtered() assumes pointer types");
     Set<T> filteredSet;
     for (auto &u : s) {
-        T t = dynamic_cast<T>(u);
-        if (t)
-            filteredSet.m_data.push_back(t);
+        if (hasDynamicType<typename std::remove_pointer<T>::type>(u))
+            filteredSet.m_data.push_back(static_cast<T>(u));
     }
     return filteredSet;
 }

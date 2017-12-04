@@ -347,6 +347,7 @@ QbsLibrary {
             "cleanoptions.cpp",
             "codelocation.cpp",
             "commandechomode.cpp",
+            "dynamictypecheck.h",
             "error.cpp",
             "executablefinder.cpp",
             "executablefinder.h",

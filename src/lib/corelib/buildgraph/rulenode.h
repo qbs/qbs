@@ -44,6 +44,7 @@
 #include "buildgraphnode.h"
 #include "forward_decls.h"
 #include <language/forward_decls.h>
+#include <tools/dynamictypecheck.h>
 
 namespace qbs {
 namespace Internal {
@@ -82,6 +83,11 @@ private:
     RuleConstPtr m_rule;
     ArtifactSet m_oldInputArtifacts;
 };
+
+template<> inline bool hasDynamicType<RuleNode>(const BuildGraphNode *n)
+{
+    return n->type() == BuildGraphNode::RuleNodeType;
+}
 
 } // namespace Internal
 } // namespace qbs

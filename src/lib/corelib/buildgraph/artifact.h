@@ -44,6 +44,7 @@
 #include "buildgraphnode.h"
 #include "forward_decls.h"
 #include <language/filetags.h>
+#include <tools/dynamictypecheck.h>
 #include <tools/filetime.h>
 #include <tools/set.h>
 
@@ -120,6 +121,11 @@ template<> inline QString Set<Artifact *>::toString(Artifact * const &artifact) 
 template<> inline const void *uniqueAddress(const Artifact *a)
 {
     return static_cast<const BuildGraphNode *>(a);
+}
+
+template<> inline bool hasDynamicType<Artifact>(const BuildGraphNode *n)
+{
+    return n->type() == BuildGraphNode::ArtifactNodeType;
 }
 
 // debugging helper

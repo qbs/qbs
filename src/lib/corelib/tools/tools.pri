@@ -7,6 +7,7 @@ HEADERS += \
     $$PWD/buildgraphlocker.h \
     $$PWD/codelocation.h \
     $$PWD/commandechomode.h \
+    $$PWD/dynamictypecheck.h \
     $$PWD/error.h \
     $$PWD/executablefinder.h \
     $$PWD/fileinfo.h \
