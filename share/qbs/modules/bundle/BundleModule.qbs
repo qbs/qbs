@@ -48,6 +48,11 @@ Module {
         condition: qbs.targetOS.contains("darwin")
 
         property string xcodeDeveloperPath: xcode.developerPath
+        property var xcodeArchSettings: xcode._architectureSettings
+        property string productTypeIdentifier: _productTypeIdentifier
+        property bool useXcodeBuildSpecs: _useXcodeBuildSpecs
+        property bool isMacOs: qbs.targetOS.contains("macos")
+        property bool xcodePresent: xcode.present
 
         // Note that we include several settings pointing to properties which reference the output
         // of this probe (WRAPPER_NAME, WRAPPER_EXTENSION, etc.). This is to ensure that derived
@@ -74,7 +79,7 @@ Module {
         configure: {
             var specsPath = path;
             var specsSeparator = "-";
-            if (xcodeDeveloperPath && _useXcodeBuildSpecs) {
+            if (xcodeDeveloperPath && useXcodeBuildSpecs) {
                 specsPath = xcodeDeveloperPath
                         + "/Platforms/MacOSX.platform/Developer/Library/Xcode/Specifications";
                 specsSeparator = " ";
@@ -83,12 +88,12 @@ Module {
             var reader = new Bundle.XcodeBuildSpecsReader(specsPath,
                                                           specsSeparator,
                                                           additionalSettings,
-                                                          !qbs.targetOS.contains("macos"));
-            var settings = reader.expandedSettings(_productTypeIdentifier,
-                                                   xcode.present
-                                                   ? xcode._architectureSettings
+                                                          !isMacOs);
+            var settings = reader.expandedSettings(productTypeIdentifier,
+                                                   xcodePresent
+                                                   ? xcodeArchSettings
                                                    : {});
-            var chain = reader.productTypeIdentifierChain(_productTypeIdentifier);
+            var chain = reader.productTypeIdentifierChain(productTypeIdentifier);
             if (settings && chain) {
                 xcodeSettings = settings;
                 productTypeIdentifierChain = chain;
