@@ -760,7 +760,9 @@ RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
 
 static bool productIsRunnable(const ResolvedProductConstPtr &product)
 {
-    return isRunnableArtifact(product->fileTags);
+    const bool isBundle = product->moduleProperties->moduleProperty(
+                QStringLiteral("bundle"), QStringLiteral("isBundle")).toBool();
+    return isRunnableArtifact(product->fileTags, isBundle);
 }
 
 static bool productIsMultiplexed(const ResolvedProductConstPtr &product)

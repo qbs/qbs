@@ -261,7 +261,10 @@ bool ArtifactData::isGenerated() const
  */
 bool ArtifactData::isExecutable() const
 {
-    return Internal::isRunnableArtifact(Internal::FileTags::fromStringList(d->fileTags));
+    const bool isBundle = d->properties.getModuleProperty(
+                QStringLiteral("bundle"), QStringLiteral("isBundle")).toBool();
+    return Internal::isRunnableArtifact(
+                Internal::FileTags::fromStringList(d->fileTags), isBundle);
 }
 
 /*!
