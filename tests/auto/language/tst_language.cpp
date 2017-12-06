@@ -780,6 +780,9 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("overwrite-readonly-module-property")
             << "overwrite-readonly-module-property.qbs"
                ":5:30.*Cannot set read-only property 'readOnlyString'.";
+    QTest::newRow("original-in-product-property")
+            << "original-in-product-property.qbs"
+               ":4:21.*The special value 'original' can only be used with module properties.";
     QTest::newRow("mismatching-multiplex-dependency")
             << "mismatching-multiplex-dependency.qbs:9:5 Dependency from product "
                "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"

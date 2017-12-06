@@ -176,6 +176,13 @@ private:
                 const Item *item = itemOfProperty;
                 while (item->type() == ItemType::ModuleInstance)
                     item = item->prototype();
+                if (item->type() != ItemType::Module && item->type() != ItemType::Export) {
+                    const QString errorMessage = Tr::tr("The special value 'original' can only "
+                                                        "be used with module properties.");
+                    extraScope = engine->currentContext()->throwError(errorMessage);
+                    result.second = false;
+                    return result;
+                }
                 SVConverter converter(scriptClass, object, item->property(*propertyName), item,
                                       propertyName, data, &originalValue);
                 converter.start();
