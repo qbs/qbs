@@ -37,20 +37,11 @@ function addNewElement(list, elem)
         list.push(elem);
 }
 
-function artifactDir(artifact, product)
+function artifactDir(artifact)
 {
     if (!artifact.qbs.install)
         return FileInfo.path(artifact.filePath);
-    var installBaseDir = FileInfo.joinPaths(artifact.qbs.installRoot, artifact.qbs.installPrefix,
-                                            artifact.qbs.installDir);
-    var installSourceBase = artifact.qbs.installSourceBase;
-    if (!installSourceBase)
-        return installBaseDir;
-    if (!FileInfo.isAbsolutePath(installSourceBase))
-        installSourceBase = FileInfo.joinPaths(product.sourceDirectory, installSourceBase);
-    var relativeInstallDir = FileInfo.path(FileInfo.relativePath(installSourceBase,
-                                                                 artifact.filePath));
-    return FileInfo.joinPaths(installBaseDir, relativeInstallDir);
+    return FileInfo.path(ModUtils.artifactInstalledFilePath(artifact));
 }
 
 function gatherPaths(product, libPaths, frameworkPaths)
@@ -81,12 +72,12 @@ function gatherPaths(product, libPaths, frameworkPaths)
         var dllSymlinkArtifacts = dep.artifacts["bundle.symlink.executable"];
         if (dllSymlinkArtifacts) {
             var addArtifact = function(artifact) {
-                addNewElement(frameworkPaths, FileInfo.path(artifactDir(artifact, dep)));
+                addNewElement(frameworkPaths, FileInfo.path(artifactDir(artifact)));
             };
             dllSymlinkArtifacts.forEach(addArtifact); // TODO: Will also catch applications. Can we prevent that?
         } else {
             addArtifact = function(artifact) {
-                addNewElement(libPaths, artifactDir(artifact, dep));
+                addNewElement(libPaths, artifactDir(artifact));
             };
             var dllArtifacts = dep.artifacts["dynamiclibrary"];
             if (dllArtifacts)
