@@ -44,10 +44,11 @@ CppModule {
     condition: qbs.toolchain && qbs.toolchain.contains("gcc")
     priority: -100
 
-    Probes.BinaryProbe {
+    Probes.GccBinaryProbe {
         id: compilerPathProbe
         condition: !toolchainInstallPath && !_skipAllChecks
-        names: [toolchainPrefix ? toolchainPrefix + compilerName : compilerName]
+        _compilerName: compilerName
+        _toolchainPrefix: toolchainPrefix
     }
 
     // Find the version as early as possible in case other things depend on it,
@@ -126,7 +127,9 @@ CppModule {
     property string targetSystem: "unknown"
     property string targetAbi: "unknown"
 
-    property string toolchainPrefix
+    property string toolchainPrefix: compilerPathProbe.found
+                                     ? compilerPathProbe.tcPrefix
+                                     : undefined
     property string toolchainInstallPath: compilerPathProbe.found ? compilerPathProbe.path
                                                                   : undefined
     property string binutilsPath: binutilsProbe.found ? binutilsProbe.path : toolchainInstallPath
