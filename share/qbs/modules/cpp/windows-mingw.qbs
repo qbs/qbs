@@ -72,7 +72,7 @@ GenericGCC {
         var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator, true);
         v.prepend(product.cpp.toolchainInstallPath);
         v.set();
-        SetupRunEnv.setupRunEnvironment(product);
+        SetupRunEnv.setupRunEnvironment(product, config);
     }
 
     FileTagger {
