@@ -95,7 +95,8 @@ Project {
 
         property string fullInstallPrefix: FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix)
         property string lib3FilePath: FileInfo.joinPaths(fullInstallPrefix, "lib3",
-                cpp.dynamicLibraryPrefix + "lib3" + (qbs.targetOS.contains("windows") ? ".lib" : cpp.dynamicLibrarySuffix))
+                cpp.dynamicLibraryPrefix + "lib3" + (qbs.toolchain.contains("msvc")
+                                                     ? ".lib" : cpp.dynamicLibrarySuffix))
         cpp.dynamicLibraries: [lib3FilePath, "lib4"]
         cpp.libraryPaths: FileInfo.joinPaths(fullInstallPrefix, "lib4")
     }
