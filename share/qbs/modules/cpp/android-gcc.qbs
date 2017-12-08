@@ -286,6 +286,8 @@ LinuxGCC {
     }
 
     validate: {
+        if (!_skipAllChecks)
+            return;
         var baseValidator = new ModUtils.PropertyValidator("qbs");
         baseValidator.addCustomValidator("architecture", targetArch, function (value) {
             return value !== undefined;

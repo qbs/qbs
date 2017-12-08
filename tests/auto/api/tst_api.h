@@ -87,6 +87,7 @@ private slots:
     void explicitlyDependsOn();
     void exportSimple();
     void exportWithRecursiveDepends();
+    void fallbackGcc();
     void fileTagger();
     void fileTagsFilterOverride();
     void generatedFilesList();

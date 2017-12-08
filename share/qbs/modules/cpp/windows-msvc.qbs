@@ -45,12 +45,13 @@ CppModule {
 
     Probes.BinaryProbe {
         id: compilerPathProbe
-        condition: !toolchainInstallPath
+        condition: !toolchainInstallPath && !_skipAllChecks
         names: ["cl"]
     }
 
     Probes.MsvcProbe {
         id: msvcProbe
+        condition: !_skipAllChecks
         compilerFilePath: compilerPath
         enableDefinesByLanguage: enableCompilerDefinesByLanguage
         preferredArchitecture: qbs.architecture
