@@ -97,9 +97,8 @@ function setupRunEnvironment(product, config)
     if (config.contains("ignore-lib-dependencies"))
         return;
 
-    // TODO: Uncomment once the property is available
-//    if (product.qbs.hostPlatform != product.qbs.targetPlatform)
-//        return;
+    if (product.qbs.hostPlatform !== product.qbs.targetPlatform)
+        return;
 
     var libPaths = [];
     var frameworkPaths = [];
