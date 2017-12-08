@@ -278,29 +278,62 @@ CppModule {
                                        + "cpp.compilerName instead.");
         }
 
-        var validator = new ModUtils.PropertyValidator("cpp");
-        validator.setRequiredProperty("architecture", architecture,
-                                      "you might want to re-run 'qbs-setup-toolchains'");
+        var isWrongTriple = false;
+
         if (gccProbe.architecture) {
-            validator.addCustomValidator("architecture", architecture, function (value) {
-                return Utilities.canonicalArchitecture(architecture) === Utilities.canonicalArchitecture(gccProbe.architecture);
-            }, "'" + architecture + "' differs from the architecture produced by this compiler (" +
-            gccProbe.architecture +")");
-        } else {
+            if (Utilities.canonicalArchitecture(architecture)
+                    !== Utilities.canonicalArchitecture(gccProbe.architecture))
+                isWrongTriple = true;
+        } else if (architecture) {
             // This is a warning and not an error on the rare chance some new architecture comes
             // about which qbs does not know about the macros of. But it *might* still work.
-            if (architecture)
-                console.warn("Unknown architecture '" + architecture + "' " +
-                             "may not be supported by this compiler.");
+            console.warn("Unknown architecture '" + architecture + "' " +
+                         "may not be supported by this compiler.");
         }
 
         if (gccProbe.endianness) {
-            validator.addCustomValidator("endianness", endianness, function (value) {
-                return endianness === gccProbe.endianness;
-            }, "'" + endianness + "' differs from the endianness produced by this compiler (" +
-            gccProbe.endianness + ")");
+            if (endianness !== gccProbe.endianness)
+                isWrongTriple = true;
         } else if (endianness) {
-            console.warn("Could not detect endianness ('" + endianness + "' given)");
+            console.warn("Could not detect endianness ('"
+                         + endianness + "' given)");
+        }
+
+        if (gccProbe.targetPlatform) {
+            // Can't differentiate Darwin OSes at the compiler level alone
+            if (gccProbe.targetPlatform === "darwin"
+                    ? !qbs.targetOS.contains("darwin")
+                    : qbs.targetPlatform !== gccProbe.targetPlatform)
+                isWrongTriple = true;
+        } else if (qbs.targetPlatform) {
+            console.warn("Could not detect target platform ('"
+                         + qbs.targetPlatform + "' given)");
+        }
+
+        if (isWrongTriple) {
+            var realTriple = [
+                Utilities.canonicalArchitecture(gccProbe.architecture),
+                gccProbe.targetPlatform,
+                gccProbe.endianness ? gccProbe.endianness + "-endian" : undefined
+            ].join("-");
+            var givenTriple = [
+                Utilities.canonicalArchitecture(architecture),
+                qbs.targetPlatform,
+                endianness ? endianness + "-endian" : undefined
+            ].join("-");
+            var msg = "The selected compiler '" + compilerPath + "' produces code for '" +
+                    realTriple + "', but '" + givenTriple + "' was given, which is incompatible.";
+            if (validateTargetTriple) {
+                msg +=  " If you are absolutely certain that your configuration is correct " +
+                        "(check the values of the qbs.architecture, qbs.targetPlatform, " +
+                        "and qbs.endianness properties) and that this message has been " +
+                        "emitted in error, set the cpp.validateTargetTriple property to " +
+                        "false. However, you should consider submitting a bug report in any " +
+                        "case.";
+                throw ModUtils.ModuleError(msg);
+            } else {
+                console.warn(msg);
+            }
         }
 
         var validateFlagsFunction = function (value) {
@@ -314,6 +347,7 @@ CppModule {
             return true;
         }
 
+        var validator = new ModUtils.PropertyValidator("cpp");
         var msg = "'-target', '-triple', '-arch' and '-march' cannot appear in flags; set qbs.architecture instead";
         validator.addCustomValidator("assemblerFlags", assemblerFlags, validateFlagsFunction, msg);
         validator.addCustomValidator("cppFlags", cppFlags, validateFlagsFunction, msg);
