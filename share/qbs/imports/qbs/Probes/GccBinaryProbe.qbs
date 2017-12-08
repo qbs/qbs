@@ -9,7 +9,41 @@ BinaryProbe {
     // Outputs
     property string tcPrefix
 
-    names: (_toolchainPrefix || "") + _compilerName
+    platformPaths: {
+        var paths = base;
+        if (qbs.targetOS.contains("windows") && qbs.hostOS.contains("windows"))
+            paths.push(FileInfo.joinPaths(
+                           Environment.getEnv("SystemDrive"), "MinGW", "bin"));
+        return paths;
+    }
+
+    names: {
+        var prefixes = [];
+        if (_toolchainPrefix) {
+            prefixes.push(_toolchainPrefix);
+        } else {
+            var arch = qbs.architecture;
+            if (qbs.targetOS.contains("windows")) {
+                if (!arch || arch === "x86") {
+                    prefixes.push("mingw32-",
+                                  "i686-w64-mingw32-",
+                                  "i686-w64-mingw32.shared-",
+                                  "i686-w64-mingw32.static-",
+                                  "i686-mingw32-",
+                                  "i586-mingw32msvc-");
+                }
+                if (!arch || arch === "x86_64") {
+                    prefixes.push("x86_64-w64-mingw32-",
+                                  "x86_64-w64-mingw32.shared-",
+                                  "x86_64-w64-mingw32.static-",
+                                  "amd64-mingw32msvc-");
+                }
+            }
+        }
+        return prefixes.map(function(prefix) {
+            return prefix + _compilerName;
+        }).concat([_compilerName]);
+    }
 
     configure: {
         var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, pathPrefixes,
