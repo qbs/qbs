@@ -38,11 +38,9 @@ Module {
                     return a;
                 }
             }
-            return [FileInfo.cleanPath(FileInfo.joinPaths(rpathOrigin, FileInfo.relativePath(
-                                              FileInfo.resolvePath(qbs.installRoot,
-                                                                   product.targetInstallDir),
-                                              FileInfo.resolvePath(qbs.installRoot,
-                                                                   libDirName))))];
+            return [FileInfo.joinPaths(rpathOrigin, FileInfo.relativePath(
+                                           FileInfo.joinPaths('/', product.targetInstallDir),
+                                           FileInfo.joinPaths('/', libDirName)))];
         }
         return [];
     }
