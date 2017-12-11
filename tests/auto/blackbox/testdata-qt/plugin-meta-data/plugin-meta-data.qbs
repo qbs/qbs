@@ -7,7 +7,11 @@ Project {
         Depends { name: "thePlugin" }
 
         cpp.cxxLanguageVersion: "c++11"
-        cpp.rpaths: [cpp.rpathOrigin]
+
+        Properties {
+            condition: qbs.targetOS.contains("unix")
+            cpp.rpaths: [cpp.rpathOrigin]
+        }
 
         Group {
             fileTagsFilter: product.type
