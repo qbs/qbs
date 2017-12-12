@@ -4,6 +4,7 @@ import qbs.File
 import qbs.FileInfo
 import qbs.Probes
 import qbs.TextFile
+import qbs.Utilities
 import qbs.Xml
 
 Product {
@@ -66,9 +67,14 @@ Product {
             cmd.nuspecFilePath = inputs["chocolatey.nuspec"][0].filePath;
             cmd.chocoBuildDirectory = FileInfo.joinPaths(product.buildDirectory, "choco");
             cmd.chocoOutDirectory = FileInfo.path(outputs["chocolatey.nupkg"][0].filePath);
-            cmd.changelogPaths = (inputs["changelog"] || []).map(function (a) {
-                return a.filePath;
-            }).sort().reverse();
+            cmd.changelogs = (inputs["changelog"] || []).map(function (a) {
+                return {
+                    filePath: a.filePath,
+                    version: a.fileName.replace(/^changes-([0-9](\.[0-9]+)*)(\.md)?$/, "$1")
+                };
+            }).sort(function(a, b) {
+                return Utilities.versionCompare(b.version, a.version);
+            });
             cmd.sourceCode = function () {
                 File.makePath(chocoBuildDirectory);
                 File.makePath(FileInfo.joinPaths(chocoBuildDirectory, "tools"));
@@ -96,10 +102,9 @@ Product {
                 var releaseNotesNode = doc.createElement("releaseNotes");
 
                 var releaseNotesText = "";
-                changelogPaths.map(function (changelogPath) {
-                    releaseNotesText += FileInfo.fileName(changelogPath).replace(
-                                "changes-", "qbs ").replace(".md", "") + "\n\n";
-                    var tf = new TextFile(changelogPath, TextFile.ReadOnly);
+                changelogs.map(function (changelog) {
+                    releaseNotesText += "qbs " + changelog.version + "\n\n";
+                    var tf = new TextFile(changelog.filePath, TextFile.ReadOnly);
                     try {
                         releaseNotesText += tf.readAll() + "\n";
                     } finally {
