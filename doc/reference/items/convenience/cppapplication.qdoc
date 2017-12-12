@@ -39,6 +39,7 @@
     A \c CppApplication is a convenience item that is entirely equivalent to the following:
     \code
     Application {
-        Depends { name: "cpp" } }
+        Depends { name: "cpp" }
+    }
     \endcode
 */
