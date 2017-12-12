@@ -39,30 +39,28 @@ OTHER_FILES += $$FILES $$LIBEXEC_FILES
     copy2build.name = COPY ${QMAKE_FILE_IN}
     copy2build.CONFIG += no_link target_predeps
     QMAKE_EXTRA_COMPILERS += copy2build
-
-    copy2build_python.input = PYTHON_FILES
-    !isEmpty(QBS_RESOURCES_BUILD_DIR): \
-        copy2build_python.output = \
-            $${QBS_RESOURCES_BUILD_DIR}/share/qbs/python/${QMAKE_FUNC_FILE_IN_stripPythonSrcDir}
-    else: \
-        copy2build_python.output = share/qbs/python/${QMAKE_FUNC_FILE_IN_stripPythonSrcDir}
-    copy2build_python.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
-    copy2build_python.name = COPY ${QMAKE_FILE_IN}
-    copy2build_python.CONFIG += no_link target_predeps
-    QMAKE_EXTRA_COMPILERS += copy2build_python
 }
 
-!isEqual(PWD, $$OUT_PWD) {
-    libexec_copy.input = LIBEXEC_FILES
-    !isEmpty(QBS_LIBEXEC_DESTDIR): \
-        libexec_copy.output = $${QBS_LIBEXEC_DESTDIR}/${QMAKE_FILE_IN_BASE}${QMAKE_FILE_EXT}
-    else: \
-        libexec_copy.output = libexec/qbs/${QMAKE_FILE_IN_BASE}${QMAKE_FILE_EXT}
-    libexec_copy.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
-    libexec_copy.name = COPY ${QMAKE_FILE_IN}
-    libexec_copy.CONFIG += no_link target_predeps
-    QMAKE_EXTRA_COMPILERS += libexec_copy
-}
+copy2build_python.input = PYTHON_FILES
+!isEmpty(QBS_RESOURCES_BUILD_DIR): \
+    copy2build_python.output = \
+        $${QBS_RESOURCES_BUILD_DIR}/share/qbs/python/${QMAKE_FUNC_FILE_IN_stripPythonSrcDir}
+else: \
+    copy2build_python.output = share/qbs/python/${QMAKE_FUNC_FILE_IN_stripPythonSrcDir}
+copy2build_python.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
+copy2build_python.name = COPY ${QMAKE_FILE_IN}
+copy2build_python.CONFIG += no_link target_predeps
+QMAKE_EXTRA_COMPILERS += copy2build_python
+
+libexec_copy.input = LIBEXEC_FILES
+!isEmpty(QBS_LIBEXEC_DESTDIR): \
+    libexec_copy.output = $${QBS_LIBEXEC_DESTDIR}/${QMAKE_FILE_IN_BASE}${QMAKE_FILE_EXT}
+else: \
+    libexec_copy.output = libexec/qbs/${QMAKE_FILE_IN_BASE}${QMAKE_FILE_EXT}
+libexec_copy.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
+libexec_copy.name = COPY ${QMAKE_FILE_IN}
+libexec_copy.CONFIG += no_link target_predeps
+QMAKE_EXTRA_COMPILERS += libexec_copy
 
 include(src/install_prefix.pri)
 
