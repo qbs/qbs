@@ -38,8 +38,17 @@ Product {
     }
 
     Group {
-        name: "Modules and imports"
-        files: ["qbs/**/*"]
+        name: "Imports"
+        files: ["qbs/imports/qbs/**/*"]
+        fileTags: ["qbs resources"]
+        qbs.install: true
+        qbs.installDir: qbsbuildconfig.resourcesInstallDir + "/share"
+        qbs.installSourceBase: "."
+    }
+
+    Group {
+        name: "Modules"
+        files: ["qbs/modules/**/*"]
         fileTags: ["qbs resources"]
         qbs.install: true
         qbs.installDir: qbsbuildconfig.resourcesInstallDir + "/share"
