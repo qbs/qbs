@@ -833,12 +833,16 @@ void TestLanguage::exports()
 
         QCOMPARE(product->moduleProperties->moduleProperty("dummy", "productName").toString(),
                  QString("myapp"));
+        QVERIFY(product->moduleProperties->moduleProperty("dummy", "somePath").toString()
+                .endsWith("/subdir"));
 
         product = products.value("mylib");
         QVERIFY(!!product);
         propertyName = QStringList() << "modules" << "dummy" << "defines";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB");
+        QVERIFY(product->moduleProperties->moduleProperty("dummy", "somePath").toString()
+                .endsWith("/subdir"));
 
         product = products.value("mylib2");
         QVERIFY(!!product);

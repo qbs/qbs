@@ -480,6 +480,12 @@ static void convertToPropertyType(const QString &pathPropertiesBaseDir, const It
     if (v.isUndefined() || v.isError())
         return;
     QString srcDir;
+    QString actualBaseDir;
+    if (!pathPropertiesBaseDir.isEmpty()) {
+        const VariantValueConstPtr itemSourceDir
+                = item->variantProperty(QLatin1String("sourceDirectory"));
+        actualBaseDir = itemSourceDir ? itemSourceDir->value().toString() : pathPropertiesBaseDir;
+    }
     const CodeLocation &location = value->location();
     switch (decl.type()) {
     case PropertyDeclaration::UnknownType:
@@ -499,7 +505,7 @@ static void convertToPropertyType(const QString &pathPropertiesBaseDir, const It
             makeTypeError(decl, location, v);
             break;
         }
-        const QString srcDir = overriddenSourceDirectory(item, pathPropertiesBaseDir);
+        const QString srcDir = overriddenSourceDirectory(item, actualBaseDir);
         if (!srcDir.isEmpty())
             v = v.engine()->toScriptValue(QDir::cleanPath(
                                               FileInfo::resolvePath(srcDir, v.toString())));
@@ -510,7 +516,7 @@ static void convertToPropertyType(const QString &pathPropertiesBaseDir, const It
             makeTypeError(decl, location, v);
         break;
     case PropertyDeclaration::PathList:
-        srcDir = overriddenSourceDirectory(item, pathPropertiesBaseDir);
+        srcDir = overriddenSourceDirectory(item, actualBaseDir);
         // Fall-through.
     case PropertyDeclaration::StringList:
     {

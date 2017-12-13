@@ -14,6 +14,7 @@ DummyBase {
     property string upperCaseProductName: productName.toUpperCase()
     property string zort: "zort in dummy"
     property pathList includePaths
+    property path somePath
     property stringList listProp: product.type.contains("blubb") ? ["123"] : ["456"]
 
     property bool controllingProp: false
