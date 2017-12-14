@@ -1177,7 +1177,7 @@ void TestLanguage::idUsage()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 4);
+        QCOMPARE(products.count(), 5);
         QVERIFY(products.contains("product1_1"));
         QVERIFY(products.contains("product2_2"));
         QVERIFY(products.contains("product3_3"));
@@ -1185,6 +1185,10 @@ void TestLanguage::idUsage()
         QVERIFY(!!product4);
         QEXPECT_FAIL("", "QBS-1016", Continue);
         QCOMPARE(product4->productProperties.value("productName").toString(), product4->name);
+        ResolvedProductPtr product5 = products.value("product5");
+        QVERIFY(!!product5);
+        QCOMPARE(product5->moduleProperties->moduleProperty("deepdummy.deep.moat", "zort")
+                 .toString(), QString("zort in dummy"));
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;

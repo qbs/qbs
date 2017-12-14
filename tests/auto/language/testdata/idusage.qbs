@@ -22,4 +22,9 @@ Project {
         nr: product3.nr + 1
         name: "product4_" + nr
     }
+
+    Product {
+        name: "product5"
+        Depends { name: "deepdummy.deep.moat" }
+    }
 }
