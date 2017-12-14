@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/subdir/test.qml</file>
+    </qresource>
+</RCC>
