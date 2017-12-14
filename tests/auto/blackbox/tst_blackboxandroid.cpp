@@ -68,9 +68,9 @@ TestBlackboxAndroid::TestBlackboxAndroid()
 
 void TestBlackboxAndroid::android()
 {
-    QFETCH(QString, projectDir);
-    QFETCH(QStringList, productNames);
-    QFETCH(QList<QByteArrayList>, expectedFilesLists);
+    QFETCH(const QString, projectDir);
+    QFETCH(const QStringList, productNames);
+    QFETCH(const QList<QByteArrayList>, expectedFilesLists);
 
     const SettingsPtr s = settings();
     Profile p(profileName(), s.get());
@@ -93,63 +93,71 @@ void TestBlackboxAndroid::android()
         QSKIP("NDK samples directory not present");
 
     QDir::setCurrent(testDataDir + "/" + projectDir);
-    QbsRunParameters params(QStringList { "--command-echo-mode", "command-line",
-                                          "modules.Android.ndk.platform:android-21" });
-    params.profile = p.name();
-    QCOMPARE(runQbs(params), 0);
-    for (const QString &productName : qAsConst(productNames)) {
-        QVERIFY(m_qbsStdout.contains(productName.toLocal8Bit() + ".apk"));
-        const QString apkFilePath = relativeProductBuildDir(productName)
-                + '/' + productName + ".apk";
-        QVERIFY2(regularFileExists(apkFilePath), qPrintable(apkFilePath));
-        const QString jarFilePath = findExecutable(QStringList("jar"));
-        QVERIFY(!jarFilePath.isEmpty());
-        QProcess jar;
-        jar.start(jarFilePath, QStringList() << "-tf" << apkFilePath);
-        QVERIFY2(jar.waitForStarted(), qPrintable(jar.errorString()));
-        QVERIFY2(jar.waitForFinished(), qPrintable(jar.errorString()));
-        QVERIFY2(jar.exitCode() == 0, qPrintable(jar.readAllStandardError().constData()));
-        QByteArrayList actualFiles = jar.readAllStandardOutput().trimmed().split('\n');
-        QByteArrayList missingExpectedFiles;
-        QByteArrayList expectedFiles = expectedFilesLists.takeFirst();
-        for (const QByteArray &expectedFile : expectedFiles) {
-            auto it = std::find(actualFiles.begin(), actualFiles.end(), expectedFile);
-            if (it != actualFiles.end()) {
-                actualFiles.erase(it);
-                continue;
-            }
-            missingExpectedFiles << expectedFile;
-        }
-        if (!missingExpectedFiles.empty())
-            QFAIL(QByteArray("missing expected files:\n") + missingExpectedFiles.join('\n'));
-        if (!actualFiles.empty()) {
-            QByteArray msg = "unexpected files encountered:\n" + actualFiles.join('\n');
-            auto it = std::find_if(std::begin(actualFiles), std::end(actualFiles),
-                                   [](const QByteArray &f) {
-                return f.endsWith(".so");
-            });
-            if (it == std::end(actualFiles))
-                QWARN(msg);
-            else
-                QFAIL(msg);
-        }
-    }
 
-    if (projectDir == "multiple-libs-per-apk") {
-        const auto dxPath = androidPaths["sdk-build-tools-dx"];
-        QVERIFY(!dxPath.isEmpty());
-        const auto lines = m_qbsStdout.split('\n');
-        const auto it = std::find_if(lines.cbegin(), lines.cend(), [&](const QByteArray &line) {
-            return !line.isEmpty() && line.startsWith(dxPath.toUtf8());
-        });
-        QVERIFY2(it != lines.cend(), qPrintable(m_qbsStdout.constData()));
-        const auto line = *it;
-        QVERIFY2(line.contains("lib3.jar"), qPrintable(line.constData()));
-        QVERIFY2(!line.contains("lib4.jar"), qPrintable(line.constData()));
-        QVERIFY2(line.contains("lib5.jar"), qPrintable(line.constData()));
-        QVERIFY2(line.contains("lib6.jar"), qPrintable(line.constData()));
-        QVERIFY2(!line.contains("lib7.jar"), qPrintable(line.constData()));
-        QVERIFY2(line.contains("lib8.jar"), qPrintable(line.constData()));
+    static const QStringList configNames { "debug", "release" };
+    for (const QString &configName : configNames) {
+        auto currentExpectedFilesLists = expectedFilesLists;
+        QbsRunParameters params(QStringList { "--command-echo-mode", "command-line",
+                                              "modules.Android.ndk.platform:android-21",
+                                              "config:" + configName });
+        params.profile = p.name();
+        QCOMPARE(runQbs(params), 0);
+        for (const QString &productName : qAsConst(productNames)) {
+            QVERIFY(m_qbsStdout.contains(productName.toLocal8Bit() + ".apk"));
+            const QString apkFilePath = relativeProductBuildDir(productName, configName)
+                    + '/' + productName + ".apk";
+            QVERIFY2(regularFileExists(apkFilePath), qPrintable(apkFilePath));
+            const QString jarFilePath = findExecutable(QStringList("jar"));
+            QVERIFY(!jarFilePath.isEmpty());
+            QProcess jar;
+            jar.start(jarFilePath, QStringList() << "-tf" << apkFilePath);
+            QVERIFY2(jar.waitForStarted(), qPrintable(jar.errorString()));
+            QVERIFY2(jar.waitForFinished(), qPrintable(jar.errorString()));
+            QVERIFY2(jar.exitCode() == 0, qPrintable(jar.readAllStandardError().constData()));
+            QByteArrayList actualFiles = jar.readAllStandardOutput().trimmed().split('\n');
+            QByteArrayList missingExpectedFiles;
+            QByteArrayList expectedFiles = currentExpectedFilesLists.takeFirst();
+            for (const QByteArray &expectedFile : expectedFiles) {
+                if (expectedFile.endsWith("/gdbserver") && configName == "release")
+                    continue;
+                auto it = std::find(actualFiles.begin(), actualFiles.end(), expectedFile);
+                if (it != actualFiles.end()) {
+                    actualFiles.erase(it);
+                    continue;
+                }
+                missingExpectedFiles << expectedFile;
+            }
+            if (!missingExpectedFiles.empty())
+                QFAIL(QByteArray("missing expected files:\n") + missingExpectedFiles.join('\n'));
+            if (!actualFiles.empty()) {
+                QByteArray msg = "unexpected files encountered:\n" + actualFiles.join('\n');
+                auto it = std::find_if(std::begin(actualFiles), std::end(actualFiles),
+                                       [](const QByteArray &f) {
+                    return f.endsWith(".so");
+                });
+                if (it == std::end(actualFiles))
+                    QWARN(msg);
+                else
+                    QFAIL(msg);
+            }
+        }
+
+        if (projectDir == "multiple-libs-per-apk") {
+            const auto dxPath = androidPaths["sdk-build-tools-dx"];
+            QVERIFY(!dxPath.isEmpty());
+            const auto lines = m_qbsStdout.split('\n');
+            const auto it = std::find_if(lines.cbegin(), lines.cend(), [&](const QByteArray &line) {
+                return !line.isEmpty() && line.startsWith(dxPath.toUtf8());
+            });
+            QVERIFY2(it != lines.cend(), qPrintable(m_qbsStdout.constData()));
+            const auto line = *it;
+            QVERIFY2(line.contains("lib3.jar"), qPrintable(line.constData()));
+            QVERIFY2(!line.contains("lib4.jar"), qPrintable(line.constData()));
+            QVERIFY2(line.contains("lib5.jar"), qPrintable(line.constData()));
+            QVERIFY2(line.contains("lib6.jar"), qPrintable(line.constData()));
+            QVERIFY2(!line.contains("lib7.jar"), qPrintable(line.constData()));
+            QVERIFY2(line.contains("lib8.jar"), qPrintable(line.constData()));
+        }
     }
 }
 

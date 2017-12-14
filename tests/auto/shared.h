@@ -106,13 +106,14 @@ inline QString uniqueProductName(const QString &productName,
 }
 
 inline QString relativeProductBuildDir(const QString &productName,
+                                       const QString &configurationName = QString(),
                                        const QString &multiplexConfigurationId = QString())
 {
     const QString fullName = uniqueProductName(productName, multiplexConfigurationId);
     QString dirName = qbs::Internal::HostOsInfo::rfc1034Identifier(fullName);
     const QByteArray hash = QCryptographicHash::hash(fullName.toUtf8(), QCryptographicHash::Sha1);
     dirName.append('.').append(hash.toHex().left(8));
-    return relativeBuildDir() + '/' + dirName;
+    return relativeBuildDir(configurationName) + '/' + dirName;
 }
 
 inline QString relativeExecutableFilePath(const QString &productName)

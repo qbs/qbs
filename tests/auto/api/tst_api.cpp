@@ -1726,19 +1726,19 @@ void TestApi::multiArch()
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     const QString outputBaseDir = setupParams.buildRoot() + '/';
     QFile p1HostArtifact(outputBaseDir
-                         + relativeProductBuildDir("p1", p1HostMultiplexCfgId)
+                         + relativeProductBuildDir("p1", QString(), p1HostMultiplexCfgId)
                          + "/host+target.output");
     QVERIFY2(p1HostArtifact.exists(), qPrintable(p1HostArtifact.fileName()));
     QVERIFY2(p1HostArtifact.open(QIODevice::ReadOnly), qPrintable(p1HostArtifact.errorString()));
     QCOMPARE(p1HostArtifact.readAll().constData(), "host-arch");
     QFile p1TargetArtifact(outputBaseDir
-                           + relativeProductBuildDir("p1", p1TargetMultiplexCfgId)
+                           + relativeProductBuildDir("p1", QString(), p1TargetMultiplexCfgId)
                            + "/host+target.output");
     QVERIFY2(p1TargetArtifact.exists(), qPrintable(p1TargetArtifact.fileName()));
     QVERIFY2(p1TargetArtifact.open(QIODevice::ReadOnly), qPrintable(p1TargetArtifact.errorString()));
     QCOMPARE(p1TargetArtifact.readAll().constData(), "target-arch");
     QFile p2Artifact(outputBaseDir
-                     + relativeProductBuildDir("p2", p2HostMultiplexCfgId)
+                     + relativeProductBuildDir("p2", QString(), p2HostMultiplexCfgId)
                      + "/host-tool.output");
     QVERIFY2(p2Artifact.exists(), qPrintable(p2Artifact.fileName()));
     QVERIFY2(p2Artifact.open(QIODevice::ReadOnly), qPrintable(p2Artifact.errorString()));
