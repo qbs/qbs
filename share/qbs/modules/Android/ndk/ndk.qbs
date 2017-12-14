@@ -156,6 +156,8 @@ Module {
         allowedValues: ["arm", "thumb"]
     }
 
+    property bool haveUnifiedStl: version && Utilities.versionCompare(version, "12") >= 0
+
     validate: {
         var validator = new ModUtils.PropertyValidator("Android.ndk");
         validator.setRequiredProperty("abi", abi);

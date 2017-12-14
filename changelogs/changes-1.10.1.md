@@ -4,3 +4,4 @@
 * Fix GCC support for "bare metal" systems (QBS-1263).
 * Fix using ids in Depends items (QBS-1264).
 * Fix race condition when creating Inno Setup, NSIS, or WiX installers.
+* Fix release builds for Android with NDK r12 and above (QBS-1256).
