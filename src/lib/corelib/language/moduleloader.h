@@ -167,6 +167,7 @@ private:
         QString multiplexConfigIdForModulePrototypes;
         QVariantMap moduleProperties;
         std::map<QString, ProductDependencies> productModuleDependencies;
+        std::unordered_map<const Item *, std::vector<ErrorInfo>> unknownProfilePropertyErrors;
 
         QString uniqueName() const;
     };

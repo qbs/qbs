@@ -2480,25 +2480,38 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         }
     }
 
-    if (candidates.size() > 1) {
+    if (candidates.empty()) {
+        if (!isRequired)
+            return createNonPresentModule(fullName, QLatin1String("not found"), nullptr);
+        if (Q_UNLIKELY(triedToLoadModule))
+            throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
+                        dependsItemLocation);
+        return nullptr;
+    }
+
+    Item *moduleItem;
+    if (candidates.size() == 1) {
+        moduleItem = candidates.at(0).item;
+    } else {
         for (auto &candidate : candidates) {
             candidate.priority = m_evaluator->intValue(candidate.item, QStringLiteral("priority"),
                                                        candidate.priority);
         }
-        return chooseModuleCandidate(candidates, fullName);
+        moduleItem = chooseModuleCandidate(candidates, fullName);
     }
 
-    if (candidates.size() == 1)
-        return candidates.at(0).item;
-
-    if (!isRequired)
-        return createNonPresentModule(fullName, QLatin1String("not found"), nullptr);
-
-    if (Q_UNLIKELY(triedToLoadModule))
-        throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
-                    dependsItemLocation);
-
-    return 0;
+    const auto it = productContext->unknownProfilePropertyErrors.find(moduleItem);
+    if (it != productContext->unknownProfilePropertyErrors.cend()) {
+        const QString fullProductName = ResolvedProduct::fullDisplayName
+                (productContext->name, productContext->multiplexConfigurationId);
+        ErrorInfo error(Tr::tr("Loading module '%1' for product '%2' failed due to invalid values "
+                               "in profile '%3':").arg(fullName, fullProductName,
+                                                       productContext->profileName));
+        for (const ErrorInfo &e : it->second)
+            error.append(e.toString());
+        handlePropertyError(error, m_parameters, m_logger);
+    }
+    return moduleItem;
 }
 
 // returns QVariant::Invalid for types that do not need conversion
@@ -2588,9 +2601,8 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
             vmit != profileModuleProperties.end(); ++vmit)
     {
         if (Q_UNLIKELY(!module->hasProperty(vmit.key()))) {
-            const ErrorInfo error(Tr::tr("Unknown property: %1.%2").arg(fullModuleName,
-                                                                        vmit.key()));
-            unknownProfilePropertyErrors.append(error);
+            productContext->unknownProfilePropertyErrors[module].emplace_back
+                    (Tr::tr("Unknown property: %1.%2").arg(fullModuleName, vmit.key()));
             continue;
         }
         const PropertyDeclaration decl = module->propertyDeclaration(vmit.key());
@@ -2611,9 +2623,6 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         setupBaseModulePrototype(module);
     else
         resolveParameterDeclarations(module);
-
-    for (const ErrorInfo &error : qAsConst(unknownProfilePropertyErrors))
-        handlePropertyError(error, m_parameters, m_logger);
 
     m_modulePrototypeItemCache.insert(cacheKey, ItemCacheValue(module, true));
     return module;

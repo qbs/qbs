@@ -1799,6 +1799,42 @@ void TestLanguage::multiplexingByProfile_data()
     QTest::newRow("dependency by non-multiplexed with Depends.profile") << "p4.qbs" << true;
 }
 
+void TestLanguage::nonApplicableModulePropertyInProfile()
+{
+    QFETCH(QString, targetOS);
+    QFETCH(QString, toolchain);
+    QFETCH(bool, successExpected);
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("non-applicable-module-property-in-profile.qbs"));
+        params.setOverriddenValues(QVariantMap{std::make_pair("project.targetOS", targetOS),
+                                               std::make_pair("project.toolchain", toolchain)});
+        const TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(!!project);
+        QVERIFY(successExpected);
+    } catch (const ErrorInfo &e) {
+        QVERIFY2(!successExpected, qPrintable(e.toString()));
+        QVERIFY2(e.toString().contains("Loading module 'multiple_backends' for product 'p' failed "
+                                       "due to invalid values in profile 'theProfile'"),
+                 qPrintable(e.toString()));
+        QVERIFY2(e.toString().contains("backend3Prop"), qPrintable(e.toString()));
+    }
+}
+
+void TestLanguage::nonApplicableModulePropertyInProfile_data()
+{
+    QTest::addColumn<QString>("targetOS");
+    QTest::addColumn<QString>("toolchain");
+    QTest::addColumn<bool>("successExpected");
+
+    QTest::newRow("no matching property (1)") << "os1" << QString() << false;
+    QTest::newRow("no matching property (2)") << "os2" << QString() << false;
+
+    // The point here is that there's a second, lower-prioritized candidate with a matching
+    // condition that doesn't have the property. This candidate must not throw an error.
+    QTest::newRow("matching property") << "os2" << "tc" << true;
+}
+
 void TestLanguage::nonRequiredProducts()
 {
     bool exceptionCaught = false;
@@ -1896,7 +1932,7 @@ void TestLanguage::overriddenPropertiesAndPrototypes()
         QVERIFY(!!project);
         QCOMPARE(project->products.count(), 1);
         QCOMPARE(project->products.first()->moduleProperties->moduleProperty(
-                     "multiple-backends", "prop").toString(), backendName);
+                     "multiple_backends", "prop").toString(), backendName);
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
