@@ -144,15 +144,15 @@ QtModule {
             var cmd;
             var loaderFlags = [];
 
-            function findOutput(fileName) {
+            function findOutput(relFilePath) {
                 for (var k in outputs) {
                     for (var i in outputs[k]) {
-                        if (outputs[k][i].fileName === fileName)
+                        if (outputs[k][i].filePath.endsWith(relFilePath))
                             return outputs[k][i];
                     }
                 }
                 throw new Error("Qt Quick compiler rule: Cannot find output artifact "
-                                + fileName + ".");
+                                + relFilePath + ".");
             }
 
             infos.forEach(function (info) {

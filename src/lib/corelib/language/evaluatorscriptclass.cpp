@@ -178,6 +178,13 @@ private:
                 const Item *item = itemOfProperty;
                 while (item->type() == ItemType::ModuleInstance)
                     item = item->prototype();
+                if (item->type() != ItemType::Module && item->type() != ItemType::Export) {
+                    const QString errorMessage = Tr::tr("The special value 'original' can only "
+                                                        "be used with module properties.");
+                    extraScope = engine->currentContext()->throwError(errorMessage);
+                    result.second = false;
+                    return result;
+                }
                 SVConverter converter(scriptClass, object, item->property(*propertyName), item,
                                       propertyName, data, &originalValue);
                 converter.start();
@@ -470,6 +477,12 @@ static void convertToPropertyType_impl(const QString &pathPropertiesBaseDir, con
     if (v.isUndefined() || v.isError())
         return;
     QString srcDir;
+    QString actualBaseDir;
+    if (item && !pathPropertiesBaseDir.isEmpty()) {
+        const VariantValueConstPtr itemSourceDir
+                = item->variantProperty(QLatin1String("sourceDirectory"));
+        actualBaseDir = itemSourceDir ? itemSourceDir->value().toString() : pathPropertiesBaseDir;
+    }
     switch (decl.type()) {
     case PropertyDeclaration::UnknownType:
     case PropertyDeclaration::Variant:
@@ -488,7 +501,7 @@ static void convertToPropertyType_impl(const QString &pathPropertiesBaseDir, con
             makeTypeError(decl, location, v);
             break;
         }
-        const QString srcDir = item ? overriddenSourceDirectory(item, pathPropertiesBaseDir)
+        const QString srcDir = item ? overriddenSourceDirectory(item, actualBaseDir)
                                     : pathPropertiesBaseDir;
         if (!srcDir.isEmpty())
             v = v.engine()->toScriptValue(QDir::cleanPath(
@@ -500,7 +513,7 @@ static void convertToPropertyType_impl(const QString &pathPropertiesBaseDir, con
             makeTypeError(decl, location, v);
         break;
     case PropertyDeclaration::PathList:
-        srcDir = item ? overriddenSourceDirectory(item, pathPropertiesBaseDir)
+        srcDir = item ? overriddenSourceDirectory(item, actualBaseDir)
                       : pathPropertiesBaseDir;
         // Fall-through.
     case PropertyDeclaration::StringList:

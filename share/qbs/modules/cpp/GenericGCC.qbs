@@ -41,11 +41,12 @@ import qbs.WindowsUtils
 import 'gcc.js' as Gcc
 
 CppModule {
-    condition: false
+    condition: qbs.toolchain && qbs.toolchain.contains("gcc")
+    priority: -100
 
     Probes.BinaryProbe {
         id: compilerPathProbe
-        condition: !toolchainInstallPath
+        condition: !toolchainInstallPath && !_skipAllChecks
         names: [toolchainPrefix ? toolchainPrefix + compilerName : compilerName]
     }
 
@@ -60,6 +61,7 @@ CppModule {
 
     Probes.GccProbe {
         id: gccProbe
+        condition: !_skipAllChecks
         compilerFilePathByLanguage: compilerPathByLanguage
         enableDefinesByLanguage: enableCompilerDefinesByLanguage
         environment: buildEnv
@@ -69,7 +71,7 @@ CppModule {
 
     Probes.BinaryProbe {
         id: binutilsProbe
-        condition: !File.exists(archiverPath)
+        condition: !File.exists(archiverPath) && !_skipAllChecks
         names: Gcc.toolNames([archiverName, assemblerName, linkerName, nmName,
                               objcopyName, stripName], toolchainPrefix)
     }
@@ -83,6 +85,7 @@ CppModule {
 
     Probe {
         id: nmProbe
+        condition: !_skipAllChecks
         property string theNmPath: nmPath
         property bool hasDynamicOption
         configure: {
@@ -262,6 +265,8 @@ CppModule {
     }
 
     validate: {
+        if (_skipAllChecks)
+            return;
         if (!File.exists(compilerPath)) {
             var pathMessage = FileInfo.isAbsolutePath(compilerPath)
                     ? "at '" + compilerPath + "'"

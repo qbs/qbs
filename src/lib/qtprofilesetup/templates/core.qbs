@@ -188,7 +188,7 @@ Module {
 
     // Universal Windows Platform support
     cpp.windowsApiFamily: mkspecName.startsWith("winrt-") ? "pc" : undefined
-    cpp.windowsApiFamilyAdditionalPartitions: mkspecPath.startsWith("winrt-") ? ["phone"] : undefined
+    cpp.windowsApiAdditionalPartitions: mkspecPath.startsWith("winrt-") ? ["phone"] : undefined
     cpp.requireAppContainer: mkspecName.startsWith("winrt-")
 
     additionalProductTypes: ["qm"]

@@ -42,7 +42,7 @@ UnixGCC {
 
     Probe {
         id: runPathsProbe
-        condition: qbs.targetPlatform === qbs.hostPlatform
+        condition: !_skipAllChecks && qbs.targetPlatform === qbs.hostPlatform
         property stringList systemRunPaths: []
         configure: {
             var paths = [];

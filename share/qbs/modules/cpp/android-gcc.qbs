@@ -72,7 +72,7 @@ LinuxGCC {
     property string stlLibsDir: {
         if (stlBaseDir) {
             var infix = Android.ndk.abi;
-            if (Android.ndk.armMode === "thumb")
+            if (Android.ndk.armMode === "thumb" && !Android.ndk.haveUnifiedStl)
                 infix = FileInfo.joinPaths(infix, "thumb");
             return FileInfo.joinPaths(stlBaseDir, "libs", infix);
         }
@@ -286,6 +286,8 @@ LinuxGCC {
     }
 
     validate: {
+        if (!_skipAllChecks)
+            return;
         var baseValidator = new ModUtils.PropertyValidator("qbs");
         baseValidator.addCustomValidator("architecture", targetArch, function (value) {
             return value !== undefined;

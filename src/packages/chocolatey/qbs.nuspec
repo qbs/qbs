@@ -9,8 +9,8 @@
     <summary>Build tool that helps simplify the build process for developing projects across multiple platforms.</summary>
     <description>Qbs is a tool that helps simplify the build process for developing projects across multiple platforms.</description>
     <projectUrl>https://wiki.qt.io/Qbs</projectUrl>
-    <packageSourceUrl>https://code.qt.io/cgit/qt-labs/qbs.git</packageSourceUrl>
-    <projectSourceUrl>https://code.qt.io/cgit/qt-labs/qbs.git</projectSourceUrl>
+    <packageSourceUrl>https://code.qt.io/cgit/qbs/qbs.git</packageSourceUrl>
+    <projectSourceUrl>https://code.qt.io/cgit/qbs/qbs.git</projectSourceUrl>
     <docsUrl>https://doc.qt.io/qbs/</docsUrl>
     <mailingListUrl>http://lists.qt-project.org/mailman/listinfo/qbs</mailingListUrl>
     <bugTrackerUrl>https://bugreports.qt.io/browse/QBS</bugTrackerUrl>

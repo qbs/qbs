@@ -1187,6 +1187,45 @@ void TestApi::exportWithRecursiveDepends()
     VERIFY_NO_ERROR(errorInfo);
 }
 
+void TestApi::fallbackGcc()
+{
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("fallback-gcc/fallback-gcc.qbs");
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+                                                                          m_logSink, nullptr));
+    waitForFinished(job.get());
+    VERIFY_NO_ERROR(job->error());
+
+    qbs::ProjectData project = job->project().projectData();
+    QVERIFY(project.isValid());
+    QList<qbs::ProductData> products = project.allProducts();
+    QCOMPARE(products.size(), 2);
+    for (const qbs::ProductData &p : qAsConst(products)) {
+        if (p.profile() == "unixProfile") {
+            qbs::PropertyMap moduleProps = p.moduleProperties();
+            QCOMPARE(moduleProps.getModuleProperty("qbs", "targetOS").toStringList(),
+                     QStringList({"unix"}));
+            QCOMPARE(moduleProps.getModuleProperty("qbs", "toolchain").toStringList(),
+                     QStringList({"gcc"}));
+            QCOMPARE(QFileInfo(moduleProps.getModuleProperty("cpp", "cxxCompilerName").toString())
+                     .completeBaseName(), QString("g++"));
+            QCOMPARE(moduleProps.getModuleProperty("cpp", "dynamicLibrarySuffix").toString(),
+                     QString(".so"));
+        } else {
+            QCOMPARE(p.profile(), QString("gccProfile"));
+            qbs::PropertyMap moduleProps = p.moduleProperties();
+            QCOMPARE(moduleProps.getModuleProperty("qbs", "targetOS").toStringList(),
+                     QStringList());
+            QCOMPARE(moduleProps.getModuleProperty("qbs", "toolchain").toStringList(),
+                     QStringList({"gcc"}));
+            QCOMPARE(QFileInfo(moduleProps.getModuleProperty("cpp", "cxxCompilerName").toString())
+                     .completeBaseName(), QString("g++"));
+            QCOMPARE(moduleProps.getModuleProperty("cpp", "dynamicLibrarySuffix").toString(),
+                     QString());
+        }
+    }
+}
+
 void TestApi::fileTagger()
 {
     BuildDescriptionReceiver receiver;

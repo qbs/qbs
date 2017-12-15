@@ -129,6 +129,7 @@ public:
     void setLocation(const CodeLocation &location) { m_location = location; }
     void setPrototype(Item *prototype) { m_prototype = prototype; }
     void setFile(const FileContextPtr &file) { m_file = file; }
+    void setId(const QString &id) { m_id = id; }
     void setScope(Item *item) { m_scope = item; }
     void setOuterItem(Item *item) { m_outerItem = item; }
     void setChildren(const QList<Item *> &children) { m_children = children; }

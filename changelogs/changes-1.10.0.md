@@ -3,7 +3,6 @@
   Git and Subversion are supported initially.
 * Added initial support for the Universal Windows Platform.
 * Improved a lot of error messages.
-* Building Inno Setup, NSIS, or WiX installers now depends on installable artifacts by default.
 
 # Language
 * Profiles can now be defined within a project using the `Profile` item.

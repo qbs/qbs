@@ -139,9 +139,11 @@ public:
     QString buildDir;
 };
 
-static inline bool isRunnableArtifact(const FileTags &fileTags)
+static inline bool isRunnableArtifact(const FileTags &fileTags,
+                                      bool isBundle)
 {
-    return fileTags.contains("application")
+    return (fileTags.contains("application")
+            && (!isBundle || fileTags.contains("bundle.content")))
             || fileTags.contains("android.apk")
             || fileTags.contains("msi");
 }
