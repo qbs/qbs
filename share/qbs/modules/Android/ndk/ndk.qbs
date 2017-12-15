@@ -157,6 +157,8 @@ Module {
         allowedValues: ["arm", "thumb"]
     }
 
+    property bool haveUnifiedStl: version && Utilities.versionCompare(version, "12") >= 0
+
     validate: {
         if (!ndkDir) {
             throw ModUtils.ModuleError("Could not find an Android NDK at any of the following "

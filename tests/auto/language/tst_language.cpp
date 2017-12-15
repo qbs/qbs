@@ -816,6 +816,9 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("overwrite-readonly-module-property")
             << "overwrite-readonly-module-property.qbs"
                ":5:30.*Cannot set read-only property 'readOnlyString'.";
+    QTest::newRow("original-in-product-property")
+            << "original-in-product-property.qbs"
+               ":4:21.*The special value 'original' can only be used with module properties.";
     QTest::newRow("mismatching-multiplex-dependency")
             << "mismatching-multiplex-dependency.qbs:9:5 Dependency from product "
                "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
@@ -866,12 +869,16 @@ void TestLanguage::exports()
 
         QCOMPARE(product->moduleProperties->moduleProperty("dummy", "productName").toString(),
                  QString("myapp"));
+        QVERIFY(product->moduleProperties->moduleProperty("dummy", "somePath").toString()
+                .endsWith("/subdir"));
 
         product = products.value("mylib");
         QVERIFY(!!product);
         propertyName = QStringList() << "dummy" << "defines";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB");
+        QVERIFY(product->moduleProperties->moduleProperty("dummy", "somePath").toString()
+                .endsWith("/subdir"));
 
         product = products.value("mylib2");
         QVERIFY(!!product);
@@ -1206,7 +1213,7 @@ void TestLanguage::idUsage()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.size(), 4);
+        QCOMPARE(products.size(), 5);
         QVERIFY(products.contains("product1_1"));
         QVERIFY(products.contains("product2_2"));
         QVERIFY(products.contains("product3_3"));
@@ -1214,6 +1221,10 @@ void TestLanguage::idUsage()
         QVERIFY(!!product4);
         QEXPECT_FAIL("", "QBS-1016", Continue);
         QCOMPARE(product4->productProperties.value("productName").toString(), product4->name);
+        ResolvedProductPtr product5 = products.value("product5");
+        QVERIFY(!!product5);
+        QCOMPARE(product5->moduleProperties->moduleProperty("deepdummy.deep.moat", "zort")
+                 .toString(), QString("zort in dummy"));
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;

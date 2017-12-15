@@ -39,6 +39,7 @@ import "setuprunenv.js" as SetupRunEnv
 GenericGCC {
     condition: qbs.targetOS.contains("windows") &&
                qbs.toolchain && qbs.toolchain.contains("mingw")
+    priority: 0
     staticLibraryPrefix: "lib"
     dynamicLibraryPrefix: ""
     executablePrefix: ""

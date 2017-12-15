@@ -2902,6 +2902,7 @@ void ModuleLoader::createChildInstances(Item *instance, Item *prototype,
         prototypeInstanceMap->insert(childPrototype, childInstance);
         childInstance->setPrototype(childPrototype);
         childInstance->setFile(childPrototype->file());
+        childInstance->setId(childPrototype->id());
         childInstance->setLocation(childPrototype->location());
         childInstance->setScope(instance->scope());
         Item::addChild(instance, childInstance);

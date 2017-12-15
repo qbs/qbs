@@ -41,6 +41,7 @@
 
     \code
     Application {
-        Depends { name: "cpp" } }
+        Depends { name: "cpp" }
+    }
     \endcode
 */

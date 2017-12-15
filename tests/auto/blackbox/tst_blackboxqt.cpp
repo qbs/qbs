@@ -266,6 +266,18 @@ void TestBlackboxQt::qtKeywords()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackboxQt::quickCompiler()
+{
+    QDir::setCurrent(testDataDir + "/quick-compiler");
+    QCOMPARE(runQbs(), 0);
+    const bool hasCompiler = m_qbsStdout.contains("compiler available");
+    const bool doesNotHaveCompiler = m_qbsStdout.contains("compiler not available");
+    QVERIFY2(hasCompiler || doesNotHaveCompiler, m_qbsStdout.constData());
+    QCOMPARE(m_qbsStdout.contains("compiling test_qml.cpp"), hasCompiler);
+    if (doesNotHaveCompiler)
+        QSKIP("qtquickcompiler not available");
+}
+
 void TestBlackboxQt::qtScxml()
 {
     QDir::setCurrent(testDataDir + "/qtscxml");

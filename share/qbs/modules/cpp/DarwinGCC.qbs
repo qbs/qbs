@@ -48,6 +48,7 @@ UnixGCC {
 
     Probes.BinaryProbe {
         id: lipoProbe
+        condition: !_skipAllChecks
         names: [lipoName]
         platformPaths: {
             var paths = (xcode.present && xcode.devicePlatformPath)

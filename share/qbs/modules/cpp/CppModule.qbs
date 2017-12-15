@@ -346,6 +346,8 @@ Module {
     property stringList targetDriverFlags
     property stringList targetLinkerFlags
 
+    property bool _skipAllChecks: false // Internal, for testing only.
+
     // TODO: The following four rules could use a convenience base item if rule properties
     //       were available in Artifact items and prepare scripts.
     Rule {
