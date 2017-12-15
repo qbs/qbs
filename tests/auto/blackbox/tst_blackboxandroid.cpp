@@ -68,9 +68,9 @@ TestBlackboxAndroid::TestBlackboxAndroid()
 
 void TestBlackboxAndroid::android()
 {
-    QFETCH(const QString, projectDir);
-    QFETCH(const QStringList, productNames);
-    QFETCH(const QList<QByteArrayList>, expectedFilesLists);
+    QFETCH(QString, projectDir);
+    QFETCH(QStringList, productNames);
+    QFETCH(QList<QByteArrayList>, expectedFilesLists);
 
     const SettingsPtr s = settings();
     Profile p(profileName(), s.get());
