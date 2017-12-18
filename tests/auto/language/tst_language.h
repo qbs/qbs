@@ -126,6 +126,8 @@ private slots:
     void modules();
     void multiplexingByProfile();
     void multiplexingByProfile_data();
+    void nonApplicableModulePropertyInProfile();
+    void nonApplicableModulePropertyInProfile_data();
     void nonRequiredProducts();
     void nonRequiredProducts_data();
     void outerInGroup();
