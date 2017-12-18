@@ -165,24 +165,24 @@ Module {
     property string linkerName
     property string linkerPath: linkerName
     property stringList linkerWrapper
-    property string staticLibraryPrefix
-    property string dynamicLibraryPrefix
-    property string loadableModulePrefix
-    property string executablePrefix
-    property string staticLibrarySuffix
-    property string dynamicLibrarySuffix
-    property string loadableModuleSuffix
-    property string executableSuffix
-    property string debugInfoSuffix
-    property string debugInfoBundleSuffix
-    property string variantSuffix
+    property string staticLibraryPrefix: ""
+    property string dynamicLibraryPrefix: ""
+    property string loadableModulePrefix: ""
+    property string executablePrefix: ""
+    property string staticLibrarySuffix: ""
+    property string dynamicLibrarySuffix: ""
+    property string loadableModuleSuffix: ""
+    property string executableSuffix: ""
+    property string debugInfoSuffix: ""
+    property string debugInfoBundleSuffix: ""
+    property string variantSuffix: ""
     property bool createSymlinks: true
     property stringList dynamicLibraries // list of names, will be linked with -lname
     property stringList staticLibraries // list of static library files
     property stringList frameworks // list of frameworks, will be linked with '-framework <name>'
     property stringList weakFrameworks // list of weakly-linked frameworks, will be linked with '-weak_framework <name>'
     property stringList rpaths
-    property string sonamePrefix
+    property string sonamePrefix: ""
     property bool useRPaths: true
     property bool useRPathLink
     property string rpathLinkFlag
