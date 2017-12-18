@@ -415,7 +415,12 @@ private:
                 return true;
         }
 
-        if ((value->item()->type() != ItemType::ModuleInstance || !value->item()->scope())
+        // TODO: We really should have a dedicated item type for "pre-instantiated" item values
+        //       and only use ModuleInstance for actual module instances.
+        const bool itemIsModuleInstance = value->item()->type() == ItemType::ModuleInstance
+                && value->item()->hasProperty(StringConstants::presentProperty());
+
+        if (!itemIsModuleInstance
                 && value->item()->type() != ItemType::ModulePrefix
                 && m_parentItem->file()
                 && (!m_parentItem->file()->idScope()
@@ -437,11 +442,6 @@ private:
         if (!m_handledItems.insert(item).second)
             return;
         if (m_disabledItems.contains(item)
-                // TODO: We never checked module prototypes, apparently. Should we?
-                // It's currently not possible because of e.g. things like "cpp.staticLibraries"
-                // inside Artifact items...
-                || item->type() == ItemType::Module
-
                 || (item->type() == ItemType::ModuleInstance && !item->isPresentModule())
 
                 // The Properties child of a SubProject item is not a regular item.
@@ -495,6 +495,10 @@ private:
             case ItemType::Parameter:
             case ItemType::Parameters:
                 break;
+            case ItemType::Group:
+                if (item->type() == ItemType::Module || item->type() == ItemType::ModuleInstance)
+                    break;
+                Q_FALLTHROUGH();
             default:
                 handleItem(child);
             }

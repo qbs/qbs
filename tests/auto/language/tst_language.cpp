@@ -765,6 +765,8 @@ void TestLanguage::erroneousFiles_data()
             << "Item 'something' is not declared.";
     QTest::newRow("undeclared_property_in_export_item3")
             << "Property 'blubb' is not declared.";
+    QTest::newRow("undeclared_module_property_in_module")
+            << "Property 'noSuchProperty' is not declared.";
     QTest::newRow("unknown_item_type")
             << "Unexpected item type 'Narf'";
     QTest::newRow("invalid_child_item_type")
