@@ -77,7 +77,7 @@ Module {
     property string libFilePath: qtBuildVariant === "debug"
                                       ? libFilePathDebug : libFilePathRelease
 
-    coreLibPaths: @libraryPaths@
+    property stringList coreLibPaths: @libraryPaths@
 
     // These are deliberately not path types
     // We don't want to resolve them against the source directory
@@ -308,7 +308,6 @@ Module {
     Rule {
         multiplex: true
         inputs: ["moc_cpp"]
-        outputs: ["cpp", "unmocable"]
         Artifact {
             filePath: "amalgamated_moc_" + product.targetName + ".cpp"
             fileTags: ["cpp", "unmocable"]
