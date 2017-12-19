@@ -53,7 +53,7 @@ function scanQrc(qrcFilePath) {
 }
 
 function qtQuickCompilerOutputName(filePath) {
-    var str = filePath.replace('/', '_');
+    var str = filePath.replace(/\//g, '_');
     var i = str.lastIndexOf('.');
     if (i != -1)
         str = str.substr(0, i) + '_' + str.substr(i + 1);

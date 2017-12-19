@@ -266,7 +266,7 @@ void TestBlackboxQt::quickCompiler()
     const bool hasCompiler = m_qbsStdout.contains("compiler available");
     const bool doesNotHaveCompiler = m_qbsStdout.contains("compiler not available");
     QVERIFY2(hasCompiler || doesNotHaveCompiler, m_qbsStdout.constData());
-    QCOMPARE(m_qbsStdout.contains("compiling test_qml.cpp"), hasCompiler);
+    QCOMPARE(m_qbsStdout.contains("compiling qml_subdir_test_qml.cpp"), hasCompiler);
     if (doesNotHaveCompiler)
         QSKIP("qtquickcompiler not available");
 }
