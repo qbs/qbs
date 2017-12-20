@@ -83,7 +83,7 @@ Module {
         property string repoState
 
         configure: {
-            if (!File.exists(filePath))
+            if (!File.exists( repoDir + "/" + filePath ))
                 return; // No commits yet.
             var proc = new Process();
             try {
