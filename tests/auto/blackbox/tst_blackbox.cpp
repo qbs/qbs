@@ -4863,6 +4863,22 @@ void TestBlackbox::enableRtti()
     }
 }
 
+void TestBlackbox::envMerging()
+{
+    QDir::setCurrent(testDataDir + "/env-merging");
+    QbsRunParameters params;
+    QString pathVal = params.environment.value("PATH");
+    pathVal.prepend(HostOsInfo::pathListSeparator()).prepend("/opt/blackbox/bin");
+    const QString keyName = HostOsInfo::isWindowsHost() ? "pATh" : "PATH";
+    params.environment.insert(keyName, pathVal);
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains(QByteArray("PATH=/opt/tool/bin")
+                                  + HostOsInfo::pathListSeparator().toLatin1())
+             && m_qbsStdout.contains(HostOsInfo::pathListSeparator().toLatin1()
+                                     + QByteArray("/opt/blackbox/bin")),
+             m_qbsStdout.constData());
+}
+
 void TestBlackbox::generatedArtifactAsInputToDynamicRule()
 {
     QDir::setCurrent(testDataDir + "/generated-artifact-as-input-to-dynamic-rule");

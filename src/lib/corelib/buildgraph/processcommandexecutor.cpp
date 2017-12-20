@@ -58,6 +58,7 @@
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
 #include <tools/shellutils.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qtemporaryfile.h>
@@ -77,6 +78,29 @@ ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *pa
             this, &ProcessCommandExecutor::onProcessFinished);
 }
 
+static QProcessEnvironment mergeEnvironments(const QProcessEnvironment &baseEnv,
+                                             const QProcessEnvironment &additionalEnv)
+{
+    QProcessEnvironment env = baseEnv;
+
+    static const QStringList pathListVariables{
+        StringConstants::pathEnvVar(),
+        QStringLiteral("LD_LIBRARY_PATH"),
+        QStringLiteral("DYLD_LIBRARY_PATH"),
+        QStringLiteral("DYLD_FRAMEWORK_PATH"),
+    };
+    for (const QString &key : additionalEnv.keys()) {
+        QString newValue = additionalEnv.value(key);
+        if (pathListVariables.contains(key, HostOsInfo::fileNameCaseSensitivity())) {
+            const QString &oldValue = baseEnv.value(key);
+            if (!oldValue.isEmpty())
+                newValue.append(HostOsInfo::pathListSeparator()).append(oldValue);
+        }
+        env.insert(key, newValue);
+    }
+    return env;
+}
+
 void ProcessCommandExecutor::doSetup()
 {
     const ProcessCommand * const cmd = processCommand();
@@ -84,12 +108,7 @@ void ProcessCommandExecutor::doSetup()
                                              transformer()->product()->buildEnvironment)
             .findExecutable(cmd->program(), cmd->workingDir());
 
-    QProcessEnvironment env = m_buildEnvironment;
-    const QProcessEnvironment &additionalVariables = cmd->environment();
-    for (const QString &key : additionalVariables.keys())
-        env.insert(key, additionalVariables.value(key));
-    m_commandEnvironment = env;
-
+    m_commandEnvironment = mergeEnvironments(m_buildEnvironment, cmd->environment());
     m_program = program;
     m_arguments = cmd->arguments();
     m_shellInvocation = shellQuote(QDir::toNativeSeparators(m_program), m_arguments);
