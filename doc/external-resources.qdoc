@@ -96,6 +96,11 @@
 */
 
 /*!
+    \externalpage https://clang.llvm.org/docs/JSONCompilationDatabase.html
+    \title JSON Compilation Database Format Specification
+*/
+
+/*!
     \externalpage nolink
     \title macOS
     \internal

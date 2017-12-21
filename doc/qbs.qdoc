@@ -1457,7 +1457,7 @@
 
     \section1 Generating Clang Compilation Databases
 
-    To generate a \l{https://clang.llvm.org/docs/JSONCompilationDatabase.html}
+    To generate a \l{JSON Compilation Database Format Specification}
     {Clang compilation database (clangdb)}, use the following command:
 
     \code
