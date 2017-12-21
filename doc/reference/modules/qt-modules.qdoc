@@ -75,15 +75,15 @@
         \li Qt Concurrent
         \li
     \row
-        \li \l{Qt.core}
+        \li \l{Qt.core}{core}
         \li Qt Core
         \li For more information, see \l{Qt.core}.
     \row
-        \li \l{Qt.dbus}
+        \li \l{Qt.dbus}{dbus}
         \li Qt D-Bus
         \li For more information, see \l{Qt.dbus}.
     \row
-        \li \l{Qt.declarative}
+        \li \l{Qt.declarative}{declarative}
         \li Qt Quick 1
         \li Provides the \c{Qt Quick 1} module. For more information, see
             \l{Qt.declarative}.
@@ -96,7 +96,7 @@
         \li Qt Enginio
         \li
     \row
-        \li \l{Qt.gui}
+        \li \l{Qt.gui}{gui}
         \li Qt GUI
         \li For more information , see \l {Qt.gui}.
     \row
@@ -130,12 +130,12 @@
         \li Qt Print Support
         \li
     \row
-        \li \l{Qt.quick}
+        \li \l{Qt.quick}{quick}
         \li Qt Quick 2
         \li Provides the \c{Qt Quick} module (Qt Quick 2). For more information,
             see \l{Qt.quick}.
     \row
-        \li \l{Qt.qml}
+        \li \l{Qt.qml}{qml}
         \li Qt QML
         \li For more information, see \l{Qt.qml}.
     \row
@@ -143,7 +143,7 @@
         \li Qt Script
         \li
     \row
-        \li \l{Qt.scxml}
+        \li \l{Qt.scxml}{scxml}
         \li Qt Scxml
         \li For more information, see \l {Qt.scxml}.
     \row
