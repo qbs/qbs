@@ -38,5 +38,5 @@ release/
 *.app/
 *_resource.rc
 bin/*
-doc/html/*
+doc/qbs/html/*
 /lib
