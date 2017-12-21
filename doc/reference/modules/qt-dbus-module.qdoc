@@ -1,0 +1,88 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype Qt.dbus
+    \inqmlmodule QbsModules
+    \brief Provides Qt D-Bus support.
+
+    The Qt.dbus module provides support for the Qt D-Bus module, which contains
+    classes for inter-process communication over the D-Bus protocol.
+
+    \section2 Relevant File Tags
+    \target filetags-debus
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"qt.dbus.adaptor"}
+        \li -
+        \li 1.5
+        \li Source files with this tag serve as inputs to the rule running the
+            \c qdbusxml2cpp tool, which will create an adaptor class.
+    \row
+        \li \c{"qt.dbus.interface"}
+        \li -
+        \li 1.5
+        \li Source files with this tag serve as inputs to the rule running the
+            \c qdbusxml2cpp tool, which will create an interface class.
+    \endtable
+*/
+
+/*!
+    \qmlproperty string Qt.dbus::xml2cppName
+
+    The base name of the \c qdbusxml2cpp tool.
+
+    Set this property if your system uses a name different from the default
+    value.
+
+    \defaultvalue \c{"qdbusxml2cpp"}
+*/
+
+/*!
+    \qmlproperty stringList Qt.dbus::xml2CppHeaderFlags
+
+    A list of additional flags when running the \c qdbusxml2cpp tool to create
+    header files.
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty stringList Qt.dbus::xml2CppSourceFlags
+
+    A list of additional flags when running the \c qdbusxml2cpp tool to create
+    source files.
+
+    \defaultvalue \c []
+*/

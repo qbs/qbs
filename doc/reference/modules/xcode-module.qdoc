@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Copyright (C) 2015 Jake Petroules.
 ** Contact: https://www.qt.io/licensing/
 **
@@ -27,115 +27,140 @@
 ****************************************************************************/
 /*!
     \contentspage index.html
-    \page xcode-module.html
-    \ingroup list-of-modules
+    \qmltype xcode
+    \inqmlmodule QbsModules
+    \since Qbs 1.5
 
-    \title Module xcode
-    \since 1.5
     \brief Provides Xcode support.
 
     The \c xcode module contains properties and rules for Xcode-based development.
-    This module provides the foundation for several other modules on Apple platforms, including the
-    \c cpp and \c ib modules.
+    This module provides the foundation for several other modules on Apple
+    platforms, including the \l{cpp} and \l{ib} modules.
+*/
 
-    \section1 General Properties
+/*!
+    \qmlproperty path xcode::developerPath
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li developerPath
-        \li path
-        \li 1.5
-        \li \c{"/Applications/Xcode.app/Contents/Developer"}
-        \li Developer directory of the Xcode installation. By default this is set to the developer
-            directory of the Xcode installation at its default location in /Applications.
-            Corresponds to the \c DEVELOPER_DIR environment variable.
-    \row
-        \li sdk
-        \li string
-        \li 1.5
-        \li determined by \c{qbs.targetOS}
-        \li Version of the Xcode SDK used to build products. This can be specified as a full
-            canonical SDK name (i.e. \c{"macosx10.10"}), a platform version number (i.e.
-            \c{"10.10"}), or a platform identifier (i.e. \c{"macosx"}) in which case the latest SDK
-            available for that platform will be used. The default is the latest SDK available in the
-            Xcode installation for the current platform.
-    \row
-        \li targetDevices
-        \li stringList
-        \li 1.5
-        \li determined by \c{qbs.targetOS}
-        \li List of the Apple devices targeted by this product. For macOS, watchOS, and tvOS, this
-            should always be "mac", "watch", and "tv", respectively. For iOS, this can be one or
-            both of "iphone" and "ipad". The default is the list of all device types supported by
-            the current platform.
-    \endtable
+    The developer directory of the Xcode installation.
 
-    \section1 Read-only Properties
+    Corresponds to the \c DEVELOPER_DIR environment variable.
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li sdkName
-        \li string
-        \li 1.5
-        \li determined by \c{xcode.sdk}
-        \li Canonical name of the SDK used to build products. For example, macosx10.9.
-    \row
-        \li sdkVersion
-        \li string
-        \li 1.5
-        \li determined by \c{xcode.sdk}
-        \li Version number of the SDK used to build products. For example, 10.9.
-    \row
-        \li latestSdkName
-        \li string
-        \li 1.5
-        \li determined by \c{xcode.developerPath}
-        \li Canonical name of the latest SDK available in the Xcode installation.
-            For example, macosx10.10.
-    \row
-        \li latestSdkVersion
-        \li string
-        \li 1.5
-        \li determined by \c{xcode.developerPath}
-        \li Version number of the latest SDK available in the Xcode installation.
-            For example, 10.10.
-    \row
-        \li availableSdkNames
-        \li stringList
-        \li 1.5
-        \li determined by \c{xcode.developerPath}
-        \li Canonical names of all SDKs available in the Xcode installation for the current
-            platform. For example, [macosx10.9, macosx10.10].
-    \row
-        \li availableSdkVersions
-        \li stringList
-        \li 1.5
-        \li determined by \c{xcode.developerPath}
-        \li Version numbers of all SDK available in the Xcode installation for the current
-            platform. For example, [10.9, 10.10].
-    \row
-        \li platformPath
-        \li path
-        \li 1.5
-        \li determined by \c{xcode.developerPath}
-        \li Path of the platform directory containing \c{xcode.sdkPath}.
-    \row
-        \li sdkPath
-        \li path
-        \li 1.5
-        \li determined by \c{xcode.developerPath} and \c{xcode.sdk}
-        \li Path of the SDK used to build products. Equivalent to \c{cpp.sysroot}.
-    \endtable
+    \defaultvalue The developer directory of the Xcode installation at its
+    default location in \c /Applications. For example,
+    \c{"/Applications/Xcode.app/Contents/Developer"}.
+
+*/
+
+/*!
+    \qmlproperty string xcode::sdk
+
+    The version of the Xcode SDK used to build products.
+
+    This can be specified as a full canonical SDK name (\c{"macosx10.10"}), a
+    platform version number (\c{"10.10"}), or a platform identifier
+    (\c{"macosx"}), in which case the latest SDK available for that platform
+    will be used.
+
+    \defaultvalue The latest SDK available in the Xcode installation for the
+    current platform. Determined by \l{qbs::targetOS}{qbs.targetOS}.
+*/
+
+/*!
+    \qmlproperty stringList xcode::targetDevices
+
+    A list of the Apple devices targeted by this product.
+
+    For macOS, watchOS, and tvOS, this should always be \c "mac", \c "watch",
+    and \c "tv", respectively. For iOS, this can be one or both of \c "iphone"
+    and \c "ipad".
+
+    \defaultvalue The list of all device types supported by the current
+    platform. Determined by \l{qbs::targetOS}{qbs.targetOS}.
+*/
+
+/*!
+    \qmlproperty string xcode::sdkName
+    \readonly
+
+    The canonical name of the SDK used to build products.
+
+    For example, \c macosx10.9.
+
+    \defaultvalue \l{xcode::}{sdk}
+*/
+
+/*!
+    \qmlproperty string xcode::sdkVersion
+    \readonly
+
+    The version number of the SDK used to build products.
+
+    For example, 10.9.
+
+    \defaultvalue \l{xcode::}{sdk}
+*/
+
+/*!
+    \qmlproperty string xcode::latestSdkName
+    \readonly
+
+    The canonical name of the latest SDK available in the Xcode installation.
+
+    For example, \c {macosx10.10}.
+
+    \defaultvalue \l{xcode::}{developerPath}
+*/
+
+/*!
+    \qmlproperty string xcode::latestSdkVersion
+    \readonly
+
+    The version number of the latest SDK available in the Xcode installation.
+
+    For example, 10.10.
+
+    \defaultvalue \l{xcode::}{developerPath}
+*/
+
+/*!
+    \qmlproperty stringList xcode::availableSdkNames
+    \readonly
+
+    The canonical names of all SDKs available in the Xcode installation for the
+    current platform.
+
+    For example, \c {[macosx10.9, macosx10.10]}.
+
+    \defaultvalue \l{xcode::}{developerPath}
+*/
+
+/*!
+    \qmlproperty stringList xcode::availableSdkVersions
+    \readonly
+
+    The version numbers of all SDK available in the Xcode installation for the
+    current platform.
+
+    For example, \c {[10.9, 10.10]}.
+
+    \defaultvalue \l{xcode::}{developerPath}
+*/
+
+/*!
+    \qmlproperty path xcode::platformPath
+    \readonly
+
+    The path of the platform directory containing \l{xcode::}{sdkPath}.
+
+    \defaultvalue \l{xcode::}{developerPath}
+*/
+
+/*!
+    \qmlproperty path xcode::sdkPath
+    \readonly
+
+    The path of the SDK used to build products. Equivalent to
+    \l{qbs::sysroot}{qbs.sysroot}.
+
+    \defaultvalue Determined by \l{xcode::}{developerPath} and \l{xcode::}{sdk}.
 */

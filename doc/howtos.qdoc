@@ -45,8 +45,8 @@
 
     \section1 How do I build a Qt-based project?
 
-    First of all, your project files need to declare a Qt dependency.
-    See \l{Qt Modules} for how to do that.
+    First of all, your project files need to declare \l{Depends}{dependencies}
+    on \l{Qt} modules.
 
     To build the project, you need a matching \e profile. The following commands
     set up and use a Qt-specific profile:
@@ -99,7 +99,7 @@
     The product \c the-app is an application that expresses its intent to link against \c the-lib
     by declaring a dependency on it. Now \c main.cpp can include \c lib.h (because of the exported
     include path) and the application binary will link against the library (because the linker
-    \l{Rule}{rule} in the \l{Module cpp}{cpp module} considers library dependencies as inputs).
+    \l{Rule}{rule} in the \l{cpp} module considers library dependencies as inputs).
     \note In a non-trivial project, the two products would not be defined in the same file.
           Instead, you would put them into files of their own and use the
           \l{Project::references}{project.references} property to pull them into the project.
@@ -163,8 +163,9 @@
 
     \section1 How do I create application bundles and frameworks on iOS, macOS, tvOS, and watchOS?
 
-    Creating an application bundle or framework is achieved by introducing a dependency on the
-    \l{Module bundle}{Bundle module} and setting the \c bundle.isBundle property to \c true.
+    Creating an application bundle or framework is achieved by introducing a
+    dependency on the \l{bundle} module and setting the \l{bundle::isBundle}
+    {bundle.isBundle} property to \c true.
 
     Here is a simple example for an application:
 
@@ -256,7 +257,7 @@
 
     \section1 How do I make the state of my Git repository available to my source files?
 
-    Add a dependency to the \c vcs module to your product:
+    Add a dependency to the \l{vcs} module to your product:
     \code
     CppApplication {
         // ...
@@ -275,6 +276,7 @@
         std::cout << "I was built from " << VCS_REPO_STATE << std::endl;
     }
     \endcode
-    This value is also available via a module property in \QBS project files.
-    See the \l{Module vcs}{vcs module documentation} for details.
+
+    This value is also available via the \l{vcs::repoState}{vcs.repoState}
+    property.
 */

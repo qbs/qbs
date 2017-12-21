@@ -37,9 +37,8 @@
     \brief Archive of an installed project.
 
     An InstallPackage item is a \l{Product}{product} of the \l{Product::}{type}
-    \c{archiver.archive} that has a \l{Depends}{dependency} on the
-    \l{Module archiver}{archiver Module}. It is used to produce an archive from
-    a set of installable files.
+    \c{archiver.archive} that has a \l{Depends}{dependency} on the\l{archiver}
+    module. It is used to produce an archive from a set of installable files.
 
     Consider the following example project:
 

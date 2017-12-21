@@ -104,7 +104,7 @@
     qbs build profile:Android
     \endcode
 
-    Builds the application using different \l{Module cpp}{cpp module} properties
+    Builds the application using different \l{cpp} module properties
     for debug and release configurations. For the debug configuration, warnings
     will cause the build to fail, whereas for the release configuration, the
     size of the build artifacts will be optimized:

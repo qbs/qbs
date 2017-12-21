@@ -37,7 +37,7 @@
     \brief Apple disk image.
 
     An AppleDiskImage item is a is a \l{Product}{product} of the \l{Product::}
-    {type} \c{"dmg.dmg"} that has a dependency on the \l{Module dmg}{DMG module}.
+    {type} \c{"dmg.dmg"} that has a dependency on the \l{dmg} module.
 
     For single-application drag 'n' drop disk image installers, you will
     probably want to use the \l{AppleApplicationDiskImage} item instead.

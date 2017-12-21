@@ -167,7 +167,7 @@
 
     The following is an example of a minimal project file that specifies the
     product type, application name, source file, and a dependency on the
-    \l{Module cpp}{cpp module}:
+    \l{cpp} module:
 
     \code
     import qbs
@@ -208,7 +208,7 @@
 
     Platform and programming language support is implemented as a set of
     \l{List of Modules}{modules} that your product depends on. In the language
-    example above, the dependency on the \l{Module cpp}{cpp module} determines
+    example above, the dependency on the \l{cpp} module determines
     that the C++ sources are compiled and linked into a binary.
 
     Alternatively, you could use the \l{CppApplication}
@@ -222,17 +222,16 @@
     \endcode
 
     Additionally, if the sources use Qt, you need a dependency to the
-    \l{Qt Modules}{Qt.core module}, and so on.
+    \l{Qt.core} module, and so on.
 
     In addition to building projects, \QBS can install the build artifacts to
     a location from where they can be run on the desktop or on a device. \QBS
     modules can be used to create installers for the end users of the
-    applications. For example, the \l{Module dmg}{dmg} module contains
+    applications. For example, the \l{dmg} module contains
     properties and rules for building Apple Disk Images, which are typically
     used to distribute applications and installers on macOS. The
-    \l{Module innosetup}{innosetup}, \l{Module nsis}{nsis}, and \l{Module wix}
-    {wix} modules contain properties and rules for building installers for
-    Windows platforms.
+    \l{innosetup}, \l{nsis}, and \l{wix} modules contain properties and rules
+    for building installers for Windows platforms.
 
     \section2 Correct and Fast Incremental Builds
 
@@ -837,9 +836,9 @@
     files: [ "main.cpp" ]
     \endcode
 
-    \a Depends adds the dependency to the module \l{Module cpp}{cpp}. This is necessary to let \QBS know that
-    we have a C++ project and want to compile main.cpp with a C++ compiler. For more information
-    about \QBS modules, see \l{Modules}.
+    \a Depends adds the dependency to the \l{cpp} module. This is necessary to
+    let \QBS know that we have a C++ project and want to compile main.cpp with a
+    C++ compiler. For more information about \QBS modules, see \l{Modules}.
 
 
     \section1 Reusing Project File Code
@@ -1499,7 +1498,7 @@
 
     \list
         \li \l{Product::name}{product.name}
-        \li \l{Module bundle}{bundle}.isBundle
+        \li \l{bundle::isBundle}{bundle.isBundle}
     \endlist
 
     If a simple workaround is possible in a particular case (for example,

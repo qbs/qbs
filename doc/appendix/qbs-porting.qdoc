@@ -33,10 +33,10 @@
 
     \title Appendix B: Migrating from Other Build Systems
 
-    You can use the \c {qbs create-project} command to automatically generate
-    \QBS project files from an arbitrary directory structure. This is a useful
-    starting point when migrating from other build tools, such as qmake or
-    CMake.
+    You can use the \l{create-project}{qbs create-project} command to
+    automatically generate \QBS project files from an arbitrary directory
+    structure. This is a useful starting point when migrating from other
+    build tools, such as qmake or CMake.
 
     To use the tool, switch to the project directory and run the
     \c {qbs create-project} command, which is located in the \c bin directory of
@@ -56,7 +56,7 @@
 
     \section3 console
 
-    Set the \l{Product::consoleApplication}{product.consoleApplication} property
+    Set the \l{Product::consoleApplication}{Product.consoleApplication} property
     to \c true for the \l{Application}, \l{CppApplication},or \l{QtApplication}
     item. For example:
 
@@ -90,7 +90,7 @@
 
     In qmake, the Qt dependency is implicit, whereas in \QBS it is not.
     If \c {CONFIG -= qt}, add a \l{Depends} item to specify that
-    the \l{Product}{product} depends on the \l{Module cpp}{cpp module}:
+    the \l{Product}{product} depends on the \l{cpp} module:
 
     \code
     Product {
@@ -100,10 +100,10 @@
 
     \section2 DEFINES
 
-    Set the \l{Module cpp}{cpp.defines} property for the \l{Product}{product}.
+    Set the \l{cpp::defines}{cpp.defines} property for the \l{Product}{product}.
 
     \note To reference \c cpp.defines, you must specify a dependency on the
-    \l{Module cpp}{cpp} module.
+    \l{cpp} module.
 
     \code
     Product {
@@ -134,7 +134,8 @@
     }
     \endcode
 
-    If that is not possible, you can use the \c destinationDirectory property:
+    If that is not possible, you can use the \l{Product::}{destinationDirectory}
+    property:
 
     \code
     DynamicLibrary {
@@ -146,7 +147,7 @@
     \section2 HEADERS, SOURCES, FORMS, RESOURCES
 
     Include header, source, form, and resource files as values of
-    \l{Product::files}{product.files} property:
+    \l{Product::files}{Product.files} property:
 
     \code
     QtApplication {
@@ -160,11 +161,10 @@
 
     \section2 ICON
 
-    There is no direct equivalent in \QBS. If you add a \l{Depends}
-    {dependency} to the \l{Module ib}{ib module} and add the \c .xcassets
-    directory as a value of the \c files property of the \l{Product}
-    {product}, \QBS takes care of setting the application icon automatically
-    when building for Apple platforms:
+    There is no direct equivalent in \QBS. If you add a \l{Depends} {dependency}
+    to the \l{ib} module and add the \c .xcassets directory as a value of the
+    \l{Product::files}{Product.files} property, \QBS takes care of setting the
+    application icon automatically when building for Apple platforms:
 
     \code
     Application {
@@ -175,9 +175,9 @@
     \endcode
 
     Alternatively, you can set the icon name as the value of the
-    \l{Module bundle}{bundle.infoPlist} parameter, specify a dependency to the
-    \c ib module, and add the application \c .icns file as a value of the
-    \c files property:
+    \l{bundle::infoPlist}{bundle.infoPlist} parameter, specify a dependency to
+    the \l{ib} module, and add the application \c .icns file as a value of the
+    \l{Product::}{files} property:
 
     \code
     Application {
@@ -189,7 +189,7 @@
 
     \section2 INCLUDEPATH
 
-    Add the paths to the include files as values of the \l{Module cpp}
+    Add the paths to the include files as values of the \l{cpp::includePaths}
     {cpp.includePaths} property:
 
     \code
@@ -202,9 +202,10 @@
 
     For libraries that are part of the project, use \l{Depends} items.
 
-    To pull in external libraries, use the \l{Module cpp}{cpp.libraryPaths}
-    property for the Unix \c -L (library path) flags and the
-    \c cpp.dynamicLibraries and \c cpp.staticLibraries properties for the
+    To pull in external libraries, use the \l{cpp::libraryPaths}
+    {cpp.libraryPaths} property for the Unix \c -L (library path) flags and the
+    \l{cpp::dynamicLibraries}{cpp.dynamicLibraries} and \l{cpp::staticLibraries}
+    {cpp.staticLibraries} properties for the
     \c -l (library) flags.
 
     For example, \c {LIBS += -L/usr/local/lib -lm} would become:
@@ -218,7 +219,7 @@
 
     \section2 OUT_PWD
 
-    Use the \c product.buildDirectory property of the \l{Product}{product}
+    Use the \l{Product::buildDirectory}{Product.buildDirectory} property
     to refer to the base output directory of the generated artifacts.
 
     \section2 PWD
@@ -232,14 +233,13 @@
 
     \section2 _PRO_FILE_PWD_
 
-    Corresponds to the \c sourceDirectory property of a
-    \l{Project}{project} or \l{Product}{product}.
+    Corresponds to the \l{Project::sourceDirectory}{Project.sourceDirectory} or
+    \l{Product::sourceDirectory}{Product.sourceDirectory} property.
 
     \section2 QMAKE_ASSET_CATALOGS
 
-    Add a \l{Depends}{dependency} to the \l{Module ib}{ib module} and add
-    the \c .xcassets directory as a value of the \c files property of the
-    \l{Product}{product}:
+    Add a \l{Depends}{dependency} to the \l{ib} module and add the \c .xcassets
+    directory as a value of the \l{Product::}{files} property:
 
     \code
     Application {
@@ -257,15 +257,15 @@
 
     \section2 QMAKE_BUNDLE_EXTENSION
 
-    Set the \c bundle.extension property for the \l{Module bundle}{bundle}.
+    Set the \l{bundle::extension}{bundle.extension} property.
 
     \note Unlike qmake, \QBS automatically prepends a period (.) to the property
     value.
 
     \section2 QMAKE_{C,CXX,OBJECTIVE}_CFLAGS{_DEBUG,_RELEASE}
 
-    Use the \c cpp.commonCompilerFlags property of the the \l{Module cpp}{cpp}
-    module or the properties corresponding to each compiler flags variable:
+    Use the \l{cpp::commonCompilerFlags}{cpp.commonCompilerFlags} property or
+    the properties corresponding to each compiler flags variable:
 
     \table
         \header
@@ -275,39 +275,37 @@
             \li \c QMAKE_CFLAGS_DEBUG
 
                 \c QMAKE_CFLAGS_RELEASE
-            \li \c cpp.cCompilerFlags
+            \li \l{cpp::cFlags}{cpp.cFlags}
         \row
             \li \c QMAKE_CXXFLAGS_DEBUG
 
                 \c QMAKE_CXXFLAGS_RELEASE
-            \li \c cpp.cxxCompilerFlags
+            \li \l{cpp::cxxFlags}{cpp.cxxFlags}
         \row
             \li \c QMAKE_OBJECTIVE_CFLAGS
-            \li \c cpp.objcCompilerFlags
+            \li \l{cpp::objcFlags}{cpp.objcFlags}
 
-                \c cpp.objcxxCompilerFlags
+                \l{cpp::objcxxFlags}{cpp.objcxxFlags}
     \endtable
 
-    Use \l{Properties} items or simple conditionals as values
-    of the \l{Module qbs}{qbs.buildVariant} property to simulate the \c _DEBUG
-     and\c _RELEASE variants of the qmake variables.
+    Use \l{Properties} items or simple conditionals as values of the
+    \l{qbs::buildVariant}{qbs.buildVariant} property to simulate the \c _DEBUG
+    and \c _RELEASE variants of the qmake variables.
 
     \section2 QMAKE_FRAMEWORK_BUNDLE_NAME
 
-    Set the \c bundle.bundleName property (which is derived from
-    \c product.target) combined with \c bundle.extension for the
-    \l{Module bundle}{bundle}.
+    Set the \l{bundle::bundleName}{bundle.bundleName} property (which is derived
+    from \l{Product::targetName}{Product.targetName}) combined with
+    \l{bundle::extension}{bundle.extension}.
 
     \section2 QMAKE_FRAMEWORK_VERSION
 
-    Set the \c bundle.frameworkVersion property for the \l{Module bundle}
-    {bundle}.
+    Set the \l{bundle::frameworkVersion}{bundle.frameworkVersion} property.
 
     \section2 QMAKE_INFO_PLIST
 
-    Include the \c info.plist file as a value of the \c files property of the
-    \l{Product}{product} and specify a dependency to the \l{Module bundle}
-    {bundle} module:
+    Include the \c info.plist file as a value of \l{Product::}{files} property
+    and specify a dependency to the \l{bundle} module:
 
     \code
     Application {
@@ -322,7 +320,8 @@
     properties in the project, and therefore you do not need to use the
     \c {Info.plist.in > Info.plist} configuration mechanism. Further, you almost
     never need to embed placeholders into the source \c Info.plist file. Set the
-    \c bundle.processInfoPlist property to \c false to disable this behavior:
+    \l{bundle::processInfoPlist}{bundle.processInfoPlist} property to \c false
+    to disable this behavior:
 
     \code
     \\ ...
@@ -330,8 +329,8 @@
     \endcode
 
     In addition to, or instead of, using an actual \c Info.plist file, you can
-    add \c Info.plist properties using the \c bundle.infoPlist property. For
-    example:
+    add \c Info.plist properties using the \l{bundle::infoPlist}
+    {bundle.infoPlist} property. For example:
 
     \code
     \\ ...
@@ -343,13 +342,13 @@
 
     \section2 QMAKE_LFLAGS
 
-    Set the \l{Module cpp}{cpp.linkerFlags} property for the \l{Product}
+    Set the \l{cpp::linkerFlags}{cpp.linkerFlags} property for the \l{Product}
     {product}.
 
     \section2 QMAKE_{MACOSX,IOS,TVOS,WATCHOS}_DEPLOYMENT_TARGET
 
     For each qmake deployment target variable, use the corresponding property of
-    the \l{Module cpp}{cpp} module:
+    the \l{cpp} module:
 
     \table
         \header
@@ -357,25 +356,25 @@
             \li cpp Module Property
         \row
             \li \c QMAKE_MACOSX_DEPLOYMENT_TARGET
-            \li \c cpp.minimumMacosVersion
+            \li \l{cpp::minimumMacosVersion}{cpp.minimumMacosVersion}
         \row
             \li \c QMAKE_IOS_DEPLOYMENT_TARGET
-            \li \c cpp.minimumIosVersion
+            \li \l{cpp::minimumIosVersion}{cpp.minimumIosVersion}
         \row
             \li \c QMAKE_TVOS_DEPLOYMENT_TARGET
-            \li \c cpp.minimumTvosVersion
+            \li \l{cpp::minimumTvosVersion}{cpp.minimumTvosVersion}
         \row
             \li \c QMAKE_WATCHOS_DEPLOYMENT_TARGET
-            \li \c cpp.minimumWatchosVersion
+            \li \l{cpp::minimumWatchosVersion}{cpp.minimumWatchosVersion}
     \endtable
 
     \section2 QMAKE_RPATHDIR
 
-    Set the \l{Module cpp}{cpp.rpaths} property for the \l{Product}{product}.
+    Set the \l{cpp::rpaths}{cpp.rpaths} property for the \l{Product}{product}.
 
     \section2 QMAKE_SONAME_PREFIX
 
-    Use the \l{Module cpp}{cpp.sonamePrefix} property for the \l{Product}
+    Use the \l{cpp::sonamePrefix}{cpp.sonamePrefix} property for the \l{Product}
     {product}.
 
     \section2 QML_IMPORT_PATH
@@ -393,8 +392,8 @@
 
     \section2 QT
 
-    Add a \l{Depends} item to the \l{Product}{product} that
-    specifies the dependencies to \l{Qt Modules}{Qt modules}. For example:
+    Add a \l{Depends} item to the \l{Product}{product} that specifies the
+    dependencies to \l{Qt} modules. For example:
 
     \code
     QtApplication {
@@ -427,13 +426,13 @@
 
     \section2 RC_FILE
 
-    Add Windows resource files to the value of the \c files property for the
-    \l{Product}{product}.
+    Add Windows resource files to the value of the \l{Product::files}
+    {Product.files} property.
 
     \section2 TARGET
 
-    Use the \c targetName property to specify the base file name of target
-    artifacts of the \l{Product}{product}.
+    Use the \l{Product::targetName}{Product.targetName} property to specify the
+    base file name of target artifacts.
 
     \section2 TEMPLATE
 
@@ -476,7 +475,7 @@
     \section3 subdirs
 
     In a \l{Project} item, specify subdirectories as values of the
-    \c references property:
+    \l{Project::}{references} property:
 
     \code
     Project {

@@ -24,26 +24,40 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+
 /*!
-    \contentspage list-of-convenience-items.html
-    \previouspage LoadableModule
-    \nextpage QtGuiApplication
-    \qmltype QtApplication
-    \inherits CppApplication
-    \inqmlmodule QbsConvenienceItems
-    \ingroup list-of-items
-    \keyword QML.QtApplication
+    \contentspage index.html
+    \qmltype Qt.gui
+    \inqmlmodule QbsModules
+    \brief Provides Qt GUI support.
 
-    \brief Application with a dependency on the Qt Core module.
+    The Qt.gui module provides support for the Qt GUI module, which contains
+    base classes for graphical user interface (GUI) components.
 
-    A QtApplication is a \l{CppApplication}{C++ application} that has a
-    \l{Depends}{dependency} on the \l{Qt.core} module. It is entirely
-    equivalent to the following:
+    \section2 Relevant File Tags
+    \target filetags-gui
 
-    \code
-    CppApplication {
-        Depends { name: "Qt.core" } }
-    }
-    \endcode
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"ui"}
+        \li \c{*.ui}
+        \li 1.0
+        \li Source files with this tag serve as inputs to the rule running the
+            \c uic tool.
+    \endtable
+*/
 
+/*!
+    \qmlproperty string Qt.gui::uicName
+
+    The base name of the \c uic tool.
+
+    Set this property if your system uses a name such as \c uic-qt4.
+
+    \defaultvalue \c{"uic"}
 */

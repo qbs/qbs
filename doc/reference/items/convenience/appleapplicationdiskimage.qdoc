@@ -39,7 +39,7 @@
 
     An AppleApplicationDiskImage item is a \l{Product}{product} of the
     \l{Product::}{type} \c{"dmg.dmg"} that has a dependency on the
-    \l{Module dmg}{dmg module}. In addition, it has rules and properties
+    \l{dmg} module. In addition, it has rules and properties
     specific to building drag 'n' drop disk image installers with an application
     bundle and symbolic link to the \c /Applications directory.
 

@@ -37,6 +37,5 @@
     \brief Inno Setup installer executable.
 
     A InnoSetup item is a \l{Product}{product} of the \l{Product::}{type}
-    \c{"innosetup.exe"} that has a dependency on the \l{Module innosetup}
-    {Inno Setup module}.
+    \c{"innosetup.exe"} that has a dependency on the \l{innosetup} module.
 */

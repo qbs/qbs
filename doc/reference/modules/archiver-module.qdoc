@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -27,83 +27,152 @@
 
 /*!
     \contentspage index.html
-    \page archiver-module.html
-    \ingroup list-of-modules
+    \qmltype archiver
+    \inqmlmodule QbsModules
+    \since Qbs 1.4
 
-    \title Module archiver
-    \since 1.4
     \brief Provides support for building archives.
 
     The \c archiver module contains the properties and rules for creating (compressed) archives.
-    The output artifact has the file tag "archiver.archive". The sole input artifact is a text file
+    The output artifact has the file tag \c "archiver.archive". The sole input artifact is a text file
     containing the list of files to package, with one file path per line. The paths can be
-    relative, in which case they will be looked for at \c{archiver.workingDirectory}. The file tag
-    of this input artifact is "archiver.input-list".
+    relative, in which case they will be looked for in \l{archiver::}{workingDirectory}. The file tag
+    of this input artifact is \c "archiver.input-list".
+*/
 
-    \section1 archiver Properties
+/*!
+    \qmlproperty stringList archiver::flags
+
+    Custom options not covered by any of the other properties.
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty string archiver::archiveBaseName
+
+    The base name of the archive file. That is, the file name without any
+    extensions.
+
+    \defaultvalue \l{Product::targetName}{product.targetName}
+*/
+
+/*!
+    \qmlproperty string archiver::compressionLevel
+
+    How much effort to put into the compression of a \c 7-Zip or \c zip archive.
+
+    Possible values for zip are:
+
+    \list
+        \li \c undefined
+        \li \c "0"
+        \li \c "1"
+        \li \c "2"
+        \li \c "3"
+        \li \c "4"
+        \li \c "5"
+        \li \c "6"
+        \li \c "7"
+        \li \c "8"
+        \li \c "9"
+    \endlist
+
+    7-Zip only supports 0 and the odd numbers above.
+
+    Higher numbers result in a smaller archive, but the compression process will
+    take more time.
+
+    If the value is left undefined, the default compression level is used.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string archiver::compressionType
+
+    How to compress a \c tar or \c zip archive.
+
+    Possible options are:
+
+    \list
+        \li \c "bz2"
+        \li \c "deflate"
+        \li \c "gz"
+        \li \c "none"
+        \li \c "store"
+        \li \c undefined, which uses the archiver's default compression type.
+        \li \c "xz"
+        \li \c "Z"
+    \endlist
+
+    \defaultvalue \c{"gz"} for \c tar archives, otherwise \c undefined.
+*/
+
+/*!
+    \qmlproperty string archiver::outputDirectory
+
+    Where to put the archive file.
+
+    \defaultvalue \l{Product::destinationDirectory}
+    {product.destinationDirectory}
+*/
+
+/*!
+    \qmlproperty string archiver::type
+
+    Which kind of archiver to use.
+
+    The currently supported values are:
+
+    \list
+        \li \c "7zip"
+        \li \c "tar"
+        \li \c "zip"
+    \endlist
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string archiver::workingDirectory
+
+    The directory in which to execute the archiver tool specified by
+    \l{archiver::}{command}.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string archiver::command
+
+    The path to the executable used to create the archive.
+
+    This is usually the native tool corresponding to the archive type being
+    produced, but may fall back to another tool also capable of producing that
+    archive type if the native tool is not installed on the host system.
+    This behavior is especially useful on platforms such as Windows, where the
+    native tools for producing \c tar and \c zip archives in particular are
+    much less likely to be installed.
+
+    The following table lists the supported \l{archiver::type}{archive types}
+    and the tools capable of producing them, listed in search order from left to
+    right:
 
     \table
     \header
-        \li Property
         \li Type
-        \li Since
-        \li Default
-        \li Description
+        \li Supported tools
     \row
-        \li flags
-        \li stringList
-        \li 1.4
-        \li empty list
-        \li Custom options not covered by any of the other properties.
+        \li 7zip
+        \li 7z
     \row
-        \li archiveBaseName
-        \li string
-        \li 1.4
-        \li \c{product.targetName}
-        \li The base name of the archive file (in other words, the file name without
-            any extensions).
+        \li tar
+        \li tar, 7z
     \row
-        \li compressionLevel
-        \li string
-        \li 1.4
-        \li \c undefined
-        \li How much effort to put into the compression of a 7-Zip or zip archive.
-            Possible values are \c undefined, "0", "1", "2", "3", "4", "5", "6", "7", "8" and "9"
-            Higher numbers result in a smaller archive, but the compressing process will take more
-            time. 7-Zip only supports 0 and odd numbers.
-            A value of \c undefined means to use the default compression level.
-    \row
-        \li compressionType
-        \li string
-        \li 1.4
-        \li \c{"gz"} for tar archives, otherwise \c undefined
-        \li How to compress a tar or zip archive.
-            Possible options are "none", "gz", "bz2", "Z", "xz", "deflate", "store".
-            \c undefined uses the archiver's default compression type.
-    \row
-        \li outputDirectory
-        \li string
-        \li 1.4
-        \li \c{product.destinationDirectory}
-        \li Where to put the archive file.
-    \row
-        \li type
-        \li string
-        \li 1.4
-        \li \c{undefined}
-        \li Which kind of archiver to use.
-            The currently supported values are: "tar", "7zip", "zip".
-    \row
-        \li workingDirectory
-        \li string
-        \li 1.4
-        \li undefined
-        \li The directory in which to execute \c command.
-    \row
-        \li command
-        \li string
-        \li 1.4
-        \li Depends on \c{type}.
-        \li The command with which to invoke the archiver.
+        \li zip
+        \li zip \e (Info-Zip), 7z, jar \e (from Java JDK)
     \endtable
+
+    \defaultvalue Depends on \l{archiver::}{type}.
 */

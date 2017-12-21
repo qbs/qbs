@@ -27,866 +27,26 @@
 
 /*!
     \contentspage index.html
-    \page cpp-module.html
-    \ingroup list-of-modules
+    \qmltype cpp
+    \inqmlmodule QbsModules
+    \since Qbs 1.0
 
-    \title Module cpp
-    \since 1.0
     \brief Provides C/C++ support.
 
     The \c cpp module contains the properties and rules for toolchains of the C/C++ family.
-    On Apple platforms this includes support for Objective-C/C++.
+    On Apple platforms, this includes support for Objective-C/C++.
 
-    \section1 General Properties
+    \section2 Setting Up the Run Environment
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li allowUnresolvedSymbols
-        \li \c{bool}
-        \li 1.2
-        \li \c{undefined}
-        \li Switch this on if you want the linking step to succeed even if the resulting binary
-            contains unresolved symbols. Normally this makes little sense, but in special cases it
-            is possible that the respective symbols will be available at load time even if they are
-            not present during linking.
-    \row
-        \li architecture
-        \li \c{string}
-        \li 1.0
-        \li \c{qbs.architecture}
-        \li Target architecture. See \c{qbs.architecture}.
-    \row
-        \li endianness
-        \li \c{string}
-        \li 1.9
-        \li Specifies the endianness of the target platform's processor architecture
-            (\c{"big"} or \c{"little"}). The value is automatically detected from the
-            compiler's defaults, but can also be manually set in order to select a specific
-            endianness when targeting bi-endian architectures like MIPS and PowerPC.
-    \row
-        \li debugInformation
-        \li \c{bool}
-        \li 1.0
-        \li \c{qbs.debugInformation}
-        \li Generate debug information. See \c{qbs.debugInformation}.
-    \row
-        \li combineCSources
-        \li \c{bool}
-        \li 1.8
-        \li \c{false}
-        \li Enabling this property on a product instructs the \l{FileTagger}{file tagger}
-            to attach the tag \c{"c.combine"} to C sources, rather than \c{"c"}.
-            As a result, all C sources of the product will be combined into a single file which
-            is then compiled. This can speed up initial compilation significantly, but is
-            of course detrimental in the context of incremental builds. Also, perfectly legal code
-            may fail to compile with this option due to the merging of translation units.
-            If you want to enable this property in a product that has some sources which
-            cannot be merged, you need to put these into a dedicated \l{Group}{group} and
-            set their file tag to \c{"c"}, overriding the file tagger.
-            \note Module properties set on specific source files (that is, at the Group level)
-                  will not be taken into account when building the combined file. You either need
-                  to set these properties at the product level instead or prevent the respective
-                  files from getting combined via the mechanism described above.
-    \row
-        \li combineCxxSources
-        \li \c{bool}
-        \li 1.8
-        \li \c{false}
-        \li Like \c combineCSources, but for C++. The relevant file tags are \c{"cpp"}
-            and \c{"cpp.combine"}.
-    \row
-        \li combineObjcSources
-        \li \c{bool}
-        \li 1.8
-        \li \c{false}
-        \li Like \c combineCSources, but for Objective-C. The relevant file tags are \c{"objc"}
-            and \c{"objc.combine"}.
-    \row
-        \li combineObjcxxSources
-        \li \c{bool}
-        \li 1.8
-        \li \c{false}
-        \li Like \c combineCSources, but for Objective-C++. The relevant file tags are \c{"objcpp"}
-            and \c{"objcpp.combine"}.
-    \row
-        \li discardUnusedData
-        \li \c{bool}
-        \li 1.10
-        \li \c undefined
-        \li If this property is \c true, the linker will discard data from objects
-            that it determines to be unused. With MSVC and on Apple platforms, the granularity is
-            per symbol, elsewhere it is per section.
-    \row
-        \li separateDebugInformation
-        \li \c{bool}
-        \li 1.4
-        \li \c{false} for gcc/clang, \c{true} for MSVC
-        \li Whether to store debug information in an external file or bundle instead of within the
-            binary.
-    \row
-        \li defines
-        \li \c{stringList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of preprocessor macros that gets passed to the compiler.
-            To set macro values use the following syntax:
-            \c{cpp.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']}
-    \row
-        \li platformDefines
-        \li \c{stringList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of preprocessor macros that are used for all projects that are built for the
-            current target platform. User project files usually do not set this property.
-    \row
-        \li includePaths
-        \li \c{pathList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of include paths. Relative paths are considered to be relative to the .qbs product
-            file they are used in.
-    \row
-        \li systemIncludePaths
-        \li \c{pathList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of include paths that are passed as system include paths to the compiler.
-            For header files in those paths warnings will be ignored.
-            Relative paths are considered to be relative to the .qbs product file they are used in.
-    \row
-        \li systemRunPaths
-        \li \c{stringList}
-        \li 1.6
-        \li Auto-detected for host builds on Linux via \c ldconfig, \c{["/lib", "/usr/lib"]}
-            otherwise on Unix, empty on Windows
-        \li The paths the dynamic linker uses on process start-up to locate dynamic libraries.
-    \row
-        \li libraryPaths
-        \li \c{pathList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of library search paths. Relative paths are considered to be relative to the .qbs
-            product file they are used in.
-    \row
-        \li dynamicLibraries
-        \li \c{stringList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of dynamic libraries to be linked. If the library is part of your project, consider
-            using a Depends item instead.
-    \row
-        \li staticLibraries
-        \li \c{stringList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of static libraries to be linked. If the library is part of your project, consider
-            using a Depends item instead.
-    \row
-        \li prefixHeaders
-        \li \c{pathList}
-        \li 1.0.1
-        \li \c{undefined}
-        \li List of files to automatically include at the beginning of each source file in the
-            product.
-    \row
-        \li optimization
-        \li \c{string}
-        \li 1.0
-        \li \c{qbs.optimization}
-        \li Optimization level. See \c{qbs.optimization}.
-    \row
-        \li treatWarningsAsErrors
-        \li \c{bool}
-        \li 1.0
-        \li \c{false}
-        \li Warnings will be handled as errors and cause the build to fail.
-    \row
-        \li useCPrecompiledHeader, useCxxPrecompiledHeader, useObjcPrecompiledHeader,
-            useObjcxxPrecompiledHeader
-        \li \c bool
-        \li 1.5
-        \li \c true
-        \li Specifies whether to use a precompiled header for the respective language, if one
-            is present (see \l{Relevant File Tags}{below} for the associated file tags).
-    \row
-        \li warningLevel
-        \li \c{string}
-        \li 1.0
-        \li \c{"all"}
-        \li Specifies the warning level for the compiler - \c{"none"} or \c{"all"}.
-    \row
-        \li driverFlags
-        \li \c{stringList}
-        \li 1.6
-        \li undefined
-        \li Flags that are added to all compilation and linking commands performed by the compiler
-            driver, independently of the language.
-    \row
-        \li driverLinkerFlags
-        \li \c{stringList}
-        \li 1.11
-        \li undefined
-        \li Flags that are added to all linking commands performed by the compiler
-            driver, independently of the language.
-    \row
-        \li commonCompilerFlags
-        \li \c{stringList}
-        \li 1.0.1
-        \li undefined
-        \li Flags that are added to all compilation commands independently of the language.
-    \row
-        \li compilerVersionMajor
-        \li \c{int}
-        \li 1.4
-        \li undefined
-        \li The major version of the compiler.
-    \row
-        \li compilerVersionMinor
-        \li \c{int}
-        \li 1.4
-        \li undefined
-        \li The minor version of the compiler.
-    \row
-        \li compilerVersionPatch
-        \li \c{int}
-        \li 1.4
-        \li undefined
-        \li The patch level component of the compiler version.
-    \row
-        \li assemblerFlags
-        \li \c{stringList}
-        \li 1.5
-        \li undefined
-        \li Additional flags for the assembler.
-    \row
-        \li cppFlags
-        \li \c{stringList}
-        \li 1.0
-        \li undefined
-        \li Additional flags for the C preprocessor.
-    \row
-        \li cFlags
-        \li \c{stringList}
-        \li 1.0
-        \li undefined
-        \li Additional flags for the C compiler.
-    \row
-        \li cxxFlags
-        \li \c{stringList}
-        \li 1.0
-        \li undefined
-        \li Additional flags for the C++ compiler.
-    \row
-        \li cLanguageVersion
-        \li \c{string}
-        \li 1.4
-        \li undefined
-        \li The version of the C standard with which the code must comply. If this property is set,
-            corresponding compiler and/or linker flags will be added, depending on the toolchain.
-            If the value is left undefined, the compiler default will be used.
-            Possible values include: \c{"c89"}, \c{"c99"}, \c{"c11"}
-    \row
-        \li cxxLanguageVersion
-        \li \c{string}
-        \li 1.4
-        \li undefined
-        \li The version of the C++ standard with which the code must comply. If this property is
-            set, corresponding compiler and/or linker flags will be added, depending on the
-            toolchain. If the value is left undefined, the compiler default will be used.
-            Possible values include: \c{"c++98"}, \c{"c++11"}, \c{"c++14"}
-    \row
-        \li cxxStandardLibrary
-        \li \c{string}
-        \li 1.4
-        \li undefined
-        \li The C++ standard library to link to. If this property is set, corresponding compiler
-            and/or linker flags will be added, assuming the value is valid for the current
-            toolchain. If the value is left undefined, the compiler default will be used.
-            Possible values include: \c{"libstdc++"}, \c{"libc++"}
-    \row
-        \li objcFlags
-        \li \c{stringList}
-        \li 1.0
-        \li undefined
-        \li Additional flags for the Objective-C compiler.
-    \row
-        \li objcxxFlags
-        \li \c{stringList}
-        \li 1.0
-        \li undefined
-        \li Additional flags for the Objective-C++ compiler.
-    \row
-        \li linkerFlags
-        \li \c{stringList}
-        \li 1.0
-        \li undefined
-        \li Additional flags for the linker. These flags should \e not be escaped using the -Wl or
-            -Xlinker syntaxes, as \QBS will do this automatically based on the linker being used.
-            See cpp.linkerMode for additional information.
-    \row
-        \li assemblerName
-        \li \c{string}
-        \li 1.5
-        \li determined by qbs-setup-toolchains
-        \li Name of the assembler binary. This is set in the build profile.
-    \row
-        \li assemblerPath
-        \li \c{string}
-        \li 1.5
-        \li determined by qbs-setup-toolchains
-        \li Full path of the assembler binary. This is set in the build profile.
-    \row
-        \li compilerName
-        \li \c{string}
-        \li 1.0
-        \li determined by qbs-setup-toolchains
-        \li Name of the main compiler binary. This is set in the build profile.
-    \row
-        \li compilerPath
-        \li \c{string}
-        \li 1.0
-        \li determined by qbs-setup-toolchains
-        \li Full path of the main compiler binary. This is set in the build profile.
-            If the toolchain provides different compilers for different languages, then
-            \c{compilerPathByLanguage} is used.
-    \row
-        \li compilerPathByLanguage
-        \li \c{string} to \c{string} map
-        \li 1.3
-        \li determined by qbs-setup-toolchains
-        \li Maps file tags to full paths of compiler binaries. This is set in the build profile.
-    \row
-        \li compilerWrapper
-        \li \c{stringList}
-        \li 1.1
-        \li \c{undefined}
-        \li Wrapper binary and its arguments for wrapping compiler calls.
-            This is useful for compiler wrappers like ccache and alike.
-    \row
-        \li linkerName
-        \li \c{string}
-        \li 1.1.1
-        \li determined by qbs-setup-toolchains
-        \li Name of the linker binary. This is set in the build profile.
-    \row
-        \li linkerPath
-        \li \c{string}
-        \li 1.1.1
-        \li determined by qbs-setup-toolchains
-        \li Full path of the linker binary. This is set in the build profile.
-    \row
-        \li linkerWrapper
-        \li \c{stringList}
-        \li 1.6.2
-        \li \c{undefined}
-        \li Wrapper binary and its arguments for wrapping linker calls.
-            This is useful for linker wrappers as needed by Bullseye Coverage, for example.
-    \row
-        \li entryPoint
-        \li \c{string}
-        \li 1.3
-        \li \c{undefined}
-        \li Name of the entry point of an executable or dynamic library. If this property is
-            undefined, the toolchain's default is used.
-    \row
-        \li runtimeLibrary
-        \li \c{string}
-        \li 1.3.3
-        \li \c{"dynamic"} for MSVC, \c{undefined} for others
-        \li Type of the used runtime library. Accepted values are \c{"static"} and \c{"dynamic"}.
-            If this property is set to \c{undefined}, then the default runtime library of the
-            toolchain is used.
-            \note For MSVC the default value is \c{"dynamic"}.
-            \note At the moment this property is only functional for MSVC.
-    \row
-        \li enableExceptions
-        \li \c{bool}
-        \li 1.5
-        \li \c{true}
-        \li Whether to enable exceptions in C++ code.
-    \row
-        \li exceptionHandlingModel
-        \li \c{string}
-        \li 1.5
-        \li \c{"default"}
-        \li The exception handling model to use. For MSVC, this can be \c{"default"}, \c{"seh"} or
-            \c{"externc"}. For all other compilers, \c{"default"} indicates the default or only
-            exception handling model.
-    \row
-        \li enableRtti
-        \li \c{bool}
-        \li 1.5
-        \li \c{undefined}
-        \li Whether to enable runtime type information in C++ code.
-    \row
-        \li enableReproducibleBuilds
-        \li \c{bool}
-        \li 1.5
-        \li \c{false}
-        \li Try to generate reproducible object files. Some compilers (notably gcc) use random
-            numbers for generating symbol names that have to be different in every compilation
-            unit. This is avoided by setting this property to \c{true}.
-    \row
-        \li treatSystemHeadersAsDependencies
-        \li \c{bool}
-        \li 1.8
-        \li \c{false}
-        \li If this property is enabled, then included header files found via
-            \c systemIncludePaths, \c distributionIncludePaths or \c compilerIncludePaths
-            will be added to the dependencies of the respective object file. This means that
-            modification of such header files (or any of the headers they include) will cause
-            recompilation.
-    \endtable
+    When running an application that has dependencies on dynamic libraries, the
+    script specified by \l{Module::setupRunEnvironment}{Module.setupRunEnvironment}
+    automatically adds the locations of the libraries to the environment.
+    That is, to \c PATH on Windows, \c DYLD_LIBRARY_PATH on macOS,
+    and \c LD_LIBRARY_PATH on Linux and other Unix platforms. If the value
+    \c{"ignore-lib-dependencies"} shows up in the \c config array, this behavior
+    is disabled. Users can set the value via the \l run command.
 
-    \section1 Properties Specific to Apple Platforms
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li dsymutilFlags
-        \li \c{stringList}
-        \li 1.4.1
-        \li undefined
-        \li Additional flags for the dsymutil tool.
-    \row
-        \li dsymutilPath
-        \li \c{string}
-        \li 1.4
-        \li determined by qbs-setup-toolchains
-        \li Full path of the dsymutil binary. This is set in the build profile.
-    \row
-        \li lipoPath
-        \li \c{string}
-        \li 1.9
-        \li determined automatically
-        \li Full path of the lipo binary.
-    \row
-        \li frameworkPaths
-        \li \c{pathList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of framework search paths. Relative paths are considered to be relative to the
-            .qbs product file they are used in.
-    \row
-        \li systemFrameworkPaths
-        \li \c{pathList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of framework search paths. Relative paths are considered to be relative to the
-            .qbs product file they are used in. Header files in frameworks in those paths will not
-            cause warnings.
-    \row
-        \li frameworks
-        \li \c{stringList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of frameworks to be linked.
-            If the framework is part of your project, consider using a Depends item instead.
-    \row
-        \li weakFrameworks
-        \li \c{stringList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of frameworks to be weakly linked.
-            If the framework is part of your project, consider using a Depends item instead.
-    \row
-        \li automaticReferenceCounting
-        \li \c{bool}
-        \li 1.4
-        \li \c{undefined}
-        \li Whether to enable Automatic Reference Counting (ARC) for Objective-C and Objective-C++
-            source code. If \c{undefined}, uses the compiler default (probably \c{false}).
-    \row
-        \li requireAppExtensionSafeApi
-        \li \c{bool}
-        \li 1.4
-        \li \c{undefined}
-        \li Whether to enforce the use of only app-extension-safe APIs on Apple platforms. This is
-            necessary for building Application Extensions in OS X Yosemite and iOS 8 and above. If
-            \c{undefined}, uses the compiler and linker defaults (probably \c{false}).
-    \row
-        \li minimumIosVersion
-        \li \c{string}
-        \li 1.0
-        \li undefined, but may be set by generated profiles
-        \li A version number in the format [major].[minor] indicating the earliest version of iOS
-            that the product should run on. Passes -miphoneos-version-min=<version> to the compiler.
-            If undefined, compiler defaults will be used.
-    \row
-        \li minimumOsxVersion
-        \li \c{string}
-        \li 1.0.1
-        \li undefined, but may be set by generated profiles
-        \li Deprecated in \QBS 1.5.2. Use \c minimumMacosVersion instead.
-    \row
-        \li minimumMacosVersion
-        \li \c{string}
-        \li 1.5.2
-        \li undefined, but may be set by generated profiles
-        \li A version number in the format [major].[minor] indicating the earliest version of macOS
-            that the product should run on. Passes -mmacosx-version-min=<version> to the compiler.
-            If undefined, compiler defaults will be used.
-    \row
-        \li minimumWatchosVersion
-        \li \c{string}
-        \li 1.5
-        \li undefined, but may be set by generated profiles
-        \li A version number in the format [major].[minor] indicating the earliest version of
-            Apple watchOS that the product should run on.
-            If undefined, compiler defaults will be used.
-    \row
-        \li minimumTvosVersion
-        \li \c{string}
-        \li 1.5
-        \li undefined, but may be set by generated profiles
-        \li A version number in the format [major].[minor] indicating the earliest version of
-            Apple tvOS that the product should run on.
-            If undefined, compiler defaults will be used.
-    \endtable
-
-    \section1 Properties Specific to Unix Platforms
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li archiverName
-        \li \c{string}
-        \li 1.0
-        \li \c{"ar"}
-        \li Name of the archiver binary. This is set in the build profile.
-    \row
-        \li archiverPath
-        \li \c{string}
-        \li 1.0
-        \li determined by qbs-setup-toolchains
-        \li Full path of the archiver binary. This is set in the build profile.
-    \row
-        \li exportedSymbolsCheckMode
-        \li \c{string}
-        \li 1.4.1
-        \li "ignore-undefined"
-        \li Controls how \QBS determines whether an updated dynamic library causes relinking of
-            dependents. The default value is \c "ignore-undefined", which means that undefined
-            symbols being added or removed do not cause any relinking. If that should happen, for
-            example because dependent products are linked with an option such as
-            \c "--no-undefined", then this property can be set to \c "strict".
-    \row
-        \li linkerMode
-        \li \c{string}
-        \li 1.6
-        \li "automatic"
-        \li Controls whether to automatically use an appropriate compiler frontend in place of the
-            system linker when linking binaries. The default is \c{"automatic"}, which chooses
-            either the C++ compiler, C compiler, or system linker specified by the \c{linkerName}
-            and \c{linkerPath} properties, depending on the type of object files present on the
-            linker command line. \c{"manual"} allows you to explicitly specify the linker using the
-            \c{linkerName} and \c{linkerPath} properties.
-    \row
-        \li nmName
-        \li \c{string}
-        \li 1.2
-        \li \c{"nm"}
-        \li Name of the nm binary. This is set in the build profile.
-    \row
-        \li nmPath
-        \li \c{string}
-        \li 1.2
-        \li determined by qbs-setup-toolchains
-        \li Full path of the nm binary. This is set in the build profile.
-    \row
-        \li objcopyName
-        \li \c{string}
-        \li 1.4
-        \li \c{"objcopy"}
-        \li Name of the objcopy binary. This is set in the build profile.
-    \row
-        \li objcopyPath
-        \li \c{string}
-        \li 1.4
-        \li determined by qbs-setup-toolchains
-        \li Full path of the objcopy binary. This is set in the build profile.
-    \row
-        \li stripName
-        \li \c{string}
-        \li 1.4
-        \li \c{"strip"}
-        \li Name of the strip binary. This is set in the build profile.
-    \row
-        \li stripPath
-        \li \c{string}
-        \li 1.4
-        \li determined by qbs-setup-toolchains
-        \li Full path of the strip binary. This is set in the build profile.
-    \row
-        \li positionIndependentCode
-        \li \c{bool}
-        \li 1.0
-        \li \c{undefined}
-        \li Generate position independent code.
-            If this property is \c{undefined}, then position independent code is generated for
-            libraries, but not for applications.
-    \row
-        \li rpathOrigin
-        \li \c{string}
-        \li 1.11
-        \li \c{"@loader_path"} on Mach-O based platforms (macOS, iOS, tvOS, watchOS),
-            \c{"$ORIGIN"} on ELF based platforms (Linux and most other Unix-like platforms)
-        \li Placeholder value used in an rpath string to refer to the directory containing the
-            referring executable or shared library.
-    \row
-        \li rpaths
-        \li \c{stringList}
-        \li 1.0
-        \li \c{undefined}
-        \li List of rpaths that are passed to the linker. Paths that also appear in
-            \c systemRunPaths are ignored.
-    \row
-        \li sonamePrefix
-        \li \c{string}
-        \li 1.5
-        \li \c{undefined}
-        \li If defined, the value of this variable is used as a path to be prepended to
-            the built shared library's \c SONAME identifier. The \c SONAME
-            (\c LC_ID_DYLIB on Apple platforms, \c DT_SONAME on other Unix-like platforms) is the
-            identifier that the dynamic linker will later use to reference the library.
-            In general, this reference may be a library name or full library path.
-
-            On Apple platforms, the path may contain the following placeholders:
-
-            \list
-                \li \b @rpath -
-                    Expands to paths defined by LC_RPATH Mach-O commands in
-                    the current process executable or the referring libraries.
-                \li \b @executable_path -
-                    Expands to the current process executable location.
-                \li \b @loader_path -
-                    Expands to the referring executable or library location.
-            \endlist
-
-            In most cases, using \c @rpath is sufficient and recommended.
-            However, the prefix may be also specified using different placeholders, or
-            an absolute path.
-
-            For more information, see the
-            \l{https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/dyld.1.html}{dyld documentation}
-            on dynamic library install names.
-    \row
-        \li soVersion
-        \li \c{string}
-        \li 1.7
-        \li Major part of \c{product.version} if a version is set, otherwise the empty string
-        \li The version to be appended to the soname in ELF shared libraries.
-    \row
-        \li useRPaths
-        \li \c{bool}
-        \li 1.3
-        \li \c{true}
-        \li Set this property to \c{false} to prevent the linker from writing rpaths to the binary.
-    \row
-        \li useRPathLink
-        \li \c{bool}
-        \li 1.8
-        \li \c{true} on non-Darwin Unix platforms or when targeting macOS 10.4.x and older.
-        \li Use the \c{-rpath-link} linker option for transitive shared objects.
-    \row
-        \li variantSuffix
-        \li \c{string}
-        \li 1.10
-        \li platform-specific; see below
-        \li A suffix to add to a product's target name if that product is of type
-            \c staticlibrary or \c dynamiclibrary. Additionally, on Darwin platforms,
-            applications and loadable modules are also affected. By default, it is empty on
-            all platforms unless the product is multiplexed over the \c {qbs.buildVariants}
-            property. In that case, for the debug variant of the product, the default value
-            is \c{"d"} on Windows and \c{"_debug"} on Darwin platforms such as macOS. On all other
-            platforms and in release mode, the default value is empty.
-
-            For example, building a dynamic library called \c MyLib that is multiplexed over the
-            \c{qbs.buildVariants} property with MSVC will produce files called \c{MyLib.dll}
-            (for the release version of the product) and \c{MyLibd.dll} (for the debug version).
-    \row
-        \li visibility
-        \li \c{string}
-        \li 1.0
-        \li \c{"default"}
-        \li Visibility level for exported symbols.
-            Possible values include: \c{"default"}, \c{"hidden"}, \c{"hiddenInlines"},
-            and \c{"minimal"}, which combines \c{"hidden"} and \c{"hiddenInlines"}.
-    \endtable
-
-    \section1 Properties Specific to Windows
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li generateManifestFile
-        \li \c{bool}
-        \li 1.5.0
-        \li \c{true}
-        \li Specifies whether to auto-generate a manifest file and include it in the binary.
-            Disable this property if you provide your own rc file.
-    \row
-        \li windowsApiCharacterSet
-        \li \c{string}
-        \li 1.0.1
-        \li \c{"unicode"}
-        \li Specifies the character set used in the Win32 API. "unicode" will define the
-            preprocessor symbols UNICODE and _UNICODE, "mbcs" will define _MBCS, and
-            setting the value to undefined will use the default character set.
-    \row
-        \li windowsApiFamily
-        \li \c{string}
-        \li 1.10
-        \li \c{undefined}
-        \li Specifies the Windows API family that the application or library is targeting.
-            This is used when building Universal Windows Platform applications.
-            Possible values include: \c{"desktop"}, \c{"pc"}, \c{"phone"}, \c{"server"},
-            and \c{"system"}, which are mapped to the corresponding set of possible values for the
-            \c WINAPI_FAMILY preprocessor define in the Windows SDK. The default is \c undefined,
-            which lets the Windows SDK headers determine the default.
-    \row
-        \li windowsApiAdditionalPartitions
-        \li \c{stringList}
-        \li 1.10
-        \li \c{undefined}
-        \li List of additional Windows API partitions to enable in addition to the ones implicitly
-            enabled by the value of \c cpp.windowsApiFamily (\c WINAPI_FAMILY). This is used when
-            building Windows Store applications. For example, setting \c cpp.windowsApiFamily to
-            \c{"pc"} and \c cpp.windowsApiAdditionalPartitions to \c{["phone"]} will allow you to
-            create Windows Store applications that target all Universal Windows Platform device
-            families ("Universal" apps). Possible values include: \c{"app"}, \c{"desktop"},
-            \c{"pc"}, \c{"phone"}, \c{"server"}, and \c{"system"}, which are mapped to the
-            corresponding set of possible \c WINAPI_PARTITION_* preprocessor defines in the Windows
-            SDK. The default is \c undefined, which lets the Windows SDK headers determine the
-            default partitions based on the value of \c WINAPI_FAMILY (see \c cpp.windowsApiFamily).
-    \row
-        \li requireAppContainer
-        \li \c{bool}
-        \li 1.10
-        \li \c{undefined}
-        \li Whether the generated executable or dynamic-link library \e requires an AppContainer
-            execution environment. This should be used when creating Universal Windows Platform
-            applications.
-    \row
-        \li minimumWindowsVersion
-        \li \c{string}
-        \li 1.0
-        \li undefined, but may be set by generated profiles
-        \li A version number in the format [major].[minor] indicating the earliest version of
-            Windows that the product should run on. Defines WINVER, _WIN32_WINNT, and
-            _WIN32_WINDOWS, and applies a version number to the linker flags /SUBSYSTEM and
-            /OSVERSION for MSVC or --major-subsystem-version, --minor-subsystem-version,
-            --major-os-version and --minor-os-version for MinGW.
-            If undefined, compiler defaults will be used.
-    \endtable
-
-    \section1 Advanced Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li alwaysUseLipo
-        \li \{bool}
-        \li 1.9
-        \li \c{false}
-        \li Whether to always use lipo when combining Mach-O output files on Apple platforms,
-            even if there is only one CPU architecture. The should not normally need to be changed.
-    \row
-        \li compilerDefinesByLanguage
-        \li \c{string} to \c{string} to \c{string} map
-        \li 1.10
-        \li \c{undefined}
-        \li Map of language tags to list of preprocessor macros that are used for all projects that
-            are using the current toolchain. User project files usually do not set this property.
-            \note See \c{cpp.enableCompilerDefinesByLanguage}. This property will not be usable
-            without also setting that one.
-    \row
-        \li compilerIncludePaths
-        \li \c{pathList}
-        \li 1.6
-        \li determined automatically
-        \li List of #include search paths that are used for all projects that are using the current
-            toolchain. Determined automatically by probing the compiler.
-            User project files usually do not set this property.
-    \row
-        \li compilerFrameworkPaths
-        \li \c{pathList}
-        \li 1.6
-        \li determined automatically
-        \li List of framework search paths that are used for all projects that are using the current
-            toolchain. Determined automatically by probing the compiler.
-            User project files usually do not set this property.
-    \row
-        \li compilerLibraryPaths
-        \li \c{pathList}
-        \li 1.6
-        \li determined automatically
-        \li List of library search paths that are used for all projects that are using the current
-            toolchain. Determined automatically by probing the compiler.
-            User project files usually do not set this property.
-    \row
-        \li distributionFrameworkPaths
-        \li \c{pathList}
-        \li 1.8
-        \li \c{undefined}
-        \li List of distribution-specific framework search paths, prioritized after \c{systemFrameworkPaths}.
-            Intended for use by module authors implementing support for new operating systems/distributions.
-            User project files should not set this property.
-    \row
-        \li distributionIncludePaths
-        \li \c{pathList}
-        \li 1.8
-        \li \c{undefined}
-        \li List of distribution-specific include paths that are passed as system include paths to the compiler,
-            prioritized after \c{systemIncludePaths}.
-            Intended for use by module authors implementing support for new operating systems/distributions.
-            User project files should not set this property.
-    \row
-        \li distributionLibraryPaths
-        \li \c{pathList}
-        \li 1.8
-        \li \c{undefined}
-        \li List of distribution-specific library search paths, prioritized after \c{systemLibraryPaths}.
-            Intended for use by module authors implementing support for new operating systems/distributions.
-            User project files should not set this property.
-    \row
-        \li enableCompilerDefinesByLanguage
-        \li \c{stringList}
-        \li 1.10
-        \li \c{undefined}
-        \li List of languages (one or more of \c{"c"}, \c{"cpp"}, \c{"objc"}, \c{"objcpp"}) to
-            extract the list of default compiler defines for in \c{cpp.compilerDefinesByLanguage}.
-            Because this has performance implications, no languages are enabled by default.
-    \endtable
-
-
-    \section1 Dependency Parameters
+    \section2 Dependency Parameters
 
     \table
     \header
@@ -922,7 +82,8 @@
             Currently only applies when linking for Apple platforms.
     \endtable
 
-    \section1 Relevant File Tags
+    \section2 Relevant File Tags
+    \target filetags-cpp
 
     \table
     \header
@@ -1055,16 +216,1329 @@
             This file tag only has an effect with GCC-like toolchains. The linker needs to be
             \c{ld}-compatible.
     \endtable
+*/
 
-    \section1 \c config values supported by the \c setupRunEnvironment script
+/*!
+    \qmlproperty bool cpp::allowUnresolvedSymbols
+    \since Qbs 1.2
 
-    \section2 \c ignore-lib-dependencies
+    Set to \c true if you want the linking step to succeed even if the resulting
+    binary contains unresolved symbols. Normally, this makes little sense, but
+    in special cases it is possible that the respective symbols will be
+    available at load time even if they are not present during linking.
 
-    When running an application that has dependencies on dynamic libraries, the
-    \c setupRunEnvironment script automatically adds their locations to the
-    environment, namely to \c PATH on Windows, \c DYLD_LIBRARY_PATH on macOS
-    and \c LD_LIBRARY_PATH on Linux and other Unix platforms. If the value
-    \c{"ignore-lib-dependencies"} shows up in the \c config array, this behavior
-    is disabled. Users can set the value via the \l run command.
+    \nodefaultvalue
+*/
 
+/*!
+    \qmlproperty string cpp::architecture
+
+    The target architecture.
+
+    \defaultvalue \l{qbs::architecture}{qbs.architecture}
+*/
+
+/*!
+    \qmlproperty string cpp::endianness
+    \since Qbs 1.9
+
+    Specifies the endianness of the target platform's processor architecture
+    (\c{"big"} or \c{"little"}).
+
+    The value is automatically detected from the compiler's default values, but
+    can also be manually set in order to select a specific endianness when
+    targeting bi-endian architectures like MIPS and PowerPC.
+
+    \defaultvalue Compiler default value.
+*/
+
+/*!
+    \qmlproperty bool cpp::debugInformation
+
+    Whether to generate debug information.
+
+    \defaultvalue \l{qbs::debugInformation}{qbs.debugInformation}
+*/
+
+/*!
+    \qmlproperty bool cpp::combineCSources
+    \since Qbs 1.8
+
+    Enabling this property on a \l{Product}{product} instructs the
+    \l{FileTagger}{file tagger} to attach the tag \c{"c.combine"} to C sources,
+    rather than \c{"c"}. As a result, all C sources of the product will be
+    combined into a single file, which is then compiled.
+
+    This can speed up initial compilation significantly, but is of course
+    detrimental in the context of incremental builds. Also, perfectly legal code
+    may fail to compile with this option due to the merging of translation
+    units.
+
+    To enable this property in a product that has sources that cannot be merged,
+    put the sources into a dedicated \l{Group} and set their \l{Group::}
+    {fileTags} property to \c{"c"}, overriding the file tagger.
+
+    \note Module properties set on specific source files (that is, at the Group
+    level) will not be taken into account when building the combined file. You
+    either need to set these properties at the product level or prevent the
+    respective files from getting combined via the mechanism described above.
+
+    \defaultvalue \c false
+*/
+
+/*!
+    \qmlproperty bool cpp::combineCxxSources
+    \since Qbs 1.8
+
+    Like \l{cpp::}{combineCSources}, but for C++. The \l{filetags-cpp}
+    {relevant file tags} are \c{"cpp"} and \c{"cpp.combine"}.
+
+    \defaultvalue \c false
+
+    \sa combineCSources
+*/
+
+/*!
+    \qmlproperty bool cpp::combineObjcSources
+    \since Qbs 1.8
+
+    Like \l{cpp::}{combineCSources}, but for Objective-C. The \l{filetags-cpp}
+    {relevant file tags} are \c{"objc"} and \c{"objc.combine"}.
+
+    \defaultvalue \c false
+
+    \sa combineCSources
+*/
+
+/*!
+    \qmlproperty bool cpp::combineObjcxxSources
+    \since Qbs 1.8
+
+    Like \l{cpp::}{combineCSources}, but for Objective-C++. The \l{filetags-cpp}
+    {relevant file tags} are \c{"objcpp"} and \c{"objcpp.combine"}.
+
+    \defaultvalue \c false
+
+    \sa combineCSources
+*/
+
+/*!
+    \qmlproperty bool cpp::discardUnusedData
+    \since Qbs 1.10
+
+    If this property is \c true, the linker will discard data from objects that
+    it determines to be unused. With MSVC and on Apple platforms, the
+    granularity is per symbol, elsewhere it is per section.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpp::separateDebugInformation
+    \since Qbs 1.4
+
+    Whether to store debug information in an external file or bundle instead of
+    within the binary.
+
+    \defaultvalue \c{false} for GCC and Clang, \c{true} for MSVC.
+*/
+
+/*!
+    \qmlproperty stringList cpp::defines
+
+    A list of preprocessor macros that gets passed to the compiler.
+
+    To set macro values, use the following syntax:
+
+    \code
+    cpp.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']
+    \endcode
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::platformDefines
+
+    A list of preprocessor macros that are used for all projects that are built
+    for the current target platform. User project files usually do not set this
+    property.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty pathList cpp::includePaths
+
+    A list of include paths.
+
+    Relative paths are considered to be relative to the \c .qbs product file
+    they are used in.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty pathList cpp::systemIncludePaths
+
+    A list of include paths that are passed as system include paths to the
+    compiler.
+
+    For header files in those paths, warnings will be ignored.
+
+    Relative paths are considered to be relative to the \c .qbs product file
+    they are used in.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::systemRunPaths
+    \since Qbs 1.6
+
+    The paths the dynamic linker uses on process start-up to locate dynamic
+    libraries.
+
+    \defaultvalue Auto-detected for host builds on Linux via \c ldconfig,
+    \c{["/lib", "/usr/lib"]} otherwise on Unix, \c [] on Windows.
+*/
+
+/*!
+    \qmlproperty pathList cpp::libraryPaths
+
+    A list of library search paths.
+
+    Relative paths are considered to be relative to the \c .qbs product file
+    they are used in.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::dynamicLibraries
+
+    A List of dynamic libraries to be linked.
+
+    If the library is part of your project, consider using a \l{Depends} item
+    instead.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::staticLibraries
+
+    A list of static libraries to be linked.
+
+    If the library is part of your project, consider using a \l{Depends} item
+    instead.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty pathList cpp::prefixHeaders
+    \since Qbs 1.0.1
+
+    A list of files to automatically include at the beginning of each source
+    file in the \l{Product}{product}.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::optimization
+
+    The optimization level.
+
+    \defaultvalue \l{qbs::optimization}{qbs.optimization}
+*/
+
+/*!
+    \qmlproperty bool cpp::treatWarningsAsErrors
+
+    Whether warnings will be handled as errors and cause the build to fail.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool cpp::useCPrecompiledHeader
+    \since Qbs 1.5
+
+    Whether to use a precompiled header for the respective language if one is
+    present.
+
+    See \l{filetags-cpp}{Relevant File Tags} for the associated file tags.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty bool cpp::useCxxPrecompiledHeader
+    \since Qbs 1.5
+
+    Whether to use a precompiled header for the respective language if one is
+    present.
+
+    See \l{filetags-cpp}{Relevant File Tags} for the associated file tags.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty bool cpp::useObjcPrecompiledHeader
+    \since Qbs 1.5
+
+    Whether to use a precompiled header for the respective language if one is
+    present.
+
+    See \l{filetags-cpp}{Relevant File Tags} for the associated file tags.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty bool cpp::useObjcxxPrecompiledHeader
+    \since Qbs 1.5
+
+    Whether to use a precompiled header for the respective language if one is
+    present.
+
+    See \l{filetags-cpp}{Relevant File Tags} for the associated file tags.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty string cpp::warningLevel
+
+    The warning level for the compiler: \c{"none"} or \c{"all"}.
+
+    \defaultvalue \c{"all"}
+*/
+
+/*!
+    \qmlproperty stringList cpp::driverFlags
+    \since Qbs 1.6
+
+    A list of flags that are added to all compilation and linking commands
+    performed by the compiler driver, independently of the language.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::driverLinkerFlags
+    \since Qbs 1.11
+
+    A list of flags that are added to all linking commands performed by the
+    compiler driver, independently of the language.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::commonCompilerFlags
+    \since Qbs 1.0.1
+
+    A list of flags that are added to all compilation commands independently of
+    the language.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty int cpp::compilerVersionMajor
+    \since Qbs 1.4
+
+    The major version of the compiler.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty int cpp::compilerVersionMinor
+    \since Qbs 1.4
+
+    The minor version of the compiler.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty int cpp::compilerVersionPatch
+    \since Qbs 1.4
+
+    The patch level component of the compiler version.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::assemblerFlags
+    \since Qbs 1.5
+
+    A list of additional flags for the assembler.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::cppFlags
+
+    A list of additional flags for the C preprocessor.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::cFlags
+
+    A list of additional flags for the C compiler.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::cxxFlags
+
+    A list of additional flags for the C++ compiler.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::cLanguageVersion
+    \since Qbs 1.4
+
+    The version of the C standard with which the code must comply.
+
+    If this property is set, the corresponding compiler and linker flags will be
+    added, depending on the toolchain.
+
+    If the value is left undefined, the compiler default will be used.
+
+    Possible values include: \c{"c89"}, \c{"c99"}, \c{"c11"}.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::cxxLanguageVersion
+    \since Qbs 1.4
+
+    The version of the C++ standard with which the code must comply.
+
+    If this property is set, the corresponding compiler and linker flags will be
+    added, depending on the toolchain.
+
+    If the value is left undefined, the compiler default will be used.
+
+    Possible values include: \c{"c++98"}, \c{"c++11"}, \c{"c++14"}.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::cxxStandardLibrary
+    \since Qbs 1.4
+
+    The C++ standard library to link to.
+
+    If this property is set, the corresponding compiler and linker flags will be
+    added, assuming the value is valid for the current toolchain.
+
+    If the value is left undefined, the compiler default will be used.
+
+    Possible values include: \c{"libstdc++"}, \c{"libc++"}.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::objcFlags
+
+    A list of additional flags for the Objective-C compiler.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::objcxxFlags
+
+    A list of additional flags for the Objective-C++ compiler.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::linkerFlags
+
+    A list of additional flags for the linker.
+
+    These flags should \e not be escaped using the \c -Wl or \c -Xlinker
+    syntaxes, as \QBS will do this automatically based on the linker being used.
+
+    \sa linkerMode
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::assemblerName
+    \since Qbs 1.5
+
+    The name of the assembler binary. This property is set in the build profile.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty string cpp::assemblerPath
+    \since Qbs 1.5
+
+    The full path of the assembler binary. This property is set in the build
+    profile.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty string cpp::compilerName
+
+    The name of the main compiler binary. This property is set in the build profile.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty string cpp::compilerPath
+
+    The full path of the main compiler binary. This property is set in the build profile.
+
+    If the toolchain provides different compilers for different languages,
+    \l{cpp::}{compilerPathByLanguage} is used.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty var cpp::compilerPathByLanguage
+    \since Qbs 1.3
+
+    A \c{string} to \c{string} map that maps file tags to full paths of compiler
+    binaries. This property is set in the build profile.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty stringList cpp::compilerWrapper
+    \since Qbs 1.1
+
+    A wrapper binary and its arguments for wrapping compiler calls.
+    This is useful for compiler wrappers, such as \c ccache.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::linkerName
+    \since Qbs 1.1.1
+
+    The name of the linker binary. This property is set in the build profile.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty string cpp::linkerPath
+    \since Qbs 1.1.1
+
+    The full path of the linker binary. This property is set in the build profile.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty stringList cpp::linkerWrapper
+    \since Qbs 1.6.2
+
+    A wrapper binary and its arguments for wrapping linker calls.
+    This is useful for linker wrappers as needed by Bullseye Coverage, for
+    example.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::entryPoint
+    \since Qbs 1.3
+
+    The name of the entry point of an executable or dynamic library.
+
+    If this property is left undefined, the toolchain's default is used.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::runtimeLibrary
+    \since Qbs 1.3.3
+
+    The type of the runtime library used.
+
+    Accepted values are \c{"static"} and \c{"dynamic"}.
+
+    If this property is set to \c{undefined}, the default runtime library of the
+    toolchain is used.
+
+    \note This property is only functional for MSVC.
+
+    \defaultvalue \c{"dynamic"} for MSVC, \c{undefined} for other compilers.
+*/
+
+/*!
+    \qmlproperty bool cpp::enableExceptions
+    \since Qbs 1.5
+
+    Whether to enable exceptions in C++ code.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty string cpp::exceptionHandlingModel
+    \since Qbs 1.5
+
+    The exception handling model to use.
+
+    For MSVC, this can be \c{"default"}, \c{"seh"} or \c{"externc"}. For all
+    other compilers, \c{"default"} indicates the default or the only exception
+    handling model.
+
+    \defaultvalue \c{"default"}
+*/
+
+/*!
+    \qmlproperty bool cpp::enableRtti
+    \since Qbs 1.5
+
+    Whether to enable runtime type information in C++ code.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpp::enableReproducibleBuilds
+    \since Qbs 1.5
+
+    Whether the compiler should try to generate reproducible object files.
+
+    Some compilers (notably GCC) use random numbers for generating symbol names
+    that have to be different in every compilation unit. This is avoided by
+    setting this property to \c{true}.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool cpp::treatSystemHeadersAsDependencies
+    \since Qbs 1.8
+
+    Whether included header files found via \l{cpp::}{systemIncludePaths},
+    \l{cpp::}{distributionIncludePaths}, or \l{cpp::}{compilerIncludePaths}
+    will be added to the dependencies of the respective object file.
+
+    This means that modification of such header files (or any of the headers
+    they include) will cause recompilation.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty stringList cpp::dsymutilFlags
+    \since Qbs 1.4.1
+
+    \appleproperty
+
+    Additional flags for the \c dsymutil tool.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::dsymutilPath
+    \since Qbs 1.4
+
+    \appleproperty
+
+    The full path of the \c dsymutil binary. This property is set in the build
+    profile.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty string cpp::lipoPath
+    \since Qbs 1.9
+
+    \appleproperty
+
+    The full path of the \c lipo binary.
+
+    \defaultvalue Determined automatically.
+*/
+
+/*!
+    \qmlproperty pathList cpp::frameworkPaths
+
+    \appleproperty
+
+    A list of framework search paths.
+
+    Relative paths are considered to be relative to the \c .qbs product file
+    they are used in.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty pathList cpp::systemFrameworkPaths
+
+    \appleproperty
+
+    A list of framework search paths.
+
+    Relative paths are considered to be relative to the \c .qbs product file
+    they are used in. Header files in frameworks in those paths will not cause
+    warnings.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::frameworks
+
+    \appleproperty
+
+    A list of frameworks to be linked.
+
+    If the framework is part of your project, consider using a \l{Depends} item
+    instead.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::weakFrameworks
+
+    \appleproperty
+
+    A list of frameworks to be weakly linked.
+
+    If the framework is part of your project, consider using a \l{Depends} item
+    instead.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpp::automaticReferenceCounting
+    \since Qbs 1.4
+
+    \appleproperty
+
+    Whether to enable Automatic Reference Counting (ARC) for Objective-C and
+    Objective-C++ source code.
+
+    If left undefined, uses the compiler default (probably \c{false}).
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpp::requireAppExtensionSafeApi
+    \since Qbs 1.4
+
+    \appleproperty
+
+    Whether to enforce the use of only app-extension-safe APIs on Apple
+    platforms. This is necessary for building Application Extensions in OS X
+    Yosemite and iOS 8 and above.
+
+    If left undefined, uses the compiler and linker defaults (probably
+    \c{false}).
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::minimumIosVersion
+
+    \appleproperty
+
+    A version number in the format \c{[major].[minor]} indicating the earliest
+    version of iOS that the product should run on.
+
+    Passes \c{-miphoneos-version-min=<version>} to the compiler.
+
+    If left undefined, compiler defaults will be used.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::minimumOsxVersion
+    \obsolete
+
+    \appleproperty
+
+    Deprecated in \QBS 1.5.2. Use \l{cpp::minimumMacosVersion} instead.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::minimumMacosVersion
+    \since Qbs 1.5.2
+
+    \appleproperty
+
+    A version number in the format \c{[major].[minor]}indicating the earliest
+    version of macOS that the product should run on.
+
+    Passes \c{-mmacosx-version-min=<version>} to the compiler.
+
+    If left undefined, compiler defaults will be used.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::minimumWatchosVersion
+
+    \appleproperty
+
+    A version number in the format \c{[major].[minor]} indicating the earliest
+    version of Apple watchOS that the product should run on.
+
+    If left undefined, compiler defaults will be used.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::minimumTvosVersion
+    \since Qbs 1.5
+
+    \appleproperty
+
+    A version number in the format \c{[major].[minor]} indicating the earliest
+    version of Apple tvOS that the product should run on.
+
+    If left undefined, compiler defaults will be used.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::archiverName
+
+    \unixproperty
+
+    The name of the archiver binary. This property is set in the build profile.
+
+    \defaultvalue \c{"ar"}
+*/
+
+/*!
+    \qmlproperty string cpp::archiverPath
+
+    \unixproperty
+
+    The full path of the archiver binary. This property is set in the build
+    profile.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty string cpp::exportedSymbolsCheckMode
+    \since Qbs 1.4.1
+
+    \unixproperty
+
+    Controls how \QBS determines whether an updated dynamic library causes
+    relinking of dependents.
+
+    The default value is \c "ignore-undefined", which means that undefined
+    symbols being added or removed do not cause any relinking. If that should
+    happen, for example because dependent products are linked with an option
+    such as \c "--no-undefined", this property can be set to \c "strict".
+
+    \defaultvalue \c "ignore-undefined"
+*/
+
+/*!
+    \qmlproperty string cpp::linkerMode
+    \since Qbs 1.6
+
+    \unixproperty
+
+    Controls whether to automatically use an appropriate compiler frontend
+    instead of the system linker when linking binaries.
+
+    The default is \c{"automatic"}, which chooses either the C++ compiler, C
+    compiler, or system linker specified by the \l{cpp::}{linkerName} and
+    \l{cpp::}{linkerPath} properties, depending on the type of object files
+    present on the linker command line.
+
+    Set this property to \c{"manual"} to explicitly specify the linker using the
+    \l{cpp::}{linkerName} and \l{cpp::}{linkerPath} properties.
+
+    \defaultvalue \c "automatic"
+*/
+
+/*!
+    \qmlproperty string cpp::nmName
+    \since Qbs 1.2
+
+    \unixproperty
+
+    The name of the \c nm binary. This property is set in the build profile.
+
+    \defaultvalue \c{"nm"}
+*/
+
+/*!
+    \qmlproperty string cpp::nmPath
+    \since Qbs 1.2
+
+    \unixproperty
+
+    The full path of the \c nm binary. This property is set in the build
+    profile.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty string cpp::objcopyName
+    \since Qbs 1.4
+
+    \unixproperty
+
+    The name of the \c objcopy binary. This property is set in the build
+    profile.
+
+    \defaultvalue \c{"objcopy"}
+*/
+
+/*!
+    \qmlproperty string cpp::objcopyPath
+    \since Qbs 1.4
+
+    \unixproperty
+
+    The full path of the \c objcopy binary. This property is set in the build
+    profile.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty string cpp::stripName
+    \since Qbs 1.4
+
+    \unixproperty
+
+    The name of the \c strip binary. This property is set in the build profile.
+
+    \defaultvalue \c{"strip"}
+*/
+
+/*!
+    \qmlproperty string cpp::stripPath
+    \since Qbs 1.4
+
+    \unixproperty
+
+    The full path of the \c strip binary. This property is set in the build
+    profile.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty bool cpp::positionIndependentCode
+
+    \unixproperty
+
+    Whether to generate position-independent code.
+
+    If this property is left undefined, position-independent code is generated
+    for libraries, but not for applications.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::rpathOrigin
+    \since Qbs 1.11
+
+    \unixproperty
+
+    A placeholder value used in an \c rpath string to refer to the directory
+    containing the referring executable or shared library.
+
+    \defaultvalue \c{"@loader_path"} on Mach-O based platforms (macOS, iOS,
+    tvOS, watchOS); \c{"$ORIGIN"} on ELF based platforms (Linux and most other
+    Unix-like platforms).
+*/
+
+/*!
+    \qmlproperty stringList cpp::rpaths
+
+    \unixproperty
+
+    A list of \c rpaths that are passed to the linker. Paths that also appear in
+    \l{cpp::}{systemRunPaths} are ignored.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::sonamePrefix
+    \since Qbs 1.5
+
+    \unixproperty
+
+    A library name or full library path.
+
+    If defined, the value of this property is used as a path to be prepended to
+    the built shared library's \c SONAME identifier. The \c SONAME
+    (\c LC_ID_DYLIB on Apple platforms, \c DT_SONAME on other Unix-like
+    platforms) is the identifier that the dynamic linker will later use to
+    reference the library.
+
+    On Apple platforms, the path may contain the following placeholders:
+
+    \list
+        \li \c @rpath -
+            Expands to paths defined by \c LC_RPATH Mach-O commands in
+            the current process executable or the referring libraries.
+        \li \c @executable_path -
+            Expands to the current process executable location.
+        \li \c @loader_path -
+            Expands to the referring executable or library location.
+    \endlist
+
+    In most cases, using \c @rpath is sufficient and recommended.
+    However, the prefix may be also specified using different placeholders, or
+    an absolute path.
+
+    For more information, see the \l{DYLD documentation} on dynamic library
+    install names.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::soVersion
+    \since Qbs 1.7
+
+    \unixproperty
+
+    The version number to be appended to the soname in ELF shared libraries.
+
+    \defaultvalue The major part of \l{Product::version}{product.version} if a
+    version is set, otherwise \c [].
+*/
+
+/*!
+    \qmlproperty bool cpp::useRPaths
+    \since Qbs 1.3
+
+    \unixproperty
+
+    If \c{false}, prevents the linker from writing \c rpaths to the binary.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty bool cpp::useRPathLink
+    \since Qbs 1.8
+
+    \unixproperty
+
+    Whether to use the \c{-rpath-link} linker option for transitive shared
+    objects.
+
+    \defaultvalue \c{true} on non-Darwin Unix platforms or when targeting
+    macOS 10.4.x and older.
+*/
+
+/*!
+    \qmlproperty string cpp::variantSuffix
+    \since Qbs 1.10
+
+    A suffix to add to a product's target name if that product is of the
+    \l{Product::type}{type} \c staticlibrary or \c dynamiclibrary.
+
+    On Darwin platforms, applications and loadable modules are also affected.
+
+    By default, this property is left empty on all platforms unless the product
+    is multiplexed over the \l{qbs::buildVariants}{qbs.buildVariants} property.
+    In that case, for the debug variant of the product, the default value
+    is \c{"d"} on Windows and \c{"_debug"} on Darwin platforms, such as macOS.
+    On all other platforms and in release mode, the default value is \c [].
+
+    For example, building a dynamic library called \c MyLib that is multiplexed
+    over the \l{qbs::buildVariants}{qbs.buildVariants} property with MSVC will
+    produce files called \c{MyLib.dll} (for the release version of the product)
+    and \c{MyLibd.dll} (for the debug version).
+
+    \defaultvalue Platform-specific.
+*/
+
+/*!
+    \qmlproperty string cpp::visibility
+
+    \unixproperty
+
+    The visibility level for exported symbols.
+
+    Possible values include: \c{"default"}, \c{"hidden"}, \c{"hiddenInlines"},
+    and \c{"minimal"}, which combines \c{"hidden"} and \c{"hiddenInlines"}.
+
+    \defaultvalue \c{"default"}
+*/
+
+/*!
+    \qmlproperty bool cpp::generateManifestFile
+    \since Qbs 1.5.0
+
+    \windowsproperty
+
+    Whether to auto-generate a manifest file and include it in the binary.
+
+    Set this property to \c false if you provide your own \c rc file.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty string cpp::windowsApiCharacterSet
+    \since Qbs 1.0.1
+
+    \windowsproperty
+
+
+    The character set used in the Win32 API.
+
+    The value \c "unicode" defines the preprocessor symbols \c UNICODE and
+    \c _UNICODE, \c "mbcs" defines \c _MBCS, and setting the value to
+    \c undefined will use the default character set.
+
+    \defaultvalue \c{"unicode"}
+*/
+
+/*!
+    \qmlproperty string cpp::windowsApiFamily
+    \since Qbs 1.10
+
+    \windowsproperty
+
+
+    The Windows API family that the application or library is targeting.
+
+    This value is used when building Universal Windows Platform applications.
+
+    Possible values include: \c{"desktop"}, \c{"pc"}, \c{"phone"}, \c{"server"},
+    and \c{"system"}, which are mapped to the corresponding set of possible
+    values for the \c WINAPI_FAMILY preprocessor define in the Windows SDK.
+
+    \defaultvalue Undefined, which lets the Windows SDK headers determine the
+    default.
+*/
+
+/*!
+    \qmlproperty stringList cpp::windowsApiAdditionalPartitions
+    \since Qbs 1.10
+
+    \windowsproperty
+
+    A list of additional Windows API partitions to enable in addition to the
+    ones implicitly enabled by the value of \l{cpp::}{windowsApiFamily}
+    (\c WINAPI_FAMILY).
+
+    This value is used when building Windows Store applications. For example,
+    setting \l{cpp::}{windowsApiFamily} to \c{"pc"} and this property to
+    \c{["phone"]} will allow you to create Windows Store applications that
+    target all Universal Windows Platform device families (\c "Universal" apps).
+
+    Possible values include: \c{"app"}, \c{"desktop"}, \c{"pc"}, \c{"phone"},
+    \c{"server"}, and \c{"system"}, which are mapped to the corresponding set of
+    possible \c WINAPI_PARTITION_* preprocessor defines in the Windows SDK.
+
+    \defaultvalue Undefined, which lets the Windows SDK headers determine
+    the default partitions based on the value of \c WINAPI_FAMILY.
+
+    \sa windowsApiFamily
+*/
+
+/*!
+    \qmlproperty bool cpp::requireAppContainer
+    \since Qbs 1.10
+
+    \windowsproperty
+
+    Whether the generated executable or dynamic-link library \e requires an
+    AppContainer execution environment. Set to \c true when creating
+    Universal Windows Platform applications.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::minimumWindowsVersion
+
+    \windowsproperty
+
+    A version number in the format \c{[major].[minor]} indicating the earliest
+    version of Windows that the product should run on.
+
+    Defines \c WINVER, \c _WIN32_WINNT, and \c _WIN32_WINDOWS, and applies a
+    version number to the linker flags \c /SUBSYSTEM and \c /OSVERSION for
+    MSVC or \c --major-subsystem-version, \c --minor-subsystem-version,
+    \c --major-os-version, and \c --minor-os-version for MinGW.
+
+    If left undefined, compiler defaults will be used.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpp::alwaysUseLipo
+    \since Qbs 1.9
+
+    Whether to always use \c lipo when combining Mach-O output files on
+    Apple platforms, even if there is only one CPU architecture. This value
+    should not normally need to be changed.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty var cpp::compilerDefinesByLanguage
+    \since Qbs 1.10
+
+    A \c{string} to \c{string} to \c{string} map of language tags to list of
+    preprocessor macros that are used for all projects that are using the
+    current toolchain.
+
+    User project files usually do not set this property.
+
+    \note This property will not be usable without also setting
+    \l{cpp::}{enableCompilerDefinesByLanguage}.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty pathList cpp::compilerIncludePaths
+    \since Qbs 1.6
+
+    A list of \c #include search paths that are used for all projects that are
+    using the current toolchain.
+
+    User project files usually do not set this property.
+
+    \defaultvalue Determined automatically by probing the compiler.
+*/
+
+/*!
+    \qmlproperty pathList cpp::compilerFrameworkPaths
+    \since Qbs 1.6
+
+    A list of framework search paths that are used for all projects that are
+    using the current toolchain.
+
+    User project files usually do not set this property.
+
+    \defaultvalue Determined automatically by probing the compiler.
+*/
+
+/*!
+    \qmlproperty pathList cpp::compilerLibraryPaths
+    \since Qbs 1.6
+
+    A list of library search paths that are used for all projects that are using
+    the current toolchain.
+
+    User project files usually do not set this property.
+
+    \defaultvalue Determined automatically by probing the compiler.
+*/
+
+/*!
+    \qmlproperty pathList cpp::distributionFrameworkPaths
+    \since Qbs 1.8
+
+    A list of distribution-specific framework search paths, prioritized after
+    \l{cpp::}{systemFrameworkPaths}.
+
+    Intended for use by module authors implementing support for new operating
+    systems or distributions.
+
+    User project files should not set this property.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty pathList cpp::distributionIncludePaths
+    \since Qbs 1.8
+
+    A list of distribution-specific include paths that are passed as system
+    include paths to the compiler, prioritized after
+    \l{cpp::}{systemIncludePaths}.
+
+    Intended for use by module authors implementing support for new operating
+    systems or distributions.
+
+    User project files should not set this property.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty pathList cpp::distributionLibraryPaths
+    \since Qbs 1.8
+
+    A list of distribution-specific library search paths.
+
+    Intended for use by module authors implementing support for new operating
+    systems or distributions.
+
+    User project files should not set this property.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList cpp::enableCompilerDefinesByLanguage
+    \since Qbs 1.10
+
+    A list of languages (one or more of \c{"c"}, \c{"cpp"}, \c{"objc"},
+    \c{"objcpp"}) to extract the list of default compiler defines for in
+    \l{cpp::}{compilerDefinesByLanguage}.
+
+    Because this has performance implications, no languages are enabled by
+    default.
+
+    \nodefaultvalue
 */

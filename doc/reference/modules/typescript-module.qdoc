@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -27,141 +27,178 @@
 
 /*!
     \contentspage index.html
-    \page typescript-module.html
-    \ingroup list-of-modules
+    \qmltype typescript
+    \inqmlmodule QbsModules
+    \since Qbs 1.3
 
-    \title Module typescript
-    \since 1.3
     \brief Provides TypeScript support.
 
     The \c typescript module contains properties and rules for building
-    \l{http://www.typescriptlang.org}{TypeScript} applications and may be used in combination with
-    the \l {Module nodejs} {nodejs} module to run TypeScript applications directly from \QBS.
+    \l{TypeScript} applications and may be used in combination with the
+    \l{nodejs} module to run the applications directly from \QBS.
+*/
 
-    \section1 General Properties
+/*!
+    \qmlproperty string typescript::warningLevel
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li warningLevel
-        \li \c{string}
-        \li 1.3
-        \li \c{"normal"}
-        \li Severity of warnings to emit. The higher the level, the more warnings will be shown.
-            \c{pedantic} causes the TypeScript to emit warnings on expressions and declarations with
-            an implied 'any' type.
-    \row
-        \li targetVersion
-        \li \c{string}
-        \li 1.3
-        \li \c{undefined}
-        \li ECMAScript target version for generated JavaScript code. \c{undefined} uses the
-            TypeScript
-            \l{https://github.com/Microsoft/TypeScript/wiki/Compiler-Options}{compiler default}.
-    \row
-        \li moduleLoader
-        \li \c{string}
-        \li 1.3
-        \li \c{undefined}
-        \li If TypeScript modules are being used, the JavaScript module loading mechanism to use in
-            the generated JavaScript code. \c{undefined} indicates modules are not being used.
-            See \l{https://github.com/Microsoft/TypeScript/wiki/Compiler-Options}{Compiler Options}
-            for a list of possible values.
-    \row
-        \li stripComments
-        \li \c{bool}
-        \li 1.3
-        \li \c{!qbs.debugInformation}
-        \li Whether to remove comments from the generated JavaScript files.
-    \row
-        \li generateDeclarations
-        \li \c{bool}
-        \li 1.3
-        \li \c{false}
-        \li Whether to generate corresponding .d.ts files during compilation; these are TypeScript's
-            equivalent of header files.
-    \row
-        \li generateSourceMaps
-        \li \c{bool}
-        \li 1.3
-        \li \c{qbs.debugInformation}
-        \li Whether to generate corresponding .map files during compilation.
-    \row
-        \li compilerFlags
-        \li \c{stringList}
-        \li 1.3
-        \li \c{undefined}
-        \li Additional flags for the TypeScript compiler.
-    \row
-        \li singleFile
-        \li \c{bool}
-        \li 1.3
-        \li \c{false}
-        \li Whether to compile all TypeScript source files to a single JavaScript output file. The
-            default is to compile each TypeScript file to a corresponding JavaScript file. This
-            property is incompatible with \c{moduleLoader}.
-    \row
-        \li version
-        \li \c{string}
-        \li 1.3
-        \li \c{undefined}
-        \li The TypeScript version. Consists of four numbers separated by dots, for instance
-            "1.0.0.0".
-    \row
-        \li versionMajor
-        \li \c{int}
-        \li 1.3
-        \li \c{versionParts[0]}
-        \li The TypeScript major version.
-    \row
-        \li versionMinor
-        \li \c{int}
-        \li 1.3
-        \li \c{versionParts[1]}
-        \li The TypeScript minor version.
-    \row
-        \li versionParts
-        \li \c{list}
-        \li 1.3
-        \li \c{empty}
-        \li The TypeScript version as a list. For instance, TypeScript version 1.0 would correspond
-            to a value of \c[1, 0, 0, 0].
-    \row
-        \li versionPatch
-        \li \c{int}
-        \li 1.3
-        \li \c{versionParts[2]}
-        \li The TypeScript patch level.
-    \row
-        \li versionBuild
-        \li \c{int}
-        \li 1.3
-        \li \c{versionParts[3]}
-        \li The fourth TypeScript version number component.
-    \row
-        \li toolchainInstallPath
-        \li \c{path}
-        \li 1.3
-        \li \c{undefined}
-        \li TypeScript installation directory. This should not normally need to be changed provided
-            that \c{tsc} is already available by searching the PATH environment variable.
-    \row
-        \li compilerName
-        \li \c{string}
-        \li 1.3
-        \li \c{"tsc"}
-        \li Name of the compiler binary. This should not normally need to be changed.
-    \row
-        \li compilerPath
-        \li \c{string}
-        \li 1.3
-        \li \c{compilerName}
-        \li Directory where the compiler binary is located.
-            This should not normally need to be changed.
-    \endtable
+    The severity of warnings to emit. The higher the level, the more warnings
+    will be shown.
+
+    \c{pedantic} causes the TypeScript to emit warnings on expressions and
+    declarations with an implied \e any type.
+
+    \defaultvalue \c{"normal"}
+*/
+
+/*!
+    \qmlproperty string typescript::targetVersion
+
+    The ECMAScript target version for generated JavaScript code.
+
+    If left undefined, the TypeScript \l{Compiler Options}{compiler default} is
+    used.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string typescript::moduleLoader
+
+    If TypeScript modules are being used, the JavaScript module loading
+    mechanism to use in the generated JavaScript code.
+
+    If left undefined, modules are not used.
+
+    See \l{Compiler Options} for a list of possible values.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool typescript::stripComments
+
+    Whether to remove comments from the generated JavaScript files.
+
+    \defaultvalue \l{qbs::debugInformation}{!qbs.debugInformation}
+*/
+
+/*!
+    \qmlproperty bool typescript::generateDeclarations
+
+    Whether to generate the corresponding \c .d.ts files during compilation.
+    These are TypeScript's equivalent of header files.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool typescript::generateSourceMaps
+
+    Whether to generate the corresponding \c .map files during compilation.
+
+    \defaultvalue \l{qbs::debugInformation}{qbs.debugInformation}
+*/
+
+/*!
+    \qmlproperty stringList typescript::compilerFlags
+
+    A list of additional flags for the TypeScript compiler.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool typescript::singleFile
+
+    Whether to compile all TypeScript source files to a single JavaScript output
+    file.
+
+    The default is to compile each TypeScript file to a corresponding JavaScript
+    file. This property is incompatible with \l{typescript}{moduleLoader}.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty string typescript::version
+
+    The TypeScript version.
+
+    Consists of four numbers separated by dots. For example, "1.0.0.0".
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty int typescript::versionMajor
+
+    The TypeScript major version.
+
+    \defaultvalue \c{versionParts[0]}
+*/
+
+/*!
+    \qmlproperty int typescript::versionMinor
+
+    The TypeScript minor version.
+
+    \defaultvalue \c{versionParts[1]}
+*/
+
+/*!
+    \qmlproperty list typescript::versionParts
+
+    The TypeScript version as a list.
+
+    For example, TypeScript version 1.0 would correspond to a value of
+    \c[1, 0, 0, 0].
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty int typescript::versionPatch
+
+    The TypeScript patch level.
+
+    \defaultvalue \c{versionParts[2]}
+*/
+
+/*!
+    \qmlproperty int typescript::versionBuild
+
+    The fourth TypeScript version number component.
+
+    \defaultvalue \c{versionParts[3]}
+*/
+
+/*!
+    \qmlproperty path typescript::toolchainInstallPath
+
+    The TypeScript installation directory.
+
+    This property should not normally need to be changed if \c{tsc} is available
+    by searching the PATH environment variable.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string typescript::compilerName
+
+    The name of the compiler binary.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \c{"tsc"}
+*/
+
+/*!
+    \qmlproperty string typescript::compilerPath
+
+    The directory where the compiler binary is located.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \c{compilerName}
 */

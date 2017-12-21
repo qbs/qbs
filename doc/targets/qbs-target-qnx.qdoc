@@ -44,8 +44,8 @@
     of the QNX host and target directories.
 
     If the QNX SDP path could not be determined automatically, you must add a
-    dependency to the \l{Module qnx}{qnx} module to your application and set the
-    \c qnx.sdkDir property:
+    dependency to the \l{qnx} module to your application and set the
+    \l{qnx::sdkDir}{qnx.sdkDir} property:
 
     \code
     import qbs

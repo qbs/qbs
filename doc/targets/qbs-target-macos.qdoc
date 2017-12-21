@@ -42,7 +42,7 @@
     \section1 Building macOS Disk Images
 
     The \l{AppleDiskImage} and \l{AppleApplicationDiskImage} items have a
-    dependency on the \l{Module dmg}{dmg} module. The former represents a
+    dependency on the \l{dmg} module. The former represents a
     product that is a basic Apple disk image, while the latter extends the
     former to create a drag 'n' drop disk image installer used for installing
     single application bundles.

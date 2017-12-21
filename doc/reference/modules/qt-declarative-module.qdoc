@@ -24,26 +24,39 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+
 /*!
-    \contentspage list-of-convenience-items.html
-    \previouspage LoadableModule
-    \nextpage QtGuiApplication
-    \qmltype QtApplication
-    \inherits CppApplication
-    \inqmlmodule QbsConvenienceItems
-    \ingroup list-of-items
-    \keyword QML.QtApplication
+    \contentspage index.html
+    \qmltype Qt.declarative
+    \inqmlmodule QbsModules
+    \brief Provides Qt Quick 1 support.
 
-    \brief Application with a dependency on the Qt Core module.
+    The Qt.declarative module provides support for Qt Quick 1.
 
-    A QtApplication is a \l{CppApplication}{C++ application} that has a
-    \l{Depends}{dependency} on the \l{Qt.core} module. It is entirely
-    equivalent to the following:
+    \sa Qt.quick, Qt.qml
+*/
 
-    \code
-    CppApplication {
-        Depends { name: "Qt.core" } }
-    }
-    \endcode
+/*!
+    \qmlproperty bool Qt.declarative::qmlDebugging
 
+    Whether QML debugging support is compiled into your binaries.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty string Qt.declarative::qmlImportsPath
+
+    The absolute path to the directory where Qt's QML imports are installed.
+
+    \defaultvalue Determined by \l{setup-qt}.
+*/
+
+/*!
+    \qmlproperty string Qt.declarative::qmlPath
+
+    The absolute path to the directory where Qt's QML files are installed.
+    This property is left undefined for Qt 4.
+
+    \defaultvalue Determined by \l{setup-qt}.
 */

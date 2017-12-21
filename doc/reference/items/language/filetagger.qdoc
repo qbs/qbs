@@ -50,8 +50,7 @@
     The FileTagger item can be attached to a product or a module. In the latter
     case, its effect is the same as if it had been attached to all products
     having a dependency on the respective module. For instance, the
-   \l{Module cpp}{cpp} module of \QBS has, among others, the following file
-    tagger:
+    \l{cpp} module of \QBS has, among others, the following file tagger:
 
     \code
     FileTagger {

@@ -1,0 +1,118 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype Qt.qml
+    \inqmlmodule QbsModules
+    \brief Provides Qt QML support.
+
+    The Qt.qml module provides support for the Qt QML module, which contains
+    classes for QML and JavaScript languages.
+
+    \note If the current value of \l{qbs::architecture}{qbs.architecture} is not
+    supported by \c qmlcachegen, the QML cache file generator rule is disabled.
+
+    \sa Qt.quick, Qt.declarative
+
+    \section2 Relevant File Tags
+    \target filetags-qml
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"qt.qml.js"}
+        \li \c{*.js}
+        \li 1.10
+        \li QML companion JavaScript files. Source files with this tag serve as
+            input for the QML cache file generator.
+    \row
+        \li \c{"qt.qml.qml"}
+        \li \c{*.qml}
+        \li 1.8
+        \li Source files with this tag serve as inputs to the QML plugin
+            scanner.
+    \endtable
+*/
+
+/*!
+    \qmlproperty string Qt.qml::qmlImportScannerName
+
+    The base name of the QML import scanner.
+
+    Set this value if your system uses a name different from the default value.
+
+    \defaultvalue \c{"qmlimportscanner"}
+*/
+
+/*!
+    \qmlproperty string Qt.qml::qmlPath
+
+    The absolute path to the directory where Qt's QML files are installed.
+
+    \defaultvalue Determined by \l{setup-qt}.
+*/
+
+/*!
+    \qmlproperty bool Qt.qml::generateCacheFiles
+
+    Whether QML cache files are generated.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool Qt.qml::cachingEnabled
+    \readonly
+
+    This property is \c true if \l{Qt.qml::}{generateCacheFiles} is \c{true}
+    and the platform supports QML cache generation.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty string Qt.qml::qmlCacheGenPath
+
+    The absolute path to the \c qmlcachegen executable.
+
+    \defaultvalue Determined by \l{setup-qt}.
+*/
+
+/*!
+    \qmlproperty string Qt.qml::cacheFilesInstallDir
+
+    The path to the directory where the cache files are installed.
+
+    If this property is set, QML cache files are automatically installed.
+
+    \nodefaultvalue
+*/

@@ -37,7 +37,7 @@
     \brief Application with a dependency on the Qt GUI module.
 
     A QtGuiApplication is an application that extends the \l{QtApplication} item
-    by loading the \l{Qt Modules}{Qt.gui} module and possibly also the default
+    by loading the \l{Qt.gui} module and possibly also the default
     QPA plugin.
 */
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -27,11 +27,10 @@
 
 /*!
     \contentspage index.html
-    \page ib-module.html
-    \ingroup list-of-modules
+    \qmltype ib
+    \inqmlmodule QbsModules
+    \since Qbs 1.1
 
-    \title Module ib
-    \since 1.1
     \brief Provides support for Apple Interface Builder and related tools and file types.
 
     The \c ib module contains properties and rules for building Interface Builder documents,
@@ -39,164 +38,10 @@
 
     This module is only available on Apple platforms.
 
-    \section1 General Properties
+    \section2 Relevant File Tags
+    \target filetags-ib
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li warnings
-        \li bool
-        \li 1.1
-        \li \c{true}
-        \li Whether to print warnings when compiling. Does not apply to icon sets.
-    \row
-        \li errors
-        \li bool
-        \li 1.1
-        \li \c{true}
-        \li Whether to print warnings when compiling. Does not apply to icon sets.
-    \row
-        \li notices
-        \li bool
-        \li 1.1
-        \li \c{true}
-        \li Whether to print warnings when compiling. Does not apply to icon sets.
-    \row
-        \li flags
-        \li stringList
-        \li 1.1
-        \li undefined
-        \li Additional flags to pass to the underlying tool (ibtool, actool, iconutil).
-    \endtable
-
-    \section1 Properties Specific to NIBs and Storyboards
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li ibtoolName
-        \li string
-        \li 1.3
-        \li \c{"ibtool"}
-        \li Name of the ibtool binary used to compile NIBs and storyboards.
-            This should not normally need to be changed.
-    \row
-        \li ibtoolPath
-        \li string
-        \li 1.3
-        \li \c{ibtoolName}
-        \li Directory where the ibtool binary is located.
-            This should not normally need to be changed.
-    \row
-        \li flatten
-        \li bool
-        \li 1.1
-        \li \c{true}
-        \li Compiles XIBs and storyboards into flattened (non-wrapper) files.
-            Set to \c{false} to preserve editability of the resulting nib and storyboard
-            bundles in Interface Builder. This property should not normally need to be changed.
-    \row
-        \li module
-        \li string
-        \li 1.3
-        \li \c{undefined}
-        \li Sets the name of the module that the nib or storyboard is a part of.
-            Requires Xcode 6 or newer.
-    \row
-        \li autoActivateCustomFonts
-        \li bool
-        \li 1.3
-        \li \c{true}
-        \li Instructs the ibtool compiler to add custom fonts to the
-            application's Info.plist when compiling XIBs and storyboards,
-            which will cause the fonts to activate upon application launch.
-            Requires Xcode 6 or newer.
-    \endtable
-
-    \section1 Properties Specific to Asset Catalogs
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li actoolName
-        \li string
-        \li 1.3
-        \li \c{"actool"}
-        \li Name of the actool binary used to compile asset catalogs.
-            This should not normally need to be changed.
-    \row
-        \li actoolPath
-        \li string
-        \li 1.3
-        \li \c{actoolName}
-        \li Directory where the actool binary is located.
-            This should not normally need to be changed.
-    \row
-        \li appIconName
-        \li string
-        \li 1.3
-        \li \c{undefined}
-        \li Name of the resource in the asset catalog that will be used as the application's icon.
-            Used to generate the partial Info.plist which will be merged into the resulting app.
-            If this property is \c{undefined}, no application icon will be specified.
-    \row
-        \li launchImageName
-        \li string
-        \li 1.3
-        \li \c{undefined}
-        \li Name of the resource in the asset catalog that will be used as the application's launch
-            image. Used to generate the partial Info.plist which will be merged into the resulting
-            app. If this property is \c{undefined}, no launch image will be specified.
-            Only applies to iOS applications.
-    \row
-        \li compressPngs
-        \li bool
-        \li 1.3
-        \li \c{true}
-        \li Whether to compress PNG image files when building asset catalogs.
-    \endtable
-
-    \section1 Properties Specific to Icon Sets
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li iconutilName
-        \li string
-        \li 1.3
-        \li \c{"iconutil"}
-        \li Name of the iconutil binary used to compile icon sets.
-            This should not normally need to be changed.
-    \row
-        \li iconutilPath
-        \li string
-        \li 1.3
-        \li \c{iconutilName}
-        \li Directory where the iconutil binary is located.
-            This should not normally need to be changed.
-    \endtable
-
-    \section1 Relevant File Tags
+    The file tags determine how the tagged directories and files are handled.
 
     \table
     \header
@@ -208,40 +53,230 @@
         \li \c{"assetcatalog"}
         \li \c{*.xcassets}
         \li 1.3
-        \li This tag is attached to directories that will be compiled into compiled asset catalog
-            archives (.car files) on supported platforms, or a collection of loose resource files.
-            The resulting files will be automatically tagged \c{bundle.input}. If the current
-            product is a bundle, the files will be included in the bundle's resources directory.
+        \li Tagged directories are compiled into compiled asset catalog
+            archives (\c .car files) on supported platforms, or a collection of
+            loose resource files. The resulting files will be automatically
+            tagged \l{filetags-bundle}{bundle.input}. If the current product is
+            a bundle, the files will be included in the bundle's resources
+            directory.
     \row
         \li \c{"iconset"}
         \li \c{*.iconset}
         \li 1.3
-        \li This tag is attached to directories that will be compiled into Apple ICNS files.
-            The resulting files will be automatically tagged \c{bundle.input}. If the current
-            product is a bundle, the files will be included in the bundle's resources directory.
+        \li Tagged directories are compiled into Apple ICNS files. The resulting
+            files will be automatically tagged \l{filetags-bundle}
+            {bundle.input}. If the current product is a bundle, the files will
+            be included in the bundle's resources directory.
     \row
         \li \c{"nib"}
         \li \c{*.nib}, \c{*.xib}
         \li 1.1
-        \li This tag is attached to "NIB" and "XIB" files that will be compiled.
-            The output may be a flat file or a bundle (directory structure).
-            The resulting files will be automatically tagged \c{bundle.input}. If the current
-            product is a bundle, the files will be included in the bundle's resources directory.
+        \li Tagged "NIB" and "XIB" files will be compiled. The output may be a
+            flat file or a bundle (directory structure). The resulting
+            files will be automatically tagged \l{filetags-bundle}
+            {bundle.input}. If the current product is a bundle, the files will
+            be included in the bundle's resources directory.
     \row
         \li \c{"png"}
         \li \c{*.png}
         \li 1.9
-        \li This tag is attached to PNG files that may be converted into multi-resolution TIFFs.
-            Source files should adopt the \l{Adopt the @2x Naming Convention}{@2x naming convention}
-            in order to be properly grouped.
-            The resulting files will be given the \c{tiff} file tag.
+        \li Tagged PNG files may be converted into multi-resolution TIFFs.
+            Source files should adopt the \l{Adopt the @2x Naming Convention}
+            {@2x naming convention} in order to be properly grouped. The
+            resulting files will be given the \l{filetags-dmg}{tiff} file tag.
     \row
         \li \c{"storyboard"}
         \li \c{*.storyboard}
         \li 1.3
-        \li This tag is attached to storyboard files that will be compiled.
-            The output may be a flat file or a bundle (directory structure).
-            The resulting files will be automatically tagged \c{bundle.input}. If the current
-            product is a bundle, the files will be included in the bundle's resources directory.
+        \li Tagged storyboard files will be compiled. The output may be a flat
+            file or a bundle (directory structure). The resulting
+            files will be automatically tagged \l{filetags-bundle}
+            {bundle.input}. If the current product is a bundle, the files will
+            be included in the bundle's resources directory.
     \endtable
+*/
+
+/*!
+    \qmlproperty bool ib::warnings
+
+    Whether to print warnings when compiling.
+
+    Does not apply to icon sets.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty bool ib::errors
+
+    Whether to print errors when compiling.
+
+    Does not apply to icon sets.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty bool ib::notices
+
+    Whether to print notifications when compiling.
+
+    Does not apply to icon sets.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty stringList ib::flags
+
+    Additional flags to pass to the underlying tool (\c ibtool, \c actool,
+    \c iconutil).
+
+    \nodefaultvalue
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty string ib::ibtoolName
+    \since Qbs 1.3
+
+    The name of the \c ibtool binary used to compile NIBs and storyboards.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \c{"ibtool"}
+*/
+
+/*!
+    \qmlproperty string ib::ibtoolPath
+    \since Qbs 1.3
+
+    The directory where the \c ibtool binary is located.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \c{ibtoolName}
+*/
+
+/*!
+    \qmlproperty bool ib::flatten
+
+    Compiles XIBs and storyboards into flattened (non-wrapper) files.
+
+    Set to \c{false} to preserve editability of the resulting NIB and storyboard
+    bundles in Interface Builder.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty string ib::module
+    \since Qbs 1.3
+
+    Sets the name of the module that the NIB or storyboard is a part of.
+
+    Requires Xcode 6 or newer.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool ib::autoActivateCustomFonts
+    \since Qbs 1.3
+
+    Instructs the \c ibtool compiler to add custom fonts to the application's
+    \c Info.plist when compiling XIBs and storyboards, which will cause the
+    fonts to activate upon application launch.
+
+    Requires Xcode 6 or newer.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty string ib::actoolName
+    \since Qbs 1.3
+
+    The name of the \c actool binary used to compile asset catalogs.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \c{"actool"}
+*/
+
+/*!
+    \qmlproperty string ib::actoolPath
+    \since Qbs 1.3
+
+    The directory where the \c actool binary is located.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \c{actoolName}
+*/
+
+/*!
+    \qmlproperty string ib::appIconName
+    \since Qbs 1.3
+
+    The name of the resource in the asset catalog that will be used as the
+    application's icon.
+
+    Used to generate the partial \c Info.plist which will be merged into the
+    resulting app.
+
+    If this property is \c{undefined}, no application icon will be specified.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string ib::launchImageName
+    \since Qbs 1.3
+
+    The name of the resource in the asset catalog that will be used as the
+    application's launch image.
+
+    Used to generate the partial \c Info.plist which will be merged into the
+    resulting app.
+
+    If this property is \c{undefined}, no launch image will be specified.
+
+    This property is specific to iOS.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool ib::compressPngs
+    \since Qbs 1.3
+
+    Whether to compress PNG image files when building asset catalogs.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty string ib::iconutilName
+    \since Qbs 1.3
+
+    The name of the \c iconutil binary used to compile icon sets.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \c{"iconutil"}
+*/
+
+/*!
+    \qmlproperty string ib::iconutilPath
+    \since Qbs 1.3
+
+    The directory where the \c iconutil binary is located.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \c{iconutilName}
 */

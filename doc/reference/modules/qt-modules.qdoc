@@ -28,26 +28,32 @@
 /*!
     \contentspage index.html
     \page qt-modules.html
-    \ingroup list-of-modules
+    \inmodule qbs-modules
 
     \title Qt Modules
-    \brief Provide Qt support.
+
+    \brief Provides Qt support.
 
     The \c{Qt.*} modules contain properties and rules for Qt.
 
     \section1 Creating Dependencies to Qt Modules
 
-    The Qt modules are special in that they are submodules within the \c Qt "namespace", which
-    has ramifications on the syntax when expressing dependencies. Assume your product depends
-    on the \c core and \c network modules. Then you could write:
+    The Qt modules are grouped using the prefix \c Qt. If your product depends
+    on the Qt.core and Qt.network modules, you could write:
+
     \code
     Depends { name: "Qt.core" }
     Depends { name: "Qt.network" }
     \endcode
+
     Or, alternatively:
+
     \code
     Depends { name: "Qt"; submodules: ["core", "network" } }
     \endcode
+
+    The Qt modules that have properties and relevant file tags are described in
+    separate topics.
 
     \section1 List of Submodules
 
@@ -69,30 +75,18 @@
         \li Qt Concurrent
         \li
     \row
-        \li core
+        \li \l{Qt.core}
         \li Qt Core
-        \li All other \c Qt modules have a dependency to this one, so you do not
-            need to list it in your dependencies if you depend on at least one
-            other \c Qt module.
-
-            For more information on the properties you can specify, see
-            \l{core Properties}.
-
-            For more information on the relevant file tags, see
-            \l {core File Tags}.
+        \li For more information, see \l{Qt.core}.
     \row
-        \li dbus
+        \li \l{Qt.dbus}
         \li Qt D-Bus
-        \li For more information on the properties you can specify, see
-            \l{dbus Properties}.
-
-            For more information on the relevant file tags, see
-            \l {dbus File Tags}.
+        \li For more information, see \l{Qt.dbus}.
     \row
-        \li declarative
+        \li \l{Qt.declarative}
         \li Qt Quick 1
         \li Provides the \c{Qt Quick 1} module. For more information, see
-            \l{declarative Properties}.
+            \l{Qt.declarative}.
     \row
         \li designer
         \li Qt Designer
@@ -102,18 +96,14 @@
         \li Qt Enginio
         \li
     \row
-        \li gui
+        \li \l{Qt.gui}
         \li Qt GUI
-        \li For more information on the properties you can specify,
-            see \l {gui Properties}.
-
-            For more information on the relevant file tags, see
-            \l {gui File Tags}.
+        \li For more information , see \l {Qt.gui}.
     \row
         \li help
         \li Qt Help
         \li You do not need this module for building \c qdoc documentation,
-            because that functionality is part of the \c core module. This
+            because that functionality is part of the Qt.core module. This
             module is for using Qt classes such as \c QHelpEngine.
     \row
         \li multimedia
@@ -140,30 +130,22 @@
         \li Qt Print Support
         \li
     \row
-        \li quick
-        \li Qt Quick (2)
+        \li \l{Qt.quick}
+        \li Qt Quick 2
         \li Provides the \c{Qt Quick} module (Qt Quick 2). For more information,
-            see \l{quick Properties} and \l{quick File Tags}.
+            see \l{Qt.quick}.
     \row
-        \li qml
+        \li \l{Qt.qml}
         \li Qt QML
-        \li For more information on the properties you can specify, see
-            \l{qml Properties}.
-
-            For more information on the relevant file tags, see
-            \l {qml File Tags}.
+        \li For more information, see \l{Qt.qml}.
     \row
         \li script
         \li Qt Script
         \li
     \row
-        \li scxml
+        \li \l{Qt.scxml}
         \li Qt Scxml
-        \li For more information on the properties you can specify, see
-            \l{scxml Properties}.
-
-            For more information on the relevant file tags, see
-            \l {scxml File Tags}.
+        \li For more information, see \l {Qt.scxml}.
     \row
         \li sql
         \li Qt SQL
@@ -193,7 +175,7 @@
         \li Qt XML
         \li You do not need this module for the \c QXmlStreamReader and
             \c QXmlStreamWriter classes, because those classes are a part of the
-            \c core module. This module provides the deprecated DOM and SAX
+            \c Qt.core module. This module provides the deprecated DOM and SAX
             classes.
     \row
         \li xmlpatterns
@@ -201,560 +183,4 @@
         \li
         \li
     \endtable
-
-    \section1 Module Properties
-
-    The following sections describe the properties of Qt modules that can be
-    interesting to users.
-
-    \section2 core Properties
-
-    Some of the following properties only need to be defined if the respective installation
-    of Qt was built in some unusual way, for instance by setting non-default \c configure flags.
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li availableBuildVariants
-        \li \c{stringList}
-        \li set by \c{qbs-setup-qt}
-        \li The build variants that this Qt installation offers.
-    \row
-        \li binPath
-        \li \c{path}
-        \li \c{undefined}
-        \li The path in which Qt tools such as \c qmake, \c moc and so on are located.
-    \row
-        \li combineMocOutput
-        \li \c{bool}
-        \li \c{cpp.combineCxxSources}
-        \li If this property is enabled, the C++ sources created by \c moc are combined
-            into a single C++ file per product. For projects where many header files are to be
-            handled by \c moc, this can speed up compilation considerably. However, side effects may
-            occur as a result of merging translation units.
-    \row
-        \li config
-        \li \c{stringList}
-        \li \c{empty}
-        \li Corresponds to the default value of qmake's \c CONFIG variable.
-    \row
-        \li docPath
-        \li \c{path}
-        \li \c{undefined}
-        \li The path in which the Qt documentation is located.
-    \row
-        \li enableKeywords
-        \li bool
-        \li true
-        \li Set this property to \c false if you do not want Qt to define the symbols
-            \c {signals}, \c {slots}, and \c {emit}. This can be necessary if your project
-            interacts with code that also defines such symbols.
-    \row
-        \li frameworkBuild
-        \li \c{bool}
-        \li \c{undefined}
-        \li Specifies whether Qt was built as a framework. This is only relevant for Darwin systems.
-    \row
-        \li incPath
-        \li \c{path}
-        \li \c{undefined}
-        \li The base path of the Qt headers.
-    \row
-        \li libInfix
-        \li \c{string}
-        \li \c{empty}
-        \li The library infix can be set at Qt build time to change the name of Qt's libraries.
-            For instance, if the infix is "Test", then on Unix systems, the \c{Qt Core} library will
-            be in a file called \c{libQt5CoreTest.so} instead of the default \c{libQt5Core.so}.
-    \row
-        \li libPath
-        \li \c{path}
-        \li \c{undefined}
-        \li The path in which the Qt libraries are located.
-    \row
-        \li lreleaseMultiplexMode
-        \li \c{bool}
-        \li \c{false}
-        \li If this property is \c true, \c lrelease will merge all ts files into one qm file.
-            Otherwise, one qm file will be created for every ts file.
-    \row
-        \li lreleaseName
-        \li \c{string}
-        \li \c{"lrelease"}
-        \li The base name of the \c lrelease tool. Set this if your system uses a name such as "lrelease-qt4".
-    \row
-        \li mkspecPath
-        \li \c{path}
-        \li \c{undefined}
-        \li The path in which the Qt mkspecs are located.
-    \row
-        \li mocFlags
-        \li \c{stringList}
-        \li empty
-        \li Additional flags to \c moc. You will rarely need to set this property.
-    \row
-        \li mocName
-        \li \c{string}
-        \li \c{"moc"}
-        \li The base name of the \c moc tool. Set this if your system uses a name such as "moc-qt4".
-    \row
-        \li namespace
-        \li \c{string}
-        \li \c{undefined}
-        \li The Qt namespace that can be set at build time via the \c configure script. By default,
-            Qt is not built in a namespace.
-    \row
-        \li pluginMetaData
-        \li \c{stringList}
-        \li empty
-        \li Additional plugin meta data. The elements of the list are key-value pairs separated
-            by the \c = character. A possible use case is to set the plugin URI when building
-            a static QML plugin:
-            \code
-            Qt.core.pluginMetaData: ["uri=thePlugin"]
-            \endcode
-    \row
-        \li pluginPath
-        \li \c{path}
-        \li \c{undefined}
-        \li The path in which the Qt plugins are located.
-    \row
-        \li qdocEnvironment
-        \li \c{stringlist}
-        \li \c{undefined}
-        \li The environment for calls to \c qdoc. Typically, you will need to set some variables
-            here when running \c qdoc to build your project documentation.
-    \row
-        \li qdocName
-        \li \c{string}
-        \li \c{"qdoc3"} for Qt 4, \c{"qdoc"} otherwise
-        \li The base name of the \c qdoc tool.
-    \row
-        \li qmBaseName
-        \li \c{string}
-        \li \c{product.targetName}
-        \li The base name of the qm file to be built from the ts files in the product.
-            This property is ignored if \c lreleaseMultiplexMode is \c false.
-    \row
-        \li qtBuildVariant
-        \li \c{string}
-        \li See below.
-        \li Specifies the type of Qt libraries to build against: "debug" or "release".
-            The default value is the build variant of the code linking against Qt. If Qt does not
-            offer that build variant, the build variant offered by Qt is chosen instead.
-            \note On some systems, it is not possible to link code built in debug mode against
-            libraries built in release mode and vice versa.
-    \row
-        \li qtConfig
-        \li \c{stringList}
-        \li \c{empty}
-        \li Corresponds to the default value of qmake's \c QT_CONFIG variable.
-    \row
-        \li resourceSourceBase
-        \li \c{path}
-        \li \c{undefined}
-        \li For files tagged as \c{qt.core.resource_data}, this property determines which part of
-            their path will end up in the generated \c qrc file. If this property is set to
-            \c undefined, only the file name is used.
-    \row
-        \li resourcePrefix
-        \li \c{string}
-        \li \c{"/"}
-        \li For files tagged as \c{qt.core.resource_data}, this property determines the prefix
-            under which they will be available in the generated \c qrc file.
-    \row
-        \li resourceFileBaseName
-        \li \c{string}
-        \li \c{product.targetName}
-        \li For files tagged as \c{qt.core.resource_data}, this property determines the base name
-            of the generated \c qrc file. If this property needs to be changed, it must be set
-            in the corresponding product rather than in a \l{Group}.
-    \row
-        \li staticBuild
-        \li \c{bool}
-        \li \c{undefined}
-        \li Specifies whether Qt was built statically.
-    \row
-        \li version
-        \li \c{string}
-        \li \c{undefined}
-        \li The Qt version. Consists of three numbers separated by dots, for instance "5.1.1".
-    \row
-        \li versionMajor
-        \li \c{int}
-        \li \c{versionParts[0]}
-        \li The Qt major version.
-    \row
-        \li versionMinor
-        \li \c{int}
-        \li \c{versionParts[1]}
-        \li The Qt minor version.
-    \row
-        \li versionParts
-        \li \c{list}
-        \li \c{empty}
-        \li The Qt version as a list. For instance, Qt version 5.1.1 would correspond to a value of
-            \c[5, 1, 1].
-    \row
-        \li versionPatch
-        \li \c{int}
-        \li \c{versionParts[2]}
-        \li The Qt patch level.
-    \endtable
-
-    \section2 dbus Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li xml2cppName
-        \li \c{string}
-        \li \c{"qdbusxml2cpp"}
-        \li The base name of the \c qdbusxml2cpp tool. Set this if your system uses a different name.
-    \row
-        \li xml2CppHeaderFlags
-        \li \c{stringList}
-        \li empty list
-        \li Additional flags when running the \c qdbusxml2cpp tool to create header files.
-    \row
-        \li xml2CppSourceFlags
-        \li \c{stringList}
-        \li empty list
-        \li Additional flags when running the \c qdbusxml2cpp tool to create source files.
-    \endtable
-
-    \section2 declarative Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li qmlDebugging
-        \li \c{bool}
-        \li \c{false}
-        \li Specifies whether QML debugging support should be compiled into your binaries.
-    \row
-        \li qmlImportsPath
-        \li \c{string}
-        \li set by \c{qbs-setup-qt}
-        \li The absolute path to the directory where Qt's QML imports are installed.
-    \row
-        \li qmlPath
-        \li \c{string}
-        \li set by \c{qbs-setup-qt}
-        \li The absolute path to the directory where Qt's QML files are installed.
-            This property is undefined for Qt4.
-    \endtable
-
-    \section2 gui Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li uicName
-        \li \c{string}
-        \li \c{"uic"}
-        \li The base name of the \c uic tool. Set this if your system uses a name such as "uic-qt4".
-    \endtable
-
-    \section2 quick Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li compilerAvailable
-        \li \c{bool}
-        \li set by \c{qbs-setup-qt}
-        \li Specifies whether the Qt installation contains the Qt Quick compiler.
-    \row
-        \li qmlDebugging
-        \li \c{bool}
-        \li \c{false}
-        \li Specifies whether QML debugging support should be compiled into your binaries.
-    \row
-        \li qmlImportsPath
-        \li \c{string}
-        \li set by \c{qbs-setup-qt}
-        \li The absolute path to the directory where Qt's QML imports are installed.
-    \row
-        \li qmlPath
-        \li \c{string}
-        \li set by \c{qbs-setup-qt}
-        \li The absolute path to the directory where Qt's QML files are installed.
-            This property is undefined for Qt4.
-
-    \endtable
-
-    \section2 qml Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li qmlImportScannerName
-        \li \c{string}
-        \li \c{"qmlimportscanner"}
-        \li The base name of the QML import scanner. Set this if your system uses a different name.
-    \row
-        \li qmlPath
-        \li \c{string}
-        \li set by \c{qbs-setup-qt}
-        \li The absolute path to the directory where Qt's QML files are installed.
-    \endtable
-
-    The following properties control the generation of QML cache files.
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li generateCacheFiles
-        \li \c{bool}
-        \li \c{false}
-        \li Enables the generation of QML cache files.
-    \row
-        \li cachingEnabled
-        \li \c{readonly bool}
-        \li \c{false}
-        \li Is true if \c{generateCacheFiles} is \c{true}
-            and the platform supports QML cache generation.
-    \row
-        \li qmlCacheGenPath
-        \li \c{string}
-        \li set by \c{qbs-setup-qt}
-        \li The absolute path to the qmlcachegen executable.
-    \row
-        \li cacheFilesInstallDir
-        \li \c{string}
-        \li \c{undefined}
-        \li The path to the directory where the cache files are installed.
-            If this property is set then QML cache files are automatically installed.
-    \endtable
-
-    \note If the current value of qbs.architecture is not supported
-          by qmlcachegen then the cache generator rule is disabled.
-
-
-    \section2 scxml Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li className
-        \li \c{string}
-        \li \c undefined
-        \li The class name of the generated state machine. By default, the compiler will use the
-            \c name attribute of the input file's \c{<scxml>} tag.
-    \row
-        \li namespace
-        \li \c{string}
-        \li \c undefined
-        \li The C++ namespace in which to put the generated class. By default, the compiler will
-            place the class in the global namespace.
-    \row
-        \li qscxmlcName
-        \li \c{string}
-        \li \c{"qscxmlc"}
-        \li The base name of the Qt SCXML compiler. Set this if your system uses a different name.
-    \endtable
-
-    \section1 Relevant File Tags
-
-    The following sections describe the file tags that are relevant for the Qt
-    modules.
-
-    \section2 core File Tags
-
-    \table
-    \header
-        \li Tag
-        \li Auto-tagged File Names
-        \li Since
-        \li Description
-    \row
-        \li \c{"qch"}
-        \li n/a
-        \li 1.1
-        \li This tag is attached to the output artifacts of the rule that runs the
-            \c qhelpgenerator tool.
-    \row
-        \li \c{"qdoc"}
-        \li \c{*.qdoc}
-        \li 1.1
-        \li Source files with this tag trigger a re-execution of the rule running the \c qdoc
-            tool when their timestamp changes.
-    \row
-        \li \c{"qdocconf"}
-        \li \c{*.qdocconf}
-        \li 1.1
-        \li Source files with this tag trigger a re-execution of the rule running the \c qdoc
-            tool when their timestamp changes.
-    \row
-        \li \c{"qdocconf-main"}
-        \li -
-        \li 1.1
-        \li Source files with this tag serve as inputs to the rule running the \c qdoc tool.
-    \row
-        \li \c{"qdoc-output"}
-        \li n/a
-        \li 1.5
-        \li Use this tag to match all \c qdoc outputs, for instance in a \l{Group}
-            using the \l{Group::fileTagsFilter}{group.fileTagsFilter} property.
-    \row
-        \li \c{"qhp"}
-        \li \c{*.qhp}
-        \li 1.1
-        \li Files with this tag serve as inputs to the rule running the \c qhelpgenerator tool.
-            Such files are created by \c qdoc, but can also appear as source files.
-    \row
-        \li \c{"qm"}
-        \li n/a
-        \li 1.1
-        \li This tag is attached to the output artifacts of the rule that runs the \c lrelease tool.
-    \row
-        \li \c{"qrc"}
-        \li \c{*.qrc}
-        \li 1.0
-        \li Files with this tag serve as inputs to the rule running the \c rcc tool.
-    \row
-        \li \c{"qt_plugin_metadata"}
-        \li -
-        \li 1.0
-        \li Source files with this tag trigger a re-execution of the rule running the \c moc
-            tool when their timestamp changes.
-    \row
-        \li \c{"qt.core.resource_data"}
-        \li -
-        \li 1.7
-        \li Source files with this tag serve as inputs to the rule creating \c qrc files.
-    \row
-        \li \c{"ts"}
-        \li \c{*.ts}
-        \li 1.0
-        \li Files with this tag serve as inputs to the rule running the \c lrelease tool.
-    \endtable
-
-    \section2 dbus File Tags
-
-    \table
-    \header
-        \li Tag
-        \li Auto-tagged File Names
-        \li Since
-        \li Description
-    \row
-        \li \c{"qt.dbus.adaptor"}
-        \li -
-        \li 1.5
-        \li Source files with this tag serve as inputs to the rule running the \c qdbusxml2cpp tool,
-            which will create an adaptor class.
-    \row
-        \li \c{"qt.dbus.interface"}
-        \li -
-        \li 1.5
-        \li Source files with this tag serve as inputs to the rule running the \c qdbusxml2cpp tool,
-            which will create an interface class.
-    \endtable
-
-    \section2 gui File Tags
-
-    \table
-    \header
-        \li Tag
-        \li Auto-tagged File Names
-        \li Since
-        \li Description
-    \row
-        \li \c{"ui"}
-        \li \c{*.ui}
-        \li 1.0
-        \li Source files with this tag serve as inputs to the rule running the \c uic tool.
-    \endtable
-
-    \section2 qml File Tags
-
-    \table
-    \header
-        \li Tag
-        \li Auto-tagged File Names
-        \li Since
-        \li Description
-    \row
-        \li \c{"qt.qml.js"}
-        \li \c{*.js}
-        \li 1.10
-        \li QML companion JavaScript files. Source files with this tag serve as input for the QML
-            cache file generator.
-    \row
-        \li \c{"qt.qml.qml"}
-        \li \c{*.qml}
-        \li 1.8
-        \li Source files with this tag serve as inputs to the QML plugin scanner.
-    \endtable
-
-    \section2 quick File Tags
-
-    \table
-    \header
-        \li Tag
-        \li Auto-tagged File Names
-        \li Since
-        \li Description
-    \row
-        \li \c{"qt.quick.qrc"}
-        \li \c{*.qrc}
-        \li 1.10
-        \li Qt resource files with this file tag will be picked up by the
-            Qt Quick compiler rule, and all QML files in the resource will be
-            compiled.
-
-            This file tag will only be added automatically if the Qt Quick
-            compiler is available.
-    \endtable
-
-    \section2 scxml File Tags
-
-    \table
-    \header
-        \li Tag
-        \li Auto-tagged File Names
-        \li Since
-        \li Description
-    \row
-        \li \c{"qt.scxml.compilable"}
-        \li -
-        \li 1.7
-        \li Source files with this tag serve as inputs to the rule running the Qt SCXML compiler,
-            which will create a C++ class representing a state machine.
-    \endtable
-
 */

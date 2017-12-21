@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -27,137 +27,24 @@
 
 /*!
     \contentspage index.html
-    \page nsis-module.html
-    \ingroup list-of-modules
+    \qmltype nsis
+    \inqmlmodule QbsModules
+    \since Qbs 1.2
 
-    \title Module nsis
-    \since 1.2
     \brief Provides Nullsoft Scriptable Install System support.
 
     The \c nsis module contains properties and rules for building EXE installers
-    for Windows using the Nullsoft Scriptable Install System.
+    for Windows using the Nullsoft Scriptable Install System (NSIS).
 
     This module is available on all platforms.
 
-    \note A typical NSIS script includes an OutFile command to set the filename of the generated
-    installer executable. However, \QBS overrides any OutFile commands found in the script, and
-    therefore, you must use the targetName property to set the filename.
+    \note A typical NSIS script includes an \c OutFile command to set the
+    filename of the generated installer executable. However, \QBS overrides any
+    \c OutFile commands found in the script, and therefore, you must use the
+    \l{Product::targetName}{product.targetName} property to set the filename.
 
-    \section1 General Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li defines
-        \li stringList
-        \li 1.2
-        \li \c{undefined}
-        \li List of preprocessor macros that get passed to the compiler.
-            To set macro values, use the following syntax:
-            \c{cpp.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']}
-    \row
-        \li disableConfig
-        \li bool
-        \li 1.2
-        \li \c{false}
-        \li Whether to disable inclusion of nsisconf.nsh.
-            Generally you do not need to set this property.
-    \row
-        \li enableQbsDefines
-        \li bool
-        \li 1.2
-        \li \c{true}
-        \li Whether to define preprocessor macros corresponding to values from the project and
-            product objects. When building a 64-bit package, the preprocessor variable \c{Win64}
-            will also be defined.
-    \row
-        \li warningLevel
-        \li string
-        \li 1.2
-        \li \c{"normal"}
-        \li Severity of warnings to emit. The higher the level, the more warnings will be shown.
-            The levels \c{none}, \c{errors}, \c{warnings}, \c{info} and \c{all} correspond to NSIS
-            verbosity levels 0 through 4, inclusive. \c{normal} corresponds to the default level.
-    \row
-        \li compilerFlags
-        \li stringList
-        \li 1.2
-        \li undefined
-        \li Additional flags for the NSIS compiler.
-    \row
-        \li compressor
-        \li string
-        \li 1.2
-        \li \c{"default"}
-        \li Compression algorithm used to compress files and data in the installer.
-            Setting this property overrides any SetCompressor command in the NSI file being
-            compiled. Possible values include: \c{"default"}, \c{"zlib"}, \c{"zlib-solid"},
-            \c{"bzip2"}, \c{"bzip2-solid"}, \c{"lzma"}, \c{"lzma-solid"}
-    \row
-        \li version
-        \li string
-        \li 1.2
-        \li \c{undefined}
-        \li The NSIS version. Consists of four numbers separated by dots, for instance "2.46.0.0".
-    \row
-        \li versionMajor
-        \li int
-        \li 1.2
-        \li \c{versionParts[0]}
-        \li The NSIS major version.
-    \row
-        \li versionMinor
-        \li int
-        \li 1.2
-        \li \c{versionParts[1]}
-        \li The NSIS minor version.
-    \row
-        \li versionParts
-        \li list
-        \li 1.2
-        \li \c{empty}
-        \li The NSIS version as a list. For instance, NSIS version 2.46.0.0 would correspond to a
-            value of \c[2, 46, 0, 0].
-    \row
-        \li versionPatch
-        \li int
-        \li 1.2
-        \li \c{versionParts[2]}
-        \li The NSIS patch level.
-    \row
-        \li versionBuild
-        \li int
-        \li 1.2
-        \li \c{versionParts[3]}
-        \li The fourth NSIS version number component.
-    \row
-        \li toolchainInstallPath
-        \li path
-        \li 1.2
-        \li determined automatically
-        \li NSIS installation directory. Determined by searching known registry keys and known
-            installation paths until a match is found. This should not normally need to be changed.
-    \row
-        \li compilerName
-        \li string
-        \li 1.2
-        \li \c{"makensis"}
-        \li Name of the compiler binary. This should not normally need to be changed.
-    \row
-        \li compilerPath
-        \li string
-        \li 1.2
-        \li \c{compilerName}
-        \li Directory where the compiler binary is located. This should not normally need to be
-            changed.
-    \endtable
-
-    \section1 Relevant File Tags
+    \section2 Relevant File Tags
+    \target filetags-nsis
 
     \table
     \header
@@ -188,4 +75,160 @@
         \li The rule that creates the NSIS setup executable will be dependent on artifacts
             with this tag.
     \endtable
+*/
+
+/*!
+    \qmlproperty stringList nsis::defines
+
+    A list of preprocessor macros that get passed to the compiler.
+
+    To set macro values, use the following syntax:
+
+    \badcode
+    cpp.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']
+    \endcode
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool nsis::disableConfig
+
+    Whether to exclude \c nsisconf.nsh.
+
+    Generally, you do not need to set this property.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool nsis::enableQbsDefines
+
+    Whether to define preprocessor macros corresponding to the values from the
+    \l{Project}{project} and \l{Product}{product} objects.
+
+    When building a 64-bit package, the preprocessor variable \c{Win64} will
+    also be defined.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty string nsis::warningLevel
+
+    The severity of the warnings to emit. The higher the level, the more
+    warnings will be shown.
+
+    The levels \c{none}, \c{errors}, \c{warnings}, \c{info}, and \c{all}
+    correspond to the NSIS verbosity levels 0 through 4, inclusive. \c{normal}
+    corresponds to the default level.
+
+    \defaultvalue \c{"normal"}
+*/
+
+/*!
+    \qmlproperty stringList nsis::compilerFlags
+
+    A list of additional flags for the NSIS compiler.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string nsis::compressor
+
+    The compression algorithm used to compress files and data in the installer.
+
+    Setting this property overrides any \c SetCompressor command in the NSI file
+    being compiled.
+
+    Possible values include: \c{"default"}, \c{"zlib"}, \c{"zlib-solid"},
+    \c{"bzip2"}, \c{"bzip2-solid"}, \c{"lzma"}, \c{"lzma-solid"}.
+
+    \defaultvalue \c{"default"}
+*/
+
+/*!
+    \qmlproperty string nsis::version
+
+    The NSIS version. Consists of four numbers separated by dots. For example,
+    \c "2.46.0.0".
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty int nsis::versionMajor
+
+    The NSIS major version.
+
+    \defaultvalue \c{versionParts[0]}
+*/
+
+/*!
+    \qmlproperty int nsis::versionMinor
+
+    The NSIS minor version.
+
+    \defaultvalue \c{versionParts[1]}
+*/
+
+/*!
+    \qmlproperty list nsis::versionParts
+
+    The NSIS version as a list.
+
+    For example, the NSIS version 2.46.0.0 would correspond to a value of
+    \c[2, 46, 0, 0].
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty int nsis::versionPatch
+
+    The NSIS patch level.
+
+    \defaultvalue \c{versionParts[2]}
+*/
+
+/*!
+    \qmlproperty int nsis::versionBuild
+
+    The fourth NSIS version number component.
+
+    \defaultvalue \c{versionParts[3]}
+*/
+
+/*!
+    \qmlproperty path nsis::toolchainInstallPath
+
+    The NSIS installation directory.
+
+    Determined by searching from the known registry keys and known installation
+    paths until a match is found.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue Determined automatically.
+*/
+
+/*!
+    \qmlproperty string nsis::compilerName
+
+    The name of the compiler binary.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \c{"makensis"}
+*/
+
+/*!
+    \qmlproperty string nsis::compilerPath
+
+    The directory where the compiler binary is located.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \l{nsis::}{compilerName}
 */

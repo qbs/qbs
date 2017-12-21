@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -27,117 +27,25 @@
 
 /*!
     \contentspage index.html
-    \page innosetup-module.html
-    \ingroup list-of-modules
+    \qmltype innosetup
+    \inqmlmodule QbsModules
+    \since Qbs 1.7
 
-    \title Module innosetup
-    \since 1.7
     \brief Provides Inno Setup support.
 
-    The \c innosetup module contains properties and rules for building
-    EXE setup packages with \l{http://www.jrsoftware.org/isinfo.php}{Inno Setup}.
-    Inno Setup 5 and above are supported.
+    The \c innosetup module contains properties and rules for building EXE
+    setup packages with \l{Inno Setup}. Inno Setup 5 and above are supported.
 
-    \note A typical Inno Setup Script includes an OutputBaseFilename command to set the filename
-    of the generated installer executable. However, \QBS overrides any OutputBaseFilename commands
-    found in the script by passing the /F option to the ISCC compiler, and therefore, you must use
-    the targetName property to set the filename. \QBS also overrides any Output commands by passing
-    the /O option to the ISCC compiler.
+    \note A typical Inno Setup Script includes an \c OutputBaseFilename command
+    to set the filename of the generated installer executable. However, \QBS
+    overrides any \c OutputBaseFilename commands found in the script by passing
+    the \c /F option to the ISCC compiler, and therefore, you must use
+    the \l{Product::targetName}{Product.targetName} property to set the
+    filename. \QBS also overrides any \c Output commands by passing the \c /O
+    option to the ISCC compiler.
 
-    \section1 General Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li defines
-        \li \c{stringList}
-        \li 1.7
-        \li \c{undefined}
-        \li List of preprocessor macros that get passed to the compiler.
-            To set macro values use the following syntax:
-            \c{innosetup.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']}
-    \row
-        \li includePaths
-        \li \c{pathList}
-        \li 1.7
-        \li \c{undefined}
-        \li List of include paths. Relative paths are considered to be relative to the .qbs product
-            file they are used in.
-    \row
-        \li verboseOutput
-        \li \c{bool}
-        \li 1.7
-        \li \c{false}
-        \li Whether to display verbose output from the Inno Setup compiler.
-    \row
-        \li compilerFlags
-        \li \c{stringList}
-        \li 1.7
-        \li \c{undefined}
-        \li Additional flags for the Inno Setup compiler.
-    \row
-        \li version
-        \li \c{string}
-        \li 1.7
-        \li \c{undefined}
-        \li The Inno Setup version.
-            Consists of three numbers separated by dots, for instance "5.5.9".
-    \row
-        \li versionMajor
-        \li \c{int}
-        \li 1.7
-        \li \c{versionParts[0]}
-        \li The Inno Setup major version.
-    \row
-        \li versionMinor
-        \li \c{int}
-        \li 1.7
-        \li \c{versionParts[1]}
-        \li The Inno Setup minor version.
-    \row
-        \li versionParts
-        \li \c{list}
-        \li 1.7
-        \li \c{empty}
-        \li The Inno Setup version as a list.
-            For instance, Inno Setup version 5.5.9 would correspond to a
-            value of \c[5, 5, 9].
-    \row
-        \li versionPatch
-        \li \c{int}
-        \li 1.7
-        \li \c{versionParts[2]}
-        \li The Inno Setup patch level.
-    \row
-        \li toolchainInstallPath
-        \li \c{path}
-        \li 1.7
-        \li determined automatically
-        \li Inno Setup installation directory.
-            Determined by searching the registry for the latest version.
-            This should not normally need to be changed.
-    \row
-        \li compilerName
-        \li \c{string}
-        \li 1.7
-        \li \c{"ISCC.exe"}
-        \li Name of the compiler binary.
-            This should not normally need to be changed.
-    \row
-        \li compilerPath
-        \li \c{string}
-        \li 1.7
-        \li \c{compilerName}
-        \li Full path of the compiler binary.
-            This should not normally need to be changed.
-    \endtable
-
-    \section1 Relevant File Tags
+    \section2 Relevant File Tags
+    \target filetags-innosetup
 
     \table
     \header
@@ -156,12 +64,131 @@
         \li n/a
         \li 1.7
         \li The rule that creates Inno Setup executable files attaches this tag
-            (as well as the "application" tag) to its output artifact.
+            (as well as the \l{filetags-cpp}{"application"} tag) to its output
+            artifact.
     \row
         \li \c{"innosetup.input"}
         \li n/a
         \li 1.10
-        \li The rule that creates Inno Setup executable files will be dependent on artifacts
-            with this tag.
+        \li The rule that creates Inno Setup executable files will be dependent
+            on artifacts with this tag.
     \endtable
+*/
+
+/*!
+    \qmlproperty stringList innosetup::defines
+
+    A list of preprocessor macros that get passed to the compiler.
+
+    To set macro values, use the following syntax:
+
+    \badcode
+    innosetup.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']
+    \endcode
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty pathList innosetup::includePaths
+
+    A list of include paths.
+
+    Relative paths are considered to be relative to the \c .qbs product file
+    they are used in.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool innosetup::verboseOutput
+
+    Whether to display verbose output from the Inno Setup compiler.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty stringList innosetup::compilerFlags
+
+    A list of additional flags for the Inno Setup compiler.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string innosetup::version
+
+    The Inno Setup version.
+
+    Consists of three numbers separated by dots, for instance \c {"5.5.9"}.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty int innosetup::versionMajor
+
+    The Inno Setup major version.
+
+    \defaultvalue \c{versionParts[0]}
+*/
+
+/*!
+    \qmlproperty int innosetup::versionMinor
+
+    The Inno Setup minor version.
+
+    \defaultvalue \c{versionParts[1]}
+*/
+
+/*!
+    \qmlproperty list innosetup::versionParts
+
+    The Inno Setup version as a list.
+
+    For instance, Inno Setup version 5.5.9 would correspond to a value of
+    \c[5, 5, 9].
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty int innosetup::versionPatch
+
+    The Inno Setup patch level.
+
+    \defaultvalue \c{versionParts[2]}
+*/
+
+/*!
+    \qmlproperty path innosetup::toolchainInstallPath
+
+    The Inno Setup installation directory.
+
+    Determined by searching the registry for the latest version.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue Determined automatically.
+*/
+
+/*!
+    \qmlproperty string innosetup::compilerName
+
+    The name of the compiler binary.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \c{"ISCC.exe"}
+*/
+
+/*!
+    \qmlproperty string innosetup::compilerPath
+
+    The full path of the compiler binary.
+
+    This property should not normally need to be changed.
+
+    \defaultvalue \c{compilerName}
 */

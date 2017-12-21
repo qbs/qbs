@@ -234,7 +234,7 @@
     The default value is \c <build dir>/install-root.
 
     Use the special value \c @sysroot to install into the \c sysroot. That is,
-    the value of the \l{Module qbs}{qbs.sysroot} property.
+    the value of the \l{qbs::sysroot}{qbs.sysroot} property.
 
 //! [install-root]
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -27,76 +27,20 @@
 
 /*!
     \contentspage index.html
-    \page android-sdk-module.html
-    \ingroup list-of-modules
+    \qmltype Android.sdk
+    \inqmlmodule QbsModules
+    \since Qbs 1.4
 
-    \title Module Android.sdk
-    \since 1.4
     \brief Provides support for building Android packages.
 
-    The \c Android.sdk module contains the properties and rules to create Android application
-    packages from Java sources, resources and so on.
+    The Android.sdk module contains the properties and rules to create Android
+    application packages from Java sources, resources, and so on.
 
     Normally, you will not use this module directly, but instead work
     with the \l{AndroidApk} item that \QBS provides.
 
-    \section1 Android.sdk Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li buildToolsVersion
-        \li string
-        \li 1.4
-        \li undefined
-        \li The version of the build tools such as aapt and dx. By default,
-            this is set to the highest version available in the SDK.
-    \row
-        \li ndkDir
-        \li string
-        \li 1.4
-        \li undefined
-        \li The NDK base directory, if an NDK is present.
-    \row
-        \li platform
-        \li string
-        \li 1.4
-        \li undefined
-        \li The versioned platform name (e.g. "android-21"). By default,
-            this is set to the highest version available in the SDK.
-    \row
-        \li sdkDir
-        \li string
-        \li 1.4
-        \li undefined
-        \li The SDK base directory.
-    \endtable
-
-    \section1 Dependency Parameters
-
-    \table
-    \header
-        \li Parameter
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li \c{embedJar}
-        \li \c{bool}
-        \li 1.10
-        \li \c{true}
-        \li If \c{true}, then if the dependency is a JAR file, its classes and the classes of its
-            dependencies (if \c{embedJar} is also true for them) will be recursively processed by
-            \c{dex} and included in the final APK.
-    \endtable
-
-    \section1 Relevant File Tags
+    \section2 Relevant File Tags
+    \target filetags-android-sdk
 
     \table
     \header
@@ -108,33 +52,76 @@
         \li \c{"android.aidl"}
         \li \c{*.aidl}
         \li 1.4.0
-        \li This tag is used for Android AIDL files. One Java source file will be generated for each
-            such file.
+        \li Attached to Android AIDL files. One Java source file will be
+            generated for each such file.
     \row
         \li \c{"android.assets"}
         \li -
         \li 1.4.0
-        \li This tag is used for Android assets, which are typically located in an \c{assets/}
-            subdirectory. Using the \l{AndroidApk} item takes care of tagging
-            these files for you.
+        \li Attached to Android assets, which are typically located in an
+            \c{assets/} subdirectory. Using the \l{AndroidApk} item takes care
+            of tagging these files for you.
     \row
         \li \c{"android.apk"}
         \li n/a
         \li 1.4.0
-        \li This tag is attached to the output artifact of the rule that creates an APK package.
-            It is the default type of the \l{AndroidApk} item.
+        \li Attached to the output artifact of the rule that creates an APK
+            package. It is the default type of the \l{AndroidApk} item.
     \row
         \li \c{"android.manifest"}
         \li \c{AndroidManifest.xml}
         \li 1.4.0
-        \li This tag is used for the Android manifest. There must be one such file for every
-            Android app.
+        \li Attached to the Android manifest. There must be one such file for
+            every Android app.
     \row
         \li \c{"android.resources"}
         \li -
         \li 1.4.0
-        \li This tag is used for Android resources, which are typically located in a \c{res/}
-            subdirectory. Using the \l{AndroidApk} item takes care of tagging
-            these files for you.
+        \li Attached to Android resources, which are typically located in a
+            \c{res/} subdirectory. Using the \l{AndroidApk} item takes care of
+            tagging these files for you.
     \endtable
+*/
+
+/*!
+    \qmlproperty string Android.sdk::buildToolsVersion
+
+    The version of the build tools such as \c aapt and \c dx.
+
+    \defaultvalue Highest build tools version version available in the SDK.
+*/
+
+/*!
+    \qmlproperty string Android.sdk::ndkDir
+
+    The NDK base directory, if an NDK is present.
+
+    \defaultvalue Determined automatically based on standard search paths.
+*/
+
+/*!
+    \qmlproperty string Android.sdk::platform
+
+    The versioned platform name (for example, \c "android-21").
+
+    \defaultvalue Highest build tools version version available in the SDK.
+*/
+
+/*!
+    \qmlproperty string Android.sdk::sdkDir
+
+    The SDK base directory.
+
+    \defaultvalue Determined automatically based on standard search paths.
+*/
+
+/*!
+    \qmlproperty bool Android.sdk::embedJar
+    \since Qbs 1.10
+
+    If \c true, then if the dependency is a JAR file, its classes and the
+    classes of its dependencies (if \c{embedJar} is also true for them) will
+    be recursively processed by \c{dex} and included in the final APK.
+
+    \defaultvalue \c{true}
 */

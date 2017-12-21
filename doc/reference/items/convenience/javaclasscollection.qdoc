@@ -37,7 +37,7 @@
     \brief Collection of Java class files not bundled in a jar file.
 
     A JavaClassCollection item is a \l{Product}{product} of the \l{Product::}
-    {type} \c{"java.class"} that has a dependency on the \l{Module java}{Java module}.
+    {type} \c{"java.class"} that has a dependency on the \l{java} module.
     If the files should end up in a jar file, you should use \l{JavaJarFile}
     instead.
 */

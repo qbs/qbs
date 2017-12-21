@@ -27,22 +27,59 @@
 
 /*!
     \contentspage index.html
-    \qmltype nodejs
+    \qmltype Qt.scxml
     \inqmlmodule QbsModules
-    \since Qbs 1.3
+    \brief Provides Qt SCXML support.
 
-    \brief Provides Node.js support.
+    The Qt.scxml module provides support for the Qt SCXML module, which enables
+    creating state machines from SCXML files.
 
-    The \c nodejs module contains support for running \l{Node.js} applications
-    from \QBS.
+    \section2 Relevant File Tags
+    \target filetags-scxml
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"qt.scxml.compilable"}
+        \li -
+        \li 1.7
+        \li Source files with this tag serve as inputs to the rule running the
+            Qt SCXML compiler, which will create a C++ class representing a
+            state machine.
+    \endtable
 */
 
 /*!
-    \qmlproperty path Node.js::applicationFile
+    \qmlproperty string Qt.scxml::className
 
-    The input JavaScript file whose corresponding output will be executed when
-    running the Node.js application. If this property is \c{undefined}, the
-    product will not be runnable.
+    The class name of the generated state machine.
+
+    By default, the compiler will use the \c name attribute of the input file's
+    \c{<scxml>} tag.
 
     \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string Qt.scxml::namespace
+
+    The C++ namespace in which to put the generated class.
+
+    By default, the compiler will place the class in the global namespace.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string Qt.scxml::qscxmlcName
+
+    The base name of the Qt SCXML compiler.
+
+    Set this value if your system uses a name different from the default value.
+
+    \defaultvalue  \c{"qscxmlc"}
 */

@@ -1,0 +1,92 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype Qt.quick
+    \inqmlmodule QbsModules
+    \brief Provides Qt Quick 2 support.
+
+    The Qt.quick module provides support for Qt Quick 2.
+
+    \sa Qt.qml, Qt.declarative
+
+    \section2 Relevant File Tags
+    \target filetags-quick
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"qt.quick.qrc"}
+        \li \c{*.qrc}
+        \li 1.10
+        \li Qt resource files with this file tag will be picked up by the
+            Qt Quick compiler rule, and all QML files in the resource will be
+            compiled.
+
+            This file tag will only be added automatically if the Qt Quick
+            compiler is available.
+    \endtable
+*/
+
+/*!
+    \qmlproperty bool Qt.quick::compilerAvailable
+
+    Whether the Qt installation contains the Qt Quick compiler.
+
+    \defaultvalue Determined by \l{setup-qt}.
+*/
+
+/*!
+    \qmlproperty bool Qt.quick::qmlDebugging
+
+    Whether QML debugging support should be compiled into your binaries.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty string Qt.quick::qmlImportsPath
+
+    The absolute path to the directory where Qt's QML imports are installed.
+
+    \defaultvalue Determined by \l{setup-qt}.
+*/
+
+/*!
+    \qmlproperty string Qt.quick::qmlPath
+
+    The absolute path to the directory where Qt's QML files are installed.
+
+    This property is left undefined for Qt 4.
+
+    \defaultvalue Determined by \l{setup-qt}.
+*/

@@ -36,9 +36,8 @@
     \brief Android application package.
 
     An AndroidApk item is a \l{Product}{product} of the \l{Product::}{type}
-    \c android.apk that has a \l{Depends}{dependency} on
-    the \l{Module Android.sdk}{Android.sdk module}. The final build result is an Android
-    application package (APK) file.
+    \c android.apk that has a \l{Depends}{dependency} on the \l{Android.sdk}
+    module. The final build result is an Android application package (APK) file.
 
     Here is what the project file could look like for the BasicMediaDecoder
     example that comes with the Android SDK:

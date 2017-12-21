@@ -48,7 +48,7 @@
     for creating the final installation file.
 
     The build variant can also be specified explicitly by using the
-    \l{Module qbs}{qbs.buildVariant} property.
+    \l{qbs::buildVariant}{qbs.buildVariant} property.
 
     When naming configurations created for special purposes, follow the
     rules for legal names generally used in programming languages:

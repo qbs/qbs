@@ -67,9 +67,13 @@
 
 /*!
     \contentspage reference.html
-    \group list-of-modules
+    \qmlmodule QbsModules
     \title List of Modules
     These are the modules shipped with \QBS.
+
+    For a list of \QBS modules that provide support for Qt modules, see
+    \l{Qt Modules}. Only the Qt modules that have properties and relevant file
+    tags are described in separate topics.
 */
 
 /*!

@@ -44,8 +44,7 @@
     \list
         \li The \l{Product::type}{product.type} property value contains
             \c "android.nativelibrary" in addition to \c "dynamiclibrary".
-        \li There is a dependency on the \l{Module cpp}{cpp} and \l{Module Android.ndk}{Android.ndk}
-            modules.
+        \li There is a dependency on the \l{cpp} and \l{Android.ndk} modules.
     \endlist
 */
 

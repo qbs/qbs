@@ -30,8 +30,8 @@
 
     \note \QBS does not yet support the Swift programming language.
 
-    The \l{Module xcode}{xcode} module contains properties and rules for
-    Xcode-based development.
+    The \l{xcode} module contains properties and rules for Xcode-based
+    development.
 
 //! [xcode]
 
@@ -39,7 +39,7 @@
 
     \section1 Building User Interfaces
 
-    The \l{Module ib}{ib} module contains properties and rules for building
+    The \l{ib} module contains properties and rules for building
     Interface Builder documents, storyboards, asset catalogs, and icon sets.
 
 //! [building user interfaces]
@@ -48,13 +48,13 @@
 
     \section1 Creating App Bundles
 
-    The \l{Module bundle}{bundle} module contains properties and rules for
+    The \l{bundle} module contains properties and rules for
     building and working with Core Foundation bundles (application bundles and
     frameworks) on Apple platforms.
 
     To build an application product as a bundle, or a dynamic or static library
     product as a framework, add a dependency on the bundle module and set the
-    \c bundle.isBundle property to \c true:
+    \l{bundle::isBundle}{bundle.isBundle} property to \c true:
 
     \code
     Depends { name: "bundle" }

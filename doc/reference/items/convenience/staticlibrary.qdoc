@@ -47,8 +47,7 @@
 
     For Android targets, the following applies:
     \list
-        \li There is a dependency on the \l{Module cpp}{cpp} and \l{Module Android.ndk}{Android.ndk}
-            modules.
+        \li There is a dependency on the \l{cpp} and \l{Android.ndk} modules.
         \li There is an additional list property \c{"architectures"} that
             specifies for which architectures to build, with the default value
             \c{["armeabi"]}.

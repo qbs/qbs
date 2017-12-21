@@ -61,6 +61,41 @@
 */
 
 /*!
+    \externalpage  http://www.typescriptlang.org
+    \title TypeScript
+*/
+
+/*!
+    \externalpage http://www.typescriptlang.org/docs/handbook/compiler-options.html
+    \title Compiler Options
+*/
+
+/*!
+    \externalpage https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/dyld.1.html
+    \title DYLD documentation
+*/
+
+/*!
+    \externalpage https://dmgbuild.readthedocs.io/en/latest/settings.html#background
+    \title dmgbuild - Settings
+*/
+
+/*!
+    \externalpage http://www.jrsoftware.org/isinfo.php
+    \title Inno Setup
+*/
+
+/*!
+    \externalpage http://nodejs.org
+    \title Node.js
+*/
+
+/*!
+    \externalpage http://wixtoolset.org
+    \title Windows Installer XML Toolset
+*/
+
+/*!
     \externalpage nolink
     \title macOS
     \internal

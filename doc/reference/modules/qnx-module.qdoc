@@ -27,67 +27,59 @@
 
 /*!
     \contentspage index.html
-    \page qnx-module.html
-    \ingroup list-of-modules
+    \qmltype qnx
+    \inqmlmodule QbsModules
+    \since Qbs 1.8
 
-    \title Module qnx
-    \since 1.8
     \brief Provides support for building QNX applications using the QNX SDK.
 
     The \c qnx module contains properties and rules for QNX development.
     It has been tested with the QNX 6.5, 6.6, and 7.0 SDKs.
+*/
 
-    \section1 General Properties
+/*!
+    \qmlproperty string qnx::sdkDir
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li sdkDir
-        \li string
-        \li 1.8
-        \li determined automatically
-        \li The SDK base directory. By default it will be determined automatically if the QNX SDK
-            is installed at one of the standard locations, such as ~/qnx700, /opt/qnx700,
-            or C:\\qnx700
-    \row
-        \li configurationDir
-        \li string
-        \li 1.8
-        \li \c{~/.qnx}
-        \li The QNX configuration directory. Equivalent to the \c{QNX_CONFIGURATION} environment
-            variable.
-    \endtable
+    The SDK base directory.
 
-    \section1 Advanced Properties
+    \defaultvalue Determined automatically if the QNX SDK is installed at one of
+    the standard locations, such as \c ~/qnx700, \c /opt/qnx700, or
+    \c C:\\qnx700.
+*/
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li hostDir
-        \li string
-        \li 1.8
-        \li determined automatically
-        \li The QNX host directory. Equivalent to the \c{QNX_HOST} environment
-            variable. You should not normally need to set this property as it will be set to an
-            appropriate value based on your host operating system and the installed QNX SDK in
-            \c{qnx.sdkDir}.
-    \row
-        \li targetDir
-        \li string
-        \li 1.8
-        \li determined automatically
-        \li The QNX target directory. Equivalent to the \c{QNX_TARGET} environment
-            variable. You should not normally need to set this property as it will be set to an
-            appropriate value based on the installed QNX SDK in \c{qnx.sdkDir}.
-    \endtable
+/*!
+    \qmlproperty string qnx::configurationDir
+
+    The QNX configuration directory.
+
+    Equivalent to the \c{QNX_CONFIGURATION} environment variable.
+
+    \defaultvalue \c{~/.qnx}
+*/
+
+/*!
+    \qmlproperty string qnx::hostDir
+
+    The QNX host directory.
+
+    Equivalent to the \c{QNX_HOST} environment variable.
+
+    You should not normally need to set this property as it will be set to an
+    appropriate value based on your host operating system and the installed
+    QNX SDK in \l{qnx::}{sdkDir}.
+
+    \defaultvalue Determined automatically.
+*/
+
+/*!
+    \qmlproperty string qnx::targetDir
+
+    The QNX target directory.
+
+    Equivalent to the \c{QNX_TARGET} environment variable.
+
+    You should not normally need to set this property as it will be set to an
+    appropriate value based on the installed QNX SDK in \l{qnx::}{sdkDir}.
+
+    \defaultvalue Determined automatically.
 */

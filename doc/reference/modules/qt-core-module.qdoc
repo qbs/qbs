@@ -1,0 +1,422 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype Qt.core
+    \inqmlmodule QbsModules
+    \brief Provides Qt Core support.
+
+    All other Qt modules have a dependency on the Qt.core module, and therefore
+    you do not need to list it in your dependencies if you depend on at least
+    one other \l{Qt Modules}{Qt module}.
+
+    Some of the Qt.core properties only need to be defined if the respective
+    installation of Qt was built in some unusual way, for instance by setting
+    non-default \c configure flags.
+
+    \section2 Relevant File Tags
+    \target filetags-qtcore
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"qch"}
+        \li n/a
+        \li 1.1
+        \li This tag is attached to the output artifacts of the rule that runs the
+            \c qhelpgenerator tool.
+    \row
+        \li \c{"qdoc"}
+        \li \c{*.qdoc}
+        \li 1.1
+        \li Source files with this tag trigger a re-execution of the rule running the \c qdoc
+            tool when their timestamp changes.
+    \row
+        \li \c{"qdocconf"}
+        \li \c{*.qdocconf}
+        \li 1.1
+        \li Source files with this tag trigger a re-execution of the rule running the \c qdoc
+            tool when their timestamp changes.
+    \row
+        \li \c{"qdocconf-main"}
+        \li -
+        \li 1.1
+        \li Source files with this tag serve as inputs to the rule running the \c qdoc tool.
+    \row
+        \li \c{"qdoc-output"}
+        \li n/a
+        \li 1.5
+        \li Use this tag to match all \c qdoc outputs, for instance in a \l{Group}
+            using the \l{Group::fileTagsFilter}{group.fileTagsFilter} property.
+    \row
+        \li \c{"qhp"}
+        \li \c{*.qhp}
+        \li 1.1
+        \li Files with this tag serve as inputs to the rule running the \c qhelpgenerator tool.
+            Such files are created by \c qdoc, but can also appear as source files.
+    \row
+        \li \c{"qm"}
+        \li n/a
+        \li 1.1
+        \li This tag is attached to the output artifacts of the rule that runs the \c lrelease tool.
+    \row
+        \li \c{"qrc"}
+        \li \c{*.qrc}
+        \li 1.0
+        \li Files with this tag serve as inputs to the rule running the \c rcc tool.
+    \row
+        \li \c{"qt_plugin_metadata"}
+        \li -
+        \li 1.0
+        \li Source files with this tag trigger a re-execution of the rule running the \c moc
+            tool when their timestamp changes.
+    \row
+        \li \c{"qt.core.resource_data"}
+        \li -
+        \li 1.7
+        \li Source files with this tag serve as inputs to the rule creating \c qrc files.
+    \row
+        \li \c{"ts"}
+        \li \c{*.ts}
+        \li 1.0
+        \li Files with this tag serve as inputs to the rule running the \c lrelease tool.
+    \endtable
+*/
+
+/*!
+    \qmlproperty stringList Qt.core::availableBuildVariants
+
+    The build variants that this Qt installation offers.
+
+    \defaultvalue Set by \l{setup-qt}.
+*/
+
+/*!
+    \qmlproperty path Qt.core::binPath
+
+    The path in which Qt tools such as \c qmake, \c moc, and so on are located.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool Qt.core::combineMocOutput
+
+    Whether the C++ sources created by \c moc are combined into a single C++
+    file per product. For projects where many header files are to be handled by
+    \c moc, this can speed up compilation considerably. However, side effects
+    may occur as a result of merging translation units.
+
+    \defaultvalue \l{cpp::combineCxxSources}{cpp.combineCxxSources}
+*/
+
+/*!
+    \qmlproperty stringList Qt.core::config
+
+    Corresponds to the default value of qmake's \c CONFIG variable.
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty path Qt.core::docPath
+
+    The path in which the Qt documentation is located.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool Qt.core::enableKeywords
+
+    Set this property to \c false if you do not want Qt to define the symbols
+    \c {signals}, \c {slots}, and \c {emit}. This can be necessary if your
+    project interacts with code that also defines such symbols.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty bool Qt.core::frameworkBuild
+
+    Whether Qt was built as a framework. This is only relevant for Darwin
+    systems.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty path Qt.core::incPath
+
+    The base path of the Qt headers.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string Qt.core::libInfix
+
+    The library infix can be set at Qt build time to change the name of Qt's
+    libraries.
+
+    For example, if the infix is \c "Test", on Unix systems, the Qt Core library
+    will be in a file called \c{libQt5CoreTest.so} instead of the default
+    \c{libQt5Core.so}.
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty path Qt.core::libPath
+
+    The path in which the Qt libraries are located.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool Qt.core::lreleaseMultiplexMode
+
+    If this property is \c true, \c lrelease will merge all \c .ts files into
+    one \c .qm file. Otherwise, one \c .qm file will be created for each \c .ts
+    file.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty string Qt.core::lreleaseName
+
+    The base name of the \c lrelease tool. Set this if your system uses a name
+    such as \c "lrelease-qt4".
+
+    \defaultvalue \c{"lrelease"}
+*/
+
+/*!
+    \qmlproperty path Qt.core::mkspecPath
+
+    The path in which the Qt \c mkspecs are located.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList Qt.core::mocFlags
+
+    A list of additional flags to \c moc.
+
+    You will rarely need to set this property.
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty string Qt.core::mocName
+
+    The base name of the \c moc tool.
+
+    Set this if your system uses a name such as \c "moc-qt4".
+
+    \defaultvalue \c{"moc"}
+*/
+
+/*!
+    \qmlproperty string Qt.core::namespace
+
+    The Qt namespace that can be set at build time via the \c configure script.
+
+    By default, Qt is not built in a namespace.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList Qt.core::pluginMetaData
+
+    A list of additional plugin metadata.
+
+    The elements of the list are key-value pairs separated by the \c =
+    character.
+
+    A possible use case is to set the plugin URI when building a static QML
+    plugin:
+
+    \badcode
+    Qt.core.pluginMetaData: ["uri=thePlugin"]
+    \endcode
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty path Qt.core::pluginPath
+
+    The path in which the Qt plugins are located.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList Qt.core::qdocEnvironment
+
+    The environment for calls to \c qdoc. Typically, you will need to set some
+    variables here when running \c qdoc to build your project documentation.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string Qt.core::qdocName
+
+    The base name of the \c qdoc tool.
+
+    \defaultvalue \c{"qdoc3"} for Qt 4, \c{"qdoc"} otherwise.
+*/
+
+/*!
+    \qmlproperty string Qt.core::qmBaseName
+
+    The base name of the \c .qm file to be built from the \c .ts files in the
+    product.
+
+    This property is ignored if \l{Qt.core::}{lreleaseMultiplexMode} is \c false.
+
+    \defaultvalue \l{Product::targetName}{product.targetName}
+*/
+
+/*!
+    \qmlproperty string Qt.core::qtBuildVariant
+
+    Specifies the type of Qt libraries to build against: \c "debug" or
+    \c "release".
+
+    \note On some systems, it is not possible to link code built in debug mode
+    against libraries built in release mode and vice versa.
+
+    \defaultvalue The build variant of the code linking against Qt. If Qt does
+    not offer that build variant, the build variant offered by Qt is chosen
+    instead.
+*/
+
+/*!
+    \qmlproperty stringList Qt.core::qtConfig
+
+    Corresponds to the default value of qmake's \c QT_CONFIG variable.
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty path Qt.core::resourceSourceBase
+
+    For files tagged as \l{filetags-qtcore}{qt.core.resource_data}, this
+    property determines which part of their path will end up in the generated
+    \c .qrc file. If this property is set to \c undefined, only the file name is
+    used.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string Qt.core::resourcePrefix
+
+    For files tagged as \l{filetags-qtcore}{qt.core.resource_data}, this
+    property determines the prefix under which they will be available in the
+    generated \c .qrc file.
+
+    \defaultvalue \c{"/"}
+*/
+
+/*!
+    \qmlproperty string Qt.core::resourceFileBaseName
+
+    For files tagged as \l{filetags-qtcore}{qt.core.resource_data}, this
+    property determines the base name of the generated \c .qrc file.
+
+    If this property needs to be changed, it must be set in the corresponding
+    \l{Product}{product} rather than in a \l{Group}.
+
+    \defaultvalue \l{Product::targetName}{product.targetName}
+*/
+
+/*!
+    \qmlproperty bool Qt.core::staticBuild
+
+    Whether Qt was built statically.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string Qt.core::version
+
+    The Qt version.
+
+    Consists of three numbers separated by dots. For example "5.9.1".
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty int Qt.core::versionMajor
+
+    The Qt major version.
+
+    \defaultvalue \c{versionParts[0]}
+*/
+
+/*!
+    \qmlproperty int Qt.core::versionMinor
+
+    The Qt minor version.
+
+    \defaultvalue \c{versionParts[1]}
+*/
+
+/*!
+    \qmlproperty list Qt.core::versionParts
+
+    The Qt version as a list.
+
+    For example, Qt version 5.9.1 would correspond to a value of \c[5, 9, 1].
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty int Qt.core::versionPatch
+
+    The Qt patch level.
+
+    \defaultvalue \c{versionParts[2]}
+*/

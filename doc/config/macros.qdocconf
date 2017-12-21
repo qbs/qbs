@@ -1,4 +1,7 @@
 macro.QBS               = "Qbs"
 macro.qbsversion        = $QBS_VERSION
 macro.defaultvalue      = "Default:"
-macro.nodefaultvalue      = "Default: Undefined"
+macro.nodefaultvalue    = "Default: Undefined"
+macro.appleproperty     = "This property is specific to Apple platforms."
+macro.unixproperty      = "This property is specific to Unix platforms."
+macro.windowsproperty   = "This property is specific to Windows."

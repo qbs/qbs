@@ -37,7 +37,7 @@
     \brief C++ application.
 
     A CppApplication is a \l{Product}{product} that has a dependency on the
-    \l{Module cpp}{cpp} module. It is entirely equivalent to the following:
+    \l{cpp} module. It is entirely equivalent to the following:
 
     \code
     Application {

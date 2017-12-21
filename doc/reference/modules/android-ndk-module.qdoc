@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -27,11 +27,10 @@
 
 /*!
     \contentspage index.html
-    \page android-ndk-module.html
-    \ingroup list-of-modules
+    \qmltype Android.ndk
+    \inqmlmodule QbsModules
+    \since Qbs 1.4
 
-    \title Module Android.ndk
-    \since 1.4
     \brief Provides support for building native Android libraries.
 
     The \c Android.ndk module contains the properties and rules to create native libraries
@@ -39,8 +38,10 @@
 
     Normally, you will not use this module directly, but instead work
     with the \l{DynamicLibrary} and \l{StaticLibrary} items that \QBS provides.
-    Here is what the project file for the "hello-jni" example that comes with the NDK could look
-    like:
+
+    Here is what the project file for the \c hello-jni example that comes with
+    the NDK could look like:
+
     \code
         import qbs
 
@@ -59,45 +60,8 @@
         }
     \endcode
 
-    \section1 Android.ndk Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li abi
-        \li string
-        \li 1.4
-        \li undefined
-        \li The ABI name as it appears under "lib/" in the application package.
-            Corresponds to APP_ABI in Android.mk.
-    \row
-        \li appStl
-        \li string
-        \li 1.4
-        \li \c{"system"}
-        \li The library to use for C++. The possible values are: "system", "gabi++_static",
-            "gabi++_shared", "stlport_static", "stlport_shared", "gnustl_static", "gnustl_shared",
-            "c++_static", "c++_shared".
-    \row
-        \li ndkDir
-        \li path
-        \li 1.4
-        \li undefined
-        \li The NDK base directory.
-    \row
-        \li platform
-        \li string
-        \li 1.4
-        \li \c{"android-9"}
-        \li The versioned platform name.
-    \endtable
-
-    \section1 Relevant File Tags
+    \section2 Relevant File Tags
+    \target filetags-android-ndk
 
     \table
     \header
@@ -107,9 +71,53 @@
     \row
         \li \c{"android.nativelibrary"}
         \li 1.4.0
-        \li This tag is attached to dynamic libraries that will end up in APK packages.
-            You do not normally need to use the tag explicitly, as it is the default type of the
-            \l{DynamicLibrary} item for Android targets.
+        \li Attached to dynamic libraries that will end up in APK packages.
+            You do not normally need to use the tag explicitly, as it is the
+            default type of the \l{DynamicLibrary} item for Android targets.
     \endtable
+*/
 
+/*!
+    \qmlproperty string Android.ndk::abi
+
+    The ABI name as it appears under \c "lib/" in the application package.
+    Corresponds to \c APP_ABI in \c Android.mk.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string Android.ndk::appStl
+
+    The library to use for C++. The possible values are:
+
+    \list
+        \li \c "c++_shared"
+        \li \c "c++_static"
+        \li \c "gabi++_shared"
+        \li \c "gabi++_static"
+        \li \c "gnustl_shared"
+        \li \c "gnustl_static"
+        \li \c "stlport_shared"
+        \li \c "stlport_static"
+        \li \c "system"
+    \endlist
+
+    \defaultvalue \c{"system"}
+*/
+
+/*!
+    \qmlproperty path Android.ndk::ndkDir
+
+    The NDK base directory.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string Android.ndk::platform
+
+    The versioned platform name.
+
+    \defaultvalue \c{"android-9"}
 */

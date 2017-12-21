@@ -41,7 +41,7 @@
 
     \section1 Windows Resources
 
-    The \l{Module ico}{ico} module contains rules and properties for building
+    The \l{ico} module contains rules and properties for building
     Windows icon (.ico) and cursor (.cur) files from a set of raw PNGs.
 
     \section1 Universal Windows Platform
@@ -53,12 +53,13 @@
     Relevant properties include:
 
     \list
-        \li \c cpp.windowsApiFamily
-        \li \c cpp.windowsApiAdditionalPartitions
-        \li \c requireAppContainer
+        \li \l{cpp::windowsApiFamily}{cpp.windowsApiFamily}
+        \li \l{cpp::windowsApiAdditionalPartitions}
+            {cpp.windowsApiAdditionalPartitions}
+        \li \l{cpp::requireAppContainer}{cpp.requireAppContainer}
     \endlist
 
-    See the \l{Module cpp}{cpp} module for more information.
+    See the \l{cpp} module for more information.
 
     \note \QBS does not (and will not) support building Windows Runtime
     applications targeting Windows 8 or Windows 8.1. We encourage users to
@@ -71,8 +72,8 @@
     installers using a number of different technologies:
 
     \list
-        \li \l{Module innosetup}{innosetup} - Inno Setup
-        \li \l{Module nsis}{nsis} - Nullsoft Scriptable Install System
-        \li \l{Module wix}{wix} - Windows Installer XML Toolset
+        \li \l{innosetup} - Inno Setup
+        \li \l{nsis} - Nullsoft Scriptable Install System
+        \li \l{wix} - Windows Installer XML Toolset
     \endlist
 */

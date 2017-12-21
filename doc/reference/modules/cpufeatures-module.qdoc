@@ -27,17 +27,16 @@
 
 /*!
     \contentspage index.html
-    \page cpufeatures-module.html
-    \ingroup list-of-modules
+    \qmltype cpufeatures
+    \inqmlmodule QbsModules
+    \since Qbs 1.10
 
-    \title Module cpufeatures
-    \since 1.10
     \brief Provides support for fine-tuning CPU features
 
     The \c cpufeatures module offers properties for enabling or disabling specific CPU features.
     Use it if you want to override the compiler defaults for a given platform.
 
-    The compiler rules in the \l{Module cpp}{cpp module} evaluate this module's properties
+    The compiler rules in the \l{cpp} module evaluate this module's properties
     and generate matching compiler flags.
     All properties in this module are of type \c bool and have the following semantics:
     \list
@@ -50,142 +49,172 @@
         For example, disabling the property \c x86_sse2 would result in the GCC option
         \c{-no-msse2}.
     \endlist
+*/
 
-    \section1 cpufeatures Properties
+/*!
+    \qmlproperty bool cpufeatures::arm_neon
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li arm_neon
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use NEON instructions in ARM binaries.
-    \row
-        \li arm_vfpv4
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use VFPv4 instructions in ARM binaries.
-    \row
-        \li mips_dsp
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use DSP instructions in MIPS binaries.
-    \row
-        \li mips_dspr2
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use DSPr2 instructions in MIPS binaries.
-    \row
-        \li x86_avx
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use AVX instructions in x86 binaries.
-    \row
-        \li x86_avx2
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use AVX2 instructions in x86 binaries.
-    \row
-        \li x86_avx512bw
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use AVX-512-BW instructions in x86 binaries.
-    \row
-        \li x86_avx512cd
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use AVX-512-CD instructions in x86 binaries.
-    \row
-        \li x86_avx512dq
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use AVX-512-DQ instructions in x86 binaries.
-    \row
-        \li x86_avx512er
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use AVX-512-ER instructions in x86 binaries.
-    \row
-        \li x86_avx512f
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use AVX-512 instructions in x86 binaries.
-    \row
-        \li x86_avx512ifma
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use AVX-512-IFMA instructions in x86 binaries.
-    \row
-        \li x86_avx512pf
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use AVX-512-PF instructions in x86 binaries.
-    \row
-        \li x86_avx512vbmi
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use AVX-512-VBMI instructions in x86 binaries.
-    \row
-        \li x86_avx512vl
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use AVX-512-VL instructions in x86 binaries.
-    \row
-        \li x86_f16c
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use F16C instructions in x86 binaries.
-    \row
-        \li x86_sse2
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use SSE2 instructions in x86 binaries.
-    \row
-        \li x86_sse3
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use SSE3 instructions in x86 binaries.
-    \row
-        \li x86_ssse3
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use SSSE3 instructions in x86 binaries.
-    \row
-        \li x86_sse4_1
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use SSE4.1 instructions in x86 binaries.
-    \row
-        \li x86_sse4_2
-        \li bool
-        \li 1.10
-        \li undefined
-        \li Whether to use SSE4.2 instructions in x86 binaries.
-    \endtable
+    Whether to use NEON instructions in ARM binaries.
 
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::arm_vfpv4
+
+    Whether to use VFPv4 instructions in ARM binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::mips_dsp
+
+    Whether to use DSP instructions in MIPS binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::mips_dspr2
+
+    Whether to use DSPr2 instructions in MIPS binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_avx
+
+    Whether to use AVX instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_avx2
+
+    Whether to use AVX2 instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_avx512bw
+
+    Whether to use AVX-512-BW instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_avx512cd
+
+    Whether to use AVX-512-CD instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_avx512dq
+
+    Whether to use AVX-512-DQ instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_avx512er
+
+    Whether to use AVX-512-ER instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_avx512f
+
+    Whether to use AVX-512 instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_avx512ifma
+
+    Whether to use AVX-512-IFMA instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_avx512pf
+
+    Whether to use AVX-512-PF instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_avx512vbmi
+
+    Whether to use AVX-512-VBMI instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_avx512vl
+
+    Whether to use AVX-512-VL instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_f16c
+
+    Whether to use F16C instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_sse2
+
+    Whether to use SSE2 instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_sse3
+
+    Whether to use SSE3 instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_ssse3
+
+    Whether to use SSSE3 instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_sse4_1
+
+    Whether to use SSE4.1 instructions in x86 binaries.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool cpufeatures::x86_sse4_2
+
+    Whether to use SSE4.2 instructions in x86 binaries.
+
+    \nodefaultvalue
 */

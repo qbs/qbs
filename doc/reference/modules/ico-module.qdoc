@@ -27,81 +27,22 @@
 
 /*!
     \contentspage index.html
-    \page ico-module.html
-    \ingroup list-of-modules
+    \qmltype ico
+    \inqmlmodule QbsModules
+    \since Qbs 1.11
 
-    \title Module ico
-    \since 1.11
     \brief Provides support for building ICO (.ico) and CUR (.cur) files.
 
     The \c ico module contains properties and rules for building
     Microsoft Windows Icon (.ico) and Microsoft Windows Cursor (.cur) files.
 
     \note This module relies on the \c icotool command-line tool from the
-    icotools package, which must be installed separately and found in the
-    \c PATH or an appropriate system binaries directory for your system (e.g.
-    \c /usr/bin or \c /usr/local/bin).
+    \c icotools package, which must be installed separately and found in the
+    \c PATH or an appropriate system binaries directory for your system (for
+    example, \c /usr/bin or \c /usr/local/bin).
 
-    \section1 General Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li cursorHotspotX
-        \li \c{int}
-        \li 1.11
-        \li \c{undefined}
-        \li Cursor hotspot X coordinate. Only relevant when building .cur files.
-            This must be set individually for each input PNG file.
-            \note icoutils version 0.32 or greater is required to set the
-            hotspot in cursor files with multiple images.
-    \row
-        \li cursorHotspotY
-        \li \c{int}
-        \li 1.11
-        \li \c{undefined}
-        \li Cursor hotspot Y coordinate. Only relevant when building .cur files.
-            This must be set individually for each input PNG file.
-            \note icoutils version 0.32 or greater is required to set the
-            hotspot in cursor files with multiple images.
-    \row
-        \li raw
-        \li \c{bool}
-        \li 1.11
-        \li \c{false}
-        \li Whether to store the input file as a raw PNG,
-            as supported in Windows Vista.
-            Only relevant when building .ico files.
-            This must be set individually for each input PNG file.
-            It is only recommended to set this value for icon sizes
-            larger than or equal to 256x256.
-    \endtable
-
-    \section1 Advanced Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Since
-        \li Default
-        \li Description
-    \row
-        \li icotoolFilePath
-        \li \c{string}
-        \li 1.11
-        \li determined automatically
-        \li Full path of the \c icotool binary.
-            This should not normally need to be changed if \QBS was able to
-            automatically detect it.
-    \endtable
-
-    \section1 Relevant File Tags
+    \section2 Relevant File Tags
+    \target filetags-ico
 
     \table
     \header
@@ -126,6 +67,58 @@
         \li \c{"*.png"}
         \li 1.11
         \li Source files with this tag indicate PNG files
-            which are used as inputs to create ico or cur files.
+            which are used as inputs to create icon or cursor files.
     \endtable
+*/
+
+/*!
+    \qmlproperty int ico::cursorHotspotX
+
+    The cursor hotspot x coordinate. Only relevant when building .cur files.
+
+    This property must be set individually for each input PNG file.
+
+    \note \c icoutils version 0.32 or greater is required to set the
+    hotspot in cursor files with multiple images.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty int ico::cursorHotspotY
+
+    The cursor hotspot y coordinate. Only relevant when building .cur files.
+
+    This property must be set individually for each input PNG file.
+
+    \note \c icoutils version 0.32 or greater is required to set the
+    hotspot in cursor files with multiple images.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool ico::raw
+
+    Whether to store the input file as a raw PNG, as supported in Windows Vista.
+
+    Only relevant when building .ico files.
+
+    This property must be set individually for each input PNG file.
+
+    It is recommended to set this value only for icon sizes larger than or equal
+    to 256x256.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty string ico::icotoolFilePath
+
+    The full path of the \c icotool binary.
+
+    This property should not normally need to be changed if \QBS was able to
+    automatically detect it.
+
+    \defaultvalue Determined automatically.
 */
