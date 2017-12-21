@@ -212,7 +212,7 @@
 */
 
 /*!
-    \qmlproperty object java::manifest
+    \qmlproperty var java::manifest
     \since Qbs 1.4.2
 
     The properties to add to the manifest file when building a JAR.

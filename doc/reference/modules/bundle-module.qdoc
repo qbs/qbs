@@ -215,7 +215,7 @@
 */
 
 /*!
-    \qmlproperty object bundle::infoPlist
+    \qmlproperty var bundle::infoPlist
 
     A dictionary of key-value pairs to add to the bundle's \c Info.plist.
 

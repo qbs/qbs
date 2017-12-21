@@ -252,7 +252,7 @@
 */
 
 /*!
-    \qmlproperty array Rule::outputArtifacts
+    \qmlproperty var Rule::outputArtifacts
 
     An array of output artifacts, specified as JavaScript objects.
 
