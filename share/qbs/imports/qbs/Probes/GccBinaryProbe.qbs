@@ -1,4 +1,6 @@
 import qbs
+import qbs.Environment
+import qbs.FileInfo
 import "path-probe.js" as PathProbeConfigure
 
 BinaryProbe {
