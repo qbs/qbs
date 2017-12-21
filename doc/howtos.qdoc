@@ -102,7 +102,7 @@
     \l{Rule}{rule} in the \l{cpp} module considers library dependencies as inputs).
     \note In a non-trivial project, the two products would not be defined in the same file.
           Instead, you would put them into files of their own and use the
-          \l{Project::references}{project.references} property to pull them into the project.
+          \l{Project::references}{Project.references} property to pull them into the project.
           The product definitions would stay exactly the same. In particular, their location
           in the project tree is irrelevant to the relationship between them.
 
@@ -195,17 +195,18 @@
     }
     \endcode
 
-    \QBS also supports building static frameworks - you can create one by replacing
-    \c DynamicLibrary with \c StaticLibrary in the example above.
+    \QBS also supports building static frameworks. You can create one by
+    replacing the \l{DynamicLibrary} item with a \l{StaticLibrary} item in the
+    example above.
 
-    \note When using the \c Application or \c Library templates (or derived templates like
-    \c CppApplication, \c DynamicLibrary, and \c StaticLibrary),
-    your products will build as bundles on Apple platforms by default (this behavior is subject to
-    change in a future release).
+    \note When using the \l{Application} item (or convenience items, such as
+    \l{CppApplication}, \l{DynamicLibrary}, and \l{StaticLibrary}), your
+    products will be built as bundles on Apple platforms by default (this
+    behavior is subject to change in a future release).
 
     To explicitly control whether your product is built as a bundle, set the \c bundle.isBundle
-    property. Setting the \c consoleApplication property of your product will also influence whether
-    your product is built as a bundle.
+    property. Setting the \l{Product::}{consoleApplication} property of your
+    product will also influence whether your product is built as a bundle.
 
     Building your application against your framework is the same as linking a normal dynamic or
     static library; see the \l{How do I make my app build against my library?} section for an

@@ -276,7 +276,7 @@
     name.
 
     The user may set the property \c{explicitlyDependsOn} on artifact objects, which is
-    similar to \c{Rule.explicitlyDependsOn}.
+    similar to \l{Rule::explicitlyDependsOn}{Rule.explicitlyDependsOn}.
 
     \nodefaultvalue
 */

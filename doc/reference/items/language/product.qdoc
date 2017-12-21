@@ -48,15 +48,15 @@
     \endcode
     The \l{type} property specifies what will be built (an executable). The
     \l{files} property specifies the input files (one C++ source file), and the
-    \l{Depends} item pulls in the logic from the \c cpp module
+    \l{Depends} item pulls in the logic from the \l{cpp} module
     about how to do the necessary transformations.
     For some often-used types of products, \QBS pre-defines special derived items that save
     users some typing. These are:
     \list
-        \li Application
-        \li CppApplication
-        \li DynamicLibrary
-        \li StaticLibrary
+        \li \l{Application}
+        \li \l{CppApplication}
+        \li \l{DynamicLibrary}
+        \li \l{StaticLibrary}
     \endlist
     Therefore, the above example could also be written like this:
     \code
@@ -243,8 +243,16 @@
 /*!
     \qmlproperty stringList Product::multiplexByQbsProperties
 
-    Specifies which properties of the qbs module will be used for product multiplexing.
-    Its value must be a subset of \c{["architectures", "buildVariants", "profiles"]}.
+    Specifies which properties of the \l{qbs} module will be used for product
+    multiplexing:
+
+    \list
+        \li \l{qbs::architectures}{architectures}
+        \li \l{qbs::buildVariants}{buildVariants}
+        \li \l{qbs::profiles}{profiles}
+    \endlist
+
+    The value must be a subset of the above values.
 
     \note If you do not want to do multiplexing, you can use the default value
     \c{["profiles"]}.

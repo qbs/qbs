@@ -189,7 +189,7 @@
     watchOS, QNX, and FreeBSD, as well as for cross-compilation. It can be
     easily extended to support further platforms.
 
-    Invoking \c {qbs build} from the command line automatically builds the
+    Invoking \l{build}{qbs build} from the command line automatically builds the
     project for the current host platform using the best available toolchain and
     settings, unless a default profile is set. You can configure additional
     profiles for each toolchain you want to use and select the profile to use
@@ -212,7 +212,7 @@
     that the C++ sources are compiled and linked into a binary.
 
     Alternatively, you could use the \l{CppApplication}
-    convenience item that implies a dependency on the \c cpp module:
+    convenience item that implies a dependency on the \l{cpp} module:
 
     \code
     CppApplication {
@@ -286,9 +286,9 @@
 
     You store the custom modules and items in a subdirectory of the project
     directory and specify the path to the subdirectory as a value of the
-    \c qbsSearchPaths property. For example, if the custom module is located at
-    \c my-modules/modules/modulename/modulename.qbs, you would specify it in the
-    project file as follows:
+    \l{Project::}{qbsSearchPaths} property. For example, if the custom module is
+    located at \c my-modules/modules/modulename/modulename.qbs, you would
+    specify it in the project file as follows:
 
     \code
     Project {
@@ -323,9 +323,9 @@
 
     \image qbs-build-process.png
 
-    The build process of a product starts by examining the \c type property of
-    the product. It contains a list of \e {file tags} that are similar to MIME
-    types.
+    The build process of a product starts by examining the \l{Product::}{type}
+    property of the product. It contains a list of \e {file tags} that are
+    similar to MIME types.
 
     The following example product contains one file tag, \e application:
 
@@ -369,7 +369,7 @@
 
     There is no rule in the current context that produces \c .cpp files, but
     we have defined \c .cpp files as inputs for the product. When we added a
-    dependency on the \c cpp module, that dependency also pulled in another \QBS
+    dependency on the \l{cpp} module, that dependency also pulled in another \QBS
     primitive called the \l{FileTagger}{file tagger}. The file tagger
     looked for files matching the pattern \c *.cpp, and then applied the \c cpp
     tag to those input files:
@@ -928,8 +928,9 @@
         }
     \endcode
 
-    A module can implicitly depend on other modules. For example, the \c Qt.core module depends
-    on \c{cpp}. But to set the properties of a module you must make the dependency explicit.
+    A module can implicitly depend on other modules. For example, the
+    \l{Qt.core} module depends on the \l{cpp} module. However, to set the
+    properties of a module, you must make the dependency explicit.
 
     \code
         // THIS DOES NOT WORK
@@ -994,38 +995,18 @@
         }
     \endcode
 
-    In the above example, \a qbs.targetOS is a property of the \a target of the the \a qbs
-    module. The \a qbs module is always implicitly loaded. Its main properties
-    are:
+    In the above example, \l{qbs::targetOS}{qbs.targetOS} is a property of the
+    target of the the \l{qbs} module. The \c qbs module is always implicitly
+    loaded. Its main properties are:
 
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li buildVariant
-        \li string
-        \li "debug"
-        \li Name of the current build variant. By default, "debug" and "release"
-        are valid values but the user can add more in a project file.
-    \row
-        \li hostOS
-        \li stringlist
-        \li platform-dependent
-        \li The host operating system.
-            May contain "windows", "linux", "macos", "darwin", "unix", etc.
-            \note Do not confuse this with the \c{qbs.targetOS} property, which represents the
-            operating system on which the binaries produced by \QBS will run.
-    \row
-        \li targetOS
-        \li stringlist
-        \li platform-dependent
-        \li The target operating system.
-            May contain "windows", "linux", "macos", "darwin", "unix",
-            "ios", "android", "qnx", etc.
-    \endtable
+    \list
+        \li \l{qbs::}{buildVariant} that specifies the name of the build variant
+            for the current build.
+        \li \l{qbs::}{hostOS} that is set by \QBS internally and specifies the
+            operating system \QBS is running on.
+        \li \l{qbs::}{targetOS} that specifies the operating system you want to
+            build the project for.
+    \endlist
 
     You can set these properties on the command line or by using a profile.
 
@@ -1240,7 +1221,7 @@
     The application is built using the default build profile that is set up
     in your \QBS configuration.
 
-    You can use the \c config command to set the max number of jobs per profile.
+    You can use the \l{config} command to set the max number of jobs per profile.
     For example, to set four jobs as the default option for a profile named
     \e Android, enter the following command:
 
@@ -1249,7 +1230,7 @@
     \endcode
 
     To build with other profiles than the default one, specify options for the
-    build command. For example, to build debug and release configurations with
+    \l{build} command. For example, to build debug and release configurations with
     the \e Android profile, enter the following command:
 
     \code
@@ -1262,9 +1243,9 @@
 
     To set a property just for one build configuration, place the assignment after
     the build configuration name.
-    In the following example, the property \c cpp.treatWarningsAsErrors is
-    set to \c true for debug only and \c cpp.optimization is set to
-    \c small for release only.
+    In the following example, the property \l{cpp::treatWarningsAsErrors}
+    {cpp.treatWarningsAsErrors} is set to \c true for debug only and
+    \l{cpp::optimization}{cpp.optimization} is set to \c small for release only.
 
     \code
     qbs build debug modules.cpp.treatWarningsAsErrors:true release modules.cpp.optimization:small
@@ -1305,10 +1286,12 @@
     qbs --clean-install-root qbs.installRoot:/tmp/myProjectRoot
     \endcode
 
-    Here, we want the installDir properties from the project file to be interpreted relative
-    to the directory \c{/tmp/myProjectRoot}, and we want that directory to be removed first.
-    If the \c{qbs.installRoot} property is not given, a default is used, namely
-    \c{<build root>/install-root}.
+    Here, we want the \c installDir properties from the project file to be
+    interpreted relative to the directory \c{/tmp/myProjectRoot}, and we want
+    that directory to be removed first.
+
+    If the \l{qbs::installRoot}{qbs.installRoot} property is not given, a
+    default is used, namely \c{<build root>/install-root}.
 */
 
 /*!
@@ -1405,16 +1388,19 @@
         // ..
     }
     \endcode
-    \note For technical reasons, the custom modules and items will not be available in the file
-          that contains the \c qbsSearchPaths property. Any product that wants
-          to make use of them needs to be in a different file that is pulled in
-          via the \c references property, for example. This is not a serious limitation, since
-          every well-structured project will be split up in this manner.
+    \note For technical reasons, the custom modules and items will not be
+    available in the file that contains the \l{Project::qbsSearchPaths}
+    {Project.qbsSearchPaths} property. Any product that wants to make use of
+    them needs to be in a different file that is pulled in via the
+    \l{Project::references}{Project.references} property, for example.
+    This is not a serious limitation, since every well-structured project will
+    be split up in this manner.
 
     \section2 Making Custom Modules and Items Available Across Projects
 
     What if your modules and items are generally useful and you want to access them in several
-    projects? In this case, it's best to add the location to your preferences. For example:
+    projects? In this case, it is best to add the location to your preferences.
+    For example:
     \code
     qbs config preferences.qbsSearchPaths /usr/local/share/custom-qbs-extensions
     \endcode
@@ -1436,8 +1422,9 @@
 
     \section1 Generating Projects
 
-    To generate a project for another build system, such as Microsoft Visual Studio, use the
-    \c qbs-generate sub-command and specify a generator using the \c{-g} option. For example:
+    To generate a project for another build system, such as Microsoft Visual
+    Studio, use the \l{generate}{qbs generate} command and specify a generator
+    using the \c{-g} option. For example:
 
     \code
     # For Visual Studio
@@ -1497,13 +1484,13 @@
     The properties to which the limitation applies includes but is not limited to:
 
     \list
-        \li \l{Product::name}{product.name}
+        \li \l{Product::name}{Product.name}
         \li \l{bundle::isBundle}{bundle.isBundle}
     \endlist
 
     If a simple workaround is possible in a particular case (for example,
-    varying \l{Product::targetName}{product.targetName} across configuration
-    instead of \l{Product::name}{product.name}, the generator will typically
+    varying \l{Product::targetName}{Product.targetName} across configuration
+    instead of \l{Product::name}{Product.name}, the generator will typically
     suggest it in the error message.
 */
 
@@ -1528,14 +1515,16 @@
     creation of Android application and library packages containing native
     code built for multiple Android ABIs.
 
-    A product can be multiplexed over the \c qbs.architectures property (which
-    maps to \c qbs.architecture), \c qbs.buildVariants property (which maps to
-    \c qbs.buildVariant), and \c qbs.profiles (which maps to \c qbs.profile).
+    A product can be multiplexed over the \l{qbs::architectures}
+    {qbs.architectures} property (which maps to \l{qbs::architecture}
+    {qbs.architecture}), \l{qbs::buildVariants}{qbs.buildVariants} property
+    (which maps to \l{qbs::buildVariant}{qbs.buildVariant}), and \l{qbs::profiles}
+    {qbs.profiles} (which maps to \l{Project::profile}{Project.profile}).
 
     \note The implementation details around multiplexing are subject to change.
 
     Product multiplexing works by examining the
-    \l{Product::multiplexByQbsProperties}{product.multiplexByQbsProperties}
+    \l{Product::multiplexByQbsProperties}{Product.multiplexByQbsProperties}
     property, which can
     be set to the list of properties your product should multiplex over. For
     example, \c multiplexByQbsProperties might contain two strings,
@@ -1545,7 +1534,7 @@
     all the possible configurations of the product: \c {(x86, debug)},
     \c {(x86, release)}, \c {(x86_64, debug)}, and \c {(x86_64, release)}.
 
-    If the \l{Product::aggregate}{product.aggregate} property is \c true, the
+    If the \l{Product::aggregate}{Product.aggregate} property is \c true, the
     product will also be
     built a fifth time, with the values of the multiplexed properties left
     undefined. The aggregate product will have an automatic dependency on the
