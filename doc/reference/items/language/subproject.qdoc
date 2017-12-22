@@ -45,8 +45,10 @@
     }
     \endcode
 
-    If you don't need to set any properties on the sub-project, you can also use the \c references
-    property, the same way you would do for a product:
+    If you do not need to set any properties on the sub-project, you can also
+    use the \l{Project::references}{Project.references} property, the same way
+    you would for a product:
+
     \code
     references: "subdir/project.qbs"
     \endcode

@@ -170,8 +170,8 @@
     Here's how this product is built:
     \list 1
         \li \QBS looks for a rule that can produce artifacts with the file tag
-            \c{"application"}. Such a rule is found in the \c cpp module (namely, the rule that
-            invokes the linker).
+            \c{"application"}. Such a rule is found in the \l{cpp} module
+            (namely, the rule that invokes the linker).
         \li Since the rule found in the previous step takes inputs of type \c{"obj"}, \QBS now
             looks for a rule that produces artifacts of that type. Again, such a rule is found in
             the \c cpp module (the rule that runs the compiler).

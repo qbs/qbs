@@ -52,8 +52,8 @@
     }
     \endcode
 
-    Every dependency on \e{foo} has the parameter \c{cpp.link} set to
-    \c{false} by default.
+    Every dependency on \e{foo} has the parameter \l{dependency-parameters-cpp}
+    {cpp.link} set to \c{false} by default.
 
     This can be overridden explicitly:
     \code

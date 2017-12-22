@@ -47,7 +47,7 @@
     be copied into the disk image, provided their file paths are relative to the
     path specified by the \l{sourceBase} property (that is, are located in that
     directory). Any artifacts tagged \c{"installable"} that are not relative to
-    \c{sourceBase} will be ignored.
+    \l{sourceBase} will be ignored.
 
     Here is what the project file could look like for a simple DMG installer:
     \code
@@ -80,7 +80,8 @@
     \qmlproperty string AppleApplicationDiskImage::sourceBase
 
     The base directory from which artifacts installed into the disk image will be copied.
-    This directory is always considered to be relative to \c{qbs.installRoot}.
+    This directory is always considered to be relative to \l{qbs::installRoot}
+    {qbs.installRoot}.
     For example, if the application Example.app exists at
     \c{qbs.installRoot/Applications/Example.app}, and the value of this property
     is \c{"/Applications"}, the application will be located at\c{/Example.app}

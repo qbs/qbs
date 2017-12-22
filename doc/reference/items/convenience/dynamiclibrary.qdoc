@@ -42,7 +42,7 @@
 
     For Android targets, the following applies:
     \list
-        \li The \l{Product::type}{product.type} property value contains
+        \li The \l{Product::type}{Product.type} property value contains
             \c "android.nativelibrary" in addition to \c "dynamiclibrary".
         \li There is a dependency on the \l{cpp} and \l{Android.ndk} modules.
     \endlist

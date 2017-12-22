@@ -47,5 +47,5 @@
     Whether or not to add a depencency to the default QPA plugin. The default is
     to do that in the case of a static build, where it is normally required.
 
-    \defaultvalue \c Qt.core.staticBuild
+    \defaultvalue \l{Qt.core::staticBuild}{Qt.core.staticBuild}
 */

@@ -37,8 +37,10 @@
 
     A Depends item can appear inside a \l{Product} or \l{Module} item.
 
-    For example, the following product will load the \c cpp module. In addition, it will try
-    to load modules that may or may not exist, and in the latter case use a fallback.
+    For example, the following product will load the \l{cpp} module. In
+    addition, it will try to load modules that may or may not exist, and in the
+    latter case use a fallback.
+
     \code
     Product {
         Depends { name: "cpp" }
@@ -65,11 +67,12 @@
     \section1 Dependency Parameters
 
     Sometimes it is desirable to have certain dependencies handled differently
-    than others.  For example, one might want to depend on a dynamic library
+    than others. For example, one might want to depend on a dynamic library
     without linking it.
 
-    This can be done by setting the parameter \c{cpp.link} to \c{true} in the
-    dynamic library dependency:
+    This can be done by setting the \l{dependency-parameters-cpp}{cpp.link}
+    dependency parameter to \c{true} in the dynamic library dependency:
+
     \code
     Product {
         Depends { name: "cpp" }
@@ -83,8 +86,8 @@
     within Depends and \l [QML] {Parameters} items. Dependency parameters are
     declared in the modules they belong to.
 
-    In the example above, the \c{cpp} module declares the parameter \c{link}.
-    The \c{Depends} item for \e{some_dynamic_lib} sets \c{cpp.link} to
+    In the example above, the \l{cpp} module declares the parameter \c{link}.
+    The Depends item for \c{some_dynamic_lib} sets \c{cpp.link} to
     \c{false}, which tells the linker rule to ignore this particular dependency.
 */
 
@@ -138,8 +141,8 @@
     Setting this property to \c false creates a \e{soft dependency}, meaning
     that it is not considered an error if the given module cannot be found.
     In such a case, an instance of the respective module will be created, but
-    only the \c present property will be available for querying, and it will be
-    set to \c false.
+    only the \l{Module::present}{Module.present} property will be available for
+    querying, and it will be set to \c false.
 
     \defaultvalue \c true
 */
@@ -161,7 +164,7 @@
     more than one profile, you can specify here which instance of the product
     the dependency is on.
 
-    See the \c profiles property of the \l{qbs} module for more information.
+    See the \l{qbs::profiles}{qbs.profiles} property for more information.
     An empty list means a dependency on all instances of the product with the given name,
     regardless of their profile.
 
