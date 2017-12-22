@@ -1530,17 +1530,18 @@ static void mergeParameters(QVariantMap &dst, const QVariantMap &src)
     }
 }
 
-static void adjustParametersItemTypes(Item *item)
+static void adjustParametersItemTypesAndScopes(Item *item, Item *scope)
 {
     if (item->type() == ItemType::ModuleInstance) {
         item->setType(ItemType::ModuleParameters);
+        item->setScope(scope);
         return;
     }
 
     for (auto value : item->properties()) {
         if (value->type() != Value::ItemValueType)
             continue;
-        adjustParametersItemTypes(std::static_pointer_cast<ItemValue>(value)->item());
+        adjustParametersItemTypesAndScopes(std::static_pointer_cast<ItemValue>(value)->item(), scope);
     }
 }
 
@@ -1582,7 +1583,7 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
         filesWithExportItem += exportItem->file();
         for (Item * const child : exportItem->children()) {
             if (child->type() == ItemType::Parameters) {
-                adjustParametersItemTypes(child);
+                adjustParametersItemTypesAndScopes(child, child);
                 mergeParameters(pmi.defaultParameters,
                                 m_evaluator->scriptValue(child).toVariant().toMap());
             } else {
@@ -1985,7 +1986,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     for (Item * const dependsItem : dependsItemPerLoadedModule) {
         if (dependsItem == lastDependsItem)
             continue;
-        adjustParametersItemTypes(dependsItem);
+        adjustParametersItemTypesAndScopes(dependsItem, dependsItem);
         forwardParameterDeclarations(dependsItem, loadedModules);
         lastDependsItem = dependsItem;
     }
@@ -3031,23 +3032,7 @@ void ModuleLoader::setScopeForDescendants(Item *item, Item *scope)
 {
     for (Item * const child : item->children()) {
         child->setScope(scope);
-        if (child->type() == ItemType::Depends)
-            forwardScopeToItemValues(child, scope);
         setScopeForDescendants(child, scope);
-    }
-}
-
-void ModuleLoader::forwardScopeToItemValues(Item *item, Item *scope)
-{
-    const auto &itemProperties = item->properties();
-    for (const ValuePtr &v : itemProperties) {
-        if (v->type() != Value::ItemValueType)
-            continue;
-        Item *k = std::static_pointer_cast<ItemValue>(v)->item();
-        if (k->type() == ItemType::ModulePrefix)
-            forwardScopeToItemValues(k, scope);
-        else
-            k->setScope(scope);
     }
 }
 
