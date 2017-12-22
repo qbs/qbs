@@ -41,8 +41,6 @@ GenericGCC {
                qbs.toolchain && qbs.toolchain.contains("mingw")
     priority: 0
     staticLibraryPrefix: "lib"
-    dynamicLibraryPrefix: ""
-    executablePrefix: ""
     staticLibrarySuffix: ".a"
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"

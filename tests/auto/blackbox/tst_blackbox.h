@@ -87,6 +87,7 @@ private slots:
     void enableExceptions_data();
     void enableRtti();
     void envMerging();
+    void envNormalization();
     void erroneousFiles_data();
     void erroneousFiles();
     void errorInfo();
