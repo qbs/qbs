@@ -38,8 +38,50 @@
 
     \section2 Installation Properties
 
-    For more information about the properties that are specific to the \QBS
-    installation mechanism, see \l{Installing Files}.
+    Typically, you use \l{Group} items to specify the target directories for
+    installing files. To install a group of files, set the \l{qbs::install}
+    {qbs.install} property of the Group to \c true. The value of
+    \l{qbs::installDir}{qbs.installDir} specifies the path to the directory
+    where the files will be installed. You can specify a base directory for all
+    installation directories as the value of \l{qbs::installPrefix}
+    {qbs.installPrefix}.
+
+    For example, the following properties specify where a set of QML files and
+    an application executable are installed on Windows and Linux:
+
+    \badcode
+    Application {
+        name: "myapp"
+        Group {
+            name: "Runtime resources"
+            files: "*.qml"
+            qbs.install: true
+            qbs.installDir: condition: qbs.targetOS.contains("unix")
+                ? "share/myapp" : "resources"
+        }
+        Group {
+            name: "The App itself"
+            fileTagsFilter: "application"
+            qbs.install: true
+            qbs.installDir: "bin"
+        }
+        qbs.installPrefix: condition: qbs.targetOS.contains("unix")
+            ? "usr/local" : "MyApp"
+    }
+    \endcode
+
+    On Windows, the QML files will ultimately get installed in
+    \c{MyApp\resources} and the application executable in \c MyApp\bin,
+    for instance under \c{C:\Program Files}. On Linux, the QML files will be
+    installed in \c /usr/local/share/myapp and the executable in
+    \c /usr/local/bin.
+
+    By default, \l{qbs::installRoot}{qbs.installRoot} creates the
+    \c install-root directory in the build directory for packaging the binaries
+    before installation. It is a temporary directory that is usually not
+    available when the application is run, and it should therefore not be set in
+    the project files. You can override the default value from the command line,
+    as described in \l{Installing Files}.
 
     \section2 Multiplexing Properties
 

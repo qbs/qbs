@@ -1292,6 +1292,9 @@
 
     If the \l{qbs::installRoot}{qbs.installRoot} property is not given, a
     default is used, namely \c{<build root>/install-root}.
+
+    For more information about how the installation path is constructed, see
+    \l {Installation Properties}.
 */
 
 /*!
