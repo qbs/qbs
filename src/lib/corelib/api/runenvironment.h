@@ -46,6 +46,7 @@
 #include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
+class QProcess;
 class QProcessEnvironment;
 class QString;
 class QStringList;
@@ -69,7 +70,7 @@ public:
     ~RunEnvironment();
 
     int runShell(ErrorInfo *error = nullptr);
-    int runTarget(const QString &targetBin, const QStringList &arguments,
+    int runTarget(const QString &targetBin, const QStringList &arguments, bool dryRun,
                   ErrorInfo *error = nullptr);
 
     const QProcessEnvironment runEnvironment(ErrorInfo *error = nullptr) const;
@@ -85,7 +86,8 @@ private:
                    const Internal::Logger &logger);
 
     int doRunShell();
-    int doRunTarget(const QString &targetBin, const QStringList &arguments);
+    int doRunTarget(const QString &targetBin, const QStringList &arguments, bool dryRun);
+    void printStartInfo(const QProcess &proc, bool dryRun);
 
     const QProcessEnvironment getRunEnvironment() const;
     const QProcessEnvironment getBuildEnvironment() const;

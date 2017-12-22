@@ -2190,6 +2190,14 @@ void TestBlackbox::setupRunEnvironment()
     QVERIFY(runQbs(QbsRunParameters(failParams)) != 0);
     QVERIFY2(failParams.expectCrash || m_qbsStderr.contains("lib"), m_qbsStderr.constData());
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
+    QbsRunParameters dryRunParams("run", QStringList("--dry-run"));
+    dryRunParams.buildDirectory = "dryrun";
+    QCOMPARE(runQbs(dryRunParams), 0);
+    const QString appFilePath = QDir::currentPath() + "/dryrun/"
+            + relativeExecutableFilePath("app");
+    QVERIFY2(m_qbsStdout.contains("Would start target")
+             && m_qbsStdout.contains(QDir::toNativeSeparators(appFilePath).toLocal8Bit()),
+             m_qbsStdout.constData());
 }
 
 void TestBlackbox::smartRelinking()

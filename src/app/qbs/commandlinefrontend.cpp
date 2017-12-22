@@ -549,7 +549,7 @@ int CommandLineFrontend::runTarget()
     RunEnvironment runEnvironment = m_projects.front().getRunEnvironment(productToRun,
             m_parser.installOptions(m_projects.front().profile()),
             QProcessEnvironment::systemEnvironment(), m_parser.runEnvConfig(), m_settings);
-    return runEnvironment.doRunTarget(executableFilePath, m_parser.runArgs());
+    return runEnvironment.doRunTarget(executableFilePath, m_parser.runArgs(), m_parser.dryRun());
 }
 
 void CommandLineFrontend::updateTimestamps()

@@ -120,11 +120,11 @@ int RunEnvironment::runShell(ErrorInfo *error)
     }
 }
 
-int RunEnvironment::runTarget(const QString &targetBin, const QStringList &arguments,
+int RunEnvironment::runTarget(const QString &targetBin, const QStringList &arguments, bool dryRun,
                               ErrorInfo *error)
 {
     try {
-        return doRunTarget(targetBin, arguments);
+        return doRunTarget(targetBin, arguments, dryRun);
     } catch (const ErrorInfo &e) {
         if (error)
             *error = e;
@@ -263,7 +263,16 @@ static QString findMainIntent(const QString &aapt, const QString &apkFilePath)
     return QString();
 }
 
-int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arguments)
+void RunEnvironment::printStartInfo(const QProcess &proc, bool dryRun)
+{
+    QString message = dryRun ? Tr::tr("Would start target.") : Tr::tr("Starting target.");
+    message.append(QLatin1Char(' ')).append(Tr::tr("Full command line: %1")
+            .arg(shellQuote(QStringList(QDir::toNativeSeparators(proc.program()))
+                            << proc.arguments())));
+    d->logger.qbsInfo() << message;
+}
+
+int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arguments, bool dryRun)
 {
     const QStringList targetOS = d->resolvedProduct->moduleProperties->qbsPropertyValue(
                 QLatin1String("targetOS")).toStringList();
@@ -282,34 +291,36 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
                     QStringLiteral("Android.sdk"), QStringLiteral("sdkDir")).toString();
         targetExecutable = sdkDir + QStringLiteral("/platform-tools/adb");
 
-        QProcess process;
-        process.setProcessChannelMode(QProcess::ForwardedChannels);
-        process.start(targetExecutable, QStringList()
-                      << StringConstants::androidInstallCommand()
-                      << QStringLiteral("-r") // replace existing application
-                      << QStringLiteral("-t") // allow test packages
-                      << QStringLiteral("-d") // allow version code downgrade
-                      << targetBin);
-        if (!process.waitForFinished()) {
-            if (process.error() == QProcess::FailedToStart) {
-                throw ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
-                                .arg(targetExecutable)
-                                .arg(process.errorString()));
-            } else {
-                d->logger.qbsWarning()
-                        << "QProcess error: " << process.errorString();
+        if (!dryRun) {
+            QProcess process;
+            process.setProcessChannelMode(QProcess::ForwardedChannels);
+            process.start(targetExecutable, QStringList()
+                          << StringConstants::androidInstallCommand()
+                          << QStringLiteral("-r") // replace existing application
+                          << QStringLiteral("-t") // allow test packages
+                          << QStringLiteral("-d") // allow version code downgrade
+                          << targetBin);
+            if (!process.waitForFinished()) {
+                if (process.error() == QProcess::FailedToStart) {
+                    throw ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
+                                    .arg(targetExecutable)
+                                    .arg(process.errorString()));
+                } else {
+                    d->logger.qbsWarning()
+                            << "QProcess error: " << process.errorString();
+                }
+
+                return EXIT_FAILURE;
             }
 
-            return EXIT_FAILURE;
+            targetArguments << QStringList()
+                            << QStringLiteral("shell")
+                            << QStringLiteral("am")
+                            << QStringLiteral("start")
+                            << QStringLiteral("-W") // wait for launch to complete
+                            << QStringLiteral("-n")
+                            << intent;
         }
-
-        targetArguments << QStringList()
-                        << QStringLiteral("shell")
-                        << QStringLiteral("am")
-                        << QStringLiteral("start")
-                        << QStringLiteral("-W") // wait for launch to complete
-                        << QStringLiteral("-n")
-                        << intent;
     } else if (targetOS.contains(QLatin1String("ios")) || targetOS.contains(QLatin1String("tvos"))) {
         const QString bundlePath = targetBin + StringConstants::slashDotDot();
 
@@ -322,28 +333,30 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
             const auto bundleId = d->resolvedProduct->moduleProperties->moduleProperty(
                         QStringLiteral("bundle"), QStringLiteral("identifier")).toString();
 
-            QProcess process;
-            process.setProcessChannelMode(QProcess::ForwardedChannels);
-            process.start(targetExecutable, QStringList()
-                          << StringConstants::simctlInstallCommand()
-                          << simulatorId
-                          << QDir::cleanPath(bundlePath));
-            if (!process.waitForFinished()) {
-                if (process.error() == QProcess::FailedToStart) {
-                    throw ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
-                                    .arg(targetExecutable)
-                                    .arg(process.errorString()));
+            if (!dryRun) {
+                QProcess process;
+                process.setProcessChannelMode(QProcess::ForwardedChannels);
+                process.start(targetExecutable, QStringList()
+                              << StringConstants::simctlInstallCommand()
+                              << simulatorId
+                              << QDir::cleanPath(bundlePath));
+                if (!process.waitForFinished()) {
+                    if (process.error() == QProcess::FailedToStart) {
+                        throw ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
+                                        .arg(targetExecutable)
+                                        .arg(process.errorString()));
+                    }
+
+                    return EXIT_FAILURE;
                 }
 
-                return EXIT_FAILURE;
+                targetArguments << QStringList()
+                                << QStringLiteral("launch")
+                                << QStringLiteral("--console")
+                                << simulatorId
+                                << bundleId
+                                << arguments;
             }
-
-            targetArguments << QStringList()
-                            << QStringLiteral("launch")
-                            << QStringLiteral("--console")
-                            << simulatorId
-                            << bundleId
-                            << arguments;
         } else {
             if (QFileInfo(targetExecutable = findExecutable(QStringList()
                         << QStringLiteral("iostool"))).isExecutable()) {
@@ -403,7 +416,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
     // Only check if the target is executable if we're not running it through another
     // known application such as msiexec or wine, as we can't check in this case anyways
     QFileInfo fi(targetExecutable);
-    if (targetBin == targetExecutable && (!fi.isFile() || !fi.isExecutable())) {
+    if (!dryRun && targetBin == targetExecutable && (!fi.isFile() || !fi.isExecutable())) {
         d->logger.qbsLog(LoggerError) << Tr::tr("File '%1' is not an executable.")
                                 .arg(QDir::toNativeSeparators(targetExecutable));
         return EXIT_FAILURE;
@@ -414,11 +427,15 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
     EnvironmentScriptRunner(d->resolvedProduct.get(), &d->evalContext, env)
             .setupForRun(d->setupRunEnvConfig);
 
-    d->logger.qbsInfo() << Tr::tr("Starting target '%1'.").arg(QDir::toNativeSeparators(targetBin));
     QProcess process;
     process.setProcessEnvironment(d->resolvedProduct->runEnvironment);
     process.setProcessChannelMode(QProcess::ForwardedChannels);
-    process.start(targetExecutable, targetArguments);
+    process.setProgram(targetExecutable);
+    process.setArguments(targetArguments);
+    printStartInfo(process, dryRun);
+    if (dryRun)
+        return EXIT_SUCCESS;
+    process.start();
     if (!process.waitForFinished(-1)) {
         if (process.error() == QProcess::FailedToStart) {
             QString errorPrefixString;
