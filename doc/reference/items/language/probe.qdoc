@@ -57,8 +57,8 @@
 
     \note Because Probes often invoke external processes, which is relatively expensive compared
           to evaluating normal properties, their results are cached. To force re-evaluation
-          of a Probe, you can supply the \c{--force-probe-execution} command-line option
-          to the \l{build} command.
+          of a Probe, you can supply the \l{build-force-probe-execution}
+          {--force-probe-execution} command-line option to the \l{build} command.
 */
 
 /*!

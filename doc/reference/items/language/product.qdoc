@@ -99,8 +99,9 @@
     Determines whether the product will be built.
 
     If \c false, the product will only be built if this is explicitly requested,
-    either by listing the product name as an argument to \c --products or by
-    giving the \l{build} command the \c --all-products option.
+    either by listing the product name as an argument to the
+    \l{build-products}{--products} option or by using the
+    \l{build-all-products}{--all-products} option of the \l{build} command.
 
     \defaultvalue \c true
 */

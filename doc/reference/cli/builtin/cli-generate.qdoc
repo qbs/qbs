@@ -49,6 +49,7 @@
 
     \section1 Options
 
+    \target generate-generator
     \include cli-options.qdocinc generator
     \include cli-options.qdocinc build-directory
     \include cli-options.qdocinc project-file

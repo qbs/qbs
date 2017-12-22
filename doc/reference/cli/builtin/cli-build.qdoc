@@ -55,6 +55,7 @@
 
     \section1 Options
 
+    \target build-all-products
     \include cli-options.qdocinc all-products
     \include cli-options.qdocinc build-directory
     \include cli-options.qdocinc changed-files
@@ -64,6 +65,7 @@
     \include cli-options.qdocinc command-echo-mode
     \include cli-options.qdocinc dry-run
     \include cli-options.qdocinc project-file
+    \target build-force-probe-execution
     \include cli-options.qdocinc force-probe-execution
     \include cli-options.qdocinc jobs
     \include cli-options.qdocinc keep-going
@@ -72,6 +74,7 @@
     \include cli-options.qdocinc log-time
     \include cli-options.qdocinc more-verbose
     \include cli-options.qdocinc no-install
+    \target build-products
     \include cli-options.qdocinc products-specified
     \include cli-options.qdocinc settings-dir
     \include cli-options.qdocinc show-progress

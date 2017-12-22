@@ -1424,7 +1424,7 @@
 
     To generate a project for another build system, such as Microsoft Visual
     Studio, use the \l{generate}{qbs generate} command and specify a generator
-    using the \c{-g} option. For example:
+    using the \l{generate-generator}{-g} option. For example:
 
     \code
     # For Visual Studio
@@ -1439,8 +1439,9 @@
     perform the actual build.
 
     \note You cannot modify build system files and expect the changes
-    to be reflected in \QBS; you must edit your \QBS project files and re-run \c{qbs-generate} in
-    order for the changes to be reflected in your IDE.
+    to be reflected in \QBS. You must edit your \QBS project files and re-run
+    \l{generate}{qbs generate} in order for the changes to be reflected in your
+    IDE.
 
     \section1 Generating Clang Compilation Databases
 
