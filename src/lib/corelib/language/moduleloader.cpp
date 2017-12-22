@@ -2725,6 +2725,8 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
             + QLatin1Char('.') + fullName;
     for (Item *instance = moduleInstance; instance; instance = instance->prototype()) {
         overrideItemProperties(instance, generalOverrideKey, m_parameters.overriddenValuesTree());
+        if (fullName == QStringLiteral("qbs"))
+            overrideItemProperties(instance, fullName, m_parameters.overriddenValuesTree());
         overrideItemProperties(instance, perProductOverrideKey,
                                m_parameters.overriddenValuesTree());
         if (instance == deepestModuleInstance)
