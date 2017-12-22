@@ -1329,9 +1329,9 @@
     qbs shell
     \endcode
 
-    This is mainly a debugging tool. It opens a shell with the same environment that qbs uses
-    when building the project, so you can, for example, inspect which environment variables
-    will be set up.
+    This is mainly a debugging tool. It opens a shell with the same environment
+    that \QBS uses when building the project, so you can, for example, inspect
+    which environment variables will be set up.
 
 */
 
