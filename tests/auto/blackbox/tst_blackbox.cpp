@@ -4879,6 +4879,18 @@ void TestBlackbox::envMerging()
              m_qbsStdout.constData());
 }
 
+void TestBlackbox::envNormalization()
+{
+    QDir::setCurrent(testDataDir + "/env-normalization");
+    QbsRunParameters params;
+    params.environment.insert("myvar", "x");
+    QCOMPARE(runQbs(params), 0);
+    if (HostOsInfo::isWindowsHost())
+        QVERIFY2(m_qbsStdout.contains("\"MYVAR\":\"x\""), m_qbsStdout.constData());
+    else
+        QVERIFY2(m_qbsStdout.contains("\"myvar\":\"x\""), m_qbsStdout.constData());
+}
+
 void TestBlackbox::generatedArtifactAsInputToDynamicRule()
 {
     QDir::setCurrent(testDataDir + "/generated-artifact-as-input-to-dynamic-rule");

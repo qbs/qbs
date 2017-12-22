@@ -110,9 +110,6 @@ CppModule {
                                                                   : undefined
     architecture: qbs.architecture
     endianness: "little"
-    staticLibraryPrefix: ""
-    dynamicLibraryPrefix: ""
-    executablePrefix: ""
     staticLibrarySuffix: ".lib"
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"

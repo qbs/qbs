@@ -41,6 +41,7 @@
 
 #include <language/scriptengine.h>
 #include <logging/translator.h>
+#include <tools/hostosinfo.h>
 
 #include <QtCore/qdir.h>
 
@@ -145,8 +146,10 @@ QScriptValue EnvironmentExtension::js_currentEnv(QScriptContext *context, QScrip
     if (!procenv)
         procenv = &env;
     QScriptValue envObject = engine->newObject();
-    for (const QString &key : procenv->keys())
-        envObject.setProperty(key, QScriptValue(procenv->value(key)));
+    for (const QString &key : procenv->keys()) {
+        const QString keyName = HostOsInfo::isWindowsHost() ? key.toUpper() : key;
+        envObject.setProperty(keyName, QScriptValue(procenv->value(key)));
+    }
     return envObject;
 }
 

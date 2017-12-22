@@ -38,11 +38,8 @@ GenericGCC {
     staticLibraryPrefix: "lib"
     dynamicLibraryPrefix: "lib"
     loadableModulePrefix: "lib"
-    executablePrefix: ""
     staticLibrarySuffix: ".a"
     dynamicLibrarySuffix: ".so"
-    loadableModuleSuffix: ""
-    executableSuffix: ""
     debugInfoSuffix: ".debug"
     imageFormat: "elf"
     systemRunPaths: ["/lib", "/usr/lib"]
