@@ -46,7 +46,7 @@
 namespace qbs {
 namespace Internal {
 
-class QBS_EXPORT PathUtils
+class PathUtils
 {
 public:
     static QString toNativeSeparators(const QString &s,

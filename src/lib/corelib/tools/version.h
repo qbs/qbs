@@ -51,7 +51,7 @@ QT_END_NAMESPACE
 
 namespace qbs {
 
-class QBS_EXPORT Version
+class Version
 {
 public:
     constexpr explicit Version(int majorVersion = 0, int minorVersion = 0, int patchLevel = 0,
@@ -73,9 +73,9 @@ public:
     constexpr int buildNumber() const { return m_build; }
     constexpr void setBuildNumber(int nr) { m_build = nr; }
 
-    static Version fromString(const QString &versionString, bool buildNumberAllowed = false);
-    QString toString(const QChar &separator = QLatin1Char('.'),
-                     const QChar &buildSeparator = QLatin1Char('-')) const;
+    static QBS_EXPORT Version fromString(const QString &versionString, bool buildNumberAllowed = false);
+    QString QBS_EXPORT toString(const QChar &separator = QLatin1Char('.'),
+                                const QChar &buildSeparator = QLatin1Char('-')) const;
 
 private:
     int m_major;

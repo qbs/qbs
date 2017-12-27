@@ -67,7 +67,7 @@
 namespace qbs {
 namespace Internal {
 
-class QBS_EXPORT HostOsInfo // Exported for use by command-line tools.
+class HostOsInfo
 {
 public:
     // Add more as needed.
