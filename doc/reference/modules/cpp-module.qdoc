@@ -341,7 +341,22 @@
     Whether to store debug information in an external file or bundle instead of
     within the binary.
 
-    \defaultvalue \c{false} for GCC and Clang, \c{true} for MSVC.
+    The type of files that will be generated when this property is \c{true} is
+    dependent on the compiler and target platform:
+
+    \list
+        \li With MSVC, this property controls the generation of
+            \c{.pdb} (Program Debug Database) files.
+        \li On Apple platforms with GCC or Clang, this property controls the
+            generation of \c{.dSYM} (DWARF Symbol) bundles or, if
+            \l{cpp::}{dsymutilFlags} contains the \c{-f} or \c{--flat} flags,
+            \c{.dwarf} symbol files.
+        \li On other platforms with GCC or Clang (including Windows/MinGW), this
+            property controls the generation of \c{.debug} symbol files.
+    \endlist
+
+    \defaultvalue \c{true} for MSVC and with GCC or Clang on Apple platforms,
+    otherwise \c{false}.
 */
 
 /*!
@@ -865,6 +880,11 @@
     \appleproperty
 
     Additional flags for the \c dsymutil tool.
+
+    \note If this property contains the \c{-f} or \c{--flat} options, this will
+    cause \QBS to generate "flat" (single-file) \c{.dwarf} debug symbol files
+    instead of \c{.dSYM} bundles (directories) when
+    \l{cpp::}{separateDebugInformation} is set to \c{true}.
 
     \nodefaultvalue
 */
