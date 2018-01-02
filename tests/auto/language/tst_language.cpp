@@ -2371,7 +2371,7 @@ void TestLanguage::qbsPropertyConvenienceOverride()
         QVERIFY(!!project);
         QCOMPARE(project->products.count(), 1);
         QCOMPARE(project->products.first()->moduleProperties->qbsPropertyValue("installPrefix")
-                 .toString(), "/opt");
+                 .toString(), QString("/opt"));
     }
     catch (const ErrorInfo &e) {
         qDebug() << e.toString();
