@@ -190,7 +190,7 @@ QString ProjectResolver::verbatimValue(const ValueConstPtr &value, bool *propert
                     value);
         result = sourceCodeForEvaluation(sourceValue);
         if (propertyWasSet)
-            *propertyWasSet = (result != StringConstants::undefinedValue());
+            *propertyWasSet = !sourceValue->isBuiltinDefaultValue();
     } else {
         if (propertyWasSet)
             *propertyWasSet = false;

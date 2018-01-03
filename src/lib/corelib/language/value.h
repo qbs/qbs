@@ -109,6 +109,7 @@ class JSSourceValue : public Value
         SourceUsesOriginal = 0x04,
         HasFunctionForm = 0x08,
         ExclusiveListValue = 0x10,
+        BuiltinDefaultValue = 0x20,
     };
     Q_DECLARE_FLAGS(Flags, Flag)
 
@@ -139,6 +140,8 @@ public:
     void setHasFunctionForm(bool b);
     void setIsExclusiveListValue() { m_flags |= ExclusiveListValue; }
     bool isExclusiveListValue() { return m_flags.testFlag(ExclusiveListValue); }
+    void setIsBuiltinDefaultValue() { m_flags |= BuiltinDefaultValue; }
+    bool isBuiltinDefaultValue() const { return m_flags.testFlag(BuiltinDefaultValue); }
 
     const JSSourceValuePtr &baseValue() const { return m_baseValue; }
     void setBaseValue(const JSSourceValuePtr &v) { m_baseValue = v; }

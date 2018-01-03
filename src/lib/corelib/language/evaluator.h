@@ -105,6 +105,7 @@ private:
     void onItemPropertyChanged(Item *item);
     bool evaluateProperty(QScriptValue *result, const Item *item, const QString &name,
             bool *propertyWasSet);
+    bool isNonDefaultValue(const Item *item, const QString &name) const;
 
     ScriptEngine *m_scriptEngine;
     EvaluatorScriptClass *m_scriptClass;

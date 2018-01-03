@@ -935,14 +935,13 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     productContext.project = projectContext;
     productContext.name = m_evaluator->stringValue(productItem, StringConstants::nameProperty());
     QBS_CHECK(!productContext.name.isEmpty());
-    bool profilePropertySet;
     productContext.profileName = m_evaluator->stringValue(
-                productItem, StringConstants::profileProperty(), QString(), &profilePropertySet);
+                productItem, StringConstants::profileProperty(), QString());
     productContext.multiplexConfigurationId = m_evaluator->stringValue(
                 productItem, StringConstants::multiplexConfigurationIdProperty());
     productContext.multiplexConfigIdForModulePrototypes = m_evaluator->stringValue(
                 productItem, multiplexConfigurationIdPropertyInternal());
-    QBS_CHECK(profilePropertySet);
+    QBS_CHECK(!productContext.profileName.isEmpty());
     const auto it = projectContext->result->profileConfigs.constFind(productContext.profileName);
     if (it == projectContext->result->profileConfigs.constEnd()) {
         const Profile profile(productContext.profileName, m_settings.get(), m_localProfiles);
@@ -1419,12 +1418,14 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
     } else {
         // If the property already exists set up the base value.
         if (value->type() == Value::JSSourceValueType) {
+            const auto jsValue = static_cast<JSSourceValue *>(value.get());
+            if (jsValue->isBuiltinDefaultValue())
+                return;
             const ValuePtr baseValue = dst->property(name);
             if (baseValue) {
                 QBS_CHECK(baseValue->type() == Value::JSSourceValueType);
                 const JSSourceValuePtr jsBaseValue = std::static_pointer_cast<JSSourceValue>(
                             baseValue->clone());
-                const auto jsValue = static_cast<JSSourceValue *>(value.get());
                 jsValue->setBaseValue(jsBaseValue);
             }
         }

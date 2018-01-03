@@ -53,7 +53,7 @@ Project {
     }
     Application {
         name: "myapp3"
-        Depends { name: "productWithInheritedExportItem" }
+        Depends { name: "productWithInheritedExportItem"; versionAtLeast: "2.0" }
     }
 
     Project {

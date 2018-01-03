@@ -256,6 +256,7 @@ void Item::setupForBuiltinType(Logger &logger)
             if (pd.isDeprecated())
                 continue;
             JSSourceValuePtr sourceValue = JSSourceValue::create();
+            sourceValue->setIsBuiltinDefaultValue();
             sourceValue->setFile(file());
             sourceValue->setSourceCode(pd.initialValueSource().isEmpty()
                                        ? QStringRef(&StringConstants::undefinedValue())

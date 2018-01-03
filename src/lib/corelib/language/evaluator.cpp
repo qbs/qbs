@@ -139,10 +139,17 @@ static QStringList toStringList(const QScriptValue &scriptValue)
 QStringList Evaluator::stringListValue(const Item *item, const QString &name, bool *propertyWasSet)
 {
     QScriptValue v = property(item, name);
-    if (propertyWasSet)
-        *propertyWasSet = v.isValid() && !v.isUndefined();
     handleEvaluationError(item, name, v);
+    if (propertyWasSet)
+        *propertyWasSet = isNonDefaultValue(item, name);
     return toStringList(v);
+}
+
+bool Evaluator::isNonDefaultValue(const Item *item, const QString &name) const
+{
+    const ValueConstPtr v = item->property(name);
+    return v && (v->type() != Value::JSSourceValueType
+                 || !static_cast<const JSSourceValue *>(v.get())->isBuiltinDefaultValue());
 }
 
 void Evaluator::convertToPropertyType(const PropertyDeclaration &decl, const CodeLocation &loc,
@@ -223,14 +230,9 @@ bool Evaluator::evaluateProperty(QScriptValue *result, const Item *item, const Q
 {
     *result = property(item, name);
     handleEvaluationError(item, name, *result);
-    if (!result->isValid() || result->isUndefined()) {
-        if (propertyWasSet)
-            *propertyWasSet = false;
-        return false;
-    }
     if (propertyWasSet)
-        *propertyWasSet = true;
-    return true;
+        *propertyWasSet = isNonDefaultValue(item, name);
+    return result->isValid() && !result->isUndefined();
 }
 
 Evaluator::FileContextScopes Evaluator::fileContextScopes(const FileContextConstPtr &file)
