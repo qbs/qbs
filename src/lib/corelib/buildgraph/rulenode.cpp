@@ -222,6 +222,14 @@ void RuleNode::store(PersistentPool &pool)
     serializationOp<PersistentPool::Store>(pool);
 }
 
+int RuleNode::transformerCount() const
+{
+    Set<const Transformer *> transformers;
+    for (const Artifact * const output : filterByType<Artifact>(parents))
+        transformers.insert(output->transformer.get());
+    return transformers.size();
+}
+
 ArtifactSet RuleNode::currentInputArtifacts() const
 {
     ArtifactSet s;

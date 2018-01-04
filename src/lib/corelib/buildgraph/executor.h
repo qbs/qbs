@@ -175,6 +175,7 @@ private:
     std::unordered_map<QString, const ResolvedProject *> m_projectsByName;
     std::unordered_map<QString, int> m_jobCountPerPool;
     std::unordered_map<const ResolvedProduct *, JobLimits> m_jobLimitsPerProduct;
+    std::unordered_map<const Rule *, int> m_pendingTransformersPerRule;
     NodeSet m_roots;
     Leaves m_leaves;
     InputArtifactScannerContext *m_inputArtifactScanContext;

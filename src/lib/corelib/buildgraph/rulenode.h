@@ -83,6 +83,8 @@ public:
     void load(PersistentPool &pool) override;
     void store(PersistentPool &pool) override;
 
+    int transformerCount() const;
+
 private:
     template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
     {

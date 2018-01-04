@@ -543,9 +543,18 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
     updateLeaves(result.createdArtifacts);
     updateLeaves(result.invalidatedArtifacts);
     m_artifactsRemovedFromDisk << result.removedArtifacts;
+
+    if (m_progressObserver) {
+        const int transformerCount = ruleNode->transformerCount();
+        if (transformerCount == 0) {
+            m_progressObserver->incrementProgressValue();
+        } else {
+            m_pendingTransformersPerRule.insert(std::make_pair(ruleNode->rule().get(),
+                                                               transformerCount));
+        }
+    }
+
     finishNode(ruleNode);
-    if (m_progressObserver)
-        m_progressObserver->incrementProgressValue();
 }
 
 void Executor::finishJob(ExecutorJob *job, bool success)
@@ -1013,6 +1022,14 @@ void Executor::finishTransformer(const TransformerPtr &transformer)
     for (Artifact * const artifact : qAsConst(transformer->outputs)) {
         possiblyInstallArtifact(artifact);
         finishArtifact(artifact);
+    }
+    if (m_progressObserver) {
+        const auto it = m_pendingTransformersPerRule.find(transformer->rule.get());
+        QBS_CHECK(it != m_pendingTransformersPerRule.cend());
+        if (--it->second == 0) {
+            m_progressObserver->incrementProgressValue();
+            m_pendingTransformersPerRule.erase(it);
+        }
     }
 }
 
