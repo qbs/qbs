@@ -4,9 +4,16 @@ Project {
     CppApplication {
         name: "myapp"
         files: ["main.cpp"]
-        Depends { name: "plugin1"; cpp.link: false }    // not to be linked
+        Depends {
+            name: "plugin1"                             // not to be linked
+            cpp.link: qbs.hostOS === undefined
+        }
         Depends { name: "plugin2" }                     // not to be linked
-        Depends { name: "plugin3"; cpp.link: true }     // supposed to be linked
+        Depends {
+            name: "plugin3"                             // supposed to be linked
+            //property bool theCondition: true
+            cpp.link: /*theCondition && */product.name === "myapp"  // TODO: Make this work
+        }
         Depends { name: "plugin4" }                     // supposed to be linked
         Depends { name: "helper" }                      // supposed to be linked
     }
@@ -41,7 +48,8 @@ Project {
         Depends { name: "cpp" }
         Export {
             Parameters {
-                cpp.link: true
+                // property bool theCondition: true
+                cpp.link: true // theCondition TODO: Make this work
             }
         }
     }

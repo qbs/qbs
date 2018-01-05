@@ -3,6 +3,7 @@
 #include <y.tab.h>
 void yyerror(const char *e) { std::cerr << e; }
 extern "C" int yywrap() { return 1; }
+extern YYSTYPE yylval;
 %}
 
 ID [a-z]+

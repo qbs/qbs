@@ -2068,10 +2068,12 @@ void TestBlackbox::reproducibleBuild()
     QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
     QVERIFY(!object.exists());
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(object.open(QIODevice::ReadOnly));
-    const QByteArray newContents = object.readAll();
-    QCOMPARE(oldContents == newContents, reproducible);
-    object.close();
+    if (reproducible) {
+        QVERIFY(object.open(QIODevice::ReadOnly));
+        const QByteArray newContents = object.readAll();
+        QVERIFY(oldContents == newContents);
+        object.close();
+    }
     QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
 }
 

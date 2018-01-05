@@ -2398,6 +2398,25 @@ void TestLanguage::qbsPropertiesInProjectCondition()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::qbsPropertyConvenienceOverride()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("qbs-property-convenience-override.qbs"));
+        params.setOverriddenValues({std::make_pair("qbs.installPrefix", "/opt")});
+        TopLevelProjectConstPtr project = loader->loadProject(params);
+        QVERIFY(!!project);
+        QCOMPARE(project->products.count(), 1);
+        QCOMPARE(project->products.first()->moduleProperties->qbsPropertyValue("installPrefix")
+                 .toString(), QString("/opt"));
+    }
+    catch (const ErrorInfo &e) {
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::relaxedErrorMode()
 {
     m_logSink->setLogLevel(LoggerMinLevel);

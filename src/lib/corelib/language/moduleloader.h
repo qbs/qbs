@@ -305,7 +305,6 @@ private:
     static QString findExistingModulePath(const QString &searchPath,
             const QualifiedId &moduleName);
     static void setScopeForDescendants(Item *item, Item *scope);
-    static void forwardScopeToItemValues(Item *item, Item *scope);
     void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                 const QVariantMap &buildConfig);
     void addProductModuleDependencies(ProductContext *ctx, const Item::Module &module);
