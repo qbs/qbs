@@ -49,6 +49,10 @@ Project {
         Export {
             dummy.cFlags: base.concat("PRODUCT_" + product.name.toUpperCase())
             dummy.cxxFlags: ["-bar"]
+            Properties {
+                condition: true
+                dummy.defines: base.concat(["DEF"])
+            }
         }
     }
     Application {

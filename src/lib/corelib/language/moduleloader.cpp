@@ -1427,6 +1427,12 @@ static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
                 const JSSourceValuePtr jsBaseValue = std::static_pointer_cast<JSSourceValue>(
                             baseValue->clone());
                 jsValue->setBaseValue(jsBaseValue);
+                std::vector<JSSourceValue::Alternative> alternatives = jsValue->alternatives();
+                jsValue->clearAlternatives();
+                for (JSSourceValue::Alternative &a : alternatives) {
+                    a.value->setBaseValue(jsBaseValue);
+                    jsValue->addAlternative(a);
+                }
             }
         }
         dst->setProperty(name, value);

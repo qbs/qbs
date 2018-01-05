@@ -915,7 +915,7 @@ void TestLanguage::exports()
         QCOMPARE(propertyValue.toStringList(), QStringList() << "-bar");
         propertyName = QStringList() << "dummy" << "defines";
         propertyValue = product->moduleProperties->property(propertyName);
-        QCOMPARE(propertyValue.toStringList(), QStringList() << "ABC");
+        QCOMPARE(propertyValue.toStringList(), QStringList({"ABC", "DEF"}));
         QCOMPARE(product->moduleProperties->moduleProperty("dummy", "productName").toString(),
                  QString("myapp2"));
         QCOMPARE(product->moduleProperties->moduleProperty("dummy",
