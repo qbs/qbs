@@ -59,6 +59,8 @@ template <typename U> struct IMultiplexableContainer {
     template <typename T> T uniqueValue(const std::function<T(const U &data)> &func,
                                         const QString &errorMessage) const
     {
+        if (data.empty())
+            return T();
         auto it = data.begin(), end = data.end();
         auto value = func(*it++);
         for (; it != end; ++it) {
