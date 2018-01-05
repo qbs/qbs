@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 var FileInfo = require("qbs.FileInfo");
+var File = require("qbs.File");
 var ModUtils = require("qbs.ModUtils"); // TODO: append/prepend functionality should go to qbs.Environment
 
 function addNewElement(list, elem)
@@ -44,6 +45,16 @@ function artifactDir(artifact)
     return FileInfo.path(ModUtils.artifactInstalledFilePath(artifact));
 }
 
+function addExternalLibPath(product, list, path)
+{
+    addNewElement(list, path);
+    if (product.qbs.hostOS.contains("windows") && FileInfo.fileName(path) === "lib") {
+        var binPath = FileInfo.joinPaths(FileInfo.path(path), "bin");
+        if (File.exists(binPath))
+            addNewElement(list, binPath);
+    }
+}
+
 function gatherPaths(product, libPaths, frameworkPaths)
 {
     // Heuristic: If any rpaths are set, assume environment paths should not be set up.
@@ -54,7 +65,7 @@ function gatherPaths(product, libPaths, frameworkPaths)
 
     // Gather explicitly given library paths.
     if (product.cpp.libraryPaths)
-        product.cpp.libraryPaths.forEach(function(p) { addNewElement(libPaths, p); });
+        product.cpp.libraryPaths.forEach(function(p) { addExternalLibPath(product, libPaths, p); });
     if (product.cpp.frameworkPaths)
         product.cpp.frameworkPaths.forEach(function(p) { addNewElement(frameworkPaths, p); });
 
@@ -62,7 +73,7 @@ function gatherPaths(product, libPaths, frameworkPaths)
     if (product.cpp.dynamicLibraries) {
         product.cpp.dynamicLibraries.forEach(function(dll) {
             if (FileInfo.isAbsolutePath(dll))
-                addNewElement(libPaths, FileInfo.path(dll));
+                addExternalLibPath(product, libPaths, FileInfo.path(dll));
         });
     }
 
