@@ -160,6 +160,7 @@ private slots:
     void pkgConfigProbe_data();
     void pkgConfigProbeSysroot();
     void pluginDependency();
+    void precompiledAndPrefixHeaders();
     void probeChangeTracking();
     void probeProperties();
     void probeInExportedModule();
