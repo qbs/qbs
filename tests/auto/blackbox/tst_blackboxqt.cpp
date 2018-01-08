@@ -67,7 +67,7 @@ void TestBlackboxQt::validateTestProfile()
 void TestBlackboxQt::autoQrc()
 {
     QDir::setCurrent(testDataDir + "/auto-qrc");
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(QbsRunParameters("run", QStringList{"-p", "app"})), 0);
     QVERIFY2(m_qbsStdout.simplified().contains("resource data: resource1 resource2"),
              m_qbsStdout.constData());
 }
@@ -210,15 +210,9 @@ void TestBlackboxQt::pkgconfig()
 void TestBlackboxQt::pluginMetaData()
 {
     QDir::setCurrent(testDataDir + "/plugin-meta-data");
-    QCOMPARE(runQbs(), 0);
-    const QString appFilePath = relativeBuildDir() + "/install-root/"
-            + qbs::Internal::HostOsInfo::appendExecutableSuffix("plugin-meta-data");
-    QVERIFY(regularFileExists(appFilePath));
-    QProcess app;
-    app.start(appFilePath);
-    QVERIFY(app.waitForStarted());
-    QVERIFY(app.waitForFinished());
-    QVERIFY2(app.exitCode() == 0, app.readAllStandardError().constData());
+    QVERIFY2(runQbs(QbsRunParameters("run", QStringList{"-p", "app"})) == 0,
+             m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.contains("all ok!"), m_qbsStderr.constData());
     WAIT_FOR_NEW_TIMESTAMP();
     touch("metadata.json");
     QCOMPARE(runQbs(), 0);

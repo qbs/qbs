@@ -78,5 +78,6 @@ int main(int argc, char *argv[])
         qDebug() << "metadata:" << metaData;
         return 1;
     }
+    qDebug() << "all ok!";
     return 0;
 }

@@ -2,6 +2,7 @@ import qbs
 
 Project {
     QtApplication {
+        name: "app"
         consoleApplication: true
 
         Depends { name: "thePlugin" }

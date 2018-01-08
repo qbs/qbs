@@ -31,22 +31,4 @@ Project {
             }
         }
     }
-
-    Product {
-        name: "runner"
-        type: ["runner"]
-        Depends { name: "app" }
-        Rule {
-            inputsFromDependencies: ["application"]
-            Artifact {
-                filePath: "dummy"
-                fileTags: ["runner"]
-            }
-            prepare: {
-                var cmd = new Command(input.filePath);
-                cmd.description = "running " + input.filePath;
-                return [cmd];
-            }
-        }
-    }
 }
