@@ -226,4 +226,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // iInclude guard
+#endif // Include guard
