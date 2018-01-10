@@ -48,6 +48,8 @@
 
 #include <QtScript/qscriptvalue.h>
 
+#include <functional>
+
 namespace qbs {
 namespace Internal {
 class EvaluatorScriptClass;
@@ -112,6 +114,9 @@ private:
     mutable QHash<const Item *, QScriptValue> m_scriptValueMap;
     mutable QHash<FileContextConstPtr, FileContextScopes> m_fileContextScopesMap;
 };
+
+void throwOnEvaluationError(ScriptEngine *engine, const QScriptValue &scriptValue,
+                            const std::function<CodeLocation()> &provideFallbackCodeLocation);
 
 class EvalCacheEnabler
 {

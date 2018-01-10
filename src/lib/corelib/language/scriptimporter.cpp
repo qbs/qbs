@@ -39,6 +39,7 @@
 
 #include "scriptimporter.h"
 
+#include "evaluator.h"
 #include "scriptengine.h"
 
 #include <parser/qmljsastfwd_p.h>
@@ -46,7 +47,6 @@
 #include <parser/qmljslexer_p.h>
 #include <parser/qmljsparser_p.h>
 #include <tools/error.h>
-#include <tools/stringconstants.h>
 
 #include <QtScript/qscriptvalueiterator.h>
 
@@ -120,18 +120,6 @@ ScriptImporter::ScriptImporter(ScriptEngine *scriptEngine)
 {
 }
 
-// ### merge with Evaluator::handleEvaluationError
-static ErrorInfo errorInfoFromScriptValue(const QScriptValue &value, const QString &filePath)
-{
-    if (!value.isError())
-        return ErrorInfo(value.toString(), CodeLocation(filePath));
-
-    return ErrorInfo(value.property(QStringLiteral("message")).toString(),
-                     CodeLocation(value.property(StringConstants::fileNameProperty()).toString(),
-                                  value.property(QStringLiteral("lineNumber")).toInt32(),
-                                  false));
-}
-
 void ScriptImporter::importSourceCode(const QString &sourceCode, const QString &filePath,
         QScriptValue &targetObject)
 {
@@ -156,8 +144,7 @@ void ScriptImporter::importSourceCode(const QString &sourceCode, const QString &
     }
 
     QScriptValue result = m_engine->evaluate(code, filePath, 0);
-    if (m_engine->hasUncaughtException())
-        throw errorInfoFromScriptValue(result, filePath);
+    throwOnEvaluationError(m_engine, result, [&filePath] () { return CodeLocation(filePath, 0); });
     copyProperties(result, targetObject);
 }
 

@@ -186,33 +186,10 @@ void Evaluator::onItemPropertyChanged(Item *item)
 void Evaluator::handleEvaluationError(const Item *item, const QString &name,
         const QScriptValue &scriptValue)
 {
-    if (Q_LIKELY(!m_scriptEngine->hasErrorOrException(scriptValue)))
-        return;
-    QString message;
-    QString filePath;
-    int line = -1;
-    const QScriptValue value = scriptValue.isError() ? scriptValue
-                                                     : m_scriptEngine->uncaughtException();
-    if (value.isError()) {
-        QScriptValue v = value.property(QStringLiteral("message"));
-        if (v.isString())
-            message = v.toString();
-        v = value.property(StringConstants::fileNameProperty());
-        if (v.isString())
-            filePath = v.toString();
-        v = value.property(QStringLiteral("lineNumber"));
-        if (v.isNumber())
-            line = v.toInt32();
-    } else {
-        message = value.toString();
-        const ValueConstPtr value = item->property(name);
-        if (value) {
-            const CodeLocation location = value->location();
-            filePath = location.filePath();
-            line = location.line();
-        }
-    }
-    throw ErrorInfo(message, CodeLocation(filePath, line, -1, false));
+    throwOnEvaluationError(m_scriptEngine, scriptValue, [&item, &name] () {
+        const ValueConstPtr &value = item->property(name);
+        return value ? value->location() : CodeLocation();
+    });
 }
 
 void Evaluator::setPathPropertiesBaseDir(const QString &dirPath)
@@ -271,6 +248,33 @@ PropertyDependencies Evaluator::propertyDependencies() const
 void Evaluator::clearPropertyDependencies()
 {
     m_scriptClass->clearPropertyDependencies();
+}
+
+void throwOnEvaluationError(ScriptEngine *engine, const QScriptValue &scriptValue,
+                            const std::function<CodeLocation()> &provideFallbackCodeLocation)
+{
+    if (Q_LIKELY(!engine->hasErrorOrException(scriptValue)))
+        return;
+    QString message;
+    QString filePath;
+    int line = -1;
+    const QScriptValue value = scriptValue.isError() ? scriptValue
+                                                     : engine->uncaughtException();
+    if (value.isError()) {
+        QScriptValue v = value.property(QStringLiteral("message"));
+        if (v.isString())
+            message = v.toString();
+        v = value.property(StringConstants::fileNameProperty());
+        if (v.isString())
+            filePath = v.toString();
+        v = value.property(QStringLiteral("lineNumber"));
+        if (v.isNumber())
+            line = v.toInt32();
+        throw ErrorInfo(message, CodeLocation(filePath, line, -1, false));
+    } else {
+        message = value.toString();
+        throw ErrorInfo(message, provideFallbackCodeLocation());
+    }
 }
 
 } // namespace Internal
