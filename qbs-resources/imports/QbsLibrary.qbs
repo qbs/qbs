@@ -41,7 +41,6 @@ QbsProduct {
     Export {
         Depends { name: "cpp" }
         Depends { name: "Qt"; submodules: ["core"] }
-        Depends { name: "qbsbuildconfig" }
 
         cpp.includePaths: [product.sourceDirectory]
         cpp.defines: product.visibilityType === "static" ? ["QBS_STATIC_LIB"] : []
