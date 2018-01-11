@@ -19,4 +19,10 @@ Module {
         fileTags: ["dynamiclibrary_import"]
         filesAreTargets: true
     }
+    Group {
+        name: "to be ignored"
+        filesAreTargets: true
+        files: "broken.cpp"
+        fileTags: ["cpp"]
+    }
 }

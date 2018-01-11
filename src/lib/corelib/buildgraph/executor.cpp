@@ -468,6 +468,8 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
         for (Artifact * const artifact : qAsConst(m_changedSourceArtifacts)) {
             if (artifact->product != ruleNode->product)
                 continue;
+            if (artifact->isTargetOfModule())
+                continue;
             if (ruleNode->rule()->acceptsAsInput(artifact))
                 changedInputArtifacts += artifact;
         }
