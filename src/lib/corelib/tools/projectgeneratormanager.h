@@ -41,7 +41,6 @@
 #ifndef QBS_PROJECTGENERATORMANAGER_H
 #define QBS_PROJECTGENERATORMANAGER_H
 
-#include <language/filetags.h>
 #include <generators/generator.h>
 
 #include <QtCore/qmap.h>
@@ -53,9 +52,6 @@ QT_END_NAMESPACE
 
 namespace qbs {
 class ProjectGenerator;
-namespace Internal {
-class Logger;
-}
 
 class QBS_EXPORT ProjectGeneratorManager
 {

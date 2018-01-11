@@ -49,6 +49,7 @@
 #include "io/visualstudiosolutionwriter.h"
 
 #include <generators/generatableprojectiterator.h>
+#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/filesaver.h>
 #include <tools/qbsassert.h>
