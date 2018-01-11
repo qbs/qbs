@@ -109,13 +109,22 @@ QHash<QString, ResolvedProductPtr> TestLanguage::productsFromProject(ResolvedPro
     return result;
 }
 
+template <typename C>
+typename C::value_type findByName(const C &container, const QString &name)
+{
+    auto endIt = std::end(container);
+    auto it = std::find_if(std::begin(container), endIt,
+                           [&name] (const typename C::value_type &thing) {
+        return thing->name == name;
+    });
+    if (it != endIt)
+        return *it;
+    return typename C::value_type();
+}
+
 ResolvedModuleConstPtr TestLanguage::findModuleByName(ResolvedProductPtr product, const QString &name)
 {
-    const auto modules = product->modules;
-    for (const ResolvedModuleConstPtr &module : modules)
-        if (module->name == name)
-            return module;
-    return ResolvedModuleConstPtr();
+    return findByName(product->modules, name);
 }
 
 QVariant TestLanguage::productPropertyValue(ResolvedProductPtr product, QString propertyName)
@@ -1221,8 +1230,17 @@ void TestLanguage::idUsage()
         QVERIFY(products.contains("product3_3"));
         ResolvedProductPtr product4 = products.value("product4_4");
         QVERIFY(!!product4);
-        QEXPECT_FAIL("", "QBS-1016", Continue);
-        QCOMPARE(product4->productProperties.value("productName").toString(), product4->name);
+        auto product4Property = [&product4] (const char *name) {
+            return product4->productProperties.value(QString::fromUtf8(name)).toString();
+        };
+        QCOMPARE(product4Property("productName"), product4->name);
+        QCOMPARE(product4Property("productNameInBaseOfBase"), product4->name);
+        GroupPtr group = findByName(product4->groups, "group in base product");
+        QVERIFY(!!group);
+        QCOMPARE(qPrintable(group->prefix), "group in base product");
+        group = findByName(product4->groups, "another group in base product");
+        QVERIFY(!!group);
+        QCOMPARE(qPrintable(group->prefix), "another group in base product");
         ResolvedProductPtr product5 = products.value("product5");
         QVERIFY(!!product5);
         QCOMPARE(product5->moduleProperties->moduleProperty("deepdummy.deep.moat", "zort")

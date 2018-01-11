@@ -64,10 +64,14 @@ public:
     void cacheDirectoryEntries(const QString &dirPath, const QStringList &entries);
     bool findDirectoryEntries(const QString &dirPath, QStringList *entries) const;
 
+    Item *mostDerivingItem() const;
+    void setMostDerivingItem(Item *item);
+
 private:
     Logger &m_logger;
     Set<QString> m_filesRead;
     QHash<QString, QStringList> m_directoryEntries;
+    Item *m_mostDerivingItem = nullptr;
 
     class ASTCache;
     ASTCache * const m_astCache;

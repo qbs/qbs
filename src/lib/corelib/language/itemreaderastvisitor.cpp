@@ -59,6 +59,8 @@
 #include <tools/stringconstants.h>
 #include <logging/translator.h>
 
+#include <algorithm>
+
 using namespace QbsQmlJS;
 
 namespace qbs {
@@ -81,11 +83,29 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
     return false;
 }
 
+static ItemValuePtr findItemProperty(const Item *container, const Item *item)
+{
+    ItemValuePtr itemValue;
+    const auto &srcprops = container->properties();
+    auto it = std::find_if(srcprops.begin(), srcprops.end(), [item] (const ValuePtr &v) {
+        return v->type() == Value::ItemValueType
+                && std::static_pointer_cast<ItemValue>(v)->item() == item;
+    });
+    if (it != srcprops.end())
+        itemValue = std::static_pointer_cast<ItemValue>(it.value());
+    return itemValue;
+}
+
 bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
 {
     const QString typeName = ast->qualifiedTypeNameId->name.toString();
     const CodeLocation itemLocation = toCodeLocation(ast->qualifiedTypeNameId->identifierToken);
     const Item *baseItem = nullptr;
+    Item *mostDerivingItem = nullptr;
+
+    Item *item = Item::create(m_itemPool, ItemType::Unknown);
+    item->setFile(m_file);
+    item->setLocation(itemLocation);
 
     // Inheritance resolving, part 1: Find out our actual type name (needed for setting
     // up children and alternatives).
@@ -93,7 +113,13 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     const QString baseTypeFileName = m_typeNameToFile.value(fullTypeName);
     ItemType itemType;
     if (!baseTypeFileName.isEmpty()) {
+        const bool isMostDerivingItem = (m_visitorState.mostDerivingItem() == nullptr);
+        if (isMostDerivingItem)
+            m_visitorState.setMostDerivingItem(item);
+        mostDerivingItem = m_visitorState.mostDerivingItem();
         baseItem = m_visitorState.readFile(baseTypeFileName, m_file->searchPaths(), m_itemPool);
+        if (isMostDerivingItem)
+            m_visitorState.setMostDerivingItem(nullptr);
         QBS_CHECK(baseItem->type() <= ItemType::LastActualItem);
         itemType = baseItem->type();
     } else {
@@ -107,9 +133,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
             itemType = ItemType::PropertiesInSubProject;
     }
 
-    Item *item = Item::create(m_itemPool, itemType);
-    item->setFile(m_file);
-    item->setLocation(itemLocation);
+    item->m_type = itemType;
 
     if (m_item)
         Item::addChild(m_item, item); // Add this item to the children of the parent item.
@@ -117,9 +141,12 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         m_item = item; // This is the root item.
 
     if (ast->initializer) {
+        Item *mdi = m_visitorState.mostDerivingItem();
+        m_visitorState.setMostDerivingItem(nullptr);
         qSwap(m_item, item);
         ast->initializer->accept(this);
         qSwap(m_item, item);
+        m_visitorState.setMostDerivingItem(mdi);
     }
 
     ASTPropertiesItemHandler(item).handlePropertiesItems();
@@ -132,6 +159,11 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
             // ### Do we want to turn off this feature? It's QMLish but kind of strange.
             item->file()->ensureIdScope(m_itemPool);
             baseItem->file()->idScope()->setPrototype(item->file()->idScope());
+
+            // Replace the base item with the most deriving item.
+            ItemValuePtr baseItemIdValue = findItemProperty(baseItem->file()->idScope(), baseItem);
+            if (baseItemIdValue)
+                baseItemIdValue->setItem(mostDerivingItem);
         }
     } else {
         // Only the item at the top of the inheritance chain is a built-in item.

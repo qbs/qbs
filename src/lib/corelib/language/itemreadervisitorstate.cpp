@@ -186,6 +186,16 @@ bool ItemReaderVisitorState::findDirectoryEntries(const QString &dirPath, QStrin
     return true;
 }
 
+Item *ItemReaderVisitorState::mostDerivingItem() const
+{
+    return m_mostDerivingItem;
+}
+
+void ItemReaderVisitorState::setMostDerivingItem(Item *item)
+{
+    m_mostDerivingItem = item;
+}
+
 
 } // namespace Internal
 } // namespace qbs
