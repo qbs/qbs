@@ -170,10 +170,18 @@ QbsLibrary {
             "generatableprojectiterator.cpp",
             "generatableprojectiterator.h",
             "generator.cpp",
-            "generator.h",
             "generatordata.cpp",
-            "generatordata.h",
             "igeneratableprojectvisitor.h",
+        ]
+    }
+    Group {
+        name: "public generator headers"
+        prefix: "generators/"
+        qbs.install: qbsbuildconfig.installApiHeaders
+        qbs.installDir: headerInstallPrefix + "/generators"
+        files: [
+            "generator.h",
+            "generatordata.h",
         ]
     }
     Group {
