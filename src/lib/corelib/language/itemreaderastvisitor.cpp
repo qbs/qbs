@@ -85,7 +85,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
 {
     const QString typeName = ast->qualifiedTypeNameId->name.toString();
     const CodeLocation itemLocation = toCodeLocation(ast->qualifiedTypeNameId->identifierToken);
-    const Item *inheritorItem = nullptr;
+    const Item *baseItem = nullptr;
 
     // Inheritance resolving, part 1: Find out our actual type name (needed for setting
     // up children and alternatives).
@@ -93,10 +93,9 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     const QString baseTypeFileName = m_typeNameToFile.value(fullTypeName);
     ItemType itemType;
     if (!baseTypeFileName.isEmpty()) {
-        inheritorItem = m_visitorState.readFile(baseTypeFileName, m_file->searchPaths(),
-                                                m_itemPool);
-        QBS_CHECK(inheritorItem->type() <= ItemType::LastActualItem);
-        itemType = inheritorItem->type();
+        baseItem = m_visitorState.readFile(baseTypeFileName, m_file->searchPaths(), m_itemPool);
+        QBS_CHECK(baseItem->type() <= ItemType::LastActualItem);
+        itemType = baseItem->type();
     } else {
         if (fullTypeName.size() > 1) {
             throw ErrorInfo(Tr::tr("Invalid item '%1'. Did you mean to set a module property?")
@@ -126,13 +125,13 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     ASTPropertiesItemHandler(item).handlePropertiesItems();
 
     // Inheritance resolving, part 2 (depends on alternatives having been set up).
-    if (inheritorItem) {
-        inheritItem(item, inheritorItem);
-        if (inheritorItem->file()->idScope()) {
+    if (baseItem) {
+        inheritItem(item, baseItem);
+        if (baseItem->file()->idScope()) {
             // Make ids from the derived file visible in the base file.
             // ### Do we want to turn off this feature? It's QMLish but kind of strange.
             item->file()->ensureIdScope(m_itemPool);
-            inheritorItem->file()->idScope()->setPrototype(item->file()->idScope());
+            baseItem->file()->idScope()->setPrototype(item->file()->idScope());
         }
     } else {
         // Only the item at the top of the inheritance chain is a built-in item.
