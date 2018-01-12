@@ -108,6 +108,8 @@ QtModuleInfo::QtModuleInfo(const QString &name, const QString &qbsName, const QS
 
 QString QtModuleInfo::moduleNameWithoutPrefix() const
 {
+    if (name == QLatin1String("Phonon"))
+        return QLatin1String("phonon");
     if (modulePrefix.isEmpty() && name.startsWith(QLatin1String("Qt")))
         return name.mid(2); // Strip off "Qt".
     if (name.startsWith(modulePrefix))
@@ -141,7 +143,8 @@ QString QtModuleInfo::libraryBaseName(const QtEnvironment &qtEnvironment,
 
     // Some modules use a different naming scheme, so it doesn't get boring.
     const bool libNameBroken = name == QLatin1String("Enginio")
-            || name == QLatin1String("DataVisualization");
+            || name == QLatin1String("DataVisualization")
+            || name == QLatin1String("Phonon");
 
     QString libName = modulePrefix.isEmpty() && !libNameBroken ? QLatin1String("Qt") : modulePrefix;
     if (qtEnvironment.qtMajorVersion >= 5 && !isFramework(qtEnvironment) && !libNameBroken)

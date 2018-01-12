@@ -8,7 +8,7 @@ import "moc.js" as Moc
 import "qdoc.js" as Qdoc
 
 Module {
-    condition: !qbs.architecture || architecture === qbs.architecture
+    condition: !qbs.architecture || !architecture || architecture === qbs.architecture
 
     id: qtcore
 

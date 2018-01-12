@@ -2,7 +2,7 @@ import qbs 1.0
 import qbs.FileInfo
 
 Module {
-    condition: !qbs.architecture || architecture === qbs.architecture
+    condition: !qbs.architecture || !architecture || architecture === qbs.architecture
 
     Depends { name: "cpp" }
     Depends { name: "Qt.core" }
