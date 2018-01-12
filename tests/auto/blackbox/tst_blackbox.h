@@ -42,6 +42,7 @@ private slots:
     void addFileTagToGeneratedArtifact();
     void alwaysRun();
     void alwaysRun_data();
+    void artifactsMapChangeTracking();
     void artifactsMapInvalidation();
     void artifactsMapRaceCondition();
     void artifactScanning();

@@ -249,6 +249,7 @@ void Transformer::createCommands(ScriptEngine *engine, const PrivateScriptFuncti
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
     importedFilesUsedInPrepareScript = engine->importedFilesUsedInScript();
     depsRequestedInPrepareScript = engine->requestedDependencies();
+    artifactsMapRequestedInPrepareScript = engine->requestedArtifacts();
     lastPrepareScriptExecutionTime = FileTime::currentTime();
     engine->clearRequestedProperties();
     if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue)))
@@ -286,6 +287,8 @@ void Transformer::rescueChangeTrackingData(const TransformerConstPtr &other)
     importedFilesUsedInCommands = other->importedFilesUsedInCommands;
     depsRequestedInPrepareScript = other->depsRequestedInPrepareScript;
     depsRequestedInCommands = other->depsRequestedInCommands;
+    artifactsMapRequestedInPrepareScript = other->artifactsMapRequestedInPrepareScript;
+    artifactsMapRequestedInCommands = other->artifactsMapRequestedInCommands;
     lastCommandExecutionTime = other->lastCommandExecutionTime;
     lastPrepareScriptExecutionTime = other->lastPrepareScriptExecutionTime;
     prepareScriptNeedsChangeTracking = other->prepareScriptNeedsChangeTracking;
@@ -307,6 +310,8 @@ void Transformer::load(PersistentPool &pool)
     pool.load(depsRequestedInPrepareScript);
     pool.load(depsRequestedInCommands);
     pool.load(commands);
+    pool.load(artifactsMapRequestedInPrepareScript);
+    pool.load(artifactsMapRequestedInCommands);
     pool.load(lastPrepareScriptExecutionTime);
     pool.load(lastCommandExecutionTime);
     pool.load(alwaysRun);
@@ -329,6 +334,8 @@ void Transformer::store(PersistentPool &pool) const
     pool.store(depsRequestedInPrepareScript);
     pool.store(depsRequestedInCommands);
     pool.store(commands);
+    pool.store(artifactsMapRequestedInPrepareScript);
+    pool.store(artifactsMapRequestedInCommands);
     pool.store(lastPrepareScriptExecutionTime);
     pool.store(lastCommandExecutionTime);
     pool.store(alwaysRun);

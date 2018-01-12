@@ -248,6 +248,10 @@ bool TrafoChangeTracker::prepareScriptNeedsRerun() const
 
     if (!m_transformer->depsRequestedInPrepareScript.isUpToDate(m_product->topLevelProject()))
         return true;
+    if (!m_transformer->artifactsMapRequestedInPrepareScript.isUpToDate(
+                m_product->topLevelProject())) {
+        return true;
+    }
 
     return false;
 }
@@ -277,6 +281,8 @@ bool TrafoChangeTracker::commandsNeedRerun() const
     }
 
     if (!m_transformer->depsRequestedInCommands.isUpToDate(m_product->topLevelProject()))
+        return true;
+    if (!m_transformer->artifactsMapRequestedInCommands.isUpToDate(m_product->topLevelProject()))
         return true;
 
     // TODO: Also track env access in JS commands and prepare scripts

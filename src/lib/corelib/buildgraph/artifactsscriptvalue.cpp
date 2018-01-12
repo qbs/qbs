@@ -86,13 +86,25 @@ static void setArtifactsMapUpToDate(const ResolvedProduct *p)
 }
 static void setArtifactsMapUpToDate(const ResolvedModule *) { }
 
+static void registerArtifactsMapAccess(const ResolvedProduct *p, ScriptEngine *e)
+{
+    e->setArtifactsMapRequested(p);
+}
+static void registerArtifactsMapAccess(const ResolvedModule *, ScriptEngine *) {}
+static void registerArtifactsSetAccess(const ResolvedProduct *p, const FileTag &t, ScriptEngine *e)
+{
+    e->setArtifactSetRequestedForTag(p, t);
+}
+static void registerArtifactsSetAccess(const ResolvedModule *, const FileTag &, ScriptEngine *) {}
+
 template<class ProductOrModule> static QScriptValue js_artifactsForFileTag(
         QScriptContext *ctx, ScriptEngine *engine, const ProductOrModule *productOrModule)
 {
+    const FileTag fileTag = FileTag(ctx->callee().property(FileTagKey).toString().toUtf8());
+    registerArtifactsSetAccess(productOrModule, fileTag, engine);
     QScriptValue result = ctx->callee().property(CachedValueKey);
     if (result.isArray())
         return result;
-    const FileTag fileTag = FileTag(ctx->callee().property(FileTagKey).toString().toUtf8());
     auto artifacts = artifactsMap(productOrModule).value(fileTag);
     const auto filter = [productOrModule](const Artifact *a) {
         return !isRelevantArtifact(productOrModule, a);
@@ -109,6 +121,7 @@ template<class ProductOrModule> static QScriptValue js_artifactsForFileTag(
 template<class ProductOrModule> static QScriptValue js_artifacts(
         QScriptContext *ctx, ScriptEngine *engine, const ProductOrModule *productOrModule)
 {
+    registerArtifactsMapAccess(productOrModule, engine);
     QScriptValue artifactsObj = ctx->callee().property(CachedValueKey);
     if (artifactsObj.isObject() && isArtifactsMapUpToDate(productOrModule))
         return artifactsObj;

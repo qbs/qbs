@@ -42,6 +42,7 @@
 
 #include "artifact.h"
 #include "forward_decls.h"
+#include "requestedartifacts.h"
 #include "requesteddependencies.h"
 #include "rulecommands.h"
 #include <language/forward_decls.h>
@@ -77,6 +78,8 @@ public:
     std::vector<QString> importedFilesUsedInCommands;
     RequestedDependencies depsRequestedInPrepareScript;
     RequestedDependencies depsRequestedInCommands;
+    RequestedArtifacts artifactsMapRequestedInPrepareScript;
+    RequestedArtifacts artifactsMapRequestedInCommands;
     FileTime lastPrepareScriptExecutionTime;
     FileTime lastCommandExecutionTime;
     bool alwaysRun;

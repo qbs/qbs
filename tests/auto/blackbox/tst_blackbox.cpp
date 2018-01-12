@@ -361,6 +361,92 @@ void TestBlackbox::alwaysRun_data()
     QTest::newRow("Rule") << "rule.qbs";
 }
 
+void TestBlackbox::artifactsMapChangeTracking()
+{
+    QDir::setCurrent(testDataDir + "/artifacts-map-change-tracking");
+    QCOMPARE(runQbs(QStringList{"-p", "TheApp"}), 0);
+    QVERIFY2(m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("linking"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
+    QVERIFY2(m_qbsStdout.contains("printing artifacts"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("test.txt"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("TheBinary"), m_qbsStdout.constData());
+
+    // Change name of target binary. Command must be re-run, because the file name of an
+    // artifact changed.
+    WAIT_FOR_NEW_TIMESTAMP();
+    const QString projectFile("artifacts-map-change-tracking.qbs");
+    REPLACE_IN_FILE(projectFile, "TheBinary", "TheNewBinary");
+    QCOMPARE(runQbs(QStringList{"-p", "TheApp"}), 0);
+    QEXPECT_FAIL("", "change tracking could become even more fine-grained", Continue);
+    QVERIFY2(!m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("linking"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
+    QVERIFY2(m_qbsStdout.contains("printing artifacts"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("test.txt"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("TheNewBinary"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("TheBinary"), m_qbsStdout.constData());
+
+    // Add file tag to generated artifact. Command must be re-run, because it enumerates the keys
+    // of the artifacts map.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE(projectFile, "fileTags: 'cpp'", "fileTags: ['cpp', 'blubb']");
+    QCOMPARE(runQbs(QStringList{"-p", "TheApp"}), 0);
+    QVERIFY2(m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("linking"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
+    QVERIFY2(m_qbsStdout.contains("printing artifacts"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("test.txt"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("TheNewBinary"), m_qbsStdout.constData());
+
+    // Add redundant file tag to generated artifact. Command must not be re-run, because
+    // the artifacts map has not changed.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE(projectFile, "fileTags: ['cpp', 'blubb']",
+                    "fileTags: ['cpp', 'blubb', 'blubb']");
+    QCOMPARE(runQbs(QStringList{"-p", "TheApp"}), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("linking"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
+    QVERIFY2(!m_qbsStdout.contains("printing artifacts"), m_qbsStdout.constData());
+
+    // Rebuild the app. Command must not be re-run, because the artifacts map has not changed.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("main.cpp");
+    QCOMPARE(runQbs(QStringList{"-p", "TheApp"}), 0);
+    QVERIFY2(!m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("linking"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
+    QVERIFY2(!m_qbsStdout.contains("printing artifacts"), m_qbsStdout.constData());
+
+    // Add source file to app. Command must be re-run, because the artifacts map has changed.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE(projectFile, "/* 'test.txt' */", "'test.txt'");
+    QCOMPARE(runQbs(QStringList{"-p", "TheApp"}), 0);
+    QEXPECT_FAIL("", "change tracking could become even more fine-grained", Continue);
+    QVERIFY2(!m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("linking"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
+    QVERIFY2(m_qbsStdout.contains("printing artifacts"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("test.txt"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("test.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("TheNewBinary"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::artifactsMapInvalidation()
 {
     const QString projectDir = testDataDir + "/artifacts-map-invalidation";

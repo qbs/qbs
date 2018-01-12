@@ -143,6 +143,8 @@ QbsLibrary {
             "rawscanneddependency.h",
             "rawscanresults.cpp",
             "rawscanresults.h",
+            "requestedartifacts.cpp",
+            "requestedartifacts.h",
             "requesteddependencies.cpp",
             "requesteddependencies.h",
             "rescuableartifactdata.cpp",

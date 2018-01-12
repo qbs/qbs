@@ -870,6 +870,10 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
             rad.depsRequestedInPrepareScript
                     = oldArtifact->transformer->depsRequestedInPrepareScript;
             rad.depsRequestedInCommands = oldArtifact->transformer->depsRequestedInCommands;
+            rad.artifactsMapRequestedInPrepareScript
+                    = oldArtifact->transformer->artifactsMapRequestedInPrepareScript;
+            rad.artifactsMapRequestedInCommands
+                    = oldArtifact->transformer->artifactsMapRequestedInCommands;
             rad.lastCommandExecutionTime = oldArtifact->transformer->lastCommandExecutionTime;
             rad.lastPrepareScriptExecutionTime
                     = oldArtifact->transformer->lastPrepareScriptExecutionTime;
