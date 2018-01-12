@@ -42,6 +42,7 @@
 
 #include "artifact.h"
 #include "forward_decls.h"
+#include "requesteddependencies.h"
 #include <language/forward_decls.h>
 #include <language/property.h>
 #include <language/scriptengine.h>
@@ -72,6 +73,8 @@ public:
     QHash<QString, PropertySet> propertiesRequestedFromArtifactInCommands;
     std::vector<QString> importedFilesUsedInPrepareScript;
     std::vector<QString> importedFilesUsedInCommands;
+    RequestedDependencies depsRequestedInPrepareScript;
+    RequestedDependencies depsRequestedInCommands;
     bool alwaysRun;
 
     static QScriptValue translateFileConfig(ScriptEngine *scriptEngine,

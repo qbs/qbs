@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,56 +36,66 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#include "requesteddependencies.h"
 
-#include "rescuableartifactdata.h"
-
-#include "rulecommands.h"
-
-#include <language/propertymapinternal.h>
-
+#include <language/language.h>
+#include <logging/categories.h>
 #include <tools/persistence.h>
+#include <tools/qttools.h>
 
 namespace qbs {
 namespace Internal {
 
-RescuableArtifactData::~RescuableArtifactData()
+static Set<QString> depNamesForProduct(const ResolvedProduct *p)
 {
+    Set<QString> names;
+    for (const ResolvedProductConstPtr &dep : p->dependencies)
+        names.insert(dep->uniqueName());
+    for (const ResolvedModuleConstPtr &m : p->modules) {
+        if (!m->isProduct)
+            names.insert(m->name);
+    }
+    return names;
 }
 
-void RescuableArtifactData::load(PersistentPool &pool)
+void RequestedDependencies::set(const Set<const ResolvedProduct *> &products)
 {
-    pool.load(timeStamp);
-    pool.load(children);
-    pool.load(fileDependencies);
-    pool.load(propertiesRequestedInPrepareScript);
-    pool.load(propertiesRequestedInCommands);
-    pool.load(propertiesRequestedFromArtifactInPrepareScript);
-    pool.load(propertiesRequestedFromArtifactInCommands);
-    pool.load(importedFilesUsedInPrepareScript);
-    pool.load(importedFilesUsedInCommands);
-    pool.load(depsRequestedInPrepareScript);
-    pool.load(depsRequestedInCommands);
-    commands = loadCommandList(pool);
-    pool.load(fileTags);
-    pool.load(properties);
+    m_depsPerProduct.clear();
+    add(products);
 }
 
-void RescuableArtifactData::store(PersistentPool &pool) const
+void RequestedDependencies::add(const Set<const ResolvedProduct *> &products)
 {
-    pool.store(timeStamp);
-    pool.store(children);
-    pool.store(fileDependencies);
-    pool.store(propertiesRequestedInPrepareScript);
-    pool.store(propertiesRequestedInCommands);
-    pool.store(propertiesRequestedFromArtifactInPrepareScript);
-    pool.store(propertiesRequestedFromArtifactInCommands);
-    pool.store(importedFilesUsedInPrepareScript);
-    pool.store(importedFilesUsedInCommands);
-    pool.store(depsRequestedInPrepareScript);
-    pool.store(depsRequestedInCommands);
-    storeCommandList(commands, pool);
-    pool.store(fileTags);
-    pool.store(properties);
+    for (const ResolvedProduct * const p : products)
+        m_depsPerProduct[p->uniqueName()] = depNamesForProduct(p);
+}
+
+bool RequestedDependencies::isUpToDate(const TopLevelProject *project) const
+{
+    if (m_depsPerProduct.empty())
+        return true;
+    for (const ResolvedProductConstPtr &product : project->allProducts()) {
+        const auto it = m_depsPerProduct.find(product->uniqueName());
+        if (it == m_depsPerProduct.cend())
+            continue;
+        const Set<QString> newDepNames = depNamesForProduct(product.get());
+        if (newDepNames != it->second) {
+            qCDebug(lcBuildGraph) << "dependencies list was accessed for product"
+                                  << product->fullDisplayName() << "and dependencies have changed.";
+            return false;
+        }
+    }
+    return true;
+}
+
+void RequestedDependencies::load(PersistentPool &pool)
+{
+    pool.load(m_depsPerProduct);
+}
+
+void RequestedDependencies::store(PersistentPool &pool) const
+{
+    pool.store(m_depsPerProduct);
 }
 
 } // namespace Internal

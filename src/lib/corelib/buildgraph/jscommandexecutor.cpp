@@ -150,6 +150,7 @@ private:
         transformer->importedFilesUsedInCommands.insert(
                     transformer->importedFilesUsedInCommands.cend(),
                     importFilesUsedInCommand.cbegin(), importFilesUsedInCommand.cend());
+        transformer->depsRequestedInCommands.add(scriptEngine->productsWithRequestedDependencies());
         scriptEngine->clearRequestedProperties();
         if (scriptEngine->hasUncaughtException()) {
             // ### We don't know the line number of the command's sourceCode property assignment.

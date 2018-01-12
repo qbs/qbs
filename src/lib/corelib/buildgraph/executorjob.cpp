@@ -105,6 +105,7 @@ void ExecutorJob::run(Transformer *t)
     t->propertiesRequestedInCommands.clear();
     t->propertiesRequestedFromArtifactInCommands.clear();
     t->importedFilesUsedInCommands.clear();
+    t->depsRequestedInCommands.clear();
     QBS_CHECK(!t->outputs.empty());
     m_processCommandExecutor->setProcessEnvironment(
                 (*t->outputs.cbegin())->product->buildEnvironment);

@@ -3,10 +3,13 @@ import qbs.TextFile
 import qbs.FileInfo
 
 Project {
+    Product { name: "newDependency" }
     Product {
         type: "deps"
         name: "product1"
         Depends { name: "product2" }
+        // Depends { name: 'product2' }
+        // Depends { name: 'newDependency' }
         Rule {
             multiplex: true
             Artifact {
@@ -17,11 +20,10 @@ Project {
                 var cmd = new JavaScriptCommand();
                 cmd.description = 'generate ' + FileInfo.fileName(output.filePath);
                 cmd.highlight = 'codegen';
-                cmd.content = JSON.stringify(product.dependencies, undefined, 2);
                 cmd.sourceCode = function() {
                     file = new TextFile(output.filePath, TextFile.WriteOnly);
                     file.truncate();
-                    file.write(content);
+                    file.write(JSON.stringify(product.dependencies, undefined, 2));
                     file.close();
                 }
                 return cmd;

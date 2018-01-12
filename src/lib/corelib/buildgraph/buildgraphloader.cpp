@@ -907,6 +907,11 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
         return true;
     }
 
+    if (!restoredTrafo->depsRequestedInCommands.isUpToDate(freshProduct->topLevelProject())) {
+        invalidateTransformer(restoredTrafo);
+        return true;
+    }
+
     for (const Property &property : qAsConst(restoredTrafo->propertiesRequestedInPrepareScript)) {
         if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property)))
             return true;
@@ -929,6 +934,10 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
                 return true;
         }
     }
+
+    if (!restoredTrafo->depsRequestedInPrepareScript.isUpToDate(freshProduct->topLevelProject()))
+        return true;
+
     return false;
 }
 
@@ -1081,6 +1090,9 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
             rad.importedFilesUsedInPrepareScript
                     = oldArtifact->transformer->importedFilesUsedInPrepareScript;
             rad.importedFilesUsedInCommands = oldArtifact->transformer->importedFilesUsedInCommands;
+            rad.depsRequestedInPrepareScript
+                    = oldArtifact->transformer->depsRequestedInPrepareScript;
+            rad.depsRequestedInCommands = oldArtifact->transformer->depsRequestedInCommands;
             const ChildrenInfo &childrenInfo = childLists.value(oldArtifact);
             for (Artifact * const child : qAsConst(childrenInfo.children)) {
                 rad.children << RescuableArtifactData::ChildData(child->product->name,

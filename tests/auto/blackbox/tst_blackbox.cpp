@@ -680,19 +680,26 @@ static QJsonObject findByName(const QJsonArray &objects, const QString &name)
     return QJsonObject();
 }
 
-void TestBlackbox::dependenciesProperty()
+static void readDepsOutput(const QString &depsFilePath, QJsonDocument &jsonDocument)
 {
-    QDir::setCurrent(testDataDir + QLatin1String("/dependenciesProperty"));
-    QCOMPARE(runQbs(), 0);
-    QFile depsFile(relativeProductBuildDir("product1") + QLatin1String("/product1.deps"));
-    QVERIFY(depsFile.open(QFile::ReadOnly));
-
+    jsonDocument = QJsonDocument();
+    QFile depsFile(depsFilePath);
+    QVERIFY2(depsFile.open(QFile::ReadOnly), qPrintable(depsFile.errorString()));
     QJsonParseError jsonerror;
-    QJsonDocument jsondoc = QJsonDocument::fromJson(depsFile.readAll(), &jsonerror);
+    jsonDocument = QJsonDocument::fromJson(depsFile.readAll(), &jsonerror);
     if (jsonerror.error != QJsonParseError::NoError) {
         qDebug() << jsonerror.errorString();
         QFAIL("JSON parsing failed.");
     }
+}
+
+void TestBlackbox::dependenciesProperty()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/dependenciesProperty"));
+    QCOMPARE(runQbs(), 0);
+    const QString depsFile(relativeProductBuildDir("product1") + "/product1.deps");
+    QJsonDocument jsondoc;
+    readDepsOutput(depsFile, jsondoc);
     QVERIFY(jsondoc.isArray());
     QJsonArray dependencies = jsondoc.array();
     QCOMPARE(dependencies.size(), 2);
@@ -720,6 +727,65 @@ void TestBlackbox::dependenciesProperty()
             ++qbsCount;
     }
     QCOMPARE(qbsCount, 1);
+
+    // Add new dependency, check that command is re-run.
+    WAIT_FOR_NEW_TIMESTAMP();
+    QFile projectFile("dependenciesProperty.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray content = projectFile.readAll();
+    content.replace("// Depends { name: 'newDependency' }", "Depends { name: 'newDependency' }");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("generate product1.deps"), m_qbsStdout.constData());
+    readDepsOutput(depsFile, jsondoc);
+    dependencies = jsondoc.array();
+    QCOMPARE(dependencies.size(), 3);
+
+    // Add new Depends item that does not actually introduce a new dependency, check
+    // that command is not re-run.
+    WAIT_FOR_NEW_TIMESTAMP();
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    content = projectFile.readAll();
+    content.replace("// Depends { name: 'product2' }", "Depends { name: 'product2' }");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("generate product1.deps"), m_qbsStdout.constData());
+    readDepsOutput(depsFile, jsondoc);
+    dependencies = jsondoc.array();
+    QCOMPARE(dependencies.size(), 3);
+
+    // Change property of dependency, check that command is re-run.
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList{"products.product2.narf:zortofsky"})),
+             0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling product2.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generate product1.deps"), m_qbsStdout.constData());
+    readDepsOutput(depsFile, jsondoc);
+    dependencies = jsondoc.array();
+    QCOMPARE(dependencies.size(), 3);
+    product2 = findByName(dependencies, QStringLiteral("product2"));
+    QCOMPARE(product2.value(QLatin1String("narf")).toString(), QLatin1String("zortofsky"));
+
+    // Change module property of dependency, check that command is re-run.
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList{"products.product2.narf:zortofsky",
+                                     "products.product2.cpp.defines:DIGEDAG"})), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling product2.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generate product1.deps"), m_qbsStdout.constData());
+    readDepsOutput(depsFile, jsondoc);
+    dependencies = jsondoc.array();
+    QCOMPARE(dependencies.size(), 3);
+    product2 = findByName(dependencies, QStringLiteral("product2"));
+    product2_deps = product2.value(QLatin1String("dependencies")).toArray();
+    product2_cpp = findByName(product2_deps, QStringLiteral("cpp"));
+    product2_cpp_defines = product2_cpp.value(QLatin1String("defines")).toArray();
+    QCOMPARE(product2_cpp_defines.size(), 1);
+    QCOMPARE(product2_cpp_defines.first().toString(), QLatin1String("DIGEDAG"));
 }
 
 void TestBlackbox::dependencyProfileMismatch()

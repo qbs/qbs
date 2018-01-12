@@ -42,6 +42,7 @@
 
 #include "forward_decls.h"
 #include "property.h"
+#include <buildgraph/requesteddependencies.h>
 #include <logging/logger.h>
 #include <tools/codelocation.h>
 #include <tools/filetime.h>
@@ -112,15 +113,28 @@ public:
     void addPropertyRequestedInScript(const Property &property) {
         m_propertiesRequestedInScript += property;
     }
+    void addDependenciesArrayRequested(const ResolvedProduct *p)
+    {
+        m_productsWithRequestedDependencies.insert(p);
+    }
     void addPropertyRequestedFromArtifact(const Artifact *artifact, const Property &property);
     void clearRequestedProperties() {
         m_propertiesRequestedInScript.clear();
         m_propertiesRequestedFromArtifact.clear();
         m_importsRequestedInScript.clear();
+        m_productsWithRequestedDependencies.clear();
     }
     PropertySet propertiesRequestedInScript() const { return m_propertiesRequestedInScript; }
     QHash<QString, PropertySet> propertiesRequestedFromArtifact() const {
         return m_propertiesRequestedFromArtifact;
+    }
+    Set<const ResolvedProduct *> productsWithRequestedDependencies() const
+    {
+        return m_productsWithRequestedDependencies;
+    }
+    RequestedDependencies requestedDependencies() const
+    {
+        return RequestedDependencies(m_productsWithRequestedDependencies);
     }
 
     void addImportRequestedInScript(qint64 importValueId);
@@ -298,6 +312,7 @@ private:
     std::vector<QScriptValue> m_requireResults;
     std::unordered_map<qint64, std::vector<QString>> m_filePathsPerImport;
     std::vector<qint64> m_importsRequestedInScript;
+    Set<const ResolvedProduct *> m_productsWithRequestedDependencies;
     ObserveMode m_observeMode = ObserveMode::Disabled;
 
     std::unordered_map<const ResolvedProduct *, QScriptValue> m_productScriptValues;

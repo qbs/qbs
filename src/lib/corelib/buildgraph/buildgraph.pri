@@ -28,6 +28,7 @@ SOURCES += \
     $$PWD/qtmocscanner.cpp \
     $$PWD/rawscanneddependency.cpp \
     $$PWD/rawscanresults.cpp \
+    $$PWD/requesteddependencies.cpp \
     $$PWD/rescuableartifactdata.cpp \
     $$PWD/rulecommands.cpp \
     $$PWD/rulegraph.cpp \
@@ -67,6 +68,7 @@ HEADERS += \
     $$PWD/qtmocscanner.h \
     $$PWD/rawscanneddependency.h \
     $$PWD/rawscanresults.h \
+    $$PWD/requesteddependencies.h \
     $$PWD/rescuableartifactdata.h \
     $$PWD/rulecommands.h \
     $$PWD/rulegraph.h \

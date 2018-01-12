@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,56 +37,38 @@
 **
 ****************************************************************************/
 
-#include "rescuableartifactdata.h"
+#ifndef QBS_REQUESTEDDEPENDENCIES_H
+#define QBS_REQUESTEDDEPENDENCIES_H
 
-#include "rulecommands.h"
+#include <language/forward_decls.h>
+#include <tools/set.h>
 
-#include <language/propertymapinternal.h>
+#include <QString>
 
-#include <tools/persistence.h>
+#include <unordered_map>
 
 namespace qbs {
 namespace Internal {
+class PersistentPool;
 
-RescuableArtifactData::~RescuableArtifactData()
+class RequestedDependencies
 {
-}
+public:
+    RequestedDependencies() = default;
+    RequestedDependencies(const Set<const ResolvedProduct *> &products) { set(products); }
+    void set(const Set<const ResolvedProduct *> &products);
+    void add(const Set<const ResolvedProduct *> &products);
+    void clear() { m_depsPerProduct.clear(); }
+    bool isUpToDate(const TopLevelProject *project) const;
 
-void RescuableArtifactData::load(PersistentPool &pool)
-{
-    pool.load(timeStamp);
-    pool.load(children);
-    pool.load(fileDependencies);
-    pool.load(propertiesRequestedInPrepareScript);
-    pool.load(propertiesRequestedInCommands);
-    pool.load(propertiesRequestedFromArtifactInPrepareScript);
-    pool.load(propertiesRequestedFromArtifactInCommands);
-    pool.load(importedFilesUsedInPrepareScript);
-    pool.load(importedFilesUsedInCommands);
-    pool.load(depsRequestedInPrepareScript);
-    pool.load(depsRequestedInCommands);
-    commands = loadCommandList(pool);
-    pool.load(fileTags);
-    pool.load(properties);
-}
-
-void RescuableArtifactData::store(PersistentPool &pool) const
-{
-    pool.store(timeStamp);
-    pool.store(children);
-    pool.store(fileDependencies);
-    pool.store(propertiesRequestedInPrepareScript);
-    pool.store(propertiesRequestedInCommands);
-    pool.store(propertiesRequestedFromArtifactInPrepareScript);
-    pool.store(propertiesRequestedFromArtifactInCommands);
-    pool.store(importedFilesUsedInPrepareScript);
-    pool.store(importedFilesUsedInCommands);
-    pool.store(depsRequestedInPrepareScript);
-    pool.store(depsRequestedInCommands);
-    storeCommandList(commands, pool);
-    pool.store(fileTags);
-    pool.store(properties);
-}
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+private:
+    struct QStringHash { std::size_t operator()(const QString &s) const { return qHash(s); } };
+    std::unordered_map<QString, Set<QString>, QStringHash> m_depsPerProduct;
+};
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // Include guard

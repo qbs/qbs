@@ -51,6 +51,7 @@
 
 #include <memory>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
 
 namespace qbs {
@@ -356,6 +357,24 @@ struct PersistentPool::Helper<T, typename std::enable_if<IsKeyValueContainer<T>:
             const auto &value = pool->load<typename T::mapped_type>();
             container.insert(key, value);
         }
+    }
+};
+
+template<typename K, typename V, typename H>
+struct PersistentPool::Helper<std::unordered_map<K, V, H>>
+{
+    static void store(const std::unordered_map<K, V, H> &map, PersistentPool *pool)
+    {
+        pool->store(quint32(map.size()));
+        for (auto it = map.cbegin(); it != map.cend(); ++it)
+            pool->store(*it);
+    }
+    static void load(std::unordered_map<K, V, H> &map, PersistentPool *pool)
+    {
+        map.clear();
+        const auto count = pool->load<quint32>();
+        for (std::size_t i = 0; i < count; ++i)
+            map.insert(pool->load<std::pair<K, V>>());
     }
 };
 

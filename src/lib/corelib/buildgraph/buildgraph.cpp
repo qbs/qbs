@@ -209,6 +209,7 @@ private:
     static QScriptValue js_productDependencies(QScriptContext *, ScriptEngine *engine,
                                                const ResolvedProduct * const product)
     {
+        engine->addDependenciesArrayRequested(product);
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
         QList<ResolvedProductPtr> productDeps = product->dependencies.toList();

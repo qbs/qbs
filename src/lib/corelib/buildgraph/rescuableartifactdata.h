@@ -41,6 +41,7 @@
 #define QBS_RESCUABLEARTIFACTDATA_H
 
 #include "forward_decls.h"
+#include "requesteddependencies.h"
 
 #include <language/filetags.h>
 #include <language/forward_decls.h>
@@ -107,6 +108,8 @@ public:
     PropertyHash propertiesRequestedFromArtifactInCommands;
     std::vector<QString> importedFilesUsedInPrepareScript;
     std::vector<QString> importedFilesUsedInCommands;
+    RequestedDependencies depsRequestedInPrepareScript;
+    RequestedDependencies depsRequestedInCommands;
 
     // Only needed for API purposes
     FileTags fileTags;
