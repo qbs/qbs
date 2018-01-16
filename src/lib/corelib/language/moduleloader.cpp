@@ -1007,16 +1007,41 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
     productContext->project->result->productInfos.insert(item, productContext->info);
 }
 
-// Non-dependencies first.
+// Leaf modules first.
 static void createSortedModuleList(const Item::Module &parentModule, Item::Modules &modules)
 {
-    if (contains(modules, parentModule))
+    if (std::find_if(modules.cbegin(), modules.cend(),
+                     [parentModule](const Item::Module &m) { return m.name == parentModule.name;})
+            != modules.cend()) {
         return;
+    }
     for (const Item::Module &dep : parentModule.item->modules())
         createSortedModuleList(dep, modules);
     modules.push_back(parentModule);
     return;
 }
+
+static Item::Modules modulesSortedByDependency(const Item *productItem)
+{
+    QBS_CHECK(productItem->type() == ItemType::Product);
+    Item::Modules sortedModules;
+    const Item::Modules &unsortedModules = productItem->modules();
+    for (const Item::Module &module : unsortedModules)
+        createSortedModuleList(module, sortedModules);
+    QBS_CHECK(sortedModules.size() == unsortedModules.size());
+
+    // Make sure the top-level items stay the same.
+    for (Item::Module &s : sortedModules) {
+        for (const Item::Module &u : unsortedModules) {
+            if (s.name == u.name) {
+                s.item = u.item;
+                break;
+            }
+        }
+    }
+    return sortedModules;
+}
+
 
 template<typename T> bool insertIntoSet(Set<T> &set, const T &value)
 {
@@ -1052,21 +1077,22 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 
     Item * const item = productContext->item;
 
-    Item::Modules mergedModules;
-    for (const Item::Module &module : Item::Modules(item->modules())) {
-        Item::Module mergedModule = module;
-        ModuleMerger(m_logger, item, mergedModule).start();
-        mergedModules << mergedModule;
-    }
-    item->setModules(mergedModules);
+    // It is important that dependent modules are merged after their dependency, because
+    // the dependent module's merger potentially needs to replace module items that were
+    // set by the dependency module's merger (namely, scopes of defining items; see
+    // ModuleMerger::replaceItemInScopes()).
+    Item::Modules topSortedModules = modulesSortedByDependency(item);
+    for (Item::Module &module : topSortedModules)
+        ModuleMerger(m_logger, item, module).start();
 
-    // Must happen after all modules have been merged, so needs to be a second loop.
-    Item::Modules sortedModules;
-    for (const Item::Module &module : item->modules())
-        createSortedModuleList(module, sortedModules);
-    QBS_CHECK(sortedModules.size() == item->modules().size());
+    // Re-sort the modules by name. This is more stable; see QBS-818.
+    // The list of modules in the product now has the same order as before,
+    // only the items have been replaced by their merged counterparts.
+    Item::Modules lexicographicallySortedModules = topSortedModules;
+    std::sort(lexicographicallySortedModules.begin(), lexicographicallySortedModules.end());
+    item->setModules(lexicographicallySortedModules);
 
-    for (const Item::Module &module : qAsConst(sortedModules)) {
+    for (const Item::Module &module : topSortedModules) {
         if (!module.item->isPresentModule())
             continue;
         try {
@@ -1107,7 +1133,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 
     // Module validation must happen in an extra pass, after all Probes have been resolved.
     EvalCacheEnabler cacheEnabler(m_evaluator);
-    for (const Item::Module &module : qAsConst(sortedModules)) {
+    for (const Item::Module &module : topSortedModules) {
         if (!module.item->isPresentModule())
             continue;
         try {

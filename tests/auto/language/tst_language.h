@@ -143,6 +143,7 @@ private slots:
     void propertiesBlockInGroup();
     void propertiesItemInModule();
     void propertyAssignmentInExportedGroup();
+    void qbs1275();
     void qbsPropertiesInProjectCondition();
     void qbsPropertyConvenienceOverride();
     void relaxedErrorMode();
