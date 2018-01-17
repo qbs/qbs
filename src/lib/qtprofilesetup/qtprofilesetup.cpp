@@ -570,8 +570,6 @@ static void createModules(Profile &profile, Settings *settings,
                                  qbsQtModuleBaseDir + QLatin1Char('/') + qmlcacheStr, profile,
                                  qtEnvironment, &allFiles);
             }
-        } else if (module.qbsName == QLatin1String("phonon")) {
-            moduleTemplateFileName = QLatin1String("phonon.qbs");
         } else if (module.qbsName == QLatin1String("quick")) {
             moduleTemplateFileName = QLatin1String("quick.qbs");
             copyTemplateFile(QLatin1String("quick.js"), qbsQtModuleDir, profile,

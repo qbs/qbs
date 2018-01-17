@@ -2,7 +2,6 @@
     <qresource prefix="/">
         <file>templates/core.qbs</file>
         <file>templates/gui.qbs</file>
-        <file>templates/phonon.qbs</file>
         <file>templates/module.qbs</file>
         <file>templates/QtModule.qbs</file>
         <file>templates/moc.js</file>
