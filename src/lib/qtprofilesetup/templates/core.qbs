@@ -8,8 +8,10 @@ import "moc.js" as Moc
 import "qdoc.js" as Qdoc
 
 Module {
-    condition: (!qbs.architecture || architectures.contains(qbs.architecture)) &&
-               (qbs.targetPlatform === targetPlatform || isCombinedUIKitBuild)
+    condition: (qbs.targetPlatform === targetPlatform || isCombinedUIKitBuild)
+               && (!qbs.architecture
+                   || architectures.length === 0
+                   || architectures.contains(qbs.architecture) || !hasLibrary)
 
     readonly property bool isCombinedUIKitBuild: ["ios", "tvos", "watchos"].contains(targetPlatform)
         && ["x86", "x86_64"].contains(qbs.architecture)

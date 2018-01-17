@@ -386,6 +386,11 @@ static QStringList extractQbsArchs(const QtModuleInfo &module, const QtEnvironme
     QString qbsArch = canonicalArchitecture(qtEnv.architecture);
     if (qbsArch == QLatin1String("arm") && qtEnv.mkspecPath.contains(QLatin1String("android")))
         qbsArch = QLatin1String("armv7a");
+
+    // Qt4 has "QT_ARCH = windows" in qconfig.pri for both MSVC and mingw.
+    if (qbsArch == QLatin1String("windows"))
+        return QStringList();
+
     return QStringList { qbsArch };
 }
 

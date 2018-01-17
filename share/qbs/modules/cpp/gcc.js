@@ -725,12 +725,6 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
             args.push('-fvisibility=default')
     }
 
-    var prefixHeaders = input.cpp.prefixHeaders;
-    for (i in prefixHeaders) {
-        args.push('-include');
-        args.push(prefixHeaders[i]);
-    }
-
     if (compilerInfo.language)
         // Only push language arguments if we have to.
         Array.prototype.push.apply(args, compilerInfo.language);
@@ -749,6 +743,12 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
         var pchFilePath = FileInfo.joinPaths(FileInfo.path(pchInput.filePath),
                                              pchInput.completeBaseName);
         args.push('-include', pchFilePath);
+    }
+
+    var prefixHeaders = input.cpp.prefixHeaders;
+    for (i in prefixHeaders) {
+        args.push('-include');
+        args.push(prefixHeaders[i]);
     }
 
     var positionIndependentCode = input.cpp.positionIndependentCode;

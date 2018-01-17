@@ -4,6 +4,7 @@ import qbs.FileInfo
 Module {
     condition: (qbs.targetPlatform === targetPlatform || isCombinedUIKitBuild)
                && (!qbs.architecture
+                   || architectures.length === 0
                    || architectures.contains(qbs.architecture) || !hasLibrary)
 
     readonly property bool isCombinedUIKitBuild: ["ios", "tvos", "watchos"].contains(targetPlatform)

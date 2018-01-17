@@ -2483,6 +2483,12 @@ void TestBlackbox::pluginDependency()
     QVERIFY(m_qbsStdout.contains("plugin4"));
 }
 
+void TestBlackbox::precompiledAndPrefixHeaders()
+{
+    QDir::setCurrent(testDataDir + "/precompiled-and-prefix-headers");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::probeChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/probe-change-tracking");
