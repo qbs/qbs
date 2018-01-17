@@ -67,6 +67,18 @@ bool containsKey(const C &container, const typename C::key_type &v)
     return container.find(v) != end;
 }
 
+template <class Container, class UnaryPredicate>
+bool any_of(const Container &container, const UnaryPredicate &predicate)
+{
+    return std::any_of(std::begin(container), std::end(container), predicate);
+}
+
+template <class Container, class UnaryPredicate>
+bool none_of(const Container &container, const UnaryPredicate &predicate)
+{
+    return std::none_of(std::begin(container), std::end(container), predicate);
+}
+
 template <class C>
 C &operator<<(C &container, const typename C::value_type &v)
 {

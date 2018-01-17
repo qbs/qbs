@@ -61,6 +61,7 @@
 #include <algorithm>
 
 namespace qbs {
+using Internal::none_of;
 using Internal::contains;
 using Internal::HostOsInfo;
 using Internal::Tr;
@@ -110,10 +111,9 @@ QList<QtEnvironment> SetupQt::fetchEnvironments()
     const auto qmakePaths = collectQmakePaths();
     for (const QString &qmakePath : qmakePaths) {
         const QtEnvironment env = fetchEnvironment(qmakePath);
-        if (std::find_if(qtEnvironments.cbegin(), qtEnvironments.cend(),
-                         [&env](const QtEnvironment &otherEnv) {
-                                 return env.includePath == otherEnv.includePath;
-                          }) == qtEnvironments.cend()) {
+        if (none_of(qtEnvironments, [&env](const QtEnvironment &otherEnv) {
+                        return env.includePath == otherEnv.includePath;
+                    })) {
             qtEnvironments.push_back(env);
         }
     }

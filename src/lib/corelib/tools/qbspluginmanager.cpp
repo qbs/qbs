@@ -98,8 +98,7 @@ QbsPluginManager *QbsPluginManager::instance()
 void QbsPluginManager::registerStaticPlugin(QbsPluginLoadFunction load,
                                             QbsPluginUnloadFunction unload)
 {
-    auto begin = d->staticPlugins.cbegin(), end = d->staticPlugins.cend();
-    if (std::find_if(begin, end, [&load](const QbsPlugin &p) { return p.load == load; }) == end)
+    if (none_of(d->staticPlugins, [&load](const QbsPlugin &p) { return p.load == load; }))
         d->staticPlugins.push_back(QbsPlugin { load, unload, false });
 }
 

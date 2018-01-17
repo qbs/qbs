@@ -406,12 +406,10 @@ private:
             // Export item prototypes do not have instantiated modules.
             // The module instances are where the Export is used.
             QBS_ASSERT(m_currentModuleInstance, return false);
-            auto it = std::find_if(m_currentModuleInstance->modules().cbegin(),
-                                   m_currentModuleInstance->modules().cend(),
-                                   [this] (const Item::Module &m) {
+            auto hasCurrentModuleName = [this](const Item::Module &m) {
                 return m.name == m_currentModuleName;
-            });
-            if (it != m_currentModuleInstance->modules().cend())
+            };
+            if (any_of(m_currentModuleInstance->modules(), hasCurrentModuleName))
                 return true;
         }
 
@@ -1193,11 +1191,9 @@ private:
     bool moduleExists(const QualifiedId &name) const
     {
         const auto &deps = m_productItem->modules();
-        auto it = std::find_if(deps.begin(), deps.end(),
-                               [&name] (const Item::Module &module) {
+        return any_of(deps, [&name](const Item::Module &module) {
             return module.name == name;
         });
-        return deps.end() != it;
     }
 
     const QString &m_productName;
