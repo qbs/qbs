@@ -31,11 +31,13 @@
 #include "../shared.h"
 #include <tools/profile.h>
 #include <tools/qttools.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qset.h>
 #include <QtCore/qtemporarydir.h>
 
+using qbs::Internal::none_of;
 using qbs::Profile;
 
 QMap<QString, QString> TestBlackboxAndroid::findAndroid(int *status, const QString &profile)
@@ -131,11 +133,10 @@ void TestBlackboxAndroid::android()
                 QFAIL(QByteArray("missing expected files:\n") + missingExpectedFiles.join('\n'));
             if (!actualFiles.empty()) {
                 QByteArray msg = "unexpected files encountered:\n" + actualFiles.join('\n');
-                auto it = std::find_if(std::begin(actualFiles), std::end(actualFiles),
-                                       [](const QByteArray &f) {
+                auto isFileSharedObject = [](const QByteArray &f) {
                     return f.endsWith(".so");
-                });
-                if (it == std::end(actualFiles))
+                };
+                if (none_of(actualFiles, isFileSharedObject))
                     QWARN(msg);
                 else
                     QFAIL(msg);
