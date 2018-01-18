@@ -341,7 +341,7 @@ void setupScriptEngineForProduct(ScriptEngine *engine, ResolvedProduct *product,
     if (setBuildEnvironment) {
         QVariant v;
         v.setValue<void*>(&product->buildEnvironment);
-        engine->setProperty("_qbs_procenv", v);
+        engine->setProperty(StringConstants::qbsProcEnvVarInternal(), v);
     }
     QScriptValue productScriptValue = engine->newObject();
     setupProductScriptValue(engine, productScriptValue, product, observer);

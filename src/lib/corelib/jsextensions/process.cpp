@@ -44,6 +44,7 @@
 #include <tools/executablefinder.h>
 #include <tools/hostosinfo.h>
 #include <tools/shellutils.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qobject.h>
 #include <QtCore/qprocess.h>
@@ -137,7 +138,7 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
     QScriptValue obj = engine->newQObject(t, QScriptEngine::QtOwnership);
 
     // Get environment
-    QVariant v = engine->property("_qbs_procenv");
+    QVariant v = engine->property(StringConstants::qbsProcEnvVarInternal());
     if (v.isNull()) {
         // The build environment is not initialized yet.
         // This can happen if one uses Process on the RHS of a binding like Group.name.
