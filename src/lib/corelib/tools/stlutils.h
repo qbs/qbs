@@ -41,6 +41,7 @@
 #define QBS_STLUTILS_H
 
 #include <algorithm>
+#include <iterator>
 
 namespace qbs {
 namespace Internal {
