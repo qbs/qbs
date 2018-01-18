@@ -67,10 +67,10 @@ PropertyMapInternal::PropertyMapInternal(const PropertyMapInternal &other) : m_v
 {
 }
 
-QVariant PropertyMapInternal::moduleProperty(const QString &moduleName,
-                                                  const QString &key) const
+QVariant PropertyMapInternal::moduleProperty(const QString &moduleName, const QString &key,
+                                             bool *isPresent) const
 {
-    return ::qbs::Internal::moduleProperty(m_value, moduleName, key);
+    return ::qbs::Internal::moduleProperty(m_value, moduleName, key, isPresent);
 }
 
 QVariant PropertyMapInternal::qbsPropertyValue(const QString &key) const
@@ -99,9 +99,24 @@ void PropertyMapInternal::store(PersistentPool &pool) const
 }
 
 QVariant moduleProperty(const QVariantMap &properties, const QString &moduleName,
-                        const QString &key)
+                        const QString &key, bool *isPresent)
 {
-    return properties.value(moduleName).toMap().value(key);
+    const auto moduleIt = properties.find(moduleName);
+    if (moduleIt == properties.end()) {
+        if (isPresent)
+            *isPresent = false;
+        return QVariant();
+    }
+    const QVariantMap &moduleMap = moduleIt.value().toMap();
+    const auto propertyIt = moduleMap.find(key);
+    if (propertyIt == moduleMap.end()) {
+        if (isPresent)
+            *isPresent = false;
+        return QVariant();
+    }
+    if (isPresent)
+        *isPresent = true;
+    return propertyIt.value();
 }
 
 } // namespace Internal

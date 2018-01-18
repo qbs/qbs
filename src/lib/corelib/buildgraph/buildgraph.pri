@@ -10,6 +10,7 @@ SOURCES += \
     $$PWD/buildgraphloader.cpp \
     $$PWD/buildgraphnode.cpp \
     $$PWD/cycledetector.cpp \
+    $$PWD/dependencyparametersscriptvalue.cpp \
     $$PWD/depscanner.cpp \
     $$PWD/emptydirectoriesremover.cpp \
     $$PWD/environmentscriptrunner.cpp \
@@ -47,6 +48,7 @@ HEADERS += \
     $$PWD/buildgraphnode.h \
     $$PWD/buildgraphvisitor.h \
     $$PWD/cycledetector.h \
+    $$PWD/dependencyparametersscriptvalue.h \
     $$PWD/depscanner.h \
     $$PWD/emptydirectoriesremover.h \
     $$PWD/environmentscriptrunner.h \
@@ -71,6 +73,7 @@ HEADERS += \
     $$PWD/rulenode.h \
     $$PWD/rulesapplicator.h \
     $$PWD/rulesevaluationcontext.h \
+    $$PWD/scriptclasspropertyiterator.h \
     $$PWD/timestampsupdater.h \
     $$PWD/transformer.h
 

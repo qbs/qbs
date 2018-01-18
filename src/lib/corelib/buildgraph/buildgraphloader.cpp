@@ -347,14 +347,17 @@ void BuildGraphLoader::trackProjectChanges()
         ldr.setStoredProfiles(restoredProject->profileConfigs);
     m_result.newlyResolvedProject = ldr.loadProject(m_parameters);
 
-    QMap<QString, ResolvedProductPtr> freshProductsByName;
+    m_freshProjectsByName.insert(m_result.newlyResolvedProject->name,
+                                 m_result.newlyResolvedProject.get());
+    for (const ResolvedProjectConstPtr &p : m_result.newlyResolvedProject->allSubProjects())
+        m_freshProjectsByName.insert(p->name, p.get());
     QList<ResolvedProductPtr> allNewlyResolvedProducts
             = m_result.newlyResolvedProject->allProducts();
     for (const ResolvedProductPtr &cp : qAsConst(allNewlyResolvedProducts))
-        freshProductsByName.insert(cp->uniqueName(), cp);
+        m_freshProductsByName.insert(cp->uniqueName(), cp);
 
     m_envChange = restoredProject->environment != m_result.newlyResolvedProject->environment;
-    checkAllProductsForChanges(allRestoredProducts, freshProductsByName, changedProducts);
+    checkAllProductsForChanges(allRestoredProducts, changedProducts);
 
     std::shared_ptr<ProjectBuildData> oldBuildData;
     ChildListHash childLists;
@@ -380,7 +383,7 @@ void BuildGraphLoader::trackProjectChanges()
     // an a per-artifact basis by the Executor on the next build.
     QHash<QString, AllRescuableArtifactData> rescuableArtifactData;
     for (const ResolvedProductPtr &product : qAsConst(changedProducts)) {
-        ResolvedProductPtr freshProduct = freshProductsByName.value(product->uniqueName());
+        ResolvedProductPtr freshProduct = m_freshProductsByName.value(product->uniqueName());
         if (!freshProduct)
             continue;
         onProductRemoved(product, product->topLevelProject()->buildData.get(), false);
@@ -430,7 +433,8 @@ void BuildGraphLoader::trackProjectChanges()
     }
 
     for (const ResolvedProductConstPtr &changedProduct : qAsConst(changedProducts)) {
-        rescueOldBuildData(changedProduct, freshProductsByName.value(changedProduct->uniqueName()),
+        rescueOldBuildData(changedProduct,
+                           m_freshProductsByName.value(changedProduct->uniqueName()),
                            childLists, rescuableArtifactData.value(changedProduct->uniqueName()));
     }
 
@@ -621,12 +625,11 @@ bool BuildGraphLoader::hasBuildSystemFileChanged(const Set<QString> &buildSystem
 }
 
 void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr> &restoredProducts,
-        const QMap<QString, ResolvedProductPtr> &newlyResolvedProductsByName,
         QList<ResolvedProductPtr> &changedProducts)
 {
     for (const ResolvedProductPtr &restoredProduct : restoredProducts) {
         const ResolvedProductPtr newlyResolvedProduct
-                = newlyResolvedProductsByName.value(restoredProduct->uniqueName());
+                = m_freshProductsByName.value(restoredProduct->uniqueName());
         if (!newlyResolvedProduct)
             continue;
         if (newlyResolvedProduct->enabled != restoredProduct->enabled) {
@@ -805,23 +808,37 @@ template<typename T> static QVariantMap getParameterValue(
     return QVariantMap();
 }
 
-static QVariantMap propertyMapByKind(const ResolvedProductConstPtr &product,
-                                     const Property &property)
+QVariantMap BuildGraphLoader::propertyMapByKind(const ResolvedProductConstPtr &product,
+                                                const Property &property)
 {
+    const auto getProduct = [&product, &property, this]() {
+        return property.productName == product->uniqueName()
+                ? product : m_freshProductsByName.value(property.productName);
+    };
     switch (property.kind) {
-    case Property::PropertyInModule:
-        return product->moduleProperties->value();
-    case Property::PropertyInProduct:
-        return product->productProperties;
-    case Property::PropertyInProject:
-        return product->project->projectProperties();
+    case Property::PropertyInModule: {
+        const ResolvedProductConstPtr &p = getProduct();
+        return p ? p->moduleProperties->value() : QVariantMap();
+    }
+    case Property::PropertyInProduct: {
+        const ResolvedProductConstPtr &p = getProduct();
+        return p ? p->productProperties : QVariantMap();
+    }
+    case Property::PropertyInProject: {
+        const ResolvedProject *project = property.productName == product->project->name
+                ? product->project.get() : m_freshProjectsByName.value(property.productName);
+        return project ? project->projectProperties() : QVariantMap();
+    }
     case Property::PropertyInParameters: {
         const int sepIndex = property.moduleName.indexOf(QLatin1Char(':'));
         const QString depName = property.moduleName.left(sepIndex);
-        QVariantMap v = getParameterValue(product->dependencyParameters, depName);
+        const ResolvedProductConstPtr &p = getProduct();
+        if (!p)
+            return QVariantMap();
+        QVariantMap v = getParameterValue(p->dependencyParameters, depName);
         if (!v.empty())
             return v;
-        return getParameterValue(product->moduleParameters, depName);
+        return getParameterValue(p->moduleParameters, depName);
     }
     default:
         QBS_CHECK(false);

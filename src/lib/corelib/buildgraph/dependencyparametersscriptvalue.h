@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,46 +36,20 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QBS_DEPENDENCYPARAMETERSSCRIPTVALUE_H
+#define QBS_DEPENDENCYPARAMETERSSCRIPTVALUE_H
 
-#include "property.h"
-
-#include <tools/persistence.h>
+#include <QtCore/qvariant.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {
+class ScriptEngine;
 
-void Property::store(PersistentPool &pool) const
-{
-    pool.store(productName);
-    pool.store(moduleName);
-    pool.store(propertyName);
-    pool.store(value);
-    pool.store(static_cast<quint8>(kind));
-}
-
-void Property::load(PersistentPool &pool)
-{
-    pool.load(productName);
-    pool.load(moduleName);
-    pool.load(propertyName);
-    pool.load(value);
-    kind = static_cast<Kind>(pool.load<quint8>());
-}
-
-bool operator<(const Property &p1, const Property &p2)
-{
-    int cmpResult = QString::compare(p1.productName, p2.productName);
-    if (cmpResult < 0)
-        return true;
-    if (cmpResult > 0)
-        return false;
-    cmpResult = QString::compare(p1.moduleName, p2.moduleName);
-    if (cmpResult < 0)
-        return true;
-    if (cmpResult > 0)
-        return false;
-    return p1.propertyName < p2.propertyName;
-}
+QScriptValue dependencyParametersValue(const QString &productName, const QString &dependencyName,
+                                       const QVariantMap &parametersMap, ScriptEngine *engine);
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // include guard

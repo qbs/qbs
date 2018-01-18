@@ -64,6 +64,7 @@ public:
     QBS_STRING_CONSTANT(allowedValuesProperty, "allowedValues")
     QBS_STRING_CONSTANT(alwaysUpdatedProperty, "alwaysUpdated")
     QBS_STRING_CONSTANT(alwaysRunProperty, "alwaysRun")
+    QBS_STRING_CONSTANT(artifactsProperty, "artifacts")
     QBS_STRING_CONSTANT(auxiliaryInputsProperty, "auxiliaryInputs")
     QBS_STRING_CONSTANT(baseNameProperty, "baseName")
     QBS_STRING_CONSTANT(baseProfileProperty, "baseProfile")
@@ -75,6 +76,7 @@ public:
     QBS_STRING_CONSTANT(configurationNameProperty, "configurationName")
     QBS_STRING_CONSTANT(configureProperty, "configure")
     QBS_STRING_CONSTANT(consoleApplicationProperty, "consoleApplication")
+    QBS_STRING_CONSTANT(dependenciesProperty, "dependencies")
     QBS_STRING_CONSTANT(descriptionProperty, "description")
     QBS_STRING_CONSTANT(destinationDirProperty, "destinationDirectory")
     QBS_STRING_CONSTANT(excludeFilesProperty, "excludeFiles")
@@ -110,6 +112,7 @@ public:
     QBS_STRING_CONSTANT(outputFileTagsProperty, "outputFileTags")
     QBS_STRING_CONSTANT(overrideTagsProperty, "overrideTags")
     QBS_STRING_CONSTANT(overrideListPropertiesProperty, "overrideListProperties")
+    QBS_STRING_CONSTANT(parametersProperty, "parameters")
     static const QString &pathProperty() { return path(); }
     QBS_STRING_CONSTANT(patternsProperty, "patterns")
     QBS_STRING_CONSTANT(prefixProperty, "prefix")

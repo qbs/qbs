@@ -85,6 +85,9 @@ public:
     unsigned int buildPriority() const { return m_buildPriority; }
     void setBuildPriority(unsigned int prio) { m_buildPriority = prio; }
 
+    bool isJsArtifactsMapUpToDate() const { return m_jsArtifactsMapUpToDate; }
+    void setJsArtifactsMapUpToDate() { m_jsArtifactsMapUpToDate = true; }
+
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 
@@ -108,6 +111,7 @@ private:
     typedef QHash<RuleConstPtr, ArtifactSet> ArtifactSetByRule;
     ArtifactSetByRule m_artifactsWithChangedInputsPerRule;
 
+    bool m_jsArtifactsMapUpToDate = true;
 };
 
 } // namespace Internal

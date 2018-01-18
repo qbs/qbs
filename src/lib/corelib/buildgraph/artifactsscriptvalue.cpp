@@ -76,15 +76,13 @@ static ArtifactSetByFileTag artifactsMap(const ResolvedModule *module)
 
 static bool isArtifactsMapUpToDate(const ResolvedProduct *p)
 {
-    Q_UNUSED(p);
-    return true /* p->buildData->isJsArtifactsMapUpToDate() */;
+    return p->buildData->isJsArtifactsMapUpToDate();
 }
 static bool isArtifactsMapUpToDate(const ResolvedModule *) { return true; }
 
 static void setArtifactsMapUpToDate(const ResolvedProduct *p)
 {
-    Q_UNUSED(p);
-    //p->buildData->setJsArtifactsMapUpToDate();
+    p->buildData->setJsArtifactsMapUpToDate();
 }
 static void setArtifactsMapUpToDate(const ResolvedModule *) { }
 

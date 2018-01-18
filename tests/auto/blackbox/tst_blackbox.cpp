@@ -701,6 +701,9 @@ void TestBlackbox::dependenciesProperty()
     QCOMPARE(product2_type.size(), 1);
     QCOMPARE(product2_type.first().toString(), QLatin1String("application"));
     QCOMPARE(product2.value(QLatin1String("narf")).toString(), QLatin1String("zort"));
+    QJsonArray product2_cppArtifacts
+            = product2.value("artifacts").toObject().value("cpp").toArray();
+    QCOMPARE(product2_cppArtifacts.size(), 1);
     QJsonArray product2_deps = product2.value(QLatin1String("dependencies")).toArray();
     QVERIFY(!product2_deps.empty());
     QJsonObject product2_qbs = findByName(product2_deps, QStringLiteral("qbs"));

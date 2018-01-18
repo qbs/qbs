@@ -86,8 +86,10 @@ void ProductBuildData::store(PersistentPool &pool) const
 
 void ProductBuildData::addArtifactToSet(Artifact *artifact)
 {
-    for (const FileTag &tag : artifact->fileTags())
+    for (const FileTag &tag : artifact->fileTags()) {
         m_artifactsByFileTag[tag] += artifact;
+        m_jsArtifactsMapUpToDate = false;
+    }
 }
 
 void ProductBuildData::removeArtifact(Artifact *artifact)
@@ -105,11 +107,13 @@ void ProductBuildData::removeArtifactFromSetByFileTag(Artifact *artifact, const 
     it->remove(artifact);
     if (it->empty())
         m_artifactsByFileTag.erase(it);
+    m_jsArtifactsMapUpToDate = false;
 }
 
 void ProductBuildData::addFileTagToArtifact(Artifact *artifact, const FileTag &tag)
 {
     m_artifactsByFileTag[tag] += artifact;
+    m_jsArtifactsMapUpToDate = false;
 }
 
 void ProductBuildData::addArtifactWithChangedInputsForRule(const RuleConstPtr &rule,

@@ -157,7 +157,6 @@ UserDependencyScanner::UserDependencyScanner(const ResolvedScannerConstPtr &scan
                                              ScriptEngine *engine)
     : m_scanner(scanner),
       m_engine(engine),
-      m_observer(m_engine, UnobserveMode::Enabled),
       m_product(nullptr)
 {
     m_global = m_engine->newObject();
@@ -227,7 +226,7 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const PrivateScr
     if (artifact->product.get() != m_product) {
         m_product = artifact->product.get();
         setupScriptEngineForProduct(m_engine, artifact->product.get(),
-                                    m_scanner->module.get(), m_global, &m_observer, true);
+                                    m_scanner->module.get(), m_global, true);
     }
 
     QScriptValueList args;

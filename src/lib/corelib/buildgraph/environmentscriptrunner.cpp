@@ -167,7 +167,7 @@ void EnvironmentScriptRunner::setupEnvironment()
         RulesEvaluationContext::Scope s(m_evalContext);
         QScriptValue envScriptContext = engine()->newObject();
         envScriptContext.setPrototype(engine()->globalObject());
-        setupScriptEngineForProduct(engine(), m_product, module, envScriptContext, nullptr, false);
+        setupScriptEngineForProduct(engine(), m_product, module, envScriptContext, false);
         const QString &productKey = StringConstants::productVar();
         const QString &projectKey = StringConstants::projectVar();
         m_evalContext->scope().setProperty(productKey, envScriptContext.property(productKey));

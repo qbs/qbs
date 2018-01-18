@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,45 +36,49 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#include "dependencyparametersscriptvalue.h"
 
-#include "property.h"
-
-#include <tools/persistence.h>
+#include <language/preparescriptobserver.h>
+#include <language/qualifiedid.h>
+#include <language/scriptengine.h>
+#include <tools/stringconstants.h>
 
 namespace qbs {
 namespace Internal {
 
-void Property::store(PersistentPool &pool) const
+static QScriptValue toScriptValue(ScriptEngine *engine, const QString &productName,
+                                  const QVariantMap &v, const QString &depName,
+                                  const QualifiedId &moduleName)
 {
-    pool.store(productName);
-    pool.store(moduleName);
-    pool.store(propertyName);
-    pool.store(value);
-    pool.store(static_cast<quint8>(kind));
+    QScriptValue obj = engine->newObject();
+    bool objIdAddedToObserver = false;
+    for (auto it = v.begin(); it != v.end(); ++it) {
+        if (it.value().type() == QVariant::Map) {
+            obj.setProperty(it.key(), toScriptValue(engine, productName, it.value().toMap(),
+                    depName, QualifiedId(moduleName) << it.key()));
+        } else {
+            if (!objIdAddedToObserver) {
+                objIdAddedToObserver = true;
+                engine->observer()->addParameterObjectId(obj.objectId(), productName, depName,
+                                                         moduleName);
+            }
+            engine->setObservedProperty(obj, it.key(), engine->toScriptValue(it.value()));
+        }
+    }
+    return obj;
 }
 
-void Property::load(PersistentPool &pool)
+
+static QScriptValue toScriptValue(ScriptEngine *scriptEngine, const QString &productName,
+                                  const QVariantMap &v, const QString &depName)
 {
-    pool.load(productName);
-    pool.load(moduleName);
-    pool.load(propertyName);
-    pool.load(value);
-    kind = static_cast<Kind>(pool.load<quint8>());
+    return toScriptValue(scriptEngine, productName, v, depName, QualifiedId());
 }
 
-bool operator<(const Property &p1, const Property &p2)
+QScriptValue dependencyParametersValue(const QString &productName, const QString &dependencyName,
+                                       const QVariantMap &parametersMap, ScriptEngine *engine)
 {
-    int cmpResult = QString::compare(p1.productName, p2.productName);
-    if (cmpResult < 0)
-        return true;
-    if (cmpResult > 0)
-        return false;
-    cmpResult = QString::compare(p1.moduleName, p2.moduleName);
-    if (cmpResult < 0)
-        return true;
-    if (cmpResult > 0)
-        return false;
-    return p1.propertyName < p2.propertyName;
+    return toScriptValue(engine, productName, parametersMap, dependencyName);
 }
 
 } // namespace Internal

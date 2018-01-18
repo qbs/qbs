@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,45 +37,74 @@
 **
 ****************************************************************************/
 
-#include "preparescriptobserver.h"
+#ifndef QBS_SCRIPTCLASSPROPERTYITERATOR_H
+#define QBS_SCRIPTCLASSPROPERTYITERATOR_H
 
-#include "property.h"
-#include "scriptengine.h"
+#include <tools/qbsassert.h>
 
-#include <tools/stlutils.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qstring.h>
+#include <QtScript/qscriptclasspropertyiterator.h>
+#include <QtScript/qscriptengine.h>
+#include <QtScript/qscriptstring.h>
 
-#include <QtScript/qscriptvalue.h>
+#include <vector>
 
 namespace qbs {
 namespace Internal {
 
-PrepareScriptObserver::PrepareScriptObserver(ScriptEngine *engine, UnobserveMode unobserveMode)
-    : ScriptPropertyObserver(engine, unobserveMode)
+class ScriptClassPropertyIterator : public QScriptClassPropertyIterator
 {
-}
+public:
+    ScriptClassPropertyIterator(const QScriptValue &object, const QVariantMap &properties,
+                                const std::vector<QString> &additionalProperties)
+        : QScriptClassPropertyIterator(object),
+          m_it(properties),
+          m_additionalProperties(additionalProperties)
+    {
+    }
 
-void PrepareScriptObserver::onPropertyRead(const QScriptValue &object, const QString &name,
-                                           const QScriptValue &value)
-{
-    const auto objectId = object.objectId();
-    const auto projectIt = m_projectObjectIds.find(objectId);
-    if (projectIt != m_projectObjectIds.cend()) {
-        engine()->addPropertyRequestedInScript(
-                    Property(projectIt->second, QString(), name, value.toVariant(),
-                             Property::PropertyInProject));
-        return;
+private:
+    bool hasNext() const override
+    {
+        return m_it.hasNext() || m_index < int(m_additionalProperties.size()) - 1;
     }
-    if (m_importIds.contains(objectId)) {
-        engine()->addImportRequestedInScript(object.objectId());
-        return;
+    bool hasPrevious() const override { return m_index > -1 || m_it.hasPrevious(); }
+    void toFront() override { m_it.toFront(); m_index = -1; }
+    void toBack() override { m_it.toBack(); m_index = m_additionalProperties.size() - 1; }
+
+    void next() override
+    {
+        QBS_ASSERT(hasNext(), return);
+        if (m_it.hasNext())
+            m_it.next();
+        else
+            ++m_index;
     }
-    const auto it = m_parameterObjects.find(objectId);
-    if (it != m_parameterObjects.cend()) {
-        engine()->addPropertyRequestedInScript(
-                    Property(it->second.first, it->second.second, name, value.toVariant(),
-                             Property::PropertyInParameters));
+
+    void previous() override
+    {
+        QBS_ASSERT(hasPrevious(), return);
+        if (m_index >= 0)
+            --m_index;
+        if (m_index == -1)
+            m_it.previous();
     }
-}
+
+    QScriptString name() const override
+    {
+        const QString theName = m_index >= 0 && m_index < int(m_additionalProperties.size())
+                ? m_additionalProperties.at(m_index)
+                : m_it.key();
+        return object().engine()->toStringHandle(theName);
+    }
+
+    QMapIterator<QString, QVariant> m_it;
+    const std::vector<QString> m_additionalProperties;
+    int m_index = -1;
+};
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_SCRIPTCLASSPROPERTYITERATOR_H

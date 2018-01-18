@@ -57,22 +57,26 @@ class PrepareScriptObserver : public ScriptPropertyObserver
 public:
     PrepareScriptObserver(ScriptEngine *engine, UnobserveMode unobserveMode);
 
-    void setProductObjectId(qint64 productId) { m_productObjectId = productId; }
-    void setProjectObjectId(qint64 projectId) { m_projectObjectId = projectId; }
+    void addProjectObjectId(qint64 projectId, const QString &projectName)
+    {
+        m_projectObjectIds.insert(std::make_pair(projectId, projectName));
+    }
+
     bool addImportId(qint64 importId) { return m_importIds.insert(importId).second; }
     void clearImportIds() { m_importIds.clear(); }
-    void addParameterObjectId(qint64 id, const QString &depName, const QualifiedId &moduleName)
+    void addParameterObjectId(qint64 id, const QString &productName, const QString &depName,
+                              const QualifiedId &moduleName)
     {
-        m_parameterObjects.insert(std::make_pair(id, depName + QLatin1Char(':')
-                                                 + moduleName.toString()));
+        const QString depAndModuleName = depName + QLatin1Char(':') + moduleName.toString();
+        const auto value = std::make_pair(productName, depAndModuleName);
+        m_parameterObjects.insert(std::make_pair(id, value));
     }
 
 private:
     void onPropertyRead(const QScriptValue &object, const QString &name, const QScriptValue &value);
 
-    qint64 m_productObjectId;
-    qint64 m_projectObjectId;
-    std::unordered_map<qint64, QString> m_parameterObjects;
+    std::unordered_map<qint64, QString> m_projectObjectIds;
+    std::unordered_map<qint64, std::pair<QString, QString>> m_parameterObjects;
     Set<qint64> m_importIds;
 };
 

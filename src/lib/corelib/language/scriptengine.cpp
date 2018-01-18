@@ -101,7 +101,7 @@ ScriptEngine::ScriptEngine(Logger &logger, EvalContext evalContext, QObject *par
     : QScriptEngine(parent), m_scriptImporter(new ScriptImporter(this)),
       m_modulePropertyScriptClass(nullptr),
       m_propertyCacheEnabled(true), m_active(false), m_logger(logger), m_evalContext(evalContext),
-      m_importsObserver(new PrepareScriptObserver(this, UnobserveMode::Disabled))
+      m_observer(new PrepareScriptObserver(this, UnobserveMode::Disabled))
 {
     setProcessEventsInterval(1000); // For the cancelation mechanism to work.
     m_cancelationError = currentContext()->throwValue(tr("Execution canceled"));
@@ -125,6 +125,7 @@ ScriptEngine::~ScriptEngine()
                                              .arg(elapsedTimeString(m_elapsedTimeImporting));
     }
     delete m_modulePropertyScriptClass;
+    delete m_productPropertyScriptClass;
 }
 
 void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject,
@@ -182,7 +183,7 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue &targetObject)
 
 void ScriptEngine::observeImport(QScriptValue &jsImport)
 {
-    if (!m_importsObserver->addImportId(jsImport.objectId()))
+    if (!m_observer->addImportId(jsImport.objectId()))
         return;
     QScriptValueIterator it(jsImport);
     while (it.hasNext()) {
@@ -192,7 +193,7 @@ void ScriptEngine::observeImport(QScriptValue &jsImport)
         QScriptValue property = it.value();
         if (!property.isFunction())
             continue;
-        setObservedProperty(jsImport, it.name(), property, m_importsObserver.get());
+        setObservedProperty(jsImport, it.name(), property);
     }
 }
 
@@ -296,21 +297,17 @@ static QScriptValue js_observedGet(QScriptContext *context, QScriptEngine *,
 }
 
 void ScriptEngine::setObservedProperty(QScriptValue &object, const QString &name,
-                                       const QScriptValue &value, ScriptPropertyObserver *observer)
+                                       const QScriptValue &value)
 {
-    if (!observer) {
-        object.setProperty(name, value);
-        return;
-    }
-
     QScriptValue data = newArray();
     data.setProperty(0, object);
     data.setProperty(1, name);
     data.setProperty(2, value);
-    QScriptValue getterFunc = newFunction(js_observedGet, observer);
+    QScriptValue getterFunc = newFunction(js_observedGet,
+                                          static_cast<ScriptPropertyObserver *>(m_observer.get()));
     getterFunc.setProperty(getterFuncHelperProperty(), data);
     object.setProperty(name, getterFunc, QScriptValue::PropertyGetter);
-    if (observer->unobserveMode() == UnobserveMode::Enabled)
+    if (m_observer->unobserveMode() == UnobserveMode::Enabled)
         m_observedProperties.emplace_back(object, name, value);
 }
 

@@ -113,7 +113,7 @@ private:
         ScriptEngine * const scriptEngine = provideScriptEngine();
         QScriptValue scope = scriptEngine->newObject();
         scope.setPrototype(scriptEngine->globalObject());
-        PrepareScriptObserver observer(scriptEngine, UnobserveMode::Enabled);
+        m_scriptEngine->clearRequestedProperties();
         setupScriptEngineForFile(scriptEngine,
                                  transformer->rule->prepareScript.fileContext(), scope,
                                  ObserveMode::Enabled);
@@ -123,7 +123,7 @@ private:
             importScopeForSourceCode = scope.property(cmd->scopeName());
 
         setupScriptEngineForProduct(scriptEngine, transformer->product().get(),
-                                    transformer->rule->module.get(), scope, &observer, true);
+                                    transformer->rule->module.get(), scope, true);
         transformer->setupInputs(scope);
         transformer->setupOutputs(scope);
         transformer->setupExplicitlyDependsOn(scope);

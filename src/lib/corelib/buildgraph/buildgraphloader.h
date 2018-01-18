@@ -97,7 +97,6 @@ private:
     bool hasBuildSystemFileChanged(const Set<QString> &buildSystemFiles,
                                    const FileTime &referenceTime);
     void checkAllProductsForChanges(const QList<ResolvedProductPtr> &restoredProducts,
-            const QMap<QString, ResolvedProductPtr> &newlyResolvedProductsByName,
             QList<ResolvedProductPtr> &changedProducts);
     bool checkProductForChanges(const ResolvedProductPtr &restoredProduct,
                                 const ResolvedProductPtr &newlyResolvedProduct);
@@ -107,6 +106,7 @@ private:
                                  const ResolvedProductPtr &newlyResolvedProduct);
     bool checkTransformersForChanges(const ResolvedProductPtr &restoredProduct,
                                              const ResolvedProductPtr &newlyResolvedProduct);
+    QVariantMap propertyMapByKind(const ResolvedProductConstPtr &product, const Property &property);
     void onProductRemoved(const ResolvedProductPtr &product, ProjectBuildData *projectBuildData,
                           bool removeArtifactsFromDisk = true);
     bool checkForPropertyChanges(const TransformerPtr &restoredTrafo,
@@ -131,6 +131,8 @@ private:
                             const ChildListHash &childLists,
                             const AllRescuableArtifactData &existingRad);
 
+    QMap<QString, ResolvedProductPtr> m_freshProductsByName;
+    QMap<QString, const ResolvedProject *> m_freshProjectsByName;
     RulesEvaluationContextPtr m_evalContext;
     SetupProjectParameters m_parameters;
     BuildGraphLoadResult m_result;

@@ -51,6 +51,17 @@ namespace Internal {
 
 class ScriptEngine;
 
+enum ModulePropertiesScriptValueCommonPropertyKeys : quint32
+{
+    ModuleNameKey,
+    ProductPtrKey,
+    ArtifactPtrKey,
+    DependencyParametersKey,
+};
+
+QScriptValue getDataForModuleScriptValue(QScriptEngine *engine, const ResolvedProduct *product,
+                                         const Artifact *artifact, const ResolvedModule *module);
+
 class ModuleProperties
 {
 public:

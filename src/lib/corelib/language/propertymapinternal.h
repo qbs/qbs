@@ -54,7 +54,8 @@ public:
     PropertyMapPtr clone() const { return PropertyMapPtr(new PropertyMapInternal(*this)); }
 
     const QVariantMap &value() const { return m_value; }
-    QVariant moduleProperty(const QString &moduleName, const QString &key) const;
+    QVariant moduleProperty(const QString &moduleName,
+                            const QString &key, bool *isPresent = nullptr) const;
     QVariant qbsPropertyValue(const QString &key) const; // Convenience function.
     QVariant property(const QStringList &name) const;
     void setValue(const QVariantMap &value);
@@ -78,7 +79,7 @@ inline bool operator==(const PropertyMapInternal &lhs, const PropertyMapInternal
 
 QVariant QBS_AUTOTEST_EXPORT moduleProperty(const QVariantMap &properties,
                                             const QString &moduleName,
-                                            const QString &key);
+                                            const QString &key, bool *isPresent = nullptr);
 
 } // namespace Internal
 } // namespace qbs

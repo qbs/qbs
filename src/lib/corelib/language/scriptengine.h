@@ -136,11 +136,11 @@ public:
                                        const PropertyMapConstPtr &propertyMap);
 
     void defineProperty(QScriptValue &object, const QString &name, const QScriptValue &descriptor);
-    void setObservedProperty(QScriptValue &object, const QString &name, const QScriptValue &value,
-                             ScriptPropertyObserver *observer);
+    void setObservedProperty(QScriptValue &object, const QString &name, const QScriptValue &value);
     void unobserveProperties();
     void setDeprecatedProperty(QScriptValue &object, const QString &name, const QString &newName,
             const QScriptValue &value);
+    PrepareScriptObserver *observer() const { return m_observer.get(); }
 
     QProcessEnvironment environment() const;
     void setEnvironment(const QProcessEnvironment &env);
@@ -203,8 +203,29 @@ public:
     QScriptClass *modulePropertyScriptClass() const;
     void setModulePropertyScriptClass(QScriptClass *modulePropertyScriptClass);
 
+    QScriptClass *productPropertyScriptClass() const { return m_productPropertyScriptClass; }
+    void setProductPropertyScriptClass(QScriptClass *productPropertyScriptClass)
+    {
+        m_productPropertyScriptClass = productPropertyScriptClass;
+    }
+
     void addResourceAcquiringScriptObject(ResourceAcquiringScriptObject *obj);
     void releaseResourcesOfScriptObjects();
+
+    QScriptValue &productScriptValuePrototype(const ResolvedProduct *product)
+    {
+        return m_productScriptValues[product];
+    }
+
+    QScriptValue &projectScriptValue(const ResolvedProject *project)
+    {
+        return m_projectScriptValues[project];
+    }
+
+    QScriptValue &moduleScriptValuePrototype(const ResolvedModule *module)
+    {
+        return m_moduleScriptValues[module];
+    }
 
 private:
     QScriptValue newFunction(FunctionWithArgSignature signature, void *arg) Q_DECL_EQ_DELETE;
@@ -246,6 +267,7 @@ private:
 
     ScriptImporter *m_scriptImporter;
     QScriptClass *m_modulePropertyScriptClass;
+    QScriptClass *m_productPropertyScriptClass = nullptr;
     QHash<JsImport, QScriptValue> m_jsImportCache;
     bool m_propertyCacheEnabled;
     bool m_active;
@@ -271,12 +293,16 @@ private:
     qint64 m_elapsedTimeImporting = -1;
     EvalContext m_evalContext;
     std::vector<ResourceAcquiringScriptObject *> m_resourceAcquiringScriptObjects;
-    const std::unique_ptr<PrepareScriptObserver> m_importsObserver;
+    const std::unique_ptr<PrepareScriptObserver> m_observer;
     std::vector<std::tuple<QScriptValue, QString, QScriptValue>> m_observedProperties;
     std::vector<QScriptValue> m_requireResults;
     std::unordered_map<qint64, std::vector<QString>> m_filePathsPerImport;
     std::vector<qint64> m_importsRequestedInScript;
     ObserveMode m_observeMode = ObserveMode::Disabled;
+
+    std::unordered_map<const ResolvedProduct *, QScriptValue> m_productScriptValues;
+    std::unordered_map<const ResolvedProject *, QScriptValue> m_projectScriptValues;
+    std::unordered_map<const ResolvedModule *, QScriptValue> m_moduleScriptValues;
 };
 
 class EvalContextSwitcher

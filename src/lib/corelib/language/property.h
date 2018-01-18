@@ -64,14 +64,16 @@ public:
     {
     }
 
-    Property(const QString &m, const QString &p, const QVariant &v, Kind k = PropertyInModule)
-        : moduleName(m), propertyName(p), value(v), kind(k)
+    Property(const QString &product, const QString &module, const QString &property,
+             const QVariant &v, Kind k)
+        : productName(product), moduleName(module), propertyName(property), value(v), kind(k)
     {
     }
 
     void store(PersistentPool &pool) const;
     void load(PersistentPool &pool);
 
+    QString productName; // In case of kind == PropertyInProject, this is the project name.
     QString moduleName;
     QString propertyName;
     QVariant value;
@@ -80,13 +82,14 @@ public:
 
 inline bool operator==(const Property &p1, const Property &p2)
 {
-    return p1.moduleName == p2.moduleName && p1.propertyName == p2.propertyName;
+    return p1.productName == p2.productName && p1.moduleName == p2.moduleName
+            && p1.propertyName == p2.propertyName;
 }
 bool operator<(const Property &p1, const Property &p2);
 
 inline uint qHash(const Property &p)
 {
-    return QT_PREPEND_NAMESPACE(qHash)(p.moduleName + p.propertyName);
+    return QT_PREPEND_NAMESPACE(qHash)(p.productName + p.moduleName + p.propertyName);
 }
 
 typedef Set<Property> PropertySet;

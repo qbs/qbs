@@ -113,7 +113,6 @@ private:
 
     ResolvedScannerConstPtr m_scanner;
     ScriptEngine *m_engine;
-    PrepareScriptObserver m_observer;
     QScriptValue m_global;
     ResolvedProduct *m_product;
 };

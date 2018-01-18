@@ -40,12 +40,16 @@
 #include "moduleproperties.h"
 
 #include <buildgraph/artifact.h>
+#include <buildgraph/artifactsscriptvalue.h>
+#include <buildgraph/dependencyparametersscriptvalue.h>
+#include <buildgraph/scriptclasspropertyiterator.h>
 #include <language/language.h>
 #include <language/propertymapinternal.h>
 #include <language/qualifiedid.h>
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/stringconstants.h>
 
@@ -54,24 +58,32 @@
 namespace qbs {
 namespace Internal {
 
-enum ModulePropertiesScriptValueCommonPropertyKeys : quint32
+QScriptValue getDataForModuleScriptValue(QScriptEngine *engine, const ResolvedProduct *product,
+                                         const Artifact *artifact, const ResolvedModule *module)
 {
-    ModuleNameKey,
-    ProductPtrKey,
-    ArtifactPtrKey
-};
+    QScriptValue data = engine->newObject();
+    data.setProperty(ModuleNameKey, module->name);
+    QVariant v;
+    v.setValue<quintptr>(reinterpret_cast<quintptr>(product));
+    data.setProperty(ProductPtrKey, engine->newVariant(v));
+    v.setValue<quintptr>(reinterpret_cast<quintptr>(artifact));
+    data.setProperty(ArtifactPtrKey, engine->newVariant(v));
+    return data;
+}
 
-static QScriptValue getModuleProperty(const PropertyMapConstPtr &properties,
-                                      const Artifact *artifact,
+static QScriptValue getModuleProperty(const ResolvedProduct *product, const Artifact *artifact,
                                       ScriptEngine *engine, const QString &moduleName,
-                                      const QString &propertyName)
+                                      const QString &propertyName, bool *isPresent = nullptr)
 {
+    const PropertyMapConstPtr &properties = artifact ? artifact->properties
+                                                     : product->moduleProperties;
     QVariant value;
     if (engine->isPropertyCacheEnabled())
         value = engine->retrieveFromPropertyCache(moduleName, propertyName, properties);
     if (!value.isValid()) {
-        value = properties->moduleProperty(moduleName, propertyName);
-        const Property p(moduleName, propertyName, value);
+        value = properties->moduleProperty(moduleName, propertyName, isPresent);
+        const Property p(product->uniqueName(), moduleName, propertyName, value,
+                         Property::PropertyInModule);
         if (artifact)
             engine->addPropertyRequestedFromArtifact(artifact, p);
         else
@@ -81,6 +93,8 @@ static QScriptValue getModuleProperty(const PropertyMapConstPtr &properties,
         // reference and the user might change the actual object.
         if (engine->isPropertyCacheEnabled())
             engine->addToPropertyCache(moduleName, propertyName, properties, value);
+    } else if (isPresent) {
+        *isPresent = true;
     }
     return engine->toScriptValue(value);
 }
@@ -93,43 +107,128 @@ public:
     {
     }
 
+private:
     QueryFlags queryProperty(const QScriptValue &object, const QScriptString &name,
                              QueryFlags flags, uint *id) override
     {
-        Q_UNUSED(object);
-        Q_UNUSED(name);
         Q_UNUSED(flags);
         Q_UNUSED(id);
-        return HandlesReadAccess;
+
+        if (name == StringConstants::dependenciesProperty()
+                || name == StringConstants::artifactsProperty()) {
+            // The prototype is not backed by a QScriptClass.
+            m_result = object.prototype().property(name);
+            return HandlesReadAccess;
+        }
+
+        if (name == StringConstants::parametersProperty()) {
+            m_result = object.data().property(DependencyParametersKey);
+            return HandlesReadAccess;
+        }
+
+        setup(object);
+        QBS_ASSERT(m_product || m_artifact, return QueryFlags());
+        bool isPresent;
+        m_result = getModuleProperty(m_product, m_artifact, static_cast<ScriptEngine *>(engine()),
+                                     m_moduleName, name, &isPresent);
+
+        // It is important that we reject unknown property names. Otherwise QtScript will forward
+        // *everything* to us, including built-in stuff like the hasOwnProperty function.
+        return isPresent ? HandlesReadAccess : QueryFlags();
     }
 
-    QScriptValue property(const QScriptValue &object, const QScriptString &name, uint id) override
+    QScriptValue property(const QScriptValue &, const QScriptString &, uint) override
     {
-        Q_UNUSED(id);
+        return m_result;
+    }
+
+    QScriptClassPropertyIterator *newIterator(const QScriptValue &object) override
+    {
+        setup(object);
+        QBS_ASSERT(m_artifact || m_product, return nullptr);
+        const PropertyMapInternal *propertyMap;
+        std::vector<QString> additionalProperties({StringConstants::artifactsProperty(),
+                                                   StringConstants::dependenciesProperty()});
+        if (m_artifact) {
+            propertyMap = m_artifact->properties.get();
+        } else {
+            propertyMap = m_product->moduleProperties.get();
+            if (object.data().property(DependencyParametersKey).isValid())
+                additionalProperties.push_back(StringConstants::parametersProperty());
+        }
+        return new ScriptClassPropertyIterator(object,
+                                               propertyMap->value().value(m_moduleName).toMap(),
+                                               additionalProperties);
+    }
+
+    void setup(const QScriptValue &object)
+    {
         if (m_lastObjectId != object.objectId()) {
             m_lastObjectId = object.objectId();
             const QScriptValue data = object.data();
+            QBS_ASSERT(data.isValid(), return);
             m_moduleName = data.property(ModuleNameKey).toString();
             m_product = reinterpret_cast<const ResolvedProduct *>(
                         data.property(ProductPtrKey).toVariant().value<quintptr>());
             m_artifact = reinterpret_cast<const Artifact *>(
                         data.property(ArtifactPtrKey).toVariant().value<quintptr>());
         }
-        return getModuleProperty(m_artifact ? m_artifact->properties : m_product->moduleProperties,
-                                 m_artifact, static_cast<ScriptEngine *>(engine()), m_moduleName,
-                                 name);
     }
 
-private:
     qint64 m_lastObjectId = 0;
     QString m_moduleName;
     const ResolvedProduct *m_product = nullptr;
     const Artifact *m_artifact = nullptr;
+    QScriptValue m_result;
 };
 
 static QString ptrKey() { return QLatin1String("__internalPtr"); }
 static QString typeKey() { return QLatin1String("__type"); }
 static QString artifactType() { return QLatin1String("artifact"); }
+
+static QScriptValue js_moduleDependencies(QScriptContext *, ScriptEngine *engine,
+                                          const ResolvedModule *module)
+{
+    QScriptValue result = engine->newArray();
+    quint32 idx = 0;
+    for (const QString &depName : qAsConst(module->moduleDependencies)) {
+        for (const ResolvedModuleConstPtr &dep : qAsConst(module->product->modules)) {
+            if (dep->name != depName)
+                continue;
+            QScriptValue obj = engine->newObject(engine->modulePropertyScriptClass());
+            obj.setPrototype(engine->moduleScriptValuePrototype(dep.get()));
+            QScriptValue data = getDataForModuleScriptValue(engine, module->product, nullptr,
+                                                            dep.get());
+            const QVariantMap &params = module->product->moduleParameters.value(dep);
+            data.setProperty(DependencyParametersKey, dependencyParametersValue(
+                                 module->product->uniqueName(), dep->name, params, engine));
+            obj.setData(data);
+            result.setProperty(idx++, obj);
+            break;
+        }
+    }
+    QBS_ASSERT(idx == quint32(module->moduleDependencies.size()),;);
+    return result;
+}
+
+static QScriptValue setupModuleScriptValue(ScriptEngine *engine,
+                                           const ResolvedModule *module)
+{
+    QScriptValue &moduleScriptValue = engine->moduleScriptValuePrototype(module);
+    if (moduleScriptValue.isValid())
+        return moduleScriptValue;
+    moduleScriptValue = engine->newObject();
+    QScriptValue depfunc = engine->newFunction<const ResolvedModule *>(&js_moduleDependencies,
+                                                                       module);
+    moduleScriptValue.setProperty(StringConstants::dependenciesProperty(), depfunc,
+                                  QScriptValue::ReadOnly | QScriptValue::Undeletable
+                                  | QScriptValue::PropertyGetter);
+    QScriptValue artifactsFunc = engine->newFunction(&artifactsScriptValueForModule, module);
+    moduleScriptValue.setProperty(StringConstants::artifactsProperty(), artifactsFunc,
+                                   QScriptValue::ReadOnly | QScriptValue::Undeletable
+                                   | QScriptValue::PropertyGetter);
+    return moduleScriptValue;
+}
 
 void ModuleProperties::init(QScriptValue productObject,
                             const ResolvedProduct *product)
@@ -176,15 +275,10 @@ void ModuleProperties::setupModules(QScriptValue &object, const ResolvedProduct 
         engine->setModulePropertyScriptClass(modulePropertyScriptClass);
     }
     for (const auto &module : qAsConst(product->modules)) {
-        QScriptValue data = engine->newObject();
-        data.setProperty(ModuleNameKey, module->name);
-        QVariant v;
-        v.setValue<quintptr>(reinterpret_cast<quintptr>(product));
-        data.setProperty(ProductPtrKey, engine->newVariant(v));
-        v.setValue<quintptr>(reinterpret_cast<quintptr>(artifact));
-        data.setProperty(ArtifactPtrKey, engine->newVariant(v));
+        QScriptValue moduleObjectPrototype = setupModuleScriptValue(engine, module.get());
         QScriptValue moduleObject = engine->newObject(modulePropertyScriptClass);
-        moduleObject.setData(data);
+        moduleObject.setPrototype(moduleObjectPrototype);
+        moduleObject.setData(getDataForModuleScriptValue(engine, product, artifact, module.get()));
         const QualifiedId moduleName = QualifiedId::fromString(module->name);
         QScriptValue obj = object;
         for (int i = 0; i < moduleName.size() - 1; ++i) {
@@ -229,13 +323,13 @@ QScriptValue ModuleProperties::moduleProperty(QScriptContext *context, QScriptEn
     }
 
     const void *ptr = reinterpret_cast<const void *>(qscriptvalue_cast<quintptr>(ptrScriptValue));
-    PropertyMapConstPtr properties;
+    const ResolvedProduct *product = nullptr;
     const Artifact *artifact = nullptr;
     if (typeScriptValue.toString() == StringConstants::productValue()) {
-        properties = static_cast<const ResolvedProduct *>(ptr)->moduleProperties;
+        product = static_cast<const ResolvedProduct *>(ptr);
     } else if (typeScriptValue.toString() == artifactType()) {
         artifact = static_cast<const Artifact *>(ptr);
-        properties = artifact->properties;
+        product = artifact->product.get();
     } else {
         return context->throwError(QScriptContext::TypeError,
                                    QLatin1String("Internal error: invalid type"));
@@ -244,7 +338,7 @@ QScriptValue ModuleProperties::moduleProperty(QScriptContext *context, QScriptEn
     const auto qbsEngine = static_cast<ScriptEngine *>(engine);
     const QString moduleName = context->argument(0).toString();
     const QString propertyName = context->argument(1).toString();
-    return getModuleProperty(properties, artifact, qbsEngine, moduleName, propertyName);
+    return getModuleProperty(product, artifact, qbsEngine, moduleName, propertyName);
 }
 
 } // namespace Internal

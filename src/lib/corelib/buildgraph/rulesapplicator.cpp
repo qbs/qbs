@@ -101,11 +101,10 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
     }
     QScriptValue prepareScriptContext = engine()->newObject();
     prepareScriptContext.setPrototype(engine()->globalObject());
-    PrepareScriptObserver observer(engine(), UnobserveMode::Enabled);
     setupScriptEngineForFile(engine(), m_rule->prepareScript.fileContext(), scope(),
                              ObserveMode::Enabled);
     setupScriptEngineForProduct(engine(), m_product.get(), m_rule->module.get(),
-                                prepareScriptContext, &observer, true);
+                                prepareScriptContext, true);
 
     if (m_rule->multiplex) { // apply the rule once for a set of inputs
         doApply(inputArtifacts, prepareScriptContext);
@@ -174,6 +173,8 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     m_transformer->inputs = inputArtifacts;
     m_transformer->explicitlyDependsOn = collectExplicitlyDependsOn();
     m_transformer->alwaysRun = m_rule->alwaysRun;
+
+    engine()->clearRequestedProperties();
 
     // create the output artifacts from the set of input artifacts
     m_transformer->setupInputs(prepareScriptContext);

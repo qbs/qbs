@@ -17,7 +17,7 @@ Project {
                 var cmd = new JavaScriptCommand();
                 cmd.description = 'generate ' + FileInfo.fileName(output.filePath);
                 cmd.highlight = 'codegen';
-                cmd.content = JSON.stringify(product.dependencies);
+                cmd.content = JSON.stringify(product.dependencies, undefined, 2);
                 cmd.sourceCode = function() {
                     file = new TextFile(output.filePath, TextFile.WriteOnly);
                     file.truncate();
