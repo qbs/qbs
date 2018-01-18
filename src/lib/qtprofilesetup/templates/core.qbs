@@ -17,8 +17,6 @@ Module {
         && ["x86", "x86_64"].contains(qbs.architecture)
         && qbs.targetPlatform === targetPlatform + "-simulator"
 
-    id: qtcore
-
     Depends { name: "cpp" }
 
     version: @version@
