@@ -85,6 +85,7 @@ UnixGCC {
     targetAbi: "qnx" + qnx.version + (qnxTargetArchName === "armv7le" ? "eabi" : "")
 
     buildEnv: qnx.buildEnv
+    probeEnv: buildEnv
 
     setupBuildEnvironment: {
         for (var key in product.cpp.buildEnv) {

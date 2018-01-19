@@ -42,6 +42,7 @@
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 
@@ -90,7 +91,7 @@ QScriptValue EnvironmentExtension::js_ctor(QScriptContext *context, QScriptEngin
 static QProcessEnvironment *getProcessEnvironment(QScriptContext *context, QScriptEngine *engine,
                                                   const QString &func, bool doThrow = true)
 {
-    QVariant v = engine->property("_qbs_procenv");
+    QVariant v = engine->property(StringConstants::qbsProcEnvVarInternal());
     QProcessEnvironment *procenv = reinterpret_cast<QProcessEnvironment *>(v.value<void *>());
     if (!procenv && doThrow)
         throw context->throwError(QScriptContext::UnknownError,

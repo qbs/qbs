@@ -141,6 +141,7 @@ public:
     QBS_STRING_CONSTANT(importScopeNamePropertyInternal, "_qbs_importScopeName")
     QBS_STRING_CONSTANT(modulePropertyInternal, "__module")
     QBS_STRING_CONSTANT(qbsSourceDirPropertyInternal, "_qbs_sourceDir")
+    static const char *qbsProcEnvVarInternal() { return "_qbs_procenv"; }
 
     static const QString &projectPrefix() { return project(); }
     static const QString &productValue() { return product(); }

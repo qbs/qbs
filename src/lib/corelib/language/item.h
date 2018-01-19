@@ -164,7 +164,6 @@ private:
 };
 
 inline bool operator<(const Item::Module &m1, const Item::Module &m2) { return m1.name < m2.name; }
-inline bool operator==(const Item::Module &m1, const Item::Module &m2) { return m1.item == m2.item; }
 
 } // namespace Internal
 } // namespace qbs

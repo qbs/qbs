@@ -66,21 +66,17 @@ public:
     {
         QVariant v;
         v.setValue<void*>(&m_env);
-        m_engine->setProperty(m_procenvProperty, v);
+        m_engine->setProperty(StringConstants::qbsProcEnvVarInternal(), v);
     }
 
-    ~EnvProvider() { m_engine->setProperty(m_procenvProperty, QVariant()); }
+    ~EnvProvider() { m_engine->setProperty(StringConstants::qbsProcEnvVarInternal(), QVariant()); }
 
     QProcessEnvironment alteredEnvironment() const { return m_env; }
 
 private:
     ScriptEngine * const m_engine;
     QProcessEnvironment m_env;
-    static const char * const m_procenvProperty;
 };
-
-// TODO: Define this at a central place.
-const char * const EnvProvider::m_procenvProperty = "_qbs_procenv";
 
 static QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*,
                                                    QList<const ResolvedModule*> > &moduleChildren,

@@ -2399,6 +2399,22 @@ void TestLanguage::propertyAssignmentInExportedGroup()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::qbs1275()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("qbs1275.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(!!project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 5);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::qbsPropertiesInProjectCondition()
 {
     bool exceptionCaught = false;

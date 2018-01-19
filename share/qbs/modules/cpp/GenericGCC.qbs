@@ -57,7 +57,7 @@ CppModule {
     Probes.GccVersionProbe {
         id: gccVersionProbe
         compilerFilePath: compilerPath
-        environment: buildEnv
+        environment: probeEnv
     }
 
     Probes.GccProbe {
@@ -65,10 +65,11 @@ CppModule {
         condition: !_skipAllChecks
         compilerFilePathByLanguage: compilerPathByLanguage
         enableDefinesByLanguage: enableCompilerDefinesByLanguage
-        environment: buildEnv
+        environment: probeEnv
         flags: targetDriverFlags.concat(sysrootFlags)
         _sysroot: sysroot
     }
+    property var probeEnv
 
     Probes.BinaryProbe {
         id: binutilsProbe
