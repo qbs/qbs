@@ -106,12 +106,12 @@ static bool isRelevantArtifact(const ResolvedModule *module, const Artifact *art
     return artifact->targetOfModule == module->name;
 }
 
-static ProductBuildData::ArtifactSetByFileTag &artifactsMap(const ResolvedProduct *product)
+static ArtifactSetByFileTag artifactsMap(const ResolvedProduct *product)
 {
-    return product->buildData->artifactsByFileTag;
+    return product->buildData->artifactsByFileTag();
 }
 
-static ProductBuildData::ArtifactSetByFileTag &artifactsMap(const ResolvedModule *module)
+static ArtifactSetByFileTag artifactsMap(const ResolvedModule *module)
 {
     return artifactsMap(module->product);
 }
@@ -546,12 +546,10 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact)
     qCDebug(lcBuildGraph) << "insert artifact" << artifact->filePath();
     QBS_CHECK(!artifact->product);
     QBS_CHECK(!artifact->filePath().isEmpty());
-    QBS_CHECK(!product->buildData->nodes.contains(artifact));
     artifact->product = product;
     product->topLevelProject()->buildData->insertIntoLookupTable(artifact);
     product->topLevelProject()->buildData->isDirty = true;
-    product->buildData->nodes.insert(artifact);
-    addArtifactToSet(artifact, product->buildData->artifactsByFileTag);
+    product->buildData->addArtifact(artifact);
 }
 
 static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
@@ -567,12 +565,12 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
     QBS_CHECK(!!product->enabled == !!buildData);
     if (!product->enabled)
         return;
-    for (BuildGraphNode * const node : qAsConst(buildData->roots)) {
+    for (BuildGraphNode * const node : qAsConst(buildData->rootNodes())) {
         qCDebug(lcBuildGraph) << "Checking root node" << node->toString();
-        QBS_CHECK(buildData->nodes.contains(node));
+        QBS_CHECK(buildData->allNodes().contains(node));
     }
     Set<QString> filePaths;
-    for (BuildGraphNode * const node : qAsConst(buildData->nodes)) {
+    for (BuildGraphNode * const node : qAsConst(buildData->allNodes())) {
         qCDebug(lcBuildGraph) << "Sanity checking node" << node->toString();
         QBS_CHECK(node->product == product);
         for (const BuildGraphNode * const parent : qAsConst(node->parents))
@@ -581,7 +579,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
             QBS_CHECK(child->parents.contains(node));
             QBS_CHECK(!child->product.expired());
             QBS_CHECK(child->product->buildData);
-            QBS_CHECK(child->product->buildData->nodes.contains(child));
+            QBS_CHECK(child->product->buildData->allNodes().contains(child));
             QBS_CHECK(allProducts.contains(child->product.lock()));
         }
 

@@ -89,8 +89,9 @@ ResolvedProductConstPtr TestBuildGraph::productWithDirectCycle()
     root->product = product;
     auto child = new Artifact;
     child->product = product;
-    product->buildData->roots.insert(root);
-    product->buildData->nodes << root << child;
+    product->buildData->addRootNode(root);
+    product->buildData->addNode(root);
+    product->buildData->addNode(child);
     qbs::Internal::connect(root, child);
     qbs::Internal::connect(child, root);
     return product;
@@ -107,8 +108,10 @@ ResolvedProductConstPtr TestBuildGraph::productWithLessDirectCycle()
     root->product = product;
     child->product = product;
     grandchild->product = product;
-    product->buildData->roots << root;
-    product->buildData->nodes << root << child << grandchild;
+    product->buildData->addRootNode(root);
+    product->buildData->addNode(root);
+    product->buildData->addNode(child);
+    product->buildData->addNode(grandchild);
     qbs::Internal::connect(root, child);
     qbs::Internal::connect(child, grandchild);
     qbs::Internal::connect(grandchild, root);
@@ -125,8 +128,10 @@ ResolvedProductConstPtr TestBuildGraph::productWithNoCycle()
     auto root2 = new Artifact;
     root->product = product;
     root2->product = product;
-    product->buildData->roots << root << root2;
-    product->buildData->nodes << root << root2;
+    product->buildData->addRootNode(root);
+    product->buildData->addRootNode(root2);
+    product->buildData->addNode(root);
+    product->buildData->addNode(root2);
     qbs::Internal::connect(root2, root);
     return product;
 }

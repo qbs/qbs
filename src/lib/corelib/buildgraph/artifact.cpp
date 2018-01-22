@@ -78,14 +78,14 @@ void Artifact::addFileTag(const FileTag &t)
 {
     m_fileTags += t;
     if (!product.expired() && product->buildData)
-        product->buildData->artifactsByFileTag[t] += this;
+        product->buildData->addFileTagToArtifact(this, t);
 }
 
 void Artifact::removeFileTag(const FileTag &t)
 {
     m_fileTags -= t;
     if (!product.expired() && product->buildData)
-        removeArtifactFromSetByFileTag(this, t, product->buildData->artifactsByFileTag);
+        product->buildData->removeArtifactFromSetByFileTag(this, t);
 }
 
 void Artifact::setFileTags(const FileTags &newFileTags)
@@ -95,9 +95,9 @@ void Artifact::setFileTags(const FileTags &newFileTags)
         return;
     }
     for (const FileTag &t : qAsConst(m_fileTags))
-        removeArtifactFromSetByFileTag(this, t, product->buildData->artifactsByFileTag);
+        product->buildData->removeArtifactFromSetByFileTag(this, t);
     m_fileTags = newFileTags;
-    addArtifactToSet(this, product->buildData->artifactsByFileTag);
+    product->buildData->addArtifactToSet(this);
 }
 
 void Artifact::initialize()

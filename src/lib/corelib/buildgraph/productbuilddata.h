@@ -52,38 +52,63 @@ namespace Internal {
 
 class Logger;
 
+using ArtifactSetByFileTag = QHash<FileTag, ArtifactSet>;
+
 class QBS_AUTOTEST_EXPORT ProductBuildData
 {
 public:
     ~ProductBuildData();
 
     const TypeFilter<Artifact> rootArtifacts() const;
-    NodeSet nodes;
-    NodeSet roots;
+    const NodeSet &allNodes() const { return m_nodes; }
+    const NodeSet &rootNodes() const { return m_roots; }
+
+    void addNode(BuildGraphNode *node) { m_nodes.insert(node); }
+    void addRootNode(BuildGraphNode *node) { m_roots.insert(node); }
+    void addArtifact(Artifact *artifact);
+    void addArtifactToSet(Artifact *artifact);
+    void removeArtifact(Artifact *artifact);
+    void removeArtifactFromSetByFileTag(Artifact *artifact, const FileTag &fileTag);
+    void addFileTagToArtifact(Artifact *artifact, const FileTag &tag);
+    void addArtifactWithChangedInputsForRule(const RuleConstPtr &rule, Artifact *artifact);
+    void removeArtifactWithChangedInputsForRule(const RuleConstPtr &rule, Artifact *artifact);
+    void removeAllArtifactsWithChangedInputsForRule(const RuleConstPtr &rule);
+    bool ruleHasArtifactWithChangedInputs(const RuleConstPtr &rule) const;
+
+    ArtifactSetByFileTag artifactsByFileTag() const { return m_artifactsByFileTag; }
+
+    AllRescuableArtifactData rescuableArtifactData() const { return m_rescuableArtifactData; }
+    void setRescuableArtifactData(const AllRescuableArtifactData &rad);
+    RescuableArtifactData removeFromRescuableArtifactData(const QString &filePath);
+    void addRescuableArtifactData(const QString &filePath, const RescuableArtifactData &rad);
+
+    unsigned int buildPriority() const { return m_buildPriority; }
+    void setBuildPriority(unsigned int prio) { m_buildPriority = prio; }
+
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+
+private:
+    void removeArtifactFromSet(Artifact *artifact);
+
+    NodeSet m_nodes;
+    NodeSet m_roots;
 
     // After change tracking, this is the relevant data of artifacts that were in the build data
     // of the restored product, and will potentially be re-created by our rules.
     // If and when that happens, the relevant data will be copied over to the newly created
     // artifact.
-    AllRescuableArtifactData rescuableArtifactData;
+    AllRescuableArtifactData m_rescuableArtifactData;
 
     // Do not store, initialized in executor. Higher prioritized artifacts are built first.
-    unsigned int buildPriority;
+    unsigned int m_buildPriority;
 
-    typedef QHash<FileTag, ArtifactSet> ArtifactSetByFileTag;
-    ArtifactSetByFileTag artifactsByFileTag;
+    ArtifactSetByFileTag m_artifactsByFileTag;
 
     typedef QHash<RuleConstPtr, ArtifactSet> ArtifactSetByRule;
-    ArtifactSetByRule artifactsWithChangedInputsPerRule;
+    ArtifactSetByRule m_artifactsWithChangedInputsPerRule;
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
 };
-
-void addArtifactToSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container);
-void removeArtifactFromSetByFileTag(Artifact *artifact, const FileTag &fileTag,
-        ProductBuildData::ArtifactSetByFileTag &container);
-void removeArtifactFromSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container);
 
 } // namespace Internal
 } // namespace qbs

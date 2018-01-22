@@ -112,14 +112,15 @@ public:
     {
         m_product = product;
         ArtifactVisitor::visitProduct(product);
-        auto it = product->buildData->rescuableArtifactData.begin();
-        while (it != product->buildData->rescuableArtifactData.end()) {
+        const AllRescuableArtifactData rescuableArtifactData
+                = product->buildData->rescuableArtifactData();
+        for (auto it = rescuableArtifactData.begin(); it != rescuableArtifactData.end(); ++it) {
             Artifact tmp;
             tmp.product = product;
             tmp.setFilePath(it.key());
             tmp.setTimestamp(it.value().timeStamp);
             removeArtifactFromDisk(&tmp, m_options.dryRun(), m_logger);
-            it = product->buildData->rescuableArtifactData.erase(it);
+            product->buildData->removeFromRescuableArtifactData(it.key());
         }
     }
 

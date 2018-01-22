@@ -52,53 +52,107 @@ namespace Internal {
 
 ProductBuildData::~ProductBuildData()
 {
-    qDeleteAll(nodes);
+    qDeleteAll(m_nodes);
 }
 
 const TypeFilter<Artifact> ProductBuildData::rootArtifacts() const
 {
-    return TypeFilter<Artifact>(roots);
+    return TypeFilter<Artifact>(m_roots);
+}
+
+void ProductBuildData::addArtifact(Artifact *artifact)
+{
+    QBS_CHECK(m_nodes.insert(artifact).second);
+    addArtifactToSet(artifact);
 }
 
 void ProductBuildData::load(PersistentPool &pool)
 {
-    nodes.load(pool);
-    roots.load(pool);
-    pool.load(rescuableArtifactData);
-    pool.load(artifactsByFileTag);
-    pool.load(artifactsWithChangedInputsPerRule);
+    m_nodes.load(pool);
+    m_roots.load(pool);
+    pool.load(m_rescuableArtifactData);
+    pool.load(m_artifactsByFileTag);
+    pool.load(m_artifactsWithChangedInputsPerRule);
 }
 
 void ProductBuildData::store(PersistentPool &pool) const
 {
-    nodes.store(pool);
-    roots.store(pool);
-    pool.store(rescuableArtifactData);
-    pool.store(artifactsByFileTag);
-    pool.store(artifactsWithChangedInputsPerRule);
+    m_nodes.store(pool);
+    m_roots.store(pool);
+    pool.store(m_rescuableArtifactData);
+    pool.store(m_artifactsByFileTag);
+    pool.store(m_artifactsWithChangedInputsPerRule);
 }
 
-void addArtifactToSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container)
+void ProductBuildData::addArtifactToSet(Artifact *artifact)
 {
     for (const FileTag &tag : artifact->fileTags())
-        container[tag] += artifact;
+        m_artifactsByFileTag[tag] += artifact;
 }
 
-void removeArtifactFromSetByFileTag(Artifact *artifact, const FileTag &fileTag,
-        ProductBuildData::ArtifactSetByFileTag &container)
+void ProductBuildData::removeArtifact(Artifact *artifact)
 {
-    ProductBuildData::ArtifactSetByFileTag::iterator it = container.find(fileTag);
-    if (it == container.end())
+    m_roots.remove(artifact);
+    m_nodes.remove(artifact);
+    removeArtifactFromSet(artifact);
+}
+
+void ProductBuildData::removeArtifactFromSetByFileTag(Artifact *artifact, const FileTag &fileTag)
+{
+    const auto it = m_artifactsByFileTag.find(fileTag);
+    if (it == m_artifactsByFileTag.end())
         return;
     it->remove(artifact);
     if (it->empty())
-        container.erase(it);
+        m_artifactsByFileTag.erase(it);
 }
 
-void removeArtifactFromSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container)
+void ProductBuildData::addFileTagToArtifact(Artifact *artifact, const FileTag &tag)
+{
+    m_artifactsByFileTag[tag] += artifact;
+}
+
+void ProductBuildData::addArtifactWithChangedInputsForRule(const RuleConstPtr &rule,
+                                                           Artifact *artifact)
+{
+    m_artifactsWithChangedInputsPerRule[rule] += artifact;
+}
+
+void ProductBuildData::removeArtifactWithChangedInputsForRule(const RuleConstPtr &rule, Artifact *artifact)
+{
+    m_artifactsWithChangedInputsPerRule[rule] -= artifact;
+}
+
+void ProductBuildData::removeAllArtifactsWithChangedInputsForRule(const RuleConstPtr &rule)
+{
+    m_artifactsWithChangedInputsPerRule.remove(rule);
+}
+
+bool ProductBuildData::ruleHasArtifactWithChangedInputs(const RuleConstPtr &rule) const
+{
+    return !m_artifactsWithChangedInputsPerRule.value(rule).empty();
+}
+
+void ProductBuildData::setRescuableArtifactData(const AllRescuableArtifactData &rad)
+{
+    m_rescuableArtifactData = rad;
+}
+
+RescuableArtifactData ProductBuildData::removeFromRescuableArtifactData(const QString &filePath)
+{
+    return m_rescuableArtifactData.take(filePath);
+}
+
+void ProductBuildData::addRescuableArtifactData(const QString &filePath,
+                                                const RescuableArtifactData &rad)
+{
+    m_rescuableArtifactData.insert(filePath, rad);
+}
+
+void ProductBuildData::removeArtifactFromSet(Artifact *artifact)
 {
     for (const FileTag &t : artifact->fileTags())
-        removeArtifactFromSetByFileTag(artifact, t, container);
+        removeArtifactFromSetByFileTag(artifact, t);
 }
 
 } // namespace Internal

@@ -224,7 +224,7 @@ static void removeFromRuleNodes(Artifact *artifact)
     for (const ResolvedProductPtr &product : artifact->product->topLevelProject()->allProducts()) {
         if (!product->buildData)
             continue;
-        for (BuildGraphNode *n : qAsConst(product->buildData->nodes)) {
+        for (BuildGraphNode *n : qAsConst(product->buildData->allNodes())) {
             if (n->type() != BuildGraphNode::RuleNodeType)
                 continue;
             const auto ruleNode = static_cast<RuleNode *>(n);
@@ -248,11 +248,8 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
         artifact->product->unregisterArtifactWithChangedInputs(artifact);
         artifact->transformer->outputs.remove(artifact);
     }
-    if (removeFromProduct) {
-        artifact->product->buildData->nodes.remove(artifact);
-        artifact->product->buildData->roots.remove(artifact);
-        removeArtifactFromSet(artifact, artifact->product->buildData->artifactsByFileTag);
-    }
+    if (removeFromProduct)
+        artifact->product->buildData->removeArtifact(artifact);
     isDirty = true;
 }
 
@@ -352,7 +349,7 @@ private:
             m_nodePerRule.insert(rule, node);
             node->product = m_product;
             node->setRule(rule);
-            m_product->buildData->nodes += node;
+            m_product->buildData->addNode(node);
             qCDebug(lcBuildGraph) << "create" << node->toString()
                                   << "for product" << m_product->uniqueName();
         }
@@ -361,7 +358,7 @@ private:
             QBS_CHECK(parent);
             connect(parent, node);
         } else {
-            m_product->buildData->roots += node;
+            m_product->buildData->addRootNode(node);
         }
     }
 
@@ -393,7 +390,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     evalContext()->checkForCancelation();
 
     product->buildData.reset(new ProductBuildData);
-    ProductBuildData::ArtifactSetByFileTag artifactsPerFileTag;
+    ArtifactSetByFileTag artifactsPerFileTag;
 
     for (ResolvedProductPtr dependency : qAsConst(product->dependencies)) {
         QBS_CHECK(dependency->enabled);
@@ -433,7 +430,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
 
 static bool isRootRuleNode(RuleNode *ruleNode)
 {
-    return ruleNode->product->buildData->roots.contains(ruleNode);
+    return ruleNode->product->buildData->rootNodes().contains(ruleNode);
 }
 
 void BuildDataResolver::connectRulesToDependencies(const ResolvedProductPtr &product,
@@ -443,12 +440,12 @@ void BuildDataResolver::connectRulesToDependencies(const ResolvedProductPtr &pro
     // Rules that take "installable" artifacts are connected to all root rules of product
     // dependencies.
     std::vector<RuleNode *> ruleNodes;
-    for (RuleNode *ruleNode : filterByType<RuleNode>(product->buildData->nodes))
+    for (RuleNode *ruleNode : filterByType<RuleNode>(product->buildData->allNodes()))
         ruleNodes.push_back(ruleNode);
     for (const ResolvedProductConstPtr &dep : dependencies) {
         if (!dep->buildData)
             continue;
-        for (RuleNode *depRuleNode : filterByType<RuleNode>(dep->buildData->nodes)) {
+        for (RuleNode *depRuleNode : filterByType<RuleNode>(dep->buildData->allNodes())) {
             for (RuleNode *ruleNode : ruleNodes) {
                 static const FileTag installableTag("installable");
                 if (areRulesCompatible(ruleNode, depRuleNode)

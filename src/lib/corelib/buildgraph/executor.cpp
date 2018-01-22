@@ -79,7 +79,7 @@ namespace Internal {
 
 bool Executor::ComparePriority::operator() (const BuildGraphNode *x, const BuildGraphNode *y) const
 {
-    return x->product->buildData->buildPriority < y->product->buildData->buildPriority;
+    return x->product->buildData->buildPriority() < y->product->buildData->buildPriority();
 }
 
 
@@ -200,7 +200,7 @@ private:
             traverse(dependency);
         if (!product->buildData)
             return;
-        product->buildData->buildPriority = m_priority--;
+        product->buildData->setBuildPriority(m_priority--);
     }
 };
 
@@ -473,7 +473,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
             if (ruleNode->rule()->acceptsAsInput(artifact))
                 changedInputArtifacts += artifact;
         }
-        for (Artifact *artifact : filterByType<Artifact>(ruleNode->product->buildData->nodes)) {
+        for (Artifact *artifact : filterByType<Artifact>(ruleNode->product->buildData->allNodes())) {
             if (artifact->artifactType == Artifact::SourceFile)
                 continue;
             if (ruleNode->rule()->acceptsAsInput(artifact)) {
@@ -513,7 +513,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
                 continue;
             Artifact * const outputArtifact = static_cast<Artifact *>(node);
             if (outputArtifact->fileTags().intersects(product->fileTags))
-                product->buildData->roots += outputArtifact;
+                product->buildData->addRootNode(outputArtifact);
 
             for (Artifact *inputArtifact : qAsConst(outputArtifact->transformer->inputs))
                 Internal::connect(ruleNode, inputArtifact);
@@ -681,7 +681,7 @@ void Executor::setupProgressObserver()
     int totalEffort = 1; // For the effort after the last rule application;
     for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
-        const auto filtered = filterByType<RuleNode>(product->buildData->nodes);
+        const auto filtered = filterByType<RuleNode>(product->buildData->allNodes());
         totalEffort += std::distance(filtered.begin(), filtered.end());
     }
     m_progressObserver->initialize(tr("Building%1").arg(configString()), totalEffort);
@@ -738,7 +738,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
 
     ResolvedProduct * const product = artifact->product.get();
     const RescuableArtifactData rad
-            = product->buildData->rescuableArtifactData.take(artifact->filePath());
+            = product->buildData->removeFromRescuableArtifactData(artifact->filePath());
     if (!rad.isValid())
         return;
     qCDebug(lcBuildGraph) << "Attempting to rescue data of artifact" << artifact->fileName();
@@ -762,7 +762,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
                 qCDebug(lcBuildGraph) << "Former child artifact" << cd.childFilePath
                                       << "does not exist anymore.";
                 const RescuableArtifactData childRad
-                        = product->buildData->rescuableArtifactData.take(cd.childFilePath);
+                        = product->buildData->removeFromRescuableArtifactData(cd.childFilePath);
                 if (childRad.isValid()) {
                     m_artifactsRemovedFromDisk << artifact->filePath();
                     removeGeneratedArtifactFromDisk(cd.childFilePath, m_logger);
@@ -999,7 +999,7 @@ void Executor::checkForUnbuiltProducts()
     QList<ResolvedProductPtr> unbuiltProducts;
     for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
         bool productBuilt = true;
-        for (BuildGraphNode *rootNode : qAsConst(product->buildData->roots)) {
+        for (BuildGraphNode *rootNode : qAsConst(product->buildData->rootNodes())) {
             if (rootNode->buildState != BuildGraphNode::Built) {
                 productBuilt = false;
                 unbuiltProducts.push_back(product);
@@ -1009,12 +1009,12 @@ void Executor::checkForUnbuiltProducts()
         if (productBuilt) {
             // Any element still left after a successful build has not been re-created
             // by any rule and therefore does not exist anymore as an artifact.
-            for (auto it = product->buildData->rescuableArtifactData.cbegin();
-                 it != product->buildData->rescuableArtifactData.cend(); ++it) {
+            const AllRescuableArtifactData rad = product->buildData->rescuableArtifactData();
+            for (auto it = rad.cbegin(); it != rad.cend(); ++it) {
                 removeGeneratedArtifactFromDisk(it.key(), m_logger);
+                product->buildData->removeFromRescuableArtifactData(it.key());
                 m_artifactsRemovedFromDisk << it.key();
             }
-            product->buildData->rescuableArtifactData.clear();
         }
     }
 
@@ -1114,13 +1114,13 @@ void Executor::prepareAllNodes()
     for (const ResolvedProductPtr &product : m_project->allProducts()) {
         if (product->enabled) {
             QBS_CHECK(product->buildData);
-            for (BuildGraphNode * const node : qAsConst(product->buildData->nodes))
+            for (BuildGraphNode * const node : qAsConst(product->buildData->allNodes()))
                 node->buildState = BuildGraphNode::Untouched;
         }
     }
     for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
-        for (Artifact * const artifact : filterByType<Artifact>(product->buildData->nodes))
+        for (Artifact * const artifact : filterByType<Artifact>(product->buildData->allNodes()))
             prepareArtifact(artifact);
     }
 }
@@ -1201,7 +1201,7 @@ void Executor::setupRootNodes()
 {
     m_roots.clear();
     for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild))
-        m_roots += product->buildData->roots;
+        m_roots += product->buildData->rootNodes();
 }
 
 void Executor::setState(ExecutorState s)

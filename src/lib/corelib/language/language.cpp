@@ -517,7 +517,7 @@ void ResolvedProduct::accept(BuildGraphVisitor *visitor) const
 {
     if (!buildData)
         return;
-    for (BuildGraphNode * const node : qAsConst(buildData->roots))
+    for (BuildGraphNode * const node : qAsConst(buildData->rootNodes()))
         node->accept(visitor);
 }
 
@@ -636,7 +636,7 @@ void ResolvedProduct::registerArtifactWithChangedInputs(Artifact *artifact)
     QBS_CHECK(artifact->transformer);
     if (artifact->transformer->rule->multiplex) {
         // Reapplication of rules only makes sense for multiplex rules (e.g. linker).
-        buildData->artifactsWithChangedInputsPerRule[artifact->transformer->rule] += artifact;
+        buildData->addArtifactWithChangedInputsForRule(artifact->transformer->rule, artifact);
     }
 }
 
@@ -645,24 +645,24 @@ void ResolvedProduct::unregisterArtifactWithChangedInputs(Artifact *artifact)
     QBS_CHECK(buildData);
     QBS_CHECK(artifact->product == this);
     QBS_CHECK(artifact->transformer);
-    buildData->artifactsWithChangedInputsPerRule[artifact->transformer->rule] -= artifact;
+    buildData->removeArtifactWithChangedInputsForRule(artifact->transformer->rule, artifact);
 }
 
 void ResolvedProduct::unmarkForReapplication(const RuleConstPtr &rule)
 {
     QBS_CHECK(buildData);
-    buildData->artifactsWithChangedInputsPerRule.remove(rule);
+    buildData->removeAllArtifactsWithChangedInputsForRule(rule);
 }
 
 bool ResolvedProduct::isMarkedForReapplication(const RuleConstPtr &rule) const
 {
-    return !buildData->artifactsWithChangedInputsPerRule.value(rule).empty();
+    return buildData->ruleHasArtifactWithChangedInputs(rule);
 }
 
 ArtifactSet ResolvedProduct::lookupArtifactsByFileTag(const FileTag &tag) const
 {
     QBS_CHECK(buildData);
-    return buildData->artifactsByFileTag.value(tag);
+    return buildData->artifactsByFileTag().value(tag);
 }
 
 ArtifactSet ResolvedProduct::lookupArtifactsByFileTags(const FileTags &tags) const
@@ -670,7 +670,7 @@ ArtifactSet ResolvedProduct::lookupArtifactsByFileTags(const FileTags &tags) con
     QBS_CHECK(buildData);
     ArtifactSet set;
     for (const FileTag &tag : tags)
-        set = set.unite(buildData->artifactsByFileTag.value(tag));
+        set = set.unite(buildData->artifactsByFileTag().value(tag));
     return set;
 }
 
@@ -736,7 +736,7 @@ QStringList ResolvedProduct::generatedFiles(const QString &baseFile, bool recurs
     if (!data)
         return QStringList();
 
-    for (const Artifact *art : filterByType<Artifact>(data->nodes)) {
+    for (const Artifact *art : filterByType<Artifact>(data->allNodes())) {
         if (art->filePath() == baseFile)
             return findGeneratedFiles(art, recursive, tags);
     }
@@ -840,7 +840,7 @@ void ResolvedProject::load(PersistentPool &pool)
                   [](const ResolvedProductPtr &p) {
         if (!p->buildData)
             return;
-        for (BuildGraphNode * const node : qAsConst(p->buildData->nodes)) {
+        for (BuildGraphNode * const node : qAsConst(p->buildData->allNodes())) {
             node->product = p;
 
             // restore parent links

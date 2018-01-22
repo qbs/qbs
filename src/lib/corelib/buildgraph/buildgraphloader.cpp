@@ -92,7 +92,7 @@ static void restoreBackPointers(const ResolvedProjectPtr &project)
         product->project = project;
         if (!product->buildData)
             continue;
-        for (BuildGraphNode * const n : qAsConst(product->buildData->nodes)) {
+        for (BuildGraphNode * const n : qAsConst(product->buildData->allNodes())) {
             if (n->type() == BuildGraphNode::ArtifactNodeType) {
                 project->topLevelProject()->buildData
                         ->insertIntoLookupTable(static_cast<Artifact *>(n));
@@ -265,7 +265,7 @@ static void makeChangedProductsListComplete(QList<ResolvedProductPtr> &changedPr
 static void updateProductAndRulePointers(const ResolvedProductPtr &newProduct)
 {
     std::unordered_map<RuleConstPtr, RuleConstPtr> ruleMap;
-    for (BuildGraphNode *node : qAsConst(newProduct->buildData->nodes)) {
+    for (BuildGraphNode *node : qAsConst(newProduct->buildData->allNodes())) {
         node->product = newProduct;
         const auto findNewRule = [&ruleMap, &newProduct]
                 (const RuleConstPtr &oldRule) -> RuleConstPtr {
@@ -366,7 +366,7 @@ void BuildGraphLoader::trackProjectChanges()
 
             // If the product gets temporarily removed, its artifacts will get disconnected
             // and this structural information will no longer be directly available from them.
-            for (const Artifact *a : filterByType<Artifact>(product->buildData->nodes)) {
+            for (const Artifact *a : filterByType<Artifact>(product->buildData->allNodes())) {
                 childLists.insert(a, ChildrenInfo(ArtifactSet::filtered(a->children),
                                                   a->childrenAddedByScanner));
             }
@@ -386,7 +386,7 @@ void BuildGraphLoader::trackProjectChanges()
         onProductRemoved(product, product->topLevelProject()->buildData.get(), false);
         if (product->buildData) {
             rescuableArtifactData.insert(product->uniqueName(),
-                                         product->buildData->rescuableArtifactData);
+                                         product->buildData->rescuableArtifactData());
         }
         allRestoredProducts.removeOne(product);
     }
@@ -738,7 +738,7 @@ bool BuildGraphLoader::checkTransformersForChanges(const ResolvedProductPtr &res
 {
     bool transformerChanges = false;
     Set<TransformerConstPtr> seenTransformers;
-    for (Artifact *artifact : filterByType<Artifact>(restoredProduct->buildData->nodes)) {
+    for (Artifact *artifact : filterByType<Artifact>(restoredProduct->buildData->allNodes())) {
         const TransformerPtr transformer = artifact->transformer;
         if (!transformer || !seenTransformers.insert(transformer).second)
             continue;
@@ -760,7 +760,7 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
 
     product->project->products.removeOne(product);
     if (product->buildData) {
-        for (BuildGraphNode * const node : qAsConst(product->buildData->nodes)) {
+        for (BuildGraphNode * const node : qAsConst(product->buildData->allNodes())) {
             if (node->type() == BuildGraphNode::ArtifactNodeType) {
                 const auto artifact = static_cast<Artifact *>(node);
                 projectBuildData->removeArtifact(artifact, m_logger, removeArtifactsFromDisk,
@@ -976,7 +976,7 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
     for (const ResolvedProductPtr &product : fileDepProduct->topLevelProject()->allProducts()) {
         if (!product->buildData)
             continue;
-        for (Artifact *artifactInProduct : filterByType<Artifact>(product->buildData->nodes)) {
+        for (Artifact *artifactInProduct : filterByType<Artifact>(product->buildData->allNodes())) {
             if (artifactInProduct->fileDependencies.remove(filedep))
                 connect(artifactInProduct, artifact);
         }
@@ -1038,11 +1038,12 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
 
     qCDebug(lcBuildGraph) << "rescue data of product" << restoredProduct->uniqueName();
     QBS_CHECK(newlyResolvedProduct->buildData);
-    QBS_CHECK(newlyResolvedProduct->buildData->rescuableArtifactData.empty());
-    newlyResolvedProduct->buildData->rescuableArtifactData = existingRad;
+    QBS_CHECK(newlyResolvedProduct->buildData->rescuableArtifactData().empty());
+    newlyResolvedProduct->buildData->setRescuableArtifactData(existingRad);
 
     // This is needed for artifacts created by rules, which happens later in the executor.
-    for (Artifact * const oldArtifact : filterByType<Artifact>(restoredProduct->buildData->nodes)) {
+    for (Artifact * const oldArtifact
+         : filterByType<Artifact>(restoredProduct->buildData->allNodes())) {
         if (!oldArtifact->transformer)
             continue;
         Artifact * const newArtifact = lookupArtifact(newlyResolvedProduct, oldArtifact, false);
@@ -1073,8 +1074,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
                                std::back_inserter(rad.fileDependencies),
                                std::mem_fn(&FileDependency::filePath));
             }
-            newlyResolvedProduct->buildData->rescuableArtifactData.insert(
-                        oldArtifact->filePath(), rad);
+            newlyResolvedProduct->buildData->addRescuableArtifactData(oldArtifact->filePath(), rad);
         }
     }
 }

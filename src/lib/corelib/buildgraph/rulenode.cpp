@@ -185,7 +185,7 @@ ArtifactSet RuleNode::currentInputArtifacts() const
     for (const ResolvedProductConstPtr &dep : qAsConst(product->dependencies)) {
         if (!dep->buildData)
             continue;
-        for (Artifact * const a : filterByType<Artifact>(dep->buildData->nodes)) {
+        for (Artifact * const a : filterByType<Artifact>(dep->buildData->allNodes())) {
             if (a->fileTags().intersects(m_rule->inputsFromDependencies))
                 s += a;
         }

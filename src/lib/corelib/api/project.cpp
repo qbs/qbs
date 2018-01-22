@@ -717,7 +717,7 @@ RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
     if (!resolvedProduct->enabled)
         throw ErrorInfo(Tr::tr("Product '%1' is disabled.").arg(product.name()));
     QBS_CHECK(resolvedProduct->buildData);
-    const ArtifactSet &outputArtifacts = resolvedProduct->buildData->artifactsByFileTag
+    const ArtifactSet &outputArtifacts = resolvedProduct->buildData->artifactsByFileTag()
             .value(FileTag(outputFileTag.toLocal8Bit()));
     for (const Artifact * const outputArtifact : qAsConst(outputArtifacts)) {
         const TransformerConstPtr transformer = outputArtifact->transformer;
@@ -801,7 +801,8 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         if (resolvedProduct->enabled) {
             QBS_CHECK(resolvedProduct->buildData);
             const ArtifactSet targetArtifacts = resolvedProduct->targetArtifacts();
-            for (Artifact * const a : filterByType<Artifact>(resolvedProduct->buildData->nodes)) {
+            for (Artifact * const a
+                 : filterByType<Artifact>(resolvedProduct->buildData->allNodes())) {
                 if (a->artifactType != Artifact::Generated)
                     continue;
                 ArtifactData ta;
@@ -814,8 +815,9 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                 setupInstallData(ta, resolvedProduct);
                 product.d->generatedArtifacts << ta;
             }
-            for (auto it = resolvedProduct->buildData->rescuableArtifactData.constBegin();
-                 it != resolvedProduct->buildData->rescuableArtifactData.constEnd(); ++it) {
+            const AllRescuableArtifactData &rad
+                    = resolvedProduct->buildData->rescuableArtifactData();
+            for (auto it = rad.begin(); it != rad.end(); ++it) {
                 ArtifactData ta;
                 ta.d->filePath = it.key();
                 ta.d->fileTags = it.value().fileTags.toStringList();
