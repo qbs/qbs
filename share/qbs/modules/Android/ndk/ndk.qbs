@@ -52,7 +52,9 @@ Module {
         allowedValues: ["arm64-v8a", "armeabi", "armeabi-v7a", "mips", "mips64", "x86", "x86_64"]
     }
 
-    property string appStl: Utilities.versionCompare(version, "17") >= 0 ? "c++_shared" : "system"
+    property string appStl: version
+                            ? (Utilities.versionCompare(version, "17") >= 0
+                               ? "c++_shared" : "system") : undefined
     PropertyOptions {
         name: "appStl"
         description: "Corresponds to the 'APP_STL' variable in an Android.mk file."
@@ -71,11 +73,11 @@ Module {
     property string hostArch: ndkProbe.hostArch
     property string ndkDir: ndkProbe.path
     property string ndkSamplesDir: ndkProbe.samplesDir
-    property string platform: Utilities.versionCompare(version, "15") >= 0
-                              ? "android-14"
-                              : "android-9"
+    property string platform: version
+                              ? (Utilities.versionCompare(version, "15") >= 0
+                                 ? "android-14" : "android-9") : undefined
 
-    property bool useUnifiedHeaders: Utilities.versionCompare(version, "15") >= 0
+    property bool useUnifiedHeaders: version ? Utilities.versionCompare(version, "15") >= 0 : false
 
     // Internal properties.
     property stringList availableToolchains: ndkProbe.toolchains
@@ -159,12 +161,19 @@ Module {
     property bool haveUnifiedStl: version && Utilities.versionCompare(version, "12") >= 0
 
     validate: {
+        if (!ndkDir) {
+            throw ModUtils.ModuleError("Could not find an Android NDK in any of the following "
+                                       + "locations:\n\t" + ndkProbe.candidatePaths.join("\n\t")
+                                       + "\nInstall the Android NDK to one of the above locations, "
+                                       + "or set the Android.ndk.ndkDir property to a valid "
+                                       + "Android NDK location.");
+        }
+
         var validator = new ModUtils.PropertyValidator("Android.ndk");
         validator.setRequiredProperty("abi", abi);
         validator.setRequiredProperty("appStl", appStl);
         validator.setRequiredProperty("toolchainVersion", toolchainVersion);
         validator.setRequiredProperty("hostArch", hostArch);
-        validator.setRequiredProperty("ndkDir", ndkDir);
         validator.setRequiredProperty("platform", platform);
         validator.setRequiredProperty("toolchainVersionNumber", toolchainVersionNumber);
         return validator.validate();

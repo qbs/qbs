@@ -92,7 +92,8 @@ Module {
                                            Environment.getEnv(qbs.hostOS.contains("windows")
                                                               ? "USERPROFILE" : "HOME"),
                                            ".android", "debug.keystore")
-    property bool useApksigner: Utilities.versionCompare(buildToolsVersion, "24.0.3") >= 0
+    property bool useApksigner: buildToolsVersion
+                                ? Utilities.versionCompare(buildToolsVersion, "24.0.3") >= 0 : false
 
     Depends { name: "java" }
     java.languageVersion: platformJavaVersion
@@ -141,6 +142,16 @@ Module {
 
     Parameter {
         property bool embedJar: true
+    }
+
+    validate: {
+        if (!sdkDir) {
+            throw ModUtils.ModuleError("Could not find an Android SDK in any of the following "
+                                       + "locations:\n\t" + sdkProbe.candidatePaths.join("\n\t")
+                                       + "\nInstall the Android SDK to one of the above locations, "
+                                       + "or set the Android.sdk.sdkDir property to a valid "
+                                       + "Android SDK location.");
+        }
     }
 
     Rule {
