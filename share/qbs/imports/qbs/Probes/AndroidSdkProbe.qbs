@@ -34,7 +34,7 @@ import qbs.File
 import qbs.FileInfo
 import "../../../modules/Android/sdk/utils.js" as SdkUtils
 
-PathProbe {
+BinaryProbe {
     environmentPaths: Environment.getEnv("ANDROID_HOME")
     platformPaths: {
         if (qbs.hostOS.contains("windows"))
@@ -52,17 +52,21 @@ PathProbe {
     property string platform
 
     configure: {
+        var suffixes = nameSuffixes || [""];
         var i, allPaths = (environmentPaths || []).concat(platformPaths || []);
         candidatePaths = allPaths;
         for (i in allPaths) {
-            if (File.exists(FileInfo.joinPaths(allPaths[i], "tools", "android"))) {
-                path = allPaths[i];
-                buildToolsVersions = SdkUtils.availableBuildToolsVersions(path)
-                buildToolsVersion = buildToolsVersions[buildToolsVersions.length - 1];
-                platforms = SdkUtils.availableSdkPlatforms(path)
-                platform = platforms[platforms.length - 1];
-                found = true;
-                return;
+            for (var j in suffixes) {
+                if (File.exists(FileInfo.joinPaths(allPaths[i],
+                                                   "tools", "android" + suffixes[j]))) {
+                    path = allPaths[i];
+                    buildToolsVersions = SdkUtils.availableBuildToolsVersions(path)
+                    buildToolsVersion = buildToolsVersions[buildToolsVersions.length - 1];
+                    platforms = SdkUtils.availableSdkPlatforms(path)
+                    platform = platforms[platforms.length - 1];
+                    found = true;
+                    return;
+                }
             }
         }
     }
