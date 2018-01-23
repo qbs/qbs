@@ -39,6 +39,7 @@
 #include "buildgraph.h"
 
 #include "artifact.h"
+#include "artifactsscriptvalue.h"
 #include "cycledetector.h"
 #include "projectbuilddata.h"
 #include "productbuilddata.h"
@@ -91,71 +92,6 @@ static QScriptValue setupProjectScriptValue(ScriptEngine *engine,
 static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productScriptValue,
                                     const ResolvedProduct *product,
                                     PrepareScriptObserver *observer);
-
-enum BuildGraphScriptValueCommonPropertyKeys : quint32 {
-    CachedValueKey,
-    FileTagKey
-};
-
-static bool isRelevantArtifact(const ResolvedProduct *, const Artifact *artifact)
-{
-    return !artifact->isTargetOfModule();
-}
-static bool isRelevantArtifact(const ResolvedModule *module, const Artifact *artifact)
-{
-    return artifact->targetOfModule == module->name;
-}
-
-static ArtifactSetByFileTag artifactsMap(const ResolvedProduct *product)
-{
-    return product->buildData->artifactsByFileTag();
-}
-
-static ArtifactSetByFileTag artifactsMap(const ResolvedModule *module)
-{
-    return artifactsMap(module->product);
-}
-
-template<class ProductOrModule> static QScriptValue js_artifactsForFileTag(
-        QScriptContext *ctx, ScriptEngine *engine, const ProductOrModule *productOrModule)
-{
-    QScriptValue result = ctx->callee().property(CachedValueKey);
-    if (result.isArray())
-        return result;
-    const FileTag fileTag = FileTag(ctx->callee().property(FileTagKey).toString().toUtf8());
-    auto artifacts = artifactsMap(productOrModule).value(fileTag);
-    const auto filter = [productOrModule](const Artifact *a) {
-        return !isRelevantArtifact(productOrModule, a);
-    };
-    artifacts.erase(std::remove_if(artifacts.begin(), artifacts.end(), filter), artifacts.end());
-    result = engine->newArray(artifacts.size());
-    ctx->callee().setProperty(CachedValueKey, result);
-    int k = 0;
-    for (const Artifact * const artifact : artifacts)
-        result.setProperty(k++, Transformer::translateFileConfig(engine, artifact, QString()));
-    return result;
-}
-
-template<class ProductOrModule> static QScriptValue js_artifacts(
-        QScriptContext *ctx, ScriptEngine *engine, const ProductOrModule *productOrModule)
-{
-    QScriptValue artifactsObj = ctx->callee().property(CachedValueKey);
-    if (artifactsObj.isObject())
-        return artifactsObj;
-    artifactsObj = engine->newObject();
-    ctx->callee().setProperty(CachedValueKey, artifactsObj);
-    const auto &map = artifactsMap(productOrModule);
-    for (auto it = map.cbegin(); it != map.cend(); ++it) {
-        QScriptValue fileTagFunc = engine->newFunction(&js_artifactsForFileTag<ProductOrModule>,
-                                                       productOrModule);
-        const QString fileTag = it.key().toString();
-        fileTagFunc.setProperty(FileTagKey, fileTag);
-        artifactsObj.setProperty(fileTag, fileTagFunc,
-                                 QScriptValue::ReadOnly | QScriptValue::Undeletable
-                                 | QScriptValue::PropertyGetter);
-    }
-    return artifactsObj;
-}
 
 class DependenciesFunction
 {
@@ -253,7 +189,7 @@ private:
         moduleScriptValue.setProperty(dependenciesProperty(), depfunc,
                                       QScriptValue::ReadOnly | QScriptValue::Undeletable
                                       | QScriptValue::PropertyGetter);
-        QScriptValue artifactsFunc = engine->newFunction(&js_artifacts<ResolvedModule>, module);
+        QScriptValue artifactsFunc = engine->newFunction(&artifactsScriptValueForModule, module);
         moduleScriptValue.setProperty(artifactsProperty(), artifactsFunc,
                                        QScriptValue::ReadOnly | QScriptValue::Undeletable
                                        | QScriptValue::PropertyGetter);
@@ -306,7 +242,7 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
 {
     ModuleProperties::init(productScriptValue, product);
 
-    QScriptValue artifactsFunc = engine->newFunction(&js_artifacts<ResolvedProduct>, product);
+    QScriptValue artifactsFunc = engine->newFunction(&artifactsScriptValueForProduct, product);
     productScriptValue.setProperty(artifactsProperty(), artifactsFunc,
                                    QScriptValue::ReadOnly | QScriptValue::Undeletable
                                    | QScriptValue::PropertyGetter);

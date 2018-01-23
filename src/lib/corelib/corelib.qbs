@@ -94,6 +94,8 @@ QbsLibrary {
             "artifact.h",
             "artifactcleaner.cpp",
             "artifactcleaner.h",
+            "artifactsscriptvalue.cpp",
+            "artifactsscriptvalue.h",
             "artifactvisitor.cpp",
             "artifactvisitor.h",
             "buildgraph.cpp",
