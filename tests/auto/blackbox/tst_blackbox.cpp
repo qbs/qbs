@@ -367,6 +367,18 @@ void TestBlackbox::alwaysRun_data()
     QTest::newRow("Rule") << "rule.qbs";
 }
 
+void TestBlackbox::artifactsMapInvalidation()
+{
+    const QString projectDir = testDataDir + "/artifacts-map-invalidation";
+    QDir::setCurrent(projectDir);
+    QCOMPARE(runQbs(), 0);
+    QFile sourceFile("file.in");
+    QVERIFY2(sourceFile.open(QIODevice::ReadOnly), qPrintable(sourceFile.errorString()));
+    QFile generatedFile(relativeProductBuildDir("p") + "/myfile.out");
+    QVERIFY2(generatedFile.open(QIODevice::ReadOnly), qPrintable(generatedFile.errorString()));
+    QCOMPARE(sourceFile.readAll(), generatedFile.readAll());
+}
+
 void TestBlackbox::artifactScanning()
 {
     const QString projectDir = testDataDir + "/artifact-scanning";
