@@ -3,6 +3,7 @@ import qbs
 CppApplication {
     name: "car"
     condition: Qt.dbus.present
+    cpp.cxxLanguageVersion: "c++11"
     Depends { name: "Qt.dbus"; required: false }
     Depends { name: "Qt.widgets" }
     files: [
