@@ -260,7 +260,7 @@ void ProjectBuildData::load(PersistentPool &pool)
 {
     pool.load(fileDependencies);
     for (FileDependency * const dep : qAsConst(fileDependencies))
-        insertFileDependency(dep);
+        insertIntoLookupTable(dep);
     pool.load(rawScanResults);
 }
 
