@@ -29,4 +29,5 @@ QtApplication {
             "consolelogger.h"
         ]
     }
+    cpp.rpaths: [FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, qbsbuildconfig.libDirName)]
 }
