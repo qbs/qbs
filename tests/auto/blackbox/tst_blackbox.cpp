@@ -5291,6 +5291,33 @@ void TestBlackbox::missingOverridePrefix()
              m_qbsStderr.constData());
 }
 
+void TestBlackbox::movedFileDependency()
+{
+    QDir::setCurrent(testDataDir + "/moved-file-dependency");
+    const QString subdir2 = QDir::currentPath() + "/subdir2";
+    QVERIFY(QDir::current().mkdir(subdir2));
+    const QString oldHeaderFilePath = QDir::currentPath() + "/subdir1/theheader.h";
+    const QString newHeaderFilePath = subdir2 + "/theheader.h";
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+
+    QFile f(oldHeaderFilePath);
+    QVERIFY2(f.rename(newHeaderFilePath), qPrintable(f.errorString()));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+
+    f.setFileName(newHeaderFilePath);
+    QVERIFY2(f.rename(oldHeaderFilePath), qPrintable(f.errorString()));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::badInterpreter()
 {
     if (!HostOsInfo::isAnyUnixHost())

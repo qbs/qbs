@@ -142,6 +142,7 @@ private slots:
     void missingDependency();
     void missingProjectFile();
     void missingOverridePrefix();
+    void movedFileDependency();
     void multipleChanges();
     void nestedGroups();
     void nestedProperties();
