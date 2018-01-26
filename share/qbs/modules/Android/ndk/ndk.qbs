@@ -174,7 +174,6 @@ Module {
         validator.setRequiredProperty("appStl", appStl);
         validator.setRequiredProperty("toolchainVersion", toolchainVersion);
         validator.setRequiredProperty("hostArch", hostArch);
-        validator.setRequiredProperty("ndkDir", ndkDir);
         validator.setRequiredProperty("platform", platform);
         validator.setRequiredProperty("toolchainVersionNumber", toolchainVersionNumber);
         return validator.validate();
