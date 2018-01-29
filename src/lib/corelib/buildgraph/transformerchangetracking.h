@@ -31,20 +31,21 @@
 #include "forward_decls.h"
 #include <language/forward_decls.h>
 
-#include <QtCore/qmap.h>
+#include <unordered_map>
 
 namespace qbs {
 namespace Internal {
 
-bool checkForPropertyChanges(const TransformerPtr &transformer,
-                             const ResolvedProductPtr &product,
-                             const QMap<QString, ResolvedProductPtr> &productsByName,
-                             const QMap<QString, const ResolvedProject *> projectsByName);
+bool prepareScriptNeedsRerun(
+        Transformer *transformer,
+        const ResolvedProduct *product,
+        const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+        const std::unordered_map<QString, const ResolvedProject *> &projectsByName);
 
-bool checkForEnvironmentChanges(const TransformerPtr &transformer,
-                                const ResolvedProductPtr &product,
-                                const QMap<QString, ResolvedProductPtr> &productsByName,
-                                const QMap<QString, const ResolvedProject *> projectsByName);
+bool commandsNeedRerun(Transformer *transformer,
+                       const ResolvedProduct *product,
+                       const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+                       const std::unordered_map<QString, const ResolvedProject *> &projectsByName);
 
 } // namespace Internal
 } // namespace qbs

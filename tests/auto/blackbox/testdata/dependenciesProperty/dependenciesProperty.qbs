@@ -12,6 +12,7 @@ Project {
         // Depends { name: 'newDependency' }
         Rule {
             multiplex: true
+            inputsFromDependencies: "application"
             Artifact {
                 fileTags: ["deps"]
                 filePath: product.name + '.deps'

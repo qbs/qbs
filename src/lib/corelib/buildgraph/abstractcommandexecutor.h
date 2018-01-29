@@ -66,7 +66,7 @@ public:
 
     virtual void cancel() = 0;
 
-    void start(Transformer *transformer, const AbstractCommand *cmd);
+    void start(Transformer *transformer, AbstractCommand *cmd);
 
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
@@ -74,7 +74,7 @@ signals:
 
 protected:
     virtual void doReportCommandDescription();
-    const AbstractCommand *command() const { return m_command; }
+    AbstractCommand *command() const { return m_command; }
     Transformer *transformer() const { return m_transformer; }
     ScriptEngine *scriptEngine() const { return m_mainThreadScriptEngine; }
     bool dryRun() const { return m_dryRun; }
@@ -86,7 +86,7 @@ private:
     virtual void doStart() = 0;
 
 private:
-    const AbstractCommand *m_command;
+    AbstractCommand *m_command;
     Transformer *m_transformer;
     ScriptEngine *m_mainThreadScriptEngine;
     bool m_dryRun;

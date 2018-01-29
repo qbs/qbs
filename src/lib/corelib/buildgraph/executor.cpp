@@ -51,6 +51,7 @@
 #include "rulecommands.h"
 #include "rulenode.h"
 #include "rulesevaluationcontext.h"
+#include "transformerchangetracking.h"
 
 #include <buildgraph/transformer.h>
 #include <language/language.h>
@@ -160,11 +161,18 @@ void Executor::setProject(const TopLevelProjectPtr &project)
 {
     m_project = project;
     m_allProducts = project->allProducts();
+    m_projectsByName.clear();
+    m_projectsByName.insert(std::make_pair(project->name, project.get()));
+    for (const ResolvedProjectPtr &p : project->allSubProjects())
+        m_projectsByName.insert(std::make_pair(p->name, p.get()));
 }
 
 void Executor::setProducts(const QList<ResolvedProductPtr> &productsToBuild)
 {
     m_productsToBuild = productsToBuild;
+    m_productsByName.clear();
+    for (const ResolvedProductPtr &p : productsToBuild)
+        m_productsByName.insert(std::make_pair(p->uniqueName(), p.get()));
 }
 
 class ProductPrioritySetter
@@ -424,6 +432,11 @@ bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
             return true;
     }
 
+    if (commandsNeedRerun(transformer.get(), transformer->product().get(), m_productsByName,
+                          m_projectsByName)) {
+        return true;
+    }
+
     // If all artifacts in a transformer have "alwaysUpdated" set to false, that transformer
     // is always run.
     return !hasAlwaysUpdatedArtifacts;
@@ -493,7 +506,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
     }
 
     RuleNode::ApplicationResult result;
-    ruleNode->apply(m_logger, changedInputArtifacts, &result);
+    ruleNode->apply(m_logger, changedInputArtifacts, m_productsByName, m_projectsByName, &result);
 
     if (result.upToDate) {
         qCDebug(lcExec) << ruleNode->toString() << "is up to date. Skipping.";
@@ -823,6 +836,9 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         artifact->transformer->importedFilesUsedInCommands = rad.importedFilesUsedInCommands;
         artifact->transformer->depsRequestedInPrepareScript = rad.depsRequestedInPrepareScript;
         artifact->transformer->depsRequestedInCommands = rad.depsRequestedInCommands;
+        artifact->transformer->lastCommandExecutionTime = rad.lastCommandExecutionTime;
+        artifact->transformer->lastPrepareScriptExecutionTime = rad.lastPrepareScriptExecutionTime;
+        artifact->transformer->commandsNeedChangeTracking = true;
         artifact->setTimestamp(rad.timeStamp);
         if (childrenAdded && !childrenToConnect.empty())
             *childrenAdded = true;

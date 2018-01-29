@@ -46,6 +46,8 @@
 #include <language/forward_decls.h>
 #include <tools/dynamictypecheck.h>
 
+#include <unordered_map>
+
 namespace qbs {
 namespace Internal {
 
@@ -71,7 +73,10 @@ public:
         NodeSet invalidatedNodes;
     };
 
-    void apply(const Logger &logger, const ArtifactSet &changedInputs, ApplicationResult *result);
+    void apply(const Logger &logger, const ArtifactSet &changedInputs,
+               const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+               const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
+               ApplicationResult *result);
     void removeOldInputArtifact(Artifact *artifact) { m_oldInputArtifacts.remove(artifact); }
 
     void load(PersistentPool &pool);

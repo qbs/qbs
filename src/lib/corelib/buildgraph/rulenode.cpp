@@ -45,6 +45,7 @@
 #include "projectbuilddata.h"
 #include "rulesapplicator.h"
 #include "transformer.h"
+#include "transformerchangetracking.h"
 
 #include <language/language.h>
 #include <logging/categories.h>
@@ -78,7 +79,9 @@ QString RuleNode::toString() const
 }
 
 void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
-        ApplicationResult *result)
+                     const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+                     const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
+                     ApplicationResult *result)
 {
     ArtifactSet allCompatibleInputs = currentInputArtifacts();
     const ArtifactSet addedInputs = allCompatibleInputs - m_oldInputArtifacts;
@@ -108,6 +111,22 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
     else
         inputs += addedInputs;
 
+    for (Artifact * const input : allCompatibleInputs) {
+        for (const Artifact * const output : input->parentArtifacts()) {
+            if (output->transformer->rule != m_rule)
+                continue;
+            if (prepareScriptNeedsRerun(output->transformer.get(),
+                                        output->transformer->product().get(),
+                                        productsByName, projectsByName)) {
+                result->upToDate = false;
+                inputs += input;
+            }
+            break;
+        }
+        if (m_rule->multiplex)
+            break;
+    }
+
     if (result->upToDate)
         return;
     if (!removedInputs.empty()) {
@@ -132,7 +151,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         RulesApplicator::handleRemovedRuleOutputs(inputs, outputArtifactsToRemove, logger);
     }
     if (!inputs.empty() || !m_rule->declaresInputs() || !m_rule->requiresInputs) {
-        RulesApplicator applicator(product.lock(), logger);
+        RulesApplicator applicator(product.lock(), productsByName, projectsByName, logger);
         applicator.applyRule(m_rule, inputs);
         result->createdNodes = applicator.createdArtifacts();
         result->invalidatedNodes = applicator.invalidatedArtifacts();

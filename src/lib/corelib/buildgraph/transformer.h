@@ -47,6 +47,7 @@
 #include <language/forward_decls.h>
 #include <language/property.h>
 #include <language/scriptengine.h>
+#include <tools/filetime.h>
 
 #include <QtCore/qhash.h>
 
@@ -76,7 +77,11 @@ public:
     std::vector<QString> importedFilesUsedInCommands;
     RequestedDependencies depsRequestedInPrepareScript;
     RequestedDependencies depsRequestedInCommands;
+    FileTime lastPrepareScriptExecutionTime;
+    FileTime lastCommandExecutionTime;
     bool alwaysRun;
+    bool prepareScriptNeedsChangeTracking = false;
+    bool commandsNeedChangeTracking = false;
 
     static QScriptValue translateFileConfig(ScriptEngine *scriptEngine,
                                             const Artifact *artifact,
@@ -94,6 +99,8 @@ public:
 
 private:
     Transformer();
+    AbstractCommandPtr createCommandFromScriptValue(const QScriptValue &scriptValue,
+                                                    const CodeLocation &codeLocation);
 
     static void setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,
             const QString &defaultModuleName);

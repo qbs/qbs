@@ -47,7 +47,6 @@
 #include "rulecommands.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
-#include "transformerchangetracking.h"
 
 #include <language/artifactproperties.h>
 #include <language/language.h>
@@ -333,6 +332,7 @@ void BuildGraphLoader::trackProjectChanges()
     }
 
     restoredProject->buildData->isDirty = true;
+    markTransformersForChangeTracking(allRestoredProducts);
     if (!m_parameters.overrideBuildGraphData())
         m_parameters.setEnvironment(restoredProject->environment);
     Loader ldr(m_evalContext->engine(), m_logger);
@@ -348,16 +348,11 @@ void BuildGraphLoader::trackProjectChanges()
         ldr.setStoredProfiles(restoredProject->profileConfigs);
     m_result.newlyResolvedProject = ldr.loadProject(m_parameters);
 
-    m_freshProjectsByName.insert(m_result.newlyResolvedProject->name,
-                                 m_result.newlyResolvedProject.get());
-    for (const ResolvedProjectConstPtr &p : m_result.newlyResolvedProject->allSubProjects())
-        m_freshProjectsByName.insert(p->name, p.get());
     QList<ResolvedProductPtr> allNewlyResolvedProducts
             = m_result.newlyResolvedProject->allProducts();
     for (const ResolvedProductPtr &cp : qAsConst(allNewlyResolvedProducts))
         m_freshProductsByName.insert(cp->uniqueName(), cp);
 
-    m_envChange = restoredProject->environment != m_result.newlyResolvedProject->environment;
     checkAllProductsForChanges(allRestoredProducts, changedProducts);
 
     std::shared_ptr<ProjectBuildData> oldBuildData;
@@ -625,6 +620,21 @@ bool BuildGraphLoader::hasBuildSystemFileChanged(const Set<QString> &buildSystem
     return false;
 }
 
+void BuildGraphLoader::markTransformersForChangeTracking(
+        const QList<ResolvedProductPtr> &restoredProducts)
+{
+    for (const ResolvedProductPtr &product : restoredProducts) {
+        if (!product->buildData)
+            continue;
+        for (Artifact * const artifact : filterByType<Artifact>(product->buildData->allNodes())) {
+            if (artifact->transformer) {
+                artifact->transformer->prepareScriptNeedsChangeTracking = true;
+                artifact->transformer->commandsNeedChangeTracking = true;
+            }
+        }
+    }
+}
+
 void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr> &restoredProducts,
         QList<ResolvedProductPtr> &changedProducts)
 {
@@ -718,10 +728,6 @@ bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restore
     if (!restoredProduct->buildData)
         return false;
 
-    // This check must come first, as it can prevent build data rescuing.
-    if (checkTransformersForChanges(restoredProduct, newlyResolvedProduct))
-        return true;
-
     if (restoredProduct->fileTags != newlyResolvedProduct->fileTags) {
         qCDebug(lcBuildGraph) << "Product type changed from" << restoredProduct->fileTags
                               << "to" << newlyResolvedProduct->fileTags;
@@ -735,27 +741,6 @@ bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restore
         return true;
     }
     return false;
-}
-
-bool BuildGraphLoader::checkTransformersForChanges(const ResolvedProductPtr &restoredProduct,
-        const ResolvedProductPtr &newlyResolvedProduct)
-{
-    bool transformerChanges = false;
-    Set<TransformerConstPtr> seenTransformers;
-    for (Artifact *artifact : filterByType<Artifact>(restoredProduct->buildData->allNodes())) {
-        const TransformerPtr transformer = artifact->transformer;
-        if (!transformer || !seenTransformers.insert(transformer).second)
-            continue;
-        if (qbs::Internal::checkForPropertyChanges(transformer, newlyResolvedProduct,
-                                                   m_freshProductsByName, m_freshProjectsByName)
-                || checkForEnvChanges(transformer, newlyResolvedProduct))
-            transformerChanges = true;
-    }
-    if (transformerChanges) {
-        qCDebug(lcBuildGraph) << "Property or environment changes in product"
-                              << newlyResolvedProduct->uniqueName();
-    }
-    return transformerChanges;
 }
 
 void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
@@ -782,15 +767,6 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
             }
         }
     }
-}
-
-bool BuildGraphLoader::checkForEnvChanges(const TransformerPtr &restoredTrafo,
-                                          const ResolvedProductPtr &freshProduct)
-{
-    if (!m_envChange)
-        return false;
-    return checkForEnvironmentChanges(restoredTrafo, freshProduct,
-                                      m_freshProductsByName, m_freshProjectsByName);
 }
 
 void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
@@ -894,6 +870,9 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
             rad.depsRequestedInPrepareScript
                     = oldArtifact->transformer->depsRequestedInPrepareScript;
             rad.depsRequestedInCommands = oldArtifact->transformer->depsRequestedInCommands;
+            rad.lastCommandExecutionTime = oldArtifact->transformer->lastCommandExecutionTime;
+            rad.lastPrepareScriptExecutionTime
+                    = oldArtifact->transformer->lastPrepareScriptExecutionTime;
             const ChildrenInfo &childrenInfo = childLists.value(oldArtifact);
             for (Artifact * const child : qAsConst(childrenInfo.children)) {
                 rad.children << RescuableArtifactData::ChildData(child->product->name,

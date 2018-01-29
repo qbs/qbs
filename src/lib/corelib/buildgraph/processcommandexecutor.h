@@ -80,7 +80,7 @@ private:
 
     void sendProcessOutput();
     void removeResponseFile();
-    const ProcessCommand *processCommand() const;
+    ProcessCommand *processCommand() const;
 
 private:
     QString m_program;

@@ -111,6 +111,8 @@ public:
     std::vector<QString> importedFilesUsedInCommands;
     RequestedDependencies depsRequestedInPrepareScript;
     RequestedDependencies depsRequestedInCommands;
+    FileTime lastPrepareScriptExecutionTime;
+    FileTime lastCommandExecutionTime;
 
     // Only needed for API purposes
     FileTags fileTags;

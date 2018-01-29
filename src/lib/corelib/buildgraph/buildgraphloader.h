@@ -96,6 +96,7 @@ private:
                                QList<ResolvedProductPtr> &productsWithChangedFiles);
     bool hasBuildSystemFileChanged(const Set<QString> &buildSystemFiles,
                                    const FileTime &referenceTime);
+    void markTransformersForChangeTracking(const QList<ResolvedProductPtr> &restoredProducts);
     void checkAllProductsForChanges(const QList<ResolvedProductPtr> &restoredProducts,
             QList<ResolvedProductPtr> &changedProducts);
     bool checkProductForChanges(const ResolvedProductPtr &restoredProduct,
@@ -104,15 +105,11 @@ private:
                                            const ResolvedProductPtr &newlyResolvedProduct);
     bool checkForPropertyChanges(const ResolvedProductPtr &restoredProduct,
                                  const ResolvedProductPtr &newlyResolvedProduct);
-    bool checkTransformersForChanges(const ResolvedProductPtr &restoredProduct,
-                                             const ResolvedProductPtr &newlyResolvedProduct);
     QVariantMap propertyMapByKind(const ResolvedProductConstPtr &product, const Property &property);
     void onProductRemoved(const ResolvedProductPtr &product, ProjectBuildData *projectBuildData,
                           bool removeArtifactsFromDisk = true);
     bool checkForPropertyChanges(const TransformerPtr &restoredTrafo,
             const ResolvedProductPtr &freshProduct);
-    bool checkForEnvChanges(const TransformerPtr &restoredTrafo,
-                            const ResolvedProductPtr &freshProduct);
     bool checkForPropertyChange(const Property &restoredProperty,
                                 const QVariantMap &newProperties);
     void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
@@ -133,7 +130,6 @@ private:
                             const AllRescuableArtifactData &existingRad);
 
     QMap<QString, ResolvedProductPtr> m_freshProductsByName;
-    QMap<QString, const ResolvedProject *> m_freshProjectsByName;
     RulesEvaluationContextPtr m_evalContext;
     SetupProjectParameters m_parameters;
     BuildGraphLoadResult m_result;
@@ -144,8 +140,6 @@ private:
 
     // These must only be deleted at the end so we can still peek into the old look-up table.
     QList<FileResourceBase *> m_objectsToDelete;
-
-    bool m_envChange = false;
 };
 
 } // namespace Internal

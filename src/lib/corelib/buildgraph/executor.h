@@ -48,9 +48,12 @@
 #include <logging/logger.h>
 #include <tools/buildoptions.h>
 #include <tools/error.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qobject.h>
+
 #include <queue>
+#include <unordered_map>
 
 QT_BEGIN_NAMESPACE
 class QTimer;
@@ -164,6 +167,8 @@ private:
     TopLevelProjectPtr m_project;
     QList<ResolvedProductPtr> m_productsToBuild;
     QList<ResolvedProductPtr> m_allProducts;
+    std::unordered_map<QString, const ResolvedProduct *> m_productsByName;
+    std::unordered_map<QString, const ResolvedProject *> m_projectsByName;
     NodeSet m_roots;
     Leaves m_leaves;
     QList<Artifact *> m_changedSourceArtifacts;

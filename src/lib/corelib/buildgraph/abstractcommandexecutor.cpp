@@ -58,7 +58,7 @@ AbstractCommandExecutor::AbstractCommandExecutor(const Logger &logger, QObject *
 {
 }
 
-void AbstractCommandExecutor::start(Transformer *transformer, const AbstractCommand *cmd)
+void AbstractCommandExecutor::start(Transformer *transformer, AbstractCommand *cmd)
 {
     m_transformer = transformer;
     m_command = cmd;

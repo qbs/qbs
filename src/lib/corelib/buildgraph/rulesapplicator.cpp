@@ -43,8 +43,10 @@
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "qtmocscanner.h"
+#include "rulecommands.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
+#include "transformerchangetracking.h"
 
 #include <jsextensions/moduleproperties.h>
 #include <language/artifactproperties.h>
@@ -72,8 +74,14 @@
 namespace qbs {
 namespace Internal {
 
-RulesApplicator::RulesApplicator(const ResolvedProductPtr &product, const Logger &logger)
+RulesApplicator::RulesApplicator(
+        const ResolvedProductPtr &product,
+        const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+        const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
+        const Logger &logger)
     : m_product(product)
+    , m_productsByName(productsByName)
+    , m_projectsByName(projectsByName)
     , m_mocScanner(nullptr)
     , m_logger(logger)
 {
@@ -174,6 +182,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     m_transformer->inputs = inputArtifacts;
     m_transformer->explicitlyDependsOn = collectExplicitlyDependsOn();
     m_transformer->alwaysRun = m_rule->alwaysRun;
+    m_oldTransformer.reset();
 
     engine()->clearRequestedProperties();
 
@@ -257,6 +266,16 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     if (Q_UNLIKELY(m_transformer->commands.empty()))
         throw ErrorInfo(Tr::tr("There is a rule without commands: %1.")
                         .arg(m_rule->toString()), m_rule->prepareScript.location());
+    if (!m_oldTransformer || m_oldTransformer->outputs != m_transformer->outputs
+            || m_oldTransformer->commands != m_transformer->commands
+            || commandsNeedRerun(m_transformer.get(), m_product.get(), m_productsByName,
+                                 m_projectsByName)) {
+        for (Artifact * const output : outputArtifacts) {
+            output->clearTimestamp();
+            m_invalidatedArtifacts += output;
+        }
+    }
+    m_transformer->commandsNeedChangeTracking = false;
 }
 
 ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const
@@ -353,10 +372,8 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
                               (*inputArtifacts.cbegin())->filePath()));
             throw error;
         }
-        if (m_rule->declaresInputs() && m_rule->requiresInputs)
-            outputArtifact->clearTimestamp();
-        m_invalidatedArtifacts += outputArtifact;
         m_transformer->rescueChangeTrackingData(outputArtifact->transformer);
+        m_oldTransformer = outputArtifact->transformer;
     } else {
         std::unique_ptr<Artifact> newArtifact(new Artifact);
         newArtifact->artifactType = Artifact::Generated;

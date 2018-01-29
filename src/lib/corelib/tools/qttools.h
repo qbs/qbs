@@ -43,6 +43,14 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qstringlist.h>
 
+#include <functional>
+
+namespace std {
+template<> struct hash<QString> {
+    std::size_t operator()(const QString &s) const { return qHash(s); }
+};
+}
+
 QT_BEGIN_NAMESPACE
 uint qHash(const QStringList &list);
 

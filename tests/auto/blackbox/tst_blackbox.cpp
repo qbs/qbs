@@ -1258,16 +1258,15 @@ void TestBlackbox::wholeArchive()
     QFETCH(bool, ruleInvalidationExpected);
     QFETCH(bool, dllLinkingExpected);
     const QbsRunParameters resolveParams("resolve",
-            QStringList("-vv") << "products.dynamiclib.linkWholeArchive:" + wholeArchiveString);
+            QStringList("products.dynamiclib.linkWholeArchive:" + wholeArchiveString));
     QCOMPARE(runQbs(QbsRunParameters(resolveParams)), 0);
-    const QByteArray resolveStderr = m_qbsStderr;
-    QCOMPARE(runQbs(QbsRunParameters(QStringList({ "-p", "dynamiclib" }))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList({ "-vvp", "dynamiclib" }))), 0);
     const bool wholeArchive = !wholeArchiveString.isEmpty();
     const bool outdatedVisualStudio = wholeArchive && m_qbsStderr.contains("upgrade");
     const QByteArray invalidationOutput
             = "Value for property 'staticlib 1:cpp.linkWholeArchive' has changed.";
     if (!outdatedVisualStudio)
-        QCOMPARE(resolveStderr.contains(invalidationOutput), ruleInvalidationExpected);
+        QCOMPARE(m_qbsStderr.contains(invalidationOutput), ruleInvalidationExpected);
     QCOMPARE(m_qbsStdout.contains("linking"), dllLinkingExpected && !outdatedVisualStudio);
     QbsRunParameters buildParams(QStringList("-p"));
     buildParams.expectFailure = !wholeArchive || outdatedVisualStudio;
@@ -5649,6 +5648,7 @@ void TestBlackbox::importChangeTracking()
     QVERIFY2(!m_qbsStdout.contains("running probe1 "), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
 
@@ -5660,6 +5660,7 @@ void TestBlackbox::importChangeTracking()
     QVERIFY2(!m_qbsStdout.contains("running probe1 "), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
 
@@ -5670,6 +5671,8 @@ void TestBlackbox::importChangeTracking()
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running probe1 "), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
 
@@ -5680,6 +5683,7 @@ void TestBlackbox::importChangeTracking()
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running probe1 "), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
@@ -5691,6 +5695,8 @@ void TestBlackbox::importChangeTracking()
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running probe1 "), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running probe2"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom1 prepare script"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running custom2 prepare script"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("running custom1 command"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("running custom2 command"), m_qbsStdout.constData());
 

@@ -276,6 +276,7 @@ bool ProcessCommand::equals(const AbstractCommand *otherAbstractCommand) const
             && m_stdoutFilePath == other->m_stdoutFilePath
             && m_stderrFilePath == other->m_stderrFilePath
             && m_relevantEnvVars == other->m_relevantEnvVars
+            && m_relevantEnvValues == other->m_relevantEnvValues
             && m_environment == other->m_environment;
 }
 
@@ -336,6 +337,11 @@ QStringList ProcessCommand::relevantEnvVars() const
     return vars;
 }
 
+void ProcessCommand::addRelevantEnvValue(const QString &key, const QString &value)
+{
+    m_relevantEnvValues.insert(key, value);
+}
+
 void ProcessCommand::load(PersistentPool &pool)
 {
     AbstractCommand::load(pool);
@@ -350,6 +356,7 @@ void ProcessCommand::load(PersistentPool &pool)
     pool.load(m_responseFileThreshold);
     pool.load(m_responseFileArgumentIndex);
     pool.load(m_relevantEnvVars);
+    pool.load(m_relevantEnvValues);
     pool.load(m_stdoutFilePath);
     pool.load(m_stderrFilePath);
 }
@@ -368,6 +375,7 @@ void ProcessCommand::store(PersistentPool &pool) const
     pool.store(m_responseFileThreshold);
     pool.store(m_responseFileArgumentIndex);
     pool.store(m_relevantEnvVars);
+    pool.store(m_relevantEnvValues);
     pool.store(m_stdoutFilePath);
     pool.store(m_stderrFilePath);
 }

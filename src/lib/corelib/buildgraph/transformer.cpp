@@ -210,8 +210,8 @@ void Transformer::setupExplicitlyDependsOn(QScriptValue targetScriptValue)
     targetScriptValue.setProperty(StringConstants::explicitlyDependsOnVar(), scriptValue);
 }
 
-static AbstractCommandPtr createCommandFromScriptValue(const QScriptValue &scriptValue,
-                                                       const CodeLocation &codeLocation)
+AbstractCommandPtr Transformer::createCommandFromScriptValue(const QScriptValue &scriptValue,
+                                                             const CodeLocation &codeLocation)
 {
     AbstractCommandPtr cmdBase;
     if (scriptValue.isUndefined() || !scriptValue.isValid())
@@ -223,6 +223,12 @@ static AbstractCommandPtr createCommandFromScriptValue(const QScriptValue &scrip
         cmdBase = JavaScriptCommand::create();
     if (cmdBase)
         cmdBase->fillFromScriptValue(&scriptValue, codeLocation);
+    if (className == StringConstants::commandType()) {
+        ProcessCommand *procCmd = static_cast<ProcessCommand *>(cmdBase.get());
+        procCmd->clearRelevantEnvValues();
+        for (const QString &key : procCmd->relevantEnvVars())
+            procCmd->addRelevantEnvValue(key, product()->buildEnvironment.value(key));
+    }
     return cmdBase;
 }
 
@@ -243,6 +249,7 @@ void Transformer::createCommands(ScriptEngine *engine, const PrivateScriptFuncti
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
     importedFilesUsedInPrepareScript = engine->importedFilesUsedInScript();
     depsRequestedInPrepareScript = engine->requestedDependencies();
+    lastPrepareScriptExecutionTime = FileTime::currentTime();
     engine->clearRequestedProperties();
     if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue)))
         throw engine->lastError(scriptValue, script.location());
@@ -279,6 +286,10 @@ void Transformer::rescueChangeTrackingData(const TransformerConstPtr &other)
     importedFilesUsedInCommands = other->importedFilesUsedInCommands;
     depsRequestedInPrepareScript = other->depsRequestedInPrepareScript;
     depsRequestedInCommands = other->depsRequestedInCommands;
+    lastCommandExecutionTime = other->lastCommandExecutionTime;
+    lastPrepareScriptExecutionTime = other->lastPrepareScriptExecutionTime;
+    prepareScriptNeedsChangeTracking = other->prepareScriptNeedsChangeTracking;
+    commandsNeedChangeTracking = other->commandsNeedChangeTracking;
 }
 
 void Transformer::load(PersistentPool &pool)
@@ -296,7 +307,11 @@ void Transformer::load(PersistentPool &pool)
     pool.load(depsRequestedInPrepareScript);
     pool.load(depsRequestedInCommands);
     pool.load(commands);
+    pool.load(lastPrepareScriptExecutionTime);
+    pool.load(lastCommandExecutionTime);
     pool.load(alwaysRun);
+    pool.load(prepareScriptNeedsChangeTracking);
+    pool.load(commandsNeedChangeTracking);
 }
 
 void Transformer::store(PersistentPool &pool) const
@@ -314,7 +329,11 @@ void Transformer::store(PersistentPool &pool) const
     pool.store(depsRequestedInPrepareScript);
     pool.store(depsRequestedInCommands);
     pool.store(commands);
+    pool.store(lastPrepareScriptExecutionTime);
+    pool.store(lastCommandExecutionTime);
     pool.store(alwaysRun);
+    pool.store(prepareScriptNeedsChangeTracking);
+    pool.store(commandsNeedChangeTracking);
 }
 
 } // namespace Internal

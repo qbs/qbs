@@ -27,6 +27,7 @@
 ****************************************************************************/
 #include "transformerchangetracking.h"
 
+#include "projectbuilddata.h"
 #include "requesteddependencies.h"
 #include "rulecommands.h"
 #include "transformer.h"
@@ -47,10 +48,10 @@ namespace Internal {
 class TrafoChangeTracker
 {
 public:
-    TrafoChangeTracker(const TransformerPtr &transformer,
-                       const ResolvedProductPtr &product,
-                       const QMap<QString, ResolvedProductPtr> &productsByName,
-                       const QMap<QString, const ResolvedProject *> projectsByName)
+    TrafoChangeTracker(const Transformer *transformer,
+                       const ResolvedProduct *product,
+                       const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+                       const std::unordered_map<QString, const ResolvedProject *> &projectsByName)
         : m_transformer(transformer),
           m_product(product),
           m_productsByName(productsByName),
@@ -58,58 +59,26 @@ public:
     {
     }
 
-    bool propertyChangeFound();
-    bool environmentChangeFound();
+    bool prepareScriptNeedsRerun() const;
+    bool commandsNeedRerun() const;
 
 private:
-    SourceArtifactConstPtr findSourceArtifact(const QString &artifactFilePath,
-                                              QMap<QString, SourceArtifactConstPtr> &artifactMap);
     QVariantMap propertyMapByKind(const Property &property) const;
-    void invalidateTransformer();
     bool checkForPropertyChange(const Property &restoredProperty,
                                 const QVariantMap &newProperties) const;
     bool checkForImportFileChange(const std::vector<QString> &importedFiles,
                                   const FileTime &referenceTime,
                                   const char *context) const;
+    const Artifact *getArtifact(const QString &filePath, const QString &productName) const;
+    const ResolvedProduct *getProduct(const QString &name) const;
 
-    const TransformerPtr &m_transformer;
-    const ResolvedProductPtr &m_product;
-    const QMap<QString, ResolvedProductPtr> &m_productsByName;
-    const QMap<QString, const ResolvedProject *> m_projectsByName;
+    const Transformer * const m_transformer;
+    const ResolvedProduct * const m_product;
+    const std::unordered_map<QString, const ResolvedProduct *> &m_productsByName;
+    const std::unordered_map<QString, const ResolvedProject *> &m_projectsByName;
+    mutable const ResolvedProduct * m_lastProduct = nullptr;
+    mutable const Artifact *m_lastArtifact = nullptr;
 };
-
-bool checkForPropertyChanges(const TransformerPtr &transformer,
-                             const ResolvedProductPtr &product,
-                             const QMap<QString, ResolvedProductPtr> &productsByName,
-                             const QMap<QString, const ResolvedProject *> projectsByName)
-{
-    return TrafoChangeTracker(transformer, product, productsByName, projectsByName)
-            .propertyChangeFound();
-}
-
-bool checkForEnvironmentChanges(const TransformerPtr &transformer,
-                                const ResolvedProductPtr &product,
-                                const QMap<QString, ResolvedProductPtr> &productsByName,
-                                const QMap<QString, const ResolvedProject *> projectsByName)
-{
-    return TrafoChangeTracker(transformer, product, productsByName, projectsByName)
-            .environmentChangeFound();
-}
-
-SourceArtifactConstPtr TrafoChangeTracker::findSourceArtifact(const QString &artifactFilePath,
-        QMap<QString, SourceArtifactConstPtr> &artifactMap)
-{
-    SourceArtifactConstPtr &artifact = artifactMap[artifactFilePath];
-    if (!artifact) {
-        for (const SourceArtifactConstPtr &a : m_product->allFiles()) {
-            if (a->absoluteFilePath == artifactFilePath) {
-                artifact = a;
-                break;
-            }
-        }
-    }
-    return artifact;
-}
 
 template<typename T> static QVariantMap getParameterValue(
         const QHash<T, QVariantMap> &parameters,
@@ -124,28 +93,27 @@ template<typename T> static QVariantMap getParameterValue(
 
 QVariantMap TrafoChangeTracker::propertyMapByKind(const Property &property) const
 {
-    const auto getProduct = [&property, this]() {
-        return property.productName == m_product->uniqueName()
-                ? m_product : m_productsByName.value(property.productName);
-    };
     switch (property.kind) {
     case Property::PropertyInModule: {
-        const ResolvedProductConstPtr &p = getProduct();
+        const ResolvedProduct * const p = getProduct(property.productName);
         return p ? p->moduleProperties->value() : QVariantMap();
     }
     case Property::PropertyInProduct: {
-        const ResolvedProductConstPtr &p = getProduct();
+        const ResolvedProduct * const p = getProduct(property.productName);
         return p ? p->productProperties : QVariantMap();
     }
     case Property::PropertyInProject: {
-        const ResolvedProject *project = property.productName == m_product->project->name
-                ? m_product->project.get() : m_projectsByName.value(property.productName);
-        return project ? project->projectProperties() : QVariantMap();
+        if (property.productName == m_product->project->name)
+            return m_product->project->projectProperties();
+        const auto it = m_projectsByName.find(property.productName);
+        if (it != m_projectsByName.cend())
+            return it->second->projectProperties();
+        return QVariantMap();
     }
     case Property::PropertyInParameters: {
         const int sepIndex = property.moduleName.indexOf(QLatin1Char(':'));
         const QString depName = property.moduleName.left(sepIndex);
-        const ResolvedProductConstPtr &p = getProduct();
+        const ResolvedProduct * const p = getProduct(property.productName);
         if (!p)
             return QVariantMap();
         QVariantMap v = getParameterValue(p->dependencyParameters, depName);
@@ -157,78 +125,6 @@ QVariantMap TrafoChangeTracker::propertyMapByKind(const Property &property) cons
         QBS_CHECK(false);
     }
     return QVariantMap();
-}
-
-void TrafoChangeTracker::invalidateTransformer()
-{
-    const JavaScriptCommandPtr &pseudoCommand = JavaScriptCommand::create();
-    pseudoCommand->setSourceCode(QStringLiteral("random stuff that will cause "
-                                                "commandsEqual() to fail"));
-    m_transformer->commands.addCommand(pseudoCommand);
-}
-
-bool TrafoChangeTracker::propertyChangeFound()
-{
-    // This check must come first, as it can prevent build data rescuing.
-    for (const Property &property : qAsConst(m_transformer->propertiesRequestedInCommands)) {
-        if (checkForPropertyChange(property, propertyMapByKind(property))) {
-            invalidateTransformer();
-            return true;
-        }
-    }
-
-    QMap<QString, SourceArtifactConstPtr> artifactMap;
-    for (auto it = m_transformer->propertiesRequestedFromArtifactInCommands.cbegin();
-         it != m_transformer->propertiesRequestedFromArtifactInCommands.cend(); ++it) {
-        const SourceArtifactConstPtr artifact
-                = findSourceArtifact(it.key(), artifactMap);
-        if (!artifact)
-            continue;
-        for (const Property &property : qAsConst(it.value())) {
-            if (checkForPropertyChange(property, artifact->properties->value())) {
-                invalidateTransformer();
-                return true;
-            }
-        }
-    }
-
-    const FileTime referenceTime = m_transformer->product()->topLevelProject()->lastResolveTime; // TODO: This will need to be a transformer-specific timestamp
-    if (checkForImportFileChange(m_transformer->importedFilesUsedInCommands, referenceTime,
-                                 "command")) {
-        invalidateTransformer();
-        return true;
-    }
-
-    if (!m_transformer->depsRequestedInCommands.isUpToDate(m_product->topLevelProject())) {
-        invalidateTransformer();
-        return true;
-    }
-
-    for (const Property &property : qAsConst(m_transformer->propertiesRequestedInPrepareScript)) {
-        if (checkForPropertyChange(property, propertyMapByKind(property)))
-            return true;
-    }
-
-    if (checkForImportFileChange(m_transformer->importedFilesUsedInPrepareScript, referenceTime,
-                                 "prepare script")) {
-        return true;
-    }
-
-    for (auto it = m_transformer->propertiesRequestedFromArtifactInPrepareScript.constBegin();
-         it != m_transformer->propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {
-        const SourceArtifactConstPtr &artifact = findSourceArtifact(it.key(), artifactMap); // TODO: This can use the actual artifact data later
-        if (!artifact)
-            continue;
-        for (const Property &property : qAsConst(it.value())) {
-            if (checkForPropertyChange(property, artifact->properties->value()))
-                return true;
-        }
-    }
-
-    if (!m_transformer->depsRequestedInPrepareScript.isUpToDate(m_product->topLevelProject()))
-        return true;
-
-    return false;
 }
 
 bool TrafoChangeTracker::checkForPropertyChange(const Property &restoredProperty,
@@ -278,28 +174,153 @@ bool TrafoChangeTracker::checkForImportFileChange(const std::vector<QString> &im
         }
         if (fi.lastModified() > referenceTime) {
             qCDebug(lcBuildGraph) << context << "imported file" << importedFile
-                                  << "has been updated, need to re-run";
+                                  << "has been updated, need to re-run"
+                                  << fi.lastModified() << referenceTime;
             return true;
         }
     }
     return false;
 }
 
-bool TrafoChangeTracker::environmentChangeFound()
+const Artifact *TrafoChangeTracker::getArtifact(const QString &filePath,
+                                                const QString &productName) const
 {
-    // TODO: Also check results of getEnv() from commands here; we currently do not track them
+    if (m_lastArtifact && m_lastArtifact->filePath() == filePath
+            && m_lastArtifact->product.get()->uniqueName() == productName) {
+        return m_lastArtifact;
+    }
+    const ResolvedProduct * const product = getProduct(productName);
+    if (!product)
+        return nullptr;
+    const QList<FileResourceBase *> &candidates
+            = product->topLevelProject()->buildData->lookupFiles(filePath);
+    const Artifact *artifact = nullptr;
+    for (const FileResourceBase * const candidate : candidates) {
+        if (candidate->fileType() == FileResourceBase::FileTypeArtifact) {
+            const Artifact * const a = static_cast<const Artifact *>(candidate);
+            if (a->product.get() == product) {
+                m_lastArtifact = artifact = a;
+                break;
+            }
+        }
+    }
+    return artifact;
+}
+
+const ResolvedProduct *TrafoChangeTracker::getProduct(const QString &name) const
+{
+    if (m_lastProduct && name == m_lastProduct->uniqueName())
+        return m_lastProduct;
+    if (name == m_product->uniqueName()) {
+        m_lastProduct = m_product;
+        return m_product;
+    }
+    const auto it = m_productsByName.find(name);
+    if (it != m_productsByName.cend()) {
+        m_lastProduct = it->second;
+        return it->second;
+    }
+    return nullptr;
+}
+
+bool TrafoChangeTracker::prepareScriptNeedsRerun() const
+{
+    for (const Property &property : qAsConst(m_transformer->propertiesRequestedInPrepareScript)) {
+        if (checkForPropertyChange(property, propertyMapByKind(property)))
+            return true;
+    }
+
+    if (checkForImportFileChange(m_transformer->importedFilesUsedInPrepareScript,
+                                 m_transformer->lastPrepareScriptExecutionTime, "prepare script")) {
+        return true;
+    }
+
+    for (auto it = m_transformer->propertiesRequestedFromArtifactInPrepareScript.constBegin();
+         it != m_transformer->propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {
+        for (const Property &property : qAsConst(it.value())) {
+            const Artifact * const artifact = getArtifact(it.key(), property.productName);
+            if (!artifact)
+                return true;
+            if (checkForPropertyChange(property, artifact->properties->value()))
+                return true;
+        }
+    }
+
+    if (!m_transformer->depsRequestedInPrepareScript.isUpToDate(m_product->topLevelProject()))
+        return true;
+
+    return false;
+}
+
+bool TrafoChangeTracker::commandsNeedRerun() const
+{
+    for (const Property &property : qAsConst(m_transformer->propertiesRequestedInCommands)) {
+        if (checkForPropertyChange(property, propertyMapByKind(property)))
+            return true;
+    }
+
+    QMap<QString, SourceArtifactConstPtr> artifactMap;
+    for (auto it = m_transformer->propertiesRequestedFromArtifactInCommands.cbegin();
+         it != m_transformer->propertiesRequestedFromArtifactInCommands.cend(); ++it) {
+        for (const Property &property : qAsConst(it.value())) {
+            const Artifact * const artifact = getArtifact(it.key(), property.productName);
+            if (!artifact)
+                return true;
+            if (checkForPropertyChange(property, artifact->properties->value()))
+                return true;
+        }
+    }
+
+    if (checkForImportFileChange(m_transformer->importedFilesUsedInCommands,
+                                 m_transformer->lastCommandExecutionTime, "command")) {
+        return true;
+    }
+
+    if (!m_transformer->depsRequestedInCommands.isUpToDate(m_product->topLevelProject()))
+        return true;
+
+    // TODO: Also track env access in JS commands and prepare scripts
     for (const AbstractCommandPtr &c : qAsConst(m_transformer->commands.commands())) {
         if (c->type() != AbstractCommand::ProcessCommandType)
             continue;
-        for (const QString &var : std::static_pointer_cast<ProcessCommand>(c)->relevantEnvVars()) {
-            if (m_transformer->product()->topLevelProject()->environment.value(var) // TODO: These will need to get stored per transformer
-                    != m_product->topLevelProject()->environment.value(var)) {
-                invalidateTransformer();
+        const ProcessCommandPtr &processCmd = std::static_pointer_cast<ProcessCommand>(c);
+        for (const QString &var : processCmd->relevantEnvVars()) {
+            const QString &oldValue = processCmd->relevantEnvValue(var);
+            const QString &newValue = m_product->buildEnvironment.value(var);
+            if (oldValue != newValue) {
+                qCDebug(lcBuildGraph) << "need to re-run command: value of environment variable"
+                                      << var << "changed from" << oldValue << "to" << newValue
+                                      << "for command" << processCmd->program() << "in rule"
+                                      << m_transformer->rule->toString();
                 return true;
             }
         }
     }
+
     return false;
+}
+
+bool prepareScriptNeedsRerun(
+        Transformer *transformer, const ResolvedProduct *product,
+        const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+        const std::unordered_map<QString, const ResolvedProject *> &projectsByName)
+{
+    if (!transformer->prepareScriptNeedsChangeTracking)
+        return false;
+    transformer->prepareScriptNeedsChangeTracking = false;
+    return TrafoChangeTracker(transformer, product, productsByName, projectsByName)
+            .prepareScriptNeedsRerun();
+}
+
+bool commandsNeedRerun(Transformer *transformer, const ResolvedProduct *product,
+                       const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+                       const std::unordered_map<QString, const ResolvedProject *> &projectsByName)
+{
+    if (!transformer->commandsNeedChangeTracking)
+        return false;
+    transformer->commandsNeedChangeTracking = false;
+    return TrafoChangeTracker(transformer, product, productsByName, projectsByName)
+            .commandsNeedRerun();
 }
 
 } // namespace Internal

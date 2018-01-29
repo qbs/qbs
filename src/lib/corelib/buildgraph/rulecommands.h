@@ -122,6 +122,9 @@ public:
     QString responseFileUsagePrefix() const { return m_responseFileUsagePrefix; }
     QProcessEnvironment environment() const { return m_environment; }
     QStringList relevantEnvVars() const;
+    void clearRelevantEnvValues() { m_relevantEnvValues.clear(); }
+    void addRelevantEnvValue(const QString &key, const QString &value);
+    QString relevantEnvValue(const QString &key) const { return m_relevantEnvValues.value(key); }
     QString stdoutFilePath() const { return m_stdoutFilePath; }
     QString stderrFilePath() const { return m_stderrFilePath; }
 
@@ -146,6 +149,7 @@ private:
     QString m_responseFileUsagePrefix;
     QProcessEnvironment m_environment;
     QStringList m_relevantEnvVars;
+    QProcessEnvironment m_relevantEnvValues;
     QString m_stdoutFilePath;
     QString m_stderrFilePath;
 };
@@ -191,6 +195,7 @@ private:
     QList<AbstractCommandPtr> m_commands;
 };
 bool operator==(const CommandList &cl1, const CommandList &cl2);
+inline bool operator!=(const CommandList &cl1, const CommandList &cl2) { return !(cl1 == cl2); }
 
 } // namespace Internal
 } // namespace qbs

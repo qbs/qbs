@@ -48,8 +48,9 @@
 
 #include <QtCore/qhash.h>
 #include <QtCore/qstring.h>
-
 #include <QtScript/qscriptvalue.h>
+
+#include <unordered_map>
 
 namespace qbs {
 namespace Internal {
@@ -60,7 +61,10 @@ class ScriptEngine;
 class RulesApplicator
 {
 public:
-    RulesApplicator(const ResolvedProductPtr &product, const Logger &logger);
+    RulesApplicator(const ResolvedProductPtr &product,
+                    const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+                    const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
+                    const Logger &logger);
     ~RulesApplicator();
 
     const NodeSet &createdArtifacts() const { return m_createdArtifacts; }
@@ -88,11 +92,14 @@ private:
     QScriptValue scope() const;
 
     const ResolvedProductPtr m_product;
+    const std::unordered_map<QString, const ResolvedProduct *> &m_productsByName;
+    const std::unordered_map<QString, const ResolvedProject *> &m_projectsByName;
     NodeSet m_createdArtifacts;
     NodeSet m_invalidatedArtifacts;
     RuleConstPtr m_rule;
     ArtifactSet m_completeInputSet;
     TransformerPtr m_transformer;
+    TransformerConstPtr m_oldTransformer;
     QtMocScanner *m_mocScanner;
     Logger m_logger;
 };

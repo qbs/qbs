@@ -103,10 +103,13 @@ static QProcessEnvironment mergeEnvironments(const QProcessEnvironment &baseEnv,
 
 void ProcessCommandExecutor::doSetup()
 {
-    const ProcessCommand * const cmd = processCommand();
+    ProcessCommand * const cmd = processCommand();
     const QString program = ExecutableFinder(transformer()->product(),
                                              transformer()->product()->buildEnvironment)
             .findExecutable(cmd->program(), cmd->workingDir());
+    cmd->clearRelevantEnvValues();
+    for (const QString &key : cmd->relevantEnvVars())
+        cmd->addRelevantEnvValue(key, transformer()->product()->buildEnvironment.value(key));
 
     m_commandEnvironment = mergeEnvironments(m_buildEnvironment, cmd->environment());
     m_program = program;
@@ -399,9 +402,9 @@ void ProcessCommandExecutor::removeResponseFile()
     m_responseFileName.clear();
 }
 
-const ProcessCommand *ProcessCommandExecutor::processCommand() const
+ProcessCommand *ProcessCommandExecutor::processCommand() const
 {
-    return static_cast<const ProcessCommand *>(command());
+    return static_cast<ProcessCommand *>(command());
 }
 
 } // namespace Internal

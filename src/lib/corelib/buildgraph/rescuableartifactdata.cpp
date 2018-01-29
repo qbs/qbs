@@ -64,6 +64,8 @@ void RescuableArtifactData::load(PersistentPool &pool)
     pool.load(depsRequestedInPrepareScript);
     pool.load(depsRequestedInCommands);
     pool.load(commands);
+    pool.load(lastPrepareScriptExecutionTime);
+    pool.load(lastCommandExecutionTime);
     pool.load(fileTags);
     pool.load(properties);
 }
@@ -82,6 +84,8 @@ void RescuableArtifactData::store(PersistentPool &pool) const
     pool.store(depsRequestedInPrepareScript);
     pool.store(depsRequestedInCommands);
     pool.store(commands);
+    pool.store(lastPrepareScriptExecutionTime);
+    pool.store(lastCommandExecutionTime);
     pool.store(fileTags);
     pool.store(properties);
 }
