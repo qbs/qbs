@@ -47,6 +47,7 @@
 #include "rulecommands.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
+#include "transformerchangetracking.h"
 
 #include <language/artifactproperties.h>
 #include <language/language.h>
@@ -745,8 +746,9 @@ bool BuildGraphLoader::checkTransformersForChanges(const ResolvedProductPtr &res
         const TransformerPtr transformer = artifact->transformer;
         if (!transformer || !seenTransformers.insert(transformer).second)
             continue;
-        if (checkForPropertyChanges(transformer, newlyResolvedProduct)
-                || checkForEnvChanges(transformer))
+        if (qbs::Internal::checkForPropertyChanges(transformer, newlyResolvedProduct,
+                                                   m_freshProductsByName, m_freshProjectsByName)
+                || checkForEnvChanges(transformer, newlyResolvedProduct))
             transformerChanges = true;
     }
     if (transformerChanges) {
@@ -782,216 +784,13 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
     }
 }
 
-static SourceArtifactConstPtr findSourceArtifact(const ResolvedProductConstPtr &product,
-        const QString &artifactFilePath, QMap<QString, SourceArtifactConstPtr> &artifactMap)
-{
-    SourceArtifactConstPtr &artifact = artifactMap[artifactFilePath];
-    if (!artifact) {
-        for (const SourceArtifactConstPtr &a : product->allFiles()) {
-            if (a->absoluteFilePath == artifactFilePath) {
-                artifact = a;
-                break;
-            }
-        }
-    }
-    return artifact;
-}
-
-template<typename T> static QVariantMap getParameterValue(
-        const QHash<T, QVariantMap> &parameters,
-        const QString &depName)
-{
-    for (auto it = parameters.cbegin(); it != parameters.cend(); ++it) {
-        if (it.key()->name == depName)
-            return it.value();
-    }
-    return QVariantMap();
-}
-
-QVariantMap BuildGraphLoader::propertyMapByKind(const ResolvedProductConstPtr &product,
-                                                const Property &property)
-{
-    const auto getProduct = [&product, &property, this]() {
-        return property.productName == product->uniqueName()
-                ? product : m_freshProductsByName.value(property.productName);
-    };
-    switch (property.kind) {
-    case Property::PropertyInModule: {
-        const ResolvedProductConstPtr &p = getProduct();
-        return p ? p->moduleProperties->value() : QVariantMap();
-    }
-    case Property::PropertyInProduct: {
-        const ResolvedProductConstPtr &p = getProduct();
-        return p ? p->productProperties : QVariantMap();
-    }
-    case Property::PropertyInProject: {
-        const ResolvedProject *project = property.productName == product->project->name
-                ? product->project.get() : m_freshProjectsByName.value(property.productName);
-        return project ? project->projectProperties() : QVariantMap();
-    }
-    case Property::PropertyInParameters: {
-        const int sepIndex = property.moduleName.indexOf(QLatin1Char(':'));
-        const QString depName = property.moduleName.left(sepIndex);
-        const ResolvedProductConstPtr &p = getProduct();
-        if (!p)
-            return QVariantMap();
-        QVariantMap v = getParameterValue(p->dependencyParameters, depName);
-        if (!v.empty())
-            return v;
-        return getParameterValue(p->moduleParameters, depName);
-    }
-    default:
-        QBS_CHECK(false);
-    }
-    return QVariantMap();
-}
-
-static void invalidateTransformer(const TransformerPtr &transformer)
-{
-    const JavaScriptCommandPtr &pseudoCommand = JavaScriptCommand::create();
-    pseudoCommand->setSourceCode(QStringLiteral("random stuff that will cause "
-                                                "commandsEqual() to fail"));
-    transformer->commands << pseudoCommand;
-}
-
-static bool checkForImportFileChange(const std::vector<QString> &importedFiles,
-                                     const FileTime &referenceTime,
-                                     const char *context)
-{
-    for (const QString &importedFile : importedFiles) {
-        const FileInfo fi(importedFile);
-        if (!fi.exists()) {
-            qCDebug(lcBuildGraph) << context << "imported file" << importedFile
-                                  << "is gone, need to re-run";
-            return true;
-        }
-        if (fi.lastModified() > referenceTime) {
-            qCDebug(lcBuildGraph) << context << "imported file" << importedFile
-                                  << "has been updated, need to re-run";
-            return true;
-        }
-    }
-    return false;
-}
-
-bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTrafo,
-        const ResolvedProductPtr &freshProduct)
-{
-    // This check must come first, as it can prevent build data rescuing.
-    for (const Property &property : qAsConst(restoredTrafo->propertiesRequestedInCommands)) {
-        if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property))) {
-            invalidateTransformer(restoredTrafo);
-            return true;
-        }
-    }
-
-    QMap<QString, SourceArtifactConstPtr> artifactMap;
-    for (auto it = restoredTrafo->propertiesRequestedFromArtifactInCommands.cbegin();
-         it != restoredTrafo->propertiesRequestedFromArtifactInCommands.cend(); ++it) {
-        const SourceArtifactConstPtr artifact
-                = findSourceArtifact(freshProduct, it.key(), artifactMap);
-        if (!artifact)
-            continue;
-        for (const Property &property : qAsConst(it.value())) {
-            if (checkForPropertyChange(property, artifact->properties->value())) {
-                invalidateTransformer(restoredTrafo);
-                return true;
-            }
-        }
-    }
-
-    const FileTime referenceTime = restoredTrafo->product()->topLevelProject()->lastResolveTime;
-    if (checkForImportFileChange(restoredTrafo->importedFilesUsedInCommands, referenceTime,
-                                 "command")) {
-        invalidateTransformer(restoredTrafo);
-        return true;
-    }
-
-    if (!restoredTrafo->depsRequestedInCommands.isUpToDate(freshProduct->topLevelProject())) {
-        invalidateTransformer(restoredTrafo);
-        return true;
-    }
-
-    for (const Property &property : qAsConst(restoredTrafo->propertiesRequestedInPrepareScript)) {
-        if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property)))
-            return true;
-    }
-
-    if (checkForImportFileChange(restoredTrafo->importedFilesUsedInPrepareScript, referenceTime,
-                                 "prepare script")) {
-        return true;
-    }
-
-    for (QHash<QString, PropertySet>::ConstIterator it =
-         restoredTrafo->propertiesRequestedFromArtifactInPrepareScript.constBegin();
-         it != restoredTrafo->propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {
-        const SourceArtifactConstPtr &artifact
-                = findSourceArtifact(freshProduct, it.key(), artifactMap);
-        if (!artifact)
-            continue;
-        for (const Property &property : qAsConst(it.value())) {
-            if (checkForPropertyChange(property, artifact->properties->value()))
-                return true;
-        }
-    }
-
-    if (!restoredTrafo->depsRequestedInPrepareScript.isUpToDate(freshProduct->topLevelProject()))
-        return true;
-
-    return false;
-}
-
-bool BuildGraphLoader::checkForEnvChanges(const TransformerPtr &restoredTrafo)
+bool BuildGraphLoader::checkForEnvChanges(const TransformerPtr &restoredTrafo,
+                                          const ResolvedProductPtr &freshProduct)
 {
     if (!m_envChange)
         return false;
-    // TODO: Also check results of getEnv() from commands here; we currently do not track them
-    for (const AbstractCommandPtr &c : qAsConst(restoredTrafo->commands)) {
-        if (c->type() != AbstractCommand::ProcessCommandType)
-            continue;
-        for (const QString &var : std::static_pointer_cast<ProcessCommand>(c)->relevantEnvVars()) {
-            if (restoredTrafo->product()->topLevelProject()->environment.value(var)
-                    != m_result.newlyResolvedProject->environment.value(var)) {
-                invalidateTransformer(restoredTrafo);
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool BuildGraphLoader::checkForPropertyChange(const Property &restoredProperty,
-                                              const QVariantMap &newProperties)
-{
-    QVariant v;
-    switch (restoredProperty.kind) {
-    case Property::PropertyInProduct:
-    case Property::PropertyInProject:
-        v = newProperties.value(restoredProperty.propertyName);
-        break;
-    case Property::PropertyInModule:
-        v = moduleProperty(newProperties, restoredProperty.moduleName,
-                           restoredProperty.propertyName);
-        break;
-    case Property::PropertyInParameters: {
-        const int sepIndex = restoredProperty.moduleName.indexOf(QLatin1Char(':'));
-        QualifiedId moduleName
-                = QualifiedId::fromString(restoredProperty.moduleName.mid(sepIndex + 1));
-        QVariantMap map = newProperties;
-        while (!moduleName.empty())
-            map = map.value(moduleName.takeFirst()).toMap();
-        v = map.value(restoredProperty.propertyName);
-    }
-    }
-    if (restoredProperty.value != v) {
-        qCDebug(lcBuildGraph).noquote().nospace()
-                << "Value for property '" << restoredProperty.moduleName << "."
-                << restoredProperty.propertyName << "' has changed.\n"
-                << "Old value was '" << restoredProperty.value << "'.\n"
-                << "New value is '" << v << "'.";
-        return true;
-    }
-    return false;
+    return checkForEnvironmentChanges(restoredTrafo, freshProduct,
+                                      m_freshProductsByName, m_freshProjectsByName);
 }
 
 void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,

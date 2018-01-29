@@ -36,6 +36,7 @@ SOURCES += \
     $$PWD/rulesapplicator.cpp \
     $$PWD/rulesevaluationcontext.cpp \
     $$PWD/timestampsupdater.cpp \
+    $$PWD/transformerchangetracking.cpp \
     $$PWD/transformer.cpp
 
 HEADERS += \
@@ -77,6 +78,7 @@ HEADERS += \
     $$PWD/rulesevaluationcontext.h \
     $$PWD/scriptclasspropertyiterator.h \
     $$PWD/timestampsupdater.h \
+    $$PWD/transformerchangetracking.h \
     $$PWD/transformer.h
 
 !qbs_no_dev_install {

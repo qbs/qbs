@@ -111,7 +111,8 @@ private:
                           bool removeArtifactsFromDisk = true);
     bool checkForPropertyChanges(const TransformerPtr &restoredTrafo,
             const ResolvedProductPtr &freshProduct);
-    bool checkForEnvChanges(const TransformerPtr &restoredTrafo);
+    bool checkForEnvChanges(const TransformerPtr &restoredTrafo,
+                            const ResolvedProductPtr &freshProduct);
     bool checkForPropertyChange(const Property &restoredProperty,
                                 const QVariantMap &newProperties);
     void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,

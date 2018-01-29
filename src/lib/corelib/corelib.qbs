@@ -162,6 +162,8 @@ QbsLibrary {
             "timestampsupdater.h",
             "transformer.cpp",
             "transformer.h",
+            "transformerchangetracking.cpp",
+            "transformerchangetracking.h",
         ]
     }
     Group {
