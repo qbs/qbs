@@ -184,7 +184,7 @@ QString FileTime::toString() const
 #else
     dt.setTime_t(m_fileTime);
 #endif
-    return dt.toString();
+    return dt.toString(Qt::ISODateWithMs);
 #endif
 }
 
