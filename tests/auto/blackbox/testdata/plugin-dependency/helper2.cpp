@@ -6,7 +6,7 @@
 #   define EXPORT
 #endif
 
-EXPORT void helper_hello()
+EXPORT void helper2_hello()
 {
-    puts("helper says hello!");
+    puts("Hello from helper2!");
 }

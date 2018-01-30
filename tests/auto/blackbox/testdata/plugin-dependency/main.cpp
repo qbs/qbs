@@ -6,12 +6,12 @@
 
 IMPORT void plugin3_hello();
 IMPORT void plugin4_hello();
-IMPORT void helper_hello();
+IMPORT void helper1_hello();
 
 int main()
 {
     plugin3_hello();
     plugin4_hello();
-    helper_hello();
+    helper1_hello();
     return 0;
 }
