@@ -6,7 +6,8 @@ Product {
     Depends { name: "Qt"; submodules:
             ["core", "gui", "network", "printsupport", "script", "widgets", "xml"] }
 
-    property bool deployQt: qbs.targetOS.contains("macos") && Qt.core.qtConfig.contains("rpath")
+    property bool deployQt: qbsbuildconfig.enableBundledQt && qbs.targetOS.contains("macos")
+                            && Qt.core.qtConfig.contains("rpath")
     property bool deployDebugLibraries: qbs.buildVariants.contains("debug")
 
     readonly property string qtDebugLibrarySuffix: {
