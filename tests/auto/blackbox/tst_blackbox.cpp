@@ -2461,18 +2461,21 @@ void TestBlackbox::pluginDependency()
 {
     QDir::setCurrent(testDataDir + "/plugin-dependency");
 
-    // Build the plugin.
-    QCOMPARE(runQbs(QStringList{"--products", "plugin1,plugin2,plugin3,plugin4"}), 0);
+    // Build the plugins and the helper2 lib.
+    QCOMPARE(runQbs(QStringList{"--products", "plugin1,plugin2,plugin3,plugin4,helper2"}), 0);
     QVERIFY(m_qbsStdout.contains("plugin1"));
     QVERIFY(m_qbsStdout.contains("plugin2"));
     QVERIFY(m_qbsStdout.contains("plugin3"));
     QVERIFY(m_qbsStdout.contains("plugin4"));
+    QVERIFY(m_qbsStdout.contains("helper2"));
+    QVERIFY(!m_qbsStderr.contains("SOFT ASSERT"));
 
     // Build the app. Plugins 1 and 2 must not be linked. Plugin 3 must be linked.
     QCOMPARE(runQbs(QStringList{"--command-echo-mode", "command-line"}), 0);
     QByteArray output = m_qbsStdout + '\n' + m_qbsStderr;
     QVERIFY(!output.contains("plugin1"));
     QVERIFY(!output.contains("plugin2"));
+    QVERIFY(!output.contains("helper2"));
 
     // Check that the build dependency still works.
     QCOMPARE(runQbs(QStringLiteral("clean")), 0);
@@ -5428,6 +5431,33 @@ void TestBlackbox::missingOverridePrefix()
     QVERIFY(runQbs(params) != 0);
     QVERIFY2(m_qbsStderr.contains("Property override key 'blubb.whatever' not understood"),
              m_qbsStderr.constData());
+}
+
+void TestBlackbox::movedFileDependency()
+{
+    QDir::setCurrent(testDataDir + "/moved-file-dependency");
+    const QString subdir2 = QDir::currentPath() + "/subdir2";
+    QVERIFY(QDir::current().mkdir(subdir2));
+    const QString oldHeaderFilePath = QDir::currentPath() + "/subdir1/theheader.h";
+    const QString newHeaderFilePath = subdir2 + "/theheader.h";
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+
+    QFile f(oldHeaderFilePath);
+    QVERIFY2(f.rename(newHeaderFilePath), qPrintable(f.errorString()));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+
+    f.setFileName(newHeaderFilePath);
+    QVERIFY2(f.rename(oldHeaderFilePath), qPrintable(f.errorString()));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::badInterpreter()

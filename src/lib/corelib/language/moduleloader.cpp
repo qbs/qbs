@@ -1571,10 +1571,9 @@ static void mergeParameters(QVariantMap &dst, const QVariantMap &src)
     }
 }
 
-static void adjustParametersItemTypesAndScopes(Item *item, Item *scope)
+static void adjustParametersScopes(Item *item, Item *scope)
 {
-    if (item->type() == ItemType::ModuleInstance) {
-        item->setType(ItemType::ModuleParameters);
+    if (item->type() == ItemType::ModuleParameters) {
         item->setScope(scope);
         return;
     }
@@ -1582,7 +1581,7 @@ static void adjustParametersItemTypesAndScopes(Item *item, Item *scope)
     for (auto value : item->properties()) {
         if (value->type() != Value::ItemValueType)
             continue;
-        adjustParametersItemTypesAndScopes(std::static_pointer_cast<ItemValue>(value)->item(), scope);
+        adjustParametersScopes(std::static_pointer_cast<ItemValue>(value)->item(), scope);
     }
 }
 
@@ -1624,7 +1623,7 @@ void ModuleLoader::mergeExportItems(const ProductContext &productContext)
         filesWithExportItem += exportItem->file();
         for (Item * const child : exportItem->children()) {
             if (child->type() == ItemType::Parameters) {
-                adjustParametersItemTypesAndScopes(child, child);
+                adjustParametersScopes(child, child);
                 mergeParameters(pmi.defaultParameters,
                                 m_evaluator->scriptValue(child).toVariant().toMap());
             } else {
@@ -2027,7 +2026,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     for (Item * const dependsItem : dependsItemPerLoadedModule) {
         if (dependsItem == lastDependsItem)
             continue;
-        adjustParametersItemTypesAndScopes(dependsItem, dependsItem);
+        adjustParametersScopes(dependsItem, dependsItem);
         forwardParameterDeclarations(dependsItem, loadedModules);
         lastDependsItem = dependsItem;
     }
@@ -2290,7 +2289,8 @@ static QVariantMap safeToVariant(const QScriptValue &v)
 QVariantMap ModuleLoader::extractParameters(Item *dependsItem) const
 {
     QVariantMap result;
-    const Item::PropertyMap &itemProperties = filterItemProperties(dependsItem->properties());
+    const Item::PropertyMap &itemProperties = filterItemProperties(
+                rootPrototype(dependsItem)->properties());
     if (itemProperties.empty())
         return result;
 

@@ -149,7 +149,7 @@ void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
 void Executor::build()
 {
     try {
-        m_partialBuild = m_productsToBuild.size() != m_project->allProducts().size();
+        m_partialBuild = m_productsToBuild.size() != m_allProducts.size();
         doBuild();
     } catch (const ErrorInfo &e) {
         handleError(e);
@@ -159,6 +159,7 @@ void Executor::build()
 void Executor::setProject(const TopLevelProjectPtr &project)
 {
     m_project = project;
+    m_allProducts = project->allProducts();
 }
 
 void Executor::setProducts(const QList<ResolvedProductPtr> &productsToBuild)
@@ -168,23 +169,22 @@ void Executor::setProducts(const QList<ResolvedProductPtr> &productsToBuild)
 
 class ProductPrioritySetter
 {
-    const TopLevelProject *m_topLevelProject;
+    const QList<ResolvedProductPtr> &m_allProducts;
     unsigned int m_priority;
     Set<ResolvedProductPtr> m_seenProducts;
 public:
-    ProductPrioritySetter(const TopLevelProject *tlp)
-        : m_topLevelProject(tlp)
+    ProductPrioritySetter(const QList<ResolvedProductPtr> &allProducts) // TODO: Use only products to build?
+        : m_allProducts(allProducts)
     {
     }
 
     void apply()
     {
-        const QList<ResolvedProductPtr> &allProducts = m_topLevelProject->allProducts();
         Set<ResolvedProductPtr> allDependencies;
-        for (const ResolvedProductPtr &product : allProducts)
+        for (const ResolvedProductPtr &product : m_allProducts)
             allDependencies += product->dependencies;
         const Set<ResolvedProductPtr> rootProducts
-                = Set<ResolvedProductPtr>::fromList(allProducts) - allDependencies;
+                = Set<ResolvedProductPtr>::fromList(m_allProducts) - allDependencies;
         m_priority = UINT_MAX;
         m_seenProducts.clear();
         for (const ResolvedProductPtr &rootProduct : rootProducts)
@@ -270,6 +270,7 @@ void Executor::doBuild()
         m_productInstaller->removeInstallRoot();
 
     addExecutorJobs();
+    syncFileDependencies();
     prepareAllNodes();
     prepareProducts();
     setupRootNodes();
@@ -1111,7 +1112,7 @@ bool Executor::visit(RuleNode *ruleNode)
   */
 void Executor::prepareAllNodes()
 {
-    for (const ResolvedProductPtr &product : m_project->allProducts()) {
+    for (const ResolvedProductPtr &product : m_allProducts) {
         if (product->enabled) {
             QBS_CHECK(product->buildData);
             for (BuildGraphNode * const node : qAsConst(product->buildData->nodes))
@@ -1122,6 +1123,41 @@ void Executor::prepareAllNodes()
         QBS_CHECK(product->buildData);
         for (Artifact * const artifact : filterByType<Artifact>(product->buildData->nodes))
             prepareArtifact(artifact);
+    }
+}
+
+void Executor::syncFileDependencies()
+{
+    Set<FileDependency *> &globalFileDepList = m_project->buildData->fileDependencies;
+    for (auto it = globalFileDepList.begin(); it != globalFileDepList.end(); ) {
+        FileDependency * const dep = *it;
+        if (FileInfo(dep->filePath()).exists()) {
+            ++it;
+            continue;
+        }
+        qCDebug(lcBuildGraph()) << "file dependency" << dep->filePath() << "no longer exists; "
+                                   "removing from lookup table";
+        m_project->buildData->removeFromLookupTable(dep);
+        bool isReferencedByArtifact = false;
+        for (const ResolvedProductConstPtr &product : m_allProducts) {
+            if (!product->buildData)
+                continue;
+            const auto artifactList = filterByType<Artifact>(product->buildData->nodes);
+            isReferencedByArtifact = std::any_of(artifactList.begin(), artifactList.end(),
+                    [dep](const Artifact *a) { return a->fileDependencies.contains(dep); });
+            // TODO: Would it be safe to mark the artifact as "not up to date" here and clear
+            //       its list of file dependencies, rather than doing the check again in
+            //       isUpToDate()?
+            if (isReferencedByArtifact)
+                break;
+        }
+        if (!isReferencedByArtifact) {
+            qCDebug(lcBuildGraph()) << "dependency is not referenced by any artifact, deleting";
+            it = globalFileDepList.erase(it);
+            delete dep;
+        } else {
+            ++it;
+        }
     }
 }
 
@@ -1139,6 +1175,9 @@ void Executor::prepareArtifact(Artifact *artifact)
     }
 
     // Timestamps of file dependencies must be invalid for every build.
+    // TODO: These should be a subset of ProjectBuildData::fileDependencies, so clear the
+    // timestamps in syncFileDepencencies() instead.
+    // TODO: Verify this assumption in the sanity checks.
     for (FileDependency * const fileDependency : qAsConst(artifact->fileDependencies))
         fileDependency->clearTimestamp();
 }
@@ -1189,7 +1228,7 @@ void Executor::prepareReachableNodes_impl(BuildGraphNode *node)
 
 void Executor::prepareProducts()
 {
-    ProductPrioritySetter prioritySetter(m_project.get());
+    ProductPrioritySetter prioritySetter(m_allProducts);
     prioritySetter.apply();
     for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
         EnvironmentScriptRunner(product.get(), m_evalContext.get(), m_project->environment)
