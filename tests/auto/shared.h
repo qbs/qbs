@@ -44,6 +44,18 @@
 
 #include <memory>
 
+#define REPLACE_IN_FILE(filePath, oldContent, newContent)                           \
+    do {                                                                            \
+        QFile f((filePath));                                                        \
+        QVERIFY2(f.open(QIODevice::ReadWrite), qPrintable(f.errorString()));        \
+        QByteArray content = f.readAll();                                           \
+        const QByteArray savedContent = content;                                    \
+        content.replace((oldContent), (newContent));                                \
+        QVERIFY(content != savedContent);                                           \
+        f.resize(0);                                                                \
+        f.write(content);                                                           \
+    } while (false)
+
 inline int testTimeoutInMsecs()
 {
     bool ok;

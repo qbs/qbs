@@ -178,13 +178,7 @@ void TestApi::addQObjectMacroToCppFile()
     receiver.descriptions.clear();
 
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile cppFile("object.cpp");
-    QVERIFY2(cppFile.open(QIODevice::ReadWrite), qPrintable(cppFile.errorString()));
-    QByteArray contents = cppFile.readAll();
-    contents.replace("// ", "");
-    cppFile.resize(0);
-    cppFile.write(contents);
-    cppFile.close();
+    REPLACE_IN_FILE("object.cpp", "// ", "");
     errorInfo = doBuildProject("add-qobject-macro-to-cpp-file", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY2(receiver.descriptions.contains("moc"), qPrintable(receiver.descriptions));
@@ -209,14 +203,7 @@ void TestApi::addedFilePersistent()
     // Add a file. qbs must schedule it for rule application on the next build.
     WAIT_FOR_NEW_TIMESTAMP();
     const qbs::SetupProjectParameters params = defaultSetupParameters(relProjectFilePath);
-    QFile projectFile(params.projectFilePath());
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    const QByteArray originalContent = projectFile.readAll();
-    QByteArray addedFileContent = originalContent;
-    addedFileContent.replace("/* 'file.cpp' */", "'file.cpp'");
-    projectFile.resize(0);
-    projectFile.write(addedFileContent);
-    projectFile.flush();
+    REPLACE_IN_FILE(params.projectFilePath(), "/* 'file.cpp' */", "'file.cpp'");
     std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params, m_logSink,
                                                                               0));
     waitForFinished(setupJob.get());
@@ -226,18 +213,14 @@ void TestApi::addedFilePersistent()
     // Remove the file again. qbs must unschedule the rule application again.
     // Consequently, the linking step must fail as in the initial run.
     WAIT_FOR_NEW_TIMESTAMP();
-    projectFile.resize(0);
-    projectFile.write(originalContent);
-    projectFile.flush();
+    REPLACE_IN_FILE(params.projectFilePath(), "'file.cpp'", "/* 'file.cpp' */");
     errorInfo = doBuildProject(relProjectFilePath, 0, &receiver);
     QVERIFY(errorInfo.hasError());
     QVERIFY2(isAboutUndefinedSymbols(receiver.output), qPrintable((receiver.output)));
 
     // Add the file again. qbs must schedule it for rule application on the next build.
     WAIT_FOR_NEW_TIMESTAMP();
-    projectFile.resize(0);
-    projectFile.write(addedFileContent);
-    projectFile.close();
+    REPLACE_IN_FILE(params.projectFilePath(), "/* 'file.cpp' */", "'file.cpp'");
     setupJob.reset(qbs::Project().setupProject(params, m_logSink, 0));
     waitForFinished(setupJob.get());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
@@ -988,16 +971,8 @@ void TestApi::changeDependentLib()
     VERIFY_NO_ERROR(errorInfo);
 
     WAIT_FOR_NEW_TIMESTAMP();
-    const QString qbsFileName("change-dependent-lib.qbs");
-    QFile qbsFile(qbsFileName);
-    QVERIFY(qbsFile.open(QIODevice::ReadWrite));
-    const QByteArray content1 = qbsFile.readAll();
-    QByteArray content2 = content1;
-    content2.replace("cpp.defines: [\"XXXX\"]", "cpp.defines: [\"ABCD\"]");
-    QVERIFY(content1 != content2);
-    qbsFile.seek(0);
-    qbsFile.write(content2);
-    qbsFile.close();
+    REPLACE_IN_FILE("change-dependent-lib.qbs", "cpp.defines: [\"XXXX\"]",
+                    "cpp.defines: [\"ABCD\"]");
     errorInfo = doBuildProject("change-dependent-lib");
     VERIFY_NO_ERROR(errorInfo);
 }

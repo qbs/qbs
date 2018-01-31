@@ -346,13 +346,7 @@ void TestBlackbox::alwaysRun()
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("yo"));
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile f(projectFile);
-    QVERIFY2(f.open(QIODevice::ReadWrite), qPrintable(f.errorString()));
-    QByteArray content = f.readAll();
-    content.replace("alwaysRun: false", "alwaysRun: true");
-    f.resize(0);
-    f.write(content);
-    f.close();
+    REPLACE_IN_FILE(projectFile, "alwaysRun: false", "alwaysRun: true");
 
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("yo"));
@@ -618,13 +612,7 @@ void TestBlackbox::changeInDisabledProduct()
     QDir::setCurrent(testDataDir + "/change-in-disabled-product");
     QCOMPARE(runQbs(), 0);
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile projectFile("change-in-disabled-product.qbs");
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    QByteArray content = projectFile.readAll();
-    content.replace("// 'test2.txt'", "'test2.txt'");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
+    REPLACE_IN_FILE("change-in-disabled-product.qbs", "// 'test2.txt'", "'test2.txt'");
     QCOMPARE(runQbs(), 0);
 }
 
@@ -635,21 +623,12 @@ void TestBlackbox::changeInImportedFile()
     QVERIFY2(m_qbsStdout.contains("old output"), m_qbsStdout.constData());
 
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile jsFile("prepare.js");
-    QVERIFY2(jsFile.open(QIODevice::ReadWrite), qPrintable(jsFile.errorString()));
-    QByteArray content = jsFile.readAll();
-    content.replace("old output", "new output");
-    jsFile.resize(0);
-    jsFile.write(content);
-    jsFile.close();
+    REPLACE_IN_FILE("prepare.js", "old output", "new output");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("new output"), m_qbsStdout.constData());
 
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY2(jsFile.open(QIODevice::ReadWrite), qPrintable(jsFile.errorString()));
-    jsFile.resize(0);
-    jsFile.write(content);
-    jsFile.close();
+    touch("prepare.js");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(!m_qbsStdout.contains("output"), m_qbsStdout.constData());
 }
@@ -729,14 +708,10 @@ void TestBlackbox::dependenciesProperty()
     QCOMPARE(qbsCount, 1);
 
     // Add new dependency, check that command is re-run.
+    const QString projectFile("dependenciesProperty.qbs");
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile projectFile("dependenciesProperty.qbs");
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    QByteArray content = projectFile.readAll();
-    content.replace("// Depends { name: 'newDependency' }", "Depends { name: 'newDependency' }");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
+    REPLACE_IN_FILE(projectFile, "// Depends { name: 'newDependency' }",
+                    "Depends { name: 'newDependency' }");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("generate product1.deps"), m_qbsStdout.constData());
     readDepsOutput(depsFile, jsondoc);
@@ -746,12 +721,7 @@ void TestBlackbox::dependenciesProperty()
     // Add new Depends item that does not actually introduce a new dependency, check
     // that command is not re-run.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    content = projectFile.readAll();
-    content.replace("// Depends { name: 'product2' }", "Depends { name: 'product2' }");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
+    REPLACE_IN_FILE(projectFile, "// Depends { name: 'product2' }", "Depends { name: 'product2' }");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("generate product1.deps"), m_qbsStdout.constData());
@@ -872,13 +842,8 @@ void TestBlackbox::disappearedProfile()
     profile.setValue("m.p1", "p1 new from profile");
     settings.sync();
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile f(QDir::currentPath() + "/modules-dir/modules/m/m.qbs");
-    QVERIFY2(f.open(QIODevice::ReadWrite), qPrintable(f.errorString()));
-    QByteArray contents = f.readAll();
-    contents.replace("property string p1", "property string p1: 'p1 from module'");
-    f.seek(0);
-    f.write(contents);
-    f.close();
+    REPLACE_IN_FILE("modules-dir/modules/m/m.qbs", "property string p1",
+                    "property string p1: 'p1 from module'");
     QCOMPARE(runQbs(buildParams), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("Creating dummy1.txt"), m_qbsStdout.constData());
@@ -1795,13 +1760,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
 
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile jsFile("fileList.js");
-    QVERIFY(jsFile.open(QIODevice::ReadWrite));
-    QByteArray jsCode = jsFile.readAll();
-    jsCode.replace("return []", "return ['jsFileChange.cpp']");
-    jsFile.resize(0);
-    jsFile.write(jsCode);
-    jsFile.close();
+    REPLACE_IN_FILE("fileList.js", "return []", "return ['jsFileChange.cpp']");
     QCOMPARE(runQbs(), 0);
     QVERIFY(!m_qbsStdout.contains("compiling main.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
@@ -1809,12 +1768,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
 
     rmDirR(relativeBuildDir());
-    QVERIFY(jsFile.open(QIODevice::ReadWrite));
-    jsCode = jsFile.readAll();
-    jsCode.replace("['jsFileChange.cpp']", "[]");
-    jsFile.resize(0);
-    jsFile.write(jsCode);
-    jsFile.close();
+    REPLACE_IN_FILE("fileList.js", "['jsFileChange.cpp']", "[]");
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
@@ -2592,12 +2546,7 @@ void TestBlackbox::probeChangeTracking()
 
     // Re-resolving with unchanged probe.
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile projectFile("probe-change-tracking.qbs");
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    QByteArray content = projectFile.readAll();
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
+    touch("probe-change-tracking.qbs");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
     QVERIFY(!m_qbsStdout.contains("running tlpProbe"));
@@ -2606,12 +2555,7 @@ void TestBlackbox::probeChangeTracking()
 
     // Re-resolving with changed configure scripts.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    content = projectFile.readAll();
-    content.replace("console.info", " console.info");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
+    REPLACE_IN_FILE("probe-change-tracking.qbs", "console.info", " console.info");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
     QVERIFY(m_qbsStdout.contains("running tlpProbe"));
@@ -2620,13 +2564,8 @@ void TestBlackbox::probeChangeTracking()
 
     // Re-resolving with added property.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    content = projectFile.readAll();
-    content.replace("condition: product.runProbe",
+    REPLACE_IN_FILE("probe-change-tracking.qbs", "condition: product.runProbe",
                     "condition: product.runProbe\nproperty string something: 'x'");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
     QVERIFY(!m_qbsStdout.contains("running tlpProbe"));
@@ -2635,12 +2574,7 @@ void TestBlackbox::probeChangeTracking()
 
     // Re-resolving with changed property.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    content = projectFile.readAll();
-    content.replace("'x'", "'y'");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
+    REPLACE_IN_FILE("probe-change-tracking.qbs", "'x'", "'y'");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
     QVERIFY(!m_qbsStdout.contains("running tlpProbe"));
@@ -2649,12 +2583,7 @@ void TestBlackbox::probeChangeTracking()
 
     // Re-resolving with removed property.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    content = projectFile.readAll();
-    content.replace("property string something: 'y'", "");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
+    REPLACE_IN_FILE("probe-change-tracking.qbs", "property string something: 'y'", "");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
     QVERIFY(!m_qbsStdout.contains("running tlpProbe"));
@@ -2663,11 +2592,7 @@ void TestBlackbox::probeChangeTracking()
 
     // Re-resolving with unchanged probe again.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    content = projectFile.readAll();
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
+    touch("probe-change-tracking.qbs");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("Resolving"));
     QVERIFY(!m_qbsStdout.contains("running tlpProbe"));
@@ -2712,13 +2637,7 @@ void TestBlackbox::probesAndArrayProperties()
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("prop: [\"probe\"]"), m_qbsStdout.constData());
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile projectFile("probes-and-array-properties.qbs");
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    QByteArray content = projectFile.readAll();
-    content.replace("//", "");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
+    REPLACE_IN_FILE("probes-and-array-properties.qbs", "//", "");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("prop: [\"product\",\"probe\"]"), m_qbsStdout.constData());
 }
@@ -2754,7 +2673,7 @@ void TestBlackbox::propertyAssignmentInFailedModule()
 void TestBlackbox::propertyChanges()
 {
     QDir::setCurrent(testDataDir + "/propertyChanges");
-    QFile projectFile("propertyChanges.qbs");
+    const QString projectFile("propertyChanges.qbs");
     QbsRunParameters params(QStringList({"-f", "propertyChanges.qbs", "qbs.enableDebugCode:true"}));
 
     // Initial build.
@@ -2786,9 +2705,7 @@ void TestBlackbox::propertyChanges()
 
     // Incremental build with no changes, but updated project file timestamp.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY(projectFile.open(QIODevice::ReadWrite | QIODevice::Append));
-    projectFile.write("\n");
-    projectFile.close();
+    touch(projectFile);
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
@@ -2801,12 +2718,7 @@ void TestBlackbox::propertyChanges()
 
     // Incremental build, input property changed for first product
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY(projectFile.open(QIODevice::ReadWrite));
-    QByteArray contents = projectFile.readAll();
-    contents.replace("blubb1", "blubb01");
-    projectFile.resize(0);
-    projectFile.write(contents);
-    projectFile.close();
+    REPLACE_IN_FILE(projectFile, "blubb1", "blubb01");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(m_qbsStdout.contains("linking product 1.debug"));
@@ -2819,12 +2731,7 @@ void TestBlackbox::propertyChanges()
 
     // Incremental build, input property changed via project for second product.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY(projectFile.open(QIODevice::ReadWrite));
-    contents = projectFile.readAll();
-    contents.replace("blubb2", "blubb02");
-    projectFile.resize(0);
-    projectFile.write(contents);
-    projectFile.close();
+    REPLACE_IN_FILE(projectFile, "blubb2", "blubb02");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("linking product 1"));
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
@@ -2907,12 +2814,7 @@ void TestBlackbox::propertyChanges()
 
     // Incremental build, non-essential dependency removed.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY(projectFile.open(QIODevice::ReadWrite));
-    contents = projectFile.readAll();
-    contents.replace("Depends { name: 'library' }", "// Depends { name: 'library' }");
-    projectFile.resize(0);
-    projectFile.write(contents);
-    projectFile.close();
+    REPLACE_IN_FILE(projectFile, "Depends { name: 'library' }", "// Depends { name: 'library' }");
     params.command = "build";
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("linking product 1"));
@@ -2925,12 +2827,7 @@ void TestBlackbox::propertyChanges()
 
     // Incremental build, prepare script of a transformer changed.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY(projectFile.open(QIODevice::ReadWrite));
-    contents = projectFile.readAll();
-    contents.replace("contents 1", "contents 2");
-    projectFile.resize(0);
-    projectFile.write(contents);
-    projectFile.close();
+    REPLACE_IN_FILE(projectFile, "contents 1", "contents 2");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
@@ -2945,12 +2842,7 @@ void TestBlackbox::propertyChanges()
 
     // Incremental build, product property used in JavaScript command changed.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY(projectFile.open(QIODevice::ReadWrite));
-    contents = projectFile.readAll();
-    contents.replace("prefix 1", "prefix 2");
-    projectFile.resize(0);
-    projectFile.write(contents);
-    projectFile.close();
+    REPLACE_IN_FILE(projectFile, "prefix 1", "prefix 2");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
@@ -2965,12 +2857,7 @@ void TestBlackbox::propertyChanges()
 
     // Incremental build, project property used in JavaScript command changed.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY(projectFile.open(QIODevice::ReadWrite));
-    contents = projectFile.readAll();
-    contents.replace("suffix 1", "suffix 2");
-    projectFile.resize(0);
-    projectFile.write(contents);
-    projectFile.close();
+    REPLACE_IN_FILE(projectFile, "suffix 1", "suffix 2");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
@@ -2985,12 +2872,7 @@ void TestBlackbox::propertyChanges()
 
     // Incremental build, module property used in JavaScript command changed.
     WAIT_FOR_NEW_TIMESTAMP();
-    QVERIFY(projectFile.open(QIODevice::ReadWrite));
-    contents = projectFile.readAll();
-    contents.replace("default value", "new value");
-    projectFile.resize(0);
-    projectFile.write(contents);
-    projectFile.close();
+    REPLACE_IN_FILE(projectFile, "default value", "new value");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
@@ -3003,14 +2885,8 @@ void TestBlackbox::propertyChanges()
 
     // Incremental build, prepare script of a rule in a module changed.
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile moduleFile("modules/TestModule/module.qbs");
-    QVERIFY(moduleFile.open(QIODevice::ReadWrite));
-    contents = moduleFile.readAll();
-    contents.replace("// console.info('Change in source code')",
-                     "console.info('Change in source code')");
-    moduleFile.resize(0);
-    moduleFile.write(contents);
-    moduleFile.close();
+    REPLACE_IN_FILE("modules/TestModule/module.qbs", "// console.info('Change in source code')",
+                    "console.info('Change in source code')");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
@@ -3362,13 +3238,7 @@ void TestBlackbox::fileDependencies()
     QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
 
     // Change the product in between to force the list of dependencies to get rescued.
-    QFile projectFile("fileDependencies.qbs");
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    QByteArray contents = projectFile.readAll();
-    contents.replace("//", "");
-    projectFile.resize(0);
-    projectFile.write(contents);
-    projectFile.close();
+    REPLACE_IN_FILE("fileDependencies.qbs", "//", "");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
     QVERIFY(!m_qbsStdout.contains("compiling narf.cpp"));
@@ -4482,49 +4352,28 @@ void TestBlackbox::radAfterIncompleteBuild()
     QbsRunParameters params(QStringList() << "-f" << projectFileName);
     QCOMPARE(runQbs(params), 0);
     WAIT_FOR_NEW_TIMESTAMP();
-    QFile projectFile(projectFileName);
-    QVERIFY(projectFile.open(QIODevice::ReadWrite));
-    QByteArray content = projectFile.readAll();
-    content.replace("oldfile", "oldfile/newfile");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.flush();
+    REPLACE_IN_FILE(projectFileName, "oldfile", "oldfile/newfile");
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     WAIT_FOR_NEW_TIMESTAMP();
-    content.replace("oldfile/newfile", "newfile");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.flush();
+    REPLACE_IN_FILE(projectFileName, "oldfile/newfile", "newfile");
     params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
     WAIT_FOR_NEW_TIMESTAMP();
-    content.replace("newfile", "oldfile/newfile");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.flush();
+    REPLACE_IN_FILE(projectFileName, "newfile", "oldfile/newfile");
     QCOMPARE(runQbs(params), 0);
 
     // Step 2: Have a file where a directory used to be.
     WAIT_FOR_NEW_TIMESTAMP();
-    content.replace("oldfile/newfile", "oldfile");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.flush();
+    REPLACE_IN_FILE(projectFileName, "oldfile/newfile", "oldfile");
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     WAIT_FOR_NEW_TIMESTAMP();
-    content.replace("oldfile", "newfile");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.flush();
+    REPLACE_IN_FILE(projectFileName, "oldfile", "newfile");
     params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
     WAIT_FOR_NEW_TIMESTAMP();
-    content.replace("newfile", "oldfile");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.flush();
+    REPLACE_IN_FILE(projectFileName, "newfile", "oldfile");
     QCOMPARE(runQbs(params), 0);
 }
 
@@ -4593,35 +4442,26 @@ void TestBlackbox::installedApp()
     QVERIFY(!addedFile.exists());
 
     // Check whether changing install parameters on the product causes re-installation.
-    QFile projectFile("installed_artifact.qbs");
-    QVERIFY(projectFile.open(QIODevice::ReadWrite));
-    QByteArray content = projectFile.readAll();
-    content.replace("qbs.installPrefix: \"/usr\"", "qbs.installPrefix: '/usr/local'");
     WAIT_FOR_NEW_TIMESTAMP();
-    projectFile.resize(0);
-    projectFile.write(content);
-    QVERIFY(projectFile.flush());
+    REPLACE_IN_FILE("installed_artifact.qbs", "qbs.installPrefix: \"/usr\"",
+                    "qbs.installPrefix: '/usr/local'");
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/bin/installedApp"))));
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/local/src/main.cpp")));
 
     // Check whether changing install parameters on the artifact causes re-installation.
-    content.replace("qbs.installDir: \"bin\"", "qbs.installDir: 'custom'");
     WAIT_FOR_NEW_TIMESTAMP();
-    projectFile.resize(0);
-    projectFile.write(content);
-    QVERIFY(projectFile.flush());
+    REPLACE_IN_FILE("installed_artifact.qbs", "qbs.installDir: \"bin\"",
+                    "qbs.installDir: 'custom'");
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/custom/installedApp"))));
 
     // Check whether changing install parameters on a source file causes re-installation.
-    content.replace("qbs.installDir: \"src\"", "qbs.installDir: 'source'");
     WAIT_FOR_NEW_TIMESTAMP();
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
+    REPLACE_IN_FILE("installed_artifact.qbs", "qbs.installDir: \"src\"",
+                    "qbs.installDir: 'source'");
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/local/source/main.cpp")));
 
