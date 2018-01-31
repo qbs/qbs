@@ -2371,7 +2371,6 @@ void TestBlackbox::pluginDependency()
     QVERIFY(m_qbsStdout.contains("plugin3"));
     QVERIFY(m_qbsStdout.contains("plugin4"));
     QVERIFY(m_qbsStdout.contains("helper2"));
-    QEXPECT_FAIL("", "FIXME", Continue);
     QVERIFY(!m_qbsStderr.contains("SOFT ASSERT"));
 
     // Build the app. Plugins 1 and 2 must not be linked. Plugin 3 must be linked.

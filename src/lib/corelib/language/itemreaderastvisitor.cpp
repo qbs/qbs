@@ -117,7 +117,11 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
 
     if (ast->initializer) {
         qSwap(m_item, item);
+        const ItemType oldInstanceItemType = m_instanceItemType;
+        if (itemType == ItemType::Parameters || itemType == ItemType::Depends)
+            m_instanceItemType = ItemType::ModuleParameters;
         ast->initializer->accept(this);
+        m_instanceItemType = oldInstanceItemType;
         qSwap(m_item, item);
     }
 
@@ -266,7 +270,7 @@ Item *ItemReaderASTVisitor::targetItemForBinding(const QStringList &bindingName,
     for (int i = 0; i < c; ++i) {
         ValuePtr v = targetItem->ownProperty(bindingName.at(i));
         if (!v) {
-            const ItemType itemType = i < c - 1 ? ItemType::ModulePrefix : ItemType::ModuleInstance;
+            const ItemType itemType = i < c - 1 ? ItemType::ModulePrefix : m_instanceItemType;
             Item *newItem = Item::create(m_itemPool, itemType);
             newItem->setLocation(value->location());
             v = ItemValue::create(newItem);
