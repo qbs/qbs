@@ -8,3 +8,4 @@
 * Fix access to module instances in dependency parameters (QBS-1253).
 * Fix race condition when creating Inno Setup, NSIS, or WiX installers.
 * Fix release builds for Android with NDK r12 and above (QBS-1256).
+* Fix parametrized dependencies in Export and Module items (QBS-1287).

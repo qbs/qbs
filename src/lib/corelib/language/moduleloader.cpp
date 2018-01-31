@@ -2274,7 +2274,8 @@ static QVariantMap safeToVariant(const QScriptValue &v)
 QVariantMap ModuleLoader::extractParameters(Item *dependsItem) const
 {
     QVariantMap result;
-    const Item::PropertyMap &itemProperties = filterItemProperties(dependsItem->properties());
+    const Item::PropertyMap &itemProperties = filterItemProperties(
+                rootPrototype(dependsItem)->properties());
     if (itemProperties.isEmpty())
         return result;
 
