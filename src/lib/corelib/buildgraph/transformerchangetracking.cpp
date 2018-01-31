@@ -37,6 +37,7 @@
 #include <logging/categories.h>
 #include <tools/fileinfo.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qvariant.h>
 
