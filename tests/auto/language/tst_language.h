@@ -112,6 +112,8 @@ private slots:
     void idUniqueness();
     void importCollection();
     void invalidBindingInDisabledItem();
+    void invalidOverrides();
+    void invalidOverrides_data();
     void itemPrototype();
     void itemScope();
     void jsExtensions();

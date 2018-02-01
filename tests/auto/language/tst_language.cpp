@@ -1307,6 +1307,63 @@ void TestLanguage::invalidBindingInDisabledItem()
     QVERIFY(!exceptionCaught);
 }
 
+void TestLanguage::invalidOverrides()
+{
+    QFETCH(QString, key);
+    QFETCH(QString, expectedErrorMessage);
+    const bool successExpected = expectedErrorMessage.isEmpty();
+    bool exceptionCaught = false;
+    try {
+        qbs::SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("invalid-overrides.qbs"));
+        params.setOverriddenValues(QVariantMap{std::make_pair(key, true)});
+        const TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(!!project);
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        if (successExpected)
+            qDebug() << e.toString();
+        else
+            QVERIFY2(e.toString().contains(expectedErrorMessage), qPrintable(e.toString()));
+    }
+    QEXPECT_FAIL("no such module in product", "not easily checkable", Continue);
+    QCOMPARE(!exceptionCaught, successExpected);
+}
+
+void TestLanguage::invalidOverrides_data()
+{
+    QTest::addColumn<QString>("key");
+    QTest::addColumn<QString>("expectedErrorMessage");
+
+    QTest::newRow("no such project") << "projects.myproject.x"
+            << QString("Unknown project 'myproject' in property override.");
+    QTest::newRow("no such project property") << "projects.My.Project.y"
+                                              << QString("Unknown property: projects.My.Project.y");
+    QTest::newRow("valid project property override") << "projects.My.Project.x" << QString();
+    QTest::newRow("no such product") << "products.myproduct.x"
+            << QString("Unknown product 'myproduct' in property override.");
+    QTest::newRow("no such product (with module)") << "products.myproduct.cpp.useRPaths"
+            << QString("Unknown product 'myproduct' in property override.");
+    QTest::newRow("no such product property") << "products.MyProduct.y"
+                                              << QString("Unknown property: products.MyProduct.y");
+    QTest::newRow("valid product property override") << "products.MyProduct.x" << QString();
+
+    // This cannot be an error, because the semantics are "if some product in the project has
+    // such a module, then set that property", and the code that does the property overrides
+    // does not have a global view.
+    QTest::newRow("no such module") << "modules.blubb.x" << QString();
+
+    QTest::newRow("no such module in product") << "products.MyProduct.cpp.useRPaths"
+            << QString("Invalid module 'cpp' in property override.");
+    QTest::newRow("no such module property") << "modules.cpp.blubb"
+                                             << QString("Unknown property: modules.cpp.blubb");
+    QTest::newRow("no such module property (per product)") << "products.MyOtherProduct.cpp.blubb"
+            << QString("Unknown property: products.MyOtherProduct.cpp.blubb");
+    QTest::newRow("valid per-product module property override")
+            << "products.MyOtherProduct.cpp.useRPaths" << QString();
+}
+
 class JSSourceValueCreator
 {
     FileContextPtr m_fileContext;

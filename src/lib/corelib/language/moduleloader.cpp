@@ -298,8 +298,10 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
                 break;
             }
         }
-        if (ok)
+        if (ok) {
+            collectNameFromOverride(key);
             continue;
+        }
         ErrorInfo e(Tr::tr("Property override key '%1' not understood.").arg(key));
         e.append(Tr::tr("Please use one of the following:"));
         e.append(QLatin1Char('\t') + Tr::tr("projects.<project-name>.<property-name>:value"));
@@ -523,7 +525,10 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
     TopLevelProjectContext tlp;
     tlp.buildDirectory = buildDirectory;
     handleProject(loadResult, &tlp, projectItem, referencedFilePaths);
+    checkProjectNamesInOverrides(tlp);
     collectProductsByName(tlp);
+    checkProductNamesInOverrides();
+
     adjustDependenciesForMultiplexing(tlp);
 
     for (ProjectContext * const projectContext : qAsConst(tlp.projects)) {
@@ -574,12 +579,15 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     projectItem->addModule(loadBaseModule(&dummyProductContext, projectItem));
     overrideItemProperties(projectItem, StringConstants::projectPrefix(),
                            m_parameters.overriddenValuesTree());
-    const QString projectName = m_evaluator->stringValue(projectItem,
-                                                         StringConstants::nameProperty());
-    if (!projectName.isEmpty())
-        overrideItemProperties(projectItem, QStringLiteral("projects.") + projectName,
-                               m_parameters.overriddenValuesTree());
+    projectContext.name = m_evaluator->stringValue(projectItem,
+                                                   StringConstants::nameProperty());
+    if (projectContext.name.isEmpty())
+        projectContext.name = FileInfo::baseName(projectItem->location().filePath());
+    overrideItemProperties(projectItem,
+                           StringConstants::projectsOverridePrefix() + projectContext.name,
+                           m_parameters.overriddenValuesTree());
     if (!checkItemCondition(projectItem)) {
+        m_disabledProjects.insert(projectContext.name);
         delete p;
         return;
     }
@@ -786,7 +794,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         productName = FileInfo::completeBaseName(productItem->file()->filePath());
         productItem->setProperty(nameKey, VariantValue::create(productName));
     }
-    overrideItemProperties(productItem, QStringLiteral("products.") + productName,
+    overrideItemProperties(productItem, StringConstants::productsOverridePrefix() + productName,
                            m_parameters.overriddenValuesTree());
 
     const MultiplexInfo &multiplexInfo = extractMultiplexInfo(productItem, qbsModule.item);
@@ -1751,6 +1759,70 @@ void ModuleLoader::handleProfile(Item *profileItem)
                         profileItem->location());
     }
     m_localProfiles.insert(profileName, values);
+}
+
+void ModuleLoader::collectNameFromOverride(const QString &overrideString)
+{
+    static const auto extract = [](const QString &prefix, const QString &overrideString) {
+        if (!overrideString.startsWith(prefix))
+            return QString();
+        const int startPos = prefix.length();
+        const int endPos = overrideString.lastIndexOf(StringConstants::dot());
+        if (endPos == -1)
+            return QString();
+        return overrideString.mid(startPos, endPos - startPos);
+    };
+    const QString &projectName = extract(StringConstants::projectsOverridePrefix(), overrideString);
+    if (!projectName.isEmpty()) {
+        m_projectNamesUsedInOverrides.insert(projectName);
+        return;
+    }
+    const QString &productName = extract(StringConstants::productsOverridePrefix(), overrideString);
+    if (!productName.isEmpty()) {
+        m_productNamesUsedInOverrides.insert(productName.left(
+                                                 productName.indexOf(StringConstants::dot())));
+        return;
+    }
+}
+
+void ModuleLoader::checkProjectNamesInOverrides(const ModuleLoader::TopLevelProjectContext &tlp)
+{
+    for (const QString &projectNameInOverride : m_projectNamesUsedInOverrides) {
+        if (m_disabledProjects.contains(projectNameInOverride))
+            continue;
+        bool found = false;
+        for (const ProjectContext * const p : tlp.projects) {
+            if (p->name == projectNameInOverride) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            handlePropertyError(Tr::tr("Unknown project '%1' in property override.")
+                                .arg(projectNameInOverride), m_parameters, m_logger);
+        }
+    }
+}
+
+void ModuleLoader::checkProductNamesInOverrides()
+{
+    for (const QString &productNameInOverride : m_productNamesUsedInOverrides) {
+        bool found = false;
+        for (auto it = m_productsByName.cbegin(); it != m_productsByName.cend(); ++it) {
+            // In an override string such as "a.b.c:d, we cannot tell whether we have a product
+            // "a" and a module "b.c" or a product "a.b" and a module "c", so we need to take
+            // care not to emit false positives here.
+            if (it->first == productNameInOverride
+                    || it->first.startsWith(productNameInOverride + StringConstants::dot())) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            handlePropertyError(Tr::tr("Unknown product '%1' in property override.")
+                                .arg(productNameInOverride), m_parameters, m_logger);
+        }
+    }
 }
 
 void ModuleLoader::collectProductsByName(const TopLevelProjectContext &topLevelProject)
@@ -2827,8 +2899,8 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     deepestModuleInstance->setPrototype(modulePrototype);
     const QString fullName = moduleName.toString();
     const QString generalOverrideKey = QStringLiteral("modules.") + fullName;
-    const QString perProductOverrideKey = QStringLiteral("products.") + productContext->name
-            + QLatin1Char('.') + fullName;
+    const QString perProductOverrideKey = StringConstants::productsOverridePrefix()
+            + productContext->name + QLatin1Char('.') + fullName;
     for (Item *instance = moduleInstance; instance; instance = instance->prototype()) {
         overrideItemProperties(instance, generalOverrideKey, m_parameters.overriddenValuesTree());
         if (fullName == QStringLiteral("qbs"))
