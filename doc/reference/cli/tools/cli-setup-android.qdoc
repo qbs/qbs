@@ -60,7 +60,7 @@
     \section1 Examples
 
     Creates a profile with the name \c oreo that specifies the target platforms'
-    \l{Module qbs}{architectures} and operating systems, as well as the
+    \l{qbs::}{architectures} and operating systems, as well as the
     toolchains available:
 
     \code
