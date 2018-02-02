@@ -204,7 +204,7 @@ QScriptValue QtMocScanner::js_apply(QScriptContext *ctx, QScriptEngine *engine,
     return that->apply(engine, attachedPointer<Artifact>(input));
 }
 
-static QScriptValue scannerCountError(QScriptEngine *engine, int scannerCount,
+static QScriptValue scannerCountError(QScriptEngine *engine, size_t scannerCount,
         const QString &fileTag)
 {
     return engine->currentContext()->throwError(

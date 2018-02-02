@@ -111,6 +111,7 @@ private:
 
     void doBuild();
     void prepareAllNodes();
+    void syncFileDependencies();
     void prepareArtifact(Artifact *artifact);
     void setupForBuildingSelectedFiles(const BuildGraphNode *node);
     void prepareReachableNodes();
@@ -162,6 +163,7 @@ private:
     ExecutorState m_state;
     TopLevelProjectPtr m_project;
     QList<ResolvedProductPtr> m_productsToBuild;
+    QList<ResolvedProductPtr> m_allProducts;
     NodeSet m_roots;
     Leaves m_leaves;
     QList<Artifact *> m_changedSourceArtifacts;

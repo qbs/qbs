@@ -68,4 +68,8 @@
 #   endif
 #endif
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#pragma warning(disable: 4251)
+#endif
+
 #endif // Include guard.

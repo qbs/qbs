@@ -117,6 +117,8 @@ void TestBlackboxAndroid::android()
             QVERIFY2(jar.waitForFinished(), qPrintable(jar.errorString()));
             QVERIFY2(jar.exitCode() == 0, qPrintable(jar.readAllStandardError().constData()));
             QByteArrayList actualFiles = jar.readAllStandardOutput().trimmed().split('\n');
+            for (QByteArray &f : actualFiles)
+                f = f.trimmed();
             QByteArrayList missingExpectedFiles;
             QByteArrayList expectedFiles = currentExpectedFilesLists.takeFirst();
             for (const QByteArray &expectedFile : expectedFiles) {

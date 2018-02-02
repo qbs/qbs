@@ -288,7 +288,7 @@ template<typename T> void Set<T>::store(PersistentPool &pool) const
 template<typename T> QStringList Set<T>::toStringList() const
 {
     QStringList sl;
-    sl.reserve(size());
+    sl.reserve(int(size()));
     std::transform(cbegin(), cend(), std::back_inserter(sl),
                    [this](const T &e) { return toString(e); });
     return sl;

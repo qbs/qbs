@@ -98,7 +98,7 @@ template<class ProductOrModule> static QScriptValue js_artifactsForFileTag(
         return !isRelevantArtifact(productOrModule, a);
     };
     artifacts.erase(std::remove_if(artifacts.begin(), artifacts.end(), filter), artifacts.end());
-    result = engine->newArray(artifacts.size());
+    result = engine->newArray(uint(artifacts.size()));
     ctx->callee().setProperty(CachedValueKey, result);
     int k = 0;
     for (const Artifact * const artifact : artifacts)

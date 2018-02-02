@@ -168,7 +168,6 @@ private:
     QScriptValue m_result;
 };
 
-
 static QScriptValue setupProjectScriptValue(ScriptEngine *engine,
         const ResolvedProjectConstPtr &project)
 {

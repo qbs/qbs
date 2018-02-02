@@ -34,23 +34,60 @@
 
     \brief Adds a project from a different file.
 
-    A SubProject item is used to add a project defined in another file as a sub-project to
-    the surrounding project:
+    A SubProject item is used to add a sub-project that is defined in
+    a separate file. Additionally, properties of the sub-project can
+    be set without modifying the separate project file.
+
+    The following example adds a sub-project defined in
+    \c{subdir/project.qbs} and overrides its name.
+
     \code
-    SubProject {
-        filePath: "subdir/project.qbs"
-        Properties {
-            name: "A sub-project"
+    Project {
+        SubProject {
+            filePath: "subdir/project.qbs"
+            Properties {
+                name: "A sub-project"
+            }
         }
+        ...
+    }
+    \endcode
+
+    A typical use case for SubProject items is to conditionally
+    include sub-projects. The following example pulls in the \e{tests}
+    sub-project if and only if the \c{withTests} property is \c{true}.
+
+    \code
+    Project {
+        property bool withTests: false
+        SubProject {
+            filePath: "tests/tests.qbs"
+            Properties {
+                condition: parent.withTests
+            }
+        }
+        ...
     }
     \endcode
 
     If you do not need to set any properties on the sub-project, you can also
     use the \l{Project::references}{Project.references} property, the same way
-    you would for a product:
+    you would for a product.
 
     \code
-    references: "subdir/project.qbs"
+    Project {
+        references: "subdir/project.qbs"
+    }
+    \endcode
+
+    is equivalent with
+
+    \code
+    Project {
+        SubProject {
+            filePath: "subdir/project.qbs"
+        }
+    }
     \endcode
 
     It is also possible to nest \l{Project} items directly in the same file.

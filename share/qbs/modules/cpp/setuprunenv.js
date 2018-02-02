@@ -60,17 +60,18 @@ function gatherPaths(product, libPaths, frameworkPaths)
     // Heuristic: If any rpaths are set, assume environment paths should not be set up.
     // Let's not try to be super fancy, evaluating all the rpaths, expanding $ORIGIN, relative paths
     // and whatnot.
-    if (product.cpp.useRPaths && product.cpp.rpaths && product.cpp.rpaths.length > 0)
+    if (!product.qbs.targetOS.contains("windows") && product.cpp && product.cpp.useRPaths
+            && product.cpp.rpaths && product.cpp.rpaths.length > 0)
         return;
 
     // Gather explicitly given library paths.
-    if (product.cpp.libraryPaths)
+    if (product.cpp && product.cpp.libraryPaths)
         product.cpp.libraryPaths.forEach(function(p) { addExternalLibPath(product, libPaths, p); });
-    if (product.cpp.frameworkPaths)
+    if (product.cpp && product.cpp.frameworkPaths)
         product.cpp.frameworkPaths.forEach(function(p) { addNewElement(frameworkPaths, p); });
 
     // Extract paths from dynamic libraries, if they are given as file paths.
-    if (product.cpp.dynamicLibraries) {
+    if (product.cpp && product.cpp.dynamicLibraries) {
         product.cpp.dynamicLibraries.forEach(function(dll) {
             if (FileInfo.isAbsolutePath(dll))
                 addExternalLibPath(product, libPaths, FileInfo.path(dll));
@@ -115,7 +116,7 @@ function setupRunEnvironment(product, config)
     var frameworkPaths = [];
     gatherPaths(product, libPaths, frameworkPaths);
 
-    var runPaths = product.cpp.systemRunPaths;
+    var runPaths = product.cpp ? product.cpp.systemRunPaths : undefined;
     if (runPaths && runPaths.length > 0) {
         var filterFunc = function(p) { return !runPaths.contains(p); };
         libPaths = libPaths.filter(filterFunc);

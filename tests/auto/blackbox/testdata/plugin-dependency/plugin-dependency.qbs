@@ -15,7 +15,7 @@ Project {
             cpp.link: /*theCondition && */product.name === "myapp"  // TODO: Make this work
         }
         Depends { name: "plugin4" }                     // supposed to be linked
-        Depends { name: "helper" }                      // supposed to be linked
+        Depends { name: "helper1" }                     // supposed to be linked
     }
     DynamicLibrary {
         name: "plugin1"
@@ -54,8 +54,22 @@ Project {
         }
     }
     DynamicLibrary {
-        name: "helper"
-        files: ["helper.cpp"]
+        name: "helper1"
+        files: ["helper1.cpp"]
         Depends { name: "cpp" }
+        Depends { name: "helper2"; cpp.link: false }
+        Export {
+            Depends { name: "cpp" }
+            Depends { name: "helper2"; cpp.link: false }
+        }
+    }
+    DynamicLibrary {
+        name: "helper2"
+        files: ["helper2.cpp"]
+        Depends { name: "cpp" }
+        Export {
+            Depends { name: "cpp" }
+            cpp.defines: ["USING_HELPER2"]
+        }
     }
 }
