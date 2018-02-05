@@ -547,6 +547,8 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
             continue;
         }
 
+        QBS_CHECK(product->topLevelProject()->buildData->fileDependencies.contains(
+                      artifact->fileDependencies));
         QBS_CHECK(artifact->artifactType == Artifact::SourceFile ||
                   !filePaths.contains(artifact->filePath()));
         filePaths << artifact->filePath();
