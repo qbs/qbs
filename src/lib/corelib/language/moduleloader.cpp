@@ -1297,7 +1297,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
 
     loadedItem = wrapInProjectIfNecessary(loadedItem);
     const bool inheritProperties = m_evaluator->boolValue(
-                projectItem, StringConstants::inheritPropertiesProperty(), true);
+                projectItem, StringConstants::inheritPropertiesProperty());
 
     if (inheritProperties)
         copyProperties(projectItem->parent(), loadedItem);
@@ -3069,7 +3069,7 @@ void ModuleLoader::checkCancelation() const
 
 bool ModuleLoader::checkItemCondition(Item *item, Item *itemToDisable)
 {
-    if (m_evaluator->boolValue(item, StringConstants::conditionProperty(), true))
+    if (m_evaluator->boolValue(item, StringConstants::conditionProperty()))
         return true;
     m_disabledItems += itemToDisable ? itemToDisable : item;
     return false;
