@@ -378,6 +378,10 @@ private:
     Version m_qbsVersion;
     Item *m_tempScopeItem = nullptr;
     qint64 m_elapsedTimeProbes;
+    quint64 m_probesEncountered;
+    quint64 m_probesRun;
+    quint64 m_probesCachedCurrent;
+    quint64 m_probesCachedOld;
 };
 
 } // namespace Internal

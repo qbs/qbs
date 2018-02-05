@@ -284,6 +284,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_reader->clearExtraSearchPathsStack();
     m_reader->setEnableTiming(parameters.logElapsedTime());
     m_elapsedTimeProbes = 0;
+    m_probesEncountered = m_probesRun = m_probesCachedCurrent = m_probesCachedOld = 0;
     m_settings.reset(new Settings(parameters.settingsDirectory()));
 
     for (const QString &key : m_parameters.overriddenValues().keys()) {
@@ -1555,6 +1556,11 @@ void ModuleLoader::printProfilingInfo()
     m_logger.qbsLog(LoggerInfo, true) << "\t"
                                       << Tr::tr("Running Probes took %1.")
                                          .arg(elapsedTimeString(m_elapsedTimeProbes));
+    m_logger.qbsLog(LoggerInfo, true) << "\t"
+            << Tr::tr("%1 probes encountered, %2 configure scripts executed, "
+                      "%3 re-used from current run, %4 re-used from earlier run.")
+               .arg(m_probesEncountered).arg(m_probesRun).arg(m_probesCachedCurrent)
+               .arg(m_probesCachedOld);
 }
 
 static void mergeParameters(QVariantMap &dst, const QVariantMap &src)
@@ -2967,6 +2973,7 @@ void ModuleLoader::resolveProbes(ProductContext *productContext, Item *item)
 void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, Item *probe)
 {
     qCDebug(lcModuleLoader) << "Resolving Probe at " << probe->location().toString();
+    ++m_probesEncountered;
     const QString &probeId = probeGlobalId(probe);
     if (Q_UNLIKELY(probeId.isEmpty()))
         throw ErrorInfo(Tr::tr("Probe.id must be set."), probe->location());
@@ -3002,12 +3009,22 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         resolvedProbe
                 = findOldProductProbe(uniqueProductName, condition, initialProperties, sourceCode);
     }
-    if (!resolvedProbe)
+    if (!resolvedProbe) {
         resolvedProbe = findCurrentProbe(probe->location(), condition, initialProperties);
+        if (resolvedProbe) {
+            qCDebug(lcModuleLoader) << "probe results cached from current run";
+            ++m_probesCachedCurrent;
+        }
+    } else {
+        qCDebug(lcModuleLoader) << "probe results cached from earlier run";
+        ++m_probesCachedOld;
+    }
     std::vector<QString> importedFilesUsedInConfigure;
     if (!condition) {
         qCDebug(lcModuleLoader) << "Probe disabled; skipping";
     } else if (!resolvedProbe) {
+        ++m_probesRun;
+        qCDebug(lcModuleLoader) << "configure script needs to run";
         const Evaluator::FileContextScopes fileCtxScopes
                 = m_evaluator->fileContextScopes(configureScript->file());
         engine->currentContext()->pushScope(fileCtxScopes.fileScope);
