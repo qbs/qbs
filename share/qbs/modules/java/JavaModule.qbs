@@ -34,6 +34,7 @@ import qbs.ModUtils
 import qbs.Probes
 import qbs.Process
 import qbs.TextFile
+import qbs.Utilities
 
 import "utils.js" as JavaUtils
 
@@ -66,7 +67,7 @@ Module {
 
     property string jdkPath: jdk.path
 
-    version: compilerVersion
+    version: [compilerVersionMajor, compilerVersionMinor, compilerVersionPatch].join(".")
     property string compilerVersion: jdkVersionProbe.version
                                      ? jdkVersionProbe.version[1] : undefined
     property var compilerVersionParts: compilerVersion ? compilerVersion.split(/[\._]/).map(function(item) { return parseInt(item, 10); }) : []
@@ -151,12 +152,16 @@ Module {
     }
 
     property path runtimeJarPath: {
+        if (compilerVersionMajor >= 9)
+            return undefined;
         if (classesJarPath)
             return classesJarPath;
         return FileInfo.joinPaths(jdkPath, "jre", "lib", "rt.jar");
     }
 
     property path toolsJarPath: {
+        if (compilerVersionMajor >= 9)
+            return undefined;
         if (classesJarPath)
             return classesJarPath;
         return FileInfo.joinPaths(jdkPath, "lib", "tools.jar");
@@ -169,13 +174,15 @@ Module {
         validator.setRequiredProperty("compilerVersionParts", compilerVersionParts);
         validator.setRequiredProperty("compilerVersionMajor", compilerVersionMajor);
         validator.setRequiredProperty("compilerVersionMinor", compilerVersionMinor);
-        validator.setRequiredProperty("compilerVersionUpdate", compilerVersionUpdate);
+        if (Utilities.versionCompare(version, "9") < 0)
+            validator.setRequiredProperty("compilerVersionUpdate", compilerVersionUpdate);
         validator.addVersionValidator("compilerVersion", compilerVersion
-                                      ? compilerVersion.replace("_", ".") : undefined, 4, 4);
+                                      ? compilerVersion.replace("_", ".") : undefined, 3, 4);
         validator.addRangeValidator("compilerVersionMajor", compilerVersionMajor, 1);
         validator.addRangeValidator("compilerVersionMinor", compilerVersionMinor, 0);
         validator.addRangeValidator("compilerVersionPatch", compilerVersionPatch, 0);
-        validator.addRangeValidator("compilerVersionUpdate", compilerVersionUpdate, 0);
+        if (Utilities.versionCompare(version, "9") < 0)
+            validator.addRangeValidator("compilerVersionUpdate", compilerVersionUpdate, 0);
         validator.validate();
     }
 
