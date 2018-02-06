@@ -151,7 +151,10 @@ void TestBlackboxJava::javaDependencyTracking()
     if (!javaVersion.isEmpty())
         rp.arguments << ("modules.java.languageVersion:'" + javaVersion + "'");
     rmDirR(relativeBuildDir());
-    QCOMPARE(runQbs(rp), 0);
+    const bool defaultJdkPossiblyTooOld = jdkPath.isEmpty() && !javaVersion.isEmpty();
+    rp.expectFailure = defaultJdkPossiblyTooOld;
+    QVERIFY(runQbs(rp) == 0
+            || (defaultJdkPossiblyTooOld && m_qbsStderr.contains("invalid source release")));
 }
 
 void TestBlackboxJava::javaDependencyTracking_data()

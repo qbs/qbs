@@ -9,11 +9,19 @@ Project {
 Application {
     Probe {
         id: dummy
+        property bool isMingw: qbs.toolchain.contains("mingw")
+        property bool isMsvc: qbs.toolchain.contains("msvc")
         property var buildEnv: cpp.buildEnv
         configure: {
-            if (buildEnv) {
+            if (!buildEnv)
+                return;
+            if (isMsvc) {
+                console.info("is msvc");
                 console.info("INCLUDE=" + buildEnv["INCLUDE"]);
                 console.info("LIB=" + buildEnv["LIB"]);
+            } else if (isMingw) {
+                console.info("is mingw");
+                console.info("PATH=" + buildEnv["PATH"]);
             }
         }
     }

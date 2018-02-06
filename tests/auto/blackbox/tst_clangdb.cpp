@@ -109,17 +109,18 @@ void TestClangDb::ensureBuildTreeCreated()
     QCOMPARE(runQbs(), 0);
     QVERIFY(QFile::exists(buildDir));
 
-    const SettingsPtr s = settings();
-    qbs::Profile profile(profileName(), s.get());
-    if (profile.value("qbs.toolchain").toStringList().contains("msvc")) {
+    if (m_qbsStdout.contains("is msvc") || m_qbsStdout.contains("is mingw")) {
         sanitizeOutput(&m_qbsStdout);
         for (const auto &line : m_qbsStdout.split('\n')) {
             static const QByteArray includeEnv = "INCLUDE=";
             static const QByteArray libEnv = "LIB=";
+            static const QByteArray pathEnv = "PATH=";
             if (line.startsWith(includeEnv))
                 processEnvironment.insert("INCLUDE", line.mid(includeEnv.size()));
             if (line.startsWith(libEnv))
                 processEnvironment.insert("LIB", line.mid(libEnv.size()));
+            if (line.startsWith(pathEnv))
+                processEnvironment.insert("PATH", line.mid(pathEnv.size()));
         }
     }
 }

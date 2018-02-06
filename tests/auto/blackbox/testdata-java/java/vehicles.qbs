@@ -1,5 +1,6 @@
 import qbs
 import qbs.FileInfo
+import qbs.Utilities
 
 Project {
     DynamicLibrary {
@@ -29,7 +30,7 @@ Project {
         ]
 
         Group {
-            condition: java.compilerVersionMinor >= 8
+            condition: Utilities.versionCompare(java.version, "1.8") >= 0
             files: ["Car8.java", "HelloWorld8.java"]
         }
 
@@ -59,7 +60,7 @@ Project {
         files: ["Car.java", "Vehicle.java"]
 
         Group {
-            condition: java.compilerVersionMinor >= 8
+            condition: Utilities.versionCompare(java.version, "1.8") >= 0
             files: ["Car8.java"]
         }
 
@@ -67,7 +68,7 @@ Project {
             Depends { name: "cpp" }
             cpp.systemIncludePaths: {
                 var paths = importingProduct.java.jdkIncludePaths;
-                if (importingProduct.java.compilerVersionMinor >= 8) {
+                if (Utilities.versionCompare(importingProduct.java.version, "1.8") >= 0) {
                     paths.push(product.buildDirectory); // generated JNI headers
                 }
                 return paths;
