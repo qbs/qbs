@@ -1424,6 +1424,8 @@ void TestBlackbox::cxxLanguageVersion()
         resolveParams.arguments << ("modules.cpp.cxxLanguageVersion:" + version);
     QCOMPARE(runQbs(resolveParams), 0);
     QString mapKey;
+    if (version == "c++17" && m_qbsStdout.contains("is even newer MSVC: true"))
+        mapKey = "msvc-brandnew";
     if (m_qbsStdout.contains("is newer MSVC: true"))
         mapKey = "msvc-new";
     else if (m_qbsStdout.contains("is older MSVC: true"))
@@ -1469,8 +1471,9 @@ void TestBlackbox::cxxLanguageVersion_data()
             << QVariantMap({std::make_pair(QString("msvc-old"), QString("/std:"))});
     QTest::newRow("C++17")
             << QString("c++17")
-            << QVariantMap({std::make_pair(QString("gcc"), QString("-std=c++17")),
-                            std::make_pair(QString("msvc-new"), QString("/std:c++latest"))
+            << QVariantMap({std::make_pair(QString("gcc"), QString("-std=c++1z")),
+                            std::make_pair(QString("msvc-new"), QString("/std:c++latest")),
+                            std::make_pair(QString("msvc-brandnew"), QString("/std:c++17"))
                            })
             << QVariantMap({std::make_pair(QString("msvc-old"), QString("/std:"))});
     QTest::newRow("C++21")

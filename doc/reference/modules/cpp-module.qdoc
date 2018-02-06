@@ -651,7 +651,7 @@
 
     If the value is left undefined, the compiler default will be used.
 
-    Possible values include: \c{"c++98"}, \c{"c++11"}, \c{"c++14"}.
+    Possible values include: \c{"c++98"}, \c{"c++11"}, \c{"c++14"}, \c{"c++17"}.
 
     \nodefaultvalue
 */
