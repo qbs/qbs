@@ -43,6 +43,7 @@ private slots:
     void alwaysRun();
     void alwaysRun_data();
     void artifactsMapInvalidation();
+    void artifactsMapRaceCondition();
     void artifactScanning();
     void assembly();
     void auxiliaryInputsFromDependencies();

@@ -373,6 +373,12 @@ void TestBlackbox::artifactsMapInvalidation()
     QCOMPARE(sourceFile.readAll(), generatedFile.readAll());
 }
 
+void TestBlackbox::artifactsMapRaceCondition()
+{
+    QDir::setCurrent(testDataDir + "/artifacts-map-race-condition");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::artifactScanning()
 {
     const QString projectDir = testDataDir + "/artifact-scanning";

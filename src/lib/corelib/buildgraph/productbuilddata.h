@@ -47,6 +47,8 @@
 
 #include <QtCore/qlist.h>
 
+#include <mutex>
+
 namespace qbs {
 namespace Internal {
 
@@ -75,7 +77,7 @@ public:
     void removeAllArtifactsWithChangedInputsForRule(const RuleConstPtr &rule);
     bool ruleHasArtifactWithChangedInputs(const RuleConstPtr &rule) const;
 
-    ArtifactSetByFileTag artifactsByFileTag() const { return m_artifactsByFileTag; }
+    ArtifactSetByFileTag artifactsByFileTag() const;
 
     AllRescuableArtifactData rescuableArtifactData() const { return m_rescuableArtifactData; }
     void setRescuableArtifactData(const AllRescuableArtifactData &rad);
@@ -107,6 +109,7 @@ private:
     unsigned int m_buildPriority;
 
     ArtifactSetByFileTag m_artifactsByFileTag;
+    mutable std::mutex m_artifactsMapMutex;
 
     typedef QHash<RuleConstPtr, ArtifactSet> ArtifactSetByRule;
     ArtifactSetByRule m_artifactsWithChangedInputsPerRule;

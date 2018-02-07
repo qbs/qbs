@@ -86,6 +86,7 @@ void ProductBuildData::store(PersistentPool &pool) const
 
 void ProductBuildData::addArtifactToSet(Artifact *artifact)
 {
+    std::lock_guard<std::mutex> l(m_artifactsMapMutex);
     for (const FileTag &tag : artifact->fileTags()) {
         m_artifactsByFileTag[tag] += artifact;
         m_jsArtifactsMapUpToDate = false;
@@ -101,6 +102,7 @@ void ProductBuildData::removeArtifact(Artifact *artifact)
 
 void ProductBuildData::removeArtifactFromSetByFileTag(Artifact *artifact, const FileTag &fileTag)
 {
+    std::lock_guard<std::mutex> l(m_artifactsMapMutex);
     const auto it = m_artifactsByFileTag.find(fileTag);
     if (it == m_artifactsByFileTag.end())
         return;
@@ -112,6 +114,7 @@ void ProductBuildData::removeArtifactFromSetByFileTag(Artifact *artifact, const 
 
 void ProductBuildData::addFileTagToArtifact(Artifact *artifact, const FileTag &tag)
 {
+    std::lock_guard<std::mutex> l(m_artifactsMapMutex);
     m_artifactsByFileTag[tag] += artifact;
     m_jsArtifactsMapUpToDate = false;
 }
@@ -135,6 +138,12 @@ void ProductBuildData::removeAllArtifactsWithChangedInputsForRule(const RuleCons
 bool ProductBuildData::ruleHasArtifactWithChangedInputs(const RuleConstPtr &rule) const
 {
     return !m_artifactsWithChangedInputsPerRule.value(rule).empty();
+}
+
+ArtifactSetByFileTag ProductBuildData::artifactsByFileTag() const
+{
+    std::lock_guard<std::mutex> l(m_artifactsMapMutex);
+    return m_artifactsByFileTag;
 }
 
 void ProductBuildData::setRescuableArtifactData(const AllRescuableArtifactData &rad)
