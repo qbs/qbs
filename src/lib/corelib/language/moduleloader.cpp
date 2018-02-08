@@ -283,6 +283,9 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_disabledItems.clear();
     m_reader->clearExtraSearchPathsStack();
     m_reader->setEnableTiming(parameters.logElapsedTime());
+    m_elapsedTimeProbes = m_elapsedTimePrepareProducts = m_elapsedTimeHandleProducts
+            = m_elapsedTimeProductDependencies = m_elapsedTimeTransitiveDependencies
+            = m_elapsedTimePropertyChecking = 0;
     m_elapsedTimeProbes = 0;
     m_probesEncountered = m_probesRun = m_probesCachedCurrent = m_probesCachedOld = 0;
     m_settings.reset(new Settings(parameters.settingsDirectory()));
@@ -553,6 +556,8 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
     loadResult->projectProbes = tlp.probes;
 
     m_reader->clearExtraSearchPathsStack();
+    AccumulatingTimer timer(m_parameters.logElapsedTime()
+                            ? &m_elapsedTimePropertyChecking : nullptr);
     PropertyDeclarationCheck check(m_disabledItems, m_parameters, m_logger);
     check(projectItem);
 }
@@ -926,6 +931,8 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ModuleLoader::Product
 
 void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productItem)
 {
+    AccumulatingTimer timer(m_parameters.logElapsedTime()
+                            ? &m_elapsedTimePrepareProducts : nullptr);
     checkCancelation();
     qCDebug(lcModuleLoader) << "prepareProduct" << productItem->file()->filePath();
 
@@ -976,6 +983,8 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
 
 void ModuleLoader::setupProductDependencies(ProductContext *productContext)
 {
+    AccumulatingTimer timer(m_parameters.logElapsedTime()
+                            ? &m_elapsedTimeProductDependencies : nullptr);
     checkCancelation();
     Item *item = productContext->item;
     qCDebug(lcModuleLoader) << "setupProductDependencies" << productContext->name
@@ -1066,6 +1075,7 @@ ModuleLoader::ModuleDependencies ModuleLoader::setupReverseModuleDependencies(co
 
 void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 {
+    AccumulatingTimer timer(m_parameters.logElapsedTime() ? &m_elapsedTimeHandleProducts : nullptr);
     if (productContext->info.delayedError.hasError())
         return;
 
@@ -1554,13 +1564,28 @@ void ModuleLoader::printProfilingInfo()
                                       << Tr::tr("Project file loading and parsing took %1.")
                                          .arg(elapsedTimeString(m_reader->elapsedTime()));
     m_logger.qbsLog(LoggerInfo, true) << "\t"
+                                      << Tr::tr("Preparing products took %1.")
+                                         .arg(elapsedTimeString(m_elapsedTimePrepareProducts));
+    m_logger.qbsLog(LoggerInfo, true) << "\t"
+                                      << Tr::tr("Setting up product dependencies took %1.")
+                                         .arg(elapsedTimeString(m_elapsedTimeProductDependencies));
+    m_logger.qbsLog(LoggerInfo, true) << "\t\t"
+            << Tr::tr("Setting up transitive product dependencies took %1.")
+               .arg(elapsedTimeString(m_elapsedTimeTransitiveDependencies));
+    m_logger.qbsLog(LoggerInfo, true) << "\t"
+                                      << Tr::tr("Handling products took %1.")
+                                      .arg(elapsedTimeString(m_elapsedTimeHandleProducts));
+    m_logger.qbsLog(LoggerInfo, true) << "\t\t"
                                       << Tr::tr("Running Probes took %1.")
                                          .arg(elapsedTimeString(m_elapsedTimeProbes));
-    m_logger.qbsLog(LoggerInfo, true) << "\t"
+    m_logger.qbsLog(LoggerInfo, true) << "\t\t"
             << Tr::tr("%1 probes encountered, %2 configure scripts executed, "
                       "%3 re-used from current run, %4 re-used from earlier run.")
                .arg(m_probesEncountered).arg(m_probesRun).arg(m_probesCachedCurrent)
                .arg(m_probesCachedOld);
+    m_logger.qbsLog(LoggerInfo, true) << "\t"
+                                      << Tr::tr("Property checking took %1.")
+                                         .arg(elapsedTimeString(m_elapsedTimePropertyChecking));
 }
 
 static void mergeParameters(QVariantMap &dst, const QVariantMap &src)
@@ -3276,6 +3301,8 @@ void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
 
 void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
 {
+    AccumulatingTimer timer(m_parameters.logElapsedTime()
+                            ? &m_elapsedTimeTransitiveDependencies : nullptr);
     qCDebug(lcModuleLoader) << "addTransitiveDependencies";
 
     std::vector<Item::Module> transitiveDeps = allModules(ctx->item);

@@ -377,7 +377,13 @@ private:
     std::unique_ptr<Settings> m_settings;
     Version m_qbsVersion;
     Item *m_tempScopeItem = nullptr;
+
     qint64 m_elapsedTimeProbes;
+    qint64 m_elapsedTimePrepareProducts;
+    qint64 m_elapsedTimeProductDependencies;
+    qint64 m_elapsedTimeTransitiveDependencies;
+    qint64 m_elapsedTimeHandleProducts;
+    qint64 m_elapsedTimePropertyChecking;
     quint64 m_probesEncountered;
     quint64 m_probesRun;
     quint64 m_probesCachedCurrent;
