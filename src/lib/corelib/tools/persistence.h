@@ -87,8 +87,17 @@ public:
         static void load(T &object, PersistentPool *pool) { object.load(*pool); }
     };
 
-    template<typename T> void store(const T &value) { Helper<T>().store(value, this); }
-    template<typename T> void load(T &value) { Helper<T>().load(value, this); }
+    template<typename T, typename ...Types> void store(const T &value, const Types &...args)
+    {
+        Helper<T>().store(value, this);
+        store(args...);
+    }
+
+    template<typename T, typename ...Types> void load(T &value, Types &...args)
+    {
+        Helper<T>().load(value, this);
+        load(args...);
+    }
     template<typename T> T load() {
         T tmp;
         Helper<T>().load(tmp, this);
@@ -118,6 +127,10 @@ private:
     void storeString(const QString &t);
     QString loadString(int id);
     QString idLoadString();
+
+    // Recursion termination
+    void store() {}
+    void load() {}
 
     QDataStream m_stream;
     HeadData m_headData;
