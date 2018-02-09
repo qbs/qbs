@@ -101,9 +101,9 @@ static void initializeJsExtensionFileInfo(QScriptValue extensionObject)
     fileInfoObj.setProperty(QLatin1String("fromWindowsSeparators"),
                             engine->newFunction(FileInfoExtension::js_fromWindowsSeparators));
     fileInfoObj.setProperty(QLatin1String("toNativeSeparators"),
-                            engine->newFunction(FileInfoExtension::js_toWindowsSeparators));
+                            engine->newFunction(FileInfoExtension::js_toNativeSeparators));
     fileInfoObj.setProperty(QLatin1String("fromNativeSeparators"),
-                            engine->newFunction(FileInfoExtension::js_fromWindowsSeparators));
+                            engine->newFunction(FileInfoExtension::js_fromNativeSeparators));
     fileInfoObj.setProperty(QLatin1String("joinPaths"),
                             engine->newFunction(FileInfoExtension::js_joinPaths));
     extensionObject.setProperty(QLatin1String("FileInfo"), fileInfoObj);
