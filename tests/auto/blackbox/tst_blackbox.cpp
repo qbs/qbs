@@ -867,7 +867,7 @@ void TestBlackbox::driverLinkerFlags()
     QByteArray compileLine;
     QByteArray linkLine;
     for (const QByteArray &line : output) {
-        if (line.contains("-c"))
+        if (line.contains(" -c "))
             compileLine = line;
         else if (line.contains("main.cpp.o"))
             linkLine = line;
