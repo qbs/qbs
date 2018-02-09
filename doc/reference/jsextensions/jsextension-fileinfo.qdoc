@@ -64,6 +64,13 @@
     Returns the last component of \c filePath, that is, everything after the
     last '/' character.
 
+    \section2 fromNativeSeparators
+    \code
+    FileInfo.fromNativeSeparators(filePath: string): string
+    \endcode
+    On Windows hosts, this function behaves the same as \l fromWindowsSeparators. On other
+    operating systems, it returns the input unmodified.
+
     \section2 fromWindowsSeparators
     \code
     FileInfo.fromWindowsSeparators(filePath: string): string
@@ -104,6 +111,13 @@
     If necessary, '..' components are inserted.
     The function assumes \c dirPath and \c filePath to be absolute paths and \c dirPath to
     be a directory.
+
+    \section2 toNativeSeparators
+    \code
+    FileInfo.toNativeSeparators(filePath: string): string
+    \endcode
+    On Windows hosts, this function behaves the same as \l toWindowsSeparators. On other
+    operating systems, it returns the input unmodified.
 
     \section2 toWindowsSeparators
     \code
