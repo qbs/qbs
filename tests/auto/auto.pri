@@ -9,7 +9,7 @@ INCLUDEPATH += $$PWD/../../src $$PWD/../../src/app/shared
 QT = core testlib
 CONFIG += depend_includepath testcase console
 CONFIG -= app_bundle
-CONFIG += c++11
+CONFIG += c++14
 target.CONFIG += no_default_install
 
 dev_lib_frameworks=$$QMAKE_XCODE_DEVELOPER_PATH/Library/Frameworks

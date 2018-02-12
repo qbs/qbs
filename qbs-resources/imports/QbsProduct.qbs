@@ -15,7 +15,7 @@ Product {
             res.push("QT_STRICT_ITERATORS");
         return res;
     }
-    cpp.cxxLanguageVersion: "c++11"
+    cpp.cxxLanguageVersion: "c++14"
     cpp.enableExceptions: true
     cpp.rpaths: qbsbuildconfig.libRPaths
 }

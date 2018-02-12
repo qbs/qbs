@@ -17,7 +17,7 @@ QtApplication {
         "../../../src",
         "../../../src/app/shared", // for the logger
     ]
-    cpp.cxxLanguageVersion: "c++11"
+    cpp.cxxLanguageVersion: "c++14"
     destinationDirectory: "bin"
     Group {
         name: "logging"

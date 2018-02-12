@@ -1,7 +1,7 @@
 include(../libexec.pri)
 
 TARGET = qbs_processlauncher
-CONFIG += console c++11
+CONFIG += console c++14
 CONFIG -= app_bundle
 QT = core network
 

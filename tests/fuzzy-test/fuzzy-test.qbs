@@ -5,7 +5,7 @@ QtApplication {
     destinationDirectory: "bin"
     type: "application"
     consoleApplication: true
-    cpp.cxxLanguageVersion: "c++11"
+    cpp.cxxLanguageVersion: "c++14"
     files: [
         "commandlineparser.cpp",
         "commandlineparser.h",
