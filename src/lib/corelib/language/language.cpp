@@ -109,17 +109,14 @@ void FileTagger::setPatterns(const QStringList &patterns)
  */
 void FileTagger::load(PersistentPool &pool)
 {
-    setPatterns(pool.load<QStringList>());
+    pool.load(m_patterns);
     pool.load(m_fileTags);
     pool.load(m_priority);
 }
 
 void FileTagger::store(PersistentPool &pool) const
 {
-    QStringList patterns;
-    for (const QRegExp &regExp : qAsConst(m_patterns))
-        patterns << regExp.pattern();
-    pool.store(patterns);
+    pool.store(m_patterns);
     pool.store(m_fileTags);
     pool.store(m_priority);
 }

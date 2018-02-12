@@ -46,6 +46,7 @@
 #include <QtCore/qdatastream.h>
 #include <QtCore/qflags.h>
 #include <QtCore/qprocess.h>
+#include <QtCore/qregexp.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
 
@@ -253,6 +254,12 @@ template<> struct PersistentPool::Helper<QVariant>
 {
     static void store(const QVariant &v, PersistentPool *pool) { pool->storeVariant(v); }
     static void load(QVariant &v, PersistentPool *pool) { v = pool->loadVariant(); }
+};
+
+template<> struct PersistentPool::Helper<QRegExp>
+{
+    static void store(const QRegExp &re, PersistentPool *pool) { pool->store(re.pattern()); }
+    static void load(QRegExp &re, PersistentPool *pool) { re.setPattern(pool->idLoadString()); }
 };
 
 template<> struct PersistentPool::Helper<QProcessEnvironment>
