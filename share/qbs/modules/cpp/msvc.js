@@ -57,6 +57,13 @@ function handleCpuFeatures(input, flags) {
     }
 }
 
+function hasCxx17Option(input)
+{
+    // Probably this is not the earliest version to support the flag, but we have tested this one
+    // and it's a pain to find out the exact minimum.
+    return Utilities.versionCompare(input.cpp.compilerVersion, "19.12.25831") >= 0;
+}
+
 function addLanguageVersionFlag(input, args) {
     var cxxVersion = input.cpp.cxxLanguageVersion;
     if (!cxxVersion)
@@ -70,6 +77,8 @@ function addLanguageVersionFlag(input, args) {
     var flag;
     if (cxxVersion === "c++14")
         flag = "/std:c++14";
+    else if (cxxVersion === "c++17" && hasCxx17Option(input))
+        flag = "/std:c++17";
     else if (cxxVersion !== "c++11" && cxxVersion !== "c++98")
         flag = "/std:c++latest";
     if (flag)

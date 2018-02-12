@@ -1,5 +1,6 @@
 import qbs 1.0
 import qbs.FileInfo
+import qbs.Utilities
 import "../QtModule.qbs" as QtModule
 
 QtModule {
@@ -8,6 +9,8 @@ QtModule {
     property string qscxmlcName: "qscxmlc"
     property string className
     property string namespace
+    property bool generateStateMethods
+    property stringList additionalCompilerFlags
 
     Rule {
         inputs: ["qt.scxml.compilable"]
@@ -37,6 +40,12 @@ QtModule {
             var namespace = input.moduleProperty("Qt.scxml", "namespace");
             if (namespace)
                 args.push("--namespace", namespace);
+            if (input.Qt.scxml.generateStateMethods
+                    && Utilities.versionCompare(product.Qt.scxml.version, "5.9") >= 0) {
+                args.push("--statemethods");
+            }
+            if (input.Qt.scxml.additionalCompilerFlags)
+                args = args.concat(input.Qt.scxml.additionalCompilerFlags);
             args.push(input.filePath);
             var cmd = new Command(compilerPath, args);
             cmd.description = "compiling " + input.fileName;

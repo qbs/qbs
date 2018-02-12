@@ -31,7 +31,7 @@
     \qmltype Profile
     \inqmlmodule QbsLanguageItems
     \ingroup list-of-items
-    \keyword QML.Properties
+    \keyword QML.Profile
 
     \brief Creates a profile within the project
 
