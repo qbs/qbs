@@ -10,7 +10,6 @@ QbsProduct {
 
     Depends { name: "Qt.network" }
 
-    cpp.cxxLanguageVersion: "c++11"
     cpp.includePaths: base.concat(pathToProtocolSources)
 
     files: [

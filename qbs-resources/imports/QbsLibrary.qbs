@@ -15,7 +15,6 @@ QbsProduct {
         cpp.soVersion: version.replace(/\.\d+$/, '')
     }
     cpp.visibility: "minimal"
-    cpp.cxxLanguageVersion: "c++11"
     property bool visibilityType: Qt.core.staticBuild ? "static" : "dynamic"
     property string headerInstallPrefix: "/include/qbs"
     Group {

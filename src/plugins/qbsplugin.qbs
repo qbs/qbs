@@ -15,7 +15,6 @@ QbsProduct {
         condition: Qt.core.staticBuild
         cpp.defines: ["QBS_STATIC_LIB"]
     }
-    cpp.cxxLanguageVersion: "c++11"
     cpp.includePaths: base.concat(["../../../lib/corelib"])
     cpp.visibility: "minimal"
     destinationDirectory: FileInfo.joinPaths(project.buildDirectory,
